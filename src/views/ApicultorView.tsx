@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity } from 'lucide-react';
-import { colmenas, roleGreetings } from '../data/mockData';
+import { colmenas as mockColmenas, roleGreetings } from '../data/mockData';
 import type { Colmena } from '../data/mockData';
+import { supabase } from '../lib/supabase';
 import ColmenaFicha from '../components/apicultor/ColmenaFicha';
 import CalendarioCiclico from '../components/apicultor/CalendarioCiclico';
 import TrazabilidadPanel from '../components/apicultor/TrazabilidadPanel';
@@ -11,16 +12,87 @@ type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad';
 
 export default function ApicultorView() {
     const { greeting, title, subtitle } = roleGreetings.apicultor;
-    const [localColmenas, setLocalColmenas] = useState<Colmena[]>(colmenas);
+    const [localColmenas, setLocalColmenas] = useState<Colmena[]>([]);
+    const [loading, setLoading] = useState(true);
     const [selectedColmena, setSelectedColmena] = useState<Colmena | null>(null);
     const [activeView, setActiveView] = useState<ViewTab>('colmenas');
 
-    const handleUpdateColmena = (updated: Colmena) => {
+    // Fetch data from Supabase
+    useEffect(() => {
+        async function loadData() {
+            setLoading(true);
+            try {
+                // 1. Fetch apiarios
+                const { data: apiarios } = await supabase.from('apiarios').select('*');
+                const apiarioMap = new Map(apiarios?.map(a => [a.id, a.name]) || []);
+
+                // 2. Fetch colmenas with related data
+                const { data: colmenasData } = await supabase.from('colmenas').select(`
+                    *,
+                    inspecciones (*),
+                    varroa_records (*),
+                    peso_records (*)
+                `);
+
+                if (colmenasData) {
+                    const mapped: Colmena[] = colmenasData.map(c => ({
+                        id: c.id,
+                        name: c.name,
+                        location: c.apiario_id ? apiarioMap.get(c.apiario_id) || 'Desconocido' : 'Desconocido',
+                        lat: 0, lng: 0, // Simplified
+                        health: c.health,
+                        queen: c.queen, // Simplified
+                        reinaHistory: [],
+                        lastInspection: c.last_inspection || '',
+                        inspecciones: c.inspecciones?.map((i: any) => ({
+                            date: i.date, inspector: i.inspector, marcos_cria: i.marcos_cria,
+                            marcos_miel: i.marcos_miel, varroa: i.varroa, poblacion: i.poblacion,
+                            reina: i.reina, enjambrazon_riesgo: i.enjambrazon_riesgo, notes: i.notes
+                        })) || [],
+                        production: parseFloat(c.production_total) || 0,
+                        pesoHistory: c.peso_records?.map((p: any) => ({
+                            date: p.date, kg: parseFloat(p.kg), note: p.note
+                        })) || [],
+                        varroaHistory: c.varroa_records?.map((v: any) => ({
+                            date: v.date, level: parseFloat(v.level), method: v.method
+                        })) || [],
+                        floracion: c.floracion || '',
+                        treatments: [],
+                        notes: c.notes || '',
+                        costos: { horas_anuales: 0, costo_hora: 0, amortizacion_cajon: 12000, insumos_anuales: 0, produccion_kg: 0 },
+                        blockchainHash: c.blockchain_hash || '',
+                        loteActivo: c.lote_activo || '',
+                        alzas: c.alzas || 1,
+                        nucleosCandidatos: c.nucleos_candidatos || false
+                    }));
+                    setLocalColmenas(mapped);
+                } else {
+                    setLocalColmenas(mockColmenas); // Fallback
+                }
+            } catch (err) {
+                console.error("Error loading Supabase data:", err);
+                setLocalColmenas(mockColmenas); // Fallback
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadData();
+    }, []);
+
+    const handleUpdateColmena = async (updated: Colmena) => {
+        // Optimistic update in UI
         setLocalColmenas(prev => prev.map(c => c.id === updated.id ? updated : c));
         if (selectedColmena?.id === updated.id) setSelectedColmena(updated);
+
+        // We would ideally write back to Supabase here
+        // Ex: supabase.from('colmenas').update({ name: updated.name }).eq('id', updated.id)
     };
 
     const totalProduction = localColmenas.reduce((sum, c) => sum + c.production, 0);
+
+    if (loading) {
+        return <div style={{ padding: 'var(--space-2xl)', textAlign: 'center', color: 'var(--bosque-ulmo)' }}>Sincronizando con el bosque...</div>;
+    }
 
     return (
         <div>

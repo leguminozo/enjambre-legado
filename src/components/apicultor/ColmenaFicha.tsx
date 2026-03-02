@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, MapPin, Crown, Droplets, Scale, DollarSign, Link, AlertTriangle, CheckCircle2, ChevronRight, Plus } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { Colmena } from '../../data/mockData';
+import { supabase } from '../../lib/supabase';
 
 type Tab = 'resumen' | 'inspecciones' | 'varroa' | 'peso' | 'costos' | 'blockchain';
 
@@ -159,8 +160,20 @@ export default function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
                                         style={{ width: '100%', minHeight: 60, padding: 'var(--space-sm)', border: '1px solid rgba(10,61,47,0.15)', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-datos)', fontSize: '0.85rem', resize: 'vertical' }} />
                                     <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
                                         <button className="btn btn-ghost btn-sm" onClick={() => setShowInspeccionForm(false)}>Cancelar</button>
-                                        <button className="btn btn-primary btn-sm" onClick={() => {
-                                            onUpdate({ ...colmena, inspecciones: [inspeccionForm as any, ...colmena.inspecciones] });
+                                        <button className="btn btn-primary btn-sm" onClick={async () => {
+                                            const newInspeccion = inspeccionForm as any;
+
+                                            // Write to Supabase first
+                                            if (colmena.id && !colmena.id.includes('mock')) {
+                                                const { error } = await supabase.from('inspecciones').insert({
+                                                    colmena_id: colmena.id, date: newInspeccion.date, inspector: newInspeccion.inspector || 'Apicultor',
+                                                    marcos_cria: newInspeccion.marcos_cria, marcos_miel: newInspeccion.marcos_miel, varroa: newInspeccion.varroa,
+                                                    poblacion: newInspeccion.poblacion, reina: newInspeccion.reina, enjambrazon_riesgo: newInspeccion.enjambrazon_riesgo, notes: newInspeccion.notes
+                                                });
+                                                if (error) console.error("Error saving inspeccion:", error);
+                                            }
+
+                                            onUpdate({ ...colmena, inspecciones: [newInspeccion, ...colmena.inspecciones] });
                                             setShowInspeccionForm(false);
                                         }}>Guardar</button>
                                     </div>
@@ -219,7 +232,13 @@ export default function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
                                     </div>
                                     <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
                                         <button className="btn btn-ghost btn-sm" onClick={() => setShowVarroaForm(false)}>Cancelar</button>
-                                        <button className="btn btn-primary btn-sm" onClick={() => {
+                                        <button className="btn btn-primary btn-sm" onClick={async () => {
+                                            if (colmena.id && !colmena.id.includes('mock')) {
+                                                const { error } = await supabase.from('varroa_records').insert({
+                                                    colmena_id: colmena.id, date: varroaForm.date, level: varroaForm.level, method: varroaForm.method
+                                                });
+                                                if (error) console.error("Error saving varroa:", error);
+                                            }
                                             onUpdate({ ...colmena, varroaHistory: [...colmena.varroaHistory, varroaForm] });
                                             setShowVarroaForm(false);
                                         }}>Registrar</button>
@@ -273,7 +292,13 @@ export default function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
                                     </div>
                                     <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
                                         <button className="btn btn-ghost btn-sm" onClick={() => setShowPesoForm(false)}>Cancelar</button>
-                                        <button className="btn btn-primary btn-sm" onClick={() => {
+                                        <button className="btn btn-primary btn-sm" onClick={async () => {
+                                            if (colmena.id && !colmena.id.includes('mock')) {
+                                                const { error } = await supabase.from('peso_records').insert({
+                                                    colmena_id: colmena.id, date: pesoForm.date, kg: pesoForm.kg, note: pesoForm.note
+                                                });
+                                                if (error) console.error("Error saving peso:", error);
+                                            }
                                             onUpdate({ ...colmena, pesoHistory: [...colmena.pesoHistory, pesoForm] });
                                             setShowPesoForm(false);
                                         }}>Registrar</button>

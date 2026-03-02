@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets } from 'lucide-react';
 import type { Colmena } from '../../data/mockData';
+import { supabase } from '../../lib/supabase';
 
 interface ApiarioManagerProps {
     colmenas: Colmena[];
@@ -39,7 +40,8 @@ export default function ApiarioManager({ colmenas: localColmenas, setColmenas: s
         } as unknown as Colmena);
     };
 
-    const handleSaveColmena = (c: Colmena) => {
+    const handleSaveColmena = async (c: Colmena) => {
+        // Optimistic UI updates
         setLocalColmenas(prev => {
             const exists = prev.find(p => p.id === c.id);
             if (exists) return prev.map(p => p.id === c.id ? c : p);
@@ -49,12 +51,54 @@ export default function ApiarioManager({ colmenas: localColmenas, setColmenas: s
             setExpandedApiarios(prev => [...prev, c.location]);
         }
         setEditingColmena(null);
+
+        // Supabase persistence
+        try {
+            let apiarioId = null;
+            // 1. Resolve or create Apiario by name (location)
+            const { data: existingAp } = await supabase.from('apiarios').select('id').eq('name', c.location).single();
+            if (existingAp) {
+                apiarioId = existingAp.id;
+            } else {
+                const { data: newAp } = await supabase.from('apiarios').insert({ name: c.location, lat: 0, lng: 0, health: 'optimal' }).select().single();
+                if (newAp) apiarioId = newAp.id;
+            }
+
+            // 2. Insert or update Colmena
+            const isNew = !c.id || c.id.includes('mock') || c.id.length < 20; // Supabase uses UUIDs
+            if (isNew && apiarioId) {
+                const { data: newRow } = await supabase.from('colmenas').insert({
+                    apiario_id: apiarioId, name: c.name, health: c.health,
+                    production_total: c.production || 0, floracion: c.floracion,
+                    last_inspection: c.lastInspection || null,
+                    alzas: c.alzas || 1, notes: c.notes || ''
+                }).select('id').single();
+
+                // Update local ID behind the scenes
+                if (newRow) {
+                    setLocalColmenas(prev => prev.map(p => p.id === c.id ? { ...p, id: newRow.id } : p));
+                }
+            } else if (!isNew) {
+                await supabase.from('colmenas').update({
+                    name: c.name, health: c.health, floracion: c.floracion,
+                    last_inspection: c.lastInspection || null,
+                    alzas: c.alzas || 1, notes: c.notes || ''
+                }).eq('id', c.id);
+            }
+        } catch (err) {
+            console.error("Error syncing colmena to Supabase", err);
+        }
     };
 
-    const handleDelete = (id: string, e: React.MouseEvent) => {
+    const handleDelete = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
         if (confirm('¿Eliminar esta colmena y todo su historial científico?')) {
+            // UI optimistic
             setLocalColmenas(prev => prev.filter(c => c.id !== id));
+            // Supabase delete
+            if (!id.includes('mock') && id.length >= 20) {
+                await supabase.from('colmenas').delete().eq('id', id);
+            }
         }
     };
 
