@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShoppingBag, Users, MapPin, CalendarDays, TrendingUp, Star, ArrowUpRight, ChevronRight, QrCode, Truck, X, ChevronDown } from 'lucide-react';
+import { ShoppingBag, Users, MapPin, CalendarDays, TrendingUp, Star, ArrowUpRight, QrCode, Truck, X, ChevronDown } from 'lucide-react';
 import { products, roleGreetings } from '../data/mockData';
 
 const pitches: Record<string, string> = {

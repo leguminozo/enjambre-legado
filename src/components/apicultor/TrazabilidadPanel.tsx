@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, TreePine, ChevronRight, CheckCircle2, ImageOff } from 'lucide-react';
+import { Link, ChevronRight, CheckCircle2, ImageOff } from 'lucide-react';
 import { arbolesPlantados, colmenas, reflexiones } from '../../data/mockData';
 
 export default function TrazabilidadPanel() {
@@ -9,13 +9,7 @@ export default function TrazabilidadPanel() {
     const totalTrees = arbolesPlantados.reduce((s, a) => s + a.cantidad, 0);
     const totalCO2 = arbolesPlantados.reduce((s, a) => s + a.co2_ton, 0);
 
-    const selectedColmena = selectedLote
-        ? colmenas.find(c => c.loteActivo === selectedLote)
-        : null;
 
-    const selectedArbol = selectedLote
-        ? arbolesPlantados.find(a => a.lotesMiel.some(l => l.replace('*', '').slice(0, 8) === selectedLote.slice(0, 8)))
-        : null;
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>

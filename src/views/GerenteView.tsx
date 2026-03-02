@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BarChart3, TrendingUp, DollarSign, Target, Leaf, Crown, ArrowUpRight, Expand, X, Minimize2 } from 'lucide-react';
+import { BarChart3, TrendingUp, DollarSign, Target, Leaf, Crown, ArrowUpRight, Expand, Minimize2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { roleGreetings } from '../data/mockData';
 

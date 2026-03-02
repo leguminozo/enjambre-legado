@@ -54,7 +54,7 @@ export default function CalendarioCiclico() {
                             <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="#8A9AAF" />
                             <Tooltip
                                 contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.78rem' }}
-                                formatter={(v: number, name: string) =>
+                                formatter={(v: any, name: any) =>
                                     name === 'flujoIndex' ? [`${v}/100`, 'Flujo néctar'] : [v, name]}
                                 labelFormatter={l => `📅 ${l}`}
                             />

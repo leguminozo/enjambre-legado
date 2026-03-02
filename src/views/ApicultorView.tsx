@@ -155,7 +155,7 @@ export default function ApicultorView() {
                         </div>
                     </div>
 
-                    <div className="card" style={{ background: 'linear-gradient(135deg, var(--bosque-ulmo), var(--bosque-ulmo-dark))', color: 'var(--crema-natural)', border: 'none' }} className="animate-in delay-4">
+                    <div className="card animate-in delay-4" style={{ background: 'linear-gradient(135deg, var(--bosque-ulmo), var(--bosque-ulmo-dark))', color: 'var(--crema-natural)', border: 'none' }}>
                         <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--oro-miel)', marginBottom: 'var(--space-sm)' }}>
                             Última Reflexión · 28 feb 2026
                         </div>

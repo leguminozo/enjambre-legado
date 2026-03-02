@@ -1,0 +1,114 @@
+-- Enjambre Legado - Database Schema
+
+-- APIARIOS
+CREATE TABLE IF NOT EXISTS apiarios (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    lat DOUBLE PRECISION NOT NULL,
+    lng DOUBLE PRECISION NOT NULL,
+    health TEXT CHECK (health IN ('optimal', 'attention', 'risk')),
+    details TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- COLMENAS
+CREATE TABLE IF NOT EXISTS colmenas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    apiario_id UUID REFERENCES apiarios(id) ON DELETE SET NULL,
+    name TEXT NOT NULL,
+    health TEXT CHECK (health IN ('optimal', 'attention', 'risk')) DEFAULT 'optimal',
+    queen TEXT,
+    last_inspection DATE,
+    production_total NUMERIC DEFAULT 0,
+    floracion TEXT,
+    notes TEXT,
+    alzas INTEGER DEFAULT 1,
+    nucleos_candidatos BOOLEAN DEFAULT FALSE,
+    blockchain_hash TEXT,
+    lote_activo TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- INSPECCIONES
+CREATE TABLE IF NOT EXISTS inspecciones (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    colmena_id UUID REFERENCES colmenas(id) ON DELETE CASCADE,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    inspector TEXT,
+    marcos_cria INTEGER,
+    marcos_miel INTEGER,
+    varroa NUMERIC,
+    poblacion TEXT CHECK (poblacion IN ('alta', 'media', 'baja')),
+    reina BOOLEAN DEFAULT TRUE,
+    enjambrazon_riesgo TEXT CHECK (enjambrazon_riesgo IN ('bajo', 'medio', 'alto')),
+    notes TEXT,
+    foto_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- VARROA RECORDS
+CREATE TABLE IF NOT EXISTS varroa_records (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    colmena_id UUID REFERENCES colmenas(id) ON DELETE CASCADE,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    level NUMERIC NOT NULL,
+    method TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- PESO RECORDS
+CREATE TABLE IF NOT EXISTS peso_records (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    colmena_id UUID REFERENCES colmenas(id) ON DELETE CASCADE,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    kg NUMERIC NOT NULL,
+    note TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- COSTOS COLMENA
+CREATE TABLE IF NOT EXISTS costos_colmena (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    colmena_id UUID REFERENCES colmenas(id) ON DELETE CASCADE,
+    horas_anuales NUMERIC DEFAULT 0,
+    costo_hora NUMERIC DEFAULT 0,
+    amortizacion_cajon NUMERIC DEFAULT 0,
+    insumos_anuales NUMERIC DEFAULT 0,
+    produccion_kg NUMERIC DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ARBOLES PLANTADOS
+CREATE TABLE IF NOT EXISTS arboles_plantados (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    especie TEXT NOT NULL,
+    cantidad INTEGER NOT NULL,
+    fecha TEXT,
+    sector TEXT,
+    lat DOUBLE PRECISION,
+    lng DOUBLE PRECISION,
+    co2_ton NUMERIC,
+    status TEXT CHECK (status IN ('joven', 'creciendo', 'adulto')),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- REFLEXIONES
+CREATE TABLE IF NOT EXISTS reflexiones (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    colmena_id UUID REFERENCES colmenas(id) ON DELETE SET NULL,
+    fecha DATE NOT NULL DEFAULT CURRENT_DATE,
+    texto TEXT NOT NULL,
+    foto_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- REINA HISTORY (Optional but good for completeness)
+CREATE TABLE IF NOT EXISTS reina_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    colmena_id UUID REFERENCES colmenas(id) ON DELETE CASCADE,
+    generation TEXT NOT NULL,
+    since DATE,
+    origin TEXT,
+    status TEXT CHECK (status IN ('activa', 'inactiva', 'ausente')),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
