@@ -1,30 +1,31 @@
 import { useState } from 'react';
-import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, ChevronRight, Activity, CalendarDays, LineChart } from 'lucide-react';
+import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity } from 'lucide-react';
 import { colmenas, roleGreetings } from '../data/mockData';
 import type { Colmena } from '../data/mockData';
 import ColmenaFicha from '../components/apicultor/ColmenaFicha';
 import CalendarioCiclico from '../components/apicultor/CalendarioCiclico';
 import TrazabilidadPanel from '../components/apicultor/TrazabilidadPanel';
+import ApiarioManager from '../components/apicultor/ApiarioManager';
 
 type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad';
 
 export default function ApicultorView() {
     const { greeting, title, subtitle } = roleGreetings.apicultor;
+    const [localColmenas, setLocalColmenas] = useState<Colmena[]>(colmenas);
     const [selectedColmena, setSelectedColmena] = useState<Colmena | null>(null);
     const [activeView, setActiveView] = useState<ViewTab>('colmenas');
-    const [showAllColmenas, setShowAllColmenas] = useState(false);
 
-    const totalProduction = colmenas.reduce((sum, c) => sum + c.production, 0);
-    const optimalCount = colmenas.filter(c => c.health === 'optimal').length;
-    const attentionCount = colmenas.filter(c => c.health === 'attention').length;
-    const riskCount = colmenas.filter(c => c.health === 'risk').length;
+    const handleUpdateColmena = (updated: Colmena) => {
+        setLocalColmenas(prev => prev.map(c => c.id === updated.id ? updated : c));
+        if (selectedColmena?.id === updated.id) setSelectedColmena(updated);
+    };
 
-    const displayedColmenas = showAllColmenas ? colmenas : colmenas.slice(0, 4);
+    const totalProduction = localColmenas.reduce((sum, c) => sum + c.production, 0);
 
     return (
         <div>
             {selectedColmena && (
-                <ColmenaFicha colmena={selectedColmena} onClose={() => setSelectedColmena(null)} />
+                <ColmenaFicha colmena={selectedColmena} onClose={() => setSelectedColmena(null)} onUpdate={handleUpdateColmena} />
             )}
 
             <div className="hero-banner animate-in">
@@ -39,7 +40,7 @@ export default function ApicultorView() {
 
             <div className="stats-grid">
                 {[
-                    { icon: <Hexagon size={20} />, val: colmenas.length, label: 'Colmenas activas', trend: '+1 nueva' },
+                    { icon: <Hexagon size={20} />, val: localColmenas.length, label: 'Colmenas activas', trend: '+1 nueva' },
                     { icon: <Droplets size={20} />, val: `${totalProduction} kg`, label: 'Producción temporada', trend: '+18%' },
                     { icon: <ThermometerSun size={20} />, val: '14°C', label: 'Temp. Pureo ahora' },
                     { icon: <TreePine size={20} />, val: '4.200', label: 'Árboles Pureo', trend: '+120' },
@@ -81,45 +82,8 @@ export default function ApicultorView() {
                 {/* Left Column (Main Content based on tab) */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                     {activeView === 'colmenas' && (
-                        <div className="card animate-in delay-2">
-                            <div className="section-header">
-                                <div>
-                                    <div className="section-title">Monitor de Colmenas</div>
-                                    <div className="section-subtitle">
-                                        <span style={{ color: 'var(--salud-optima)' }}>● {optimalCount} óptimas</span>
-                                        {attentionCount > 0 && <span style={{ marginLeft: 12, color: 'var(--salud-atencion)' }}>● {attentionCount} atención</span>}
-                                        {riskCount > 0 && <span style={{ marginLeft: 12, color: 'var(--salud-riesgo)' }}>● {riskCount} riesgo</span>}
-                                    </div>
-                                </div>
-                                <button className="btn btn-outline btn-sm" onClick={() => setShowAllColmenas(!showAllColmenas)}>
-                                    {showAllColmenas ? 'Ver menos' : 'Ver todas'}
-                                </button>
-                            </div>
-                            <div className="colmena-list">
-                                {displayedColmenas.map(c => (
-                                    <div key={c.id} className="colmena-item" onClick={() => setSelectedColmena(c)}>
-                                        <div className={`colmena-status ${c.health}`} />
-                                        <div style={{ flex: 1 }}>
-                                            <div className="colmena-name">{c.name}</div>
-                                            <div className="colmena-meta">{c.location} · {c.floracion}</div>
-                                            <div style={{ fontSize: '0.7rem', marginTop: 4, color: 'var(--text-muted)', display: 'flex', gap: 12 }}>
-                                                <span>⚖️ {c.pesoHistory.at(-1)?.kg} kg</span>
-                                                <span>🔬 Varroa {c.varroaHistory.at(-1)?.level}/10</span>
-                                            </div>
-                                        </div>
-                                        <div className="colmena-production">
-                                            <div className="colmena-production-value">{c.production} kg</div>
-                                            <div className="colmena-production-label">temporada</div>
-                                        </div>
-                                        <ChevronRight size={16} style={{ color: 'var(--text-muted)' }} />
-                                    </div>
-                                ))}
-                            </div>
-                            {!showAllColmenas && colmenas.length > 4 && (
-                                <div style={{ textAlign: 'center', marginTop: 'var(--space-md)', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                                    +{colmenas.length - 4} colmenas más
-                                </div>
-                            )}
+                        <div className="animate-in delay-2">
+                            <ApiarioManager colmenas={localColmenas} setColmenas={setLocalColmenas} onSelectColmena={setSelectedColmena} />
                         </div>
                     )}
 

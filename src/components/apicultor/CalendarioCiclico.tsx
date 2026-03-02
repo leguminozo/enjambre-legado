@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CalendarDays, CheckCircle2, Circle, Filter } from 'lucide-react';
+import { CalendarDays, CheckCircle2, Circle, Filter, Plus, X } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { calendarioTasks, flowPredictions } from '../../data/mockData';
 import type { CalendarioTask } from '../../data/mockData';
@@ -21,10 +21,30 @@ export default function CalendarioCiclico() {
     const [tasks, setTasks] = useState(calendarioTasks);
     const [filterCat, setFilterCat] = useState<CalendarioTask['category'] | 'all'>('all');
     const [showMonth, setShowMonth] = useState<string>('Marzo');
+    const [showNewTaskForm, setShowNewTaskForm] = useState(false);
+    const [newTaskForm, setNewTaskForm] = useState<Partial<CalendarioTask>>({
+        title: '', month: 'Marzo', week: 1, category: 'inspeccion', priority: 'media', colmena: ''
+    });
     const months = ['Marzo', 'Abril', 'Mayo', 'Agosto', 'Septiembre'];
 
     const toggle = (id: string) =>
         setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
+
+    const handleAddTask = () => {
+        if (!newTaskForm.title) return;
+        setTasks(prev => [{
+            id: Date.now().toString(),
+            title: newTaskForm.title!,
+            month: newTaskForm.month!,
+            week: newTaskForm.week!,
+            category: newTaskForm.category as any,
+            priority: newTaskForm.priority as any,
+            colmena: newTaskForm.colmena,
+            done: false
+        }, ...prev]);
+        setShowNewTaskForm(false);
+        setNewTaskForm({ title: '', month: showMonth, week: 1, category: 'inspeccion', priority: 'media', colmena: '' });
+    };
 
     const categories = ['all', 'inspeccion', 'cosecha', 'tratamiento', 'reforestacion', 'transhumancia', 'cera'] as const;
 
@@ -89,10 +109,53 @@ export default function CalendarioCiclico() {
                         </div>
                         <div className="section-subtitle">Planificador anual de tareas apícolas</div>
                     </div>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--salud-optima)' }}>
-                        {doneCount}/{filtered.length}
-                    </span>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--salud-optima)' }}>
+                            {doneCount}/{filtered.length}
+                        </span>
+                        <button className="btn btn-gold btn-sm" onClick={() => setShowNewTaskForm(true)}><Plus size={14} style={{ marginRight: 4 }} /> Tarea</button>
+                    </div>
                 </div>
+
+                {showNewTaskForm && (
+                    <div style={{ padding: 'var(--space-md)', background: 'var(--oro-miel-glow)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid rgba(212,160,23,0.3)', position: 'relative' }}>
+                        <button onClick={() => setShowNewTaskForm(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={16} /></button>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--bosque-ulmo)', marginBottom: 'var(--space-sm)' }}>Programar Nueva Tarea</div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, marginBottom: 8 }}>
+                            <input autoFocus type="text" placeholder="Título de la tarea..." className="input-field" value={newTaskForm.title} onChange={e => setNewTaskForm({ ...newTaskForm, title: e.target.value })} />
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 8 }}>
+                            <select className="input-field" value={newTaskForm.month} onChange={e => setNewTaskForm({ ...newTaskForm, month: e.target.value })}>
+                                {months.map(m => <option key={m} value={m}>{m}</option>)}
+                            </select>
+                            <select className="input-field" value={newTaskForm.week} onChange={e => setNewTaskForm({ ...newTaskForm, week: parseInt(e.target.value) })}>
+                                {[1, 2, 3, 4].map(w => <option key={w} value={w}>Semana {w}</option>)}
+                            </select>
+                            <select className="input-field" value={newTaskForm.category} onChange={e => setNewTaskForm({ ...newTaskForm, category: e.target.value as any })}>
+                                <option value="inspeccion">Inspección</option>
+                                <option value="tratamiento">Tratamiento</option>
+                                <option value="cosecha">Cosecha</option>
+                                <option value="transhumancia">Transhumancia</option>
+                                <option value="reforestacion">Reforestación</option>
+                            </select>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                            <select className="input-field" value={newTaskForm.priority} onChange={e => setNewTaskForm({ ...newTaskForm, priority: e.target.value as any })}>
+                                <option value="baja">Prioridad Baja</option>
+                                <option value="media">Prioridad Media</option>
+                                <option value="alta">Prioridad Alta</option>
+                            </select>
+                            <input type="text" placeholder="Apiario/Colmena opcional" className="input-field" value={newTaskForm.colmena} onChange={e => setNewTaskForm({ ...newTaskForm, colmena: e.target.value })} />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <button className="btn btn-primary btn-sm" onClick={handleAddTask}>Programar</button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Month tabs */}
                 <div style={{ display: 'flex', gap: 6, marginBottom: 'var(--space-md)', flexWrap: 'wrap' }}>

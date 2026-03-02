@@ -5,15 +5,23 @@ import type { Colmena } from '../../data/mockData';
 
 type Tab = 'resumen' | 'inspecciones' | 'varroa' | 'peso' | 'costos' | 'blockchain';
 
-interface Props { colmena: Colmena; onClose: () => void; }
+interface Props { colmena: Colmena; onClose: () => void; onUpdate: (updated: Colmena) => void; }
 
 const varroaColor = (v: number) => v <= 1.5 ? 'var(--salud-optima)' : v <= 3 ? 'var(--salud-atencion)' : 'var(--salud-riesgo)';
 const healthLabel = (h: string) => h === 'optimal' ? 'Óptima' : h === 'attention' ? 'Atención' : 'Riesgo';
 
-export default function ColmenaFicha({ colmena, onClose }: Props) {
+export default function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
     const [tab, setTab] = useState<Tab>('resumen');
+
+    // Modal forms states
     const [showInspeccionForm, setShowInspeccionForm] = useState(false);
-    const [newNota, setNewNota] = useState('');
+    const [inspeccionForm, setInspeccionForm] = useState({ date: new Date().toLocaleDateString('es-CL'), marcos_cria: 0, marcos_miel: 0, varroa: 0, poblacion: 'Baja', reina: true, notes: '', enjambrazon_riesgo: 'bajo' as 'bajo' | 'medio' | 'alto' });
+
+    const [showVarroaForm, setShowVarroaForm] = useState(false);
+    const [varroaForm, setVarroaForm] = useState({ date: new Date().toLocaleDateString('es-CL'), level: 0, method: 'Alcohol' });
+
+    const [showPesoForm, setShowPesoForm] = useState(false);
+    const [pesoForm, setPesoForm] = useState({ date: new Date().toLocaleDateString('es-CL'), kg: 0, note: '' });
 
     const costoProd = colmena.costos.horas_anuales * colmena.costos.costo_hora
         + colmena.costos.amortizacion_cajon + colmena.costos.insumos_anuales;
@@ -129,12 +137,32 @@ export default function ColmenaFicha({ colmena, onClose }: Props) {
                             </div>
                             {showInspeccionForm && (
                                 <div style={{ padding: 'var(--space-md)', background: 'var(--oro-miel-glow)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid rgba(212,160,23,0.2)' }}>
-                                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--bosque-ulmo)', marginBottom: 'var(--space-sm)' }}>Nueva inspección — {new Date().toLocaleDateString('es-CL')}</div>
-                                    <textarea placeholder="Notas de la visita: estado de la reina, marcos de cría, comportamiento..." value={newNota} onChange={e => setNewNota(e.target.value)}
-                                        style={{ width: '100%', minHeight: 80, padding: 'var(--space-sm)', border: '1px solid rgba(10,61,47,0.15)', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-datos)', fontSize: '0.85rem', resize: 'vertical' }} />
+                                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--bosque-ulmo)', marginBottom: 'var(--space-sm)' }}>Nueva inspección — {inspeccionForm.date}</div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 8 }}>
+                                        <input type="number" placeholder="Marcos Cría" className="input-field" value={inspeccionForm.marcos_cria || ''} onChange={e => setInspeccionForm({ ...inspeccionForm, marcos_cria: parseInt(e.target.value) || 0 })} />
+                                        <input type="number" placeholder="Marcos Miel" className="input-field" value={inspeccionForm.marcos_miel || ''} onChange={e => setInspeccionForm({ ...inspeccionForm, marcos_miel: parseInt(e.target.value) || 0 })} />
+                                        <select className="input-field" value={inspeccionForm.poblacion} onChange={e => setInspeccionForm({ ...inspeccionForm, poblacion: e.target.value })}>
+                                            <option value="Baja">Población: Baja</option>
+                                            <option value="Media">Población: Media</option>
+                                            <option value="Alta">Población: Alta</option>
+                                        </select>
+                                        <select className="input-field" value={inspeccionForm.enjambrazon_riesgo} onChange={e => setInspeccionForm({ ...inspeccionForm, enjambrazon_riesgo: e.target.value as any })}>
+                                            <option value="bajo">Enjambración: Bajo</option>
+                                            <option value="medio">Enjambración: Medio</option>
+                                            <option value="alto">Enjambración: Alto</option>
+                                        </select>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
+                                            <input type="checkbox" checked={inspeccionForm.reina} onChange={e => setInspeccionForm({ ...inspeccionForm, reina: e.target.checked })} /> Reina vista
+                                        </div>
+                                    </div>
+                                    <textarea placeholder="Notas adicionales..." value={inspeccionForm.notes} onChange={e => setInspeccionForm({ ...inspeccionForm, notes: e.target.value })}
+                                        style={{ width: '100%', minHeight: 60, padding: 'var(--space-sm)', border: '1px solid rgba(10,61,47,0.15)', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-datos)', fontSize: '0.85rem', resize: 'vertical' }} />
                                     <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
                                         <button className="btn btn-ghost btn-sm" onClick={() => setShowInspeccionForm(false)}>Cancelar</button>
-                                        <button className="btn btn-primary btn-sm" onClick={() => { setShowInspeccionForm(false); setNewNota(''); }}>Guardar</button>
+                                        <button className="btn btn-primary btn-sm" onClick={() => {
+                                            onUpdate({ ...colmena, inspecciones: [inspeccionForm as any, ...colmena.inspecciones] });
+                                            setShowInspeccionForm(false);
+                                        }}>Guardar</button>
                                     </div>
                                 </div>
                             )}
@@ -174,19 +202,41 @@ export default function ColmenaFicha({ colmena, onClose }: Props) {
                     {/* ── VARROA ── */}
                     {tab === 'varroa' && (
                         <div>
-                            <div style={{ marginBottom: 'var(--space-lg)' }}>
-                                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: 'var(--space-xs)' }}>Evolución Varroa (nivel 0–10)</div>
-                                <div style={{ height: 200 }}>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <LineChart data={colmena.varroaHistory}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(10,61,47,0.08)" />
-                                            <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="#8A9AAF" />
-                                            <YAxis domain={[0, 6]} tick={{ fontSize: 11 }} stroke="#8A9AAF" />
-                                            <Tooltip contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.8rem' }} />
-                                            <Line type="monotone" dataKey="level" stroke="#D4A017" strokeWidth={2} dot={{ fill: '#D4A017', r: 5 }} name="Varroa/10" />
-                                        </LineChart>
-                                    </ResponsiveContainer>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-xs)' }}>
+                                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>Evolución Varroa (nivel 0–10)</div>
+                                <button className="btn btn-gold btn-sm" onClick={() => setShowVarroaForm(!showVarroaForm)}><Plus size={13} /> Registro</button>
+                            </div>
+
+                            {showVarroaForm && (
+                                <div style={{ padding: 'var(--space-md)', background: 'var(--oro-miel-glow)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid rgba(212,160,23,0.2)' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                        <input type="number" step="0.5" className="input-field" placeholder="Nivel (0-10)" value={varroaForm.level || ''} onChange={e => setVarroaForm({ ...varroaForm, level: parseFloat(e.target.value) || 0 })} />
+                                        <select className="input-field" value={varroaForm.method} onChange={e => setVarroaForm({ ...varroaForm, method: e.target.value })}>
+                                            <option value="Lavado con alcohol">Lavado con alcohol</option>
+                                            <option value="Caída natural">Caída natural</option>
+                                            <option value="CO2">CO2</option>
+                                        </select>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
+                                        <button className="btn btn-ghost btn-sm" onClick={() => setShowVarroaForm(false)}>Cancelar</button>
+                                        <button className="btn btn-primary btn-sm" onClick={() => {
+                                            onUpdate({ ...colmena, varroaHistory: [...colmena.varroaHistory, varroaForm] });
+                                            setShowVarroaForm(false);
+                                        }}>Registrar</button>
+                                    </div>
                                 </div>
+                            )}
+
+                            <div style={{ height: 200, marginBottom: 'var(--space-lg)' }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={colmena.varroaHistory}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(10,61,47,0.08)" />
+                                        <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="#8A9AAF" />
+                                        <YAxis domain={[0, 6]} tick={{ fontSize: 11 }} stroke="#8A9AAF" />
+                                        <Tooltip contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.8rem' }} />
+                                        <Line type="monotone" dataKey="level" stroke="#D4A017" strokeWidth={2} dot={{ fill: '#D4A017', r: 5 }} name="Varroa/10" />
+                                    </LineChart>
+                                </ResponsiveContainer>
                             </div>
                             <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
                                 {[{ label: '< 1.5 ✓ Óptimo', color: 'var(--salud-optima)' }, { label: '1.5–3 ⚠ Atención', color: 'var(--salud-atencion)' }, { label: '> 3 🔴 Riesgo', color: 'var(--salud-riesgo)' }].map((z, i) => (
@@ -210,7 +260,27 @@ export default function ColmenaFicha({ colmena, onClose }: Props) {
                     {/* ── PESO ── */}
                     {tab === 'peso' && (
                         <div>
-                            <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: 'var(--space-xs)' }}>Evolución de Peso (kg)</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-xs)' }}>
+                                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>Evolución de Peso (kg)</div>
+                                <button className="btn btn-gold btn-sm" onClick={() => setShowPesoForm(!showPesoForm)}><Plus size={13} /> Peso</button>
+                            </div>
+
+                            {showPesoForm && (
+                                <div style={{ padding: 'var(--space-md)', background: 'var(--oro-miel-glow)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid rgba(212,160,23,0.2)' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                        <input type="number" step="0.1" className="input-field" placeholder="Peso en kg" value={pesoForm.kg || ''} onChange={e => setPesoForm({ ...pesoForm, kg: parseFloat(e.target.value) || 0 })} />
+                                        <input type="text" className="input-field" placeholder="Nota opcional" value={pesoForm.note} onChange={e => setPesoForm({ ...pesoForm, note: e.target.value })} />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
+                                        <button className="btn btn-ghost btn-sm" onClick={() => setShowPesoForm(false)}>Cancelar</button>
+                                        <button className="btn btn-primary btn-sm" onClick={() => {
+                                            onUpdate({ ...colmena, pesoHistory: [...colmena.pesoHistory, pesoForm] });
+                                            setShowPesoForm(false);
+                                        }}>Registrar</button>
+                                    </div>
+                                </div>
+                            )}
+
                             <div style={{ height: 200, marginBottom: 'var(--space-lg)' }}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={colmena.pesoHistory}>
@@ -310,7 +380,7 @@ export default function ColmenaFicha({ colmena, onClose }: Props) {
                         </div>
                     )}
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
