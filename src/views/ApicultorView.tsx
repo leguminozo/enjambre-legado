@@ -17,11 +17,18 @@ export default function ApicultorView() {
     const [selectedColmena, setSelectedColmena] = useState<Colmena | null>(null);
     const [activeView, setActiveView] = useState<ViewTab>('colmenas');
 
+    // Phase 4 dynamic data
+    const [alerts, setAlerts] = useState<any[]>([]);
+    const [reflexion, setReflexion] = useState<any>(null);
+
     // Fetch data from Supabase
     useEffect(() => {
         async function loadData() {
             setLoading(true);
             try {
+                const { data: { session } } = await supabase.auth.getSession();
+                const uid = session?.user?.id;
+
                 // 1. Fetch apiarios
                 const { data: apiarios } = await supabase.from('apiarios').select('*');
                 const apiarioMap = new Map(apiarios?.map(a => [a.id, a.name]) || []);
@@ -69,6 +76,24 @@ export default function ApicultorView() {
                 } else {
                     setLocalColmenas(mockColmenas); // Fallback
                 }
+
+                if (uid) {
+                    const [resA, resR] = await Promise.all([
+                        supabase.from('alerts').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(3),
+                        supabase.from('reflexiones').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(1)
+                    ]);
+
+                    if (resA.data?.length) setAlerts(resA.data);
+                    else setAlerts([
+                        { id: '1', severity: 'warning', title: 'Avellano Sur', message: 'Varroa en nivel 3.0/10. Programar segundo tratamiento sublimado antes del 10 de marzo.' },
+                        { id: '2', severity: 'critical', title: 'Quilineja Vieja', message: 'Confirmado sin reina. Población crítica. Se recomienda requeening urgente o fusión con núcleo fuerte.' },
+                        { id: '3', severity: 'info', title: 'Predicción IA', message: 'El algoritmo indica que el flujo de néctar de tepú alcanzará su pico de 88/100 en 9 días. Asegura alzas vacías en el apiario Pureo Norte.' }
+                    ]);
+
+                    if (resR.data?.length) setReflexion(resR.data[0]);
+                    else setReflexion({ date: '28 feb 2026', content: 'Hoy el bosque respira profundo. Las abejas de Canelo Ancestral trabajan con una calma que solo da la abundancia. Cada marco lleno es un año más de legado. Cada árbol plantado es una promesa que el tiempo honra sin que nadie se lo pida.' });
+                }
+
             } catch (err) {
                 console.error("Error loading Supabase data:", err);
                 setLocalColmenas(mockColmenas); // Fallback
@@ -179,29 +204,29 @@ export default function ApicultorView() {
                             <AlertTriangle size={16} style={{ color: 'var(--salud-atencion)' }} /> Voz de la Colmena
                         </div>
                         <div style={{ fontSize: '0.85rem', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
-                            <p style={{ marginBottom: 'var(--space-md)' }}>
-                                <strong style={{ color: 'var(--salud-atencion)' }}>⚠ Avellano Sur:</strong> Varroa en nivel 3.0/10. Programar segundo tratamiento sublimado antes del 10 de marzo.
-                            </p>
-                            <p style={{ marginBottom: 'var(--space-md)' }}>
-                                <strong style={{ color: 'var(--salud-riesgo)' }}>🔴 Quilineja Vieja:</strong> Confirmado sin reina. Población crítica. Se recomienda requeening urgente o fusión con núcleo fuerte.
-                            </p>
-                            <p>
-                                <strong style={{ color: 'var(--salud-optima)' }}>✨ Predicción IA:</strong> El algoritmo indica que el flujo de néctar de tepú alcanzará su pico de 88/100 en 9 días. Asegura alzas vacías en el apiario Pureo Norte.
-                            </p>
+                            {alerts.map((a, i) => (
+                                <p key={a.id || i} style={{ marginBottom: i < alerts.length - 1 ? 'var(--space-md)' : 0 }}>
+                                    <strong style={{ color: a.severity === 'critical' ? 'var(--salud-riesgo)' : a.severity === 'warning' ? 'var(--salud-atencion)' : 'var(--salud-optima)' }}>
+                                        {a.severity === 'critical' ? '🔴' : a.severity === 'warning' ? '⚠' : '✨'} {a.title}:
+                                    </strong> {a.message}
+                                </p>
+                            ))}
                         </div>
                     </div>
 
-                    <div className="card animate-in delay-4" style={{ background: 'linear-gradient(135deg, var(--bosque-ulmo), var(--bosque-ulmo-dark))', color: 'var(--crema-natural)', border: 'none' }}>
-                        <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--oro-miel)', marginBottom: 'var(--space-sm)' }}>
-                            Última Reflexión · 28 feb 2026
+                    {reflexion && (
+                        <div className="card animate-in delay-4" style={{ background: 'linear-gradient(135deg, var(--bosque-ulmo), var(--bosque-ulmo-dark))', color: 'var(--crema-natural)', border: 'none' }}>
+                            <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--oro-miel)', marginBottom: 'var(--space-sm)' }}>
+                                Última Reflexión · {reflexion.date || new Date().toLocaleDateString()}
+                            </div>
+                            <p style={{ fontFamily: 'var(--font-existencial)', fontSize: '1rem', fontStyle: 'italic', lineHeight: 1.6, color: 'rgba(253,251,247,0.85)' }}>
+                                "{reflexion.content}"
+                            </p>
+                            <div style={{ marginTop: 'var(--space-md)', fontSize: '0.75rem', color: 'rgba(253,251,247,0.45)' }}>
+                                — {reflexion.author || 'Generado automático posvisita'}
+                            </div>
                         </div>
-                        <p style={{ fontFamily: 'var(--font-existencial)', fontSize: '1rem', fontStyle: 'italic', lineHeight: 1.6, color: 'rgba(253,251,247,0.85)' }}>
-                            "Hoy el bosque respira profundo. Las abejas de Canelo Ancestral trabajan con una calma que solo da la abundancia. Cada marco lleno es un año más de legado. Cada árbol plantado es una promesa que el tiempo honra sin que nadie se lo pida."
-                        </p>
-                        <div style={{ marginTop: 'var(--space-md)', fontSize: '0.75rem', color: 'rgba(253,251,247,0.45)' }}>
-                            — Generado automático posvisita
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>

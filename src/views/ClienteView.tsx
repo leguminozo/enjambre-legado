@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TreePine, Package, QrCode, BookOpen, Heart, Star, X, ChevronRight } from 'lucide-react';
 import { roleGreetings } from '../data/mockData';
+import { supabase } from '../lib/supabase';
 
 const educContent: Record<string, string> = {
     '¿Por qué la miel de ulmo es única?': 'La miel de ulmo (Eucryphia cordifolia) es una de las mieles más valoradas del mundo. Su color ámbar claro, sabor suave y propiedades antibacterianas la hacen única. El ulmo florece solo durante 6-8 semanas en verano en los bosques templados de la Patagonia chilena. Su producción se limita a zonas prístinas de Chiloé y la región de Los Lagos.',
@@ -13,6 +14,28 @@ export default function ClienteView() {
     const h = roleGreetings.cliente;
     const [showQR, setShowQR] = useState(false);
     const [showArticle, setShowArticle] = useState<string | null>(null);
+    const [pedidos, setPedidos] = useState<any[]>([]);
+
+    useEffect(() => {
+        async function loadData() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+
+            const { data } = await supabase.from('pedidos_cliente').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false });
+
+            if (data && data.length > 0) {
+                setPedidos(data);
+            } else {
+                // Fallback for visual mock
+                setPedidos([
+                    { order_date: '22 feb', items: 'Cofre Legado + Sachets x10', status: 'Entregado', trees_planted: 5.3 },
+                    { order_date: '15 ene', items: 'Crema Cacao Nibs x2', status: 'Entregado', trees_planted: 2.4 },
+                    { order_date: '20 dic', items: 'Miel Virgen 500g', status: 'Entregado', trees_planted: 2.0 },
+                ]);
+            }
+        }
+        loadData();
+    }, []);
 
     return (
         <div>
@@ -82,14 +105,10 @@ export default function ClienteView() {
                 </div>
                 <div className="card animate-in delay-3">
                     <div className="section-header"><div className="section-title">Mis Pedidos</div></div>
-                    {[
-                        { date: '22 feb', items: 'Cofre Legado + Sachets x10', status: 'Entregado', trees: 5.3 },
-                        { date: '15 ene', items: 'Crema Cacao Nibs x2', status: 'Entregado', trees: 2.4 },
-                        { date: '20 dic', items: 'Miel Virgen 500g', status: 'Entregado', trees: 2.0 },
-                    ].map((o, i) => (
+                    {pedidos.map((o, i) => (
                         <div key={i} className="colmena-item" style={{ marginBottom: 'var(--space-sm)' }}>
-                            <div><div style={{ fontWeight: 500, color: 'var(--bosque-ulmo)', fontSize: '0.9rem' }}>{o.items}</div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{o.date}</div></div>
-                            <div style={{ marginLeft: 'auto', textAlign: 'right' }}><span className="badge badge-success">{o.status}</span><div style={{ fontSize: '0.7rem', color: 'var(--salud-optima)', marginTop: 4 }}>🌳 {o.trees} árboles</div></div>
+                            <div><div style={{ fontWeight: 500, color: 'var(--bosque-ulmo)', fontSize: '0.9rem' }}>{o.items}</div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{o.order_date || o.date}</div></div>
+                            <div style={{ marginLeft: 'auto', textAlign: 'right' }}><span className="badge badge-success">{o.status}</span><div style={{ fontSize: '0.7rem', color: 'var(--salud-optima)', marginTop: 4 }}>🌳 {o.trees_planted || o.trees} árboles</div></div>
                         </div>
                     ))}
                 </div>

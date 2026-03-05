@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { supabase } from '../../lib/supabase';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { mapMarkers, type MapMarker } from '../../data/mockData';
@@ -91,12 +92,37 @@ interface MapaLegadoProps {
 }
 
 export default function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
+    const [liveMarkers, setLiveMarkers] = useState<MapMarker[]>(mapMarkers);
+
+    useEffect(() => {
+        async function loadMaps() {
+            const { data } = await supabase.from('apiarios').select('*');
+            if (data && data.length > 0) {
+                // Keep the static nectar/feria ones, but replace obrera/tree with live DB
+                const staticNonApicultor = mapMarkers.filter(m => m.type !== 'obrera' && m.type !== 'tree' && m.type !== 'zangano');
+
+                const liveApicultor: MapMarker[] = data.map(a => ({
+                    id: a.id,
+                    lat: a.lat,
+                    lng: a.lng,
+                    type: a.health === 'risk' ? 'zangano' : 'obrera', // Example dynamic change
+                    name: a.name,
+                    details: a.details,
+                    health: a.health
+                }));
+
+                setLiveMarkers([...liveApicultor, ...staticNonApicultor]);
+            }
+        }
+        loadMaps();
+    }, []);
+
     // Filter markers based on role if provided
-    let filteredMarkers = mapMarkers;
+    let filteredMarkers = liveMarkers;
     if (filterRole === 'apicultor') {
-        filteredMarkers = mapMarkers.filter(m => m.type === 'obrera' || m.type === 'tree');
+        filteredMarkers = liveMarkers.filter(m => m.type === 'obrera' || m.type === 'tree' || m.type === 'zangano');
     } else if (filterRole === 'vendedor') {
-        filteredMarkers = mapMarkers.filter(m => m.type === 'nectar' || m.type === 'feria' || m.type === 'zangano');
+        filteredMarkers = liveMarkers.filter(m => m.type === 'nectar' || m.type === 'feria');
     }
 
     // Chiloé center

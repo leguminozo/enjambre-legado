@@ -159,3 +159,85 @@ CREATE TABLE IF NOT EXISTS cashflow (
     expenses NUMERIC DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+-- Phase 4 Schema: Erradicating remaining mocks
+-- Tables for Logística, Marketing, Cliente, and Alerts
+
+-- 1. Logística Tables
+CREATE TABLE IF NOT EXISTS logistica_envios (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id),
+    tracking_code TEXT NOT NULL,
+    destino TEXT NOT NULL,
+    items TEXT NOT NULL,
+    status TEXT NOT NULL,
+    eta TEXT,
+    via TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE IF NOT EXISTS stock_centers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id),
+    name TEXT NOT NULL,
+    sachets INTEGER DEFAULT 0,
+    frascos INTEGER DEFAULT 0,
+    cofres INTEGER DEFAULT 0,
+    ok BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE IF NOT EXISTS proveedores (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id),
+    name TEXT NOT NULL,
+    item TEXT NOT NULL,
+    next_delivery TEXT,
+    urgent BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- 2. Marketing Tables
+CREATE TABLE IF NOT EXISTS marketing_posts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id),
+    post_date TEXT NOT NULL,
+    type TEXT NOT NULL,
+    content TEXT NOT NULL,
+    status TEXT NOT NULL,
+    platform TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE IF NOT EXISTS marketing_campaigns (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id),
+    name TEXT NOT NULL,
+    period TEXT NOT NULL,
+    impact TEXT NOT NULL,
+    status TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- 3. Cliente Tables
+CREATE TABLE IF NOT EXISTS pedidos_cliente (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id),
+    order_date TEXT NOT NULL,
+    items TEXT NOT NULL,
+    status TEXT NOT NULL,
+    trees_planted NUMERIC DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- 4. Alerts / Voz de la Colmena
+CREATE TABLE IF NOT EXISTS alerts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id),
+    severity TEXT NOT NULL, -- 'info', 'warning', 'critical'
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Append phase 4 definitions to the master schema.sql
