@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Map, Hexagon, ShoppingBag, BarChart3, Truck, Megaphone, User, Bell, Search, Menu, X, TreePine } from 'lucide-react';
+import { Map, Hexagon, ShoppingBag, BarChart3, Truck, Megaphone, User, Bell, Search, Menu, X, TreePine, LogOut } from 'lucide-react';
 import { roleLabels } from '../../data/mockData';
+import { supabase } from '../../lib/supabase';
 
 interface AppLayoutProps { children: React.ReactNode; currentRole: string; onRoleChange: (role: string) => void; headerTitle: string; }
 
@@ -31,9 +32,27 @@ export default function AppLayout({ children, currentRole, onRoleChange, headerT
     const [notifOpen, setNotifOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [readNotifs, setReadNotifs] = useState<number[]>([]);
+    const [userName, setUserName] = useState<string>('Usuario');
     const searchRef = useRef<HTMLInputElement>(null);
     const location = useLocation();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        async function fetchUser() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                // Try to get from metadata first
+                if (session.user.user_metadata?.full_name) {
+                    setUserName(session.user.user_metadata.full_name);
+                } else {
+                    // Fallback to profile
+                    const { data } = await supabase.from('profiles').select('full_name').eq('id', session.user.id).single();
+                    if (data?.full_name) setUserName(data.full_name);
+                }
+            }
+        }
+        fetchUser();
+    }, []);
 
     const currentNavItems = [...navItems.shared, ...(navItems[currentRole] || [])];
 
@@ -51,6 +70,11 @@ export default function AppLayout({ children, currentRole, onRoleChange, headerT
 
     const markAllRead = () => setReadNotifs(notifications.map(n => n.id));
 
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        navigate('/');
+    };
+
     return (
         <div className="app-layout">
             <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
@@ -67,7 +91,18 @@ export default function AppLayout({ children, currentRole, onRoleChange, headerT
                         </NavLink>
                     ))}
                 </nav>
-                <div className="sidebar-footer"><div className="sidebar-user"><div className="sidebar-user-avatar">CL</div><div className="sidebar-user-info"><div className="sidebar-user-name">Cristina López</div><div className="sidebar-user-role">{roleLabels[currentRole]}</div></div></div></div>
+                <div className="sidebar-footer">
+                    <div className="sidebar-user">
+                        <div className="sidebar-user-avatar">{userName.charAt(0).toUpperCase()}</div>
+                        <div className="sidebar-user-info">
+                            <div className="sidebar-user-name">{userName}</div>
+                            <div className="sidebar-user-role">{roleLabels[currentRole]}</div>
+                        </div>
+                        <button onClick={handleLogout} className="btn btn-ghost" style={{ padding: 6, color: 'var(--text-muted)' }} title="Cerrar sesión">
+                            <LogOut size={16} />
+                        </button>
+                    </div>
+                </div>
             </aside>
 
             {sidebarOpen && <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 99, backdropFilter: 'blur(4px)' }} onClick={() => setSidebarOpen(false)} />}
