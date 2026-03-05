@@ -105,7 +105,7 @@ export default function AppLayout({ children, currentRole, onRoleChange, headerT
                 </div>
             </aside>
 
-            {sidebarOpen && <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 99, backdropFilter: 'blur(4px)' }} onClick={() => setSidebarOpen(false)} />}
+            {sidebarOpen && <div style={{ position: 'fixed', inset: 0, background: 'rgba(6,42,31,0.6)', zIndex: 99, backdropFilter: 'blur(8px)', transition: 'all 0.3s ease' }} onClick={() => setSidebarOpen(false)} />}
 
             <main className="main-content">
                 <header className="main-header">
@@ -122,19 +122,19 @@ export default function AppLayout({ children, currentRole, onRoleChange, headerT
 
                         {/* Search dropdown */}
                         {searchOpen && (
-                            <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 340, background: 'var(--surface-card)', border: '1px solid rgba(10,61,47,0.1)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)', zIndex: 60, animation: 'fadeInUp 0.2s ease', overflow: 'hidden' }}>
+                            <div style={{ position: 'absolute', top: 'calc(100% + 12px)', right: 0, width: 340, background: 'rgba(253, 251, 247, 0.95)', backdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.8)', borderRadius: 'var(--radius-lg)', boxShadow: '0 12px 40px rgba(10,61,47,0.12)', zIndex: 60, animation: 'fadeInUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)', overflow: 'hidden' }}>
                                 <div style={{ padding: 'var(--space-md)', borderBottom: '1px solid rgba(10,61,47,0.06)' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', padding: 'var(--space-sm) var(--space-md)', background: 'rgba(10,61,47,0.04)', borderRadius: 'var(--radius-sm)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', padding: 'var(--space-sm) var(--space-md)', background: 'var(--surface-primary)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(10,61,47,0.08)' }}>
                                         <Search size={16} style={{ color: 'var(--text-muted)' }} />
                                         <input ref={searchRef} type="text" placeholder="Buscar en Enjambre Legado..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', flex: 1, fontFamily: 'var(--font-datos)', fontSize: '0.85rem', color: 'var(--text-primary)' }} />
-                                        {searchQuery && <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2 }}><X size={14} /></button>}
+                                        {searchQuery && <button onClick={() => setSearchQuery('')} style={{ background: 'var(--surface-glass)', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={12} /></button>}
                                     </div>
                                 </div>
                                 <div style={{ maxHeight: 240, overflowY: 'auto', padding: 'var(--space-sm)' }}>
                                     {searchQuery.trim() ? (filteredSearch.length > 0 ? filteredSearch.map(item => (
-                                        <div key={item.path} onClick={() => { navigate(item.path); setSearchOpen(false); setSearchQuery(''); }} style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 'var(--space-md)', fontSize: '0.85rem', color: 'var(--bosque-ulmo)' }} className="nav-item">{item.icon}<span>{item.label}</span></div>
-                                    )) : <div style={{ padding: 'var(--space-md)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem' }}>Sin resultados para "{searchQuery}"</div>) : (
-                                        <div style={{ padding: 'var(--space-md)', color: 'var(--text-muted)', fontSize: '0.8rem' }}>Escribe para buscar secciones, colmenas, productos...</div>
+                                        <div key={item.path} onClick={() => { navigate(item.path); setSearchOpen(false); setSearchQuery(''); }} style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 'var(--space-md)', fontSize: '0.88rem', color: 'var(--bosque-ulmo)', transition: 'background 150ms' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-glass)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>{item.icon}<span style={{ fontWeight: 500 }}>{item.label}</span></div>
+                                    )) : <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>Sin resultados para "{searchQuery}"</div>) : (
+                                        <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>Escribe para buscar secciones, herramientas...</div>
                                     )}
                                 </div>
                             </div>
@@ -142,18 +142,22 @@ export default function AppLayout({ children, currentRole, onRoleChange, headerT
 
                         {/* Notifications dropdown */}
                         {notifOpen && (
-                            <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 360, background: 'var(--surface-card)', border: '1px solid rgba(10,61,47,0.1)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)', zIndex: 60, animation: 'fadeInUp 0.2s ease', overflow: 'hidden' }}>
-                                <div style={{ padding: 'var(--space-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(10,61,47,0.06)' }}>
-                                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--bosque-ulmo)' }}>Notificaciones</span>
-                                    <button className="btn btn-ghost btn-sm" onClick={markAllRead} style={{ fontSize: '0.72rem' }}>Marcar todas leídas</button>
+                            <div style={{ position: 'absolute', top: 'calc(100% + 12px)', right: 0, width: 360, background: 'rgba(253, 251, 247, 0.95)', backdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.8)', borderRadius: 'var(--radius-lg)', boxShadow: '0 12px 40px rgba(10,61,47,0.12)', zIndex: 60, animation: 'fadeInUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)', overflow: 'hidden' }}>
+                                <div style={{ padding: 'var(--space-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(10,61,47,0.06)' }}>
+                                    <span style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--bosque-ulmo)', fontFamily: 'var(--font-existencial)' }}>Notificaciones</span>
+                                    <button className="btn btn-ghost btn-sm" onClick={markAllRead} style={{ fontSize: '0.72rem', color: 'var(--oro-miel-dark)' }}>Marcar leídas</button>
                                 </div>
-                                <div style={{ maxHeight: 320, overflowY: 'auto' }}>
-                                    {notifications.map(n => (
-                                        <div key={n.id} onClick={() => setReadNotifs(prev => prev.includes(n.id) ? prev : [...prev, n.id])} style={{ padding: 'var(--space-md)', borderBottom: '1px solid rgba(10,61,47,0.04)', display: 'flex', gap: 'var(--space-md)', cursor: 'pointer', background: readNotifs.includes(n.id) ? 'transparent' : 'rgba(212,160,23,0.04)', transition: 'background 150ms' }}>
-                                            <div style={{ width: 8, height: 8, borderRadius: '50%', marginTop: 6, flexShrink: 0, background: n.type === 'danger' ? 'var(--salud-riesgo)' : n.type === 'warning' ? 'var(--salud-atencion)' : n.type === 'success' ? 'var(--salud-optima)' : 'var(--oro-miel)' }} />
-                                            <div><div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', lineHeight: 1.4 }}>{n.text}</div><div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>{n.time}</div></div>
-                                        </div>
-                                    ))}
+                                <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+                                    {notifications.length === 0 ? (
+                                        <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--text-muted)' }}>El bosque descansa, no hay alertas hoy.</div>
+                                    ) : (
+                                        notifications.map(n => (
+                                            <div key={n.id} onClick={() => setReadNotifs(prev => prev.includes(n.id) ? prev : [...prev, n.id])} style={{ padding: 'var(--space-md) var(--space-lg)', borderBottom: '1px solid rgba(10,61,47,0.04)', display: 'flex', gap: 'var(--space-md)', cursor: 'pointer', background: readNotifs.includes(n.id) ? 'transparent' : 'rgba(212,160,23,0.04)', transition: 'background 200ms ease' }} onMouseEnter={e => { if (readNotifs.includes(n.id)) e.currentTarget.style.background = 'var(--surface-glass)' }} onMouseLeave={e => { if (readNotifs.includes(n.id)) e.currentTarget.style.background = 'transparent' }}>
+                                                <div style={{ width: 10, height: 10, borderRadius: '50%', marginTop: 6, flexShrink: 0, background: n.type === 'danger' ? 'var(--salud-riesgo)' : n.type === 'warning' ? 'var(--salud-atencion)' : n.type === 'success' ? 'var(--salud-optima)' : 'var(--oro-miel)', boxShadow: readNotifs.includes(n.id) ? 'none' : `0 0 8px ${n.type === 'danger' ? 'var(--salud-riesgo)' : 'var(--oro-miel)'}` }} />
+                                                <div><div style={{ fontSize: '0.88rem', color: readNotifs.includes(n.id) ? 'var(--text-secondary)' : 'var(--bosque-ulmo)', fontWeight: readNotifs.includes(n.id) ? 400 : 500, lineHeight: 1.5 }}>{n.text}</div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>{n.time}</div></div>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -161,6 +165,16 @@ export default function AppLayout({ children, currentRole, onRoleChange, headerT
                 </header>
                 <div className="page-content" onClick={() => { setSearchOpen(false); setNotifOpen(false); }}>{children}</div>
             </main>
+
+            {/* Mobile Bottom Navigation */}
+            <nav className="bottom-nav">
+                {currentNavItems.map(item => (
+                    <NavLink key={item.path} to={item.path} className={({ isActive }) => `bottom-nav-item ${isActive || location.pathname === item.path ? 'active' : ''}`}>
+                        <span className="bottom-nav-icon">{item.icon}</span>
+                        <span>{item.label.split(' ')[0]}</span>
+                    </NavLink>
+                ))}
+            </nav>
         </div>
     );
 }

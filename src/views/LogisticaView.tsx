@@ -106,7 +106,7 @@ export default function LogisticaView() {
                             </div>
                         )}
 
-                        {shipments.map(s => (
+                        {shipments.length > 0 ? shipments.map(s => (
                             <div key={s.id} className="colmena-item" style={{ marginBottom: 'var(--space-sm)' }}>
                                 <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-sm)', background: s.status === 'En tránsito' ? 'rgba(52,152,219,0.1)' : 'var(--oro-miel-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                     {s.status === 'En tránsito' ? <Truck size={18} style={{ color: 'var(--info)' }} /> : s.status === 'Empacando' ? <Package size={18} style={{ color: 'var(--oro-miel-dark)' }} /> : <Clock size={18} style={{ color: 'var(--text-muted)' }} />}
@@ -115,7 +115,12 @@ export default function LogisticaView() {
                                 <span className={`badge ${s.status === 'En tránsito' ? 'badge-success' : s.status === 'Empacando' ? 'badge-gold' : 'badge-warning'}`}>{s.status}</span>
                                 <ChevronRight size={16} style={{ color: 'var(--text-muted)' }} />
                             </div>
-                        ))}
+                        )) : (
+                            <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                <Package size={32} style={{ margin: '0 auto var(--space-sm)', opacity: 0.5 }} />
+                                Todo en calma. Ningún envío en ruta.
+                            </div>
+                        )}
                     </div>
                     <div className="card animate-in delay-3">
                         <div className="section-header"><div className="section-title">Stock Multicentro</div></div>
@@ -125,14 +130,19 @@ export default function LogisticaView() {
                 </div>
                 <div className="card animate-in delay-3">
                     <div className="section-header"><div className="section-title">Proveedores</div></div>
-                    {providers.map((p, i) => (
+                    {providers.length > 0 ? providers.map((p, i) => (
                         <div key={i} style={{ padding: 'var(--space-md)', borderBottom: i < providers.length - 1 ? '1px solid rgba(10,61,47,0.06)' : 'none', display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
                             <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-sm)', background: p.urgent ? 'rgba(231,76,60,0.1)' : 'rgba(46,204,113,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                 {p.urgent ? <AlertCircle size={16} style={{ color: 'var(--salud-riesgo)' }} /> : <CheckCircle2 size={16} style={{ color: 'var(--salud-optima)' }} />}
                             </div>
                             <div><div style={{ fontWeight: 500, fontSize: '0.88rem', color: 'var(--bosque-ulmo)' }}>{p.name}</div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{p.item} · Próx: {p.next_delivery || p.next}</div></div>
                         </div>
-                    ))}
+                    )) : (
+                        <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                            <FileText size={32} style={{ margin: '0 auto var(--space-sm)', opacity: 0.5 }} />
+                            Red de proveedores sincronizada. No hay ingresos.
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
