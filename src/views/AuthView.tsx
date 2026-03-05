@@ -4,8 +4,10 @@ import { Hexagon, Lock, Mail, User, ShieldCheck } from 'lucide-react';
 
 export default function AuthView() {
     const [isLogin, setIsLogin] = useState(true);
+    const [isForgotPassword, setIsForgotPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [message, setMessage] = useState<string | null>(null);
 
     // Form state
     const [email, setEmail] = useState('');
@@ -17,9 +19,17 @@ export default function AuthView() {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setMessage(null);
 
         try {
-            if (isLogin) {
+            if (isForgotPassword) {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin // Ensure they come back to the app
+                });
+                if (error) throw error;
+                setMessage('Te hemos enviado un enlace para recuperar tu contraseña.');
+                setIsForgotPassword(false);
+            } else if (isLogin) {
                 const { error } = await supabase.auth.signInWithPassword({
                     email,
                     password,
@@ -38,8 +48,8 @@ export default function AuthView() {
                 });
                 if (error) throw error;
                 // Auto login might happen, or they might need to confirm email depending on Supabase settings
-                // We'll just alert success for now and switch to login
-                alert('¡Registro exitoso! Por favor inicia sesión.');
+                if (error) throw error;
+                setMessage('¡Registro exitoso! Por favor revisa tu correo o inicia sesión.');
                 setIsLogin(true);
             }
         } catch (err: any) {
@@ -67,12 +77,18 @@ export default function AuthView() {
                         <Hexagon size={28} style={{ color: 'var(--oro-miel-dark)' }} />
                     </div>
                     <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--bosque-ulmo)', marginBottom: 8 }}>
-                        {isLogin ? 'Acceso al Bosque' : 'Tu Legado Inicia Aquí'}
+                        {isForgotPassword ? 'Recuperar Acceso' : isLogin ? 'Acceso al Bosque' : 'Tu Legado Inicia Aquí'}
                     </h1>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        {isLogin ? 'Ingresa tus credenciales para continuar.' : 'Crea una cuenta para registrar tu rastro.'}
+                        {isForgotPassword ? 'Ingresa tu correo para recibir un enlace seguro.' : isLogin ? 'Ingresa tus credenciales para continuar.' : 'Crea una cuenta para registrar tu rastro.'}
                     </p>
                 </div>
+
+                {message && (
+                    <div style={{ padding: 'var(--space-sm) var(--space-md)', background: 'rgba(52,152,219,0.1)', color: '#2980b9', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', marginBottom: 'var(--space-md)', textAlign: 'center' }}>
+                        {message}
+                    </div>
+                )}
 
                 {error && (
                     <div style={{ padding: 'var(--space-sm) var(--space-md)', background: 'rgba(231,76,60,0.1)', color: 'var(--salud-riesgo)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', marginBottom: 'var(--space-md)', textAlign: 'center' }}>
@@ -114,28 +130,45 @@ export default function AuthView() {
                         </div>
                     </div>
 
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>Contraseña</label>
-                        <div style={{ position: 'relative' }}>
-                            <Lock size={16} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--text-muted)' }} />
-                            <input required type="password" className="input-field" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} style={{ paddingLeft: 38 }} />
+                    {!isForgotPassword && (
+                        <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>Contraseña</label>
+                                {isLogin && (
+                                    <button type="button" onClick={() => setIsForgotPassword(true)} style={{ background: 'none', border: 'none', fontSize: '0.7rem', color: 'var(--oro-miel-dark)', cursor: 'pointer', padding: 0 }}>
+                                        ¿Olvidaste tu contraseña?
+                                    </button>
+                                )}
+                            </div>
+                            <div style={{ position: 'relative' }}>
+                                <Lock size={16} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--text-muted)' }} />
+                                <input required type="password" className="input-field" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} style={{ paddingLeft: 38 }} minLength={6} />
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <button type="submit" className="btn btn-primary" style={{ marginTop: 'var(--space-sm)', width: '100%', justifyContent: 'center' }} disabled={loading}>
-                        {loading ? 'Procesando...' : isLogin ? 'Entrar al Enjambre' : 'Crear Cuenta'}
+                        {loading ? 'Procesando...' : isForgotPassword ? 'Enviar Enlace' : isLogin ? 'Entrar al Enjambre' : 'Crear Cuenta'}
                     </button>
+
+                    {isForgotPassword && (
+                        <button type="button" onClick={() => setIsForgotPassword(false)} className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', marginTop: '-8px' }}>
+                            Volver al login
+                        </button>
+                    )}
 
                 </form>
 
-                <div style={{ marginTop: 'var(--space-xl)', textAlign: 'center', fontSize: '0.85rem' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>
-                        {isLogin ? '¿No tienes cuenta? ' : '¿Ya tienes una cuenta? '}
-                    </span>
-                    <button className="btn btn-ghost btn-sm" onClick={() => setIsLogin(!isLogin)} style={{ padding: 4, height: 'auto', fontWeight: 600, color: 'var(--oro-miel-dark)' }}>
-                        {isLogin ? 'Regístrate' : 'Inicia Sesión'}
-                    </button>
-                </div>
+                {!isForgotPassword && (
+                    <div style={{ marginTop: 'var(--space-xl)', textAlign: 'center', fontSize: '0.85rem' }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>
+                            {isLogin ? '¿No tienes cuenta? ' : '¿Ya tienes una cuenta? '}
+                        </span>
+                        <button className="btn btn-ghost btn-sm" onClick={() => setIsLogin(!isLogin)} style={{ padding: 4, height: 'auto', fontWeight: 600, color: 'var(--oro-miel-dark)' }}>
+                            {isLogin ? 'Regístrate' : 'Inicia Sesión'}
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

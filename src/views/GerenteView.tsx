@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, DollarSign, Target, Leaf, Crown, ArrowUpRight, Expand, Minimize2, Plus, X } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { roleGreetings } from '../data/mockData';
+import { supabase } from '../lib/supabase';
 
 const productionData = [
     { month: 'Ene', actual: 180, projected: 200 }, { month: 'Feb', actual: 320, projected: 300 },
@@ -40,9 +41,34 @@ export default function GerenteView() {
     const { greeting, title, subtitle } = roleGreetings.gerente;
     const [expandedChart, setExpandedChart] = useState<string | null>(null);
     const [scenarioIdx, setScenarioIdx] = useState(0);
-    const [localCashFlow, setLocalCashFlow] = useState(cashFlowData);
+    const [localCashFlow, setLocalCashFlow] = useState<any[]>([]);
+    const [facturacionYTD, setFacturacionYTD] = useState(0);
     const [showTxForm, setShowTxForm] = useState(false);
     const [txForm, setTxForm] = useState({ month: 'Jul', income: 0, expenses: 0 });
+
+    useEffect(() => {
+        async function loadData() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+
+            // Fetch Cashflow (Gerente might see global, but we filter by user for this demo to respect RLS)
+            const { data: cfData } = await supabase.from('cashflow').select('*').eq('user_id', session.user.id).order('created_at', { ascending: true });
+            if (cfData && cfData.length > 0) {
+                setLocalCashFlow(cfData);
+            } else {
+                setLocalCashFlow(cashFlowData); // Fallback to mock
+            }
+
+            // Fetch Real YTD Revenue
+            const { data: ventasData } = await supabase.from('ventas').select('total').eq('user_id', session.user.id);
+            if (ventasData) {
+                const globalRevenue = ventasData.reduce((acc, v) => acc + Number(v.total), 0);
+                if (globalRevenue > 0) setFacturacionYTD(globalRevenue);
+                else setFacturacionYTD(4200000); // 4.2M mock
+            }
+        }
+        loadData();
+    }, []);
 
     const [chatMessages, setChatMessages] = useState([
         { from: 'ai', text: 'Cristina, con los datos actuales, el próximo lote de sachets con cacao nibs debería salir en 18 días y tenemos demanda en La Reina para 400 unidades. Sugiero priorizar la cosecha de Ulmo Mayor.' },
@@ -50,15 +76,33 @@ export default function GerenteView() {
     ]);
     const [chatInput, setChatInput] = useState('');
 
-    const handleAddTx = () => {
-        const idx = localCashFlow.findIndex(c => c.month === txForm.month);
-        if (idx >= 0) {
-            const copy = [...localCashFlow];
-            copy[idx] = { ...copy[idx], income: copy[idx].income + txForm.income, expenses: copy[idx].expenses + txForm.expenses };
-            setLocalCashFlow(copy);
-        } else {
-            setLocalCashFlow([...localCashFlow, txForm]);
+    const handleAddTx = async () => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                // Upsert to Supabase
+                const { data } = await supabase.from('cashflow').upsert({
+                    month: txForm.month,
+                    income: txForm.income,
+                    expenses: txForm.expenses,
+                    user_id: session.user.id
+                }, { onConflict: 'month' }).select().single();
+
+                if (data) {
+                    const idx = localCashFlow.findIndex(c => c.month === txForm.month);
+                    if (idx >= 0) {
+                        const copy = [...localCashFlow];
+                        copy[idx] = data;
+                        setLocalCashFlow(copy);
+                    } else {
+                        setLocalCashFlow([...localCashFlow, data]);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Error saving cashflow", e);
         }
+
         setShowTxForm(false);
         setTxForm({ month: 'Jul', income: 0, expenses: 0 });
     };
@@ -107,7 +151,7 @@ export default function GerenteView() {
             <div className="stats-grid">
                 {[
                     { icon: <Target size={20} />, val: '2.8 ton', label: 'Producción proyectada 2026', trend: '+18%' },
-                    { icon: <DollarSign size={20} />, val: '$4.2M', label: 'Facturación YTD', trend: '+24%' },
+                    { icon: <DollarSign size={20} />, val: `$${(facturacionYTD / 1000000).toFixed(1)}M`, label: 'Facturación YTD' },
                     { icon: <BarChart3 size={20} />, val: '72%', label: 'Margen sachets (mejor)' },
                     { icon: <Leaf size={20} />, val: '250 ton', label: 'CO₂ secuestrado total', trend: '+120' },
                 ].map((s, i) => (

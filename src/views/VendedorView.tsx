@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShoppingBag, Users, MapPin, CalendarDays, TrendingUp, Star, ArrowUpRight, QrCode, Truck, X, ChevronDown, Plus, Minus } from 'lucide-react';
 import { products, roleGreetings } from '../data/mockData';
+import { supabase } from '../lib/supabase';
 
 const pitches: Record<string, string> = {
     '🏋️ Deportista': '"Cada sachet de Gotas de Néctar es una dosis de 15g de energía pura del bosque patagónico. Ideal para pre o post entreno. Sin azúcar añadida, cargada de antioxidantes. Y con cada sachet, plantas 0.3 árboles nativos en Chiloé."',
@@ -22,18 +23,45 @@ export default function VendedorView() {
     const [showAddClient, setShowAddClient] = useState(false);
     const [newClientForm, setNewClientForm] = useState({ name: '', type: 'Particular', purchases: 0, level: 'Guardián Bronce', lastOrder: 'Ninguna' });
 
-    const [localClients, setLocalClients] = useState([
-        { name: 'Restaurante Fogón Chiloé', type: 'Chef', purchases: 24, level: 'Guardián Oro', lastOrder: 'Panal + Cofre' },
-        { name: 'Gimnasio Peak Performance', type: 'Deportivo', purchases: 180, level: 'Guardián Plata', lastOrder: 'Sachets x100' },
-        { name: 'Tienda Gourmet Castro', type: 'Reseller', purchases: 540, level: 'Guardián Oro', lastOrder: 'Mix completo' },
-        { name: 'María Elena Pérez', type: 'Particular', purchases: 8, level: 'Guardián Bronce', lastOrder: 'Crema Cacao' },
-        { name: 'Café Literario Ancud', type: 'Chef', purchases: 36, level: 'Guardián Plata', lastOrder: 'Panal x6' },
-        { name: 'Deli Natural Santiago', type: 'Reseller', purchases: 320, level: 'Guardián Oro', lastOrder: 'Sachets x200' },
-    ]);
+    const [localClients, setLocalClients] = useState<any[]>([]);
 
-    const handleAddClient = () => {
+    useEffect(() => {
+        async function loadData() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+
+            const { data } = await supabase.from('clientes')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .order('created_at', { ascending: false });
+            if (data && data.length > 0) {
+                setLocalClients(data.map(d => ({ name: d.name, type: d.type, purchases: d.total_spent > 0 ? 1 : 0, level: 'Guardián Bronce', lastOrder: 'Reciente', id: d.id })));
+            }
+        }
+        loadData();
+    }, []);
+
+    const handleAddClient = async () => {
         if (!newClientForm.name) return;
-        setLocalClients([newClientForm, ...localClients]);
+
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                const { data } = await supabase.from('clientes').insert({
+                    name: newClientForm.name,
+                    type: newClientForm.type === 'Particular' ? 'D2C' : newClientForm.type,
+                    user_id: session.user.id,
+                    status: 'activo'
+                }).select().single();
+
+                if (data) {
+                    setLocalClients([{ name: data.name, type: data.type, purchases: 0, level: 'Guardián Bronce', lastOrder: 'Ninguna', id: data.id }, ...localClients]);
+                }
+            }
+        } catch (e) {
+            console.error("Error adding client", e);
+        }
+
         setShowAddClient(false);
         setNewClientForm({ name: '', type: 'Particular', purchases: 0, level: 'Guardián Bronce', lastOrder: 'Ninguna' });
     };
@@ -147,7 +175,26 @@ export default function VendedorView() {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-md)', fontSize: '1.2rem', fontWeight: 700, color: 'var(--bosque-ulmo)' }}>
                                         <span>Total</span><span>${cartTotal.toLocaleString()}</span>
                                     </div>
-                                    <button className="btn btn-primary" style={{ width: '100%', padding: '14px', fontSize: '1rem', fontWeight: 600 }} disabled={cartTotal === 0} onClick={() => { alert('¡Venta registrada offline! Se sincronizará al detectar red.'); setPosCart({}); setShowPos(false); }}>
+                                    <button className="btn btn-primary" style={{ width: '100%', padding: '14px', fontSize: '1rem', fontWeight: 600 }} disabled={cartTotal === 0} onClick={async () => {
+                                        try {
+                                            const { data: { session } } = await supabase.auth.getSession();
+                                            if (session) {
+                                                await supabase.from('ventas').insert({
+                                                    user_id: session.user.id,
+                                                    total: cartTotal,
+                                                    productos: posCart,
+                                                    metodo_pago: 'Efectivo/Transferencia',
+                                                    estado: 'completada'
+                                                });
+                                            }
+                                        } catch (e) {
+                                            console.error("Error offline POS:", e);
+                                        }
+
+                                        alert('¡Venta registrada offline! Se sincronizará al detectar red.');
+                                        setPosCart({});
+                                        setShowPos(false);
+                                    }}>
                                         Cobrar Venta
                                     </button>
                                 </div>

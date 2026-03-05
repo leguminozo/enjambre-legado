@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CalendarDays, CheckCircle2, Circle, Filter, Plus, X } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { calendarioTasks, flowPredictions } from '../../data/mockData';
+import { supabase } from '../../lib/supabase';
 import type { CalendarioTask } from '../../data/mockData';
 
 const categoryColors: Record<CalendarioTask['category'], string> = {
@@ -18,7 +19,7 @@ const priorityBadge = (p: string) =>
     p === 'alta' ? 'badge-danger' : p === 'media' ? 'badge-gold' : 'badge-warning';
 
 export default function CalendarioCiclico() {
-    const [tasks, setTasks] = useState(calendarioTasks);
+    const [tasks, setTasks] = useState<any[]>([]);
     const [filterCat, setFilterCat] = useState<CalendarioTask['category'] | 'all'>('all');
     const [showMonth, setShowMonth] = useState<string>('Marzo');
     const [showNewTaskForm, setShowNewTaskForm] = useState(false);
@@ -27,21 +28,67 @@ export default function CalendarioCiclico() {
     });
     const months = ['Marzo', 'Abril', 'Mayo', 'Agosto', 'Septiembre'];
 
-    const toggle = (id: string) =>
-        setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
+    useEffect(() => {
+        async function loadTasks() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
 
-    const handleAddTask = () => {
+            const { data } = await supabase.from('calendario_tasks')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .order('created_at', { ascending: false });
+            if (data && data.length > 0) {
+                setTasks(data);
+            } else {
+                setTasks(calendarioTasks); // fallback to mock visual
+            }
+        }
+        loadTasks();
+    }, []);
+
+    const toggle = async (id: string) => {
+        const t = tasks.find(x => x.id === id);
+        if (!t) return;
+
+        // Optimistic UI update
+        setTasks(prev => prev.map(task => task.id === id ? { ...task, done: !task.done } : task));
+
+        try {
+            // Only update supabase if it's not a local mock ID
+            if (!id.includes('tmp') && typeof id !== 'number') {
+                await supabase.from('calendario_tasks').update({ done: !t.done }).eq('id', id);
+            }
+        } catch (e) {
+            console.error(e);
+            // Ignore rollback for demo
+        }
+    };
+
+    const handleAddTask = async () => {
         if (!newTaskForm.title) return;
-        setTasks(prev => [{
-            id: Date.now().toString(),
-            title: newTaskForm.title!,
-            month: newTaskForm.month!,
-            week: newTaskForm.week!,
-            category: newTaskForm.category as any,
-            priority: newTaskForm.priority as any,
-            colmena: newTaskForm.colmena,
-            done: false
-        }, ...prev]);
+
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                const { data } = await supabase.from('calendario_tasks').insert({
+                    user_id: session.user.id,
+                    title: newTaskForm.title,
+                    month: newTaskForm.month,
+                    week: newTaskForm.week,
+                    category: newTaskForm.category,
+                    priority: newTaskForm.priority,
+                    colmena: newTaskForm.colmena,
+                    done: false
+                }).select().single();
+
+                if (data) {
+                    setTasks(prev => [data, ...prev]);
+                }
+            }
+        } catch (e) {
+            console.error("Error creating task", e);
+        }
+
         setShowNewTaskForm(false);
         setNewTaskForm({ title: '', month: showMonth, week: 1, category: 'inspeccion', priority: 'media', colmena: '' });
     };
@@ -206,15 +253,15 @@ export default function CalendarioCiclico() {
                             </div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: categoryColors[task.category], flexShrink: 0 }} />
+                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: categoryColors[task.category as CalendarioTask['category']], flexShrink: 0 }} />
                                     <span style={{ fontSize: '0.88rem', fontWeight: 500, color: 'var(--bosque-ulmo)', textDecoration: task.done ? 'line-through' : 'none' }}>
                                         {task.title}
                                     </span>
                                 </div>
                                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                                     <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Semana {task.week}</span>
-                                    <span style={{ fontSize: '0.68rem', color: categoryColors[task.category] }}>
-                                        {categoryLabels[task.category]}
+                                    <span style={{ fontSize: '0.68rem', color: categoryColors[task.category as CalendarioTask['category']] }}>
+                                        {categoryLabels[task.category as CalendarioTask['category']]}
                                     </span>
                                     {task.colmena && <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>· {task.colmena}</span>}
                                 </div>
