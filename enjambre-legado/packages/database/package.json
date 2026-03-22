@@ -1,0 +1,9 @@
+{
+  "name": "@enjambre/database",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "db:push": "supabase db push",
+    "db:typegen": "supabase gen types typescript --linked > database.types.ts"
+  }
+}

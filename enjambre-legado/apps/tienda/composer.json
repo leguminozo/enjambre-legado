@@ -1,0 +1,27 @@
+{
+  "name": "verano/ecommerce-php",
+  "description": "Tienda web ecommerce con PHP y MySQL para Hostinger Business Web Hosting",
+  "type": "project",
+  "require": {
+    "php": ">=8.0",
+    "ext-json": "*",
+    "ext-mysqli": "*",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*",
+    "ext-session": "*",
+    "ext-curl": "*",
+    "ext-mbstring": "*",
+    "ext-openssl": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Verano\\": "src/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
