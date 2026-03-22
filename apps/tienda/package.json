@@ -1,0 +1,37 @@
+{
+  "name": "@enjambre/tienda",
+  "version": "1.0.0",
+  "description": "Tienda web ecommerce personalizada con PHP y MySQL para Hostinger Business Web Hosting",
+  "main": "public/index.php",
+  "scripts": {
+    "dev": "npm run build-css -- --watch",
+    "build": "npm run build-css",
+    "build-css": "tailwindcss -i ./src/css/input.css -o ./public/css/style.css",
+    "build-prod": "tailwindcss -i ./src/css/input.css -o ./public/css/style.css --minify"
+  },
+  "keywords": [
+    "ecommerce",
+    "php",
+    "mysql",
+    "hostinger",
+    "business"
+  ],
+  "author": "Tu Nombre",
+  "license": "MIT",
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.21",
+    "tailwindcss": "^3.3.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "lucide-react": "^0.575.0",
+    "next": "^16.2.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "transbank-sdk": "^6.1.1"
+  }
+}

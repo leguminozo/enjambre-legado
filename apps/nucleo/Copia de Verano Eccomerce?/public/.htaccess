@@ -1,0 +1,91 @@
+RewriteEngine On
+
+# Forzar HTTPS (descomentar en producción)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Enrutamiento para el panel de administración
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Configuración de seguridad
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "composer.json">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "composer.lock">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Prevenir acceso a archivos sensibles
+<FilesMatch "\.(env|log|sql|bak|backup|old|tmp)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Configuración de caché para archivos estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    
+    # CSS y JS
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    
+    # Imágenes
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    
+    # Fuentes
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+# Compresión GZIP
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+# Headers de seguridad
+<IfModule mod_headers.c>
+    # Prevenir clickjacking
+    Header always append X-Frame-Options SAMEORIGIN
+    
+    # Prevenir MIME type sniffing
+    Header always set X-Content-Type-Options nosniff
+    
+    # Prevenir XSS
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # Referrer Policy
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Configuración de PHP
+<IfModule mod_php.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    php_value max_execution_time 300
+    php_value memory_limit 256M
+    php_value session.gc_maxlifetime 3600
+    php_value session.cookie_lifetime 3600
+</IfModule>
+
+# Manejo de errores personalizado
+ErrorDocument 404 /admin/404
+ErrorDocument 403 /admin/403
+ErrorDocument 500 /admin/500

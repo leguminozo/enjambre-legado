@@ -1,0 +1,158 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      UserRole @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Customer relations
+  customer  Customer?
+  
+  // Admin relations
+  admin     Admin?
+
+  @@map("users")
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  phone     String?
+  address   String?
+  loyaltyPoints Int   @default(0)
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders    Order[]
+  loyaltyRewards LoyaltyReward[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("customers")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  permissions String  // JSON string of permission array
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  image       String?
+  
+  products    Product[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+  categoryId  String
+  available   Boolean  @default(true)
+  featured    Boolean  @default(false)
+  stock       Int      @default(0)
+  
+  category    Category @relation(fields: [categoryId], references: [id])
+  orderItems  OrderItem[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("products")
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  customerId    String
+  status        OrderStatus @default(PENDING)
+  totalAmount   Float
+  loyaltyPointsEarned Int @default(0)
+  
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  orderItems    OrderItem[]
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float // Price at time of purchase
+  
+  order     Order  @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("order_items")
+}
+
+model LoyaltyReward {
+  id          String   @id @default(cuid())
+  customerId  String
+  name        String
+  description String
+  pointsRequired Int
+  available   Boolean  @default(true)
+  
+  customer    Customer @relation(fields: [customerId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("loyalty_rewards")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
