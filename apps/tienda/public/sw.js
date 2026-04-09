@@ -1,9 +1,15 @@
-const CACHE_NAME = 'oyz-tienda-v1';
-const STATIC_ASSETS = ['/', '/catalogo', '/manifest.webmanifest'];
+/**
+ * PWA mínima: NO interceptar /_next/* (chunks/CSS cambian en cada deploy).
+ * HTML: red primero para no servir documentos viejos con hashes rotos.
+ */
+const CACHE_NAME = 'oyz-tienda-v2';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)).then(() => self.skipWaiting()),
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(['/manifest.webmanifest']))
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -25,17 +31,48 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
 
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  // Bundles de Next: siempre red (evita ChunkLoadError tras redeploy).
+  if (url.pathname.startsWith('/_next/')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  const accept = request.headers.get('accept') || '';
+  const isDocument = request.mode === 'navigate' || accept.includes('text/html');
+
+  if (isDocument) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request)),
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
-      return fetch(request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          return response;
-        })
-        .catch(() => caches.match('/'));
+      return fetch(request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        }
+        return response;
+      });
     }),
   );
 });
-
