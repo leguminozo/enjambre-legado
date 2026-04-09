@@ -4,17 +4,35 @@ Usa esta lista en **Vercel → Project → Settings → General / Build & Develo
 
 ## Proyecto principal (núcleo — SPA Vite)
 
-Objetivo: servir el build de [`apps/nucleo`](../apps/nucleo) (React Router). [`apps/nucleo/vercel.json`](../apps/nucleo/vercel.json) añade rewrites para que rutas como `/gerente` no fallen al refrescar. Si el **Root Directory** es la raíz del repositorio (no `apps/nucleo`), Vercel lee [`vercel.json`](../vercel.json) en la raíz; ese archivo repite los mismos rewrites para el SPA.
+Objetivo: servir el build de [`apps/nucleo`](../apps/nucleo) (React Router). La fuente de verdad de install/build/output es [`apps/nucleo/vercel.json`](../apps/nucleo/vercel.json) (rewrites SPA + monorepo).
 
-| Configuración | Valor recomendado |
-|---------------|-------------------|
-| **Root Directory** | Vacío (raíz del repositorio) **o** `apps/nucleo` (ver nota abajo) |
-| **Framework Preset** | Other / Vite (o Nixpacks si auto) |
-| **Install Command** | Si root es repo: `pnpm install`. Si root es `apps/nucleo`: `cd ../.. && pnpm install` |
-| **Build Command** | Desde **raíz del repo**: `pnpm exec turbo run build --filter=@enjambre/nucleo`. Desde `apps/nucleo`: `pnpm run build` (tras instalar workspace desde raíz) |
-| **Output Directory** | `apps/nucleo/dist` (si Root = repo) **o** `dist` (si Root = `apps/nucleo`) |
+### Recrear / alinear proyecto «nucleo» en Vercel
 
-**Variables de entorno (Production):** ver [`DEPLOY.md`](../DEPLOY.md#variables-de-entorno-vercel-núcleo).
+1. **Conectar** el repo `guillermoc2710-cmd/enjambre-legado`, rama `main`.
+2. **Root Directory:** `apps/nucleo` (sin barra final).
+3. **Framework Preset:** Vite.
+4. **Node.js:** 20.x (en *Settings → General* o vía `engines` en `apps/nucleo/package.json`; evita 22/24 con pnpm en monorepo).
+5. **Build & Development:** activa **Override** en los tres y pega exactamente (evita el «default» que solo instala en la subcarpeta):
+
+| Campo | Valor |
+|--------|--------|
+| **Install Command** | `cd ../.. && npm install -g pnpm@10.32.1 && pnpm install --frozen-lockfile` |
+| **Build Command** | `cd ../.. && pnpm exec turbo run build --filter=@enjambre/nucleo` |
+| **Output Directory** | `dist` |
+
+Si los overrides están **apagados**, Vercel debería leer igualmente `vercel.json`; si el build falla, fuerza los overrides de arriba.
+
+6. **Variables de entorno (Production)** — copia la URL y la clave **tal cual** desde Supabase → *Settings → API* (un carácter mal y falla el cliente):
+
+| Clave | Valor |
+|--------|--------|
+| `VITE_SUPABASE_URL` | `https://<ref>.supabase.co` (ej. `hdhamxiblwwskvvqbcfo.supabase.co`) |
+| `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | clave publishable `sb_publishable_...` **o** |
+| `VITE_SUPABASE_ANON_KEY` | JWT anon `eyJ...` (solo una de las dos claves hace falta) |
+
+No uses `NEXT_PUBLIC_*` solo para el SPA Vite salvo que también compiles la landing Next en el mismo proyecto.
+
+**Antigua referencia (root = repo vs `apps/nucleo`):** si el Root Directory fuera la raíz del monorepo, Output sería `apps/nucleo/dist` y los comandos usarían la raíz sin `cd ../..`.
 
 ## Proyecto adicional: tienda (Next.js)
 
