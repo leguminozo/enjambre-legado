@@ -1,5 +1,15 @@
-import "./globals.css";
-import React from "react";
+import './globals.css';
+import { AppProviders } from '@/components/providers/app-providers';
+import type { Metadata } from 'next';
+import React from 'react';
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Tienda · Enjambre Legado',
+    template: '%s · Enjambre Legado',
+  },
+  description: 'Tienda y panel de administración Enjambre Legado',
+};
 
 export default function RootLayout({
   children,
@@ -9,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="antialiased">
-        {children}
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

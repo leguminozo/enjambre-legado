@@ -11,11 +11,24 @@ export default function TiendaLanding() {
           <Leaf className="w-6 h-6 text-[#D4A017]" />
           <span className="font-serif font-bold text-xl text-[#0A3D2F]">Enjambre Legado</span>
         </div>
-        <div className="flex items-center gap-6">
-          <Link href="/catalogo" className="text-sm font-medium hover:text-[#D4A017] transition-colors">Catálogo</Link>
-          <Link href="/impacto" className="text-sm font-medium hover:text-[#D4A017] transition-colors">Nuestro Impacto</Link>
-          <Link href="/login" className="text-sm font-medium bg-[#0A3D2F] px-4 py-2 rounded-full text-white hover:bg-[#082a21] transition-colors">
-            Iniciar Sesión
+        <div className="flex items-center gap-4 sm:gap-6 flex-wrap justify-end">
+          <Link href="/catalogo" className="text-sm font-medium hover:text-[#D4A017] transition-colors">
+            Catálogo
+          </Link>
+          <Link href="/impacto" className="text-sm font-medium hover:text-[#D4A017] transition-colors">
+            Nuestro Impacto
+          </Link>
+          <Link
+            href="/dashboard"
+            className="text-sm font-medium text-[#0A3D2F] hover:text-[#D4A017] transition-colors hidden sm:inline"
+          >
+            Panel admin
+          </Link>
+          <Link
+            href="/login"
+            className="text-sm font-medium bg-[#0A3D2F] px-4 py-2 rounded-full text-white hover:bg-[#082a21] transition-colors"
+          >
+            Iniciar sesión
           </Link>
         </div>
       </nav>
@@ -33,11 +46,20 @@ export default function TiendaLanding() {
           <p className="text-xl text-gray-600 font-light max-w-lg leading-relaxed">
             Cada frasco de miel nativa que adquieres financia directamente la reforestación del bosque chileno. Trazabilidad absoluta mediante Blockchain.
           </p>
-          <div className="flex gap-4">
-            <button className="px-8 py-4 bg-[#D4A017] hover:bg-[#b88a10] text-white rounded-full font-medium transition-all shadow-lg shadow-[#D4A017]/20 flex items-center gap-2">
-              Ver Catálogo
+          <div className="flex flex-wrap gap-4">
+            <Link
+              href="/catalogo"
+              className="px-8 py-4 bg-[#D4A017] hover:bg-[#b88a10] text-white rounded-full font-medium transition-all shadow-lg shadow-[#D4A017]/20 inline-flex items-center gap-2"
+            >
+              Ver catálogo
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </Link>
+            <Link
+              href="/login"
+              className="px-8 py-4 border-2 border-[#0A3D2F] text-[#0A3D2F] rounded-full font-medium hover:bg-[#0A3D2F]/5 transition-colors inline-flex items-center"
+            >
+              Acceso comercio
+            </Link>
           </div>
         </div>
 

@@ -49,6 +49,8 @@ Fuente de verdad: [`apps/tienda/vercel.json`](../apps/tienda/vercel.json).
 
 Variables: `NEXT_PUBLIC_SUPABASE_*`, Transbank solo servidor (ver `DEPLOY.md`).
 
+**Rutas:** `/` landing, `/catalogo`, `/impacto`, `/login` (demo `admin@verano.com` / `password`), panel `/dashboard`, `/products`, `/orders`, `/customers`, `/collections`.
+
 ## Proyecto adicional: campo (Next.js)
 
 Igual patrón que tienda: añade [`apps/campo/vercel.json`](../apps/campo/vercel.json) con `--filter=@enjambre/campo` si aún no existe; **Root** `apps/campo`, Node 24.x, mismos comandos `npx pnpm@10.32.1`.
