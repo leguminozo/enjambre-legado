@@ -5,7 +5,9 @@ import { createClient } from '@/utils/supabase/server';
 
 export default async function CampoLanding() {
   const supabase = await createClient();
-  const { data: todos, error: todosError } = await supabase.from('todos').select();
+  const todosResult =
+    supabase != null ? await supabase.from('todos').select() : { data: null, error: null };
+  const { data: todos, error: todosError } = todosResult;
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 font-sans selection:bg-[#0A3D2F] selection:text-white pb-20">
@@ -37,11 +39,14 @@ export default async function CampoLanding() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center max-w-md mb-20">
-          <Link href="/login" className="w-full">
+          <Link href="/login" className="w-full sm:w-auto min-w-[200px]">
             <button className="w-full px-8 py-4 bg-gray-900 hover:bg-black text-white rounded-2xl font-medium transition-all duration-300 shadow-xl shadow-gray-900/20 active:scale-95 flex justify-center items-center gap-2 group">
               Abrir Terminal (POS)
               <Zap className="w-4 h-4" />
             </button>
+          </Link>
+          <Link href="/pos/catalogo" className="w-full sm:w-auto text-sm text-[#0A3D2F] underline font-medium">
+            Ver catálogo (sin login)
           </Link>
         </div>
 

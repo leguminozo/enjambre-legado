@@ -1,8 +1,13 @@
 import { createServerClient } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-import { getSupabaseKey, getSupabaseUrl } from './env';
+import { getSupabaseKey, getSupabaseUrl, isSupabaseConfigured } from './env';
 
-export async function createClient() {
+/** null si faltan env (evita 500 SSR en Vercel sin variables). */
+export async function createClient(): Promise<SupabaseClient | null> {
+  if (!isSupabaseConfigured()) {
+    return null;
+  }
   const cookieStore = await cookies();
 
   return createServerClient(getSupabaseUrl(), getSupabaseKey(), {

@@ -10,10 +10,11 @@
 
 | App | Variables |
 |-----|-----------|
-| **nucleo** (Vite) | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, opcional: `VITE_PUBLIC_URL_TIENDA`, `VITE_PUBLIC_URL_CAMPO` |
+| **nucleo** (Vite) | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, opcional: `VITE_API_BASE_URL` (BFF, por defecto `http://localhost:3001`), `VITE_PUBLIC_URL_TIENDA`, `VITE_PUBLIC_URL_CAMPO` |
+| **api** (BFF Hono) | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, opcional: `PORT` (por defecto `3001`) |
 | **nucleo** (landing Next opcional) | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, opcional: `NEXT_PUBLIC_URL_TIENDA`, `NEXT_PUBLIC_URL_CAMPO` |
 | **tienda** | `NEXT_PUBLIC_SUPABASE_*`, claves Transbank/Webpay según integración |
-| **campo** | Mismas públicas Supabase + futuras claves sync |
+| **campo** | `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` **o** `NEXT_PUBLIC_SUPABASE_ANON_KEY` (obligatorias en Vercel; ver tabla en [`docs/VERCEL.md`](docs/VERCEL.md)); futuras claves sync offline |
 
 Copiar [`apps/nucleo/.env.example`](apps/nucleo/.env.example) a `.env` local.
 
@@ -54,10 +55,14 @@ Usar `transbank-sdk` en **API Routes** de Next (`apps/tienda`) o Edge Functions;
 
 ## Puertos locales (desarrollo)
 
-- `pnpm dev` ejecuta Turbo: **nucleo** (Vite, puerto por defecto 5173), **tienda** (Next, 3000), **campo** (Next, 3002). Si hay conflicto, ajustar scripts en cada `package.json`.
+- `pnpm dev` ejecuta Turbo: **nucleo** (Vite, puerto por defecto 5173), **tienda** (Next, 3000), **campo** (Next, 3002), **api** (Hono, `3001` si añades el script al pipeline). Si hay conflicto, ajustar scripts en cada `package.json`.
+- BFF contable: `pnpm --filter @enjambre/api dev` → `GET /api/health/live` (público), `GET /api/health/ready` (requiere `Authorization: Bearer <access_token>`). Las rutas `/api/contable/*` usan el mismo JWT en cada request para que **RLS de Supabase** aplique con `auth.uid()`.
+
+## Mudanza desde otro repo (p. ej. `trama` / `APP MAYOr`)
+
+El **monorepo canónico** del producto Enjambre + módulo contable vive en esta carpeta (`enjambre-legado` / app OYZ). Lo implementado aquí (`packages/contable`, `apps/api`, migraciones en `packages/database/supabase/migrations/05_*` y `06_*`, ruta `/contable` en `apps/nucleo`) sustituye la necesidad de mantener un proyecto Next+Prisma separado solo para contabilidad. Tras copiar/verificar que no queda código único en el repo antiguo, puedes **archivar o eliminar** el otro proyecto; antes: aplicar migraciones Supabase en el proyecto destino y poblar `usuarios_empresas` + empresa de prueba.
 
 ## Prueba de carga / feria
 
 - Simular concurrencia en `ventas` y cola offline (`@enjambre/offline` + Dexie) antes de eventos masivos.
 - Revisar límites de Supabase (conexiones, RLS) con usuarios de prueba por rol.
-pued

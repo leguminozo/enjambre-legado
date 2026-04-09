@@ -1,4 +1,13 @@
-/** Clave pública: nuevo nombre (publishable) o clave anon clásica. */
+/** True si hay URL y clave pública (evita throw en Edge / middleware). */
+export function isSupabaseConfigured(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY?.trim() ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  return Boolean(url && key);
+}
+
+/** Clave pública: nuevo nombre (publishable) o anon clásica. */
 export function getSupabaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!url) {
