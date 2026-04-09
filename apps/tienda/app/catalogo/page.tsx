@@ -1,10 +1,19 @@
 import Link from 'next/link';
-import { ArrowLeft, Leaf } from 'lucide-react';
 import { listVisibleProducts } from '@/lib/shop/products';
+import { ShopHeader } from '@/components/shop/shop-header';
+import { ShopFooter } from '@/components/shop/shop-footer';
 
 export const metadata = {
-  title: 'Catálogo · Enjambre Legado',
+  title: 'Creaciones · Catálogo',
 };
+
+function formatCLP(n: number) {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+  }).format(n);
+}
 
 export default async function CatalogoPage() {
   let products = [] as Awaited<ReturnType<typeof listVisibleProducts>>;
@@ -14,55 +23,92 @@ export default async function CatalogoPage() {
   } catch (e) {
     loadError = e instanceof Error ? e.message : 'Error cargando catálogo';
   }
+
   return (
-    <main className="min-h-screen bg-stone-50">
-      <nav className="border-b border-stone-200 bg-white px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 text-[#0A3D2F] font-semibold">
-          <Leaf className="w-5 h-5 text-[#D4A017]" />
-          Enjambre Legado
-        </Link>
-        <Link href="/" className="text-sm text-stone-600 hover:text-[#0A3D2F] inline-flex items-center gap-1">
-          <ArrowLeft className="w-4 h-4" />
-          Inicio
-        </Link>
-      </nav>
-      <div className="max-w-4xl mx-auto px-6 py-16">
-        <h1 className="text-3xl font-serif font-bold text-[#0A3D2F] mb-4">Catálogo</h1>
-        {loadError ? (
-          <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
-            <p className="font-medium">No se pudo cargar el catálogo.</p>
-            <p className="text-sm mt-1 opacity-90">{loadError}</p>
+    <>
+      <ShopHeader />
+      <main className="min-h-[60vh] bg-cream-50">
+        <div className="border-b border-bosque-900/8 bg-gradient-to-r from-cream-100 to-cream-50 px-4 py-12 sm:px-6">
+          <div className="mx-auto max-w-6xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-miel-800">Tienda</p>
+            <h1 className="mt-2 font-display text-4xl font-semibold text-bosque-950 sm:text-5xl">
+              Creaciones
+            </h1>
+            <p className="mt-4 max-w-2xl text-bosque-800/75">
+              La materia de nuestras búsquedas — productos visibles con legado del bosque chilote.
+            </p>
           </div>
-        ) : null}
-        {products.length === 0 ? (
-          <p className="text-stone-600 mb-8 max-w-2xl">
-            Aún no hay productos publicados. Puedes cargarlos desde el{' '}
-            <Link href="/dashboard" className="text-amber-700 font-medium underline">
-              panel de administración
-            </Link>
-            .
-          </p>
-        ) : (
-          <ul className="grid sm:grid-cols-2 gap-4">
-            {products.map((p) => (
-              <li
-                key={p.id}
-                className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm hover:border-[#D4A017]/40 transition-colors"
-              >
-                <Link href={`/producto/${encodeURIComponent(p.slug)}`} className="block">
-                  <p className="font-medium text-[#0A3D2F]">{p.name}</p>
-                  <p className="text-sm text-stone-500 mt-1">
-                    ${p.price.toLocaleString('es-CL')} {p.format ? `· ${p.format}` : ''}
-                  </p>
-                  <p className="text-xs text-stone-400 mt-2">
-                    {p.stock == null ? 'Stock por confirmar' : p.stock > 0 ? `Stock: ${p.stock}` : 'Sin stock'}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </main>
+        </div>
+
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+          {loadError ? (
+            <div className="rounded-2xl border border-miel-600/30 bg-miel-50 p-6 text-bosque-900">
+              <p className="font-semibold">No se pudo cargar el catálogo.</p>
+              <p className="mt-2 text-sm opacity-90">{loadError}</p>
+            </div>
+          ) : null}
+
+          {products.length === 0 && !loadError ? (
+            <p className="max-w-xl text-bosque-800/70">
+              Aún no hay productos publicados. Puedes cargarlos desde el{' '}
+              <Link href="/dashboard" className="font-semibold text-miel-800 underline underline-offset-2">
+                panel de administración
+              </Link>
+              .
+            </p>
+          ) : null}
+
+          {products.length > 0 ? (
+            <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {products.map((p) => {
+                const img = p.photos[0];
+                return (
+                  <li key={p.id}>
+                    <Link
+                      href={`/producto/${encodeURIComponent(p.slug)}`}
+                      className="group block overflow-hidden rounded-2xl border border-bosque-900/10 bg-white shadow-sm transition hover:border-miel-600/35 hover:shadow-lg"
+                    >
+                      <div className="aspect-[4/3] bg-cream-100">
+                        {img ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={img}
+                            alt=""
+                            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-sm text-bosque-800/40">
+                            Sin imagen
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-5">
+                        {p.format ? (
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-miel-800">
+                            {p.format}
+                          </p>
+                        ) : null}
+                        <h2 className="mt-1 font-display text-lg font-semibold text-bosque-950 group-hover:text-bosque-900">
+                          {p.name}
+                        </h2>
+                        <p className="mt-2 text-sm font-medium text-bosque-800/80">{formatCLP(p.price)}</p>
+                        <p className="mt-2 text-xs text-bosque-800/50">
+                          {p.stock == null
+                            ? 'Stock por confirmar'
+                            : p.stock > 0
+                              ? `Disponible`
+                              : 'Sin stock'}
+                        </p>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+        </div>
+      </main>
+      <ShopFooter />
+    </>
   );
 }

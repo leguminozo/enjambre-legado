@@ -1,7 +1,7 @@
 import { CheckoutClient } from './ui';
 
 export const metadata = {
-  title: 'Checkout · Enjambre Legado',
+  title: 'Checkout',
 };
 
 export default function CheckoutPage() {

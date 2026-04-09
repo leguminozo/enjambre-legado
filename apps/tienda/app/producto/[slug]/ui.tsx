@@ -4,15 +4,23 @@ import type { ShopProduct } from '@/lib/shop/products';
 import { useCart } from '@/components/shop/cart-context';
 import React, { useState } from 'react';
 
-export function AddToCartButton({ product }: { product: ShopProduct }) {
+export function AddToCartButton({
+  product,
+  disabled = false,
+}: {
+  product: ShopProduct;
+  disabled?: boolean;
+}) {
   const cart = useCart();
   const [added, setAdded] = useState(false);
 
   return (
     <button
       type="button"
-      className="px-6 py-3 rounded-full bg-[#0A3D2F] text-white font-medium hover:bg-[#082a21] transition-colors"
+      disabled={disabled}
+      className="rounded-full bg-bosque-900 px-8 py-3.5 text-sm font-semibold text-cream-50 shadow-md shadow-bosque-900/15 transition hover:bg-bosque-800 disabled:cursor-not-allowed disabled:opacity-45"
       onClick={() => {
+        if (disabled) return;
         cart.add(
           {
             id: product.id,
@@ -23,11 +31,10 @@ export function AddToCartButton({ product }: { product: ShopProduct }) {
           1,
         );
         setAdded(true);
-        window.setTimeout(() => setAdded(false), 1200);
+        window.setTimeout(() => setAdded(false), 1400);
       }}
     >
-      {added ? 'Agregado' : 'Agregar al carrito'}
+      {added ? 'Agregado al carrito' : 'Agregar al carrito'}
     </button>
   );
 }
-

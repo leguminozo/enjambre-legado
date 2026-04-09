@@ -12,6 +12,25 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        bosque: {
+          950: '#051a15',
+          900: '#0A3D2F',
+          800: '#0d4a3a',
+          700: '#126b52',
+        },
+        miel: {
+          50: '#fffbeb',
+          100: '#fef3c7',
+          400: '#e8b84d',
+          600: '#c9940d',
+          700: '#a67a0a',
+          800: '#8a6510',
+        },
+        cream: {
+          50: '#faf8f3',
+          100: '#f3efe6',
+          200: '#e8e2d4',
+        },
         primary: {
           50: '#fffbeb',
           100: '#fef3c7',
@@ -38,7 +57,8 @@ module.exports = {
         }
       },
       fontFamily: {
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'Georgia', 'serif'],
+        sans: ['var(--font-body)', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',

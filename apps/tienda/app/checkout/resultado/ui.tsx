@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useCart } from '@/components/shop/cart-context';
+import { ShopHeader } from '@/components/shop/shop-header';
+import { ShopFooter } from '@/components/shop/shop-footer';
 
 type CommitState = 'loading' | 'success' | 'failed';
 
@@ -45,22 +47,43 @@ export function CheckoutResultClient() {
       setState('success');
       setMessage('Pago confirmado. Tu pedido fue registrado.');
     })();
+    // cart.clear estable desde el provider; no incluir cart en deps para evitar re-ejecuciones.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar con token
   }, [token]);
 
   return (
-    <main className="min-h-screen bg-stone-50 px-6 py-16">
-      <div className="max-w-xl mx-auto bg-white border border-stone-200 rounded-2xl p-6">
-        <h1 className="text-2xl font-serif font-bold text-[#0A3D2F] mb-2">Resultado del pago</h1>
-        <p className={state === 'success' ? 'text-green-700' : state === 'failed' ? 'text-red-700' : 'text-stone-600'}>
-          {message}
-        </p>
-        <div className="mt-6">
-          <Link href="/catalogo" className="underline text-[#0A3D2F]">
-            Volver al catálogo
-          </Link>
+    <>
+      <ShopHeader />
+      <main className="min-h-[50vh] bg-cream-50 px-4 py-12 sm:px-6">
+        <div className="mx-auto max-w-xl">
+          <div className="rounded-2xl border border-bosque-900/10 bg-white p-8 shadow-sm">
+            <h1 className="font-display text-2xl font-semibold text-bosque-950">Resultado del pago</h1>
+            <p
+              className={`mt-4 text-base ${
+                state === 'success'
+                  ? 'text-emerald-800'
+                  : state === 'failed'
+                    ? 'text-red-700'
+                    : 'text-bosque-800/70'
+              }`}
+            >
+              {message}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link
+                href="/catalogo"
+                className="inline-flex rounded-full bg-bosque-900 px-5 py-2.5 text-sm font-semibold text-cream-50 hover:bg-bosque-800"
+              >
+                Volver a la tienda
+              </Link>
+              <Link href="/" className="inline-flex items-center text-sm font-semibold text-miel-800 underline">
+                Ir al inicio
+              </Link>
+            </div>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+      <ShopFooter />
+    </>
   );
 }
-
