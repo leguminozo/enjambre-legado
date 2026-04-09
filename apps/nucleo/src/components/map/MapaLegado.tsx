@@ -3,8 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { supabase } from '../../lib/supabase';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { mapMarkers, type MapMarker } from '../../data/mockData';
-import { timelineEvents } from '../../data/mockData';
+import { timelineEvents, type MapMarker } from '../../data/mockData';
 
 // Fix Leaflet default icon issue
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -92,27 +91,37 @@ interface MapaLegadoProps {
 }
 
 export default function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
-    const [liveMarkers, setLiveMarkers] = useState<MapMarker[]>(mapMarkers);
+    const [liveMarkers, setLiveMarkers] = useState<MapMarker[]>([]);
 
     useEffect(() => {
         async function loadMaps() {
-            const { data } = await supabase.from('apiarios').select('*');
-            if (data && data.length > 0) {
-                // Keep the static nectar/feria ones, but replace obrera/tree with live DB
-                const staticNonApicultor = mapMarkers.filter(m => m.type !== 'obrera' && m.type !== 'tree' && m.type !== 'zangano');
-
-                const liveApicultor: MapMarker[] = data.map(a => ({
-                    id: a.id,
-                    lat: a.lat,
-                    lng: a.lng,
-                    type: a.health === 'risk' ? 'zangano' : 'obrera', // Example dynamic change
-                    name: a.name,
-                    details: a.details,
-                    health: a.health
-                }));
-
-                setLiveMarkers([...liveApicultor, ...staticNonApicultor]);
-            }
+            const { data: apiarios } = await supabase.from('apiarios').select('id, nombre, lat, lng, sector');
+            const { data: arboles } = await supabase.from('arboles_plantados').select('id, especie, lat, lng').not('lat', 'is', null);
+            const markers: MapMarker[] = [];
+            apiarios?.forEach((a: Record<string, unknown>) => {
+                if (a.lat != null && a.lng != null) {
+                    markers.push({
+                        id: `api-${String(a.id)}`,
+                        lat: Number(a.lat),
+                        lng: Number(a.lng),
+                        type: 'obrera',
+                        name: String(a.nombre ?? 'Apiario'),
+                        details: a.sector ? String(a.sector) : undefined,
+                    });
+                }
+            });
+            arboles?.forEach((t: Record<string, unknown>) => {
+                if (t.lat != null && t.lng != null) {
+                    markers.push({
+                        id: `tree-${String(t.id)}`,
+                        lat: Number(t.lat),
+                        lng: Number(t.lng),
+                        type: 'tree',
+                        name: String(t.especie ?? 'Árbol nativo'),
+                    });
+                }
+            });
+            setLiveMarkers(markers);
         }
         loadMaps();
     }, []);

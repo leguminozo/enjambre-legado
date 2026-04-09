@@ -17,11 +17,7 @@ const revenueByProduct = [
     { product: 'Miel pura', revenue: 540, margin: 65 }, { product: 'Panal', revenue: 320, margin: 71 },
     { product: 'Cofres', revenue: 420, margin: 55 }, { product: 'Mezclas', revenue: 280, margin: 62 },
 ];
-const cashFlowData = [
-    { month: 'Ene', income: 450, expenses: 280 }, { month: 'Feb', income: 620, expenses: 310 },
-    { month: 'Mar', income: 580, expenses: 290 }, { month: 'Abr', income: 480, expenses: 350 },
-    { month: 'May', income: 320, expenses: 280 }, { month: 'Jun', income: 180, expenses: 250 },
-];
+const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
 const aiResponses: Record<string, string> = {
     'sachet': 'Con los datos actuales, el lote de sachets con cacao nibs debería salir en 18 días. Hay demanda en La Reina (Santiago) para 400 unidades. Sugiero priorizar cosecha de Ulmo Mayor.',
@@ -51,21 +47,47 @@ export default function GerenteView() {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) return;
 
-            // Fetch Cashflow (Gerente might see global, but we filter by user for this demo to respect RLS)
-            const { data: cfData } = await supabase.from('cashflow').select('*').eq('user_id', session.user.id).order('created_at', { ascending: true });
-            if (cfData && cfData.length > 0) {
-                setLocalCashFlow(cfData);
-            } else {
-                setLocalCashFlow(cashFlowData); // Fallback to mock
-            }
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
+            const isGerente = profile?.role === 'gerente';
 
-            // Fetch Real YTD Revenue
-            const { data: ventasData } = await supabase.from('ventas').select('total').eq('user_id', session.user.id);
-            if (ventasData) {
-                const globalRevenue = ventasData.reduce((acc, v) => acc + Number(v.total), 0);
-                if (globalRevenue > 0) setFacturacionYTD(globalRevenue);
-                else setFacturacionYTD(4200000); // 4.2M mock
-            }
+            let vq = supabase.from('ventas').select('total, created_at');
+            if (!isGerente) vq = vq.eq('vendedor_id', session.user.id);
+            const { data: ventasRows } = await vq;
+
+            const ytd = ventasRows?.reduce((a, v) => a + Number(v.total), 0) ?? 0;
+            setFacturacionYTD(ytd);
+
+            const incomeByMonth = new Map<string, number>();
+            ventasRows?.forEach((v) => {
+                const d = new Date(v.created_at as string);
+                const key = MONTH_LABELS[d.getMonth()];
+                incomeByMonth.set(key, (incomeByMonth.get(key) || 0) + Number(v.total));
+            });
+
+            let cfQuery = supabase.from('cashflow').select('*').order('month');
+            if (!isGerente) cfQuery = cfQuery.eq('user_id', session.user.id);
+            const { data: cfRows } = await cfQuery;
+
+            const merged = new Map<string, { month: string; income: number; expenses: number }>();
+            MONTH_LABELS.forEach((m) => merged.set(m, { month: m, income: 0, expenses: 0 }));
+            incomeByMonth.forEach((inc, m) => {
+                const row = merged.get(m) || { month: m, income: 0, expenses: 0 };
+                row.income = inc;
+                merged.set(m, row);
+            });
+            (cfRows || []).forEach((r: { month: string; income?: number; expenses?: number }) => {
+                const row = merged.get(r.month) || { month: r.month, income: 0, expenses: 0 };
+                if (r.income != null) row.income = Number(r.income);
+                row.expenses = Number(r.expenses) || 0;
+                merged.set(r.month, row);
+            });
+
+            const arr = Array.from(merged.values()).filter((x) => x.income > 0 || x.expenses > 0);
+            setLocalCashFlow(arr.length ? arr : Array.from(merged.values()));
         }
         loadData();
     }, []);
@@ -81,12 +103,15 @@ export default function GerenteView() {
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 // Upsert to Supabase
-                const { data } = await supabase.from('cashflow').upsert({
-                    month: txForm.month,
-                    income: txForm.income,
-                    expenses: txForm.expenses,
-                    user_id: session.user.id
-                }, { onConflict: 'month' }).select().single();
+                const { data } = await supabase.from('cashflow').upsert(
+                    {
+                        month: txForm.month,
+                        income: txForm.income,
+                        expenses: txForm.expenses,
+                        user_id: session.user.id,
+                    },
+                    { onConflict: 'user_id,month' }
+                ).select().single();
 
                 if (data) {
                     const idx = localCashFlow.findIndex(c => c.month === txForm.month);

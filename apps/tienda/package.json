@@ -4,10 +4,12 @@
   "description": "Tienda web ecommerce personalizada con PHP y MySQL para Hostinger Business Web Hosting",
   "main": "public/index.php",
   "scripts": {
-    "dev": "npm run build-css -- --watch",
-    "build": "npm run build-css",
+    "dev": "next dev",
+    "build": "next build",
     "build-css": "tailwindcss -i ./src/css/input.css -o ./public/css/style.css",
-    "build-prod": "tailwindcss -i ./src/css/input.css -o ./public/css/style.css --minify"
+    "build-prod": "tailwindcss -i ./src/css/input.css -o ./public/css/style.css --minify",
+    "start": "next start",
+    "lint": "next lint"
   },
   "keywords": [
     "ecommerce",
@@ -19,9 +21,13 @@
   "author": "Tu Nombre",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.21",
-    "tailwindcss": "^3.3.0"
+    "tailwindcss": "^3.3.0",
+    "typescript": "~5.9.3"
   },
   "engines": {
     "node": ">=16.0.0",

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { getUrlCampo, getUrlTienda } from '../lib/publicUrls';
 import { Hexagon, Lock, Mail, User, ShieldCheck } from 'lucide-react';
 
 export default function AuthView() {
@@ -14,6 +15,27 @@ export default function AuthView() {
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
     const [role, setRole] = useState('apicultor');
+    const [pendingConfirmation, setPendingConfirmation] = useState(false);
+
+    const handleResendConfirmation = async () => {
+        if (!email.trim()) {
+            setError('Ingresa el correo con el que te registraste.');
+            return;
+        }
+        setLoading(true);
+        setError(null);
+        setMessage(null);
+        try {
+            const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() });
+            if (error) throw error;
+            setMessage('Te enviamos de nuevo el correo de confirmación.');
+        } catch (err: unknown) {
+            const e = err as { message?: string };
+            setError(e?.message || 'No se pudo reenviar el correo.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,8 +57,14 @@ export default function AuthView() {
                     password,
                 });
                 if (error) throw error;
+                setPendingConfirmation(false);
             } else {
-                const { error } = await supabase.auth.signUp({
+                if (password.length < 8) {
+                    setError('La contraseña debe tener al menos 8 caracteres.');
+                    setLoading(false);
+                    return;
+                }
+                const { data, error } = await supabase.auth.signUp({
                     email,
                     password,
                     options: {
@@ -47,10 +75,13 @@ export default function AuthView() {
                     }
                 });
                 if (error) throw error;
-                // Auto login might happen, or they might need to confirm email depending on Supabase settings
-                if (error) throw error;
-                setMessage('¡Registro exitoso! Por favor revisa tu correo o inicia sesión.');
-                setIsLogin(true);
+                if (data.user && !data.session) {
+                    setPendingConfirmation(true);
+                    setMessage('Revisa tu correo para confirmar la cuenta antes de iniciar sesión.');
+                } else {
+                    setMessage('¡Registro exitoso! Ya puedes iniciar sesión.');
+                    setIsLogin(true);
+                }
             }
         } catch (err: any) {
             setError(err.message || 'Error de autenticación');
@@ -159,14 +190,40 @@ export default function AuthView() {
 
                 </form>
 
+                {pendingConfirmation && (
+                    <div style={{ marginTop: 'var(--space-md)', textAlign: 'center' }}>
+                        <button type="button" className="btn btn-outline btn-sm" disabled={loading} onClick={handleResendConfirmation}>
+                            Reenviar correo de confirmación
+                        </button>
+                    </div>
+                )}
+
                 {!isForgotPassword && (
                     <div style={{ marginTop: 'var(--space-xl)', textAlign: 'center', fontSize: '0.85rem' }}>
                         <span style={{ color: 'var(--text-secondary)' }}>
                             {isLogin ? '¿No tienes cuenta? ' : '¿Ya tienes una cuenta? '}
                         </span>
-                        <button className="btn btn-ghost btn-sm" onClick={() => setIsLogin(!isLogin)} style={{ padding: 4, height: 'auto', fontWeight: 600, color: 'var(--oro-miel-dark)' }}>
+                        <button className="btn btn-ghost btn-sm" onClick={() => { setIsLogin(!isLogin); setPendingConfirmation(false); }} style={{ padding: 4, height: 'auto', fontWeight: 600, color: 'var(--oro-miel-dark)' }}>
                             {isLogin ? 'Regístrate' : 'Inicia Sesión'}
                         </button>
+                    </div>
+                )}
+
+                {(getUrlTienda() || getUrlCampo()) && (
+                    <div style={{ marginTop: 'var(--space-lg)', paddingTop: 'var(--space-lg)', borderTop: '1px solid rgba(10,61,47,0.08)', textAlign: 'center', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        <div style={{ marginBottom: 8, fontWeight: 600, color: 'var(--bosque-ulmo)', fontSize: '0.72rem', letterSpacing: '0.06em' }}>ECOSISTEMA</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 'var(--space-md)' }}>
+                            {getUrlTienda() && (
+                                <a href={getUrlTienda()} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--oro-miel-dark)', fontWeight: 500 }}>
+                                    Tienda web
+                                </a>
+                            )}
+                            {getUrlCampo() && (
+                                <a href={getUrlCampo()} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--oro-miel-dark)', fontWeight: 500 }}>
+                                    Terminal Campo (POS)
+                                </a>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>

@@ -2,7 +2,12 @@ import React from 'react';
 import { Leaf, Activity, ArrowRight, TreePine } from 'lucide-react';
 import Link from 'next/link';
 
+function ecosystemUrlTienda(): string {
+  return (process.env.NEXT_PUBLIC_URL_TIENDA ?? '').trim();
+}
+
 export default function NucleoLanding() {
+  const urlTienda = ecosystemUrlTienda();
   return (
     <main className="min-h-screen bg-[#fef7ee] text-gray-900 font-sans selection:bg-[#D4A017] selection:text-white pb-20">
       {/* Hero Section */}
@@ -70,9 +75,13 @@ export default function NucleoLanding() {
           <p className="text-gray-600 mb-6 text-sm leading-relaxed">
             Transparencia de métricas de CO₂, visor de reforestación territorial y reportes biológicos de floraciones locales.
           </p>
-          <a href="http://tienda.obrerayzangano.com" className="text-green-700 font-medium text-sm hover:underline flex items-center gap-1">
-            Explorar impacto <ArrowRight className="w-3 h-3" />
-          </a>
+          {urlTienda ? (
+            <a href={urlTienda} target="_blank" rel="noopener noreferrer" className="text-green-700 font-medium text-sm hover:underline flex items-center gap-1">
+              Explorar impacto <ArrowRight className="w-3 h-3" />
+            </a>
+          ) : (
+            <span className="text-gray-400 font-medium text-sm">Tienda web (configura NEXT_PUBLIC_URL_TIENDA)</span>
+          )}
         </div>
       </section>
     </main>

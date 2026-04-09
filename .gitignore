@@ -7,3 +7,11 @@ dist-ssr/
 .env.*
 !.env.example
 .vercel
+.DS_Store
+.turbo/
+**/.turbo/
+.agents/
+.claude/
+.trae/
+skills/
+skills-lock.json

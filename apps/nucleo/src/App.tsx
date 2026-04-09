@@ -44,7 +44,14 @@ function AppContent() {
     // 2. Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        setSession(null);
+        setRole(null);
+        setLoading(false);
+        navigate('/');
+        return;
+      }
       setSession(session);
       if (session) fetchProfileAndRoute(session);
       else {

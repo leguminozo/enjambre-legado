@@ -1,7 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ShoppingBag, Users, MapPin, CalendarDays, TrendingUp, Star, ArrowUpRight, QrCode, Truck, X, ChevronDown, Plus, Minus } from 'lucide-react';
-import { products, roleGreetings } from '../data/mockData';
+import { roleGreetings, type Product } from '../data/mockData';
 import { supabase } from '../lib/supabase';
+
+function mapProductoRow(p: Record<string, unknown>): Product {
+    const precio = Number(p.precio) || 0;
+    return {
+        id: String(p.id),
+        name: String(p.nombre ?? 'Producto'),
+        description: String(p.descripcion_regenerativa ?? ''),
+        price: precio,
+        format: String(p.formato ?? ''),
+        impactTrees: Math.max(1, Math.floor(precio / 50000) || 1),
+        emoji: '🍯',
+        stock: Number(p.stock) || 0,
+        category: String(p.formato ?? 'Legado'),
+    };
+}
+
+function mapClientType(t: string): string {
+    if (t === 'Particular') return 'D2C';
+    if (t === 'Chef' || t === 'Reseller') return 'B2B';
+    if (t === 'Deportivo') return 'Retail';
+    return 'D2C';
+}
 
 const pitches: Record<string, string> = {
     '🏋️ Deportista': '"Cada sachet de Gotas de Néctar es una dosis de 15g de energía pura del bosque patagónico. Ideal para pre o post entreno. Sin azúcar añadida, cargada de antioxidantes. Y con cada sachet, plantas 0.3 árboles nativos en Chiloé."',
@@ -13,12 +35,23 @@ const pitches: Record<string, string> = {
 
 export default function VendedorView() {
     const { greeting, title, subtitle } = roleGreetings.vendedor;
-    const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
+    const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
+
+    useEffect(() => {
+        (async () => {
+            const { data } = await supabase.from('productos').select('*').order('nombre');
+            if (data?.length) setCatalogProducts(data.map((r) => mapProductoRow(r as Record<string, unknown>)));
+        })();
+    }, []);
+
+    const products = catalogProducts;
+    const totalStock = useMemo(() => products.reduce((sum, p) => sum + p.stock, 0), [products]);
     const [showFullCatalog, setShowFullCatalog] = useState(false);
     const [selectedPitch, setSelectedPitch] = useState('🏋️ Deportista');
     const [showQR, setShowQR] = useState(false);
     const [crmExpanded, setCrmExpanded] = useState(false);
     const [showPos, setShowPos] = useState(false);
+    const [loadingPos, setLoadingPos] = useState(false);
     const [posCart, setPosCart] = useState<Record<string, number>>({});
     const [showAddClient, setShowAddClient] = useState(false);
     const [newClientForm, setNewClientForm] = useState({ name: '', type: 'Particular', purchases: 0, level: 'Guardián Bronce', lastOrder: 'Ninguna' });
@@ -49,7 +82,7 @@ export default function VendedorView() {
             if (session) {
                 const { data } = await supabase.from('clientes').insert({
                     name: newClientForm.name,
-                    type: newClientForm.type === 'Particular' ? 'D2C' : newClientForm.type,
+                    type: mapClientType(newClientForm.type),
                     user_id: session.user.id,
                     status: 'activo'
                 }).select().single();
@@ -175,25 +208,33 @@ export default function VendedorView() {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-md)', fontSize: '1.2rem', fontWeight: 700, color: 'var(--bosque-ulmo)' }}>
                                         <span>Total</span><span>${cartTotal.toLocaleString()}</span>
                                     </div>
-                                    <button className="btn btn-primary" style={{ width: '100%', padding: '14px', fontSize: '1rem', fontWeight: 600 }} disabled={cartTotal === 0} onClick={async () => {
+                                    <button className="btn btn-primary" style={{ width: '100%', padding: '14px', fontSize: '1rem', fontWeight: 600 }} disabled={cartTotal === 0 || loadingPos} onClick={async () => {
+                                        setLoadingPos(true);
                                         try {
                                             const { data: { session } } = await supabase.auth.getSession();
                                             if (session) {
-                                                await supabase.from('ventas').insert({
-                                                    user_id: session.user.id,
-                                                    total: cartTotal,
-                                                    productos: posCart,
+                                                const { error } = await supabase.from('ventas').insert({
+                                                    vendedor_id: session.user.id,
+                                                    total: Math.round(cartTotal),
+                                                    items: posCart as unknown as Record<string, number>,
+                                                    origen: 'feria',
                                                     metodo_pago: 'Efectivo/Transferencia',
-                                                    estado: 'completada'
+                                                    estado: 'completada',
+                                                    offline_synced: typeof navigator !== 'undefined' ? !navigator.onLine : false,
                                                 });
+                                                if (error) throw error;
                                             }
+                                            alert(typeof navigator !== 'undefined' && !navigator.onLine
+                                                ? 'Venta guardada localmente; se sincronizará al recuperar red.'
+                                                : 'Venta registrada correctamente.');
+                                            setPosCart({});
+                                            setShowPos(false);
                                         } catch (e) {
-                                            console.error("Error offline POS:", e);
+                                            console.error('Error POS:', e);
+                                            alert('No se pudo registrar la venta. Revisa conexión o permisos.');
+                                        } finally {
+                                            setLoadingPos(false);
                                         }
-
-                                        alert('¡Venta registrada offline! Se sincronizará al detectar red.');
-                                        setPosCart({});
-                                        setShowPos(false);
                                     }}>
                                         Cobrar Venta
                                     </button>
@@ -229,6 +270,11 @@ export default function VendedorView() {
                             <div><div className="section-title">Catálogo Vivo</div><div className="section-subtitle">Cada producto tiene historia y propósito regenerativo</div></div>
                             <button className="btn btn-outline btn-sm" onClick={() => setShowQR(true)}><QrCode size={14} /> Generar QR</button>
                         </div>
+                        {products.length === 0 && (
+                            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 'var(--space-lg)', fontSize: '0.9rem' }}>
+                                No hay productos en Supabase todavía. Carga filas en la tabla <code>productos</code> o sincroniza desde la tienda.
+                            </p>
+                        )}
                         <div className="product-grid">
                             {displayedProducts.map(p => (
                                 <div key={p.id} className="product-card">

@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Map, Hexagon, ShoppingBag, BarChart3, Truck, Megaphone, User, Bell, Search, Menu, X, TreePine, LogOut } from 'lucide-react';
 import { roleLabels } from '../../data/mockData';
 import { supabase } from '../../lib/supabase';
+import { getUrlCampo, getUrlTienda } from '../../lib/publicUrls';
 
 interface AppLayoutProps { children: React.ReactNode; currentRole: string; onRoleChange: (role: string) => void; headerTitle: string; }
 
@@ -92,6 +93,23 @@ export default function AppLayout({ children, currentRole, onRoleChange, headerT
                     ))}
                 </nav>
                 <div className="sidebar-footer">
+                    {(getUrlTienda() || getUrlCampo()) && (
+                        <div style={{ padding: '0 var(--space-md) var(--space-md)', fontSize: '0.7rem', color: 'var(--text-muted)', borderBottom: '1px solid rgba(10,61,47,0.08)' }}>
+                            <div style={{ fontWeight: 600, letterSpacing: '0.06em', marginBottom: 6, color: 'var(--bosque-ulmo)', fontSize: '0.65rem' }}>ECOSISTEMA</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                {getUrlTienda() && (
+                                    <a href={getUrlTienda()} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--oro-miel-dark)', fontWeight: 500 }} onClick={() => setSidebarOpen(false)}>
+                                        Tienda web
+                                    </a>
+                                )}
+                                {getUrlCampo() && (
+                                    <a href={getUrlCampo()} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--oro-miel-dark)', fontWeight: 500 }} onClick={() => setSidebarOpen(false)}>
+                                        Terminal Campo (POS)
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    )}
                     <div className="sidebar-user">
                         <div className="sidebar-user-avatar">{userName.charAt(0).toUpperCase()}</div>
                         <div className="sidebar-user-info">

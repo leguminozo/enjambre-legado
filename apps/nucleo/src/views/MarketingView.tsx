@@ -22,14 +22,8 @@ export default function MarketingView() {
                 supabase.from('marketing_campaigns').select('*').eq('user_id', uid).order('created_at', { ascending: false })
             ]);
 
-            if (resP.data?.length) setPosts(resP.data);
-            else setPosts([{ id: 'm1', post_date: '3 mar', type: 'Reel', content: 'Cosecha de ulmo', status: 'Programado', platform: 'IG' }]); // fallback
-
-            if (resC.data?.length) setCampaigns(resC.data);
-            else setCampaigns([
-                { id: 'c1', name: 'Regala un árbol', period: 'Marzo', impact: '60 árboles meta', status: 'Activa' },
-                { id: 'c2', name: 'Club Legado', period: 'Q2', impact: '+15 suscriptores', status: 'Planificando' }
-            ]);
+            setPosts(resP.data ?? []);
+            setCampaigns(resC.data ?? []);
         }
         loadData();
     }, []);

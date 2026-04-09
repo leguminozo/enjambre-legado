@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CalendarDays, CheckCircle2, Circle, Filter, Plus, X } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { calendarioTasks, flowPredictions } from '../../data/mockData';
+import { flowPredictions } from '../../data/mockData';
 import { supabase } from '../../lib/supabase';
 import type { CalendarioTask } from '../../data/mockData';
 
@@ -40,7 +40,7 @@ export default function CalendarioCiclico() {
             if (data && data.length > 0) {
                 setTasks(data);
             } else {
-                setTasks(calendarioTasks); // fallback to mock visual
+                setTasks([]);
             }
         }
         loadTasks();

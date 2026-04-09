@@ -23,16 +23,7 @@ export default function ClienteView() {
 
             const { data } = await supabase.from('pedidos_cliente').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false });
 
-            if (data && data.length > 0) {
-                setPedidos(data);
-            } else {
-                // Fallback for visual mock
-                setPedidos([
-                    { order_date: '22 feb', items: 'Cofre Legado + Sachets x10', status: 'Entregado', trees_planted: 5.3 },
-                    { order_date: '15 ene', items: 'Crema Cacao Nibs x2', status: 'Entregado', trees_planted: 2.4 },
-                    { order_date: '20 dic', items: 'Miel Virgen 500g', status: 'Entregado', trees_planted: 2.0 },
-                ]);
-            }
+            setPedidos(data ?? []);
         }
         loadData();
     }, []);

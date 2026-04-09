@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity } from 'lucide-react';
-import { colmenas as mockColmenas, roleGreetings } from '../data/mockData';
+import { roleGreetings } from '../data/mockData';
 import type { Colmena } from '../data/mockData';
+
+function healthFromEstado(estado: string | null | undefined): Colmena['health'] {
+    if (estado === 'optima') return 'optimal';
+    if (estado === 'atencion') return 'attention';
+    return 'risk';
+}
 import { supabase } from '../lib/supabase';
 import ColmenaFicha from '../components/apicultor/ColmenaFicha';
 import CalendarioCiclico from '../components/apicultor/CalendarioCiclico';
@@ -29,74 +35,101 @@ export default function ApicultorView() {
                 const { data: { session } } = await supabase.auth.getSession();
                 const uid = session?.user?.id;
 
-                // 1. Fetch apiarios
                 const { data: apiarios } = await supabase.from('apiarios').select('*');
-                const apiarioMap = new Map(apiarios?.map(a => [a.id, a.name]) || []);
+                const apiarioMap = new Map(apiarios?.map((a) => [a.id, (a as { nombre?: string }).nombre]) || []);
 
-                // 2. Fetch colmenas with related data
-                const { data: colmenasData } = await supabase.from('colmenas').select(`
+                const nested = await supabase.from('colmenas').select(`
                     *,
                     inspecciones (*),
                     varroa_records (*),
                     peso_records (*)
                 `);
+                let colmenasData = nested.data;
+                if (nested.error) {
+                    const flat = await supabase.from('colmenas').select('*');
+                    colmenasData = flat.data;
+                }
 
-                if (colmenasData) {
-                    const mapped: Colmena[] = colmenasData.map(c => ({
-                        id: c.id,
-                        name: c.name,
-                        location: c.apiario_id ? apiarioMap.get(c.apiario_id) || 'Desconocido' : 'Desconocido',
-                        lat: 0, lng: 0, // Simplified
-                        health: c.health,
-                        queen: c.queen, // Simplified
+                if (colmenasData?.length) {
+                    const mapped: Colmena[] = colmenasData.map((c: Record<string, unknown>) => ({
+                        id: String(c.id),
+                        name: (c.name as string) || 'Colmena',
+                        location: c.apiario_id
+                            ? String(apiarioMap.get(c.apiario_id as string) || 'Sin apiario')
+                            : 'Sin apiario',
+                        lat: typeof c.lat === 'number' ? c.lat : 0,
+                        lng: typeof c.lng === 'number' ? c.lng : 0,
+                        health: healthFromEstado(c.estado as string),
+                        queen: (c.queen as string) || '',
                         reinaHistory: [],
-                        lastInspection: c.last_inspection || '',
-                        inspecciones: c.inspecciones?.map((i: any) => ({
-                            date: i.date, inspector: i.inspector, marcos_cria: i.marcos_cria,
-                            marcos_miel: i.marcos_miel, varroa: i.varroa, poblacion: i.poblacion,
-                            reina: i.reina, enjambrazon_riesgo: i.enjambrazon_riesgo, notes: i.notes
-                        })) || [],
-                        production: parseFloat(c.production_total) || 0,
-                        pesoHistory: c.peso_records?.map((p: any) => ({
-                            date: p.date, kg: parseFloat(p.kg), note: p.note
-                        })) || [],
-                        varroaHistory: c.varroa_records?.map((v: any) => ({
-                            date: v.date, level: parseFloat(v.level), method: v.method
-                        })) || [],
-                        floracion: c.floracion || '',
+                        lastInspection: String(c.last_inspection || c.ultima_inspeccion || ''),
+                        inspecciones:
+                            (c.inspecciones as any[])?.map((i: Record<string, unknown>) => ({
+                                date: i.date,
+                                inspector: i.inspector,
+                                marcos_cria: i.marcos_cria,
+                                marcos_miel: i.marcos_miel,
+                                varroa: i.varroa,
+                                poblacion: i.poblacion,
+                                reina: i.reina,
+                                enjambrazon_riesgo: i.enjambrazon_riesgo,
+                                notes: i.notes,
+                            })) || [],
+                        production: parseFloat(String(c.production_total ?? 0)) || 0,
+                        pesoHistory:
+                            (c.peso_records as any[])?.map((p: Record<string, unknown>) => ({
+                                date: p.date,
+                                kg: parseFloat(String(p.kg)),
+                                note: p.note as string | undefined,
+                            })) || [],
+                        varroaHistory:
+                            (c.varroa_records as any[])?.map((v: Record<string, unknown>) => ({
+                                date: v.date,
+                                level: parseFloat(String(v.level)),
+                                method: v.method as string,
+                            })) || [],
+                        floracion: (c.floracion as string) || '',
                         treatments: [],
-                        notes: c.notes || '',
-                        costos: { horas_anuales: 0, costo_hora: 0, amortizacion_cajon: 12000, insumos_anuales: 0, produccion_kg: 0 },
-                        blockchainHash: c.blockchain_hash || '',
-                        loteActivo: c.lote_activo || '',
-                        alzas: c.alzas || 1,
-                        nucleosCandidatos: c.nucleos_candidatos || false
+                        notes: (c.notes as string) || '',
+                        costos: {
+                            horas_anuales: 0,
+                            costo_hora: 0,
+                            amortizacion_cajon: 12000,
+                            insumos_anuales: 0,
+                            produccion_kg: 0,
+                        },
+                        blockchainHash: (c.blockchain_hash as string) || '',
+                        loteActivo: (c.lote_activo as string) || '',
+                        alzas: (c.alzas as number) || 1,
+                        nucleosCandidatos: Boolean(c.nucleos_candidatos),
                     }));
                     setLocalColmenas(mapped);
                 } else {
-                    setLocalColmenas(mockColmenas); // Fallback
+                    setLocalColmenas([]);
                 }
 
                 if (uid) {
                     const [resA, resR] = await Promise.all([
                         supabase.from('alerts').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(3),
-                        supabase.from('reflexiones').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(1)
+                        supabase.from('reflexiones').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(1),
                     ]);
 
-                    if (resA.data?.length) setAlerts(resA.data);
-                    else setAlerts([
-                        { id: '1', severity: 'warning', title: 'Avellano Sur', message: 'Varroa en nivel 3.0/10. Programar segundo tratamiento sublimado antes del 10 de marzo.' },
-                        { id: '2', severity: 'critical', title: 'Quilineja Vieja', message: 'Confirmado sin reina. Población crítica. Se recomienda requeening urgente o fusión con núcleo fuerte.' },
-                        { id: '3', severity: 'info', title: 'Predicción IA', message: 'El algoritmo indica que el flujo de néctar de tepú alcanzará su pico de 88/100 en 9 días. Asegura alzas vacías en el apiario Pureo Norte.' }
-                    ]);
-
-                    if (resR.data?.length) setReflexion(resR.data[0]);
-                    else setReflexion({ date: '28 feb 2026', content: 'Hoy el bosque respira profundo. Las abejas de Canelo Ancestral trabajan con una calma que solo da la abundancia. Cada marco lleno es un año más de legado. Cada árbol plantado es una promesa que el tiempo honra sin que nadie se lo pida.' });
+                    setAlerts(resA.data ?? []);
+                    const row = resR.data?.[0];
+                    if (row) {
+                        setReflexion({
+                            ...row,
+                            date: row.date_display || row.created_at,
+                            content: row.content,
+                        });
+                    } else {
+                        setReflexion(null);
+                    }
                 }
 
             } catch (err) {
-                console.error("Error loading Supabase data:", err);
-                setLocalColmenas(mockColmenas); // Fallback
+                console.error('Error loading Supabase data:', err);
+                setLocalColmenas([]);
             } finally {
                 setLoading(false);
             }

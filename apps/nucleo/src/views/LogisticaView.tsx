@@ -27,14 +27,9 @@ export default function LogisticaView() {
                 supabase.from('proveedores').select('*').eq('user_id', uid).order('created_at', { ascending: false })
             ]);
 
-            if (resE.data?.length) setShipments(resE.data);
-            else setShipments([{ id: 'mock-1', tracking_code: 'ENV-081', destino: 'Santiago', items: 'Sachets x400', status: 'En tránsito', eta: '4 marzo', via: 'Barco' }]); // fallback
-
-            if (resS.data?.length) setStockCenters(resS.data);
-            else setStockCenters([{ id: 'mock-2', name: 'Bodega Pureo', sachets: 1200, frascos: 280, cofres: 35, ok: true }]);
-
-            if (resP.data?.length) setProviders(resP.data);
-            else setProviders([{ id: 'mock-3', name: 'Envases del Sur', item: 'Frascos vidrio 250g', next_delivery: '10 mar', urgent: false }]);
+            setShipments(resE.data ?? []);
+            setStockCenters(resS.data ?? []);
+            setProviders(resP.data ?? []);
         }
         loadData();
     }, []);
