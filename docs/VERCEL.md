@@ -11,7 +11,7 @@ Objetivo: servir el build de [`apps/nucleo`](../apps/nucleo) (React Router). La 
 1. **Conectar** el repo `guillermoc2710-cmd/enjambre-legado`, rama `main`.
 2. **Root Directory:** `apps/nucleo` (sin barra final).
 3. **Framework Preset:** Vite.
-4. **Node.js:** 20.x (en *Settings → General* o vía `engines` en `apps/nucleo/package.json`; evita 22/24 con pnpm en monorepo).
+4. **Node.js:** 24.x (en *Settings → General* y `engines` en `apps/nucleo/package.json`; alineado con el monorepo).
 5. **Build & Development:** activa **Override** en los tres y pega exactamente (evita el «default» que solo instala en la subcarpeta):
 
 | Campo | Valor |
@@ -42,7 +42,7 @@ Fuente de verdad: [`apps/tienda/vercel.json`](../apps/tienda/vercel.json).
 |---------------|--------|
 | **Root Directory** | `apps/tienda` |
 | **Framework** | Next.js |
-| **Node.js** | 20.x (`engines` en `apps/tienda/package.json`) |
+| **Node.js** | 24.x (`engines` en `apps/tienda/package.json`) |
 | **Install Command** (override) | `cd ../.. && npx pnpm@10.32.1 install --frozen-lockfile` |
 | **Build Command** (override) | `cd ../.. && npx pnpm@10.32.1 exec turbo run build --filter=@enjambre/tienda` |
 | **Output** | Dejar default (Next / `.next`) |
@@ -51,7 +51,7 @@ Variables: `NEXT_PUBLIC_SUPABASE_*`, Transbank solo servidor (ver `DEPLOY.md`).
 
 ## Proyecto adicional: campo (Next.js)
 
-Igual patrón que tienda: añade [`apps/campo/vercel.json`](../apps/campo/vercel.json) con `--filter=@enjambre/campo` si aún no existe; **Root** `apps/campo`, Node 20.x, mismos comandos `npx pnpm@10.32.1`.
+Igual patrón que tienda: añade [`apps/campo/vercel.json`](../apps/campo/vercel.json) con `--filter=@enjambre/campo` si aún no existe; **Root** `apps/campo`, Node 24.x, mismos comandos `npx pnpm@10.32.1`.
 
 ## Tras crear tienda y campo
 
