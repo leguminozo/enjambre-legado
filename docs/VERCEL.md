@@ -16,8 +16,8 @@ Objetivo: servir el build de [`apps/nucleo`](../apps/nucleo) (React Router). La 
 
 | Campo | Valor |
 |--------|--------|
-| **Install Command** | `cd ../.. && npm install -g pnpm@10.32.1 && pnpm install --frozen-lockfile` |
-| **Build Command** | `cd ../.. && pnpm exec turbo run build --filter=@enjambre/nucleo` |
+| **Install Command** | `cd ../.. && npx pnpm@10.32.1 install --frozen-lockfile` |
+| **Build Command** | `cd ../.. && npx pnpm@10.32.1 exec turbo run build --filter=@enjambre/nucleo` |
 | **Output Directory** | `dist` |
 
 Si los overrides están **apagados**, Vercel debería leer igualmente `vercel.json`; si el build falla, fuerza los overrides de arriba.
