@@ -2,7 +2,7 @@
 
 ## Requisitos
 
-- Node 20+
+- Node 20+ local; en Vercel usar **24.x** alineado con `engines` de `apps/*`
 - pnpm 10+
 - Proyecto Supabase con migraciones aplicadas desde [`packages/database/supabase/migrations/`](packages/database/supabase/migrations/)
 
