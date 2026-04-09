@@ -1,0 +1,257 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Empresa EIRL PROPYME
+model Empresa {
+  id              String   @id @default(cuid())
+  razonSocial     String
+  rut             String   @unique
+  giro            String
+  direccion       String
+  comuna          String
+  ciudad          String
+  region          String
+  telefono        String?
+  email           String?
+  web             String?
+  capitalInicial  Float
+  fechaConstitucion DateTime
+  tipoActividad   String // Profesional, Comercial, Servicios, etc.
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relaciones
+  facturasEmitidas FacturaEmitida[]
+  facturasRecibidas FacturaRecibida[]
+  gastos          Gasto[]
+  impuestos       Impuesto[]
+  periodos        PeriodoContable[]
+  reportes        Reporte[]
+  calculosIA      CalculoIA[]
+}
+
+// Clientes y Proveedores
+model Tercero {
+  id        String   @id @default(cuid())
+  tipo      String   // "Cliente" o "Proveedor"
+  rut       String   @unique
+  nombre    String
+  email     String?
+  telefono  String?
+  direccion String?
+  giro      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relaciones
+  facturasEmitidas  FacturaEmitida[]
+  facturasRecibidas FacturaRecibida[]
+  gastos           Gasto[]
+}
+
+// Facturas Emitidas
+model FacturaEmitida {
+  id              String   @id @default(cuid())
+  numero          String
+  fecha           DateTime
+  fechaVencimiento DateTime?
+  montoTotal      Float
+  montoNeto       Float
+  montoIva        Float
+  montoExento     Float    @default(0)
+  montoIvaUsado   Float    @default(0)
+  estado          String   // "Pendiente", "Pagada", "Vencida", "Anulada"
+  descripcion     String?
+  tipoDocumento   String   // "Factura", "Boleta", "Factura Exenta", "Nota de Crédito", etc.
+  
+  // Relaciones
+  empresaId       String
+  empresa         Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  
+  clienteId       String?
+  cliente         Tercero? @relation(fields: [clienteId], references: [id])
+  
+  periodoId       String
+  periodo         PeriodoContable @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Facturas Recibidas
+model FacturaRecibida {
+  id              String   @id @default(cuid())
+  numero          String
+  fecha           DateTime
+  fechaVencimiento DateTime?
+  montoTotal      Float
+  montoNeto       Float
+  montoIva        Float
+  montoExento     Float    @default(0)
+  montoIvaUsado   Float    @default(0)
+  estado          String   // "Pendiente", "Pagada", "Vencida", "Anulada"
+  descripcion     String?
+  tipoDocumento   String   // "Factura", "Boleta", "Factura Exenta", "Nota de Crédito", etc.
+  
+  // Relaciones
+  empresaId       String
+  empresa         Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  
+  proveedorId     String?
+  proveedor       Tercero? @relation(fields: [proveedorId], references: [id])
+  
+  periodoId       String
+  periodo         PeriodoContable @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Gastos
+model Gasto {
+  id            String   @id @default(cuid())
+  fecha         DateTime
+  descripcion   String
+  monto         Float
+  montoIva      Float
+  montoNeto     Float
+  categoria     String   // "Arriendo", "Servicios Básicos", "Transporte", "Suministros", "Honorarios", etc.
+  tipoComprobante String // "Boleta", "Factura", "Ticket", etc.
+  numeroComprobante String?
+  estado        String   // "Pendiente", "Pagado", "Reembolsado"
+  
+  // Relaciones
+  empresaId     String
+  empresa       Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  
+  proveedorId   String?
+  proveedor     Tercero? @relation(fields: [proveedorId], references: [id])
+  
+  periodoId     String
+  periodo       PeriodoContable @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Impuestos Chilenos
+model Impuesto {
+  id                String   @id @default(cuid())
+  tipo              String   // "IVA", "PPM", "Retencion", "ImpuestoPrimeraCategoria", "ImpuestoUnico", etc.
+  periodo           String   // "Mensual", "Trimestral", "Anual"
+  mes               Int?
+  anio              Int
+  montoDeclarado    Float
+  montoPagado       Float?
+  montoCalculadoIA  Float?
+  estado            String   // "Pendiente", "Declarado", "Pagado", "EnProceso"
+  fechaDeclaracion  DateTime?
+  fechaPago         DateTime?
+  detalles          String?
+  
+  // Relaciones
+  empresaId         String
+  empresa           Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// Períodos Contables
+model PeriodoContable {
+  id            String   @id @default(cuid())
+  nombre        String   // "Enero 2024", "Febrero 2024", etc.
+  mes           Int
+  anio          Int
+  fechaInicio   DateTime
+  fechaTermino  DateTime
+  estado        String   // "Abierto", "Cerrado", "Procesando"
+  
+  // Métricas del período
+  ingresosNetos Float   @default(0)
+  egresosNetos  Float   @default(0)
+  utilidadBruta Float   @default(0)
+  utilidadNeta  Float   @default(0)
+  ivaDebito     Float   @default(0)
+  ivaCredito    Float   @default(0)
+  ivaPagar      Float   @default(0)
+  ppmCalculado  Float   @default(0)
+  
+  // Relaciones
+  empresaId     String
+  empresa       Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  
+  facturasEmitidas FacturaEmitida[]
+  facturasRecibidas FacturaRecibida[]
+  gastos        Gasto[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([empresaId, mes, anio])
+}
+
+// Reportes Financieros
+model Reporte {
+  id            String   @id @default(cuid())
+  tipo          String   // "BalanceGeneral", "EstadoResultados", "FlujoEfectivo", "LibroCompras", "LibroVentas", etc.
+  nombre        String
+  descripcion   String?
+  periodo       String   // "Mensual", "Trimestral", "Anual"
+  mes           Int?
+  anio          Int
+  datos         String   // JSON con los datos del reporte
+  archivoUrl    String?  // URL del archivo generado
+  estado        String   // "Generando", "Completado", "Error"
+  
+  // Relaciones
+  empresaId     String
+  empresa       Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Cálculos de IA
+model CalculoIA {
+  id            String   @id @default(cuid())
+  tipo          String   // "ImpuestoMensual", "ProyeccionUtilidad", "OptimizacionFiscal", etc.
+  parametros    String   // JSON con parámetros de entrada
+  resultado     String   // JSON con resultado del cálculo
+  confianza     Float?   // Nivel de confianza del cálculo (0-1)
+  prompt        String?  // Prompt enviado a la IA
+  respuestaIA   String?  // Respuesta completa de la IA
+  estado        String   // "Pendiente", "Procesando", "Completado", "Error"
+  error         String?
+  
+  // Relaciones
+  empresaId     String
+  empresa       Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Configuración de IA
+model ConfiguracionIA {
+  id            String   @id @default(cuid())
+  clave         String   @unique
+  valor         String
+  descripcion   String?
+  tipo          String   // "String", "Number", "Boolean", "JSON"
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

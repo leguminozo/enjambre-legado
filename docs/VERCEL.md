@@ -47,7 +47,7 @@ Fuente de verdad: [`apps/tienda/vercel.json`](../apps/tienda/vercel.json).
 | **Build Command** (override) | `cd ../.. && npx pnpm@10.32.1 exec turbo run build --filter=@enjambre/tienda` |
 | **Output** | Dejar default (Next / `.next`) |
 
-Variables: `NEXT_PUBLIC_SUPABASE_*`, Transbank solo servidor (ver `DEPLOY.md`).
+Variables: `NEXT_PUBLIC_SUPABASE_*`, Transbank solo servidor (`TRANSBANK_COMMERCE_CODE`, `TRANSBANK_API_KEY`). Opcional: integraciones **solo servidor** (`SII_*`, `BANK_*`, `NOTIFY_*`, `BOLETAS_*`, `DTE_*`, `INTEGRATIONS_CRON_SECRET` para cron futuro). No pongas secretos en `integrations.config` en Supabase; ver matriz en [`DEPLOY.md`](../DEPLOY.md) → *Integraciones (tienda)*.
 
 **Rutas:** `/` landing, `/catalogo`, `/impacto`, `/login` (demo `admin@verano.com` / `password`), panel `/dashboard`, `/products`, `/orders`, `/customers`, `/collections`.
 

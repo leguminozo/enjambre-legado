@@ -12,6 +12,7 @@ import MarketingView from './views/MarketingView';
 import ClienteView from './views/ClienteView';
 import RegeneracionView from './views/RegeneracionView';
 import type { Session } from '@supabase/supabase-js';
+import ContableView from './views/ContableView';
 
 const titleMap: Record<string, string> = {
   '/mapa': 'Mapa del Legado',
@@ -22,6 +23,7 @@ const titleMap: Record<string, string> = {
   '/logistica': 'Operaciones',
   '/marketing': 'Comunidad',
   '/cliente': 'Mi Legado',
+  '/contable': 'Sistema Contable',
 };
 
 function AppContent() {
@@ -117,6 +119,7 @@ function AppContent() {
         <Route path="/logistica" element={<LogisticaView />} />
         <Route path="/marketing" element={<MarketingView />} />
         <Route path="/cliente" element={<ClienteView />} />
+        <Route path="/contable" element={<ContableView />} />
 
         {/* Redirect unknown routes based on role */}
         <Route path="*" element={<Navigate to={`/${role}`} replace />} />

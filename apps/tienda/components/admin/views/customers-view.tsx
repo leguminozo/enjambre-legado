@@ -1,6 +1,7 @@
 'use client';
 
-import { Download, Plus, Search, Upload } from 'lucide-react';
+import Link from 'next/link';
+import { Download, Plus, Search, Settings2, Upload } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { mockCustomers } from '@/lib/mock-admin-data';
 
@@ -32,6 +33,10 @@ export function CustomersView() {
           <p className="text-gray-600">CRM ligero (demostración)</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link href="/integrations" className="btn-secondary inline-flex items-center">
+            <Settings2 className="h-4 w-4 mr-2" />
+            Configurar fuentes
+          </Link>
           <button type="button" className="btn-secondary inline-flex items-center">
             <Download className="h-4 w-4 mr-2" />
             Exportar

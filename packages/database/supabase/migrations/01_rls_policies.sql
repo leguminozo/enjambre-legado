@@ -82,6 +82,45 @@ CREATE POLICY ventas_insert ON ventas FOR INSERT
 CREATE POLICY ventas_update ON ventas FOR UPDATE
   USING (public.is_gerente() OR vendedor_id = auth.uid());
 
+-- Integrations
+ALTER TABLE integrations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS integrations_read ON integrations;
+DROP POLICY IF EXISTS integrations_write ON integrations;
+CREATE POLICY integrations_read ON integrations FOR SELECT
+  USING (public.is_gerente() OR public.current_role() = 'tienda_admin');
+CREATE POLICY integrations_write ON integrations FOR ALL
+  USING (public.is_gerente() OR public.current_role() = 'tienda_admin')
+  WITH CHECK (public.is_gerente() OR public.current_role() = 'tienda_admin');
+
+-- Fuentes externas
+ALTER TABLE source_files ENABLE ROW LEVEL SECURITY;
+ALTER TABLE boletas_ingest ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bank_movements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sii_sync_runs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notification_events ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS source_files_rw ON source_files;
+DROP POLICY IF EXISTS boletas_ingest_rw ON boletas_ingest;
+DROP POLICY IF EXISTS bank_movements_rw ON bank_movements;
+DROP POLICY IF EXISTS sii_sync_runs_rw ON sii_sync_runs;
+DROP POLICY IF EXISTS notification_events_rw ON notification_events;
+
+CREATE POLICY source_files_rw ON source_files FOR ALL
+  USING (public.is_gerente() OR public.current_role() = 'tienda_admin')
+  WITH CHECK (public.is_gerente() OR public.current_role() = 'tienda_admin');
+CREATE POLICY boletas_ingest_rw ON boletas_ingest FOR ALL
+  USING (public.is_gerente() OR public.current_role() = 'tienda_admin')
+  WITH CHECK (public.is_gerente() OR public.current_role() = 'tienda_admin');
+CREATE POLICY bank_movements_rw ON bank_movements FOR ALL
+  USING (public.is_gerente() OR public.current_role() = 'tienda_admin')
+  WITH CHECK (public.is_gerente() OR public.current_role() = 'tienda_admin');
+CREATE POLICY sii_sync_runs_rw ON sii_sync_runs FOR ALL
+  USING (public.is_gerente() OR public.current_role() = 'tienda_admin')
+  WITH CHECK (public.is_gerente() OR public.current_role() = 'tienda_admin');
+CREATE POLICY notification_events_rw ON notification_events FOR ALL
+  USING (public.is_gerente() OR public.current_role() = 'tienda_admin')
+  WITH CHECK (public.is_gerente() OR public.current_role() = 'tienda_admin');
+
 -- Cashflow manual
 ALTER TABLE cashflow ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS cashflow_own ON cashflow;

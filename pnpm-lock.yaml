@@ -341,6 +341,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.98.0
         version: 2.99.3
+      '@tanstack/react-query':
+        specifier: ^5.96.2
+        version: 5.96.2(react@19.2.4)
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
@@ -444,6 +447,9 @@ importers:
       transbank-sdk:
         specifier: ^6.1.1
         version: 6.1.1
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@types/node':
         specifier: ^24.10.1

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { FileText, Package, Plus, Search } from 'lucide-react';
 import { createClient as createSupabaseClient } from '@/utils/supabase/client';
 import { useEffect, useMemo, useState } from 'react';
@@ -173,6 +174,9 @@ export function ProductsView() {
           <p className="text-gray-600">Gestión real conectada a Supabase</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link href="/integrations" className="btn-secondary inline-flex items-center">
+            Configurar fuentes
+          </Link>
           <button type="button" className="btn-secondary inline-flex items-center" disabled>
             <FileText className="h-4 w-4 mr-2" />
             Exportar

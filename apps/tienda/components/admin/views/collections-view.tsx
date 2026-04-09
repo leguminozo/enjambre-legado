@@ -1,6 +1,7 @@
 'use client';
 
-import { MoreHorizontal, Plus, Search, Tag } from 'lucide-react';
+import Link from 'next/link';
+import { MoreHorizontal, Plus, Search, Settings2, Tag, Upload } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { mockCollections } from '@/lib/mock-admin-data';
 
@@ -27,6 +28,14 @@ export function CollectionsView() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Link href="/integrations" className="btn-secondary inline-flex items-center">
+            <Settings2 className="h-4 w-4 mr-2" />
+            Configurar fuentes
+          </Link>
+          <button type="button" className="btn-secondary inline-flex items-center" disabled>
+            <Upload className="h-4 w-4 mr-2" />
+            Subir catálogo/etiquetas (próximo)
+          </button>
           <button type="button" className="btn-secondary inline-flex items-center">
             <MoreHorizontal className="h-4 w-4 mr-2" />
             Más acciones

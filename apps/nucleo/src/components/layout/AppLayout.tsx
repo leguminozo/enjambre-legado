@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Map, Hexagon, ShoppingBag, BarChart3, Truck, Megaphone, User, Bell, Search, Menu, X, TreePine, LogOut } from 'lucide-react';
+import { Map, Hexagon, ShoppingBag, BarChart3, Truck, Megaphone, User, Bell, Search, Menu, X, TreePine, LogOut, Calculator } from 'lucide-react';
 import { roleLabels } from '../../data/mockData';
 import { supabase } from '../../lib/supabase';
 import { getUrlCampo, getUrlTienda } from '../../lib/publicUrls';
@@ -8,7 +8,10 @@ import { getUrlCampo, getUrlTienda } from '../../lib/publicUrls';
 interface AppLayoutProps { children: React.ReactNode; currentRole: string; onRoleChange: (role: string) => void; headerTitle: string; }
 
 const navItems: Record<string, { label: string; icon: React.ReactNode; path: string }[]> = {
-    shared: [{ label: 'Mapa del Legado', icon: <Map size={18} />, path: '/mapa' }],
+    shared: [
+        { label: 'Mapa del Legado', icon: <Map size={18} />, path: '/mapa' },
+        { label: 'Sistema Contable', icon: <Calculator size={18} />, path: '/contable' },
+    ],
     apicultor: [{ label: 'Mis Colmenas', icon: <Hexagon size={18} />, path: '/apicultor' }, { label: 'Regeneración', icon: <TreePine size={18} />, path: '/apicultor/regeneracion' }],
     vendedor: [{ label: 'Catálogo Vivo', icon: <ShoppingBag size={18} />, path: '/vendedor' }],
     gerente: [{ label: 'Panel Ejecutivo', icon: <BarChart3 size={18} />, path: '/gerente' }],

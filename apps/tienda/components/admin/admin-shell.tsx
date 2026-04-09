@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   BarChart3,
   Bell,
+  Cable,
   Gift,
   Home,
   Mail,
@@ -36,6 +37,7 @@ const navigation: NavItem[] = [
   { name: 'Productos', href: '/products', icon: Package },
   { name: 'Clientes', href: '/customers', icon: Users },
   { name: 'Colecciones', href: '/collections', icon: Tag },
+  { name: 'Integraciones', href: '/integrations', icon: Cable },
   { name: 'Marketing', href: '#', icon: TrendingUp },
   { name: 'Descuentos', href: '#', icon: Gift },
   { name: 'Contenido', href: '#', icon: Tag },
