@@ -1,111 +1,128 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, ShoppingBag, X } from 'lucide-react';
 import { useCart } from '@/components/shop/cart-context';
 import { useState } from 'react';
 
-const LINKS = [
+const NAV = [
+  { href: '/', label: 'Inicio' },
   { href: '/catalogo', label: 'Creaciones' },
-  { href: '/impacto', label: 'Legado del bosque' },
+  { href: '/experiencias', label: 'Experiencias' },
+  { href: '/nosotros', label: 'Nosotros' },
+  { href: '/galeria', label: 'Galería' },
+  { href: '/contacto', label: 'Contacto' },
 ] as const;
 
 export function ShopHeader() {
   const cart = useCart();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
   return (
-    <header className="sticky top-0 z-50 border-b border-bosque-900/10 bg-cream-50/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-black">
+      <div className="relative mx-auto max-w-5xl px-4 pt-8 pb-4 sm:px-6 sm:pt-10">
         <Link
           href="/"
-          className="group flex flex-col leading-tight"
+          className="mx-auto flex w-max flex-col items-center gap-3"
           onClick={() => setOpen(false)}
         >
-          <span className="font-display text-lg font-semibold tracking-tight text-bosque-800 sm:text-xl">
-            La Obrera y el Zángano
-          </span>
-          <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-miel-700 sm:text-xs">
-            Miel del bosque · Chiloé
-          </span>
+          {/* Marcador de logo: sustituir por <Image src="/logo.png" /> cuando subas asset */}
+          <div
+            className="relative flex h-16 w-48 items-center justify-center rounded-sm border-2 border-[#c9a227]/90 bg-[#e8c547] px-2 shadow-[0_0_0_1px_rgba(0,0,0,0.4)] sm:h-[4.5rem] sm:w-56"
+            aria-hidden
+          >
+            <span className="text-center font-display text-[0.65rem] font-bold uppercase leading-tight tracking-tight text-black sm:text-xs">
+              La Obrera
+              <br />
+              y el Zángano
+            </span>
+          </div>
+          <span className="sr-only">La Obrera y el Zángano — inicio</span>
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex">
-          {LINKS.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="text-sm font-medium text-bosque-800/85 transition-colors hover:text-miel-700"
-            >
-              {label}
-            </Link>
-          ))}
-          <Link
-            href="/login"
-            className="text-sm font-medium text-bosque-700/70 transition-colors hover:text-bosque-900"
-          >
-            Acceso
-          </Link>
-          <Link
-            href="/checkout"
-            className="relative inline-flex items-center gap-2 rounded-full border border-bosque-900/15 bg-white px-4 py-2 text-sm font-semibold text-bosque-900 shadow-sm transition hover:border-miel-600/40 hover:bg-miel-50/50"
-          >
-            <ShoppingBag className="h-4 w-4 text-miel-700" aria-hidden />
-            Carrito
-            {cart.itemCount > 0 ? (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-miel-600 px-1 text-[10px] font-bold text-white">
-                {cart.itemCount > 9 ? '9+' : cart.itemCount}
-              </span>
-            ) : null}
-          </Link>
-        </nav>
-
-        <div className="flex items-center gap-2 md:hidden">
-          <Link
-            href="/checkout"
-            className="relative rounded-full border border-bosque-900/15 bg-white p-2.5 text-bosque-900"
-            aria-label="Carrito"
-          >
-            <ShoppingBag className="h-5 w-5" />
-            {cart.itemCount > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-miel-600 px-1 text-[9px] font-bold text-white">
-                {cart.itemCount}
-              </span>
-            ) : null}
-          </Link>
-          <button
-            type="button"
-            className="rounded-full border border-bosque-900/15 p-2.5 text-bosque-900"
-            aria-expanded={open}
-            aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
-            onClick={() => setOpen((v) => !v)}
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
+        <Link
+          href="/checkout"
+          className="absolute right-4 top-8 rounded-md p-2 text-white/90 transition hover:bg-white/10 sm:right-6 sm:top-10"
+          aria-label={`Carrito${cart.itemCount ? `, ${cart.itemCount} ítems` : ''}`}
+        >
+          <ShoppingBag className="h-6 w-6" strokeWidth={1.25} />
+          {cart.itemCount > 0 ? (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c9a227] px-1 text-[10px] font-bold text-black">
+              {cart.itemCount > 9 ? '9+' : cart.itemCount}
+            </span>
+          ) : null}
+        </Link>
       </div>
 
-      {open ? (
-        <div className="border-t border-bosque-900/10 bg-cream-50 px-4 py-4 md:hidden">
-          <nav className="flex flex-col gap-3">
-            {LINKS.map(({ href, label }) => (
+      <nav className="hidden justify-center border-t border-white/5 px-4 py-3 sm:flex">
+        <ul className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
+          {NAV.map(({ href, label }) => (
+            <li key={href}>
               <Link
-                key={href}
                 href={href}
-                className="py-2 text-base font-medium text-bosque-900"
-                onClick={() => setOpen(false)}
+                className={`text-sm font-medium tracking-wide text-white/90 transition hover:text-white ${
+                  isActive(href) ? 'border-b border-white pb-0.5' : 'border-b border-transparent pb-0.5'
+                }`}
               >
                 {label}
               </Link>
-            ))}
+            </li>
+          ))}
+          <li>
             <Link
               href="/login"
-              className="py-2 text-base font-medium text-bosque-700/80"
-              onClick={() => setOpen(false)}
+              className="text-sm font-medium text-white/50 transition hover:text-white/80"
             >
-              Acceso comercio
+              Acceso
             </Link>
-          </nav>
+          </li>
+        </ul>
+      </nav>
+
+      <div className="flex items-center justify-between border-t border-white/5 px-4 py-3 sm:hidden">
+        <span className="text-xs text-white/50">Menú</span>
+        <button
+          type="button"
+          className="rounded-md p-2 text-white"
+          aria-expanded={open}
+          aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </div>
+
+      {open ? (
+        <div className="border-t border-white/10 bg-zinc-950 px-4 py-4 sm:hidden">
+          <ul className="flex flex-col gap-1">
+            {NAV.map(({ href, label }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className={`block py-2 text-base ${isActive(href) ? 'text-[#e8c547]' : 'text-white/90'}`}
+                  onClick={() => setOpen(false)}
+                >
+                  {label}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link
+                href="/login"
+                className="block py-2 text-base text-white/50"
+                onClick={() => setOpen(false)}
+              >
+                Acceso comercio
+              </Link>
+            </li>
+          </ul>
         </div>
       ) : null}
     </header>

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useCart } from '@/components/shop/cart-context';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
+import { StoreShell } from '@/components/shop/store-shell';
 
 type CommitState = 'loading' | 'success' | 'failed';
 
@@ -47,24 +48,23 @@ export function CheckoutResultClient() {
       setState('success');
       setMessage('Pago confirmado. Tu pedido fue registrado.');
     })();
-    // cart.clear estable desde el provider; no incluir cart en deps para evitar re-ejecuciones.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar con token
   }, [token]);
 
   return (
-    <>
+    <StoreShell>
       <ShopHeader />
-      <main className="min-h-[50vh] bg-cream-50 px-4 py-12 sm:px-6">
+      <main className="min-h-[50vh] bg-[#050505] px-4 py-12 sm:px-6">
         <div className="mx-auto max-w-xl">
-          <div className="rounded-2xl border border-bosque-900/10 bg-white p-8 shadow-sm">
-            <h1 className="font-display text-2xl font-semibold text-bosque-950">Resultado del pago</h1>
+          <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-8">
+            <h1 className="font-display text-2xl font-semibold text-white">Resultado del pago</h1>
             <p
               className={`mt-4 text-base ${
                 state === 'success'
-                  ? 'text-emerald-800'
+                  ? 'text-emerald-400'
                   : state === 'failed'
-                    ? 'text-red-700'
-                    : 'text-bosque-800/70'
+                    ? 'text-red-400'
+                    : 'text-zinc-400'
               }`}
             >
               {message}
@@ -72,11 +72,11 @@ export function CheckoutResultClient() {
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/catalogo"
-                className="inline-flex rounded-full bg-bosque-900 px-5 py-2.5 text-sm font-semibold text-cream-50 hover:bg-bosque-800"
+                className="inline-flex rounded-full bg-[#0A3D2F] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0d5240]"
               >
                 Volver a la tienda
               </Link>
-              <Link href="/" className="inline-flex items-center text-sm font-semibold text-miel-800 underline">
+              <Link href="/" className="inline-flex items-center text-sm font-semibold text-[#e8c547] underline">
                 Ir al inicio
               </Link>
             </div>
@@ -84,6 +84,6 @@ export function CheckoutResultClient() {
         </div>
       </main>
       <ShopFooter />
-    </>
+    </StoreShell>
   );
 }

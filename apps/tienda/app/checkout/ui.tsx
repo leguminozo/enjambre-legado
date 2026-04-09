@@ -5,6 +5,7 @@ import { useCart } from '@/components/shop/cart-context';
 import { useState } from 'react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
+import { StoreShell } from '@/components/shop/store-shell';
 import { Lock, Shield } from 'lucide-react';
 
 export function CheckoutClient() {
@@ -49,68 +50,67 @@ export function CheckoutClient() {
   };
 
   return (
-    <>
+    <StoreShell>
       <ShopHeader />
-      <main className="min-h-[60vh] bg-cream-50 pb-16">
-        <div className="border-b border-bosque-900/8 bg-gradient-to-r from-cream-100 to-white px-4 py-10 sm:px-6">
+      <main className="min-h-[60vh] bg-[#050505] pb-16">
+        <div className="border-b border-white/10 px-4 py-10 sm:px-6">
           <div className="mx-auto max-w-3xl">
-            <h1 className="font-display text-3xl font-semibold text-bosque-950 sm:text-4xl">Checkout</h1>
-            <p className="mt-2 text-bosque-800/70">Revisión de tu pedido y pago seguro con Transbank.</p>
+            <h1 className="font-display text-3xl font-semibold text-white sm:text-4xl">Checkout</h1>
+            <p className="mt-2 text-zinc-400">Revisión del pedido y pago seguro con Transbank.</p>
           </div>
         </div>
 
         <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
           {cart.lines.length === 0 ? (
-            <div className="rounded-2xl border border-bosque-900/10 bg-white p-8 text-center">
-              <p className="text-bosque-800/80">Tu carrito está vacío.</p>
-              <Link
-                href="/catalogo"
-                className="mt-4 inline-block text-sm font-semibold text-miel-800 underline underline-offset-2"
-              >
+            <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-8 text-center">
+              <p className="text-zinc-400">Tu carrito está vacío.</p>
+              <Link href="/catalogo" className="mt-4 inline-block text-sm font-semibold text-[#e8c547] underline">
                 Explorar creaciones
               </Link>
             </div>
           ) : (
             <div className="space-y-6">
-              <ul className="divide-y divide-bosque-900/8 rounded-2xl border border-bosque-900/10 bg-white px-5 py-2 shadow-sm">
+              <ul className="divide-y divide-white/10 rounded-xl border border-white/10 bg-zinc-900/40 px-5 py-2">
                 {cart.lines.map((line) => (
                   <li key={line.productId} className="flex justify-between gap-4 py-4 text-sm">
-                    <span className="text-bosque-900">
+                    <span className="text-zinc-200">
                       <span className="font-medium">{line.name}</span>
-                      <span className="text-bosque-800/60"> × {line.quantity}</span>
+                      <span className="text-zinc-500"> × {line.quantity}</span>
                     </span>
-                    <span className="shrink-0 font-medium tabular-nums text-bosque-900">
+                    <span className="shrink-0 font-medium tabular-nums text-white">
                       ${(line.unitPrice * line.quantity).toLocaleString('es-CL')}
                     </span>
                   </li>
                 ))}
               </ul>
 
-              <div className="flex items-center justify-between rounded-2xl bg-bosque-900 px-6 py-5 text-cream-50">
-                <span className="font-display text-lg">Total</span>
-                <span className="font-display text-2xl font-semibold tabular-nums">
+              <div className="flex items-center justify-between rounded-xl border border-[#c9a227]/40 bg-black px-6 py-5">
+                <span className="font-display text-lg text-white">Total</span>
+                <span className="font-display text-2xl font-semibold tabular-nums text-[#e8c547]">
                   ${cart.subtotal.toLocaleString('es-CL')}
                 </span>
               </div>
 
-              <div className="flex flex-wrap gap-4 text-xs text-bosque-800/65">
+              <div className="flex flex-wrap gap-4 text-xs text-zinc-500">
                 <span className="inline-flex items-center gap-1.5">
-                  <Lock className="h-3.5 w-3.5 text-miel-700" aria-hidden />
+                  <Lock className="h-3.5 w-3.5 text-[#c9a227]" aria-hidden />
                   Pago encriptado
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5 text-miel-700" aria-hidden />
+                  <Shield className="h-3.5 w-3.5 text-[#c9a227]" aria-hidden />
                   Transbank Webpay Plus
                 </span>
               </div>
 
               {error ? (
-                <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>
+                <p className="rounded-xl border border-red-900/50 bg-red-950/50 px-4 py-3 text-sm text-red-200">
+                  {error}
+                </p>
               ) : null}
 
               <button
                 type="button"
-                className="w-full rounded-full bg-miel-700 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-miel-800/20 transition hover:bg-miel-600 disabled:opacity-50"
+                className="w-full rounded-full bg-[#0A3D2F] py-4 text-sm font-bold uppercase tracking-wider text-white transition hover:bg-[#0d5240] disabled:opacity-50"
                 disabled={loading}
                 onClick={() => void startWebpay()}
               >
@@ -121,6 +121,6 @@ export function CheckoutClient() {
         </div>
       </main>
       <ShopFooter />
-    </>
+    </StoreShell>
   );
 }
