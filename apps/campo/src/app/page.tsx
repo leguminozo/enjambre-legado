@@ -1,85 +1,67 @@
 import React from 'react';
 import { ShoppingBag, Star, Zap, ScanLine } from 'lucide-react';
 import Link from 'next/link';
-import { createClient } from '@/utils/supabase/server';
 
-export default async function CampoLanding() {
-  const supabase = await createClient();
-  const todosResult =
-    supabase != null ? await supabase.from('todos').select() : { data: null, error: null };
-  const { data: todos, error: todosError } = todosResult;
-
+export default function CampoLanding() {
   return (
-    <main className="min-h-screen bg-gray-50 text-gray-900 font-sans selection:bg-[#0A3D2F] selection:text-white pb-20">
-      {todosError ? (
-        <p className="mx-auto max-w-3xl px-6 pt-6 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg py-3">
-          Supabase conectado. La tabla <code className="font-mono">todos</code> no existe o no hay
-          permisos: {todosError.message}
+    <main className="min-h-screen bg-gradient-to-b from-stone-100 via-gray-50 to-stone-100 text-gray-900 selection:bg-[#0A3D2F] selection:text-white pb-20">
+      <section className="relative pt-28 pb-16 px-6 sm:px-12 lg:px-24 flex flex-col items-center text-center overflow-hidden">
+        <p className="text-xs uppercase tracking-[0.2em] text-[#0A3D2F]/80 font-medium mb-4">
+          Enjambre Legado · Campo
         </p>
-      ) : todos && todos.length > 0 ? (
-        <section className="mx-auto max-w-3xl px-6 pt-8">
-          <p className="text-sm text-gray-600 mb-2">Ejemplo SSR (tabla todos):</p>
-          <ul className="list-disc pl-6 text-sm">
-            {todos.map((todo: { id: number | string; name?: string }) => (
-              <li key={String(todo.id)}>{todo.name ?? String(todo.id)}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      <section className="relative pt-32 pb-20 px-6 sm:px-12 lg:px-24 flex flex-col items-center text-center overflow-hidden">
-        <h1 className="text-5xl md:text-7xl font-sans font-extrabold tracking-tight mb-6 max-w-4xl text-gray-900">
-          Terminal de Ventas y <br className="hidden md:block" />
-          <span className="text-[#0A3D2F]">Fidelización Cíclica</span>
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-6 max-w-4xl text-gray-900 leading-[1.1]">
+          Terminal de ventas y <br className="hidden sm:block" />
+          <span className="text-[#0A3D2F]">fidelización cíclica</span>
         </h1>
 
-        <p className="text-xl text-gray-500 mb-10 max-w-2xl font-light leading-relaxed">
-          Punto de venta Offline-First diseñado para ferias, eventos y locales. Asigna beneficios de
-          fidelidad y escanea el origen de la miel en un solo toque.
+        <p className="text-lg sm:text-xl text-gray-600 mb-10 max-w-2xl font-normal leading-relaxed">
+          Punto de venta pensado para ferias, eventos y locales. Fidelidad, trazabilidad y stock
+          alineado con la tienda web.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center max-w-md mb-20">
-          <Link href="/login" className="w-full sm:w-auto min-w-[200px]">
-            <button className="w-full px-8 py-4 bg-gray-900 hover:bg-black text-white rounded-2xl font-medium transition-all duration-300 shadow-xl shadow-gray-900/20 active:scale-95 flex justify-center items-center gap-2 group">
-              Abrir Terminal (POS)
-              <Zap className="w-4 h-4" />
-            </button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full justify-center max-w-lg mb-16">
+          <Link
+            href="/login"
+            className="inline-flex justify-center items-center gap-2 w-full sm:w-auto px-8 py-4 bg-[#0A3D2F] hover:bg-[#082a22] text-white rounded-2xl font-semibold shadow-lg shadow-[#0A3D2F]/25 transition-colors"
+          >
+            Abrir terminal (POS)
+            <Zap className="w-4 h-4 shrink-0" aria-hidden />
           </Link>
-          <Link href="/pos/catalogo" className="w-full sm:w-auto text-sm text-[#0A3D2F] underline font-medium">
-            Ver catálogo (sin login)
+          <Link
+            href="/pos/catalogo"
+            className="inline-flex justify-center items-center w-full sm:w-auto px-6 py-4 rounded-2xl border-2 border-gray-300 bg-white/80 text-[#0A3D2F] font-medium hover:border-[#0A3D2F]/40 transition-colors"
+          >
+            Ver catálogo
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center text-center">
-            <Zap className="w-8 h-8 text-[#D4A017] mb-4" />
-            <h3 className="font-bold text-lg mb-2">Offline First</h3>
-            <p className="text-sm text-gray-500">
-              Opera sin conexión a internet durante ferias completas. Sincroniza al volver a tener
-              señal.
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 w-full max-w-6xl text-left">
+          <div className="bg-white/90 backdrop-blur p-6 rounded-2xl border border-stone-200/80 shadow-sm flex flex-col">
+            <Zap className="w-8 h-8 text-[#D4A017] mb-3" aria-hidden />
+            <h2 className="font-bold text-lg mb-2">Offline first</h2>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Opera sin conexión en ferias; sincroniza cuando vuelva la señal.
             </p>
           </div>
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center text-center">
-            <Star className="w-8 h-8 text-[#D4A017] mb-4" />
-            <h3 className="font-bold text-lg mb-2">Puntos Guardián</h3>
-            <p className="text-sm text-gray-500">
-              Cada compra suma Tickets que los clientes canjean posteriormente por productos físicos.
+          <div className="bg-white/90 backdrop-blur p-6 rounded-2xl border border-stone-200/80 shadow-sm flex flex-col">
+            <Star className="w-8 h-8 text-[#D4A017] mb-3" aria-hidden />
+            <h2 className="font-bold text-lg mb-2">Puntos guardián</h2>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Cada compra suma tickets canjeables por productos físicos.
             </p>
           </div>
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center text-center">
-            <ScanLine className="w-8 h-8 text-[#0A3D2F] mb-4" />
-            <h3 className="font-bold text-lg mb-2">Escáner de Impacto</h3>
-            <p className="text-sm text-gray-500">
-              Lee el QR del producto para mostrar su apiario de origen y árboles plantados
-              (Trazabilidad).
+          <div className="bg-white/90 backdrop-blur p-6 rounded-2xl border border-stone-200/80 shadow-sm flex flex-col">
+            <ScanLine className="w-8 h-8 text-[#0A3D2F] mb-3" aria-hidden />
+            <h2 className="font-bold text-lg mb-2">Escáner de impacto</h2>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              QR de producto: origen del apiario y árboles plantados.
             </p>
           </div>
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center text-center">
-            <ShoppingBag className="w-8 h-8 text-[#0A3D2F] mb-4" />
-            <h3 className="font-bold text-lg mb-2">Stock Vinculado</h3>
-            <p className="text-sm text-gray-500">
-              Toda transacción afecta el stock central y unifica las métricas de ingresos con la
-              Tienda Web.
+          <div className="bg-white/90 backdrop-blur p-6 rounded-2xl border border-stone-200/80 shadow-sm flex flex-col">
+            <ShoppingBag className="w-8 h-8 text-[#0A3D2F] mb-3" aria-hidden />
+            <h2 className="font-bold text-lg mb-2">Stock vinculado</h2>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Ventas coherentes con el stock central y la tienda web.
             </p>
           </div>
         </div>
