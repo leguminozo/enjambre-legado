@@ -15,3 +15,6 @@ dist-ssr/
 .trae/
 skills/
 skills-lock.json
+
+# Carpeta legacy (no desplegar en Vercel)
+Tienda Shopify OYZ/

@@ -1,5 +1,6 @@
 import './globals.css';
 import { AppProviders } from '@/components/providers/app-providers';
+import { RegisterServiceWorker } from '@/components/pwa/register-sw';
 import type { Metadata } from 'next';
 import React from 'react';
 
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
     template: '%s · Enjambre Legado',
   },
   description: 'Tienda y panel de administración Enjambre Legado',
+  manifest: '/manifest.webmanifest',
 };
 
 export default function RootLayout({
@@ -19,6 +21,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="antialiased">
+        <RegisterServiceWorker />
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

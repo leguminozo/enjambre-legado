@@ -1,5 +1,6 @@
 'use client';
 
+import { createClient } from '@/utils/supabase/client';
 import React, {
   createContext,
   useCallback,
@@ -9,11 +10,11 @@ import React, {
   useState,
 } from 'react';
 
-const STORAGE_KEY = 'tienda_admin_session';
-
 export type TiendaUser = {
+  id: string;
   name: string;
   email: string;
+  role: 'gerente' | 'tienda_admin';
 };
 
 type AuthContextValue = {
@@ -26,15 +27,30 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function readSession(): TiendaUser | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as TiendaUser;
-  } catch {
-    return null;
-  }
+async function loadAuthorizedUser(): Promise<TiendaUser | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) return null;
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('id, email, full_name, role')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (profileError || !profile) return null;
+  if (profile.role !== 'tienda_admin' && profile.role !== 'gerente') return null;
+
+  return {
+    id: profile.id as string,
+    email: (profile.email as string) || user.email || '',
+    name: (profile.full_name as string) || user.email?.split('@')[0] || 'Administrador',
+    role: profile.role as 'gerente' | 'tienda_admin',
+  };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -42,34 +58,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setUser(readSession());
-    setLoading(false);
+    let mounted = true;
+    void (async () => {
+      const authorizedUser = await loadAuthorizedUser();
+      if (!mounted) return;
+      setUser(authorizedUser);
+      setLoading(false);
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     if (!email?.trim() || !password) {
       return { success: false, message: 'Completa correo y contraseña' };
     }
-    // Demo: mismas credenciales que el legado; ampliable a API Route + Supabase.
-    const ok =
-      (email === 'admin@verano.com' && password === 'password') ||
-      (email === 'admin@enjambre.cl' && password === 'password');
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    if (error) return { success: false, message: error.message || 'Credenciales incorrectas' };
 
-    if (!ok) {
-      return { success: false, message: 'Credenciales incorrectas' };
+    const authorizedUser = await loadAuthorizedUser();
+    if (!authorizedUser) {
+      await supabase.auth.signOut();
+      setUser(null);
+      return { success: false, message: 'No tienes permisos de admin en la tienda' };
     }
 
-    const u: TiendaUser = {
-      email: email.trim(),
-      name: email.split('@')[0]?.replace(/\./g, ' ') || 'Administrador',
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
-    setUser(u);
-    return { success: true };
+    setUser(authorizedUser);
+    return { success: true, message: undefined };
   }, []);
 
   const logout = useCallback(async () => {
-    localStorage.removeItem(STORAGE_KEY);
+    const supabase = createClient();
+    await supabase.auth.signOut();
     setUser(null);
   }, []);
 

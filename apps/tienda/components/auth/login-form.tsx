@@ -129,8 +129,8 @@ export function LoginForm() {
           </button>
 
           <p className="text-center text-xs text-gray-500">
-            Demo: <code className="bg-gray-100 px-1 rounded">admin@verano.com</code> /{' '}
-            <code className="bg-gray-100 px-1 rounded">password</code>
+            Acceso solo para usuarios con rol <code className="bg-gray-100 px-1 rounded">tienda_admin</code> o{' '}
+            <code className="bg-gray-100 px-1 rounded">gerente</code>.
           </p>
         </form>
 

@@ -296,8 +296,3 @@ CREATE TABLE IF NOT EXISTS reflexiones (
   date_display TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-</think>
-Fixing a syntax error in the SQL file.
-
-<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
-StrReplace
