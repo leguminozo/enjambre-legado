@@ -19,7 +19,7 @@
     "business"
   ],
   "author": "Tu Nombre",
-  "license": "MIT",
+  "license": "ISC",
   "engines": {
     "node": "20.x"
   },
