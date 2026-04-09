@@ -36,17 +36,22 @@ No uses `NEXT_PUBLIC_*` solo para el SPA Vite salvo que también compiles la lan
 
 ## Proyecto adicional: tienda (Next.js)
 
-| Configuración | Valor recomendado |
-|---------------|-------------------|
-| **Root Directory** | `apps/tienda` |
-| **Install Command** | `cd ../.. && pnpm install` |
-| **Build Command** | `cd ../.. && pnpm exec turbo run build --filter=@enjambre/tienda` **o** `pnpm run build` si el install ya dejó `node_modules` en la raíz |
+Fuente de verdad: [`apps/tienda/vercel.json`](../apps/tienda/vercel.json).
 
-Vercel detecta Next.js y usa el output correcto (`.next`).
+| Configuración | Valor |
+|---------------|--------|
+| **Root Directory** | `apps/tienda` |
+| **Framework** | Next.js |
+| **Node.js** | 20.x (`engines` en `apps/tienda/package.json`) |
+| **Install Command** (override) | `cd ../.. && npx pnpm@10.32.1 install --frozen-lockfile` |
+| **Build Command** (override) | `cd ../.. && npx pnpm@10.32.1 exec turbo run build --filter=@enjambre/tienda` |
+| **Output** | Dejar default (Next / `.next`) |
+
+Variables: `NEXT_PUBLIC_SUPABASE_*`, Transbank solo servidor (ver `DEPLOY.md`).
 
 ## Proyecto adicional: campo (Next.js)
 
-Igual que tienda con `apps/campo` y `--filter=@enjambre/campo`.
+Igual patrón que tienda: añade [`apps/campo/vercel.json`](../apps/campo/vercel.json) con `--filter=@enjambre/campo` si aún no existe; **Root** `apps/campo`, Node 20.x, mismos comandos `npx pnpm@10.32.1`.
 
 ## Tras crear tienda y campo
 
