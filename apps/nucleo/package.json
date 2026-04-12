@@ -8,8 +8,9 @@
   },
   "packageManager": "pnpm@10.32.1",
   "scripts": {
+    "predev": "node scripts/rasterize-pwa-icons.mjs",
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/rasterize-pwa-icons.mjs && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
     "dev:landing": "next dev",
@@ -42,9 +43,11 @@
     "globals": "^16.5.0",
     "next": "^15.3.5",
     "pg": "^8.19.0",
+    "sharp": "^0.34.5",
     "tsx": "^4.21.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vite-plugin-pwa": "^1.2.0"
   }
 }

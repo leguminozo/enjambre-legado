@@ -34,6 +34,13 @@ No uses `NEXT_PUBLIC_*` solo para el SPA Vite salvo que también compiles la lan
 
 **Antigua referencia (root = repo vs `apps/nucleo`):** si el Root Directory fuera la raíz del monorepo, Output sería `apps/nucleo/dist` y los comandos usarían la raíz sin `cd ../..`.
 
+### PWA (núcleo)
+
+- El build de [`apps/nucleo`](../apps/nucleo) ejecuta `scripts/rasterize-pwa-icons.mjs` (PNG 192/512 + `apple-touch-icon`) y genera el **service worker** y `manifest.webmanifest` vía [`vite-plugin-pwa`](https://vite-pwa-org.netlify.app/) en [`apps/nucleo/vite.config.ts`](../apps/nucleo/vite.config.ts).
+- **Probar instalación:** Chrome → icono de instalar; Safari iOS → Compartir → «Añadir a la pantalla de inicio».
+- **Tras un despliegue:** el SW usa `autoUpdate`; si algo se ve «atascado», cerrar pestañas del origen o «Borrar datos del sitio» en ajustes del navegador (misma URL que Vercel).
+- **Iconos maestros:** SVG en `apps/nucleo/public/icons/` (alineados con la tienda); al cambiar la marca, edita el SVG y vuelve a build (los PNG se regeneran).
+
 ## Proyecto adicional: tienda (Next.js)
 
 Fuente de verdad: [`apps/tienda/vercel.json`](../apps/tienda/vercel.json).

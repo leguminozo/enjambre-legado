@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/client" />
 
 interface ImportMetaEnv {
     /** URL base del BFF (`apps/api`). Por defecto http://localhost:3001 */
