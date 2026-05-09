@@ -23,48 +23,21 @@ if (typeof window !== 'undefined') {
 type TiendaLandingProps = {
   initialServicios: Array<{ num: string; title: string; desc: string }>;
   initialTalleres: Array<{ date: string; title: string; desc: string; action: string }>;
+  initialColecciones: Array<{ kicker: string; title: string; desc: string; href: string }>;
+  footerData: {
+    branding: { tagline: string; email: string };
+    nav: Array<{ label: string; href: string }>;
+    legal: Array<{ label: string; href: string }>;
+  };
 };
 
-const COLECCIONES = [
-  {
-    kicker: 'Sachets',
-    title: 'Gotas de Néctar',
-    desc: '¡Lleva contigo la dulzura del bosque! Perfecto tamaño para tus experiencias diarias.',
-    href: '/catalogo',
-  },
-  {
-    kicker: 'Frascos Medios',
-    title: 'Tesoros del Colmenar',
-    desc: '¡La dulzura boscosa en tu mesa! En tus preparaciones y en cada cucharada.',
-    href: '/catalogo',
-  },
-  {
-    kicker: 'Frascos Mayores',
-    title: 'Reservas del Bosque',
-    desc: 'Nuestra mayor reserva para el futuro. Sobrevive a la incertidumbre y acompaña momentos únicos.',
-    href: '/catalogo',
-  },
-  {
-    kicker: 'Miel Virgen',
-    title: 'Panal de Bosque',
-    desc: 'El placer de miel libre de intervenciones. La pureza del néctar, una huella del cosmos.',
-    href: '/catalogo',
-  },
-  {
-    kicker: 'Cajas de Sachets',
-    title: 'Cofres del Enjambre',
-    desc: '20 Sachets para disfrutar, compartir, recordar. El bosque a tu ritmo de vida.',
-    href: '/catalogo',
-  },
-  {
-    kicker: 'Suscripciones',
-    title: 'Legado del Bosque',
-    desc: 'La búsqueda de legado y regeneración desde el sur del planeta. Creaciones en su máximo esplendor.',
-    href: '/catalogo',
-  },
-] as const;
 
-export default function TiendaLandingView({ initialServicios, initialTalleres }: TiendaLandingProps) {
+export default function TiendaLandingView({ 
+  initialServicios, 
+  initialTalleres, 
+  initialColecciones,
+  footerData 
+}: TiendaLandingProps) {
   useEffect(() => {
     // Animaciones de entrada
     const tl = gsap.timeline();
@@ -152,27 +125,37 @@ export default function TiendaLandingView({ initialServicios, initialTalleres }:
           </div>
           
           <div className="grid md:grid-cols-2 gap-x-12 gap-y-24">
-            {COLECCIONES.map((c) => (
-              <Link key={c.title} href={c.href} className="group flex flex-col">
-                <div className="relative aspect-[16/10] overflow-hidden bg-[#141210] mb-8">
-                  <ImagePlaceholder ratio="video" label={c.title} className="grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="text-center md:text-left px-4">
-                  <p className="text-[0.65rem] tracking-[0.3em] uppercase text-[#c9a227] mb-3">{c.kicker}</p>
-                  <h3 className="font-display text-3xl font-light mb-3 group-hover:text-[#c9a227] transition-colors">{c.title}</h3>
-                  <p className="text-sm text-[#8a8279] max-w-sm mx-auto md:mx-0 leading-relaxed">{c.desc}</p>
-                </div>
-              </Link>
-            ))}
+            {initialColecciones.map((c) => {
+              const imageSrc = c.kicker.toLowerCase().includes('sachet') || c.kicker.toLowerCase().includes('cofre')
+                ? '/assets/editorial/sachets.png'
+                : '/assets/editorial/honey-jar.png';
+              
+              return (
+                <Link key={c.title} href={c.href} className="group flex flex-col">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-[#141210] mb-8">
+                    <img 
+                      src={imageSrc} 
+                      alt={c.title} 
+                      className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="text-center md:text-left px-4">
+                    <p className="text-[0.65rem] tracking-[0.3em] uppercase text-[#c9a227] mb-3">{c.kicker}</p>
+                    <h3 className="font-display text-3xl font-light mb-3 group-hover:text-[#c9a227] transition-colors">{c.title}</h3>
+                    <p className="text-sm text-[#8a8279] max-w-sm mx-auto md:mx-0 leading-relaxed">{c.desc}</p>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
 
         {/* IMMERSION - Full Width Asset */}
         <section id="immersion" className="relative h-[80vh] w-full overflow-hidden">
-          <ImagePlaceholder 
-            ratio="video" 
-            label="Inmersión: El Latido del Bosque" 
+          <img 
+            src="/assets/editorial/immersion.png" 
+            alt="Inmersión: El Latido del Bosque" 
             className="h-full w-full object-cover border-none" 
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-6">
@@ -288,7 +271,7 @@ export default function TiendaLandingView({ initialServicios, initialTalleres }:
         </section>
       </main>
 
-      <ShopFooter />
+      <ShopFooter data={footerData} />
     </StoreShell>
   );
 }

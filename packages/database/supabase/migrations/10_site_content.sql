@@ -28,6 +28,36 @@ INSERT INTO site_content (section_key, item_order, content) VALUES
 ('talleres', 2, '{"date": "Bimensual", "title": "Cata de Mieles Oscuras", "desc": "Sesiones sensoriales guiadas para identificar notas, texturas y orígenes botánicos. Desarrollo del paladar para mieles monoflorales.", "action": "Inscribirse"}'),
 ('talleres', 3, '{"date": "A demanda", "title": "Medicina del Panal", "desc": "Elaboración de ungüentos, tinturas y remedios tradicionales a partir de productos de la colmena. Enfoque en autosuficiencia.", "action": "Consultar"}');
 
+-- COLECCIONES
+INSERT INTO site_content (section_key, item_order, content) VALUES
+('colecciones', 1, '{"kicker": "Sachets", "title": "Gotas de Néctar", "desc": "¡Lleva contigo la dulzura del bosque! Perfecto tamaño para tus experiencias diarias.", "href": "/catalogo"}'),
+('colecciones', 2, '{"kicker": "Frascos Medios", "title": "Tesoros del Colmenar", "desc": "¡La dulzura boscosa en tu mesa! En tus preparaciones y en cada cucharada.", "href": "/catalogo"}'),
+('colecciones', 3, '{"kicker": "Frascos Mayores", "title": "Reservas del Bosque", "desc": "Nuestra mayor reserva para el futuro. Sobrevive a la incertidumbre y acompaña momentos únicos.", "href": "/catalogo"}'),
+('colecciones', 4, '{"kicker": "Miel Virgen", "title": "Panal de Bosque", "desc": "El placer de miel libre de intervenciones. La pureza del néctar, una huella del cosmos.", "href": "/catalogo"}'),
+('colecciones', 5, '{"kicker": "Cajas de Sachets", "title": "Cofres del Enjambre", "desc": "20 Sachets para disfrutar, compartir, recordar. El bosque a tu ritmo de vida.", "href": "/catalogo"}'),
+('colecciones', 6, '{"kicker": "Suscripciones", "title": "Legado del Bosque", "desc": "La búsqueda de legado y regeneración desde el sur del planeta. Creaciones en su máximo esplendor.", "href": "/catalogo"}');
+
+-- FOOTER BRANDING
+INSERT INTO site_content (section_key, content) VALUES
+('footer_branding', '{"tagline": "¡Seamos Legado! Luce saludable. Sé parte del cambio.", "email": "hola@obrerayzangano.com"}');
+
+-- FOOTER NAV
+INSERT INTO site_content (section_key, item_order, content) VALUES
+('footer_nav', 1, '{"label": "Inicio", "href": "/"}'),
+('footer_nav', 2, '{"label": "Creaciones", "href": "/catalogo"}'),
+('footer_nav', 3, '{"label": "Experiencias", "href": "/experiencias"}'),
+('footer_nav', 4, '{"label": "Nosotros", "href": "/nosotros"}'),
+('footer_nav', 5, '{"label": "Galería", "href": "/galeria"}'),
+('footer_nav', 6, '{"label": "Contacto", "href": "/contacto"}');
+
+-- FOOTER LEGAL
+INSERT INTO site_content (section_key, item_order, content) VALUES
+('footer_legal', 1, '{"label": "Política de privacidad", "href": "/privacidad"}'),
+('footer_legal', 2, '{"label": "Términos del servicio", "href": "/terminos"}'),
+('footer_legal', 3, '{"label": "Política de cancelación", "href": "/cancelacion"}'),
+('footer_legal', 4, '{"label": "Política de envío", "href": "/envio"}'),
+('footer_legal', 5, '{"label": "Política de reembolso", "href": "/reembolso"}');
+
 -- Habilitar RLS para lectura pública
 ALTER TABLE site_content ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Contenido público legible por todos" ON site_content FOR SELECT USING (is_active = true);
