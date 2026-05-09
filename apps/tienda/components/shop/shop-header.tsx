@@ -2,21 +2,21 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, ShoppingBag, X } from 'lucide-react';
+import { Menu, ShoppingBag, X, User } from 'lucide-react';
 import { useCart } from '@/components/shop/cart-context';
+import { useAuth } from '@/components/providers/auth-context';
 import { useState } from 'react';
 
 const NAV = [
-  { href: '/', label: 'Inicio' },
   { href: '/catalogo', label: 'Creaciones' },
   { href: '/experiencias', label: 'Experiencias' },
   { href: '/nosotros', label: 'Nosotros' },
-  { href: '/galeria', label: 'Galería' },
   { href: '/contacto', label: 'Contacto' },
 ] as const;
 
 export function ShopHeader() {
   const cart = useCart();
+  const { isAuthenticated, user } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -26,105 +26,89 @@ export function ShopHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-black">
-      <div className="relative mx-auto max-w-5xl px-4 pt-8 pb-4 sm:px-6 sm:pt-10">
-        <Link
-          href="/"
-          className="mx-auto flex w-max flex-col items-center gap-3"
-          onClick={() => setOpen(false)}
+    <header className="sticky top-0 z-[60] bg-[#050505]/80 backdrop-blur-md border-b border-white/5">
+      <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
+        {/* Mobile Menu Toggle */}
+        <button 
+          className="md:hidden text-[#8a8279] hover:text-[#c9a227] transition-colors"
+          onClick={() => setOpen(!open)}
         >
-          {/* Marcador de logo: sustituir por <Image src="/logo.png" /> cuando subas asset */}
-          <div
-            className="relative flex h-16 w-48 items-center justify-center rounded-sm border-2 border-[#c9a227]/90 bg-[#e8c547] px-2 shadow-[0_0_0_1px_rgba(0,0,0,0.4)] sm:h-[4.5rem] sm:w-56"
-            aria-hidden
-          >
-            <span className="text-center font-display text-[0.65rem] font-bold uppercase leading-tight tracking-tight text-black sm:text-xs">
+          {open ? <X size={24} /> : <Menu size={24} />}
+        </button>
+
+        {/* Logo */}
+        <Link href="/" className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 group">
+          <div className="flex flex-col items-center md:items-start">
+            <span className="font-display text-lg tracking-[0.3em] uppercase text-[#f5f0e8] group-hover:text-[#c9a227] transition-colors">
               La Obrera
-              <br />
+            </span>
+            <span className="text-[0.6rem] tracking-[0.4em] uppercase text-[#c9a227] -mt-1 font-light">
               y el Zángano
             </span>
           </div>
-          <span className="sr-only">La Obrera y el Zángano — inicio</span>
         </Link>
 
-        <Link
-          href="/checkout"
-          className="absolute right-4 top-8 rounded-md p-2 text-white/90 transition hover:bg-white/10 sm:right-6 sm:top-10"
-          aria-label={`Carrito${cart.itemCount ? `, ${cart.itemCount} ítems` : ''}`}
-        >
-          <ShoppingBag className="h-6 w-6" strokeWidth={1.25} />
-          {cart.itemCount > 0 ? (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c9a227] px-1 text-[10px] font-bold text-black">
-              {cart.itemCount > 9 ? '9+' : cart.itemCount}
-            </span>
-          ) : null}
-        </Link>
-      </div>
-
-      <nav className="hidden justify-center border-t border-white/5 px-4 py-3 sm:flex">
-        <ul className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-10">
           {NAV.map(({ href, label }) => (
-            <li key={href}>
-              <Link
-                href={href}
-                className={`text-sm font-medium tracking-wide text-white/90 transition hover:text-white ${
-                  isActive(href) ? 'border-b border-white pb-0.5' : 'border-b border-transparent pb-0.5'
-                }`}
-              >
-                {label}
-              </Link>
-            </li>
-          ))}
-          <li>
             <Link
-              href="/login"
-              className="text-sm font-medium text-white/50 transition hover:text-white/80"
+              key={href}
+              href={href}
+              className={`text-[0.65rem] uppercase tracking-[0.2em] transition-colors hover:text-[#c9a227] ${
+                isActive(href) ? 'text-[#c9a227]' : 'text-[#8a8279]'
+              }`}
             >
-              Acceso
+              {label}
             </Link>
-          </li>
-        </ul>
-      </nav>
+          ))}
+        </nav>
 
-      <div className="flex items-center justify-between border-t border-white/5 px-4 py-3 sm:hidden">
-        <span className="text-xs text-white/50">Menú</span>
-        <button
-          type="button"
-          className="rounded-md p-2 text-white"
-          aria-expanded={open}
-          aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        {/* Actions */}
+        <div className="flex items-center gap-6">
+          <Link 
+            href={isAuthenticated ? (user?.role === 'tienda_admin' || user?.role === 'gerente' ? '/dashboard' : '/perfil') : '/login'} 
+            className="text-[#8a8279] hover:text-[#c9a227] transition-colors flex items-center gap-2"
+          >
+            <User size={20} strokeWidth={1.5} />
+            <span className="hidden lg:inline text-[0.6rem] uppercase tracking-[0.2em]">
+              {isAuthenticated ? 'Mi Cuenta' : 'Acceso'}
+            </span>
+          </Link>
+          
+          <Link href="/checkout" className="relative group">
+            <ShoppingBag size={20} strokeWidth={1.5} className="text-[#8a8279] group-hover:text-[#c9a227] transition-colors" />
+            {cart.itemCount > 0 && (
+              <span className="absolute -top-2 -right-2 w-4 h-4 bg-[#c9a227] text-black text-[0.6rem] font-bold flex items-center justify-center rounded-full">
+                {cart.itemCount}
+              </span>
+            )}
+          </Link>
+        </div>
       </div>
 
-      {open ? (
-        <div className="border-t border-white/10 bg-zinc-950 px-4 py-4 sm:hidden">
-          <ul className="flex flex-col gap-1">
-            {NAV.map(({ href, label }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className={`block py-2 text-base ${isActive(href) ? 'text-[#e8c547]' : 'text-white/90'}`}
-                  onClick={() => setOpen(false)}
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link
-                href="/login"
-                className="block py-2 text-base text-white/50"
-                onClick={() => setOpen(false)}
-              >
-                Acceso comercio
-              </Link>
-            </li>
-          </ul>
-        </div>
-      ) : null}
+      {/* Mobile Nav Overlay */}
+      <div className={`md:hidden fixed inset-0 top-24 bg-[#050505] z-50 transition-transform duration-500 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+        <nav className="p-10 flex flex-col gap-8">
+          {NAV.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className="font-display text-3xl font-light text-[#f5f0e8] hover:text-[#c9a227] transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              {label}
+            </Link>
+          ))}
+          <div className="h-[1px] bg-white/5 my-4" />
+          <Link
+            href={isAuthenticated ? '/dashboard' : '/login'}
+            className="font-display text-2xl italic text-[#c9a227]"
+            onClick={() => setOpen(false)}
+          >
+            {isAuthenticated ? 'Panel de Control' : 'Iniciar Sesión'}
+          </Link>
+        </nav>
+      </div>
     </header>
   );
 }

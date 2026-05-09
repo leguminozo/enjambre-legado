@@ -1,0 +1,33 @@
+Project Settings
+Build and Deployment
+Framework Settings
+When using a framework for a new project, it will be automatically detected. As a result, several project settings are automatically configured to achieve the best result. You can override them below.
+
+Configuration Settings in the current Production deployment differ from your current Project Settings.
+
+Production Overrides
+tienda-azssxplzn-guillermoc2710-8540s-projects.vercel.app
+
+Project Settings
+Learn more about Build and Development Settings
+Root Directory
+The directory within your project, where your code is located. Leave this field empty if your code is not located in a subdirectory.
+
+
+Include files outside the root directory in the Build Step.
+
+Skip deployments when there are no changes to the root directory or its dependencies.
+
+Learn more about Root Directory
+Ignored Build Step
+When a commit is pushed to the Git repository that is connected with your Project, its SHA will determine if a new Build has to be issued. If the SHA was deployed before, no new Build will be issued.
+
+You can customize this behavior with a command that exits with code 1 (new Build needed) or code 0.
+
+Behavior
+
+Learn more about Ignored Build Step
+Node.js Version
+The version of Node.js that is used in the Build Step and for Serverless Functions. A new Deployment is required for your changes to take effect.
+
+Configuration Settings in the current Production deployment differ from your current Project Settings.

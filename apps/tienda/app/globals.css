@@ -2,9 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-deep: #050505;
+  --bg-surface: #0c0c0c;
+  --bg-elevated: #141210;
+  --text-primary: #f5f0e8;
+  --text-muted: #8a8279;
+  --accent-gold: #c9a227;
+  --accent-amber: #8b6914;
+  --accent-warm: #d4a574;
+  --border-subtle: rgba(245, 240, 232, 0.08);
+}
+
 @layer base {
   body {
-    @apply bg-cream-50 text-bosque-950 font-sans antialiased;
+    @apply bg-[#050505] text-[#f5f0e8] font-sans antialiased overflow-x-hidden;
   }
 }
 

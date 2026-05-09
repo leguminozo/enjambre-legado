@@ -2,17 +2,20 @@ import './globals.css';
 import { AppProviders } from '@/components/providers/app-providers';
 import { RegisterServiceWorker } from '@/components/pwa/register-sw';
 import type { Metadata } from 'next';
-import { Fraunces, Source_Sans_3 } from 'next/font/google';
+import { Cormorant_Garamond, Inter } from 'next/font/google';
 import React from 'react';
 
-const fontDisplay = Fraunces({
+const fontDisplay = Cormorant_Garamond({
   subsets: ['latin'],
+  weight: ['300', '400', '600'],
+  style: ['normal', 'italic'],
   variable: '--font-display',
   display: 'swap',
 });
 
-const fontBody = Source_Sans_3({
+const fontBody = Inter({
   subsets: ['latin'],
+  weight: ['300', '400', '500', '600'],
   variable: '--font-body',
   display: 'swap',
 });
@@ -34,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${fontDisplay.variable} ${fontBody.variable}`}>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased bg-[#050505] text-[#f5f0e8]">
         <RegisterServiceWorker />
         <AppProviders>{children}</AppProviders>
       </body>
