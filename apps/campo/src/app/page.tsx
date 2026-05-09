@@ -1,67 +1,66 @@
 import React from 'react';
-import { ShoppingBag, Star, Zap, ScanLine } from 'lucide-react';
+import { Zap, ScanLine, ShoppingCart, Award } from 'lucide-react';
 import Link from 'next/link';
 
-export default function CampoLanding() {
+export function CampoLanding() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-stone-100 via-gray-50 to-stone-100 text-gray-900 selection:bg-[#0A3D2F] selection:text-white pb-20">
-      <section className="relative pt-28 pb-16 px-6 sm:px-12 lg:px-24 flex flex-col items-center text-center overflow-hidden">
-        <p className="text-xs uppercase tracking-[0.2em] text-[#0A3D2F]/80 font-medium mb-4">
-          Enjambre Legado · Campo
+    <main className="min-h-screen bg-black text-white selection:bg-[#D4A017] selection:text-black pb-20 font-sans">
+      <section className="relative pt-32 pb-20 px-6 sm:px-12 lg:px-24 flex flex-col items-center text-center overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#D4A017]/10 blur-[120px] -z-10" />
+
+        <p className="text-xs uppercase tracking-[0.4em] text-[#D4A017] font-bold mb-6">
+          Enjambre Legado · Terminal de Activación
         </p>
-        <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-6 max-w-4xl text-gray-900 leading-[1.1]">
-          Terminal de ventas y <br className="hidden sm:block" />
-          <span className="text-[#0A3D2F]">fidelización cíclica</span>
+        
+        <h1 className="text-5xl sm:text-6xl md:text-8xl font-serif mb-8 max-w-5xl leading-[1.05] tracking-tight">
+          Vanguardia en <br />
+          <span className="italic text-[#D4A017]">experiencia de marca</span>
         </h1>
 
-        <p className="text-lg sm:text-xl text-gray-600 mb-10 max-w-2xl font-normal leading-relaxed">
-          Punto de venta pensado para ferias, eventos y locales. Fidelidad, trazabilidad y stock
-          alineado con la tienda web.
+        <p className="text-xl sm:text-2xl text-stone-400 mb-12 max-w-3xl font-light leading-relaxed">
+          Transforma cada transacción en una conexión profunda. POS diseñado para ferias, 
+          pop-ups y eventos de lujo. Frictionless loyalty mediante QR dinámico.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full justify-center max-w-lg mb-16">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full justify-center max-w-lg mb-20">
           <Link
-            href="/login"
-            className="inline-flex justify-center items-center gap-2 w-full sm:w-auto px-8 py-4 bg-[#0A3D2F] hover:bg-[#082a22] text-white rounded-2xl font-semibold shadow-lg shadow-[#0A3D2F]/25 transition-colors"
+            href="/pos"
+            className="inline-flex justify-center items-center gap-3 w-full sm:w-auto px-10 py-5 bg-[#D4A017] hover:bg-[#b88a14] text-black rounded-full font-bold shadow-2xl shadow-[#D4A017]/20 transition-all transform hover:scale-105"
           >
-            Abrir terminal (POS)
-            <Zap className="w-4 h-4 shrink-0" aria-hidden />
+            Abrir POS
+            <Zap className="w-5 h-5 fill-current" aria-hidden />
           </Link>
           <Link
             href="/pos/catalogo"
-            className="inline-flex justify-center items-center w-full sm:w-auto px-6 py-4 rounded-2xl border-2 border-gray-300 bg-white/80 text-[#0A3D2F] font-medium hover:border-[#0A3D2F]/40 transition-colors"
+            className="inline-flex justify-center items-center w-full sm:w-auto px-8 py-5 rounded-full border border-stone-800 bg-stone-900/50 text-stone-300 font-medium hover:bg-stone-800 transition-all"
           >
-            Ver catálogo
+            Ver Catálogo
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 w-full max-w-6xl text-left">
-          <div className="bg-white/90 backdrop-blur p-6 rounded-2xl border border-stone-200/80 shadow-sm flex flex-col">
-            <Zap className="w-8 h-8 text-[#D4A017] mb-3" aria-hidden />
-            <h2 className="font-bold text-lg mb-2">Offline first</h2>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Opera sin conexión en ferias; sincroniza cuando vuelva la señal.
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl text-left">
+          <div className="bg-stone-900/40 backdrop-blur-xl p-8 rounded-3xl border border-stone-800/50 shadow-2xl group hover:border-[#D4A017]/30 transition-all">
+            <ShoppingCart className="w-10 h-10 text-[#D4A017] mb-6 group-hover:scale-110 transition-transform" aria-hidden />
+            <h2 className="font-serif text-2xl mb-3">Venta Frictionless</h2>
+            <p className="text-stone-400 leading-relaxed font-light">
+              Interfaz táctil ultra-rápida optimizada para flujos de alta demanda en ferias y eventos.
             </p>
           </div>
-          <div className="bg-white/90 backdrop-blur p-6 rounded-2xl border border-stone-200/80 shadow-sm flex flex-col">
-            <Star className="w-8 h-8 text-[#D4A017] mb-3" aria-hidden />
-            <h2 className="font-bold text-lg mb-2">Puntos guardián</h2>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Cada compra suma tickets canjeables por productos físicos.
+          
+          <div className="bg-stone-900/40 backdrop-blur-xl p-8 rounded-3xl border border-stone-800/50 shadow-2xl group hover:border-[#D4A017]/30 transition-all">
+            <ScanLine className="w-10 h-10 text-[#D4A017] mb-6 group-hover:scale-110 transition-transform" aria-hidden />
+            <h2 className="font-serif text-2xl mb-3">Loyalty por QR</h2>
+            <p className="text-stone-400 leading-relaxed font-light">
+              Cada boleta genera un QR único. El cliente escanea, reclama sus puntos y se vincula a OYZ al instante.
             </p>
           </div>
-          <div className="bg-white/90 backdrop-blur p-6 rounded-2xl border border-stone-200/80 shadow-sm flex flex-col">
-            <ScanLine className="w-8 h-8 text-[#0A3D2F] mb-3" aria-hidden />
-            <h2 className="font-bold text-lg mb-2">Escáner de impacto</h2>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              QR de producto: origen del apiario y árboles plantados.
-            </p>
-          </div>
-          <div className="bg-white/90 backdrop-blur p-6 rounded-2xl border border-stone-200/80 shadow-sm flex flex-col">
-            <ShoppingBag className="w-8 h-8 text-[#0A3D2F] mb-3" aria-hidden />
-            <h2 className="font-bold text-lg mb-2">Stock vinculado</h2>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Ventas coherentes con el stock central y la tienda web.
+
+          <div className="bg-stone-900/40 backdrop-blur-xl p-8 rounded-3xl border border-stone-800/50 shadow-2xl group hover:border-[#D4A017]/30 transition-all">
+            <Award className="w-10 h-10 text-[#D4A017] mb-6 group-hover:scale-110 transition-transform" aria-hidden />
+            <h2 className="font-serif text-2xl mb-3">Impacto Biocultural</h2>
+            <p className="text-stone-400 leading-relaxed font-light">
+              Trazabilidad inmediata: el cliente descubre el apiario de origen y los árboles plantados con su compra.
             </p>
           </div>
         </div>
@@ -69,3 +68,6 @@ export default function CampoLanding() {
     </main>
   );
 }
+
+export default CampoLanding;
+

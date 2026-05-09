@@ -58,11 +58,12 @@ export async function POST(request: Request) {
     metodo_pago: body.metodo_pago ?? 'efectivo',
   };
 
-  const { data, error } = await supabase.from('ventas').insert(payload).select('id').single();
+  const { data, error } = await supabase.from('ventas').insert(payload).select('id, claim_token').single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  return NextResponse.json({ ok: true, id: data?.id });
+  return NextResponse.json({ ok: true, id: data?.id, claim_token: data?.claim_token });
 }
+

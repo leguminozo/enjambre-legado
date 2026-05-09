@@ -1,9 +1,0 @@
-{
-  "name": "@enjambre/offline",
-  "version": "1.0.0",
-  "private": true,
-  "main": "index.ts",
-  "dependencies": {
-    "dexie": "^4.3.0"
-  }
-}

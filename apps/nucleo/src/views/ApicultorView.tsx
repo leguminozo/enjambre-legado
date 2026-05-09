@@ -13,6 +13,9 @@ import ColmenaFicha from '../components/apicultor/ColmenaFicha';
 import CalendarioCiclico from '../components/apicultor/CalendarioCiclico';
 import TrazabilidadPanel from '../components/apicultor/TrazabilidadPanel';
 import ApiarioManager from '../components/apicultor/ApiarioManager';
+import HeaderEcosistema from '../components/apicultor/HeaderEcosistema';
+import OraculoFloracion from '../components/apicultor/OraculoFloracion';
+import VentanasDeVuelo from '../components/apicultor/VentanasDeVuelo';
 
 type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad';
 
@@ -154,6 +157,10 @@ export default function ApicultorView() {
 
     return (
         <div>
+            <div style={{ margin: 'calc(-1 * var(--space-xl)) calc(-1 * var(--space-xl)) var(--space-xl) calc(-1 * var(--space-xl))' }}>
+                <HeaderEcosistema />
+            </div>
+
             {selectedColmena && (
                 <ColmenaFicha colmena={selectedColmena} onClose={() => setSelectedColmena(null)} onUpdate={handleUpdateColmena} />
             )}
@@ -162,10 +169,6 @@ export default function ApicultorView() {
                 <div className="hero-greeting">{greeting}</div>
                 <h1 className="hero-title">{title}</h1>
                 <p className="hero-subtitle">{subtitle}</p>
-                <div style={{ display: 'flex', gap: 'var(--space-md)', marginTop: 'var(--space-lg)' }}>
-                    <span className="badge badge-success" style={{ fontSize: '0.78rem', padding: '4px 14px' }}>Floración Tepú: activa</span>
-                    <span className="badge badge-gold" style={{ fontSize: '0.78rem', padding: '4px 14px' }}>Próxima luna: Cuarto menguante</span>
-                </div>
             </div>
 
             <div className="stats-grid">
@@ -246,6 +249,9 @@ export default function ApicultorView() {
                             ))}
                         </div>
                     </div>
+                    
+                    <VentanasDeVuelo />
+                    <OraculoFloracion />
 
                     {reflexion && (
                         <div className="card animate-in delay-4" style={{ background: 'linear-gradient(135deg, var(--bosque-ulmo), var(--bosque-ulmo-dark))', color: 'var(--crema-natural)', border: 'none' }}>
