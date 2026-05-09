@@ -58,14 +58,19 @@ USING (
   AND claim_token IS NOT NULL
 );
 
--- Function to award points when a sale is claimed
 CREATE OR REPLACE FUNCTION award_points_on_claim()
 RETURNS TRIGGER AS $$
+DECLARE
+  ciclos_ganados NUMERIC;
 BEGIN
   IF NEW.claim_status = 'claimed' AND (OLD.claim_status IS NULL OR OLD.claim_status = 'pending') THEN
-    UPDATE profiles 
-    SET puntos_acumulados = puntos_acumulados + FLOOR(NEW.total / 1000) -- 1 punto por cada 1000 CLP
-    WHERE id = NEW.claimed_by::uuid;
+    -- 1 ciclo guardián por cada 1000 CLP
+    ciclos_ganados := FLOOR(NEW.total / 1000);
+    
+    IF ciclos_ganados > 0 THEN
+      INSERT INTO ciclos (user_id, cantidad, tipo, referencia_id, referencia_tabla)
+      VALUES (NEW.claimed_by::uuid, ciclos_ganados, 'compra', NEW.id, 'ventas');
+    END IF;
   END IF;
   RETURN NEW;
 END;

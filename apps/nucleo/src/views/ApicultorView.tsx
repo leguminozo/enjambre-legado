@@ -17,6 +17,7 @@ import HeaderEcosistema from '../components/apicultor/HeaderEcosistema';
 import OraculoFloracion from '../components/apicultor/OraculoFloracion';
 import VentanasDeVuelo from '../components/apicultor/VentanasDeVuelo';
 import GemeloApiario from '../components/apicultor/GemeloApiario';
+import EspectroVivo from '../components/apicultor/EspectroVivo';
 
 type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad';
 
@@ -254,6 +255,7 @@ export default function ApicultorView() {
                     
                     <VentanasDeVuelo />
                     <OraculoFloracion />
+                    <EspectroVivo />
 
                     {reflexion && (
                         <div className="card animate-in delay-4" style={{ background: 'linear-gradient(135deg, var(--bosque-ulmo), var(--bosque-ulmo-dark))', color: 'var(--crema-natural)', border: 'none' }}>
