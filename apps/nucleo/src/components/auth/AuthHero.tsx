@@ -16,22 +16,22 @@ export function AuthHero({ onStart }: AuthHeroProps) {
 
     tl.fromTo(containerRef.current, 
       { opacity: 0 }, 
-      { opacity: 1, duration: 1.5 }
+      { opacity: 1, duration: 1 }
     )
     .fromTo(titleRef.current,
-      { y: 30, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1 },
-      '-=0.8'
+      { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.8 },
+      '-=0.5'
     )
     .fromTo(textRef.current,
-      { y: 20, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1 },
+      { y: 10, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.8 },
       '-=0.6'
     )
     .fromTo(buttonRef.current,
-      { scale: 0.9, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 0.8 },
-      '-=0.4'
+      { scale: 0.95, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.6 },
+      '-=0.6'
     );
   }, []);
 
@@ -42,8 +42,8 @@ export function AuthHero({ onStart }: AuthHeroProps) {
     >
       <h1 
         ref={titleRef}
-        className="text-5xl font-existencial text-crema-natural mb-6 italic"
-        style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)', lineHeight: 1.1 }}
+        className="text-7xl font-existencial text-crema-natural mb-6 italic m-0"
+        style={{ textShadow: '0 4px 30px rgba(0,0,0,0.6)', lineHeight: 1, fontSize: '4.5rem' }}
       >
         El Bosque <br /> 
         <span className="text-oro-miel">te reconoce.</span>
@@ -51,8 +51,8 @@ export function AuthHero({ onStart }: AuthHeroProps) {
       
       <p 
         ref={textRef}
-        className="text-lg font-datos text-crema-natural opacity-30 mb-10 max-w-lg"
-        style={{ opacity: 0.8 }}
+        className="text-xl font-datos text-crema-natural mb-10 max-w-lg m-0"
+        style={{ opacity: 0.7, lineHeight: 1.6 }}
       >
         Bienvenido al núcleo digital de la regeneración biocultural. 
         Donde cada rastro cuenta, y cada abeja es un legado.
@@ -61,17 +61,11 @@ export function AuthHero({ onStart }: AuthHeroProps) {
       <button
         ref={buttonRef}
         onClick={onStart}
-        className="btn btn-gold px-12 py-4 text-lg rounded-full group overflow-hidden relative"
+        className="btn btn-gold px-12 py-4 rounded-full"
+        style={{ fontSize: '1.1rem', fontWeight: 700 }}
       >
-        <span className="relative z-10">Iniciar Sincronización</span>
-        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+        Iniciar Sincronización
       </button>
-
-      <div className="mt-12 flex gap-8 text-crema-natural/40 text-[0.65rem] tracking-[0.2em] uppercase font-datos">
-        <span>Chiloé, Chile</span>
-        <span>·</span>
-        <span>Ecosistema Legado</span>
-      </div>
     </div>
   );
 }

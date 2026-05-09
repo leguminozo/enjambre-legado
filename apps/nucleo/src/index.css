@@ -229,6 +229,39 @@ img {
 .bg-negro-tinta { background-color: var(--negro-tinta); }
 .bg-oro-miel { background-color: var(--oro-miel); }
 
+/* ── Form Elements ── */
+.input-field {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  color: var(--crema-natural);
+  font-family: var(--font-datos);
+  font-size: 0.9rem;
+  transition: all var(--transition-base);
+  outline: none;
+}
+
+.input-field:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--oro-miel);
+  box-shadow: 0 0 0 4px var(--oro-miel-glow);
+}
+
+.input-field::placeholder {
+  color: rgba(253, 251, 247, 0.25);
+}
+
+.glass-panel {
+  background: rgba(10, 61, 47, 0.6);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(212, 160, 23, 0.2);
+  border-radius: 2rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar {
   width: 6px;
