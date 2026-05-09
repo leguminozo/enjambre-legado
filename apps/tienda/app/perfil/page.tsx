@@ -1,11 +1,6 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
-import { StoreShell } from '@/components/shop/store-shell';
-import { ShopHeader } from '@/components/shop/shop-header';
-import { ShopFooter } from '@/components/shop/shop-footer';
-import { GrainOverlay } from '@/components/shop/grain-overlay';
-import { CustomCursor } from '@/components/shop/custom-cursor';
 import { MiLegadoClient } from '@/components/shop/mi-legado-client';
 
 export default async function PerfilPage() {
@@ -51,18 +46,10 @@ export default async function PerfilPage() {
   } : null;
 
   return (
-    <StoreShell>
-      <GrainOverlay />
-      <CustomCursor />
-      <ShopHeader />
-      
-      <MiLegadoClient 
-        user={profile} 
-        tierData={tierData} 
-        hiveData={hiveData} 
-      />
-
-      <ShopFooter />
-    </StoreShell>
+    <MiLegadoClient 
+      user={profile} 
+      tierData={tierData} 
+      hiveData={hiveData} 
+    />
   );
 }

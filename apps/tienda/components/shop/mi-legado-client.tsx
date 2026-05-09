@@ -2,7 +2,6 @@
 
 import React, { useEffect } from 'react';
 import { gsap } from 'gsap';
-import { BeeCanvas } from '@/components/shop/bee-canvas';
 
 interface MiLegadoClientProps {
   user: any;
@@ -30,9 +29,8 @@ export function MiLegadoClient({ user, tierData, hiveData }: MiLegadoClientProps
   }, []);
 
   return (
-    <main className="relative min-h-[80vh] flex flex-col items-center justify-center pt-32 pb-20 px-6 overflow-hidden">
-      <BeeCanvas />
-      <div className="absolute inset-0 bg-radial-gradient from-transparent to-[#050505] opacity-80 pointer-events-none" />
+    <div className="w-full">
+      <div className="relative mb-20">
 
       <div className="relative z-10 max-w-2xl w-full">
         <div className="text-center mb-16">
@@ -97,6 +95,7 @@ export function MiLegadoClient({ user, tierData, hiveData }: MiLegadoClientProps
           </div>
         </div>
       </div>
-    </main>
+      </div>
+    </div>
   );
 }
