@@ -16,6 +16,7 @@ import ApiarioManager from '../components/apicultor/ApiarioManager';
 import HeaderEcosistema from '../components/apicultor/HeaderEcosistema';
 import OraculoFloracion from '../components/apicultor/OraculoFloracion';
 import VentanasDeVuelo from '../components/apicultor/VentanasDeVuelo';
+import GemeloApiario from '../components/apicultor/GemeloApiario';
 
 type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad';
 
@@ -215,7 +216,8 @@ export default function ApicultorView() {
                 {/* Left Column (Main Content based on tab) */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                     {activeView === 'colmenas' && (
-                        <div className="animate-in delay-2">
+                        <div className="animate-in delay-2" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+                            <GemeloApiario />
                             <ApiarioManager colmenas={localColmenas} setColmenas={setLocalColmenas} onSelectColmena={setSelectedColmena} />
                         </div>
                     )}

@@ -11,13 +11,19 @@ ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMPTZ;
 -- Enable RLS on ventas if not already enabled
 ALTER TABLE ventas ENABLE ROW LEVEL SECURITY;
 
+-- Idempotencia: DROP antes de CREATE para evitar errores de duplicación
+DROP POLICY IF EXISTS "Vendedores can insert sales" ON ventas;
+DROP POLICY IF EXISTS "Users can claim their sales via token" ON ventas;
+DROP POLICY IF EXISTS "Users can view their own claimed sales" ON ventas;
+DROP POLICY IF EXISTS "Anyone can view pending sale via token" ON ventas;
+
 -- Policy: Vendedores can insert sales
 CREATE POLICY "Vendedores can insert sales" ON ventas
 FOR INSERT TO authenticated
 WITH CHECK (
   EXISTS (
     SELECT 1 FROM profiles 
-    WHERE id = auth.uid() 
+    WHERE id = auth.uid()::uuid 
     AND role IN ('vendedor', 'gerente', 'tienda_admin')
   )
 );
@@ -31,17 +37,17 @@ USING (
 )
 WITH CHECK (
   claim_status = 'claimed'
-  AND claimed_by = auth.uid()
+  AND claimed_by = auth.uid()::uuid
   AND claimed_at = NOW()
-  AND cliente_id = auth.uid()
+  AND cliente_id = auth.uid()::uuid -- Explicit cast to avoid text = uuid error
 );
 
 -- Policy: Users can view their own claimed sales
-CREATE POLICY "Users can view their claimed sales" ON ventas
+CREATE POLICY "Users can view their own claimed sales" ON ventas
 FOR SELECT TO authenticated
 USING (
-  cliente_id = auth.uid() 
-  OR vendedor_id = auth.uid()
+  cliente_id = auth.uid()::uuid 
+  OR vendedor_id = auth.uid()::uuid
 );
 
 -- Policy: Anyone can view a pending sale if they have the token (for the claim page)
@@ -52,7 +58,6 @@ USING (
   AND claim_token IS NOT NULL
 );
 
-
 -- Function to award points when a sale is claimed
 CREATE OR REPLACE FUNCTION award_points_on_claim()
 RETURNS TRIGGER AS $$
@@ -60,7 +65,7 @@ BEGIN
   IF NEW.claim_status = 'claimed' AND (OLD.claim_status IS NULL OR OLD.claim_status = 'pending') THEN
     UPDATE profiles 
     SET puntos_acumulados = puntos_acumulados + FLOOR(NEW.total / 1000) -- 1 punto por cada 1000 CLP
-    WHERE id = NEW.claimed_by;
+    WHERE id = NEW.claimed_by::uuid;
   END IF;
   RETURN NEW;
 END;
