@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FileText, Package, Plus, Search } from 'lucide-react';
+import { FileText, Package, Plus, Search, Edit3, Trash2, Eye, EyeOff, Loader2, ChevronRight } from 'lucide-react';
 import { createClient as createSupabaseClient } from '@/utils/supabase/client';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -46,15 +46,16 @@ export function ProductsView() {
   const loadProducts = async () => {
     setLoading(true);
     setError(null);
-    const res = await fetch('/api/admin/products', { cache: 'no-store' });
-    const json = (await res.json()) as { data?: ProductRow[]; error?: string };
-    if (!res.ok) {
-      setError(json.error || 'Error cargando productos');
+    try {
+      const res = await fetch('/api/admin/products', { cache: 'no-store' });
+      const json = (await res.json()) as { data?: ProductRow[]; error?: string };
+      if (!res.ok) throw new Error(json.error || 'Error cargando productos');
+      setRows(json.data ?? []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-      return;
     }
-    setRows(json.data ?? []);
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -86,73 +87,38 @@ export function ProductsView() {
       visible: row.visible ?? true,
       fotos: row.fotos ?? [],
     });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const submitForm = async () => {
     setSaving(true);
     setError(null);
-    const payload = {
-      ...(selectedId ? { id: selectedId } : {}),
-      nombre: form.nombre,
-      descripcion_regenerativa: form.descripcion_regenerativa || null,
-      precio: Number(form.precio),
-      stock: Number.isFinite(Number(form.stock)) ? Number(form.stock) : null,
-      formato: form.formato || null,
-      visible: form.visible,
-      fotos: form.fotos,
-    };
-    const res = await fetch('/api/admin/products', {
-      method: selectedId ? 'PATCH' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const json = (await res.json()) as { error?: string };
-    if (!res.ok) {
-      setError(json.error || 'Error guardando producto');
+    try {
+      const payload = {
+        ...(selectedId ? { id: selectedId } : {}),
+        nombre: form.nombre,
+        descripcion_regenerativa: form.descripcion_regenerativa || null,
+        precio: Number(form.precio),
+        stock: Number.isFinite(Number(form.stock)) ? Number(form.stock) : null,
+        formato: form.formato || null,
+        visible: form.visible,
+        fotos: form.fotos,
+      };
+      const res = await fetch('/api/admin/products', {
+        method: selectedId ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(json.error || 'Error guardando producto');
+      
+      await loadProducts();
+      resetForm();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setSaving(false);
-      return;
     }
-    await loadProducts();
-    resetForm();
-    setSaving(false);
-  };
-
-  const uploadFile = async (file: File) => {
-    setUploading(true);
-    setError(null);
-    const supabase = createSupabaseClient();
-    const path = `productos/${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-    const { error: uploadError } = await supabase.storage.from('productos').upload(path, file, {
-      upsert: false,
-      contentType: file.type || 'application/octet-stream',
-    });
-    if (uploadError) {
-      setError(uploadError.message);
-      setUploading(false);
-      return;
-    }
-    const { data } = supabase.storage.from('productos').getPublicUrl(path);
-    setForm((prev) => ({ ...prev, fotos: [...prev.fotos, data.publicUrl] }));
-    setUploading(false);
-  };
-
-  const importCsv = async (file: File) => {
-    setImporting(true);
-    setError(null);
-    const fd = new FormData();
-    fd.append('file', file);
-    const res = await fetch('/api/admin/products/import', {
-      method: 'POST',
-      body: fd,
-    });
-    const json = (await res.json()) as { error?: string; imported?: number };
-    if (!res.ok) {
-      setError(json.error || 'Error importando CSV');
-      setImporting(false);
-      return;
-    }
-    await loadProducts();
-    setImporting(false);
   };
 
   const filtered = useMemo(() => {
@@ -167,220 +133,218 @@ export function ProductsView() {
   }, [q, rows]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-12 animate-in">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Productos</h1>
-          <p className="text-gray-600">Gestión real conectada a Supabase</p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-lg bg-[#c9a227]/10 flex items-center justify-center text-[#c9a227]">
+              <Package size={20} />
+            </div>
+            <h1 className="font-display text-4xl font-light tracking-tight text-[#f5f0e8]">Catálogo Maestro</h1>
+          </div>
+          <p className="text-[#8a8279] text-sm tracking-wide">Gestión operativa de la vitrina biocultural</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/integrations" className="btn-secondary inline-flex items-center">
-            Configurar fuentes
-          </Link>
-          <button type="button" className="btn-secondary inline-flex items-center" disabled>
-            <FileText className="h-4 w-4 mr-2" />
-            Exportar
+        
+        <div className="flex flex-wrap gap-3">
+          <button 
+            type="button" 
+            className="px-6 py-3 rounded-full bg-white/5 border border-white/10 text-[0.65rem] uppercase tracking-[0.2em] text-[#8a8279] hover:bg-white/10 transition-all"
+            onClick={loadProducts}
+          >
+            Sincronizar
           </button>
-          <label className="btn-secondary inline-flex items-center cursor-pointer">
-            <Package className="h-4 w-4 mr-2" />
-            {importing ? 'Importando...' : 'Importar CSV'}
-            <input
-              type="file"
-              accept=".csv,text/csv"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void importCsv(file);
-              }}
-            />
-          </label>
-          <button type="button" className="btn-primary inline-flex items-center" onClick={resetForm}>
-            <Plus className="h-4 w-4 mr-2" />
-            Agregar producto
+          <button 
+            type="button" 
+            className="px-6 py-3 rounded-full bg-[#c9a227] text-black text-[0.65rem] uppercase tracking-[0.2em] font-bold hover:scale-105 transition-all shadow-[0_10px_20px_rgba(201,162,39,0.2)]"
+            onClick={resetForm}
+          >
+            <Plus className="inline-block mr-2 h-4 w-4" /> Nuevo Producto
           </button>
         </div>
       </div>
 
-      <div className="card space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">
-          {selectedId ? 'Editar producto' : 'Nuevo producto'}
-        </h2>
-        {error ? (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
-        ) : null}
-        <div className="grid md:grid-cols-2 gap-3">
-          <input
-            className="input-field"
-            placeholder="Nombre"
-            value={form.nombre}
-            onChange={(e) => setForm((prev) => ({ ...prev, nombre: e.target.value }))}
-          />
-          <input
-            className="input-field"
-            placeholder="Formato (ej: 500g)"
-            value={form.formato}
-            onChange={(e) => setForm((prev) => ({ ...prev, formato: e.target.value }))}
-          />
-          <input
-            className="input-field"
-            type="number"
-            placeholder="Precio"
-            value={form.precio}
-            onChange={(e) => setForm((prev) => ({ ...prev, precio: Number(e.target.value) }))}
-          />
-          <input
-            className="input-field"
-            type="number"
-            placeholder="Stock"
-            value={form.stock}
-            onChange={(e) => setForm((prev) => ({ ...prev, stock: Number(e.target.value) }))}
-          />
-          <textarea
-            className="input-field md:col-span-2 min-h-24"
-            placeholder="Descripción regenerativa"
-            value={form.descripcion_regenerativa}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, descripcion_regenerativa: e.target.value }))
-            }
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <input
-            id="visible"
-            type="checkbox"
-            checked={form.visible}
-            onChange={(e) => setForm((prev) => ({ ...prev, visible: e.target.checked }))}
-          />
-          <label htmlFor="visible" className="text-sm text-gray-700">
-            Visible en catálogo
-          </label>
-        </div>
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-700">Fotos</p>
-          <div className="flex flex-wrap gap-2">
-            {form.fotos.map((url) => (
-              <div key={url} className="px-2 py-1 rounded bg-gray-100 text-xs flex items-center gap-2">
-                <a href={url} target="_blank" rel="noreferrer" className="underline">
-                  foto
-                </a>
+      {/* Editor Card */}
+      <div className="relative">
+        <div className="absolute -inset-1 bg-gradient-to-r from-[#c9a227]/20 to-transparent blur-2xl opacity-20 pointer-events-none" />
+        <div className="relative bg-[#0a0a0a] border border-white/5 rounded-3xl p-8 lg:p-12 shadow-2xl overflow-hidden">
+          <div className="flex items-center justify-between mb-10">
+            <h2 className="font-display text-2xl text-[#f5f0e8]">
+              {selectedId ? 'Refinar Producto' : 'Crear Legado'}
+            </h2>
+            {selectedId && (
+               <span className="text-[0.6rem] uppercase tracking-widest text-[#c9a227] px-3 py-1 bg-[#c9a227]/10 rounded-full border border-[#c9a227]/20">Modo Edición</span>
+            )}
+          </div>
+
+          {error && (
+            <div className="mb-8 p-4 rounded-xl bg-red-950/20 border border-red-900/30 text-red-400 text-sm flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              {error}
+            </div>
+          )}
+
+          <div className="grid lg:grid-cols-3 gap-10">
+            <div className="lg:col-span-2 space-y-8">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] ml-1">Nombre del Producto</label>
+                  <input
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227] transition-all"
+                    placeholder="Ej: Miel de Ulmo Virgen"
+                    value={form.nombre}
+                    onChange={(e) => setForm((prev) => ({ ...prev, nombre: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] ml-1">Formato / Presentación</label>
+                  <input
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227] transition-all"
+                    placeholder="Ej: 500g / Sachets"
+                    value={form.formato}
+                    onChange={(e) => setForm((prev) => ({ ...prev, formato: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] ml-1">Relato Regenerativo (Descripción)</label>
+                <textarea
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227] transition-all min-h-[160px] resize-none"
+                  placeholder="Describe el origen y las notas de este producto..."
+                  value={form.descripcion_regenerativa}
+                  onChange={(e) => setForm((prev) => ({ ...prev, descripcion_regenerativa: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] ml-1">Precio (CLP)</label>
+                  <input
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227] transition-all"
+                    type="number"
+                    value={form.precio}
+                    onChange={(e) => setForm((prev) => ({ ...prev, precio: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] ml-1">Stock Actual</label>
+                  <input
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227] transition-all"
+                    type="number"
+                    value={form.stock}
+                    onChange={(e) => setForm((prev) => ({ ...prev, stock: Number(e.target.value) }))}
+                  />
+                </div>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[0.65rem] uppercase tracking-[0.1em] text-[#f5f0e8]">Visibilidad en tienda</span>
+                  <button 
+                    type="button"
+                    onClick={() => setForm(p => ({...p, visible: !p.visible}))}
+                    className={`w-10 h-5 rounded-full transition-all relative ${form.visible ? 'bg-[#c9a227]' : 'bg-white/10'}`}
+                  >
+                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${form.visible ? 'right-1' : 'left-1'}`} />
+                  </button>
+                </div>
+                <p className="text-[0.6rem] text-[#8a8279]">Define si este producto aparecerá en el catálogo público para clientes.</p>
+              </div>
+
+              <div className="flex gap-4 pt-4">
                 <button
                   type="button"
-                  className="text-red-600"
-                  onClick={() =>
-                    setForm((prev) => ({ ...prev, fotos: prev.fotos.filter((x) => x !== url) }))
-                  }
+                  className="flex-1 py-4 bg-[#c9a227] text-black text-[0.7rem] uppercase tracking-[0.3em] font-bold rounded-xl hover:shadow-[0_10px_20px_rgba(201,162,39,0.3)] transition-all disabled:opacity-50"
+                  onClick={() => void submitForm()}
+                  disabled={saving || !form.nombre.trim()}
                 >
-                  quitar
+                  {saving ? <Loader2 className="animate-spin mx-auto" size={18} /> : selectedId ? 'Guardar Cambios' : 'Lanzar Producto'}
                 </button>
+                {selectedId && (
+                   <button type="button" className="p-4 bg-white/5 border border-white/10 text-[#8a8279] rounded-xl hover:text-white transition-colors" onClick={resetForm}>
+                     Cancelar
+                   </button>
+                )}
               </div>
-            ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <input
-              className="input-field flex-1 min-w-[220px]"
-              placeholder="https://.../imagen.jpg"
-              value={photoUrl}
-              onChange={(e) => setPhotoUrl(e.target.value)}
-            />
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => {
-                if (!photoUrl.trim()) return;
-                setForm((prev) => ({ ...prev, fotos: [...prev.fotos, photoUrl.trim()] }));
-                setPhotoUrl('');
-              }}
-            >
-              Agregar URL
-            </button>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void uploadFile(file);
-              }}
-            />
-          </div>
-          {uploading ? <p className="text-xs text-gray-500">Subiendo imagen...</p> : null}
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => void submitForm()}
-            disabled={saving || !form.nombre.trim()}
-          >
-            {saving ? 'Guardando...' : selectedId ? 'Guardar cambios' : 'Crear producto'}
-          </button>
-          {selectedId ? (
-            <button type="button" className="btn-secondary" onClick={resetForm}>
-              Cancelar edición
-            </button>
-          ) : null}
         </div>
       </div>
 
-      <div className="card">
-        <div className="flex flex-wrap items-center gap-3 mb-4">
-          <div className="relative flex-1 min-w-[200px] max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+      {/* List Card */}
+      <div className="bg-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+        <div className="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h3 className="font-display text-xl text-[#f5f0e8]">Inventario Operativo</h3>
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#4a4a4a]" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Buscar productos…"
-              className="input-field pl-9 w-full"
+              placeholder="Buscar por nombre o formato..."
+              className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-full text-xs text-[#f5f0e8] focus:outline-none focus:border-[#c9a227]/50"
             />
           </div>
         </div>
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200">
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr>
-                <th className="table-header">Producto</th>
-                <th className="table-header">Slug</th>
-                <th className="table-header">Precio</th>
-                <th className="table-header">Estado</th>
-                <th className="table-header">Stock</th>
-                <th className="table-header">Acciones</th>
+              <tr className="border-b border-white/5">
+                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] font-medium">Producto</th>
+                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] font-medium">Precio</th>
+                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] font-medium">Estado</th>
+                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] font-medium text-right">Stock</th>
+                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] font-medium text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-white/[0.03]">
               {loading ? (
                 <tr>
-                  <td className="table-cell text-gray-500" colSpan={6}>
-                    Cargando productos...
+                  <td className="px-8 py-20 text-center text-[#4a4a4a] italic" colSpan={5}>
+                    Sincronizando catálogo...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td className="table-cell text-gray-500" colSpan={6}>
-                    Sin resultados
+                  <td className="px-8 py-20 text-center text-[#4a4a4a] italic" colSpan={5}>
+                    No se encontraron productos en esta zona del bosque.
                   </td>
                 </tr>
               ) : (
                 filtered.map((p) => (
-                <tr key={p.id}>
-                  <td className="table-cell font-medium">{p.nombre}</td>
-                  <td className="table-cell text-gray-500">{p.slug || '-'}</td>
-                  <td className="table-cell">{formatCurrency(p.precio)}</td>
-                  <td className="table-cell">
-                    <span
-                      className={`status-badge ${p.visible ? 'status-active' : 'status-draft'}`}
-                    >
-                      {p.visible ? 'Activo' : 'Oculto'}
+                <tr key={p.id} className="hover:bg-white/[0.02] transition-colors group">
+                  <td className="px-8 py-6">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-[#f5f0e8]">{p.nombre}</span>
+                      <span className="text-[0.65rem] text-[#4a4a4a]">{p.formato || 'Sin formato'}</span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <span className="text-sm text-[#c9a227] font-medium">{formatCurrency(p.precio)}</span>
+                  </td>
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-2">
+                       <span className={`w-1.5 h-1.5 rounded-full ${p.visible ? 'bg-[#c9a227]' : 'bg-red-500/50'}`} />
+                       <span className={`text-[0.65rem] uppercase tracking-widest font-semibold ${p.visible ? 'text-[#c9a227]' : 'text-[#4a4a4a]'}`}>
+                        {p.visible ? 'Activo' : 'Oculto'}
+                       </span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6 text-right">
+                    <span className={`text-sm font-medium ${(p.stock ?? 0) <= 5 ? 'text-red-400' : 'text-[#8a8279]'}`}>
+                      {p.stock ?? 0} <span className="text-[0.65rem] opacity-50 ml-1 uppercase">unid</span>
                     </span>
                   </td>
-                  <td className="table-cell">
-                    {(p.stock ?? 0) === 0 ? (
-                      <span className="text-red-600 font-medium">0 en existencias</span>
-                    ) : (
-                      <span className="text-green-700">{p.stock ?? 0} en existencias</span>
-                    )}
-                  </td>
-                  <td className="table-cell">
-                    <button type="button" className="btn-secondary" onClick={() => selectForEdit(p)}>
-                      Editar
+                  <td className="px-8 py-6 text-right">
+                    <button 
+                      type="button" 
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-xs text-[#8a8279] hover:text-[#c9a227] hover:border-[#c9a227]/30 transition-all" 
+                      onClick={() => selectForEdit(p)}
+                    >
+                      <Edit3 size={14} /> Gestionar
                     </button>
                   </td>
                 </tr>

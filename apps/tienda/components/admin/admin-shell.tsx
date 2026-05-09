@@ -7,7 +7,9 @@ import {
   Bell,
   Cable,
   Gift,
+  FileText,
   Home,
+  LogOut,
   Mail,
   Menu,
   Package,
@@ -32,35 +34,14 @@ type NavItem = {
 };
 
 const navigation: NavItem[] = [
-  { name: 'Inicio', href: '/dashboard', icon: Home },
+  { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Pedidos', href: '/orders', icon: ShoppingCart },
   { name: 'Productos', href: '/products', icon: Package },
   { name: 'Clientes', href: '/customers', icon: Users },
   { name: 'Colecciones', href: '/collections', icon: Tag },
   { name: 'Integraciones', href: '/integrations', icon: Cable },
-  { name: 'Marketing', href: '#', icon: TrendingUp },
-  { name: 'Descuentos', href: '#', icon: Gift },
-  { name: 'Contenido', href: '#', icon: Tag },
-  { name: 'Markets', href: '#', icon: Store },
-  { name: 'Informes y estadísticas', href: '#', icon: BarChart3 },
-  {
-    name: 'Canales de ventas',
-    href: '#',
-    icon: Store,
-    children: [
-      { name: 'Tienda online', href: '#', icon: Store },
-      { name: 'Point of Sale', href: '#', icon: Smartphone },
-    ],
-  },
-  { name: 'Facebook & Instagram', href: '#', icon: TrendingUp },
-  {
-    name: 'Apps',
-    href: '#',
-    icon: Package,
-    children: [{ name: 'Email', href: '#', icon: Mail }],
-  },
-  { name: 'Loloyal', href: '#', icon: Gift },
-  { name: 'Configuración', href: '#', icon: Settings },
+  { name: 'Contenido CMS', href: '/content', icon: FileText },
+  { name: 'Configuración', href: '/settings', icon: Settings },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -73,8 +54,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     if (loading) return;
     if (!isAuthenticated) {
       router.replace('/login');
+      return;
     }
-  }, [loading, isAuthenticated, router]);
+    
+    // Strict role validation for Admin Panel
+    const authorizedRoles = ['tienda_admin', 'gerente'];
+    if (user && !authorizedRoles.includes(user.role)) {
+      console.warn(`Access denied for role: ${user.role}`);
+      router.replace('/'); // Redirect unauthorized roles to the storefront
+    }
+  }, [loading, isAuthenticated, user, router]);
 
   const handleLogout = async () => {
     await logout();
@@ -87,31 +76,32 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     return pathname.startsWith(href);
   };
 
-  if (loading || !isAuthenticated) {
+  if (loading || !isAuthenticated || (user && !['tienda_admin', 'gerente'].includes(user.role))) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c9a227]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
+    <div className="min-h-screen bg-[#050505] text-[#f5f0e8] font-sans selection:bg-[#c9a227]/30">
+      {/* Mobile Sidebar */}
+      <div className={`fixed inset-0 z-[60] lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
         <button
           type="button"
-          className="fixed inset-0 bg-gray-600/75"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm"
           aria-label="Cerrar menú"
           onClick={() => setSidebarOpen(false)}
         />
-        <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-gray-900">
-          <div className="flex h-16 items-center justify-between px-4 border-b border-gray-800">
+        <div className="fixed inset-y-0 left-0 flex w-72 flex-col bg-[#0a0a0a] border-r border-white/5">
+          <div className="flex h-20 items-center justify-between px-6 border-b border-white/5">
             <Brand />
-            <button type="button" onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-white">
+            <button type="button" onClick={() => setSidebarOpen(false)} className="text-[#8a8279] hover:text-[#c9a227] transition-colors">
               <X className="h-6 w-6" />
             </button>
           </div>
-          <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
+          <nav className="flex-1 space-y-1 px-4 py-8 overflow-y-auto custom-scrollbar">
             {navigation.map((item) => (
               <NavigationItem key={item.name} item={item} isActive={isActive} onNavigate={() => setSidebarOpen(false)} />
             ))}
@@ -119,63 +109,84 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-gray-900 pt-5 pb-4 overflow-y-auto border-r border-gray-800">
-          <div className="flex items-center flex-shrink-0 px-4">
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col">
+        <div className="flex flex-col flex-grow bg-[#080808] pt-8 pb-4 overflow-y-auto border-r border-white/5 shadow-2xl">
+          <div className="flex items-center flex-shrink-0 px-8 mb-12">
             <Brand />
           </div>
-          <nav className="mt-8 flex-1 space-y-1 px-2">
+          <nav className="flex-1 space-y-1 px-4">
             {navigation.map((item) => (
               <NavigationItem key={item.name} item={item} isActive={isActive} />
             ))}
           </nav>
+          
+          <div className="px-6 py-6 border-t border-white/5">
+             <div className="p-4 rounded-xl bg-[#c9a227]/5 border border-[#c9a227]/10">
+                <p className="text-[0.6rem] uppercase tracking-[0.2em] text-[#c9a227] mb-1">Ecosistema</p>
+                <p className="text-[0.65rem] text-[#8a8279] leading-relaxed">
+                  Operación Biocultural <br/>Vanguardia Activa
+                </p>
+             </div>
+          </div>
         </div>
       </div>
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
-          <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
+      {/* Main Content Area */}
+      <div className="lg:pl-72">
+        <header className="sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 h-20">
+          <div className="flex items-center justify-between px-6 lg:px-10 h-full">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              className="lg:hidden p-2 text-[#8a8279] hover:text-[#c9a227] transition-colors"
             >
               <Menu className="h-6 w-6" />
             </button>
 
-            <div className="flex-1 max-w-lg mx-4 hidden sm:block">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <div className="flex-1 max-w-xl mx-8 hidden sm:block">
+              <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8a8279] group-focus-within:text-[#c9a227] transition-colors" />
                 <input
                   type="search"
-                  placeholder="Buscar..."
-                  className="w-full pl-10 pr-12 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Explorar legado..."
+                  className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-full text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227]/50 focus:ring-1 focus:ring-[#c9a227]/20 transition-all placeholder:text-[#4a4a4a]"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">⌘K</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[0.6rem] tracking-widest text-[#4a4a4a] font-medium">⌘K</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <button type="button" className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+            <div className="flex items-center gap-6">
+              <button type="button" className="p-2 text-[#8a8279] hover:text-[#c9a227] transition-all relative">
                 <Bell className="h-5 w-5" />
+                <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-[#c9a227] rounded-full shadow-[0_0_8px_#c9a227]" />
               </button>
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 bg-primary-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-medium text-sm">{user?.name?.charAt(0).toUpperCase() || 'A'}</span>
+              
+              <div className="flex items-center gap-4 pl-6 border-l border-white/10">
+                <div className="flex flex-col items-end hidden md:flex">
+                  <span className="text-[0.7rem] font-medium text-[#f5f0e8] tracking-wide">
+                    {user?.name || 'Administrador'}
+                  </span>
+                  <span className="text-[0.6rem] text-[#c9a227] uppercase tracking-[0.2em] font-semibold">
+                    {user?.role === 'gerente' ? 'Gerencia Real' : 'Admin Tienda'}
+                  </span>
                 </div>
-                <span className="text-sm font-medium text-gray-700 hidden sm:block max-w-[120px] truncate">
-                  {user?.name || 'Administrador'}
-                </span>
+                <div className="h-10 w-10 bg-gradient-to-br from-[#c9a227] to-[#8a6510] rounded-full p-[1px]">
+                  <div className="w-full h-full bg-[#0a0a0a] rounded-full flex items-center justify-center">
+                    <span className="text-[#c9a227] font-display font-bold text-sm">{user?.name?.charAt(0).toUpperCase() || 'A'}</span>
+                  </div>
+                </div>
               </div>
-              <button type="button" onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-800">
-                Cerrar sesión
+              
+              <button type="button" onClick={handleLogout} className="p-2 text-[#8a8279] hover:text-[#E74C3C] transition-colors" title="Cerrar sesión">
+                <LogOut className="h-5 w-5" />
               </button>
             </div>
           </div>
         </header>
 
-        <main className="py-6">
-          <div className="px-4 sm:px-6 lg:px-8">{children}</div>
+        <main className="py-12">
+          <div className="px-6 lg:px-12 max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
     </div>
@@ -184,11 +195,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
 function Brand() {
   return (
-    <div className="flex items-center gap-2">
-      <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center shrink-0">
-        <span className="text-white font-bold text-sm">E</span>
+    <div className="flex items-center gap-4 group cursor-pointer">
+      <div className="h-10 w-10 bg-[#c9a227] rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(201,162,39,0.2)] group-hover:scale-105 transition-transform duration-500">
+        <span className="text-black font-display font-bold text-xl">E</span>
       </div>
-      <span className="text-white font-semibold text-sm leading-tight">Enjambre Legado</span>
+      <div className="flex flex-col">
+        <span className="text-[#f5f0e8] font-display text-lg tracking-tight leading-none">Enjambre</span>
+        <span className="text-[#c9a227] text-[0.6rem] uppercase tracking-[0.3em] font-bold mt-1">Legado</span>
+      </div>
     </div>
   );
 }
@@ -256,6 +270,7 @@ function NavigationItem({
     <Link
       href={item.href}
       onClick={onNavigate}
+      prefetch={false}
       className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
         isActive(item.href)
           ? 'bg-primary-600/20 text-primary-300 border border-primary-600/40'
