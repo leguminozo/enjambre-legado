@@ -2,7 +2,7 @@ import React from 'react';
 import { Zap, ScanLine, ShoppingCart, Award } from 'lucide-react';
 import Link from 'next/link';
 
-export function CampoLanding() {
+function CampoLanding() {
   return (
     <main className="min-h-screen bg-black text-white selection:bg-[#D4A017] selection:text-black pb-20 font-sans">
       <section className="relative pt-32 pb-20 px-6 sm:px-12 lg:px-24 flex flex-col items-center text-center overflow-hidden">
