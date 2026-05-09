@@ -106,14 +106,14 @@ export default function AuthView() {
     };
 
     return (
-        <div className="relative min-h-vh w-full overflow-hidden flex items-center justify-center bg-negro-tinta">
+        <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center bg-negro-tinta">
             {/* Immersive Background */}
             <div 
                 ref={bgRef}
-                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000"
+                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
                 style={{ 
                     backgroundImage: 'url(/assets/auth-bg.png)',
-                    filter: 'brightness(0.4) contrast(1.1)'
+                    filter: 'brightness(0.5) contrast(1.1)'
                 }}
             />
             

@@ -42,8 +42,8 @@ export function AuthHero({ onStart }: AuthHeroProps) {
     >
       <h1 
         ref={titleRef}
-        className="text-5xl md:text-7xl font-existencial text-crema-natural mb-6 leading-tight italic"
-        style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
+        className="text-5xl font-existencial text-crema-natural mb-6 italic"
+        style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)', lineHeight: 1.1 }}
       >
         El Bosque <br /> 
         <span className="text-oro-miel">te reconoce.</span>
@@ -51,7 +51,8 @@ export function AuthHero({ onStart }: AuthHeroProps) {
       
       <p 
         ref={textRef}
-        className="text-lg md:text-xl font-datos text-crema-natural/80 mb-10 leading-relaxed max-w-lg"
+        className="text-lg font-datos text-crema-natural opacity-30 mb-10 max-w-lg"
+        style={{ opacity: 0.8 }}
       >
         Bienvenido al núcleo digital de la regeneración biocultural. 
         Donde cada rastro cuenta, y cada abeja es un legado.
