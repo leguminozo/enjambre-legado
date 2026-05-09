@@ -2,8 +2,11 @@ import { createClient } from '@supabase/supabase-js';
 
 function getSupabaseConfig(): { url: string; anonKey: string } {
     // Static access for Vite (required for production builds)
-    const vUrl = import.meta.env.VITE_SUPABASE_URL;
-    const vKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const vUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
+    const vKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY || 
+                 import.meta.env.VITE_SUPABASE_ANON_KEY || 
+                 import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY || 
+                 import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     if (vUrl && vKey) return { url: vUrl, anonKey: vKey };
 
