@@ -18,6 +18,7 @@ export function BeeCanvas() {
     let honeyParticles: HoneyParticle[] = [];
 
     function resize() {
+      if (!canvas) return;
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
     }

@@ -89,7 +89,7 @@ export function LoginForm() {
                 </label>
                 <Link href="#" className="text-[0.6rem] uppercase tracking-[0.1em] text-[#8a8279] hover:text-[#c9a227]">
                   ¿Olvidaste?
-                </label>
+                </Link>
               </div>
               <div className="relative group">
                 <Lock className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8a8279] group-focus-within:text-[#c9a227] transition-colors" />
