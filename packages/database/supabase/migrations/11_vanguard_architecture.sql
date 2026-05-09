@@ -83,7 +83,6 @@ CREATE INDEX IF NOT EXISTS idx_resenas_lote_id ON resenas_sensoriales(lote_id);
 -- 5. VISTAS DE RENDIMIENTO (Optimización de Tiers y Balances)
 
 -- Vista de Tiers (Histórico Inmortal)
--- Usa LEFT JOIN con profiles para asegurar que usuarios con 0 ciclos aparezcan como OBRERA
 CREATE OR REPLACE VIEW user_tier_view AS
 SELECT 
     p.id as user_id,
@@ -114,25 +113,43 @@ ALTER TABLE ciclos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ciclos_canjeados ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resenas_sensoriales ENABLE ROW LEVEL SECURITY;
 
--- Usuarios ven lo suyo
+-- Idempotencia: DROP antes de CREATE
+DROP POLICY IF EXISTS "Usuarios ven sus propios roles" ON user_roles;
 CREATE POLICY "Usuarios ven sus propios roles" ON user_roles FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Usuarios ven su propio perfil B2B" ON revendedor_profile;
 CREATE POLICY "Usuarios ven su propio perfil B2B" ON revendedor_profile FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Usuarios editan su propio perfil B2B" ON revendedor_profile;
 CREATE POLICY "Usuarios editan su propio perfil B2B" ON revendedor_profile FOR ALL USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Usuarios ven sus ciclos" ON ciclos;
 CREATE POLICY "Usuarios ven sus ciclos" ON ciclos FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Usuarios ven sus canjes" ON ciclos_canjeados;
 CREATE POLICY "Usuarios ven sus canjes" ON ciclos_canjeados FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Usuarios ven sus reseñas" ON resenas_sensoriales;
 CREATE POLICY "Usuarios ven sus reseñas" ON resenas_sensoriales FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Usuarios crean sus reseñas" ON resenas_sensoriales;
 CREATE POLICY "Usuarios crean sus reseñas" ON resenas_sensoriales FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- Inmutabilidad: Prohibido borrar ciclos o reseñas (solo lectura/inserción para usuarios)
+DROP POLICY IF EXISTS "Ciclos son inmutables" ON ciclos;
 CREATE POLICY "Ciclos son inmutables" ON ciclos FOR UPDATE USING (false);
+
+DROP POLICY IF EXISTS "Ciclos no se borran" ON ciclos;
 CREATE POLICY "Ciclos no se borran" ON ciclos FOR DELETE USING (false);
+
+DROP POLICY IF EXISTS "Reseñas son inmutables" ON resenas_sensoriales;
 CREATE POLICY "Reseñas son inmutables" ON resenas_sensoriales FOR UPDATE USING (false);
 
--- Administradores (vía helper functions si existen, o check de tabla profiles)
--- Nota: Asumimos que existen funciones is_gerente() e is_tienda_admin() definidas en 01_rls_policies.sql
+DROP POLICY IF EXISTS "Admins ven todo en vanguardia" ON revendedor_profile;
 CREATE POLICY "Admins ven todo en vanguardia" ON revendedor_profile FOR ALL USING (
     EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND (role = 'gerente' OR role = 'tienda_admin'))
 );
+
+DROP POLICY IF EXISTS "Admins ven todas las reseñas" ON resenas_sensoriales;
 CREATE POLICY "Admins ven todas las reseñas" ON resenas_sensoriales FOR SELECT USING (
     EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND (role = 'gerente' OR role = 'tienda_admin'))
 );
