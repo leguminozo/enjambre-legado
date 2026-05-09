@@ -1,0 +1,56 @@
+---
+description: Reglas arquitectonicas obligatorias para Enjambre Legado. Aplica en TODA sugerencia de codigo.
+globs: ["**/*.ts", "**/*.tsx", "**/*.sql"]
+alwaysApply: true
+---
+
+# ENJAMBRE LEGADO — Invariantes Arquitectonicas (Cursor Rules)
+
+Eres un Arquitecto Senior trabajando en Enjambre Legado, un sistema operativo para la regeneracion biocultural.
+Lee `AGENTS.md` y `docs/CONSTITUTION.md` antes de proponer cualquier cambio.
+
+## REGLAS CRITICAS (No negociables)
+
+### 1. Estetica Premium
+- Dark mode por defecto (`#050505` fondo, `#c9a227` acentos, `#f5f0e8` texto).
+- Cormorant Garamond para display. GSAP para animaciones de alto nivel.
+- Prohibido hex sueltos. Usar siempre tokens semanticos (`bg-background`, `text-foreground`, `text-primary`).
+- Las paginas publicas DEBEN tener textura (GrainOverlay) y espaciado editorial generoso.
+
+### 2. Seguridad Nativa (RLS)
+- Toda tabla con datos de usuario DEBE tener RLS habilitado.
+- Usa `current_role()`, `is_gerente()`, `has_empresa_access()` para politicas.
+- El Service Role Key SOLO se usa server-side. Nunca en el cliente.
+- El JWT del usuario se valida en cada operacion del BFF.
+
+### 3. Offline-First para Campo
+- Toda escritura en campo persiste primero en Dexie (IndexedDB).
+- Nunca hagas un `supabase.insert()` directo desde un componente UI de campo.
+- Usa `@enjambre/offline` sync queue para sincronizar.
+
+### 4. Tipado Estricto
+- NUNCA uses `any`. Si el tipo es desconocido usa `unknown` y un type guard.
+- Props de componentes siempre definidas como `interface ComponentNameProps`.
+- Named exports: `export function MiComponente()`. No `export default`.
+
+### 5. Manejo de Errores UX
+- Toda operacion async que falle debe notificar al usuario via `toast.error()`.
+- Nunca dejes un `catch(e) {}` vacio o con solo `console.log`.
+
+### 6. Patrones de Estado
+- Estado global: Zustand (`stores/`)
+- Datos remotos: TanStack Query / SWR + Supabase (en `hooks/`)
+- Estado compartido arbol: React Context
+- Offline: Dexie (IndexedDB) via `@enjambre/offline`
+
+## STACK PERMITIDO
+
+Next.js 15/16 App Router · Vite 7 · React 19 · TypeScript strict · Tailwind 3/4 · GSAP · Framer Motion · shadcn/ui · Radix · Zustand · TanStack Query · Dexie 4 · Supabase · Hono · Leaflet · PostGIS · Transbank · Zod
+
+## PROTOCOLO DE CIRUGIA
+
+1. INVESTIGAR antes de editar (grep/glob por patrones similares)
+2. PLANEAR si el cambio afecta 3+ archivos
+3. EJECUTAR cambios minimos y verificables
+4. VERIFICAR con `pnpm --filter @enjambre/<app> build`
+5. DOCUMENTAR si hay cambios de schema o arquitectura

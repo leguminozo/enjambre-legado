@@ -1,40 +1,39 @@
-# Documentación Central — Enjambre Legado
+# Documentacion — Enjambre Legado
 
-Bienvenido al centro de conocimiento de **Enjambre Legado**. Este repositorio de documentación está diseñado para guiar tanto a desarrolladores humanos como a agentes de Inteligencia Artificial en el mantenimiento y evolución del ecosistema.
+> Sistema operativo para la regeneracion biocultural.
 
-## Índice de Documentos
+## Indice
 
-1.  **[Constitución](CONSTITUTION.md)**
-    *   Misión, visión y principios fundamentales de ingeniería.
-    *   Reglas de oro del código y estética.
+| Archivo | Proposito | Tiempo |
+|---|---|---|
+| [`00_EMPEZA_AQUI.md`](./00_EMPEZA_AQUI.md) | Punto de entrada. Mapa de la documentacion y primeros pasos | 5 min |
+| [`CONSTITUTION.md`](./CONSTITUTION.md) | Principios inviolables. Vision, filosofia, mandamientos | 5 min |
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Topologia del monorepo, flujo de datos, integraciones, apps y paquetes | 15 min |
+| [`AGENT_INSTRUCTIONS.md`](./AGENT_INSTRUCTIONS.md) | Reglas para agentes de IA. Convenciones, stack, workflow, anti-patrones | 10 min |
+| [`DATABASE_SCHEMA.md`](./DATABASE_SCHEMA.md) | Esquema canonico completo. 20+ tablas, RLS, relaciones | 15 min |
+| [`PROMPT_LIBRARY.md`](./PROMPT_LIBRARY.md) | Prompts pre-construidos para dirigir agentes con precision | 10 min |
+| [`FRONTEND_ROADMAP.md`](./FRONTEND_ROADMAP.md) | Vision de producto por aplicacion. Pendientes y mejoras | 10 min |
+| [`TECHNICAL_DEBT.md`](./TECHNICAL_DEBT.md) | Deuda tecnica priorizada. Critico, alto, medio, bajo | 5 min |
+| [`VERCEL.md`](./VERCEL.md) | Checklist especifico para despliegue en Vercel | 5 min |
+| [`../DEPLOY.md`](../DEPLOY.md) | Guia de despliegue multi-plataforma completa | 10 min |
 
-2.  **[Arquitectura del Sistema](ARCHITECTURE.md)**
-    *   Mapa del monorepo (`apps/` y `packages/`).
-    *   Flujo de datos y topología de red.
+## Lectura por Rol
 
-3.  **[Guía para Agentes (AI)](AGENT_INSTRUCTIONS.md)**
-    *   Instrucciones específicas para LLMs y agentes de codificación.
-    *   Estándares de named exports, Tailwind y TypeScript.
+### Agente de IA (Primera vez)
+1. `00_EMPEZA_AQUI.md` → `CONSTITUTION.md` → `AGENT_INSTRUCTIONS.md` → `ARCHITECTURE.md`
 
-4.  **[Esquema de Base de Datos](DATABASE_SCHEMA.md)**
-    *   Manifiesto canónico de tablas.
-    *   Lógica de roles y seguridad (RLS).
+### Desarrollador Frontend
+1. `00_EMPEZA_AQUI.md` → `ARCHITECTURE.md` → `FRONTEND_ROADMAP.md`
 
-5.  **[Librería de Prompts](PROMPT_LIBRARY.md)**
-    *   Herramientas para interactuar con la IA y evolucionar el proyecto.
-    *   Prompts de auditoría estética, técnica y de seguridad.
+### Desarrollador Backend
+1. `00_EMPEZA_AQUI.md` → `DATABASE_SCHEMA.md` → `ARCHITECTURE.md` (seccion API)
 
-6.  **[Deuda Técnica](TECHNICAL_DEBT.md)**
-    *   Auditoría de redundancias, fragilidad de tipos y "basura" heredada.
-    *   Plan de purga y refactorización.
+### DevOps
+1. `00_EMPEZA_AQUI.md` → `DEPLOY.md` → `VERCEL.md`
 
-7.  **[Roadmap Frontend](FRONTEND_ROADMAP.md)**
-    *   Inventario de elementos faltantes para la experiencia de lujo.
-    *   Planes para i18n, transiciones de página y CMS dinámico.
+### Product Owner
+1. `CONSTITUTION.md` → `FRONTEND_ROADMAP.md`
 
 ---
 
-## Cómo Contribuir
-Cualquier cambio estructural en el código debe venir acompañado de una actualización en el documento correspondiente de esta carpeta. 
-
-**"El código es el néctar, la documentación es la colmena."**
+*Ultima actualizacion: Mayo 2026*
