@@ -98,17 +98,18 @@ export default function AuthView() {
             ) : (
                 <div 
                     ref={formRef}
-                    className="relative z-10 w-full max-w-lg px-6"
+                    className="relative z-10 w-full px-6"
+                    style={{ maxWidth: '440px' }}
                 >
-                    <div className="glass-panel p-10">
-                        <div className="text-center mb-10">
-                            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-oro-miel-glow mb-6">
+                    <div className="glass-panel text-center">
+                        <div className="mb-8">
+                            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-oro-miel-glow mb-6 border border-oro-miel opacity-80" style={{ borderColor: 'rgba(212, 160, 23, 0.3)' }}>
                                 <Hexagon size={28} className="text-oro-miel" />
                             </div>
-                            <h2 className="text-3xl font-existencial text-crema-natural mb-2 italic">
+                            <h2 className="font-existencial text-crema-natural mb-2 italic m-0" style={{ fontSize: '2.4rem', lineHeight: 1.1 }}>
                                 {isForgotPassword ? 'Recuperar Rastro' : isLogin ? 'Acceso al Núcleo' : 'Iniciar Legado'}
                             </h2>
-                            <p className="text-lg text-crema-natural opacity-30 tracking-wide m-0" style={{ opacity: 0.5 }}>
+                            <p className="font-datos text-crema-natural m-0" style={{ opacity: 0.6, fontSize: '0.9rem', letterSpacing: '0.02em', marginTop: '0.5rem' }}>
                                 {isForgotPassword ? 'Reestablece tu conexión.' : isLogin ? 'Identifícate para sincronizar.' : 'Crea tu perfil regenerativo.'}
                             </p>
                         </div>
@@ -129,9 +130,9 @@ export default function AuthView() {
                             {!isLogin && !isForgotPassword && (
                                 <>
                                     <div className="flex flex-col gap-2">
-                                        <label className="uppercase tracking-widest font-semibold text-crema-natural opacity-30 m-0" style={{ fontSize: '0.65rem' }}>Nombre Completo</label>
-                                        <div className="relative">
-                                            <User size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.3 }} />
+                                        <label className="uppercase tracking-widest font-semibold text-crema-natural m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Nombre Completo</label>
+                                        <div className="relative text-left">
+                                            <User size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'var(--crema-natural)' }} />
                                             <input 
                                                 required 
                                                 type="text" 
@@ -139,25 +140,25 @@ export default function AuthView() {
                                                 placeholder="Ej. Cristina Campos" 
                                                 value={fullName} 
                                                 onChange={e => setFullName(e.target.value)} 
-                                                style={{ paddingLeft: '3rem' }}
+                                                style={{ paddingLeft: '2.8rem' }}
                                             />
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-2">
-                                        <label className="uppercase tracking-widest font-semibold text-crema-natural opacity-30 m-0" style={{ fontSize: '0.65rem' }}>Rol Principal</label>
-                                        <div className="relative">
-                                            <ShieldCheck size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.3 }} />
+                                        <label className="uppercase tracking-widest font-semibold text-crema-natural m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Rol Principal</label>
+                                        <div className="relative text-left">
+                                            <ShieldCheck size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'var(--crema-natural)' }} />
                                             <select 
                                                 className="input-field"
                                                 value={role} 
                                                 onChange={e => setRole(e.target.value)}
-                                                style={{ paddingLeft: '3rem' }}
+                                                style={{ paddingLeft: '2.8rem', appearance: 'none' }}
                                             >
-                                                <option value="apicultor">Apicultor</option>
-                                                <option value="vendedor">Vendedor</option>
-                                                <option value="gerente">Gerente</option>
-                                                <option value="logistica">Logística</option>
-                                                <option value="marketing">Marketing</option>
+                                                <option value="apicultor" style={{ background: 'var(--negro-tinta)' }}>Apicultor</option>
+                                                <option value="vendedor" style={{ background: 'var(--negro-tinta)' }}>Vendedor</option>
+                                                <option value="gerente" style={{ background: 'var(--negro-tinta)' }}>Gerente</option>
+                                                <option value="logistica" style={{ background: 'var(--negro-tinta)' }}>Logística</option>
+                                                <option value="marketing" style={{ background: 'var(--negro-tinta)' }}>Marketing</option>
                                             </select>
                                         </div>
                                     </div>
@@ -165,9 +166,9 @@ export default function AuthView() {
                             )}
 
                             <div className="flex flex-col gap-2">
-                                <label className="uppercase tracking-widest font-semibold text-crema-natural opacity-30 m-0" style={{ fontSize: '0.65rem' }}>Email</label>
-                                <div className="relative">
-                                    <Mail size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.3 }} />
+                                <label className="uppercase tracking-widest font-semibold text-crema-natural m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Email</label>
+                                <div className="relative text-left">
+                                    <Mail size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'var(--crema-natural)' }} />
                                     <input 
                                         required 
                                         type="email" 
@@ -175,28 +176,28 @@ export default function AuthView() {
                                         placeholder="correo@ejemplo.com" 
                                         value={email} 
                                         onChange={e => setEmail(e.target.value)} 
-                                        style={{ paddingLeft: '3rem' }}
+                                        style={{ paddingLeft: '2.8rem' }}
                                     />
                                 </div>
                             </div>
 
                             {!isForgotPassword && (
                                 <div className="flex flex-col gap-2">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <label className="uppercase tracking-widest font-semibold text-crema-natural opacity-30 m-0" style={{ fontSize: '0.65rem' }}>Contraseña</label>
+                                    <div className="flex justify-between items-center mb-1 text-left">
+                                        <label className="uppercase tracking-widest font-semibold text-crema-natural m-0" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Contraseña</label>
                                         {isLogin && (
                                             <button 
                                                 type="button" 
                                                 onClick={() => setIsForgotPassword(true)} 
-                                                className="m-0 p-0 bg-none border-none text-oro-miel opacity-60 hover:opacity-100 transition-opacity"
-                                                style={{ fontSize: '0.6rem' }}
+                                                className="m-0 p-0 bg-transparent border-none text-oro-miel transition-opacity cursor-pointer"
+                                                style={{ fontSize: '0.65rem', opacity: 0.8 }}
                                             >
                                                 ¿Olvidaste tu clave?
                                             </button>
                                         )}
                                     </div>
-                                    <div className="relative">
-                                        <Lock size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.3 }} />
+                                    <div className="relative text-left">
+                                        <Lock size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'var(--crema-natural)' }} />
                                         <input 
                                             required 
                                             type="password" 
@@ -204,7 +205,7 @@ export default function AuthView() {
                                             placeholder="••••••••" 
                                             value={password} 
                                             onChange={e => setPassword(e.target.value)} 
-                                            style={{ paddingLeft: '3rem' }}
+                                            style={{ paddingLeft: '2.8rem' }}
                                             minLength={6} 
                                         />
                                     </div>
@@ -237,14 +238,14 @@ export default function AuthView() {
                             )}
                         </form>
 
-                        <div className="mt-10 pt-8 border-t border-white/5 text-center">
-                            <p className="text-lg text-crema-natural opacity-30 mb-4 m-0" style={{ opacity: 0.4, fontSize: '0.75rem' }}>
+                        <div className="mt-8 pt-8 border-t text-center" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+                            <p className="font-datos text-crema-natural mb-5 m-0" style={{ opacity: 0.5, fontSize: '0.8rem' }}>
                                 {isLogin ? '¿Aún no tienes registro?' : '¿Ya eres parte del enjambre?'}
                             </p>
                             <button 
                                 onClick={() => { setIsLogin(!isLogin); setPendingConfirmation(false); }}
-                                className="btn btn-outline px-8"
-                                style={{ borderRadius: '99px', fontSize: '0.7rem', letterSpacing: '0.1em' }}
+                                className="btn btn-outline"
+                                style={{ borderRadius: '99px', fontSize: '0.75rem', letterSpacing: '0.08em', padding: '0.6rem 2rem', color: 'var(--oro-miel)', borderColor: 'rgba(212, 160, 23, 0.4)' }}
                             >
                                 {isLogin ? 'Crear Legado' : 'Iniciar Sesión'}
                             </button>
