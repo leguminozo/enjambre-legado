@@ -54,17 +54,17 @@ export function CheckoutResultClient() {
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="min-h-[50vh] bg-[#050505] px-4 py-12 sm:px-6">
+      <main className="min-h-[50vh] bg-background px-4 py-12 sm:px-6">
         <div className="mx-auto max-w-xl">
-          <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-8">
-            <h1 className="font-display text-2xl font-semibold text-white">Resultado del pago</h1>
+          <div className="rounded-xl border border-border bg-card/50 p-8">
+            <h1 className="font-display text-2xl font-semibold text-foreground">Resultado del pago</h1>
             <p
               className={`mt-4 text-base ${
                 state === 'success'
-                  ? 'text-emerald-400'
+                  ? 'text-success'
                   : state === 'failed'
-                    ? 'text-red-400'
-                    : 'text-zinc-400'
+                    ? 'text-destructive'
+                    : 'text-muted-foreground'
               }`}
             >
               {message}
@@ -72,11 +72,11 @@ export function CheckoutResultClient() {
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/catalogo"
-                className="inline-flex rounded-full bg-[#0A3D2F] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0d5240]"
+                className="inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/80"
               >
                 Volver a la tienda
               </Link>
-              <Link href="/" className="inline-flex items-center text-sm font-semibold text-[#e8c547] underline">
+              <Link href="/" className="inline-flex items-center text-sm font-semibold text-accent underline">
                 Ir al inicio
               </Link>
             </div>

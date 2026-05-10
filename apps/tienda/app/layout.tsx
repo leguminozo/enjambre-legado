@@ -37,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${fontDisplay.variable} ${fontBody.variable}`}>
-      <body className="font-sans antialiased bg-[#050505] text-[#f5f0e8]">
+      <body className="font-sans antialiased bg-background text-foreground">
         <RegisterServiceWorker />
         <AppProviders>{children}</AppProviders>
       </body>

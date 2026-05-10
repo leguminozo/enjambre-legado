@@ -3,13 +3,8 @@
 import Link from 'next/link';
 import { FileText, Package, Plus, Search, Edit3, Trash2, Eye, EyeOff, Loader2, ChevronRight } from 'lucide-react';
 import { createClient as createSupabaseClient } from '@/utils/supabase/client';
+import { formatCLP } from '@/lib/shop/format';
 import { useEffect, useMemo, useState } from 'react';
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(
-    amount,
-  );
-}
 
 type ProductRow = {
   id: string;
@@ -51,8 +46,8 @@ export function ProductsView() {
       const json = (await res.json()) as { data?: ProductRow[]; error?: string };
       if (!res.ok) throw new Error(json.error || 'Error cargando productos');
       setRows(json.data ?? []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error cargando productos');
     } finally {
       setLoading(false);
     }
@@ -111,11 +106,11 @@ export function ProductsView() {
       });
       const json = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(json.error || 'Error guardando producto');
-      
+
       await loadProducts();
       resetForm();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error guardando producto');
     } finally {
       setSaving(false);
     }
@@ -134,29 +129,28 @@ export function ProductsView() {
 
   return (
     <div className="space-y-12 animate-in">
-      {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-[#c9a227]/10 flex items-center justify-center text-[#c9a227]">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
               <Package size={20} />
             </div>
-            <h1 className="font-display text-4xl font-light tracking-tight text-[#f5f0e8]">Catálogo Maestro</h1>
+            <h1 className="font-display text-4xl font-light tracking-tight text-foreground">Catálogo Maestro</h1>
           </div>
-          <p className="text-[#8a8279] text-sm tracking-wide">Gestión operativa de la vitrina biocultural</p>
+          <p className="text-muted-foreground text-sm tracking-wide">Gestión operativa de la vitrina biocultural</p>
         </div>
-        
+
         <div className="flex flex-wrap gap-3">
-          <button 
-            type="button" 
-            className="px-6 py-3 rounded-full bg-white/5 border border-white/10 text-[0.65rem] uppercase tracking-[0.2em] text-[#8a8279] hover:bg-white/10 transition-all"
+          <button
+            type="button"
+            className="px-6 py-3 rounded-full bg-secondary border border-border text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground hover:bg-secondary/80 transition-all"
             onClick={loadProducts}
           >
             Sincronizar
           </button>
-          <button 
-            type="button" 
-            className="px-6 py-3 rounded-full bg-[#c9a227] text-black text-[0.65rem] uppercase tracking-[0.2em] font-bold hover:scale-105 transition-all shadow-[0_10px_20px_rgba(201,162,39,0.2)]"
+          <button
+            type="button"
+            className="px-6 py-3 rounded-full bg-accent text-accent-foreground text-[0.65rem] uppercase tracking-[0.2em] font-bold hover:scale-105 transition-all shadow-glow"
             onClick={resetForm}
           >
             <Plus className="inline-block mr-2 h-4 w-4" /> Nuevo Producto
@@ -164,22 +158,21 @@ export function ProductsView() {
         </div>
       </div>
 
-      {/* Editor Card */}
       <div className="relative">
-        <div className="absolute -inset-1 bg-gradient-to-r from-[#c9a227]/20 to-transparent blur-2xl opacity-20 pointer-events-none" />
-        <div className="relative bg-[#0a0a0a] border border-white/5 rounded-3xl p-8 lg:p-12 shadow-2xl overflow-hidden">
+        <div className="absolute -inset-1 bg-gradient-to-r from-accent/20 to-transparent blur-2xl opacity-20 pointer-events-none" />
+        <div className="relative bg-card border border-border rounded-3xl p-8 lg:p-12 shadow-2xl overflow-hidden">
           <div className="flex items-center justify-between mb-10">
-            <h2 className="font-display text-2xl text-[#f5f0e8]">
+            <h2 className="font-display text-2xl text-foreground">
               {selectedId ? 'Refinar Producto' : 'Crear Legado'}
             </h2>
             {selectedId && (
-               <span className="text-[0.6rem] uppercase tracking-widest text-[#c9a227] px-3 py-1 bg-[#c9a227]/10 rounded-full border border-[#c9a227]/20">Modo Edición</span>
+              <span className="text-[0.6rem] uppercase tracking-widest text-accent px-3 py-1 bg-accent/10 rounded-full border border-accent/20">Modo Edición</span>
             )}
           </div>
 
           {error && (
-            <div className="mb-8 p-4 rounded-xl bg-red-950/20 border border-red-900/30 text-red-400 text-sm flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <div className="mb-8 p-4 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-sm flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
               {error}
             </div>
           )}
@@ -188,18 +181,18 @@ export function ProductsView() {
             <div className="lg:col-span-2 space-y-8">
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] ml-1">Nombre del Producto</label>
+                  <label className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">Nombre del Producto</label>
                   <input
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227] transition-all"
+                    className="w-full bg-secondary border border-border rounded-xl px-5 py-4 text-sm text-foreground focus:outline-none focus:border-accent transition-all"
                     placeholder="Ej: Miel de Ulmo Virgen"
                     value={form.nombre}
                     onChange={(e) => setForm((prev) => ({ ...prev, nombre: e.target.value }))}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] ml-1">Formato / Presentación</label>
+                  <label className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">Formato / Presentación</label>
                   <input
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227] transition-all"
+                    className="w-full bg-secondary border border-border rounded-xl px-5 py-4 text-sm text-foreground focus:outline-none focus:border-accent transition-all"
                     placeholder="Ej: 500g / Sachets"
                     value={form.formato}
                     onChange={(e) => setForm((prev) => ({ ...prev, formato: e.target.value }))}
@@ -208,9 +201,9 @@ export function ProductsView() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] ml-1">Relato Regenerativo (Descripción)</label>
+                <label className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">Relato Regenerativo (Descripción)</label>
                 <textarea
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227] transition-all min-h-[160px] resize-none"
+                  className="w-full bg-secondary border border-border rounded-xl px-5 py-4 text-sm text-foreground focus:outline-none focus:border-accent transition-all min-h-[160px] resize-none"
                   placeholder="Describe el origen y las notas de este producto..."
                   value={form.descripcion_regenerativa}
                   onChange={(e) => setForm((prev) => ({ ...prev, descripcion_regenerativa: e.target.value }))}
@@ -221,18 +214,18 @@ export function ProductsView() {
             <div className="space-y-8">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] ml-1">Precio (CLP)</label>
+                  <label className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">Precio (CLP)</label>
                   <input
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227] transition-all"
+                    className="w-full bg-secondary border border-border rounded-xl px-5 py-4 text-sm text-foreground focus:outline-none focus:border-accent transition-all"
                     type="number"
                     value={form.precio}
                     onChange={(e) => setForm((prev) => ({ ...prev, precio: Number(e.target.value) }))}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] ml-1">Stock Actual</label>
+                  <label className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">Stock Actual</label>
                   <input
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227] transition-all"
+                    className="w-full bg-secondary border border-border rounded-xl px-5 py-4 text-sm text-foreground focus:outline-none focus:border-accent transition-all"
                     type="number"
                     value={form.stock}
                     onChange={(e) => setForm((prev) => ({ ...prev, stock: Number(e.target.value) }))}
@@ -240,33 +233,33 @@ export function ProductsView() {
                 </div>
               </div>
 
-              <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
+              <div className="p-6 rounded-2xl bg-secondary border border-border space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-[0.65rem] uppercase tracking-[0.1em] text-[#f5f0e8]">Visibilidad en tienda</span>
-                  <button 
+                  <span className="text-[0.65rem] uppercase tracking-[0.1em] text-foreground">Visibilidad en tienda</span>
+                  <button
                     type="button"
                     onClick={() => setForm(p => ({...p, visible: !p.visible}))}
-                    className={`w-10 h-5 rounded-full transition-all relative ${form.visible ? 'bg-[#c9a227]' : 'bg-white/10'}`}
+                    className={`w-10 h-5 rounded-full transition-all relative ${form.visible ? 'bg-accent' : 'bg-secondary'}`}
                   >
-                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${form.visible ? 'right-1' : 'left-1'}`} />
+                    <div className={`absolute top-1 w-3 h-3 bg-foreground rounded-full transition-all ${form.visible ? 'right-1' : 'left-1'}`} />
                   </button>
                 </div>
-                <p className="text-[0.6rem] text-[#8a8279]">Define si este producto aparecerá en el catálogo público para clientes.</p>
+                <p className="text-[0.6rem] text-muted-foreground">Define si este producto aparecerá en el catálogo público para clientes.</p>
               </div>
 
               <div className="flex gap-4 pt-4">
                 <button
                   type="button"
-                  className="flex-1 py-4 bg-[#c9a227] text-black text-[0.7rem] uppercase tracking-[0.3em] font-bold rounded-xl hover:shadow-[0_10px_20px_rgba(201,162,39,0.3)] transition-all disabled:opacity-50"
+                  className="flex-1 py-4 bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold rounded-xl hover:shadow-glow transition-all disabled:opacity-50"
                   onClick={() => void submitForm()}
                   disabled={saving || !form.nombre.trim()}
                 >
                   {saving ? <Loader2 className="animate-spin mx-auto" size={18} /> : selectedId ? 'Guardar Cambios' : 'Lanzar Producto'}
                 </button>
                 {selectedId && (
-                   <button type="button" className="p-4 bg-white/5 border border-white/10 text-[#8a8279] rounded-xl hover:text-white transition-colors" onClick={resetForm}>
-                     Cancelar
-                   </button>
+                  <button type="button" className="p-4 bg-secondary border border-border text-muted-foreground rounded-xl hover:text-foreground transition-colors" onClick={resetForm}>
+                    Cancelar
+                  </button>
                 )}
               </div>
             </div>
@@ -274,17 +267,16 @@ export function ProductsView() {
         </div>
       </div>
 
-      {/* List Card */}
-      <div className="bg-[#0a0a0a] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-        <div className="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h3 className="font-display text-xl text-[#f5f0e8]">Inventario Operativo</h3>
+      <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-2xl">
+        <div className="p-8 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h3 className="font-display text-xl text-foreground">Inventario Operativo</h3>
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#4a4a4a]" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Buscar por nombre o formato..."
-              className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-full text-xs text-[#f5f0e8] focus:outline-none focus:border-[#c9a227]/50"
+              className="w-full pl-12 pr-4 py-3 bg-secondary border border-border rounded-full text-xs text-foreground focus:outline-none focus:border-accent/50"
             />
           </div>
         </div>
@@ -292,63 +284,63 @@ export function ProductsView() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-white/5">
-                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] font-medium">Producto</th>
-                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] font-medium">Precio</th>
-                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] font-medium">Estado</th>
-                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] font-medium text-right">Stock</th>
-                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279] font-medium text-right">Acciones</th>
+              <tr className="border-b border-border">
+                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground font-medium">Producto</th>
+                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground font-medium">Precio</th>
+                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground font-medium">Estado</th>
+                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground font-medium text-right">Stock</th>
+                <th className="px-8 py-5 text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground font-medium text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.03]">
+            <tbody className="divide-y divide-border/50">
               {loading ? (
                 <tr>
-                  <td className="px-8 py-20 text-center text-[#4a4a4a] italic" colSpan={5}>
+                  <td className="px-8 py-20 text-center text-muted-foreground italic" colSpan={5}>
                     Sincronizando catálogo...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td className="px-8 py-20 text-center text-[#4a4a4a] italic" colSpan={5}>
+                  <td className="px-8 py-20 text-center text-muted-foreground italic" colSpan={5}>
                     No se encontraron productos en esta zona del bosque.
                   </td>
                 </tr>
               ) : (
                 filtered.map((p) => (
-                <tr key={p.id} className="hover:bg-white/[0.02] transition-colors group">
-                  <td className="px-8 py-6">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-[#f5f0e8]">{p.nombre}</span>
-                      <span className="text-[0.65rem] text-[#4a4a4a]">{p.formato || 'Sin formato'}</span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6">
-                    <span className="text-sm text-[#c9a227] font-medium">{formatCurrency(p.precio)}</span>
-                  </td>
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-2">
-                       <span className={`w-1.5 h-1.5 rounded-full ${p.visible ? 'bg-[#c9a227]' : 'bg-red-500/50'}`} />
-                       <span className={`text-[0.65rem] uppercase tracking-widest font-semibold ${p.visible ? 'text-[#c9a227]' : 'text-[#4a4a4a]'}`}>
-                        {p.visible ? 'Activo' : 'Oculto'}
-                       </span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6 text-right">
-                    <span className={`text-sm font-medium ${(p.stock ?? 0) <= 5 ? 'text-red-400' : 'text-[#8a8279]'}`}>
-                      {p.stock ?? 0} <span className="text-[0.65rem] opacity-50 ml-1 uppercase">unid</span>
-                    </span>
-                  </td>
-                  <td className="px-8 py-6 text-right">
-                    <button 
-                      type="button" 
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-xs text-[#8a8279] hover:text-[#c9a227] hover:border-[#c9a227]/30 transition-all" 
-                      onClick={() => selectForEdit(p)}
-                    >
-                      <Edit3 size={14} /> Gestionar
-                    </button>
-                  </td>
-                </tr>
-              ))
+                  <tr key={p.id} className="hover:bg-secondary/50 transition-colors group">
+                    <td className="px-8 py-6">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-foreground">{p.nombre}</span>
+                        <span className="text-[0.65rem] text-muted-foreground">{p.formato || 'Sin formato'}</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className="text-sm text-accent font-medium">{formatCLP(p.precio)}</span>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-1.5 h-1.5 rounded-full ${p.visible ? 'bg-accent' : 'bg-destructive/50'}`} />
+                        <span className={`text-[0.65rem] uppercase tracking-widest font-semibold ${p.visible ? 'text-accent' : 'text-muted-foreground'}`}>
+                          {p.visible ? 'Activo' : 'Oculto'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6 text-right">
+                      <span className={`text-sm font-medium ${(p.stock ?? 0) <= 5 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                        {p.stock ?? 0} <span className="text-[0.65rem] opacity-50 ml-1 uppercase">unid</span>
+                      </span>
+                    </td>
+                    <td className="px-8 py-6 text-right">
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-secondary border border-border rounded-lg text-xs text-muted-foreground hover:text-accent hover:border-accent/30 transition-all"
+                        onClick={() => selectForEdit(p)}
+                      >
+                        <Edit3 size={14} /> Gestionar
+                      </button>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

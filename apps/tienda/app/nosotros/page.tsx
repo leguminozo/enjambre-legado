@@ -10,12 +10,12 @@ export default function NosotrosPage() {
     <StoreShell>
       <ShopHeader />
       <main className="mx-auto max-w-2xl px-4 py-20 sm:px-6">
-        <h1 className="font-display text-3xl font-semibold text-white">Nosotros</h1>
-        <p className="mt-4 leading-relaxed text-zinc-400">
+        <h1 className="font-display text-3xl font-semibold text-foreground">Nosotros</h1>
+        <p className="mt-4 leading-relaxed text-muted-foreground">
           Historia del proyecto, el equipo y el territorio. Sustituye este texto por la narrativa oficial de
           obrerayzangano.com cuando la migres.
         </p>
-        <Link href="/" className="mt-8 inline-block text-sm text-[#e8c547] underline underline-offset-2">
+        <Link href="/" className="mt-8 inline-block text-sm text-accent underline underline-offset-2">
           ← Inicio
         </Link>
       </main>

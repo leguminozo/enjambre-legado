@@ -26,7 +26,7 @@ export function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
+
     const result = await login(email, password);
     if (result.success) {
       router.push('/dashboard');
@@ -38,74 +38,73 @@ export function LoginForm() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#050505]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c9a227]" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-[#f5f0e8] flex flex-col items-center justify-center py-12 px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center py-12 px-4 relative overflow-hidden">
       <GrainOverlay />
-      
-      {/* Glow Effect */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#c9a227]/5 blur-[120px] pointer-events-none" />
+
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-accent/5 blur-[120px] pointer-events-none" />
 
       <div className="max-w-md w-full space-y-12 relative z-10">
         <div className="text-center">
-          <Link href="/" className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-[#8a8279] hover:text-[#c9a227] transition-colors mb-12">
+          <Link href="/" className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground hover:text-accent transition-colors mb-12">
             <ArrowLeft size={14} /> Volver a la tienda
           </Link>
-          <h1 className="font-display text-4xl font-light tracking-tight text-[#f5f0e8]">
-            Identidad <span className="italic text-[#c9a227]">Legado</span>
+          <h1 className="font-display text-4xl font-light tracking-tight text-foreground">
+            Identidad <span className="italic text-accent">Legado</span>
           </h1>
-          <p className="mt-4 text-sm text-[#8a8279] font-light tracking-wide">Acceso al panel de control y gestión</p>
+          <p className="mt-4 text-sm text-muted-foreground font-light tracking-wide">Acceso al panel de control y gestión</p>
         </div>
 
-        <form className="mt-8 space-y-8 bg-[#0c0c0c]/80 backdrop-blur-xl border border-white/5 p-10 shadow-2xl" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-8 bg-surface-raised/80 backdrop-blur-xl border border-border p-10 shadow-2xl" onSubmit={handleSubmit}>
           <div className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279]">
+              <label htmlFor="email" className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">
                 Correo electrónico
               </label>
               <div className="relative group">
-                <Mail className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8a8279] group-focus-within:text-[#c9a227] transition-colors" />
+                <Mail className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                 <input
                   id="email"
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-transparent border-b border-white/10 pl-8 py-3 text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227] transition-colors placeholder:text-zinc-800"
+                  className="w-full bg-transparent border-b border-border pl-8 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-colors placeholder:text-muted-foreground/50"
                   placeholder="tu@correo.com"
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label htmlFor="password" className="text-[0.6rem] uppercase tracking-[0.2em] text-[#8a8279]">
+                <label htmlFor="password" className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">
                   Contraseña
                 </label>
-                <Link href="#" className="text-[0.6rem] uppercase tracking-[0.1em] text-[#8a8279] hover:text-[#c9a227]">
+                <Link href="#" className="text-[0.6rem] uppercase tracking-[0.1em] text-muted-foreground hover:text-accent">
                   ¿Olvidaste?
                 </Link>
               </div>
               <div className="relative group">
-                <Lock className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8a8279] group-focus-within:text-[#c9a227] transition-colors" />
+                <Lock className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-transparent border-b border-white/10 pl-8 pr-10 py-3 text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227] transition-colors placeholder:text-zinc-800"
+                  className="w-full bg-transparent border-b border-border pl-8 pr-10 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-colors placeholder:text-muted-foreground/50"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 text-[#8a8279] hover:text-[#c9a227]"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-accent"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -114,7 +113,7 @@ export function LoginForm() {
           </div>
 
           {error && (
-            <div className="border border-red-900/30 bg-red-950/20 px-4 py-3 text-[0.7rem] text-red-400">
+            <div className="border border-destructive/30 bg-destructive/10 px-4 py-3 text-[0.7rem] text-destructive">
               {error}
             </div>
           )}
@@ -122,22 +121,22 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 border border-[#c9a227] text-[#c9a227] text-[0.7rem] uppercase tracking-[0.3em] hover:bg-[#c9a227] hover:text-black transition-all duration-500 disabled:opacity-50"
+            className="w-full py-4 border border-accent text-accent text-[0.7rem] uppercase tracking-[0.3em] hover:bg-accent hover:text-accent-foreground transition-all duration-500 disabled:opacity-50"
           >
             {loading ? 'Validando...' : 'Iniciar Sesión'}
           </button>
 
           <div className="pt-4 text-center">
-            <p className="text-[0.7rem] text-[#8a8279]">
+            <p className="text-[0.7rem] text-muted-foreground">
               ¿No tienes cuenta?{' '}
-              <Link href="/register" className="text-[#f5f0e8] hover:text-[#c9a227] underline underline-offset-4 decoration-white/10">
+              <Link href="/register" className="text-foreground hover:text-accent underline underline-offset-4 decoration-border">
                 Únete al legado
               </Link>
             </p>
           </div>
         </form>
 
-        <p className="text-center text-[0.6rem] tracking-[0.1em] text-[#8a8279] uppercase">
+        <p className="text-center text-[0.6rem] tracking-[0.1em] text-muted-foreground uppercase">
           Acceso Restringido • Tienda Enjambre
         </p>
       </div>

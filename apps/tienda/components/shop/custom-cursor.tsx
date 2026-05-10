@@ -14,6 +14,7 @@ export function CustomCursor() {
     let mouseY = 0;
     let cursorX = 0;
     let cursorY = 0;
+    let animationFrameId: number;
 
     const onMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX;
@@ -23,20 +24,20 @@ export function CustomCursor() {
     const animate = () => {
       cursorX += (mouseX - cursorX) * 0.15;
       cursorY += (mouseY - cursorY) * 0.15;
-      
+
       if (cursor) {
         cursor.style.left = `${cursorX - 10}px`;
         cursor.style.top = `${cursorY - 10}px`;
       }
-      
-      requestAnimationFrame(animate);
+
+      animationFrameId = requestAnimationFrame(animate);
     };
 
     const onMouseEnter = () => setIsHovering(true);
     const onMouseLeave = () => setIsHovering(false);
 
     window.addEventListener('mousemove', onMouseMove);
-    animate();
+    animationFrameId = requestAnimationFrame(animate);
 
     const hoverables = document.querySelectorAll('a, button, .hoverable');
     hoverables.forEach((el) => {
@@ -45,6 +46,7 @@ export function CustomCursor() {
     });
 
     return () => {
+      cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', onMouseMove);
       hoverables.forEach((el) => {
         el.removeEventListener('mouseenter', onMouseEnter);
@@ -56,8 +58,8 @@ export function CustomCursor() {
   return (
     <div
       ref={cursorRef}
-      className={`fixed w-5 h-5 border border-[#c9a227] rounded-full pointer-events-none z-[9997] transition-transform duration-150 mix-blend-difference hidden md:block ${
-        isHovering ? 'scale-[2] bg-[rgba(201,162,39,0.1)]' : ''
+      className={`fixed w-5 h-5 border border-accent rounded-full pointer-events-none z-[9997] transition-transform duration-150 mix-blend-difference hidden md:block ${
+        isHovering ? 'scale-[2] bg-accent/10' : ''
       }`}
       style={{ left: '-100px', top: '-100px' }}
     />

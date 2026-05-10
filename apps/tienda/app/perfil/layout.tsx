@@ -12,9 +12,9 @@ export default async function PerfilLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   if (!user) {
     redirect('/login');
   }
@@ -26,10 +26,10 @@ export default async function PerfilLayout({
     .single();
 
   return (
-    <div className="min-h-screen bg-[#050505] text-[#f5f0e8] flex">
+    <div className="min-h-screen bg-background text-foreground flex">
       <GrainOverlay />
       <CustomCursor />
-      
+
       <PerfilLayoutClient user={profile}>
         {children}
       </PerfilLayoutClient>

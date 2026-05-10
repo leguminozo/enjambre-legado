@@ -9,9 +9,9 @@ export default function CheckoutResultPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-[#050505] px-6 py-16 text-center text-zinc-500">
-          Cargando resultado…
-        </main>
+      <main className="min-h-screen bg-background px-6 py-16 text-center text-muted-foreground">
+        Cargando resultado…
+      </main>
       }
     >
       <CheckoutResultClient />

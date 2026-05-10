@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Tienda PWA de Enjambre Legado',
     start_url: '/',
     display: 'standalone',
-    background_color: '#f8fafc',
+    background_color: '#050505',
     theme_color: '#0A3D2F',
     icons: [
       {

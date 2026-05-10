@@ -11,8 +11,8 @@ export default function GaleriaPage() {
     <StoreShell>
       <ShopHeader />
       <main className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <h1 className="font-display text-3xl font-semibold text-white">Galería</h1>
-        <p className="mt-3 max-w-xl text-zinc-400">
+        <h1 className="font-display text-3xl font-semibold text-foreground">Galería</h1>
+        <p className="mt-3 max-w-xl text-muted-foreground">
           Rejilla lista para tus fotos del apiario, el bosque y el proceso. Sube imágenes y reemplaza estos
           bloques.
         </p>
@@ -23,7 +23,7 @@ export default function GaleriaPage() {
             </li>
           ))}
         </ul>
-        <Link href="/" className="mt-10 inline-block text-sm text-[#e8c547] underline underline-offset-2">
+        <Link href="/" className="mt-10 inline-block text-sm text-accent underline underline-offset-2">
           ← Inicio
         </Link>
       </main>

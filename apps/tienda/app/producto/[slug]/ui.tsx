@@ -18,7 +18,7 @@ export function AddToCartButton({
     <button
       type="button"
       disabled={disabled}
-      className="rounded-full bg-[#0A3D2F] px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-[#0d5240] disabled:cursor-not-allowed disabled:opacity-45"
+      className="rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-45"
       onClick={() => {
         if (disabled) return;
         cart.add(

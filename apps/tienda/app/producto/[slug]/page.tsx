@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { getProductBySlugOrId } from '@/lib/shop/products';
+import { formatCLP } from '@/lib/shop/format';
 import { AddToCartButton } from './ui';
 import { ProductGallery } from '@/components/shop/product-gallery';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -16,14 +17,6 @@ function Shell({ children }: { children: ReactNode }) {
       <ShopFooter />
     </StoreShell>
   );
-}
-
-function formatCLP(n: number) {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    maximumFractionDigits: 0,
-  }).format(n);
 }
 
 export default async function ProductoPage({
@@ -42,33 +35,33 @@ export default async function ProductoPage({
 
   if (loadError) {
     return (
-      <Shell>
-        <main className="min-h-[50vh] px-4 py-16 sm:px-6">
-          <div className="mx-auto max-w-2xl">
-            <h1 className="font-display text-2xl font-semibold text-white">No se pudo cargar</h1>
-            <p className="mt-2 text-zinc-400">{loadError}</p>
-            <Link href="/catalogo" className="mt-6 inline-block text-sm text-[#e8c547] underline">
-              Volver a creaciones
-            </Link>
-          </div>
-        </main>
-      </Shell>
+    <Shell>
+      <main className="min-h-[50vh] px-4 py-16 sm:px-6">
+        <div className="mx-auto max-w-2xl">
+          <h1 className="font-display text-2xl font-semibold text-foreground">No se pudo cargar</h1>
+          <p className="mt-2 text-muted-foreground">{loadError}</p>
+          <Link href="/catalogo" className="mt-6 inline-block text-sm text-accent underline">
+            Volver a creaciones
+          </Link>
+        </div>
+      </main>
+    </Shell>
     );
   }
 
   if (!product) {
     return (
-      <Shell>
-        <main className="min-h-[50vh] px-4 py-16 sm:px-6">
-          <div className="mx-auto max-w-2xl">
-            <h1 className="font-display text-2xl font-semibold text-white">Producto no encontrado</h1>
-            <p className="mt-2 text-zinc-400">Revisa el enlace o vuelve al catálogo.</p>
-            <Link href="/catalogo" className="mt-6 inline-block text-sm text-[#e8c547] underline">
-              Ir a creaciones
-            </Link>
-          </div>
-        </main>
-      </Shell>
+    <Shell>
+      <main className="min-h-[50vh] px-4 py-16 sm:px-6">
+        <div className="mx-auto max-w-2xl">
+          <h1 className="font-display text-2xl font-semibold text-foreground">Producto no encontrado</h1>
+          <p className="mt-2 text-muted-foreground">Revisa el enlace o vuelve al catálogo.</p>
+          <Link href="/catalogo" className="mt-6 inline-block text-sm text-accent underline">
+            Ir a creaciones
+          </Link>
+        </div>
+      </main>
+    </Shell>
     );
   }
 
@@ -76,18 +69,18 @@ export default async function ProductoPage({
 
   return (
     <Shell>
-      <main className="bg-[#050505] pb-16">
-        <div className="border-b border-white/10 px-4 py-4 sm:px-6">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 text-xs text-zinc-500 sm:text-sm">
-            <Link href="/" className="hover:text-[#e8c547]">
+      <main className="bg-background pb-16">
+        <div className="border-b border-border px-4 py-4 sm:px-6">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
+            <Link href="/" className="hover:text-accent">
               Inicio
             </Link>
             <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-            <Link href="/catalogo" className="hover:text-[#e8c547]">
+            <Link href="/catalogo" className="hover:text-accent">
               Creaciones
             </Link>
             <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-            <span className="font-medium text-zinc-300">{product.name}</span>
+            <span className="font-medium text-foreground/70">{product.name}</span>
           </div>
         </div>
 
@@ -96,26 +89,26 @@ export default async function ProductoPage({
 
           <div className="lg:sticky lg:top-28">
             {product.format ? (
-              <span className="inline-block rounded bg-[#0A3D2F] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+              <span className="inline-block rounded bg-primary px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
                 {product.format}
               </span>
             ) : null}
-            <h1 className="mt-3 font-display text-3xl font-semibold leading-tight text-white sm:text-4xl">
+            <h1 className="mt-3 font-display text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
               {product.name}
             </h1>
-            <p className="mt-4 font-display text-2xl text-[#e8c547]">{formatCLP(product.price)}</p>
+            <p className="mt-4 font-display text-2xl text-accent">{formatCLP(product.price)}</p>
 
             {product.description ? (
-              <div className="mt-8 border-l-2 border-[#c9a227]/60 pl-5">
-                <p className="whitespace-pre-line leading-relaxed text-zinc-300">{product.description}</p>
+              <div className="mt-8 border-l-2 border-accent/60 pl-5">
+                <p className="whitespace-pre-line leading-relaxed text-foreground/70">{product.description}</p>
               </div>
             ) : (
-              <p className="mt-8 text-sm italic text-zinc-600">Descripción disponible pronto.</p>
+              <p className="mt-8 text-sm italic text-muted-foreground/60">Descripción disponible pronto.</p>
             )}
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
               <AddToCartButton product={product} disabled={!inStock} />
-              <span className="text-sm text-zinc-500">
+              <span className="text-sm text-muted-foreground">
                 {product.stock == null
                   ? 'Stock por confirmar'
                   : product.stock > 0
@@ -124,7 +117,7 @@ export default async function ProductoPage({
               </span>
             </div>
 
-            <Link href="/catalogo" className="mt-10 inline-flex text-sm font-medium text-[#e8c547] hover:underline">
+            <Link href="/catalogo" className="mt-10 inline-flex text-sm font-medium text-accent hover:underline">
               ← Seguir explorando
             </Link>
           </div>

@@ -56,12 +56,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       router.replace('/login');
       return;
     }
-    
-    // Strict role validation for Admin Panel
+
     const authorizedRoles = ['tienda_admin', 'gerente'];
     if (user && !authorizedRoles.includes(user.role)) {
       console.warn(`Access denied for role: ${user.role}`);
-      router.replace('/'); // Redirect unauthorized roles to the storefront
+      router.replace('/');
     }
   }, [loading, isAuthenticated, user, router]);
 
@@ -78,26 +77,26 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   if (loading || !isAuthenticated || (user && !['tienda_admin', 'gerente'].includes(user.role))) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c9a227]" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-[#f5f0e8] font-sans selection:bg-[#c9a227]/30">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-accent/30">
       {/* Mobile Sidebar */}
       <div className={`fixed inset-0 z-[60] lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
         <button
           type="button"
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm"
           aria-label="Cerrar menú"
           onClick={() => setSidebarOpen(false)}
         />
-        <div className="fixed inset-y-0 left-0 flex w-72 flex-col bg-[#0a0a0a] border-r border-white/5">
-          <div className="flex h-20 items-center justify-between px-6 border-b border-white/5">
+        <div className="fixed inset-y-0 left-0 flex w-72 flex-col bg-card border-r border-border">
+          <div className="flex h-20 items-center justify-between px-6 border-b border-border">
             <Brand />
-            <button type="button" onClick={() => setSidebarOpen(false)} className="text-[#8a8279] hover:text-[#c9a227] transition-colors">
+            <button type="button" onClick={() => setSidebarOpen(false)} className="text-muted-foreground hover:text-accent transition-colors">
               <X className="h-6 w-6" />
             </button>
           </div>
@@ -111,7 +110,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       {/* Desktop Sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-[#080808] pt-8 pb-4 overflow-y-auto border-r border-white/5 shadow-2xl">
+        <div className="flex flex-col flex-grow bg-surface-raised pt-8 pb-4 overflow-y-auto border-r border-border shadow-2xl">
           <div className="flex items-center flex-shrink-0 px-8 mb-12">
             <Brand />
           </div>
@@ -120,65 +119,65 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <NavigationItem key={item.name} item={item} isActive={isActive} />
             ))}
           </nav>
-          
-          <div className="px-6 py-6 border-t border-white/5">
-             <div className="p-4 rounded-xl bg-[#c9a227]/5 border border-[#c9a227]/10">
-                <p className="text-[0.6rem] uppercase tracking-[0.2em] text-[#c9a227] mb-1">Ecosistema</p>
-                <p className="text-[0.65rem] text-[#8a8279] leading-relaxed">
-                  Operación Biocultural <br/>Vanguardia Activa
-                </p>
-             </div>
+
+          <div className="px-6 py-6 border-t border-border">
+            <div className="p-4 rounded-xl bg-accent/5 border border-accent/10">
+              <p className="text-[0.6rem] uppercase tracking-[0.2em] text-accent mb-1">Ecosistema</p>
+              <p className="text-[0.65rem] text-muted-foreground leading-relaxed">
+                Operación Biocultural <br/>Vanguardia Activa
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content Area */}
       <div className="lg:pl-72">
-        <header className="sticky top-0 z-40 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 h-20">
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border h-20">
           <div className="flex items-center justify-between px-6 lg:px-10 h-full">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 text-[#8a8279] hover:text-[#c9a227] transition-colors"
+              className="lg:hidden p-2 text-muted-foreground hover:text-accent transition-colors"
             >
               <Menu className="h-6 w-6" />
             </button>
 
             <div className="flex-1 max-w-xl mx-8 hidden sm:block">
               <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8a8279] group-focus-within:text-[#c9a227] transition-colors" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                 <input
                   type="search"
                   placeholder="Explorar legado..."
-                  className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-full text-sm text-[#f5f0e8] focus:outline-none focus:border-[#c9a227]/50 focus:ring-1 focus:ring-[#c9a227]/20 transition-all placeholder:text-[#4a4a4a]"
+                  className="w-full pl-12 pr-12 py-3 bg-secondary border border-border rounded-full text-sm text-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all placeholder:text-muted-foreground"
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[0.6rem] tracking-widest text-[#4a4a4a] font-medium">⌘K</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[0.6rem] tracking-widest text-muted-foreground font-medium">&#8984;K</span>
               </div>
             </div>
 
             <div className="flex items-center gap-6">
-              <button type="button" className="p-2 text-[#8a8279] hover:text-[#c9a227] transition-all relative">
+              <button type="button" className="p-2 text-muted-foreground hover:text-accent transition-all relative">
                 <Bell className="h-5 w-5" />
-                <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-[#c9a227] rounded-full shadow-[0_0_8px_#c9a227]" />
+                <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-accent rounded-full shadow-glow" />
               </button>
-              
-              <div className="flex items-center gap-4 pl-6 border-l border-white/10">
+
+              <div className="flex items-center gap-4 pl-6 border-l border-border">
                 <div className="flex flex-col items-end hidden md:flex">
-                  <span className="text-[0.7rem] font-medium text-[#f5f0e8] tracking-wide">
+                  <span className="text-[0.7rem] font-medium text-foreground tracking-wide">
                     {user?.name || 'Administrador'}
                   </span>
-                  <span className="text-[0.6rem] text-[#c9a227] uppercase tracking-[0.2em] font-semibold">
+                  <span className="text-[0.6rem] text-accent uppercase tracking-[0.2em] font-semibold">
                     {user?.role === 'gerente' ? 'Gerencia Real' : 'Admin Tienda'}
                   </span>
                 </div>
-                <div className="h-10 w-10 bg-gradient-to-br from-[#c9a227] to-[#8a6510] rounded-full p-[1px]">
-                  <div className="w-full h-full bg-[#0a0a0a] rounded-full flex items-center justify-center">
-                    <span className="text-[#c9a227] font-display font-bold text-sm">{user?.name?.charAt(0).toUpperCase() || 'A'}</span>
+                <div className="h-10 w-10 bg-gradient-to-br from-accent to-accent/60 rounded-full p-[1px]">
+                  <div className="w-full h-full bg-card rounded-full flex items-center justify-center">
+                    <span className="text-accent font-display font-bold text-sm">{user?.name?.charAt(0).toUpperCase() || 'A'}</span>
                   </div>
                 </div>
               </div>
-              
-              <button type="button" onClick={handleLogout} className="p-2 text-[#8a8279] hover:text-[#E74C3C] transition-colors" title="Cerrar sesión">
+
+              <button type="button" onClick={handleLogout} className="p-2 text-muted-foreground hover:text-destructive transition-colors" title="Cerrar sesión">
                 <LogOut className="h-5 w-5" />
               </button>
             </div>
@@ -196,12 +195,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 function Brand() {
   return (
     <div className="flex items-center gap-4 group cursor-pointer">
-      <div className="h-10 w-10 bg-[#c9a227] rounded-xl flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(201,162,39,0.2)] group-hover:scale-105 transition-transform duration-500">
-        <span className="text-black font-display font-bold text-xl">E</span>
+      <div className="h-10 w-10 bg-accent rounded-xl flex items-center justify-center shrink-0 shadow-glow group-hover:scale-105 transition-transform duration-500">
+        <span className="text-accent-foreground font-display font-bold text-xl">E</span>
       </div>
       <div className="flex flex-col">
-        <span className="text-[#f5f0e8] font-display text-lg tracking-tight leading-none">Enjambre</span>
-        <span className="text-[#c9a227] text-[0.6rem] uppercase tracking-[0.3em] font-bold mt-1">Legado</span>
+        <span className="text-foreground font-display text-lg tracking-tight leading-none">Enjambre</span>
+        <span className="text-accent text-[0.6rem] uppercase tracking-[0.3em] font-bold mt-1">Legado</span>
       </div>
     </div>
   );
@@ -225,8 +224,8 @@ function NavigationItem({
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors text-gray-300 hover:bg-gray-800 hover:text-white ${
-            isActive(item.href) ? 'bg-gray-800 text-white' : ''
+          className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors text-muted-foreground hover:bg-secondary hover:text-foreground ${
+            isActive(item.href) ? 'bg-secondary text-foreground' : ''
           }`}
         >
           <item.icon className="mr-3 h-5 w-5 shrink-0" />
@@ -241,11 +240,11 @@ function NavigationItem({
           </svg>
         </button>
         {expanded && item.children && (
-          <div className="ml-2 mt-1 space-y-0.5 border-l border-gray-700 pl-2">
+          <div className="ml-2 mt-1 space-y-0.5 border-l border-border pl-2">
             {item.children.map((child) => (
               <span
                 key={child.name}
-                className="flex items-center px-3 py-1.5 text-xs text-gray-500 cursor-default"
+                className="flex items-center px-3 py-1.5 text-xs text-muted-foreground cursor-default"
               >
                 <child.icon className="mr-2 h-4 w-4" />
                 {child.name}
@@ -259,7 +258,7 @@ function NavigationItem({
 
   if (item.href === '#') {
     return (
-      <span className="flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-500 cursor-default">
+      <span className="flex items-center px-3 py-2 text-sm font-medium rounded-lg text-muted-foreground cursor-default">
         <item.icon className="mr-3 h-5 w-5 shrink-0 opacity-60" />
         {item.name}
       </span>
@@ -273,8 +272,8 @@ function NavigationItem({
       prefetch={false}
       className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
         isActive(item.href)
-          ? 'bg-primary-600/20 text-primary-300 border border-primary-600/40'
-          : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+          ? 'bg-accent/10 text-accent border border-accent/20'
+          : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
       }`}
     >
       <item.icon className="mr-3 h-5 w-5 shrink-0" />
