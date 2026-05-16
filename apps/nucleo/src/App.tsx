@@ -11,6 +11,7 @@ import LogisticaView from './views/LogisticaView';
 import MarketingView from './views/MarketingView';
 import ClienteView from './views/ClienteView';
 import RegeneracionView from './views/RegeneracionView';
+import CreadorView from './views/CreadorView';
 import type { Session } from '@supabase/supabase-js';
 import ContableView from './views/ContableView';
 
@@ -24,6 +25,7 @@ const titleMap: Record<string, string> = {
   '/marketing': 'Comunidad',
   '/cliente': 'Mi Legado',
   '/contable': 'Sistema Contable',
+  '/creador': 'Portal de Creador',
 };
 
 function AppContent() {
@@ -118,8 +120,9 @@ function AppContent() {
         <Route path="/gerente" element={<GerenteView />} />
         <Route path="/logistica" element={<LogisticaView />} />
         <Route path="/marketing" element={<MarketingView />} />
-        <Route path="/cliente" element={<ClienteView />} />
-        <Route path="/contable" element={<ContableView />} />
+          <Route path="/cliente" element={<ClienteView />} />
+          <Route path="/contable" element={<ContableView />} />
+          <Route path="/creador" element={<CreadorView currentRole={role ?? undefined} userId={session?.user?.id ?? undefined} />} />
 
         {/* Redirect unknown routes based on role */}
         <Route path="*" element={<Navigate to={`/${role}`} replace />} />

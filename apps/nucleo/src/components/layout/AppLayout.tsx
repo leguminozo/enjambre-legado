@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Map, Hexagon, ShoppingBag, BarChart3, Truck, Megaphone, User, Bell, Search, Menu, X, TreePine, LogOut, Calculator } from 'lucide-react';
+import { Map, Hexagon, ShoppingBag, BarChart3, Truck, Megaphone, User, Bell, Search, Menu, X, TreePine, LogOut, Calculator, Sparkles } from 'lucide-react';
 import { roleLabels } from '../../data/mockData';
 import { supabase } from '../../lib/supabase';
 import { getUrlCampo, getUrlTienda } from '../../lib/publicUrls';
@@ -16,11 +16,12 @@ const navItems: Record<string, { label: string; icon: React.ReactNode; path: str
     vendedor: [{ label: 'Catálogo Vivo', icon: <ShoppingBag size={18} />, path: '/vendedor' }],
     gerente: [{ label: 'Panel Ejecutivo', icon: <BarChart3 size={18} />, path: '/gerente' }],
     logistica: [{ label: 'Operaciones', icon: <Truck size={18} />, path: '/logistica' }],
-    marketing: [{ label: 'Comunidad', icon: <Megaphone size={18} />, path: '/marketing' }],
-    cliente: [{ label: 'Mi Legado', icon: <User size={18} />, path: '/cliente' }],
+  marketing: [{ label: 'Comunidad', icon: <Megaphone size={18} />, path: '/marketing' }],
+  creador: [{ label: 'Portal Creador', icon: <Sparkles size={18} />, path: '/creador' }],
+  cliente: [{ label: 'Mi Legado', icon: <User size={18} />, path: '/cliente' }],
 };
 
-const rolePaths: Record<string, string> = { apicultor: '/apicultor', vendedor: '/vendedor', gerente: '/gerente', logistica: '/logistica', marketing: '/marketing', cliente: '/cliente' };
+const rolePaths: Record<string, string> = { apicultor: '/apicultor', vendedor: '/vendedor', gerente: '/gerente', logistica: '/logistica', marketing: '/marketing', creador: '/creador', cliente: '/cliente' };
 
 const notifications = [
     { id: 1, text: 'Colmena Quilineja Vieja sin reina detectada', type: 'danger', time: 'Hace 2h' },
