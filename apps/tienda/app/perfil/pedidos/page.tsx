@@ -2,13 +2,10 @@ import React from 'react';
 import { ShoppingBag, Package, Truck, CheckCircle, ArrowUpRight } from 'lucide-react';
 import { createClient } from '@/utils/supabase/server';
 import { formatCLP } from '@/lib/shop/format';
+import { formatDate as formatDateBase } from '@enjambre/ui';
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-CL', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
+  return formatDateBase(iso, { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 export default async function PedidosPage() {
@@ -18,7 +15,7 @@ export default async function PedidosPage() {
   const { data: orders } = await supabase
     .from('ventas')
     .select('*')
-    .eq('user_id', user?.id)
+    .eq('cliente_id', user?.id)
     .order('created_at', { ascending: false });
 
   return (

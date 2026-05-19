@@ -1,9 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import path from 'path'
+import { CREMA_NATURAL, BOSQUE_ULMO } from './src/lib/colors'
 
 // https://vite.dev/config/
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
   envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
   plugins: [
     react(),
@@ -17,8 +24,8 @@ export default defineConfig({
         description: 'Plataforma de apicultura regenerativa',
         start_url: '/',
         display: 'standalone',
-        background_color: '#FDFBF7',
-        theme_color: '#0A3D2F',
+      background_color: CREMA_NATURAL,
+      theme_color: BOSQUE_ULMO,
         lang: 'es',
         icons: [
           {

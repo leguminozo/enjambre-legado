@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireEirlAuth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+  const authError = requireEirlAuth(request);
+  if (authError) return authError;
   try {
     const { searchParams } = new URL(request.url);
     const empresaId = searchParams.get('empresaId');
@@ -11,7 +14,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Empresa ID es requerido' }, { status: 400 });
     }
 
-    const whereClause: any = { empresaId };
+    const whereClause: { empresaId: string; periodoId?: string } = { empresaId };
     if (periodoId) {
       whereClause.periodoId = periodoId;
     }
@@ -35,6 +38,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const authError2 = requireEirlAuth(request);
+  if (authError2) return authError2;
   try {
     const body = await request.json();
     const {

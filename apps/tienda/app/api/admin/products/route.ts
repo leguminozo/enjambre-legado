@@ -1,42 +1,30 @@
-import { createClient } from '@/utils/supabase/server';
+import { requireAdmin } from '@/lib/require-admin';
 import { slugify } from '@/lib/shop/slug';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
-type ProductInput = {
-  id?: string;
-  nombre: string;
-  descripcion_regenerativa?: string | null;
-  precio: number;
-  stock?: number | null;
-  formato?: string | null;
-  fotos?: string[];
-  visible?: boolean;
-  slug?: string | null;
-};
+const ProductCreateSchema = z.object({
+  nombre: z.string().min(1).max(200),
+  descripcion_regenerativa: z.string().max(2000).nullable().optional(),
+  precio: z.number().int().nonnegative(),
+  stock: z.number().int().nullable().optional(),
+  formato: z.string().max(100).nullable().optional(),
+  fotos: z.array(z.string().url()).optional(),
+  visible: z.boolean().optional(),
+  slug: z.string().max(120).nullable().optional(),
+});
 
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) return { error: NextResponse.json({ error: 'No autenticado' }, { status: 401 }) };
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  if (profileError || !profile) {
-    return { error: NextResponse.json({ error: 'Perfil no encontrado' }, { status: 403 }) };
-  }
-  if (profile.role !== 'tienda_admin' && profile.role !== 'gerente') {
-    return { error: NextResponse.json({ error: 'Sin permisos' }, { status: 403 }) };
-  }
-  return { supabase };
-}
+const ProductPatchSchema = z.object({
+  id: z.string().uuid(),
+  nombre: z.string().min(1).max(200).optional(),
+  descripcion_regenerativa: z.string().max(2000).nullable().optional(),
+  precio: z.number().int().nonnegative().optional(),
+  stock: z.number().int().nullable().optional(),
+  formato: z.string().max(100).nullable().optional(),
+  fotos: z.array(z.string().url()).optional(),
+  visible: z.boolean().optional(),
+  slug: z.string().max(120).nullable().optional(),
+});
 
 export async function GET() {
   const guard = await requireAdmin();
@@ -56,17 +44,20 @@ export async function POST(req: Request) {
   if ('error' in guard) return guard.error;
   const { supabase } = guard;
 
-  const body = (await req.json()) as ProductInput;
-  if (!body?.nombre?.trim()) return NextResponse.json({ error: 'Falta nombre' }, { status: 400 });
-  if (typeof body.precio !== 'number') return NextResponse.json({ error: 'Falta precio' }, { status: 400 });
+  const raw = await req.json();
+  const parsed = ProductCreateSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors }, { status: 400 });
+  }
 
-  const fotos = Array.isArray(body.fotos) ? body.fotos : [];
+  const body = parsed.data;
+  const fotos = body.fotos ?? [];
   const slug = (body.slug?.trim() || slugify(body.nombre))?.slice(0, 120);
 
   const payload = {
     nombre: body.nombre.trim(),
     descripcion_regenerativa: body.descripcion_regenerativa ?? null,
-    precio: Math.round(body.precio),
+    precio: body.precio,
     stock: body.stock ?? null,
     formato: body.formato ?? null,
     fotos,
@@ -84,16 +75,20 @@ export async function PATCH(req: Request) {
   if ('error' in guard) return guard.error;
   const { supabase } = guard;
 
-  const body = (await req.json()) as ProductInput;
-  if (!body?.id) return NextResponse.json({ error: 'Falta id' }, { status: 400 });
+  const raw = await req.json();
+  const parsed = ProductPatchSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors }, { status: 400 });
+  }
 
+  const body = parsed.data;
   const fotos = body.fotos ? (Array.isArray(body.fotos) ? body.fotos : []) : undefined;
   const slug = body.slug != null ? (body.slug.trim() || slugify(body.nombre || '')) : undefined;
 
   const patch: Record<string, unknown> = {};
   if (body.nombre != null) patch.nombre = body.nombre.trim();
   if (body.descripcion_regenerativa !== undefined) patch.descripcion_regenerativa = body.descripcion_regenerativa;
-  if (body.precio != null) patch.precio = Math.round(body.precio);
+  if (body.precio != null) patch.precio = body.precio;
   if (body.stock !== undefined) patch.stock = body.stock;
   if (body.formato !== undefined) patch.formato = body.formato;
   if (fotos !== undefined) patch.fotos = fotos;
@@ -104,4 +99,3 @@ export async function PATCH(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ data });
 }
-

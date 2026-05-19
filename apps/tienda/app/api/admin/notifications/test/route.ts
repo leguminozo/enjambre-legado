@@ -1,41 +1,30 @@
-import { createClient } from '@/utils/supabase/server';
+import { requireAdmin } from '@/lib/require-admin';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
-type Body = {
-  channel?: string;
-  recipient?: string;
-  subject?: string;
-  body?: string;
-};
-
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: NextResponse.json({ error: 'No autenticado' }, { status: 401 }) };
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, role')
-    .eq('id', user.id)
-    .maybeSingle();
-  if (!profile || (profile.role !== 'tienda_admin' && profile.role !== 'gerente')) {
-    return { error: NextResponse.json({ error: 'Sin permisos' }, { status: 403 }) };
-  }
-  return { supabase, profile };
-}
+const NotificationTestSchema = z.object({
+  channel: z.enum(['email', 'sms', 'push']).optional(),
+  recipient: z.string().max(200).optional(),
+  subject: z.string().max(500).optional(),
+  body: z.string().max(5000).optional(),
+});
 
 export async function POST(request: Request) {
   const guard = await requireAdmin();
   if ('error' in guard) return guard.error;
-  const { supabase, profile } = guard;
+  const { supabase, userId } = guard;
 
-  const body = (await request.json().catch(() => ({}))) as Body;
-  const channel = body.channel?.trim() || 'email';
-  const recipient = body.recipient?.trim() || 'admin@example.com';
-  const subject = body.subject?.trim() || 'Notificación de prueba';
-  const message = body.body?.trim() || 'Evento de prueba enviado desde Integraciones.';
+  const raw = await request.json().catch(() => ({}));
+  const parsed = NotificationTestSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors }, { status: 400 });
+  }
+
+  const body = parsed.data;
+  const channel = body.channel || 'email';
+  const recipient = body.recipient || 'admin@example.com';
+  const subject = body.subject || 'Notificación de prueba';
+  const message = body.body || 'Evento de prueba enviado desde Integraciones.';
 
   const { data, error } = await supabase
     .from('notification_events')
@@ -46,7 +35,7 @@ export async function POST(request: Request) {
       body: message,
       status: 'sent',
       provider_response: { mode: 'test', at: new Date().toISOString() },
-      created_by: profile.id,
+      created_by: userId,
     })
     .select()
     .single();
@@ -63,4 +52,3 @@ export async function POST(request: Request) {
     { status: 202 },
   );
 }
-

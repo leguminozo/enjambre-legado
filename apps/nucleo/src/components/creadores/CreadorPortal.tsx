@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
 import {
   Sparkles, Copy, Check, TrendingUp, DollarSign,
   Users, Gift, ArrowUpRight, Loader2, AlertCircle,
@@ -114,10 +115,10 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
       if (usosRes.data) setUsos(usosRes.data);
       if (metRes.data) setMetricas(metRes.data);
       if (retRes.data) setRetiros(retRes.data);
-    } catch (err) {
-      console.error('Error fetching creador data:', err);
-      showToast('Error al cargar datos', 'error');
-    } finally {
+	} catch (err) {
+			console.error('Error fetching creador data:', err);
+			showToast(friendlyError(err, 'Error al cargar datos'), 'error');
+		} finally {
       setLoading(false);
     }
   };
@@ -149,25 +150,25 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
         p_datos_pago: datosPago,
       });
 
-      if (error) {
-        if (error.message === 'TOO_MANY_PENDING') {
-          showToast('Máximo 3 retiros pendientes simultáneos', 'error');
-        } else if (error.message === 'INSUFFICIENT_BALANCE') {
-          showToast('Balance insuficiente', 'error');
-        } else {
-          throw error;
-        }
-        return;
-      }
+		if (error) {
+				if (error.message === 'TOO_MANY_PENDING') {
+					showToast('Máximo 3 retiros pendientes simultáneos', 'error');
+				} else if (error.message === 'INSUFFICIENT_BALANCE') {
+					showToast('Balance insuficiente', 'error');
+				} else {
+					showToast(friendlySupabaseError(error), 'error');
+				}
+				return;
+			}
 
       showToast('Solicitud de retiro enviada', 'success');
       setShowRetiroForm(false);
       setRetiroForm({ monto: 0, metodo: 'transferencia', datos: '' });
       await fetchCreadorData();
-    } catch (err) {
-      console.error('Error creating retiro:', err);
-      showToast('Error al solicitar retiro', 'error');
-    }
+	} catch (err) {
+			console.error('Error creating retiro:', err);
+			showToast(friendlyError(err, 'Error al solicitar retiro'), 'error');
+		}
   };
 
   const copyCode = () => {

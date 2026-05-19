@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
     if (!isSupabaseConfigured()) {
       if (path.startsWith('/api/')) {
         return NextResponse.json(
-          { error: 'Supabase no configurado. Define NEXT_PUBLIC_SUPABASE_URL y clave pública en Vercel.' },
+		{ error: 'El sistema no está configurado. Contacta al administrador.' },
           { status: 503 },
         );
       }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Sparkles, Check, AlertCircle, Loader2, Tag } from 'lucide-react';
+import { friendlySupabaseError } from '@enjambre/ui';
 
 interface CreadorCodeInputProps {
   onCodeValidated?: (data: {
@@ -51,7 +52,7 @@ export function CreadorCodeInput({ onCodeValidated, onDiscountChange }: CreadorC
 
       if (rpcError || !data) {
         setResult(null);
-        setError('Código no válido');
+        setError(friendlySupabaseError(rpcError));
         onCodeValidated?.(null);
         onDiscountChange?.(0);
         return;
@@ -69,7 +70,7 @@ export function CreadorCodeInput({ onCodeValidated, onDiscountChange }: CreadorC
       onCodeValidated?.(validated);
       onDiscountChange?.(data.descuento_cliente);
     } catch {
-      setError('Error al validar código');
+      setError('No se pudo validar el código en este momento');
       setResult(null);
       onCodeValidated?.(null);
       onDiscountChange?.(0);

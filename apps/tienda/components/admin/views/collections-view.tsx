@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { MoreHorizontal, Plus, Search, Settings2, Tag, Upload, LayoutGrid } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { mockCollections } from '@/lib/mock-admin-data';
+import { formatDate as formatDateBase } from '@enjambre/ui';
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+  return formatDateBase(iso, { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 export function CollectionsView() {

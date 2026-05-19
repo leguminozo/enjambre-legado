@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { SCENE_DARK } from '@/lib/colors';
 
 // Estructura simulada de GDD. Luego vendrá de API Meteo.
 const especiesNativas = [
@@ -11,7 +12,7 @@ export default function OraculoFloracion() {
   const [datos, setDatos] = useState(especiesNativas);
 
   return (
-    <div className="card card-accent animate-in delay-2" style={{ background: '#1a1614', border: '1px solid rgba(228,163,43,0.15)' }}>
+    <div className="card card-accent animate-in delay-2" style={{ background: SCENE_DARK, border: '1px solid rgba(228,163,43,0.15)' }}>
       <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)', color: 'var(--oro-miel)' }}>
         Oráculo Fenológico (GDD)
       </div>

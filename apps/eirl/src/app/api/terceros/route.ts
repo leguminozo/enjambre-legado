@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireEirlAuth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+  const authError = requireEirlAuth(request);
+  if (authError) return authError;
   try {
     const { searchParams } = new URL(request.url);
-    const tipo = searchParams.get('tipo'); // "Cliente" o "Proveedor"
+    const empresaId = searchParams.get('empresaId');
+    const tipo = searchParams.get('tipo');
 
-    const whereClause: any = {};
+    if (!empresaId) {
+      return NextResponse.json({ error: 'Empresa ID es requerido' }, { status: 400 });
+    }
+
+    const whereClause: { empresaId: string; tipo?: string } = { empresaId };
     if (tipo) {
       whereClause.tipo = tipo;
     }
@@ -26,16 +34,16 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const authError2 = requireEirlAuth(request);
+  if (authError2) return authError2;
   try {
     const body = await request.json();
-    const { tipo, rut, nombre, email, telefono, direccion, giro } = body;
+    const { empresaId, tipo, rut, nombre, email, telefono, direccion, giro } = body;
 
-    // Validaciones básicas
-    if (!tipo || !rut || !nombre) {
-      return NextResponse.json({ error: 'Tipo, RUT y nombre son requeridos' }, { status: 400 });
+    if (!empresaId || !tipo || !rut || !nombre) {
+      return NextResponse.json({ error: 'Empresa ID, tipo, RUT y nombre son requeridos' }, { status: 400 });
     }
 
-    // Verificar si ya existe un tercero con ese RUT
     const existingTercero = await db.tercero.findUnique({
       where: { rut }
     });
@@ -44,9 +52,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Ya existe un tercero con ese RUT' }, { status: 400 });
     }
 
-    // Crear tercero
     const tercero = await db.tercero.create({
       data: {
+        empresaId,
         tipo,
         rut,
         nombre,

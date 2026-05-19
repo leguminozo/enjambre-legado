@@ -5,11 +5,11 @@ import { PosHeader } from '@/components/pos/pos-header';
 export default function PosLayout({ children }: { children: React.ReactNode }) {
   return (
     <CartProvider>
-      <div className="min-h-screen bg-black text-stone-200 font-sans selection:bg-[#D4A017] selection:text-black">
+      <div className="min-h-screen bg-black text-stone-200 font-sans selection:bg-primary selection:text-black">
         {/* Ambient glow */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-[#D4A017]/5 blur-[120px]" />
-          <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-[#D4A017]/5 blur-[120px]" />
+          <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/5 blur-[120px]" />
+          <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-primary/5 blur-[120px]" />
         </div>
 
         <div className="relative z-10 flex flex-col min-h-screen">

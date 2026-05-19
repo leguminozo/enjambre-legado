@@ -42,8 +42,8 @@ export function PosHeader() {
     <header className="border-b border-stone-900 bg-black/80 backdrop-blur-md px-8 py-5 flex items-center justify-between sticky top-0 z-50">
       <div className="flex items-center gap-12">
         <Link href="/" className="group flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#D4A017] rounded-full flex items-center justify-center font-serif text-black font-bold">O</div>
-          <span className="font-serif text-xl tracking-tight text-white group-hover:text-[#D4A017] transition-colors">Campo</span>
+          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center font-serif text-black font-bold">O</div>
+          <span className="font-serif text-xl tracking-tight text-white group-hover:text-primary transition-colors">Campo</span>
         </Link>
 
         <nav className="hidden md:flex gap-8">
@@ -55,7 +55,7 @@ export function PosHeader() {
                 key={item.href}
                 href={item.href} 
                 className={`flex items-center gap-2 text-sm font-medium tracking-widest uppercase transition-all ${
-                  isActive ? 'text-[#D4A017]' : 'text-stone-500 hover:text-stone-200'
+                  isActive ? 'text-primary' : 'text-stone-500 hover:text-stone-200'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -85,7 +85,7 @@ export function PosHeader() {
         ) : (
           <Link 
             href="/login" 
-            className="px-6 py-2 bg-stone-900 text-stone-300 text-sm font-medium rounded-full border border-stone-800 hover:border-[#D4A017]/30 transition-all"
+            className="px-6 py-2 bg-stone-900 text-stone-300 text-sm font-medium rounded-full border border-stone-800 hover:border-primary/30 transition-all"
           >
             Entrar
           </Link>

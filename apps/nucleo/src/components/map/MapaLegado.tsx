@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { supabase } from '../../lib/supabase';
 import L from 'leaflet';
+import { BOSQUE_ULMO, ORO_MIEL, ORO_MIEL_DARK, SALUD_OPTIMA } from '@/lib/colors';
 import 'leaflet/dist/leaflet.css';
 import { timelineEvents, type MapMarker } from '../../data/mockData';
 
@@ -160,12 +161,12 @@ export default function MapaLegado({ height = '500px', filterRole }: MapaLegadoP
                         >
                             <Popup>
                                 <div style={{ minWidth: 180 }}>
-                                    <div style={{ fontSize: '0.7rem', color: '#888', marginBottom: 4 }}>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 4 }}>
                                         {getMarkerTypeLabel(marker.type)}
                                     </div>
-                                    <strong style={{ fontSize: '0.95rem', color: '#0A3D2F' }}>{marker.name}</strong>
+                                    <strong style={{ fontSize: '0.95rem', color: BOSQUE_ULMO }}>{marker.name}</strong>
                                     {marker.details && (
-                                        <p style={{ fontSize: '0.82rem', color: '#555', marginTop: 6, lineHeight: 1.4 }}>
+                                        <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: 6, lineHeight: 1.4 }}>
                                             {marker.details}
                                         </p>
                                     )}
@@ -206,17 +207,17 @@ export default function MapaLegado({ height = '500px', filterRole }: MapaLegadoP
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{
                             width: 14, height: 14, borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)',
-                            background: 'linear-gradient(135deg, #D4A017, #B8890F)', display: 'inline-block', border: '2px solid #2ECC71'
+                            background: `linear-gradient(135deg, ${ORO_MIEL}, ${ORO_MIEL_DARK})`, display: 'inline-block', border: `2px solid ${SALUD_OPTIMA}`
                         }} /> Obrera dorada (colmena)
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#0A3D2F', border: '2px solid #D4A017', display: 'inline-block' }} /> Zángano (expansión)
+                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: BOSQUE_ULMO, border: `2px solid ${ORO_MIEL}`, display: 'inline-block' }} /> Zángano (expansión)
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 10, height: 13, borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%', background: '#D4A017', display: 'inline-block', border: '2px solid white' }} /> Gota de néctar (venta)
+                        <span style={{ width: 10, height: 13, borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%', background: ORO_MIEL, display: 'inline-block', border: '2px solid white' }} /> Gota de néctar (venta)
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#2ECC71', border: '2px solid #0A3D2F', display: 'inline-block' }} /> Árbol ulmo (bosque)
+                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: SALUD_OPTIMA, border: `2px solid ${BOSQUE_ULMO}`, display: 'inline-block' }} /> Árbol ulmo (bosque)
                     </span>
                 </div>
             </div>

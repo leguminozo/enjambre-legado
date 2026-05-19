@@ -1,0 +1,14 @@
+export const BOSQUE_ULMO = '#0A3D2F';
+export const BOSQUE_ULMO_LIGHT = '#0E5240';
+export const BOSQUE_ULMO_DARK = '#062A1F';
+export const ORO_MIEL = '#D4A017';
+export const ORO_MIEL_LIGHT = '#E8B832';
+export const ORO_MIEL_DARK = '#B8890F';
+export const ORO_MIEL_ALT = '#E4A32B';
+export const CREMA_NATURAL = '#FDFBF7';
+export const NEGRO_TINTA = '#111111';
+export const TEXT_MUTED = '#8A9AAF';
+export const SALUD_OPTIMA = '#2ECC71';
+export const SALUD_RIESGO = '#E74C3C';
+export const SCENE_BG = '#051510';
+export const SCENE_DARK = '#1a1614';

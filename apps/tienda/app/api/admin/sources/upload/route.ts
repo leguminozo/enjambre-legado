@@ -1,51 +1,13 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { requireAdmin } from '@/lib/require-admin';
+import { splitCsvLine } from '@enjambre/ui';
+import { z } from 'zod';
 
-type SourceType = 'boletas' | 'bancos' | 'sii' | 'notificaciones';
+const SourceUploadSchema = z.object({
+  sourceType: z.enum(['boletas', 'bancos', 'sii', 'notificaciones']),
+});
 
-function splitCsvLine(line: string): string[] {
-  const out: string[] = [];
-  let cur = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i += 1) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        cur += '"';
-        i += 1;
-      } else {
-        inQuotes = !inQuotes;
-      }
-      continue;
-    }
-    if (ch === ',' && !inQuotes) {
-      out.push(cur.trim());
-      cur = '';
-      continue;
-    }
-    cur += ch;
-  }
-  out.push(cur.trim());
-  return out;
-}
-
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: NextResponse.json({ error: 'No autenticado' }, { status: 401 }) };
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, role')
-    .eq('id', user.id)
-    .maybeSingle();
-  if (!profile || (profile.role !== 'tienda_admin' && profile.role !== 'gerente')) {
-    return { error: NextResponse.json({ error: 'Sin permisos' }, { status: 403 }) };
-  }
-  return { supabase, profileId: profile.id as string };
-}
+type SourceType = z.infer<typeof SourceUploadSchema>['sourceType'];
 
 function parseBoletasCsv(text: string, sourceFileId: string) {
   const lines = text.split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
@@ -106,14 +68,17 @@ function parseBankCsv(text: string, sourceFileId: string) {
 export async function POST(request: Request) {
   const guard = await requireAdmin();
   if ('error' in guard) return guard.error;
-  const { supabase, profileId } = guard;
+  const { supabase, userId } = guard;
 
   const form = await request.formData();
-  const sourceType = (form.get('sourceType') as SourceType | null) ?? null;
-  const file = form.get('file');
-  if (!sourceType || !['boletas', 'bancos', 'sii', 'notificaciones'].includes(sourceType)) {
-    return NextResponse.json({ error: 'sourceType inválido' }, { status: 400 });
+  const sourceTypeRaw = form.get('sourceType') as string | null;
+  const parsed = SourceUploadSchema.safeParse({ sourceType: sourceTypeRaw });
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'sourceType inválido', details: parsed.error.flatten().fieldErrors }, { status: 400 });
   }
+
+  const sourceType = parsed.data.sourceType;
+  const file = form.get('file');
   if (!(file instanceof File)) {
     return NextResponse.json({ error: 'Falta archivo' }, { status: 400 });
   }
@@ -132,7 +97,7 @@ export async function POST(request: Request) {
       filename: file.name,
       mime_type: file.type || null,
       storage_path: path,
-      uploaded_by: profileId,
+      uploaded_by: userId,
       status: 'uploaded',
       meta: { size: file.size },
     })
@@ -178,4 +143,3 @@ export async function POST(request: Request) {
     inserted,
   });
 }
-

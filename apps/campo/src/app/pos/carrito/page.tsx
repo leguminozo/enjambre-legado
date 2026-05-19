@@ -60,7 +60,7 @@ export default function CarritoPage() {
   if (!ready) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-[#D4A017] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         <p className="mt-4 text-stone-500 font-light tracking-widest uppercase text-xs">Sincronizando carrito...</p>
       </div>
     );
@@ -105,7 +105,7 @@ export default function CarritoPage() {
       <div className="lg:col-span-2">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl font-serif">Carrito</h1>
-          <Link href="/pos/catalogo" className="text-[#D4A017] flex items-center gap-2 text-sm font-medium hover:underline">
+          <Link href="/pos/catalogo" className="text-primary flex items-center gap-2 text-sm font-medium hover:underline">
             <ArrowLeft className="w-4 h-4" /> Volver al catálogo
           </Link>
         </div>
@@ -130,21 +130,21 @@ export default function CarritoPage() {
                 <div className="flex items-center gap-4 bg-black rounded-full border border-stone-800 p-1">
                   <button 
                     onClick={() => setQty(l.producto_id, Math.max(1, l.cantidad - 1))}
-                    className="p-2 hover:text-[#D4A017] transition-colors"
+                    className="p-2 hover:text-primary transition-colors"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="w-8 text-center font-mono font-bold">{l.cantidad}</span>
                   <button 
                     onClick={() => setQty(l.producto_id, l.cantidad + 1)}
-                    className="p-2 hover:text-[#D4A017] transition-colors"
+                    className="p-2 hover:text-primary transition-colors"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
 
                 <div className="text-right min-w-[100px]">
-                  <p className="font-mono font-bold text-[#D4A017]">
+                  <p className="font-mono font-bold text-primary">
                     {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(l.precio_unitario * l.cantidad)}
                   </p>
                 </div>
@@ -176,7 +176,7 @@ export default function CarritoPage() {
               <select
                 value={origen}
                 onChange={(e) => setOrigen(e.target.value as VentaOrigen)}
-                className="w-full bg-black border border-stone-800 rounded-2xl px-4 py-3 text-sm focus:border-[#D4A017] outline-none transition-all appearance-none"
+                className="w-full bg-black border border-stone-800 rounded-2xl px-4 py-3 text-sm focus:border-primary outline-none transition-all appearance-none"
               >
                 <option value="feria">Feria / Pop-up</option>
                 <option value="local">Local Físico</option>
@@ -186,7 +186,7 @@ export default function CarritoPage() {
 
           <div className="flex justify-between items-end mb-8">
             <span className="text-sm uppercase tracking-widest text-stone-500 font-bold">Total</span>
-            <span className="text-4xl font-serif text-[#D4A017]">
+            <span className="text-4xl font-serif text-primary">
               {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(total)}
             </span>
           </div>
@@ -194,7 +194,7 @@ export default function CarritoPage() {
           <button
             onClick={() => void confirmarVenta()}
             disabled={loading || lines.length === 0}
-            className="w-full py-5 bg-[#D4A017] hover:bg-[#b88a14] text-black rounded-full font-bold shadow-2xl shadow-[#D4A017]/10 transition-all transform active:scale-95 disabled:opacity-30 disabled:grayscale"
+            className="w-full py-5 bg-primary hover:bg-primary/90 text-black rounded-full font-bold shadow-2xl shadow-primary/10 transition-all transform active:scale-95 disabled:opacity-30 disabled:grayscale"
           >
             {loading ? (
               <div className="flex items-center justify-center gap-2">

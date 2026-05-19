@@ -4,10 +4,18 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 // Usuario administrador por defecto (en producción usar base de datos)
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required. Remove this file if using Supabase Auth instead.');
+}
+
+if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD_HASH) {
+  throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD_HASH env vars are required. Remove this file if using Supabase Auth instead.');
+}
+
 const adminUser = {
   id: '1',
-  email: 'admin@verano.com',
-  password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+  email: process.env.ADMIN_EMAIL,
+  password: process.env.ADMIN_PASSWORD_HASH,
   name: 'Administrador',
   role: 'admin'
 };
@@ -47,8 +55,8 @@ router.post('/login', async (req, res) => {
         email: adminUser.email, 
         role: adminUser.role 
       },
-      process.env.JWT_SECRET || 'verano-secret-key',
-      { expiresIn: '24h' }
+    process.env.JWT_SECRET,
+    { expiresIn: '24h' }
     );
 
     res.json({
@@ -84,7 +92,7 @@ router.get('/verify', (req, res) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'verano-secret-key');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     res.json({
       success: true,

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { SCENE_DARK } from '@/lib/colors';
 
 // Simularemos 24 horas de predicción
 // HR < 85, precip < 0.2, viento < 25 -> Volable
@@ -24,7 +25,7 @@ export default function VentanasDeVuelo() {
   const cy = 100;
 
   return (
-    <div className="card animate-in delay-3" style={{ background: '#1a1614', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div className="card animate-in delay-3" style={{ background: SCENE_DARK, border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <div className="section-title" style={{ width: '100%', fontSize: '1rem', marginBottom: 'var(--space-md)', color: 'var(--crema-natural)' }}>
         Ventanas de Vuelo
       </div>

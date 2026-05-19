@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { friendlySupabaseError, friendlyApiError } from '@enjambre/ui';
 
 type ItemRow = {
   producto_id: string;
@@ -12,7 +13,7 @@ type ItemRow = {
 export async function POST(request: Request) {
   const supabase = await createClient();
   if (!supabase) {
-    return NextResponse.json({ error: 'Supabase no configurado' }, { status: 503 });
+		return NextResponse.json({ error: 'El sistema no está configurado' }, { status: 503 });
   }
 
   const {
@@ -32,21 +33,21 @@ export async function POST(request: Request) {
   try {
     body = (await request.json()) as typeof body;
   } catch {
-    return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
+		return NextResponse.json({ error: 'Los datos enviados no son válidos' }, { status: 400 });
   }
 
   if (body.origen !== 'feria' && body.origen !== 'local') {
-    return NextResponse.json({ error: 'origen debe ser feria o local' }, { status: 400 });
+		return NextResponse.json({ error: 'El origen debe ser feria o local' }, { status: 400 });
   }
 
   const items = Array.isArray(body.items) ? body.items : [];
   if (items.length === 0) {
-    return NextResponse.json({ error: 'items vacío' }, { status: 400 });
+		return NextResponse.json({ error: 'No hay productos en la venta' }, { status: 400 });
   }
 
   const total = Math.max(0, Math.round(Number(body.total ?? 0)));
   if (total <= 0) {
-    return NextResponse.json({ error: 'total inválido' }, { status: 400 });
+		return NextResponse.json({ error: 'El total de la venta no es válido' }, { status: 400 });
   }
 
   const payload = {
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase.from('ventas').insert(payload).select('id, claim_token').single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+		return NextResponse.json({ error: friendlySupabaseError(error) }, { status: 400 });
   }
 
   return NextResponse.json({ ok: true, id: data?.id, claim_token: data?.claim_token });

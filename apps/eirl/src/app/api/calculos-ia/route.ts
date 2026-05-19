@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import ZAI from 'z-ai-web-dev-sdk';
+import { requireEirlAuth } from '@/lib/auth';
 
 interface CalculoImpuestosRequest {
   empresaId: string;
@@ -23,7 +24,15 @@ interface ProyeccionUtilidadRequest {
   factoresExternos?: string[];
 }
 
+interface OptimizacionFiscalRequest {
+  empresaId: string;
+}
+
+type ZAIClient = Awaited<ReturnType<typeof ZAI.create>>;
+
 export async function POST(request: NextRequest) {
+  const authError = requireEirlAuth(request);
+  if (authError) return authError;
   try {
     const body = await request.json();
     const { tipo, parametros } = body;
@@ -66,10 +75,10 @@ export async function POST(request: NextRequest) {
           prompt = generarPromptProyeccionUtilidad(parametros as ProyeccionUtilidadRequest);
           break;
 
-        case 'OptimizacionFiscal':
-          resultado = await optimizacionFiscal(zai, parametros);
-          prompt = generarPromptOptimizacionFiscal(parametros);
-          break;
+      case 'OptimizacionFiscal':
+        resultado = await optimizacionFiscal(zai, parametros as OptimizacionFiscalRequest);
+        prompt = generarPromptOptimizacionFiscal(parametros as OptimizacionFiscalRequest);
+        break;
 
         default:
           throw new Error(`Tipo de cálculo no soportado: ${tipo}`);
@@ -114,7 +123,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function calcularImpuestosMensuales(zai: any, params: CalculoImpuestosRequest) {
+async function calcularImpuestosMensuales(zai: ZAIClient, params: CalculoImpuestosRequest) {
   // Obtener datos reales si no se proporcionan
   let datos = { ...params };
   
@@ -169,7 +178,7 @@ async function calcularImpuestosMensuales(zai: any, params: CalculoImpuestosRequ
   return resultado;
 }
 
-async function calcularPPM(zai: any, params: CalculoPPMRequest) {
+async function calcularPPM(zai: ZAIClient, params: CalculoPPMRequest) {
   const prompt = generarPromptPPM(params);
   
   const completion = await zai.chat.completions.create({
@@ -203,7 +212,7 @@ async function calcularPPM(zai: any, params: CalculoPPMRequest) {
   return resultado;
 }
 
-async function proyectarUtilidad(zai: any, params: ProyeccionUtilidadRequest) {
+async function proyectarUtilidad(zai: ZAIClient, params: ProyeccionUtilidadRequest) {
   const prompt = generarPromptProyeccionUtilidad(params);
   
   const completion = await zai.chat.completions.create({
@@ -248,7 +257,7 @@ async function proyectarUtilidad(zai: any, params: ProyeccionUtilidadRequest) {
   return resultado;
 }
 
-async function optimizacionFiscal(zai: any, params: any) {
+async function optimizacionFiscal(zai: ZAIClient, params: OptimizacionFiscalRequest) {
   const prompt = generarPromptOptimizacionFiscal(params);
   
   const completion = await zai.chat.completions.create({
@@ -337,7 +346,7 @@ Considera estacionalidad y contexto económico actual.
 `;
 }
 
-function generarPromptOptimizacionFiscal(params: any): string {
+function generarPromptOptimizacionFiscal(_params: OptimizacionFiscalRequest): string {
   return `
 Como asesor fiscal experto en EIRL PROPYME, proporciona recomendaciones de optimización fiscal:
 

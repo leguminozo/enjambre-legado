@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { TreePine, Camera, MapPin, Leaf, Plus, ChevronDown } from 'lucide-react';
+import { BOSQUE_ULMO_DARK, BOSQUE_ULMO, BOSQUE_ULMO_LIGHT } from '@/lib/colors';
 
 interface TreeRecord {
     id: string; species: string; count: number; date: string; location: string; co2: number; status: 'creciendo' | 'adulto' | 'joven';
@@ -37,7 +38,7 @@ export default function RegeneracionView() {
 
     return (
         <div>
-            <div className="hero-banner animate-in" style={{ background: 'linear-gradient(135deg, #062A1F 0%, #0A3D2F 50%, #0E5240 100%)' }}>
+            <div className="hero-banner animate-in" style={{ background: `linear-gradient(135deg, ${BOSQUE_ULMO_DARK} 0%, ${BOSQUE_ULMO} 50%, ${BOSQUE_ULMO_LIGHT} 100%)` }}>
                 <div className="hero-greeting">Módulo de Regeneración 🌿</div>
                 <h1 className="hero-title">Cada árbol plantado es un legado que el tiempo honra</h1>
                 <p className="hero-subtitle">22 años de reforestación nativa en Chiloé. Cada lote de miel está vinculado directamente a los árboles que alimentan a las abejas.</p>

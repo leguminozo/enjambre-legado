@@ -75,10 +75,10 @@ export default function ContableView() {
           border: "1px solid rgba(10,61,47,0.12)",
           fontSize: "0.88rem",
           lineHeight: 1.5,
-          color: "var(--text-secondary, #374151)",
+          color: "var(--text-secondary)",
         }}
       >
-        <strong style={{ color: "var(--bosque-ulmo, #0a3d2f)" }}>Estado:</strong> la UI ya está integrada.
+        <strong style={{ color: "var(--bosque-ulmo)" }}>Estado:</strong> la UI ya está integrada.
         Las <strong>migraciones Supabase</strong> y el enlace al proyecto remoto se harán al mover este repo a su
         carpeta destino final. Mientras tanto, levanta el BFF en <code style={{ fontSize: "0.82em" }}>{API_BASE_URL}</code>{" "}
         (<code style={{ fontSize: "0.82em" }}>pnpm --filter @enjambre/api dev</code>) cuando quieras probar contra datos
@@ -91,7 +91,7 @@ export default function ContableView() {
         <StatCard label="Utilidad neta" value={metricas?.utilidadNeta ?? 0} />
       </section>
 
-      <section style={{ padding: 16, border: "1px solid #d1d5db", borderRadius: 12 }}>
+      <section style={{ padding: 16, border: "1px solid var(--crema-dark)", borderRadius: 12 }}>
         <h3 style={{ marginTop: 0 }}>Crear factura emitida</h3>
         <form onSubmit={onSubmit} style={{ display: "grid", gap: 8, maxWidth: 480 }}>
           <input
@@ -124,12 +124,12 @@ export default function ContableView() {
           </button>
         </form>
         {createFactura.isError ? (
-          <p style={{ color: "#b91c1c" }}>{(createFactura.error as Error).message}</p>
+          <p style={{ color: "var(--salud-riesgo)" }}>{(createFactura.error as Error).message}</p>
         ) : null}
       </section>
 
       {dashboardQuery.isError ? (
-        <p style={{ color: "#b91c1c", margin: 0 }}>
+        <p style={{ color: "var(--salud-riesgo)", margin: 0 }}>
           {(dashboardQuery.error as Error).message}
         </p>
       ) : null}
@@ -139,8 +139,8 @@ export default function ContableView() {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div style={{ border: "1px solid #d1d5db", borderRadius: 12, padding: 12 }}>
-      <div style={{ fontSize: 12, color: "#6b7280" }}>{label}</div>
+  <div style={{ border: "1px solid var(--crema-dark)", borderRadius: 12, padding: 12 }}>
+    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{label}</div>
       <div style={{ fontSize: 24, fontWeight: 700 }}>{value.toLocaleString("es-CL")}</div>
     </div>
   );

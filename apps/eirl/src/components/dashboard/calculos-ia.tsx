@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Brain, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { formatDate } from '@/lib/format';
 
 interface CalculoIA {
   id: string;
@@ -42,18 +43,9 @@ export function CalculosIA({ calculos }: CalculosIAProps) {
       default:
         return tipo;
     }
-  };
+};
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-CL', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  if (calculos.length === 0) {
+if (calculos.length === 0) {
     return (
       <Card className="bg-black border-gray-800">
         <CardHeader>

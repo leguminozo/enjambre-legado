@@ -6,25 +6,20 @@ import {
   BarChart3,
   Bell,
   Cable,
-  Gift,
   FileText,
   Home,
   LogOut,
-  Mail,
   Menu,
   Package,
   Search,
   Settings,
   ShoppingCart,
-  Smartphone,
   Store,
   Tag,
-  TrendingUp,
   Users,
   X,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/components/providers/auth-context';
+import React, { useState } from 'react';
 
 type NavItem = {
   name: string;
@@ -44,28 +39,25 @@ const navigation: NavItem[] = [
   { name: 'Configuración', href: '/settings', icon: Settings },
 ];
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+interface AdminShellClientProps {
+  children: React.ReactNode;
+  name: string;
+  role: string;
+}
+
+export function AdminShellClient({ children, name, role }: AdminShellClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout, isAuthenticated, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
-  useEffect(() => {
-    if (loading) return;
-    if (!isAuthenticated) {
-      router.replace('/login');
-      return;
-    }
-
-    const authorizedRoles = ['tienda_admin', 'gerente'];
-    if (user && !authorizedRoles.includes(user.role)) {
-      console.warn(`Access denied for role: ${user.role}`);
-      router.replace('/');
-    }
-  }, [loading, isAuthenticated, user, router]);
-
   const handleLogout = async () => {
-    await logout();
+    try {
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch {
+      // fallback
+    }
     router.push('/login');
   };
 
@@ -74,14 +66,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     if (href === '/dashboard') return pathname === '/dashboard';
     return pathname.startsWith(href);
   };
-
-  if (loading || !isAuthenticated || (user && !['tienda_admin', 'gerente'].includes(user.role))) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-accent/30">
@@ -145,7 +129,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
             <div className="flex-1 max-w-xl mx-8 hidden sm:block">
               <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group:focus-within:text-accent transition-colors" />
                 <input
                   type="search"
                   placeholder="Explorar legado..."
@@ -164,15 +148,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-4 pl-6 border-l border-border">
                 <div className="flex flex-col items-end hidden md:flex">
                   <span className="text-[0.7rem] font-medium text-foreground tracking-wide">
-                    {user?.name || 'Administrador'}
+                    {name}
                   </span>
                   <span className="text-[0.6rem] text-accent uppercase tracking-[0.2em] font-semibold">
-                    {user?.role === 'gerente' ? 'Gerencia Real' : 'Admin Tienda'}
+                    {role === 'gerente' ? 'Gerencia Real' : 'Admin Tienda'}
                   </span>
                 </div>
                 <div className="h-10 w-10 bg-gradient-to-br from-accent to-accent/60 rounded-full p-[1px]">
                   <div className="w-full h-full bg-card rounded-full flex items-center justify-center">
-                    <span className="text-accent font-display font-bold text-sm">{user?.name?.charAt(0).toUpperCase() || 'A'}</span>
+                    <span className="text-accent font-display font-bold text-sm">{name.charAt(0).toUpperCase()}</span>
                   </div>
                 </div>
               </div>

@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { getUrlCampo, getUrlTienda } from '../lib/publicUrls';
 import { Hexagon, Lock, Mail, User, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
 import { AuthHero } from '../components/auth/AuthHero';
+import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
 import gsap from 'gsap';
 
 export default function AuthView() {
@@ -72,9 +73,9 @@ export default function AuthView() {
                     setIsLogin(true);
                 }
             }
-        } catch (err: any) {
-            setError(err.message || 'Error de autenticación');
-        } finally {
+	} catch (err: unknown) {
+		setError(friendlyError(err, 'Error de autenticación'));
+	} finally {
             setLoading(false);
         }
     };

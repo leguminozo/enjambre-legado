@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireEirlAuth } from '@/lib/auth';
+import { Prisma } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
+  const authError = requireEirlAuth(request);
+  if (authError) return authError;
   try {
     const { searchParams } = new URL(request.url);
     const empresaId = searchParams.get('empresaId');
@@ -31,6 +35,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const authError2 = requireEirlAuth(request);
+  if (authError2) return authError2;
   try {
     const body = await request.json();
     const { empresaId, tipo, periodo, mes, anio } = body;
@@ -53,7 +59,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Generar datos del reporte según el tipo
-    let datosReporte: any = {};
+    let datosReporte: Record<string, unknown> = {};
 
     switch (tipo) {
       case 'BalanceGeneral':
@@ -96,8 +102,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function generarBalanceGeneral(empresaId: string, anio?: number, mes?: number) {
-  // Obtener períodos contables
-  const whereClause: any = { empresaId };
+  const whereClause: Prisma.PeriodoContableWhereInput = { empresaId };
   if (anio) whereClause.anio = anio;
   if (mes) whereClause.mes = mes;
 
@@ -143,7 +148,7 @@ async function generarBalanceGeneral(empresaId: string, anio?: number, mes?: num
 }
 
 async function generarEstadoResultados(empresaId: string, anio?: number, mes?: number) {
-  const whereClause: any = { empresaId };
+  const whereClause: Prisma.PeriodoContableWhereInput = { empresaId };
   if (anio) whereClause.anio = anio;
   if (mes) whereClause.mes = mes;
 
@@ -194,7 +199,7 @@ async function generarEstadoResultados(empresaId: string, anio?: number, mes?: n
 }
 
 async function generarFlujoEfectivo(empresaId: string, anio?: number, mes?: number) {
-  const whereClause: any = { empresaId };
+  const whereClause: Prisma.PeriodoContableWhereInput = { empresaId };
   if (anio) whereClause.anio = anio;
   if (mes) whereClause.mes = mes;
 
@@ -232,7 +237,7 @@ async function generarFlujoEfectivo(empresaId: string, anio?: number, mes?: numb
 }
 
 async function generarLibroCompras(empresaId: string, anio?: number, mes?: number) {
-  const whereClause: any = { empresaId };
+  const whereClause: Prisma.PeriodoContableWhereInput = { empresaId };
   if (anio) whereClause.anio = anio;
   if (mes) whereClause.mes = mes;
 
@@ -252,7 +257,7 @@ async function generarLibroCompras(empresaId: string, anio?: number, mes?: numbe
     }
   });
 
-  const compras: any[] = [];
+  const compras: Array<Record<string, unknown>> = [];
 
   periodos.forEach(periodo => {
     // Agregar facturas recibidas
@@ -305,7 +310,7 @@ async function generarLibroCompras(empresaId: string, anio?: number, mes?: numbe
 }
 
 async function generarLibroVentas(empresaId: string, anio?: number, mes?: number) {
-  const whereClause: any = { empresaId };
+  const whereClause: Prisma.PeriodoContableWhereInput = { empresaId };
   if (anio) whereClause.anio = anio;
   if (mes) whereClause.mes = mes;
 
@@ -320,7 +325,7 @@ async function generarLibroVentas(empresaId: string, anio?: number, mes?: number
     }
   });
 
-  const ventas: any[] = [];
+  const ventas: Array<Record<string, unknown>> = [];
 
   periodos.forEach(periodo => {
     periodo.facturasEmitidas.forEach(factura => {

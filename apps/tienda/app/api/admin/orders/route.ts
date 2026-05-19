@@ -1,34 +1,11 @@
-import { createClient } from '@/utils/supabase/server';
+import { requireAdmin } from '@/lib/require-admin';
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
-type PatchBody = {
-  id: string;
-  estado?: string;
-};
-
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) return { error: NextResponse.json({ error: 'No autenticado' }, { status: 401 }) };
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  if (profileError || !profile) {
-    return { error: NextResponse.json({ error: 'Perfil no encontrado' }, { status: 403 }) };
-  }
-  if (profile.role !== 'tienda_admin' && profile.role !== 'gerente') {
-    return { error: NextResponse.json({ error: 'Sin permisos' }, { status: 403 }) };
-  }
-  return { supabase };
-}
+const OrderPatchSchema = z.object({
+  id: z.string().uuid(),
+  estado: z.enum(['pendiente', 'pagado', 'enviado', 'entregado', 'cancelado']).optional(),
+});
 
 export async function GET() {
   const guard = await requireAdmin();
@@ -50,9 +27,13 @@ export async function PATCH(req: Request) {
   if ('error' in guard) return guard.error;
   const { supabase } = guard;
 
-  const body = (await req.json()) as PatchBody;
-  if (!body?.id) return NextResponse.json({ error: 'Falta id' }, { status: 400 });
+  const raw = await req.json();
+  const parsed = OrderPatchSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors }, { status: 400 });
+  }
 
+  const body = parsed.data;
   const patch: Record<string, unknown> = {};
   if (body.estado !== undefined) patch.estado = body.estado;
 
@@ -60,4 +41,3 @@ export async function PATCH(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ data });
 }
-

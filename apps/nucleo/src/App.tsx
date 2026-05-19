@@ -5,27 +5,34 @@ import AppLayout from './components/layout/AppLayout';
 import AuthView from './views/AuthView';
 import MapaView from './views/MapaView';
 import ApicultorView from './views/ApicultorView';
+import RegeneracionView from './views/RegeneracionView';
 import VendedorView from './views/VendedorView';
-import GerenteView from './views/GerenteView';
 import LogisticaView from './views/LogisticaView';
 import MarketingView from './views/MarketingView';
-import ClienteView from './views/ClienteView';
-import RegeneracionView from './views/RegeneracionView';
 import CreadorView from './views/CreadorView';
-import type { Session } from '@supabase/supabase-js';
+import GerenteView from './views/GerenteView';
 import ContableView from './views/ContableView';
+import type { Session } from '@supabase/supabase-js';
 
 const titleMap: Record<string, string> = {
   '/mapa': 'Mapa del Legado',
-  '/apicultor': 'Mis Colmenas',
-  '/apicultor/regeneracion': 'Regeneración',
-  '/vendedor': 'Catálogo Vivo',
-  '/gerente': 'Panel Ejecutivo',
-  '/logistica': 'Operaciones',
-  '/marketing': 'Comunidad',
-  '/cliente': 'Mi Legado',
-  '/contable': 'Sistema Contable',
+  '/colmenas': 'Colmenas & Apiarios',
+  '/regeneracion': 'Regeneración',
+  '/catalogo': 'Catálogo & CRM',
+  '/operaciones': 'Operaciones & Stock',
+  '/comunidad': 'Comunidad & Marketing',
   '/creador': 'Portal de Creador',
+  '/contable': 'Sistema Contable',
+  '/gerente': 'Panel Ejecutivo',
+};
+
+const roleDefaultPaths: Record<string, string> = {
+  apicultor: '/colmenas',
+  vendedor: '/catalogo',
+  gerente: '/gerente',
+  logistica: '/operaciones',
+  marketing: '/comunidad',
+  creador: '/creador',
 };
 
 function AppContent() {
@@ -81,13 +88,11 @@ function AppContent() {
       const userRole = data?.role || 'apicultor';
       setRole(userRole);
 
-      // Auto-route to their domain if they are at the root
       if (location.pathname === '/' || location.pathname === '/auth') {
-        navigate(`/${userRole}`);
+        navigate(roleDefaultPaths[userRole] || '/mapa');
       }
     } catch (err) {
       console.error("Error fetching profile role:", err);
-      // Fallback
       setRole('apicultor');
     } finally {
       setLoading(false);
@@ -111,21 +116,19 @@ function AppContent() {
   if (!role) return null;
 
   return (
-    <AppLayout currentRole={role} onRoleChange={setRole} headerTitle={headerTitle}>
+    <AppLayout currentRole={role} headerTitle={headerTitle}>
       <Routes>
-        <Route path="/mapa" element={<MapaView currentRole={role} />} />
-        <Route path="/apicultor" element={<ApicultorView />} />
-        <Route path="/apicultor/regeneracion" element={<RegeneracionView />} />
-        <Route path="/vendedor" element={<VendedorView />} />
+        <Route path="/mapa" element={<MapaView />} />
+        <Route path="/colmenas" element={<ApicultorView />} />
+        <Route path="/regeneracion" element={<RegeneracionView />} />
+        <Route path="/catalogo" element={<VendedorView />} />
+        <Route path="/operaciones" element={<LogisticaView />} />
+        <Route path="/comunidad" element={<MarketingView />} />
+        <Route path="/creador" element={<CreadorView currentRole={role ?? undefined} userId={session?.user?.id ?? undefined} />} />
+        <Route path="/contable" element={<ContableView />} />
         <Route path="/gerente" element={<GerenteView />} />
-        <Route path="/logistica" element={<LogisticaView />} />
-        <Route path="/marketing" element={<MarketingView />} />
-          <Route path="/cliente" element={<ClienteView />} />
-          <Route path="/contable" element={<ContableView />} />
-          <Route path="/creador" element={<CreadorView currentRole={role ?? undefined} userId={session?.user?.id ?? undefined} />} />
 
-        {/* Redirect unknown routes based on role */}
-        <Route path="*" element={<Navigate to={`/${role}`} replace />} />
+        <Route path="*" element={<Navigate to="/mapa" replace />} />
       </Routes>
     </AppLayout>
   );

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CalendarDays, CheckCircle2, Circle, Filter, Plus, X } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ORO_MIEL, TEXT_MUTED } from '@/lib/colors';
 import { flowPredictions } from '../../data/mockData';
 import { supabase } from '../../lib/supabase';
 import type { CalendarioTask } from '../../data/mockData';
@@ -8,7 +9,7 @@ import type { CalendarioTask } from '../../data/mockData';
 const categoryColors: Record<CalendarioTask['category'], string> = {
     inspeccion: 'var(--bosque-ulmo)', cosecha: 'var(--oro-miel-dark)',
     tratamiento: 'var(--salud-riesgo)', reforestacion: 'var(--salud-optima)',
-    transhumancia: '#3498DB', cera: 'var(--text-muted)',
+    transhumancia: 'var(--info)', cera: 'var(--text-muted)',
 };
 const categoryLabels: Record<CalendarioTask['category'], string> = {
     inspeccion: '🔍 Inspección', cosecha: '🍯 Cosecha',
@@ -116,16 +117,16 @@ export default function CalendarioCiclico() {
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={flowPredictions}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(10,61,47,0.08)" />
-                            <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="#8A9AAF"
-                                tickFormatter={v => v.slice(5)} />
-                            <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="#8A9AAF" />
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke={TEXT_MUTED}
+            tickFormatter={v => v.slice(5)} />
+          <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
                             <Tooltip
                                 contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.78rem' }}
-                                formatter={(v: any, name: any) =>
-                                    name === 'flujoIndex' ? [`${v}/100`, 'Flujo néctar'] : [v, name]}
+          formatter={(v: number, name: string) =>
+            name === 'flujoIndex' ? [`${v}/100`, 'Flujo néctar'] : [v, name]}
                                 labelFormatter={l => `📅 ${l}`}
                             />
-                            <Area type="monotone" dataKey="flujoIndex" stroke="#D4A017"
+                            <Area type="monotone" dataKey="flujoIndex" stroke={ORO_MIEL}
                                 fill="rgba(212,160,23,0.15)" strokeWidth={2} name="flujoIndex" />
                         </AreaChart>
                     </ResponsiveContainer>

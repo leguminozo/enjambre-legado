@@ -1,36 +1,11 @@
-import { createClient } from '@/utils/supabase/server';
 import {
   findForbiddenConfigKeys,
   redactIntegrationConfig,
 } from '@/lib/integration-config-security';
 import { getSecretsPresenceForIntegrationKey } from '@/lib/integrations-env';
+import { requireAdmin } from '@/lib/require-admin';
 import { NextResponse } from 'next/server';
-
-type PatchBody = {
-  key: string;
-  enabled?: boolean;
-  config?: Record<string, unknown>;
-  name?: string;
-};
-
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: NextResponse.json({ error: 'No autenticado' }, { status: 401 }) };
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle();
-  if (!profile || (profile.role !== 'tienda_admin' && profile.role !== 'gerente')) {
-    return { error: NextResponse.json({ error: 'Sin permisos' }, { status: 403 }) };
-  }
-
-  return { supabase };
-}
+import { z } from 'zod';
 
 type IntegrationRow = {
   id: string;
@@ -68,6 +43,13 @@ function toPublicRow(row: {
   };
 }
 
+const IntegrationPatchSchema = z.object({
+  key: z.string().min(1).max(100),
+  enabled: z.boolean().optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
+  name: z.string().min(1).max(200).optional(),
+});
+
 export async function GET() {
   const guard = await requireAdmin();
   if ('error' in guard) return guard.error;
@@ -88,8 +70,13 @@ export async function PATCH(req: Request) {
   if ('error' in guard) return guard.error;
   const { supabase } = guard;
 
-  const body = (await req.json()) as PatchBody;
-  if (!body?.key) return NextResponse.json({ error: 'Falta key' }, { status: 400 });
+  const raw = await req.json();
+  const parsed = IntegrationPatchSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors }, { status: 400 });
+  }
+
+  const body = parsed.data;
 
   if (body.config !== undefined) {
     const forbidden = findForbiddenConfigKeys(body.config);

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Eye, Edit, Trash2, Plus } from "lucide-react";
+import { formatDate } from '@/lib/format';
 
 interface Factura {
   id: string;
@@ -79,11 +80,7 @@ export function ListaFacturas({ onNuevaFactura, onVerFactura, onEditarFactura }:
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-CL');
-  };
-
-  if (loading) {
+if (loading) {
     return (
       <Card className="bg-black border-gray-800">
         <CardContent className="flex items-center justify-center h-64">

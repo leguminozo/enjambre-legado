@@ -10,9 +10,8 @@ export const metadata: Metadata = {
 export default async function CancelacionPage() {
   const contentData = await getSiteContent('legal_cancelacion');
   const item = contentData[0]?.content;
-
-  const title = item?.title || 'Política de Cancelación';
-  const content = item?.body || `
+  const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Política de Cancelación';
+  const content = (item && typeof item === 'object' && 'body' in item ? String(item.body) : null) || `
     Entendemos que los planes pueden cambiar, así como el clima en el sur.
     
     1. Cancelación de Pedidos
@@ -32,7 +31,7 @@ export default async function CancelacionPage() {
     <LegalContent 
       title={title}
       content={content}
-      lastUpdated={item?.updated_at || 'Mayo 2026'}
+      lastUpdated={(item && typeof item === 'object' && 'updated_at' in item ? String(item.updated_at) : null) || 'Mayo 2026'}
     />
   );
 }

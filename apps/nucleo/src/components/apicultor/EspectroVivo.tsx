@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Meyda from 'meyda';
 import { Mic, MicOff, Activity } from 'lucide-react';
+import { SCENE_DARK } from '@/lib/colors';
 
 export default function EspectroVivo() {
   const [isRecording, setIsRecording] = useState(false);
@@ -41,7 +42,7 @@ export default function EspectroVivo() {
     setFeatures(null);
   };
 
-  const draw = (data: any) => {
+  const draw = (data: { rms: number; spectralCentroid: number }) => {
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -79,7 +80,7 @@ export default function EspectroVivo() {
   }, []);
 
   return (
-    <div className="card animate-in delay-4" style={{ background: '#1a1614', border: '1px solid rgba(228,163,43,0.1)' }}>
+    <div className="card animate-in delay-4" style={{ background: SCENE_DARK, border: '1px solid rgba(228,163,43,0.1)' }}>
       <div className="section-header" style={{ marginBottom: 'var(--space-md)' }}>
         <div>
           <div className="section-title" style={{ fontSize: '1rem', color: 'var(--oro-miel)', display: 'flex', alignItems: 'center', gap: 8 }}>

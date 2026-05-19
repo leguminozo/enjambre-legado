@@ -10,9 +10,8 @@ export const metadata: Metadata = {
 export default async function PrivacidadPage() {
   const contentData = await getSiteContent('legal_privacidad');
   const item = contentData[0]?.content;
-
-  const title = item?.title || 'Política de Privacidad';
-  const content = item?.body || `
+  const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Política de Privacidad';
+  const content = (item && typeof item === 'object' && 'body' in item ? String(item.body) : null) || `
     En La Obrera y el Zángano, valoramos tu privacidad tanto como la pureza de nuestro néctar.
     
     1. Recolección de Datos
@@ -32,7 +31,7 @@ export default async function PrivacidadPage() {
     <LegalContent 
       title={title}
       content={content}
-      lastUpdated={item?.updated_at || 'Mayo 2026'}
+      lastUpdated={(item && typeof item === 'object' && 'updated_at' in item ? String(item.updated_at) : null) || 'Mayo 2026'}
     />
   );
 }

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
 import { AddToCartButton } from './add-to-cart-button';
 import { Search, Info } from 'lucide-react';
+import { friendlySupabaseError } from '@enjambre/ui';
 
 type ProductoRow = {
   id: string;
@@ -21,7 +22,7 @@ export default async function CatalogoPage() {
   if (!supabase) {
     return (
       <div className="p-8 bg-red-950/20 border border-red-900/30 rounded-3xl text-red-400">
-        <p className="text-sm font-medium">Supabase no está configurado. Revisa variables de entorno.</p>
+		<p className="text-sm font-medium">El sistema no está configurado. Contacta al administrador.</p>
       </div>
     );
   }
@@ -35,7 +36,7 @@ export default async function CatalogoPage() {
   if (error) {
     return (
       <div className="p-8 bg-red-950/20 border border-red-900/30 rounded-3xl text-red-400">
-        <p className="text-sm font-medium">No se pudo cargar el catálogo: {error.message}</p>
+		<p className="text-sm font-medium">No se pudo cargar el catálogo: {friendlySupabaseError(error)}</p>
       </div>
     );
   }
@@ -53,11 +54,11 @@ export default async function CatalogoPage() {
         </div>
         
         <div className="relative group min-w-[300px]">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-600 group-focus-within:text-[#D4A017] transition-colors" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-600 group-focus-within:text-primary transition-colors" />
           <input 
             type="text" 
             placeholder="Buscar producto..."
-            className="w-full bg-stone-900/50 border border-stone-800 rounded-full pl-12 pr-6 py-3 text-sm focus:border-[#D4A017] outline-none transition-all"
+            className="w-full bg-stone-900/50 border border-stone-800 rounded-full pl-12 pr-6 py-3 text-sm focus:border-primary outline-none transition-all"
           />
         </div>
       </div>
@@ -72,12 +73,12 @@ export default async function CatalogoPage() {
           list.map((p) => (
             <div
               key={p.id}
-              className="group bg-stone-900/40 backdrop-blur-sm border border-stone-800 p-6 rounded-[32px] transition-all hover:border-[#D4A017]/30 hover:bg-stone-900/60 flex flex-col"
+              className="group bg-stone-900/40 backdrop-blur-sm border border-stone-800 p-6 rounded-[32px] transition-all hover:border-primary/30 hover:bg-stone-900/60 flex flex-col"
             >
               <div className="flex-1">
                 <div className="flex justify-between items-start mb-4">
-                  <h2 className="font-serif text-xl group-hover:text-[#D4A017] transition-colors">{p.nombre ?? 'Sin nombre'}</h2>
-                  <span className="bg-[#D4A017]/10 text-[#D4A017] text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-tighter">
+                  <h2 className="font-serif text-xl group-hover:text-primary transition-colors">{p.nombre ?? 'Sin nombre'}</h2>
+                  <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-tighter">
                     {p.formato ?? 'Estándar'}
                   </span>
                 </div>

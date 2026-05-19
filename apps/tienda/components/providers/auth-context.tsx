@@ -1,6 +1,7 @@
 'use client';
 
 import { createClient } from '@/utils/supabase/client';
+import { friendlySupabaseError } from '@enjambre/ui';
 import React, {
   createContext,
   useCallback,
@@ -79,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: email.trim(),
       password,
     });
-    if (error) return { success: false, message: error.message || 'Credenciales incorrectas' };
+    if (error) return { success: false, message: friendlySupabaseError(error) };
 
     const u = await loadUser();
     setUser(u);
@@ -103,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     });
 
-    if (authError) return { success: false, message: authError.message };
+    if (authError) return { success: false, message: friendlySupabaseError(authError) };
     if (!authData.user) return { success: false, message: 'No se pudo crear el usuario' };
 
     // 2. Create profile (Supabase might have a trigger, but we ensure it here)
@@ -116,8 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: 'cliente', // Default role
       });
 
-    if (profileError && profileError.code !== '23505') { // Ignore unique constraint if trigger already created it
-      return { success: false, message: profileError.message };
+if (profileError && profileError.code !== '23505') {
+    return { success: false, message: friendlySupabaseError(profileError) };
     }
 
     const u = await loadUser();

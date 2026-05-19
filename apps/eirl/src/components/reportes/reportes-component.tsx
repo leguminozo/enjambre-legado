@@ -19,6 +19,7 @@ import {
   BookOpen,
   DollarSign
 } from "lucide-react";
+import { formatDate } from '@/lib/format';
 
 interface Reporte {
   id: string;
@@ -174,19 +175,9 @@ export function ReportesComponent({ empresaId }: ReportesComponentProps) {
       default:
         return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
     }
-  };
+};
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-CL', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const tiposReporte = [
+const tiposReporte = [
     { value: 'BalanceGeneral', label: 'Balance General', icon: BarChart3 },
     { value: 'EstadoResultados', label: 'Estado de Resultados', icon: TrendingUp },
     { value: 'FlujoEfectivo', label: 'Flujo de Efectivo', icon: DollarSign },

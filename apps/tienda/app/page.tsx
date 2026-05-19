@@ -1,8 +1,17 @@
-import { getSiteContent } from '@/lib/cms';
+import { getSiteContent, type SiteSectionItem } from '@/lib/cms';
 import TiendaLandingView from './landing-view';
 
+type ServicioItem = { num: string; title: string; desc: string };
+type TallerItem = { date: string; title: string; desc: string; action: string };
+type ColeccionItem = { kicker: string; title: string; desc: string; href: string };
+type FooterBranding = { tagline: string; email: string };
+type FooterLink = { label: string; href: string };
+
+function extractContent<T>(items: SiteSectionItem[]): T[] {
+  return items.map((item) => item.content as T);
+}
+
 export default async function TiendaPage() {
-  // Fetch dynamic content
   const serviciosData = await getSiteContent('servicios');
   const talleresData = await getSiteContent('talleres');
   const coleccionesData = await getSiteContent('colecciones');
@@ -10,9 +19,8 @@ export default async function TiendaPage() {
   const footerNavData = await getSiteContent('footer_nav');
   const footerLegalData = await getSiteContent('footer_legal');
 
-  // Map to the format expected by the view
-  const servicios = serviciosData.length > 0 
-    ? serviciosData.map(item => item.content)
+  const servicios = serviciosData.length > 0
+    ? extractContent<ServicioItem>(serviciosData)
     : [
         { num: '01', title: 'Distribución Mayorista', desc: 'Suministro directo para hoteles, restaurantes y selectos comercios. Volumen mínimo 50kg.' },
         { num: '02', title: 'Envasado Privado', desc: 'Etiquetado personalizado para eventos corporativos, matrimonios y regalos de alto standing.' },
@@ -21,7 +29,7 @@ export default async function TiendaPage() {
       ];
 
   const talleres = talleresData.length > 0
-    ? talleresData.map(item => item.content)
+    ? extractContent<TallerItem>(talleresData)
     : [
         { date: 'Próxima fecha — Junio 2026', title: 'La Arquitectura de la Colmena', desc: 'Tres días de inmersión en el bosque de Chiloé. Aprendizaje práctico sobre el manejo respetuoso de la abeja nativa y la extracción artesanal.', action: 'Solicitar cupo' },
         { date: 'Bimensual', title: 'Cata de Mieles Oscuras', desc: 'Sesiones sensoriales guiadas para identificar notas, texturas y orígenes botánicos. Desarrollo del paladar para mieles monoflorales.', action: 'Inscribirse' },
@@ -29,7 +37,7 @@ export default async function TiendaPage() {
       ];
 
   const colecciones = coleccionesData.length > 0
-    ? coleccionesData.map(item => item.content)
+    ? extractContent<ColeccionItem>(coleccionesData)
     : [
         { kicker: 'Sachets', title: 'Gotas de Néctar', desc: '¡Lleva contigo la dulzura del bosque! Perfecto tamaño para tus experiencias diarias.', href: '/catalogo' },
         { kicker: 'Frascos Medios', title: 'Tesoros del Colmenar', desc: '¡La dulzura boscosa en tu mesa! En tus preparaciones y en cada cucharada.', href: '/catalogo' },
@@ -40,9 +48,9 @@ export default async function TiendaPage() {
       ];
 
   const footerData = {
-    branding: footerBrandingData[0]?.content || { tagline: '¡Seamos Legado! Luce saludable. Sé parte del cambio.', email: 'hola@obrerayzangano.com' },
-    nav: footerNavData.length > 0 ? footerNavData.map(item => item.content) : [],
-    legal: footerLegalData.length > 0 ? footerLegalData.map(item => item.content) : []
+    branding: (footerBrandingData[0]?.content ?? { tagline: '¡Seamos Legado! Luce saludable. Sé parte del cambio.', email: 'hola@obrerayzangano.com' }) as FooterBranding,
+    nav: footerNavData.length > 0 ? extractContent<FooterLink>(footerNavData) : [],
+    legal: footerLegalData.length > 0 ? extractContent<FooterLink>(footerLegalData) : []
   };
 
   return (

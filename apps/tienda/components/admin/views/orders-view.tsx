@@ -4,16 +4,7 @@ import Link from 'next/link';
 import { CloudUpload, List, Plus, Search, Settings2, ShoppingBag, Loader2, ArrowRight } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { formatCLP } from '@/lib/shop/format';
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-CL', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+import { formatDate } from '@enjambre/ui';
 
 type VentaRow = {
   id: string;

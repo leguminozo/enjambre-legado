@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { ShoppingBag, Users, MapPin, CalendarDays, TrendingUp, Star, ArrowUpRight, QrCode, Truck, X, ChevronDown, Plus, Minus } from 'lucide-react';
 import { roleGreetings, type Product } from '../data/mockData';
 import { supabase } from '../lib/supabase';
+import { friendlySupabaseError } from '@enjambre/ui';
 
 function mapProductoRow(p: Record<string, unknown>): Product {
     const precio = Number(p.precio) || 0;
@@ -154,13 +155,13 @@ export default function VendedorView() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                 <ShoppingBag size={20} />
                                 <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>Modo Feria (POS Offline)</span>
-                                <span className="badge badge-success" style={{ fontSize: '0.65rem', background: 'rgba(46,204,113,0.2)' }}>● Offline Sync</span>
+								<span className="badge badge-success" style={{ fontSize: '0.65rem', background: 'rgba(46,204,113,0.2)' }}>● Sincronización local</span>
                             </div>
                             <button onClick={() => setShowPos(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><X size={20} /></button>
                         </div>
                         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
                             {/* Product List */}
-                            <div style={{ flex: 2, borderRight: '1px solid rgba(10,61,47,0.1)', overflowY: 'auto', padding: 'var(--space-lg)', background: '#FAFAFA' }}>
+                            <div style={{ flex: 2, borderRight: '1px solid rgba(10,61,47,0.1)', overflowY: 'auto', padding: 'var(--space-lg)', background: 'var(--crema-warm)' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 'var(--space-md)' }}>
                                     {products.map(p => (
                                         <div key={p.id} style={{ background: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(10,61,47,0.08)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column' }}>
@@ -222,16 +223,16 @@ export default function VendedorView() {
                                                     estado: 'completada',
                                                     offline_synced: typeof navigator !== 'undefined' ? !navigator.onLine : false,
                                                 });
-                                                if (error) throw error;
-                                            }
-                                            alert(typeof navigator !== 'undefined' && !navigator.onLine
-                                                ? 'Venta guardada localmente; se sincronizará al recuperar red.'
-                                                : 'Venta registrada correctamente.');
-                                            setPosCart({});
-                                            setShowPos(false);
-                                        } catch (e) {
-                                            console.error('Error POS:', e);
-                                            alert('No se pudo registrar la venta. Revisa conexión o permisos.');
+					if (error) throw error;
+						}
+						alert(typeof navigator !== 'undefined' && !navigator.onLine
+							? 'Venta guardada localmente; se sincronizará al recuperar conexión.'
+							: 'Venta registrada correctamente.');
+						setPosCart({});
+						setShowPos(false);
+					} catch (e) {
+						console.error('Error POS:', e);
+						alert('No se pudo registrar la venta. Verifica tu conexión o intenta de nuevo.');
                                         } finally {
                                             setLoadingPos(false);
                                         }
@@ -272,7 +273,7 @@ export default function VendedorView() {
                         </div>
                         {products.length === 0 && (
                             <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 'var(--space-lg)', fontSize: '0.9rem' }}>
-                                No hay productos en Supabase todavía. Carga filas en la tabla <code>productos</code> o sincroniza desde la tienda.
+						No hay productos disponibles todavía. Carga productos desde la tienda o sincroniza el catálogo.
                             </p>
                         )}
                         <div className="product-grid">
@@ -356,7 +357,7 @@ export default function VendedorView() {
                             { label: 'Modo Feria (POS offline)', icon: <ShoppingBag size={16} />, desc: 'Cobro QR sin conexión', action: () => setShowPos(true) },
                             { label: 'Ruta óptima del día', icon: <MapPin size={16} />, desc: '3 paradas · 42 km', action: () => alert('Mapa de ruta en desarrollo...') },
                             { label: 'Generar etiquetas QR', icon: <QrCode size={16} />, desc: 'Lote activo: #2026-ULM-047', action: () => setShowQR(true) },
-                            { label: 'Reporte de ventas', icon: <TrendingUp size={16} />, desc: 'Febrero 2026', action: () => alert('Descargando reporte Csv/PDF...') },
+                            { label: 'Reporte de ventas', icon: <TrendingUp size={16} />, desc: 'Febrero 2026', action: () => alert('Descargando reporte...') },
                         ].map((action, i) => (
                             <button key={i} className="btn btn-ghost" onClick={action.action} style={{ width: '100%', justifyContent: 'space-between', padding: 'var(--space-md)', marginBottom: 'var(--space-xs)', textAlign: 'left' }}>
                                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{action.icon}<span><span style={{ display: 'block' }}>{action.label}</span><span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>{action.desc}</span></span></span>

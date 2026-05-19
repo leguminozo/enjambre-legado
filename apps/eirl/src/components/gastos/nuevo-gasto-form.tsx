@@ -17,7 +17,7 @@ interface Tercero {
 }
 
 interface NuevoGastoFormProps {
-  onSave: (gasto: any) => void;
+  onSave: (gasto: Record<string, unknown>) => void;
   onCancel: () => void;
 }
 
@@ -122,10 +122,11 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          tipo: 'Proveedor',
-          ...nuevoProveedor
-        })
+              body: JSON.stringify({
+                tipo: 'Proveedor',
+                empresaId: "temp-empresa-id",
+                ...nuevoProveedor
+              })
       });
 
       if (response.ok) {

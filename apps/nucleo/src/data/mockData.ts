@@ -321,7 +321,7 @@ export const mapMarkers: MapMarker[] = [
 
 export const roleLabels: Record<string, string> = {
     apicultor: 'Apicultor / Colmenero', vendedor: 'Vendedor / Comercial', gerente: 'Gerente / Dueño',
-    logistica: 'Logística y Operaciones', marketing: 'Marketing y Comunidad', cliente: 'Cliente Final',
+    logistica: 'Logística y Operaciones', marketing: 'Marketing y Comunidad',
 };
 
 export const roleGreetings: Record<string, { greeting: string; title: string; subtitle: string }> = {
@@ -330,5 +330,4 @@ export const roleGreetings: Record<string, { greeting: string; title: string; su
     gerente: { greeting: 'Bienvenida, Visión del Enjambre 👑', title: 'El legado crece: cada decisión transforma el bosque', subtitle: 'Producción en 2.8 ton (+18% vs 2025). Margen por sachet: 72%. El simulador proyecta 5 ton para 2027.' },
     logistica: { greeting: 'Hola, Arquitecto de Flujos 📦', title: 'Del panal al consumidor, sin perder una gota', subtitle: '12 envíos pendientes. Stock en Castro óptimo. Ruta Chiloé→Santiago: camión sale jueves.' },
     marketing: { greeting: 'Hola, Narrador del Bosque 🌿', title: 'La historia de cada árbol merece ser contada', subtitle: 'Club Legado: 47 guardianes activos. Próxima campaña: "Regala un árbol con cada cofre" lanza el 8 de marzo.' },
-    cliente: { greeting: '¡Bienvenido, Guardián del Legado! 🌳', title: 'Tu compra regenera bosque nativo', subtitle: 'Has ayudado a plantar 12 árboles y secuestrar 0.6 ton de CO₂. Gracias por ser parte del legado.' },
-};
+  };

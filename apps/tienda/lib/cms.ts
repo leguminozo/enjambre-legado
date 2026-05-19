@@ -3,7 +3,7 @@ import { createClient } from '@/utils/supabase/server';
 export type SiteSectionItem = {
   id: string;
   section_key: string;
-  content: any;
+  content: Record<string, unknown>;
   item_order: number;
 };
 

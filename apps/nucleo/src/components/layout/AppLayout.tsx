@@ -1,27 +1,27 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Map, Hexagon, ShoppingBag, BarChart3, Truck, Megaphone, User, Bell, Search, Menu, X, TreePine, LogOut, Calculator, Sparkles } from 'lucide-react';
+import { Map, Hexagon, TreePine, ShoppingBag, Truck, Megaphone, Bell, Search, Menu, X, LogOut, Calculator, Sparkles, BarChart3 } from 'lucide-react';
 import { roleLabels } from '../../data/mockData';
 import { supabase } from '../../lib/supabase';
 import { getUrlCampo, getUrlTienda } from '../../lib/publicUrls';
 
-interface AppLayoutProps { children: React.ReactNode; currentRole: string; onRoleChange: (role: string) => void; headerTitle: string; }
+interface AppLayoutProps {
+  children: React.ReactNode;
+  currentRole: string;
+  headerTitle: string;
+}
 
-const navItems: Record<string, { label: string; icon: React.ReactNode; path: string }[]> = {
-    shared: [
-        { label: 'Mapa del Legado', icon: <Map size={18} />, path: '/mapa' },
-        { label: 'Sistema Contable', icon: <Calculator size={18} />, path: '/contable' },
-    ],
-    apicultor: [{ label: 'Mis Colmenas', icon: <Hexagon size={18} />, path: '/apicultor' }, { label: 'Regeneración', icon: <TreePine size={18} />, path: '/apicultor/regeneracion' }],
-    vendedor: [{ label: 'Catálogo Vivo', icon: <ShoppingBag size={18} />, path: '/vendedor' }],
-    gerente: [{ label: 'Panel Ejecutivo', icon: <BarChart3 size={18} />, path: '/gerente' }],
-    logistica: [{ label: 'Operaciones', icon: <Truck size={18} />, path: '/logistica' }],
-  marketing: [{ label: 'Comunidad', icon: <Megaphone size={18} />, path: '/marketing' }],
-  creador: [{ label: 'Portal Creador', icon: <Sparkles size={18} />, path: '/creador' }],
-  cliente: [{ label: 'Mi Legado', icon: <User size={18} />, path: '/cliente' }],
-};
-
-const rolePaths: Record<string, string> = { apicultor: '/apicultor', vendedor: '/vendedor', gerente: '/gerente', logistica: '/logistica', marketing: '/marketing', creador: '/creador', cliente: '/cliente' };
+const allNavItems: { label: string; icon: React.ReactNode; path: string }[] = [
+  { label: 'Mapa del Legado', icon: <Map size={18} />, path: '/mapa' },
+  { label: 'Colmenas & Apiarios', icon: <Hexagon size={18} />, path: '/colmenas' },
+  { label: 'Regeneración', icon: <TreePine size={18} />, path: '/regeneracion' },
+  { label: 'Catálogo & CRM', icon: <ShoppingBag size={18} />, path: '/catalogo' },
+  { label: 'Operaciones & Stock', icon: <Truck size={18} />, path: '/operaciones' },
+  { label: 'Comunidad & Marketing', icon: <Megaphone size={18} />, path: '/comunidad' },
+  { label: 'Portal de Creador', icon: <Sparkles size={18} />, path: '/creador' },
+  { label: 'Sistema Contable', icon: <Calculator size={18} />, path: '/contable' },
+  { label: 'Panel Ejecutivo', icon: <BarChart3 size={18} />, path: '/gerente' },
+];
 
 const notifications = [
     { id: 1, text: 'Colmena Quilineja Vieja sin reina detectada', type: 'danger', time: 'Hace 2h' },
@@ -31,46 +31,39 @@ const notifications = [
     { id: 5, text: 'Flujo de néctar de tepú en aumento', type: 'success', time: 'Hace 2d' },
 ];
 
-export default function AppLayout({ children, currentRole, onRoleChange, headerTitle }: AppLayoutProps) {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [searchOpen, setSearchOpen] = useState(false);
-    const [notifOpen, setNotifOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [readNotifs, setReadNotifs] = useState<number[]>([]);
-    const [userName, setUserName] = useState<string>('Usuario');
-    const searchRef = useRef<HTMLInputElement>(null);
-    const location = useLocation();
-    const navigate = useNavigate();
+export default function AppLayout({ children, currentRole, headerTitle }: AppLayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [readNotifs, setReadNotifs] = useState<number[]>([]);
+  const [userName, setUserName] = useState<string>('Usuario');
+  const searchRef = useRef<HTMLInputElement>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        async function fetchUser() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                // Try to get from metadata first
-                if (session.user.user_metadata?.full_name) {
-                    setUserName(session.user.user_metadata.full_name);
-                } else {
-                    // Fallback to profile
-                    const { data } = await supabase.from('profiles').select('full_name').eq('id', session.user.id).single();
-                    if (data?.full_name) setUserName(data.full_name);
-                }
-            }
-        }
-        fetchUser();
-    }, []);
+  useEffect(() => {
+  async function fetchUser() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+  if (session.user.user_metadata?.full_name) {
+  setUserName(session.user.user_metadata.full_name);
+  } else {
+  const { data } = await supabase.from('profiles').select('full_name').eq('id', session.user.id).single();
+  if (data?.full_name) setUserName(data.full_name);
+  }
+  }
+  }
+  fetchUser();
+  }, []);
 
-    const currentNavItems = [...navItems.shared, ...(navItems[currentRole] || [])];
+  const visibleNavItems = currentRole === 'gerente'
+    ? allNavItems
+    : allNavItems.filter(item => item.path !== '/gerente');
 
-    useEffect(() => { if (searchOpen && searchRef.current) searchRef.current.focus(); }, [searchOpen]);
+  useEffect(() => { if (searchOpen && searchRef.current) searchRef.current.focus(); }, [searchOpen]);
 
-    const handleRoleChange = (newRole: string) => {
-        onRoleChange(newRole);
-        navigate(rolePaths[newRole] || '/');
-        setSidebarOpen(false);
-    };
-
-    const allNavItems = Object.values(navItems).flat();
-    const filteredSearch = searchQuery.trim() ? allNavItems.filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase())) : [];
+  const filteredSearch = searchQuery.trim() ? allNavItems.filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase())) : [];
     const unreadCount = notifications.filter(n => !readNotifs.includes(n.id)).length;
 
     const markAllRead = () => setReadNotifs(notifications.map(n => n.id));
@@ -83,14 +76,9 @@ export default function AppLayout({ children, currentRole, onRoleChange, headerT
     return (
         <div className="app-layout">
             <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-                <div className="sidebar-brand"><div className="sidebar-brand-title">Enjambre Legado</div><div className="sidebar-brand-subtitle">Apicultura Regenerativa · Chiloé</div></div>
-                <div className="sidebar-role-selector"><div className="role-selector-label">Rol activo</div>
-                    <select className="role-selector-select" value={currentRole} onChange={e => handleRoleChange(e.target.value)}>
-                        {Object.entries(roleLabels).map(([key, label]) => (<option key={key} value={key}>{label}</option>))}
-                    </select>
-                </div>
-                <nav className="sidebar-nav"><div className="nav-section-label">Navegación</div>
-                    {currentNavItems.map(item => (
+      <div className="sidebar-brand"><div className="sidebar-brand-title">Enjambre Legado</div><div className="sidebar-brand-subtitle">Apicultura Regenerativa · Chiloé</div></div>
+      <nav className="sidebar-nav"><div className="nav-section-label">Navegación</div>
+      {visibleNavItems.map(item => (
                         <NavLink key={item.path} to={item.path} className={({ isActive }) => `nav-item ${isActive || location.pathname === item.path ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}>
                             <span className="nav-item-icon">{item.icon}</span>{item.label}
                         </NavLink>
@@ -118,7 +106,7 @@ export default function AppLayout({ children, currentRole, onRoleChange, headerT
                         <div className="sidebar-user-avatar">{userName.charAt(0).toUpperCase()}</div>
                         <div className="sidebar-user-info">
                             <div className="sidebar-user-name">{userName}</div>
-                            <div className="sidebar-user-role">{roleLabels[currentRole]}</div>
+                            <div className="sidebar-user-role">{roleLabels[currentRole] || currentRole}</div>
                         </div>
                         <button onClick={handleLogout} className="btn btn-ghost" style={{ padding: 6, color: 'var(--text-muted)' }} title="Cerrar sesión">
                             <LogOut size={16} />
@@ -189,8 +177,8 @@ export default function AppLayout({ children, currentRole, onRoleChange, headerT
             </main>
 
             {/* Mobile Bottom Navigation */}
-            <nav className="bottom-nav">
-                {currentNavItems.map(item => (
+      <nav className="bottom-nav">
+        {visibleNavItems.map(item => (
                     <NavLink key={item.path} to={item.path} className={({ isActive }) => `bottom-nav-item ${isActive || location.pathname === item.path ? 'active' : ''}`}>
                         <span className="bottom-nav-icon">{item.icon}</span>
                         <span>{item.label.split(' ')[0]}</span>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
 import { Shield, Users, Star, Check, X, AlertCircle, Loader2 } from 'lucide-react';
 
 interface Revendedor {
@@ -67,10 +68,10 @@ export default function VanguardiaPanel() {
       
       if (reviewError) throw reviewError;
       if (reviews) setResenas(reviews as unknown as Resena[]);
-    } catch (err) {
-      console.error("Error fetching vanguard data:", err);
-      showToast("Error al cargar datos de vanguardia", "error");
-    } finally {
+	} catch (err) {
+			console.error("Error fetching vanguard data:", err);
+			showToast(friendlyError(err, "Error al cargar datos de vanguardia"), "error");
+		} finally {
       setLoading(false);
     }
   };
@@ -96,10 +97,10 @@ export default function VanguardiaPanel() {
 
       showToast(`Revendedor ${status === 'activo' ? 'activado' : 'suspendido'} con éxito`, "success");
       await fetchVanguardData();
-    } catch (err) {
-      console.error("Error updating status:", err);
-      showToast("No se pudo actualizar el estado", "error");
-    } finally {
+	} catch (err) {
+			console.error("Error updating status:", err);
+			showToast(friendlyError(err, "No se pudo actualizar el estado"), "error");
+		} finally {
       setActionLoading(null);
     }
   };

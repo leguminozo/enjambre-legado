@@ -8,3 +8,6 @@ export { GrainOverlay } from './components/grain-overlay';
 export { ToastProvider, useToast } from './components/toast';
 export { tokens, type TokenKey } from './tokens';
 export { createEnjambrePreset, enjambrePreset } from './tailwind-preset';
+export { friendlySupabaseError, friendlyApiError, friendlyError } from './lib/friendly-error';
+export { splitCsvLine } from './lib/csv';
+export { formatDate, formatDateShort } from './lib/format';

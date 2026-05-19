@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { FileText, Package, Plus, Search, Edit3, Trash2, Eye, EyeOff, Loader2, ChevronRight } from 'lucide-react';
+import { FileText, Package, Plus, Search, Edit3, Trash2, Eye, EyeOff, Loader2, ChevronRight, ImageIcon, Upload, X } from 'lucide-react';
 import { createClient as createSupabaseClient } from '@/utils/supabase/client';
 import { formatCLP } from '@/lib/shop/format';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type ProductRow = {
   id: string;
@@ -28,6 +28,7 @@ export function ProductsView() {
   const [uploading, setUploading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [photoUrl, setPhotoUrl] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     nombre: '',
     descripcion_regenerativa: '',
@@ -127,6 +128,48 @@ export function ProductsView() {
     );
   }, [q, rows]);
 
+  const addPhotoByUrl = () => {
+    const url = photoUrl.trim();
+    if (!url) return;
+    setForm((prev) => ({ ...prev, fotos: [...prev.fotos, url] }));
+    setPhotoUrl('');
+  };
+
+  const removePhoto = (idx: number) => {
+    setForm((prev) => ({
+      ...prev,
+      fotos: prev.fotos.filter((_, i) => i !== idx),
+    }));
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (selectedId) formData.append('productId', selectedId);
+
+      const res = await fetch('/api/admin/products/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const json = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok) throw new Error(json.error || 'Error subiendo imagen');
+
+      if (json.url) {
+        setForm((prev) => ({ ...prev, fotos: [...prev.fotos, json.url!] }));
+      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error subiendo imagen');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-12 animate-in">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -204,12 +247,72 @@ export function ProductsView() {
                 <label className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">Relato Regenerativo (Descripción)</label>
                 <textarea
                   className="w-full bg-secondary border border-border rounded-xl px-5 py-4 text-sm text-foreground focus:outline-none focus:border-accent transition-all min-h-[160px] resize-none"
-                  placeholder="Describe el origen y las notas de este producto..."
-                  value={form.descripcion_regenerativa}
-                  onChange={(e) => setForm((prev) => ({ ...prev, descripcion_regenerativa: e.target.value }))}
+              placeholder="Describe el origen y las notas de este producto..."
+              value={form.descripcion_regenerativa}
+              onChange={(e) => setForm((prev) => ({ ...prev, descripcion_regenerativa: e.target.value }))}
+            />
+          </div>
+
+          <div className="space-y-4">
+            <label className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">Fotos del Producto</label>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {form.fotos.map((url, idx) => (
+                <div key={url} className="relative group rounded-xl overflow-hidden border border-border bg-secondary aspect-square">
+                  <img src={url} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(idx)}
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+
+              <label className="relative rounded-xl border-2 border-dashed border-border hover:border-accent/50 bg-secondary/50 aspect-square flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                  className="hidden"
+                  onChange={handleFileUpload}
                 />
-              </div>
+                {uploading ? (
+                  <Loader2 className="h-6 w-6 text-accent animate-spin" />
+                ) : (
+                  <>
+                    <Upload className="h-6 w-6 text-muted-foreground" />
+                    <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground">Subir</span>
+                  </>
+                )}
+              </label>
             </div>
+
+            <div className="flex gap-3">
+              <input
+                className="flex-1 bg-secondary border border-border rounded-xl px-5 py-3 text-xs text-foreground focus:outline-none focus:border-accent transition-all"
+                placeholder="O pega una URL de imagen..."
+                value={photoUrl}
+                onChange={(e) => setPhotoUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && photoUrl.trim()) {
+                    e.preventDefault();
+                    addPhotoByUrl();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="px-5 py-3 rounded-xl bg-secondary border border-border text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground hover:text-accent hover:border-accent/30 transition-all disabled:opacity-50"
+                onClick={addPhotoByUrl}
+                disabled={!photoUrl.trim()}
+              >
+                Agregar URL
+              </button>
+            </div>
+          </div>
+        </div>
 
             <div className="space-y-8">
               <div className="grid grid-cols-2 gap-4">

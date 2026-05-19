@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireEirlAuth } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+  const authError = requireEirlAuth(request);
+  if (authError) return authError;
   try {
     const { searchParams } = new URL(request.url);
     const empresaId = searchParams.get('empresaId');

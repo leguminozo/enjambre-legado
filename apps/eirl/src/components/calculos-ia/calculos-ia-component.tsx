@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Brain, Calculator, TrendingUp, Shield, Play, RefreshCw, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { formatDate } from '@/lib/format';
 
 interface CalculoIA {
   id: string;
@@ -53,7 +54,7 @@ export function CalculosIAComponent({ empresaId }: CalculosIAComponentProps) {
     try {
       setEjecutando(tipo);
       
-      let parametros: any = { empresaId };
+      let parametros: { empresaId: string; periodo?: string; anio?: number; mesesHistoricos?: number; factoresExternos?: string[] } = { empresaId };
       
       switch (tipo) {
         case 'ImpuestoMensual':
@@ -162,19 +163,9 @@ export function CalculosIAComponent({ empresaId }: CalculosIAComponentProps) {
       default:
         return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
     }
-  };
+};
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-CL', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const tiposCalculo = [
+const tiposCalculo = [
     { value: 'ImpuestoMensual', label: 'Impuestos Mensuales', icon: Calculator },
     { value: 'PPM', label: 'PPM Mensual', icon: TrendingUp },
     { value: 'ProyeccionUtilidad', label: 'Proyección Utilidad', icon: TrendingUp },

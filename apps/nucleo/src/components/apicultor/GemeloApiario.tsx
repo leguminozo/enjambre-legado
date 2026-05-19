@@ -2,6 +2,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Stars, Float, Text } from '@react-three/drei';
 import { useRef, useState, useMemo } from 'react';
 import * as THREE from 'three';
+import { BOSQUE_ULMO, ORO_MIEL_ALT, BOSQUE_ULMO_DARK, SCENE_BG } from '@/lib/colors';
 
 interface Colmena3DProps {
   position: [number, number, number];
@@ -19,8 +20,8 @@ function Colmena3D({ position, temp, name, weight }: Colmena3DProps) {
   const color = useMemo(() => {
     const t = Math.max(0, Math.min(1, (temp - 10) / 25));
     return new THREE.Color().lerpColors(
-      new THREE.Color('#0A3D2F'), // Bosque profundo
-      new THREE.Color('#E4A32B'), // Oro miel
+    new THREE.Color(BOSQUE_ULMO),
+    new THREE.Color(ORO_MIEL_ALT),
       t
     );
   }, [temp]);
@@ -59,7 +60,7 @@ function Colmena3D({ position, temp, name, weight }: Colmena3DProps) {
         position={[0, 0.8, 0]}
         fontSize={0.15}
         color="white"
-        font="https://fonts.gstatic.com/s/cormorantgaramond/v16/co3bmY9k-m-9K6Uks0L-9nO-P_ZzT7Oq.woff"
+        font="https://fonts.gstatic.com/s/cormorantgaramond/v17/co3bmY9k-m-9K6Uks0L-9nO-P_ZzT7Oq.woff"
       >
         {name}
       </Text>
@@ -86,7 +87,7 @@ export default function GemeloApiario() {
   ];
 
   return (
-    <div className="card animate-in delay-2" style={{ height: '500px', background: '#051510', position: 'relative', overflow: 'hidden', border: '1px solid rgba(228,163,43,0.1)' }}>
+    <div className="card animate-in delay-2" style={{ height: '500px', background: SCENE_BG, position: 'relative', overflow: 'hidden', border: '1px solid rgba(228,163,43,0.1)' }}>
       <div style={{ position: 'absolute', top: 20, left: 20, zIndex: 10, pointerEvents: 'none' }}>
         <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--oro-miel)', marginBottom: 4 }}>
           Gemelo Digital V1
@@ -101,7 +102,7 @@ export default function GemeloApiario() {
         <OrbitControls enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.1} />
         
         <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} intensity={1.5} color="#E4A32B" />
+        <pointLight position={[10, 10, 10]} intensity={1.5} color={ORO_MIEL_ALT} />
         <spotLight position={[-10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
 
         <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
@@ -109,7 +110,7 @@ export default function GemeloApiario() {
         {/* Suelo del apiario (Bosque) */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
           <planeGeometry args={[20, 20]} />
-          <meshStandardMaterial color="#062A1F" roughness={1} />
+          <meshStandardMaterial color={BOSQUE_ULMO_DARK} roughness={1} />
         </mesh>
 
         <group>
@@ -119,7 +120,7 @@ export default function GemeloApiario() {
         </group>
 
         {/* Efecto de partículas de floración simulado */}
-        <fog attach="fog" args={['#051510', 10, 25]} />
+        <fog attach="fog" args={[SCENE_BG, 10, 25]} />
       </Canvas>
 
       <div style={{ position: 'absolute', bottom: 20, right: 20, zIndex: 10, textAlign: 'right', pointerEvents: 'none' }}>

@@ -1,50 +1,7 @@
 import { NextResponse } from 'next/server';
 import { slugify } from '@/lib/shop/slug';
-import { createClient } from '@/utils/supabase/server';
-
-function splitCsvLine(line: string): string[] {
-  const out: string[] = [];
-  let cur = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i += 1) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        cur += '"';
-        i += 1;
-      } else {
-        inQuotes = !inQuotes;
-      }
-      continue;
-    }
-    if (ch === ',' && !inQuotes) {
-      out.push(cur.trim());
-      cur = '';
-      continue;
-    }
-    cur += ch;
-  }
-  out.push(cur.trim());
-  return out;
-}
-
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: NextResponse.json({ error: 'No autenticado' }, { status: 401 }) };
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle();
-  if (!profile || (profile.role !== 'tienda_admin' && profile.role !== 'gerente')) {
-    return { error: NextResponse.json({ error: 'Sin permisos' }, { status: 403 }) };
-  }
-  return { supabase };
-}
+import { requireAdmin } from '@/lib/require-admin';
+import { splitCsvLine } from '@enjambre/ui';
 
 export async function POST(request: Request) {
   const guard = await requireAdmin();

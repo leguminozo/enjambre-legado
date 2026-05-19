@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { formatCLP } from '@/lib/shop/format';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
+import { friendlySupabaseError } from '@enjambre/ui';
 import { Sparkles, Mail, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
@@ -40,9 +41,9 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
     });
 
     if (error) {
-      setMessage({ type: 'error', text: error.message });
-    } else {
-      setMessage({ type: 'success', text: '¡Revisa tu correo! Te enviamos un enlace mágico para entrar.' });
+    setMessage({ type: 'error', text: friendlySupabaseError(error) });
+      } else {
+        setMessage({ type: 'success', text: '¡Revisa tu correo! Te enviamos un enlace para entrar.' });
     }
     setLoading(false);
   }
@@ -65,7 +66,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
         .eq('claim_status', 'pending');
 
       if (error) {
-        setMessage({ type: 'error', text: error.message });
+        setMessage({ type: 'error', text: friendlySupabaseError(error) });
       } else {
         setClaimed(true);
         setTimeout(() => {
@@ -156,7 +157,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
                 disabled={loading}
                 className="w-full py-4 bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold hover:bg-foreground transition-all disabled:opacity-50"
               >
-                {loading ? 'Enviando enlace...' : 'Continuar con Magic Link'}
+                {loading ? 'Enviando enlace...' : 'Continuar con enlace mágico'}
               </button>
             </form>
           ) : (

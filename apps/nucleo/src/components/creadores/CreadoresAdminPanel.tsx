@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
 import {
   Sparkles, Users, TrendingUp, DollarSign, Check, X, AlertCircle,
   Loader2, Search, Filter, Eye, Edit3, ChevronDown, ExternalLink,
@@ -97,10 +98,10 @@ export function CreadoresAdminPanel() {
       if (revsRes.data) setCreadores(revsRes.data as unknown as CreadorRow[]);
       if (rankRes.data) setRanking(rankRes.data as unknown as RankingRow[]);
       if (retRes.data) setRetiros(retRes.data as unknown as RetiroRow[]);
-    } catch (err) {
-      console.error('Error fetching creadores data:', err);
-      showToast('Error al cargar datos de creadores', 'error');
-    } finally {
+	} catch (err) {
+			console.error('Error fetching creadores data:', err);
+			showToast(friendlyError(err, 'Error al cargar datos de creadores'), 'error');
+		} finally {
       setLoading(false);
     }
   };
@@ -123,10 +124,10 @@ export function CreadoresAdminPanel() {
 
       showToast(`Creador ${estado === 'activo' ? 'activado' : estado === 'suspendido' ? 'suspendido' : estado} con éxito`, 'success');
       await fetchAllData();
-    } catch (err) {
-      console.error('Error updating creador:', err);
-      showToast('No se pudo actualizar el estado', 'error');
-    } finally {
+	} catch (err) {
+			console.error('Error updating creador:', err);
+			showToast(friendlyError(err, 'No se pudo actualizar el estado'), 'error');
+		} finally {
       setActionLoading(null);
     }
   };
@@ -144,10 +145,10 @@ export function CreadoresAdminPanel() {
       showToast('Tasas actualizadas', 'success');
       setEditComision(null);
       await fetchAllData();
-    } catch (err) {
-      console.error('Error updating comision:', err);
-      showToast('Error al actualizar tasas', 'error');
-    } finally {
+	} catch (err) {
+			console.error('Error updating comision:', err);
+			showToast(friendlyError(err, 'Error al actualizar tasas'), 'error');
+		} finally {
       setActionLoading(null);
     }
   };
@@ -174,10 +175,10 @@ export function CreadoresAdminPanel() {
 
       showToast(`Retiro ${estado} con éxito`, 'success');
       await fetchAllData();
-    } catch (err) {
-      console.error('Error updating retiro:', err);
-      showToast('Error al procesar retiro', 'error');
-    } finally {
+	} catch (err) {
+			console.error('Error updating retiro:', err);
+			showToast(friendlyError(err, 'Error al procesar retiro'), 'error');
+		} finally {
       setActionLoading(null);
     }
   };

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, MapPin, Crown, Droplets, Scale, DollarSign, Link, AlertTriangle, CheckCircle2, ChevronRight, Plus } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BOSQUE_ULMO, BOSQUE_ULMO_LIGHT, ORO_MIEL, TEXT_MUTED } from '@/lib/colors';
 import type { Colmena } from '../../data/mockData';
 import { supabase } from '../../lib/supabase';
 
@@ -50,7 +51,7 @@ export default function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
                 padding: 0, overflow: 'hidden', animation: 'fadeInUp 0.3s ease'
             }}>
                 {/* Header */}
-                <div style={{ padding: 'var(--space-lg)', borderBottom: '1px solid rgba(10,61,47,0.08)', background: 'linear-gradient(135deg, var(--bosque-ulmo) 0%, #0E5240 100%)', color: 'var(--crema-natural)' }}>
+                <div style={{ padding: 'var(--space-lg)', borderBottom: '1px solid rgba(10,61,47,0.08)', background: `linear-gradient(135deg, var(--bosque-ulmo) 0%, ${BOSQUE_ULMO_LIGHT} 100%)`, color: 'var(--crema-natural)' }}>
                     <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 6, cursor: 'pointer', color: 'white', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ width: 12, height: 12, borderRadius: '50%', background: colmena.health === 'optimal' ? 'var(--salud-optima)' : colmena.health === 'attention' ? 'var(--salud-atencion)' : 'var(--salud-riesgo)', boxShadow: '0 0 8px currentColor', flexShrink: 0 }} />
@@ -250,10 +251,10 @@ export default function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={colmena.varroaHistory}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(10,61,47,0.08)" />
-                                        <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="#8A9AAF" />
-                                        <YAxis domain={[0, 6]} tick={{ fontSize: 11 }} stroke="#8A9AAF" />
+                                        <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
+                                        <YAxis domain={[0, 6]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
                                         <Tooltip contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.8rem' }} />
-                                        <Line type="monotone" dataKey="level" stroke="#D4A017" strokeWidth={2} dot={{ fill: '#D4A017', r: 5 }} name="Varroa/10" />
+                                        <Line type="monotone" dataKey="level" stroke={ORO_MIEL} strokeWidth={2} dot={{ fill: ORO_MIEL, r: 5 }} name="Varroa/10" />
                                     </LineChart>
                                 </ResponsiveContainer>
                             </div>
@@ -310,10 +311,10 @@ export default function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={colmena.pesoHistory}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(10,61,47,0.08)" />
-                                        <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="#8A9AAF" />
-                                        <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} stroke="#8A9AAF" />
+                                        <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
+                                        <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
                                         <Tooltip contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.8rem' }} />
-                                        <Line type="monotone" dataKey="kg" stroke="#0A3D2F" strokeWidth={2} dot={{ fill: '#0A3D2F', r: 4 }} name="Peso (kg)" />
+                                        <Line type="monotone" dataKey="kg" stroke={BOSQUE_ULMO} strokeWidth={2} dot={{ fill: BOSQUE_ULMO, r: 4 }} name="Peso (kg)" />
                                     </LineChart>
                                 </ResponsiveContainer>
                             </div>

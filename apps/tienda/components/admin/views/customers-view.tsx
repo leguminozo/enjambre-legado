@@ -5,10 +5,7 @@ import { Download, Plus, Search, Settings2, Upload, Users, ShieldCheck, Mail, Ma
 import { useMemo, useState } from 'react';
 import { mockCustomers } from '@/lib/mock-admin-data';
 import { formatCLP } from '@/lib/shop/format';
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
+import { formatDateShort as formatDate } from '@enjambre/ui';
 
 export function CustomersView() {
   const [q, setQ] = useState('');

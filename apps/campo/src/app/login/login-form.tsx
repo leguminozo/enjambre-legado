@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import { friendlySupabaseError } from '@enjambre/ui';
 
 export function LoginForm() {
   const router = useRouter();
@@ -16,14 +17,14 @@ export function LoginForm() {
     setError(null);
     const supabase = createClient();
     if (!supabase) {
-      setError('Faltan variables NEXT_PUBLIC_SUPABASE_* en este entorno.');
+		setError('El sistema no está configurado. Contacta al administrador.');
       return;
     }
     setLoading(true);
     const { error: signErr } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (signErr) {
-      setError(signErr.message);
+		setError(friendlySupabaseError(signErr));
       return;
     }
     router.push('/pos/catalogo');
@@ -34,7 +35,7 @@ export function LoginForm() {
     <form onSubmit={(e) => void onSubmit(e)} className="space-y-4">
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-          Email
+		Correo
         </label>
         <input
           id="email"
@@ -64,7 +65,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-[#0A3D2F] py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="w-full rounded-xl bg-bosque py-3 text-sm font-medium text-white disabled:opacity-50"
       >
         {loading ? 'Entrando…' : 'Entrar'}
       </button>

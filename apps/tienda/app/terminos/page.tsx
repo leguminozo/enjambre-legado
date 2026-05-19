@@ -10,9 +10,8 @@ export const metadata: Metadata = {
 export default async function TerminosPage() {
   const contentData = await getSiteContent('legal_terminos');
   const item = contentData[0]?.content;
-
-  const title = item?.title || 'Términos del Servicio';
-  const content = item?.body || `
+  const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Términos del Servicio';
+  const content = (item && typeof item === 'object' && 'body' in item ? String(item.body) : null) || `
     Bienvenido a la experiencia digital de La Obrera y el Zángano. Al acceder a este sitio, aceptas los siguientes términos:
     
     1. Propiedad Intelectual
@@ -32,7 +31,7 @@ export default async function TerminosPage() {
     <LegalContent 
       title={title}
       content={content}
-      lastUpdated={item?.updated_at || 'Mayo 2026'}
+      lastUpdated={(item && typeof item === 'object' && 'updated_at' in item ? String(item.updated_at) : null) || 'Mayo 2026'}
     />
   );
 }

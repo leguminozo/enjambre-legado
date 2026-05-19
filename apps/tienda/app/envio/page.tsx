@@ -10,9 +10,8 @@ export const metadata: Metadata = {
 export default async function EnvioPage() {
   const contentData = await getSiteContent('legal_envio');
   const item = contentData[0]?.content;
-
-  const title = item?.title || 'Política de Envío';
-  const content = item?.body || `
+  const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Política de Envío';
+  const content = (item && typeof item === 'object' && 'body' in item ? String(item.body) : null) || `
     Nuestras mieles viajan desde Chiloé y otros territorios remotos para llegar a tu mesa.
     
     1. Tiempos de Despacho
@@ -35,7 +34,7 @@ export default async function EnvioPage() {
     <LegalContent 
       title={title}
       content={content}
-      lastUpdated={item?.updated_at || 'Mayo 2026'}
+      lastUpdated={(item && typeof item === 'object' && 'updated_at' in item ? String(item.updated_at) : null) || 'Mayo 2026'}
     />
   );
 }

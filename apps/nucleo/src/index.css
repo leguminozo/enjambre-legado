@@ -1067,7 +1067,7 @@ img {
 
 /* ── Hero Banner ── */
 .hero-banner {
-  background: linear-gradient(135deg, var(--bosque-ulmo) 0%, var(--bosque-ulmo-dark) 50%, #041A13 100%);
+  background: linear-gradient(135deg, var(--bosque-ulmo) 0%, var(--bosque-ulmo-dark) 50%, var(--bosque-ulmo-dark) 100%);
   border-radius: var(--radius-lg);
   padding: var(--space-2xl) var(--space-xl);
   color: var(--text-on-dark);
@@ -1362,7 +1362,7 @@ img {
 
 .ai-panel-input input:focus {
   outline: none;
-  background: #FFF;
+  background: var(--crema-natural);
   border-color: var(--oro-miel);
   box-shadow: 0 0 0 3px var(--oro-miel-glow);
 }

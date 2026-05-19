@@ -25,7 +25,7 @@ const { url, anonKey } = getSupabaseConfig();
 
 if (!url || !anonKey) {
     console.warn(
-        'Supabase: faltan URL y clave pública (VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY / VITE_SUPABASE_ANON_KEY o NEXT_PUBLIC_*). Modo degradado.'
+        'Sin conexión al servidor. Verifica la configuración de la app.'
     );
 }
 

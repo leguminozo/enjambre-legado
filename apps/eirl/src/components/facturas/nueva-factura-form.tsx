@@ -17,7 +17,7 @@ interface Tercero {
 }
 
 interface NuevaFacturaFormProps {
-  onSave: (factura: any) => void;
+  onSave: (factura: Record<string, unknown>) => void;
   onCancel: () => void;
 }
 
@@ -103,10 +103,11 @@ export function NuevaFacturaForm({ onSave, onCancel }: NuevaFacturaFormProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          tipo: 'Cliente',
-          ...nuevoCliente
-        })
+              body: JSON.stringify({
+                tipo: 'Cliente',
+                empresaId: "temp-empresa-id",
+                ...nuevoCliente
+              })
       });
 
       if (response.ok) {
