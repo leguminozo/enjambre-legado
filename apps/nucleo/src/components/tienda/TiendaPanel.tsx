@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Package, ShoppingCart, Users, TrendingUp, Plus, Edit3, Trash2, Eye, EyeOff, Loader2, Search, Upload, X } from 'lucide-react';
-import { API_URL } from '../../lib/api';
+import { API_BASE_URL } from '../../lib/api';
 
 type Product = {
   id: string;
@@ -72,8 +72,8 @@ export function TiendaPanel() {
     try {
       if (activeTab === 'dashboard' || activeTab === 'productos') {
         const [productsRes, dashboardRes] = await Promise.all([
-          fetch(`${API_URL}/tienda/products`),
-          fetch(`${API_URL}/tienda/dashboard`),
+          fetch(`${API_BASE_URL}/tienda/products`),
+          fetch(`${API_BASE_URL}/tienda/dashboard`),
         ]);
         const productsData = await productsRes.json();
         const dashboardData = await dashboardRes.json();
@@ -82,13 +82,13 @@ export function TiendaPanel() {
       }
       
       if (activeTab === 'pedidos') {
-        const res = await fetch(`${API_URL}/tienda/orders`);
+        const res = await fetch(`${API_BASE_URL}/tienda/orders`);
         const data = await res.json();
         setOrders(data.data || []);
       }
       
       if (activeTab === 'clientes') {
-        const res = await fetch(`${API_URL}/tienda/customers`);
+        const res = await fetch(`${API_BASE_URL}/tienda/customers`);
         const data = await res.json();
         setCustomers(data.data || []);
       }
@@ -117,8 +117,8 @@ export function TiendaPanel() {
     setSaving(true);
     try {
       const url = editingId 
-        ? `${API_URL}/tienda/products/${editingId}`
-        : `${API_URL}/tienda/products`;
+        ? `${API_BASE_URL}/tienda/products/${editingId}`
+        : `${API_BASE_URL}/tienda/products`;
       
       const method = editingId ? 'PATCH' : 'POST';
       
@@ -144,7 +144,7 @@ export function TiendaPanel() {
     if (!confirm('¿Seguro que deseas eliminar este producto?')) return;
     
     try {
-      const res = await fetch(`${API_URL}/tienda/products/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/tienda/products/${id}`, {
         method: 'DELETE',
       });
       const data = await res.json();
