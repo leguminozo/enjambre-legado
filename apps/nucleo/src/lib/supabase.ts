@@ -30,6 +30,12 @@ if (!url || !anonKey) {
 }
 
 export const supabase = createClient(
-    url || 'https://placeholder.supabase.co',
-    anonKey || 'placeholder'
+  url || 'https://placeholder.supabase.co',
+  anonKey || 'placeholder',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  }
 );

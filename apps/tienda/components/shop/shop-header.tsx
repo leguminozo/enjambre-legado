@@ -10,6 +10,7 @@ import { useState } from 'react';
 const NAV = [
   { href: '/catalogo', label: 'Creaciones' },
   { href: '/experiencias', label: 'Experiencias' },
+  { href: '/galeria', label: 'Galería' },
   { href: '/nosotros', label: 'Nosotros' },
   { href: '/contacto', label: 'Contacto' },
 ] as const;

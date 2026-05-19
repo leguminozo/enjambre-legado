@@ -2,6 +2,29 @@
 
 import React, { useEffect } from 'react';
 import { gsap } from 'gsap';
+import { Package, Clock, Leaf, ChevronRight, TreePine, Droplets } from 'lucide-react';
+
+interface Order {
+  id: string;
+  created_at: string;
+  total: number;
+  estado: string;
+  pedido_items: Array<{
+    cantidad: number;
+    productos: {
+      nombre: string;
+      precio: number;
+    };
+  }>;
+}
+
+interface ClaimPoint {
+  id: string;
+  ciclos: {
+    tipo: string;
+    estado: string;
+  };
+}
 
 interface MiLegadoClientProps {
   user: unknown;
@@ -14,9 +37,11 @@ interface MiLegadoClientProps {
     estado: string;
     peso_kg: number;
   } | null;
+  orders: Order[];
+  claimPoints: ClaimPoint[];
 }
 
-export function MiLegadoClient({ user, tierData, hiveData }: MiLegadoClientProps) {
+export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints }: MiLegadoClientProps) {
   const userData = user as Record<string, unknown> | null;
 
   useEffect(() => {
@@ -29,11 +54,14 @@ export function MiLegadoClient({ user, tierData, hiveData }: MiLegadoClientProps
     });
   }, []);
 
+  const totalOrders = orders?.length || 0;
+  const totalSpent = orders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
+
   return (
     <div className="w-full">
       <div className="relative mb-20">
-
-        <div className="relative z-10 max-w-2xl w-full">
+        
+        <div className="relative z-10 max-w-4xl w-full mx-auto">
           <div className="text-center mb-16">
             <span className="vanguard-data block text-[0.7rem] tracking-[0.5em] uppercase text-accent mb-6">
               Mi Legado
@@ -46,7 +74,25 @@ export function MiLegadoClient({ user, tierData, hiveData }: MiLegadoClientProps
             </p>
           </div>
 
-          <div className="space-y-24 mt-20">
+          <div className="grid md:grid-cols-3 gap-6 mb-20">
+            <div className="vanguard-data bg-card border border-border rounded-3xl p-8 text-center">
+              <Package className="w-8 h-8 text-accent mx-auto mb-4" />
+              <div className="text-4xl font-display text-foreground mb-2">{totalOrders}</div>
+              <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">Pedidos</div>
+            </div>
+            <div className="vanguard-data bg-card border border-border rounded-3xl p-8 text-center">
+              <Leaf className="w-8 h-8 text-accent mx-auto mb-4" />
+              <div className="text-4xl font-display text-foreground mb-2">${totalSpent.toLocaleString('es-CL')}</div>
+              <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">Legado Acumulado</div>
+            </div>
+            <div className="vanguard-data bg-card border border-border rounded-3xl p-8 text-center">
+              <TreePine className="w-8 h-8 text-accent mx-auto mb-4" />
+              <div className="text-4xl font-display text-foreground mb-2">{(userData?.arboles_personal as number) || 0}</div>
+              <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">m² Regenerados</div>
+            </div>
+          </div>
+
+          <div className="space-y-24">
             <div className="vanguard-data border-t border-border pt-12">
               <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Estado de tu Colmena</span>
               {hiveData ? (
@@ -61,35 +107,63 @@ export function MiLegadoClient({ user, tierData, hiveData }: MiLegadoClientProps
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground italic">
-                  Aún no has vinculado tu legado a una colmena específica.
-                  Explora las suscripciones para iniciar el vínculo.
+                <div className="text-center py-12 bg-secondary/30 rounded-3xl border border-border border-dashed">
+                  <Droplets className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-sm text-muted-foreground italic mb-6">
+                    Aún no has vinculado tu legado a una colmena específica.
+                  </p>
+                  <a href="/catalogo" className="inline-flex items-center gap-2 text-accent text-[0.65rem] uppercase tracking-[0.2em] hover:gap-4 transition-all">
+                    Explorar Suscripciones <ChevronRight size={16} />
+                  </a>
+                </div>
+              )}
+            </div>
+
+            <div className="vanguard-data border-t border-border pt-12">
+              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Puntos de Reclamo</span>
+              {claimPoints && claimPoints.length > 0 ? (
+                <div className="space-y-4">
+                  {claimPoints.map((point) => (
+                    <div key={point.id} className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl">
+                      <div>
+                        <div className="text-foreground font-display text-lg">{point.ciclos.tipo}</div>
+                        <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">{point.ciclos.estado}</div>
+                      </div>
+                      <Clock className="w-5 h-5 text-accent" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic text-center py-8">
+                  No tienes puntos de reclamo pendientes
                 </p>
               )}
             </div>
 
             <div className="vanguard-data border-t border-border pt-12">
-              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Territorio Consolidado</span>
-              <div className="flex items-baseline gap-4">
-                <span className="font-display text-5xl text-foreground">{(userData?.arboles_personal as number) || 0}</span>
-                <span className="text-lg font-display italic text-muted-foreground">m² de bosque nativo bajo tu custodia</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-6 max-w-sm leading-relaxed">
-                Cada ciclo acumulado acerca tu legado a la consolidación de nuevas coordenadas en el Sector Pureo.
-              </p>
-            </div>
-
-            <div className="vanguard-data border-t border-border pt-12">
-              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Ventana de Cosecha</span>
-              <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                <div className="text-center md:text-left">
-                  <h3 className="font-display text-2xl font-light mb-2">Expectativa Ritual</h3>
-                  <p className="text-sm text-muted-foreground">La naturaleza dicta el tiempo. Estimado: Julio 2026.</p>
+              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Pedidos Recientes</span>
+              {orders && orders.length > 0 ? (
+                <div className="space-y-4">
+                  {orders.slice(0, 5).map((order) => (
+                    <div key={order.id} className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl">
+                      <div>
+                        <div className="text-foreground font-display text-lg">{new Date(order.created_at).toLocaleDateString('es-CL')}</div>
+                        <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">
+                          {order.pedido_items?.[0]?.productos?.nombre || 'Varios'} · {order.pedido_items?.[0]?.cantidad || 0} un.
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-display italic text-foreground">${order.total?.toLocaleString('es-CL') || '0'}</div>
+                        <div className="text-[0.6rem] uppercase tracking-[0.2em] text-accent">{order.estado}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <button className="px-8 py-4 border border-accent text-accent text-[0.7rem] uppercase tracking-[0.3em] hover:bg-accent hover:text-accent-foreground transition-all duration-700">
-                  Reservar Cupo
-                </button>
-              </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic text-center py-8">
+                  Sin pedidos recientes
+                </p>
+              )}
             </div>
           </div>
         </div>

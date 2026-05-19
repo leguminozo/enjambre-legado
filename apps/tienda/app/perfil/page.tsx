@@ -5,10 +5,10 @@ import { MiLegadoClient } from '@/components/shop/mi-legado-client';
 
 export default async function PerfilPage() {
   const supabase = await createClient();
-  
+
   // 1. Get current user
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   if (!user) {
     redirect('/login');
   }
@@ -34,6 +34,21 @@ export default async function PerfilPage() {
     .eq('user_id', user.id)
     .single();
 
+  // 5. Fetch recent orders
+  const { data: orders } = await supabase
+    .from('pedidos')
+    .select('*, pedido_items(*, productos(*))')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  // 6. Fetch claim points (if any)
+  const { data: claimPoints } = await supabase
+    .from('puntos_reclamo')
+    .select('*, ciclos(*)')
+    .eq('user_id', user.id)
+    .eq('estado', 'pendiente');
+
   const hiveData = subConfig?.colmenas ? {
     name: subConfig.colmenas.name,
     estado: subConfig.colmenas.estado,
@@ -46,10 +61,12 @@ export default async function PerfilPage() {
   } : null;
 
   return (
-    <MiLegadoClient 
-      user={profile} 
-      tierData={tierData} 
-      hiveData={hiveData} 
+    <MiLegadoClient
+      user={profile}
+      tierData={tierData}
+      hiveData={hiveData}
+      orders={orders || []}
+      claimPoints={claimPoints || []}
     />
   );
 }

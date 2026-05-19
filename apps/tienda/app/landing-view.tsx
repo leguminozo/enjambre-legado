@@ -319,7 +319,7 @@ export default function TiendaLandingView({
         </section>
       </main>
 
-      <ShopFooter data={footerData} />
+      <ShopFooter />
     </StoreShell>
   );
 }

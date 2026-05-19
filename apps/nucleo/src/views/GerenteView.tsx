@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { BarChart3, Shield, Sparkles } from 'lucide-react';
+import { BarChart3, Shield, Sparkles, ShoppingCart } from 'lucide-react';
 import { roleGreetings } from '../data/mockData';
 import { EjecutivoPanel } from '../components/gerente/EjecutivoPanel';
 import VanguardiaPanel from '../components/vanguardia/VanguardiaPanel';
 import { CreadoresAdminPanel } from '../components/creadores/CreadoresAdminPanel';
+import { TiendaPanel } from '../components/tienda/TiendaPanel';
 
 export default function GerenteView() {
   const { greeting, title, subtitle } = roleGreetings.gerente;
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'vanguardia' | 'creadores'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'tienda' | 'vanguardia' | 'creadores'>('dashboard');
 
   return (
     <div className="space-y-8">
@@ -25,6 +26,12 @@ export default function GerenteView() {
           <BarChart3 size={18} /> Dashboard Ejecutivo
         </button>
         <button
+          onClick={() => setActiveTab('tienda')}
+          className={`btn flex items-center gap-2 ${activeTab === 'tienda' ? 'btn-gold' : 'btn-outline'}`}
+        >
+          <ShoppingCart size={18} /> Tienda
+        </button>
+        <button
           onClick={() => setActiveTab('vanguardia')}
           className={`btn flex items-center gap-2 ${activeTab === 'vanguardia' ? 'btn-gold' : 'btn-outline'}`}
         >
@@ -40,6 +47,8 @@ export default function GerenteView() {
 
       {activeTab === 'dashboard' ? (
         <EjecutivoPanel />
+      ) : activeTab === 'tienda' ? (
+        <TiendaPanel />
       ) : activeTab === 'vanguardia' ? (
         <VanguardiaPanel />
       ) : (
