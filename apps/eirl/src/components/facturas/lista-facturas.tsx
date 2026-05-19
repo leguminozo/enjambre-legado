@@ -1,13 +1,15 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useTransition } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Eye, Edit, Trash2, Plus } from "lucide-react";
-import { formatDate } from '@/lib/format';
+import { FileText, Eye, Edit, Trash2, Plus, Loader2 } from "lucide-react";
+import { formatDate, formatCurrency } from '@/lib/format';
+import { deleteFacturaEmitida } from '@/lib/actions/facturas';
+import { NuevaFacturaForm } from './nueva-factura-form';
 
-interface Factura {
+export interface Factura {
   id: string;
   numero: string;
   fecha: string;
@@ -29,31 +31,21 @@ interface Factura {
 }
 
 interface ListaFacturasProps {
-  onNuevaFactura: () => void;
-  onVerFactura: (factura: Factura) => void;
-  onEditarFactura: (factura: Factura) => void;
+  facturasInitiales: Factura[];
+  empresaId: string;
 }
 
-export function ListaFacturas({ onNuevaFactura, onVerFactura, onEditarFactura }: ListaFacturasProps) {
-  const [facturas, setFacturas] = useState<Factura[]>([]);
-  const [loading, setLoading] = useState(true);
+export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasProps) {
+  const [facturas, setFacturas] = useState<Factura[]>(facturasInitiales);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    cargarFacturas();
-  }, []);
-
-  const cargarFacturas = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/facturas-emitidas?empresaId=temp-empresa-id`);
-      if (response.ok) {
-        const data = await response.json();
-        setFacturas(data);
-      }
-    } catch (error) {
-      console.error('Error cargando facturas:', error);
-    } finally {
-      setLoading(false);
+  const handleDelete = (id: string) => {
+    if (confirm('¿Estás seguro de eliminar esta factura?')) {
+      startTransition(async () => {
+        await deleteFacturaEmitida(id);
+        setFacturas(prev => prev.filter(f => f.id !== id));
+      });
     }
   };
 
@@ -72,21 +64,17 @@ export function ListaFacturas({ onNuevaFactura, onVerFactura, onEditarFactura }:
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
-
-if (loading) {
+  if (mostrarFormulario) {
     return (
-      <Card className="bg-black border-gray-800">
-        <CardContent className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-        </CardContent>
-      </Card>
+      <NuevaFacturaForm
+        empresaId={empresaId}
+        clientes={[]}
+        onSuccess={() => {
+          setMostrarFormulario(false);
+          window.location.reload(); // Refresh para mostrar nuevos datos del servidor
+        }}
+        onCancel={() => setMostrarFormulario(false)}
+      />
     );
   }
 
@@ -98,8 +86,16 @@ if (loading) {
             <FileText className="h-5 w-5" />
             Facturas Emitidas
           </CardTitle>
-          <Button onClick={onNuevaFactura} className="bg-white text-black hover:bg-gray-200">
-            <Plus className="h-4 w-4 mr-2" />
+          <Button 
+            onClick={() => setMostrarFormulario(true)} 
+            className="bg-white text-black hover:bg-gray-200"
+            disabled={isPending}
+          >
+            {isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Plus className="h-4 w-4 mr-2" />
+            )}
             Nueva Factura
           </Button>
         </div>
@@ -110,7 +106,10 @@ if (loading) {
             <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
             <h3 className="text-lg font-medium mb-2">No hay facturas emitidas</h3>
             <p className="text-gray-400 mb-4">Comienza creando tu primera factura</p>
-            <Button onClick={onNuevaFactura} className="bg-white text-black hover:bg-gray-200">
+            <Button 
+              onClick={() => setMostrarFormulario(true)} 
+              className="bg-white text-black hover:bg-gray-200"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Crear Factura
             </Button>
@@ -118,7 +117,10 @@ if (loading) {
         ) : (
           <div className="space-y-4">
             {facturas.map((factura) => (
-              <div key={factura.id} className="border border-gray-800 rounded-lg p-4 hover:bg-gray-900/50 transition-colors">
+              <div 
+                key={factura.id} 
+                className="border border-gray-800 rounded-lg p-4 hover:bg-gray-900/50 transition-colors"
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -127,7 +129,7 @@ if (loading) {
                         {factura.estado}
                       </Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-400">
                       <div>
                         <span className="text-gray-500">Cliente:</span>
@@ -144,12 +146,12 @@ if (loading) {
                         <span className="ml-2 text-white">{factura.periodo.nombre}</span>
                       </div>
                     </div>
-                    
+
                     {factura.descripcion && (
                       <p className="text-sm text-gray-400 mt-2">{factura.descripcion}</p>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <div className="text-lg font-semibold">{formatCurrency(factura.montoTotal)}</div>
@@ -157,12 +159,11 @@ if (loading) {
                         Neto: {formatCurrency(factura.montoNeto)}
                       </div>
                     </div>
-                    
+
                     <div className="flex gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onVerFactura(factura)}
                         className="hover:bg-gray-800"
                       >
                         <Eye className="h-4 w-4" />
@@ -170,7 +171,6 @@ if (loading) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onEditarFactura(factura)}
                         className="hover:bg-gray-800"
                       >
                         <Edit className="h-4 w-4" />
@@ -178,9 +178,15 @@ if (loading) {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleDelete(factura.id)}
                         className="hover:bg-gray-800 text-red-400 hover:text-red-300"
+                        disabled={isPending}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>

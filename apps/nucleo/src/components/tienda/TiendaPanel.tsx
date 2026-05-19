@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Package, ShoppingCart, Users, TrendingUp, Plus, Edit3, Trash2, Eye, EyeOff, Loader2, Search, Upload, X } from 'lucide-react';
-import { API_BASE_URL } from '../../lib/api';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../../lib/supabase';
+import { calcularIVA, calcularTotal } from '@enjambre/contable';
+import { Package, ShoppingCart, Users, TrendingUp, Plus, Edit3, Trash2, Eye, EyeOff, Loader2, Search } from 'lucide-react';
 
 type Product = {
   id: string;
@@ -21,7 +22,7 @@ type Order = {
   estado: string;
   total: number;
   metodo_pago: string;
-  items: any[];
+  items: unknown[];
   created_at: string;
 };
 
@@ -33,26 +34,29 @@ type Customer = {
   created_at: string;
 };
 
-type DashboardData = {
-  totalVentas: number;
-  totalProductos: number;
-  valorInventario: number;
-  ventas: any[];
-};
-
 type Tab = 'productos' | 'pedidos' | 'clientes' | 'dashboard';
+
+function formatCLP(value: number) {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0,
+  }).format(value);
+}
 
 export function TiendaPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [totalVentas, setTotalVentas] = useState(0);
+  const [totalProductos, setTotalProductos] = useState(0);
+  const [valorInventario, setValorInventario] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const [form, setForm] = useState({
     nombre: '',
     descripcion_regenerativa: '',
@@ -63,41 +67,59 @@ export function TiendaPanel() {
     fotos: [] as string[],
   });
 
-  useEffect(() => {
-    loadData();
-  }, [activeTab]);
+  const fetchProducts = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('productos')
+      .select('id, slug, nombre, descripcion_regenerativa, precio, stock, formato, fotos, visible, created_at')
+      .order('created_at', { ascending: false });
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      if (activeTab === 'dashboard' || activeTab === 'productos') {
-        const [productsRes, dashboardRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/tienda/products`),
-          fetch(`${API_BASE_URL}/tienda/dashboard`),
-        ]);
-        const productsData = await productsRes.json();
-        const dashboardData = await dashboardRes.json();
-        setProducts(productsData.data || []);
-        setDashboard(dashboardData.data || null);
-      }
-      
-      if (activeTab === 'pedidos') {
-        const res = await fetch(`${API_BASE_URL}/tienda/orders`);
-        const data = await res.json();
-        setOrders(data.data || []);
-      }
-      
-      if (activeTab === 'clientes') {
-        const res = await fetch(`${API_BASE_URL}/tienda/customers`);
-        const data = await res.json();
-        setCustomers(data.data || []);
-      }
-    } catch (error) {
-      console.error('Error cargando datos:', error);
-    } finally {
-      setLoading(false);
+    if (error) {
+      console.error('Error cargando productos:', error.message);
+      return;
     }
-  };
+    setProducts((data ?? []) as Product[]);
+    setTotalProductos((data ?? []).filter((p: Product) => p.visible !== false).length);
+    setValorInventario(
+      (data ?? []).reduce((acc: number, p: Product) => acc + (p.precio || 0) * (p.stock || 0), 0)
+    );
+  }, []);
+
+  const fetchOrders = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('ventas')
+      .select('id, origen, estado, total, metodo_pago, items, created_at')
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if (error) {
+      console.error('Error cargando pedidos:', error.message);
+      return;
+    }
+    setOrders((data ?? []) as Order[]);
+    setTotalVentas((data ?? []).reduce((acc: number, o: Order) => acc + (o.total || 0), 0));
+  }, []);
+
+  const fetchCustomers = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, role, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error cargando clientes:', error.message);
+      return;
+    }
+    setCustomers((data ?? []) as Customer[]);
+  }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      await Promise.all([fetchProducts(), fetchOrders(), fetchCustomers()]);
+      setLoading(false);
+    };
+    load();
+  }, []);
 
   const handleEdit = (product: Product) => {
     setEditingId(product.id);
@@ -107,7 +129,7 @@ export function TiendaPanel() {
       precio: product.precio || 0,
       stock: product.stock || 0,
       formato: product.formato || '',
-      visible: product.visible || true,
+      visible: product.visible ?? true,
       fotos: product.fotos || [],
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -116,25 +138,46 @@ export function TiendaPanel() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const url = editingId 
-        ? `${API_BASE_URL}/tienda/products/${editingId}`
-        : `${API_BASE_URL}/tienda/products`;
-      
-      const method = editingId ? 'PATCH' : 'POST';
-      
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      
-      await loadData();
+      const slug = form.nombre.toLowerCase().replace(/\s+/g, '-').slice(0, 120);
+
+      if (editingId) {
+        const patch: Record<string, unknown> = {};
+        if (form.nombre) patch.nombre = form.nombre;
+        if (form.descripcion_regenerativa !== undefined) patch.descripcion_regenerativa = form.descripcion_regenerativa || null;
+        if (form.precio !== undefined) patch.precio = Math.round(form.precio);
+        if (form.stock !== undefined) patch.stock = form.stock || null;
+        if (form.formato !== undefined) patch.formato = form.formato || null;
+        if (form.fotos !== undefined) patch.fotos = form.fotos;
+        if (form.visible !== undefined) patch.visible = form.visible;
+
+        const { error } = await supabase
+          .from('productos')
+          .update(patch)
+          .eq('id', editingId);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('productos')
+          .insert({
+            nombre: form.nombre,
+            descripcion_regenerativa: form.descripcion_regenerativa || null,
+            precio: Math.round(form.precio),
+            stock: form.stock || null,
+            formato: form.formato || null,
+            fotos: form.fotos || [],
+            visible: form.visible ?? true,
+            slug,
+          });
+
+        if (error) throw error;
+      }
+
+      await fetchProducts();
       resetForm();
-    } catch (error) {
-      console.error('Error guardando:', error);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error desconocido';
+      console.error('Error guardando:', msg);
     } finally {
       setSaving(false);
     }
@@ -142,18 +185,30 @@ export function TiendaPanel() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Seguro que deseas eliminar este producto?')) return;
-    
-    try {
-      const res = await fetch(`${API_BASE_URL}/tienda/products/${id}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      
-      await loadData();
-    } catch (error) {
-      console.error('Error eliminando:', error);
+
+    const { error } = await supabase
+      .from('productos')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error eliminando:', error.message);
+      return;
     }
+    await fetchProducts();
+  };
+
+  const handleToggleVisible = async (product: Product) => {
+    const { error } = await supabase
+      .from('productos')
+      .update({ visible: !product.visible })
+      .eq('id', product.id);
+
+    if (error) {
+      console.error('Error cambiando visibilidad:', error.message);
+      return;
+    }
+    await fetchProducts();
   };
 
   const resetForm = () => {
@@ -169,14 +224,6 @@ export function TiendaPanel() {
     });
   };
 
-  const formatCLP = (value: number) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
-
   const filteredProducts = products.filter(p =>
     p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.formato?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -184,7 +231,6 @@ export function TiendaPanel() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
@@ -197,7 +243,6 @@ export function TiendaPanel() {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-4 flex-wrap">
         <button
           onClick={() => setActiveTab('dashboard')}
@@ -225,7 +270,6 @@ export function TiendaPanel() {
         </button>
       </div>
 
-      {/* Dashboard Tab */}
       {activeTab === 'dashboard' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -234,33 +278,31 @@ export function TiendaPanel() {
                 <TrendingUp className="text-accent" size={24} />
                 <span className="text-sm text-muted-foreground">Ventas Totales</span>
               </div>
-              <div className="text-3xl font-display">{formatCLP(dashboard?.totalVentas || 0)}</div>
+              <div className="text-3xl font-display">{formatCLP(totalVentas)}</div>
             </div>
             <div className="p-6 rounded-2xl bg-card border border-border">
               <div className="flex items-center gap-3 mb-3">
                 <Package className="text-accent" size={24} />
                 <span className="text-sm text-muted-foreground">Productos Activos</span>
               </div>
-              <div className="text-3xl font-display">{dashboard?.totalProductos || 0}</div>
+              <div className="text-3xl font-display">{totalProductos}</div>
             </div>
             <div className="p-6 rounded-2xl bg-card border border-border">
               <div className="flex items-center gap-3 mb-3">
                 <Users className="text-accent" size={24} />
                 <span className="text-sm text-muted-foreground">Valor Inventario</span>
               </div>
-              <div className="text-3xl font-display">{formatCLP(dashboard?.valorInventario || 0)}</div>
+              <div className="text-3xl font-display">{formatCLP(valorInventario)}</div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Productos Tab */}
       {activeTab === 'productos' && (
         <div className="space-y-6">
-          {/* Form */}
           <div className="bg-card border border-border rounded-2xl p-6">
             <h3 className="font-display text-xl mb-4">{editingId ? 'Editar Producto' : 'Nuevo Producto'}</h3>
-            
+
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">Nombre</label>
@@ -283,7 +325,7 @@ export function TiendaPanel() {
                 />
               </div>
             </div>
-            
+
             <div className="mb-4">
               <label className="text-xs text-muted-foreground mb-1 block">Descripción Regenerativa</label>
               <textarea
@@ -293,7 +335,7 @@ export function TiendaPanel() {
                 placeholder="Historia del producto..."
               />
             </div>
-            
+
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">Precio (CLP)</label>
@@ -314,7 +356,7 @@ export function TiendaPanel() {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 mb-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -326,7 +368,7 @@ export function TiendaPanel() {
                 <span className="text-sm">Visible en tienda</span>
               </label>
             </div>
-            
+
             <div className="flex gap-2">
               <button
                 onClick={handleSave}
@@ -343,7 +385,6 @@ export function TiendaPanel() {
             </div>
           </div>
 
-          {/* Lista */}
           <div className="bg-card border border-border rounded-2xl overflow-hidden">
             <div className="p-4 border-b flex items-center justify-between">
               <h3 className="font-display text-lg">Inventario</h3>
@@ -358,7 +399,7 @@ export function TiendaPanel() {
                 />
               </div>
             </div>
-            
+
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
@@ -392,9 +433,13 @@ export function TiendaPanel() {
                       <td className="px-4 py-3">{formatCLP(p.precio)}</td>
                       <td className="px-4 py-3">{p.stock || 0}</td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs ${p.visible ? 'text-accent' : 'text-muted-foreground'}`}>
+                        <button
+                          onClick={() => handleToggleVisible(p)}
+                          className={`text-xs flex items-center gap-1 ${p.visible ? 'text-accent' : 'text-muted-foreground'}`}
+                        >
+                          {p.visible ? <Eye size={14} /> : <EyeOff size={14} />}
                           {p.visible ? 'Activo' : 'Oculto'}
-                        </span>
+                        </button>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
@@ -419,7 +464,6 @@ export function TiendaPanel() {
         </div>
       )}
 
-      {/* Pedidos Tab */}
       {activeTab === 'pedidos' && (
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
           <div className="p-4 border-b">
@@ -435,24 +479,37 @@ export function TiendaPanel() {
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => (
-                <tr key={order.id} className="border-b border-border/50">
-                  <td className="px-4 py-3 font-mono text-xs">{order.id.slice(0, 8)}...</td>
-                  <td className="px-4 py-3 text-sm">
-                    {new Date(order.created_at).toLocaleDateString('es-CL')}
-                  </td>
-                  <td className="px-4 py-3">{formatCLP(order.total)}</td>
-                  <td className="px-4 py-3">
-                    <span className="text-xs capitalize">{order.estado}</span>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                    <Loader2 className="animate-spin mx-auto" size={24} />
                   </td>
                 </tr>
-              ))}
+              ) : orders.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                    Sin pedidos
+                  </td>
+                </tr>
+              ) : (
+                orders.map((order) => (
+                  <tr key={order.id} className="border-b border-border/50">
+                    <td className="px-4 py-3 font-mono text-xs">{order.id.slice(0, 8)}...</td>
+                    <td className="px-4 py-3 text-sm">
+                      {new Date(order.created_at).toLocaleDateString('es-CL')}
+                    </td>
+                    <td className="px-4 py-3">{formatCLP(order.total)}</td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs capitalize">{order.estado}</span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Clientes Tab */}
       {activeTab === 'clientes' && (
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
           <div className="p-4 border-b">
@@ -467,13 +524,27 @@ export function TiendaPanel() {
               </tr>
             </thead>
             <tbody>
-              {customers.map((customer) => (
-                <tr key={customer.id} className="border-b border-border/50">
-                  <td className="px-4 py-3">{customer.full_name || '—'}</td>
-                  <td className="px-4 py-3 font-mono text-xs">{customer.email}</td>
-                  <td className="px-4 py-3 capitalize text-xs">{customer.role}</td>
+              {loading ? (
+                <tr>
+                  <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">
+                    <Loader2 className="animate-spin mx-auto" size={24} />
+                  </td>
                 </tr>
-              ))}
+              ) : customers.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">
+                    Sin clientes
+                  </td>
+                </tr>
+              ) : (
+                customers.map((customer) => (
+                  <tr key={customer.id} className="border-b border-border/50">
+                    <td className="px-4 py-3">{customer.full_name || '—'}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{customer.email}</td>
+                    <td className="px-4 py-3 capitalize text-xs">{customer.role}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

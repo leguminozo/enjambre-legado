@@ -20,11 +20,13 @@ label: 'TikTok'
 ];
 
 const LEGAL_LINKS = [
-{ href: '/privacidad', label: 'Política de privacidad' },
-{ href: '/terminos', label: 'Términos del servicio' },
-{ href: '/cancelacion', label: 'Política de cancelación' },
-{ href: '/envio', label: 'Política de envío' },
-{ href: '/reembolso', label: 'Política de reembolso' },
+  { href: '/terminos', label: 'Términos del servicio' },
+  { href: '/privacidad', label: 'Política de privacidad' },
+  { href: '/cookies', label: 'Política de cookies' },
+  { href: '/cancelacion', label: 'Política de cancelación' },
+  { href: '/envio', label: 'Política de envío' },
+  { href: '/reembolso', label: 'Política de reembolso' },
+  { href: '/garantia', label: 'Política de garantía' },
 ];
 
 export function ShopFooter() {

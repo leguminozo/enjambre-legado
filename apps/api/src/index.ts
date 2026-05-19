@@ -5,6 +5,7 @@ import { contableRoutes } from "./routes/contable";
 import { creadoresRoutes } from "./routes/creadores";
 import { healthRoutes } from "./routes/health";
 import { tiendaRoutes } from "./routes/tienda";
+import { bancoChileRoutes } from "./routes/banco-chile";
 
 const app = new Hono();
 
@@ -12,6 +13,7 @@ app.route("/api/health", healthRoutes);
 app.route("/api/contable", contableRoutes);
 app.route("/api/creadores", creadoresRoutes);
 app.route("/api/tienda", tiendaRoutes);
+app.route("/api/banco-chile", bancoChileRoutes);
 
 app.onError((err, c) => {
   console.error(err);

@@ -6,3 +6,11 @@ export function formatDate(iso: string, options?: Intl.DateTimeFormatOptions): s
   };
   return new Date(iso).toLocaleDateString('es-CL', options ?? defaultOptions);
 }
+
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0
+  }).format(amount);
+}

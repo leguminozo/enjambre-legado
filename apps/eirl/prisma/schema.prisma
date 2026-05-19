@@ -1,11 +1,18 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Alineado con Supabase: packages/database/supabase/migrations/05_contable_core.sql
+// PostgreSQL 17 + PostGIS - Multi-empresa con RLS
 
 generator client {
   provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  // Soporte para conexiones pooler (Supabase)
+  connectionLimit = 1
 }
 
 datasource db {
@@ -13,215 +20,262 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Empresa EIRL PROPYME
+// Empresa (alineado con Supabase: public.empresas)
 model Empresa {
-  id              String   @id @default(cuid())
-  razonSocial     String
-  rut             String   @unique
-  giro            String
-  direccion       String
-  comuna          String
-  ciudad          String
-  region          String
-  telefono        String?
-  email           String?
-  web             String?
-  capitalInicial  Float
-  fechaConstitucion DateTime
-  tipoActividad   String // Profesional, Comercial, Servicios, etc.
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relaciones
-  facturasEmitidas FacturaEmitida[]
-  facturasRecibidas FacturaRecibida[]
-  gastos          Gasto[]
-  impuestos       Impuesto[]
-  periodos        PeriodoContable[]
-  reportes        Reporte[]
-  calculosIA      CalculoIA[]
-}
-
-// Clientes y Proveedores
-model Tercero {
-  id        String   @id @default(cuid())
-  tipo      String   // "Cliente" o "Proveedor"
-  rut       String   @unique
-  nombre    String
-  email     String?
-  telefono  String?
+  id String @id @default(uuid())
+  rut String @unique
+  razonSocial String
+  giro String?
+  email String?
+  telefono String?
   direccion String?
-  giro      String?
+  comuna String?
+  ciudad String?
+  region String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  // Relaciones
-  facturasEmitidas  FacturaEmitida[]
-  facturasRecibidas FacturaRecibida[]
-  gastos           Gasto[]
-}
 
-// Facturas Emitidas
-model FacturaEmitida {
-  id              String   @id @default(cuid())
-  numero          String
-  fecha           DateTime
-  fechaVencimiento DateTime?
-  montoTotal      Float
-  montoNeto       Float
-  montoIva        Float
-  montoExento     Float    @default(0)
-  montoIvaUsado   Float    @default(0)
-  estado          String   // "Pendiente", "Pagada", "Vencida", "Anulada"
-  descripcion     String?
-  tipoDocumento   String   // "Factura", "Boleta", "Factura Exenta", "Nota de Crédito", etc.
-  
   // Relaciones
-  empresaId       String
-  empresa         Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  
-  clienteId       String?
-  cliente         Tercero? @relation(fields: [clienteId], references: [id])
-  
-  periodoId       String
-  periodo         PeriodoContable @relation(fields: [periodoId], references: [id], onDelete: Cascade)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-// Facturas Recibidas
-model FacturaRecibida {
-  id              String   @id @default(cuid())
-  numero          String
-  fecha           DateTime
-  fechaVencimiento DateTime?
-  montoTotal      Float
-  montoNeto       Float
-  montoIva        Float
-  montoExento     Float    @default(0)
-  montoIvaUsado   Float    @default(0)
-  estado          String   // "Pendiente", "Pagada", "Vencida", "Anulada"
-  descripcion     String?
-  tipoDocumento   String   // "Factura", "Boleta", "Factura Exenta", "Nota de Crédito", etc.
-  
-  // Relaciones
-  empresaId       String
-  empresa         Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  
-  proveedorId     String?
-  proveedor       Tercero? @relation(fields: [proveedorId], references: [id])
-  
-  periodoId       String
-  periodo         PeriodoContable @relation(fields: [periodoId], references: [id], onDelete: Cascade)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-// Gastos
-model Gasto {
-  id            String   @id @default(cuid())
-  fecha         DateTime
-  descripcion   String
-  monto         Float
-  montoIva      Float
-  montoNeto     Float
-  categoria     String   // "Arriendo", "Servicios Básicos", "Transporte", "Suministros", "Honorarios", etc.
-  tipoComprobante String // "Boleta", "Factura", "Ticket", etc.
-  numeroComprobante String?
-  estado        String   // "Pendiente", "Pagado", "Reembolsado"
-  
-  // Relaciones
-  empresaId     String
-  empresa       Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  
-  proveedorId   String?
-  proveedor     Tercero? @relation(fields: [proveedorId], references: [id])
-  
-  periodoId     String
-  periodo       PeriodoContable @relation(fields: [periodoId], references: [id], onDelete: Cascade)
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-// Impuestos Chilenos
-model Impuesto {
-  id                String   @id @default(cuid())
-  tipo              String   // "IVA", "PPM", "Retencion", "ImpuestoPrimeraCategoria", "ImpuestoUnico", etc.
-  periodo           String   // "Mensual", "Trimestral", "Anual"
-  mes               Int?
-  anio              Int
-  montoDeclarado    Float
-  montoPagado       Float?
-  montoCalculadoIA  Float?
-  estado            String   // "Pendiente", "Declarado", "Pagado", "EnProceso"
-  fechaDeclaracion  DateTime?
-  fechaPago         DateTime?
-  detalles          String?
-  
-  // Relaciones
-  empresaId         String
-  empresa           Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-}
-
-// Períodos Contables
-model PeriodoContable {
-  id            String   @id @default(cuid())
-  nombre        String   // "Enero 2024", "Febrero 2024", etc.
-  mes           Int
-  anio          Int
-  fechaInicio   DateTime
-  fechaTermino  DateTime
-  estado        String   // "Abierto", "Cerrado", "Procesando"
-  
-  // Métricas del período
-  ingresosNetos Float   @default(0)
-  egresosNetos  Float   @default(0)
-  utilidadBruta Float   @default(0)
-  utilidadNeta  Float   @default(0)
-  ivaDebito     Float   @default(0)
-  ivaCredito    Float   @default(0)
-  ivaPagar      Float   @default(0)
-  ppmCalculado  Float   @default(0)
-  
-  // Relaciones
-  empresaId     String
-  empresa       Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  
+  usuariosEmpresa UsuariosEmpresa[]
+  terceros Tercero[]
+  periodos PeriodoContable[]
   facturasEmitidas FacturaEmitida[]
   facturasRecibidas FacturaRecibida[]
-  gastos        Gasto[]
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  @@unique([empresaId, mes, anio])
+  gastos Gasto[]
+  impuestos Impuesto[]
+  reportes Reporte[]
+  calculosIA CalculoIA[]
+}
+
+// Usuario-Empresa (alineado con Supabase: public.usuarios_empresas)
+model UsuariosEmpresa {
+  id String @id @default(uuid())
+  userId String
+  empresaId String
+  rol String // "owner", "contador", "operador", "lectura"
+  createdAt DateTime @default(now())
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, empresaId])
+  @@index([empresaId])
+}
+
+// Terceros (alineado con Supabase: public.terceros)
+model Tercero {
+  id String @id @default(uuid())
+  empresaId String
+  tipo String // "cliente", "proveedor", "mixto"
+  rut String
+  nombre String
+  email String?
+  telefono String?
+  direccion String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  facturasEmitidas FacturaEmitida[] @relation("FacturaCliente")
+  facturasRecibidas FacturaRecibida[] @relation("FacturaProveedor")
+  gastos Gasto[]
+
+  @@unique([empresaId, rut])
+  @@index([empresaId])
+}
+
+// Facturas Emitidas (alineado con Supabase: public.facturas_emitidas)
+model FacturaEmitida {
+  id String @id @default(uuid())
+  empresaId String
+  terceroId String?
+  periodoId String?
+  numero Int
+  fechaEmision DateTime
+  estado String // "pendiente", "pagada", "anulada"
+  montoNeto Decimal @db.Decimal(19, 4)
+  montoIva Decimal @db.Decimal(19, 4)
+  montoTotal Decimal @db.Decimal(19, 4)
+  descripcion String?
+  idempotencyKey String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente Tercero? @relation(fields: [terceroId], references: [id])
+  periodo PeriodoContable? @relation(fields: [periodoId], references: [id])
+
+  @@unique([empresaId, numero])
+  @@index([empresaId])
+  @@index([terceroId])
+}
+
+// Facturas Recibidas (alineado con Supabase)
+model FacturaRecibida {
+  id String @id @default(uuid())
+  empresaId String
+  proveedorId String?
+  periodoId String?
+  numero Int
+  fechaEmision DateTime
+  estado String // "pendiente", "pagada", "anulada"
+  montoNeto Decimal @db.Decimal(19, 4)
+  montoIva Decimal @db.Decimal(19, 4)
+  montoTotal Decimal @db.Decimal(19, 4)
+  descripcion String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  proveedor Tercero? @relation(fields: [proveedorId], references: [id])
+  periodo PeriodoContable? @relation(fields: [periodoId], references: [id])
+
+  @@index([empresaId])
+}
+
+// Gastos (alineado con Supabase: public.gastos)
+model Gasto {
+  id String @id @default(uuid())
+  empresaId String
+  terceroId String?
+  periodoId String?
+  fecha DateTime
+  estado String // "pendiente", "pagado", "anulado"
+  categoria String
+  descripcion String
+  montoNeto Decimal @db.Decimal(19, 4)
+  montoIva Decimal @db.Decimal(19, 4)
+  montoTotal Decimal @db.Decimal(19, 4)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  proveedor Tercero? @relation(fields: [terceroId], references: [id])
+  periodo PeriodoContable? @relation(fields: [periodoId], references: [id])
+
+  @@index([empresaId])
+}
+
+// Impuestos (alineado con Supabase: public.impuestos)
+model Impuesto {
+  id String @id @default(uuid())
+  empresaId String
+  periodoId String?
+  tipo String // "iva", "ppm", "renta", "otro"
+  monto Decimal @db.Decimal(19, 4)
+  estado String // "pendiente", "declarado", "pagado"
+  vencimiento DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  periodo PeriodoContable? @relation(fields: [periodoId], references: [id])
+
+  @@index([empresaId])
+}
+
+// Períodos Contables (alineado con Supabase: public.periodos_contables)
+model PeriodoContable {
+  id String @id @default(uuid())
+  empresaId String
+  anio Int
+  mes Int
+  estado String @default("abierto") // "abierto", "cerrado"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  facturasEmitidas FacturaEmitida[]
+  facturasRecibidas FacturaRecibida[]
+  gastos Gasto[]
+
+  @@unique([empresaId, anio, mes])
+  @@index([empresaId])
 }
 
 // Reportes Financieros
 model Reporte {
-  id            String   @id @default(cuid())
-  tipo          String   // "BalanceGeneral", "EstadoResultados", "FlujoEfectivo", "LibroCompras", "LibroVentas", etc.
-  nombre        String
-  descripcion   String?
-  periodo       String   // "Mensual", "Trimestral", "Anual"
-  mes           Int?
-  anio          Int
-  datos         String   // JSON con los datos del reporte
-  archivoUrl    String?  // URL del archivo generado
-  estado        String   // "Generando", "Completado", "Error"
-  
-  // Relaciones
-  empresaId     String
-  empresa       Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id String @id @default(uuid())
+  empresaId String
+  tipo String
+  nombre String
+  descripcion String?
+  periodo String
+  mes Int?
+  anio Int
+  datos String @db.Json
+  archivoUrl String?
+  estado String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
+}
+
+// Cálculos de IA
+model CalculoIA {
+  id String @id @default(uuid())
+  empresaId String
+  tipo String
+  parametros String @db.Json
+  resultado String @db.Json
+  confianza Float?
+  prompt String?
+  respuestaIA String?
+  estado String
+  error String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
+}
+
+// Reportes Financieros
+model Reporte {
+  id String @id @default(uuid())
+  empresaId String
+  tipo String
+  nombre String
+  descripcion String?
+  periodo String
+  mes Int?
+  anio Int
+  datos String @db.Json
+  archivoUrl String?
+  estado String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
+}
+
+// Conciliación SumUp
+model ConciliacionSumUp {
+  id String @id @default(uuid())
+  empresaId String
+  checkoutId String?
+  transactionId String?
+  monto Decimal @db.Decimal(19, 4)
+  comision Decimal @db.Decimal(19, 4) @default(0)
+  neto Decimal @db.Decimal(19, 4)
+  estado String @default("PENDIENTE") // PENDIENTE, CONCILIADO, REEMBOLSADO
+  tipo String @default("servicio") // factura, gasto, servicio
+  facturaId String?
+  observaciones String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  factura FacturaEmitida? @relation(fields: [facturaId], references: [id])
+
+  @@index([empresaId])
+  @@index([transactionId])
+  @@index([facturaId])
 }
 
 // Cálculos de IA
