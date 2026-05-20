@@ -1,5 +1,3 @@
-'use client';
-
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -128,7 +126,7 @@ fuente: 'EVIDENCIA CIENTÍFICA'
 export const metadata = { title: 'Nuestra Historia' };
 
 export default function NosotrosPage() {
-const [modalAbierto, setModalAbierto] = useState(false);
+
 
 return (
 <StoreShell>
@@ -206,11 +204,12 @@ Las afirmaciones científicas se fundamentan en estudios que destacan las propie
 </p>
 
 <div className="mt-12 flex justify-center">
-<button
-onClick={() => setModalAbierto(true)}
-className="group relative px-8 py-4 border border-accent text-accent uppercase tracking-[0.2em] text-xs hover:bg-accent hover:text-accent-foreground transition-all duration-500"
+<a
+href="#evidencia"
+className="group relative px-8 py-4 border border-accent text-accent uppercase tracking-[0.2em] text-xs hover:bg-accent hover:text-accent-foreground transition-all duration-500 inline-block"
 >
 Ver Evidencia Científica
+</a>
 </div>
 </div>
 
@@ -255,62 +254,3 @@ Interconectamos la Miel, las abejas, nosotros como humanos y toda la complejidad
 </div>
 </main>
 <ShopFooter />
-
-{/* Modal de Evidencia Científica */}
-{modalAbierto && (
-<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8">
-{/* Backdrop */}
-<div
-className="absolute inset-0 bg-black/90 backdrop-blur-sm"
-onClick={() => setModalAbierto(false)}
-/>
-
-{/* Modal Content */}
-<div className="relative bg-background border border-border rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-{/* Header */}
-<div className="flex items-center justify-between p-6 border-b border-border">
-<h3 className="font-display text-2xl md:text-3xl text-foreground">
-Evidencia Científica
-</h3>
-<button
-onClick={() => setModalAbierto(false)}
-className="text-muted-foreground hover:text-accent transition-colors"
->
-<X size={28} strokeWidth={1.5} />
-</button>
-</div>
-
-{/* Scrollable Content */}
-<div className="overflow-y-auto p-6 md:p-8">
-{EVIDENCIA_CIENTIFICA.map((categoria, idx) => (
-<div key={idx} className="mb-12 last:mb-0">
-<h4 className="font-display text-xl md:text-2xl text-accent mb-6 uppercase tracking-[0.15em]">
-{categoria.categoria}
-</h4>
-<div className="grid md:grid-cols-2 gap-4">
-{categoria.evidencias.map((evidencia, eIdx) => (
-<div
-key={eIdx}
-className="p-5 bg-card/50 border border-border rounded-xl hover:border-accent/50 transition-colors"
->
-<div className="text-xs uppercase tracking-[0.1em] text-accent mb-2">
-{evidencia.titulo}
-</div>
-<p className="text-sm text-foreground mb-3">
-{evidencia.texto}
-</p>
-<span className="text-[0.55rem] uppercase tracking-[0.2em] text-muted-foreground border-t border-border pt-2 inline-block">
-{evidencia.fuente}
-</span>
-</div>
-))}
-</div>
-</div>
-))}
-</div>
-</div>
-</div>
-)}
-</StoreShell>
-);
-}
