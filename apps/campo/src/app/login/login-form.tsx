@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { friendlySupabaseError } from '@enjambre/ui';
+import { logSecurityEvent } from '@enjambre/auth';
 
 export function LoginForm() {
   const router = useRouter();
@@ -21,12 +22,25 @@ export function LoginForm() {
       return;
     }
     setLoading(true);
-    const { error: signErr } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (signErr) {
+	const { error: signErr } = await supabase.auth.signInWithPassword({ email, password });
+	setLoading(false);
+	if (signErr) {
 		setError(friendlySupabaseError(signErr));
-      return;
-    }
+		void logSecurityEvent(supabase, {
+			eventType: 'login_failed',
+			email,
+			userAgent: navigator.userAgent,
+			appSource: 'campo',
+			details: { code: signErr.code, message: signErr.message },
+		});
+		return;
+	}
+	void logSecurityEvent(supabase, {
+		eventType: 'login_success',
+		email,
+		userAgent: navigator.userAgent,
+		appSource: 'campo',
+	});
     router.push('/pos/catalogo');
     router.refresh();
   }

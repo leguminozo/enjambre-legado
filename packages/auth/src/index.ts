@@ -1,3 +1,5 @@
 export * from './supabase'
 export * from './auth-store'
 export * from './hooks'
+export * from './security-events'
+export { useSecurityAlerts } from './use-security-alerts'

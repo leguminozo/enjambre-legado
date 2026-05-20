@@ -1,3 +1,4 @@
+import type { AppVariables } from '../../types/hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
@@ -6,7 +7,7 @@ import { zValidator } from '@hono/zod-validator';
  * Router para conciliación automática
  * Compara movimientos bancarios con ventas y sugiere matches
  */
-export const conciliacionAutoRouter = new Hono();
+export const conciliacionAutoRouter = new Hono<{ Variables: AppVariables }>();
 
 interface Venta {
   id: string;

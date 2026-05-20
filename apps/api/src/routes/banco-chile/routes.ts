@@ -1,3 +1,4 @@
+import type { AppVariables } from '../../types/hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
@@ -6,7 +7,7 @@ import { BancoChileClient } from '@enjambre/banco-chile';
 /**
  * Router para operaciones generales de Banco Chile
  */
-export const bancoChileRouter = new Hono();
+export const bancoChileRouter = new Hono<{ Variables: AppVariables }>();
 
 // Obtener cuentas
 bancoChileRouter.get('/cuentas', async (c) => {

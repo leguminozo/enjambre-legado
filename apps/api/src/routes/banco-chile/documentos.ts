@@ -1,3 +1,4 @@
+import type { AppVariables } from '../../types/hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
@@ -6,7 +7,7 @@ import { BancoChileClient } from '@enjambre/banco-chile';
 /**
  * Router para documentos (Factoring / Web Confirming)
  */
-export const documentosRouter = new Hono();
+export const documentosRouter = new Hono<{ Variables: AppVariables }>();
 
 // Listar documentos
 documentosRouter.get('/', async (c) => {

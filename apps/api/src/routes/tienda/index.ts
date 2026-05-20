@@ -1,15 +1,9 @@
+import type { AppVariables } from '../../types/hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
 import { zValidator } from '@hono/zod-validator';
 import { env } from '../../lib/env';
-
-type AppEnv = {
-  Variables: {
-    supabase: ReturnType<typeof createClient>;
-    userId: string;
-  };
-};
 
 const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 
@@ -30,7 +24,7 @@ const OrderSchema = z.object({
   estado: z.enum(['pendiente', 'pagado', 'enviado', 'entregado', 'cancelado']).optional(),
 });
 
-export const tiendaRoutes = new Hono();
+export const tiendaRoutes = new Hono<{ Variables: AppVariables }>();
 
 tiendaRoutes.get('/products', async (c) => {
   const { data, error } = await supabase
@@ -61,26 +55,18 @@ tiendaRoutes.post(
 tiendaRoutes.patch(
   '/products/:id',
   zValidator('param', z.object({ id: z.string().uuid() })),
+  zValidator('json', ProductSchema.partial()),
   async (c) => {
-    const { id } = c.req.param('id');
+    const { id } = c.req.valid('param');
     const body = c.req.valid('json');
-    
-    const patch: Record<string, unknown> = {};
-    if (body.nombre) patch.nombre = body.nombre;
-    if (body.descripcion_regenerativa !== undefined) patch.descripcion_regenerativa = body.descripcion_regenerativa;
-    if (body.precio !== undefined) patch.precio = body.precio;
-    if (body.stock !== undefined) patch.stock = body.stock;
-    if (body.formato !== undefined) patch.formato = body.formato;
-    if (body.fotos !== undefined) patch.fotos = body.fotos;
-    if (body.visible !== undefined) patch.visible = body.visible;
-    
+
     const { data, error } = await supabase
       .from('productos')
-      .update(patch)
+      .update(body)
       .eq('id', id)
       .select()
       .single();
-      
+
     if (error) {
       return c.json({ error: error.message }, 500);
     }
@@ -89,9 +75,9 @@ tiendaRoutes.patch(
 );
 
 tiendaRoutes.delete('/products/:id', async (c) => {
-  const { id } = c.req.param('id');
+  const id = c.req.param('id');
   const { error } = await supabase.from('productos').delete().eq('id', id);
-  
+
   if (error) {
     return c.json({ error: error.message }, 500);
   }
@@ -114,20 +100,21 @@ tiendaRoutes.get('/orders', async (c) => {
 tiendaRoutes.patch(
   '/orders/:id',
   zValidator('param', z.object({ id: z.string().uuid() })),
+  zValidator('json', OrderSchema),
   async (c) => {
-    const { id } = c.req.param('id');
+    const { id } = c.req.valid('param');
     const body = c.req.valid('json');
-    
+
     const patch: Record<string, unknown> = {};
     if (body.estado) patch.estado = body.estado;
-    
+
     const { data, error } = await supabase
       .from('ventas')
       .update(patch)
       .eq('id', id)
       .select()
       .single();
-      
+
     if (error) {
       return c.json({ error: error.message }, 500);
     }

@@ -1,7 +1,8 @@
+import type { AppVariables } from '../../types/hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { createSupabaseClient } from '../../lib/supabase';
+import { createSupabaseUserClient } from '../../lib/supabase';
 import { bancoChileRouter } from './routes';
 import { conciliacionRouter } from './conciliacion';
 import { conciliacionAutoRouter } from './conciliacion-auto';
@@ -27,7 +28,7 @@ import { montosRouter } from './montos';
  * - POST   /api/banco-chile/conciliacion    - Conciliar movimiento
  * - ... y más por cada API
  */
-export const bancoChileRoutes = new Hono();
+export const bancoChileRoutes = new Hono<{ Variables: AppVariables }>();
 
 // Middleware de autenticación y tenant
 bancoChileRoutes.use('*', async (c, next) => {
@@ -37,7 +38,7 @@ bancoChileRoutes.use('*', async (c, next) => {
   }
 
   const accessToken = authHeader.substring(7);
-  const supabase = createSupabaseClient(accessToken);
+  const supabase = createSupabaseUserClient(accessToken);
 
   try {
     const { data: { user } } = await supabase.auth.getUser(accessToken);
@@ -67,7 +68,7 @@ bancoChileRoutes.use('*', async (c, next) => {
     c.set('accessToken', accessToken);
     c.set('supabase', supabase);
     c.set('empresaId', empresaId);
-    c.set('role', profile.role);
+    c.set('rol', profile.role as string);
 
     await next();
   } catch (error) {

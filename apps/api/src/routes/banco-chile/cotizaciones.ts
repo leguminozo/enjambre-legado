@@ -1,3 +1,4 @@
+import type { AppVariables } from '../../types/hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
@@ -6,7 +7,7 @@ import { BancoChileClient } from '@enjambre/banco-chile';
 /**
  * Router para cotizaciones previsionales
  */
-export const cotizacionesRouter = new Hono();
+export const cotizacionesRouter = new Hono<{ Variables: AppVariables }>();
 
 // Listar cotizaciones
 cotizacionesRouter.get('/', async (c) => {

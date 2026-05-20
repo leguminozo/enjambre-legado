@@ -4,6 +4,7 @@ import { getUrlCampo, getUrlTienda } from '../lib/publicUrls';
 import { Hexagon, Lock, Mail, User, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
 import { AuthHero } from '../components/auth/AuthHero';
 import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
+import { logSecurityEvent } from '@enjambre/auth';
 import gsap from 'gsap';
 
 export default function AuthView() {
@@ -47,12 +48,27 @@ export default function AuthView() {
                 if (error) throw error;
                 setMessage('Te hemos enviado un enlace para recuperar tu contraseña.');
                 setIsForgotPassword(false);
-            } else if (isLogin) {
-                const { error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                });
-                if (error) throw error;
+      } else if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) {
+          void logSecurityEvent(supabase, {
+            eventType: 'login_failed',
+            email,
+            userAgent: navigator.userAgent,
+            appSource: 'nucleo',
+            details: { code: error.code, message: error.message },
+          });
+          throw error;
+        }
+        void logSecurityEvent(supabase, {
+          eventType: 'login_success',
+          email,
+          userAgent: navigator.userAgent,
+          appSource: 'nucleo',
+        });
             } else {
                 const { data, error } = await supabase.auth.signUp({
                     email,

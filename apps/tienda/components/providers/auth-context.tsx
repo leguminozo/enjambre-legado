@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/client';
 import { friendlySupabaseError } from '@enjambre/ui';
+import { logSecurityEvent } from '@enjambre/auth';
 import React, {
   createContext,
   useCallback,
@@ -80,7 +81,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: email.trim(),
       password,
     });
-    if (error) return { success: false, message: friendlySupabaseError(error) };
+    if (error) {
+      void logSecurityEvent(supabase, {
+        eventType: 'login_failed',
+        email: email.trim(),
+        userAgent: navigator.userAgent,
+        appSource: 'tienda',
+        details: { code: error.code, message: error.message },
+      });
+      return { success: false, message: friendlySupabaseError(error) };
+    }
+    void logSecurityEvent(supabase, {
+      eventType: 'login_success',
+      email: email.trim(),
+      userAgent: navigator.userAgent,
+      appSource: 'tienda',
+    });
 
     const u = await loadUser();
     setUser(u);

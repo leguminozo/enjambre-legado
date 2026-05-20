@@ -1,6 +1,5 @@
-import type { Config } from 'tailwindcss';
-
-const config: Config = {
+/** @type {import('tailwindcss').Config} */
+const config = {
   content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
     extend: {
@@ -8,15 +7,15 @@ const config: Config = {
         serif: ['var(--font-cormorant)', 'serif'],
         sans: ['var(--font-inter)', 'sans-serif'],
       },
-    colors: {
-      primary: '#D4A017',
-      background: '#000000',
-      foreground: '#f5f0e8',
-      bosque: '#0A3D2F',
+      colors: {
+        primary: '#D4A017',
+        background: '#000000',
+        foreground: '#f5f0e8',
+        bosque: '#0A3D2F',
+      },
     },
   },
   plugins: [],
 };
 
-export default config;
-
+module.exports = config;

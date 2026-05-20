@@ -1,3 +1,4 @@
+import type { AppVariables } from '../../types/hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
@@ -6,7 +7,7 @@ import { zValidator } from '@hono/zod-validator';
  * Router para conciliación bancaria
  * Permite conciliar movimientos bancarios con ventas/gastos
  */
-export const conciliacionRouter = new Hono();
+export const conciliacionRouter = new Hono<{ Variables: AppVariables }>();
 
 // Listar movimientos para conciliar
 conciliacionRouter.get('/', async (c) => {

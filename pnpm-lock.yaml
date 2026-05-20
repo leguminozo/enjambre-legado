@@ -17,6 +17,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@enjambre/banco-chile':
+        specifier: workspace:*
+        version: link:../../packages/banco-chile
       '@enjambre/contable':
         specifier: workspace:*
         version: link:../../packages/contable
@@ -64,8 +67,8 @@ importers:
         specifier: ^0.575.0
         version: 0.575.0(react@19.2.4)
       next:
-        specifier: ^15.3.5
-        version: 15.5.14(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: 15.3.5
+        version: 15.3.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       qrcode.react:
         specifier: ^4.2.0
         version: 4.2.0(react@19.2.4)
@@ -555,6 +558,16 @@ importers:
       zustand:
         specifier: ^5.0.12
         version: 5.0.12(@types/react@19.2.14)(immer@11.1.4)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.7
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.14)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
 
   packages/banco-chile:
     dependencies:

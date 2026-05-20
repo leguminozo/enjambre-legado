@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Hono } from "hono";
 
 export type AppVariables = {
   user: { id: string; email?: string };
@@ -7,3 +8,5 @@ export type AppVariables = {
   empresaId: string;
   rol: string;
 };
+
+export type AppHono = Hono<{ Variables: AppVariables }>;

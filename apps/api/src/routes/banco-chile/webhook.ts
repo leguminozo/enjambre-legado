@@ -1,3 +1,4 @@
+import type { AppVariables } from '../../types/hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
 
@@ -5,7 +6,7 @@ import { z } from 'zod';
  * Webhook para notificaciones de Banco Chile
  * Endpoint para recibir notificaciones automáticas de eventos
  */
-export const webhookRouter = new Hono();
+export const webhookRouter = new Hono<{ Variables: AppVariables }>();
 
 // Schema para notificaciones
 const WebhookEventSchema = z.object({
@@ -15,7 +16,7 @@ const WebhookEventSchema = z.object({
   monto: z.number().optional(),
   descripcion: z.string().optional(),
   fecha: z.string(),
-  datos: z.record(z.unknown()).optional(),
+  datos: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Endpoint principal para webhooks

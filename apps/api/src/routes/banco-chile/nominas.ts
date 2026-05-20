@@ -1,3 +1,4 @@
+import type { AppVariables } from '../../types/hono';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
@@ -6,7 +7,7 @@ import { BancoChileClient, NominaRequestSchema } from '@enjambre/banco-chile';
 /**
  * Router para nóminas (Confirming)
  */
-export const nominasRouter = new Hono();
+export const nominasRouter = new Hono<{ Variables: AppVariables }>();
 
 // Listar nóminas
 nominasRouter.get('/', async (c) => {
