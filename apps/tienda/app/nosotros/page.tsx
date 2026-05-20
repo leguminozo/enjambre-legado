@@ -1,10 +1,7 @@
-'use client';
-
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContent } from '@/lib/cms';
-import { useState } from 'react';
 import { X } from 'lucide-react';
 
 const EVIDENCIA_CIENTIFICA = [
