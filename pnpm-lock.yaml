@@ -48,9 +48,12 @@ importers:
 
   apps/campo:
     dependencies:
-      '@supabase/ssr':
-        specifier: ^0.9.0
-        version: 0.9.0(@supabase/supabase-js@2.102.1)
+      '@enjambre/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@enjambre/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@supabase/supabase-js':
         specifier: ^2.102.1
         version: 2.102.1
@@ -341,6 +344,12 @@ importers:
 
   apps/nucleo:
     dependencies:
+      '@enjambre/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@enjambre/contable':
+        specifier: workspace:*
+        version: link:../../packages/contable
       '@enjambre/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -453,6 +462,9 @@ importers:
 
   apps/tienda:
     dependencies:
+      '@enjambre/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@enjambre/ui':
         specifier: workspace:*
         version: link:../../packages/ui
