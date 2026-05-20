@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@types/leaflet':
+        specifier: ^1.9.21
+        version: 1.9.21
       turbo:
         specifier: ^2.8.20
         version: 2.8.20
