@@ -1,22 +1,48 @@
 'use client';
 
 import Link from 'next/link';
-import { Instagram, Facebook, Youtube, Twitter, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
+
+function IconFacebook() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+
+function IconInstagram() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <rect x="2" y="2" width="20" height="20" rx="5" />
+      <circle cx="12" cy="12" r="5" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
+function IconX() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <path d="M4 4l16 16M20 4L4 20" />
+    </svg>
+  );
+}
 
 const SOCIAL_LINKS = [
-{ href: '#', icon: Facebook, label: 'Facebook' },
-{ href: 'https://instagram.com/laobrerayelzangano', icon: Instagram, label: 'Instagram' },
-{
-href: '#',
-icon: () => (
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-<path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
-</svg>
-),
-label: 'TikTok'
-},
-{ href: '#', icon: Twitter, label: 'X' },
-{ href: '#', icon: Youtube, label: 'YouTube' },
+  { href: 'https://wa.me/56940831358', icon: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+    </svg>
+  ), label: 'WhatsApp' },
+  { href: 'https://instagram.com/obrera_y_zangano', icon: IconInstagram, label: 'Instagram' },
+  { href: 'https://www.facebook.com/ObreraZangano/', icon: IconFacebook, label: 'Facebook' },
+  { href: 'https://www.tiktok.com/@obrera_y_zangano', icon: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+    </svg>
+  ), label: 'TikTok' },
+  { href: 'https://x.com/obrerayzangano', icon: IconX, label: 'X' },
 ];
 
 const LEGAL_LINKS = [

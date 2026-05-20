@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Megaphone, Users, Instagram, Calendar, Gift, BookOpen, ArrowUpRight, X } from 'lucide-react';
+import { Megaphone, Users, Camera, Calendar, Gift, BookOpen, ArrowUpRight, X } from 'lucide-react';
 import { roleGreetings } from '../data/mockData';
 import { supabase } from '../lib/supabase';
 
@@ -58,7 +58,7 @@ export default function MarketingView() {
             <div className="stats-grid">
                 {[
                     { icon: <Users size={20} />, val: '47', label: 'Guardianes del Club', trend: '+8' },
-                    { icon: <Instagram size={20} />, val: '2.4K', label: 'Seguidores IG', trend: '+12%' },
+                    { icon: <Camera size={20} />, val: '2.4K', label: 'Seguidores IG', trend: '+12%' },
                     { icon: <Gift size={20} />, val: '12', label: 'Suscripciones activas' },
                     { icon: <Megaphone size={20} />, val: '3', label: 'Campañas activas' },
                 ].map((s, i) => (
