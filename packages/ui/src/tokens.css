@@ -177,7 +177,7 @@
   --max-content-width: 1400px;
 }
 
-/* ── 2b. Semánticos — Light (para nucleo/dashboard y futuro toggle) ── */
+/* ── 2b. Semánticos — Light mode ── */
 :root.light {
   --background: var(--enj-crema-h) var(--enj-crema-s) 97%;
   --foreground: var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) 7%;

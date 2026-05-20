@@ -6,6 +6,8 @@ export { StatCard } from './components/stat-card';
 export { SectionHeader } from './components/section-header';
 export { GrainOverlay } from './components/grain-overlay';
 export { ToastProvider, useToast } from './components/toast';
+export { ThemeProvider, useThemeContext } from './components/ThemeProvider';
+export { useTheme, type Theme } from './hooks/useTheme';
 export { tokens, type TokenKey } from './tokens';
 export { createEnjambrePreset, enjambrePreset } from './tailwind-preset';
 export { friendlySupabaseError, friendlyApiError, friendlyError } from './lib/friendly-error';

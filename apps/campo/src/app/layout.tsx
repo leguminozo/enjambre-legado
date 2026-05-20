@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, Cormorant_Garamond } from 'next/font/google';
 import React from 'react';
+import { ThemeProvider } from '@enjambre/ui';
 import './globals.css';
 
 const inter = Inter({
@@ -24,8 +25,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${inter.variable} ${cormorant.variable}`}>
-      <body className={`${inter.className} bg-black antialiased`}>{children}</body>
+    <html lang="es" className={`${inter.variable} ${cormorant.variable}`} suppressHydrationWarning>
+      <body className={`${inter.className} bg-black antialiased`}>
+        <ThemeProvider defaultTheme="system">
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

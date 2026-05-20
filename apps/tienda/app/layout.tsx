@@ -36,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={`${fontDisplay.variable} ${fontBody.variable}`}>
+    <html lang="es" className={`${fontDisplay.variable} ${fontBody.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased bg-background text-foreground">
         <RegisterServiceWorker />
         <AppProviders>{children}</AppProviders>

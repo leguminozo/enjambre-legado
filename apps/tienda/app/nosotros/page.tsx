@@ -2,10 +2,126 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContent } from '@/lib/cms';
+import { useState } from 'react';
+import { X } from 'lucide-react';
 
-
-
-
+const EVIDENCIA_CIENTIFICA = [
+{
+categoria: 'Control Glicémico',
+evidencias: [
+{
+titulo: 'Evidencia Monumental Control Glicémico',
+texto: 'Comparada con dextrosa, la miel reduce el aumento de glucosa (IG ~55).',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Impacto HbA1c',
+texto: 'Consumo de 50g/día mejora control sin picos drásticos.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Miel vs Sucrosa',
+texto: 'Menor índice incremental pico que el azúcar común.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Síndrome Metabólico',
+texto: 'Mejora metabolismo lipídico y reduce aumento de peso.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Revisión Sistemática',
+texto: 'IG inferior minimiza picos glucémicos.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Prediabetes',
+texto: 'Asociación inversa; mejora control en Diabetes T2.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+}
+]
+},
+{
+categoria: 'Propiedades del Ulmo y Flora Nativa',
+evidencias: [
+{
+titulo: 'Poder del Ulmo',
+texto: 'Actividad antimicrobiana y antioxidante superior.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Flora de Chiloé',
+texto: 'Correlación directa entre especies nativas y antioxidantes.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Compuestos Volátiles',
+texto: 'Propiedades biológicas únicas de bosques chilotas.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Antibacteriana',
+texto: 'Actividad dependiente de peróxido de hidrógeno.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: '400+ Compuestos',
+texto: 'Complejidad química de mieles chilenas.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+}
+]
+},
+{
+categoria: 'Neuroprotección y Salud Mental',
+evidencias: [
+{
+titulo: 'Neuroprotección',
+texto: 'Efectos ansiolíticos y antidepresivos naturales.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Salud Cerebral',
+texto: 'Reducción de ansiedad en modelos de estudio.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Triptófano',
+texto: 'Precursor de serotonina para calidad mental.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Eje Intestino-Cerebro',
+texto: 'Regulación del estado de ánimo vía microbioma.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Anti-inflamatorio',
+texto: 'Alta capacidad antioxidante in-vitro.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+}
+]
+},
+{
+categoria: 'Contexto Epidemiológico Chile',
+evidencias: [
+{
+titulo: 'Resistencia Insulínica Chile',
+texto: 'Alta prevalencia en zonas indígenas.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Obesidad Nacional',
+texto: '78% de prevalencia en 2017.',
+fuente: 'EVIDENCIA CIENTÍFICA'
+},
+{
+titulo: 'Azúcar Latam',
+texto: 'Consumo excesivo (99.4 g/día promedio).',
+fuente: 'EVIDENCIA CIENTÍFICA'
+}
+]
+}
+] as const;
 
 export const metadata = { title: 'Nuestra Historia' };
 
@@ -137,7 +253,6 @@ Interconectamos la Miel, las abejas, nosotros como humanos y toda la complejidad
 </div>
 </div>
 </main>
-<ShopFooter />
-</StoreShell>
+<ShopFooter /></StoreShell>
 );
 }

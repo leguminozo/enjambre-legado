@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { ThemeProvider } from '@enjambre/ui';
 import { supabase } from './lib/supabase';
 import AppLayout from './components/layout/AppLayout';
 import AuthView from './views/AuthView';
@@ -12,6 +13,7 @@ import MarketingView from './views/MarketingView';
 import CreadorView from './views/CreadorView';
 import NucleoView from './views/NucleoView';
 import ContableView from './views/ContableView';
+import ConfiguracionView from './views/ConfiguracionView';
 import type { Session } from '@supabase/supabase-js';
 
 const titleMap: Record<string, string> = {
@@ -24,6 +26,7 @@ const titleMap: Record<string, string> = {
   '/creador': 'Portal de Creador',
   '/nucleo': 'Núcleo',
   '/contable': 'Sistema Contable',
+  '/configuracion': 'Configuración',
 };
 
 function AppContent() {
@@ -79,9 +82,10 @@ function AppContent() {
         <Route path="/operaciones" element={<LogisticaView />} />
         <Route path="/comunidad" element={<MarketingView />} />
         <Route path="/creador" element={<CreadorView currentRole="admin" userId={session?.user?.id} />} />
-        <Route path="/nucleo" element={<NucleoView />} />
-        <Route path="/contable" element={<ContableView />} />
-        <Route path="*" element={<Navigate to="/nucleo" replace />} />
+<Route path="/nucleo" element={<NucleoView />} />
+<Route path="/contable" element={<ContableView />} />
+<Route path="/configuracion" element={<ConfiguracionView />} />
+<Route path="*" element={<Navigate to="/nucleo" replace />} />
       </Routes>
     </AppLayout>
   );
@@ -90,7 +94,9 @@ function AppContent() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <ThemeProvider defaultTheme="system">
+        <AppContent />
+      </ThemeProvider>
     </BrowserRouter>
   );
 }
