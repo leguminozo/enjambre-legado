@@ -13,6 +13,7 @@ import MarketingView from './views/MarketingView';
 import CreadorView from './views/CreadorView';
 import NucleoView from './views/NucleoView';
 import ContableView from './views/ContableView';
+import SiiDteView from './views/SiiDteView';
 import ConfiguracionView from './views/ConfiguracionView';
 import type { Session } from '@supabase/supabase-js';
 
@@ -26,6 +27,7 @@ const titleMap: Record<string, string> = {
   '/creador': 'Portal de Creador',
   '/nucleo': 'Núcleo',
   '/contable': 'Sistema Contable',
+  '/sii': 'SII · Factura de Compra',
   '/configuracion': 'Configuración',
 };
 
@@ -83,8 +85,9 @@ function AppContent() {
         <Route path="/comunidad" element={<MarketingView />} />
         <Route path="/creador" element={<CreadorView currentRole="admin" userId={session?.user?.id} />} />
 <Route path="/nucleo" element={<NucleoView />} />
-<Route path="/contable" element={<ContableView />} />
-<Route path="/configuracion" element={<ConfiguracionView />} />
+          <Route path="/contable" element={<ContableView />} />
+          <Route path="/sii" element={<SiiDteView />} />
+          <Route path="/configuracion" element={<ConfiguracionView />} />
 <Route path="*" element={<Navigate to="/nucleo" replace />} />
       </Routes>
     </AppLayout>

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Map, Hexagon, TreePine, ShoppingBag, Truck, Megaphone, Bell, Search, Menu, X, LogOut, Calculator, Sparkles, BarChart3 } from 'lucide-react';
+import { Map, Hexagon, TreePine, ShoppingBag, Truck, Megaphone, Bell, Search, Menu, X, LogOut, Calculator, Sparkles, BarChart3, FileText } from 'lucide-react';
 import { roleLabels } from '../../data/mockData';
 import { supabase } from '../../lib/supabase';
 import { getUrlCampo, getUrlTienda } from '../../lib/publicUrls';
@@ -20,6 +20,7 @@ const allNavItems: { label: string; icon: React.ReactNode; path: string }[] = [
   { label: 'Comunidad & Marketing', icon: <Megaphone size={18} />, path: '/comunidad' },
   { label: 'Portal de Creador', icon: <Sparkles size={18} />, path: '/creador' },
   { label: 'Sistema Contable', icon: <Calculator size={18} />, path: '/contable' },
+  { label: 'SII · DTE', icon: <FileText size={18} />, path: '/sii' },
   { label: 'Panel Ejecutivo', icon: <BarChart3 size={18} />, path: '/gerente' },
 ];
 

@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { BarChart3, Shield, Sparkles, ShoppingCart, Package, Building2, TrendingUp } from 'lucide-react';
+import { BarChart3, Shield, Sparkles, ShoppingCart, Package, Building2, TrendingUp, FileText } from 'lucide-react';
 import { EjecutivoPanel } from '../components/gerente/EjecutivoPanel';
 import VanguardiaPanel from '../components/vanguardia/VanguardiaPanel';
 import { CreadoresAdminPanel } from '../components/creadores/CreadoresAdminPanel';
 import { TiendaPanel } from '../components/tienda/TiendaPanel';
 import { BancoChileView } from '../views/banco-chile';
 import ContableView from './ContableView';
+import SiiDteView from './SiiDteView';
 
-type Tab = 'dashboard' | 'tienda' | 'contable' | 'banco' | 'vanguardia' | 'creadores';
+type Tab = 'dashboard' | 'tienda' | 'contable' | 'sii' | 'banco' | 'vanguardia' | 'creadores';
 
 export default function NucleoView() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
@@ -16,6 +17,7 @@ export default function NucleoView() {
     { key: 'dashboard', icon: <BarChart3 size={18} />, label: 'Dashboard' },
     { key: 'tienda', icon: <Package size={18} />, label: 'Tienda' },
     { key: 'contable', icon: <TrendingUp size={18} />, label: 'Contable' },
+    { key: 'sii', icon: <FileText size={18} />, label: 'SII DTE' },
     { key: 'banco', icon: <Building2 size={18} />, label: 'Banco' },
     { key: 'vanguardia', icon: <Shield size={18} />, label: 'Vanguardia' },
     { key: 'creadores', icon: <Sparkles size={18} />, label: 'Creadores' },
@@ -43,6 +45,7 @@ export default function NucleoView() {
       {activeTab === 'dashboard' && <EjecutivoPanel />}
       {activeTab === 'tienda' && <TiendaPanel />}
       {activeTab === 'contable' && <ContableView />}
+      {activeTab === 'sii' && <SiiDteView />}
       {activeTab === 'banco' && <BancoChileView />}
       {activeTab === 'vanguardia' && <VanguardiaPanel />}
       {activeTab === 'creadores' && <CreadoresAdminPanel />}
