@@ -56,22 +56,22 @@ export default function ApiarioManager({ colmenas: localColmenas, setColmenas: s
         try {
             let apiarioId = null;
             // 1. Resolve or create Apiario by name (location)
-            const { data: existingAp } = await supabase.from('apiarios').select('id').eq('name', c.location).single();
-            if (existingAp) {
-                apiarioId = existingAp.id;
-            } else {
-                const { data: newAp } = await supabase.from('apiarios').insert({ name: c.location, lat: 0, lng: 0, health: 'optimal' }).select().single();
+const { data: existingAp } = await supabase.from('apiarios').select('id').eq('nombre', c.location).single();
+      if (existingAp) {
+        apiarioId = existingAp.id;
+      } else {
+        const { data: newAp } = await supabase.from('apiarios').insert({ nombre: c.location, lat: 0, lng: 0 }).select().single();
                 if (newAp) apiarioId = newAp.id;
             }
 
             // 2. Insert or update Colmena
             const isNew = !c.id || c.id.includes('mock') || c.id.length < 20; // Supabase uses UUIDs
             if (isNew && apiarioId) {
-                const { data: newRow } = await supabase.from('colmenas').insert({
-                    apiario_id: apiarioId, name: c.name, health: c.health,
-                    production_total: c.production || 0, floracion: c.floracion,
-                    last_inspection: c.lastInspection || null,
-                    alzas: c.alzas || 1, notes: c.notes || ''
+          const { data: newRow } = await supabase.from('colmenas').insert({
+            apiario_id: apiarioId, name: c.name, estado: c.health || 'optima',
+            production_total: c.production || 0, floracion: c.floracion,
+            last_inspection: c.lastInspection || null,
+            alzas: c.alzas || 1, notes: c.notes || ''
                 }).select('id').single();
 
                 // Update local ID behind the scenes

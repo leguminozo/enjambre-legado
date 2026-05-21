@@ -19,7 +19,7 @@ conciliacionRouter.get('/', async (c) => {
       .from('banco_chile_movimientos')
       .select(`
         *,
-        cuentas:bano_chile_cuentas (
+        cuentas:banco_chile_cuentas (
           numero_cuenta,
           tipo_cuenta
         )
