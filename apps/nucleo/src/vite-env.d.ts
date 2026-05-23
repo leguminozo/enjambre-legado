@@ -2,8 +2,8 @@
 /// <reference types="vite-plugin-pwa/client" />
 
 interface ImportMetaEnv {
-    /** URL base del BFF (`apps/api`). Por defecto http://localhost:3001 */
-    readonly VITE_API_BASE_URL?: string;
+  /** URL base del BFF (`apps/api`). Obligatoria en producción. */
+  readonly VITE_API_URL?: string;
     readonly VITE_SUPABASE_URL: string;
     /** Clave publishable (Supabase nuevo) o anon JWT clásico. */
     readonly VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY?: string;

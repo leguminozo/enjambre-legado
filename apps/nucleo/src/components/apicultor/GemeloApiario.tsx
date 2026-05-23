@@ -69,7 +69,6 @@ function Colmena3D({ position, temp, name, weight }: Colmena3DProps) {
         position={[0, -0.7, 0]}
         fontSize={0.12}
         color={color}
-        opacity={0.8}
       >
         {temp}°C | {weight}kg
       </Text>

@@ -9,7 +9,7 @@ export const getAccessToken = async (): Promise<string> => {
   return token;
 };
 
-export function getEmpresaId(): string {
-  const session = supabase.auth.getSession();
-  return session.then(({ data }) => data.session?.user?.id ?? '');
+export async function getEmpresaId(): Promise<string> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user?.id ?? '';
 }

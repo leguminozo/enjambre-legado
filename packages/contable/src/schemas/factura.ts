@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const FacturaEmitidaInputSchema = z.object({
-  tercero_id: z.string().uuid(),
-  numero: z.coerce.number().int().positive(),
+  tercero_id: z.string().uuid().optional(),
+  numero: z.string().trim().min(1),
   fecha_emision: z.iso.datetime(),
   monto_neto: z.coerce.number().positive(),
   descripcion: z.string().trim().max(500).optional(),
@@ -12,8 +12,8 @@ export const FacturaEmitidaInputSchema = z.object({
 export const FacturaEmitidaOutputSchema = z.object({
   id: z.string().uuid(),
   empresa_id: z.string().uuid(),
-  tercero_id: z.string().uuid(),
-  numero: z.number().int().positive(),
+  tercero_id: z.string().uuid().optional(),
+  numero: z.string(),
   fecha_emision: z.string(),
   monto_neto: z.number(),
   monto_iva: z.number(),

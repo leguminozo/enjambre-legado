@@ -22,7 +22,7 @@ export default function EspectroVivo() {
         source: sourceRef.current,
         bufferSize: 512,
         featureExtractors: ['rms', 'spectralCentroid', 'spectralFlatness'],
-        callback: (features) => {
+        callback: (features: { rms: number; spectralCentroid: number; spectralFlatness?: number }) => {
           setFeatures(features);
           draw(features);
         },

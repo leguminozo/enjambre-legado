@@ -4,10 +4,10 @@ import { supabase } from "../lib/supabase";
 import { calcularIVA, calcularTotal } from "@enjambre/contable";
 import { FileText, Plus, Loader2, Send, Car, AlertCircle, CheckCircle2, Clock, Receipt, Globe, DollarSign } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 if (!API_URL) {
-  console.warn("[SiiDteView] VITE_API_URL no configurada — usando fallback localhost");
+  console.warn("[SiiDteView] NEXT_PUBLIC_API_URL no configurada — usando fallback localhost");
 }
 
 function getApiUrl(): string {

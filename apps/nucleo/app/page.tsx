@@ -1,16 +1,11 @@
-import React from 'react';
-import { Leaf, Activity, ArrowRight, TreePine } from 'lucide-react';
 import Link from 'next/link';
-
-function ecosystemUrlTienda(): string {
-  return (process.env.NEXT_PUBLIC_URL_TIENDA ?? '').trim();
-}
+import { Leaf, Activity, ArrowRight, TreePine } from 'lucide-react';
 
 export default function NucleoLanding() {
-  const urlTienda = ecosystemUrlTienda();
+  const urlTienda = process.env.NEXT_PUBLIC_URL_TIENDA?.trim() || '';
+
   return (
     <main className="min-h-screen bg-[var(--crema-warm)] text-gray-900 font-sans selection:bg-[var(--oro-miel)] selection:text-white pb-20">
-      {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-6 sm:px-12 lg:px-24 flex flex-col items-center text-center overflow-hidden">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[70%] bg-[var(--bosque-ulmo)]/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[60%] bg-[var(--oro-miel)]/10 rounded-full blur-[100px] pointer-events-none" />
@@ -21,7 +16,7 @@ export default function NucleoLanding() {
         </div>
 
         <h1 className="text-5xl md:text-7xl font-serif text-[var(--bosque-ulmo)] font-bold tracking-tight mb-6 max-w-4xl">
-          El Sistema Nervioso del <br className="hidden md:block"/>
+          El Sistema Nervioso del <br className="hidden md:block" />
           <span className="text-[var(--oro-miel)]">Bosque Nativo</span>
         </h1>
 
@@ -39,46 +34,31 @@ export default function NucleoLanding() {
         </div>
       </section>
 
-      {/* Access Cards */}
       <section className="px-6 sm:px-12 lg:px-24 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white/60 p-8 rounded-3xl border border-white backdrop-blur-xl shadow-lg shadow-[var(--bosque-ulmo)]/5 hover:-translate-y-1 transition-transform duration-300">
           <div className="w-12 h-12 bg-[var(--oro-miel)]/10 rounded-2xl flex items-center justify-center mb-6">
             <Leaf className="w-6 h-6 text-[var(--oro-miel)]" />
           </div>
           <h3 className="text-xl font-bold text-[var(--bosque-ulmo)] mb-3">Portal Apicultor</h3>
-          <p className="text-gray-600 mb-6 text-sm leading-relaxed">
-            Gestión cíclica de colmenas, alertas meteorológicas preventivas y registros sanitarios con trazabilidad individual In-Situ.
-          </p>
-          <a href="/login?role=apicultor" className="text-[var(--oro-miel)] font-medium text-sm hover:underline flex items-center gap-1">
-            Reclamar acceso <ArrowRight className="w-3 h-3" />
-          </a>
+          <p className="text-gray-600 mb-6 text-sm leading-relaxed">Gestión cíclica de colmenas, alertas meteorológicas preventivas y registros sanitarios con trazabilidad individual In-Situ.</p>
+          <a href="/login?role=apicultor" className="text-[var(--oro-miel)] font-medium text-sm hover:underline flex items-center gap-1">Reclamar acceso <ArrowRight className="w-3 h-3" /></a>
         </div>
-
         <div className="bg-white/60 p-8 rounded-3xl border border-white backdrop-blur-xl shadow-lg shadow-[var(--bosque-ulmo)]/5 hover:-translate-y-1 transition-transform duration-300">
           <div className="w-12 h-12 bg-[var(--bosque-ulmo)]/10 rounded-2xl flex items-center justify-center mb-6">
             <Activity className="w-6 h-6 text-[var(--bosque-ulmo)]" />
           </div>
           <h3 className="text-xl font-bold text-[var(--bosque-ulmo)] mb-3">Estación Gerente</h3>
-          <p className="text-gray-600 mb-6 text-sm leading-relaxed">
-            Visualización macroscópica de flujos de caja, predicciones generativas de cosechas con IA y auditoría en tiempo real.
-          </p>
-          <a href="/login?role=gerente" className="text-[var(--bosque-ulmo)] font-medium text-sm hover:underline flex items-center gap-1">
-            Iniciar simulación <ArrowRight className="w-3 h-3" />
-          </a>
+          <p className="text-gray-600 mb-6 text-sm leading-relaxed">Visualización macroscópica de flujos de caja, predicciones generativas de cosechas con IA y auditoría en tiempo real.</p>
+          <a href="/login?role=gerente" className="text-[var(--bosque-ulmo)] font-medium text-sm hover:underline flex items-center gap-1">Iniciar simulación <ArrowRight className="w-3 h-3" /></a>
         </div>
-
         <div className="bg-white/60 p-8 rounded-3xl border border-white backdrop-blur-xl shadow-lg shadow-[var(--bosque-ulmo)]/5 hover:-translate-y-1 transition-transform duration-300">
           <div className="w-12 h-12 bg-green-900/10 rounded-2xl flex items-center justify-center mb-6">
             <TreePine className="w-6 h-6 text-green-700" />
           </div>
           <h3 className="text-xl font-bold text-[var(--bosque-ulmo)] mb-3">Comunidad Guardián</h3>
-          <p className="text-gray-600 mb-6 text-sm leading-relaxed">
-            Transparencia de métricas de CO₂, visor de reforestación territorial y reportes biológicos de floraciones locales.
-          </p>
+          <p className="text-gray-600 mb-6 text-sm leading-relaxed">Transparencia de métricas de CO2, visor de reforestación territorial y reportes biológicos de floraciones locales.</p>
           {urlTienda ? (
-            <a href={urlTienda} target="_blank" rel="noopener noreferrer" className="text-green-700 font-medium text-sm hover:underline flex items-center gap-1">
-              Explorar impacto <ArrowRight className="w-3 h-3" />
-            </a>
+            <a href={urlTienda} target="_blank" rel="noopener noreferrer" className="text-green-700 font-medium text-sm hover:underline flex items-center gap-1">Explorar impacto <ArrowRight className="w-3 h-3" /></a>
           ) : (
             <span className="text-gray-400 font-medium text-sm">Tienda web (configura NEXT_PUBLIC_URL_TIENDA)</span>
           )}

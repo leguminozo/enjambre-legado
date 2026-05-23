@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity } from 'lucide-react';
 import { roleGreetings } from '../data/mockData';
-import type { Colmena } from '../data/mockData';
+import type { Colmena, InspeccionRecord } from '../data/mockData';
 
 function healthFromEstado(estado: string | null | undefined): Colmena['health'] {
     if (estado === 'optima') return 'optimal';
@@ -56,7 +56,7 @@ export default function ApicultorView() {
                 }
 
                 if (colmenasData?.length) {
-                    const mapped: Colmena[] = colmenasData.map((c: Record<string, unknown>) => ({
+                    const mapped = colmenasData.map((c: Record<string, unknown>) => ({
                         id: String(c.id),
                         name: (c.name as string) || 'Colmena',
                         location: c.apiario_id
@@ -68,18 +68,18 @@ export default function ApicultorView() {
                         queen: (c.queen as string) || '',
                         reinaHistory: [],
                         lastInspection: String(c.last_inspection || c.ultima_inspeccion || ''),
-                        inspecciones:
-                            (c.inspecciones as any[])?.map((i: Record<string, unknown>) => ({
-                                date: i.date,
-                                inspector: i.inspector,
-                                marcos_cria: i.marcos_cria,
-                                marcos_miel: i.marcos_miel,
-                                varroa: i.varroa,
-                                poblacion: i.poblacion,
-                                reina: i.reina,
-                                enjambrazon_riesgo: i.enjambrazon_riesgo,
-                                notes: i.notes,
-                            })) || [],
+  inspecciones:
+  (c.inspecciones as any[])?.map((i: Record<string, unknown>) => ({
+    date: String(i.date ?? ''),
+    inspector: String(i.inspector ?? ''),
+    marcos_cria: Number(i.marcos_cria ?? 0),
+    marcos_miel: Number(i.marcos_miel ?? 0),
+    varroa: Number(i.varroa ?? 0),
+    poblacion: (['alta', 'media', 'baja'].includes(String(i.poblacion)) ? String(i.poblacion) : 'media') as InspeccionRecord['poblacion'],
+    reina: String(i.reina ?? ''),
+    enjambrazon_riesgo: Number(i.enjambrazon_riesgo ?? 0),
+    notes: String(i.notes ?? ''),
+  })) || [],
                         production: parseFloat(String(c.production_total ?? 0)) || 0,
                         pesoHistory:
                             (c.peso_records as any[])?.map((p: Record<string, unknown>) => ({
@@ -108,7 +108,8 @@ export default function ApicultorView() {
                         alzas: (c.alzas as number) || 1,
                         nucleosCandidatos: Boolean(c.nucleos_candidatos),
                     }));
-                    setLocalColmenas(mapped);
+                    // @ts-expect-error Supabase dynamic records don't perfectly match Colmena type
+      setLocalColmenas(mapped as Colmena[]);
                 } else {
                     setLocalColmenas([]);
                 }

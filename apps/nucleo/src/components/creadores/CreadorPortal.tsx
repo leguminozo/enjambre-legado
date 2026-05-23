@@ -402,7 +402,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
                   <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Método de pago</label>
                   <select
                     value={retiroForm.metodo}
-                    onChange={e => setRetiroForm({ ...retiroForm, metodo: e.target.value as 'transferencia' | 'paypal' | 'bizum' | 'otro' })}
+                    onChange={e => setRetiroForm({ ...retiroForm, metodo: e.target.value as typeof retiroForm.metodo })}
                     className="input-field text-sm"
                   >
                     <option value="transferencia">Transferencia bancaria</option>

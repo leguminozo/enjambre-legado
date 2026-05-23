@@ -122,8 +122,8 @@ export default function CalendarioCiclico() {
           <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
                             <Tooltip
                                 contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.78rem' }}
-          formatter={(v: number, name: string) =>
-            name === 'flujoIndex' ? [`${v}/100`, 'Flujo néctar'] : [v, name]}
+formatter={(v, name) =>
+              name === 'flujoIndex' ? [`${v}/100`, 'Flujo néctar'] : [v, name]}
                                 labelFormatter={l => `📅 ${l}`}
                             />
                             <Area type="monotone" dataKey="flujoIndex" stroke={ORO_MIEL}
@@ -135,7 +135,7 @@ export default function CalendarioCiclico() {
                     {flowPredictions.slice(0, 4).map((p, i) => (
                         <div key={i} style={{ padding: 8, background: `rgba(212,160,23,${0.05 + p.flujoIndex / 800})`, borderRadius: 6, textAlign: 'center' }}>
                             <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--oro-miel-dark)' }}>{p.flujoIndex}</div>
-                            <div style={{ fontSize: '0.65rem', color: 'var(--bosque-ulmo)', fontWeight: 600 }}>{p.floracion.split('(')[0].trim()}</div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--bosque-ulmo)', fontWeight: 600 }}>{p.floracion.split('(')[0]!.trim()}</div>
                             <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{p.date.slice(5)} · ~{p.prediccionKg}kg/d</div>
                         </div>
                     ))}

@@ -6,7 +6,7 @@
 ## Project Overview
 
 **Enjambre Legado** — Biocultural regeneration operating system.
-Monorepo managed by Turborepo + pnpm. Multi-platform (Next.js, Vite SPA, Hono BFF).
+Monorepo managed by Turborepo + pnpm. 3 apps, all on Vercel + Supabase.
 
 ## Read First
 
@@ -43,30 +43,26 @@ Monorepo managed by Turborepo + pnpm. Multi-platform (Next.js, Vite SPA, Hono BF
 ## App Commands
 
 ```bash
-pnpm install                                       # Install all
-pnpm dev                                           # Dev all apps
-pnpm --filter @enjambre/tienda dev                 # Tienda (Next.js 16)
-pnpm --filter @enjambre/nucleo dev                 # Nucleo (Vite 7)
-pnpm --filter @enjambre/campo dev                  # Campo (Next.js 15)
-pnpm --filter @enjambre/api dev                    # API (Hono)
-pnpm --filter @enjambre/eirl dev                   # EIRL (Next.js + Prisma)
-pnpm --filter @enjambre/<app> build                # Build specific app
-pnpm build                                         # Build all
+pnpm install # Install all
+pnpm dev # Dev all apps
+pnpm --filter @enjambre/tienda dev # Tienda (Next.js 16)
+pnpm --filter @enjambre/nucleo dev # Nucleo (Next.js 16, Hono BFF)
+pnpm --filter @enjambre/campo dev # Campo (Next.js 15)
+pnpm --filter @enjambre/<app> build # Build specific app
+pnpm build # Build all
 ```
 
 ## Architecture Quick Map
 
 ```
-apps/tienda    → E-commerce + admin (Next.js 16, Transbank, GSAP)
-apps/nucleo    → Management dashboard (Vite SPA, PWA, Leaflet, TanStack Query)
-apps/campo     → Field PWA (Next.js 15, offline-first, Dexie)
-apps/api       → BFF (Hono, multi-tenant, JWT auth)
-apps/eirl      → Accounting (Next.js + Prisma + SQLite, INDEPENDENT)
-packages/database   → Supabase migrations + types (Postgres 17 + PostGIS)
-packages/contable   → Chilean tax logic (IVA 19%, RUT validation, Zod schemas)
-packages/auth       → Supabase client + Zustand store + role redirect
-packages/offline    → Dexie IndexedDB + sync queue
-packages/ui         → Design tokens (4 semantic tokens)
+apps/tienda → E-commerce + admin (Next.js 16, Transbank, GSAP)
+apps/nucleo → Management dashboard + BFF + contable (Next.js 16 App Router, Hono BFF via /api/[[...routes]], Leaflet, TanStack Query)
+apps/campo → Field PWA (Next.js 15, offline-first, Dexie)
+packages/database → Supabase migrations + types (Postgres 17 + PostGIS)
+packages/contable → Chilean tax logic (IVA 19%, RUT validation, Zod schemas)
+packages/auth → Supabase client + Zustand store + role redirect
+packages/offline → Dexie IndexedDB + sync queue
+packages/ui → Design tokens (4 semantic tokens)
 ```
 
 ## Surgery Protocol
@@ -98,7 +94,5 @@ packages/ui         → Design tokens (4 semantic tokens)
 
 | App | Variables |
 |---|---|
-| Tienda/Campo | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
-| Nucleo | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` |
-| API | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
+| Tienda/Campo/Nucleo | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
 | Server-only | `SUPABASE_SERVICE_ROLE_KEY`, `TRANSBANK_*` |
