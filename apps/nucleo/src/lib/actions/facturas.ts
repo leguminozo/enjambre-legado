@@ -24,6 +24,7 @@ type ActionResult = { success: true; id: string } | { success: false; error: str
 
 export async function createFacturaEmitida(data: FacturaFormData): Promise<ActionResult> {
   const supabase = await createClient();
+  if (!supabase) return { success: false, error: 'Supabase no configurado' };
 
   const fechaDate = new Date(data.fecha);
   const mes = fechaDate.getMonth() + 1;
@@ -79,6 +80,7 @@ export async function createFacturaEmitida(data: FacturaFormData): Promise<Actio
 
 export async function deleteFacturaEmitida(id: string): Promise<ActionResult> {
   const supabase = await createClient();
+  if (!supabase) return { success: false, error: 'Supabase no configurado' };
 
   const { error } = await supabase
     .from('facturas_emitidas')

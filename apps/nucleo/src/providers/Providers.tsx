@@ -32,11 +32,22 @@ export function Providers({ children, session: initialSession }: ProvidersProps)
   const [session, setSession] = useState<Session | null>(initialSession);
 
   useEffect(() => {
+    if (!supabaseClient) return;
     const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
     });
     return () => subscription.unsubscribe();
   }, [supabaseClient]);
+
+  if (!supabaseClient) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="dark">
+          {children}
+        </ThemeProvider>
+      </QueryClientProvider>
+    );
+  }
 
   return (
     <SupabaseContext.Provider value={supabaseClient}>

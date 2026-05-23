@@ -5,10 +5,17 @@ import { useSupabase } from '@/providers/Providers';
 
 export function useApiFetch() {
   const session = useSession();
-  const supabase = useSupabase();
+  let supabase: ReturnType<typeof useSupabase> | null = null;
+  try {
+    supabase = useSupabase();
+  } catch {
+    return async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+      return fetch(path, init);
+    };
+  }
 
   return async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
-    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    const { data: { session: currentSession } } = await supabase!.auth.getSession();
     const token = currentSession?.access_token ?? '';
     const empresaId = currentSession?.user?.app_metadata?.empresa_id ?? '';
 

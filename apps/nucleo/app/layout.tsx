@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "@/index.css";
 import { Providers } from "@/providers/Providers";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Enjambre Legado · Núcleo",
   description: "Plataforma central de apicultura regenerativa — Centro de mando unificado",
