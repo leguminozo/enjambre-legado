@@ -4,7 +4,6 @@ import { getUrlCampo, getUrlTienda } from '../lib/publicUrls';
 import { Hexagon, Lock, Mail, User, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
 import { AuthHero } from '../components/auth/AuthHero';
 import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
-import { logSecurityEvent } from '@enjambre/auth';
 import gsap from 'gsap';
 
 export default function AuthView() {
@@ -54,22 +53,9 @@ export default function AuthView() {
           password,
         });
         if (error) {
-          void logSecurityEvent(supabase, {
-            eventType: 'login_failed',
-            email,
-            userAgent: navigator.userAgent,
-            appSource: 'nucleo',
-            details: { code: error.code, message: error.message },
-          });
           throw error;
         }
-        void logSecurityEvent(supabase, {
-          eventType: 'login_success',
-          email,
-          userAgent: navigator.userAgent,
-          appSource: 'nucleo',
-        });
-            } else {
+      } else {
                 const { data, error } = await supabase.auth.signUp({
                     email,
                     password,
