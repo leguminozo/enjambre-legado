@@ -94,12 +94,12 @@ export function Sidebar({ currentRole, onToggle, isOpen }: SidebarProps) {
     return pathname.startsWith(path);
   };
 
-  const visibleSections = currentRole === 'gerente'
-    ? navItems
-    : navItems.map(s => ({
-        ...s,
-        items: s.items.filter(item => item.path !== '/'),
-      }));
+const visibleSections = currentRole === 'gerente' || currentRole === 'tienda_admin'
+  ? navItems
+  : navItems.map(s => ({
+      ...s,
+      items: s.items.filter(item => item.path !== '/'),
+    }));
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>

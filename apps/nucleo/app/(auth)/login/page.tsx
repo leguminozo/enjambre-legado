@@ -6,7 +6,6 @@ import { Hexagon, Lock, Mail, User, ShieldCheck, ArrowRight, ArrowLeft } from 'l
 import { AuthHero } from '@/components/auth/AuthHero';
 import { friendlyError } from '@enjambre/ui';
 import { createClient } from '@/lib/supabase-client';
-import { logSecurityEvent } from '@enjambre/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,12 +44,8 @@ export default function LoginPage() {
         setIsForgotPassword(false);
       } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          void logSecurityEvent(supabase, { eventType: 'login_failed', email, userAgent: navigator.userAgent, appSource: 'nucleo' });
-          throw error;
-        }
-        void logSecurityEvent(supabase, { eventType: 'login_success', email, userAgent: navigator.userAgent, appSource: 'nucleo' });
-        router.push('/');
+            if (error) throw error;
+            router.push('/');
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, role } } });
         if (error) throw error;

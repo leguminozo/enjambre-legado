@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Bell, Search, Menu, X, BarChart3, Map, Hexagon, Calculator, Settings } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { createClient } from '@/lib/supabase-client';
 
 const titleMap: Record<string, string> = {
   '/': 'Panel Ejecutivo',
@@ -41,7 +42,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [readNotifs, setReadNotifs] = useState<number[]>([]);
+  const [currentRole, setCurrentRole] = useState('gerente');
   const pathname = usePathname();
+
+  useEffect(() => {
+    async function loadRole() {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+        if (profile?.role) setCurrentRole(profile.role);
+      }
+    }
+    loadRole();
+  }, []);
 
   const headerTitle = titleMap[pathname] || 'Enjambre Legado';
   const unreadCount = notifications.filter(n => !readNotifs.includes(n.id)).length;
@@ -49,7 +63,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="app-layout">
       <Sidebar
-        currentRole="admin"
+        currentRole={currentRole}
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(false)}
       />

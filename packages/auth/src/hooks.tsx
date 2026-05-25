@@ -11,8 +11,8 @@ export function useRoleBasedRedirect(expectedRole?: string, redirectUrl: string 
       if (window.location.pathname !== redirectUrl) {
         window.location.href = redirectUrl
       }
-    } else if (expectedRole && user?.role !== expectedRole) {
-      window.location.href = '/' // Or a localized unauth
+    } else if (expectedRole && user?.role !== expectedRole && user?.role !== 'gerente') {
+      window.location.href = '/'
     }
   }, [user, isLoading, isAuthenticated, expectedRole, redirectUrl])
 

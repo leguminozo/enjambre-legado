@@ -4,14 +4,8 @@ import { supabase } from "../lib/supabase";
 import { calcularIVA, calcularTotal } from "@enjambre/contable";
 import { FileText, Plus, Loader2, Send, Car, AlertCircle, CheckCircle2, Clock, Receipt, Globe, DollarSign } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-if (!API_URL) {
-  console.warn("[SiiDteView] NEXT_PUBLIC_API_URL no configurada — usando fallback localhost");
-}
-
 function getApiUrl(): string {
-  return API_URL ?? "http://localhost:3001";
+  return "";
 }
 
 type FacturaCompraRow = {
