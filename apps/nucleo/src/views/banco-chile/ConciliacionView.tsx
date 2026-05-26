@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../../lib/supabase';
 
 interface SugerenciaConciliacion {
   movimiento_id: string;
@@ -26,12 +26,8 @@ export function ConciliacionView() {
   const [loading, setLoading] = useState(true);
   const [autoConciliando, setAutoConciliando] = useState(false);
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
-
   useEffect(() => {
+    if (!supabase) return;
     fetchSugerencias();
   }, []);
 

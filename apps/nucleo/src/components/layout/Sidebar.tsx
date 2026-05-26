@@ -9,7 +9,7 @@ import {
   Settings, Building2, CreditCard, RefreshCw, BookOpen, BrainCircuit, Shield
 } from 'lucide-react';
 import { roleLabels } from '@/data/mockData';
-import { createClient } from '@/lib/supabase-client';
+import { supabase } from '@/lib/supabase';
 
 interface SidebarProps {
   currentRole: string;
@@ -55,7 +55,6 @@ export function Sidebar({ currentRole, onToggle, isOpen }: SidebarProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
-  const supabase = createClient();
 
   const urlTienda = process.env.NEXT_PUBLIC_URL_TIENDA?.trim() || '';
   const urlCampo = process.env.NEXT_PUBLIC_URL_CAMPO?.trim() || '';

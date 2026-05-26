@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../../lib/supabase';
 
 interface ResumenEjecutivo {
   totalCuentas: number;
@@ -35,12 +35,8 @@ export function DashboardBancoChile() {
   const [loading, setLoading] = useState(true);
   const [sugerenciasConciliacion, setSugerenciasConciliacion] = useState<number>(0);
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
-
   useEffect(() => {
+    if (!supabase) return;
     fetchDashboard();
     // Actualizar cada 5 minutos
     const interval = setInterval(fetchDashboard, 5 * 60 * 1000);

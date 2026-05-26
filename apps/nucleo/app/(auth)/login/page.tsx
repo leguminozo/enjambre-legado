@@ -5,11 +5,10 @@ import { useRouter } from 'next/navigation';
 import { Hexagon, Lock, Mail, User, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
 import { AuthHero } from '@/components/auth/AuthHero';
 import { friendlyError } from '@enjambre/ui';
-import { createClient } from '@/lib/supabase-client';
+import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createClient();
   const [showForm, setShowForm] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);

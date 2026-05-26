@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@enjambre/ui';
-import { createClient } from '@/lib/supabase-client';
+import { supabase } from '@/lib/supabase';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
 interface ProvidersProps {
@@ -28,18 +28,17 @@ export function Providers({ children, session: initialSession }: ProvidersProps)
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: { queries: { staleTime: 60 * 1000, retry: 1 } },
   }));
-  const [supabaseClient] = useState(() => createClient());
   const [session, setSession] = useState<Session | null>(initialSession);
 
   useEffect(() => {
-    if (!supabaseClient) return;
-    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, newSession) => {
+    if (!supabase) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
     });
     return () => subscription.unsubscribe();
-  }, [supabaseClient]);
+  }, []);
 
-  if (!supabaseClient) {
+  if (!supabase) {
     return (
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="dark">
@@ -50,7 +49,7 @@ export function Providers({ children, session: initialSession }: ProvidersProps)
   }
 
   return (
-    <SupabaseContext.Provider value={supabaseClient}>
+    <SupabaseContext.Provider value={supabase}>
       <SessionContext.Provider value={session}>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider defaultTheme="dark">
