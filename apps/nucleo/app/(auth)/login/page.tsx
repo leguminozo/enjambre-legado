@@ -45,15 +45,15 @@ export default function LoginPage() {
       } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) throw error;
-            router.push('/');
+            router.push('/colmenas');
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, role } } });
         if (error) throw error;
         if (data.user && !data.session) {
           setMessage('Revisa tu correo para confirmar la cuenta.');
-        } else {
-          router.push('/');
-        }
+      } else {
+        router.push('/colmenas');
+      }
       }
     } catch (err: unknown) {
       setError(friendlyError(err, 'Error de autenticación'));
