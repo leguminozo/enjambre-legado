@@ -16,6 +16,11 @@ function mapProductoRow(p: Record<string, unknown>): Product {
         emoji: '🍯',
         stock: Number(p.stock) || 0,
         category: String(p.formato ?? 'Legado'),
+        trazabilidad_qr: Boolean(p.trazabilidad_qr),
+        visible: Boolean(p.visible ?? true),
+        descripcion_regenerativa: String(p.descripcion_regenerativa ?? ''),
+        precio: precio,
+        formato: String(p.formato ?? ''),
     };
 }
 

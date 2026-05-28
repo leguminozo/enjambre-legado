@@ -61,7 +61,16 @@ export default function CatalogoPage() {
       {(view === 'create' || view === 'edit') && (
         <div style={{ background: 'white', padding: 'var(--space-xl)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(10,61,47,0.08)' }}>
           <ProductForm
-            initialData={selectedProduct || undefined}
+            initialData={selectedProduct ? {
+              ...selectedProduct,
+              trazabilidad_qr: selectedProduct.trazabilidad_qr ?? true,
+              categoria: selectedProduct.categoria ?? '',
+              tags: selectedProduct.tags ?? [],
+              descripcion_corta: selectedProduct.descripcion_corta ?? '',
+              peso_netos: selectedProduct.peso_netos ?? undefined,
+              ingredientes: selectedProduct.ingredientes ?? '',
+              origen_apicola: selectedProduct.origen_apicola ?? '',
+            } : undefined}
             onSuccess={handleSuccess}
             onCancel={handleCancel}
           />
