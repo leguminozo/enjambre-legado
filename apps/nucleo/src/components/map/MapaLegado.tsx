@@ -96,7 +96,7 @@ export default function MapaLegado({ height = '500px', filterRole }: MapaLegadoP
 
     useEffect(() => {
         async function loadMaps() {
-            const { data: apiarios } = await supabase.from('apiarios').select('id, nombre, lat, lng, sector');
+            const { data: apiarios } = await supabase.from('apiarios').select('id, name, lat, lng, sector');
             const { data: arboles } = await supabase.from('arboles_plantados').select('id, especie, lat, lng').not('lat', 'is', null);
             const markers: MapMarker[] = [];
             apiarios?.forEach((a: Record<string, unknown>) => {
@@ -106,7 +106,7 @@ export default function MapaLegado({ height = '500px', filterRole }: MapaLegadoP
                         lat: Number(a.lat),
                         lng: Number(a.lng),
                         type: 'obrera',
-                        name: String(a.nombre ?? 'Apiario'),
+                        name: String(a.name ?? 'Apiario'),
                         details: a.sector ? String(a.sector) : undefined,
                     });
                 }

@@ -5,8 +5,9 @@ import { supabase } from '../lib/supabase';
 
 export default function MarketingView() {
     const h = roleGreetings.marketing;
-    const [posts, setPosts] = useState<any[]>([]);
-    const [campaigns, setCampaigns] = useState<any[]>([]);
+const [posts, setPosts] = useState<any[]>([]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [localClients, setLocalClients] = useState<any[]>([]);
 
     const [showNewPost, setShowNewPost] = useState(false);
     const [postForm, setPostForm] = useState({ post_date: '12 mar', type: 'Reel', content: '', status: 'Borrador', platform: 'IG' });
@@ -17,13 +18,16 @@ export default function MarketingView() {
             if (!session) return;
             const uid = session.user.id;
 
-            const [resP, resC] = await Promise.all([
-                supabase.from('marketing_posts').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
-                supabase.from('marketing_campaigns').select('*').eq('user_id', uid).order('created_at', { ascending: false })
-            ]);
+const [resP, resC] = await Promise.all([
+        supabase.from('marketing_posts').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+        supabase.from('marketing_campaigns').select('*').eq('user_id', uid).order('created_at', { ascending: false })
+      ]);
 
-            setPosts(resP.data ?? []);
-            setCampaigns(resC.data ?? []);
+      setPosts(resP.data ?? []);
+      setCampaigns(resC.data ?? []);
+
+      const { data: clientData } = await supabase.from('clientes').select('id').eq('user_id', uid);
+      setLocalClients(clientData ?? []);
         }
         loadData();
     }, []);
@@ -57,10 +61,10 @@ export default function MarketingView() {
             </div>
             <div className="stats-grid">
                 {[
-                    { icon: <Users size={20} />, val: '47', label: 'Guardianes del Club', trend: '+8' },
-                    { icon: <Camera size={20} />, val: '2.4K', label: 'Seguidores IG', trend: '+12%' },
-                    { icon: <Gift size={20} />, val: '12', label: 'Suscripciones activas' },
-                    { icon: <Megaphone size={20} />, val: '3', label: 'Campañas activas' },
+{ icon: <Users size={20} />, val: String(localClients.length || 0), label: 'Guardianes del Club', trend: localClients.length > 0 ? `+${Math.min(localClients.length, 8)}` : undefined },
+        { icon: <Camera size={20} />, val: '2.4K', label: 'Seguidores IG (manual)', trend: '+12%' },
+        { icon: <Gift size={20} />, val: String(campaigns.filter((c: Record<string, unknown>) => c.status === 'Activa').length), label: 'Campañas activas' },
+        { icon: <Megaphone size={20} />, val: String(posts.length), label: 'Contenidos programados' },
                 ].map((s, i) => (
                     <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
                         <div className="stat-header"><div className="stat-icon">{s.icon}</div>{s.trend && <span className="stat-trend up">{s.trend}</span>}</div>
@@ -113,7 +117,7 @@ export default function MarketingView() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                     <div className="card animate-in delay-3">
-                        <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)' }}>🌿 Club Legado del Bosque</div>
+                        <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)' }}>🌿 Club Legado del Bosque <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>(dato manual)</span></div>
                         <div style={{ padding: 'var(--space-lg)', background: 'linear-gradient(135deg, var(--bosque-ulmo), var(--bosque-ulmo-dark))', borderRadius: 'var(--radius-md)', color: 'var(--crema-natural)', marginBottom: 'var(--space-md)' }}>
                             <div style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.1rem', marginBottom: 'var(--space-sm)' }}>47 Guardianes Activos</div>
                             <div style={{ fontSize: '0.82rem', opacity: 0.7 }}>Suscripción desde $15.000/mes</div>
@@ -124,7 +128,7 @@ export default function MarketingView() {
                         </div>
                     </div>
                     <div className="card animate-in delay-4">
-                        <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)' }}><BookOpen size={16} style={{ display: 'inline', marginRight: 8 }} />Biblioteca de Assets</div>
+                        <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)' }}><BookOpen size={16} style={{ display: 'inline', marginRight: 8 }} />Biblioteca de Assets <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>(en desarrollo)</span></div>
                         {['📸 Fotos de cosecha (48)', '🎬 Videos Cristina en Pureo (12)', '📝 Textos regenerativos (24)', '🏷️ Logos y marca (8)'].map((a, i) => (
                             <button key={i} className="btn btn-ghost" style={{ width: '100%', justifyContent: 'space-between', padding: 'var(--space-md)', marginBottom: 'var(--space-xs)' }}>
                                 {a}<ArrowUpRight size={14} />

@@ -1,42 +1,81 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TreePine, Camera, MapPin, Leaf, Plus, ChevronDown } from 'lucide-react';
 import { BOSQUE_ULMO_DARK, BOSQUE_ULMO, BOSQUE_ULMO_LIGHT } from '@/lib/colors';
+import { supabase } from '@/lib/supabase';
 
 interface TreeRecord {
-    id: string; species: string; count: number; date: string; location: string; co2: number; status: 'creciendo' | 'adulto' | 'joven';
+  id: string; species: string; count: number; date: string; location: string; co2: number; status: 'creciendo' | 'adulto' | 'joven';
 }
 
-const treeRecords: TreeRecord[] = [
-    { id: 't1', species: 'Ulmo', count: 2800, date: '2008–2024', location: 'Ladera sur Pureo', co2: 140, status: 'adulto' },
-    { id: 't2', species: 'Tepú', count: 800, date: '2012–2022', location: 'Borde estero Pureo', co2: 40, status: 'adulto' },
-    { id: 't3', species: 'Tiaque', count: 400, date: '2018–2023', location: 'Sector norte Pureo', co2: 20, status: 'creciendo' },
-    { id: 't4', species: 'Avellano', count: 300, date: '2020–2025', location: 'Yerba Loza', co2: 15, status: 'creciendo' },
-    { id: 't5', species: 'Canelo', count: 500, date: '2015–2024', location: 'Quebrada central', co2: 25, status: 'adulto' },
-    { id: 't6', species: 'Ulmo', count: 200, date: '2025–2026', location: 'Expansión Ancud', co2: 10, status: 'joven' },
-];
+function mapRowToTreeRecord(r: Record<string, unknown>): TreeRecord {
+  return {
+    id: String(r.id),
+    species: String(r.especie ?? ''),
+    count: Number(r.cantidad) || 0,
+    date: String(r.fecha ?? ''),
+    location: String(r.sector ?? ''),
+    co2: Number(r.co2_ton) || 0,
+    status: (['joven', 'creciendo', 'adulto'].includes(String(r.status)) ? String(r.status) : 'joven') as TreeRecord['status'],
+  };
+}
 
 export default function RegeneracionView() {
-    const [showForm, setShowForm] = useState(false);
-    const [formData, setFormData] = useState({ species: '', count: '', location: '', notes: '' });
-    const [records, setRecords] = useState(treeRecords);
-    const [showAll, setShowAll] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ species: '', count: '', location: '', notes: '' });
+  const [records, setRecords] = useState<TreeRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
 
-    const totalTrees = records.reduce((s, r) => s + r.count, 0);
-    const totalCO2 = records.reduce((s, r) => s + r.co2, 0);
-    const displayed = showAll ? records : records.slice(0, 4);
+  useEffect(() => {
+    async function loadTrees() {
+      setLoading(true);
+      try {
+        const { data } = await supabase.from('arboles_plantados').select('*').order('created_at', { ascending: false });
+        if (data && data.length > 0) {
+          setRecords(data.map((r) => mapRowToTreeRecord(r as Record<string, unknown>)));
+        }
+      } catch (err) {
+        console.error('Error loading arboles_plantados:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadTrees();
+  }, []);
 
-    const handleSubmit = () => {
-        if (!formData.species || !formData.count) return;
-        const newRecord: TreeRecord = {
-            id: `t${Date.now()}`, species: formData.species, count: parseInt(formData.count) || 0,
-            date: '2026', location: formData.location || 'Sin especificar', co2: Math.round((parseInt(formData.count) || 0) * 0.05), status: 'joven'
-        };
-        setRecords(prev => [newRecord, ...prev]);
-        setFormData({ species: '', count: '', location: '', notes: '' });
-        setShowForm(false);
-    };
+  const totalTrees = records.reduce((s, r) => s + r.count, 0);
+  const totalCO2 = records.reduce((s, r) => s + r.co2, 0);
+  const uniqueZones = new Set(records.map(r => r.location)).size;
+  const uniqueSpecies = new Set(records.map(r => r.species)).size;
+  const displayed = showAll ? records : records.slice(0, 4);
 
-    return (
+  const handleSubmit = async () => {
+    if (!formData.species || !formData.count) return;
+    const count = parseInt(formData.count) || 0;
+    try {
+      const { data } = await supabase.from('arboles_plantados').insert({
+        especie: formData.species,
+        cantidad: count,
+        fecha: String(new Date().getFullYear()),
+        sector: formData.location || null,
+        co2_ton: Math.round(count * 0.05),
+        status: 'joven',
+      }).select().single();
+      if (data) {
+        setRecords(prev => [mapRowToTreeRecord(data as Record<string, unknown>), ...prev]);
+      }
+    } catch (err) {
+      console.error('Error inserting arbol:', err);
+    }
+    setFormData({ species: '', count: '', location: '', notes: '' });
+    setShowForm(false);
+  };
+
+    if (loading) {
+    return <div style={{ padding: 'var(--space-2xl)', textAlign: 'center', color: 'var(--bosque-ulmo)' }}>Cargando registro del bosque...</div>;
+  }
+
+  return (
         <div>
             <div className="hero-banner animate-in" style={{ background: `linear-gradient(135deg, ${BOSQUE_ULMO_DARK} 0%, ${BOSQUE_ULMO} 50%, ${BOSQUE_ULMO_LIGHT} 100%)` }}>
                 <div className="hero-greeting">Módulo de Regeneración 🌿</div>
@@ -48,8 +87,8 @@ export default function RegeneracionView() {
                 {[
                     { icon: <TreePine size={20} />, val: totalTrees.toLocaleString(), label: 'Árboles plantados', trend: '+200' },
                     { icon: <Leaf size={20} />, val: `${totalCO2} ton`, label: 'CO₂ secuestrado', trend: '+10' },
-                    { icon: <MapPin size={20} />, val: '5', label: 'Zonas reforestadas' },
-                    { icon: <Camera size={20} />, val: '6', label: 'Especies nativas' },
+{ icon: <MapPin size={20} />, val: String(uniqueZones), label: 'Zonas reforestadas' },
+      { icon: <Camera size={20} />, val: String(uniqueSpecies), label: 'Especies nativas' },
                 ].map((s, i) => (
                     <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
                         <div className="stat-header"><div className="stat-icon">{s.icon}</div>{s.trend && <span className="stat-trend up">{s.trend}</span>}</div>

@@ -41,7 +41,7 @@ export default function ApicultorView() {
                 const uid = session?.user?.id;
 
                 const { data: apiarios } = await supabase.from('apiarios').select('*');
-                const apiarioMap = new Map(apiarios?.map((a) => [a.id, (a as { nombre?: string }).nombre]) || []);
+                const apiarioMap = new Map(apiarios?.map((a) => [a.id, (a as { name?: string }).name]) || []);
 
                 const nested = await supabase.from('colmenas').select(`
                     *,

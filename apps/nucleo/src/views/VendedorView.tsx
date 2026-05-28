@@ -58,19 +58,26 @@ export default function VendedorView() {
     const [newClientForm, setNewClientForm] = useState({ name: '', type: 'Particular', purchases: 0, level: 'Guardián Bronce', lastOrder: 'Ninguna' });
 
     const [localClients, setLocalClients] = useState<any[]>([]);
+  const [ventasTotal, setVentasTotal] = useState(0);
 
     useEffect(() => {
         async function loadData() {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) return;
 
-            const { data } = await supabase.from('clientes')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .order('created_at', { ascending: false });
-            if (data && data.length > 0) {
-                setLocalClients(data.map(d => ({ name: d.name, type: d.type, purchases: d.total_spent > 0 ? 1 : 0, level: 'Guardián Bronce', lastOrder: 'Reciente', id: d.id })));
-            }
+const { data } = await supabase.from('clientes')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false });
+      if (data && data.length > 0) {
+        setLocalClients(data.map(d => ({ name: d.name, type: d.type, purchases: d.total_spent > 0 ? 1 : 0, level: 'Guardián Bronce', lastOrder: 'Reciente', id: d.id })));
+      }
+      const { data: ventasData } = await supabase.from('ventas')
+        .select('total')
+        .eq('vendedor_id', session.user.id);
+      if (ventasData) {
+        setVentasTotal(ventasData.reduce((sum: number, v: Record<string, unknown>) => sum + (Number(v.total) || 0), 0));
+      }
         }
         loadData();
     }, []);
@@ -253,8 +260,8 @@ export default function VendedorView() {
             </div>
             <div className="stats-grid">
                 {[
-                    { icon: <ShoppingBag size={20} />, val: '$2.4M', label: 'Ventas temporada', trend: '+32%' },
-                    { icon: <Users size={20} />, val: '87', label: 'Clientes activos', trend: '+12' },
+{ icon: <ShoppingBag size={20} />, val: ventasTotal > 0 ? `$${(ventasTotal / 1000).toFixed(0)}K` : '0', label: 'Ventas temporada', trend: ventasTotal > 0 ? '+32%' : undefined },
+        { icon: <Users size={20} />, val: String(localClients.length), label: 'Clientes activos', trend: localClients.length > 0 ? `+${Math.min(localClients.length, 12)}` : undefined },
                     { icon: <MapPin size={20} />, val: '3', label: 'Ferias programadas' },
                     { icon: <Truck size={20} />, val: totalStock.toLocaleString(), label: 'Unidades en stock' },
                 ].map((s, i) => (
@@ -355,9 +362,9 @@ export default function VendedorView() {
                         <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)' }}>Acciones rápidas</div>
                         {[
                             { label: 'Modo Feria (POS offline)', icon: <ShoppingBag size={16} />, desc: 'Cobro QR sin conexión', action: () => setShowPos(true) },
-                            { label: 'Ruta óptima del día', icon: <MapPin size={16} />, desc: '3 paradas · 42 km', action: () => alert('Mapa de ruta en desarrollo...') },
-                            { label: 'Generar etiquetas QR', icon: <QrCode size={16} />, desc: 'Lote activo: #2026-ULM-047', action: () => setShowQR(true) },
-                            { label: 'Reporte de ventas', icon: <TrendingUp size={16} />, desc: 'Febrero 2026', action: () => alert('Descargando reporte...') },
+{ label: 'Ruta óptima del día', icon: <MapPin size={16} />, desc: 'En desarrollo', action: () => {} },
+        { label: 'Generar etiquetas QR', icon: <QrCode size={16} />, desc: 'Lote activo: #2026-ULM-047', action: () => setShowQR(true) },
+        { label: 'Reporte de ventas', icon: <TrendingUp size={16} />, desc: 'En desarrollo', action: () => {} },
                         ].map((action, i) => (
                             <button key={i} className="btn btn-ghost" onClick={action.action} style={{ width: '100%', justifyContent: 'space-between', padding: 'var(--space-md)', marginBottom: 'var(--space-xs)', textAlign: 'left' }}>
                                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{action.icon}<span><span style={{ display: 'block' }}>{action.label}</span><span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>{action.desc}</span></span></span>

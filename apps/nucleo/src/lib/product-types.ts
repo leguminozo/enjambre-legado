@@ -16,7 +16,7 @@ export const productFormSchema = z.object({
   peso_netos: z.coerce.number().optional(),
   ingredientes: z.string().optional(),
   origen_apicola: z.string().optional(),
-  trazabilidad_qr: z.boolean().default(true),
+  trazabilidad_qr: z.boolean().optional().default(true),
 });
 
 export type ProductFormData = z.infer<typeof productFormSchema>;

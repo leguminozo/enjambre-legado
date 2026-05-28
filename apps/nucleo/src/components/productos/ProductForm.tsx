@@ -42,7 +42,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
       categoria: initialData?.categoria || '',
       tags: initialData?.tags || [],
       descripcion_corta: initialData?.descripcion_corta || '',
-      peso_netos: initialData?.peso_netos || 0,
+      peso_netos: initialData?.peso_netos || undefined,
       ingredientes: initialData?.ingredientes || '',
       origen_apicola: initialData?.origen_apicola || '',
       trazabilidad_qr: initialData?.trazabilidad_qr ?? true,

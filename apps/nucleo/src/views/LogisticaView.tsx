@@ -71,10 +71,10 @@ export default function LogisticaView() {
             </div>
             <div className="stats-grid">
                 {[
-                    { icon: <Truck size={20} />, val: '12', label: 'Envíos pendientes' },
-                    { icon: <Package size={20} />, val: '3', label: 'Centros de stock', trend: 'Óptimo' },
-                    { icon: <MapPin size={20} />, val: '2', label: 'Rutas activas hoy' },
-                    { icon: <FileText size={20} />, val: '4', label: 'Proveedores activos' },
+{ icon: <Truck size={20} />, val: String(shipments.filter(s => s.status !== 'Entregado').length), label: 'Envíos pendientes' },
+        { icon: <Package size={20} />, val: String(stockCenters.length), label: 'Centros de stock', trend: stockCenters.every((s: Record<string, unknown>) => s.ok) ? 'Óptimo' : undefined },
+        { icon: <MapPin size={20} />, val: String(shipments.filter(s => s.status === 'En tránsito').length), label: 'Rutas activas hoy' },
+        { icon: <FileText size={20} />, val: String(providers.length), label: 'Proveedores activos' },
                 ].map((s, i) => (
                     <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
                         <div className="stat-header"><div className="stat-icon">{s.icon}</div>{s.trend && <span className="stat-trend up">{s.trend}</span>}</div>

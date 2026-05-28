@@ -1,13 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { Settings, Moon, Sun, Monitor, User, Bell, Database } from 'lucide-react';
+import { Settings, Moon, Sun, Monitor, Bell, Database, Construction } from 'lucide-react';
 import { useTheme, type Theme } from '@enjambre/ui';
 
 export default function ConfiguracionView() {
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const [notifications, setNotifications] = useState(true);
-  const [sync, setSync] = useState(true);
 
   const themes: { value: Theme; icon: React.ReactNode; label: string }[] = [
     { value: 'light', icon: <Sun size={18} />, label: 'Claro' },
@@ -47,55 +44,35 @@ export default function ConfiguracionView() {
           </div>
         </section>
 
-        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
+        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border opacity-60">
           <div className="flex items-center gap-3 text-accent">
             <Bell size={18} />
             <h3 className="text-sm font-bold uppercase tracking-widest">Notificaciones</h3>
+            <span className="text-xs text-muted-foreground">(en desarrollo)</span>
           </div>
 
           <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-xl">
             <div>
               <p className="text-sm font-medium">Notificaciones push</p>
-              <p className="text-xs text-muted-foreground">Recibe alertas en tiempo real</p>
+              <p className="text-xs text-muted-foreground">Funcionalidad en desarrollo. Las alertas se muestran en el panel principal.</p>
             </div>
-            <button
-              onClick={() => setNotifications(!notifications)}
-              className={`w-12 h-6 rounded-full transition-colors ${
-                notifications ? 'bg-accent' : 'bg-muted'
-              }`}
-            >
-              <div
-                className={`w-4 h-4 rounded-full bg-foreground transition-transform ${
-                  notifications ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              />
-            </button>
+            <Construction size={18} className="text-muted-foreground" />
           </div>
         </section>
 
-        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
+        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border opacity-60">
           <div className="flex items-center gap-3 text-accent">
             <Database size={18} />
             <h3 className="text-sm font-bold uppercase tracking-widest">Datos</h3>
+            <span className="text-xs text-muted-foreground">(en desarrollo)</span>
           </div>
 
           <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-xl">
             <div>
               <p className="text-sm font-medium">Sincronización automática</p>
-              <p className="text-xs text-muted-foreground">Sincronizar datos en segundo plano</p>
+              <p className="text-xs text-muted-foreground">La sincronización se gestiona automáticamente vía Supabase Realtime.</p>
             </div>
-            <button
-              onClick={() => setSync(!sync)}
-              className={`w-12 h-6 rounded-full transition-colors ${
-                sync ? 'bg-accent' : 'bg-muted'
-              }`}
-            >
-              <div
-                className={`w-4 h-4 rounded-full bg-foreground transition-transform ${
-                  sync ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              />
-            </button>
+            <Construction size={18} className="text-muted-foreground" />
           </div>
         </section>
       </div>

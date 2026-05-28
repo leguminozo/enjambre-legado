@@ -56,11 +56,11 @@ export default function ApiarioManager({ colmenas: localColmenas, setColmenas: s
         try {
             let apiarioId = null;
             // 1. Resolve or create Apiario by name (location)
-const { data: existingAp } = await supabase.from('apiarios').select('id').eq('nombre', c.location).single();
+const { data: existingAp } = await supabase.from('apiarios').select('id').eq('name', c.location).single();
       if (existingAp) {
         apiarioId = existingAp.id;
       } else {
-        const { data: newAp } = await supabase.from('apiarios').insert({ nombre: c.location, lat: 0, lng: 0 }).select().single();
+        const { data: newAp } = await supabase.from('apiarios').insert({ name: c.location, lat: 0, lng: 0 }).select().single();
                 if (newAp) apiarioId = newAp.id;
             }
 
