@@ -63,6 +63,7 @@ export default function CatalogoPage() {
           <ProductForm
             initialData={selectedProduct ? {
               ...selectedProduct,
+              visible: selectedProduct.visible ?? true,
               trazabilidad_qr: selectedProduct.trazabilidad_qr ?? true,
               categoria: selectedProduct.categoria ?? '',
               tags: selectedProduct.tags ?? [],

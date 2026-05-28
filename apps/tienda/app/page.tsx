@@ -1,4 +1,4 @@
-import { getSiteContent, type SiteSectionItem } from '@/lib/cms';
+import { getSiteContentStatic, type SiteSectionItem } from '@/lib/cms';
 import TiendaLandingView from './landing-view';
 
 type ServicioItem = { num: string; title: string; desc: string };
@@ -7,17 +7,17 @@ type ColeccionItem = { kicker: string; title: string; desc: string; href: string
 type FooterBranding = { tagline: string; email: string };
 type FooterLink = { label: string; href: string };
 
-function extractContent<T>(items: SiteSectionItem[]): T[] {
+function extractContent<T extends Record<string, unknown>>(items: SiteSectionItem[]): T[] {
   return items.map((item) => item.content as T);
 }
 
 export default async function TiendaPage() {
-  const serviciosData = await getSiteContent('servicios');
-  const talleresData = await getSiteContent('talleres');
-  const coleccionesData = await getSiteContent('colecciones');
-  const footerBrandingData = await getSiteContent('footer_branding');
-  const footerNavData = await getSiteContent('footer_nav');
-  const footerLegalData = await getSiteContent('footer_legal');
+  const serviciosData = await getSiteContentStatic('servicios');
+  const talleresData = await getSiteContentStatic('talleres');
+  const coleccionesData = await getSiteContentStatic('colecciones');
+  const footerBrandingData = await getSiteContentStatic('footer_branding');
+  const footerNavData = await getSiteContentStatic('footer_nav');
+  const footerLegalData = await getSiteContentStatic('footer_legal');
 
   const servicios = serviciosData.length > 0
     ? extractContent<ServicioItem>(serviciosData)

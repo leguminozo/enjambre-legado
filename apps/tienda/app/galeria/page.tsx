@@ -1,13 +1,13 @@
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { getSiteContent } from '@/lib/cms';
+import { getSiteContentStatic } from '@/lib/cms';
 import Image from 'next/image';
 
 export const metadata = { title: 'Galería' };
 
 export default async function GaleriaPage() {
-  const galeriaData = await getSiteContent('galeria');
+  const galeriaData = await getSiteContentStatic('galeria');
   
   const defaultImages = [
     { id: '1', content: { 

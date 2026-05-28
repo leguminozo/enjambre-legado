@@ -1,12 +1,14 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
 import Link from 'next/link';
 import { useCart } from '@/components/shop/cart-context';
 import { useState } from 'react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { Lock, Shield, Truck } from 'lucide-react';
+import { Lock, Shield, Truck, CheckCircle, Leaf, Trees } from 'lucide-react';
 import { friendlyApiError } from '@enjambre/ui';
 
 type ShippingForm = {
@@ -58,6 +60,40 @@ export function CheckoutClient() {
   const [priceConflicts, setPriceConflicts] = useState<string[] | null>(null);
   const [shipping, setShipping] = useState<ShippingForm>(initialShipping);
   const [touched, setTouched] = useState(false);
+  
+  const formRef = useRef<HTMLDivElement>(null);
+  const summaryRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from('.checkout-section', {
+        opacity: 0,
+        y: 40,
+        duration: 1.2,
+        stagger: 0.2,
+        ease: 'power3.out',
+      });
+      
+      gsap.from('.form-field', {
+        opacity: 0,
+        x: -20,
+        duration: 0.8,
+        stagger: 0.05,
+        ease: 'power2.out',
+      });
+      
+      gsap.from('.checkout-button', {
+        opacity: 0,
+        scale: 0.95,
+        duration: 0.6,
+        ease: 'back.out(1.7)',
+        delay: 0.8,
+      });
+    }, formRef);
+
+    return () => ctx.revert();
+  }, []);
 
   const validationErrors = touched ? fieldError(shipping) : {};
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
@@ -129,20 +165,26 @@ export function CheckoutClient() {
       }),
     );
 
-    if (json.provider === 'flow') {
-      window.location.href = `${json.url}?token=${json.token}`;
-    } else {
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = json.url;
-      const tokenInput = document.createElement('input');
-      tokenInput.type = 'hidden';
-      tokenInput.name = 'token_ws';
-      tokenInput.value = json.token;
-      form.appendChild(tokenInput);
-      document.body.appendChild(form);
-      form.submit();
-    }
+    gsap.to(buttonRef.current, {
+      scale: 0.98,
+      duration: 0.2,
+      onComplete: () => {
+        if (json.provider === 'flow' && json.url) {
+          window.location.href = `${json.url}?token=${json.token}`;
+        } else if (json.url && json.token) {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = json.url;
+          const tokenInput = document.createElement('input');
+          tokenInput.type = 'hidden';
+          tokenInput.name = 'token_ws';
+          tokenInput.value = json.token;
+          form.appendChild(tokenInput);
+          document.body.appendChild(form);
+          form.submit();
+        }
+      },
+    });
   };
 
   const updateField = (key: keyof ShippingForm, value: string) => {
@@ -157,27 +199,42 @@ export function CheckoutClient() {
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="min-h-[60vh] bg-background pb-16">
-        <div className="border-b border-border px-4 py-10 sm:px-6">
+      <main className="min-h-[60vh] bg-background pb-16 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
+        </div>
+
+        <div className="border-b border-border px-4 py-10 sm:px-6 relative z-10">
           <div className="mx-auto max-w-3xl">
-            <h1 className="font-display text-3xl font-semibold text-foreground sm:text-4xl">Checkout</h1>
-            <p className="mt-2 text-muted-foreground">Revisión del pedido, datos de envío y pago seguro.</p>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+                <Leaf className="h-5 w-5 text-accent" />
+              </div>
+              <h1 className="font-display text-3xl font-semibold text-foreground sm:text-4xl">Checkout Seguro</h1>
+            </div>
+            <p className="text-muted-foreground">Tu pedido será procesado de forma segura. Cada compra contribuye a regenerar el bosque nativo de Chiloé.</p>
           </div>
         </div>
 
-        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 relative z-10" ref={formRef}>
           {cart.lines.length === 0 ? (
             <div className="rounded-xl border border-border bg-card/50 p-8 text-center">
-              <p className="text-muted-foreground">Tu carrito está vacío.</p>
-              <Link href="/catalogo" className="mt-4 inline-block text-sm font-semibold text-accent underline">
+              <Trees className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground mb-4">Tu carrito está vacío.</p>
+              <Link href="/catalogo" className="inline-block text-sm font-semibold text-accent underline hover:text-accent/80 transition-colors">
                 Explorar creaciones
               </Link>
             </div>
           ) : (
             <div className="space-y-8">
               {/* Cart summary */}
-              <section>
-                <h2 className="font-display text-lg text-foreground mb-4">Tu pedido</h2>
+              <section className="checkout-section" ref={summaryRef}>
+                <h2 className="font-display text-lg text-foreground mb-4 flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-accent" />
+                  Tu pedido
+                </h2>
                 <ul className="divide-y divide-border rounded-xl border border-border bg-card/40 px-5 py-2">
                   {cart.lines.map((line) => (
                     <li key={line.productId} className="flex justify-between gap-4 py-4 text-sm">
@@ -200,44 +257,44 @@ export function CheckoutClient() {
               </section>
 
               {/* Shipping address */}
-              <section>
+              <section className="checkout-section">
                 <div className="flex items-center gap-2 mb-4">
                   <Truck className="h-5 w-5 text-accent" />
                   <h2 className="font-display text-lg text-foreground">Datos de envío</h2>
                 </div>
                 <div className="rounded-xl border border-border bg-card/40 p-6 space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="sm:col-span-2">
+                    <div className="sm:col-span-2 form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Nombre completo *</label>
                       <input type="text" className={inputCls('nombre')} value={shipping.nombre} onChange={(e) => updateField('nombre', e.target.value)} placeholder="Tu nombre" />
                       {validationErrors.nombre && <p className="text-xs text-destructive mt-1">{validationErrors.nombre}</p>}
                     </div>
-                    <div>
+                    <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Email *</label>
                       <input type="email" className={inputCls('email')} value={shipping.email} onChange={(e) => updateField('email', e.target.value)} placeholder="tu@email.com" />
                       {validationErrors.email && <p className="text-xs text-destructive mt-1">{validationErrors.email}</p>}
                     </div>
-                    <div>
+                    <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Teléfono *</label>
                       <input type="tel" className={inputCls('telefono')} value={shipping.telefono} onChange={(e) => updateField('telefono', e.target.value)} placeholder="+56 9 1234 5678" />
                       {validationErrors.telefono && <p className="text-xs text-destructive mt-1">{validationErrors.telefono}</p>}
                     </div>
-                    <div className="sm:col-span-2">
+                    <div className="sm:col-span-2 form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Dirección *</label>
                       <input type="text" className={inputCls('direccion')} value={shipping.direccion} onChange={(e) => updateField('direccion', e.target.value)} placeholder="Calle, número, depto" />
                       {validationErrors.direccion && <p className="text-xs text-destructive mt-1">{validationErrors.direccion}</p>}
                     </div>
-                    <div>
+                    <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Comuna *</label>
                       <input type="text" className={inputCls('comuna')} value={shipping.comuna} onChange={(e) => updateField('comuna', e.target.value)} placeholder="Comuna" />
                       {validationErrors.comuna && <p className="text-xs text-destructive mt-1">{validationErrors.comuna}</p>}
                     </div>
-                    <div>
+                    <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Ciudad *</label>
                       <input type="text" className={inputCls('ciudad')} value={shipping.ciudad} onChange={(e) => updateField('ciudad', e.target.value)} placeholder="Ciudad" />
                       {validationErrors.ciudad && <p className="text-xs text-destructive mt-1">{validationErrors.ciudad}</p>}
                     </div>
-                    <div>
+                    <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Región *</label>
                       <select className={inputCls('region')} value={shipping.region} onChange={(e) => updateField('region', e.target.value)}>
                         <option value="">Seleccionar región</option>
@@ -245,11 +302,11 @@ export function CheckoutClient() {
                       </select>
                       {validationErrors.region && <p className="text-xs text-destructive mt-1">{validationErrors.region}</p>}
                     </div>
-                    <div>
+                    <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Código postal</label>
                       <input type="text" className={inputCls('codigoPostal')} value={shipping.codigoPostal} onChange={(e) => updateField('codigoPostal', e.target.value)} placeholder="Opcional" />
                     </div>
-                    <div className="sm:col-span-2">
+                    <div className="sm:col-span-2 form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Instrucciones de entrega</label>
                       <textarea className={inputCls('instrucciones')} value={shipping.instrucciones} onChange={(e) => updateField('instrucciones', e.target.value)} placeholder="Casa con reja verde, dejar en portería..." rows={2} />
                     </div>
@@ -287,13 +344,35 @@ export function CheckoutClient() {
               ) : null}
 
               <button
+                ref={buttonRef}
                 type="button"
-                className="w-full rounded-full bg-primary py-4 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
+                className="checkout-button w-full rounded-full bg-primary py-4 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
                 disabled={loading}
                 onClick={() => void startCheckout()}
               >
-                {loading ? 'Conectando con pasarela de pago…' : 'Pagar ahora'}
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Conectando con la pasarela…
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    Pagar ahora — ${cart.subtotal.toLocaleString('es-CL')}
+                  </span>
+                )}
               </button>
+
+              <p className="text-center text-xs text-muted-foreground mt-4">
+                Al completar tu compra, aceptas nuestros{' '}
+                <Link href="/terminos" className="text-accent underline hover:text-accent/80">
+                  Términos del Servicio
+                </Link>
+                . Tu pago está protegido con encriptación de grado bancario.
+              </p>
             </div>
           )}
         </div>

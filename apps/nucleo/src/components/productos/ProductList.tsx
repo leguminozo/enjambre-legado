@@ -31,7 +31,30 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProducts(data || []);
+      const mappedProducts = (data || []).map((p) => {
+        const product: Product = {
+          id: String(p.id),
+          nombre: String(p.nombre ?? ''),
+          descripcion_regenerativa: String(p.descripcion_regenerativa ?? ''),
+          precio: Number(p.precio) || 0,
+          stock: Number(p.stock) || 0,
+          formato: String(p.formato ?? ''),
+          visible: Boolean(p.visible ?? true),
+          trazabilidad_qr: Boolean(p.trazabilidad_qr ?? true),
+          slug: String(p.slug ?? ''),
+          video_url: String(p.video_url ?? ''),
+          fotos: Array.isArray(p.fotos) ? p.fotos : [],
+          categoria: String(p.categoria ?? ''),
+          tags: Array.isArray(p.tags) ? p.tags : [],
+          descripcion_corta: String(p.descripcion_corta ?? ''),
+          peso_netos: Number(p.peso_netos) || undefined,
+          ingredientes: String(p.ingredientes ?? ''),
+          origen_apicola: String(p.origen_apicola ?? ''),
+          created_at: String(p.created_at ?? ''),
+        };
+        return product;
+      });
+      setProducts(mappedProducts);
     } catch (error) {
       console.error('Error loading products:', error);
       alert(friendlySupabaseError(error));

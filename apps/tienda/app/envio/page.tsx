@@ -1,14 +1,14 @@
-import { getSiteContent } from '@/lib/cms';
+import { getSiteContentStatic } from '@/lib/cms';
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Política de Envío',
-  description: 'Detalles sobre la logística y tiempos de entrega.',
+  description: 'Detalles sobre la logística y tiempos de despacho.',
 };
 
 export default async function EnvioPage() {
-  const contentData = await getSiteContent('legal_envio');
+  const contentData = await getSiteContentStatic('legal_envio');
   const item = contentData[0]?.content;
   const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Política de Envío';
   const content = (item && typeof item === 'object' && 'body' in item ? String(item.body) : null) || `

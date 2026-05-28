@@ -6,7 +6,8 @@ export const productFormSchema = z.object({
   precio: z.coerce.number().int().positive('Precio debe ser mayor a 0'),
   stock: z.coerce.number().int().min(0, 'Stock no puede ser negativo'),
   formato: z.string().min(1, 'Formato es requerido'),
-  visible: z.boolean().default(true),
+  visible: z.boolean(),
+  trazabilidad_qr: z.boolean(),
   slug: z.string().optional().or(z.literal('')),
   video_url: z.string().url().optional().or(z.literal('')),
   fotos: z.array(z.string()).optional(),
@@ -16,7 +17,6 @@ export const productFormSchema = z.object({
   peso_netos: z.coerce.number().optional(),
   ingredientes: z.string().optional(),
   origen_apicola: z.string().optional(),
-  trazabilidad_qr: z.boolean().optional().default(true),
 });
 
 export type ProductFormData = z.infer<typeof productFormSchema>;
@@ -29,6 +29,7 @@ export interface Product {
   stock: number;
   formato: string;
   visible: boolean;
+  trazabilidad_qr: boolean;
   slug?: string;
   video_url?: string;
   fotos?: string[];
@@ -40,7 +41,6 @@ export interface Product {
   peso_netos?: number;
   ingredientes?: string;
   origen_apicola?: string;
-  trazabilidad_qr?: boolean;
 }
 
 export interface ProductVariant {

@@ -34,7 +34,7 @@ export interface Colmena {
 export interface Product {
     id: string; name: string; description: string; price: number; format: string;
     impactTrees: number; emoji: string; stock: number; category: string;
-    trazabilidad_qr: boolean; slug?: string; video_url?: string; fotos?: string[];
+    trazabilidad_qr?: boolean; slug?: string; video_url?: string; fotos?: string[];
     categoria?: string; visible?: boolean; descripcion_regenerativa?: string;
     precio?: number; formato?: string; origen_apicola?: string;
 }
