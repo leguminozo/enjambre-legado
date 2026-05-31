@@ -4,51 +4,87 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useCart } from '@/components/pos/cart-context';
-import type { VentaOrigen } from '@/components/pos/types';
-import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft } from 'lucide-react';
+import { useCashSession } from '@/components/pos/cash-context';
+import type { VentaChannel } from '@/components/pos/types';
+import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft, Banknote, CreditCard, Smartphone, Store, Truck, Building2, Users } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+
+type PaymentMethod = 'efectivo' | 'debito' | 'transferencia';
+
+const paymentMethods: { value: PaymentMethod; label: string; icon: React.ReactNode }[] = [
+  { value: 'efectivo', label: 'Efectivo', icon: <Banknote className="w-4 h-4" /> },
+  { value: 'debito', label: 'Débito', icon: <CreditCard className="w-4 h-4" /> },
+  { value: 'transferencia', label: 'Transferencia', icon: <Smartphone className="w-4 h-4" /> },
+];
+
+const channels: { value: VentaChannel; label: string; icon: React.ReactNode }[] = [
+  { value: 'feria', label: 'Feria', icon: <Store className="w-4 h-4" /> },
+  { value: 'delivery', label: 'Delivery', icon: <Truck className="w-4 h-4" /> },
+  { value: 'local', label: 'Local', icon: <Building2 className="w-4 h-4" /> },
+  { value: 'corporativo', label: 'Corp', icon: <Building2 className="w-4 h-4" /> },
+  { value: 'referido', label: 'Referido', icon: <Users className="w-4 h-4" /> },
+];
 
 export default function CarritoPage() {
   const router = useRouter();
   const { lines, setQty, removeLine, clear, total, ready } = useCart();
-  const [origen, setOrigen] = useState<VentaOrigen>('feria');
+  const { session, cartSale, selectedClient, isNewClient } = useCashSession();
+  const [channel, setChannel] = useState<VentaChannel>('feria');
+  const [metodoPago, setMetodoPago] = useState<PaymentMethod>('efectivo');
   const [loading, setLoading] = useState(false);
-  const [successData, setSuccessData] = useState<{ id: string; claim_token: string } | null>(null);
+  const [successData, setSuccessData] = useState<{ id: string; claim_token?: string; commission?: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const isSessionOpen = session?.session_status === 'open';
 
   async function confirmarVenta() {
     setError(null);
     if (lines.length === 0) return;
-    
+
     setLoading(true);
     try {
-      const items = lines.map((l) => ({
-        producto_id: l.producto_id,
-        nombre: l.nombre,
-        cantidad: l.cantidad,
-        precio_unitario: l.precio_unitario,
-        subtotal: l.precio_unitario * l.cantidad,
-      }));
-      
-      const res = await fetch('/api/pos/venta', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          origen,
-          total,
-          items,
-          metodo_pago: 'efectivo',
-          estado: 'confirmado',
-        }),
-      });
-      
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? 'Error al registrar la venta');
-        return;
+      if (isSessionOpen) {
+        const cartItems = lines.map((l) => ({
+          producto_id: l.producto_id,
+          nombre: l.nombre,
+          cantidad: l.cantidad,
+          precio_unitario: l.precio_unitario,
+        }));
+
+        const result = await cartSale(cartItems, metodoPago === 'debito' ? 'tarjeta' : metodoPago, channel);
+        if (!result) {
+          setError('No se pudo registrar la venta en la sesión de caja');
+          return;
+        }
+        setSuccessData({ id: result.id, commission: result.rep_commission_total });
+      } else {
+        const items = lines.map((l) => ({
+          producto_id: l.producto_id,
+          nombre: l.nombre,
+          cantidad: l.cantidad,
+          precio_unitario: l.precio_unitario,
+          subtotal: l.precio_unitario * l.cantidad,
+        }));
+
+        const res = await fetch('/api/pos/venta', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            origen: channel === 'feria' || channel === 'local' ? channel : 'feria',
+            total,
+            items,
+            metodo_pago: metodoPago === 'debito' ? 'tarjeta' : metodoPago,
+            estado: 'confirmado',
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error ?? 'Error al registrar la venta');
+          return;
+        }
+        setSuccessData({ id: data.id, claim_token: data.claim_token });
       }
-      
-      setSuccessData({ id: data.id, claim_token: data.claim_token });
       clear();
     } catch {
       setError('Error de conexión con el servidor');
@@ -67,30 +103,40 @@ export default function CarritoPage() {
   }
 
   if (successData) {
-    const claimUrl = `${window.location.origin.replace('campo', 'tienda')}/claim/${successData.claim_token}`;
-    
+    const claimUrl = successData.claim_token
+      ? `${window.location.origin.replace('campo', 'tienda')}/claim/${successData.claim_token}`
+      : null;
+
     return (
       <div className="max-w-2xl mx-auto text-center py-12 animate-in fade-in zoom-in duration-500">
         <div className="inline-flex items-center justify-center w-20 h-20 bg-green-500/10 rounded-full mb-8">
           <CheckCircle2 className="w-10 h-10 text-green-500" />
         </div>
-        
+
         <h1 className="text-4xl font-serif mb-4">Venta Exitosa</h1>
-        <p className="text-stone-400 mb-12 font-light">La transacción ha sido registrada. Pide al cliente que escanee el código para reclamar su impacto y puntos.</p>
-        
-        <div className="bg-white p-8 rounded-3xl inline-block shadow-2xl mb-12">
-          <QRCodeSVG value={claimUrl} size={240} level="H" includeMargin />
-          <p className="mt-4 text-black font-mono text-[10px] uppercase tracking-tighter opacity-40">
-            ID: {successData.id.slice(0, 8)}...
+        {successData.commission != null && (
+          <p className="text-primary text-2xl font-mono font-bold mb-2">
+            +${successData.commission.toLocaleString('es-CL')} comisión
           </p>
-        </div>
+        )}
+        <p className="text-stone-400 mb-12 font-light">
+          {claimUrl
+            ? 'La transacción ha sido registrada. Pide al cliente que escanee el código para reclamar su impacto y puntos.'
+            : 'La transacción ha sido registrada en la sesión de caja.'}
+        </p>
+
+        {claimUrl && (
+          <div className="bg-white p-8 rounded-3xl inline-block shadow-2xl mb-12">
+            <QRCodeSVG value={claimUrl} size={240} level="H" includeMargin />
+            <p className="mt-4 text-black font-mono text-[10px] uppercase tracking-tighter opacity-40">
+              ID: {successData.id.slice(0, 8)}...
+            </p>
+          </div>
+        )}
 
         <div className="flex flex-col gap-4 max-w-xs mx-auto">
           <button
-            onClick={() => {
-              setSuccessData(null);
-              router.push('/pos/catalogo');
-            }}
+            onClick={() => { setSuccessData(null); router.push('/pos/catalogo'); }}
             className="w-full py-4 bg-stone-900 hover:bg-stone-800 text-white rounded-full font-medium transition-all"
           >
             Nueva Venta
@@ -165,24 +211,50 @@ export default function CarritoPage() {
         <div className="bg-stone-900/50 backdrop-blur-xl border border-stone-800 p-8 rounded-3xl sticky top-32">
           <h2 className="text-xl font-serif mb-6 pb-6 border-b border-stone-800">Resumen de Venta</h2>
           
-          <div className="space-y-4 mb-8">
-            <div className="flex justify-between items-center text-stone-400 font-light">
-              <span>Subtotal</span>
-              <span>{new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(total)}</span>
-            </div>
-            
-            <div>
-              <label className="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-2">Origen de Activación</label>
-              <select
-                value={origen}
-                onChange={(e) => setOrigen(e.target.value as VentaOrigen)}
-                className="w-full bg-black border border-stone-800 rounded-2xl px-4 py-3 text-sm focus:border-primary outline-none transition-all appearance-none"
+      <div className="space-y-4 mb-8">
+        <div className="flex justify-between items-center text-stone-400 font-light">
+          <span>Subtotal</span>
+          <span>{new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(total)}</span>
+        </div>
+
+        <div>
+          <label className="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-2">Canal de Venta</label>
+          <div className="grid grid-cols-5 gap-1.5">
+            {channels.map((ch) => (
+              <button
+                key={ch.value}
+                onClick={() => setChannel(ch.value)}
+                className={`flex flex-col items-center gap-0.5 rounded-xl border px-1 py-2 text-[9px] font-bold uppercase tracking-widest transition-all ${
+                  channel === ch.value ? 'bg-primary text-black border-primary' : 'bg-black border-stone-800 text-stone-400 hover:text-primary'
+                }`}
               >
-                <option value="feria">Feria / Pop-up</option>
-                <option value="local">Local Físico</option>
-              </select>
+                {ch.icon}
+                {ch.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {isSessionOpen && (
+          <div>
+            <label className="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-2">Método de Pago</label>
+            <div className="grid grid-cols-3 gap-2">
+              {paymentMethods.map((pm) => (
+                <button
+                  key={pm.value}
+                  onClick={() => setMetodoPago(pm.value)}
+                  className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                    metodoPago === pm.value ? 'bg-primary text-black border-primary' : 'bg-black border-stone-800 text-stone-400 hover:text-primary'
+                  }`}
+                >
+                  {pm.icon}
+                  {pm.label}
+                </button>
+              ))}
             </div>
           </div>
+        )}
+      </div>
 
           <div className="flex justify-between items-end mb-8">
             <span className="text-sm uppercase tracking-widest text-stone-500 font-bold">Total</span>

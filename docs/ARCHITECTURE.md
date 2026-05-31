@@ -15,15 +15,16 @@ enjambre-legado/                    (pnpm workspace + Turborepo)
 |   |   |-- Transbank Webpay + integraciones SII
 |   |   |-- Puerto: 3000
 |   |
-|   |-- nucleo/                     Vite 7 SPA · React 19 · TanStack Query
-|   |   |-- Dashboard gerencial multi-rol (PWA)
-|   |   |-- Mapas Leaflet + PostGIS
-|   |   |-- Puerto: 5173
-|   |
-|   |-- campo/                      Next.js 15 · React 19 · Tailwind 3
-|   |   |-- PWA para campo (apicultor/vendedor)
-|   |   |-- Offline-first con Dexie
-|   |   |-- Puerto: 3002
+| |-- nucleo/ Next.js 16 · React 19 · TanStack Query · Hono BFF
+| | |-- Dashboard gerencial multi-rol (App Router)
+| | |-- Mapas Leaflet + PostGIS + Caja/Comisiones/Reps/Leaderboard
+| | |-- BFF: cash-sessions, rep-ventas, invitations, commission-rules
+| | |-- Puerto: 3000
+| |
+| |-- campo/ Next.js 15 · React 19 · Tailwind 3
+| | |-- PWA para campo (apicultor/vendedor/rep_ventas)
+| | |-- POS: CashProvider, QuickSale, TierBadge, Leaderboard, Threshold
+| | |-- Puerto: 3002
 |   |
 |   |-- api/                        Hono 4 · Node.js
 |   |   |-- BFF contable + integraciones
@@ -157,7 +158,7 @@ Supabase: facturas_emitidas, gastos, impuestos
 
 ### 3.1 Tienda (`@enjambre/tienda`)
 
-**Stack**: Next.js 16.2.1 + React 19.2.4 + Tailwind CSS 3.3 + GSAP 3.15
+**Stack**: Next.js 16.2.1 + React 19.2.4 + Tailwind CSS 3.3 + GSAP 3.15 + Hono 4 BFF
 
 **Rutas publicas**:
 - `/` Landing editorial premium
@@ -189,30 +190,26 @@ Supabase: facturas_emitidas, gastos, impuestos
 
 ### 3.2 Nucleo (`@enjambre/nucleo`)
 
-**Stack**: Vite 7.3.1 + React 19.2.0 + TanStack Query 5.96 + Leaflet + Zustand + PWA
+**Stack**: Next.js 16.2.6 + React 19 + TanStack Query 5.96 + Leaflet + Zustand + Hono 4 BFF (App Router `/api/[[...routes]]`)
 
-**Vistas por rol** (React Router):
+**Vistas por rol** (App Router con sidebar filtrado por rol):
 
-| Vista | Rol | Funcionalidad |
-|---|---|---|
-| `AuthView` | Todos | Login/register |
-| `MapaView` | gerente | Mapa interactivo (apiarios, arboles, ferias, ventas) |
-| `ApicultorView` | apicultor | Gestion de colmenas, inspecciones |
-| `RegeneracionView` | apicultor, gerente | Arboles plantados, reforestacion |
-| `VendedorView` | vendedor | Catalogo en vivo, CRM |
-| `GerenteView` | gerente | Panel ejecutivo, metricas |
-| `LogisticaView` | logistica | Envios, stock, seguimiento |
-| `MarketingView` | marketing | Campanas, redes |
-| `ClienteView` | cliente | Perfil, historial |
-| `ContableView` | gerente | Integracion contable via BFF |
+| Ruta | Rol | Componente | Funcionalidad |
+|---|---|---|---|
+| `/` | Todos | Auth | Login/register |
+| `/mapa` | gerente | MapaView | Mapa interactivo (apiarios, arboles, ferias, ventas) |
+| `/caja` | gerente, tienda_admin | CashSessionsPanel | Sesiones de caja, CSV export, alertas Δ |
+| `/reps` | gerente, tienda_admin | RepsPanel | Gestión reps, tier override |
+| `/comisiones` | gerente, tienda_admin | ComisionesPanel | Comisiones con Tier + Canal |
+| `/invitaciones` | gerente, tienda_admin | InvitacionesPanel | Códigos invitación + redenciones |
+| `/reglas-comision` | gerente, tienda_admin | ReglasComisionPanel | 6 rule_types (base, channel_rate, volume_threshold, loyalty, streak, tier_bonus) |
+| `/leaderboard` | gerente, tienda_admin | LeaderboardPanel | Ranking semanal (stat cards + top 3 + tabla) |
+| `/apicultor` | apicultor | ApicultorView | Gestion de colmenas, inspecciones |
+| `/logistica` | logistica | LogisticaView | Envios, stock, seguimiento |
+| `/marketing` | marketing | MarketingView | Campanas, redes |
+| `/contable` | gerente | ContableView | Integracion contable via BFF |
 
-**PWA**: Service worker con `autoUpdate`, manifest con branding Enjambre Legado, iconos rasterizados desde SVG.
-
-**Legacy (purgar)**:
-- `Copia de Cafeteria Eureka!/`
-- `Copia de Verano Eccomerce?/`
-
-**Entorno**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_PUBLIC_URL_TIENDA`, `VITE_PUBLIC_URL_CAMPO`
+**Entorno**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 
 ---
 
@@ -223,20 +220,37 @@ Supabase: facturas_emitidas, gastos, impuestos
 **Rutas**:
 - `/` Landing
 - `/login` Autenticacion
+- `/pos` POS principal (3 links: Venta Rapida, Carrito, Historial)
 - `/pos/catalogo` Catalogo POS (vendedor)
-- `/pos/carrito` Carrito POS
-- `/api/pos/venta` POST (requiere sesion + profiles para vendedor_id)
+- `/pos/carrito` Carrito POS (integrado con cash session, channel + metodo_pago selectors)
+- `/pos/historial` Historial 4 tabs (Curva volumen, Comisiones, Sesiones caja, Ranking leaderboard)
+- `/api/pos/venta` POST (fallback local sin sesion de caja)
 - `/setup-error` Error cuando Supabase no esta configurado
 
 **Middleware**: Manejo de sesion Supabase con graceful degradation. Si faltan variables, reescribe a `/setup-error` en vez de crashear.
 
 **Offline**: Usa `@enjambre/offline` (Dexie + sync queue) para operar sin conexion.
 
-**Entorno**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (o PUBLISHABLE)
+**Entorno**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (o PUBLISHABLE), `NEXT_PUBLIC_NUCLEO_API_URL` (BFF endpoint para cash sessions/comisiones)
 
 ---
 
-### 3.4 API (`@enjambre/api`)
+### 3.4 Nucleo BFF (Hono dentro de Next.js)
+
+**Stack**: Hono 4 + Zod + Supabase client (server-side)
+
+**Middleware pipeline**: `authMiddleware` (valida JWT) → `tenantMiddleware` (resuelve empresa) → Route Handler
+
+**Rutas BFF** (montadas en `/api/[[...routes]]/route.ts`):
+
+| Prefijo | Archivo | Descripcion |
+|---|---|---|
+| `/api/cash-sessions` | `cash-sessions.ts` | Abrir/cerrar/reconciliar sesiones de caja + GET /export/csv |
+| `/api/rep-ventas` | `rep-ventas.ts` | Venta rápida (4 toques), estado comisiones, historial (week/month/quarter), tier-progress, leaderboard |
+| `/api/invitations` | `invitations.ts` | Canje público + admin CRUD invitaciones, reps, pagos |
+| `/api/commission-rules` | `commission-rules.ts` | CRUD reglas comisión (6 tipos) + dashboard |
+| `/api/contable/*` | (existentes) | Dashboard, facturas emitidas |
+| `/api/health/*` | (existentes) | Liveness, readiness |
 
 **Stack**: Hono 4.10.5 + Node.js + `@enjambre/contable`
 
@@ -290,6 +304,13 @@ Fuente de verdad del esquema. 10 migraciones que cubren:
 | 06 | Contable RLS | `has_empresa_access()`, multi-tenant |
 | 07 | Job runs | Audit log de integraciones con tracking de estado |
 | 10 | Site content | CMS para contenido dinamico de la landing |
+| 14 | Creadores | Codigo_ref, comisiones, portal auto-servicio |
+| 28 | Cierres de caja + comisiones + invitaciones | cash_sessions, commission_rules/records, invitation_codes/redemptions, rep_profiles, vistas, triggers, RLS, semilla |
+| 29 | Tier automático | evaluar_tier_rep(), tier_progress_rep(), tier_override, tier_promoted_at, trigger on_rep_profile_tier_check |
+| 30 | Tier bonus comisión | calcular_comision_venta() con tier_multiplier, columna tier_multiplier en commission_records, seed tier_bonus |
+| 31 | Channel rate comisiones | calcular_comision_venta() con channel_rate lookup, columna channel_rate en commission_records, seed channel_rate |
+| 32 | RLS hardening | 6 parches: commission_rules split, commission_records INSERT restrict, rep_profiles soft-delete, cash_sessions UPDATE restrict |
+| 33 | Leaderboard semanal | weekly_leaderboard(p_empresa_id), SECURITY DEFINER STABLE, top 20 reps |
 
 **Comandos**: `db:push` (push schema), `db:typegen` (generar tipos TS)
 
@@ -398,4 +419,4 @@ Ver `DEPLOY.md` y `VERCEL.md` para instrucciones detalladas.
 ---
 
 *Este documento es la referencia tecnica maestra. Actualizar cuando cambie la estructura o se agreguen apps/paquetes.*
-*Ultima actualizacion: Mayo 2026*
+*Ultima actualizacion: Mayo 2026 — Nucleo migrado a Next.js 16 + Hono BFF, Campo POS completo con tier/leaderboard/notifications*

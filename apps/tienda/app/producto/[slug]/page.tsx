@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { getProductBySlugOrId } from '@/lib/shop/products';
 import { formatCLP } from '@/lib/shop/format';
-import { AddToCartButton } from './ui';
+import { AddToCartButton, TraceabilitySection } from './ui';
 import { ProductGallery } from '@/components/shop/product-gallery';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
@@ -116,6 +116,13 @@ export default async function ProductoPage({
                     : 'Sin stock'}
               </span>
             </div>
+
+            {/* Trazabilidad QR */}
+            <TraceabilitySection 
+              blockchainHash={product.blockchain_hash}
+              colmenaOrigen={product.colmena_origen}
+              fechaCosecha={product.fecha_cosecha}
+            />
 
             <Link href="/catalogo" className="mt-10 inline-flex text-sm font-medium text-accent hover:underline">
               ← Seguir explorando

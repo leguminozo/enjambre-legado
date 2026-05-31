@@ -55,6 +55,14 @@
 - [x] PWA con service worker y manifest
 - [x] TanStack Query para datos remotos
 - [x] Zustand para estado global
+- [x] Sidebar con 6 entradas nuevas: Caja, Reps, Comisiones, Invitaciones, Reglas Comisión, Leaderboard (roles gerente/tienda_admin)
+- [x] `/caja` — CashSessionsPanel con CSV export + alertas Δ ≥$10K CLP
+- [x] `/reps` — RepsPanel con tier override (checkbox admin)
+- [x] `/comisiones` — ComisionesPanel con columnas Tier + Canal
+- [x] `/invitaciones` — CRUD códigos + historial de redenciones
+- [x] `/reglas-comision` — ReglasComisionPanel con 6 rule_types (editores especiales channel_rate + tier_bonus)
+- [x] `/leaderboard` — LeaderboardPanel admin (stat cards + top 3 + tabla clasificación completa)
+- [x] BFF routes: cash-sessions, rep-ventas, invitations, commission-rules
 
 ### Pendiente
 
@@ -62,6 +70,15 @@
 - KPIs en tiempo real: produccion, ventas, impacto ambiental, estado de colmenas
 - Graficos interactivos con recharts
 - Alertas automaticas (colmenas en riesgo, stock bajo)
+
+#### [x] Gestión de Reps + Cierres de Caja + Comisiones + Invitaciones
+- [x] Página `/caja` — Dashboard de sesiones de caja (filtros: fecha, rep, estado) + CSV export + alertas Δ
+- [x] Página `/reps` — Gestión completa de reps con tier override
+- [x] Página `/invitaciones` — CRUD códigos + historial de redenciones
+- [x] Página `/comisiones` — Tabla de comisiones con Tier + Canal + pago masivo
+- [x] Página `/reglas-comision` — Editor de reglas con 6 tipos (base, channel_rate, volume_threshold, loyalty, streak, tier_bonus)
+- [x] Página `/leaderboard` — Leaderboard semanal admin (stat cards + top 3 + tabla)
+- [x] Sidebar entries: Cierres de Caja, Reps, Comisiones, Invitaciones, Reglas Comisión, Leaderboard
 
 #### [ ] Visual Theme Configurator
 - Panel donde subir fotos del Hero, cambiar mensajes, actualizar fechas
@@ -88,8 +105,28 @@
 - [x] API de venta (`/api/pos/venta`)
 - [x] Offline-first con `@enjambre/offline`
 - [x] Middleware con graceful error handling
+- [x] CashProvider + CashSessionPanel (abrir/cerrar caja, métricas en vivo, barra multiplicador)
+- [x] QuickSaleButton — 4 toques (producto→cantidad→canal→pago), channel selector
+- [x] Carrito integrado con cash session (cartSale BFF + /api/pos/venta fallback)
+- [x] ClientLookupPanel — buscar/crear cliente con debounce 300ms
+- [x] TierBadge + TierProgressBar + useTierProgress hook
+- [x] LeaderboardPanel campo (top 3 cards oro/plata/bronce + lista)
+- [x] ThresholdNotificationBanner — notificación umbral multiplicador (≥80% y ≥100%)
+- [x] `/pos/historial` — 4 tabs (Curva/Comisiones/Sesiones/Ranking), tier + channel badges
+- [x] `/pos/carrito` — canal + metodo_pago selectors, debito→tarjeta mapping
+- [x] `/pos/page.tsx` — terminal POS con 3 links (Venta Rápida, Carrito, Historial)
 
 ### Pendiente
+
+#### [ ] Cierres de Caja + Comisiones — Pulido Campo
+- QuickSale enhanced: mostrar tier_multiplier + channel_rate real-time post-venta
+- Animaciones GSAP en TierBadge al subir de tier
+- Sonido/haptic al cruzar umbral de multiplicador
+
+#### [ ] Offline Dexie Real
+- `@enjambre/offline` vacío — necesita implementación Dexie (IndexedDB)
+- Sync queue para ventas sin conexión + reconciliación al recuperar conexión
+- Nunca `supabase.insert()` directo desde UI campo
 
 #### [ ] Inspeccion de Colmenas Offline
 - Formulario de inspeccion que funciona sin internet
@@ -169,4 +206,4 @@
 ---
 
 *Este documento es la vision de producto. Priorizar segun impacto en la experiencia del cliente.*
-*Ultima actualizacion: Mayo 2026*
+*Ultima actualizacion: Mayo 2026 — Cierres de Caja + Comisiones + Tier + Leaderboard + Notificaciones implementadas*

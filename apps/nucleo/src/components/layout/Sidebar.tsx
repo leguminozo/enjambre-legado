@@ -6,18 +6,21 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   Map, Hexagon, TreePine, ShoppingBag, Truck, Megaphone, Bell, Search,
   Menu, X, LogOut, Calculator, Sparkles, BarChart3, FileText, UserCog,
-  Settings, Building2, CreditCard, RefreshCw, BookOpen, BrainCircuit, Shield
+  Settings, Building2, CreditCard, RefreshCw, BookOpen, BrainCircuit, Shield,
+  Wallet, Users, Ticket, Percent, Sliders, Trophy
 } from 'lucide-react';
 import { roleLabels } from '@/data/mockData';
 import { supabase } from '@/lib/supabase';
 
 interface SidebarProps {
-  currentRole: string;
-  onToggle: () => void;
-  isOpen: boolean;
+currentRole: string;
+onToggle: () => void;
+isOpen: boolean;
 }
 
-const navItems = [
+type NavItem = { label: string; icon: React.ReactNode; path: string; roles?: string[] };
+
+const navItems: { section: string; items: NavItem[] }[] = [
   { section: 'Navegación', items: [
     { label: 'Mapa del Legado', icon: <Map size={18} />, path: '/mapa' },
     { label: 'Colmenas & Apiarios', icon: <Hexagon size={18} />, path: '/colmenas' },
@@ -37,9 +40,15 @@ const navItems = [
     { label: 'Cálculos IA', icon: <BrainCircuit size={18} />, path: '/calculos-ia' },
   ]},
   { section: 'Gestión', items: [
-    { label: 'Panel Ejecutivo', icon: <BarChart3 size={18} />, path: '/' },
-    { label: 'Vanguardia B2B', icon: <Shield size={18} />, path: '/vanguardia' },
-    { label: 'Creadores Admin', icon: <Sparkles size={18} />, path: '/creadores' },
+    { label: 'Panel Ejecutivo', icon: <BarChart3 size={18} />, path: '/', roles: ['gerente', 'tienda_admin'] },
+    { label: 'Vanguardia B2B', icon: <Shield size={18} />, path: '/vanguardia', roles: ['gerente', 'tienda_admin'] },
+    { label: 'Creadores Admin', icon: <Sparkles size={18} />, path: '/creadores', roles: ['gerente', 'tienda_admin'] },
+    { label: 'Cierres de Caja', icon: <Wallet size={18} />, path: '/caja', roles: ['gerente', 'tienda_admin'] },
+    { label: 'Reps de Ventas', icon: <Users size={18} />, path: '/reps', roles: ['gerente', 'tienda_admin'] },
+    { label: 'Comisiones', icon: <Percent size={18} />, path: '/comisiones', roles: ['gerente', 'tienda_admin'] },
+    { label: 'Reglas de Comisión', icon: <Sliders size={18} />, path: '/reglas-comision', roles: ['gerente', 'tienda_admin'] },
+    { label: 'Invitaciones', icon: <Ticket size={18} />, path: '/invitaciones', roles: ['gerente', 'tienda_admin'] },
+  { label: 'Leaderboard', icon: <Trophy size={18} />, path: '/leaderboard', roles: ['gerente', 'tienda_admin'] },
   ]},
 ];
 
@@ -93,12 +102,15 @@ export function Sidebar({ currentRole, onToggle, isOpen }: SidebarProps) {
     return pathname.startsWith(path);
   };
 
-const visibleSections = currentRole === 'gerente' || currentRole === 'tienda_admin'
-  ? navItems
-  : navItems.map(s => ({
+  const visibleSections = navItems
+    .map(s => ({
       ...s,
-      items: s.items.filter(item => item.path !== '/'),
-    }));
+      items: s.items.filter(item => {
+        if (!item.roles) return true;
+        return item.roles.includes(currentRole);
+      }),
+    }))
+    .filter(s => s.items.length > 0);
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>

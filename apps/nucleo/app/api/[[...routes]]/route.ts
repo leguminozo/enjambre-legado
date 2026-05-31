@@ -13,6 +13,10 @@ import { tercerosRoutes } from "@/api/routes/terceros";
 import { dashboardRoutes } from "@/api/routes/eirl-dashboard";
 import { reportesRoutes } from "@/api/routes/reportes";
 import { calculosIARoutes } from "@/api/routes/calculos-ia";
+import { cashSessionsRoutes } from "@/api/routes/cash-sessions";
+import { repVentasRoutes } from "@/api/routes/rep-ventas";
+import { invitationsRoutes } from "@/api/routes/invitations";
+import { commissionRulesRoutes } from "@/api/routes/commission-rules";
 
 export type { AppVariables };
 
@@ -30,6 +34,10 @@ app.route("/terceros", tercerosRoutes);
 app.route("/eirl-dashboard", dashboardRoutes);
 app.route("/reportes", reportesRoutes);
 app.route("/calculos-ia", calculosIARoutes);
+app.route("/cash-sessions", cashSessionsRoutes);
+app.route("/rep-ventas", repVentasRoutes);
+app.route("/invitations", invitationsRoutes);
+app.route("/commission-rules", commissionRulesRoutes);
 
 app.onError((err, c) => {
   console.error(err);

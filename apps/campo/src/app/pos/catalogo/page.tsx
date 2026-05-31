@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
-import { AddToCartButton } from './add-to-cart-button';
+import { QuickSaleButton } from './quick-sale-button';
 import { Search, Info } from 'lucide-react';
 import { friendlySupabaseError } from '@enjambre/ui';
 
@@ -22,7 +22,7 @@ export default async function CatalogoPage() {
   if (!supabase) {
     return (
       <div className="p-8 bg-red-950/20 border border-red-900/30 rounded-3xl text-red-400">
-		<p className="text-sm font-medium">El sistema no está configurado. Contacta al administrador.</p>
+        <p className="text-sm font-medium">El sistema no está configurado. Contacta al administrador.</p>
       </div>
     );
   }
@@ -36,7 +36,7 @@ export default async function CatalogoPage() {
   if (error) {
     return (
       <div className="p-8 bg-red-950/20 border border-red-900/30 rounded-3xl text-red-400">
-		<p className="text-sm font-medium">No se pudo cargar el catálogo: {friendlySupabaseError(error)}</p>
+        <p className="text-sm font-medium">No se pudo cargar el catálogo: {friendlySupabaseError(error)}</p>
       </div>
     );
   }
@@ -49,18 +49,16 @@ export default async function CatalogoPage() {
         <div className="max-w-2xl">
           <h1 className="text-5xl font-serif mb-4">Catálogo</h1>
           <p className="text-stone-500 font-light leading-relaxed">
-            Selecciona los productos para la activación. Cada venta genera un QR dinámico para fidelización.
+            Venta rápida: selecciona producto → cantidad → método de pago. Cada venta registra comisión automática.
           </p>
         </div>
-        
-        <div className="relative group min-w-[300px]">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-600 group-focus-within:text-primary transition-colors" />
-          <input 
-            type="text" 
-            placeholder="Buscar producto..."
-            className="w-full bg-stone-900/50 border border-stone-800 rounded-full pl-12 pr-6 py-3 text-sm focus:border-primary outline-none transition-all"
-          />
-        </div>
+
+        <Link
+          href="/pos/carrito"
+          className="text-xs uppercase tracking-widest text-primary hover:underline flex items-center gap-1"
+        >
+          Carrito tradicional →
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -82,7 +80,7 @@ export default async function CatalogoPage() {
                     {p.formato ?? 'Estándar'}
                   </span>
                 </div>
-                
+
                 {p.stock != null && (
                   <div className="flex items-center gap-2 mb-6">
                     <div className={`w-1.5 h-1.5 rounded-full ${p.stock > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
@@ -106,9 +104,9 @@ export default async function CatalogoPage() {
                       : '—'}
                   </p>
                 </div>
-                
+
                 {p.precio != null && p.id ? (
-                  <AddToCartButton
+                  <QuickSaleButton
                     producto_id={p.id}
                     nombre={p.nombre ?? 'Producto'}
                     precio={p.precio}

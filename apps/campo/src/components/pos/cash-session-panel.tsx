@@ -1,0 +1,231 @@
+'use client';
+
+import { useState } from 'react';
+import { useCashSession } from './cash-context';
+import { TierBadge, useTierProgress } from './tier-badge';
+import { useThresholdNotification, ThresholdNotificationBanner } from './threshold-notification';
+import { Wallet, Lock, TrendingUp, ChevronRight, Zap, Crown, Radio } from 'lucide-react';
+
+export function CashSessionPanel() {
+  const { session, loading, todayCommissions, todaySales, todayRevenue, nextThreshold, lastCommission, openSession, closeSession } = useCashSession();
+  const { tierProgress } = useTierProgress();
+  const { notification, dismiss } = useThresholdNotification({
+    todayRevenue,
+    nextThreshold,
+  });
+  const [openingCash, setOpeningCash] = useState('');
+  const [closingCash, setClosingCash] = useState('');
+  const [closingNotas, setClosingNotas] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+  const [closeResult, setCloseResult] = useState<Record<string, unknown> | null>(null);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12 gap-3">
+        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <span className="text-xs text-stone-500 uppercase tracking-widest">Cargando sesión...</span>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="card-glow p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Wallet className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-serif text-lg text-white">Abrir Caja</h3>
+            <p className="text-[10px] text-stone-500 uppercase tracking-widest">Declara tu efectivo inicial</p>
+          </div>
+        </div>
+
+        <div>
+          <label className="text-[10px] uppercase text-stone-500 tracking-wider block mb-1">Efectivo inicial ($)</label>
+          <input
+            type="number"
+            min={0}
+            value={openingCash}
+            onChange={(e) => setOpeningCash(e.target.value)}
+            placeholder="0"
+            className="w-full bg-black/40 border border-stone-800 rounded-lg px-4 py-3 text-white text-lg font-medium focus:border-primary focus:outline-none transition-colors"
+          />
+        </div>
+
+        <button
+          disabled={actionLoading || !openingCash}
+          onClick={async () => {
+            setActionLoading(true);
+            try {
+              await openSession(Number(openingCash));
+              setOpeningCash('');
+            } catch (err) {
+              console.error(err);
+            } finally {
+              setActionLoading(false);
+            }
+          }}
+          className="w-full py-3 bg-primary text-black font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-primary/90 transition-all disabled:opacity-40"
+        >
+          {actionLoading ? 'Abriendo...' : 'Abrir Caja'}
+        </button>
+      </div>
+    );
+  }
+
+  const formatCLP = (n: number) => '$' + n.toLocaleString('es-CL');
+
+  return (
+    <div className="space-y-4">
+      <div className="card-glow p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-salud-optima/10 flex items-center justify-center">
+              <div className="w-3 h-3 rounded-full bg-salud-optima animate-pulse" />
+            </div>
+            <div>
+          <p className="text-sm font-bold text-white">Caja Abierta</p>
+          <p className="text-[10px] text-stone-500">
+            Desde {new Date(session.opened_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </div>
+        {tierProgress && <TierBadge tier={tierProgress.current_tier} />}
+          </div>
+          <span className="text-xs text-stone-500">Base: {formatCLP(session.opening_cash)}</span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-black/30 rounded-lg p-3 text-center">
+            <p className="text-[9px] uppercase text-stone-500 tracking-wider mb-1">Ventas</p>
+            <p className="text-xl font-bold text-white">{todaySales}</p>
+          </div>
+          <div className="bg-black/30 rounded-lg p-3 text-center">
+            <p className="text-[9px] uppercase text-stone-500 tracking-wider mb-1">Ingresos</p>
+            <p className="text-lg font-bold text-white">{formatCLP(todayRevenue)}</p>
+          </div>
+          <div className="bg-primary/10 rounded-lg p-3 text-center border border-primary/20">
+            <p className="text-[9px] uppercase text-primary tracking-wider mb-1">Comisión</p>
+            <p className="text-lg font-bold text-primary">{formatCLP(todayCommissions)}</p>
+          </div>
+      </div>
+
+      {lastCommission && (lastCommission.tier_multiplier > 1 || lastCommission.channel_rate !== null) && (
+        <div className="mt-3 bg-black/20 rounded-lg p-2.5 flex items-center gap-3 border border-stone-800/50">
+          {lastCommission.tier_multiplier > 1 && (
+            <div className="flex items-center gap-1.5">
+              <Crown className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-[10px] text-amber-400 font-bold">×{lastCommission.tier_multiplier.toFixed(1)}</span>
+            </div>
+          )}
+          {lastCommission.channel_rate !== null && (
+            <div className="flex items-center gap-1.5">
+              <Radio className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-[10px] text-cyan-400 font-bold">{(lastCommission.channel_rate * 100).toFixed(0)}%</span>
+            </div>
+          )}
+          <span className="text-[9px] text-stone-500 uppercase tracking-wider ml-auto">Última venta</span>
+        </div>
+      )}
+
+      {nextThreshold && (
+          <div className="mt-4 bg-black/20 rounded-lg p-3 flex items-center gap-3 border border-stone-800/50">
+            <Zap className="w-4 h-4 text-amber-400 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-stone-400 uppercase tracking-wider">
+                Próximo multiplicador ×{nextThreshold.multiplier}
+              </p>
+              <div className="mt-1 h-1.5 bg-stone-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-primary to-amber-400 rounded-full transition-all"
+                  style={{ width: `${Math.min((todayRevenue / nextThreshold.threshold) * 100, 100)}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-stone-500 mt-1">
+                {formatCLP(todayRevenue)} / {formatCLP(nextThreshold.threshold)}
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-stone-600" />
+          </div>
+        )}
+      </div>
+
+      {closeResult ? (
+        <div className="card-glow p-5 space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Lock className="w-4 h-4 text-salud-optima" />
+            <h3 className="text-sm font-bold text-white">Cierre Completado</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="text-stone-500">Ventas efectivo:</div>
+            <div className="text-white font-medium">{formatCLP(Number(closeResult.cash_sales ?? 0))}</div>
+            <div className="text-stone-500">Esperado:</div>
+            <div className="text-white font-medium">{formatCLP(Number(closeResult.expected_cash ?? 0))}</div>
+            <div className="text-stone-500">Contado:</div>
+            <div className="text-white font-medium">{formatCLP(Number(closeResult.counted_cash ?? 0))}</div>
+            <div className="text-stone-500">Diferencia:</div>
+            <div className={`font-bold ${Number(closeResult.difference ?? 0) === 0 ? 'text-salud-optima' : 'text-salud-riesgo'}`}>
+              {Number(closeResult.difference ?? 0) >= 0 ? '+' : ''}{formatCLP(Number(closeResult.difference ?? 0))}
+            </div>
+            <div className="text-stone-500">Comisiones del día:</div>
+            <div className="text-primary font-bold">{formatCLP(Number(closeResult.total_commission ?? 0))}</div>
+          </div>
+          <button
+            onClick={() => setCloseResult(null)}
+            className="w-full py-2 bg-stone-800 text-stone-300 text-xs uppercase tracking-widest rounded-lg"
+          >
+            Entendido
+          </button>
+        </div>
+      ) : (
+        <div className="card-glow p-5 space-y-3">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <Lock className="w-4 h-4 text-stone-500" />
+            Cerrar Caja
+          </h3>
+          <div>
+            <label className="text-[10px] uppercase text-stone-500 tracking-wider block mb-1">Efectivo contado ($)</label>
+            <input
+              type="number"
+              min={0}
+              value={closingCash}
+              onChange={(e) => setClosingCash(e.target.value)}
+              placeholder="0"
+              className="w-full bg-black/40 border border-stone-800 rounded-lg px-4 py-3 text-white text-lg font-medium focus:border-primary focus:outline-none transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase text-stone-500 tracking-wider block mb-1">Notas (opcional)</label>
+            <input
+              type="text"
+              value={closingNotas}
+              onChange={(e) => setClosingNotas(e.target.value)}
+              placeholder="Observaciones..."
+              className="w-full bg-black/40 border border-stone-800 rounded-lg px-4 py-2 text-white text-sm focus:border-primary focus:outline-none transition-colors"
+            />
+          </div>
+          <button
+            disabled={actionLoading || !closingCash}
+            onClick={async () => {
+              setActionLoading(true);
+              try {
+                const result = await closeSession(Number(closingCash), closingNotas || undefined);
+                setCloseResult(result ?? {});
+                setClosingCash('');
+                setClosingNotas('');
+              } catch (err) {
+                console.error(err);
+              } finally {
+                setActionLoading(false);
+              }
+            }}
+            className="w-full py-3 bg-salud-riesgo/80 text-white font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-salud-riesgo transition-all disabled:opacity-40"
+          >
+            {actionLoading ? 'Cerrando...' : 'Cerrar Caja'}
+          </button>
+        </div>
+      )}
+      {notification && <ThresholdNotificationBanner notification={notification} onDismiss={dismiss} />}
+    </div>
+  );
+}

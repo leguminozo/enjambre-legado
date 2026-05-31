@@ -10,13 +10,16 @@ export type ShopProduct = {
   format: string | null;
   photos: string[];
   visible: boolean;
+  blockchain_hash?: string | null;
+  colmena_origen?: string | null;
+  fecha_cosecha?: string | null;
 };
 
 export async function listVisibleProducts(): Promise<ShopProduct[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('productos')
-    .select('id, slug, nombre, descripcion_regenerativa, precio, stock, formato, fotos, visible')
+    .select('id, slug, nombre, descripcion_regenerativa, precio, stock, formato, fotos, visible, blockchain_hash')
     .eq('visible', true)
     .order('created_at', { ascending: false });
 
@@ -31,6 +34,7 @@ export async function listVisibleProducts(): Promise<ShopProduct[]> {
     format: (p.formato as string) ?? null,
     photos: (p.fotos as string[]) ?? [],
     visible: (p.visible as boolean) ?? true,
+    blockchain_hash: (p.blockchain_hash as string) ?? null,
   }));
 }
 
@@ -40,7 +44,7 @@ export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduc
   // Primero intenta por slug.
   const bySlug = await supabase
     .from('productos')
-    .select('id, slug, nombre, descripcion_regenerativa, precio, stock, formato, fotos, visible')
+    .select('id, slug, nombre, descripcion_regenerativa, precio, stock, formato, fotos, visible, blockchain_hash')
     .eq('slug', slugOrId)
     .maybeSingle();
 
@@ -57,13 +61,14 @@ export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduc
       format: (p.formato as string) ?? null,
       photos: (p.fotos as string[]) ?? [],
       visible: (p.visible as boolean) ?? true,
+      blockchain_hash: (p.blockchain_hash as string) ?? null,
     };
   }
 
   // Fallback por id.
   const byId = await supabase
     .from('productos')
-    .select('id, slug, nombre, descripcion_regenerativa, precio, stock, formato, fotos, visible')
+    .select('id, slug, nombre, descripcion_regenerativa, precio, stock, formato, fotos, visible, blockchain_hash')
     .eq('id', slugOrId)
     .maybeSingle();
 
@@ -80,6 +85,7 @@ export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduc
     format: (p.formato as string) ?? null,
     photos: (p.fotos as string[]) ?? [],
     visible: (p.visible as boolean) ?? true,
+    blockchain_hash: (p.blockchain_hash as string) ?? null,
   };
 }
 
