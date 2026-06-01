@@ -10,7 +10,6 @@ export interface SidebarItem {
   label: string
   icon: string
   href: string
-  roles?: string[]
   badge?: SidebarBadge
   greeting: string
   mission: string
@@ -38,11 +37,10 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         mission: '22 años de territorio vivo en Chiloé',
       },
       {
-        key: 'colmenas',
-        label: 'Colmenas',
-        icon: 'hexagon',
-        href: '/colmenas',
-        roles: ['apicultor', 'gerente'],
+      key: 'colmenas',
+      label: 'Colmenas',
+      icon: 'hexagon',
+      href: '/colmenas',
         greeting: 'Obrera del bosque',
         mission: 'El ciclo del ulmo guía tu día',
       },
