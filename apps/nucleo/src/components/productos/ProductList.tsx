@@ -127,7 +127,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-2xl)' }}>
-        <div style={{ color: 'var(--text-muted)' }}>Cargando productos...</div>
+        <div style={{ color: 'hsl(var(--muted-foreground))' }}>Cargando productos...</div>
       </div>
     );
   }
@@ -136,21 +136,21 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
     <div>
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-        <div style={{ padding: 'var(--space-lg)', background: 'rgba(10,61,47,0.02)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(10,61,47,0.06)' }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4 }}>Total Productos</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--bosque-ulmo)' }}>{products.length}</div>
+        <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
+          <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Total Productos</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{products.length}</div>
         </div>
-        <div style={{ padding: 'var(--space-lg)', background: 'rgba(10,61,47,0.02)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(10,61,47,0.06)' }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4 }}>Visibles</div>
+        <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
+          <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Visibles</div>
           <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-success)' }}>{visibleCount}</div>
         </div>
-        <div style={{ padding: 'var(--space-lg)', background: 'rgba(10,61,47,0.02)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(10,61,47,0.06)' }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4 }}>Stock Total</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--oro-miel-dark)' }}>{totalStock}</div>
+        <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
+          <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Stock Total</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{totalStock}</div>
         </div>
-        <div style={{ padding: 'var(--space-lg)', background: 'rgba(10,61,47,0.02)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(10,61,47,0.06)' }}>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 4 }}>Valor Inventario</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--bosque-ulmo)' }}>${totalValue.toLocaleString()}</div>
+        <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
+          <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Valor Inventario</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>${totalValue.toLocaleString()}</div>
         </div>
       </div>
 
@@ -158,7 +158,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)', gap: 'var(--space-md)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', flex: 1 }}>
           <div style={{ position: 'relative', flex: 1, maxWidth: 400 }}>
-            <Search style={{ position: 'absolute', left: 'var(--space-md)', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} size={18} />
+            <Search style={{ position: 'absolute', left: 'var(--space-md)', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} size={18} />
             <input
               type="text"
               placeholder="Buscar productos..."
@@ -186,7 +186,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
       </div>
 
       {/* Table */}
-      <div style={{ background: 'white', borderRadius: 'var(--radius-md)', border: '1px solid rgba(10,61,47,0.08)', overflow: 'hidden' }}>
+      <div style={{ background: 'hsl(var(--card))', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border))', overflow: 'hidden' }}>
         <table className="data-table">
           <thead>
             <tr>
@@ -203,7 +203,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
           <tbody>
             {filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: 'var(--space-2xl)', color: 'var(--text-muted)' }}>
+                <td colSpan={8} style={{ textAlign: 'center', padding: 'var(--space-2xl)', color: 'hsl(var(--muted-foreground))' }}>
                   <Package size={48} style={{ margin: '0 auto var(--space-md)', opacity: 0.3 }} />
                   <div>No hay productos que coincidan con tu búsqueda</div>
                 </td>
@@ -219,15 +219,15 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
                         style={{ width: 48, height: 48, borderRadius: 'var(--radius-sm)', objectFit: 'cover' }}
                       />
                     ) : (
-                      <div style={{ width: 48, height: 48, background: 'rgba(10,61,47,0.05)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Package size={20} style={{ color: 'var(--text-muted)' }} />
+                      <div style={{ width: 48, height: 48, background: 'hsl(var(--foreground) / 0.05)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Package size={20} style={{ color: 'hsl(var(--muted-foreground))' }} />
                       </div>
                     )}
                   </td>
                   <td>
-                    <div style={{ fontWeight: 500, color: 'var(--bosque-ulmo)' }}>{product.nombre}</div>
+                    <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))' }}>{product.nombre}</div>
                     {product.slug && (
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                      <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
                         <ExternalLink size={10} />
                         /producto/{product.slug}
                       </div>
@@ -251,7 +251,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
                   <td>
                     <span style={{ fontSize: '0.85rem' }}>{product.formato}</span>
                   </td>
-                  <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  <td style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))' }}>
                     {new Date(product.created_at).toLocaleDateString('es-CL')}
                   </td>
                   <td>
@@ -306,7 +306,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
 
       {/* Footer Info */}
       {filteredProducts.length > 0 && (
-        <div style={{ marginTop: 'var(--space-md)', fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+        <div style={{ marginTop: 'var(--space-md)', fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', textAlign: 'right' }}>
           Mostrando {filteredProducts.length} de {products.length} productos
         </div>
       )}

@@ -80,10 +80,10 @@ export default function EspectroVivo() {
   }, []);
 
   return (
-    <div className="card animate-in delay-4" style={{ background: SCENE_DARK, border: '1px solid rgba(228,163,43,0.1)' }}>
+    <div className="card animate-in delay-4" style={{ background: SCENE_DARK, border: '1px solid hsl(var(--accent) / 0.15)' }}>
       <div className="section-header" style={{ marginBottom: 'var(--space-md)' }}>
         <div>
-          <div className="section-title" style={{ fontSize: '1rem', color: 'var(--oro-miel)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="section-title" style={{ fontSize: '1rem', color: 'hsl(var(--accent))', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Activity size={16} /> Escucha Profunda
           </div>
           <div className="section-subtitle">Firma Sonora del Enjambre</div>
@@ -106,7 +106,7 @@ export default function EspectroVivo() {
         />
         
         {!isRecording && (
-          <div style={{ position: 'absolute', color: 'var(--text-muted)', fontSize: '0.8rem', textAlign: 'center', padding: '0 var(--space-xl)' }}>
+          <div style={{ position: 'absolute', color: 'hsl(var(--muted-foreground))', fontSize: '0.8rem', textAlign: 'center', padding: '0 var(--space-xl)' }}>
             Sensor bioacústico inactivo. Pulsa el micrófono para escuchar el latido de la colmena.
           </div>
         )}
@@ -114,18 +114,18 @@ export default function EspectroVivo() {
 
       {features && (
         <div style={{ marginTop: 'var(--space-md)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)' }}>
-          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: 4 }}>
-            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Densidad (RMS)</div>
-            <div style={{ fontSize: '0.9rem', color: 'var(--crema-natural)', fontFamily: 'var(--font-datos)' }}>{(features.rms * 100).toFixed(2)}%</div>
-          </div>
-          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: 4 }}>
-            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Centroide</div>
-            <div style={{ fontSize: '0.9rem', color: 'var(--oro-miel)', fontFamily: 'var(--font-datos)' }}>{features.spectralCentroid.toFixed(0)} Hz</div>
-          </div>
+      <div style={{ background: 'hsl(var(--foreground) / 0.03)', padding: '8px 12px', borderRadius: 4 }}>
+        <div style={{ fontSize: '0.6rem', color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }}>Densidad (RMS)</div>
+        <div style={{ fontSize: '0.9rem', color: 'hsl(var(--primary-foreground))', fontFamily: 'var(--font-datos)' }}>{(features.rms * 100).toFixed(2)}%</div>
+      </div>
+      <div style={{ background: 'hsl(var(--foreground) / 0.03)', padding: '8px 12px', borderRadius: 4 }}>
+        <div style={{ fontSize: '0.6rem', color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }}>Centroide</div>
+        <div style={{ fontSize: '0.9rem', color: 'hsl(var(--accent))', fontFamily: 'var(--font-datos)' }}>{features.spectralCentroid.toFixed(0)} Hz</div>
+      </div>
         </div>
       )}
       
-      <div style={{ marginTop: 'var(--space-md)', fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+      <div style={{ marginTop: 'var(--space-md)', fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', fontStyle: 'italic' }}>
         {isRecording ? 'Analizando armónicos en tiempo real...' : 'Listo para diagnóstico espectral.'}
       </div>
     </div>

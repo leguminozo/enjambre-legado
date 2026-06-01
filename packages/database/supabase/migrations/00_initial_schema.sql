@@ -164,7 +164,11 @@ CREATE TABLE IF NOT EXISTS ventas (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-DROP MATERIALIZED VIEW IF EXISTS cashflow CASCADE;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_matviews WHERE matviewname = 'cashflow') THEN
+    DROP MATERIALIZED VIEW cashflow CASCADE;
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS cashflow (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

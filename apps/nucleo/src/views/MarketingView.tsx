@@ -81,9 +81,9 @@ const [resP, resC] = await Promise.all([
                         </div>
 
                         {showNewPost && (
-                            <div style={{ padding: 'var(--space-md)', background: 'rgba(10,61,47,0.04)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', position: 'relative' }}>
-                                <button onClick={() => setShowNewPost(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={16} /></button>
-                                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--bosque-ulmo)', marginBottom: 'var(--space-sm)' }}>Programar Post</div>
+                            <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', position: 'relative' }}>
+                                <button onClick={() => setShowNewPost(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
+                                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-sm)' }}>Programar Post</div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, marginBottom: 8 }}>
                                     <input type="text" placeholder="Idea de contenido..." className="input-field" value={postForm.content} onChange={e => setPostForm({ ...postForm, content: e.target.value })} />
                                 </div>
@@ -103,32 +103,32 @@ const [resP, resC] = await Promise.all([
                         )}
 
                         <table className="data-table"><thead><tr><th>Fecha</th><th>Tipo</th><th>Contenido</th><th>Plataforma</th><th>Estado</th></tr></thead>
-                            <tbody>{posts.map((p, i) => (<tr key={i}><td style={{ fontWeight: 500 }}>{p.post_date || p.date}</td><td><span className="badge badge-gold">{p.type}</span></td><td style={{ color: 'var(--bosque-ulmo)' }}>{p.content}</td><td style={{ fontSize: '0.8rem' }}>{p.platform}</td><td><span className={`badge ${p.status === 'Programado' ? 'badge-success' : p.status === 'Borrador' ? 'badge-warning' : 'badge-gold'}`}>{p.status}</span></td></tr>))}</tbody></table>
+                            <tbody>{posts.map((p, i) => (<tr key={i}><td style={{ fontWeight: 500 }}>{p.post_date || p.date}</td><td><span className="badge badge-gold">{p.type}</span></td><td style={{ color: 'hsl(var(--foreground))' }}>{p.content}</td><td style={{ fontSize: '0.8rem' }}>{p.platform}</td><td><span className={`badge ${p.status === 'Programado' ? 'badge-success' : p.status === 'Borrador' ? 'badge-warning' : 'badge-gold'}`}>{p.status}</span></td></tr>))}</tbody></table>
                     </div>
                     <div className="card animate-in delay-3">
                         <div className="section-header"><div><div className="section-title">🎁 Campañas Activas</div></div></div>
                         {campaigns.map((c, i) => (
-                            <div key={c.id || i} style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: i === 0 ? 'var(--oro-miel-glow)' : 'transparent', marginBottom: 'var(--space-sm)', border: i === 0 ? '1px solid rgba(212,160,23,0.2)' : '1px solid transparent' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><strong style={{ fontSize: '0.9rem', color: 'var(--bosque-ulmo)' }}>{c.name}</strong><span className={`badge ${c.status === 'Activa' ? 'badge-success' : 'badge-warning'}`}>{c.status}</span></div>
-                                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 4 }}>📅 {c.period} · 🌳 {c.impact}</div>
+                            <div key={c.id || i} style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: i === 0 ? 'hsl(var(--accent) / 0.1)' : 'transparent', marginBottom: 'var(--space-sm)', border: i === 0 ? '1px solid hsl(var(--accent) / 0.25)' : '1px solid transparent' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><strong style={{ fontSize: '0.9rem', color: 'hsl(var(--foreground))' }}>{c.name}</strong><span className={`badge ${c.status === 'Activa' ? 'badge-success' : 'badge-warning'}`}>{c.status}</span></div>
+                                <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>📅 {c.period} · 🌳 {c.impact}</div>
                             </div>
                         ))}
                     </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                     <div className="card animate-in delay-3">
-                        <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)' }}>🌿 Club Legado del Bosque <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>(dato manual)</span></div>
-                        <div style={{ padding: 'var(--space-lg)', background: 'linear-gradient(135deg, var(--bosque-ulmo), var(--bosque-ulmo-dark))', borderRadius: 'var(--radius-md)', color: 'var(--crema-natural)', marginBottom: 'var(--space-md)' }}>
+                        <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)' }}>🌿 Club Legado del Bosque <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', fontWeight: 400 }}>(dato manual)</span></div>
+                        <div style={{ padding: 'var(--space-lg)', background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.85))', borderRadius: 'var(--radius-md)', color: 'hsl(var(--primary-foreground))', marginBottom: 'var(--space-md)' }}>
                             <div style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.1rem', marginBottom: 'var(--space-sm)' }}>47 Guardianes Activos</div>
                             <div style={{ fontSize: '0.82rem', opacity: 0.7 }}>Suscripción desde $15.000/mes</div>
                             <div style={{ fontSize: '0.82rem', opacity: 0.7, marginTop: 4 }}>Revenue mensual: $705.000</div>
                         </div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+                        <div style={{ fontSize: '0.85rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.7 }}>
                             <p>Beneficios: miel mensual + acceso a cosechas exclusivas + nombre en bosque regenerado + contenido premium</p>
                         </div>
                     </div>
                     <div className="card animate-in delay-4">
-                        <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)' }}><BookOpen size={16} style={{ display: 'inline', marginRight: 8 }} />Biblioteca de Assets <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>(en desarrollo)</span></div>
+                        <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)' }}><BookOpen size={16} style={{ display: 'inline', marginRight: 8 }} />Biblioteca de Assets <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', fontWeight: 400 }}>(en desarrollo)</span></div>
                         {['📸 Fotos de cosecha (48)', '🎬 Videos Cristina en Pureo (12)', '📝 Textos regenerativos (24)', '🏷️ Logos y marca (8)'].map((a, i) => (
                             <button key={i} className="btn btn-ghost" style={{ width: '100%', justifyContent: 'space-between', padding: 'var(--space-md)', marginBottom: 'var(--space-xs)' }}>
                                 {a}<ArrowUpRight size={14} />

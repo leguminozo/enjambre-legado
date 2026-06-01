@@ -19,27 +19,21 @@ ALTER TABLE user_roles ADD CONSTRAINT user_roles_role_check
 
 -- ─── 2. TABLA: cash_sessions ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.cash_sessions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  empresa_id UUID NOT NULL REFERENCES public.empresas(id) ON DELETE CASCADE,
-  rep_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  opened_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  closed_at TIMESTAMPTZ,
-  opening_cash NUMERIC(19,4) NOT NULL DEFAULT 0 CHECK (opening_cash >= 0),
-  closing_cash_counted NUMERIC(19,4) CHECK (closing_cash_counted >= 0),
-  closing_cash_expected NUMERIC(19,4) GENERATED ALWAYS AS (
-    opening_cash + COALESCE((SELECT SUM(total) FROM ventas WHERE cash_session_id IS NOT DISTINCT FROM public.cash_sessions.id AND metodo_pago = 'efectivo'), 0)
-  ) STORED,
-  cash_difference NUMERIC(19,4) GENERATED ALWAYS AS (
-    COALESCE(closing_cash_counted, 0) - (
-      opening_cash + COALESCE((SELECT SUM(total) FROM ventas WHERE cash_session_id IS NOT DISTINCT FROM public.cash_sessions.id AND metodo_pago = 'efectivo'), 0)
-    )
-  ) STORED,
-  session_status TEXT NOT NULL DEFAULT 'open' CHECK (session_status IN ('open','closed','reconciled')),
-  reconciled_by UUID REFERENCES auth.users(id),
-  reconciled_at TIMESTAMPTZ,
-  notas TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+empresa_id UUID NOT NULL REFERENCES public.empresas(id) ON DELETE CASCADE,
+rep_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+opened_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+closed_at TIMESTAMPTZ,
+opening_cash NUMERIC(19,4) NOT NULL DEFAULT 0 CHECK (opening_cash >= 0),
+closing_cash_counted NUMERIC(19,4) CHECK (closing_cash_counted >= 0),
+session_status TEXT NOT NULL DEFAULT 'open' CHECK (session_status IN ('open','closed','reconciled')),
+reconciled_by UUID REFERENCES auth.users(id),
+reconciled_at TIMESTAMPTZ,
+notas TEXT,
+created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.cash_sessions ADD COLUMN IF NOT EXISTS closing_cash_expected NUMERIC(19,4);
+ALTER TABLE public.cash_sessions ADD COLUMN IF NOT EXISTS cash_difference NUMERIC(19,4);
 
 CREATE INDEX IF NOT EXISTS idx_cash_sessions_empresa ON public.cash_sessions(empresa_id);
 CREATE INDEX IF NOT EXISTS idx_cash_sessions_rep ON public.cash_sessions(rep_id);
@@ -80,9 +74,9 @@ CREATE TABLE IF NOT EXISTS public.commission_records (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   empresa_id UUID NOT NULL REFERENCES public.empresas(id) ON DELETE CASCADE,
   session_id UUID NOT NULL REFERENCES public.cash_sessions(id) ON DELETE CASCADE,
-  venta_id UUID REFERENCES public.ventas(id) ON DELETE SET NULL,
-  rep_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  base_commission NUMERIC(19,4) NOT NULL DEFAULT 0 CHECK (base_commission >= 0),
+venta_id UUID,
+rep_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+base_commission NUMERIC(19,4) NOT NULL DEFAULT 0 CHECK (base_commission >= 0),
   volume_multiplier NUMERIC(5,2) NOT NULL DEFAULT 1.0,
   loyalty_bonus NUMERIC(19,4) NOT NULL DEFAULT 0 CHECK (loyalty_bonus >= 0),
   streak_bonus NUMERIC(19,4) NOT NULL DEFAULT 0 CHECK (streak_bonus >= 0),

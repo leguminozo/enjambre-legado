@@ -7,6 +7,8 @@ export { SectionHeader } from './components/section-header';
 export { GrainOverlay } from './components/grain-overlay';
 export { ToastProvider, useToast } from './components/toast';
 export { ThemeProvider, useThemeContext } from './components/ThemeProvider';
+export { SidebarSection, SidebarNavItem, SidebarBadgeIndicator, type SidebarNavItemData, type SidebarBadgeValue, type BadgeDotColor } from './components/sidebar';
+export { ModuleHero } from './components/module-hero';
 export { useTheme, type Theme } from './hooks/useTheme';
 export { tokens, type TokenKey } from './tokens';
 export { createEnjambrePreset, enjambrePreset } from './tailwind-preset';

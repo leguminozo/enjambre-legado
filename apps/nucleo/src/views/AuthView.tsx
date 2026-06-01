@@ -106,7 +106,7 @@ export default function AuthView() {
                 >
                     <div className="glass-panel text-center">
                         <div className="mb-8">
-                            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-oro-miel-glow mb-6 border border-oro-miel opacity-80" style={{ borderColor: 'rgba(212, 160, 23, 0.3)' }}>
+                            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-oro-miel-glow mb-6 border border-oro-miel opacity-80" style={{ borderColor: 'hsl(var(--accent) / 0.3)' }}>
                                 <Hexagon size={28} className="text-oro-miel" />
                             </div>
                             <h2 className="font-existencial text-crema-natural mb-2 italic m-0" style={{ fontSize: '2.4rem', lineHeight: 1.1 }}>
@@ -135,7 +135,7 @@ export default function AuthView() {
                                     <div className="flex flex-col gap-2">
                                         <label className="uppercase tracking-widest font-semibold text-crema-natural m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Nombre Completo</label>
                                         <div className="relative text-left">
-                                            <User size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'var(--crema-natural)' }} />
+                                            <User size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'hsl(var(--primary-foreground) / 0.5)' }} />
                                             <input 
                                                 required 
                                                 type="text" 
@@ -150,7 +150,7 @@ export default function AuthView() {
                                     <div className="flex flex-col gap-2">
                                         <label className="uppercase tracking-widest font-semibold text-crema-natural m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Rol Principal</label>
                                         <div className="relative text-left">
-                                            <ShieldCheck size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'var(--crema-natural)' }} />
+                                            <ShieldCheck size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'hsl(var(--primary-foreground) / 0.5)' }} />
                                             <select 
                                                 className="input-field"
                                                 value={role} 
@@ -171,7 +171,7 @@ export default function AuthView() {
                             <div className="flex flex-col gap-2">
                                 <label className="uppercase tracking-widest font-semibold text-crema-natural m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Email</label>
                                 <div className="relative text-left">
-                                    <Mail size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'var(--crema-natural)' }} />
+                                    <Mail size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'hsl(var(--primary-foreground) / 0.5)' }} />
                                     <input 
                                         required 
                                         type="email" 
@@ -200,7 +200,7 @@ export default function AuthView() {
                                         )}
                                     </div>
                                     <div className="relative text-left">
-                                        <Lock size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'var(--crema-natural)' }} />
+                                        <Lock size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'hsl(var(--primary-foreground) / 0.5)' }} />
                                         <input 
                                             required 
                                             type="password" 
@@ -241,14 +241,14 @@ export default function AuthView() {
                             )}
                         </form>
 
-                        <div className="mt-8 pt-8 border-t text-center" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+                        <div className="mt-8 pt-8 border-t text-center" style={{ borderColor: 'hsl(var(--primary-foreground) / 0.08)' }}>
                             <p className="font-datos text-crema-natural mb-5 m-0" style={{ opacity: 0.5, fontSize: '0.8rem' }}>
                                 {isLogin ? '¿Aún no tienes registro?' : '¿Ya eres parte del enjambre?'}
                             </p>
                             <button 
                                 onClick={() => { setIsLogin(!isLogin); setPendingConfirmation(false); }}
                                 className="btn btn-outline"
-                                style={{ borderRadius: '99px', fontSize: '0.75rem', letterSpacing: '0.08em', padding: '0.6rem 2rem', color: 'var(--oro-miel)', borderColor: 'rgba(212, 160, 23, 0.4)' }}
+                                style={{ borderRadius: '99px', fontSize: '0.75rem', letterSpacing: '0.08em', padding: '0.6rem 2rem', color: 'hsl(var(--accent))', borderColor: 'hsl(var(--accent) / 0.4)' }}
                             >
                                 {isLogin ? 'Crear Legado' : 'Iniciar Sesión'}
                             </button>

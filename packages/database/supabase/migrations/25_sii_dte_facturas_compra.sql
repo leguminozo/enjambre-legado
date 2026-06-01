@@ -30,6 +30,7 @@ CREATE INDEX IF NOT EXISTS idx_facturas_compra_fecha ON public.facturas_compra(e
 
 ALTER TABLE public.facturas_compra ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "facturas_compra_empresa_access" ON public.facturas_compra;
 CREATE POLICY "facturas_compra_empresa_access" ON public.facturas_compra
   FOR ALL USING (has_empresa_access(empresa_id));
 
@@ -53,6 +54,7 @@ CREATE TABLE IF NOT EXISTS public.sii_caf (
 
 ALTER TABLE public.sii_caf ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "sii_caf_empresa_access" ON public.sii_caf;
 CREATE POLICY "sii_caf_empresa_access" ON public.sii_caf
   FOR ALL USING (has_empresa_access(empresa_id));
 
@@ -94,20 +96,21 @@ END;
 $$;
 
 CREATE TABLE IF NOT EXISTS public.sii_certificados (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  empresa_id UUID NOT NULL REFERENCES public.empresas(id) ON DELETE CASCADE,
-  nombre TEXT NOT NULL,
-  storage_path TEXT NOT NULL,
-  vigencia_inicio DATE NOT NULL,
-  vigencia_fin DATE NOT NULL,
-  activo BOOLEAN NOT NULL DEFAULT true,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE(empresa_id, activo) WHERE activo = true
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+empresa_id UUID NOT NULL REFERENCES public.empresas(id) ON DELETE CASCADE,
+nombre TEXT NOT NULL,
+storage_path TEXT NOT NULL,
+vigencia_inicio DATE NOT NULL,
+vigencia_fin DATE NOT NULL,
+activo BOOLEAN NOT NULL DEFAULT true,
+created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE UNIQUE INDEX IF NOT EXISTS sii_certificados_one_active_per_empresa ON public.sii_certificados(empresa_id, activo) WHERE activo = true;
 
 ALTER TABLE public.sii_certificados ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "sii_certificados_empresa_access" ON public.sii_certificados;
 CREATE POLICY "sii_certificados_empresa_access" ON public.sii_certificados
   FOR ALL USING (has_empresa_access(empresa_id));
 
@@ -115,15 +118,18 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('sii-certificados', 'sii-certificados', false)
 ON CONFLICT (id) DO NOTHING;
 
+DROP POLICY IF EXISTS "sii_certificados_upload" ON storage.objects;
 CREATE POLICY "sii_certificados_upload" ON storage.objects
   FOR INSERT WITH CHECK (bucket_id = 'sii-certificados');
 
+DROP POLICY IF EXISTS "sii_certificados_read" ON storage.objects;
 CREATE POLICY "sii_certificados_read" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'sii-certificados'
     AND has_empresa_access((storage.foldername(name))[1]::UUID)
   );
 
+DROP POLICY IF EXISTS "sii_certificados_delete" ON storage.objects;
 CREATE POLICY "sii_certificados_delete" ON storage.objects
   FOR DELETE USING (
     bucket_id = 'sii-certificados'

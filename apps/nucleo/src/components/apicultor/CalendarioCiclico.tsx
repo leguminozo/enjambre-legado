@@ -7,9 +7,9 @@ import { supabase } from '../../lib/supabase';
 import type { CalendarioTask } from '../../data/mockData';
 
 const categoryColors: Record<CalendarioTask['category'], string> = {
-    inspeccion: 'var(--bosque-ulmo)', cosecha: 'var(--oro-miel-dark)',
-    tratamiento: 'var(--salud-riesgo)', reforestacion: 'var(--salud-optima)',
-    transhumancia: 'var(--info)', cera: 'var(--text-muted)',
+inspeccion: 'hsl(var(--primary))', cosecha: 'hsl(var(--accent))',
+tratamiento: 'hsl(var(--destructive))', reforestacion: 'hsl(var(--success))',
+transhumancia: 'hsl(var(--info))', cera: 'hsl(var(--muted-foreground))',
 };
 const categoryLabels: Record<CalendarioTask['category'], string> = {
     inspeccion: '🔍 Inspección', cosecha: '🍯 Cosecha',
@@ -105,7 +105,7 @@ export default function CalendarioCiclico() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
 
             {/* Predicción flujo de néctar IA */}
-            <div className="card" style={{ border: '1px solid rgba(212,160,23,0.15)' }}>
+            <div className="card" style={{ border: '1px solid hsl(var(--accent) / 0.15)' }}>
                 <div className="section-header">
                     <div>
                         <div className="section-title">🌸 Predicción IA · Flujo de Néctar</div>
@@ -116,7 +116,7 @@ export default function CalendarioCiclico() {
                 <div style={{ height: 180 }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={flowPredictions}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(10,61,47,0.08)" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke={TEXT_MUTED}
             tickFormatter={v => v.slice(5)} />
           <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
@@ -127,21 +127,21 @@ formatter={(v, name) =>
                                 labelFormatter={l => `📅 ${l}`}
                             />
                             <Area type="monotone" dataKey="flujoIndex" stroke={ORO_MIEL}
-                                fill="rgba(212,160,23,0.15)" strokeWidth={2} name="flujoIndex" />
+                                fill="hsl(var(--accent) / 0.2)" strokeWidth={2} name="flujoIndex" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 'var(--space-sm)', marginTop: 'var(--space-md)' }}>
                     {flowPredictions.slice(0, 4).map((p, i) => (
-                        <div key={i} style={{ padding: 8, background: `rgba(212,160,23,${0.05 + p.flujoIndex / 800})`, borderRadius: 6, textAlign: 'center' }}>
-                            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--oro-miel-dark)' }}>{p.flujoIndex}</div>
-                            <div style={{ fontSize: '0.65rem', color: 'var(--bosque-ulmo)', fontWeight: 600 }}>{p.floracion.split('(')[0]!.trim()}</div>
-                            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{p.date.slice(5)} · ~{p.prediccionKg}kg/d</div>
+                        <div key={i} style={{ padding: 8, background: `hsl(var(--accent) / ${0.05 + p.flujoIndex / 800})`, borderRadius: 6, textAlign: 'center' }}>
+                            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{p.flujoIndex}</div>
+                            <div style={{ fontSize: '0.65rem', color: 'hsl(var(--foreground))', fontWeight: 600 }}>{p.floracion.split('(')[0]!.trim()}</div>
+                            <div style={{ fontSize: '0.6rem', color: 'hsl(var(--muted-foreground))' }}>{p.date.slice(5)} · ~{p.prediccionKg}kg/d</div>
                         </div>
                     ))}
                 </div>
-                <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)', background: 'rgba(10,61,47,0.04)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
-                    <strong style={{ color: 'var(--bosque-ulmo)' }}>✨ Recomendación IA:</strong>{' '}
+                <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', lineHeight: 1.6, color: 'hsl(var(--muted-foreground))' }}>
+                    <strong style={{ color: 'hsl(var(--foreground))' }}>✨ Recomendación IA:</strong>{' '}
                     El pico de flujo ocurrirá entre <strong>2 y 8 de marzo</strong> (tepú + ulmo simultáneos).
                     Coloca alzas extra en Pureo Norte <strong>ahora</strong> para maximizar captura.
                     Flujo cayendo en semana del 12: programar cosecha ese fin de semana.
@@ -158,7 +158,7 @@ formatter={(v, name) =>
                         <div className="section-subtitle">Planificador anual de tareas apícolas</div>
                     </div>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--salud-optima)' }}>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'hsl(var(--success))' }}>
                             {doneCount}/{filtered.length}
                         </span>
                         <button className="btn btn-gold btn-sm" onClick={() => setShowNewTaskForm(true)}><Plus size={14} style={{ marginRight: 4 }} /> Tarea</button>
@@ -166,9 +166,9 @@ formatter={(v, name) =>
                 </div>
 
                 {showNewTaskForm && (
-                    <div style={{ padding: 'var(--space-md)', background: 'var(--oro-miel-glow)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid rgba(212,160,23,0.3)', position: 'relative' }}>
-                        <button onClick={() => setShowNewTaskForm(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={16} /></button>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--bosque-ulmo)', marginBottom: 'var(--space-sm)' }}>Programar Nueva Tarea</div>
+                    <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid hsl(var(--accent) / 0.3)', position: 'relative' }}>
+                        <button onClick={() => setShowNewTaskForm(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-sm)' }}>Programar Nueva Tarea</div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, marginBottom: 8 }}>
                             <input autoFocus type="text" placeholder="Título de la tarea..." className="input-field" value={newTaskForm.title} onChange={e => setNewTaskForm({ ...newTaskForm, title: e.target.value })} />
@@ -216,14 +216,14 @@ formatter={(v, name) =>
 
                 {/* Category filter */}
                 <div style={{ display: 'flex', gap: 4, marginBottom: 'var(--space-md)', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <Filter size={13} style={{ color: 'var(--text-muted)' }} />
+                    <Filter size={13} style={{ color: 'hsl(var(--muted-foreground))' }} />
                     {categories.map(c => (
                         <button key={c} onClick={() => setFilterCat(c)}
                             style={{
                                 padding: '3px 10px', borderRadius: 20, border: 'none', cursor: 'pointer',
                                 fontSize: '0.7rem', fontWeight: 500, fontFamily: 'var(--font-datos)',
-                                background: filterCat === c ? 'var(--bosque-ulmo)' : 'rgba(10,61,47,0.06)',
-                                color: filterCat === c ? 'white' : 'var(--text-secondary)',
+background: filterCat === c ? 'hsl(var(--primary))' : 'hsl(var(--muted) / 0.5)',
+color: filterCat === c ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
                                 transition: 'all 120ms'
                             }}>
                             {c === 'all' ? 'Todas' : categoryLabels[c as CalendarioTask['category']]}
@@ -232,7 +232,7 @@ formatter={(v, name) =>
                 </div>
 
                 {filtered.length === 0 && (
-                    <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'hsl(var(--muted-foreground))', fontSize: '0.85rem' }}>
                         Sin tareas para este período.
                     </div>
                 )}
@@ -243,28 +243,28 @@ formatter={(v, name) =>
                             style={{
                                 display: 'flex', alignItems: 'flex-start', gap: 'var(--space-md)',
                                 padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)',
-                                background: task.done ? 'rgba(46,204,113,0.05)' : 'rgba(10,61,47,0.02)',
-                                border: `1px solid ${task.done ? 'rgba(46,204,113,0.15)' : 'transparent'}`,
+background: task.done ? 'hsl(var(--success) / 0.05)' : 'hsl(var(--muted) / 0.5)',
+border: `1px solid ${task.done ? 'hsl(var(--success) / 0.15)' : 'transparent'}`,
                                 cursor: 'pointer', transition: 'all 150ms', opacity: task.done ? 0.65 : 1,
                             }}>
                             <div style={{ paddingTop: 2, flexShrink: 0 }}>
                                 {task.done
-                                    ? <CheckCircle2 size={18} style={{ color: 'var(--salud-optima)' }} />
-                                    : <Circle size={18} style={{ color: 'var(--crema-dark)' }} />}
+? <CheckCircle2 size={18} style={{ color: 'hsl(var(--success))' }} />
+: <Circle size={18} style={{ color: 'hsl(var(--muted-foreground))' }} />}
                             </div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
                                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: categoryColors[task.category as CalendarioTask['category']], flexShrink: 0 }} />
-                                    <span style={{ fontSize: '0.88rem', fontWeight: 500, color: 'var(--bosque-ulmo)', textDecoration: task.done ? 'line-through' : 'none' }}>
+                                    <span style={{ fontSize: '0.88rem', fontWeight: 500, color: 'hsl(var(--foreground))', textDecoration: task.done ? 'line-through' : 'none' }}>
                                         {task.title}
                                     </span>
                                 </div>
                                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Semana {task.week}</span>
+                                    <span style={{ fontSize: '0.68rem', color: 'hsl(var(--muted-foreground))' }}>Semana {task.week}</span>
                                     <span style={{ fontSize: '0.68rem', color: categoryColors[task.category as CalendarioTask['category']] }}>
                                         {categoryLabels[task.category as CalendarioTask['category']]}
                                     </span>
-                                    {task.colmena && <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>· {task.colmena}</span>}
+                                    {task.colmena && <span style={{ fontSize: '0.68rem', color: 'hsl(var(--muted-foreground))' }}>· {task.colmena}</span>}
                                 </div>
                             </div>
                             <span className={`badge ${priorityBadge(task.priority)}`} style={{ fontSize: '0.62rem', alignSelf: 'flex-start' }}>

@@ -142,13 +142,13 @@ const { data } = await supabase.from('clientes')
             {/* QR Modal */}
             {showQR && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }} onClick={() => setShowQR(false)} />
+                    <div style={{ position: 'absolute', inset: 0, background: 'hsl(var(--foreground) / 0.5)', backdropFilter: 'blur(6px)' }} onClick={() => setShowQR(false)} />
                     <div className="card" style={{ position: 'relative', zIndex: 201, width: '90%', maxWidth: 400, textAlign: 'center', padding: 'var(--space-xl)', animation: 'fadeInUp 0.3s ease' }}>
                         <button onClick={() => setShowQR(false)} className="btn btn-ghost btn-sm" style={{ position: 'absolute', top: 12, right: 12 }}><X size={18} /></button>
-                        <QrCode size={120} style={{ color: 'var(--bosque-ulmo)', margin: '0 auto var(--space-lg)' }} />
+                        <QrCode size={120} style={{ color: 'hsl(var(--foreground))', margin: '0 auto var(--space-lg)' }} />
                         <h3 style={{ marginBottom: 'var(--space-sm)' }}>QR de Trazabilidad</h3>
-                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>Escanea este código con tu celular para ver la historia completa del lote: colmena de origen, fecha de cosecha, video de Cristina en Pureo y el impacto regenerativo de tu compra.</p>
-                        <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'var(--oro-miel-glow)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'var(--oro-miel-dark)', fontWeight: 500 }}>Lote #2026-ULM-047 · Colmena Ulmo Mayor · 28 feb 2026</div>
+                        <p style={{ fontSize: '0.85rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.6 }}>Escanea este código con tu celular para ver la historia completa del lote: colmena de origen, fecha de cosecha, video de Cristina en Pureo y el impacto regenerativo de tu compra.</p>
+                        <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'hsl(var(--accent))', fontWeight: 500 }}>Lote #2026-ULM-047 · Colmena Ulmo Mayor · 28 feb 2026</div>
                     </div>
                 </div>
             )}
@@ -156,43 +156,43 @@ const { data } = await supabase.from('clientes')
             {/* POS Modal */}
             {showPos && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }} onClick={() => setShowPos(false)} />
+                    <div style={{ position: 'absolute', inset: 0, background: 'hsl(var(--foreground) / 0.6)', backdropFilter: 'blur(8px)' }} onClick={() => setShowPos(false)} />
                     <div className="card" style={{ position: 'relative', zIndex: 301, width: '95%', maxWidth: 800, height: '85vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden', animation: 'fadeInUp 0.3s ease' }}>
-                        <div style={{ padding: 'var(--space-md) var(--space-lg)', background: 'var(--bosque-ulmo)', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ padding: 'var(--space-md) var(--space-lg)', background: 'hsl(var(--foreground))', color: 'hsl(var(--primary-foreground))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                 <ShoppingBag size={20} />
                                 <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>Modo Feria (POS Offline)</span>
-								<span className="badge badge-success" style={{ fontSize: '0.65rem', background: 'rgba(46,204,113,0.2)' }}>● Sincronización local</span>
+								<span className="badge badge-success" style={{ fontSize: '0.65rem', background: 'hsl(var(--success) / 0.2)' }}>● Sincronización local</span>
                             </div>
-                            <button onClick={() => setShowPos(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><X size={20} /></button>
+                            <button onClick={() => setShowPos(false)} style={{ background: 'transparent', border: 'none', color: 'hsl(var(--primary-foreground))', cursor: 'pointer' }}><X size={20} /></button>
                         </div>
                         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
                             {/* Product List */}
-                            <div style={{ flex: 2, borderRight: '1px solid rgba(10,61,47,0.1)', overflowY: 'auto', padding: 'var(--space-lg)', background: 'var(--crema-warm)' }}>
+                            <div style={{ flex: 2, borderRight: '1px solid hsl(var(--border))', overflowY: 'auto', padding: 'var(--space-lg)', background: 'hsl(var(--muted))' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 'var(--space-md)' }}>
                                     {products.map(p => (
-                                        <div key={p.id} style={{ background: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(10,61,47,0.08)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column' }}>
+                                        <div key={p.id} style={{ background: 'hsl(var(--card))', padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', border: '1px solid hsl(var(--border))', boxShadow: '0 2px 4px hsl(var(--foreground) / 0.02)', display: 'flex', flexDirection: 'column' }}>
                                             <div style={{ fontSize: '2rem', textAlign: 'center', marginBottom: 8 }}>{p.emoji}</div>
-                                            <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--bosque-ulmo)', lineHeight: 1.3, marginBottom: 4 }}>{p.name}</div>
-                                            <div style={{ fontSize: '0.9rem', color: 'var(--oro-miel-dark)', fontWeight: 700, marginBottom: 'auto' }}>${p.price.toLocaleString()}</div>
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, background: 'rgba(10,61,47,0.04)', borderRadius: 'var(--radius-sm)', padding: 4 }}>
-                                                <button onClick={() => addToCart(p.id, -1)} style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', borderRadius: 4, border: '1px solid rgba(10,61,47,0.1)', cursor: 'pointer' }}><Minus size={14} /></button>
+                                            <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'hsl(var(--foreground))', lineHeight: 1.3, marginBottom: 4 }}>{p.name}</div>
+                                            <div style={{ fontSize: '0.9rem', color: 'hsl(var(--accent))', fontWeight: 700, marginBottom: 'auto' }}>${p.price.toLocaleString()}</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)', padding: 4 }}>
+                                                <button onClick={() => addToCart(p.id, -1)} style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'hsl(var(--card))', borderRadius: 4, border: '1px solid hsl(var(--border))', cursor: 'pointer' }}><Minus size={14} /></button>
                                                 <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{posCart[p.id] || 0}</span>
-                                                <button onClick={() => addToCart(p.id, 1)} style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bosque-ulmo)', color: 'white', borderRadius: 4, border: 'none', cursor: 'pointer' }}><Plus size={14} /></button>
+                                                <button onClick={() => addToCart(p.id, 1)} style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'hsl(var(--foreground))', color: 'hsl(var(--primary-foreground))', borderRadius: 4, border: 'none', cursor: 'pointer' }}><Plus size={14} /></button>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                             {/* Cart Sidebar */}
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'white' }}>
-                                <div style={{ padding: 'var(--space-md)', borderBottom: '1px solid rgba(10,61,47,0.1)', fontWeight: 600, fontSize: '0.95rem', color: 'var(--bosque-ulmo)', display: 'flex', justifyContent: 'space-between' }}>
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'hsl(var(--card))' }}>
+                                <div style={{ padding: 'var(--space-md)', borderBottom: '1px solid hsl(var(--border))', fontWeight: 600, fontSize: '0.95rem', color: 'hsl(var(--foreground))', display: 'flex', justifyContent: 'space-between' }}>
                                     <span>Venta Actual</span>
-                                    <span style={{ color: 'var(--text-muted)' }}>{cartItemsCount} items</span>
+                                    <span style={{ color: 'hsl(var(--muted-foreground))' }}>{cartItemsCount} items</span>
                                 </div>
                                 <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-md)' }}>
                                     {Object.entries(posCart).length === 0 ? (
-                                        <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: 40 }}>Carrito vacío. Selecciona productos para comenzar.</div>
+                                        <div style={{ textAlign: 'center', color: 'hsl(var(--muted-foreground))', fontSize: '0.85rem', marginTop: 40 }}>Carrito vacío. Selecciona productos para comenzar.</div>
                                     ) : (
                                         Object.entries(posCart).map(([id, qty]) => {
                                             const p = products.find(prod => prod.id === id);
@@ -200,8 +200,8 @@ const { data } = await supabase.from('clientes')
                                             return (
                                                 <div key={id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, fontSize: '0.85rem' }}>
                                                     <div>
-                                                        <div style={{ fontWeight: 500, color: 'var(--bosque-ulmo)' }}>{p.name}</div>
-                                                        <div style={{ color: 'var(--text-muted)' }}>{qty} x ${p.price.toLocaleString()}</div>
+          <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))' }}>{p.name}</div>
+          <div style={{ color: 'hsl(var(--muted-foreground))' }}>{qty} x ${p.price.toLocaleString()}</div>
                                                     </div>
                                                     <div style={{ fontWeight: 600 }}>${(p.price * qty).toLocaleString()}</div>
                                                 </div>
@@ -209,11 +209,11 @@ const { data } = await supabase.from('clientes')
                                         })
                                     )}
                                 </div>
-                                <div style={{ padding: 'var(--space-lg)', borderTop: '1px solid rgba(10,61,47,0.1)', background: 'rgba(212,160,23,0.05)' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                <div style={{ padding: 'var(--space-lg)', borderTop: '1px solid hsl(var(--border))', background: 'hsl(var(--accent) / 0.08)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.9rem', color: 'hsl(var(--muted-foreground))' }}>
                                         <span>Subtotal</span><span>${cartTotal.toLocaleString()}</span>
                                     </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-md)', fontSize: '1.2rem', fontWeight: 700, color: 'var(--bosque-ulmo)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-md)', fontSize: '1.2rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>
                                         <span>Total</span><span>${cartTotal.toLocaleString()}</span>
                                     </div>
                                     <button className="btn btn-primary" style={{ width: '100%', padding: '14px', fontSize: '1rem', fontWeight: 600 }} disabled={cartTotal === 0 || loadingPos} onClick={async () => {
@@ -279,7 +279,7 @@ const { data } = await supabase.from('clientes')
                             <button className="btn btn-outline btn-sm" onClick={() => setShowQR(true)}><QrCode size={14} /> Generar QR</button>
                         </div>
                         {products.length === 0 && (
-                            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 'var(--space-lg)', fontSize: '0.9rem' }}>
+                            <p style={{ textAlign: 'center', color: 'hsl(var(--muted-foreground))', padding: 'var(--space-lg)', fontSize: '0.9rem' }}>
 						No hay productos disponibles todavía. Carga productos desde la tienda o sincroniza el catálogo.
                             </p>
                         )}
@@ -291,7 +291,7 @@ const { data } = await supabase.from('clientes')
                                         <div className="product-card-name">{p.name}</div>
                                         <div className="product-card-description">{p.description}</div>
                                         <div className="product-card-footer"><span className="product-card-price">${p.price.toLocaleString()}</span><span className="product-card-impact">🌳 {p.impactTrees} árboles</span></div>
-                                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 'var(--space-sm)' }}>Stock: {p.stock} · {p.format}</div>
+                                        <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', marginTop: 'var(--space-sm)' }}>Stock: {p.stock} · {p.format}</div>
                                     </div>
                                 </div>
                             ))}
@@ -312,9 +312,9 @@ const { data } = await supabase.from('clientes')
                         </div>
 
                         {showAddClient && (
-                            <div style={{ padding: 'var(--space-md)', background: 'var(--oro-miel-glow)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid rgba(212,160,23,0.3)', position: 'relative' }}>
-                                <button onClick={() => setShowAddClient(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={16} /></button>
-                                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--bosque-ulmo)', marginBottom: 'var(--space-sm)' }}>Registrar Nuevo Guardián</div>
+                            <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid hsl(var(--accent) / 0.3)', position: 'relative' }}>
+                                <button onClick={() => setShowAddClient(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
+                                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-sm)' }}>Registrar Nuevo Guardián</div>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
                                     <input autoFocus type="text" placeholder="Nombre / Organización" className="input-field" value={newClientForm.name} onChange={e => setNewClientForm({ ...newClientForm, name: e.target.value })} />
@@ -332,29 +332,29 @@ const { data } = await supabase.from('clientes')
                         )}
 
                         <table className="data-table"><thead><tr><th>Cliente</th><th>Tipo</th><th>Compras</th><th>Nivel</th><th>Última orden</th></tr></thead>
-                            <tbody>{displayedClients.map((c, i) => (<tr key={i}><td style={{ fontWeight: 500, color: 'var(--bosque-ulmo)' }}>{c.name}</td><td><span className="badge badge-gold">{c.type}</span></td><td>{c.purchases}</td><td><span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Star size={12} style={{ color: 'var(--oro-miel)' }} />{c.level}</span></td><td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{c.lastOrder}</td></tr>))}</tbody></table>
-                        {!crmExpanded && localClients.length > 4 && <div style={{ textAlign: 'center', marginTop: 'var(--space-md)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>+{localClients.length - 4} clientes más</div>}
+                            <tbody>{displayedClients.map((c, i) => (<tr key={i}><td style={{ fontWeight: 500, color: 'hsl(var(--foreground))' }}>{c.name}</td><td><span className="badge badge-gold">{c.type}</span></td><td>{c.purchases}</td><td><span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Star size={12} style={{ color: 'hsl(var(--accent))' }} />{c.level}</span></td><td style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.82rem' }}>{c.lastOrder}</td></tr>))}</tbody></table>
+                        {!crmExpanded && localClients.length > 4 && <div style={{ textAlign: 'center', marginTop: 'var(--space-md)', fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))' }}>+{localClients.length - 4} clientes más</div>}
                     </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                     <div className="card animate-in delay-3">
                         <div className="section-header"><div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><CalendarDays size={18} /> Próximas Ferias</div></div>
                         {ferias.map((f, i) => (
-                            <div key={i} style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: i === 0 ? 'var(--oro-miel-glow)' : 'transparent', marginBottom: 'var(--space-sm)', border: i === 0 ? '1px solid rgba(212,160,23,0.2)' : '1px solid transparent' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><strong style={{ fontSize: '0.9rem', color: 'var(--bosque-ulmo)' }}>{f.name}</strong><span className={`badge ${f.status === 'Confirmada' ? 'badge-success' : f.status === 'Inscrita' ? 'badge-gold' : 'badge-warning'}`}>{f.status}</span></div>
-                                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 4 }}>📅 {f.date} · Meta: {f.estimated}</div>
+                            <div key={i} style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: i === 0 ? 'hsl(var(--accent) / 0.1)' : 'transparent', marginBottom: 'var(--space-sm)', border: i === 0 ? '1px solid hsl(var(--accent) / 0.25)' : '1px solid transparent' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><strong style={{ fontSize: '0.9rem', color: 'hsl(var(--foreground))' }}>{f.name}</strong><span className={`badge ${f.status === 'Confirmada' ? 'badge-success' : f.status === 'Inscrita' ? 'badge-gold' : 'badge-warning'}`}>{f.status}</span></div>
+                                <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>📅 {f.date} · Meta: {f.estimated}</div>
                             </div>
                         ))}
                     </div>
                     <div className="card animate-in delay-4">
                         <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)' }}>🎯 Generador de Pitch</div>
-                        <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 'var(--space-md)' }}>Selecciona el tipo de cliente:</div>
+                        <div style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-md)' }}>Selecciona el tipo de cliente:</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-sm)' }}>
                             {Object.keys(pitches).map(type => (
                                 <button key={type} className={`btn btn-sm ${selectedPitch === type ? 'btn-gold' : 'btn-outline'}`} style={{ fontSize: '0.78rem' }} onClick={() => setSelectedPitch(type)}>{type}</button>
                             ))}
                         </div>
-                        <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'rgba(10,61,47,0.04)', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', lineHeight: 1.7, fontStyle: 'italic', color: 'var(--text-secondary)', borderLeft: '3px solid var(--oro-miel)' }}>
+                        <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', lineHeight: 1.7, fontStyle: 'italic', color: 'hsl(var(--muted-foreground))', borderLeft: '3px solid hsl(var(--accent))' }}>
                             {pitches[selectedPitch]}
                         </div>
                     </div>
@@ -367,7 +367,7 @@ const { data } = await supabase.from('clientes')
         { label: 'Reporte de ventas', icon: <TrendingUp size={16} />, desc: 'En desarrollo', action: () => {} },
                         ].map((action, i) => (
                             <button key={i} className="btn btn-ghost" onClick={action.action} style={{ width: '100%', justifyContent: 'space-between', padding: 'var(--space-md)', marginBottom: 'var(--space-xs)', textAlign: 'left' }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{action.icon}<span><span style={{ display: 'block' }}>{action.label}</span><span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>{action.desc}</span></span></span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{action.icon}<span><span style={{ display: 'block' }}>{action.label}</span><span style={{ display: 'block', fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', fontWeight: 400 }}>{action.desc}</span></span></span>
                                 <ArrowUpRight size={14} />
                             </button>
                         ))}

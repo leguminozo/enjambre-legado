@@ -24,6 +24,7 @@ DROP POLICY IF EXISTS storage_fuentes_update ON storage.objects;
 DROP POLICY IF EXISTS storage_fuentes_delete ON storage.objects;
 
 -- Create admin-only UPDATE policies (not covered by migration 17)
+DROP POLICY IF EXISTS "Admin can update productos" ON storage.objects;
 CREATE POLICY "Admin can update productos" ON storage.objects
 FOR UPDATE TO authenticated
 USING (
@@ -41,6 +42,7 @@ WITH CHECK (
   )
 );
 
+DROP POLICY IF EXISTS "Admin can update colmenas" ON storage.objects;
 CREATE POLICY "Admin can update colmenas" ON storage.objects
 FOR UPDATE TO authenticated
 USING (
@@ -58,6 +60,7 @@ WITH CHECK (
   )
 );
 
+DROP POLICY IF EXISTS "Admin can update arboles" ON storage.objects;
 CREATE POLICY "Admin can update arboles" ON storage.objects
 FOR UPDATE TO authenticated
 USING (
@@ -75,6 +78,7 @@ WITH CHECK (
   )
 );
 
+DROP POLICY IF EXISTS "Admin can update fuentes" ON storage.objects;
 CREATE POLICY "Admin can update fuentes" ON storage.objects
 FOR UPDATE TO authenticated
 USING (

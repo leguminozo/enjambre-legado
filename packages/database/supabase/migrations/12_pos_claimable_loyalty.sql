@@ -32,22 +32,21 @@ WITH CHECK (
 CREATE POLICY "Users can claim their sales via token" ON ventas
 FOR UPDATE TO authenticated
 USING (
-  claim_status = 'pending' 
+  claim_status = 'pending'
   AND claim_token IS NOT NULL
 )
 WITH CHECK (
   claim_status = 'claimed'
   AND claimed_by = auth.uid()::uuid
   AND claimed_at = NOW()
-  AND cliente_id = auth.uid()::uuid -- Explicit cast to avoid text = uuid error
 );
 
 -- Policy: Users can view their own claimed sales
 CREATE POLICY "Users can view their own claimed sales" ON ventas
 FOR SELECT TO authenticated
 USING (
-  cliente_id = auth.uid()::uuid 
-  OR vendedor_id = auth.uid()::uuid
+  COALESCE(cliente_id::uuid, user_id) = auth.uid()::uuid
+  OR user_id = auth.uid()::uuid
 );
 
 -- Policy: Anyone can view a pending sale if they have the token (for the claim page)

@@ -3,10 +3,11 @@
 
 -- Add web checkout columns to ventas
 ALTER TABLE ventas
-  ADD COLUMN IF NOT EXISTS buy_order TEXT,
-  ADD COLUMN IF NOT EXISTS auth_code TEXT,
-  ADD COLUMN IF NOT EXISTS direccion_envio JSONB,
-  ADD COLUMN IF NOT EXISTS buyer_email TEXT;
+ADD COLUMN IF NOT EXISTS buy_order TEXT,
+ADD COLUMN IF NOT EXISTS auth_code TEXT,
+ADD COLUMN IF NOT EXISTS direccion_envio JSONB,
+ADD COLUMN IF NOT EXISTS buyer_email TEXT,
+ADD COLUMN IF NOT EXISTS origen TEXT CHECK (origen IN ('local','web','pos','feria','delivery','corporativo','referido'));
 
 -- Index for looking up sales by payment order
 CREATE INDEX IF NOT EXISTS idx_ventas_buy_order ON ventas (buy_order) WHERE buy_order IS NOT NULL;

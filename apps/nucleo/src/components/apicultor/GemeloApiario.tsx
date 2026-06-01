@@ -65,18 +65,19 @@ function Colmena3D({ position, temp, name, weight }: Colmena3DProps) {
         {name}
       </Text>
       
-      <Text
-        position={[0, -0.7, 0]}
-        fontSize={0.12}
-        color={color}
-      >
-        {temp}°C | {weight}kg
-      </Text>
+  <Text
+      position={[0, -0.7, 0]}
+      fontSize={0.12}
+      color={color}
+      font="/assets/CormorantGaramond-Regular.woff2"
+    >
+      {temp}°C | {weight}kg
+    </Text>
     </group>
   );
 }
 
-export default function GemeloApiario() {
+export function GemeloApiario() {
   // Datos mock para las colmenas del apiario central
   const colmenas = [
     { id: '1', name: 'Ulmo-Alpha', pos: [-2, 0, 0] as [number, number, number], temp: 34, weight: 42 },
@@ -86,12 +87,12 @@ export default function GemeloApiario() {
   ];
 
   return (
-    <div className="card animate-in delay-2" style={{ height: '500px', background: SCENE_BG, position: 'relative', overflow: 'hidden', border: '1px solid rgba(228,163,43,0.1)' }}>
+    <div className="card animate-in delay-2" style={{ height: '500px', background: SCENE_BG, position: 'relative', overflow: 'hidden', border: '1px solid hsl(var(--accent) / 0.15)' }}>
       <div style={{ position: 'absolute', top: 20, left: 20, zIndex: 10, pointerEvents: 'none' }}>
-        <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--oro-miel)', marginBottom: 4 }}>
+        <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'hsl(var(--accent))', marginBottom: 4 }}>
           Gemelo Digital V1
         </div>
-        <div style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.2rem', color: 'var(--crema-natural)' }}>
+        <div style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.2rem', color: 'hsl(var(--primary-foreground))' }}>
           Apiario Central Pureo
         </div>
       </div>
@@ -123,10 +124,10 @@ export default function GemeloApiario() {
       </Canvas>
 
       <div style={{ position: 'absolute', bottom: 20, right: 20, zIndex: 10, textAlign: 'right', pointerEvents: 'none' }}>
-        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+        <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
           Sensores IoT activos: 4/4
         </div>
-        <div style={{ fontSize: '0.7rem', color: 'var(--salud-optima)' }}>
+        <div style={{ fontSize: '0.7rem', color: 'hsl(var(--success))' }}>
           Latencia Sincrónica: 120ms
         </div>
       </div>

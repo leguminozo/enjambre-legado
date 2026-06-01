@@ -31,6 +31,7 @@ CREATE INDEX IF NOT EXISTS idx_gastos_extranjeros_factura ON public.gastos_extra
 
 ALTER TABLE public.gastos_extranjeros ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "gastos_extranjeros_empresa_access" ON public.gastos_extranjeros;
 CREATE POLICY "gastos_extranjeros_empresa_access" ON public.gastos_extranjeros
   FOR ALL USING (has_empresa_access(empresa_id));
 
@@ -48,6 +49,7 @@ CREATE INDEX IF NOT EXISTS idx_tasas_cambio_moneda_fecha ON public.tasas_cambio_
 
 ALTER TABLE public.tasas_cambio_historial ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "tasas_cambio_read" ON public.tasas_cambio_historial;
 CREATE POLICY "tasas_cambio_read" ON public.tasas_cambio_historial
   FOR SELECT USING (true);
 
@@ -56,8 +58,8 @@ CREATE TABLE IF NOT EXISTS public.conciliaciones (
   empresa_id UUID NOT NULL REFERENCES public.empresas(id) ON DELETE CASCADE,
   movimiento_id UUID REFERENCES public.banco_chile_movimientos(id) ON DELETE SET NULL,
   factura_compra_id UUID REFERENCES public.facturas_compra(id) ON DELETE SET NULL,
-  venta_id UUID REFERENCES public.ventas(id) ON DELETE SET NULL,
-  gasto_extranjero_id UUID REFERENCES public.gastos_extranjeros(id) ON DELETE SET NULL,
+venta_id UUID,
+gasto_extranjero_id UUID REFERENCES public.gastos_extranjeros(id) ON DELETE SET NULL,
   tipo TEXT NOT NULL CHECK (tipo IN ('auto', 'manual', 'sin_documento')),
   monto_movimiento NUMERIC(19,4),
   monto_documento NUMERIC(19,4),
@@ -76,6 +78,7 @@ CREATE INDEX IF NOT EXISTS idx_conciliaciones_gasto ON public.conciliaciones(gas
 
 ALTER TABLE public.conciliaciones ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "conciliaciones_empresa_access" ON public.conciliaciones;
 CREATE POLICY "conciliaciones_empresa_access" ON public.conciliaciones
   FOR ALL USING (has_empresa_access(empresa_id));
 
@@ -96,6 +99,7 @@ CREATE TABLE IF NOT EXISTS public.proveedores_config (
 
 ALTER TABLE public.proveedores_config ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "proveedores_config_empresa_access" ON public.proveedores_config;
 CREATE POLICY "proveedores_config_empresa_access" ON public.proveedores_config
   FOR ALL USING (has_empresa_access(empresa_id));
 
@@ -126,8 +130,9 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trg_auto_conciliar ON public.banco_chile_movimientos;
 CREATE TRIGGER trg_auto_conciliar
-  AFTER UPDATE ON public.banco_chile_movimientos
+AFTER UPDATE ON public.banco_chile_movimientos
   FOR EACH ROW
   WHEN (NEW.conciliado = true AND OLD.conciliado = false)
   EXECUTE FUNCTION public.auto_conciliar_movimiento();
@@ -147,9 +152,9 @@ CREATE TABLE IF NOT EXISTS public.sumup_transacciones (
   nombre_contraparte TEXT,
   codigo_autorizacion TEXT,
   conciliado BOOLEAN NOT NULL DEFAULT false,
-  venta_id UUID REFERENCES public.ventas(id) ON DELETE SET NULL,
-  raw JSONB NOT NULL DEFAULT '{}'::jsonb,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+venta_id UUID,
+raw JSONB NOT NULL DEFAULT '{}'::jsonb,
+created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(empresa_id, sumup_id)
 );
@@ -161,6 +166,7 @@ CREATE INDEX IF NOT EXISTS idx_sumup_transacciones_conciliado ON public.sumup_tr
 
 ALTER TABLE public.sumup_transacciones ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "sumup_transacciones_empresa_access" ON public.sumup_transacciones;
 CREATE POLICY "sumup_transacciones_empresa_access" ON public.sumup_transacciones
   FOR ALL USING (has_empresa_access(empresa_id));
 
@@ -193,8 +199,9 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trg_auto_conciliar_sumup ON public.sumup_transacciones;
 CREATE TRIGGER trg_auto_conciliar_sumup
-  AFTER UPDATE ON public.sumup_transacciones
+AFTER UPDATE ON public.sumup_transacciones
   FOR EACH ROW
   WHEN (NEW.conciliado = true AND OLD.conciliado = false)
   EXECUTE FUNCTION public.auto_conciliar_sumup();
@@ -215,6 +222,7 @@ CREATE TABLE IF NOT EXISTS public.sumup_config (
 
 ALTER TABLE public.sumup_config ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "sumup_config_empresa_access" ON public.sumup_config;
 CREATE POLICY "sumup_config_empresa_access" ON public.sumup_config
   FOR ALL USING (has_empresa_access(empresa_id));
 
@@ -239,5 +247,6 @@ CREATE INDEX IF NOT EXISTS idx_sumup_payouts_date ON public.sumup_payouts(empres
 
 ALTER TABLE public.sumup_payouts ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "sumup_payouts_empresa_access" ON public.sumup_payouts;
 CREATE POLICY "sumup_payouts_empresa_access" ON public.sumup_payouts
   FOR ALL USING (has_empresa_access(empresa_id));

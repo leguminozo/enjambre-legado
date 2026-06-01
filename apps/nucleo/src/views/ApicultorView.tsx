@@ -16,7 +16,7 @@ import ApiarioManager from '../components/apicultor/ApiarioManager';
 import HeaderEcosistema from '../components/apicultor/HeaderEcosistema';
 import OraculoFloracion from '../components/apicultor/OraculoFloracion';
 import VentanasDeVuelo from '../components/apicultor/VentanasDeVuelo';
-import GemeloApiario from '../components/apicultor/GemeloApiario';
+import { GemeloApiario } from '../components/apicultor/GemeloApiario';
 import EspectroVivo from '../components/apicultor/EspectroVivo';
 
 type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad';
@@ -155,7 +155,7 @@ export default function ApicultorView() {
     const totalProduction = localColmenas.reduce((sum, c) => sum + c.production, 0);
 
     if (loading) {
-        return <div style={{ padding: 'var(--space-2xl)', textAlign: 'center', color: 'var(--bosque-ulmo)' }}>Sincronizando con el bosque...</div>;
+        return <div style={{ padding: 'var(--space-2xl)', textAlign: 'center', color: 'hsl(var(--foreground))' }}>Sincronizando con el bosque...</div>;
     }
 
     return (
@@ -193,7 +193,7 @@ export default function ApicultorView() {
             </div>
 
             {/* Main Feature Tabs */}
-            <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-xl)', marginBottom: 'var(--space-lg)', borderBottom: '1px solid rgba(10,61,47,0.1)' }}>
+            <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-xl)', marginBottom: 'var(--space-lg)', borderBottom: '1px solid hsl(var(--border))' }}>
                 {[
                     { id: 'colmenas', label: 'Mis Colmenas (IoT)', icon: <Activity size={16} /> },
                     { id: 'calendario', label: 'Ciclo del Bosque (IA)', icon: <CalendarDays size={16} /> },
@@ -202,10 +202,10 @@ export default function ApicultorView() {
                     <button key={tab.id} onClick={() => setActiveView(tab.id as ViewTab)}
                         style={{
                             display: 'flex', alignItems: 'center', gap: 8, padding: 'var(--space-md) var(--space-lg)',
-                            background: activeView === tab.id ? 'var(--surface-card)' : 'transparent',
+                            background: activeView === tab.id ? 'hsl(var(--card))' : 'transparent',
                             border: 'none', borderTopLeftRadius: 'var(--radius-md)', borderTopRightRadius: 'var(--radius-md)',
-                            borderTop: activeView === tab.id ? '2px solid var(--oro-miel)' : '2px solid transparent',
-                            color: activeView === tab.id ? 'var(--bosque-ulmo)' : 'var(--text-muted)',
+borderTop: activeView === tab.id ? '2px solid hsl(var(--accent))' : '2px solid transparent',
+color: activeView === tab.id ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
                             fontWeight: activeView === tab.id ? 600 : 500, fontSize: '0.9rem', cursor: 'pointer',
                             marginBottom: -1, transition: 'all 150ms'
                         }}>
@@ -241,12 +241,12 @@ export default function ApicultorView() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                     <div className="card card-accent animate-in delay-3">
                         <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <AlertTriangle size={16} style={{ color: 'var(--salud-atencion)' }} /> Voz de la Colmena
+                            <AlertTriangle size={16} style={{ color: 'hsl(var(--warning))' }} /> Voz de la Colmena
                         </div>
-                        <div style={{ fontSize: '0.85rem', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
+                        <div style={{ fontSize: '0.85rem', lineHeight: 1.7, color: 'hsl(var(--muted-foreground))' }}>
                             {alerts.map((a, i) => (
                                 <p key={a.id || i} style={{ marginBottom: i < alerts.length - 1 ? 'var(--space-md)' : 0 }}>
-                                    <strong style={{ color: a.severity === 'critical' ? 'var(--salud-riesgo)' : a.severity === 'warning' ? 'var(--salud-atencion)' : 'var(--salud-optima)' }}>
+                                    <strong style={{ color: a.severity === 'critical' ? 'hsl(var(--destructive))' : a.severity === 'warning' ? 'hsl(var(--warning))' : 'hsl(var(--success))' }}>
                                         {a.severity === 'critical' ? '🔴' : a.severity === 'warning' ? '⚠' : '✨'} {a.title}:
                                     </strong> {a.message}
                                 </p>
@@ -259,14 +259,14 @@ export default function ApicultorView() {
                     <EspectroVivo />
 
                     {reflexion && (
-                        <div className="card animate-in delay-4" style={{ background: 'linear-gradient(135deg, var(--bosque-ulmo), var(--bosque-ulmo-dark))', color: 'var(--crema-natural)', border: 'none' }}>
-                            <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--oro-miel)', marginBottom: 'var(--space-sm)' }}>
+                        <div className="card animate-in delay-4" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.85))', color: 'hsl(var(--primary-foreground))', border: 'none' }}>
+                            <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'hsl(var(--accent))', marginBottom: 'var(--space-sm)' }}>
                                 Última Reflexión · {reflexion.date || new Date().toLocaleDateString()}
                             </div>
-                            <p style={{ fontFamily: 'var(--font-existencial)', fontSize: '1rem', fontStyle: 'italic', lineHeight: 1.6, color: 'rgba(253,251,247,0.85)' }}>
+                            <p style={{ fontFamily: 'var(--font-existencial)', fontSize: '1rem', fontStyle: 'italic', lineHeight: 1.6, color: 'hsl(var(--primary-foreground) / 0.85)' }}>
                                 "{reflexion.content}"
                             </p>
-                            <div style={{ marginTop: 'var(--space-md)', fontSize: '0.75rem', color: 'rgba(253,251,247,0.45)' }}>
+                            <div style={{ marginTop: 'var(--space-md)', fontSize: '0.75rem', color: 'hsl(var(--primary-foreground) / 0.45)' }}>
                                 — {reflexion.author || 'Generado automático posvisita'}
                             </div>
                         </div>

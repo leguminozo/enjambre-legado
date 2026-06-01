@@ -121,53 +121,70 @@ ALTER TABLE public.calculos_ia ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conciliaciones_sumup ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.configuracion_ia ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "empresa_users_read_facturas_recibidas" ON public.facturas_recibidas;
 CREATE POLICY "empresa_users_read_facturas_recibidas" ON public.facturas_recibidas
 FOR SELECT USING (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_insert_facturas_recibidas" ON public.facturas_recibidas;
 CREATE POLICY "empresa_users_insert_facturas_recibidas" ON public.facturas_recibidas
 FOR INSERT WITH CHECK (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_update_facturas_recibidas" ON public.facturas_recibidas;
 CREATE POLICY "empresa_users_update_facturas_recibidas" ON public.facturas_recibidas
 FOR UPDATE USING (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_delete_facturas_recibidas" ON public.facturas_recibidas;
 CREATE POLICY "empresa_users_delete_facturas_recibidas" ON public.facturas_recibidas
 FOR DELETE USING (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_read_reportes" ON public.reportes;
 CREATE POLICY "empresa_users_read_reportes" ON public.reportes
 FOR SELECT USING (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_insert_reportes" ON public.reportes;
 CREATE POLICY "empresa_users_insert_reportes" ON public.reportes
 FOR INSERT WITH CHECK (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_update_reportes" ON public.reportes;
 CREATE POLICY "empresa_users_update_reportes" ON public.reportes
 FOR UPDATE USING (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_delete_reportes" ON public.reportes;
 CREATE POLICY "empresa_users_delete_reportes" ON public.reportes
 FOR DELETE USING (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_read_calculos_ia" ON public.calculos_ia;
 CREATE POLICY "empresa_users_read_calculos_ia" ON public.calculos_ia
 FOR SELECT USING (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_insert_calculos_ia" ON public.calculos_ia;
 CREATE POLICY "empresa_users_insert_calculos_ia" ON public.calculos_ia
 FOR INSERT WITH CHECK (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_update_calculos_ia" ON public.calculos_ia;
 CREATE POLICY "empresa_users_update_calculos_ia" ON public.calculos_ia
 FOR UPDATE USING (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_read_conciliaciones_sumup" ON public.conciliaciones_sumup;
 CREATE POLICY "empresa_users_read_conciliaciones_sumup" ON public.conciliaciones_sumup
 FOR SELECT USING (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_insert_conciliaciones_sumup" ON public.conciliaciones_sumup;
 CREATE POLICY "empresa_users_insert_conciliaciones_sumup" ON public.conciliaciones_sumup
 FOR INSERT WITH CHECK (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_update_conciliaciones_sumup" ON public.conciliaciones_sumup;
 CREATE POLICY "empresa_users_update_conciliaciones_sumup" ON public.conciliaciones_sumup
 FOR UPDATE USING (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "empresa_users_delete_conciliaciones_sumup" ON public.conciliaciones_sumup;
 CREATE POLICY "empresa_users_delete_conciliaciones_sumup" ON public.conciliaciones_sumup
 FOR DELETE USING (empresa_id IN (SELECT empresa_id FROM public.usuarios_empresas WHERE user_id = auth.uid()));
 
+DROP POLICY IF EXISTS "authenticated_read_configuracion_ia" ON public.configuracion_ia;
 CREATE POLICY "authenticated_read_configuracion_ia" ON public.configuracion_ia
 FOR SELECT USING (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "owner_manage_configuracion_ia" ON public.configuracion_ia;
 CREATE POLICY "owner_manage_configuracion_ia" ON public.configuracion_ia
 FOR ALL USING (auth.role() = 'authenticated');

@@ -48,29 +48,35 @@ CREATE TABLE IF NOT EXISTS public.banco_chile_cuentas (
 
 -- 4. Tabla para movimientos bancarios
 CREATE TABLE IF NOT EXISTS public.banco_chile_movimientos (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  cuenta_id UUID NOT NULL REFERENCES public.banco_chile_cuentas(id) ON DELETE CASCADE,
-  empresa_id UUID NOT NULL REFERENCES public.empresas(id) ON DELETE CASCADE,
-  fecha_contable DATE NOT NULL,
-  fecha_valor DATE NOT NULL,
-  descripcion TEXT NOT NULL,
-  descripcion_detallada TEXT,
-  monto NUMERIC(18, 2) NOT NULL,
-  moneda TEXT NOT NULL DEFAULT 'CLP',
-  tipo TEXT NOT NULL CHECK (tipo IN ('abono', 'cargo', 'traspaso', 'nota_debito', 'nota_credito')),
-  categoria TEXT,
-  subcategoria TEXT,
-  referencia TEXT,
-  rut_contraparte TEXT,
-  nombre_contraparte TEXT,
-  banco_contraparte TEXT,
-  numero_operacion TEXT,
-  saldo_posterior NUMERIC(18, 2),
-  conciliado BOOLEAN NOT NULL DEFAULT false,
-  conciliacion_id UUID REFERENCES public.ventas(id),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+cuenta_id UUID NOT NULL REFERENCES public.banco_chile_cuentas(id) ON DELETE CASCADE,
+empresa_id UUID NOT NULL REFERENCES public.empresas(id) ON DELETE CASCADE,
+fecha_contable DATE NOT NULL,
+fecha_valor DATE NOT NULL,
+descripcion TEXT NOT NULL,
+descripcion_detallada TEXT,
+monto NUMERIC(18, 2) NOT NULL,
+moneda TEXT NOT NULL DEFAULT 'CLP',
+tipo TEXT NOT NULL CHECK (tipo IN ('abono', 'cargo', 'traspaso', 'nota_debito', 'nota_credito')),
+categoria TEXT,
+subcategoria TEXT,
+referencia TEXT,
+rut_contraparte TEXT,
+nombre_contraparte TEXT,
+banco_contraparte TEXT,
+numero_operacion TEXT,
+saldo_posterior NUMERIC(18, 2),
+conciliado BOOLEAN NOT NULL DEFAULT false,
+created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+DO $$ BEGIN
+IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'banco_chile_movimientos' AND column_name = 'conciliacion_id' AND data_type = 'text') THEN
+ALTER TABLE public.banco_chile_movimientos ALTER COLUMN conciliacion_id TYPE UUID USING conciliacion_id::UUID;
+ELSIF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'banco_chile_movimientos' AND column_name = 'conciliacion_id') THEN
+ALTER TABLE public.banco_chile_movimientos ADD COLUMN conciliacion_id UUID;
+END IF;
+END $$;
 
 -- 5. Tabla para transferencias (abonos en línea)
 CREATE TABLE IF NOT EXISTS public.banco_chile_transferencias (
@@ -236,45 +242,55 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_banco_chile_config_updated_at ON public.banco_chile_config;
 CREATE TRIGGER trg_banco_chile_config_updated_at
-  BEFORE UPDATE ON public.banco_chile_config
-  FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
+BEFORE UPDATE ON public.banco_chile_config
+FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
 
+DROP TRIGGER IF EXISTS trg_banco_chile_tokens_updated_at ON public.banco_chile_tokens;
 CREATE TRIGGER trg_banco_chile_tokens_updated_at
-  BEFORE UPDATE ON public.banco_chile_tokens
-  FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
+BEFORE UPDATE ON public.banco_chile_tokens
+FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
 
+DROP TRIGGER IF EXISTS trg_banco_chile_cuentas_updated_at ON public.banco_chile_cuentas;
 CREATE TRIGGER trg_banco_chile_cuentas_updated_at
-  BEFORE UPDATE ON public.banco_chile_cuentas
-  FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
+BEFORE UPDATE ON public.banco_chile_cuentas
+FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
 
+DROP TRIGGER IF EXISTS trg_banco_chile_movimientos_updated_at ON public.banco_chile_movimientos;
 CREATE TRIGGER trg_banco_chile_movimientos_updated_at
-  BEFORE UPDATE ON public.banco_chile_movimientos
-  FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
+BEFORE UPDATE ON public.banco_chile_movimientos
+FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
 
+DROP TRIGGER IF EXISTS trg_banco_chile_transferencias_updated_at ON public.banco_chile_transferencias;
 CREATE TRIGGER trg_banco_chile_transferencias_updated_at
-  BEFORE UPDATE ON public.banco_chile_transferencias
-  FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
+BEFORE UPDATE ON public.banco_chile_transferencias
+FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
 
+DROP TRIGGER IF EXISTS trg_banco_chile_cotizaciones_updated_at ON public.banco_chile_cotizaciones;
 CREATE TRIGGER trg_banco_chile_cotizaciones_updated_at
-  BEFORE UPDATE ON public.banco_chile_cotizaciones
-  FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
+BEFORE UPDATE ON public.banco_chile_cotizaciones
+FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
 
+DROP TRIGGER IF EXISTS trg_banco_chile_rentas_updated_at ON public.banco_chile_rentas;
 CREATE TRIGGER trg_banco_chile_rentas_updated_at
-  BEFORE UPDATE ON public.banco_chile_rentas
-  FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
+BEFORE UPDATE ON public.banco_chile_rentas
+FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
 
+DROP TRIGGER IF EXISTS trg_banco_chile_nominas_updated_at ON public.banco_chile_nominas;
 CREATE TRIGGER trg_banco_chile_nominas_updated_at
-  BEFORE UPDATE ON public.banco_chile_nominas
-  FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
+BEFORE UPDATE ON public.banco_chile_nominas
+FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
 
+DROP TRIGGER IF EXISTS trg_banco_chile_documentos_updated_at ON public.banco_chile_documentos;
 CREATE TRIGGER trg_banco_chile_documentos_updated_at
-  BEFORE UPDATE ON public.banco_chile_documentos
-  FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
+BEFORE UPDATE ON public.banco_chile_documentos
+FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
 
+DROP TRIGGER IF EXISTS trg_banco_chile_montos_preaprobados_updated_at ON public.banco_chile_montos_preaprobados;
 CREATE TRIGGER trg_banco_chile_montos_preaprobados_updated_at
-  BEFORE UPDATE ON public.banco_chile_montos_preaprobados
-  FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
+BEFORE UPDATE ON public.banco_chile_montos_preaprobados
+FOR EACH ROW EXECUTE FUNCTION public.banco_chile_updated_at();
 
 -- RLS: Row Level Security
 ALTER TABLE public.banco_chile_config ENABLE ROW LEVEL SECURITY;
@@ -294,22 +310,26 @@ ALTER TABLE public.banco_chile_notificaciones ENABLE ROW LEVEL SECURITY;
 -- Si no existe, se crean políticas básicas por ahora
 
 -- Políticas para banco_chile_config
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden ver config" ON public.banco_chile_config;
 CREATE POLICY "Usuarios con acceso a empresa pueden ver config"
-  ON public.banco_chile_config
-  FOR SELECT
-  USING (public.has_empresa_access(empresa_id));
+ON public.banco_chile_config
+FOR SELECT
+USING (public.has_empresa_access(empresa_id));
 
+DROP POLICY IF EXISTS "Gerentes pueden insertar config" ON public.banco_chile_config;
 CREATE POLICY "Gerentes pueden insertar config"
-  ON public.banco_chile_config
-  FOR INSERT
-  WITH CHECK (public.has_empresa_access(empresa_id));
+ON public.banco_chile_config
+FOR INSERT
+WITH CHECK (public.has_empresa_access(empresa_id));
 
+DROP POLICY IF EXISTS "Gerentes pueden actualizar config de su empresa" ON public.banco_chile_config;
 CREATE POLICY "Gerentes pueden actualizar config de su empresa"
-  ON public.banco_chile_config
-  FOR UPDATE
-  USING (public.has_empresa_access(empresa_id));
+ON public.banco_chile_config
+FOR UPDATE
+USING (public.has_empresa_access(empresa_id));
 
 -- Políticas para banco_chile_tokens (solo lectura para el dueño)
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden ver tokens" ON public.banco_chile_tokens;
 CREATE POLICY "Usuarios con acceso a empresa pueden ver tokens"
   ON public.banco_chile_tokens
   FOR SELECT
@@ -322,62 +342,73 @@ CREATE POLICY "Usuarios con acceso a empresa pueden ver tokens"
   );
 
 -- Políticas para cuentas
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden ver cuentas" ON public.banco_chile_cuentas;
 CREATE POLICY "Usuarios con acceso a empresa pueden ver cuentas"
   ON public.banco_chile_cuentas
   FOR SELECT
   USING (public.has_empresa_access(empresa_id));
 
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden insertar cuentas" ON public.banco_chile_cuentas;
 CREATE POLICY "Usuarios con acceso a empresa pueden insertar cuentas"
   ON public.banco_chile_cuentas
   FOR INSERT
   WITH CHECK (public.has_empresa_access(empresa_id));
 
 -- Políticas para movimientos
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden ver movimientos" ON public.banco_chile_movimientos;
 CREATE POLICY "Usuarios con acceso a empresa pueden ver movimientos"
   ON public.banco_chile_movimientos
   FOR SELECT
   USING (public.has_empresa_access(empresa_id));
 
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden actualizar movimientos" ON public.banco_chile_movimientos;
 CREATE POLICY "Usuarios con acceso a empresa pueden actualizar movimientos"
   ON public.banco_chile_movimientos
   FOR UPDATE
   USING (public.has_empresa_access(empresa_id));
 
 -- Políticas para transferencias
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden ver transferencias" ON public.banco_chile_transferencias;
 CREATE POLICY "Usuarios con acceso a empresa pueden ver transferencias"
   ON public.banco_chile_transferencias
   FOR SELECT
   USING (public.has_empresa_access(empresa_id));
 
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden insertar transferencias" ON public.banco_chile_transferencias;
 CREATE POLICY "Usuarios con acceso a empresa pueden insertar transferencias"
   ON public.banco_chile_transferencias
   FOR INSERT
   WITH CHECK (public.has_empresa_access(empresa_id));
 
 -- Políticas para cotizaciones
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden ver cotizaciones" ON public.banco_chile_cotizaciones;
 CREATE POLICY "Usuarios con acceso a empresa pueden ver cotizaciones"
   ON public.banco_chile_cotizaciones
   FOR SELECT
   USING (public.has_empresa_access(empresa_id));
 
 -- Políticas para rentas
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden ver rentas" ON public.banco_chile_rentas;
 CREATE POLICY "Usuarios con acceso a empresa pueden ver rentas"
   ON public.banco_chile_rentas
   FOR SELECT
   USING (public.has_empresa_access(empresa_id));
 
 -- Políticas para nóminas
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden ver nóminas" ON public.banco_chile_nominas;
 CREATE POLICY "Usuarios con acceso a empresa pueden ver nóminas"
   ON public.banco_chile_nominas
   FOR SELECT
   USING (public.has_empresa_access(empresa_id));
 
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden insertar nóminas" ON public.banco_chile_nominas;
 CREATE POLICY "Usuarios con acceso a empresa pueden insertar nóminas"
   ON public.banco_chile_nominas
   FOR INSERT
   WITH CHECK (public.has_empresa_access(empresa_id));
 
 -- Políticas para detalles de nómina
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden ver detalles de nómina" ON public.banco_chile_nomina_detalles;
 CREATE POLICY "Usuarios con acceso a empresa pueden ver detalles de nómina"
   ON public.banco_chile_nomina_detalles
   FOR SELECT
@@ -390,28 +421,33 @@ CREATE POLICY "Usuarios con acceso a empresa pueden ver detalles de nómina"
   );
 
 -- Políticas para documentos
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden ver documentos" ON public.banco_chile_documentos;
 CREATE POLICY "Usuarios con acceso a empresa pueden ver documentos"
   ON public.banco_chile_documentos
   FOR SELECT
   USING (public.has_empresa_access(empresa_id));
 
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden insertar documentos" ON public.banco_chile_documentos;
 CREATE POLICY "Usuarios con acceso a empresa pueden insertar documentos"
   ON public.banco_chile_documentos
   FOR INSERT
   WITH CHECK (public.has_empresa_access(empresa_id));
 
 -- Políticas para montos preaprobados
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden ver montos preaprobados" ON public.banco_chile_montos_preaprobados;
 CREATE POLICY "Usuarios con acceso a empresa pueden ver montos preaprobados"
   ON public.banco_chile_montos_preaprobados
   FOR SELECT
   USING (public.has_empresa_access(empresa_id));
 
 -- Políticas para notificaciones
+DROP POLICY IF EXISTS "Usuarios con acceso a empresa pueden ver notificaciones" ON public.banco_chile_notificaciones;
 CREATE POLICY "Usuarios con acceso a empresa pueden ver notificaciones"
   ON public.banco_chile_notificaciones
   FOR SELECT
   USING (public.has_empresa_access(empresa_id));
 
+DROP POLICY IF EXISTS "Sistema puede insertar notificaciones" ON public.banco_chile_notificaciones;
 CREATE POLICY "Sistema puede insertar notificaciones"
   ON public.banco_chile_notificaciones
   FOR INSERT

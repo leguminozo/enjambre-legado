@@ -104,24 +104,25 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ═══ 4. VISTA DE BALANCE CORREGIDA ═══
 --   Solo comisiones aprobadas cuentan como balance disponible.
 --   Pendientes se muestran pero NO se restan para retiros.
+DROP VIEW IF EXISTS creador_balance_view CASCADE;
 CREATE OR REPLACE VIEW creador_balance_view AS
 SELECT
-  c.id AS creador_id,
-  c.user_id,
-  c.nombre_publico,
-  c.codigo_ref,
-  COALESCE((SELECT SUM(monto) FROM creador_comisiones WHERE creador_id = c.id), 0)
-    AS comisiones_total,
-  COALESCE((SELECT SUM(monto) FROM creador_comisiones WHERE creador_id = c.id AND estado = 'pendiente'), 0)
-    AS comisiones_pendientes,
-  COALESCE((SELECT SUM(monto) FROM creador_comisiones WHERE creador_id = c.id AND estado = 'aprobada'), 0)
-    AS comisiones_aprobadas,
-  COALESCE((SELECT SUM(monto_solicitado) FROM creador_retiros WHERE creador_id = c.id AND estado = 'pagado'), 0)
-    AS total_retirado,
-  COALESCE((SELECT SUM(monto) FROM creador_comisiones WHERE creador_id = c.id AND estado = 'aprobada'), 0) -
-  COALESCE((SELECT SUM(monto_solicitado) FROM creador_retiros WHERE creador_id = c.id AND estado IN ('pagado', 'aprobado', 'pendiente')), 0)
-    AS balance_disponible,
-  c.total_usos_codigo
+c.id AS creador_id,
+c.user_id,
+c.nombre_publico,
+c.codigo_ref,
+COALESCE((SELECT SUM(monto) FROM creador_comisiones WHERE creador_id = c.id), 0)
+AS comisiones_total,
+COALESCE((SELECT SUM(monto) FROM creador_comisiones WHERE creador_id = c.id AND estado = 'pendiente'), 0)
+AS comisiones_pendientes,
+COALESCE((SELECT SUM(monto) FROM creador_comisiones WHERE creador_id = c.id AND estado = 'aprobada'), 0)
+AS comisiones_aprobadas,
+COALESCE((SELECT SUM(monto_solicitado) FROM creador_retiros WHERE creador_id = c.id AND estado = 'pagado'), 0)
+AS total_retirado,
+COALESCE((SELECT SUM(monto) FROM creador_comisiones WHERE creador_id = c.id AND estado = 'aprobada'), 0) -
+COALESCE((SELECT SUM(monto_solicitado) FROM creador_retiros WHERE creador_id = c.id AND estado IN ('pagado', 'aprobado', 'pendiente')), 0)
+AS balance_disponible,
+c.total_usos_codigo
 FROM creadores c;
 
 -- ═══ 5. RLS CORREGIDO: codigo_usos INSERT ya no es abierto ═══

@@ -6,18 +6,21 @@
 
 DROP POLICY IF EXISTS "Admin gestiona reglas" ON commission_rules;
 
+DROP POLICY IF EXISTS "Admin crea reglas" ON commission_rules;
 CREATE POLICY "Admin crea reglas" ON commission_rules
   FOR INSERT WITH CHECK (
     empresa_id IN (SELECT empresa_id FROM usuarios_empresas WHERE user_id = auth.uid())
     AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('gerente','tienda_admin'))
   );
 
+DROP POLICY IF EXISTS "Admin edita reglas" ON commission_rules;
 CREATE POLICY "Admin edita reglas" ON commission_rules
   FOR UPDATE USING (
     empresa_id IN (SELECT empresa_id FROM usuarios_empresas WHERE user_id = auth.uid())
     AND EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('gerente','tienda_admin'))
   );
 
+DROP POLICY IF EXISTS "Solo gerente elimina reglas" ON commission_rules;
 CREATE POLICY "Solo gerente elimina reglas" ON commission_rules
   FOR DELETE USING (
     empresa_id IN (SELECT empresa_id FROM usuarios_empresas WHERE user_id = auth.uid())
@@ -28,6 +31,7 @@ CREATE POLICY "Solo gerente elimina reglas" ON commission_rules
 
 DROP POLICY IF EXISTS "Comisiones inmutables" ON commission_records;
 
+DROP POLICY IF EXISTS "Solo sistema inserta comisiones" ON commission_records;
 CREATE POLICY "Solo sistema inserta comisiones" ON commission_records
   FOR INSERT WITH CHECK (
     auth.role() = 'service_role'
@@ -38,6 +42,7 @@ CREATE POLICY "Solo sistema inserta comisiones" ON commission_records
 
 DROP POLICY IF EXISTS "Admin desactiva reps" ON rep_profiles;
 
+DROP POLICY IF EXISTS "Admin desactiva reps soft" ON rep_profiles;
 CREATE POLICY "Admin desactiva reps" ON rep_profiles
   FOR UPDATE USING (
     empresa_id IN (SELECT empresa_id FROM usuarios_empresas WHERE user_id = auth.uid())
@@ -45,11 +50,13 @@ CREATE POLICY "Admin desactiva reps" ON rep_profiles
   );
 
 -- Prevent actual DELETE on rep_profiles (soft-delete via active=false only)
+DROP POLICY IF EXISTS "No se eliminan perfiles de rep" ON rep_profiles;
 CREATE POLICY "No se eliminan perfiles de rep" ON rep_profiles
   FOR DELETE USING (false);
 
 -- ─── 4. rep_profiles: add missing INSERT policy ────────────────────
 
+DROP POLICY IF EXISTS "Sistema crea perfiles de rep" ON rep_profiles;
 CREATE POLICY "Sistema crea perfiles de rep" ON rep_profiles
   FOR INSERT WITH CHECK (
     auth.role() = 'service_role'
@@ -60,6 +67,7 @@ CREATE POLICY "Sistema crea perfiles de rep" ON rep_profiles
 
 DROP POLICY IF EXISTS "Sistema inserta redenciones" ON invitation_redemptions;
 
+DROP POLICY IF EXISTS "Sistema inserta redenciones restricted" ON invitation_redemptions;
 CREATE POLICY "Sistema inserta redenciones" ON invitation_redemptions
   FOR INSERT WITH CHECK (
     auth.role() = 'service_role'
@@ -70,6 +78,7 @@ CREATE POLICY "Sistema inserta redenciones" ON invitation_redemptions
 
 DROP POLICY IF EXISTS "Admin reconcilia sesiones" ON cash_sessions;
 
+DROP POLICY IF EXISTS "Admin reconcilia sesiones hardened" ON cash_sessions;
 CREATE POLICY "Admin reconcilia sesiones" ON cash_sessions
   FOR UPDATE USING (
     empresa_id IN (SELECT empresa_id FROM usuarios_empresas WHERE user_id = auth.uid())

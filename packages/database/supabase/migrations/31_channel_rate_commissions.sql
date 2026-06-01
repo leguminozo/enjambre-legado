@@ -35,6 +35,7 @@ ALTER TABLE public.commission_records
 
 -- ─── 3. REPLACE calcular_comision_venta with channel rate ──────────
 
+DROP FUNCTION IF EXISTS public.calcular_comision_venta(UUID, UUID);
 CREATE OR REPLACE FUNCTION public.calcular_comision_venta(
   p_venta_id UUID,
   p_empresa_id UUID

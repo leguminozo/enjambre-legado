@@ -35,7 +35,7 @@ const guardianLevels: Record<string, { label: string; description: string; icon:
 
 type Section = 'personal' | 'seguridad' | 'empresas' | 'guardian';
 
-export default function PerfilView() {
+export function PerfilView() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [empresas, setEmpresas] = useState<EmpresaMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -171,14 +171,14 @@ export default function PerfilView() {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <Loader2 size={32} className="animate-bee" style={{ color: 'var(--oro-miel)' }} />
+        <Loader2 size={32} className="animate-bee" style={{ color: 'hsl(var(--accent))' }} />
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div style={{ textAlign: 'center', padding: 'var(--space-3xl)', color: 'var(--text-muted)' }}>
+      <div style={{ textAlign: 'center', padding: 'var(--space-3xl)', color: 'hsl(var(--muted-foreground))' }}>
         No se encontró el perfil.
       </div>
     );
@@ -206,11 +206,11 @@ export default function PerfilView() {
           style={{
             padding: 'var(--space-md) var(--space-lg)',
             borderRadius: 'var(--radius-md)',
-            background: message.type === 'success'
-              ? 'rgba(46, 204, 113, 0.1)'
-              : 'rgba(231, 76, 60, 0.1)',
-            border: `1px solid ${message.type === 'success' ? 'rgba(46,204,113,0.3)' : 'rgba(231,76,60,0.3)'}`,
-            color: message.type === 'success' ? 'var(--salud-optima)' : 'var(--salud-riesgo)',
+background: message.type === 'success'
+          ? 'hsl(var(--success) / 0.12)'
+          : 'hsl(var(--destructive) / 0.12)',
+        border: `1px solid ${message.type === 'success' ? 'hsl(var(--success) / 0.3)' : 'hsl(var(--destructive) / 0.3)'}`,
+        color: message.type === 'success' ? 'hsl(var(--success))' : 'hsl(var(--destructive))',
             fontSize: '0.88rem',
             display: 'flex',
             alignItems: 'center',
@@ -227,13 +227,13 @@ export default function PerfilView() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
           {/* Avatar Card */}
           <div
-            style={{
-              background: 'var(--surface-card)',
-              border: '1px solid rgba(10,61,47,0.08)',
-              borderRadius: 'var(--radius-lg)',
-              padding: 'var(--space-xl)',
-              textAlign: 'center',
-            }}
+		style={{
+			background: 'hsl(var(--card))',
+			border: '1px solid hsl(var(--border))',
+			borderRadius: 'var(--radius-lg)',
+			padding: 'var(--space-xl)',
+			textAlign: 'center',
+		}}
           >
             <div
               style={{
@@ -243,18 +243,18 @@ export default function PerfilView() {
                 margin: '0 auto var(--space-md)',
                 background: profile.avatar_url
                   ? `url(${profile.avatar_url}) center/cover`
-                  : 'linear-gradient(135deg, var(--bosque-ulmo), var(--bosque-ulmo-light))',
+                  : 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 position: 'relative',
                 cursor: 'pointer',
-                border: '3px solid rgba(212,160,23,0.3)',
+                border: '3px solid hsl(var(--accent) / 0.3)',
               }}
               onClick={() => fileInputRef.current?.click()}
             >
               {!profile.avatar_url && (
-                <span style={{ fontSize: '2.2rem', color: 'var(--crema-natural)', fontFamily: 'var(--font-existencial)' }}>
+                <span style={{ fontSize: '2.2rem', color: 'hsl(var(--primary-foreground))', fontFamily: 'var(--font-existencial)' }}>
                   {profile.full_name?.charAt(0).toUpperCase() || '?'}
                 </span>
               )}
@@ -266,22 +266,22 @@ export default function PerfilView() {
                   width: 28,
                   height: 28,
                   borderRadius: '50%',
-                  background: 'var(--oro-miel)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '2px solid var(--surface-primary)',
+background: 'hsl(var(--accent))',
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					border: '2px solid hsl(var(--background))',
                 }}
               >
-                {avatarUploading ? <Loader2 size={12} className="animate-bee" /> : <Camera size={12} style={{ color: 'var(--bosque-ulmo-dark)' }} />}
+                {avatarUploading ? <Loader2 size={12} className="animate-bee" /> : <Camera size={12} style={{ color: 'hsl(var(--accent-foreground))' }} />}
               </div>
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} style={{ display: 'none' }} />
 
-            <h3 style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.2rem', color: 'var(--bosque-ulmo)', marginBottom: 4 }}>
+            <h3 style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.2rem', color: 'hsl(var(--foreground))', marginBottom: 4 }}>
               {profile.full_name || 'Sin nombre'}
             </h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 'var(--space-sm)' }}>
+            <p style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-sm)' }}>
               {profile.email}
             </p>
             <span className="badge badge-gold">{roleLabels[profile.role] || profile.role}</span>
@@ -290,10 +290,10 @@ export default function PerfilView() {
           {/* Section Nav */}
           <div
             style={{
-              background: 'var(--surface-card)',
-              border: '1px solid rgba(10,61,47,0.08)',
-              borderRadius: 'var(--radius-lg)',
-              overflow: 'hidden',
+	background: 'hsl(var(--card))',
+			border: '1px solid hsl(var(--border))',
+			borderRadius: 'var(--radius-lg)',
+			overflow: 'hidden',
             }}
           >
             {sections.map(s => (
@@ -306,19 +306,19 @@ export default function PerfilView() {
                   gap: 'var(--space-md)',
                   width: '100%',
                   padding: 'var(--space-md) var(--space-lg)',
-                  background: activeSection === s.key ? 'var(--surface-glass)' : 'transparent',
-                  border: 'none',
-                  borderBottom: '1px solid rgba(10,61,47,0.04)',
+background: activeSection === s.key ? 'hsl(var(--muted) / 0.5)' : 'transparent',
+				border: 'none',
+				borderBottom: '1px solid hsl(var(--border) / 0.5)',
                   cursor: 'pointer',
                   fontSize: '0.88rem',
                   fontWeight: activeSection === s.key ? 600 : 400,
-                  color: activeSection === s.key ? 'var(--bosque-ulmo)' : 'var(--text-secondary)',
+                  color: activeSection === s.key ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
                   transition: 'all var(--transition-fast)',
                   textAlign: 'left',
                   fontFamily: 'var(--font-datos)',
                 }}
               >
-                <span style={{ color: activeSection === s.key ? 'var(--oro-miel-dark)' : 'var(--text-muted)' }}>
+                <span style={{ color: activeSection === s.key ? 'hsl(var(--accent))' : 'hsl(var(--muted-foreground))' }}>
                   {s.icon}
                 </span>
                 {s.label}
@@ -333,15 +333,15 @@ export default function PerfilView() {
           {activeSection === 'personal' && (
             <div
               style={{
-                background: 'var(--surface-card)',
-                border: '1px solid rgba(10,61,47,0.08)',
-                borderRadius: 'var(--radius-lg)',
-                padding: 'var(--space-xl)',
-              }}
-              className="animate-in"
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-xl)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', color: 'var(--oro-miel-dark)' }}>
+	background: 'hsl(var(--card))',
+			border: '1px solid hsl(var(--border))',
+			borderRadius: 'var(--radius-lg)',
+			padding: 'var(--space-xl)',
+		}}
+		className="animate-in"
+	>
+		<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-xl)' }}>
+			<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', color: 'hsl(var(--accent))' }}>
                   <User size={18} />
                   <h3 style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>
                     Datos Personales
@@ -364,12 +364,12 @@ export default function PerfilView() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                 <div>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'block', marginBottom: 'var(--space-sm)' }}>
-                    Nombre Completo
+<label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', display: 'block', marginBottom: 'var(--space-sm)' }}>
+					Nombre Completo
                   </label>
                   {editMode ? (
                     <div style={{ position: 'relative' }}>
-                      <User size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                      <User size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} />
                       <input
                         type="text"
                         value={editName}
@@ -377,53 +377,53 @@ export default function PerfilView() {
                         style={{
                           width: '100%',
                           padding: '0.75rem 0.75rem 0.75rem 2.5rem',
-                          border: '1px solid rgba(10,61,47,0.12)',
+                          border: '1px solid hsl(var(--border))',
                           borderRadius: 'var(--radius-sm)',
                           fontSize: '0.9rem',
                           fontFamily: 'var(--font-datos)',
-                          background: 'var(--surface-primary)',
-                          color: 'var(--text-primary)',
+                          background: 'hsl(var(--background))',
+                          color: 'hsl(var(--foreground))',
                           outline: 'none',
                           transition: 'border-color var(--transition-fast)',
                         }}
-                        onFocus={e => e.currentTarget.style.borderColor = 'rgba(212,160,23,0.5)'}
-                        onBlur={e => e.currentTarget.style.borderColor = 'rgba(10,61,47,0.12)'}
+onFocus={e => e.currentTarget.style.borderColor = 'hsl(var(--accent) / 0.5)'}
+					onBlur={e => e.currentTarget.style.borderColor = 'hsl(var(--border))'}
                       />
                     </div>
                   ) : (
-                    <p style={{ fontSize: '0.95rem', color: 'var(--bosque-ulmo)', fontWeight: 500 }}>{profile.full_name || '—'}</p>
+                    <p style={{ fontSize: '0.95rem', color: 'hsl(var(--foreground))', fontWeight: 500 }}>{profile.full_name || '—'}</p>
                   )}
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'block', marginBottom: 'var(--space-sm)' }}>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', display: 'block', marginBottom: 'var(--space-sm)' }}>
                     Email
                   </label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-                    <Mail size={16} style={{ color: 'var(--text-muted)' }} />
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0 }}>{profile.email}</p>
+                    <Mail size={16} style={{ color: 'hsl(var(--muted-foreground))' }} />
+                    <p style={{ fontSize: '0.9rem', color: 'hsl(var(--muted-foreground))', margin: 0 }}>{profile.email}</p>
                   </div>
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'block', marginBottom: 'var(--space-sm)' }}>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', display: 'block', marginBottom: 'var(--space-sm)' }}>
                     Rol Principal
                   </label>
                   {editMode ? (
                     <div style={{ position: 'relative' }}>
-                      <Shield size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', zIndex: 1 }} />
+                      <Shield size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))', zIndex: 1 }} />
                       <select
                         value={editRole}
                         onChange={e => setEditRole(e.target.value)}
                         style={{
                           width: '100%',
                           padding: '0.75rem 0.75rem 0.75rem 2.5rem',
-                          border: '1px solid rgba(10,61,47,0.12)',
+                          border: '1px solid hsl(var(--border))',
                           borderRadius: 'var(--radius-sm)',
                           fontSize: '0.9rem',
                           fontFamily: 'var(--font-datos)',
-                          background: 'var(--surface-primary)',
-                          color: 'var(--text-primary)',
+                          background: 'hsl(var(--background))',
+                          color: 'hsl(var(--foreground))',
                           outline: 'none',
                           appearance: 'none',
                           cursor: 'pointer',
@@ -436,17 +436,17 @@ export default function PerfilView() {
                     </div>
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-                      <Shield size={16} style={{ color: 'var(--oro-miel-dark)' }} />
+                      <Shield size={16} style={{ color: 'hsl(var(--accent))' }} />
                       <span className="badge badge-gold">{roleLabels[profile.role] || profile.role}</span>
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'block', marginBottom: 'var(--space-sm)' }}>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', display: 'block', marginBottom: 'var(--space-sm)' }}>
                     Miembro desde
                   </label>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0 }}>
+                  <p style={{ fontSize: '0.9rem', color: 'hsl(var(--muted-foreground))', margin: 0 }}>
                     {new Date(profile.created_at).toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
                 </div>
@@ -466,14 +466,14 @@ export default function PerfilView() {
           {activeSection === 'seguridad' && (
             <div
               style={{
-                background: 'var(--surface-card)',
-                border: '1px solid rgba(10,61,47,0.08)',
+                background: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
                 borderRadius: 'var(--radius-lg)',
                 padding: 'var(--space-xl)',
               }}
               className="animate-in"
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', color: 'var(--oro-miel-dark)', marginBottom: 'var(--space-xl)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', color: 'hsl(var(--accent))', marginBottom: 'var(--space-xl)' }}>
                 <Lock size={18} />
                 <h3 style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>
                   Cambiar Contraseña
@@ -482,11 +482,11 @@ export default function PerfilView() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)', maxWidth: 480 }}>
                 <div>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'block', marginBottom: 'var(--space-sm)' }}>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', display: 'block', marginBottom: 'var(--space-sm)' }}>
                     Nueva Contraseña
                   </label>
                   <div style={{ position: 'relative' }}>
-                    <Lock size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                    <Lock size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} />
                     <input
                       type={showNew ? 'text' : 'password'}
                       value={newPassword}
@@ -495,12 +495,12 @@ export default function PerfilView() {
                       style={{
                         width: '100%',
                         padding: '0.75rem 2.5rem 0.75rem 2.5rem',
-                        border: '1px solid rgba(10,61,47,0.12)',
+                        border: '1px solid hsl(var(--border))',
                         borderRadius: 'var(--radius-sm)',
                         fontSize: '0.9rem',
                         fontFamily: 'var(--font-datos)',
-                        background: 'var(--surface-primary)',
-                        color: 'var(--text-primary)',
+                        background: 'hsl(var(--background))',
+                        color: 'hsl(var(--foreground))',
                         outline: 'none',
                       }}
                     />
@@ -509,7 +509,7 @@ export default function PerfilView() {
                       onClick={() => setShowNew(!showNew)}
                       style={{
                         position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                        background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4,
+                        background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))', padding: 4,
                       }}
                     >
                       {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -518,11 +518,11 @@ export default function PerfilView() {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'block', marginBottom: 'var(--space-sm)' }}>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', display: 'block', marginBottom: 'var(--space-sm)' }}>
                     Confirmar Contraseña
                   </label>
                   <div style={{ position: 'relative' }}>
-                    <Lock size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                    <Lock size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} />
                     <input
                       type={showCurrent ? 'text' : 'password'}
                       value={confirmPassword}
@@ -531,12 +531,12 @@ export default function PerfilView() {
                       style={{
                         width: '100%',
                         padding: '0.75rem 2.5rem 0.75rem 2.5rem',
-                        border: '1px solid rgba(10,61,47,0.12)',
+                        border: '1px solid hsl(var(--border))',
                         borderRadius: 'var(--radius-sm)',
                         fontSize: '0.9rem',
                         fontFamily: 'var(--font-datos)',
-                        background: 'var(--surface-primary)',
-                        color: 'var(--text-primary)',
+                        background: 'hsl(var(--background))',
+                        color: 'hsl(var(--foreground))',
                         outline: 'none',
                       }}
                     />
@@ -545,14 +545,14 @@ export default function PerfilView() {
                       onClick={() => setShowCurrent(!showCurrent)}
                       style={{
                         position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                        background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4,
+                        background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))', padding: 4,
                       }}
                     >
                       {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                   {confirmPassword && newPassword !== confirmPassword && (
-                    <p style={{ fontSize: '0.75rem', color: 'var(--salud-riesgo)', marginTop: 'var(--space-xs)' }}>
+                    <p style={{ fontSize: '0.75rem', color: 'hsl(var(--destructive))', marginTop: 'var(--space-xs)' }}>
                       Las contraseñas no coinciden
                     </p>
                   )}
@@ -575,16 +575,16 @@ export default function PerfilView() {
                 style={{
                   marginTop: 'var(--space-xl)',
                   padding: 'var(--space-lg)',
-                  background: 'rgba(52,152,219,0.06)',
-                  border: '1px solid rgba(52,152,219,0.15)',
+                  background: 'hsl(var(--info) / 0.08)',
+                  border: '1px solid hsl(var(--info) / 0.2)',
                   borderRadius: 'var(--radius-md)',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', marginBottom: 'var(--space-sm)' }}>
-                  <AlertCircle size={16} style={{ color: 'var(--info)' }} />
-                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--info)' }}>Recomendaciones</span>
+                  <AlertCircle size={16} style={{ color: 'hsl(var(--info))' }} />
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'hsl(var(--info))' }}>Recomendaciones</span>
                 </div>
-                <ul style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', paddingLeft: '1.2rem', margin: 0, lineHeight: 1.8 }}>
+                <ul style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', paddingLeft: '1.2rem', margin: 0, lineHeight: 1.8 }}>
                   <li>Usa al menos 8 caracteres con números y símbolos</li>
                   <li>No reutilices contraseñas de otros servicios</li>
                   <li>Cambia tu contraseña periódicamente</li>
@@ -596,14 +596,14 @@ export default function PerfilView() {
           {activeSection === 'empresas' && (
             <div
               style={{
-                background: 'var(--surface-card)',
-                border: '1px solid rgba(10,61,47,0.08)',
+                background: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
                 borderRadius: 'var(--radius-lg)',
                 padding: 'var(--space-xl)',
               }}
               className="animate-in"
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', color: 'var(--oro-miel-dark)', marginBottom: 'var(--space-xl)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', color: 'hsl(var(--accent))', marginBottom: 'var(--space-xl)' }}>
                 <Building2 size={18} />
                 <h3 style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>
                   Empresas Asociadas
@@ -611,7 +611,7 @@ export default function PerfilView() {
               </div>
 
               {empresas.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 'var(--space-2xl)', color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+                <div style={{ textAlign: 'center', padding: 'var(--space-2xl)', color: 'hsl(var(--muted-foreground))', fontSize: '0.88rem' }}>
                   <Building2 size={32} style={{ opacity: 0.3, marginBottom: 'var(--space-md)', display: 'block', margin: '0 auto' }} />
                   No perteneces a ninguna empresa aún.
                 </div>
@@ -625,16 +625,16 @@ export default function PerfilView() {
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         padding: 'var(--space-lg)',
-                        background: 'var(--surface-glass)',
+                        background: 'hsl(var(--muted) / 0.5)',
                         borderRadius: 'var(--radius-md)',
-                        border: '1px solid rgba(10,61,47,0.06)',
+                        border: '1px solid hsl(var(--border) / 0.5)',
                       }}
                     >
                       <div>
-                        <p style={{ fontWeight: 600, color: 'var(--bosque-ulmo)', margin: 0, fontSize: '0.95rem' }}>
+                        <p style={{ fontWeight: 600, color: 'hsl(var(--foreground))', margin: 0, fontSize: '0.95rem' }}>
                           {emp.razon_social}
                         </p>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
+                        <p style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', margin: '4px 0 0' }}>
                           RUT: {emp.rut}
                         </p>
                       </div>
@@ -651,14 +651,14 @@ export default function PerfilView() {
           {activeSection === 'guardian' && (
             <div
               style={{
-                background: 'var(--surface-card)',
-                border: '1px solid rgba(10,61,47,0.08)',
+                background: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
                 borderRadius: 'var(--radius-lg)',
                 padding: 'var(--space-xl)',
               }}
               className="animate-in"
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', color: 'var(--oro-miel-dark)', marginBottom: 'var(--space-xl)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', color: 'hsl(var(--accent))', marginBottom: 'var(--space-xl)' }}>
                 <TreePine size={18} />
                 <h3 style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>
                   Nivel Guardián
@@ -670,7 +670,7 @@ export default function PerfilView() {
                 style={{
                   textAlign: 'center',
                   padding: 'var(--space-2xl)',
-                  background: 'linear-gradient(135deg, var(--bosque-ulmo), var(--bosque-ulmo-dark))',
+                  background: 'linear-gradient(135deg, hsl(var(--foreground)), hsl(var(--accent-foreground)))',
                   borderRadius: 'var(--radius-lg)',
                   marginBottom: 'var(--space-xl)',
                   position: 'relative',
@@ -681,15 +681,15 @@ export default function PerfilView() {
                   style={{
                     position: 'absolute', top: '-30%', right: '-15%',
                     width: 200, height: 200, borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(212,160,23,0.1) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, hsl(var(--accent) / 0.15) 0%, transparent 70%)',
                     pointerEvents: 'none',
                   }}
                 />
                 <div style={{ fontSize: '3.5rem', marginBottom: 'var(--space-sm)' }}>{guardianInfo.icon}</div>
-                <h3 style={{ color: 'var(--oro-miel)', fontFamily: 'var(--font-existencial)', fontSize: '1.6rem', margin: 0 }}>
+                <h3 style={{ color: 'hsl(var(--accent))', fontFamily: 'var(--font-existencial)', fontSize: '1.6rem', margin: 0 }}>
                   Nivel {guardianInfo.label}
                 </h3>
-                <p style={{ color: 'rgba(253,251,247,0.6)', fontSize: '0.85rem', margin: 'var(--space-sm) 0 0' }}>
+                <p style={{ color: 'hsl(var(--card) / 0.6)', fontSize: '0.85rem', margin: 'var(--space-sm) 0 0' }}>
                   {guardianInfo.description}
                 </p>
               </div>
@@ -699,34 +699,34 @@ export default function PerfilView() {
                 <div
                   style={{
                     padding: 'var(--space-lg)',
-                    background: 'var(--surface-glass)',
+                    background: 'hsl(var(--muted) / 0.5)',
                     borderRadius: 'var(--radius-md)',
                     textAlign: 'center',
-                    border: '1px solid rgba(10,61,47,0.06)',
+                    border: '1px solid hsl(var(--border) / 0.5)',
                   }}
                 >
-                  <Star size={20} style={{ color: 'var(--oro-miel)', marginBottom: 'var(--space-sm)' }} />
-                  <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--bosque-ulmo)', fontFamily: 'var(--font-existencial)' }}>
+                  <Star size={20} style={{ color: 'hsl(var(--accent))', marginBottom: 'var(--space-sm)' }} />
+                  <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'hsl(var(--foreground))', fontFamily: 'var(--font-existencial)' }}>
                     {profile.puntos_acumulados}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     Puntos Acumulados
                   </div>
                 </div>
                 <div
                   style={{
                     padding: 'var(--space-lg)',
-                    background: 'var(--surface-glass)',
+                    background: 'hsl(var(--muted) / 0.5)',
                     borderRadius: 'var(--radius-md)',
                     textAlign: 'center',
-                    border: '1px solid rgba(10,61,47,0.06)',
+                    border: '1px solid hsl(var(--border) / 0.5)',
                   }}
                 >
-                  <TreePine size={20} style={{ color: 'var(--salud-optima)', marginBottom: 'var(--space-sm)' }} />
-                  <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--bosque-ulmo)', fontFamily: 'var(--font-existencial)' }}>
+                  <TreePine size={20} style={{ color: 'hsl(var(--success))', marginBottom: 'var(--space-sm)' }} />
+                  <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'hsl(var(--foreground))', fontFamily: 'var(--font-existencial)' }}>
                     {profile.arboles_personal}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     Árboles Plantados
                   </div>
                 </div>
@@ -734,7 +734,7 @@ export default function PerfilView() {
 
               {/* Level Progress */}
               <div style={{ marginBottom: 'var(--space-lg)' }}>
-                <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 'var(--space-md)' }}>
+                <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-md)' }}>
                   Progresión de Niveles
                 </h4>
                 <div style={{ display: 'flex', gap: 'var(--space-xs)', alignItems: 'center' }}>
@@ -747,16 +747,16 @@ export default function PerfilView() {
                         padding: 'var(--space-md)',
                         borderRadius: 'var(--radius-sm)',
                         background: profile.nivel_guardian === key
-                          ? 'var(--oro-miel-glow)'
+                          ? 'hsl(var(--accent) / 0.1)'
                           : Object.keys(guardianLevels).indexOf(key) <= Object.keys(guardianLevels).indexOf(profile.nivel_guardian)
-                            ? 'rgba(46,204,113,0.08)'
-                            : 'var(--surface-glass)',
-                        border: `1px solid ${profile.nivel_guardian === key ? 'rgba(212,160,23,0.3)' : 'rgba(10,61,47,0.06)'}`,
+                            ? 'hsl(var(--success) / 0.1)'
+                            : 'hsl(var(--muted) / 0.5)',
+                        border: `1px solid ${profile.nivel_guardian === key ? 'hsl(var(--accent) / 0.3)' : 'hsl(var(--border) / 0.5)'}`,
                         opacity: Object.keys(guardianLevels).indexOf(key) <= Object.keys(guardianLevels).indexOf(profile.nivel_guardian) ? 1 : 0.5,
                       }}
                     >
                       <div style={{ fontSize: '1.2rem', marginBottom: 4 }}>{lvl.icon}</div>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--bosque-ulmo)' }}>{lvl.label}</div>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>{lvl.label}</div>
                     </div>
                   ))}
                 </div>

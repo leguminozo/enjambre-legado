@@ -9,6 +9,7 @@ DROP POLICY IF EXISTS "Any authenticated user can upload arboles" ON storage.obj
 DROP POLICY IF EXISTS "Authenticated users can upload fuentes" ON storage.objects;
 
 -- Create admin-only upload policies
+DROP POLICY IF EXISTS "Admin can upload productos" ON storage.objects;
 CREATE POLICY "Admin can upload productos" ON storage.objects
   FOR INSERT TO authenticated
   WITH CHECK (
@@ -19,6 +20,7 @@ CREATE POLICY "Admin can upload productos" ON storage.objects
     )
   );
 
+DROP POLICY IF EXISTS "Admin can delete productos" ON storage.objects;
 CREATE POLICY "Admin can delete productos" ON storage.objects
   FOR DELETE TO authenticated
   USING (
@@ -29,6 +31,7 @@ CREATE POLICY "Admin can delete productos" ON storage.objects
     )
   );
 
+DROP POLICY IF EXISTS "Admin can upload colmenas" ON storage.objects;
 CREATE POLICY "Admin can upload colmenas" ON storage.objects
   FOR INSERT TO authenticated
   WITH CHECK (
@@ -39,6 +42,7 @@ CREATE POLICY "Admin can upload colmenas" ON storage.objects
     )
   );
 
+DROP POLICY IF EXISTS "Admin can delete colmenas" ON storage.objects;
 CREATE POLICY "Admin can delete colmenas" ON storage.objects
   FOR DELETE TO authenticated
   USING (
@@ -49,6 +53,7 @@ CREATE POLICY "Admin can delete colmenas" ON storage.objects
     )
   );
 
+DROP POLICY IF EXISTS "Admin can upload arboles" ON storage.objects;
 CREATE POLICY "Admin can upload arboles" ON storage.objects
   FOR INSERT TO authenticated
   WITH CHECK (
@@ -59,6 +64,7 @@ CREATE POLICY "Admin can upload arboles" ON storage.objects
     )
   );
 
+DROP POLICY IF EXISTS "Admin can delete arboles" ON storage.objects;
 CREATE POLICY "Admin can delete arboles" ON storage.objects
   FOR DELETE TO authenticated
   USING (
@@ -69,6 +75,7 @@ CREATE POLICY "Admin can delete arboles" ON storage.objects
     )
   );
 
+DROP POLICY IF EXISTS "Admin can upload fuentes" ON storage.objects;
 CREATE POLICY "Admin can upload fuentes" ON storage.objects
   FOR INSERT TO authenticated
   WITH CHECK (
@@ -79,6 +86,7 @@ CREATE POLICY "Admin can upload fuentes" ON storage.objects
     )
   );
 
+DROP POLICY IF EXISTS "Admin can delete fuentes" ON storage.objects;
 CREATE POLICY "Admin can delete fuentes" ON storage.objects
   FOR DELETE TO authenticated
   USING (

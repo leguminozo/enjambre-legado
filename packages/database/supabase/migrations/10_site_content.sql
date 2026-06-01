@@ -60,4 +60,5 @@ INSERT INTO site_content (section_key, item_order, content) VALUES
 
 -- Habilitar RLS para lectura pública
 ALTER TABLE site_content ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Contenido público legible por todos" ON site_content;
 CREATE POLICY "Contenido público legible por todos" ON site_content FOR SELECT USING (is_active = true);

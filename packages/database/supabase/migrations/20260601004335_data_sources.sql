@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS public.bank_movements (
   moneda TEXT DEFAULT 'CLP',
   tipo TEXT,
   conciliado BOOLEAN DEFAULT false,
-  venta_id UUID REFERENCES ventas(id) ON DELETE SET NULL,
+    venta_id UUID,
   raw JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

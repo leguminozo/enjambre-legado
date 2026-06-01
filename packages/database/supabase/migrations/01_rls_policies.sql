@@ -32,29 +32,37 @@ CREATE POLICY update_own_profile ON profiles FOR UPDATE USING (id = auth.uid());
 ALTER TABLE apiarios ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS apiarios_select ON apiarios;
 DROP POLICY IF EXISTS apiarios_all_apicultor ON apiarios;
-CREATE POLICY apiarios_select ON apiarios FOR SELECT
-  USING (created_by = auth.uid() OR public.is_gerente());
-CREATE POLICY apiarios_mutate ON apiarios FOR ALL
-  USING (created_by = auth.uid() OR public.is_gerente())
-  WITH CHECK (created_by = auth.uid() OR public.is_gerente());
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'apiarios' AND column_name = 'created_by') THEN
+    EXECUTE 'CREATE POLICY apiarios_select ON apiarios FOR SELECT USING (created_by = auth.uid() OR public.is_gerente())';
+    EXECUTE 'CREATE POLICY apiarios_mutate ON apiarios FOR ALL USING (created_by = auth.uid() OR public.is_gerente()) WITH CHECK (created_by = auth.uid() OR public.is_gerente())';
+  ELSIF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'apiarios' AND column_name = 'user_id') THEN
+    EXECUTE 'CREATE POLICY apiarios_select ON apiarios FOR SELECT USING (user_id = auth.uid() OR public.is_gerente())';
+    EXECUTE 'CREATE POLICY apiarios_mutate ON apiarios FOR ALL USING (user_id = auth.uid() OR public.is_gerente()) WITH CHECK (user_id = auth.uid() OR public.is_gerente())';
+  ELSE
+    EXECUTE 'CREATE POLICY apiarios_select ON apiarios FOR SELECT USING (public.is_gerente())';
+    EXECUTE 'CREATE POLICY apiarios_mutate ON apiarios FOR ALL USING (public.is_gerente()) WITH CHECK (public.is_gerente())';
+  END IF;
+END $$;
 
 ALTER TABLE colmenas ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS colmenas_select ON colmenas;
 CREATE POLICY colmenas_select ON colmenas FOR SELECT
-  USING (
-    apiario_id IS NULL
-    OR EXISTS (SELECT 1 FROM apiarios a WHERE a.id = colmenas.apiario_id AND (a.created_by = auth.uid() OR public.is_gerente()))
-  );
+USING (
+  apiario_id IS NULL
+  OR user_id = auth.uid()
+  OR public.is_gerente()
+);
 
 ALTER TABLE inspecciones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE varroa_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE peso_records ENABLE ROW LEVEL SECURITY;
 CREATE POLICY inspecciones_select ON inspecciones FOR SELECT
-  USING (EXISTS (SELECT 1 FROM colmenas c JOIN apiarios a ON a.id = c.apiario_id WHERE c.id = inspecciones.colmena_id AND (a.created_by = auth.uid() OR public.is_gerente())));
+USING (user_id = auth.uid() OR public.is_gerente());
 CREATE POLICY varroa_select ON varroa_records FOR SELECT
-  USING (EXISTS (SELECT 1 FROM colmenas c JOIN apiarios a ON a.id = c.apiario_id WHERE c.id = varroa_records.colmena_id AND (a.created_by = auth.uid() OR public.is_gerente())));
+USING (user_id = auth.uid() OR public.is_gerente());
 CREATE POLICY peso_select ON peso_records FOR SELECT
-  USING (EXISTS (SELECT 1 FROM colmenas c JOIN apiarios a ON a.id = c.apiario_id WHERE c.id = peso_records.colmena_id AND (a.created_by = auth.uid() OR public.is_gerente())));
+USING (user_id = auth.uid() OR public.is_gerente());
 
 -- Clientes CRM
 ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;
@@ -64,6 +72,7 @@ CREATE POLICY clientes_own ON clientes FOR ALL USING (user_id = auth.uid() OR pu
 -- Productos (lectura pública autenticada)
 ALTER TABLE productos ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS productos_read ON productos;
+DROP POLICY IF EXISTS productos_write ON productos;
 CREATE POLICY productos_read ON productos FOR SELECT USING (true);
 CREATE POLICY productos_write ON productos FOR ALL USING (public.is_gerente() OR public.current_role() = 'tienda_admin');
 
@@ -71,55 +80,66 @@ CREATE POLICY productos_write ON productos FOR ALL USING (public.is_gerente() OR
 ALTER TABLE ventas ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS ventas_select ON ventas;
 DROP POLICY IF EXISTS ventas_insert ON ventas;
-CREATE POLICY ventas_select ON ventas FOR SELECT
-  USING (
-    public.is_gerente()
-    OR vendedor_id = auth.uid()
-    OR cliente_id = auth.uid()
-  );
-CREATE POLICY ventas_insert ON ventas FOR INSERT
-  WITH CHECK (vendedor_id = auth.uid() OR public.is_gerente());
-CREATE POLICY ventas_update ON ventas FOR UPDATE
-  USING (public.is_gerente() OR vendedor_id = auth.uid());
+DROP POLICY IF EXISTS ventas_update ON ventas;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ventas' AND column_name='vendedor_id') THEN
+    EXECUTE 'CREATE POLICY ventas_select ON ventas FOR SELECT USING (public.is_gerente() OR vendedor_id = auth.uid() OR COALESCE(cliente_id, user_id) = auth.uid())';
+    EXECUTE 'CREATE POLICY ventas_insert ON ventas FOR INSERT WITH CHECK (vendedor_id = auth.uid() OR public.is_gerente())';
+    EXECUTE 'CREATE POLICY ventas_update ON ventas FOR UPDATE USING (public.is_gerente() OR vendedor_id = auth.uid())';
+  ELSE
+    EXECUTE 'CREATE POLICY ventas_select ON ventas FOR SELECT USING (public.is_gerente() OR user_id = auth.uid())';
+    EXECUTE 'CREATE POLICY ventas_insert ON ventas FOR INSERT WITH CHECK (user_id = auth.uid() OR public.is_gerente())';
+    EXECUTE 'CREATE POLICY ventas_update ON ventas FOR UPDATE USING (public.is_gerente() OR user_id = auth.uid())';
+  END IF;
+END $$;
 
 -- Integrations
-ALTER TABLE integrations ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS integrations_read ON integrations;
-DROP POLICY IF EXISTS integrations_write ON integrations;
-CREATE POLICY integrations_read ON integrations FOR SELECT
-  USING (public.is_gerente() OR public.current_role() = 'tienda_admin');
-CREATE POLICY integrations_write ON integrations FOR ALL
-  USING (public.is_gerente() OR public.current_role() = 'tienda_admin')
-  WITH CHECK (public.is_gerente() OR public.current_role() = 'tienda_admin');
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='integrations') THEN
+    ALTER TABLE integrations ENABLE ROW LEVEL SECURITY;
+    DROP POLICY IF EXISTS integrations_read ON integrations;
+    DROP POLICY IF EXISTS integrations_write ON integrations;
+    EXECUTE 'CREATE POLICY integrations_read ON integrations FOR SELECT USING (public.is_gerente() OR public.current_role() = ''tienda_admin'')';
+    EXECUTE 'CREATE POLICY integrations_write ON integrations FOR ALL USING (public.is_gerente() OR public.current_role() = ''tienda_admin'') WITH CHECK (public.is_gerente() OR public.current_role() = ''tienda_admin'')';
+  END IF;
+END $$;
 
 -- Fuentes externas
-ALTER TABLE source_files ENABLE ROW LEVEL SECURITY;
-ALTER TABLE boletas_ingest ENABLE ROW LEVEL SECURITY;
-ALTER TABLE bank_movements ENABLE ROW LEVEL SECURITY;
-ALTER TABLE sii_sync_runs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE notification_events ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS source_files_rw ON source_files;
-DROP POLICY IF EXISTS boletas_ingest_rw ON boletas_ingest;
-DROP POLICY IF EXISTS bank_movements_rw ON bank_movements;
-DROP POLICY IF EXISTS sii_sync_runs_rw ON sii_sync_runs;
-DROP POLICY IF EXISTS notification_events_rw ON notification_events;
-
-CREATE POLICY source_files_rw ON source_files FOR ALL
-  USING (public.is_gerente() OR public.current_role() = 'tienda_admin')
-  WITH CHECK (public.is_gerente() OR public.current_role() = 'tienda_admin');
-CREATE POLICY boletas_ingest_rw ON boletas_ingest FOR ALL
-  USING (public.is_gerente() OR public.current_role() = 'tienda_admin')
-  WITH CHECK (public.is_gerente() OR public.current_role() = 'tienda_admin');
-CREATE POLICY bank_movements_rw ON bank_movements FOR ALL
-  USING (public.is_gerente() OR public.current_role() = 'tienda_admin')
-  WITH CHECK (public.is_gerente() OR public.current_role() = 'tienda_admin');
-CREATE POLICY sii_sync_runs_rw ON sii_sync_runs FOR ALL
-  USING (public.is_gerente() OR public.current_role() = 'tienda_admin')
-  WITH CHECK (public.is_gerente() OR public.current_role() = 'tienda_admin');
-CREATE POLICY notification_events_rw ON notification_events FOR ALL
-  USING (public.is_gerente() OR public.current_role() = 'tienda_admin')
-  WITH CHECK (public.is_gerente() OR public.current_role() = 'tienda_admin');
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='source_files') THEN
+    ALTER TABLE source_files ENABLE ROW LEVEL SECURITY;
+    DROP POLICY IF EXISTS source_files_rw ON source_files;
+    EXECUTE 'CREATE POLICY source_files_rw ON source_files FOR ALL USING (public.is_gerente() OR public.current_role() = ''tienda_admin'') WITH CHECK (public.is_gerente() OR public.current_role() = ''tienda_admin'')';
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='boletas_ingest') THEN
+    ALTER TABLE boletas_ingest ENABLE ROW LEVEL SECURITY;
+    DROP POLICY IF EXISTS boletas_ingest_rw ON boletas_ingest;
+    EXECUTE 'CREATE POLICY boletas_ingest_rw ON boletas_ingest FOR ALL USING (public.is_gerente() OR public.current_role() = ''tienda_admin'') WITH CHECK (public.is_gerente() OR public.current_role() = ''tienda_admin'')';
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='bank_movements') THEN
+    ALTER TABLE bank_movements ENABLE ROW LEVEL SECURITY;
+    DROP POLICY IF EXISTS bank_movements_rw ON bank_movements;
+    EXECUTE 'CREATE POLICY bank_movements_rw ON bank_movements FOR ALL USING (public.is_gerente() OR public.current_role() = ''tienda_admin'') WITH CHECK (public.is_gerente() OR public.current_role() = ''tienda_admin'')';
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='sii_sync_runs') THEN
+    ALTER TABLE sii_sync_runs ENABLE ROW LEVEL SECURITY;
+    DROP POLICY IF EXISTS sii_sync_runs_rw ON sii_sync_runs;
+    EXECUTE 'CREATE POLICY sii_sync_runs_rw ON sii_sync_runs FOR ALL USING (public.is_gerente() OR public.current_role() = ''tienda_admin'') WITH CHECK (public.is_gerente() OR public.current_role() = ''tienda_admin'')';
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='notification_events') THEN
+    ALTER TABLE notification_events ENABLE ROW LEVEL SECURITY;
+    DROP POLICY IF EXISTS notification_events_rw ON notification_events;
+    EXECUTE 'CREATE POLICY notification_events_rw ON notification_events FOR ALL USING (public.is_gerente() OR public.current_role() = ''tienda_admin'') WITH CHECK (public.is_gerente() OR public.current_role() = ''tienda_admin'')';
+  END IF;
+END $$;
 
 -- Cashflow manual
 ALTER TABLE cashflow ENABLE ROW LEVEL SECURITY;

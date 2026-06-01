@@ -3,20 +3,20 @@ import { SCENE_DARK } from '@/lib/colors';
 
 // Estructura simulada de GDD. Luego vendrá de API Meteo.
 const especiesNativas = [
-  { id: 'ulmo', nombre: 'Ulmo', gddRequerido: 350, gddActual: 310, color: 'var(--crema-natural)' },
-  { id: 'tepu', nombre: 'Tepú', gddRequerido: 200, gddActual: 205, color: 'var(--oro-miel)' },
-  { id: 'tiaca', nombre: 'Tiaca', gddRequerido: 450, gddActual: 120, color: 'white' }
+  { id: 'ulmo', nombre: 'Ulmo', gddRequerido: 350, gddActual: 310, color: 'hsl(var(--primary-foreground))' },
+  { id: 'tepu', nombre: 'Tepú', gddRequerido: 200, gddActual: 205, color: 'hsl(var(--accent))' },
+  { id: 'tiaca', nombre: 'Tiaca', gddRequerido: 450, gddActual: 120, color: 'hsl(var(--primary-foreground))' }
 ];
 
 export default function OraculoFloracion() {
   const [datos, setDatos] = useState(especiesNativas);
 
   return (
-    <div className="card card-accent animate-in delay-2" style={{ background: SCENE_DARK, border: '1px solid rgba(228,163,43,0.15)' }}>
-      <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)', color: 'var(--oro-miel)' }}>
+    <div className="card card-accent animate-in delay-2" style={{ background: SCENE_DARK, border: '1px solid hsl(var(--accent) / 0.2)' }}>
+      <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)', color: 'hsl(var(--accent))' }}>
         Oráculo Fenológico (GDD)
       </div>
-      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 'var(--space-lg)' }}>
+      <p style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-lg)' }}>
         Grados-Día de Crecimiento acumulados. Modelo térmico de flora nativa.
       </p>
 
@@ -28,26 +28,26 @@ export default function OraculoFloracion() {
           return (
             <div key={esp.id}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.1rem', color: enFlor ? esp.color : 'var(--text-secondary)' }}>
+                <span style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.1rem', color: enFlor ? esp.color : 'hsl(var(--muted-foreground))' }}>
                   {esp.nombre} {enFlor && '✨'}
                 </span>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-datos)' }}>
+                <span style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', fontFamily: 'var(--font-datos)' }}>
                   {esp.gddActual} / {esp.gddRequerido} GDD
                 </span>
               </div>
               
               {/* Barra de Progreso Minimalista */}
-              <div style={{ height: 4, width: '100%', background: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ height: 4, width: '100%', background: 'hsl(var(--foreground) / 0.05)', borderRadius: 2, overflow: 'hidden' }}>
                 <div style={{ 
                   height: '100%', 
                   width: `${progreso}%`, 
-                  background: enFlor ? esp.color : 'var(--oro-miel)',
+                  background: enFlor ? esp.color : 'hsl(var(--accent))',
                   opacity: enFlor ? 1 : 0.6,
                   transition: 'width 1s ease-in-out'
                 }} />
               </div>
               
-              <div style={{ marginTop: 6, fontSize: '0.75rem', color: enFlor ? 'var(--salud-optima)' : 'var(--text-muted)' }}>
+              <div style={{ marginTop: 6, fontSize: '0.75rem', color: enFlor ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))' }}>
                 {enFlor ? 'Floración Activa. Néctar disponible.' : `Probabilidad de flor en aprox. ${Math.ceil((esp.gddRequerido - esp.gddActual)/12)} días.`}
               </div>
             </div>

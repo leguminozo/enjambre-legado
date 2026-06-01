@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TreePine, Camera, MapPin, Leaf, Plus, ChevronDown } from 'lucide-react';
-import { BOSQUE_ULMO_DARK, BOSQUE_ULMO, BOSQUE_ULMO_LIGHT } from '@/lib/colors';
+
 import { supabase } from '@/lib/supabase';
 
 interface TreeRecord {
@@ -72,12 +72,12 @@ export default function RegeneracionView() {
   };
 
     if (loading) {
-    return <div style={{ padding: 'var(--space-2xl)', textAlign: 'center', color: 'var(--bosque-ulmo)' }}>Cargando registro del bosque...</div>;
+    return <div style={{ padding: 'var(--space-2xl)', textAlign: 'center', color: 'hsl(var(--foreground))' }}>Cargando registro del bosque...</div>;
   }
 
   return (
         <div>
-            <div className="hero-banner animate-in" style={{ background: `linear-gradient(135deg, ${BOSQUE_ULMO_DARK} 0%, ${BOSQUE_ULMO} 50%, ${BOSQUE_ULMO_LIGHT} 100%)` }}>
+            <div className="hero-banner animate-in" style={{ background: 'linear-gradient(135deg, hsl(var(--primary) / 0.85) 0%, hsl(var(--primary)) 50%, hsl(var(--primary) / 0.7) 100%)' }}>
                 <div className="hero-greeting">Módulo de Regeneración 🌿</div>
                 <h1 className="hero-title">Cada árbol plantado es un legado que el tiempo honra</h1>
                 <p className="hero-subtitle">22 años de reforestación nativa en Chiloé. Cada lote de miel está vinculado directamente a los árboles que alimentan a las abejas.</p>
@@ -104,7 +104,7 @@ export default function RegeneracionView() {
                 </div>
 
                 {showForm && (
-                    <div style={{ padding: 'var(--space-lg)', background: 'var(--oro-miel-glow)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-lg)', border: '1px solid rgba(212,160,23,0.2)' }}>
+                    <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-lg)', border: '1px solid hsl(var(--accent) / 0.25)' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
                             {[
                                 { label: 'Especie', key: 'species', ph: 'Ej: Ulmo, Tepú, Canelo...' },
@@ -113,9 +113,9 @@ export default function RegeneracionView() {
                                 { label: 'Notas', key: 'notes', ph: 'Observaciones (opcional)' },
                             ].map(field => (
                                 <div key={field.key}>
-                                    <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 4 }}>{field.label}</div>
+                                    <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>{field.label}</div>
                                     <input type={field.key === 'count' ? 'number' : 'text'} placeholder={field.ph} value={(formData as Record<string, string>)[field.key]} onChange={e => setFormData(prev => ({ ...prev, [field.key]: e.target.value }))}
-                                        style={{ width: '100%', padding: 'var(--space-sm) var(--space-md)', border: '1px solid rgba(10,61,47,0.15)', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-datos)', fontSize: '0.85rem', background: 'white' }} />
+                                        style={{ width: '100%', padding: 'var(--space-sm) var(--space-md)', border: '1px solid hsl(var(--input))', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-datos)', fontSize: '0.85rem', background: 'hsl(var(--card))' }} />
                                 </div>
                             ))}
                         </div>
@@ -129,14 +129,14 @@ export default function RegeneracionView() {
                 <div className="colmena-list">
                     {displayed.map(r => (
                         <div key={r.id} className="colmena-item">
-                            <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-sm)', background: r.status === 'adulto' ? 'rgba(46,204,113,0.12)' : r.status === 'creciendo' ? 'var(--oro-miel-glow)' : 'rgba(52,152,219,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0 }}>🌳</div>
+                            <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-sm)', background: r.status === 'adulto' ? 'hsl(var(--success) / 0.15)' : r.status === 'creciendo' ? 'hsl(var(--accent) / 0.1)' : 'hsl(var(--info) / 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0 }}>🌳</div>
                             <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--bosque-ulmo)' }}>{r.species} × {r.count.toLocaleString()}</div>
-                                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{r.location} · {r.date}</div>
+                                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'hsl(var(--foreground))' }}>{r.species} × {r.count.toLocaleString()}</div>
+                                <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>{r.location} · {r.date}</div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
                                 <span className={`badge ${r.status === 'adulto' ? 'badge-success' : r.status === 'creciendo' ? 'badge-gold' : 'badge-warning'}`}>{r.status === 'adulto' ? 'Adulto' : r.status === 'creciendo' ? 'Creciendo' : 'Joven'}</span>
-                                <div style={{ fontSize: '0.72rem', color: 'var(--salud-optima)', marginTop: 4 }}>🌿 {r.co2} ton CO₂</div>
+                                <div style={{ fontSize: '0.72rem', color: 'hsl(var(--success))', marginTop: 4 }}>🌿 {r.co2} ton CO₂</div>
                             </div>
                         </div>
                     ))}
@@ -149,11 +149,11 @@ export default function RegeneracionView() {
             </div>
 
             {/* Impact summary */}
-            <div className="card animate-in delay-3" style={{ marginTop: 'var(--space-lg)', background: 'linear-gradient(135deg, var(--bosque-ulmo), var(--bosque-ulmo-dark))', color: 'var(--crema-natural)', border: 'none' }}>
-                <div style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.1rem', color: 'var(--oro-miel)', marginBottom: 'var(--space-md)' }}>Impacto Regenerativo</div>
+            <div className="card animate-in delay-3" style={{ marginTop: 'var(--space-lg)', background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.85))', color: 'hsl(var(--primary-foreground))', border: 'none' }}>
+                <div style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.1rem', color: 'hsl(var(--accent))', marginBottom: 'var(--space-md)' }}>Impacto Regenerativo</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-lg)', textAlign: 'center' }}>
-                    <div><div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--oro-miel)' }}>{totalTrees.toLocaleString()}</div><div style={{ fontSize: '0.78rem', opacity: 0.6 }}>Árboles vivos</div></div>
-                    <div><div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--salud-optima)' }}>{totalCO2}</div><div style={{ fontSize: '0.78rem', opacity: 0.6 }}>Toneladas CO₂</div></div>
+                    <div><div style={{ fontSize: '2rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{totalTrees.toLocaleString()}</div><div style={{ fontSize: '0.78rem', opacity: 0.6 }}>Árboles vivos</div></div>
+                    <div><div style={{ fontSize: '2rem', fontWeight: 700, color: 'hsl(var(--success))' }}>{totalCO2}</div><div style={{ fontSize: '0.78rem', opacity: 0.6 }}>Toneladas CO₂</div></div>
                     <div><div style={{ fontSize: '2rem', fontWeight: 700 }}>22</div><div style={{ fontSize: '0.78rem', opacity: 0.6 }}>Años de legado</div></div>
                 </div>
             </div>

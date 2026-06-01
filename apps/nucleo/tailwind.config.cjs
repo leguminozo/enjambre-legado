@@ -1,18 +1,13 @@
 /** @type {import('tailwindcss').Config} */
+const { enjambrePreset } = require('@enjambre/ui/tailwind-preset');
+
 const config = {
+  presets: [enjambrePreset],
   content: [
     './src/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './node_modules/@enjambre/ui/src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
-  theme: {
-    extend: {
-      fontFamily: {
-        display: ['var(--font-existencial)', 'Cormorant Garamond', 'serif'],
-        sans: ['var(--font-datos)', 'Inter', 'sans-serif'],
-      },
-    },
-  },
-  plugins: [],
 };
 
 module.exports = config;

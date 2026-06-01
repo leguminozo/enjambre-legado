@@ -159,15 +159,15 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="product-form">
       {/* Header Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', paddingBottom: 'var(--space-md)', borderBottom: '1px solid rgba(10,61,47,0.08)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', paddingBottom: 'var(--space-md)', borderBottom: '1px solid hsl(var(--border))' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--bosque-ulmo)' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
             {initialData?.id ? 'Editar Producto' : 'Nuevo Producto'}
           </h2>
           <button
             type="button"
             onClick={() => setValue('visible', !visible)}
-            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: visible ? 'var(--text-success)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: visible ? 'var(--text-success)' : 'hsl(var(--muted-foreground))', display: 'flex', alignItems: 'center', gap: 4 }}
             title={visible ? 'Visible en tienda' : 'Oculto en tienda'}
           >
             {visible ? <Eye size={18} /> : <EyeOff size={18} />}
@@ -191,7 +191,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
           {/* Nombre y Slug */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--bosque-ulmo)' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
               Nombre del producto *
             </label>
             <input
@@ -204,7 +204,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
             {errors.nombre && <span style={{ fontSize: '0.75rem', color: 'var(--text-error)' }}>{errors.nombre.message}</span>}
             
             <div style={{ marginTop: 'var(--space-xs)', display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Slug:</span>
+              <span style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))' }}>Slug:</span>
               <input
                 {...register('slug')}
                 type="text"
@@ -217,7 +217,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
                   }
                 }}
               />
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
                 obreyzangano.com/producto/
               </span>
             </div>
@@ -225,7 +225,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
 
           {/* Descripción Regenerativa */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--bosque-ulmo)' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
               Descripción Regenerativa *
             </label>
             <textarea
@@ -238,14 +238,14 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
             {errors.descripcion_regenerativa && (
               <span style={{ fontSize: '0.75rem', color: 'var(--text-error)' }}>{errors.descripcion_regenerativa.message}</span>
             )}
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
               Esta descripción aparece en la página del producto y comunica el impacto regenerativo
             </span>
           </div>
 
           {/* Descripción Corta */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--bosque-ulmo)' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
               Descripción Corta
             </label>
             <input
@@ -255,24 +255,24 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
               className="input-field"
               style={{ fontSize: '0.9rem', padding: 'var(--space-md)' }}
             />
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
               Aparece en el catálogo y tarjetas de producto
             </span>
           </div>
 
           {/* Imágenes */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--bosque-ulmo)' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
               Imágenes del Producto
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-sm)', marginBottom: 'var(--space-sm)' }}>
               {fotos.map((foto, index) => (
-                <div key={index} style={{ position: 'relative', width: 100, height: 100, borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid rgba(10,61,47,0.1)' }}>
+                <div key={index} style={{ position: 'relative', width: 100, height: 100, borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid hsl(var(--border))' }}>
                   <img src={foto} alt={`Producto ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <button
                     type="button"
                     onClick={() => removeImage(index)}
-                    style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' }}
+                    style={{ position: 'absolute', top: 4, right: 4, background: 'hsl(var(--foreground) / 0.7)', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'hsl(var(--primary-foreground))' }}
                   >
                     <X size={14} />
                   </button>
@@ -282,15 +282,15 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
                 style={{
                   width: 100,
                   height: 100,
-                  border: '2px dashed rgba(10,61,47,0.2)',
+                  border: '2px dashed hsl(var(--input))',
                   borderRadius: 'var(--radius-sm)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: imageUploading ? 'not-allowed' : 'pointer',
-                  background: 'rgba(212,160,23,0.03)',
-                  color: 'var(--text-muted)',
+                  background: 'hsl(var(--accent) / 0.05)',
+                  color: 'hsl(var(--muted-foreground))',
                   gap: 4,
                 }}
               >
@@ -311,14 +311,14 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
                 />
               </label>
             </div>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
               Primera imagen será la principal. Recomendado: 1200x1200px mínimo
             </span>
           </div>
 
           {/* Video URL */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--bosque-ulmo)' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
               Video de Trazabilidad (YouTube/Vimeo)
             </label>
             <input
@@ -331,7 +331,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
             {errors.video_url && (
               <span style={{ fontSize: '0.75rem', color: 'var(--text-error)' }}>{errors.video_url.message}</span>
             )}
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
               Video de Cristina en la colmena o proceso de cosecha
             </span>
           </div>
@@ -340,14 +340,14 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
         {/* Right Column - Organization & Pricing */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
           {/* Organización */}
-          <div style={{ padding: 'var(--space-lg)', background: 'rgba(10,61,47,0.02)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(10,61,47,0.06)' }}>
-            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--bosque-ulmo)', marginBottom: 'var(--space-md)' }}>
+          <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-md)' }}>
               Organización
             </h3>
             
             {/* Formato */}
             <div style={{ marginBottom: 'var(--space-md)' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--bosque-ulmo)', display: 'block', marginBottom: 6 }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
                 Formato *
               </label>
               <select {...register('formato')} className="input-field" style={{ width: '100%' }}>
@@ -361,7 +361,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
 
             {/* Categoría */}
             <div style={{ marginBottom: 'var(--space-md)' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--bosque-ulmo)', display: 'block', marginBottom: 6 }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
                 Categoría
               </label>
               <select {...register('categoria')} className="input-field" style={{ width: '100%' }}>
@@ -374,7 +374,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
 
             {/* Tags */}
             <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--bosque-ulmo)', display: 'block', marginBottom: 6 }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
                 Tags
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
@@ -386,10 +386,10 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
                       alignItems: 'center',
                       gap: 4,
                       padding: '2px 8px',
-                      background: 'rgba(212,160,23,0.1)',
+                      background: 'hsl(var(--accent) / 0.15)',
                       borderRadius: 'var(--radius-sm)',
                       fontSize: '0.75rem',
-                      color: 'var(--oro-miel-dark)',
+                      color: 'hsl(var(--accent))',
                     }}
                   >
                     {tag}
@@ -420,17 +420,17 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
           </div>
 
           {/* Precio */}
-          <div style={{ padding: 'var(--space-lg)', background: 'rgba(10,61,47,0.02)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(10,61,47,0.06)' }}>
-            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--bosque-ulmo)', marginBottom: 'var(--space-md)' }}>
+          <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-md)' }}>
               Precio
             </h3>
             
             <div style={{ marginBottom: 'var(--space-md)' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--bosque-ulmo)', display: 'block', marginBottom: 6 }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
                 Precio CLP *
               </label>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: 'var(--space-md)', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.9rem' }}>$</span>
+                <span style={{ position: 'absolute', left: 'var(--space-md)', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))', fontSize: '0.9rem' }}>$</span>
                 <input
                   {...register('precio')}
                   type="number"
@@ -443,7 +443,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
             </div>
 
             <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--bosque-ulmo)', display: 'block', marginBottom: 6 }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
                 Stock Disponible *
               </label>
               <input
@@ -458,13 +458,13 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
           </div>
 
           {/* Detalles Adicionales */}
-          <div style={{ padding: 'var(--space-lg)', background: 'rgba(10,61,47,0.02)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(10,61,47,0.06)' }}>
-            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--bosque-ulmo)', marginBottom: 'var(--space-md)' }}>
+          <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-md)' }}>
               Detalles del Producto
             </h3>
             
             <div style={{ marginBottom: 'var(--space-md)' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--bosque-ulmo)', display: 'block', marginBottom: 6 }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
                 Peso Neto (g)
               </label>
               <input
@@ -477,7 +477,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
             </div>
 
             <div style={{ marginBottom: 'var(--space-md)' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--bosque-ulmo)', display: 'block', marginBottom: 6 }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
                 Ingredientes
               </label>
               <textarea
@@ -490,7 +490,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
             </div>
 
             <div style={{ marginBottom: 'var(--space-md)' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--bosque-ulmo)', display: 'block', marginBottom: 6 }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
                 Origen Apícola
               </label>
               <input
@@ -500,7 +500,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
                 className="input-field"
                 style={{ fontSize: '0.85rem', padding: 'var(--space-md)' }}
               />
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
                 Lugar específico de cosecha
               </span>
             </div>
@@ -512,7 +512,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
                 id="trazabilidad_qr"
                 style={{ width: 16, height: 16 }}
               />
-              <label htmlFor="trazabilidad_qr" style={{ fontSize: '0.8rem', color: 'var(--bosque-ulmo)' }}>
+              <label htmlFor="trazabilidad_qr" style={{ fontSize: '0.8rem', color: 'hsl(var(--foreground))' }}>
                 Incluir QR de trazabilidad
               </label>
             </div>

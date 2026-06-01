@@ -43,7 +43,7 @@ CREATE INDEX IF NOT EXISTS idx_creadores_estado ON creadores(estado);
 CREATE TABLE IF NOT EXISTS creador_codigo_usos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   creador_id UUID NOT NULL REFERENCES creadores(id) ON DELETE CASCADE,
-  venta_id UUID REFERENCES ventas(id) ON DELETE SET NULL,
+  venta_id UUID,
   cliente_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
   codigo_usado TEXT NOT NULL,
   monto_venta INT NOT NULL,

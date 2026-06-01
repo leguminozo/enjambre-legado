@@ -1,75 +1,82 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
-  Map, Hexagon, TreePine, ShoppingBag, Truck, Megaphone, Bell, Search,
-  Menu, X, LogOut, Calculator, Sparkles, BarChart3, FileText, UserCog,
-  Settings, Building2, CreditCard, RefreshCw, BookOpen, BrainCircuit, Shield,
-  Wallet, Users, Ticket, Percent, Sliders, Trophy
+  Map, Hexagon, TreePine, ShoppingBag, Truck, Megaphone,
+  Menu, X, LogOut, Calculator, Sparkles, BarChart3, FileText,
+  UserCog, Settings, Building2, CreditCard, GitMerge, Printer,
+  Cpu, Shield, Wallet, Users, Ticket, Percent, Sliders, Trophy,
 } from 'lucide-react';
+import { SIDEBAR_GROUPS, ACCOUNT_ITEMS, findActiveItem, type SidebarItem, type SidebarBadge } from '@/config/sidebar-config';
+import { SidebarSection, SidebarBadgeIndicator, type SidebarNavItemData } from '@enjambre/ui';
+import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 import { roleLabels } from '@/data/mockData';
 import { supabase } from '@/lib/supabase';
 
-interface SidebarProps {
-currentRole: string;
-onToggle: () => void;
-isOpen: boolean;
+const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
+  'map': Map,
+  'hexagon': Hexagon,
+  'tree-pine': TreePine,
+  'shopping-bag': ShoppingBag,
+  'truck': Truck,
+  'megaphone': Megaphone,
+  'sparkles': Sparkles,
+  'calculator': Calculator,
+  'file-text': FileText,
+  'building-2': Building2,
+  'credit-card': CreditCard,
+  'git-merge': GitMerge,
+  'printer': Printer,
+  'cpu': Cpu,
+  'bar-chart-3': BarChart3,
+  'shield': Shield,
+  'wallet': Wallet,
+  'users': Users,
+  'ticket': Ticket,
+  'percent': Percent,
+  'sliders': Sliders,
+  'trophy': Trophy,
+  'user-cog': UserCog,
+  'settings': Settings,
+};
+
+function toNavItemData(
+  item: SidebarItem,
+  badgeOverrides: Record<string, SidebarBadge>
+): SidebarNavItemData {
+  const IconComp = LUCIDE_MAP[item.icon]
+  return {
+    key: item.key,
+    label: item.label,
+    icon: IconComp ? <IconComp size={18} /> : <span />,
+    href: item.href,
+    badge: badgeOverrides[item.key] ?? item.badge ?? null,
+  };
 }
 
-type NavItem = { label: string; icon: React.ReactNode; path: string; roles?: string[] };
-
-const navItems: { section: string; items: NavItem[] }[] = [
-  { section: 'Navegación', items: [
-    { label: 'Mapa del Legado', icon: <Map size={18} />, path: '/mapa' },
-    { label: 'Colmenas & Apiarios', icon: <Hexagon size={18} />, path: '/colmenas' },
-    { label: 'Regeneración', icon: <TreePine size={18} />, path: '/regeneracion' },
-    { label: 'Catálogo & CRM', icon: <ShoppingBag size={18} />, path: '/catalogo' },
-    { label: 'Operaciones & Stock', icon: <Truck size={18} />, path: '/operaciones' },
-    { label: 'Comunidad & Marketing', icon: <Megaphone size={18} />, path: '/comunidad' },
-    { label: 'Portal de Creador', icon: <Sparkles size={18} />, path: '/creador' },
-  ]},
-  { section: 'Contabilidad', items: [
-    { label: 'Sistema Contable', icon: <Calculator size={18} />, path: '/contable' },
-    { label: 'SII · DTE', icon: <FileText size={18} />, path: '/sii' },
-    { label: 'Banco Chile', icon: <Building2 size={18} />, path: '/banco' },
-    { label: 'Pagos SumUp · En migración', icon: <CreditCard size={18} />, path: '/pagos' },
-    { label: 'Conciliación · En migración', icon: <RefreshCw size={18} />, path: '/conciliacion' },
-    { label: 'Reportes', icon: <BookOpen size={18} />, path: '/reportes' },
-    { label: 'Cálculos IA', icon: <BrainCircuit size={18} />, path: '/calculos-ia' },
-  ]},
-  { section: 'Gestión', items: [
-    { label: 'Panel Ejecutivo', icon: <BarChart3 size={18} />, path: '/', roles: ['gerente', 'tienda_admin'] },
-    { label: 'Vanguardia B2B', icon: <Shield size={18} />, path: '/vanguardia', roles: ['gerente', 'tienda_admin'] },
-    { label: 'Creadores Admin', icon: <Sparkles size={18} />, path: '/creadores', roles: ['gerente', 'tienda_admin'] },
-    { label: 'Cierres de Caja', icon: <Wallet size={18} />, path: '/caja', roles: ['gerente', 'tienda_admin'] },
-    { label: 'Reps de Ventas', icon: <Users size={18} />, path: '/reps', roles: ['gerente', 'tienda_admin'] },
-    { label: 'Comisiones', icon: <Percent size={18} />, path: '/comisiones', roles: ['gerente', 'tienda_admin'] },
-    { label: 'Reglas de Comisión', icon: <Sliders size={18} />, path: '/reglas-comision', roles: ['gerente', 'tienda_admin'] },
-    { label: 'Invitaciones', icon: <Ticket size={18} />, path: '/invitaciones', roles: ['gerente', 'tienda_admin'] },
-  { label: 'Leaderboard', icon: <Trophy size={18} />, path: '/leaderboard', roles: ['gerente', 'tienda_admin'] },
-  ]},
-];
-
-const accountItems = [
-  { label: 'Mi Perfil', icon: <UserCog size={18} />, path: '/perfil' },
-  { label: 'Configuración', icon: <Settings size={18} />, path: '/configuracion' },
-];
+interface SidebarProps {
+  currentRole: string;
+  onToggle: () => void;
+  isOpen: boolean;
+}
 
 export function Sidebar({ currentRole, onToggle, isOpen }: SidebarProps) {
-  const pathname = usePathname();
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   const router = useRouter();
   const [userName, setUserName] = useState('Usuario');
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
+  const { badges } = useSidebarBadges();
 
   const urlTienda = process.env.NEXT_PUBLIC_URL_TIENDA?.trim() || '';
   const urlCampo = process.env.NEXT_PUBLIC_URL_CAMPO?.trim() || '';
 
   useEffect(() => {
     async function fetchUser() {
+      if (!supabase) return;
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         if (session.user.user_metadata?.full_name) {
@@ -81,36 +88,45 @@ export function Sidebar({ currentRole, onToggle, isOpen }: SidebarProps) {
       }
     }
     fetchUser();
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     if (searchOpen && searchRef.current) searchRef.current.focus();
   }, [searchOpen]);
 
-  const allFlatItems = navItems.flatMap(s => s.items);
+  const allItems = useMemo(() => [...SIDEBAR_GROUPS.flatMap(g => g.items), ...ACCOUNT_ITEMS], []);
   const filteredSearch = searchQuery.trim()
-    ? allFlatItems.filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? allItems.filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase()))
     : [];
 
   const handleLogout = async () => {
+    if (!supabase) return;
     await supabase.auth.signOut();
     router.push('/login');
   };
 
-  const isActive = (path: string) => {
-    if (path === '/') return pathname === '/';
-    return pathname.startsWith(path);
-  };
+  const activeItem = findActiveItem(pathname);
 
-  const visibleSections = navItems
-    .map(s => ({
-      ...s,
-      items: s.items.filter(item => {
-        if (!item.roles) return true;
-        return item.roles.includes(currentRole);
-      }),
-    }))
-    .filter(s => s.items.length > 0);
+  const visibleGroups = useMemo(
+    () =>
+      SIDEBAR_GROUPS.map(g => ({
+        ...g,
+        items: g.items.filter(item => {
+          if (!item.roles) return true;
+          return item.roles.includes(currentRole);
+        }),
+      })).filter(g => g.items.length > 0),
+    [currentRole]
+  );
+
+  const badgeOverrides = useMemo(() => {
+    const map: Record<string, SidebarBadge> = {};
+    const entries = Object.entries(badges) as [string, SidebarBadge][];
+    for (const [key, value] of entries) {
+      if (value) map[key] = value;
+    }
+    return map;
+  }, [badges]);
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
@@ -120,44 +136,37 @@ export function Sidebar({ currentRole, onToggle, isOpen }: SidebarProps) {
       </div>
 
       <nav className="sidebar-nav">
-        {visibleSections.map(section => (
-          <div key={section.section}>
-            <div className="nav-section-label">{section.section}</div>
-            {section.items.map(item => (
-              <Link
-                key={item.path}
-                href={item.path}
-                className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
-                onClick={() => onToggle()}
-              >
-                <span className="nav-item-icon">{item.icon}</span>
-                {item.label}
-              </Link>
-            ))}
-          </div>
+        {visibleGroups.map(group => (
+          <SidebarSection
+            key={group.key}
+            label={group.label}
+            items={group.items.map(item => toNavItemData(item, badgeOverrides))}
+            activeKey={activeItem?.key}
+            onItemClick={(clicked) => {
+              router.push(clicked.href);
+              onToggle();
+            }}
+          />
         ))}
 
-        <div className="nav-section-label" style={{ marginTop: 'var(--space-lg)' }}>Cuenta</div>
-        {accountItems.map(item => (
-          <Link
-            key={item.path}
-            href={item.path}
-            className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
-            onClick={() => onToggle()}
-          >
-            <span className="nav-item-icon">{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
+        <SidebarSection
+          label="CUENTA"
+          items={ACCOUNT_ITEMS.map(item => toNavItemData(item, badgeOverrides))}
+          activeKey={activeItem?.key}
+          onItemClick={(clicked) => {
+            router.push(clicked.href);
+            onToggle();
+          }}
+        />
       </nav>
 
       <div className="sidebar-footer">
         {(urlTienda || urlCampo) && (
-          <div style={{ padding: '0 var(--space-md) var(--space-md)', fontSize: '0.7rem', color: 'var(--text-muted)', borderBottom: '1px solid rgba(10,61,47,0.08)' }}>
-            <div style={{ fontWeight: 600, letterSpacing: '0.06em', marginBottom: 6, color: 'var(--bosque-ulmo)', fontSize: '0.65rem' }}>ECOSISTEMA</div>
+          <div style={{ padding: '0 var(--space-md) var(--space-md)', fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', borderBottom: '1px solid hsl(var(--border))' }}>
+            <div style={{ fontWeight: 600, letterSpacing: '0.06em', marginBottom: 6, color: 'hsl(var(--foreground))', fontSize: '0.65rem' }}>ECOSISTEMA</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {urlTienda && <a href={urlTienda} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--oro-miel-dark)', fontWeight: 500 }} onClick={() => onToggle()}>Tienda web</a>}
-              {urlCampo && <a href={urlCampo} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--oro-miel-dark)', fontWeight: 500 }} onClick={() => onToggle()}>Terminal Campo (POS)</a>}
+              {urlTienda && <a href={urlTienda} target="_blank" rel="noopener noreferrer" style={{ color: 'hsl(var(--accent))', fontWeight: 500 }} onClick={() => onToggle()}>Tienda web</a>}
+              {urlCampo && <a href={urlCampo} target="_blank" rel="noopener noreferrer" style={{ color: 'hsl(var(--accent))', fontWeight: 500 }} onClick={() => onToggle()}>Terminal Campo (POS)</a>}
             </div>
           </div>
         )}
@@ -169,7 +178,7 @@ export function Sidebar({ currentRole, onToggle, isOpen }: SidebarProps) {
             <div className="sidebar-user-name">{userName}</div>
             <div className="sidebar-user-role">{roleLabels[currentRole] || currentRole}</div>
           </div>
-          <button onClick={handleLogout} className="btn btn-ghost" style={{ padding: 6, color: 'var(--text-muted)' }} title="Cerrar sesión">
+          <button onClick={handleLogout} className="btn btn-ghost" style={{ padding: 6, color: 'hsl(var(--muted-foreground))' }} title="Cerrar sesión">
             <LogOut size={16} />
           </button>
         </div>

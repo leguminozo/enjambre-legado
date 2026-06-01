@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, DollarSign, Target, Leaf, Crown, ArrowUpRight, Expand, Minimize2, Plus, X } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors';
+
+const CHART_GRID = 'hsl(var(--border) / 0.5)';
+const CHART_TOOLTIP: React.CSSProperties = { borderRadius: 8, border: 'none', boxShadow: 'var(--shadow-md)', fontFamily: 'Inter', fontSize: '0.82rem', background: 'hsl(var(--card))', color: 'hsl(var(--foreground))' };
 import { supabase } from '../../lib/supabase';
 
 const productionData = [
@@ -28,9 +31,9 @@ const aiResponses: Record<string, string> = {
 
 interface SimScenario { label: string; production: string; revenue: string; investment: string; roi: string; risk: string; riskColor: string; }
 const scenarios: SimScenario[] = [
-    { label: 'Duplicar colmenas en 2027', production: '5.6 ton', revenue: '$8.4M', investment: '$1.2M', roi: '18 meses', risk: 'Moderado', riskColor: 'var(--salud-atencion)' },
-    { label: 'Expandir sachets en Santiago', production: '3.2 ton', revenue: '$6.1M', investment: '$400K', roi: '8 meses', risk: 'Bajo', riskColor: 'var(--salud-optima)' },
-    { label: 'Abrir apiario nuevo en Ancud', production: '4.1 ton', revenue: '$7.2M', investment: '$800K', roi: '14 meses', risk: 'Moderado', riskColor: 'var(--salud-atencion)' },
+  { label: 'Duplicar colmenas en 2027', production: '5.6 ton', revenue: '$8.4M', investment: '$1.2M', roi: '18 meses', risk: 'Moderado', riskColor: 'hsl(var(--warning))' },
+  { label: 'Expandir sachets en Santiago', production: '3.2 ton', revenue: '$6.1M', investment: '$400K', roi: '8 meses', risk: 'Bajo', riskColor: 'hsl(var(--success))' },
+  { label: 'Abrir apiario nuevo en Ancud', production: '4.1 ton', revenue: '$7.2M', investment: '$800K', roi: '14 meses', risk: 'Moderado', riskColor: 'hsl(var(--warning))' },
 ];
 
 export function EjecutivoPanel() {
@@ -147,7 +150,7 @@ export function EjecutivoPanel() {
             {/* Fullscreen chart modal */}
             {expandedChart && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)' }} onClick={() => setExpandedChart(null)} />
+                    <div style={{ position: 'absolute', inset: 0, background: 'hsl(var(--foreground) / 0.6)', backdropFilter: 'blur(6px)' }} onClick={() => setExpandedChart(null)} />
                     <div className="card" style={{ position: 'relative', zIndex: 201, width: '90%', maxWidth: 900, padding: 'var(--space-xl)', animation: 'fadeInUp 0.3s ease' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
                             <h3>{expandedChart === 'production' ? 'Producción 2026' : expandedChart === 'revenue' ? 'Ingresos por Formato' : 'Flujo de Caja'}</h3>
@@ -156,11 +159,11 @@ export function EjecutivoPanel() {
                         <div style={{ height: 400 }}>
                             <ResponsiveContainer width="100%" height="100%">
                                 {expandedChart === 'production' ? (
-                                    <AreaChart data={productionData}><CartesianGrid strokeDasharray="3 3" stroke="rgba(10,61,47,0.08)" /><XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontFamily: 'Inter', fontSize: '0.82rem' }} /><Area type="monotone" dataKey="projected" stroke={ORO_MIEL} fill="rgba(212,160,23,0.1)" strokeDasharray="5 5" /><Area type="monotone" dataKey="actual" stroke={BOSQUE_ULMO} fill="rgba(10,61,47,0.15)" strokeWidth={2} /></AreaChart>
-                                ) : expandedChart === 'revenue' ? (
-                                    <BarChart data={revenueByProduct} layout="vertical"><CartesianGrid strokeDasharray="3 3" stroke="rgba(10,61,47,0.08)" horizontal={false} /><XAxis type="number" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} /><YAxis dataKey="product" type="category" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} width={70} /><Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontFamily: 'Inter', fontSize: '0.82rem' }} /><Bar dataKey="revenue" fill={BOSQUE_ULMO} radius={[0, 4, 4, 0]} /></BarChart>
-                                ) : (
-                                    <AreaChart data={localCashFlow}><CartesianGrid strokeDasharray="3 3" stroke="rgba(10,61,47,0.08)" /><XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontFamily: 'Inter', fontSize: '0.82rem' }} /><Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill="rgba(46,204,113,0.12)" strokeWidth={2} /><Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill="rgba(231,76,60,0.08)" strokeWidth={2} /></AreaChart>
+                <AreaChart data={productionData}><CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} /><XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><Tooltip contentStyle={CHART_TOOLTIP} /><Area type="monotone" dataKey="projected" stroke={ORO_MIEL} fill="hsl(var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l) / 0.1)" strokeDasharray="5 5" /><Area type="monotone" dataKey="actual" stroke={BOSQUE_ULMO} fill="hsl(var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) var(--enj-bosque-ulmo-l) / 0.15)" strokeWidth={2} /></AreaChart>
+              ) : expandedChart === 'revenue' ? (
+                <BarChart data={revenueByProduct} layout="vertical"><CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} /><XAxis type="number" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} /><YAxis dataKey="product" type="category" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} width={70} /><Tooltip contentStyle={CHART_TOOLTIP} /><Bar dataKey="revenue" fill={BOSQUE_ULMO} radius={[0, 4, 4, 0]} /></BarChart>
+              ) : (
+                <AreaChart data={localCashFlow}><CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} /><XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><Tooltip contentStyle={CHART_TOOLTIP} /><Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill="hsl(var(--enj-verde-h) var(--enj-verde-s) var(--enj-verde-l) / 0.12)" strokeWidth={2} /><Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill="hsl(var(--enj-rojo-h) var(--enj-rojo-s) var(--enj-rojo-l) / 0.08)" strokeWidth={2} /></AreaChart>
                                 )}
                             </ResponsiveContainer>
                         </div>
@@ -179,8 +182,8 @@ export function EjecutivoPanel() {
                 ))}
             </div>
             <div className="dashboard-grid dashboard-grid-2" style={{ marginTop: 'var(--space-lg)' }}>
-                <div className="card animate-in delay-2"><div className="section-header"><div><div className="section-title">Producción 2026</div><div className="section-subtitle">Real vs Proyección (kg)</div></div><button className="btn btn-ghost btn-sm" onClick={() => setExpandedChart('production')}><Expand size={14} /></button></div><div style={{ height: 260 }}><ResponsiveContainer width="100%" height="100%"><AreaChart data={productionData}><CartesianGrid strokeDasharray="3 3" stroke="rgba(10,61,47,0.08)" /><XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontFamily: 'Inter', fontSize: '0.82rem' }} /><Area type="monotone" dataKey="projected" stroke={ORO_MIEL} fill="rgba(212,160,23,0.1)" strokeDasharray="5 5" /><Area type="monotone" dataKey="actual" stroke={BOSQUE_ULMO} fill="rgba(10,61,47,0.15)" strokeWidth={2} /></AreaChart></ResponsiveContainer></div></div>
-                <div className="card animate-in delay-3"><div className="section-header"><div><div className="section-title">Revenue por Formato</div><div className="section-subtitle">Miles CLP · Margen %</div></div><button className="btn btn-ghost btn-sm" onClick={() => setExpandedChart('revenue')}><Expand size={14} /></button></div><div style={{ height: 260 }}><ResponsiveContainer width="100%" height="100%"><BarChart data={revenueByProduct} layout="vertical"><CartesianGrid strokeDasharray="3 3" stroke="rgba(10,61,47,0.08)" horizontal={false} /><XAxis type="number" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} /><YAxis dataKey="product" type="category" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} width={70} /><Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontFamily: 'Inter', fontSize: '0.82rem' }} /><Bar dataKey="revenue" fill={BOSQUE_ULMO} radius={[0, 4, 4, 0]} /></BarChart></ResponsiveContainer></div></div>
+<div className="card animate-in delay-2"><div className="section-header"><div><div className="section-title">Producción 2026</div><div className="section-subtitle">Real vs Proyección (kg)</div></div><button className="btn btn-ghost btn-sm" onClick={() => setExpandedChart('production')}><Expand size={14} /></button></div><div style={{ height: 260 }}><ResponsiveContainer width="100%" height="100%"><AreaChart data={productionData}><CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} /><XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><Tooltip contentStyle={CHART_TOOLTIP} /><Area type="monotone" dataKey="projected" stroke={ORO_MIEL} fill="hsl(var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l) / 0.1)" strokeDasharray="5 5" /><Area type="monotone" dataKey="actual" stroke={BOSQUE_ULMO} fill="hsl(var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) var(--enj-bosque-ulmo-l) / 0.15)" strokeWidth={2} /></AreaChart></ResponsiveContainer></div></div>
+      <div className="card animate-in delay-3"><div className="section-header"><div><div className="section-title">Revenue por Formato</div><div className="section-subtitle">Miles CLP · Margen %</div></div><button className="btn btn-ghost btn-sm" onClick={() => setExpandedChart('revenue')}><Expand size={14} /></button></div><div style={{ height: 260 }}><ResponsiveContainer width="100%" height="100%"><BarChart data={revenueByProduct} layout="vertical"><CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} /><XAxis type="number" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} /><YAxis dataKey="product" type="category" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} width={70} /><Tooltip contentStyle={CHART_TOOLTIP} /><Bar dataKey="revenue" fill={BOSQUE_ULMO} radius={[0, 4, 4, 0]} /></BarChart></ResponsiveContainer></div></div>
             </div>
             <div className="dashboard-grid dashboard-grid-2-1" style={{ marginTop: 'var(--space-lg)' }}>
                 <div className="card animate-in delay-3">
@@ -192,9 +195,9 @@ export function EjecutivoPanel() {
                         </div>
                     </div>
                     {showTxForm && (
-                        <div style={{ padding: 'var(--space-md)', background: 'var(--oro-miel-glow)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid rgba(212,160,23,0.3)', position: 'relative' }}>
-                            <button onClick={() => setShowTxForm(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={16} /></button>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--bosque-ulmo)', marginBottom: 'var(--space-sm)' }}>Registrar Movimiento</div>
+<div style={{ padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.08)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid hsl(var(--accent) / 0.3)', position: 'relative' }}>
+          <button onClick={() => setShowTxForm(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
+          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-sm)' }}>Registrar Movimiento</div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 8 }}>
                                 <input type="text" placeholder="Mes (Ene, Feb...)" className="input-field" value={txForm.month} onChange={e => setTxForm({ ...txForm, month: e.target.value })} />
                                 <input type="number" placeholder="Ingreso" className="input-field" value={txForm.income || ''} onChange={e => setTxForm({ ...txForm, income: parseInt(e.target.value) || 0 })} />
@@ -205,27 +208,27 @@ export function EjecutivoPanel() {
                             </div>
                         </div>
                     )}
-                    <div style={{ height: 220 }}><ResponsiveContainer width="100%" height="100%"><AreaChart data={localCashFlow}><CartesianGrid strokeDasharray="3 3" stroke="rgba(10,61,47,0.08)" /><XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontFamily: 'Inter', fontSize: '0.82rem' }} /><Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill="rgba(46,204,113,0.12)" strokeWidth={2} /><Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill="rgba(231,76,60,0.08)" strokeWidth={2} /></AreaChart></ResponsiveContainer></div>
+                    <div style={{ height: 220 }}><ResponsiveContainer width="100%" height="100%"><AreaChart data={localCashFlow}><CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} /><XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} /><Tooltip contentStyle={CHART_TOOLTIP} /><Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill="hsl(var(--enj-verde-h) var(--enj-verde-s) var(--enj-verde-l) / 0.12)" strokeWidth={2} /><Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill="hsl(var(--enj-rojo-h) var(--enj-rojo-s) var(--enj-rojo-l) / 0.08)" strokeWidth={2} /></AreaChart></ResponsiveContainer></div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-                    <div className="card animate-in delay-4" style={{ border: '1px solid rgba(212,160,23,0.2)' }}>
-                        <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)', display: 'flex', alignItems: 'center', gap: 8 }}><TrendingUp size={18} style={{ color: 'var(--oro-miel-dark)' }} /> Simulador de Crecimiento</div>
+<div className="card animate-in delay-4" style={{ border: '1px solid hsl(var(--accent) / 0.2)' }}>
+          <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)', display: 'flex', alignItems: 'center', gap: 8 }}><TrendingUp size={18} style={{ color: 'hsl(var(--accent))' }} /> Simulador de Crecimiento</div>
                         <div style={{ display: 'flex', gap: 'var(--space-xs)', marginBottom: 'var(--space-md)', flexWrap: 'wrap' }}>
                             {scenarios.map((s, i) => (<button key={i} className={`btn btn-sm ${i === scenarioIdx ? 'btn-gold' : 'btn-outline'}`} style={{ fontSize: '0.72rem' }} onClick={() => setScenarioIdx(i)}>{s.label}</button>))}
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
-                            <div style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: 'rgba(46,204,113,0.08)', textAlign: 'center' }}><div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--salud-optima)' }}>{sc.production}</div><div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Producción</div></div>
-                            <div style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: 'var(--oro-miel-glow)', textAlign: 'center' }}><div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--oro-miel-dark)' }}>{sc.revenue}</div><div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Revenue</div></div>
+<div style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: 'hsl(var(--success) / 0.08)', textAlign: 'center' }}><div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'hsl(var(--success))' }}>{sc.production}</div><div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))' }}>Producción</div></div>
+          <div style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: 'hsl(var(--accent) / 0.1)', textAlign: 'center' }}><div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{sc.revenue}</div><div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))' }}>Revenue</div></div>
                         </div>
-                        <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)', background: 'rgba(10,61,47,0.04)', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', lineHeight: 1.8, color: 'var(--text-secondary)' }}><strong style={{ color: 'var(--bosque-ulmo)' }}>Inversión:</strong> {sc.investment}<br /><strong style={{ color: 'var(--bosque-ulmo)' }}>ROI:</strong> {sc.roi}<br /><strong style={{ color: 'var(--bosque-ulmo)' }}>Riesgo:</strong> <span style={{ color: sc.riskColor }}>{sc.risk}</span></div>
+                        <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', lineHeight: 1.8, color: 'hsl(var(--muted-foreground))' }}><strong style={{ color: 'hsl(var(--foreground))' }}>Inversión:</strong> {sc.investment}<br /><strong style={{ color: 'hsl(var(--foreground))' }}>ROI:</strong> {sc.roi}<br /><strong style={{ color: 'hsl(var(--foreground))' }}>Riesgo:</strong> <span style={{ color: sc.riskColor }}>{sc.risk}</span></div>
                     </div>
                     <div className="ai-panel animate-in delay-5">
-                        <div className="ai-panel-header"><Crown size={18} style={{ color: 'var(--oro-miel)' }} /><span className="ai-panel-title">La Reina · IA Asistente</span></div>
+                        <div className="ai-panel-header"><Crown size={18} style={{ color: 'hsl(var(--accent))' }} /><span className="ai-panel-title">La Reina · IA Asistente</span></div>
                         <div className="ai-panel-body" style={{ maxHeight: 280 }}>
                             {chatMessages.map((msg, i) => (
                                 <div key={i} className="ai-message" style={{ flexDirection: msg.from === 'user' ? 'row-reverse' : 'row' }}>
                                     <div className="ai-message-avatar">{msg.from === 'ai' ? '👑' : 'CL'}</div>
-                                    <div className="ai-message-content" style={{ background: msg.from === 'user' ? 'var(--oro-miel-glow)' : 'rgba(10,61,47,0.04)' }}>{msg.text}</div>
+                                    <div className="ai-message-content" style={{ background: msg.from === 'user' ? 'hsl(var(--accent) / 0.08)' : 'hsl(var(--muted) / 0.5)' }}>{msg.text}</div>
                                 </div>
                             ))}
                         </div>
