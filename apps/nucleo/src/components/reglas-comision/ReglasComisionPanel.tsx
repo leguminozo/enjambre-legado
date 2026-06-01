@@ -24,11 +24,11 @@ type RuleType = typeof ruleTypes[number];
 
 const ruleTypeLabels: Record<RuleType, string> = {
   base: 'Base',
-  channel_rate: 'Rate por Canal',
+  channel_rate: 'Tasa por Canal',
   volume_threshold: 'Multiplicador de Volumen',
   loyalty: 'Fidelización',
   streak: 'Racha',
-  tier_bonus: 'Bonus por Tier',
+  tier_bonus: 'Bono por Nivel',
 };
 
 const defaultParams: Record<RuleType, Record<string, unknown>> = {

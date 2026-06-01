@@ -42,7 +42,7 @@ export function InvitacionesPanel() {
   const [activeTab, setActiveTab] = useState<'codigos' | 'canjes'>('codigos');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-  const [newCode, setNewCode] = useState({ roles: ['rep_ventas'] as string[], maxUses: '', expiresAt: '' });
+  const [newCode, setNewCode] = useState({ maxUses: '', expiresAt: '' });
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -73,21 +73,21 @@ export function InvitacionesPanel() {
       const { data: { session: authSession } } = await supabase.auth.getSession();
       if (!authSession) throw new Error('No autenticado');
 
-      const payload: Record<string, unknown> = {
-        code: generateCode(),
-        created_by: authSession.user.id,
-        roles: newCode.roles,
-        active: true,
-      };
+        const payload: Record<string, unknown> = {
+          code: generateCode(),
+          created_by: authSession.user.id,
+          roles: ['gerente'],
+          active: true,
+        };
       if (newCode.maxUses) payload.max_uses = Number(newCode.maxUses);
       if (newCode.expiresAt) payload.expires_at = new Date(newCode.expiresAt).toISOString();
 
       const { error } = await supabase.from('invitation_codes').insert(payload);
       if (error) throw error;
 
-      showToast('Código creado', 'success');
+      showToast('Invitación creada', 'success');
       setShowCreate(false);
-      setNewCode({ roles: ['rep_ventas'], maxUses: '', expiresAt: '' });
+      setNewCode({ maxUses: '', expiresAt: '' });
       await fetchAll();
     } catch (err) {
       showToast(friendlyError(err, 'Error al crear código'), 'error');
@@ -163,16 +163,16 @@ export function InvitacionesPanel() {
         </div>
         <div>
           <h2 className="text-2xl font-display text-bosque-ulmo">Invitaciones</h2>
-          <p className="text-sm text-text-muted">Códigos de acceso · Onboarding de reps y roles</p>
+          <p className="text-sm text-text-muted">Códigos de acceso · Onboarding al enjambre</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: <Ticket size={18} />, val: codes.length, label: 'Total Códigos', accent: '' },
-          { icon: <CheckCircle2 size={18} />, val: codes.filter(c => c.active).length, label: 'Activos', accent: 'text-salud-optima' },
-          { icon: <Clock size={18} />, val: redemptions.length, label: 'Canjes', accent: 'text-oro-miel-dark' },
-          { icon: <Eye size={18} />, val: codes.reduce((s, c) => s + c.current_uses, 0), label: 'Usos Totales', accent: '' },
+      { icon: <Ticket size={18} />, val: codes.length, label: 'Invitaciones', accent: '' },
+        { icon: <CheckCircle2 size={18} />, val: codes.filter(c => c.active).length, label: 'Activas', accent: 'text-salud-optima' },
+        { icon: <Clock size={18} />, val: redemptions.length, label: 'Canjes', accent: 'text-oro-miel-dark' },
+        { icon: <Eye size={18} />, val: codes.reduce((s, c) => s + c.current_uses, 0), label: 'Usos', accent: '' },
         ].map((s, i) => (
           <div key={i} className="stat-card animate-in" style={{ animationDelay: `${i * 80}ms` }}>
             <div className="stat-header"><div className="stat-icon">{s.icon}</div></div>
@@ -189,31 +189,29 @@ export function InvitacionesPanel() {
           </button>
         ))}
         <button onClick={() => setShowCreate(!showCreate)} className="btn btn-gold flex items-center gap-2 ml-auto">
-          <Plus size={16} />Nuevo Código
+          <Plus size={16} />Nueva Invitación
         </button>
       </div>
 
       {showCreate && (
         <div className="card p-6 space-y-4">
-          <h3 className="font-display text-lg">Crear Código de Invitación</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <h3 className="font-display text-lg">Nueva Invitación</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Roles (separados por coma)</label>
-              <input type="text" value={newCode.roles.join(',')} onChange={e => setNewCode({ ...newCode, roles: e.target.value.split(',').map(r => r.trim()) })} className="input-field text-sm" placeholder="rep_ventas, vendedor" />
+              <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Límite de usos</label>
+              <input type="number" min={1} value={newCode.maxUses} onChange={e => setNewCode({ ...newCode, maxUses: e.target.value })} className="input-field text-sm" placeholder="Sin límite" />
+              <p className="text-[0.6rem] text-text-muted mt-1">Dejar vacío para usos ilimitados</p>
             </div>
             <div>
-              <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Usos máximos (vacío = ilimitado)</label>
-              <input type="number" min={1} value={newCode.maxUses} onChange={e => setNewCode({ ...newCode, maxUses: e.target.value })} className="input-field text-sm" placeholder="10" />
-            </div>
-            <div>
-              <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Expiración</label>
+              <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Vigencia</label>
               <input type="date" value={newCode.expiresAt} onChange={e => setNewCode({ ...newCode, expiresAt: e.target.value })} className="input-field text-sm" />
+              <p className="text-[0.6rem] text-text-muted mt-1">Sin fecha = sin expiración</p>
             </div>
           </div>
           <div className="flex gap-3">
             <button disabled={actionLoading === 'creating'} onClick={createCode} className="btn btn-gold text-xs">
               {actionLoading === 'creating' ? <Loader2 className="animate-spin" size={14} /> : <Plus size={14} />}
-              Crear
+              Generar código
             </button>
             <button onClick={() => setShowCreate(false)} className="btn btn-outline text-xs">Cancelar</button>
           </div>
@@ -236,9 +234,8 @@ export function InvitacionesPanel() {
                       </button>
                       {!c.active && <span className="text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-salud-riesgo/10 text-salud-riesgo">inactivo</span>}
                     </div>
-                    <div className="flex items-center gap-4 mt-2 flex-wrap">
-                      <span className="text-[0.65rem] text-text-muted">Roles: <strong className="text-bosque-ulmo">{c.roles.join(', ')}</strong></span>
-                      <span className="text-[0.65rem] text-text-muted">Usos: <strong>{c.current_uses}{c.max_uses ? `/${c.max_uses}` : ''}</strong></span>
+                <div className="flex items-center gap-4 mt-2 flex-wrap">
+                  <span className="text-[0.65rem] text-text-muted">Usos: <strong>{c.current_uses}{c.max_uses ? `/${c.max_uses}` : ''}</strong></span>
                       {c.expires_at && <span className="text-[0.65rem] text-text-muted">Expira: {new Date(c.expires_at).toLocaleDateString('es-CL')}</span>}
                       <span className="text-[0.65rem] text-text-muted">Creado por: {c.profiles?.full_name || '—'}</span>
                     </div>
@@ -280,10 +277,9 @@ export function InvitacionesPanel() {
                   <p className="font-bold text-sm text-bosque-ulmo">{r.profiles?.full_name || 'Usuario'}</p>
                   <span className="text-xs text-text-muted">{r.profiles?.email}</span>
                 </div>
-                <div className="flex items-center gap-4 mt-1">
-                  <span className="text-[0.65rem] text-text-muted">Código: <strong className="font-mono text-oro-miel-dark">{r.invitation_codes?.code}</strong></span>
-                  <span className="text-[0.65rem] text-text-muted">Roles: <strong className="text-bosque-ulmo">{r.roles_assigned.join(', ')}</strong></span>
-                  <span className="text-[0.65rem] text-text-muted">{new Date(r.redeemed_at).toLocaleDateString('es-CL')}</span>
+              <div className="flex items-center gap-4 mt-1">
+                <span className="text-[0.65rem] text-text-muted">Código: <strong className="font-mono text-oro-miel-dark">{r.invitation_codes?.code}</strong></span>
+                <span className="text-[0.65rem] text-text-muted">{new Date(r.redeemed_at).toLocaleDateString('es-CL')}</span>
                 </div>
               </div>
             ))}

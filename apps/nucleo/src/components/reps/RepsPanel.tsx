@@ -67,7 +67,7 @@ export function RepsPanel() {
         .eq('user_id', userId);
 
       if (error) throw error;
-      showToast('Rep actualizado', 'success');
+      showToast('Representante actualizado', 'success');
       setEditRep(null);
       await fetchReps();
     } catch (err) {
@@ -86,7 +86,7 @@ export function RepsPanel() {
         .eq('user_id', userId);
 
       if (error) throw error;
-      showToast('Rep desactivado', 'success');
+      showToast('Representante desactivado', 'success');
       await fetchReps();
     } catch (err) {
       showToast(friendlyError(err, 'Error al desactivar'), 'error');
@@ -116,7 +116,7 @@ export function RepsPanel() {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <Loader2 className="animate-spin text-oro-miel-dark" size={32} />
-        <p className="text-sm text-text-muted font-datos uppercase tracking-widest">Cargando reps...</p>
+        <p className="text-sm text-text-muted font-datos uppercase tracking-widest">Cargando representantes...</p>
       </div>
     );
   }
@@ -137,14 +137,14 @@ export function RepsPanel() {
           <Users size={24} />
         </div>
         <div>
-          <h2 className="text-2xl font-display text-bosque-ulmo">Reps de Ventas</h2>
-          <p className="text-sm text-text-muted">Gestión de representantes · Tiers, comisiones y estado</p>
+      <h2 className="text-2xl font-display text-bosque-ulmo">Representantes</h2>
+      <p className="text-sm text-text-muted">Gestión de representantes · Niveles, comisiones y estado</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: <Users size={18} />, val: reps.length, label: 'Total Reps', accent: '' },
+          { icon: <Users size={18} />, val: reps.length, label: 'Total Representantes', accent: '' },
           { icon: <ChevronRight size={18} />, val: reps.filter(r => r.active).length, label: 'Activos', accent: 'text-salud-optima' },
           { icon: <AlertCircle size={18} />, val: formatCLP(reps.reduce((s, r) => s + Number(r.total_commissions_earned || 0) - Number(r.total_commissions_paid || 0), 0)), label: 'Comisiones Pendientes', accent: 'text-oro-miel-dark' },
           { icon: <ChevronRight size={18} />, val: Math.max(...reps.map(r => r.best_streak_days || 0), 0), label: 'Mejor Racha (días)', accent: '' },
@@ -159,11 +159,11 @@ export function RepsPanel() {
 
       <div className="card">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-          <h3 className="font-display text-lg">Reps Registrados</h3>
+          <h3 className="font-display text-lg">Representantes Registrados</h3>
           <div className="flex gap-3 items-center">
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-              <input type="text" placeholder="Buscar rep..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="input-field pl-9 text-sm" style={{ width: 200 }} />
+              <input type="text" placeholder="Buscar representante..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="input-field pl-9 text-sm" style={{ width: 200 }} />
             </div>
             <div className="relative">
               <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
@@ -178,7 +178,7 @@ export function RepsPanel() {
 
         <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
           {filteredReps.length === 0 ? (
-            <p className="text-sm text-text-muted italic py-8 text-center">No hay reps que coincidan.</p>
+            <p className="text-sm text-text-muted italic py-8 text-center">No hay representantes que coincidan.</p>
           ) : filteredReps.map(rep => (
             <div key={rep.user_id} className={`p-5 rounded-xl bg-black/[0.03] border border-white/[0.06] hover:border-oro-miel/20 transition-all ${!rep.active ? 'opacity-50' : ''}`}>
               <div className="flex items-start justify-between gap-4">
@@ -193,7 +193,7 @@ export function RepsPanel() {
                   <p className="text-xs text-text-muted">{rep.profiles?.email}</p>
                   <div className="flex items-center gap-4 mt-2 flex-wrap">
                     <span className="text-[0.65rem] text-text-muted">Ventas: <strong className="text-bosque-ulmo">{rep.total_sales_lifetime}</strong></span>
-                    <span className="text-[0.65rem] text-text-muted">Revenue: <strong className="text-bosque-ulmo">{formatCLP(rep.total_revenue_lifetime)}</strong></span>
+                    <span className="text-[0.65rem] text-text-muted">Ingresos: <strong className="text-bosque-ulmo">{formatCLP(rep.total_revenue_lifetime)}</strong></span>
                     <span className="text-[0.65rem] text-text-muted">Comisiones: <strong className="text-oro-miel-dark">{formatCLP(rep.total_commissions_earned)}</strong></span>
                     <span className="text-[0.65rem] text-text-muted">Racha: <strong>{rep.current_streak_days}d</strong> (mejor: {rep.best_streak_days}d)</span>
                     {rep.fixed_monthly > 0 && <span className="text-[0.65rem] text-text-muted">Honorarios: <strong>{formatCLP(rep.fixed_monthly)}/mes</strong></span>}
@@ -225,12 +225,12 @@ export function RepsPanel() {
     <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
       <div className="flex gap-3 items-end">
         <div className="flex-1">
-          <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Tier</label>
+          <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Nivel</label>
           <select value={editRep.tier} onChange={e => setEditRep({ ...editRep, tier: e.target.value })} className="input-field text-sm">
             <option value="base">Base</option>
             <option value="senior">Senior</option>
             <option value="elite">Elite</option>
-            <option value="legend">Legend</option>
+            <option value="legend">Leyenda</option>
           </select>
         </div>
         <div className="flex-1">
@@ -239,12 +239,12 @@ export function RepsPanel() {
         </div>
         <label className="flex items-center gap-1.5 text-[0.6rem] uppercase text-text-muted tracking-wider pb-2">
           <input type="checkbox" checked={editRep.tierOverride !== null} onChange={e => setEditRep({ ...editRep, tierOverride: e.target.checked ? editRep.tier : null })} className="rounded" />
-          Override
+        Override
         </label>
         <button onClick={() => updateRep(rep.user_id, { commission_tier: editRep.tier, fixed_monthly: editRep.fixedMonthly, tier_override: editRep.tierOverride })} className="btn btn-gold text-xs">Guardar</button>
         <button onClick={() => setEditRep(null)} className="btn btn-outline text-xs"><X size={14} /></button>
-      </div>
-      {editRep.tierOverride && <p className="text-[0.6rem] text-amber-600">Override activo: la evaluación automática no cambiará este tier.</p>}
+        </div>
+        {editRep.tierOverride && <p className="text-[0.6rem] text-amber-600">Excepción manual activa: la evaluación automática no cambiará este nivel.</p>}
     </div>
   )}
             </div>

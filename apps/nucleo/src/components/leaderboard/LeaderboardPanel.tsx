@@ -51,7 +51,7 @@ export function LeaderboardPanel() {
       if (error) throw error;
       setEntries((data as unknown as LeaderboardEntry[]) || []);
     } catch (err) {
-      showToast(friendlyError(err, 'Error al cargar leaderboard'), 'error');
+      showToast(friendlyError(err, 'Error al cargar ranking'), 'error');
     } finally {
       setLoading(false);
     }
@@ -67,7 +67,7 @@ export function LeaderboardPanel() {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <Loader2 className="animate-spin text-oro-miel-dark" size={32} />
-        <p className="text-sm text-text-muted font-datos uppercase tracking-widest">Cargando leaderboard...</p>
+        <p className="text-sm text-text-muted font-datos uppercase tracking-widest">Cargando ranking...</p>
       </div>
     );
   }
@@ -92,14 +92,14 @@ export function LeaderboardPanel() {
           <Trophy size={24} />
         </div>
         <div>
-          <h2 className="text-2xl font-display text-bosque-ulmo">Leaderboard Semanal</h2>
+          <h2 className="text-2xl font-display text-bosque-ulmo">Ranking Semanal</h2>
           <p className="text-sm text-text-muted">{weekLabel} · Ranking por comisiones</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: <Trophy size={18} />, val: entries.length, label: 'Reps Activos', accent: '' },
+          { icon: <Trophy size={18} />, val: entries.length, label: 'Representantes Activos', accent: '' },
           { icon: <TrendingUp size={18} />, val: formatCLP(totalCommissions), label: 'Comisiones Totales', accent: 'text-oro-miel-dark' },
           { icon: <Medal size={18} />, val: totalSales, label: 'Ventas Totales', accent: '' },
           { icon: <Crown size={18} />, val: entries[0]?.display_name || '—', label: 'Líder Semanal', accent: 'text-amber-600' },
@@ -142,11 +142,11 @@ export function LeaderboardPanel() {
               <thead>
                 <tr className="text-left text-text-muted text-[0.65rem] uppercase tracking-wider border-b border-white/5">
                   <th className="pb-3 w-12">#</th>
-                  <th className="pb-3">Rep</th>
-                  <th className="pb-3">Tier</th>
-                  <th className="pb-3">Ventas</th>
-                  <th className="pb-3">Revenue</th>
-                  <th className="pb-3 font-bold">Comisiones</th>
+        <th className="pb-3">Representante</th>
+        <th className="pb-3">Nivel</th>
+        <th className="pb-3">Ventas</th>
+        <th className="pb-3">Ingresos</th>
+        <th className="pb-3 font-bold">Comisiones</th>
                 </tr>
               </thead>
               <tbody>
@@ -173,7 +173,7 @@ export function LeaderboardPanel() {
       {entries.length === 0 && (
         <div className="card p-8 text-center">
           <Trophy className="w-8 h-8 text-text-muted mx-auto mb-3" />
-          <p className="text-sm text-text-muted italic">Sin datos esta semana. El leaderboard se actualiza con cada venta.</p>
+          <p className="text-sm text-text-muted italic">Sin datos esta semana. El ranking se actualiza con cada venta.</p>
         </div>
       )}
     </div>

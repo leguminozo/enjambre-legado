@@ -12,6 +12,7 @@ interface CommissionRow {
   id: string;
   session_id: string;
   venta_id: string;
+  empresa_id: string;
   rep_id: string;
   base_commission: number;
   volume_multiplier: number;
@@ -23,12 +24,11 @@ interface CommissionRow {
   paid: boolean;
   paid_at: string | null;
   created_at: string;
-  rep_profiles: { display_name: string } | null;
-  profiles: { full_name: string } | null;
 }
 
 export function ComisionesPanel() {
   const [commissions, setCommissions] = useState<CommissionRow[]>([]);
+  const [repNames, setRepNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -46,14 +46,39 @@ export function ComisionesPanel() {
   const fetchCommissions = async () => {
     setLoading(true);
     try {
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      if (!authSession) throw new Error('No autenticado');
+
+      const { data: ueData } = await supabase
+        .from('usuarios_empresas')
+        .select('empresa_id')
+        .eq('user_id', authSession.user.id)
+        .limit(1);
+      const empresaId = ueData?.[0]?.empresa_id;
+      if (!empresaId) throw new Error('Sin empresa asignada');
+
       const { data, error } = await supabase
         .from('commission_records')
-        .select('*, rep_profiles!commission_records_rep_id_fkey(display_name), profiles!commission_records_rep_id_fkey(full_name)')
+        .select('*')
+        .eq('empresa_id', empresaId)
         .order('created_at', { ascending: false })
         .limit(200);
 
       if (error) throw error;
-      setCommissions((data as unknown as CommissionRow[]) || []);
+      const rows = (data as CommissionRow[]) || [];
+      setCommissions(rows);
+
+      const repIds = [...new Set(rows.map(r => r.rep_id))];
+      if (repIds.length > 0) {
+        const [rpRes, pRes] = await Promise.all([
+          supabase.from('rep_profiles').select('user_id, display_name').in('user_id', repIds),
+          supabase.from('profiles').select('id, full_name').in('id', repIds),
+        ]);
+        const map: Record<string, string> = {};
+        (rpRes.data || []).forEach((r: { user_id: string; display_name: string }) => { map[r.user_id] = r.display_name; });
+        (pRes.data || []).forEach((r: { id: string; full_name: string }) => { if (!map[r.id]) map[r.id] = r.full_name; });
+        setRepNames(map);
+      }
     } catch (err) {
       showToast(friendlyError(err, 'Error al cargar comisiones'), 'error');
     } finally {
@@ -68,12 +93,15 @@ export function ComisionesPanel() {
       const { data: { session: authSession } } = await supabase.auth.getSession();
       if (!authSession) throw new Error('No autenticado');
 
-      const { error } = await supabase
-        .from('commission_records')
-        .update({ paid: true, paid_at: new Date().toISOString(), paid_by: authSession.user.id })
-        .in('id', Array.from(selectedIds));
-
-      if (error) throw error;
+      const res = await fetch('/api/invitations/commissions/pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authSession.access_token}` },
+        body: JSON.stringify({ commission_ids: Array.from(selectedIds) }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Error al pagar comisiones');
+      }
       showToast(`${selectedIds.size} comisiones pagadas`, 'success');
       setSelectedIds(new Set());
       await fetchCommissions();
@@ -95,7 +123,7 @@ export function ComisionesPanel() {
   const filteredCommissions = commissions.filter(c => {
     if (filterPaid === 'pendientes' && c.paid) return false;
     if (filterPaid === 'pagadas' && !c.paid) return false;
-    const name = c.rep_profiles?.display_name || c.profiles?.full_name || '';
+    const name = repNames[c.rep_id] || '';
     if (searchQuery && !name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
@@ -132,7 +160,7 @@ export function ComisionesPanel() {
         </div>
         <div>
           <h2 className="text-2xl font-display text-bosque-ulmo">Comisiones</h2>
-          <p className="text-sm text-text-muted">Registro de comisiones devengadas · Pago y auditoría</p>
+          <p className="text-sm text-text-muted">Comisiones devengadas · Pago y auditoría</p>
         </div>
       </div>
 
@@ -140,7 +168,7 @@ export function ComisionesPanel() {
         {[
           { icon: <DollarSign size={18} />, val: formatCLP(totalPending), label: 'Pendientes', accent: 'text-oro-miel-dark' },
           { icon: <CheckCircle2 size={18} />, val: formatCLP(totalPaid), label: 'Pagadas', accent: 'text-salud-optima' },
-          { icon: <Percent size={18} />, val: commissions.length, label: 'Total Registros', accent: '' },
+          { icon: <Percent size={18} />, val: commissions.length, label: 'Total', accent: '' },
           { icon: <Eye size={18} />, val: selectedIds.size, label: 'Seleccionadas', accent: 'text-blue-500' },
         ].map((s, i) => (
           <div key={i} className="stat-card animate-in" style={{ animationDelay: `${i * 80}ms` }}>
@@ -153,22 +181,22 @@ export function ComisionesPanel() {
 
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-4 p-4 rounded-xl bg-oro-miel-glow/20 border border-oro-miel/20">
-          <span className="text-sm text-bosque-ulmo font-medium">{selectedIds.size} seleccionadas · Total: {formatCLP(selectedTotal)}</span>
-          <button disabled={actionLoading} onClick={payCommissions} className="btn btn-gold text-xs ml-auto">
-            {actionLoading ? <Loader2 className="animate-spin" size={14} /> : <DollarSign size={14} />}
-            Pagar Seleccionadas
-          </button>
-          <button onClick={() => setSelectedIds(new Set())} className="btn btn-outline text-xs">Limpiar</button>
+        <span className="text-sm text-bosque-ulmo font-medium">{selectedIds.size} seleccionadas · Total: {formatCLP(selectedTotal)}</span>
+        <button disabled={actionLoading} onClick={payCommissions} className="btn btn-gold text-xs ml-auto">
+          {actionLoading ? <Loader2 className="animate-spin" size={14} /> : <DollarSign size={14} />}
+          Marcar como pagadas
+        </button>
+        <button onClick={() => setSelectedIds(new Set())} className="btn btn-outline text-xs">Descartar</button>
         </div>
       )}
 
       <div className="card">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-          <h3 className="font-display text-lg">Comisiones Devengadas</h3>
+          <h3 className="font-display text-lg">Comisiones del Enjambre</h3>
           <div className="flex gap-3 items-center">
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-              <input type="text" placeholder="Buscar por rep..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="input-field pl-9 text-sm" style={{ width: 200 }} />
+              <input type="text" placeholder="Buscar por representante..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="input-field pl-9 text-sm" style={{ width: 200 }} />
             </div>
             <div className="relative">
               <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
@@ -186,12 +214,12 @@ export function ComisionesPanel() {
             <thead>
       <tr className="text-left text-text-muted text-[0.65rem] uppercase tracking-wider border-b border-white/5">
         {!filterPaid?.startsWith('pag') && <th className="pb-3 w-8"></th>}
-        <th className="pb-3">Rep</th>
+        <th className="pb-3">Representante</th>
         <th className="pb-3">Base</th>
         <th className="pb-3">×Mult</th>
-        <th className="pb-3">Loyalty</th>
-        <th className="pb-3">Streak</th>
-        <th className="pb-3">Tier</th>
+        <th className="pb-3">Fidelización</th>
+        <th className="pb-3">Racha</th>
+        <th className="pb-3">Nivel</th>
         <th className="pb-3">Canal</th>
         <th className="pb-3 font-bold">Total</th>
         <th className="pb-3">Estado</th>
@@ -210,7 +238,7 @@ export function ComisionesPanel() {
                       )}
                     </td>
                   )}
-                  <td className="py-3 font-medium text-bosque-ulmo">{c.rep_profiles?.display_name || c.profiles?.full_name || '—'}</td>
+                  <td className="py-3 font-medium text-bosque-ulmo">{repNames[c.rep_id] || '—'}</td>
                   <td className="py-3">{formatCLP(Number(c.base_commission))}</td>
                   <td className="py-3">×{Number(c.volume_multiplier || 1).toFixed(1)}</td>
                   <td className="py-3">{Number(c.loyalty_bonus) > 0 ? formatCLP(Number(c.loyalty_bonus)) : '—'}</td>

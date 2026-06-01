@@ -133,7 +133,7 @@ export function CashSessionsPanel() {
       const res = await fetch('/api/cash-sessions/export/csv', {
         headers: { Authorization: `Bearer ${authSession.access_token}` },
       });
-      if (!res.ok) throw new Error('Export failed');
+      if (!res.ok) throw new Error('Error al exportar');
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -235,7 +235,7 @@ export function CashSessionsPanel() {
                     <div className="flex items-center gap-2 mb-1">
                       <StatusIcon size={14} className={s.session_status === 'reconciled' ? 'text-salud-optima' : s.session_status === 'closed' ? 'text-oro-miel-dark' : 'text-amber'} />
                       <p className="font-bold text-sm text-bosque-ulmo truncate">
-                        {s.rep_profiles?.display_name || s.profiles?.full_name || 'Rep desconocido'}
+                        {s.rep_profiles?.display_name || s.profiles?.full_name || 'Representante desconocido'}
                       </p>
                       <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
                         s.session_status === 'reconciled' ? 'bg-salud-optima/10 text-salud-optima' :
@@ -299,11 +299,11 @@ export function CashSessionsPanel() {
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 space-y-4" onClick={e => e.stopPropagation()}>
             <h3 className="font-display text-xl text-bosque-ulmo">Detalle de Sesión</h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="text-text-muted">Rep:</div>
+              <div className="text-text-muted">Representante:</div>
               <div className="font-medium text-bosque-ulmo">{selectedSession.rep_profiles?.display_name || selectedSession.profiles?.full_name}</div>
               <div className="text-text-muted">Ventas:</div>
               <div className="font-medium">{selectedSession.ventas_count}</div>
-              <div className="text-text-muted">Revenue:</div>
+              <div className="text-text-muted">Ingresos:</div>
               <div className="font-medium">{formatCLP(selectedSession.total_revenue)}</div>
               <div className="text-text-muted">Comisiones:</div>
               <div className="font-medium text-oro-miel-dark">{formatCLP(selectedSession.total_commissions)}</div>
