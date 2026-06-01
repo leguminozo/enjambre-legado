@@ -35,7 +35,7 @@ const pitches: Record<string, string> = {
 };
 
 export default function VendedorView() {
-    const { greeting, title, subtitle } = roleGreetings.vendedor;
+    const { greeting, title, subtitle } = roleGreetings.gerente;
     const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
 
     useEffect(() => {

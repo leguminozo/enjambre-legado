@@ -12,7 +12,7 @@ import {
 import { SIDEBAR_GROUPS, ACCOUNT_ITEMS, findActiveItem, type SidebarItem, type SidebarBadge } from '@/config/sidebar-config';
 import { SidebarSection, SidebarBadgeIndicator, type SidebarNavItemData } from '@enjambre/ui';
 import { useSidebarBadges } from '@/hooks/useSidebarBadges';
-import { roleLabels } from '@/data/mockData';
+import { ROLE } from '@/data/mockData';
 import { supabase } from '@/lib/supabase';
 
 const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
@@ -57,12 +57,11 @@ function toNavItemData(
 }
 
 interface SidebarProps {
-  currentRole: string;
   onToggle: () => void;
   isOpen: boolean;
 }
 
-export function Sidebar({ currentRole, onToggle, isOpen }: SidebarProps) {
+export function Sidebar({ onToggle, isOpen }: SidebarProps) {
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   const router = useRouter();
   const [userName, setUserName] = useState('Usuario');
@@ -107,18 +106,6 @@ export function Sidebar({ currentRole, onToggle, isOpen }: SidebarProps) {
 
   const activeItem = findActiveItem(pathname);
 
-  const visibleGroups = useMemo(
-    () =>
-      SIDEBAR_GROUPS.map(g => ({
-        ...g,
-        items: g.items.filter(item => {
-          if (!item.roles) return true;
-          return item.roles.includes(currentRole);
-        }),
-      })).filter(g => g.items.length > 0),
-    [currentRole]
-  );
-
   const badgeOverrides = useMemo(() => {
     const map: Record<string, SidebarBadge> = {};
     const entries = Object.entries(badges) as [string, SidebarBadge][];
@@ -136,7 +123,7 @@ export function Sidebar({ currentRole, onToggle, isOpen }: SidebarProps) {
       </div>
 
       <nav className="sidebar-nav">
-        {visibleGroups.map(group => (
+        {SIDEBAR_GROUPS.map(group => (
           <SidebarSection
             key={group.key}
             label={group.label}
@@ -176,7 +163,7 @@ export function Sidebar({ currentRole, onToggle, isOpen }: SidebarProps) {
           </div>
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">{userName}</div>
-            <div className="sidebar-user-role">{roleLabels[currentRole] || currentRole}</div>
+            <div className="sidebar-user-role">{ROLE}</div>
           </div>
           <button onClick={handleLogout} className="btn btn-ghost" style={{ padding: 6, color: 'hsl(var(--muted-foreground))' }} title="Cerrar sesión">
             <LogOut size={16} />

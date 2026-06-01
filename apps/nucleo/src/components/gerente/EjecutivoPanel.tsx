@@ -51,19 +51,10 @@ export function EjecutivoPanel() {
 
     useEffect(() => {
         async function loadData() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
 
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', session.user.id)
-                .single();
-            const isGerente = profile?.role === 'gerente';
-
-            let vq = supabase.from('ventas').select('total, created_at');
-            if (!isGerente) vq = vq.eq('vendedor_id', session.user.id);
-            const { data: ventasRows } = await vq;
+      const { data: ventasRows } = await supabase.from('ventas').select('total, created_at');
 
             const ytd = ventasRows?.reduce((a, v) => a + Number(v.total), 0) ?? 0;
             setFacturacionYTD(ytd);
@@ -75,9 +66,7 @@ export function EjecutivoPanel() {
                 incomeByMonth.set(key, (incomeByMonth.get(key) || 0) + Number(v.total));
             });
 
-            let cfQuery = supabase.from('cashflow').select('*').order('month');
-            if (!isGerente) cfQuery = cfQuery.eq('user_id', session.user.id);
-            const { data: cfRows } = await cfQuery;
+      const { data: cfRows } = await supabase.from('cashflow').select('*').order('month');
 
             const merged = new Map<string, { month: string; income: number; expenses: number }>();
             MONTH_LABELS.forEach((m) => merged.set(m, { month: m, income: 0, expenses: 0 }));

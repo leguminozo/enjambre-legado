@@ -392,11 +392,6 @@ protectedRoutes.get("/me/retiros", async (c) => {
 
 protectedRoutes.get("/admin/todos", async (c) => {
   const supabase = c.get("supabase");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin" && rol !== "marketing") {
-    return c.json({ code: "forbidden", message: "Sin permisos de administración" }, 403);
-  }
 
   const estado = c.req.query("estado");
 
@@ -420,12 +415,7 @@ protectedRoutes.get("/admin/todos", async (c) => {
 protectedRoutes.patch("/admin/:id/estado", async (c) => {
   const creadorId = c.req.param("id");
   const supabase = c.get("supabase");
-  const rol = c.get("rol");
   const body = await c.req.json<{ estado: string }>();
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   if (!["activo", "suspendido", "inactivo", "pendiente"].includes(body.estado)) {
     return c.json({ code: "invalid_state", message: "Estado no válido" }, 400);
@@ -458,12 +448,7 @@ protectedRoutes.patch("/admin/:id/estado", async (c) => {
 protectedRoutes.patch("/admin/:id/comision-tasa", async (c) => {
   const creadorId = c.req.param("id");
   const supabase = c.get("supabase");
-  const rol = c.get("rol");
   const body = await c.req.json<{ porcentaje_comision: number; descuento_cliente?: number }>();
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   const updatePayload: Record<string, unknown> = { porcentaje_comision: body.porcentaje_comision };
   if (body.descuento_cliente !== undefined) updatePayload.descuento_cliente = body.descuento_cliente;
@@ -486,11 +471,6 @@ protectedRoutes.patch("/admin/comisiones/:comisionId", zValidator("json", Aproba
   const comisionId = c.req.param("comisionId");
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   const { data, error } = await supabase
     .from("creador_comisiones")
@@ -511,11 +491,6 @@ protectedRoutes.patch("/admin/retiros/:retiroId", zValidator("json", AprobarReti
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
   const user = c.get("user");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   const updatePayload: Record<string, unknown> = {
     estado: input.estado,
@@ -542,11 +517,6 @@ protectedRoutes.patch("/admin/retiros/:retiroId", zValidator("json", AprobarReti
 
 protectedRoutes.get("/admin/ranking", async (c) => {
   const supabase = c.get("supabase");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin" && rol !== "marketing") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   const { data, error } = await supabase
     .from("creador_ranking_view")
@@ -562,12 +532,7 @@ protectedRoutes.get("/admin/ranking", async (c) => {
 
 protectedRoutes.post("/admin/calcular-metricas", async (c) => {
   const supabase = c.get("supabase");
-  const rol = c.get("rol");
   const body = await c.req.json<{ mes: string }>();
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   if (!body.mes || !/^\d{4}-\d{2}$/.test(body.mes)) {
     return c.json({ code: "invalid_month", message: "Formato de mes inválido (YYYY-MM)" }, 400);

@@ -322,15 +322,12 @@ export const mapMarkers: MapMarker[] = [
     { id: 'm10', type: 'feria', name: 'ExpoMundoRural Santiago', lat: -33.45, lng: -70.65, details: 'Anual · Ventas 2025: $1.800.000' },
 ];
 
+export const ROLE = 'gerente' as const;
+
 export const roleLabels: Record<string, string> = {
-    apicultor: 'Apicultor / Colmenero', vendedor: 'Vendedor / Comercial', gerente: 'Gerente / Dueño',
-    logistica: 'Logística y Operaciones', marketing: 'Marketing y Comunidad',
+  gerente: 'Gerente / Dueño',
 };
 
 export const roleGreetings: Record<string, { greeting: string; title: string; subtitle: string }> = {
-    apicultor: { greeting: 'Buenos días, Obrera del bosque 🐝', title: 'El ciclo del ulmo guía tu día', subtitle: 'Tus colmenas respiran salud. La floración de tepú alcanzará su pico en 12 días según la predicción climática.' },
-    vendedor: { greeting: 'Hola, Embajador del Legado 🍯', title: 'Cada venta planta raíces nuevas', subtitle: 'Tienes 3 rutas planificadas esta semana y la Feria de Ancud se acerca. Tu catálogo vivo está listo.' },
-    gerente: { greeting: 'Bienvenida, Visión del Enjambre 👑', title: 'El legado crece: cada decisión transforma el bosque', subtitle: 'Producción en 2.8 ton (+18% vs 2025). Margen por sachet: 72%. El simulador proyecta 5 ton para 2027.' },
-    logistica: { greeting: 'Hola, Arquitecto de Flujos 📦', title: 'Del panal al consumidor, sin perder una gota', subtitle: '12 envíos pendientes. Stock en Castro óptimo. Ruta Chiloé→Santiago: camión sale jueves.' },
-    marketing: { greeting: 'Hola, Narrador del Bosque 🌿', title: 'La historia de cada árbol merece ser contada', subtitle: 'Club Legado: 47 guardianes activos. Próxima campaña: "Regala un árbol con cada cofre" lanza el 8 de marzo.' },
-  };
+  gerente: { greeting: 'Bienvenida, Visión del Enjambre 👑', title: 'El legado crece: cada decisión transforma el bosque', subtitle: 'Producción en 2.8 ton (+18% vs 2025). Margen por sachet: 72%. El simulador proyecta 5 ton para 2027.' },
+};

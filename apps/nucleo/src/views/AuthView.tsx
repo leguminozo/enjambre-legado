@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { getUrlCampo, getUrlTienda } from '../lib/publicUrls';
-import { Hexagon, Lock, Mail, User, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Hexagon, Lock, Mail, User, ArrowRight, ArrowLeft } from 'lucide-react';
 import { AuthHero } from '../components/auth/AuthHero';
 import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
 import gsap from 'gsap';
@@ -17,9 +17,8 @@ export default function AuthView() {
     // Form state
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [fullName, setFullName] = useState('');
-    const [role, setRole] = useState('apicultor');
-    const [pendingConfirmation, setPendingConfirmation] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [pendingConfirmation, setPendingConfirmation] = useState(false);
 
     const formRef = useRef<HTMLDivElement>(null);
     const bgRef = useRef<HTMLDivElement>(null);
@@ -60,10 +59,10 @@ export default function AuthView() {
                     email,
                     password,
                     options: {
-                        data: {
-                            full_name: fullName,
-                            role: role,
-                        }
+          data: {
+            full_name: fullName,
+            role: 'gerente',
+          }
                     }
                 });
                 if (error) throw error;
@@ -145,28 +144,10 @@ export default function AuthView() {
                                                 onChange={e => setFullName(e.target.value)} 
                                                 style={{ paddingLeft: '2.8rem' }}
                                             />
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col gap-2">
-                                        <label className="uppercase tracking-widest font-semibold text-crema-natural m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Rol Principal</label>
-                                        <div className="relative text-left">
-                                            <ShieldCheck size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'hsl(var(--primary-foreground) / 0.5)' }} />
-                                            <select 
-                                                className="input-field"
-                                                value={role} 
-                                                onChange={e => setRole(e.target.value)}
-                                                style={{ paddingLeft: '2.8rem', appearance: 'none' }}
-                                            >
-                                                <option value="apicultor" style={{ background: 'var(--negro-tinta)' }}>Apicultor</option>
-                                                <option value="vendedor" style={{ background: 'var(--negro-tinta)' }}>Vendedor</option>
-                                                <option value="gerente" style={{ background: 'var(--negro-tinta)' }}>Gerente</option>
-                                                <option value="logistica" style={{ background: 'var(--negro-tinta)' }}>Logística</option>
-                                                <option value="marketing" style={{ background: 'var(--negro-tinta)' }}>Marketing</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
+          </div>
+        </div>
+      </>
+    )}
 
                             <div className="flex flex-col gap-2">
                                 <label className="uppercase tracking-widest font-semibold text-crema-natural m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Email</label>

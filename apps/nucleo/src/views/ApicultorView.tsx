@@ -22,7 +22,7 @@ import EspectroVivo from '../components/apicultor/EspectroVivo';
 type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad';
 
 export default function ApicultorView() {
-    const { greeting, title, subtitle } = roleGreetings.apicultor;
+    const { greeting, title, subtitle } = roleGreetings.gerente;
     const [localColmenas, setLocalColmenas] = useState<Colmena[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedColmena, setSelectedColmena] = useState<Colmena | null>(null);

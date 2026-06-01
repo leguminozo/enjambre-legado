@@ -3,13 +3,38 @@ import { Truck, Package, MapPin, FileText, AlertCircle, ChevronRight, Clock, Che
 import { roleGreetings } from '../data/mockData';
 import { supabase } from '../lib/supabase';
 
+interface Shipment {
+  id: string;
+  tracking_code: string;
+  destino: string;
+  items: string;
+  status: string;
+  eta: string;
+  via: string;
+  [k: string]: string;
+}
 
+interface StockCenter {
+  name: string;
+  sachets: number;
+  frascos: number;
+  cofres: number;
+  ok: boolean;
+}
+
+interface Provider {
+  name: string;
+  item: string;
+  next_delivery: string;
+  next: string;
+  urgent: boolean;
+}
 
 export default function LogisticaView() {
-    const h = roleGreetings.logistica;
-    const [shipments, setShipments] = useState<any[]>([]);
-    const [stockCenters, setStockCenters] = useState<any[]>([]);
-    const [providers, setProviders] = useState<any[]>([]);
+const h = roleGreetings.gerente;
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [stockCenters, setStockCenters] = useState<StockCenter[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
 
     // Form state for new shipment
     const [showNewEnvio, setShowNewEnvio] = useState(false);
@@ -72,7 +97,7 @@ export default function LogisticaView() {
             <div className="stats-grid">
                 {[
 { icon: <Truck size={20} />, val: String(shipments.filter(s => s.status !== 'Entregado').length), label: 'Envíos pendientes' },
-        { icon: <Package size={20} />, val: String(stockCenters.length), label: 'Centros de stock', trend: stockCenters.every((s: Record<string, unknown>) => s.ok) ? 'Óptimo' : undefined },
+        { icon: <Package size={20} />, val: String(stockCenters.length), label: 'Centros de stock', trend: stockCenters.every(s => s.ok) ? 'Óptimo' : undefined },
         { icon: <MapPin size={20} />, val: String(shipments.filter(s => s.status === 'En tránsito').length), label: 'Rutas activas hoy' },
         { icon: <FileText size={20} />, val: String(providers.length), label: 'Proveedores activos' },
                 ].map((s, i) => (

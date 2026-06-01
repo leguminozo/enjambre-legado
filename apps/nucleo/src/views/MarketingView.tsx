@@ -3,11 +3,36 @@ import { Megaphone, Users, Camera, Calendar, Gift, BookOpen, ArrowUpRight, X } f
 import { roleGreetings } from '../data/mockData';
 import { supabase } from '../lib/supabase';
 
+interface MarketingPost {
+  id: string;
+  post_date: string;
+  date: string;
+  type: string;
+  content: string;
+  platform: string;
+  status: string;
+}
+
+interface Campaign {
+  id: string;
+  name: string;
+  status: string;
+  period: string;
+  impact: string;
+}
+
+interface LocalClient {
+  id: string;
+  name: string;
+  type: string;
+  [k: string]: string;
+}
+
 export default function MarketingView() {
-    const h = roleGreetings.marketing;
-const [posts, setPosts] = useState<any[]>([]);
-  const [campaigns, setCampaigns] = useState<any[]>([]);
-  const [localClients, setLocalClients] = useState<any[]>([]);
+const h = roleGreetings.gerente;
+  const [posts, setPosts] = useState<MarketingPost[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [localClients, setLocalClients] = useState<LocalClient[]>([]);
 
     const [showNewPost, setShowNewPost] = useState(false);
     const [postForm, setPostForm] = useState({ post_date: '12 mar', type: 'Reel', content: '', status: 'Borrador', platform: 'IG' });
@@ -26,8 +51,8 @@ const [resP, resC] = await Promise.all([
       setPosts(resP.data ?? []);
       setCampaigns(resC.data ?? []);
 
-      const { data: clientData } = await supabase.from('clientes').select('id').eq('user_id', uid);
-      setLocalClients(clientData ?? []);
+  const { data: clientData } = await supabase.from('clientes').select('id, nombre, tipo').eq('user_id', uid);
+  setLocalClients((clientData as unknown as LocalClient[]) ?? []);
         }
         loadData();
     }, []);
@@ -63,7 +88,7 @@ const [resP, resC] = await Promise.all([
                 {[
 { icon: <Users size={20} />, val: String(localClients.length || 0), label: 'Guardianes del Club', trend: localClients.length > 0 ? `+${Math.min(localClients.length, 8)}` : undefined },
         { icon: <Camera size={20} />, val: '2.4K', label: 'Seguidores IG (manual)', trend: '+12%' },
-        { icon: <Gift size={20} />, val: String(campaigns.filter((c: Record<string, unknown>) => c.status === 'Activa').length), label: 'Campañas activas' },
+        { icon: <Gift size={20} />, val: String(campaigns.filter(c => c.status === 'Activa').length), label: 'Campañas activas' },
         { icon: <Megaphone size={20} />, val: String(posts.length), label: 'Contenidos programados' },
                 ].map((s, i) => (
                     <div key={i} className={`stat-card animate-in delay-${i + 1}`}>

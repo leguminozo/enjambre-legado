@@ -96,11 +96,6 @@ adminRoutes.post("/", zValidator("json", CreateInvitationSchema), async (c) => {
   const supabase = c.get("supabase");
   const user = c.get("user");
   const empresaId = c.get("empresaId");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Solo gerente o tienda_admin puede crear invitaciones" }, 403);
-  }
 
   const { data: code, error: codeError } = await supabase.rpc("generar_codigo_invitacion", {
     p_empresa_id: empresaId,
@@ -134,11 +129,6 @@ adminRoutes.post("/", zValidator("json", CreateInvitationSchema), async (c) => {
 adminRoutes.get("/", async (c) => {
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   const { data, error } = await supabase
     .from("invitation_codes")
@@ -158,11 +148,6 @@ adminRoutes.patch("/:id", zValidator("json", UpdateInvitationSchema), async (c) 
   const invitationId = c.req.param("id");
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   const payload: Record<string, unknown> = {};
   if (input.active !== undefined) payload.active = input.active;
@@ -189,11 +174,6 @@ adminRoutes.delete("/:id", async (c) => {
   const invitationId = c.req.param("id");
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   const { error } = await supabase
     .from("invitation_codes")
@@ -211,14 +191,9 @@ adminRoutes.delete("/:id", async (c) => {
 adminRoutes.get("/reps", async (c) => {
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   const { data, error } = await supabase
-    .from("rep_performance_view")
+  .from("rep_performance_view")
     .select("*")
     .eq("empresa_id", empresaId)
     .order("total_revenue_lifetime", { ascending: false });
@@ -234,11 +209,6 @@ adminRoutes.patch("/reps/:userId", zValidator("json", UpdateRepSchema), async (c
   const targetUserId = c.req.param("userId");
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   const payload: Record<string, unknown> = { ...input };
 
@@ -278,11 +248,6 @@ adminRoutes.delete("/reps/:userId", async (c) => {
   const targetUserId = c.req.param("userId");
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   const { error } = await supabase
     .from("rep_profiles")
@@ -307,11 +272,6 @@ adminRoutes.post("/commissions/pay", zValidator("json", PayCommissionsSchema), a
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
   const user = c.get("user");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   const { data, error } = await supabase
     .from("commission_records")

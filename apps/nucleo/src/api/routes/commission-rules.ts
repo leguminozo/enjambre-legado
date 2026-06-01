@@ -46,11 +46,6 @@ commissionRulesRoutes.post("/", zValidator("json", CreateRuleSchema), async (c) 
   const supabase = c.get("supabase");
   const user = c.get("user");
   const empresaId = c.get("empresaId");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Solo gerente o tienda_admin puede crear reglas" }, 403);
-  }
 
   const { data, error } = await supabase
     .from("commission_rules")
@@ -77,11 +72,6 @@ commissionRulesRoutes.patch("/:id", zValidator("json", UpdateRuleSchema), async 
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   const payload: Record<string, unknown> = { ...input, updated_at: new Date().toISOString() };
 
@@ -104,11 +94,6 @@ commissionRulesRoutes.delete("/:id", async (c) => {
   const ruleId = c.req.param("id");
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Sin permisos" }, 403);
-  }
 
   const { error } = await supabase
     .from("commission_rules")

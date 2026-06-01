@@ -158,11 +158,6 @@ cashSessionsRoutes.patch("/:id/reconcile", zValidator("json", ReconcileSchema), 
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
   const user = c.get("user");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Solo gerente o tienda_admin puede reconciliar" }, 403);
-  }
 
   const { data, error } = await supabase
     .from("cash_sessions")
@@ -190,8 +185,6 @@ cashSessionsRoutes.patch("/:id/reconcile", zValidator("json", ReconcileSchema), 
 
 cashSessionsRoutes.get("/history", async (c) => {
   const supabase = c.get("supabase");
-  const user = c.get("user");
-  const rol = c.get("rol");
   const empresaId = c.get("empresaId");
   const limit = Math.min(Number(c.req.query("limit") ?? 30), 100);
 
@@ -201,11 +194,7 @@ cashSessionsRoutes.get("/history", async (c) => {
     .order("opened_at", { ascending: false })
     .limit(limit);
 
-  if (rol === "gerente" || rol === "tienda_admin") {
-    query = query.eq("empresa_id", empresaId);
-  } else {
-    query = query.eq("rep_id", user.id);
-  }
+  query = query.eq("empresa_id", empresaId);
 
   const { data, error } = await query;
 
@@ -261,11 +250,6 @@ cashSessionsRoutes.get("/:id", async (c) => {
 cashSessionsRoutes.get("/export/csv", async (c) => {
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
-  const rol = c.get("rol");
-
-  if (rol !== "gerente" && rol !== "tienda_admin") {
-    return c.json({ code: "forbidden", message: "Solo gerente o tienda_admin puede exportar" }, 403);
-  }
 
   const from = c.req.query("from") ?? new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
   const to = c.req.query("to") ?? new Date().toISOString().slice(0, 10);

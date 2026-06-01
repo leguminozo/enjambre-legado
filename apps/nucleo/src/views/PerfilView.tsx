@@ -5,7 +5,7 @@ import {
   Edit3, Check, X, AlertCircle, Loader2
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { roleLabels } from '../data/mockData';
+import { ROLE, roleLabels } from '../data/mockData';
 
 interface ProfileData {
   id: string;
@@ -45,7 +45,6 @@ export function PerfilView() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const [editName, setEditName] = useState('');
-  const [editRole, setEditRole] = useState('');
   const [avatarUploading, setAvatarUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,8 +72,7 @@ export function PerfilView() {
 
       if (profErr) throw profErr;
       setProfile(prof as ProfileData);
-      setEditName(prof.full_name || '');
-      setEditRole(prof.role || 'apicultor');
+  setEditName(prof.full_name || '');
 
       const { data: ueData } = await supabase
         .from('usuarios_empresas')
@@ -104,10 +102,10 @@ export function PerfilView() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: editName, role: editRole })
-        .eq('id', profile.id);
+      .update({ full_name: editName })
+      .eq('id', profile.id);
       if (error) throw error;
-      setProfile(prev => prev ? { ...prev, full_name: editName, role: editRole } : null);
+      setProfile(prev => prev ? { ...prev, full_name: editName } : null);
       setEditMode(false);
       setMessage({ type: 'success', text: 'Perfil actualizado' });
     } catch {
@@ -284,7 +282,7 @@ background: 'hsl(var(--accent))',
             <p style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-sm)' }}>
               {profile.email}
             </p>
-            <span className="badge badge-gold">{roleLabels[profile.role] || profile.role}</span>
+            <span className="badge badge-gold">{roleLabels[ROLE] || ROLE}</span>
           </div>
 
           {/* Section Nav */}
@@ -350,10 +348,9 @@ background: activeSection === s.key ? 'hsl(var(--muted) / 0.5)' : 'transparent',
                 <button
                   className="btn btn-ghost btn-sm"
                   onClick={() => {
-                    if (editMode) {
-                      setEditName(profile.full_name || '');
-                      setEditRole(profile.role || 'apicultor');
-                    }
+        if (editMode) {
+          setEditName(profile.full_name || '');
+        }
                     setEditMode(!editMode);
                   }}
                 >
@@ -405,42 +402,15 @@ onFocus={e => e.currentTarget.style.borderColor = 'hsl(var(--accent) / 0.5)'}
                   </div>
                 </div>
 
-                <div>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', display: 'block', marginBottom: 'var(--space-sm)' }}>
-                    Rol Principal
-                  </label>
-                  {editMode ? (
-                    <div style={{ position: 'relative' }}>
-                      <Shield size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))', zIndex: 1 }} />
-                      <select
-                        value={editRole}
-                        onChange={e => setEditRole(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem 0.75rem 0.75rem 2.5rem',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: 'var(--radius-sm)',
-                          fontSize: '0.9rem',
-                          fontFamily: 'var(--font-datos)',
-                          background: 'hsl(var(--background))',
-                          color: 'hsl(var(--foreground))',
-                          outline: 'none',
-                          appearance: 'none',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {Object.entries(roleLabels).map(([key, label]) => (
-                          <option key={key} value={key}>{label}</option>
-                        ))}
-                      </select>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-                      <Shield size={16} style={{ color: 'hsl(var(--accent))' }} />
-                      <span className="badge badge-gold">{roleLabels[profile.role] || profile.role}</span>
-                    </div>
-                  )}
-                </div>
+        <div>
+          <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', display: 'block', marginBottom: 'var(--space-sm)' }}>
+            Rol Principal
+          </label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+            <Shield size={16} style={{ color: 'hsl(var(--accent))' }} />
+            <span className="badge badge-gold">{roleLabels[ROLE] || ROLE}</span>
+          </div>
+        </div>
 
                 <div>
                   <label style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', display: 'block', marginBottom: 'var(--space-sm)' }}>
