@@ -42,7 +42,7 @@ export function useSidebarBadges() {
         supabase.from('varroa_records').select('colmena_id', { count: 'exact', head: true }).gt('level', 3),
         supabase.from('logistica_envios').select('id', { count: 'exact', head: true }).eq('status', 'pendiente'),
         supabase.from('facturas_emitidas').select('id', { count: 'exact', head: true }).eq('estado_sii', 'pendiente'),
-        supabase.from('integrations').select('id', { count: 'exact', head: true }).eq('provider', 'banco_chile').eq('status', 'active'),
+        supabase.from('integrations').select('id', { count: 'exact', head: true }).eq('key', 'banco_chile').eq('enabled', true),
       ])
 
       setBadges(prev => ({
