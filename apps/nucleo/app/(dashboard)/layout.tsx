@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { Bell, Search, Menu, X, BarChart3, Hexagon, Calculator, Settings } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { supabase } from '@/lib/supabase';
@@ -158,14 +159,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           const navItem = getBottomNavItem(key, pathname)
           if (!navItem) return null
           return (
-            <a
-              key={key}
-              href={navItem.href}
-              className={`bottom-nav-item ${navItem.isActive ? 'active' : ''}`}
-            >
+        <Link
+          key={key}
+          href={navItem.href}
+          className={`bottom-nav-item ${navItem.isActive ? 'active' : ''}`}
+        >
               {navItem.icon}
               <span>{navItem.label}</span>
-            </a>
+            </Link>
           )
         })}
       </nav>

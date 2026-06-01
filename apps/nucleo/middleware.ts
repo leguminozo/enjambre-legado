@@ -4,6 +4,13 @@ import type { NextRequest } from "next/server";
 
 const publicRoutes = ["/", "/login"];
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+  return Promise.race([
+    promise,
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
+  ]);
+}
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -33,7 +40,8 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const result = await withTimeout(supabase.auth.getUser(), 5000);
+  const user = result?.data?.user ?? null;
 
   const { pathname } = request.nextUrl;
 
@@ -53,5 +61,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|assets|icons).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|_next/data|favicon.ico|assets|icons).*)",
+  ],
 };
