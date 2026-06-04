@@ -10,6 +10,8 @@ export type SecurityEventType =
   | 'mfa_enabled'
   | 'mfa_disabled'
   | 'oauth_linked'
+  | 'access_denied'
+  | 'signup_success'
 
 export type AppSource = 'tienda' | 'nucleo' | 'campo' | 'api'
 

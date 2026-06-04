@@ -46,6 +46,9 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
       ingredientes: initialData?.ingredientes || '',
       origen_apicola: initialData?.origen_apicola || '',
       trazabilidad_qr: initialData?.trazabilidad_qr ?? true,
+      sustituye_azucar_g: initialData?.sustituye_azucar_g || undefined,
+      co2_evitado_kg: initialData?.co2_evitado_kg || undefined,
+      irr_referencia: initialData?.irr_referencia || undefined,
     },
   });
 
@@ -516,8 +519,41 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
                 Incluir QR de trazabilidad
               </label>
             </div>
+      </div>
+
+        {/* Métricas Científicas */}
+        <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--accent) / 0.15)', marginTop: 'var(--space-lg)' }}>
+          <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'hsl(var(--accent))', marginBottom: 'var(--space-md)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            Métricas Científicas
+          </h3>
+          <p style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-md)' }}>
+            Datos visibles sutilmente en la tienda. El IRR aparece como chip cuando es mayor a 1.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--space-md)' }}>
+            <div>
+              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
+                Sustituye azúcar (g)
+              </label>
+              <input {...register('sustituye_azucar_g')} type="number" placeholder="Ej: 25" className="input-field" style={{ fontSize: '0.9rem', padding: 'var(--space-md)' }} />
+              <span style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>Gramos de azúcar refinada que este producto reemplaza</span>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
+                CO₂ evitado (kg)
+              </label>
+              <input {...register('co2_evitado_kg')} type="number" placeholder="Ej: 2.7" className="input-field" style={{ fontSize: '0.9rem', padding: 'var(--space-md)' }} />
+              <span style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>kg CO₂ evitados vs azúcar refinada equivalente</span>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
+                IRR referencia
+              </label>
+              <input {...register('irr_referencia')} type="number" step="0.01" placeholder="Ej: 3.46" className="input-field" style={{ fontSize: '0.9rem', padding: 'var(--space-md)' }} />
+              <span style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>IRR = CO₂ capturado / CO₂ emitido. &gt;1 = impacto positivo</span>
+            </div>
           </div>
         </div>
+      </div>
       </div>
     </form>
   );

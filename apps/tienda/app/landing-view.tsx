@@ -13,6 +13,7 @@ import { BeeCanvas } from '@/components/shop/bee-canvas';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
 import { CustomCursor } from '@/components/shop/custom-cursor';
 import { LandingLoader } from '@/components/shop/landing-loader';
+import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -47,6 +48,7 @@ interface TiendaLandingProps {
     nav: Array<{ label: string; href: string }>;
     legal: Array<{ label: string; href: string }>;
   };
+  ecosystemMetrics: EcosystemMetrics;
 }
 
 export default function TiendaLandingView({
@@ -54,6 +56,7 @@ export default function TiendaLandingView({
   initialTalleres,
   initialColecciones,
   footerData,
+  ecosystemMetrics,
 }: TiendaLandingProps) {
   useEffect(() => {
     const tl = gsap.timeline();
@@ -71,12 +74,18 @@ export default function TiendaLandingView({
         stagger: 0.15,
         ease: 'power4.out',
       }, '-=0.8')
-      .to('.hero-subtitle', {
-        opacity: 1,
-        y: 0,
-        duration: 1,
-        ease: 'power3.out',
-      }, '-=0.6');
+.to('.hero-subtitle', {
+  opacity: 1,
+  y: 0,
+  duration: 1,
+  ease: 'power3.out',
+}, '-=0.6')
+.to('.hero-formula', {
+  opacity: 1,
+  y: 0,
+  duration: 0.8,
+  ease: 'power3.out',
+}, '-=0.3');
 
     const sections = ['#collections', '#immersion', '#services', '#workshops', '#inquiry'];
     sections.forEach((section) => {
@@ -93,20 +102,25 @@ export default function TiendaLandingView({
       });
     });
 
-    gsap.utils.toArray<HTMLElement>('.counter-value').forEach((el) => {
-      const target = parseInt(el.dataset.target || '0', 10);
-      gsap.to(el, {
-        textContent: target,
-        duration: 2,
-        ease: 'power2.out',
-        snap: { textContent: 1 },
-        scrollTrigger: {
-          trigger: el,
-          start: 'top 80%',
-          once: true,
-        },
-      });
-    });
+        gsap.utils.toArray<HTMLElement>('.counter-value').forEach((el) => {
+          const target = parseInt(el.dataset.target || '0', 10);
+          const prefix = el.dataset.prefix || '';
+          const suffix = el.dataset.suffix || '';
+          const obj = { val: 0 };
+          gsap.to(obj, {
+            val: target,
+            duration: 2,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 80%',
+              once: true,
+            },
+            onUpdate: () => {
+              el.textContent = prefix + Math.round(obj.val).toLocaleString('es-CL') + suffix;
+            },
+          });
+        });
   }, []);
 
   return (
@@ -134,35 +148,64 @@ export default function TiendaLandingView({
                 <span className="line-inner block translate-y-full">y el Zángano</span>
               </span>
             </h1>
-            <p className="hero-subtitle font-display italic text-[clamp(1.1rem,2.5vw,1.5rem)] text-muted-foreground tracking-wide opacity-0 translate-y-7">
-              Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje
-            </p>
-          </div>
-
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4">
+        <p className="hero-subtitle font-display italic text-[clamp(1.1rem,2.5vw,1.5rem)] text-muted-foreground tracking-wide opacity-0 translate-y-7">
+          Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje
+        </p>
+        <p className="hero-formula mt-6 font-mono text-[clamp(0.65rem,1.2vw,0.8rem)] tracking-[0.3em] uppercase text-accent/60 opacity-0 translate-y-5">
+          Luz solar → Néctar → Miel virgen · Sin atajos industriales
+        </p>
+      </div>
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4">
             <span className="text-editorial-xs uppercase tracking-widest text-muted-foreground [writing-mode:vertical-rl]">Descender</span>
             <div className="w-px h-12 bg-gradient-to-b from-accent to-transparent animate-bounce" />
           </div>
         </section>
 
-        {/* ── IMPACT COUNTERS ── */}
-        <section className="editorial-section bg-surface-raised/50 border-y border-border/30">
-          <div className="editorial-container grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+      {/* ── IMPACT COUNTERS + IRR ── */}
+      <section className="editorial-section bg-surface-raised/50 border-y border-border/30">
+        <div className="editorial-container">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center mb-16">
             {[
-              { value: 2400, label: 'Colmenas custodiadas', suffix: '+' },
-              { value: 12000, label: 'Árboles plantados', suffix: '+' },
-              { value: 8, label: 'Apiarios en Chiloé', suffix: '' },
-              { value: 100, label: '% Miel virgen cruda', suffix: '' },
+              { value: ecosystemMetrics.arboles_total, label: 'Árboles plantados', suffix: '+' },
+              { value: ecosystemMetrics.co2_ton, label: 'Ton CO₂ capturado', suffix: '', prefix: '~' },
+              { value: ecosystemMetrics.colmenas_total, label: 'Colmenas custodiadas', suffix: '' },
+              { value: ecosystemMetrics.especies_nativas, label: 'Especies nativas', suffix: '' },
             ].map((stat) => (
               <div key={stat.label} className="py-4">
-                <p className="counter-value font-display text-5xl md:text-6xl font-light text-accent" data-target={stat.value}>
+                <p className="counter-value font-display text-5xl md:text-6xl font-light text-accent" data-target={stat.value} data-prefix={stat.prefix || ''} data-suffix={stat.suffix}>
                   0
                 </p>
                 <p className="text-editorial-xs uppercase tracking-widest text-muted-foreground mt-3">{stat.label}</p>
               </div>
             ))}
           </div>
-        </section>
+          <div className="max-w-2xl mx-auto text-center border-t border-border/20 pt-10">
+            <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-4">Fórmula de impacto</p>
+            {ecosystemMetrics.irr_ecosistema && ecosystemMetrics.irr_ecosistema > 1 ? (
+              <>
+                <p className="font-display text-2xl md:text-3xl font-light text-foreground tracking-wide">
+                  IRR {ecosystemMetrics.irr_ecosistema} · Impacto &gt; Huella
+                </p>
+                <p className="text-sm text-muted-foreground italic mt-4 max-w-lg mx-auto">
+                  {ecosystemMetrics.anos_legado} de reforestación nativa en Pureo, Chiloé. El bosque captura {ecosystemMetrics.irr_ecosistema}× más CO₂ del que la cadena productiva emite.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-display text-2xl md:text-3xl font-light text-foreground tracking-wide">
+                  Miel de bosque + Árboles plantados &gt; Huella de producción
+                </p>
+                <p className="text-sm text-muted-foreground italic mt-4 max-w-lg mx-auto">
+                  {ecosystemMetrics.anos_legado} de reforestación nativa en Pureo, Chiloé. Cada pedido financia árboles y sostiene apiarios en bosque nativo.
+                </p>
+              </>
+            )}
+            <Link href="/ciencia" className="inline-block mt-6 text-editorial-xs uppercase tracking-widest text-accent hover:text-accent/80 transition-colors">
+              Ver la ciencia detrás →
+            </Link>
+          </div>
+        </div>
+      </section>
 
         {/* ── COLLECTIONS ── */}
         <section id="collections" className="editorial-section">
@@ -199,7 +242,27 @@ export default function TiendaLandingView({
           </div>
         </section>
 
-        {/* ── IMMERSION ── */}
+        {/* ── RITUALES ── */}
+      <section className="editorial-section border-t border-border/20">
+        <div className="editorial-container text-center mb-16">
+          <span className="editorial-kicker mb-4 block">Rituales</span>
+          <h2 className="font-display text-3xl md:text-4xl font-light text-foreground">Cómo habitar esta miel</h2>
+        </div>
+        <div className="editorial-container grid md:grid-cols-3 gap-12">
+          {[
+            { momento: 'Mañana', desc: 'Una cucharada en agua tibia antes de que el día empiece. Un ritual lento para quienes necesitan calma antes del ruido.' },
+            { momento: 'Tarde', desc: 'En lugar del azúcar en tu infusión. La miel se disuelve con la paciencia que la tarde merece.' },
+            { momento: 'Noche', desc: 'Directa del frasco, sin intermediarios. Una reserva de calma para noches largas.' },
+          ].map((r) => (
+            <div key={r.momento} className="text-center px-4">
+              <p className="editorial-kicker mb-4 block">{r.momento}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed italic">{r.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── IMMERSION ── */}
         <section id="immersion" className="relative h-[80vh] w-full overflow-hidden">
           <img
             src="/assets/editorial/immersion.png"

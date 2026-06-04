@@ -2,14 +2,17 @@ import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 import { getSupabaseKey, getSupabaseUrl, isSupabaseConfigured } from './env';
 
-export async function updateSession(request: NextRequest) {
+export interface AuthResult {
+  response: NextResponse;
+  user: { id: string; email: string } | null;
+}
+
+export async function updateSession(request: NextRequest): Promise<AuthResult> {
   if (!isSupabaseConfigured()) {
-    return NextResponse.next({ request });
+    return { response: NextResponse.next({ request }), user: null };
   }
 
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  let supabaseResponse = NextResponse.next({ request });
 
   try {
     const supabase = createServerClient(getSupabaseUrl(), getSupabaseKey(), {
@@ -29,10 +32,13 @@ export async function updateSession(request: NextRequest) {
       },
     });
 
-    await supabase.auth.getUser();
-  } catch {
-    return NextResponse.next({ request });
-  }
+    const { data: { user } } = await supabase.auth.getUser();
 
-  return supabaseResponse;
+    return {
+      response: supabaseResponse,
+      user: user ? { id: user.id, email: user.email ?? '' } : null,
+    };
+  } catch {
+    return { response: NextResponse.next({ request }), user: null };
+  }
 }

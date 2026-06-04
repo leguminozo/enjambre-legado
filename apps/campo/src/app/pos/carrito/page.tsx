@@ -97,7 +97,7 @@ export default function CarritoPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="mt-4 text-stone-500 font-light tracking-widest uppercase text-xs">Sincronizando carrito...</p>
+        <p className="mt-4 text-muted-foreground font-light tracking-widest uppercase text-xs">Sincronizando carrito...</p>
       </div>
     );
   }
@@ -119,16 +119,16 @@ export default function CarritoPage() {
             +${successData.commission.toLocaleString('es-CL')} comisión
           </p>
         )}
-        <p className="text-stone-400 mb-12 font-light">
+        <p className="text-muted-foreground mb-12 font-light">
           {claimUrl
             ? 'La transacción ha sido registrada. Pide al cliente que escanee el código para reclamar su impacto y puntos.'
             : 'La transacción ha sido registrada en la sesión de caja.'}
         </p>
 
         {claimUrl && (
-          <div className="bg-white p-8 rounded-3xl inline-block shadow-2xl mb-12">
+          <div className="bg-surface-raised p-8 rounded-3xl inline-block shadow-2xl mb-12">
             <QRCodeSVG value={claimUrl} size={240} level="H" includeMargin />
-            <p className="mt-4 text-black font-mono text-[10px] uppercase tracking-tighter opacity-40">
+            <p className="mt-4 text-primary-foreground font-mono text-[10px] uppercase tracking-tighter opacity-40">
               ID: {successData.id.slice(0, 8)}...
             </p>
           </div>
@@ -137,7 +137,7 @@ export default function CarritoPage() {
         <div className="flex flex-col gap-4 max-w-xs mx-auto">
           <button
             onClick={() => { setSuccessData(null); router.push('/pos/catalogo'); }}
-            className="w-full py-4 bg-stone-900 hover:bg-stone-800 text-white rounded-full font-medium transition-all"
+            className="w-full py-4 bg-card hover:bg-card text-foreground rounded-full font-medium transition-all"
           >
             Nueva Venta
           </button>
@@ -157,23 +157,23 @@ export default function CarritoPage() {
         </div>
 
         {!lines.length ? (
-          <div className="bg-stone-900/30 border border-stone-800 border-dashed rounded-3xl p-20 text-center">
-            <ShoppingBag className="w-12 h-12 text-stone-700 mx-auto mb-4" />
-            <p className="text-stone-500 font-light">No hay productos en el carrito.</p>
+          <div className="bg-card/30 border border-border border-dashed rounded-3xl p-20 text-center">
+            <ShoppingBag className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground font-light">No hay productos en el carrito.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {lines.map((l) => (
               <div
                 key={l.producto_id}
-                className="flex items-center gap-6 bg-stone-900/50 backdrop-blur-sm border border-stone-800 p-6 rounded-3xl transition-all hover:border-stone-700"
+                className="flex items-center gap-6 bg-card/50 backdrop-blur-sm border border-border p-6 rounded-3xl transition-all hover:border-border"
               >
                 <div className="flex-1">
-                  <h3 className="text-lg font-medium text-white mb-1">{l.nombre}</h3>
-                  <p className="text-stone-500 text-sm font-light">Precio unitario: {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(l.precio_unitario)}</p>
+                  <h3 className="text-lg font-medium text-foreground mb-1">{l.nombre}</h3>
+                  <p className="text-muted-foreground text-sm font-light">Precio unitario: {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(l.precio_unitario)}</p>
                 </div>
                 
-                <div className="flex items-center gap-4 bg-black rounded-full border border-stone-800 p-1">
+                <div className="flex items-center gap-4 bg-background rounded-full border border-border p-1">
                   <button 
                     onClick={() => setQty(l.producto_id, Math.max(1, l.cantidad - 1))}
                     className="p-2 hover:text-primary transition-colors"
@@ -197,7 +197,7 @@ export default function CarritoPage() {
 
                 <button
                   onClick={() => removeLine(l.producto_id)}
-                  className="p-3 text-stone-600 hover:text-red-400 hover:bg-red-400/10 rounded-2xl transition-all"
+                  className="p-3 text-muted-foreground hover:text-red-400 hover:bg-red-400/10 rounded-2xl transition-all"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
@@ -208,24 +208,24 @@ export default function CarritoPage() {
       </div>
 
       <div className="lg:col-span-1">
-        <div className="bg-stone-900/50 backdrop-blur-xl border border-stone-800 p-8 rounded-3xl sticky top-32">
-          <h2 className="text-xl font-serif mb-6 pb-6 border-b border-stone-800">Resumen de Venta</h2>
+        <div className="bg-card/50 backdrop-blur-xl border border-border p-8 rounded-3xl sticky top-32">
+          <h2 className="text-xl font-serif mb-6 pb-6 border-b border-border">Resumen de Venta</h2>
           
       <div className="space-y-4 mb-8">
-        <div className="flex justify-between items-center text-stone-400 font-light">
+        <div className="flex justify-between items-center text-muted-foreground font-light">
           <span>Subtotal</span>
           <span>{new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(total)}</span>
         </div>
 
         <div>
-          <label className="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-2">Canal de Venta</label>
+          <label className="block text-xs uppercase tracking-widest text-muted-foreground font-bold mb-2">Canal de Venta</label>
           <div className="grid grid-cols-5 gap-1.5">
             {channels.map((ch) => (
               <button
                 key={ch.value}
                 onClick={() => setChannel(ch.value)}
                 className={`flex flex-col items-center gap-0.5 rounded-xl border px-1 py-2 text-[9px] font-bold uppercase tracking-widest transition-all ${
-                  channel === ch.value ? 'bg-primary text-black border-primary' : 'bg-black border-stone-800 text-stone-400 hover:text-primary'
+                  channel === ch.value ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border text-muted-foreground hover:text-primary'
                 }`}
               >
                 {ch.icon}
@@ -237,14 +237,14 @@ export default function CarritoPage() {
 
         {isSessionOpen && (
           <div>
-            <label className="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-2">Método de Pago</label>
+            <label className="block text-xs uppercase tracking-widest text-muted-foreground font-bold mb-2">Método de Pago</label>
             <div className="grid grid-cols-3 gap-2">
               {paymentMethods.map((pm) => (
                 <button
                   key={pm.value}
                   onClick={() => setMetodoPago(pm.value)}
                   className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all ${
-                    metodoPago === pm.value ? 'bg-primary text-black border-primary' : 'bg-black border-stone-800 text-stone-400 hover:text-primary'
+                    metodoPago === pm.value ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border text-muted-foreground hover:text-primary'
                   }`}
                 >
                   {pm.icon}
@@ -257,7 +257,7 @@ export default function CarritoPage() {
       </div>
 
           <div className="flex justify-between items-end mb-8">
-            <span className="text-sm uppercase tracking-widest text-stone-500 font-bold">Total</span>
+            <span className="text-sm uppercase tracking-widest text-muted-foreground font-bold">Total</span>
             <span className="text-4xl font-serif text-primary">
               {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(total)}
             </span>
@@ -266,7 +266,7 @@ export default function CarritoPage() {
           <button
             onClick={() => void confirmarVenta()}
             disabled={loading || lines.length === 0}
-            className="w-full py-5 bg-primary hover:bg-primary/90 text-black rounded-full font-bold shadow-2xl shadow-primary/10 transition-all transform active:scale-95 disabled:opacity-30 disabled:grayscale"
+            className="w-full py-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full font-bold shadow-2xl shadow-primary/10 transition-all transform active:scale-95 disabled:opacity-30 disabled:grayscale"
           >
             {loading ? (
               <div className="flex items-center justify-center gap-2">
@@ -287,7 +287,7 @@ export default function CarritoPage() {
             </p>
           )}
 
-          <p className="mt-6 text-[10px] text-stone-600 text-center uppercase tracking-widest leading-relaxed">
+          <p className="mt-6 text-[10px] text-muted-foreground text-center uppercase tracking-widest leading-relaxed">
             Se generará un QR dinámico para el reclamo de puntos guardián e impacto biocultural.
           </p>
         </div>

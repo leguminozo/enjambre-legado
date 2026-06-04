@@ -1,5 +1,8 @@
 import { create } from 'zustand'
 import { createClient } from './supabase'
+import { logSecurityEvent } from './security-events'
+import type { AppSource } from './security-events'
+import type { Session } from '@supabase/supabase-js'
 
 export interface AuthUser {
   id: string
@@ -12,21 +15,31 @@ export interface AuthUser {
 
 interface AuthState {
   user: AuthUser | null
+  session: Session | null
   isAuthenticated: boolean
   isLoading: boolean
+  appSource: AppSource
   checkUser: () => Promise<void>
   signOut: () => Promise<void>
   refreshSession: () => Promise<void>
+  setAppSource: (source: AppSource) => void
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
+  session: null,
   isAuthenticated: false,
   isLoading: true,
+  appSource: 'nucleo',
   checkUser: async () => {
     const supabase = createClient()
+    if (!supabase) {
+      set({ user: null, session: null, isAuthenticated: false, isLoading: false })
+      return
+    }
+
     const { data: { session } } = await supabase.auth.getSession()
-    
+
     if (session?.user) {
       const { data: profile } = await supabase
         .from('profiles')
@@ -35,19 +48,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         .single()
 
       if (profile) {
-        set({ user: profile as AuthUser, isAuthenticated: true, isLoading: false })
+        set({ user: profile as AuthUser, session, isAuthenticated: true, isLoading: false })
         return
       }
     }
-    
-    set({ user: null, isAuthenticated: false, isLoading: false })
+
+    set({ user: null, session: null, isAuthenticated: false, isLoading: false })
   },
   refreshSession: async () => {
     get().checkUser()
   },
   signOut: async () => {
     const supabase = createClient()
-    await supabase.auth.signOut()
-    set({ user: null, isAuthenticated: false })
-  }
+    if (supabase) {
+      const user = get().user
+      if (user?.email) {
+        logSecurityEvent(supabase, { eventType: 'session_revoked', email: user.email, userId: user.id, appSource: get().appSource }).catch(() => {})
+      }
+      await supabase.auth.signOut()
+    }
+    set({ user: null, session: null, isAuthenticated: false })
+  },
+  setAppSource: (source: AppSource) => set({ appSource: source }),
 }))

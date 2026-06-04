@@ -1,3 +1,4 @@
+Initialising login role...
 export type Json =
   | string
   | number
@@ -1281,6 +1282,50 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      co2_capture_metrics: {
+        Row: {
+          arbol_id: string | null
+          co2_kg_capturado: number
+          created_at: string | null
+          edad_anos: number | null
+          factor_especie: number | null
+          fecha_medicion: string
+          id: string
+          metodo_medicion: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          arbol_id?: string | null
+          co2_kg_capturado: number
+          created_at?: string | null
+          edad_anos?: number | null
+          factor_especie?: number | null
+          fecha_medicion?: string
+          id?: string
+          metodo_medicion?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          arbol_id?: string | null
+          co2_kg_capturado?: number
+          created_at?: string | null
+          edad_anos?: number | null
+          factor_especie?: number | null
+          fecha_medicion?: string
+          id?: string
+          metodo_medicion?: string | null
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "co2_capture_metrics_arbol_id_fkey"
+            columns: ["arbol_id"]
+            isOneToOne: false
+            referencedRelation: "arboles_plantados"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       colmenas: {
         Row: {
@@ -2570,6 +2615,87 @@ export type Database = {
           },
         ]
       }
+      honey_analysis: {
+        Row: {
+          acidez_libre_meq: number | null
+          actividad_antimicrobiana: string | null
+          color_pfund: number | null
+          created_at: string | null
+          diastasa_actividad: number | null
+          fecha_analisis: string
+          glucosa_oxidasa: boolean | null
+          hmf_mg_kg: number | null
+          humedad_pct: number | null
+          id: string
+          indice_glicemico_estimado: number | null
+          invertasa_actividad: number | null
+          laboratorio: string | null
+          lote_id: string | null
+          notas: string | null
+          perfil_polen: Json | null
+          ph: number | null
+          producto_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          acidez_libre_meq?: number | null
+          actividad_antimicrobiana?: string | null
+          color_pfund?: number | null
+          created_at?: string | null
+          diastasa_actividad?: number | null
+          fecha_analisis?: string
+          glucosa_oxidasa?: boolean | null
+          hmf_mg_kg?: number | null
+          humedad_pct?: number | null
+          id?: string
+          indice_glicemico_estimado?: number | null
+          invertasa_actividad?: number | null
+          laboratorio?: string | null
+          lote_id?: string | null
+          notas?: string | null
+          perfil_polen?: Json | null
+          ph?: number | null
+          producto_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          acidez_libre_meq?: number | null
+          actividad_antimicrobiana?: string | null
+          color_pfund?: number | null
+          created_at?: string | null
+          diastasa_actividad?: number | null
+          fecha_analisis?: string
+          glucosa_oxidasa?: boolean | null
+          hmf_mg_kg?: number | null
+          humedad_pct?: number | null
+          id?: string
+          indice_glicemico_estimado?: number | null
+          invertasa_actividad?: number | null
+          laboratorio?: string | null
+          lote_id?: string | null
+          notas?: string | null
+          perfil_polen?: Json | null
+          ph?: number | null
+          producto_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "honey_analysis_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "lotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "honey_analysis_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       impuestos: {
         Row: {
           created_at: string
@@ -2617,6 +2743,60 @@ export type Database = {
             columns: ["periodo_id"]
             isOneToOne: false
             referencedRelation: "periodos_contables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ingredients: {
+        Row: {
+          categoria: string | null
+          created_at: string
+          empresa_id: string
+          estado_default: string
+          id: string
+          nombre: string
+          precio_ref: number | null
+          proveedor_ref: string | null
+          unidad: string
+          updated_at: string | null
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string
+          empresa_id: string
+          estado_default: string
+          id?: string
+          nombre: string
+          precio_ref?: number | null
+          proveedor_ref?: string | null
+          unidad: string
+          updated_at?: string | null
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string
+          empresa_id?: string
+          estado_default?: string
+          id?: string
+          nombre?: string
+          precio_ref?: number | null
+          proveedor_ref?: string | null
+          unidad?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingredients_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredients_proveedor_ref_fkey"
+            columns: ["proveedor_ref"]
+            isOneToOne: false
+            referencedRelation: "terceros"
             referencedColumns: ["id"]
           },
         ]
@@ -2858,6 +3038,69 @@ export type Database = {
             columns: ["invitation_id"]
             isOneToOne: false
             referencedRelation: "invitation_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      irr_records: {
+        Row: {
+          arboles_asociados: number | null
+          co2_capturado_kg: number
+          co2_emitido_kg: number
+          colmenas_activas: number | null
+          created_at: string | null
+          id: string
+          irr: number | null
+          lote_id: string | null
+          metodologia: string | null
+          notas: string | null
+          periodo: string
+          producto_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          arboles_asociados?: number | null
+          co2_capturado_kg?: number
+          co2_emitido_kg?: number
+          colmenas_activas?: number | null
+          created_at?: string | null
+          id?: string
+          irr?: number | null
+          lote_id?: string | null
+          metodologia?: string | null
+          notas?: string | null
+          periodo: string
+          producto_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          arboles_asociados?: number | null
+          co2_capturado_kg?: number
+          co2_emitido_kg?: number
+          colmenas_activas?: number | null
+          created_at?: string | null
+          id?: string
+          irr?: number | null
+          lote_id?: string | null
+          metodologia?: string | null
+          notas?: string | null
+          periodo?: string
+          producto_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "irr_records_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "lotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "irr_records_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
             referencedColumns: ["id"]
           },
         ]
@@ -3188,9 +3431,74 @@ export type Database = {
           },
         ]
       }
+      price_observations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          empresa_id: string
+          fecha: string
+          fuente: string
+          id: string
+          ingredient_id: string
+          notas: string | null
+          precio: number
+          proveedor_id: string | null
+          unidad_reportada: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          empresa_id: string
+          fecha?: string
+          fuente?: string
+          id?: string
+          ingredient_id: string
+          notas?: string | null
+          precio: number
+          proveedor_id?: string | null
+          unidad_reportada?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          empresa_id?: string
+          fecha?: string
+          fuente?: string
+          id?: string
+          ingredient_id?: string
+          notas?: string | null
+          precio?: number
+          proveedor_id?: string | null
+          unidad_reportada?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_observations_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_observations_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_observations_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       productos: {
         Row: {
           categoria: string | null
+          co2_evitado_kg: number | null
           created_at: string | null
           descripcion_corta: string | null
           descripcion_regenerativa: string | null
@@ -3198,6 +3506,7 @@ export type Database = {
           fotos: string[] | null
           id: string
           ingredientes: string | null
+          irr_referencia: number | null
           lote_id: string | null
           nombre: string | null
           origen_apicola: string | null
@@ -3205,6 +3514,7 @@ export type Database = {
           precio: number | null
           slug: string | null
           stock: number | null
+          sustituye_azucar_g: number | null
           tags: string[] | null
           trazabilidad_qr: boolean | null
           updated_at: string | null
@@ -3213,6 +3523,7 @@ export type Database = {
         }
         Insert: {
           categoria?: string | null
+          co2_evitado_kg?: number | null
           created_at?: string | null
           descripcion_corta?: string | null
           descripcion_regenerativa?: string | null
@@ -3220,6 +3531,7 @@ export type Database = {
           fotos?: string[] | null
           id?: string
           ingredientes?: string | null
+          irr_referencia?: number | null
           lote_id?: string | null
           nombre?: string | null
           origen_apicola?: string | null
@@ -3227,6 +3539,7 @@ export type Database = {
           precio?: number | null
           slug?: string | null
           stock?: number | null
+          sustituye_azucar_g?: number | null
           tags?: string[] | null
           trazabilidad_qr?: boolean | null
           updated_at?: string | null
@@ -3235,6 +3548,7 @@ export type Database = {
         }
         Update: {
           categoria?: string | null
+          co2_evitado_kg?: number | null
           created_at?: string | null
           descripcion_corta?: string | null
           descripcion_regenerativa?: string | null
@@ -3242,6 +3556,7 @@ export type Database = {
           fotos?: string[] | null
           id?: string
           ingredientes?: string | null
+          irr_referencia?: number | null
           lote_id?: string | null
           nombre?: string | null
           origen_apicola?: string | null
@@ -3249,6 +3564,7 @@ export type Database = {
           precio?: number | null
           slug?: string | null
           stock?: number | null
+          sustituye_azucar_g?: number | null
           tags?: string[] | null
           trazabilidad_qr?: boolean | null
           updated_at?: string | null
@@ -3368,6 +3684,118 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipe_lines: {
+        Row: {
+          cantidad: number
+          estado: string
+          factor_conversion: number
+          id: string
+          ingredient_id: string
+          orden: number
+          recipe_id: string
+        }
+        Insert: {
+          cantidad: number
+          estado: string
+          factor_conversion?: number
+          id?: string
+          ingredient_id: string
+          orden?: number
+          recipe_id: string
+        }
+        Update: {
+          cantidad?: number
+          estado?: string
+          factor_conversion?: number
+          id?: string
+          ingredient_id?: string
+          orden?: number
+          recipe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_lines_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_lines_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_costing_view"
+            referencedColumns: ["recipe_id"]
+          },
+          {
+            foreignKeyName: "recipe_lines_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipes: {
+        Row: {
+          activa: boolean
+          costo_empaque: number
+          created_at: string
+          empresa_id: string
+          formato_frasco: string
+          id: string
+          merma_pct: number
+          notas: string | null
+          producto_id: string
+          rendimiento_frascos: number
+          updated_at: string | null
+          version: number
+        }
+        Insert: {
+          activa?: boolean
+          costo_empaque?: number
+          created_at?: string
+          empresa_id: string
+          formato_frasco: string
+          id?: string
+          merma_pct?: number
+          notas?: string | null
+          producto_id: string
+          rendimiento_frascos: number
+          updated_at?: string | null
+          version?: number
+        }
+        Update: {
+          activa?: boolean
+          costo_empaque?: number
+          created_at?: string
+          empresa_id?: string
+          formato_frasco?: string
+          id?: string
+          merma_pct?: number
+          notas?: string | null
+          producto_id?: string
+          rendimiento_frascos?: number
+          updated_at?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipes_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
             referencedColumns: ["id"]
           },
         ]
@@ -4702,6 +5130,34 @@ export type Database = {
         }
         Relationships: []
       }
+      recipe_costing_view: {
+        Row: {
+          activa: boolean | null
+          costo_empaque: number | null
+          costo_frasco: string | null
+          costo_total: string | null
+          formato: string | null
+          margen_frasco: string | null
+          margen_pct: string | null
+          merma_pct: number | null
+          precio_venta: number | null
+          producto_id: string | null
+          producto_nombre: string | null
+          recipe_id: string | null
+          rendimiento_frascos: number | null
+          updated_at: string | null
+          version: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rep_performance_view: {
         Row: {
           active: boolean | null
@@ -4953,6 +5409,8 @@ export type Database = {
           volume_multiplier: number
         }[]
       }
+      calcular_costo_receta: { Args: { p_recipe_id: string }; Returns: Json }
+      calcular_irr_lote: { Args: { p_lote_id: string }; Returns: number }
       calcular_metricas_creadores_mes: {
         Args: { p_mes: string }
         Returns: undefined
@@ -5111,6 +5569,7 @@ export type Database = {
         Returns: boolean
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
+      get_ecosystem_metrics: { Args: never; Returns: Json }
       gettransactionid: { Args: never; Returns: unknown }
       has_empresa_access: {
         Args: { target_empresa_id: string }

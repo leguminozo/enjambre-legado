@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useAuthStore } from '@enjambre/auth';
 import { useCashSession } from '@/components/pos/cash-context';
 import { TierBadge, TierProgressBar, useTierProgress } from '@/components/pos/tier-badge';
 import { LeaderboardPanel } from '@/components/pos/leaderboard-panel';
@@ -32,10 +33,7 @@ export default function HistorialPage() {
 
   const fetchHistory = useCallback(async () => {
     try {
-      const { createClient } = await import('@/utils/supabase/client');
-      const supabase = createClient();
-      if (!supabase) return;
-      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const authSession = useAuthStore.getState().session;
       if (!authSession) return;
 
       const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
@@ -46,8 +44,8 @@ export default function HistorialPage() {
         const json = await res.json();
         setData(json.data);
       }
-    } catch {
-      /* ignore */
+    } catch (err) {
+      console.error('[Historial] fetch failed:', err);
     } finally {
       setLoading(false);
     }
@@ -61,7 +59,7 @@ export default function HistorialPage() {
     return (
       <div className="flex items-center justify-center py-20 gap-3">
         <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs text-stone-500 uppercase tracking-widest">Cargando historial...</span>
+        <span className="text-xs text-muted-foreground uppercase tracking-widest">Cargando historial...</span>
       </div>
     );
   }
@@ -69,7 +67,7 @@ export default function HistorialPage() {
   if (!data) {
     return (
       <div className="text-center py-20">
-        <p className="text-stone-500 text-sm">No se pudo cargar el historial.</p>
+        <p className="text-muted-foreground text-sm">No se pudo cargar el historial.</p>
       </div>
     );
   }
@@ -80,14 +78,14 @@ export default function HistorialPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-serif text-2xl text-white mb-1">Historial</h1>
-          <p className="text-xs text-stone-500 uppercase tracking-widest">Comisiones, ventas y rendimiento</p>
+          <h1 className="font-serif text-2xl text-foreground mb-1">Historial</h1>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest">Comisiones, ventas y rendimiento</p>
         </div>
         <div className="flex gap-2">
           {(['week', 'month', 'quarter'] as const).map(r => (
             <button key={r} onClick={() => { setRange(r); setLoading(true); }}
-              className={`px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
-                range === r ? 'bg-primary text-black' : 'bg-stone-900 text-stone-500 hover:text-white'
+          className={`px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
+            range === r ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'
               }`}>
               {r === 'week' ? '7d' : r === 'month' ? '30d' : '90d'}
             </button>
@@ -101,22 +99,22 @@ export default function HistorialPage() {
       <div className="card-glow p-4 text-center">
         <DollarSign className="w-4 h-4 text-primary mx-auto mb-2" />
         <p className="text-lg font-bold text-primary">{formatCLP(data.summary.total_pending)}</p>
-        <p className="text-[9px] uppercase text-stone-500 tracking-widest">Pendiente</p>
+        <p className="text-[9px] uppercase text-muted-foreground tracking-widest">Pendiente</p>
       </div>
       <div className="card-glow p-4 text-center">
         <TrendingUp className="w-4 h-4 text-green-400 mx-auto mb-2" />
-        <p className="text-lg font-bold text-white">{formatCLP(Number(profile.total_revenue_lifetime))}</p>
-        <p className="text-[9px] uppercase text-stone-500 tracking-widest">Lifetime</p>
+        <p className="text-lg font-bold text-foreground">{formatCLP(Number(profile.total_revenue_lifetime))}</p>
+        <p className="text-[9px] uppercase text-muted-foreground tracking-widest">Lifetime</p>
       </div>
       <div className="card-glow p-4 text-center">
         <Zap className="w-4 h-4 text-amber-400 mx-auto mb-2" />
-        <p className="text-lg font-bold text-white">{profile.current_streak_days}d</p>
-        <p className="text-[9px] uppercase text-stone-500 tracking-widest">Racha</p>
+        <p className="text-lg font-bold text-foreground">{profile.current_streak_days}d</p>
+        <p className="text-[9px] uppercase text-muted-foreground tracking-widest">Racha</p>
       </div>
       <div className="card-glow p-4 text-center">
         <TierBadge tier={profile.commission_tier} />
-        <p className="text-lg font-bold text-white mt-2">{profile.total_sales_lifetime}</p>
-        <p className="text-[9px] uppercase text-stone-500 tracking-widest">Ventas</p>
+        <p className="text-lg font-bold text-foreground mt-2">{profile.total_sales_lifetime}</p>
+        <p className="text-[9px] uppercase text-muted-foreground tracking-widest">Ventas</p>
       </div>
     </div>
     {tierProgress && <TierProgressBar progress={tierProgress} />}
@@ -126,8 +124,8 @@ export default function HistorialPage() {
       <div className="flex gap-2">
     {(['overview', 'commissions', 'sessions', 'leaderboard'] as const).map(t => (
       <button key={t} onClick={() => setTab(t)}
-        className={`px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
-          tab === t ? 'bg-primary text-black' : 'bg-stone-900 text-stone-500 hover:text-white'
+          className={`px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
+            tab === t ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'
         }`}
       >
         {t === 'overview' ? 'Curva' : t === 'commissions' ? 'Comisiones' : t === 'sessions' ? 'Sesiones' : 'Ranking'}
@@ -137,9 +135,9 @@ export default function HistorialPage() {
 
       {tab === 'overview' && (
         <div className="card-glow p-5 space-y-4">
-          <h3 className="text-xs text-stone-500 uppercase tracking-widest">Curva de volumen diario</h3>
+          <h3 className="text-xs text-muted-foreground uppercase tracking-widest">Curva de volumen diario</h3>
           {data.daily.length === 0 ? (
-            <p className="text-sm text-stone-600 italic py-8 text-center">Sin datos en este período.</p>
+            <p className="text-sm text-muted-foreground italic py-8 text-center">Sin datos en este período.</p>
           ) : (
             <div className="space-y-2">
               {data.daily.map(d => {
@@ -147,14 +145,14 @@ export default function HistorialPage() {
                 const widthPct = (d.commissions / maxComms) * 100;
                 return (
                   <div key={d.date} className="flex items-center gap-3">
-                    <span className="text-[10px] text-stone-500 w-16 shrink-0">{new Date(d.date + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}</span>
-                    <div className="flex-1 h-6 bg-stone-900 rounded-lg overflow-hidden relative">
-                      <div className="h-full bg-gradient-to-r from-primary/40 to-primary rounded-lg transition-all" style={{ width: `${widthPct}%` }} />
-                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-white font-bold">
-                        {formatCLP(d.commissions)}
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-stone-600 w-8 text-right">{d.sales}</span>
+      <span className="text-[10px] text-muted-foreground w-16 shrink-0">{new Date(d.date + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}</span>
+      <div className="flex-1 h-6 bg-card rounded-lg overflow-hidden relative">
+        <div className="h-full bg-gradient-to-r from-primary/40 to-primary rounded-lg transition-all" style={{ width: `${widthPct}%` }} />
+        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-foreground font-bold">
+          {formatCLP(d.commissions)}
+        </span>
+      </div>
+      <span className="text-[10px] text-muted-foreground w-8 text-right">{d.sales}</span>
                   </div>
                 );
               })}
@@ -166,13 +164,13 @@ export default function HistorialPage() {
       {tab === 'commissions' && (
         <div className="space-y-2 max-h-[500px] overflow-y-auto">
           {data.commissions.length === 0 ? (
-            <p className="text-sm text-stone-600 italic py-8 text-center">Sin comisiones en este período.</p>
+            <p className="text-sm text-muted-foreground italic py-8 text-center">Sin comisiones en este período.</p>
           ) : data.commissions.map(c => (
             <div key={c.id} className="card-glow p-4 flex items-center justify-between">
               <div>
-                <p className="text-sm font-bold text-white">{formatCLP(Number(c.total_commission))}</p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-[9px] text-stone-500">Base: {formatCLP(Number(c.base_commission))}</span>
+        <p className="text-sm font-bold text-foreground">{formatCLP(Number(c.total_commission))}</p>
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-[9px] text-muted-foreground">Base: {formatCLP(Number(c.base_commission))}</span>
             {Number(c.volume_multiplier) > 1 && <span className="text-[9px] text-amber-400">×{Number(c.volume_multiplier).toFixed(1)}</span>}
             {Number(c.loyalty_bonus) > 0 && <span className="text-[9px] text-green-400">+loyalty</span>}
             {Number(c.streak_bonus) > 0 && <span className="text-[9px] text-purple-400">+streak</span>}
@@ -186,7 +184,7 @@ export default function HistorialPage() {
                 }`}>
                   {c.paid ? 'pagada' : 'pendiente'}
                 </span>
-                <p className="text-[10px] text-stone-600 mt-1">
+                <p className="text-[10px] text-muted-foreground mt-1">
                   {new Date(c.created_at).toLocaleDateString('es-CL')}
                 </p>
               </div>
@@ -198,15 +196,15 @@ export default function HistorialPage() {
       {tab === 'sessions' && (
         <div className="space-y-2 max-h-[500px] overflow-y-auto">
           {data.sessions.length === 0 ? (
-            <p className="text-sm text-stone-600 italic py-8 text-center">Sin sesiones en este período.</p>
+            <p className="text-sm text-muted-foreground italic py-8 text-center">Sin sesiones en este período.</p>
           ) : data.sessions.map(s => (
             <div key={s.id} className="card-glow p-4 flex items-center justify-between">
               <div>
-                <p className="text-sm font-bold text-white">
-                  {new Date(s.opened_at).toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' })}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[9px] text-stone-500">Base: {formatCLP(s.opening_cash)}</span>
+        <p className="text-sm font-bold text-foreground">
+          {new Date(s.opened_at).toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' })}
+        </p>
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-[9px] text-muted-foreground">Base: {formatCLP(s.opening_cash)}</span>
                   {s.cash_difference !== null && (
                     <span className={`text-[9px] font-bold ${Number(s.cash_difference) === 0 ? 'text-green-400' : 'text-red-400'}`}>
                       Δ {Number(s.cash_difference) >= 0 ? '+' : '-'}{formatCLP(Number(s.cash_difference))}

@@ -6,6 +6,7 @@ import { Hexagon, Lock, Mail, User, ShieldCheck, ArrowRight, ArrowLeft } from 'l
 import { AuthHero } from '@/components/auth/AuthHero';
 import { friendlyError } from '@enjambre/ui';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore, logSecurityEvent, getRoleRedirectPath } from '@enjambre/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,20 +40,29 @@ export default function LoginPage() {
       if (isForgotPassword) {
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/login` });
         if (error) throw error;
+        logSecurityEvent(supabase, { eventType: 'password_reset_requested', email, appSource: 'nucleo' });
         setMessage('Te hemos enviado un enlace para recuperar tu contraseña.');
         setIsForgotPassword(false);
       } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw error;
-            router.push('/colmenas');
+        if (error) {
+          logSecurityEvent(supabase, { eventType: 'login_failed', email, appSource: 'nucleo', details: { code: error.status } });
+          throw error;
+        }
+        await useAuthStore.getState().checkUser();
+        const userId = useAuthStore.getState().user?.id;
+        logSecurityEvent(supabase, { eventType: 'login_success', email, userId, appSource: 'nucleo' });
+        const userRole = useAuthStore.getState().user?.role ?? role;
+        router.push(getRoleRedirectPath(userRole));
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, role } } });
         if (error) throw error;
+        logSecurityEvent(supabase, { eventType: 'signup_success', email, userId: data.user?.id ?? null, appSource: 'nucleo', details: { role } });
         if (data.user && !data.session) {
           setMessage('Revisa tu correo para confirmar la cuenta.');
-      } else {
-        router.push('/colmenas');
-      }
+        } else {
+          router.push(getRoleRedirectPath(role));
+        }
       }
     } catch (err: unknown) {
       setError(friendlyError(err, 'Error de autenticación'));

@@ -1,25 +1,23 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import { getSupabaseKey, getSupabaseUrl } from './env';
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { getSupabaseKey, getSupabaseUrl } from './env'
 
 export async function createClient() {
-  const cookieStore = await cookies();
+  const cookieStore = await cookies()
 
   return createServerClient(getSupabaseUrl(), getSupabaseKey(), {
     cookies: {
       getAll() {
-        return cookieStore.getAll();
+        return cookieStore.getAll()
       },
       setAll(cookiesToSet) {
         try {
           cookiesToSet.forEach(({ name, value, options }) =>
             cookieStore.set(name, value, options),
-          );
+          )
         } catch {
-          // setAll desde Server Component: ignorar si el middleware refresca la sesión.
         }
       },
     },
-  });
+  })
 }
-

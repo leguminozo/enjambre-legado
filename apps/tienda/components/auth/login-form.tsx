@@ -59,6 +59,11 @@ export function LoginForm() {
             Identidad <span className="italic text-accent">Legado</span>
           </h1>
           <p className="mt-4 text-sm text-muted-foreground font-light tracking-wide">Acceso al panel de control y gestión</p>
+          <ul className="mt-5 space-y-2 text-[0.65rem] text-muted-foreground/70 tracking-wide">
+            <li>· Ver tu historia de colmenas y árboles plantados</li>
+            <li>· Recibir invitaciones priorizadas a Iniciaciones en Chiloé</li>
+            <li>· Guardar tus colecciones favoritas y obsequios recurrentes</li>
+          </ul>
         </div>
 
         <form className="mt-8 space-y-8 bg-surface-raised/80 backdrop-blur-xl border border-border p-10 shadow-2xl" onSubmit={handleSubmit}>
@@ -130,7 +135,7 @@ export function LoginForm() {
             <p className="text-[0.7rem] text-muted-foreground">
               ¿No tienes cuenta?{' '}
               <Link href="/register" className="text-foreground hover:text-accent underline underline-offset-4 decoration-border">
-                Únete al legado
+                Únete al Legado del Bosque
               </Link>
             </p>
           </div>

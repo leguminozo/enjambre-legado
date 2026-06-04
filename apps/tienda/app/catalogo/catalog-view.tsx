@@ -102,17 +102,30 @@ export function CatalogoView({ products }: Props) {
                         </div>
                       )}
                     </div>
-                    <div className="p-4">
-                      {p.format ? (
-                        <span className="inline-block rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
-                          {p.format}
-                        </span>
-                      ) : null}
-                      <h2 className="mt-2 font-display text-lg font-semibold text-foreground group-hover:text-accent">
-                        {p.name}
-                      </h2>
-                      <p className="mt-1 text-sm text-muted-foreground">{formatCLP(p.price)}</p>
-                    </div>
+                <div className="p-4">
+                  {p.format ? (
+                    <span className="inline-block rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
+                      {p.format}
+                    </span>
+                  ) : null}
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    <span className="inline-block rounded-full border border-accent/30 px-2.5 py-0.5 text-[9px] uppercase tracking-wider text-accent/80">
+                      Sustituye azúcar
+                    </span>
+                    <span className="inline-block rounded-full border border-success/30 px-2.5 py-0.5 text-[9px] uppercase tracking-wider text-success/80">
+                      Bosque nativo
+                    </span>
+                    {p.format && p.format.toLowerCase().includes('sachet') && (
+                      <span className="inline-block rounded-full border border-muted-foreground/20 px-2.5 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground/60">
+                        Bajo procesamiento
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="mt-2 font-display text-lg font-semibold text-foreground group-hover:text-accent">
+                    {p.name}
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">{formatCLP(p.price)}</p>
+                </div>
                   </Link>
                 </li>
               );

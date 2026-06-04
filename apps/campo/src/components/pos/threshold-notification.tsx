@@ -81,17 +81,17 @@ export function ThresholdNotificationBanner({ notification, onDismiss }: {
       <div className="flex items-start gap-3">
         <div className="text-2xl">{isCrossed ? '🔥' : '⚡'}</div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-black">{notification.message}</p>
-          <p className="text-[10px] text-black/70 mt-1">
+          <p className="text-sm font-bold text-primary-foreground">{notification.message}</p>
+          <p className="text-[10px] text-primary-foreground/70 mt-1">
             ×{notification.multiplier.toFixed(1)} multiplicador · ${notification.current.toLocaleString('es-CL')} / ${notification.threshold.toLocaleString('es-CL')}
           </p>
           {!isCrossed && (
-            <div className="mt-2 h-1.5 bg-black/20 rounded-full overflow-hidden">
-              <div className="h-full bg-black/50 rounded-full transition-all duration-500" style={{ width: `${notification.percentage}%` }} />
+            <div className="mt-2 h-1.5 bg-primary-foreground/20 rounded-full overflow-hidden">
+              <div className="h-full bg-primary-foreground/50 rounded-full transition-all duration-500" style={{ width: `${notification.percentage}%` }} />
             </div>
           )}
         </div>
-        <button onClick={onDismiss} className="text-black/60 hover:text-black text-lg leading-none">×</button>
+        <button onClick={onDismiss} className="text-primary-foreground/60 hover:text-primary-foreground text-lg leading-none">×</button>
       </div>
     </div>
   );

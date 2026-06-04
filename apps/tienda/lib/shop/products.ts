@@ -13,29 +13,35 @@ export type ShopProduct = {
   blockchain_hash?: string | null;
   colmena_origen?: string | null;
   fecha_cosecha?: string | null;
+  sustituye_azucar_g?: number | null;
+  co2_evitado_kg?: number | null;
+  irr_referencia?: number | null;
 };
 
 export async function listVisibleProducts(): Promise<ShopProduct[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('productos')
-    .select('id, slug, nombre, descripcion_regenerativa, precio, stock, formato, fotos, visible, blockchain_hash')
+    .select('id, slug, nombre, descripcion_regenerativa, precio, stock, formato, fotos, visible, blockchain_hash, sustituye_azucar_g, co2_evitado_kg, irr_referencia')
     .eq('visible', true)
     .order('created_at', { ascending: false });
 
   if (error) throw new Error(error.message);
   return (data ?? []).map((p) => ({
-    id: p.id as string,
-    slug: (p.slug as string) ?? String(p.id),
-    name: (p.nombre as string) ?? '',
-    description: (p.descripcion_regenerativa as string) ?? null,
-    price: (p.precio as number) ?? 0,
-    stock: (p.stock as number) ?? null,
-    format: (p.formato as string) ?? null,
-    photos: (p.fotos as string[]) ?? [],
-    visible: (p.visible as boolean) ?? true,
-    blockchain_hash: (p.blockchain_hash as string) ?? null,
-  }));
+  id: p.id as string,
+  slug: (p.slug as string) ?? String(p.id),
+  name: (p.nombre as string) ?? '',
+  description: (p.descripcion_regenerativa as string) ?? null,
+  price: (p.precio as number) ?? 0,
+  stock: (p.stock as number) ?? null,
+  format: (p.formato as string) ?? null,
+  photos: (p.fotos as string[]) ?? [],
+  visible: (p.visible as boolean) ?? true,
+  blockchain_hash: (p.blockchain_hash as string) ?? null,
+  sustituye_azucar_g: (p.sustituye_azucar_g as number) ?? null,
+  co2_evitado_kg: (p.co2_evitado_kg as number) ?? null,
+  irr_referencia: (p.irr_referencia as number) ?? null,
+}));
 }
 
 export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduct | null> {
@@ -44,7 +50,7 @@ export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduc
   // Primero intenta por slug.
   const bySlug = await supabase
     .from('productos')
-    .select('id, slug, nombre, descripcion_regenerativa, precio, stock, formato, fotos, visible, blockchain_hash')
+    .select('id, slug, nombre, descripcion_regenerativa, precio, stock, formato, fotos, visible, blockchain_hash, sustituye_azucar_g, co2_evitado_kg, irr_referencia')
     .eq('slug', slugOrId)
     .maybeSingle();
 
@@ -62,13 +68,16 @@ export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduc
       photos: (p.fotos as string[]) ?? [],
       visible: (p.visible as boolean) ?? true,
       blockchain_hash: (p.blockchain_hash as string) ?? null,
+      sustituye_azucar_g: (p.sustituye_azucar_g as number) ?? null,
+      co2_evitado_kg: (p.co2_evitado_kg as number) ?? null,
+      irr_referencia: (p.irr_referencia as number) ?? null,
     };
   }
 
   // Fallback por id.
   const byId = await supabase
     .from('productos')
-    .select('id, slug, nombre, descripcion_regenerativa, precio, stock, formato, fotos, visible, blockchain_hash')
+    .select('id, slug, nombre, descripcion_regenerativa, precio, stock, formato, fotos, visible, blockchain_hash, sustituye_azucar_g, co2_evitado_kg, irr_referencia')
     .eq('id', slugOrId)
     .maybeSingle();
 
@@ -86,6 +95,9 @@ export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduc
     photos: (p.fotos as string[]) ?? [],
     visible: (p.visible as boolean) ?? true,
     blockchain_hash: (p.blockchain_hash as string) ?? null,
+    sustituye_azucar_g: (p.sustituye_azucar_g as number) ?? null,
+    co2_evitado_kg: (p.co2_evitado_kg as number) ?? null,
+    irr_referencia: (p.irr_referencia as number) ?? null,
   };
 }
 

@@ -98,13 +98,36 @@ export default async function ProductoPage({
             </h1>
             <p className="mt-4 font-display text-2xl text-accent">{formatCLP(product.price)}</p>
 
-            {product.description ? (
-              <div className="mt-8 border-l-2 border-accent/60 pl-5">
-                <p className="whitespace-pre-line leading-relaxed text-foreground/70">{product.description}</p>
-              </div>
+          {product.description ? (
+            <div className="mt-8 border-l-2 border-accent/60 pl-5">
+              <p className="whitespace-pre-line leading-relaxed text-foreground/70">{product.description}</p>
+            </div>
+          ) : (
+            <p className="mt-8 text-sm italic text-muted-foreground/60">Descripción disponible pronto.</p>
+          )}
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            {product.sustituye_azucar_g ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 px-3 py-1 text-[9px] uppercase tracking-wider text-accent/80">
+                Sustituye ~{product.sustituye_azucar_g}g azúcar refinada
+              </span>
             ) : (
-              <p className="mt-8 text-sm italic text-muted-foreground/60">Descripción disponible pronto.</p>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 px-3 py-1 text-[9px] uppercase tracking-wider text-accent/80">
+                Sustituye azúcar refinada
+              </span>
             )}
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 px-3 py-1 text-[9px] uppercase tracking-wider text-success/80">
+              Bosque nativo
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-muted-foreground/20 px-3 py-1 text-[9px] uppercase tracking-wider text-muted-foreground/60">
+              Miel viva · Enzimas activas
+            </span>
+            {product.irr_referencia && product.irr_referencia > 1 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 px-3 py-1 text-[9px] uppercase tracking-wider text-success/80">
+                IRR {product.irr_referencia} · Impacto &gt; Huella
+              </span>
+            )}
+          </div>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
               <AddToCartButton product={product} disabled={!inStock} />

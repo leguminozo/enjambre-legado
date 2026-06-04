@@ -1,31 +1,24 @@
-'use client';
+'use client'
 
-import { useSession } from '@/providers/Providers';
-import { useSupabase } from '@/providers/Providers';
+import { createClient } from '@enjambre/auth'
+import { useAuthStore } from '@enjambre/auth'
 
 export function useApiFetch() {
-  const session = useSession();
-  let supabase: ReturnType<typeof useSupabase> | null = null;
-  try {
-    supabase = useSupabase();
-  } catch {
-    return async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
-      return fetch(path, init);
-    };
-  }
+  const session = useAuthStore((s) => s.session)
 
   return async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
-    const { data: { session: currentSession } } = await supabase!.auth.getSession();
-    const token = currentSession?.access_token ?? '';
-    const empresaId = currentSession?.user?.app_metadata?.empresa_id ?? '';
+    const supabase = createClient()
+    const currentSession = session ?? (await supabase?.auth.getSession())?.data?.session ?? null
+    const token = currentSession?.access_token ?? ''
+    const empresaId = currentSession?.user?.app_metadata?.empresa_id ?? ''
 
-    const headers = new Headers(init?.headers);
-    if (token) headers.set('Authorization', `Bearer ${token}`);
-    if (empresaId) headers.set('x-empresa-id', empresaId);
+    const headers = new Headers(init?.headers)
+    if (token) headers.set('Authorization', `Bearer ${token}`)
+    if (empresaId) headers.set('x-empresa-id', empresaId)
     if (!headers.has('Content-Type') && init?.body) {
-      headers.set('Content-Type', 'application/json');
+      headers.set('Content-Type', 'application/json')
     }
 
-    return fetch(path, { ...init, headers });
-  };
+    return fetch(path, { ...init, headers })
+  }
 }

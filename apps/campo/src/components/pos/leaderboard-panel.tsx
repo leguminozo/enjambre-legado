@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useAuthStore } from '@enjambre/auth';
 import { Trophy, Medal, Crown, TrendingUp } from 'lucide-react';
 import { TierBadge } from './tier-badge';
 
@@ -22,10 +23,7 @@ export function LeaderboardPanel() {
 
   const fetchLeaderboard = useCallback(async () => {
     try {
-      const { createClient } = await import('@/utils/supabase/client');
-      const supabase = createClient();
-      if (!supabase) return;
-      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const authSession = useAuthStore.getState().session;
       if (!authSession) return;
 
       const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
@@ -36,8 +34,8 @@ export function LeaderboardPanel() {
         const json = await res.json();
         setEntries(json.data ?? []);
       }
-    } catch {
-      /* ignore */
+    } catch (err) {
+      console.error('[Leaderboard] fetch failed:', err);
     } finally {
       setLoading(false);
     }
@@ -51,7 +49,7 @@ export function LeaderboardPanel() {
     return (
       <div className="flex items-center justify-center py-12 gap-3">
         <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs text-stone-500 uppercase tracking-widest">Cargando ranking...</span>
+        <span className="text-xs text-muted-foreground uppercase tracking-widest">Cargando ranking...</span>
       </div>
     );
   }
@@ -59,9 +57,9 @@ export function LeaderboardPanel() {
   if (entries.length === 0) {
     return (
       <div className="card-glow p-6 text-center">
-        <Trophy className="w-8 h-8 text-stone-600 mx-auto mb-3" />
-        <p className="text-sm text-stone-500">Sin datos esta semana.</p>
-        <p className="text-[10px] text-stone-600 mt-1">El leaderboard se actualiza cada lunes.</p>
+      <Trophy className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+      <p className="text-sm text-muted-foreground">Sin datos esta semana.</p>
+      <p className="text-[10px] text-muted-foreground mt-1">El leaderboard se actualiza cada lunes.</p>
       </div>
     );
   }
@@ -73,7 +71,7 @@ export function LeaderboardPanel() {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Trophy className="w-5 h-5 text-amber-400" />
-        <h3 className="font-serif text-lg text-white">Leaderboard Semanal</h3>
+        <h3 className="font-serif text-lg text-foreground">Leaderboard Semanal</h3>
       </div>
 
       {top3.length > 0 && (
@@ -90,10 +88,10 @@ export function LeaderboardPanel() {
             return (
               <div key={entry.rep_id} className={`bg-gradient-to-b ${colors[i] || colors[2]} border rounded-xl p-4 text-center ${i === 0 ? 'sm:scale-105 sm:z-10' : ''}`}>
                 <RankIcon className={`w-6 h-6 mx-auto mb-2 ${iconColors[i] || iconColors[2]}`} />
-                <p className="text-sm font-bold text-white truncate">{entry.display_name}</p>
+                <p className="text-sm font-bold text-foreground truncate">{entry.display_name}</p>
                 <TierBadge tier={entry.commission_tier} />
                 <p className="text-lg font-bold text-primary mt-2">{formatCLP(Number(entry.total_commissions))}</p>
-                <p className="text-[9px] text-stone-500 uppercase tracking-widest">{entry.total_sales} ventas · {formatCLP(Number(entry.total_revenue))}</p>
+                <p className="text-[9px] text-muted-foreground uppercase tracking-widest">{entry.total_sales} ventas · {formatCLP(Number(entry.total_revenue))}</p>
               </div>
             );
           })}
@@ -103,10 +101,10 @@ export function LeaderboardPanel() {
       {rest.length > 0 && (
         <div className="card-glow p-4 space-y-2">
           {rest.map(entry => (
-            <div key={entry.rep_id} className="flex items-center gap-3 py-2 border-b border-stone-800/50 last:border-0">
-              <span className="text-xs font-mono text-stone-500 w-6">#{entry.rank}</span>
+            <div key={entry.rep_id} className="flex items-center gap-3 py-2 border-b border-border/50 last:border-0">
+              <span className="text-xs font-mono text-muted-foreground w-6">#{entry.rank}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">{entry.display_name}</p>
+                <p className="text-sm font-medium text-foreground truncate">{entry.display_name}</p>
               </div>
               <TierBadge tier={entry.commission_tier} />
               <p className="text-sm font-bold text-primary">{formatCLP(Number(entry.total_commissions))}</p>

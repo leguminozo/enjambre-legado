@@ -18,29 +18,29 @@ export function LoginForm() {
     setError(null);
     const supabase = createClient();
     if (!supabase) {
-		setError('El sistema no está configurado. Contacta al administrador.');
+      setError('El sistema no está configurado. Contacta al administrador.');
       return;
     }
     setLoading(true);
-	const { error: signErr } = await supabase.auth.signInWithPassword({ email, password });
-	setLoading(false);
-	if (signErr) {
-		setError(friendlySupabaseError(signErr));
-		void logSecurityEvent(supabase, {
-			eventType: 'login_failed',
-			email,
-			userAgent: navigator.userAgent,
-			appSource: 'campo',
-			details: { code: signErr.code, message: signErr.message },
-		});
-		return;
-	}
-	void logSecurityEvent(supabase, {
-		eventType: 'login_success',
-		email,
-		userAgent: navigator.userAgent,
-		appSource: 'campo',
-	});
+    const { error: signErr } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (signErr) {
+      setError(friendlySupabaseError(signErr));
+      void logSecurityEvent(supabase, {
+        eventType: 'login_failed',
+        email,
+        userAgent: navigator.userAgent,
+        appSource: 'campo',
+        details: { code: signErr.code, message: signErr.message },
+      });
+      return;
+    }
+    void logSecurityEvent(supabase, {
+      eventType: 'login_success',
+      email,
+      userAgent: navigator.userAgent,
+      appSource: 'campo',
+    });
     router.push('/pos/catalogo');
     router.refresh();
   }
@@ -48,8 +48,8 @@ export function LoginForm() {
   return (
     <form onSubmit={(e) => void onSubmit(e)} className="space-y-4">
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-		Correo
+        <label htmlFor="email" className="block text-sm font-medium text-muted-foreground mb-1">
+          Correo
         </label>
         <input
           id="email"
@@ -58,11 +58,11 @@ export function LoginForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors"
         />
       </div>
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="password" className="block text-sm font-medium text-muted-foreground mb-1">
           Contraseña
         </label>
         <input
@@ -72,14 +72,14 @@ export function LoginForm() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors"
         />
       </div>
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-bosque py-3 text-sm font-medium text-white disabled:opacity-50"
+        className="w-full rounded-xl bg-primary py-3 text-sm font-medium text-primary-foreground disabled:opacity-50"
       >
         {loading ? 'Entrando…' : 'Entrar'}
       </button>

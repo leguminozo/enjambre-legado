@@ -7,7 +7,7 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
   return (
     <CartProvider>
       <CashProvider>
-        <div className="min-h-screen bg-black text-stone-200 font-sans selection:bg-primary selection:text-black">
+        <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground">
           {/* Ambient glow */}
           <div className="fixed inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/5 blur-[120px]" />
@@ -20,7 +20,7 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
               {children}
             </main>
 
-            <footer className="py-8 text-center text-stone-600 text-xs tracking-widest uppercase">
+            <footer className="py-8 text-center text-muted-foreground text-xs tracking-widest uppercase">
               Enjambre Legado — Experiential POS v2.0
             </footer>
           </div>

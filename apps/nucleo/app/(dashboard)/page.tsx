@@ -1,7 +1,7 @@
-'use client';
+'use client'
 
-import { EjecutivoPanel } from '@/components/gerente/EjecutivoPanel';
+import { DashboardResumen } from '@/components/gerente/DashboardResumen'
 
 export default function DashboardPage() {
-  return <EjecutivoPanel />;
+  return <DashboardResumen />
 }

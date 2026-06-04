@@ -2,15 +2,8 @@
 
 import { createClient } from '@/utils/supabase/client';
 import { friendlySupabaseError } from '@enjambre/ui';
-import { logSecurityEvent } from '@enjambre/auth';
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useAuthStore, logSecurityEvent } from '@enjambre/auth';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 
 export type TiendaUser = {
   id: string;
@@ -30,47 +23,40 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-async function loadUser(): Promise<TiendaUser | null> {
-  const supabase = createClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) return null;
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, email, full_name, role')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  if (profileError || !profile) return null;
-
+function toTiendaUser(authUser: { id: string; email: string; role: string; full_name: string } | null): TiendaUser | null {
+  if (!authUser) return null;
   return {
-    id: profile.id as string,
-    email: (profile.email as string) || user.email || '',
-    name: (profile.full_name as string) || user.email?.split('@')[0] || 'Usuario',
-    role: profile.role as TiendaUser['role'],
+    id: authUser.id,
+    email: authUser.email,
+    name: authUser.full_name || authUser.email.split('@')[0] || 'Usuario',
+    role: authUser.role as TiendaUser['role'],
   };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<TiendaUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const authUser = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const signOut = useAuthStore((s) => s.signOut);
+  const checkUser = useAuthStore((s) => s.checkUser);
+  const clientRef = useRef<ReturnType<typeof createClient> | null>(null);
+
+  if (!clientRef.current) clientRef.current = createClient();
 
   useEffect(() => {
-    let mounted = true;
-    void (async () => {
-      const u = await loadUser();
-      if (!mounted) return;
-      setUser(u);
-      setLoading(false);
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    useAuthStore.getState().setAppSource('tienda');
+    checkUser();
+
+    const { data: { subscription } } = clientRef.current!.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        checkUser();
+      } else {
+        useAuthStore.setState({ user: null, session: null, isAuthenticated: false, isLoading: false });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [checkUser]);
 
   const login = useCallback(async (email: string, password: string) => {
     if (!email?.trim() || !password) {
@@ -97,9 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       userAgent: navigator.userAgent,
       appSource: 'tienda',
     });
-
-    const u = await loadUser();
-    setUser(u);
+    await useAuthStore.getState().checkUser();
     return { success: true, message: undefined };
   }, []);
 
@@ -108,56 +92,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: false, message: 'Completa todos los campos' };
     }
     const supabase = createClient();
-    
-    // 1. Sign up in Supabase Auth
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: {
-        data: {
-          full_name: fullName.trim(),
-        },
-      },
+      options: { data: { full_name: fullName.trim() } },
     });
 
     if (authError) return { success: false, message: friendlySupabaseError(authError) };
     if (!authData.user) return { success: false, message: 'No se pudo crear el usuario' };
 
-    // 2. Create profile (Supabase might have a trigger, but we ensure it here)
     const { error: profileError } = await supabase
       .from('profiles')
-      .insert({
-        id: authData.user.id,
-        email: email.trim(),
-        full_name: fullName.trim(),
-        role: 'cliente', // Default role
-      });
+      .insert({ id: authData.user.id, email: email.trim(), full_name: fullName.trim(), role: 'cliente' });
 
-if (profileError && profileError.code !== '23505') {
-    return { success: false, message: friendlySupabaseError(profileError) };
+    if (profileError && profileError.code !== '23505') {
+      return { success: false, message: friendlySupabaseError(profileError) };
     }
 
-    const u = await loadUser();
-    setUser(u);
+    void logSecurityEvent(supabase, {
+      eventType: 'signup_success',
+      email: email.trim(),
+      userId: authData.user.id,
+      appSource: 'tienda',
+      details: { role: 'cliente' },
+    });
+
+    await useAuthStore.getState().checkUser();
     return { success: true, message: undefined };
   }, []);
 
   const logout = useCallback(async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    setUser(null);
-  }, []);
+    await signOut();
+  }, [signOut]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      user,
-      isAuthenticated: !!user,
-      loading,
+      user: toTiendaUser(authUser),
+      isAuthenticated,
+      loading: isLoading,
       login,
       register,
       logout,
     }),
-    [user, loading, login, register, logout],
+    [authUser, isAuthenticated, isLoading, login, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

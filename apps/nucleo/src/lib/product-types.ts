@@ -17,6 +17,9 @@ export const productFormSchema = z.object({
   peso_netos: z.coerce.number().optional(),
   ingredientes: z.string().optional(),
   origen_apicola: z.string().optional(),
+  sustituye_azucar_g: z.coerce.number().optional(),
+  co2_evitado_kg: z.coerce.number().optional(),
+  irr_referencia: z.coerce.number().optional(),
 });
 
 export type ProductFormData = z.infer<typeof productFormSchema>;
@@ -41,6 +44,9 @@ export interface Product {
   peso_netos?: number;
   ingredientes?: string;
   origen_apicola?: string;
+  sustituye_azucar_g?: number;
+  co2_evitado_kg?: number;
+  irr_referencia?: number;
 }
 
 export interface ProductVariant {

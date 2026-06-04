@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useAuthStore } from '@enjambre/auth';
 
 interface CashSession {
   id: string;
@@ -99,26 +100,11 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
   const [todayRevenue, setTodayRevenue] = useState(0);
   const [nextThreshold, setNextThreshold] = useState<{ threshold: number; multiplier: number } | null>(null);
   const [lastCommission, setLastCommission] = useState<CommissionDetail | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [selectedClient, setSelectedClient] = useState<ClienteResult | null>(null);
   const [isNewClient, setIsNewClient] = useState(false);
 
-  useEffect(() => {
-    async function init() {
-      try {
-        const { createClient } = await import('@/utils/supabase/client');
-        const supabase = createClient();
-        if (!supabase) return;
-        const { data: { session: authSession } } = await supabase.auth.getSession();
-        if (authSession?.access_token) {
-          setToken(authSession.access_token);
-        }
-      } catch {
-        /* ignore */
-      }
-    }
-    init();
-  }, []);
+  const authSession = useAuthStore((s) => s.session);
+  const token = authSession?.access_token ?? null;
 
   const refreshStatus = useCallback(async () => {
     if (!token) return;
@@ -133,8 +119,8 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
         setTodaySales(statusRes.data.today.sales_count);
         setTodayRevenue(statusRes.data.today.revenue);
       }
-    } catch {
-      /* ignore */
+    } catch (err) {
+      console.error('[CashProvider] refreshStatus failed:', err);
     } finally {
       setLoading(false);
     }
@@ -232,7 +218,8 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
         phone: p.phone,
         purchase_count: 0,
       }));
-    } catch {
+    } catch (err) {
+      console.error('[CashProvider] searchClients failed:', err);
       return [];
     }
   }, [token]);

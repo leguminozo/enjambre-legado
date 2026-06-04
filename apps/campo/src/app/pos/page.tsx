@@ -13,7 +13,7 @@ export default function PosIndex() {
     return (
       <div className="flex items-center justify-center py-20 gap-3">
         <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs text-stone-500 uppercase tracking-widest">Cargando...</span>
+        <span className="text-xs text-muted-foreground uppercase tracking-widest">Cargando...</span>
       </div>
     );
   }
@@ -21,8 +21,8 @@ export default function PosIndex() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-2xl text-white mb-1">Terminal POS</h1>
-        <p className="text-xs text-stone-500 uppercase tracking-widest">
+      <h1 className="font-serif text-2xl text-foreground mb-1">Terminal POS</h1>
+      <p className="text-xs text-muted-foreground uppercase tracking-widest">
           {session ? 'Sesión activa · Listo para vender' : 'Inicia tu sesión para vender'}
         </p>
       </div>
@@ -42,8 +42,8 @@ export default function PosIndex() {
               <PackageSearch className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-bold text-white">Venta Rápida</p>
-              <p className="text-[10px] text-stone-500 uppercase tracking-widest">Catálogo · 3 toques</p>
+        <p className="text-sm font-bold text-foreground">Venta Rápida</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Catálogo · 3 toques</p>
             </div>
           </Link>
           <Link
@@ -54,8 +54,8 @@ export default function PosIndex() {
               <ShoppingCart className="w-6 h-6 text-amber-400" />
             </div>
             <div>
-              <p className="text-sm font-bold text-white">Carrito</p>
-              <p className="text-[10px] text-stone-500 uppercase tracking-widest">Multi-producto</p>
+        <p className="text-sm font-bold text-foreground">Carrito</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Multi-producto</p>
             </div>
           </Link>
           <Link
@@ -66,8 +66,8 @@ export default function PosIndex() {
               <TrendingUp className="w-6 h-6 text-green-400" />
             </div>
             <div>
-              <p className="text-sm font-bold text-white">Historial</p>
-              <p className="text-[10px] text-stone-500 uppercase tracking-widest">Comisiones · Rendimiento</p>
+        <p className="text-sm font-bold text-foreground">Historial</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Comisiones · Rendimiento</p>
             </div>
           </Link>
         </div>

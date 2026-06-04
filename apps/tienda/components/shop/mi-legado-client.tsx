@@ -56,12 +56,20 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints }
 
   const totalOrders = orders?.length || 0;
   const totalSpent = orders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
+  const azucarSustituida = Math.round(totalSpent / 4500 * 0.8);
+  const co2PersonalEstimado = (userData?.arboles_personal as number) || 0;
+  const irrEstimado = co2PersonalEstimado > 0 ? (co2PersonalEstimado * 15 / Math.max(totalSpent * 0.0001, 1)).toFixed(1) : '—';
 
   return (
     <div className="w-full">
       <div className="relative mb-20">
-        
+
         <div className="relative z-10 max-w-4xl w-full mx-auto">
+          <div className="text-center mb-4">
+            <p className="text-[0.6rem] tracking-[0.2em] text-success/60 italic">
+              Gracias por custodiar este bosque con nosotros. Este panel existe para recordar lo que ya hiciste bien.
+            </p>
+          </div>
           <div className="text-center mb-16">
             <span className="vanguard-data block text-[0.7rem] tracking-[0.5em] uppercase text-accent mb-6">
               Mi Legado
@@ -89,6 +97,24 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints }
               <TreePine className="w-8 h-8 text-accent mx-auto mb-4" />
               <div className="text-4xl font-display text-foreground mb-2">{(userData?.arboles_personal as number) || 0}</div>
               <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">m² Regenerados</div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-20">
+            <div className="vanguard-data bg-surface-raised/50 border border-accent/20 rounded-2xl p-6 text-center">
+              <p className="text-[0.55rem] uppercase tracking-[0.3em] text-accent/60 mb-2">Azúcar sustituida</p>
+              <p className="font-mono text-2xl text-foreground">{azucarSustituida > 0 ? `~${azucarSustituida} g` : '—'}</p>
+            </div>
+            <div className="vanguard-data bg-surface-raised/50 border border-success/20 rounded-2xl p-6 text-center">
+              <p className="text-[0.55rem] uppercase tracking-[0.3em] text-success/60 mb-2">CO₂ capturado asociado</p>
+              <p className="font-mono text-2xl text-foreground">{co2PersonalEstimado > 0 ? `~${co2PersonalEstimado * 15} kg` : '—'}</p>
+            </div>
+            <div className="vanguard-data bg-surface-raised/50 border border-accent/20 rounded-2xl p-6 text-center">
+              <p className="text-[0.55rem] uppercase tracking-[0.3em] text-accent/60 mb-2">Tu IRR estimado</p>
+              <p className="font-mono text-2xl text-foreground">{irrEstimado}</p>
+              {irrEstimado !== '—' && Number(irrEstimado) > 1 && (
+                <p className="text-[0.5rem] text-success/70 mt-1">Impacto &gt; Huella</p>
+              )}
             </div>
           </div>
 

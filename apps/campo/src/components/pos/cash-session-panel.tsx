@@ -23,7 +23,7 @@ export function CashSessionPanel() {
     return (
       <div className="flex items-center justify-center py-12 gap-3">
         <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs text-stone-500 uppercase tracking-widest">Cargando sesión...</span>
+        <span className="text-xs text-muted-foreground uppercase tracking-widest">Cargando sesión...</span>
       </div>
     );
   }
@@ -36,20 +36,20 @@ export function CashSessionPanel() {
             <Wallet className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-serif text-lg text-white">Abrir Caja</h3>
-            <p className="text-[10px] text-stone-500 uppercase tracking-widest">Declara tu efectivo inicial</p>
+            <h3 className="font-serif text-lg text-foreground">Abrir Caja</h3>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Declara tu efectivo inicial</p>
           </div>
         </div>
 
         <div>
-          <label className="text-[10px] uppercase text-stone-500 tracking-wider block mb-1">Efectivo inicial ($)</label>
+          <label className="text-[10px] uppercase text-muted-foreground tracking-wider block mb-1">Efectivo inicial ($)</label>
           <input
             type="number"
             min={0}
             value={openingCash}
             onChange={(e) => setOpeningCash(e.target.value)}
             placeholder="0"
-            className="w-full bg-black/40 border border-stone-800 rounded-lg px-4 py-3 text-white text-lg font-medium focus:border-primary focus:outline-none transition-colors"
+            className="w-full bg-background/40 border border-border rounded-lg px-4 py-3 text-foreground text-lg font-medium focus:border-primary focus:outline-none transition-colors"
           />
         </div>
 
@@ -66,7 +66,7 @@ export function CashSessionPanel() {
               setActionLoading(false);
             }
           }}
-          className="w-full py-3 bg-primary text-black font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-primary/90 transition-all disabled:opacity-40"
+          className="w-full py-3 bg-primary text-primary-foreground font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-primary/90 transition-all disabled:opacity-40"
         >
           {actionLoading ? 'Abriendo...' : 'Abrir Caja'}
         </button>
@@ -85,24 +85,24 @@ export function CashSessionPanel() {
               <div className="w-3 h-3 rounded-full bg-salud-optima animate-pulse" />
             </div>
             <div>
-          <p className="text-sm font-bold text-white">Caja Abierta</p>
-          <p className="text-[10px] text-stone-500">
+          <p className="text-sm font-bold text-foreground">Caja Abierta</p>
+          <p className="text-[10px] text-muted-foreground">
             Desde {new Date(session.opened_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
         {tierProgress && <TierBadge tier={tierProgress.current_tier} />}
           </div>
-          <span className="text-xs text-stone-500">Base: {formatCLP(session.opening_cash)}</span>
+          <span className="text-xs text-muted-foreground">Base: {formatCLP(session.opening_cash)}</span>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-black/30 rounded-lg p-3 text-center">
-            <p className="text-[9px] uppercase text-stone-500 tracking-wider mb-1">Ventas</p>
-            <p className="text-xl font-bold text-white">{todaySales}</p>
+          <div className="bg-background/30 rounded-lg p-3 text-center">
+            <p className="text-[9px] uppercase text-muted-foreground tracking-wider mb-1">Ventas</p>
+            <p className="text-xl font-bold text-foreground">{todaySales}</p>
           </div>
-          <div className="bg-black/30 rounded-lg p-3 text-center">
-            <p className="text-[9px] uppercase text-stone-500 tracking-wider mb-1">Ingresos</p>
-            <p className="text-lg font-bold text-white">{formatCLP(todayRevenue)}</p>
+          <div className="bg-background/30 rounded-lg p-3 text-center">
+            <p className="text-[9px] uppercase text-muted-foreground tracking-wider mb-1">Ingresos</p>
+            <p className="text-lg font-bold text-foreground">{formatCLP(todayRevenue)}</p>
           </div>
           <div className="bg-primary/10 rounded-lg p-3 text-center border border-primary/20">
             <p className="text-[9px] uppercase text-primary tracking-wider mb-1">Comisión</p>
@@ -111,7 +111,7 @@ export function CashSessionPanel() {
       </div>
 
       {lastCommission && (lastCommission.tier_multiplier > 1 || lastCommission.channel_rate !== null) && (
-        <div className="mt-3 bg-black/20 rounded-lg p-2.5 flex items-center gap-3 border border-stone-800/50">
+        <div className="mt-3 bg-background/20 rounded-lg p-2.5 flex items-center gap-3 border border-border/50">
           {lastCommission.tier_multiplier > 1 && (
             <div className="flex items-center gap-1.5">
               <Crown className="w-3.5 h-3.5 text-amber-400" />
@@ -124,28 +124,28 @@ export function CashSessionPanel() {
               <span className="text-[10px] text-cyan-400 font-bold">{(lastCommission.channel_rate * 100).toFixed(0)}%</span>
             </div>
           )}
-          <span className="text-[9px] text-stone-500 uppercase tracking-wider ml-auto">Última venta</span>
+          <span className="text-[9px] text-muted-foreground uppercase tracking-wider ml-auto">Última venta</span>
         </div>
       )}
 
       {nextThreshold && (
-          <div className="mt-4 bg-black/20 rounded-lg p-3 flex items-center gap-3 border border-stone-800/50">
+          <div className="mt-4 bg-background/20 rounded-lg p-3 flex items-center gap-3 border border-border/50">
             <Zap className="w-4 h-4 text-amber-400 shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-stone-400 uppercase tracking-wider">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                 Próximo multiplicador ×{nextThreshold.multiplier}
               </p>
-              <div className="mt-1 h-1.5 bg-stone-800 rounded-full overflow-hidden">
+              <div className="mt-1 h-1.5 bg-card rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-primary to-amber-400 rounded-full transition-all"
                   style={{ width: `${Math.min((todayRevenue / nextThreshold.threshold) * 100, 100)}%` }}
                 />
               </div>
-              <p className="text-[10px] text-stone-500 mt-1">
+              <p className="text-[10px] text-muted-foreground mt-1">
                 {formatCLP(todayRevenue)} / {formatCLP(nextThreshold.threshold)}
               </p>
             </div>
-            <ChevronRight className="w-4 h-4 text-stone-600" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </div>
         )}
       </div>
@@ -154,54 +154,54 @@ export function CashSessionPanel() {
         <div className="card-glow p-5 space-y-3">
           <div className="flex items-center gap-2 mb-2">
             <Lock className="w-4 h-4 text-salud-optima" />
-            <h3 className="text-sm font-bold text-white">Cierre Completado</h3>
+            <h3 className="text-sm font-bold text-foreground">Cierre Completado</h3>
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="text-stone-500">Ventas efectivo:</div>
-            <div className="text-white font-medium">{formatCLP(Number(closeResult.cash_sales ?? 0))}</div>
-            <div className="text-stone-500">Esperado:</div>
-            <div className="text-white font-medium">{formatCLP(Number(closeResult.expected_cash ?? 0))}</div>
-            <div className="text-stone-500">Contado:</div>
-            <div className="text-white font-medium">{formatCLP(Number(closeResult.counted_cash ?? 0))}</div>
-            <div className="text-stone-500">Diferencia:</div>
+            <div className="text-muted-foreground">Ventas efectivo:</div>
+            <div className="text-foreground font-medium">{formatCLP(Number(closeResult.cash_sales ?? 0))}</div>
+            <div className="text-muted-foreground">Esperado:</div>
+            <div className="text-foreground font-medium">{formatCLP(Number(closeResult.expected_cash ?? 0))}</div>
+            <div className="text-muted-foreground">Contado:</div>
+            <div className="text-foreground font-medium">{formatCLP(Number(closeResult.counted_cash ?? 0))}</div>
+            <div className="text-muted-foreground">Diferencia:</div>
             <div className={`font-bold ${Number(closeResult.difference ?? 0) === 0 ? 'text-salud-optima' : 'text-salud-riesgo'}`}>
               {Number(closeResult.difference ?? 0) >= 0 ? '+' : ''}{formatCLP(Number(closeResult.difference ?? 0))}
             </div>
-            <div className="text-stone-500">Comisiones del día:</div>
+            <div className="text-muted-foreground">Comisiones del día:</div>
             <div className="text-primary font-bold">{formatCLP(Number(closeResult.total_commission ?? 0))}</div>
           </div>
           <button
             onClick={() => setCloseResult(null)}
-            className="w-full py-2 bg-stone-800 text-stone-300 text-xs uppercase tracking-widest rounded-lg"
+            className="w-full py-2 bg-card text-muted-foreground text-xs uppercase tracking-widest rounded-lg"
           >
             Entendido
           </button>
         </div>
       ) : (
         <div className="card-glow p-5 space-y-3">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <Lock className="w-4 h-4 text-stone-500" />
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <Lock className="w-4 h-4 text-muted-foreground" />
             Cerrar Caja
           </h3>
           <div>
-            <label className="text-[10px] uppercase text-stone-500 tracking-wider block mb-1">Efectivo contado ($)</label>
+            <label className="text-[10px] uppercase text-muted-foreground tracking-wider block mb-1">Efectivo contado ($)</label>
             <input
               type="number"
               min={0}
               value={closingCash}
               onChange={(e) => setClosingCash(e.target.value)}
               placeholder="0"
-              className="w-full bg-black/40 border border-stone-800 rounded-lg px-4 py-3 text-white text-lg font-medium focus:border-primary focus:outline-none transition-colors"
+              className="w-full bg-background/40 border border-border rounded-lg px-4 py-3 text-foreground text-lg font-medium focus:border-primary focus:outline-none transition-colors"
             />
           </div>
           <div>
-            <label className="text-[10px] uppercase text-stone-500 tracking-wider block mb-1">Notas (opcional)</label>
+            <label className="text-[10px] uppercase text-muted-foreground tracking-wider block mb-1">Notas (opcional)</label>
             <input
               type="text"
               value={closingNotas}
               onChange={(e) => setClosingNotas(e.target.value)}
               placeholder="Observaciones..."
-              className="w-full bg-black/40 border border-stone-800 rounded-lg px-4 py-2 text-white text-sm focus:border-primary focus:outline-none transition-colors"
+              className="w-full bg-background/40 border border-border rounded-lg px-4 py-2 text-foreground text-sm focus:border-primary focus:outline-none transition-colors"
             />
           </div>
           <button
@@ -219,7 +219,7 @@ export function CashSessionPanel() {
                 setActionLoading(false);
               }
             }}
-            className="w-full py-3 bg-salud-riesgo/80 text-white font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-salud-riesgo transition-all disabled:opacity-40"
+            className="w-full py-3 bg-salud-riesgo/80 text-foreground font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-salud-riesgo transition-all disabled:opacity-40"
           >
             {actionLoading ? 'Cerrando...' : 'Cerrar Caja'}
           </button>

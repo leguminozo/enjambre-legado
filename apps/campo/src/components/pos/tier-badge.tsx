@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useAuthStore } from '@enjambre/auth';
 import { Crown, Star, Shield, Flame } from 'lucide-react';
 
 interface TierProgress {
@@ -29,7 +30,7 @@ interface TierProgress {
 }
 
 const TIER_CONFIG: Record<string, { label: string; icon: typeof Crown; color: string; glow: string }> = {
-  base: { label: 'Base', icon: Shield, color: 'text-stone-400', glow: 'bg-stone-800 text-stone-400' },
+  base: { label: 'Base', icon: Shield, color: 'text-muted-foreground', glow: 'bg-card text-muted-foreground' },
   senior: { label: 'Senior', icon: Star, color: 'text-primary', glow: 'bg-primary/10 text-primary' },
   elite: { label: 'Elite', icon: Crown, color: 'text-green-400', glow: 'bg-green-500/10 text-green-400' },
   legend: { label: 'Legend', icon: Flame, color: 'text-amber-400', glow: 'bg-amber-500/10 text-amber-400' },
@@ -57,14 +58,14 @@ export function TierProgressBar({ progress }: { progress: TierProgress }) {
   const nextConfig = TIER_CONFIG[nextTier];
 
   return (
-    <div className="bg-black/20 rounded-lg p-3 border border-stone-800/50 space-y-2">
+    <div className="bg-background/20 rounded-lg p-3 border border-border/50 space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-stone-400 uppercase tracking-widest">
-          Progreso a <span className={nextConfig?.color || 'text-white'}>{nextConfig?.label || nextTier}</span>
+        <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
+          Progreso a <span className={nextConfig?.color || 'text-foreground'}>{nextConfig?.label || nextTier}</span>
         </span>
         <span className="text-[10px] font-mono font-bold text-primary">{pct}%</span>
       </div>
-      <div className="h-2 bg-stone-800 rounded-full overflow-hidden">
+      <div className="h-2 bg-card rounded-full overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-primary to-amber-400 rounded-full transition-all duration-500"
           style={{ width: `${pct}%` }}
@@ -98,8 +99,8 @@ function MetricRow({ label, current, target, pct, isMoney, suffix }: {
 
   return (
     <div className="flex items-center justify-between text-[10px]">
-      <span className="text-stone-500">{label}</span>
-      <span className={done ? 'text-green-400 font-bold' : 'text-stone-400'}>
+    <span className="text-muted-foreground">{label}</span>
+        <span className={done ? 'text-green-400 font-bold' : 'text-muted-foreground'}>
         {fmt(current)}{suffix}/{fmt(target)}{suffix}
         {done && ' ✓'}
       </span>
@@ -113,10 +114,7 @@ export function useTierProgress() {
 
   const fetchTierProgress = useCallback(async () => {
     try {
-      const { createClient } = await import('@/utils/supabase/client');
-      const supabase = createClient();
-      if (!supabase) return;
-      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const authSession = useAuthStore.getState().session;
       if (!authSession) return;
 
       const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
@@ -127,8 +125,8 @@ export function useTierProgress() {
         const json = await res.json();
         setTierProgress(json.data);
       }
-    } catch {
-      /* ignore */
+    } catch (err) {
+      console.error('[TierProgress] fetch failed:', err);
     } finally {
       setLoading(false);
     }

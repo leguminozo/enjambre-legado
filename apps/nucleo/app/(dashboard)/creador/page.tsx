@@ -1,10 +1,9 @@
-'use client';
+'use client'
 
-import CreadorView from '@/views/CreadorView';
-import { useSession } from '@/providers/Providers';
+import CreadorView from '@/views/CreadorView'
+import { useAuthStore } from '@enjambre/auth'
 
 export default function CreadorPage() {
-const session = useSession();
-const userId = session?.user?.id ?? '';
-return <CreadorView userId={userId} />;
+  const userId = useAuthStore((s) => s.user?.id ?? '')
+  return <CreadorView userId={userId} />
 }

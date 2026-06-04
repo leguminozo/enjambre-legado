@@ -160,6 +160,8 @@ Supabase: facturas_emitidas, gastos, impuestos
 
 **Stack**: Next.js 16.2.1 + React 19.2.4 + Tailwind CSS 3.3 + GSAP 3.15 + Hono 4 BFF
 
+**Auth**: Integrado con `@enjambre/auth` via `AuthProvider` wrapper (`auth-context.tsx`). Usa `useAuthStore` como fuente de verdad, expone `useAuth()` API compatible con `TiendaUser`. `onAuthStateChange` con cliente local. `appSource: 'tienda'`. Middleware logea `access_denied` via Supabase REST API directa con service role key (sin dependencia BFF).
+
 **Rutas publicas**:
 - `/` Landing editorial premium
 - `/catalogo` Catalogo de productos con filtros
@@ -227,7 +229,11 @@ Supabase: facturas_emitidas, gastos, impuestos
 - `/api/pos/venta` POST (fallback local sin sesion de caja)
 - `/setup-error` Error cuando Supabase no esta configurado
 
-**Middleware**: Manejo de sesion Supabase con graceful degradation. Si faltan variables, reescribe a `/setup-error` en vez de crashear.
+**Auth**: Integrado con `@enjambre/auth` via `CampoAuthProvider` (sync `onAuthStateChange` → `useAuthStore`, `appSource: 'campo'`). Middleware protege `/pos/*` con redirect a `/login` si no autenticado. `access_denied` logging via fire-and-forget `POST /api/security-events/internal`.
+
+**Middleware**: Auth guard en `/pos/*` + manejo de sesion Supabase con graceful degradation. Si faltan variables, reescribe a `/setup-error` en vez de crashear. `access_denied` se logea via BFF internal route.
+
+**Styling**: 100% semantic Tailwind tokens (`bg-background`, `text-foreground`, `text-primary`, `bg-card`, `border-border`, `text-muted-foreground`, `text-destructive`, `text-primary-foreground`, `bg-surface-raised`, `bg-surface-sunken`). Sin colores hardcoded. Tokens mapeados en `tailwind.config.js` desde `@enjambre/ui` CSS variables.
 
 **Offline**: Usa `@enjambre/offline` (Dexie + sync queue) para operar sin conexion.
 
@@ -249,6 +255,8 @@ Supabase: facturas_emitidas, gastos, impuestos
 | `/api/rep-ventas` | `rep-ventas.ts` | Venta rápida (4 toques), estado comisiones, historial (week/month/quarter), tier-progress, leaderboard |
 | `/api/invitations` | `invitations.ts` | Canje público + admin CRUD invitaciones, reps, pagos |
 | `/api/commission-rules` | `commission-rules.ts` | CRUD reglas comisión (6 tipos) + dashboard |
+| `/api/dashboard/resumen` | `dashboard-resumen.ts` | Dashboard gerencial: 17 queries paralelas (colmenas, apiarios, cosechas, ventas, caja, comisiones, leaderboard) |
+| `/api/security-events` | `security-events.ts` | Logging de eventos de seguridad: `POST /` (auth Bearer) + `POST /internal` (x-internal-key) |
 | `/api/contable/*` | (existentes) | Dashboard, facturas emitidas |
 | `/api/health/*` | (existentes) | Liveness, readiness |
 
@@ -311,6 +319,7 @@ Fuente de verdad del esquema. 10 migraciones que cubren:
 | 31 | Channel rate comisiones | calcular_comision_venta() con channel_rate lookup, columna channel_rate en commission_records, seed channel_rate |
 | 32 | RLS hardening | 6 parches: commission_rules split, commission_records INSERT restrict, rep_profiles soft-delete, cash_sessions UPDATE restrict |
 | 33 | Leaderboard semanal | weekly_leaderboard(p_empresa_id), SECURITY DEFINER STABLE, top 20 reps |
+| 37 | Security events Phase 5 | CHECK event_type + `access_denied`/`signup_success`, RLS anon INSERT para pre-auth events |
 
 **Comandos**: `db:push` (push schema), `db:typegen` (generar tipos TS)
 
@@ -327,13 +336,56 @@ Logica tributaria chilena pura, sin dependencias de framework:
 
 ### 4.3 `@enjambre/auth`
 
-Autenticacion compartida para apps Next.js:
+Autenticacion y clientes Supabase compartidos para apps Next.js. Dos puntos de entrada:
 
+**`@enjambre/auth`** (cliente/browser):
 | Modulo | Funcionalidad |
 |---|---|
-| `supabase.ts` | Crea cliente browser Supabase |
-| `auth-store.ts` | Zustand store: user, session, profile, signOut, refreshSession |
+| `supabase.ts` | Cliente browser Supabase (singleton, null-safe, soporta PUBLISHABLE_DEFAULT_KEY) + env helpers (`getSupabaseUrl`, `getSupabaseKey`, `isSupabaseConfigured`) |
+| `auth-store.ts` | Zustand store: `user`, `session`, `isAuthenticated`, `isLoading`, `appSource` (`AppSource` = 'nucleo'|'tienda'|'campo'|'api'), `checkUser()`, `signOut()` (logsea `session_revoked` con `appSource` dinámico), `setAppSource()`, `refreshSession()` |
+| `auth-provider.ts` | `useAuthProvider()` — hook que sincroniza `onAuthStateChange` con Zustand store (se usa una vez en root Providers) |
 | `hooks.tsx` | `useRoleBasedRedirect` — redirige segun rol post-login |
+| `security-events.ts` | `logSecurityEvent`, `fetchSecurityEvents`, `isRepeatedFailure` — 13 tipos de evento (incluye `access_denied`, `signup_success`) |
+| `role-redirect.ts` | `ROLE_REDIRECT_MAP` (rol→ruta), `ROUTE_ROLE_GUARDS` (ruta→roles), `getRoleRedirectPath()`, `isRouteAllowed()`, `RoleKey` |
+| `use-security-alerts.ts` | `useSecurityAlerts` hook para monitoreo de eventos de seguridad |
+
+**`@enjambre/auth/server-index`** (server-only):
+| Modulo | Funcionalidad |
+|---|---|
+| `server.ts` | `createServerClientFromCookies()` — cliente RSC con `next/headers` |
+| `middleware.ts` | `createAuthMiddleware()` — factory de middleware Next.js con timeout, rutas publicas, redirect por rol + route guards |
+| `bff.ts` | `createSupabaseUserClient()` — cliente Hono BFF con Bearer token |
+
+**`@enjambre/auth/security-events`** (server-safe, sin React):
+| Modulo | Funcionalidad |
+|---|---|
+| `security-events.ts` | `logSecurityEvent()`, `fetchSecurityEvents()`, `isRepeatedFailure()`, tipos — para uso en BFF/routes server-side sin importar hooks de React |
+
+**`@enjambre/auth/middleware`** (Edge-safe):
+| Modulo | Funcionalidad |
+|---|---|
+| `middleware.ts` | `createAuthMiddleware()` — factory con role redirect + route guards + logging `access_denied` via BFF |
+
+**Uso en apps**: Nucleo usa `@enjambre/auth` via re-exports en `@/lib/` (71 consumidores, cero rotos). Tienda usa `auth-context.tsx` que wrapesa `useAuthStore` + expone `useAuth()` compatible con `TiendaUser`, sincroniza `onAuthStateChange` con cliente local, setea `appSource: 'tienda'`. Campo usa `CampoAuthProvider` con el mismo patrón (cliente local + `appSource: 'campo'`). Los archivos `env.ts` locales son necesarios para evitar que Turbopack resuelva el barrel de `@enjambre/auth` (que incluye hooks de React) en contextos server-side.
+
+**Eventos de seguridad** (Phase 5 — logging centralizado):
+
+| Ubicación | Eventos | Mecanismo |
+|---|---|---|
+| Login page (3 apps) | `login_success`, `login_failed`, `password_reset_requested`, `signup_success` | `logSecurityEvent(supabase, ...)` directo |
+| Nucleo middleware | `access_denied` | Fire-and-forget `POST /api/security-events/internal` con `x-internal-key` |
+| Campo middleware | `access_denied` | Fire-and-forget `POST /api/security-events/internal` (via BFF nucleo) |
+| Tienda middleware | `access_denied` | Supabase REST API directa con service role key (sin BFF dependency) |
+| Auth store `signOut()` | `session_revoked` | `logSecurityEvent(supabase, ...)` antes de `supabase.auth.signOut()`, con `appSource` dinámico |
+
+**BFF route de seguridad** (`/api/security-events`):
+- `POST /` — autenticado via Bearer token (`authMiddleware`) para client-side logging
+- `POST /internal` — autenticado via `x-internal-key` = `SUPABASE_SERVICE_ROLE_KEY` para middleware/Edge logging
+
+**RLS en `security_events`**:
+- SELECT: `is_gerente()` OR `current_role() = 'tienda_admin'`
+- INSERT (auth): `auth.uid() IS NOT NULL`
+- INSERT (anon): solo para `login_failed`, `password_reset_requested`, `signup_success`
 
 ### 4.4 `@enjambre/offline`
 
@@ -419,4 +471,4 @@ Ver `DEPLOY.md` y `VERCEL.md` para instrucciones detalladas.
 ---
 
 *Este documento es la referencia tecnica maestra. Actualizar cuando cambie la estructura o se agreguen apps/paquetes.*
-*Ultima actualizacion: Mayo 2026 — Nucleo migrado a Next.js 16 + Hono BFF, Campo POS completo con tier/leaderboard/notifications*
+*Ultima actualizacion: Junio 2026 — Auth centralizada en 3 apps, campo 100% semantic tokens, security events phase 5 completa*

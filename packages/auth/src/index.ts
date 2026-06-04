@@ -1,5 +1,7 @@
 export * from './supabase'
 export * from './auth-store'
+export { useAuthProvider } from './auth-provider'
 export * from './hooks'
+export * from './role-redirect'
 export * from './security-events'
 export { useSecurityAlerts } from './use-security-alerts'

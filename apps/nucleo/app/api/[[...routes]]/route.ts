@@ -17,6 +17,9 @@ import { cashSessionsRoutes } from "@/api/routes/cash-sessions";
 import { repVentasRoutes } from "@/api/routes/rep-ventas";
 import { invitationsRoutes } from "@/api/routes/invitations";
 import { commissionRulesRoutes } from "@/api/routes/commission-rules";
+import { dashboardResumenRoutes } from "@/api/routes/dashboard-resumen";
+import { costeoRoutes } from "@/api/routes/costeo";
+import { securityEventRoutes } from "@/api/routes/security-events";
 
 export type { AppVariables };
 
@@ -38,6 +41,9 @@ app.route("/cash-sessions", cashSessionsRoutes);
 app.route("/rep-ventas", repVentasRoutes);
 app.route("/invitations", invitationsRoutes);
 app.route("/commission-rules", commissionRulesRoutes);
+app.route("/dashboard/resumen", dashboardResumenRoutes);
+app.route("/costeo", costeoRoutes);
+app.route("/security-events", securityEventRoutes);
 
 app.onError((err, c) => {
   console.error(err);

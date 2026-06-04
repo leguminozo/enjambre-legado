@@ -47,6 +47,8 @@ export default function RegeneracionView() {
   const totalCO2 = records.reduce((s, r) => s + r.co2, 0);
   const uniqueZones = new Set(records.map(r => r.location)).size;
   const uniqueSpecies = new Set(records.map(r => r.species)).size;
+  const co2EmitidoEstimado = Math.round(totalTrees * 0.5 / 100);
+  const irrValue = co2EmitidoEstimado > 0 ? (totalCO2 / co2EmitidoEstimado).toFixed(2) : '—';
   const displayed = showAll ? records : records.slice(0, 4);
 
   const handleSubmit = async () => {
@@ -98,9 +100,14 @@ export default function RegeneracionView() {
             </div>
 
             <div className="card animate-in delay-2" style={{ marginTop: 'var(--space-lg)' }}>
-                <div className="section-header">
-                    <div><div className="section-title">Registro de Reforestación</div><div className="section-subtitle">Trazabilidad directa: árbol ↔ colmena ↔ lote de miel</div></div>
-                    <button className="btn btn-gold btn-sm" onClick={() => setShowForm(!showForm)}><Plus size={14} /> Registrar plantación</button>
+<div className="section-header">
+<div><div className="section-title">Registro de Reforestación</div><div className="section-subtitle">Trazabilidad directa: árbol ↔ colmena ↔ lote de miel</div></div>
+<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+  <div style={{ padding: '6px 14px', background: 'hsl(var(--success) / 0.1)', border: '1px solid hsl(var(--success) / 0.3)', borderRadius: 'var(--radius-sm)', fontSize: '0.72rem', color: 'hsl(var(--success))' }}>
+    IRR: {irrValue} {irrValue !== '—' && Number(irrValue) > 1 ? '(Impacto > Huella)' : ''}
+  </div>
+  <button className="btn btn-gold btn-sm" onClick={() => setShowForm(!showForm)}><Plus size={14} /> Registrar plantación</button>
+</div>
                 </div>
 
                 {showForm && (

@@ -1,4 +1,5 @@
 import { getSiteContentStatic, type SiteSectionItem } from '@/lib/cms';
+import { getEcosystemMetrics, type EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import TiendaLandingView from './landing-view';
 
 type ServicioItem = { num: string; title: string; desc: string };
@@ -12,12 +13,15 @@ function extractContent<T extends Record<string, unknown>>(items: SiteSectionIte
 }
 
 export default async function TiendaPage() {
-  const serviciosData = await getSiteContentStatic('servicios');
-  const talleresData = await getSiteContentStatic('talleres');
-  const coleccionesData = await getSiteContentStatic('colecciones');
-  const footerBrandingData = await getSiteContentStatic('footer_branding');
-  const footerNavData = await getSiteContentStatic('footer_nav');
-  const footerLegalData = await getSiteContentStatic('footer_legal');
+  const [serviciosData, talleresData, coleccionesData, footerBrandingData, footerNavData, footerLegalData, ecosystemMetrics] = await Promise.all([
+    getSiteContentStatic('servicios'),
+    getSiteContentStatic('talleres'),
+    getSiteContentStatic('colecciones'),
+    getSiteContentStatic('footer_branding'),
+    getSiteContentStatic('footer_nav'),
+    getSiteContentStatic('footer_legal'),
+    getEcosystemMetrics(),
+  ]);
 
   const servicios = serviciosData.length > 0
     ? extractContent<ServicioItem>(serviciosData)
@@ -54,11 +58,12 @@ export default async function TiendaPage() {
   };
 
   return (
-    <TiendaLandingView 
-      initialServicios={servicios} 
-      initialTalleres={talleres} 
+    <TiendaLandingView
+      initialServicios={servicios}
+      initialTalleres={talleres}
       initialColecciones={colecciones}
       footerData={footerData}
+      ecosystemMetrics={ecosystemMetrics}
     />
   );
 }
