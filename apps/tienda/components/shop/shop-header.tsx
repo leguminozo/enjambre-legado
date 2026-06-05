@@ -7,15 +7,18 @@ import { useCart } from '@/components/shop/cart-context';
 import { useAuth } from '@/components/providers/auth-context';
 import { useState } from 'react';
 
-const NAV = [
+const NAV_PUBLIC = [
   { href: '/', label: 'Inicio' },
   { href: '/catalogo', label: 'Creaciones' },
   { href: '/experiencias', label: 'Experiencias' },
   { href: '/galeria', label: 'Galería' },
   { href: '/ciencia', label: 'Ciencia' },
-  { href: '/impacto', label: 'Impacto' },
   { href: '/nosotros', label: 'Nosotros' },
   { href: '/contacto', label: 'Contacto' },
+] as const;
+
+const NAV_AUTH = [
+  { href: '/impacto', label: 'Mi Impacto' },
 ] as const;
 
 export function ShopHeader() {
@@ -51,7 +54,18 @@ export function ShopHeader() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-10">
-          {NAV.map(({ href, label }) => (
+          {NAV_PUBLIC.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`text-[0.65rem] uppercase tracking-[0.2em] transition-colors hover:text-accent ${
+                isActive(href) ? 'text-accent' : 'text-muted-foreground'
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+          {isAuthenticated && NAV_AUTH.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
@@ -88,11 +102,21 @@ export function ShopHeader() {
 
       <div className={`md:hidden fixed inset-0 top-24 bg-background z-50 transition-transform duration-500 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
         <nav className="p-10 flex flex-col gap-8">
-          {NAV.map(({ href, label }) => (
+          {NAV_PUBLIC.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
               className="font-display text-3xl font-light text-foreground hover:text-accent transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              {label}
+            </Link>
+          ))}
+          {isAuthenticated && NAV_AUTH.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className="font-display text-3xl font-light text-accent"
               onClick={() => setOpen(false)}
             >
               {label}

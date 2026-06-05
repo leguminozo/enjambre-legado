@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import Link from 'next/link';
 import { gsap } from 'gsap';
-import { Package, Clock, Leaf, ChevronRight, TreePine, Droplets } from 'lucide-react';
+import { Package, Clock, Leaf, ChevronRight, TreePine, Droplets, ArrowRight } from 'lucide-react';
 
 interface Order {
   id: string;
@@ -119,8 +120,26 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints }
           </div>
 
           <div className="space-y-24">
-            <div className="vanguard-data border-t border-border pt-12">
-              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Estado de tu Colmena</span>
+          <div className="vanguard-data border-t border-border pt-12">
+            <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Mi Impacto</span>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div>
+                <h3 className="font-display text-3xl font-light mb-2">Legado del bosque</h3>
+                <p className="text-sm text-muted-foreground max-w-md">
+                  Tu contribución directa a la regeneración. Cada número es rastreable y demostrable por triangulación de papers y datos locales de Chiloé.
+                </p>
+              </div>
+              <Link
+                href="/impacto"
+                className="inline-flex items-center gap-3 px-8 py-4 border border-accent text-accent text-[0.65rem] uppercase tracking-[0.2em] hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-lg"
+              >
+                Ver mi impacto <ArrowRight size={14} />
+              </Link>
+            </div>
+          </div>
+
+          <div className="vanguard-data border-t border-border pt-12">
+            <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Estado de tu Colmena</span>
               {hiveData ? (
                 <div className="flex flex-col md:flex-row justify-between items-baseline gap-8">
                   <div>
