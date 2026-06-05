@@ -21,7 +21,7 @@ export function ProductGallery({ photos, alt }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={main} alt={alt} className="aspect-square w-full object-cover" />
       </div>

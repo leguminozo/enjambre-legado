@@ -10,7 +10,7 @@ import 'leaflet/dist/leaflet.css';
 
 const MAP_COORDINATES = { lat: -42.854935, lng: -73.67796 };
 
-export default function ContactForm() {
+export function ContactForm() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
 
@@ -154,7 +154,7 @@ export default function ContactForm() {
               <div ref={mapRef} className="h-full w-full" />
               <button
                 onClick={handleOpenInMaps}
-                className="absolute left-4 top-4 inline-flex items-center gap-1 rounded bg-white px-3 py-1.5 text-sm font-medium text-blue-600 shadow hover:bg-gray-100"
+                className="absolute left-4 top-4 inline-flex items-center gap-1 rounded bg-card px-3 py-1.5 text-sm font-medium text-info shadow hover:bg-surface-raised"
               >
                 Abrir en Maps
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

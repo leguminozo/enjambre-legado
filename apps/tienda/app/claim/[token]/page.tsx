@@ -24,9 +24,9 @@ export default async function ClaimPage({ params }: ClaimPageProps) {
 
   if (venta.claim_status === 'claimed') {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-4xl font-serif mb-4">Ticket ya reclamado</h1>
-        <p className="text-stone-400 font-light max-w-md">Este código ya ha sido procesado. Los puntos ya están en el legado de alguien.</p>
+    <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 text-center">
+      <h1 className="text-4xl font-display mb-4">Ticket ya reclamado</h1>
+      <p className="text-muted-foreground font-light max-w-md">Este código ya ha sido procesado. Los puntos ya están en el legado de alguien.</p>
       </div>
     );
   }

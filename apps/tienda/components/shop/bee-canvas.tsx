@@ -12,6 +12,32 @@ export function BeeCanvas() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const style = getComputedStyle(document.documentElement);
+    const hslToHex = (h: number, s: number, l: number): string => {
+      s /= 100;
+      l /= 100;
+      const a = s * Math.min(l, 1 - l);
+      const f = (n: number) => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, '0');
+      };
+      return `#${f(0)}${f(8)}${f(4)}`;
+    };
+    const hslVar = (name: string): string => {
+      const val = style.getPropertyValue(name).trim().split(/\s+/);
+      if (val.length !== 3) return '#1a1a1a';
+      return hslToHex(
+        Number(val[0]),
+        Number(val[1].replace('%', '')),
+        Number(val[2].replace('%', '')),
+      );
+    };
+
+    const inkHex = hslVar('--background');
+    const goldHex = hslVar('--accent');
+    const creamHex = hslVar('--foreground');
+
     let width: number;
     let height: number;
     let bees: Bee[] = [];
@@ -96,12 +122,12 @@ export function BeeCanvas() {
         ctx.rotate(this.angle);
         ctx.globalAlpha = this.opacity;
 
-        ctx.fillStyle = '#1a1a1a';
+        ctx.fillStyle = inkHex;
         ctx.beginPath();
         ctx.ellipse(0, 0, this.size * 2.5, this.size, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = '#c9a227';
+        ctx.fillStyle = goldHex;
         ctx.globalAlpha = this.opacity * 0.8;
         for (let i = -1; i <= 1; i++) {
           ctx.beginPath();
@@ -110,7 +136,7 @@ export function BeeCanvas() {
         }
 
         ctx.globalAlpha = this.opacity * 0.3;
-        ctx.fillStyle = '#f5f0e8';
+        ctx.fillStyle = creamHex;
         const wingFlap = Math.sin(this.wingAngle) * 0.3;
         
         ctx.save();
@@ -176,7 +202,7 @@ export function BeeCanvas() {
         if (!ctx) return;
         ctx.save();
         ctx.globalAlpha = this.opacity;
-        ctx.fillStyle = '#c9a227';
+        ctx.fillStyle = goldHex;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
@@ -198,8 +224,8 @@ export function BeeCanvas() {
       ctx.clearRect(0, 0, width, height);
       
       const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width * 0.6);
-      gradient.addColorStop(0, 'rgba(201, 162, 39, 0.03)');
-      gradient.addColorStop(1, 'rgba(5, 5, 5, 0)');
+      gradient.addColorStop(0, goldHex + '08');
+      gradient.addColorStop(1, inkHex + '00');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
 

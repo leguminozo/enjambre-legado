@@ -124,7 +124,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
             <div className="flex justify-between items-end">
               <div>
                 <p className="text-[0.6rem] uppercase tracking-widest text-muted-foreground mb-1">Recompensa</p>
-                <p className="text-2xl font-serif text-accent">{points} Puntos Guardián</p>
+                <p className="text-2xl font-display text-accent">{points} Puntos Guardián</p>
               </div>
               <div className="text-right">
                 <p className="text-[0.6rem] uppercase tracking-widest text-muted-foreground mb-1">Total Compra</p>

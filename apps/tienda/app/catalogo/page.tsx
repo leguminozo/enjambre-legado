@@ -24,7 +24,7 @@ export default async function CatalogoPage() {
       <main className="min-h-[50vh] bg-background">
         {loadError ? (
           <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-            <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-6 text-red-200">
+            <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-6 text-destructive/80">
               <p className="font-semibold">No se pudo cargar el catálogo.</p>
               <p className="mt-2 text-sm opacity-90">{loadError}</p>
             </div>
@@ -33,9 +33,9 @@ export default async function CatalogoPage() {
           <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
             <p className="text-muted-foreground">
               Aún no hay productos publicados.{' '}
-              <Link href="/dashboard" className="text-accent underline">
-                Panel de administración
-              </Link>
+        <Link href="/perfil" className="text-accent underline">
+          Panel de control
+        </Link>
             </p>
           </div>
         ) : (

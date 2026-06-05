@@ -2,23 +2,14 @@
   "name": "@enjambre/tienda",
   "version": "1.0.0",
   "description": "Tienda pública Next.js + panel admin (dashboard, productos, pedidos, clientes, colecciones)",
-  "main": "index.js",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build-css": "tailwindcss -i ./src/css/input.css -o ./public/css/style.css",
-    "build-prod": "tailwindcss -i ./src/css/input.css -o ./public/css/style.css --minify",
     "start": "next start",
     "lint": "next lint"
   },
-  "keywords": [
-    "ecommerce",
-    "php",
-    "mysql",
-    "hostinger",
-    "business"
-  ],
-  "author": "Tu Nombre",
+  "author": "",
   "license": "ISC",
   "engines": {
     "node": "24.x"

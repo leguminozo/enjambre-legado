@@ -37,7 +37,7 @@ export function CatalogoView({ products }: Props) {
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
         <h1 className="text-center font-display text-4xl font-semibold text-foreground sm:text-5xl">Creaciones</h1>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-muted-foreground sm:text-base">
-          La materia de nuestra búsqueda · Experiencias que se transforman en productos cargados de legado
+          La materia de nuestra búsqueda Experiencias que se transforman en productos cargados de legado
         </p>
 
         <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

@@ -68,7 +68,7 @@ export default async function PedidosPage() {
                     <div className="text-right">
                       <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Estado Vital</span>
                       <div className="flex items-center gap-2 justify-end">
-                        <span className={`w-1.5 h-1.5 rounded-full ${estado === 'entregado' ? 'bg-emerald-500' : 'bg-accent animate-pulse'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full ${estado === 'entregado' ? 'bg-success' : 'bg-accent animate-pulse'}`} />
                         <span className="text-[0.65rem] uppercase tracking-widest text-foreground font-bold">{estado}</span>
                       </div>
                     </div>

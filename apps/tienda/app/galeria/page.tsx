@@ -61,10 +61,10 @@ export default async function GaleriaPage() {
             Galería
           </span>
           <h1 className="font-display text-5xl md:text-7xl font-light text-foreground mb-6">
-            Nuestro Legado Visual
+            Un recorrido visual de nuestras huellas
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Imágenes del apiario, el bosque y el proceso de producción de miel en Chiloé
+            Un recorrido visual de nuestras huellas
           </p>
         </div>
 

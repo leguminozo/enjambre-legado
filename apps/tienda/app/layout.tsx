@@ -2,7 +2,7 @@ import './globals.css';
 import { AppProviders } from '@/components/providers/app-providers';
 import { RegisterServiceWorker } from '@/components/pwa/register-sw';
 import type { Metadata } from 'next';
-import { Cormorant_Garamond, Inter } from 'next/font/google';
+import { Cormorant_Garamond, Inter, Montserrat } from 'next/font/google';
 import React from 'react';
 
 const fontDisplay = Cormorant_Garamond({
@@ -20,6 +20,13 @@ const fontBody = Inter({
   display: 'swap',
 });
 
+const fontCarousel = Montserrat({
+  subsets: ['latin'],
+  weight: ['400', '600'],
+  variable: '--font-carousel',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: {
     default: 'La Obrera y el Zángano · Tienda',
@@ -28,6 +35,9 @@ export const metadata: Metadata = {
   description:
     'Miel cruda del bosque nativo de Chiloé. Creaciones con legado y regeneración — La Obrera y el Zángano.',
   manifest: '/manifest.webmanifest',
+  icons: {
+    icon: '/icons/icon-192.svg',
+  },
 };
 
 export default function RootLayout({
@@ -36,7 +46,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={`${fontDisplay.variable} ${fontBody.variable}`} suppressHydrationWarning>
+    <html lang="es" className={`${fontDisplay.variable} ${fontBody.variable} ${fontCarousel.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased bg-background text-foreground">
         <RegisterServiceWorker />
         <AppProviders>{children}</AppProviders>

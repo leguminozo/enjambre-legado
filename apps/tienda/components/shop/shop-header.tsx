@@ -33,7 +33,7 @@ export function ShopHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-[60] bg-background/80 backdrop-blur-md border-b border-border">
+    <header className="sticky z-[60] bg-background/80 backdrop-blur-md border-b border-border" style={{ top: 'var(--carousel-h, 0px)' }}>
       <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
         <button
           className="md:hidden text-muted-foreground hover:text-accent transition-colors"
@@ -80,7 +80,7 @@ export function ShopHeader() {
 
         <div className="flex items-center gap-6">
           <Link
-            href={isAuthenticated ? (user?.role === 'tienda_admin' || user?.role === 'gerente' ? '/dashboard' : '/perfil') : '/login'}
+            href={isAuthenticated ? '/perfil' : '/login'}
             className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-2"
           >
             <User size={20} strokeWidth={1.5} />
@@ -124,7 +124,7 @@ export function ShopHeader() {
           ))}
           <div className="h-[1px] bg-border my-4" />
           <Link
-            href={isAuthenticated ? '/dashboard' : '/login'}
+            href={isAuthenticated ? '/perfil' : '/login'}
             className="font-display text-2xl italic text-accent"
             onClick={() => setOpen(false)}
           >

@@ -7,20 +7,30 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
 
+const TIENDA_ROLE_REDIRECT: Record<string, string> = {
+  cliente: '/impacto',
+  creador: '/impacto',
+}
+
+function getTiendaRedirect(role: string): string {
+  if (TIENDA_ROLE_REDIRECT[role]) return TIENDA_ROLE_REDIRECT[role]
+  return '/catalogo'
+}
+
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login, isAuthenticated, loading: authLoading } = useAuth();
+  const { login, isAuthenticated, user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
-      router.replace('/dashboard');
+    if (!authLoading && isAuthenticated && user) {
+      router.replace(getTiendaRedirect(user.role));
     }
-  }, [authLoading, isAuthenticated, router]);
+  }, [authLoading, isAuthenticated, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,8 +38,10 @@ export function LoginForm() {
     setError('');
 
     const result = await login(email, password);
-    if (result.success) {
-      router.push('/dashboard');
+    if (result.success && user) {
+      router.push(getTiendaRedirect(user.role));
+    } else if (result.success) {
+      router.push('/impacto');
     } else {
       setError(result.message || 'Error al iniciar sesión');
     }

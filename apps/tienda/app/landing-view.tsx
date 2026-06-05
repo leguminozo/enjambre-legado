@@ -13,6 +13,7 @@ import { BeeCanvas } from '@/components/shop/bee-canvas';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
 import { CustomCursor } from '@/components/shop/custom-cursor';
 import { LandingLoader } from '@/components/shop/landing-loader';
+import { TextCarousel } from '@/components/shop/text-carousel';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 
 if (typeof window !== 'undefined') {
@@ -51,7 +52,7 @@ interface TiendaLandingProps {
   ecosystemMetrics: EcosystemMetrics;
 }
 
-export default function TiendaLandingView({
+export function TiendaLandingView({
   initialServicios,
   initialTalleres,
   initialColecciones,
@@ -128,6 +129,7 @@ export default function TiendaLandingView({
       <LandingLoader />
       <GrainOverlay />
       <CustomCursor />
+      <TextCarousel />
       <ShopHeader />
 
       <main className="relative overflow-hidden">
@@ -249,7 +251,7 @@ export default function TiendaLandingView({
           <div className="editorial-container text-center mb-24">
             <span className="editorial-kicker mb-4 block">Catálogo</span>
             <h2 className="font-display text-4xl md:text-6xl font-light text-foreground mb-4">Creaciones</h2>
-            <p className="text-muted-foreground italic font-display text-lg">La materia de nuestras búsquedas.</p>
+            <p className="text-muted-foreground italic font-display text-lg">La materia de nuestra búsqueda Experiencias que se transforman en productos cargados de legado</p>
           </div>
 
           <div className="editorial-container grid md:grid-cols-2 gap-x-12 gap-y-24">

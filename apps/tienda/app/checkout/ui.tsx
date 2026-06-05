@@ -315,7 +315,7 @@ export function CheckoutClient() {
               </section>
 
               {priceConflicts && (
-                <div className="rounded-xl border border-yellow-500/50 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-200">
+                <div className="rounded-xl border border-warning/50 bg-warning/10 px-4 py-3 text-sm text-warning">
                   <p className="font-medium mb-1">Productos con cambios:</p>
                   <ul className="list-disc pl-4">
                     {priceConflicts.map((msg, i) => (
@@ -338,7 +338,7 @@ export function CheckoutClient() {
               </div>
 
               {error ? (
-                <p className="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-red-200">
+                <p className="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive/80">
                   {error}
                 </p>
               ) : null}

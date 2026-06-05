@@ -1,6 +1,6 @@
 import { getSiteContentStatic, type SiteSectionItem } from '@/lib/cms';
 import { getEcosystemMetrics, type EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
-import TiendaLandingView from './landing-view';
+import { TiendaLandingView } from './landing-view';
 
 type ServicioItem = { num: string; title: string; desc: string };
 type TallerItem = { date: string; title: string; desc: string; action: string };

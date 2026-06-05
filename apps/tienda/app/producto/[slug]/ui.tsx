@@ -105,7 +105,7 @@ export function TraceabilitySection({ blockchainHash, colmenaOrigen, fechaCosech
           {/* QR */}
           {showQR && (
             <div className="flex flex-col items-center justify-center p-4 bg-secondary/50 rounded-lg border border-border">
-              <div className="w-32 h-32 bg-white p-2 rounded-md mb-3">
+              <div className="w-32 h-32 bg-card p-2 rounded-md mb-3">
                 {/* QR code placeholder - en producción usar librería qrcode */}
                 <div className="w-full h-full border-2 border-dashed border-accent/30 flex items-center justify-center">
                   <QrCode className="w-24 h-24 text-foreground" />

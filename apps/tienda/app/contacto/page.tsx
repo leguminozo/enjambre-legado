@@ -1,4 +1,4 @@
-import ContactForm from './contact-form';
+import { ContactForm } from './contact-form';
 import { Suspense } from 'react';
 
 export const metadata = { title: 'Contacto' };

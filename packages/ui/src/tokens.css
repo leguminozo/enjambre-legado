@@ -175,6 +175,7 @@
   --header-height: 64px;
   --nav-height: 68px;
   --max-content-width: 1400px;
+  --carousel-h: 0px;
 }
 
 /* ── 2b. Semánticos — Light mode ── */
