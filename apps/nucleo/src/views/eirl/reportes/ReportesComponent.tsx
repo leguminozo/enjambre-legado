@@ -122,7 +122,7 @@ export function ReportesComponent({ empresaId }: ReportesComponentProps) {
       case 'Error':
         return <AlertTriangle className="h-4 w-4 text-red-400" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-400" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -171,7 +171,7 @@ export function ReportesComponent({ empresaId }: ReportesComponentProps) {
       case 'LibroVentas':
         return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
       default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+        return 'bg-muted/20 text-muted-foreground border-muted/30';
     }
 };
 
@@ -186,25 +186,25 @@ const tiposReporte = [
   return (
     <div className="space-y-6">
       {/* Generación de Reportes */}
-      <Card className="bg-black border-gray-800">
-        <CardHeader>
-          <CardTitle className="text-xl font-light flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Generador de Reportes
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tiposReporte.map((tipo) => {
-              const Icon = tipo.icon;
-              const isGenerando = generando === tipo.value;
-              
-              return (
-                <Button
-                  key={tipo.value}
-                  onClick={() => generarReporte(tipo.value)}
-                  disabled={isGenerando}
-                  className="h-20 flex-col bg-black border-gray-700 hover:bg-gray-800"
+<Card className="bg-background border-border">
+      <CardHeader>
+        <CardTitle className="text-xl font-light flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          Generador de Reportes
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {tiposReporte.map((tipo) => {
+            const Icon = tipo.icon;
+            const isGenerando = generando === tipo.value;
+
+            return (
+              <Button
+                key={tipo.value}
+                onClick={() => generarReporte(tipo.value)}
+                disabled={isGenerando}
+                className="h-20 flex-col bg-background border-border hover:bg-surface-sunken"
                 >
                   <Icon className="h-6 w-6 mb-2" />
                   {isGenerando ? (
@@ -221,15 +221,15 @@ const tiposReporte = [
       </Card>
 
       {/* Lista de Reportes */}
-      <Card className="bg-black border-gray-800">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-light">Reportes Generados</CardTitle>
-            <Button
-              
-              onClick={cargarReportes}
-              disabled={loading}
-              className="border-gray-600"
+<Card className="bg-background border-border">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-light">Reportes Generados</CardTitle>
+          <Button
+
+            onClick={cargarReportes}
+            disabled={loading}
+            className="border-input"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Actualizar
@@ -239,14 +239,14 @@ const tiposReporte = [
         <CardContent>
           {reportes.length === 0 ? (
             <div className="text-center py-12">
-              <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-medium mb-2">No hay reportes generados</h3>
-              <p className="text-gray-400">Genera tu primer reporte financiero</p>
+<FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <h3 className="text-lg font-medium mb-2">No hay reportes generados</h3>
+        <p className="text-muted-foreground">Genera tu primer reporte financiero</p>
             </div>
           ) : (
             <div className="space-y-4">
               {reportes.map((reporte) => (
-                <div key={reporte.id} className="border border-gray-800 rounded-lg p-4">
+                <div key={reporte.id} className="border border-border rounded-lg p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3 flex-1">
                       {getTipoIcon(reporte.tipo)}
@@ -258,22 +258,22 @@ const tiposReporte = [
                           </Badge>
                           {getEstadoIcon(reporte.estado)}
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-400">
-                          <div>
-                            <span className="text-gray-500">Período:</span>
-                            <span className="ml-2 text-white">
+<div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
+                    <div>
+                        <span className="text-muted-foreground">Período:</span>
+                        <span className="ml-2 text-foreground">
                               {reporte.mes ? `${reporte.mes}/` : ''}{reporte.anio}
                             </span>
                           </div>
                           <div>
-                            <span className="text-gray-500">Generado:</span>
-                            <span className="ml-2 text-white">
+                            <span className="text-muted-foreground">Generado:</span>
+                            <span className="ml-2 text-foreground">
                               {formatDate(reporte.createdAt)}
                             </span>
                           </div>
                           <div>
-                            <span className="text-gray-500">Tamaño:</span>
-                            <span className="ml-2 text-white">
+                            <span className="text-muted-foreground">Tamaño:</span>
+                            <span className="ml-2 text-foreground">
                               {(JSON.stringify(reporte.datos).length / 1024).toFixed(1)} KB
                             </span>
                           </div>
@@ -286,15 +286,15 @@ const tiposReporte = [
                         variant="ghost"
                         size="sm"
                         onClick={() => descargarReporte(reporte)}
-                        className="hover:bg-gray-800"
-                        disabled={reporte.estado !== 'Completado'}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="hover:bg-gray-800"
+className="hover:bg-surface-sunken"
+                    disabled={reporte.estado !== 'Completado'}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hover:bg-surface-sunken"
                         disabled={reporte.estado !== 'Completado'}
                       >
                         <Eye className="h-4 w-4" />
@@ -330,16 +330,16 @@ const tiposReporte = [
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h4 className="font-medium mb-2">Formatos Disponibles</h4>
-              <ul className="space-y-1 text-sm text-gray-400">
-                <li>• JSON (para integración con sistemas)</li>
-                <li>• CSV (para Excel y hojas de cálculo)</li>
-                <li>• PDF (para impresión y archivo)</li>
-                <li>• Excel (para análisis avanzado)</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">Ventajas para Hostinger</h4>
-              <ul className="space-y-1 text-sm text-gray-400">
+<ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>• JSON (para integración con sistemas)</li>
+                        <li>• CSV (para Excel y hojas de cálculo)</li>
+                        <li>• PDF (para impresión y archivo)</li>
+                        <li>• Excel (para análisis avanzado)</li>
+                    </ul>
+                    </div>
+                    <div>
+                        <h4 className="font-medium mb-2">Ventajas para Hostinger</h4>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
                 <li>• Almacenamiento a largo plazo seguro</li>
                 <li>• Acceso rápido desde cualquier dispositivo</li>
                 <li>• Backup automático de todos los reportes</li>

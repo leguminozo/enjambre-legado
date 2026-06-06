@@ -83,8 +83,8 @@ export function ListaGastos({ onNuevoGasto, onVerGasto, onEditarGasto }: ListaGa
       'Seguros': 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
       'Mantenimiento': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
       'Telecomunicaciones': 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-      'Impuestos': 'bg-gray-500/20 text-gray-400 border-gray-500/30',
-      'Otros': 'bg-gray-600/20 text-gray-400 border-gray-600/30'
+'Impuestos': 'bg-muted/20 text-muted-foreground border-muted/30',
+    'Otros': 'bg-card/20 text-muted-foreground border-input/30'
     };
     return colors[categoria] || colors['Otros'];
   };
@@ -99,23 +99,23 @@ export function ListaGastos({ onNuevoGasto, onVerGasto, onEditarGasto }: ListaGa
 
 if (loading) {
     return (
-      <Card className="bg-black border-gray-800">
+      <Card className="bg-background border-border">
         <CardContent className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="bg-black border-gray-800">
+    <Card className="bg-background border-border">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl font-light flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
             Gastos
           </CardTitle>
-          <Button onClick={onNuevoGasto} className="bg-white text-black hover:bg-gray-200">
+          <Button onClick={onNuevoGasto} className="bg-primary-foreground text-foreground hover:bg-secondary">
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Gasto
           </Button>
@@ -124,10 +124,10 @@ if (loading) {
       <CardContent>
         {gastos.length === 0 ? (
           <div className="text-center py-12">
-            <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-medium mb-2">No hay gastos registrados</h3>
-            <p className="text-gray-400 mb-4">Comienza registrando tu primer gasto</p>
-            <Button onClick={onNuevoGasto} className="bg-white text-black hover:bg-gray-200">
+<ShoppingCart className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-medium mb-2">No hay gastos registrados</h3>
+          <p className="text-muted-foreground mb-4">Comienza registrando tu primer gasto</p>
+          <Button onClick={onNuevoGasto} className="bg-primary-foreground text-foreground hover:bg-secondary">
               <Plus className="h-4 w-4 mr-2" />
               Registrar Gasto
             </Button>
@@ -135,7 +135,7 @@ if (loading) {
         ) : (
           <div className="space-y-4">
             {gastos.map((gasto) => (
-              <div key={gasto.id} className="border border-gray-800 rounded-lg p-4 hover:bg-gray-900/50 transition-colors">
+              <div key={gasto.id} className="border border-border rounded-lg p-4 hover:bg-background/50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -148,20 +148,20 @@ if (loading) {
                       </Badge>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-400">
-                      <div>
-                        <span className="text-gray-500">Proveedor:</span>
-                        <span className="ml-2 text-white">
-                          {gasto.proveedor ? `${gasto.proveedor.nombre} (${gasto.proveedor.rut})` : 'Sin proveedor'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Fecha:</span>
-                        <span className="ml-2 text-white">{formatDate(gasto.fecha)}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Comprobante:</span>
-                        <span className="ml-2 text-white">
+<div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
+        <div>
+          <span className="text-muted-foreground">Proveedor:</span>
+          <span className="ml-2 text-foreground">
+            {gasto.proveedor ? `${gasto.proveedor.nombre} (${gasto.proveedor.rut})` : 'Sin proveedor'}
+          </span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Fecha:</span>
+          <span className="ml-2 text-foreground">{formatDate(gasto.fecha)}</span>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Comprobante:</span>
+          <span className="ml-2 text-foreground">
                           {gasto.tipoComprobante} {gasto.numeroComprobante ? `#${gasto.numeroComprobante}` : ''}
                         </span>
                       </div>
@@ -171,7 +171,7 @@ if (loading) {
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <div className="text-lg font-semibold text-red-400">-{formatCurrency(gasto.monto)}</div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-xs text-muted-foreground">
                         Neto: {formatCurrency(gasto.montoNeto)}
                       </div>
                     </div>
@@ -181,22 +181,22 @@ if (loading) {
                         variant="ghost"
                         size="sm"
                         onClick={() => onVerGasto(gasto)}
-                        className="hover:bg-gray-800"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEditarGasto(gasto)}
-                        className="hover:bg-gray-800"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="hover:bg-gray-800 text-red-400 hover:text-red-300"
+className="hover:bg-surface-sunken"
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onEditarGasto(gasto)}
+          className="hover:bg-surface-sunken"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="hover:bg-surface-sunken text-destructive hover:text-destructive/80"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

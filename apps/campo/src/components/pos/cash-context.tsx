@@ -203,19 +203,13 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
   const searchClients = useCallback(async (query: string): Promise<ClienteResult[]> => {
     if (!token || query.length < 2) return [];
     try {
-      const supabaseModule = await import('@/utils/supabase/client');
-      const supabase = supabaseModule.createClient();
-      if (!supabase) return [];
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, phone')
-        .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
-        .limit(10);
-      return (data ?? []).map((p: { id: string; full_name: string | null; email: string | null; phone: string | null }) => ({
-        id: p.id,
-        full_name: p.full_name,
-        email: p.email,
-        phone: p.phone,
+      const data = await apiFetch(`/terceros?tipo=Cliente&search=${encodeURIComponent(query)}`, token);
+      const results = Array.isArray(data) ? data : [];
+      return results.map((p: Record<string, unknown>) => ({
+        id: p.id as string,
+        full_name: (p.nombre as string) ?? null,
+        email: (p.email as string | null) ?? null,
+        phone: (p.telefono as string | null) ?? null,
         purchase_count: 0,
       }));
     } catch (err) {

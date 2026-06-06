@@ -89,7 +89,7 @@ export function NuevaFacturaForm({ empresaId, clientes, onSuccess, onCancel }: N
   };
 
   return (
-    <Card className="bg-black border-gray-800">
+    <Card className="bg-background border-border">
       <CardHeader>
         <CardTitle className="text-xl font-light flex items-center gap-2">
           <FileText className="h-5 w-5" />
@@ -104,17 +104,17 @@ export function NuevaFacturaForm({ empresaId, clientes, onSuccess, onCancel }: N
               <Input
                 id="numero"
                 {...register('numero')}
-                className="bg-black border-gray-700"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="fecha">Fecha</Label>
-              <Input
-                id="fecha"
-                type="date"
-                {...register('fecha')}
-                className="bg-black border-gray-700"
+className="bg-background border-border"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="fecha">Fecha</Label>
+            <Input
+              id="fecha"
+              type="date"
+              {...register('fecha')}
+              className="bg-background border-border"
                 required
               />
             </div>
@@ -123,7 +123,7 @@ export function NuevaFacturaForm({ empresaId, clientes, onSuccess, onCancel }: N
           <div>
             <Label>Cliente</Label>
             <Select value={watch('clienteId')} onValueChange={(value) => setValue('clienteId', value)}>
-              <SelectTrigger className="bg-black border-gray-700">
+              <SelectTrigger className="bg-background border-border">
                 <SelectValue placeholder="Seleccionar cliente" />
               </SelectTrigger>
               <SelectContent>

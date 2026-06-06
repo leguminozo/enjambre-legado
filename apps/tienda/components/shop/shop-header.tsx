@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, ShoppingBag, X, User } from 'lucide-react';
 import { useCart } from '@/components/shop/cart-context';
 import { useAuth } from '@/components/providers/auth-context';
+import { ThemeToggle } from '@enjambre/ui';
 import { useState } from 'react';
 
 const NAV_PUBLIC = [
@@ -15,10 +16,6 @@ const NAV_PUBLIC = [
   { href: '/ciencia', label: 'Ciencia' },
   { href: '/nosotros', label: 'Nosotros' },
   { href: '/contacto', label: 'Contacto' },
-] as const;
-
-const NAV_AUTH = [
-  { href: '/impacto', label: 'Mi Impacto' },
 ] as const;
 
 export function ShopHeader() {
@@ -65,21 +62,12 @@ export function ShopHeader() {
               {label}
             </Link>
           ))}
-          {isAuthenticated && NAV_AUTH.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`text-[0.65rem] uppercase tracking-[0.2em] transition-colors hover:text-accent ${
-                isActive(href) ? 'text-accent' : 'text-muted-foreground'
-              }`}
-            >
-              {label}
-            </Link>
-          ))}
         </nav>
 
-        <div className="flex items-center gap-6">
-          <Link
+<div className="flex items-center gap-6">
+        <ThemeToggle size={18} />
+
+        <Link
             href={isAuthenticated ? '/perfil' : '/login'}
             className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-2"
           >
@@ -112,17 +100,11 @@ export function ShopHeader() {
               {label}
             </Link>
           ))}
-          {isAuthenticated && NAV_AUTH.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="font-display text-3xl font-light text-accent"
-              onClick={() => setOpen(false)}
-            >
-              {label}
-            </Link>
-          ))}
           <div className="h-[1px] bg-border my-4" />
+          <div className="flex items-center gap-3 text-muted-foreground">
+            <span className="text-[0.65rem] uppercase tracking-[0.2em]">Apariencia</span>
+            <ThemeToggle size={20} />
+          </div>
           <Link
             href={isAuthenticated ? '/perfil' : '/login'}
             className="font-display text-2xl italic text-accent"

@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import Link from 'next/link';
 import { gsap } from 'gsap';
-import { Package, Clock, Leaf, ChevronRight, TreePine, Droplets, ArrowRight } from 'lucide-react';
+import { Package, Clock, Leaf, ChevronRight, TreePine, Droplets, Trees, Bug, ArrowRight } from 'lucide-react';
+import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 
 interface Order {
   id: string;
@@ -40,9 +40,10 @@ interface MiLegadoClientProps {
   } | null;
   orders: Order[];
   claimPoints: ClaimPoint[];
+  ecosystemMetrics: EcosystemMetrics;
 }
 
-export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints }: MiLegadoClientProps) {
+export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, ecosystemMetrics }: MiLegadoClientProps) {
   const userData = user as Record<string, unknown> | null;
 
   useEffect(() => {
@@ -58,8 +59,11 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints }
   const totalOrders = orders?.length || 0;
   const totalSpent = orders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
   const azucarSustituida = Math.round(totalSpent / 4500 * 0.8);
-  const co2PersonalEstimado = (userData?.arboles_personal as number) || 0;
-  const irrEstimado = co2PersonalEstimado > 0 ? (co2PersonalEstimado * 15 / Math.max(totalSpent * 0.0001, 1)).toFixed(1) : '—';
+  const arbolesPersonal = (userData?.arboles_personal as number) || 0;
+  const co2PersonalEstimado = arbolesPersonal * 15;
+  const irrEstimado = co2PersonalEstimado > 0
+    ? (co2PersonalEstimado / Math.max(totalSpent * 0.0001, 1)).toFixed(1)
+    : '—';
 
   return (
     <div className="w-full">
@@ -96,50 +100,102 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints }
             </div>
             <div className="vanguard-data bg-card border border-border rounded-3xl p-8 text-center">
               <TreePine className="w-8 h-8 text-accent mx-auto mb-4" />
-              <div className="text-4xl font-display text-foreground mb-2">{(userData?.arboles_personal as number) || 0}</div>
+              <div className="text-4xl font-display text-foreground mb-2">{arbolesPersonal}</div>
               <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">m² Regenerados</div>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-20">
-            <div className="vanguard-data bg-surface-raised/50 border border-accent/20 rounded-2xl p-6 text-center">
-              <p className="text-[0.55rem] uppercase tracking-[0.3em] text-accent/60 mb-2">Azúcar sustituida</p>
-              <p className="font-mono text-2xl text-foreground">{azucarSustituida > 0 ? `~${azucarSustituida} g` : '—'}</p>
-            </div>
-            <div className="vanguard-data bg-surface-raised/50 border border-success/20 rounded-2xl p-6 text-center">
-              <p className="text-[0.55rem] uppercase tracking-[0.3em] text-success/60 mb-2">CO₂ capturado asociado</p>
-              <p className="font-mono text-2xl text-foreground">{co2PersonalEstimado > 0 ? `~${co2PersonalEstimado * 15} kg` : '—'}</p>
-            </div>
-            <div className="vanguard-data bg-surface-raised/50 border border-accent/20 rounded-2xl p-6 text-center">
-              <p className="text-[0.55rem] uppercase tracking-[0.3em] text-accent/60 mb-2">Tu IRR estimado</p>
-              <p className="font-mono text-2xl text-foreground">{irrEstimado}</p>
-              {irrEstimado !== '—' && Number(irrEstimado) > 1 && (
-                <p className="text-[0.5rem] text-success/70 mt-1">Impacto &gt; Huella</p>
-              )}
-            </div>
-          </div>
-
           <div className="space-y-24">
-          <div className="vanguard-data border-t border-border pt-12">
-            <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Mi Impacto</span>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-              <div>
-                <h3 className="font-display text-3xl font-light mb-2">Legado del bosque</h3>
-                <p className="text-sm text-muted-foreground max-w-md">
-                  Tu contribución directa a la regeneración. Cada número es rastreable y demostrable por triangulación de papers y datos locales de Chiloé.
-                </p>
-              </div>
-              <Link
-                href="/impacto"
-                className="inline-flex items-center gap-3 px-8 py-4 border border-accent text-accent text-[0.65rem] uppercase tracking-[0.2em] hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-lg"
-              >
-                Ver mi impacto <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
+            {/* ── MI IMPACTO ── */}
+            <div className="vanguard-data border-t border-border pt-12">
+              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Mi Impacto</span>
+              <p className="text-sm text-muted-foreground italic mb-12 max-w-lg">
+                Tu contribución directa a la regeneración. Cada número es rastreable y demostrable por triangulación de papers y datos locales de Chiloé.
+              </p>
 
-          <div className="vanguard-data border-t border-border pt-12">
-            <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Estado de tu Colmena</span>
+              <div className="grid md:grid-cols-4 gap-6 mb-12">
+                <div className="bg-card border border-border rounded-2xl p-8 text-center">
+                  <div className="text-accent mb-4 flex justify-center"><Trees className="w-7 h-7" /></div>
+                  <p className="font-display text-3xl font-light text-foreground mb-2">{arbolesPersonal}</p>
+                  <p className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">m² Regenerados</p>
+                </div>
+                <div className="bg-card border border-border rounded-2xl p-8 text-center">
+                  <div className="text-accent mb-4 flex justify-center"><Leaf className="w-7 h-7" /></div>
+                  <p className="font-display text-3xl font-light text-foreground mb-2">{co2PersonalEstimado > 0 ? `~${co2PersonalEstimado}` : '—'}</p>
+                  <p className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">kg CO₂ capturado</p>
+                </div>
+                <div className="bg-card border border-border rounded-2xl p-8 text-center">
+                  <div className="text-accent mb-4 flex justify-center"><Bug className="w-7 h-7" /></div>
+                  <p className="font-display text-3xl font-light text-foreground mb-2">{azucarSustituida > 0 ? `~${azucarSustituida}` : '—'}</p>
+                  <p className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">g Azúcar sustituida</p>
+                </div>
+                <div className="bg-card border border-border rounded-2xl p-8 text-center">
+                  <div className="text-accent mb-4 flex justify-center"><TreePine className="w-7 h-7" /></div>
+                  <p className="font-display text-3xl font-light text-foreground mb-2">{irrEstimado}</p>
+                  <p className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">IRR personal</p>
+                  {irrEstimado !== '—' && Number(irrEstimado) > 1 && (
+                    <p className="text-[0.5rem] text-success/70 mt-1">Impacto &gt; Huella</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-surface-raised/50 border border-border/30 rounded-xl p-10 mb-12">
+                <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/50 mb-6">Tu IRR personal</p>
+                {irrEstimado !== '—' && Number(irrEstimado) > 1 ? (
+                  <>
+                    <p className="font-display text-2xl md:text-3xl font-light text-foreground tracking-wide mb-4">
+                      IRR {irrEstimado} · Impacto &gt; Huella
+                    </p>
+                    <p className="text-sm text-muted-foreground leading-relaxed max-w-lg">
+                      Tu consumo genera {irrEstimado}× más captura de carbono que emisión. Cada pedido financia árboles en Pureo, Chiloé, y sostiene apiarios entre Quemchi, Molulco y Pureo-Quelen.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-display text-2xl md:text-3xl font-light text-foreground tracking-wide mb-4">
+                      Tu impacto está en camino
+                    </p>
+                    <p className="text-sm text-muted-foreground leading-relaxed max-w-lg">
+                      Con cada pedido, financias árboles y sostienes apiarios en bosque nativo entre Quemchi, Molulco y Pureo-Quelen. Tu IRR personal se calculará con tus primeros pedidos.
+                    </p>
+                  </>
+                )}
+              </div>
+
+              <div className="bg-surface-raised/50 border border-accent/20 rounded-xl p-10">
+                <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/50 mb-6">Ecosistema que custodias</p>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                  Tu legado se suma al ecosistema colectivo de {ecosystemMetrics.anos_legado} en Chiloé:
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center py-4">
+                    <p className="font-display text-2xl font-light text-foreground">{ecosystemMetrics.arboles_total.toLocaleString('es-CL')}+</p>
+                    <p className="text-[0.55rem] uppercase tracking-[0.2em] text-muted-foreground">Árboles totales</p>
+                  </div>
+                  <div className="text-center py-4">
+                    <p className="font-display text-2xl font-light text-foreground">~{ecosystemMetrics.co2_ton.toLocaleString('es-CL')} ton</p>
+                    <p className="text-[0.55rem] uppercase tracking-[0.2em] text-muted-foreground">CO₂ capturado</p>
+                  </div>
+                  <div className="text-center py-4">
+                    <p className="font-display text-2xl font-light text-foreground">{ecosystemMetrics.colmenas_total}</p>
+                    <p className="text-[0.55rem] uppercase tracking-[0.2em] text-muted-foreground">Colmenas</p>
+                  </div>
+                  <div className="text-center py-4">
+                    <p className="font-display text-2xl font-light text-foreground">{ecosystemMetrics.especies_nativas}</p>
+                    <p className="text-[0.55rem] uppercase tracking-[0.2em] text-muted-foreground">Especies nativas</p>
+                  </div>
+                </div>
+                <div className="mt-6 pt-6 border-t border-border/20 text-center">
+                  <a href="/ciencia" className="inline-flex items-center gap-2 text-[0.6rem] uppercase tracking-[0.3em] text-accent hover:text-accent/80 transition-colors">
+                    Ver metodología completa <ArrowRight size={12} />
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* ── COLMENA ── */}
+            <div className="vanguard-data border-t border-border pt-12">
+              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Estado de tu Colmena</span>
               {hiveData ? (
                 <div className="flex flex-col md:flex-row justify-between items-baseline gap-8">
                   <div>
@@ -164,6 +220,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints }
               )}
             </div>
 
+            {/* ── PUNTOS DE RECLAMO ── */}
             <div className="vanguard-data border-t border-border pt-12">
               <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Puntos de Reclamo</span>
               {claimPoints && claimPoints.length > 0 ? (
@@ -185,6 +242,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints }
               )}
             </div>
 
+            {/* ── PEDIDOS ── */}
             <div className="vanguard-data border-t border-border pt-12">
               <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Pedidos Recientes</span>
               {orders && orders.length > 0 ? (

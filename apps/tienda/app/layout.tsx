@@ -47,6 +47,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${fontDisplay.variable} ${fontBody.variable} ${fontCarousel.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('enjambre-theme');var r=t==='light'?'light':t==='dark'?'dark':window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark';document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(r)}catch(e){}})()` }} />
+      </head>
       <body className="font-sans antialiased bg-background text-foreground">
         <RegisterServiceWorker />
         <AppProviders>{children}</AppProviders>

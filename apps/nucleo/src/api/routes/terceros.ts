@@ -12,6 +12,7 @@ tercerosRoutes.get("/", async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase");
   const tipo = c.req.query("tipo");
+  const search = c.req.query("search");
 
   let query = supabase
     .from("terceros")
@@ -21,6 +22,10 @@ tercerosRoutes.get("/", async (c) => {
 
   if (tipo) {
     query = query.eq("tipo", tipo);
+  }
+
+  if (search && search.length >= 2) {
+    query = query.ilike("nombre", `%${search}%`);
   }
 
   const { data, error } = await query;

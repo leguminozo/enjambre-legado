@@ -318,7 +318,7 @@ export function CreadoresAdminPanel() {
               filteredCreadores.map(creador => (
                 <div
                   key={creador.id}
-                  className="p-5 rounded-xl bg-black/[0.03] border border-white/[0.06] hover:border-oro-miel/20 transition-all group"
+                  className="p-5 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-oro-miel/20 transition-all group"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
@@ -329,7 +329,7 @@ export function CreadoresAdminPanel() {
                           creador.estado === 'activo' ? 'bg-salud-optima/10 text-salud-optima' :
                           creador.estado === 'pendiente' ? 'bg-amber/10 text-amber' :
                           creador.estado === 'suspendido' ? 'bg-salud-riesgo/10 text-salud-riesgo' :
-                          'bg-gray-200 text-gray-500'
+                          'bg-secondary text-muted-foreground'
                         }`}>
                           {creador.estado}
                         </span>
@@ -365,7 +365,7 @@ export function CreadoresAdminPanel() {
                           <button
                             disabled={actionLoading === creador.id}
                             onClick={() => updateCreadorEstado(creador.id, creador.user_id, 'activo')}
-                            className="w-9 h-9 rounded-full bg-salud-optima/10 text-salud-optima flex items-center justify-center hover:bg-salud-optima hover:text-white transition-all disabled:opacity-50"
+                            className="w-9 h-9 rounded-full bg-salud-optima/10 text-salud-optima flex items-center justify-center hover:bg-salud-optima hover:text-foreground transition-all disabled:opacity-50"
                             title="Activar"
                           >
                             {actionLoading === creador.id ? <Loader2 className="animate-spin" size={16} /> : <Check size={18} />}
@@ -373,7 +373,7 @@ export function CreadoresAdminPanel() {
                           <button
                             disabled={actionLoading === creador.id}
                             onClick={() => updateCreadorEstado(creador.id, creador.user_id, 'suspendido')}
-                            className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-white transition-all disabled:opacity-50"
+                            className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-foreground transition-all disabled:opacity-50"
                             title="Rechazar"
                           >
                             <X size={18} />
@@ -399,7 +399,7 @@ export function CreadoresAdminPanel() {
                           <button
                             disabled={actionLoading === creador.id}
                             onClick={() => updateCreadorEstado(creador.id, creador.user_id, 'suspendido')}
-                            className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-white transition-all disabled:opacity-50"
+                            className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-foreground transition-all disabled:opacity-50"
                             title="Suspender"
                           >
                             <X size={16} />
@@ -410,7 +410,7 @@ export function CreadoresAdminPanel() {
                         <button
                           disabled={actionLoading === creador.id}
                           onClick={() => updateCreadorEstado(creador.id, creador.user_id, 'activo')}
-                          className="w-9 h-9 rounded-full bg-salud-optima/10 text-salud-optima flex items-center justify-center hover:bg-salud-optima hover:text-white transition-all disabled:opacity-50"
+                          className="w-9 h-9 rounded-full bg-salud-optima/10 text-salud-optima flex items-center justify-center hover:bg-salud-optima hover:text-foreground transition-all disabled:opacity-50"
                           title="Reactivar"
                         >
                           {actionLoading === creador.id ? <Loader2 className="animate-spin" size={16} /> : <Check size={18} />}
@@ -420,7 +420,7 @@ export function CreadoresAdminPanel() {
                   </div>
 
                   {editComision?.id === creador.id && (
-                    <div className="mt-4 pt-4 border-t border-black/5">
+                    <div className="mt-4 pt-4 border-t border-background/5">
                       <div className="flex items-center gap-4 flex-wrap">
                         <div>
                           <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Comisión %</label>
@@ -460,7 +460,7 @@ export function CreadoresAdminPanel() {
                   )}
 
                   {selectedCreador?.id === creador.id && (
-                    <div className="mt-4 pt-4 border-t border-black/5 space-y-2">
+                    <div className="mt-4 pt-4 border-t border-background/5 space-y-2">
                       {creador.nicho && <p className="text-xs text-text-muted">Nicho: <span className="text-bosque-ulmo">{creador.nicho}</span></p>}
                       {creador.bio && <p className="text-xs text-text-secondary italic">"{creador.bio}"</p>}
                       {creador.notas_internas && <p className="text-xs text-amber bg-amber/5 p-2 rounded">Notas internas: {creador.notas_internas}</p>}
@@ -491,15 +491,15 @@ export function CreadoresAdminPanel() {
                   className={`p-4 rounded-xl flex items-center justify-between transition-all ${
                     r.ranking <= 3
                       ? 'bg-oro-miel-glow/20 border border-oro-miel/20'
-                      : 'bg-black/[0.03] border border-white/[0.06]'
+                      : 'bg-background/[0.03] border border-foreground/[0.06]'
                   }`}
                 >
                   <div className="flex items-center gap-4">
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${
-                      r.ranking === 1 ? 'bg-oro-miel text-white' :
-                      r.ranking === 2 ? 'bg-gray-300 text-gray-700' :
+                      r.ranking === 1 ? 'bg-oro-miel text-foreground' :
+                      r.ranking === 2 ? 'bg-secondary text-foreground' :
                       r.ranking === 3 ? 'bg-amber-700 text-amber-100' :
-                      'bg-black/5 text-text-muted'
+                      'bg-background/5 text-text-muted'
                     }`}>
                       #{r.ranking}
                     </div>
@@ -538,7 +538,7 @@ export function CreadoresAdminPanel() {
               retiros.map(retiro => (
                 <div
                   key={retiro.id}
-                  className="p-4 rounded-xl bg-black/[0.03] border border-white/[0.06] hover:border-oro-miel/20 transition-all"
+                  className="p-4 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-oro-miel/20 transition-all"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -549,7 +549,7 @@ export function CreadoresAdminPanel() {
                         <span className="text-xs text-text-muted">Vía: {retiro.metodo_pago}</span>
                       </div>
                       {retiro.datos_pago && (
-                        <p className="text-[0.65rem] text-text-muted mt-1 bg-black/5 p-2 rounded font-mono">
+                        <p className="text-[0.65rem] text-text-muted mt-1 bg-background/5 p-2 rounded font-mono">
                           {JSON.stringify(retiro.datos_pago)}
                         </p>
                       )}
@@ -561,14 +561,14 @@ export function CreadoresAdminPanel() {
                         <button
                           disabled={actionLoading === retiro.id}
                           onClick={() => updateRetiroEstado(retiro.id, 'aprobado', retiro.monto_solicitado)}
-                          className="btn btn-sm bg-salud-optima/10 text-salud-optima hover:bg-salud-optima hover:text-white transition-all disabled:opacity-50"
+                          className="btn btn-sm bg-salud-optima/10 text-salud-optima hover:bg-salud-optima hover:text-foreground transition-all disabled:opacity-50"
                         >
                           {actionLoading === retiro.id ? <Loader2 className="animate-spin" size={14} /> : <><Check size={14} /> Aprobar</>}
                         </button>
                         <button
                           disabled={actionLoading === retiro.id}
                           onClick={() => updateRetiroEstado(retiro.id, 'rechazado')}
-                          className="btn btn-sm bg-salud-riesgo/10 text-salud-riesgo hover:bg-salud-riesgo hover:text-white transition-all disabled:opacity-50"
+                          className="btn btn-sm bg-salud-riesgo/10 text-salud-riesgo hover:bg-salud-riesgo hover:text-foreground transition-all disabled:opacity-50"
                         >
                           <X size={14} /> Rechazar
                         </button>

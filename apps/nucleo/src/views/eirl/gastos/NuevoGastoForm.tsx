@@ -185,7 +185,7 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
   };
 
   return (
-    <Card className="bg-black border-gray-800">
+    <Card className="bg-background border-border">
       <CardHeader>
         <CardTitle className="text-xl font-light flex items-center gap-2">
           <ShoppingCart className="h-5 w-5" />
@@ -203,14 +203,14 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
                 type="date"
                 value={formData.fecha}
                 onChange={(e) => handleInputChange('fecha', e.target.value)}
-                className="bg-black border-gray-700"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="categoria">Categoría</Label>
-              <Select value={formData.categoria} onValueChange={(value) => handleInputChange('categoria', value)}>
-                <SelectTrigger className="bg-black border-gray-700">
+className="bg-background border-border"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="categoria">Categoría</Label>
+                  <Select value={formData.categoria} onValueChange={(value) => handleInputChange('categoria', value)}>
+                    <SelectTrigger className="bg-background border-border">
                   <SelectValue placeholder="Seleccionar categoría" />
                 </SelectTrigger>
                 <SelectContent>
@@ -231,8 +231,8 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
               id="descripcion"
               value={formData.descripcion}
               onChange={(e) => handleInputChange('descripcion', e.target.value)}
-              className="bg-black border-gray-700"
-              rows={3}
+className="bg-background border-border"
+                    rows={3}
               required
             />
           </div>
@@ -242,8 +242,8 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
             <Label>Proveedor</Label>
             <div className="space-y-2">
               <Select value={formData.proveedorId} onValueChange={(value) => handleInputChange('proveedorId', value)}>
-                <SelectTrigger className="bg-black border-gray-700">
-                  <SelectValue placeholder="Seleccionar proveedor" />
+<SelectTrigger className="bg-background border-border">
+                        <SelectValue placeholder="Seleccionar proveedor" />
                 </SelectTrigger>
                 <SelectContent>
                   {proveedores.map((proveedor) => (
@@ -258,7 +258,7 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
                 type="button"
                 
                 onClick={() => setMostrarNuevoProveedor(!mostrarNuevoProveedor)}
-                className="w-full border-gray-600"
+                className="w-full border-input"
               >
                 {mostrarNuevoProveedor ? 'Cancelar' : 'Crear Nuevo Proveedor'}
               </Button>
@@ -267,7 +267,7 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
 
           {/* Nuevo Proveedor Form */}
           {mostrarNuevoProveedor && (
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="bg-background border-border">
               <CardContent className="pt-6">
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -276,15 +276,15 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
                       <Input
                         value={nuevoProveedor.nombre}
                         onChange={(e) => handleNuevoProveedorChange('nombre', e.target.value)}
-                        className="bg-gray-800 border-gray-600"
-                      />
-                    </div>
-                    <div>
-                      <Label>RUT</Label>
-                      <Input
-                        value={nuevoProveedor.rut}
-                        onChange={(e) => handleNuevoProveedorChange('rut', e.target.value)}
-                        className="bg-gray-800 border-gray-600"
+className="bg-surface-sunken border-input"
+                    />
+                  </div>
+                  <div>
+                    <Label>RUT</Label>
+                    <Input
+                      value={nuevoProveedor.rut}
+                      onChange={(e) => handleNuevoProveedorChange('rut', e.target.value)}
+                      className="bg-surface-sunken border-input"
                       />
                     </div>
                   </div>
@@ -295,15 +295,26 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
                         type="email"
                         value={nuevoProveedor.email}
                         onChange={(e) => handleNuevoProveedorChange('email', e.target.value)}
-                        className="bg-gray-800 border-gray-600"
-                      />
-                    </div>
-                    <div>
-                      <Label>Teléfono</Label>
-                      <Input
-                        value={nuevoProveedor.telefono}
-                        onChange={(e) => handleNuevoProveedorChange('telefono', e.target.value)}
-                        className="bg-gray-800 border-gray-600"
+className="bg-surface-sunken border-input"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      value={nuevoProveedor.email}
+                      onChange={(e) => handleNuevoProveedorChange('email', e.target.value)}
+                      className="bg-surface-sunken border-input"
+                    />
+                  </div>
+                  <div>
+                    <Label>Teléfono</Label>
+                    <Input
+                      value={nuevoProveedor.telefono}
+                      onChange={(e) => handleNuevoProveedorChange('telefono', e.target.value)}
+                      className="bg-surface-sunken border-input"
                       />
                     </div>
                   </div>
@@ -320,8 +331,8 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
             <div>
               <Label htmlFor="tipoComprobante">Tipo Comprobante</Label>
               <Select value={formData.tipoComprobante} onValueChange={(value) => handleInputChange('tipoComprobante', value)}>
-                <SelectTrigger className="bg-black border-gray-700">
-                  <SelectValue />
+<SelectTrigger className="bg-background border-border">
+                        <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {tiposComprobante.map((tipo) => (
@@ -338,7 +349,7 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
                 id="numeroComprobante"
                 value={formData.numeroComprobante}
                 onChange={(e) => handleInputChange('numeroComprobante', e.target.value)}
-                className="bg-black border-gray-700"
+                className="bg-background border-border"
               />
             </div>
           </div>
@@ -358,9 +369,9 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
                   value={formData.monto}
                   onChange={(e) => handleInputChange('monto', e.target.value)}
                   onBlur={calcularMontos}
-                  className="bg-black border-gray-700"
-                  required
-                />
+className="bg-background border-border"
+              required
+              />
               </div>
               <div>
                 <Label htmlFor="montoIva">IVA (19%)</Label>
@@ -369,17 +380,17 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
                   type="number"
                   value={formData.montoIva}
                   onChange={(e) => handleInputChange('montoIva', e.target.value)}
-                  className="bg-black border-gray-700"
-                />
-              </div>
-              <div>
-                <Label htmlFor="montoNeto">Monto Neto</Label>
-                <Input
-                  id="montoNeto"
-                  type="number"
-                  value={formData.montoNeto}
-                  onChange={(e) => handleInputChange('montoNeto', e.target.value)}
-                  className="bg-black border-gray-700"
+className="bg-background border-border"
+            />
+          </div>
+          <div>
+            <Label htmlFor="montoNeto">Monto Neto</Label>
+            <Input
+              id="montoNeto"
+              type="number"
+              value={formData.montoNeto}
+              onChange={(e) => handleInputChange('montoNeto', e.target.value)}
+              className="bg-background border-border"
                 />
               </div>
             </div>
@@ -387,11 +398,11 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
 
           {/* Botones */}
           <div className="flex gap-4">
-            <Button type="submit" disabled={loading} className="bg-white text-black hover:bg-gray-200">
+            <Button type="submit" disabled={loading} className="bg-primary-foreground text-foreground hover:bg-secondary">
               <Save className="h-4 w-4 mr-2" />
               {loading ? 'Guardando...' : 'Guardar Gasto'}
             </Button>
-            <Button type="button"  onClick={onCancel} className="border-gray-600">
+            <Button type="button"  onClick={onCancel} className="border-input">
               <X className="h-4 w-4 mr-2" />
               Cancelar
             </Button>

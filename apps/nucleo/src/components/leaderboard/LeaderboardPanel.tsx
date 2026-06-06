@@ -18,10 +18,10 @@ interface LeaderboardEntry {
 const rankIcons = [Trophy, Medal, Crown];
 const rankColors = [
   'bg-amber-50 border-amber-200 text-amber-700',
-  'bg-stone-50 border-stone-300 text-stone-600',
+  'bg-primary-foreground border-border text-muted-foreground',
   'bg-orange-50 border-orange-200 text-orange-700',
 ];
-const rankIconColors = ['text-amber-500', 'text-stone-400', 'text-orange-600'];
+const rankIconColors = ['text-accent', 'text-muted-foreground', 'text-warning'];
 
 const tierBadge: Record<string, string> = {
   base: 'bg-stone-100 text-stone-600',
