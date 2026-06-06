@@ -8,13 +8,13 @@ import { useEffect, useState } from 'react';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
 
 const TIENDA_ROLE_REDIRECT: Record<string, string> = {
-  cliente: '/impacto',
-  creador: '/impacto',
+  cliente: '/perfil',
+  creador: '/perfil',
 }
 
 function getTiendaRedirect(role: string): string {
   if (TIENDA_ROLE_REDIRECT[role]) return TIENDA_ROLE_REDIRECT[role]
-  return '/catalogo'
+  return '/perfil'
 }
 
 export function LoginForm() {
@@ -41,7 +41,7 @@ export function LoginForm() {
     if (result.success && user) {
       router.push(getTiendaRedirect(user.role));
     } else if (result.success) {
-      router.push('/impacto');
+      router.push('/perfil');
     } else {
       setError(result.message || 'Error al iniciar sesión');
     }
