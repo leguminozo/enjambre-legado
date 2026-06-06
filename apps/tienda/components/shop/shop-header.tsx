@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { Menu, ShoppingBag, X, User } from 'lucide-react';
 import { useCart } from '@/components/shop/cart-context';
 import { useAuth } from '@/components/providers/auth-context';
-import { ThemeToggle } from '@enjambre/ui';
 import { useState } from 'react';
 
 const NAV_PUBLIC = [
@@ -65,8 +64,6 @@ export function ShopHeader() {
         </nav>
 
 <div className="flex items-center gap-6">
-        <ThemeToggle size={18} />
-
         <Link
             href={isAuthenticated ? '/perfil' : '/login'}
             className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-2"
@@ -100,11 +97,7 @@ export function ShopHeader() {
               {label}
             </Link>
           ))}
-          <div className="h-[1px] bg-border my-4" />
-          <div className="flex items-center gap-3 text-muted-foreground">
-            <span className="text-[0.65rem] uppercase tracking-[0.2em]">Apariencia</span>
-            <ThemeToggle size={20} />
-          </div>
+<div className="h-[1px] bg-border my-4" />
           <Link
             href={isAuthenticated ? '/perfil' : '/login'}
             className="font-display text-2xl italic text-accent"

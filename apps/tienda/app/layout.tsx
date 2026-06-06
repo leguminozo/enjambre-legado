@@ -2,7 +2,7 @@ import './globals.css';
 import { AppProviders } from '@/components/providers/app-providers';
 import { RegisterServiceWorker } from '@/components/pwa/register-sw';
 import type { Metadata } from 'next';
-import { Cormorant_Garamond, Inter, Montserrat } from 'next/font/google';
+import { Cormorant_Garamond, Inter } from 'next/font/google';
 import React from 'react';
 
 const fontDisplay = Cormorant_Garamond({
@@ -17,13 +17,6 @@ const fontBody = Inter({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600'],
   variable: '--font-body',
-  display: 'swap',
-});
-
-const fontCarousel = Montserrat({
-  subsets: ['latin'],
-  weight: ['400', '600'],
-  variable: '--font-carousel',
   display: 'swap',
 });
 
@@ -46,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={`${fontDisplay.variable} ${fontBody.variable} ${fontCarousel.variable}`} suppressHydrationWarning>
+    <html lang="es" className={`${fontDisplay.variable} ${fontBody.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('enjambre-theme');var r=t==='light'?'light':t==='dark'?'dark':window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark';document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(r)}catch(e){}})()` }} />
       </head>

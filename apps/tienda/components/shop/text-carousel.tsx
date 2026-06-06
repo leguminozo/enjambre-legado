@@ -1,22 +1,19 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 interface SlideData {
   text: string;
   href?: string;
   linkLabel?: string;
-  linkClass?: 'verde' | 'amarillo';
 }
 
 const SLIDES: SlideData[] = [
-  { text: 'Bienvenido a la experiencia digital. Te estábamos esperando!' },
+  { text: 'Bienvenido a la experiencia digital. Te estábamos esperando' },
   {
     text: 'La historia del bosque comienza ',
     href: 'https://www.obrerayzangano.com/nuestra-historia-or-apicultura-regenerativa-en-chiloe/',
     linkLabel: 'aquí',
-    linkClass: 'verde',
   },
   { text: 'Directo del bosque a tu hogar' },
   { text: 'Hecho artesanalmente. Ritmo naturaleza' },
@@ -29,14 +26,13 @@ const SLIDES: SlideData[] = [
     text: 'Aún nos estamos construyendo. Si ocurre algo, pincha ',
     href: 'https://api.whatsapp.com/send?phone=56940831358',
     linkLabel: 'aquí',
-    linkClass: 'amarillo',
   },
 ];
 
 const INTERVAL_MS = 5000;
 const STORAGE_KEY = 'oyz-carousel-dismissed';
-const CAROUSEL_HEIGHT = 42;
-const CAROUSEL_HEIGHT_MD = 50;
+const CAROUSEL_HEIGHT = 36;
+const CAROUSEL_HEIGHT_MD = 42;
 
 function setCarouselHeightVar(height: number) {
   document.documentElement.style.setProperty('--carousel-h', `${height}px`);
@@ -188,30 +184,30 @@ export function TextCarousel() {
   if (dismissed) return null;
 
   const slide = SLIDES[index];
-  const linkColor =
-    slide.linkClass === 'verde'
-      ? 'text-bosque hover:text-miel'
-      : 'text-miel hover:text-miel-light';
 
   return (
     <div
       role="region"
       aria-label="Mensajes del sitio"
       aria-live="polite"
-      className={`sticky top-0 z-[70] bg-foreground text-background font-[family-name:var(--font-carousel)] transition-all duration-300 ${
+      className={`sticky top-0 z-[70] bg-bosque transition-all duration-300 ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
       }`}
     >
       <div
-        className="relative flex items-center justify-center overflow-hidden"
+        className="relative flex items-center justify-center overflow-hidden cursor-pointer select-none group"
         style={{ height: `${getCarouselHeight()}px` }}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onTouchStart={() => setPaused(true)}
         onTouchEnd={handleTouchEnd}
+        onClick={(e) => {
+          if (e.detail === 2) handleDismiss();
+          else goNext();
+        }}
       >
         <div
-          className={`text-center text-xs md:text-sm tracking-wide px-14 transition-opacity duration-500 ease-in-out ${
+          className={`text-center font-display italic text-crema tracking-wide px-10 transition-opacity duration-500 ease-in-out text-xs md:text-sm ${
             animating && !prefersReducedMotion ? 'opacity-0' : 'opacity-100'
           }`}
         >
@@ -221,39 +217,22 @@ export function TextCarousel() {
               href={slide.href}
               target="_blank"
               rel="noopener noreferrer nofollow"
-              className={`underline font-semibold transition-colors duration-300 ${linkColor}`}
+              className="text-miel underline underline-offset-4 decoration-miel/40 hover:decoration-miel transition-colors duration-300 font-semibold not-italic"
+              onClick={(e) => e.stopPropagation()}
             >
               {slide.linkLabel}
             </a>
           )}
         </div>
 
-        <button
-          onClick={goPrev}
-          aria-label="Anterior"
-          className="absolute left-2 p-1 text-background/50 hover:text-miel transition-colors"
-        >
-          <ChevronLeft size={18} strokeWidth={1.5} />
-        </button>
-        <button
-          onClick={goNext}
-          aria-label="Siguiente"
-          className="absolute right-8 p-1 text-background/50 hover:text-miel transition-colors"
-        >
-          <ChevronRight size={18} strokeWidth={1.5} />
-        </button>
-        <button
-          onClick={handleDismiss}
-          aria-label="Cerrar barra de mensajes"
-          className="absolute right-2 p-1 text-background/40 hover:text-background/80 transition-colors"
-        >
-          <X size={14} strokeWidth={2} />
-        </button>
+        <span className="absolute right-3 text-[0.5rem] uppercase tracking-[0.2em] text-crema/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          doble clic para cerrar
+        </span>
       </div>
 
-      <div className="h-[2px] w-full bg-foreground/20">
+      <div className="h-[1.5px] w-full bg-bosque-dark/60">
         <div
-          className="h-full bg-accent transition-[width] duration-100 ease-linear"
+          className="h-full bg-miel transition-[width] duration-100 ease-linear"
           style={{ width: `${progress}%` }}
         />
       </div>
