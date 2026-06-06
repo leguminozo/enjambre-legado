@@ -26,7 +26,7 @@ export function BeeCanvas() {
     };
     const hslVar = (name: string): string => {
       const val = style.getPropertyValue(name).trim().split(/\s+/);
-      if (val.length !== 3) return '#1a1a1a';
+      if (val.length !== 3) return '#070707';
       return hslToHex(
         Number(val[0]),
         Number(val[1].replace('%', '')),

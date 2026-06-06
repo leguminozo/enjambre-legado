@@ -16,12 +16,12 @@ const ratioClass = {
 export function ImagePlaceholder({ ratio = 'square', label, className = '' }: Props) {
   return (
     <div
-      className={`flex flex-col items-center justify-center bg-zinc-900/80 ${ratioClass[ratio]} w-full border border-white/10 ${className}`}
+      className={`flex flex-col items-center justify-center bg-surface-sunken/80 ${ratioClass[ratio]} w-full border border-border/10 ${className}`}
       role="img"
       aria-label={label || 'Imagen próximamente'}
     >
-      <ImageIcon className="h-10 w-10 text-zinc-600" strokeWidth={1} aria-hidden />
-      {label ? <span className="mt-2 px-4 text-center text-xs text-zinc-500">{label}</span> : null}
+      <ImageIcon className="h-10 w-10 text-muted-foreground" strokeWidth={1} aria-hidden />
+      {label ? <span className="mt-2 px-4 text-center text-xs text-muted-foreground">{label}</span> : null}
     </div>
   );
 }
