@@ -30,7 +30,8 @@ const SLIDES: SlideData[] = [
 ];
 
 const INTERVAL_MS = 5000;
-const STORAGE_KEY = 'oyz-carousel-dismissed';
+const FADE_MS = 700;
+const SLIDE_MS = 400;
 const CAROUSEL_HEIGHT = 36;
 const CAROUSEL_HEIGHT_MD = 42;
 
@@ -39,16 +40,11 @@ function setCarouselHeightVar(height: number) {
 }
 
 export function TextCarousel() {
-  const [index, setIndex] = useState(0);
-  const [dismissed, setDismissed] = useState(false);
-  const [paused, setPaused] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [visible, setVisible] = useState(true);
-  const [animating, setAnimating] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const touchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const elapsedRef = useRef(0);
+  const [current, setCurrent] = useState(0);
+  const [phase, setPhase] = useState<'visible' | 'exiting' | 'entering'>('visible');
+  const [slideY, setSlideY] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
 
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === 'undefined') return false;
@@ -60,156 +56,93 @@ export function TextCarousel() {
     return window.innerWidth >= 768 ? CAROUSEL_HEIGHT_MD : CAROUSEL_HEIGHT;
   }, []);
 
-  const stopTimers = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (progressRef.current) clearInterval(progressRef.current);
-    timerRef.current = null;
-    progressRef.current = null;
-    elapsedRef.current = 0;
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
   }, []);
 
-  const startTimers = useCallback(() => {
-    if (prefersReducedMotion || paused) return;
-    stopTimers();
+  const advance = useCallback(() => {
+    if (!mountedRef.current) return;
 
-    const step = 50;
-    elapsedRef.current = 0;
-    progressRef.current = setInterval(() => {
-      elapsedRef.current += step;
-      setProgress((elapsedRef.current / INTERVAL_MS) * 100);
-    }, step);
-
-    timerRef.current = setInterval(() => {
-      setIndex((prev) => (prev + 1) % SLIDES.length);
-      elapsedRef.current = 0;
-      setProgress(0);
-    }, INTERVAL_MS);
-  }, [paused, prefersReducedMotion, stopTimers]);
-
-  useEffect(() => {
-    if (dismissed) return;
-    const wasDismissed = sessionStorage.getItem(STORAGE_KEY);
-    if (wasDismissed === '1') {
-      setDismissed(true);
-      setCarouselHeightVar(0);
+    if (prefersReducedMotion) {
+      setCurrent((prev) => (prev + 1) % SLIDES.length);
+      timerRef.current = setTimeout(advance, INTERVAL_MS);
       return;
     }
-    setCarouselHeightVar(getCarouselHeight());
-  }, [dismissed, getCarouselHeight]);
+
+    setPhase('exiting');
+
+    timerRef.current = setTimeout(() => {
+      if (!mountedRef.current) return;
+      setCurrent((prev) => (prev + 1) % SLIDES.length);
+      setPhase('entering');
+
+      timerRef.current = setTimeout(() => {
+        if (!mountedRef.current) return;
+        setPhase('visible');
+        timerRef.current = setTimeout(advance, INTERVAL_MS);
+      }, SLIDE_MS);
+    }, FADE_MS);
+  }, [prefersReducedMotion, clearTimer]);
 
   useEffect(() => {
-    if (dismissed) {
-      setCarouselHeightVar(0);
-      return;
-    }
+    mountedRef.current = true;
     setCarouselHeightVar(getCarouselHeight());
+    timerRef.current = setTimeout(advance, INTERVAL_MS);
 
     function onResize() {
-      if (!dismissed) setCarouselHeightVar(getCarouselHeight());
+      setCarouselHeightVar(getCarouselHeight());
     }
     window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [dismissed, getCarouselHeight]);
+
+    return () => {
+      mountedRef.current = false;
+      clearTimer();
+      window.removeEventListener('resize', onResize);
+    };
+  }, [advance, clearTimer, getCarouselHeight]);
 
   useEffect(() => {
-    if (dismissed || paused) {
-      stopTimers();
+    if (prefersReducedMotion) {
+      setSlideY(0);
       return;
     }
-    startTimers();
-    return stopTimers;
-  }, [dismissed, paused, startTimers, stopTimers]);
+    if (phase === 'exiting') setSlideY(-6);
+    else if (phase === 'entering') setSlideY(6);
+    else setSlideY(0);
+  }, [phase, prefersReducedMotion]);
 
-  useEffect(() => {
-    setProgress(0);
-    if (!prefersReducedMotion) {
-      setAnimating(true);
-      const fadeTimer = setTimeout(() => setAnimating(false), 500);
-      return () => clearTimeout(fadeTimer);
-    }
-  }, [index, prefersReducedMotion]);
+  const slide = SLIDES[current];
 
-  useEffect(() => {
-    return () => {
-      if (touchTimeoutRef.current) clearTimeout(touchTimeoutRef.current);
-    };
-  }, []);
+  const opacity =
+    phase === 'visible' ? 1 :
+    phase === 'exiting' ? 0 :
+    0;
 
-  useEffect(() => {
-    if (dismissed) return;
-
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'ArrowRight') {
-        setIndex((prev) => (prev + 1) % SLIDES.length);
-        stopTimers();
-        startTimers();
-      } else if (e.key === 'ArrowLeft') {
-        setIndex((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
-        stopTimers();
-        startTimers();
-      }
-    }
-
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [dismissed, startTimers, stopTimers]);
-
-  const handleDismiss = () => {
-    stopTimers();
-    setVisible(false);
-    setTimeout(() => {
-      setDismissed(true);
-      setCarouselHeightVar(0);
-      sessionStorage.setItem(STORAGE_KEY, '1');
-    }, 300);
-  };
-
-  const goNext = () => {
-    setIndex((prev) => (prev + 1) % SLIDES.length);
-    stopTimers();
-    startTimers();
-  };
-
-  const goPrev = () => {
-    setIndex((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
-    stopTimers();
-    startTimers();
-  };
-
-  const handleTouchEnd = () => {
-    if (touchTimeoutRef.current) clearTimeout(touchTimeoutRef.current);
-    touchTimeoutRef.current = setTimeout(() => setPaused(false), 3000);
-  };
-
-  if (dismissed) return null;
-
-  const slide = SLIDES[index];
+  const transitionDuration = prefersReducedMotion ? '0ms' : phase === 'entering' ? `${SLIDE_MS}ms` : `${FADE_MS}ms`;
 
   return (
     <div
       role="region"
       aria-label="Mensajes del sitio"
       aria-live="polite"
-      className={`sticky top-0 z-[70] bg-bosque transition-all duration-300 ${
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
-      }`}
+      className="sticky top-0 z-[70] bg-background border-b border-border"
     >
       <div
-        className="relative flex items-center justify-center overflow-hidden cursor-pointer select-none group"
+        className="relative flex items-center justify-center overflow-hidden select-none"
         style={{ height: `${getCarouselHeight()}px` }}
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-        onTouchStart={() => setPaused(true)}
-        onTouchEnd={handleTouchEnd}
-        onClick={(e) => {
-          if (e.detail === 2) handleDismiss();
-          else goNext();
-        }}
       >
         <div
-          className={`text-center font-display italic text-crema tracking-wide px-10 transition-opacity duration-500 ease-in-out text-xs md:text-sm ${
-            animating && !prefersReducedMotion ? 'opacity-0' : 'opacity-100'
-          }`}
+          className="text-center font-display italic text-foreground tracking-wide px-10 text-xs md:text-sm"
+          style={{
+            opacity,
+            transform: prefersReducedMotion ? undefined : `translateY(${slideY}px)`,
+            transitionProperty: 'opacity, transform',
+            transitionDuration,
+            transitionTimingFunction: 'ease-in-out',
+          }}
         >
           <span>{slide.text}</span>
           {slide.href && slide.linkLabel && (
@@ -217,24 +150,13 @@ export function TextCarousel() {
               href={slide.href}
               target="_blank"
               rel="noopener noreferrer nofollow"
-              className="text-miel underline underline-offset-4 decoration-miel/40 hover:decoration-miel transition-colors duration-300 font-semibold not-italic"
+              className="text-foreground underline underline-offset-4 decoration-foreground/30 hover:decoration-foreground transition-colors duration-300 font-semibold not-italic"
               onClick={(e) => e.stopPropagation()}
             >
               {slide.linkLabel}
             </a>
           )}
         </div>
-
-        <span className="absolute right-3 text-[0.5rem] uppercase tracking-[0.2em] text-crema/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          doble clic para cerrar
-        </span>
-      </div>
-
-      <div className="h-[1.5px] w-full bg-bosque-dark/60">
-        <div
-          className="h-full bg-miel transition-[width] duration-100 ease-linear"
-          style={{ width: `${progress}%` }}
-        />
       </div>
     </div>
   );
