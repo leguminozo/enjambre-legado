@@ -155,15 +155,13 @@ export function CheckoutClient() {
       return;
     }
 
-    sessionStorage.setItem(
-      'oyz_pending_checkout',
-      JSON.stringify({
-        buyOrder: json.buyOrder,
-        provider: json.provider,
-        cart: cart.lines,
-        total: json.total,
-      }),
-    );
+  sessionStorage.setItem(
+    'oyz_pending_checkout',
+    JSON.stringify({
+      buyOrder: json.buyOrder,
+      provider: json.provider,
+    }),
+  );
 
     gsap.to(buttonRef.current, {
       scale: 0.98,

@@ -40,8 +40,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { cart, shipping, returnUrl: rawReturnUrl } = parsed.data;
-    const returnUrl = rawReturnUrl || `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/checkout/resultado`;
+  const { cart, shipping, returnUrl: rawReturnUrl } = parsed.data;
 
     const admin = createAdminClient();
     const productIds = cart.map((line) => line.productId);
@@ -106,22 +105,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Carrito vacío después de verificación' }, { status: 400 });
     }
 
-    const total = Math.max(1, Math.round(serverTotal));
-    const buyOrder = `ORD-${Date.now()}`;
-    const sessionId = `sess-${Date.now()}`;
+  const total = Math.max(1, Math.round(serverTotal));
+  const buyOrder = `ORD-${Date.now()}`;
+  const sessionId = `sess-${Date.now()}`;
 
-    const provider = getPaymentProvider();
+  const baseReturnUrl = rawReturnUrl || `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/checkout/resultado`;
+  const returnUrl = `${baseReturnUrl}?buyOrder=${encodeURIComponent(buyOrder)}`;
+
+  const provider = getPaymentProvider();
     const result = await provider.init(buyOrder, sessionId, total, returnUrl, shipping.email);
 
-    saveCheckoutSession({
-      buyOrder,
-      sessionId,
-      cart: verifiedCart,
-      total,
-      provider: provider.name,
-      shipping,
-      createdAt: Date.now(),
-    });
+  await saveCheckoutSession({
+    buyOrder,
+    sessionId,
+    cart: verifiedCart,
+    total,
+    provider: provider.name,
+    shipping,
+    createdAt: Date.now(),
+  });
 
     return NextResponse.json({
       url: result.url,

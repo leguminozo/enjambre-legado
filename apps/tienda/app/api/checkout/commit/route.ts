@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { createClient } from '@/utils/supabase/server';
-import { getPaymentProvider, getCheckoutSession, deleteCheckoutSession } from '@/lib/payments';
+import { getPaymentProvider, getCheckoutSession, completeCheckoutSession } from '@/lib/payments';
 import { z } from 'zod';
 
 const CommitBodySchema = z.object({
@@ -30,8 +30,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, authorized: false, result: result.raw }, { status: 200 });
     }
 
-    const buyOrder = clientBuyOrder || result.buyOrder;
-    const session = buyOrder ? getCheckoutSession(buyOrder) : undefined;
+  const buyOrder = clientBuyOrder || result.buyOrder;
+  const session = buyOrder ? await getCheckoutSession(buyOrder) : undefined;
 
     if (!session) {
       console.error(`Checkout session not found for buyOrder: ${buyOrder}. Payment authorized but order not persisted.`);
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
       console.error('Stock update errors (pago autorizado):', stockErrors);
     }
 
-    deleteCheckoutSession(buyOrder);
+    await completeCheckoutSession(buyOrder);
 
     return NextResponse.json({
       ok: true,

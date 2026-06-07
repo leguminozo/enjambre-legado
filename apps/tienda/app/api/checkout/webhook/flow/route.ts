@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/utils/supabase/admin';
-import { getCheckoutSession, deleteCheckoutSession } from '@/lib/payments';
+import { getCheckoutSession, completeCheckoutSession } from '@/lib/payments';
 
 async function verifyFlowSignature(params: Record<string, string>): Promise<boolean> {
   const signature = params.s;
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Falta commerceOrder' }, { status: 400 });
     }
 
-    const session = getCheckoutSession(buyOrder);
+    const session = await getCheckoutSession(buyOrder);
     if (!session) {
       console.error(`Flow webhook: session not found for buyOrder ${buyOrder}`);
       return NextResponse.json({ error: 'Sesión no encontrada' }, { status: 404 });
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
       await admin.rpc('decrement_stock', { p_id: line.productId, p_qty: qty });
     }
 
-    deleteCheckoutSession(buyOrder);
+    await completeCheckoutSession(buyOrder);
 
     return NextResponse.json({ ok: true, status: 'confirmed' }, { status: 200 });
   } catch (error) {

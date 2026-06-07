@@ -546,7 +546,7 @@ auth.users
 
 *Este documento debe actualizarse con cada nueva migracion.*
 *Fuente de verdad: `packages/database/supabase/migrations/`*
-*Ultima actualizacion: Mayo 2026 — Migrations 28–33*
+*Ultima actualizacion: Junio 2026 — Migrations 28–38*
 
 ---
 
@@ -789,3 +789,35 @@ Retorna JSONB con métricas actuales y umbrales del siguiente tier:
 | `commission_records` | rep propio + admin | service_role / admin | admin (paid/paid_at) | bloqueado |
 | `invitation_codes` | admin | admin | admin | admin |
 | `invitation_redemptions` | admin | service_role / auth.uid() = user_id | — | — |
+
+---
+
+## 15. Checkout Sessions (Migration 38)
+
+### `checkout_sessions`
+
+Sesiones de checkout persistentes para el flujo de pago web (Transbank + Flow.cl). Reemplaza el Map en memoria que se perdía en cold starts de Vercel.
+
+| Columna | Tipo | Restriccion | Descripcion |
+|---|---|---|---|
+| `id` | UUID PK | DEFAULT gen_random_uuid() | Identificador unico |
+| `buy_order` | TEXT | UNIQUE NOT NULL | Orden de compra (ej: `ORD-1718000000000`) |
+| `session_id` | TEXT | NOT NULL | ID de sesion del provider |
+| `provider` | TEXT | NOT NULL, CHECK IN ('transbank','flow') | Pasarela de pago |
+| `cart` | JSONB | NOT NULL | Carrito verificado (productos, precios, cantidades) |
+| `total` | INTEGER | NOT NULL, CHECK > 0 | Total en CLP verificado server-side |
+| `shipping` | JSONB | — | Datos de envio |
+| `status` | TEXT | NOT NULL, DEFAULT 'pending', CHECK IN ('pending','completed','expired') | Estado de la sesion |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Timestamp de creacion |
+| `completed_at` | TIMESTAMPTZ | — | Timestamp cuando se completo el pago |
+
+**Indices**: `idx_checkout_sessions_buy_order` (buy_order), `idx_checkout_sessions_status` parcial (status = 'pending')
+
+**Funciones**:
+- `expire_checkout_sessions()` — Marca como 'expired' las sesiones pending > 30 min
+
+**RLS**: Solo `service_role` tiene acceso completo. `authenticated` y `anon` no tienen permisos. Las operaciones de checkout usan `createAdminClient()` (service_role).
+
+| Tabla | SELECT | INSERT | UPDATE | DELETE |
+|---|---|---|---|---|
+| `checkout_sessions` | service_role | service_role | service_role | service_role |

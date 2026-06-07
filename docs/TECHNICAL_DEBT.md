@@ -68,6 +68,16 @@ apps/nucleo/Copia de Verano Eccomerce?/      → ELIMINAR
 
 ---
 
+### D4b. Checkout Sessions en Map en Memoria (RESUELTO)
+
+**Problema**: Las sesiones de checkout se almacenaban en un `Map` en memoria. En Vercel serverless, cada cold start pierde las sesiones — el pago se autoriza pero la orden no se persiste.
+
+**Estado**: RESUELTO — Migration 38 crea tabla `checkout_sessions` en Postgres con RLS (service_role only). Las funciones `saveCheckoutSession`, `getCheckoutSession`, `completeCheckoutSession` ahora operan sobre Supabase. Ademas: idempotencia en webhooks (status `completed` previene doble insercion), auditoria trazable, auto-expire via `expire_checkout_sessions()`.
+
+**Leccion**: Nunca almacenar estado de sesiones de pago en memoria en serverless. La fuente de verdad es Postgres.
+
+---
+
 ## ALTO — Resolver en proximos sprints
 
 ### D5. Paquetes Vacios/Stubs

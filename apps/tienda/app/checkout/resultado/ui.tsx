@@ -17,6 +17,7 @@ type CommitState = 'loading' | 'success' | 'failed';
 export function CheckoutResultClient() {
   const params = useSearchParams();
   const token = params.get('token_ws') || params.get('token');
+  const buyOrderParam = params.get('buyOrder');
   const statusParam = params.get('status');
   const [state, setState] = useState<CommitState>('loading');
   const [message, setMessage] = useState('Confirmando pago...');
@@ -39,9 +40,9 @@ export function CheckoutResultClient() {
     }
 
     const raw = sessionStorage.getItem('oyz_pending_checkout');
-    const pending = raw
-      ? (JSON.parse(raw) as { buyOrder?: string; provider?: string; cart: unknown[]; total: number })
-      : null;
+  const pending = raw
+    ? (JSON.parse(raw) as { buyOrder?: string; provider?: string })
+    : null;
 
     void (async () => {
       const res = await fetch('/api/checkout/commit', {
@@ -52,7 +53,7 @@ export function CheckoutResultClient() {
         },
         body: JSON.stringify({
           token_ws: token,
-          buyOrder: pending?.buyOrder || undefined,
+          buyOrder: buyOrderParam || pending?.buyOrder || undefined,
           provider: pending?.provider || undefined,
         }),
       });

@@ -52,27 +52,65 @@ export interface PaymentProvider {
   refund(buyOrder: string, amount: number): Promise<{ ok: boolean }>;
 }
 
-const sessions = new Map<string, CheckoutSession>();
-const SESSION_TTL_MS = 30 * 60 * 1000;
+import { createAdminClient } from '@/utils/supabase/admin';
 
-function sweepExpired() {
-  const now = Date.now();
-  for (const [key, session] of sessions) {
-    if (now - session.createdAt > SESSION_TTL_MS) {
-      sessions.delete(key);
-    }
-  }
+type CheckoutSessionRow = {
+  id: string;
+  buy_order: string;
+  session_id: string;
+  provider: 'transbank' | 'flow';
+  cart: CartLineInput[];
+  total: number;
+  shipping: ShippingInfo | null;
+  status: 'pending' | 'completed' | 'expired';
+  created_at: string;
+  completed_at: string | null;
+};
+
+function toCheckoutSession(row: CheckoutSessionRow): CheckoutSession {
+  return {
+    buyOrder: row.buy_order,
+    sessionId: row.session_id,
+    provider: row.provider,
+    cart: row.cart,
+    total: row.total,
+    shipping: row.shipping,
+    createdAt: new Date(row.created_at).getTime(),
+  };
 }
 
-export function saveCheckoutSession(session: CheckoutSession): void {
-  sweepExpired();
-  sessions.set(session.buyOrder, session);
+export async function saveCheckoutSession(session: CheckoutSession): Promise<void> {
+  const admin = createAdminClient();
+  const { error } = await admin.from('checkout_sessions').insert({
+    buy_order: session.buyOrder,
+    session_id: session.sessionId,
+    provider: session.provider,
+    cart: session.cart,
+    total: session.total,
+    shipping: session.shipping,
+  });
+  if (error) throw new Error(`Failed to save checkout session: ${error.message}`);
 }
 
-export function getCheckoutSession(buyOrder: string): CheckoutSession | undefined {
-  return sessions.get(buyOrder);
+export async function getCheckoutSession(buyOrder: string): Promise<CheckoutSession | undefined> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from('checkout_sessions')
+    .select('*')
+    .eq('buy_order', buyOrder)
+    .eq('status', 'pending')
+    .single();
+
+  if (error || !data) return undefined;
+  return toCheckoutSession(data as unknown as CheckoutSessionRow);
 }
 
-export function deleteCheckoutSession(buyOrder: string): void {
-  sessions.delete(buyOrder);
+export async function completeCheckoutSession(buyOrder: string): Promise<void> {
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from('checkout_sessions')
+    .update({ status: 'completed', completed_at: new Date().toISOString() })
+    .eq('buy_order', buyOrder)
+    .eq('status', 'pending');
+  if (error) throw new Error(`Failed to complete checkout session: ${error.message}`);
 }

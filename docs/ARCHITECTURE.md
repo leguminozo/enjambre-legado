@@ -118,22 +118,29 @@ Supabase (Postgres)
 
 ```
 Checkout (tienda/frontend)
-    |
-    v
+|
+v
 POST /api/checkout/init (Next.js API Route)
-    |
-    v
-Transbank SDK (Webpay)
-    |
-    v
+|  → Verifica precios + stock en Supabase
+|  → Persiste sesión en checkout_sessions (Postgres)
+|  → Retorna URL + token del provider
+v
+Transbank SDK (Webpay) / Flow.cl
+|
+v
 POST /api/checkout/commit (Next.js API Route)
-    |
-    v
+|  → Lee sesión desde checkout_sessions (Postgres, no memoria)
+|  → Idempotente: solo completa si status = 'pending'
+|  → INSERT venta + decrement_stock
+|  → Marca sesión como 'completed'
+v
 Supabase: INSERT venta + arboles_plantados
-    |
-    v
+|
+v
 Confirmacion al cliente
 ```
+
+**Tabla de sesiones**: `checkout_sessions` (Migration 38) — RLS service_role only, auto-expire 30 min, audit trail completo.
 
 ### 2.4 Flujo Contable (API/EIRL)
 
@@ -471,4 +478,4 @@ Ver `DEPLOY.md` y `VERCEL.md` para instrucciones detalladas.
 ---
 
 *Este documento es la referencia tecnica maestra. Actualizar cuando cambie la estructura o se agreguen apps/paquetes.*
-*Ultima actualizacion: Junio 2026 — Auth centralizada en 3 apps, campo 100% semantic tokens, security events phase 5 completa*
+*Ultima actualizacion: Junio 2026 — Auth centralizada en 3 apps, campo 100% semantic tokens, security events phase 5 completa, checkout_sessions persistidas (Migration 38)*
