@@ -75,17 +75,17 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
   };
 
   const getRentabilidadColor = (value: number) => {
-    if (value > 20) return 'text-green-400';
-    if (value > 10) return 'text-yellow-400';
-    if (value > 0) return 'text-orange-400';
-    return 'text-red-400';
+  if (value > 20) return 'text-primary';
+  if (value > 10) return 'text-primary';
+  if (value > 0) return 'text-destructive';
+  return 'text-destructive';
   };
 
   const getRentabilidadLevel = (value: number) => {
-    if (value > 20) return { label: 'Excelente', color: 'bg-green-500' };
-    if (value > 10) return { label: 'Buena', color: 'bg-yellow-500' };
-    if (value > 0) return { label: 'Regular', color: 'bg-orange-500' };
-    return { label: 'Crítica', color: 'bg-red-500' };
+  if (value > 20) return { label: 'Excelente', color: 'bg-primary/20' };
+  if (value > 10) return { label: 'Buena', color: 'bg-primary/10' };
+  if (value > 0) return { label: 'Regular', color: 'bg-destructive/10' };
+  return { label: 'Crítica', color: 'bg-destructive/20' };
   };
 
   if (!analisis) {
@@ -141,9 +141,9 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">Rentabilidad Neta</span>
-                {analisis.rentabilidadNeta > 0 ? 
-                  <TrendingUp className="h-4 w-4 text-green-400" /> : 
-                  <TrendingDown className="h-4 w-4 text-red-400" />
+        {analisis.rentabilidadNeta > 0 ?
+            <TrendingUp className="h-4 w-4 text-primary" /> :
+            <TrendingDown className="h-4 w-4 text-destructive" />
                 }
               </div>
               <div className={`text-2xl font-bold ${getRentabilidadColor(analisis.rentabilidadNeta)}`}>
@@ -159,9 +159,9 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">Margen Utilidad</span>
-                <Percent className="h-4 w-4 text-blue-400" />
-              </div>
-              <div className="text-2xl font-bold text-blue-400">
+        <Percent className="h-4 w-4 text-foreground" />
+        </div>
+        <div className="text-2xl font-bold text-foreground">
                 {formatPercentage(analisis.margenUtilidad)}
               </div>
               <Progress value={Math.min(analisis.margenUtilidad, 100)} className="mt-2" />
@@ -172,9 +172,9 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">ROI</span>
-                <DollarSign className="h-4 w-4 text-green-400" />
-              </div>
-              <div className="text-2xl font-bold text-green-400">
+        <DollarSign className="h-4 w-4 text-primary" />
+        </div>
+        <div className="text-2xl font-bold text-primary">
                 {formatPercentage(analisis.roi)}
               </div>
               <Progress value={Math.min(analisis.roi, 100)} className="mt-2" />
@@ -185,9 +185,9 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">Punto Equilibrio</span>
-                <Target className="h-4 w-4 text-purple-400" />
-              </div>
-              <div className="text-lg font-bold text-purple-400">
+        <Target className="h-4 w-4 text-foreground" />
+        </div>
+        <div className="text-lg font-bold text-foreground">
                 {formatCurrency(analisis.puntoEquilibrio)}
               </div>
               <div className="text-xs text-muted-foreground mt-1">Mensual</div>
@@ -198,25 +198,25 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
         {/* Alertas y Oportunidades */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Alertas */}
-          <Card className="bg-red-500/10 border-red-500/30">
-            <CardHeader>
-              <CardTitle className="text-lg font-medium flex items-center gap-2 text-red-400">
+    <Card className="bg-destructive/10 border-destructive/30">
+      <CardHeader>
+        <CardTitle className="text-lg font-medium flex items-center gap-2 text-destructive">
                 <AlertTriangle className="h-5 w-5" />
                 Alertas
               </CardTitle>
             </CardHeader>
             <CardContent>
               {analisis.alertas.length === 0 ? (
-                <div className="flex items-center gap-2 text-green-400">
-                  <CheckCircle className="h-4 w-4" />
+      <div className="flex items-center gap-2 text-primary">
+            <CheckCircle className="h-4 w-4" />
                   <span>No hay alertas críticas</span>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {analisis.alertas.map((alerta, index) => (
                     <div key={index} className="flex items-start gap-2 text-sm">
-                      <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-red-300">{alerta}</span>
+        <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+              <span className="text-destructive">{alerta}</span>
                     </div>
                   ))}
                 </div>
@@ -225,9 +225,9 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
           </Card>
 
           {/* Oportunidades */}
-          <Card className="bg-green-500/10 border-green-500/30">
-            <CardHeader>
-              <CardTitle className="text-lg font-medium flex items-center gap-2 text-green-400">
+    <Card className="bg-primary/10 border-primary/30">
+      <CardHeader>
+        <CardTitle className="text-lg font-medium flex items-center gap-2 text-primary">
                 <TrendingUp className="h-5 w-5" />
                 Oportunidades
               </CardTitle>
@@ -241,8 +241,8 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
                 <div className="space-y-2">
                   {analisis.oportunidades.map((oportunidad, index) => (
                     <div key={index} className="flex items-start gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-green-300">{oportunidad}</span>
+        <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+              <span className="text-primary">{oportunidad}</span>
                     </div>
                   ))}
                 </div>
@@ -252,9 +252,9 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
         </div>
 
         {/* Recomendaciones */}
-        <Card className="bg-blue-500/10 border-blue-500/30">
-          <CardHeader>
-            <CardTitle className="text-lg font-medium flex items-center gap-2 text-blue-400">
+    <Card className="bg-surface-raised border-border">
+      <CardHeader>
+        <CardTitle className="text-lg font-medium flex items-center gap-2 text-foreground">
               <Brain className="h-5 w-5" />
               Recomendaciones Inteligentes
             </CardTitle>
@@ -262,12 +262,12 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {analisis.recomendaciones.map((recomendacion, index) => (
-                <div key={index} className="p-3 bg-blue-500/5 rounded-lg border border-blue-500/20">
-                  <div className="flex items-start gap-2">
-                    <div className="w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-bold text-blue-400">{index + 1}</span>
-                    </div>
-                    <p className="text-sm text-blue-300">{recomendacion}</p>
+      <div key={index} className="p-3 bg-surface-sunken rounded-lg border border-border">
+        <div className="flex items-start gap-2">
+          <div className="w-6 h-6 bg-surface-raised rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+            <span className="text-xs font-bold text-foreground">{index + 1}</span>
+          </div>
+          <p className="text-sm text-foreground">{recomendacion}</p>
                   </div>
                 </div>
               ))}

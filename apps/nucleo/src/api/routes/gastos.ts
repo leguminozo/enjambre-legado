@@ -1,7 +1,21 @@
 import { Hono } from "hono";
+import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import { calcularIVA } from "@enjambre/contable";
+
+const CreateGastoSchema = z.strictObject({
+  fecha: z.string().min(1),
+  descripcion: z.string().min(1),
+  monto: z.number().positive(),
+  montoIva: z.number().nonnegative().optional(),
+  montoNeto: z.number().nonnegative().optional(),
+  categoria: z.string().min(1),
+  tipoComprobante: z.enum(["Boleta", "Factura", "Nota de Crédito", "Otro"]).default("Boleta"),
+  numeroComprobante: z.string().optional(),
+  proveedorId: z.string().uuid().optional(),
+  estado: z.enum(["pendiente", "pagado", "anulado"]).default("pendiente"),
+});
 
 export const gastosRoutes = new Hono<{
   Variables: AppVariables;
@@ -36,25 +50,14 @@ gastosRoutes.get("/", async (c) => {
 gastosRoutes.post("/", async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase");
-  const body = await c.req.json();
+  const parsed = CreateGastoSchema.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ code: "validation_error", errors: parsed.error.flatten() }, 400);
+  const body = parsed.data;
 
-  const {
-    fecha,
-    descripcion,
-    monto,
-    montoIva,
-    montoNeto,
-    categoria,
-    tipoComprobante = "Boleta",
-    numeroComprobante,
-    proveedorId,
-    estado = "pendiente",
-  } = body;
+  const computedIva = body.montoIva ?? calcularIVA(body.monto);
+  const computedNeto = body.montoNeto ?? (body.monto - computedIva);
 
-  const computedIva = montoIva ?? calcularIVA(monto);
-  const computedNeto = montoNeto ?? (monto - computedIva);
-
-  const fechaDate = new Date(fecha);
+  const fechaDate = new Date(body.fecha);
   const mes = fechaDate.getMonth() + 1;
   const anio = fechaDate.getFullYear();
 
@@ -81,18 +84,18 @@ gastosRoutes.post("/", async (c) => {
 
   const payload = {
     empresa_id: empresaId,
-    tercero_id: proveedorId ?? null,
+    tercero_id: body.proveedorId ?? null,
     periodo_id: periodo?.id,
-    fecha,
-    descripcion,
-    monto,
-    monto_total: monto,
+    fecha: body.fecha,
+    descripcion: body.descripcion,
+    monto: body.monto,
+    monto_total: body.monto,
     monto_iva: computedIva,
     monto_neto: computedNeto,
-    categoria,
-    tipo_comprobante: tipoComprobante,
-    numero_comprobante: numeroComprobante ?? null,
-    estado,
+    categoria: body.categoria,
+    tipo_comprobante: body.tipoComprobante,
+    numero_comprobante: body.numeroComprobante ?? null,
+    estado: body.estado,
   };
 
   const { data, error } = await supabase

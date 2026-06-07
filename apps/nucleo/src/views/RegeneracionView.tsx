@@ -32,7 +32,7 @@ export function RegeneracionView() {
       try {
         const { data } = await supabase.from('arboles_plantados').select('*').order('created_at', { ascending: false });
         if (data && data.length > 0) {
-          setRecords(data.map((r) => mapRowToTreeRecord(r as Record<string, unknown>)));
+          setRecords(data.map((r: Record<string, unknown>) => mapRowToTreeRecord(r)));
         }
       } catch (err) {
         console.error('Error loading arboles_plantados:', err);

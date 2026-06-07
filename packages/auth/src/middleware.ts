@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getSupabaseUrl, getSupabaseKey } from './supabase'
-import { ROLE_REDIRECT_MAP, isRouteAllowed } from './role-redirect'
+import { ROLE_REDIRECT_MAP, isRouteAllowed, LEGACY_ROLE_MAP } from './role-redirect'
 
 export interface AuthMiddlewareConfig {
   publicRoutes?: string[]
@@ -66,17 +66,19 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
       return NextResponse.redirect(url)
     }
 
-    if (user && pathname === authRedirect) {
-      const role = (user.app_metadata?.role as string) ?? (user.user_metadata?.role as string) ?? ''
-      const redirectPath = roleRedirectMap[role] ?? '/colmenas'
-      const url = request.nextUrl.clone()
-      url.pathname = redirectPath
-      return NextResponse.redirect(url)
-    }
+  if (user && pathname === authRedirect) {
+    const rawRole = (user.app_metadata?.role as string) ?? (user.user_metadata?.role as string) ?? ''
+    const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
+    const redirectPath = roleRedirectMap[role] ?? '/'
+    const url = request.nextUrl.clone()
+    url.pathname = redirectPath
+    return NextResponse.redirect(url)
+  }
 
-    if (user) {
-      const role = (user.app_metadata?.role as string) ?? (user.user_metadata?.role as string) ?? ''
-      if (!isRouteAllowed(pathname, role)) {
+  if (user) {
+    const rawRole = (user.app_metadata?.role as string) ?? (user.user_metadata?.role as string) ?? ''
+    const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
+    if (!isRouteAllowed(pathname, role)) {
         const origin = request.nextUrl.origin
         const internalKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
         fetch(`${origin}/api/security-events/internal`, {

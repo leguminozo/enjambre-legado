@@ -10,7 +10,7 @@ export type TiendaUser = {
   id: string;
   name: string;
   email: string;
-  role: 'gerente' | 'tienda_admin' | 'cliente' | 'vendedor' | 'apicultor' | 'logistica' | 'marketing';
+  role: 'admin' | 'cliente' | 'creador' | 'rep_ventas';
 };
 
 type AuthContextValue = {
@@ -24,13 +24,30 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const LEGACY_ROLES = new Set<string>([
+  'apicultor',
+  'vendedor',
+  'gerente',
+  'logistica',
+  'marketing',
+  'tienda_admin',
+]);
+
+const VALID_ROLES = new Set<string>([
+  'admin',
+  'cliente',
+  'creador',
+  'rep_ventas',
+]);
+
 function toTiendaUser(authUser: { id: string; email: string; role: string; full_name: string } | null): TiendaUser | null {
   if (!authUser) return null;
+  const normalizedRole = LEGACY_ROLES.has(authUser.role) ? 'admin' : authUser.role;
   return {
     id: authUser.id,
     email: authUser.email,
     name: authUser.full_name || authUser.email.split('@')[0] || 'Usuario',
-    role: authUser.role as TiendaUser['role'],
+    role: VALID_ROLES.has(normalizedRole) ? (normalizedRole as TiendaUser['role']) : 'cliente',
   };
 }
 

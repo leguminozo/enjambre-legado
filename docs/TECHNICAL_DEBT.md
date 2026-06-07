@@ -78,6 +78,35 @@ apps/nucleo/Copia de Verano Eccomerce?/      → ELIMINAR
 
 ---
 
+### D4c. 15 Unsafe `as` Casts en Tienda (RESUELTO)
+
+**Problema**: 15 casts `as` sin validacion runtime en boundaries criticos (Supabase rows, API responses, JSON.parse, user objects). Un cambio de schema o respuesta inesperada causa silent data corruption o crash.
+
+**Estado**: RESUELTO — Reemplazados con Zod schemas + type guards + `TiendaUserProfile`:
+
+| Archivo | Cast eliminado | Reemplazo |
+|---|---|---|
+| `lib/shop/products.ts` | 4x `as unknown as ProductRow` / `as { fecha; colmenas }` | `ProductRowSchema.safeParse()`, `CosechaJoinSchema.safeParse()` |
+| `lib/payments/flow-cl.ts` | 2x `as { url; token; ... }` / `as { status; ... }` | `FlowInitResponseSchema.safeParse()`, `FlowCommitResponseSchema.safeParse()` |
+| `lib/payments/transbank.ts` | 1x `result as Record<string, unknown>` | `TransbankCommitResultSchema.safeParse()` |
+| `lib/payments/types.ts` | 1x `data as unknown as CheckoutSessionRow` | `CheckoutSessionRowSchema.safeParse()` |
+| `app/galeria/page.tsx` | 5x `item.content as Record<string, unknown>` + `as string` | `GaleriaItemContentSchema.safeParse()`, typed access |
+| `app/perfil/pasaporte/page.tsx` | 1x `subConfig?.colmenas as Record<string, unknown>` | `ColmenaSchema.safeParse()` |
+| `app/checkout/resultado/ui.tsx` | 2x `JSON.parse(raw) as {...}` / `res.json() as {...}` | `parsePendingCheckout()`, `parseCommitResponse()` type guards |
+| `components/shop/guardian-sidebar.tsx` | `user: unknown` + `as Record` | `TiendaUserProfile` typed prop |
+| `components/shop/mi-legado-client.tsx` | `user: unknown` + 2x `as string` / `as number` | `TiendaUserProfile` typed prop |
+| `app/perfil/perfil-layout-client.tsx` | `user: unknown` | `TiendaUserProfile | null` typed prop |
+| `components/providers/auth-context.tsx` | `role as TiendaUser['role']` | `VALID_ROLES.has()` check + fallback to `'cliente'` |
+
+**Fixes adicionales**:
+- `legal-content.tsx`: XSS en primer render (raw HTML antes de DOMPurify). Ahora `sanitized` inicia como `null` (render vacio seguro).
+- `claim-client.tsx`: `createClient()` por render → `useMemo(() => createClient(), [])`. `venta.total as number` → `typeof` guard.
+- `lib/integrations/run-sii-sync.ts`: 2 casts verificados — ya tenian runtime guards (`typeof` + `Array.isArray`), son narrowing seguro, no se modificaron.
+
+**Leccion**: En boundaries externos (Supabase rows, APIs de pago, sessionStorage, JSON.parse), Zod o type guards son obligatorios. Los `as` solo son aceptables despues de un narrowing runtime verificado.
+
+---
+
 ## ALTO — Resolver en proximos sprints
 
 ### D5. Paquetes Vacios/Stubs

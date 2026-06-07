@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { formatCLP } from '@/lib/shop/format';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
@@ -11,13 +11,13 @@ import type { User } from '@supabase/supabase-js';
 
 interface ClaimClientProps {
   token: string;
-  venta: Record<string, unknown>;
+  venta: { total?: unknown; [key: string]: unknown };
   initialUser: User | null;
 }
 
 export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [user, setUser] = useState<User | null>(initialUser);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [claimed, setClaimed] = useState(false);
 
-  const total = (venta.total as number) ?? 0;
+  const total = typeof venta.total === 'number' ? venta.total : 0;
   const points = Math.floor(total / 1000);
 
   async function handleMagicLink(e: React.FormEvent) {

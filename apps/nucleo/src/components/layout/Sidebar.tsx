@@ -13,7 +13,7 @@ import {
 import { SIDEBAR_GROUPS, ACCOUNT_ITEMS, findActiveItem, type SidebarItem, type SidebarBadge } from '@/config/sidebar-config';
 import { SidebarSection, SidebarBadgeIndicator, type SidebarNavItemData } from '@enjambre/ui';
 import { useSidebarBadges } from '@/hooks/useSidebarBadges';
-import { ROLE } from '@/data/mockData';
+import { useAuthStore } from '@enjambre/auth';
 import { supabase } from '@/lib/supabase';
 
 const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
@@ -72,6 +72,7 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const { badges } = useSidebarBadges();
+  const userRole = useAuthStore((s) => s.user?.role ?? 'admin');
 
   const urlTienda = process.env.NEXT_PUBLIC_URL_TIENDA?.trim() || '';
   const urlCampo = process.env.NEXT_PUBLIC_URL_CAMPO?.trim() || '';
@@ -166,7 +167,7 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
           </div>
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">{userName}</div>
-            <div className="sidebar-user-role">{ROLE}</div>
+            <div className="sidebar-user-role">{userRole}</div>
           </div>
           <button onClick={handleLogout} className="btn btn-ghost" style={{ padding: 6, color: 'hsl(var(--muted-foreground))' }} title="Cerrar sesión">
             <LogOut size={16} />

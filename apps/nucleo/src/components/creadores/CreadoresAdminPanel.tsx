@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
+import { friendlyError, friendlySupabaseError, toast } from '@enjambre/ui';
 import {
-  Sparkles, Users, TrendingUp, DollarSign, Check, X, AlertCircle,
+  Sparkles, Users, TrendingUp, DollarSign, Check, X,
   Loader2, Search, Filter, Eye, Edit3, ChevronDown, ExternalLink,
   ArrowUpRight, Copy, CheckCircle2
 } from 'lucide-react';
@@ -57,7 +57,6 @@ export function CreadoresAdminPanel() {
   const [retiros, setRetiros] = useState<RetiroRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [filterEstado, setFilterEstado] = useState<string>('todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCreador, setSelectedCreador] = useState<CreadorRow | null>(null);
@@ -68,11 +67,6 @@ export function CreadoresAdminPanel() {
   useEffect(() => {
     fetchAllData();
   }, []);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -100,7 +94,7 @@ export function CreadoresAdminPanel() {
       if (retRes.data) setRetiros(retRes.data as unknown as RetiroRow[]);
 	} catch (err) {
 			console.error('Error fetching creadores data:', err);
-			showToast(friendlyError(err, 'Error al cargar datos de creadores'), 'error');
+			toast(friendlyError(err, 'Error al cargar datos de creadores'), { type: 'error' });
 		} finally {
       setLoading(false);
     }
@@ -122,11 +116,11 @@ export function CreadoresAdminPanel() {
           .upsert({ user_id: userId, role: 'creador', is_active: true });
       }
 
-      showToast(`Creador ${estado === 'activo' ? 'activado' : estado === 'suspendido' ? 'suspendido' : estado} con éxito`, 'success');
+      toast(`Creador ${estado === 'activo' ? 'activado' : estado === 'suspendido' ? 'suspendido' : estado} con éxito`, { type: 'success' });
       await fetchAllData();
 	} catch (err) {
 			console.error('Error updating creador:', err);
-			showToast(friendlyError(err, 'No se pudo actualizar el estado'), 'error');
+			toast(friendlyError(err, 'No se pudo actualizar el estado'), { type: 'error' });
 		} finally {
       setActionLoading(null);
     }
@@ -142,12 +136,12 @@ export function CreadoresAdminPanel() {
 
       if (error) throw error;
 
-      showToast('Tasas actualizadas', 'success');
+      toast('Tasas actualizadas', { type: 'success' });
       setEditComision(null);
       await fetchAllData();
 	} catch (err) {
 			console.error('Error updating comision:', err);
-			showToast(friendlyError(err, 'Error al actualizar tasas'), 'error');
+			toast(friendlyError(err, 'Error al actualizar tasas'), { type: 'error' });
 		} finally {
       setActionLoading(null);
     }
@@ -173,11 +167,11 @@ export function CreadoresAdminPanel() {
 
       if (error) throw error;
 
-      showToast(`Retiro ${estado} con éxito`, 'success');
+      toast(`Retiro ${estado} con éxito`, { type: 'success' });
       await fetchAllData();
 	} catch (err) {
 			console.error('Error updating retiro:', err);
-			showToast(friendlyError(err, 'Error al procesar retiro'), 'error');
+			toast(friendlyError(err, 'Error al procesar retiro'), { type: 'error' });
 		} finally {
       setActionLoading(null);
     }
@@ -222,17 +216,8 @@ export function CreadoresAdminPanel() {
   }
 
   return (
-    <div className="space-y-8 animate-in relative">
-      {toast && (
-        <div className={`fixed top-24 right-8 z-[100] px-6 py-3 rounded-lg shadow-xl border flex items-center gap-3 animate-in ${
-          toast.type === 'success' ? 'bg-salud-optima/10 border-salud-optima text-salud-optima' : 'bg-salud-riesgo/10 border-salud-riesgo text-salud-riesgo'
-        }`}>
-          {toast.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
-          <span className="text-sm font-medium">{toast.message}</span>
-        </div>
-      )}
-
-      <div className="flex items-center gap-4 mb-8">
+  <div className="space-y-8 animate-in relative">
+    <div className="flex items-center gap-4 mb-8">
         <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
           <Sparkles size={24} />
         </div>
@@ -391,7 +376,7 @@ export function CreadoresAdminPanel() {
                           </button>
                           <button
                             onClick={() => setEditComision(editComision?.id === creador.id ? null : { id: creador.id, porcentaje: creador.porcentaje_comision, descuento: creador.descuento_cliente })}
-                            className="w-9 h-9 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center hover:bg-blue-100 transition-all"
+                            className="w-9 h-9 rounded-full bg-surface-raised text-foreground flex items-center justify-center hover:bg-card transition-all"
                             title="Editar tasas"
                           >
                             <Edit3 size={16} />
@@ -498,7 +483,7 @@ export function CreadoresAdminPanel() {
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${
                       r.ranking === 1 ? 'bg-oro-miel text-foreground' :
                       r.ranking === 2 ? 'bg-secondary text-foreground' :
-                      r.ranking === 3 ? 'bg-amber-700 text-amber-100' :
+                      r.ranking === 3 ? 'bg-card text-foreground' :
                       'bg-background/5 text-text-muted'
                     }`}>
                       #{r.ranking}
@@ -578,7 +563,7 @@ export function CreadoresAdminPanel() {
                     {retiro.estado !== 'pendiente' && (
                       <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${
                         retiro.estado === 'aprobado' ? 'bg-salud-optima/10 text-salud-optima' :
-                        retiro.estado === 'pagado' ? 'bg-blue-100 text-blue-600' :
+                        retiro.estado === 'pagado' ? 'bg-surface-raised text-foreground' :
                         'bg-salud-riesgo/10 text-salud-riesgo'
                       }`}>
                         {retiro.estado}

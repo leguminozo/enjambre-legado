@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError } from '@enjambre/ui';
+import { friendlyError, toast } from '@enjambre/ui';
 import {
-  Ticket, Check, AlertCircle, Loader2, Plus, Copy,
+  Ticket, Loader2, Plus, Copy, Check,
   CheckCircle2, Clock, X, Eye
 } from 'lucide-react';
 
@@ -37,7 +37,6 @@ export function InvitacionesPanel() {
   const [redemptions, setRedemptions] = useState<RedemptionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [activeTab, setActiveTab] = useState<'codigos' | 'canjes'>('codigos');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -45,11 +44,6 @@ export function InvitacionesPanel() {
   const [newCode, setNewCode] = useState({ maxUses: '', expiresAt: '' });
 
   useEffect(() => { fetchAll(); }, []);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
 
   const fetchAll = async () => {
     setLoading(true);
@@ -61,7 +55,7 @@ export function InvitacionesPanel() {
       if (codesRes.data) setCodes(codesRes.data as unknown as InvitationCodeRow[]);
       if (redemptionsRes.data) setRedemptions(redemptionsRes.data as unknown as RedemptionRow[]);
     } catch (err) {
-      showToast(friendlyError(err, 'Error al cargar invitaciones'), 'error');
+      toast(friendlyError(err, 'Error al cargar invitaciones'), { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -76,7 +70,7 @@ export function InvitacionesPanel() {
         const payload: Record<string, unknown> = {
           code: generateCode(),
           created_by: authSession.user.id,
-          roles: ['gerente'],
+          roles: ['admin'],
           active: true,
         };
       if (newCode.maxUses) payload.max_uses = Number(newCode.maxUses);
@@ -85,12 +79,12 @@ export function InvitacionesPanel() {
       const { error } = await supabase.from('invitation_codes').insert(payload);
       if (error) throw error;
 
-      showToast('Invitación creada', 'success');
+      toast('Invitación creada', { type: 'success' });
       setShowCreate(false);
       setNewCode({ maxUses: '', expiresAt: '' });
       await fetchAll();
     } catch (err) {
-      showToast(friendlyError(err, 'Error al crear código'), 'error');
+      toast(friendlyError(err, 'Error al crear código'), { type: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -101,10 +95,10 @@ export function InvitacionesPanel() {
     try {
       const { error } = await supabase.from('invitation_codes').update({ active: !active }).eq('id', codeId);
       if (error) throw error;
-      showToast(`Código ${active ? 'desactivado' : 'activado'}`, 'success');
+      toast(`Código ${active ? 'desactivado' : 'activado'}`, { type: 'success' });
       await fetchAll();
     } catch (err) {
-      showToast(friendlyError(err, 'Error al actualizar'), 'error');
+      toast(friendlyError(err, 'Error al actualizar'), { type: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -115,10 +109,10 @@ export function InvitacionesPanel() {
     try {
       const { error } = await supabase.from('invitation_codes').delete().eq('id', codeId);
       if (error) throw error;
-      showToast('Código eliminado', 'success');
+      toast('Código eliminado', { type: 'success' });
       await fetchAll();
     } catch (err) {
-      showToast(friendlyError(err, 'Error al eliminar'), 'error');
+      toast(friendlyError(err, 'Error al eliminar'), { type: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -148,16 +142,7 @@ export function InvitacionesPanel() {
 
   return (
     <div className="space-y-8 animate-in relative">
-      {toast && (
-        <div className={`fixed top-24 right-8 z-[100] px-6 py-3 rounded-lg shadow-xl border flex items-center gap-3 animate-in ${
-          toast.type === 'success' ? 'bg-salud-optima/10 border-salud-optima text-salud-optima' : 'bg-salud-riesgo/10 border-salud-riesgo text-salud-riesgo'
-        }`}>
-          {toast.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
-          <span className="text-sm font-medium">{toast.message}</span>
-        </div>
-      )}
-
-      <div className="flex items-center gap-4 mb-8">
+  <div className="flex items-center gap-4 mb-8">
         <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
           <Ticket size={24} />
         </div>

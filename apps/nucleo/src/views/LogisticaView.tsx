@@ -31,7 +31,7 @@ interface Provider {
 }
 
 export function LogisticaView() {
-const h = roleGreetings.gerente;
+  const h = roleGreetings.admin;
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [stockCenters, setStockCenters] = useState<StockCenter[]>([]);
   const [providers, setProviders] = useState<Provider[]>([]);

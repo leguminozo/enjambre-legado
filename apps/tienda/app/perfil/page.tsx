@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { MiLegadoClient } from '@/components/shop/mi-legado-client';
 import { getEcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
+import { toTiendaUserProfile } from '@/lib/shop/user-profile';
 
 export default async function PerfilPage() {
   const supabase = await createClient();
@@ -35,7 +36,7 @@ export default async function PerfilPage() {
 
   return (
     <MiLegadoClient
-      user={profileRes.data}
+      user={toTiendaUserProfile(profileRes.data)}
       tierData={tierData}
       hiveData={hiveData}
       orders={ordersRes.data || []}

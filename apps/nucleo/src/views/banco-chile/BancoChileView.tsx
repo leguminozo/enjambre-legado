@@ -190,7 +190,7 @@ export function BancoChileView() {
         <div className="space-y-6">
           <div className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 rounded-full ${config.enabled ? 'bg-green-500' : 'bg-muted'}`} />
+              <div className={`w-3 h-3 rounded-full ${config.enabled ? 'bg-primary' : 'bg-muted'}`} />
               <div>
                 <p className="font-medium text-sm">{config.enabled ? 'Conectado' : 'Desconectado'}</p>
                 <p className="text-xs text-muted-foreground">Ambiente: {config.environment}</p>
@@ -276,8 +276,8 @@ export function BancoChileView() {
                       <td className="px-4 py-3 text-center">
                         <span className={`text-xs px-2 py-1 rounded-full ${
                           mov.conciliado
-                            ? 'bg-green-500/10 text-green-600'
-                            : 'bg-amber-500/10 text-amber-600'
+            ? 'bg-primary/10 text-primary'
+            : 'bg-primary/10 text-primary'
                         }`}>
                           {mov.conciliado ? 'Conciliado' : 'Pendiente'}
                         </span>

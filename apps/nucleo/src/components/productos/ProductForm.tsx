@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { Button } from '@enjambre/ui';
+import { Button, toast } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
 import { productFormSchema, type ProductFormData, PRODUCT_FORMATS, PRODUCT_CATEGORIES } from '@/lib/product-types';
 
@@ -28,7 +28,8 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
     setValue,
     getValues,
   } = useForm<ProductFormData>({
-    resolver: zodResolver(productFormSchema) as unknown as Parameters<typeof useForm<ProductFormData>>[0]['resolver'],
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+resolver: zodResolver(productFormSchema) as any,
     defaultValues: {
       nombre: initialData?.nombre || '',
       descripcion_regenerativa: initialData?.descripcion_regenerativa || '',
@@ -83,10 +84,10 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
       const { data } = supabase.storage.from('productos').getPublicUrl(fileName);
       const currentFotos = getValues('fotos') || [];
       setValue('fotos', [...currentFotos, data.publicUrl]);
-      alert('Imagen subida correctamente');
-    } catch (error) {
+      toast('Imagen subida correctamente', { type: 'success' });
+} catch (error) {
       console.error('Error uploading image:', error);
-      alert(friendlySupabaseError(error));
+      toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
     } finally {
       setImageUploading(false);
     }
@@ -115,7 +116,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          alert('Debes iniciar sesión');
+          toast('Debes iniciar sesión', { type: 'error' });
           return;
         }
 
@@ -137,7 +138,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
           
           if (error) throw error;
           result = updated;
-          alert('Producto actualizado correctamente');
+          toast('Producto actualizado correctamente', { type: 'success' });
         } else {
           // Create new product
           const { data: created, error } = await supabase
@@ -148,13 +149,13 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
           
           if (error) throw error;
           result = created;
-          alert('Producto creado correctamente');
+          toast('Producto creado correctamente', { type: 'success' });
         }
 
         onSuccess?.();
       } catch (error) {
-        console.error('Error saving product:', error);
-        alert(friendlySupabaseError(error));
+console.error('Error saving product:', error);
+  toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
       }
     });
   };

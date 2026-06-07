@@ -61,6 +61,19 @@ const AprobarComisionSchema = z.object({
   estado: z.enum(["aprobada", "rechazada"]),
 });
 
+const CreadorEstadoSchema = z.strictObject({
+  estado: z.enum(["activo", "suspendido", "inactivo", "pendiente"]),
+});
+
+const CreadorComisionTasaSchema = z.strictObject({
+  porcentaje_comision: z.number().min(0).max(30),
+  descuento_cliente: z.number().min(0).max(15).optional(),
+});
+
+const CalcularMetricasSchema = z.strictObject({
+  mes: z.string().regex(/^\d{4}-\d{2}$/),
+});
+
 const publicRoutes = new Hono<{ Variables: AppVariables }>();
 publicRoutes.use("*", authMiddleware);
 
@@ -415,11 +428,9 @@ protectedRoutes.get("/admin/todos", async (c) => {
 protectedRoutes.patch("/admin/:id/estado", async (c) => {
   const creadorId = c.req.param("id");
   const supabase = c.get("supabase");
-  const body = await c.req.json<{ estado: string }>();
-
-  if (!["activo", "suspendido", "inactivo", "pendiente"].includes(body.estado)) {
-    return c.json({ code: "invalid_state", message: "Estado no válido" }, 400);
-  }
+  const parsed = CreadorEstadoSchema.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ code: "validation_error", errors: parsed.error.flatten() }, 400);
+  const body = parsed.data;
 
   const { data, error } = await supabase
     .from("creadores")
@@ -448,7 +459,9 @@ protectedRoutes.patch("/admin/:id/estado", async (c) => {
 protectedRoutes.patch("/admin/:id/comision-tasa", async (c) => {
   const creadorId = c.req.param("id");
   const supabase = c.get("supabase");
-  const body = await c.req.json<{ porcentaje_comision: number; descuento_cliente?: number }>();
+  const parsed = CreadorComisionTasaSchema.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ code: "validation_error", errors: parsed.error.flatten() }, 400);
+  const body = parsed.data;
 
   const updatePayload: Record<string, unknown> = { porcentaje_comision: body.porcentaje_comision };
   if (body.descuento_cliente !== undefined) updatePayload.descuento_cliente = body.descuento_cliente;
@@ -532,11 +545,9 @@ protectedRoutes.get("/admin/ranking", async (c) => {
 
 protectedRoutes.post("/admin/calcular-metricas", async (c) => {
   const supabase = c.get("supabase");
-  const body = await c.req.json<{ mes: string }>();
-
-  if (!body.mes || !/^\d{4}-\d{2}$/.test(body.mes)) {
-    return c.json({ code: "invalid_month", message: "Formato de mes inválido (YYYY-MM)" }, 400);
-  }
+  const parsed = CalcularMetricasSchema.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ code: "validation_error", errors: parsed.error.flatten() }, 400);
+  const body = parsed.data;
 
   const { error } = await supabase.rpc("calcular_metricas_creadores_mes", { p_mes: body.mes });
 

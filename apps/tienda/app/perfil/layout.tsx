@@ -5,6 +5,7 @@ import { GuardianSidebar } from '@/components/shop/guardian-sidebar';
 import { PerfilLayoutClient } from './perfil-layout-client';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
 import { CustomCursor } from '@/components/shop/custom-cursor';
+import { toTiendaUserProfile } from '@/lib/shop/user-profile';
 
 export default async function PerfilLayout({
   children,
@@ -30,7 +31,7 @@ export default async function PerfilLayout({
       <GrainOverlay />
       <CustomCursor />
 
-      <PerfilLayoutClient user={profile}>
+      <PerfilLayoutClient user={toTiendaUserProfile(profile)}>
         {children}
       </PerfilLayoutClient>
     </div>

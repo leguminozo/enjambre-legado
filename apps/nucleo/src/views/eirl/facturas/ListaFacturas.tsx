@@ -51,12 +51,12 @@ export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasPro
 
   const getEstadoColor = (estado: string) => {
     switch (estado) {
-      case 'Pagada':
-        return 'bg-green-500/20 text-green-400 border-green-500/30';
-      case 'Pendiente':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'Vencida':
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
+    case 'Pagada':
+      return 'bg-primary/10 text-primary border-primary/30';
+    case 'Pendiente':
+      return 'bg-primary/20 text-primary border-primary/30';
+    case 'Vencida':
+      return 'bg-destructive/10 text-destructive border-destructive/30';
       case 'Anulada':
         return 'bg-muted/20 text-muted-foreground border-muted/30';
       default:
@@ -179,7 +179,7 @@ export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasPro
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(factura.id)}
-                        className="hover:bg-surface-sunken text-red-400 hover:text-red-300"
+                        className="hover:bg-surface-sunken text-destructive hover:text-destructive/80"
                         disabled={isPending}
                       >
                         {isPending ? (

@@ -1,4 +1,24 @@
 import type { PaymentProvider, PaymentInitResult, PaymentCommitResult } from './types';
+import { z } from 'zod';
+
+const FlowInitResponseSchema = z.object({
+  url: z.string().min(1),
+  token: z.union([z.string(), z.number()]),
+  flowOrder: z.number(),
+});
+
+const FlowCommitResponseSchema = z.object({
+  status: z.number(),
+  paymentData: z.object({
+    type: z.string().optional(),
+    media: z.string().optional(),
+    amount: z.number().optional(),
+    fee: z.number().optional(),
+  }).optional(),
+  merchantData: z.record(z.string(), z.unknown()).optional(),
+  flowOrder: z.number().optional(),
+  commerceOrder: z.string().optional(),
+});
 
 function getFlowUrl(): string {
   const url = process.env.FLOW_API_URL;
@@ -62,9 +82,14 @@ export class FlowClProvider implements PaymentProvider {
       throw new Error(`Flow.cl create failed (${res.status}): ${text}`);
     }
 
-    const data = (await res.json()) as { url: string; token: string; flowOrder: number };
+  const raw = await res.json();
+  const parsed = FlowInitResponseSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new Error(`Flow.cl init response schema mismatch: ${parsed.error.flatten()}`);
+  }
+  const data = parsed.data;
 
-    return {
+  return {
       url: data.url,
       token: String(data.token),
       buyOrder,
@@ -92,15 +117,14 @@ export class FlowClProvider implements PaymentProvider {
       throw new Error(`Flow.cl getStatus failed (${res.status}): ${text}`);
     }
 
-    const data = (await res.json()) as {
-      status: number;
-      paymentData?: { type?: string; media?: string; amount?: number; fee?: number };
-      merchantData?: Record<string, unknown>;
-      flowOrder?: number;
-      commerceOrder?: string;
-    };
+  const raw = await res.json();
+  const parsed = FlowCommitResponseSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new Error(`Flow.cl commit response schema mismatch: ${parsed.error.flatten()}`);
+  }
+  const data = parsed.data;
 
-    const FLOW_PAID = 2;
+  const FLOW_PAID = 2;
     const authorized = data.status === FLOW_PAID;
 
     return {
@@ -109,7 +133,7 @@ export class FlowClProvider implements PaymentProvider {
       authorizationCode: String(data.flowOrder ?? ''),
       cardType: data.paymentData?.media ?? '',
       last4: '',
-      raw: data as unknown as Record<string, unknown>,
+      raw: raw as Record<string, unknown>,
     };
   }
 

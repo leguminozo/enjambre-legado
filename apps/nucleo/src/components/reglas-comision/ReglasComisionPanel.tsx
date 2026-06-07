@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError } from '@enjambre/ui';
+import { friendlyError, toast } from '@enjambre/ui';
 import {
-  Percent, Check, AlertCircle, Loader2, Plus, Edit3,
+  Percent, Check, Loader2, Plus, Edit3,
   Trash2, X, ToggleLeft, ToggleRight
 } from 'lucide-react';
 
@@ -44,7 +44,6 @@ export function ReglasComisionPanel() {
   const [rules, setRules] = useState<CommissionRuleRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [editRule, setEditRule] = useState<CommissionRuleRow | null>(null);
 
@@ -55,11 +54,6 @@ export function ReglasComisionPanel() {
   const [formParams, setFormParams] = useState<Record<string, unknown>>(defaultParams.base);
 
   useEffect(() => { fetchRules(); }, []);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
 
   const fetchRules = async () => {
     setLoading(true);
@@ -72,7 +66,7 @@ export function ReglasComisionPanel() {
       if (error) throw error;
       setRules((data as unknown as CommissionRuleRow[]) || []);
     } catch (err) {
-      showToast(friendlyError(err, 'Error al cargar reglas'), 'error');
+      toast(friendlyError(err, 'Error al cargar reglas'), { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -117,17 +111,17 @@ export function ReglasComisionPanel() {
       if (editRule) {
         const { error } = await supabase.from('commission_rules').update(payload).eq('id', editRule.id);
         if (error) throw error;
-        showToast('Regla actualizada', 'success');
+        toast('Regla actualizada', { type: 'success' });
       } else {
         const { error } = await supabase.from('commission_rules').insert(payload);
         if (error) throw error;
-        showToast('Regla creada', 'success');
+        toast('Regla creada', { type: 'success' });
       }
 
       resetForm();
       await fetchRules();
     } catch (err) {
-      showToast(friendlyError(err, 'Error al guardar'), 'error');
+      toast(friendlyError(err, 'Error al guardar'), { type: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -138,10 +132,10 @@ export function ReglasComisionPanel() {
     try {
       const { error } = await supabase.from('commission_rules').update({ active: !active }).eq('id', ruleId);
       if (error) throw error;
-      showToast(`Regla ${active ? 'desactivada' : 'activada'}`, 'success');
+      toast(`Regla ${active ? 'desactivada' : 'activada'}`, { type: 'success' });
       await fetchRules();
     } catch (err) {
-      showToast(friendlyError(err, 'Error al actualizar'), 'error');
+      toast(friendlyError(err, 'Error al actualizar'), { type: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -152,10 +146,10 @@ export function ReglasComisionPanel() {
     try {
       const { error } = await supabase.from('commission_rules').delete().eq('id', ruleId);
       if (error) throw error;
-      showToast('Regla eliminada', 'success');
+      toast('Regla eliminada', { type: 'success' });
       await fetchRules();
     } catch (err) {
-      showToast(friendlyError(err, 'Error al eliminar'), 'error');
+      toast(friendlyError(err, 'Error al eliminar'), { type: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -181,17 +175,8 @@ export function ReglasComisionPanel() {
   }
 
   return (
-    <div className="space-y-8 animate-in relative">
-      {toast && (
-        <div className={`fixed top-24 right-8 z-[100] px-6 py-3 rounded-lg shadow-xl border flex items-center gap-3 animate-in ${
-          toast.type === 'success' ? 'bg-salud-optima/10 border-salud-optima text-salud-optima' : 'bg-salud-riesgo/10 border-salud-riesgo text-salud-riesgo'
-        }`}>
-          {toast.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
-          <span className="text-sm font-medium">{toast.message}</span>
-        </div>
-      )}
-
-      <div className="flex items-center gap-4 mb-8">
+  <div className="space-y-8 animate-in relative">
+    <div className="flex items-center gap-4 mb-8">
         <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
           <Percent size={24} />
         </div>
@@ -333,11 +318,11 @@ export function ReglasComisionPanel() {
                 <div className="flex items-center gap-2 mb-1">
               <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
                   rule.rule_type === 'base' ? 'bg-secondary text-muted-foreground' :
-                  rule.rule_type === 'channel_rate' ? 'bg-blue-100 text-blue-600' :
-                  rule.rule_type === 'volume_threshold' ? 'bg-oro-miel-glow/30 text-oro-miel-dark' :
-                  rule.rule_type === 'loyalty' ? 'bg-salud-optima/10 text-salud-optima' :
-                  rule.rule_type === 'tier_bonus' ? 'bg-cyan-100 text-cyan-600' :
-                  'bg-purple-100 text-purple-600'
+        rule.rule_type === 'channel_rate' ? 'bg-surface-raised text-foreground' :
+        rule.rule_type === 'volume_threshold' ? 'bg-oro-miel-glow/30 text-oro-miel-dark' :
+        rule.rule_type === 'loyalty' ? 'bg-salud-optima/10 text-salud-optima' :
+        rule.rule_type === 'tier_bonus' ? 'bg-card text-foreground' :
+        'bg-card text-foreground'
                 }`}>
                     {ruleTypeLabels[rule.rule_type as RuleType] || rule.rule_type}
                   </span>
@@ -380,7 +365,7 @@ export function ReglasComisionPanel() {
                     : <ToggleLeft size={20} className="text-muted-foreground" />
                   }
                 </button>
-                <button onClick={() => startEdit(rule)} className="w-9 h-9 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center hover:bg-blue-100 transition-all" title="Editar">
+                <button onClick={() => startEdit(rule)} className="w-9 h-9 rounded-full bg-surface-raised text-foreground flex items-center justify-center hover:bg-card transition-all" title="Editar">
                   <Edit3 size={16} />
                 </button>
                 <button

@@ -322,12 +322,12 @@ export const mapMarkers: MapMarker[] = [
     { id: 'm10', type: 'feria', name: 'ExpoMundoRural Santiago', lat: -33.45, lng: -70.65, details: 'Anual · Ventas 2025: $1.800.000' },
 ];
 
-export const ROLE = 'gerente' as const;
+export const ROLE = 'admin' as const;
 
 export const roleLabels: Record<string, string> = {
-  gerente: 'Gerente / Dueño',
+  admin: 'Admin',
 };
 
 export const roleGreetings: Record<string, { greeting: string; title: string; subtitle: string }> = {
-  gerente: { greeting: 'Bienvenida, Visión del Enjambre 👑', title: 'El legado crece: cada decisión transforma el bosque', subtitle: 'Producción en 2.8 ton (+18% vs 2025). Margen por sachet: 72%. El simulador proyecta 5 ton para 2027.' },
+  admin: { greeting: 'Bienvenida, Visión del Enjambre 👑', title: 'El legado crece: cada decisión transforma el bosque', subtitle: 'Producción en 2.8 ton (+18% vs 2025). Margen por sachet: 72%. El simulador proyecta 5 ton para 2027.' },
 };

@@ -13,7 +13,7 @@ interface LegalContentProps {
 }
 
 export function LegalContent({ title, content, lastUpdated }: LegalContentProps) {
-  const [sanitized, setSanitized] = useState(content);
+  const [sanitized, setSanitized] = useState<string | null>(null);
 
   useEffect(() => {
     void import('dompurify').then((DOMPurify) => {
@@ -38,10 +38,10 @@ export function LegalContent({ title, content, lastUpdated }: LegalContentProps)
           )}
 
           <div className="prose prose-invert prose-gold max-w-none">
-            <div
-              className="text-muted-foreground leading-relaxed space-y-6 whitespace-pre-wrap"
-              dangerouslySetInnerHTML={{ __html: sanitized }}
-            />
+          <div
+            className="text-muted-foreground leading-relaxed space-y-6 whitespace-pre-wrap"
+            dangerouslySetInnerHTML={{ __html: sanitized ?? '' }}
+          />
           </div>
         </div>
       </main>

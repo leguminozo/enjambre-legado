@@ -50,14 +50,14 @@ export function ContableView() {
 
       if (facturasRes.error) throw new Error(facturasRes.error.message);
       if (gastosRes.error) throw new Error(gastosRes.error.message);
-
-      const ingresosNetos = (facturasRes.data ?? []).reduce(
-        (acc, item) => acc + Number(item.monto_neto ?? 0), 0
-      );
-      const gastosNetos = (gastosRes.data ?? []).reduce(
-        (acc, item) => acc + Number(item.monto_neto ?? 0), 0
-      );
-
+const ingresosNetos = (facturasRes.data ?? []).reduce(
+      (acc: number, item: Record<string, unknown>) => acc + Number(item.monto_neto ?? 0),
+      0
+    );
+    const gastosNetos = (gastosRes.data ?? []).reduce(
+      (acc: number, item: Record<string, unknown>) => acc + Number(item.monto_neto ?? 0),
+      0
+    );
       return {
         empresaId,
         ingresosNetos,

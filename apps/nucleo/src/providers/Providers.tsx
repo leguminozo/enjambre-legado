@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Toaster } from 'sonner'
 import { ThemeProvider } from '@enjambre/ui'
 import { useAuthProvider, useAuthStore, createClient } from '@enjambre/auth'
 import type { Session, SupabaseClient } from '@supabase/supabase-js'
@@ -9,10 +10,10 @@ import type { Session, SupabaseClient } from '@supabase/supabase-js'
 let _cachedClient: SupabaseClient | null = null
 
 export function useSupabase(): SupabaseClient {
-  if (!_cachedClient) {
-    _cachedClient = createClient()
-  }
-  return _cachedClient
+if (!_cachedClient) {
+  _cachedClient = createClient()
+}
+return _cachedClient!
 }
 
 export function useSession(): Session | null {
@@ -38,6 +39,7 @@ export function Providers({ children }: ProvidersProps) {
       <ThemeProvider defaultTheme="dark">
         <AuthSync />
         {children}
+        <Toaster position="bottom-right" richColors closeButton duration={4000} />
       </ThemeProvider>
     </QueryClientProvider>
   )

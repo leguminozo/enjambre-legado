@@ -66,9 +66,9 @@ function formatCLP(value: number) {
 
 function estadoBadge(estado: string) {
   const map: Record<string, { icon: React.ReactNode; className: string }> = {
-    pendiente: { icon: <Clock size={14} />, className: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20" },
-    enviado: { icon: <Send size={14} />, className: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-    aceptado: { icon: <CheckCircle2 size={14} />, className: "bg-green-500/10 text-green-600 border-green-500/20" },
+    pendiente: { icon: <Clock size={14} />, className: "bg-primary/10 text-primary border-primary/20" },
+    enviado: { icon: <Send size={14} />, className: "bg-surface-raised text-foreground border-border" },
+    aceptado: { icon: <CheckCircle2 size={14} />, className: "bg-primary/10 text-primary border-primary/20" },
     rechazado: { icon: <AlertCircle size={14} />, className: "bg-destructive/10 text-destructive border-destructive/20" },
   };
   const cfg = map[estado] ?? map.pendiente;
@@ -83,12 +83,12 @@ function sourceBadge(sourceType: string | null) {
   if (!sourceType) return "Manual";
   const icons: Record<string, React.ReactNode> = {
     uber: <Car size={14} className="text-accent" />,
-    "google-ads": <Globe size={14} className="text-blue-500" />,
-    "meta-ads": <Globe size={14} className="text-indigo-500" />,
-    hostinger: <Globe size={14} className="text-purple-500" />,
-    aws: <Globe size={14} className="text-orange-500" />,
-    shopify: <Globe size={14} className="text-green-500" />,
-    stripe: <Globe size={14} className="text-indigo-400" />,
+    "google-ads": <Globe size={14} className="text-foreground" />,
+    "meta-ads": <Globe size={14} className="text-foreground" />,
+    hostinger: <Globe size={14} className="text-foreground" />,
+    aws: <Globe size={14} className="text-destructive" />,
+    shopify: <Globe size={14} className="text-primary" />,
+    stripe: <Globe size={14} className="text-foreground" />,
   };
   const labels: Record<string, string> = {
     uber: "Uber",

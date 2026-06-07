@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError } from '@enjambre/ui';
+import { friendlyError, toast } from '@enjambre/ui';
 import {
-  Percent, Check, AlertCircle, Loader2, Search, Filter,
+  Percent, Loader2, Search, Filter,
   DollarSign, CheckCircle2, Eye
 } from 'lucide-react';
 
@@ -31,17 +31,11 @@ export function ComisionesPanel() {
   const [repNames, setRepNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [filterPaid, setFilterPaid] = useState<string>('pendientes');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => { fetchCommissions(); }, []);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
 
   const fetchCommissions = async () => {
     setLoading(true);
@@ -80,7 +74,7 @@ export function ComisionesPanel() {
         setRepNames(map);
       }
     } catch (err) {
-      showToast(friendlyError(err, 'Error al cargar comisiones'), 'error');
+      toast(friendlyError(err, 'Error al cargar comisiones'), { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -102,11 +96,11 @@ export function ComisionesPanel() {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || 'Error al pagar comisiones');
       }
-      showToast(`${selectedIds.size} comisiones pagadas`, 'success');
+      toast(`${selectedIds.size} comisiones pagadas`, { type: 'success' });
       setSelectedIds(new Set());
       await fetchCommissions();
     } catch (err) {
-      showToast(friendlyError(err, 'Error al pagar comisiones'), 'error');
+      toast(friendlyError(err, 'Error al pagar comisiones'), { type: 'error' });
     } finally {
       setActionLoading(false);
     }
@@ -144,17 +138,8 @@ export function ComisionesPanel() {
   }
 
   return (
-    <div className="space-y-8 animate-in relative">
-      {toast && (
-        <div className={`fixed top-24 right-8 z-[100] px-6 py-3 rounded-lg shadow-xl border flex items-center gap-3 animate-in ${
-          toast.type === 'success' ? 'bg-salud-optima/10 border-salud-optima text-salud-optima' : 'bg-salud-riesgo/10 border-salud-riesgo text-salud-riesgo'
-        }`}>
-          {toast.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
-          <span className="text-sm font-medium">{toast.message}</span>
-        </div>
-      )}
-
-      <div className="flex items-center gap-4 mb-8">
+  <div className="space-y-8 animate-in relative">
+    <div className="flex items-center gap-4 mb-8">
         <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
           <Percent size={24} />
         </div>
@@ -169,7 +154,7 @@ export function ComisionesPanel() {
           { icon: <DollarSign size={18} />, val: formatCLP(totalPending), label: 'Pendientes', accent: 'text-oro-miel-dark' },
           { icon: <CheckCircle2 size={18} />, val: formatCLP(totalPaid), label: 'Pagadas', accent: 'text-salud-optima' },
           { icon: <Percent size={18} />, val: commissions.length, label: 'Total', accent: '' },
-          { icon: <Eye size={18} />, val: selectedIds.size, label: 'Seleccionadas', accent: 'text-blue-500' },
+          { icon: <Eye size={18} />, val: selectedIds.size, label: 'Seleccionadas', accent: 'text-foreground' },
         ].map((s, i) => (
           <div key={i} className="stat-card animate-in" style={{ animationDelay: `${i * 80}ms` }}>
             <div className="stat-header"><div className="stat-icon">{s.icon}</div></div>

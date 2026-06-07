@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError } from '@enjambre/ui';
+import { friendlyError, toast } from '@enjambre/ui';
 import {
-  Wallet, Check, AlertCircle, Loader2, Search, Filter,
+  Wallet, Check, Loader2, Search, Filter,
   CheckCircle2, Clock, Shield, Eye, Download, AlertTriangle
 } from 'lucide-react';
 
@@ -35,18 +35,12 @@ export function CashSessionsPanel() {
   const [sessions, setSessions] = useState<CashSessionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [filterStatus, setFilterStatus] = useState('todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
 
   useEffect(() => { fetchSessions(); }, []);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
 
   const fetchSessions = async () => {
     setLoading(true);
@@ -60,7 +54,7 @@ export function CashSessionsPanel() {
       if (error) throw error;
       setSessions((data as unknown as CashSessionRow[]) || []);
     } catch (err) {
-      showToast(friendlyError(err, 'Error al cargar sesiones'), 'error');
+      toast(friendlyError(err, 'Error al cargar sesiones'), { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -81,10 +75,10 @@ export function CashSessionsPanel() {
         .eq('id', sessionId);
 
       if (error) throw error;
-      showToast('Sesión reconciliada', 'success');
+      toast('Sesión reconciliada', { type: 'success' });
       await fetchSessions();
     } catch (err) {
-      showToast(friendlyError(err, 'Error al reconciliar'), 'error');
+      toast(friendlyError(err, 'Error al reconciliar'), { type: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -106,7 +100,7 @@ export function CashSessionsPanel() {
         } as SessionDetail);
       }
     } catch (err) {
-      showToast(friendlyError(err, 'Error al cargar detalle'), 'error');
+      toast(friendlyError(err, 'Error al cargar detalle'), { type: 'error' });
     }
   };
 
@@ -141,9 +135,9 @@ export function CashSessionsPanel() {
       a.download = `cierres-caja_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast('CSV exportado', 'success');
+      toast('CSV exportado', { type: 'success' });
     } catch (err) {
-      showToast(friendlyError(err, 'Error al exportar CSV'), 'error');
+      toast(friendlyError(err, 'Error al exportar CSV'), { type: 'error' });
     } finally {
       setExportLoading(false);
     }
@@ -159,17 +153,8 @@ export function CashSessionsPanel() {
   }
 
   return (
-    <div className="space-y-8 animate-in relative">
-      {toast && (
-        <div className={`fixed top-24 right-8 z-[100] px-6 py-3 rounded-lg shadow-xl border flex items-center gap-3 animate-in ${
-          toast.type === 'success' ? 'bg-salud-optima/10 border-salud-optima text-salud-optima' : 'bg-salud-riesgo/10 border-salud-riesgo text-salud-riesgo'
-        }`}>
-          {toast.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
-          <span className="text-sm font-medium">{toast.message}</span>
-        </div>
-      )}
-
-      <div className="flex items-center gap-4 mb-8">
+  <div className="space-y-8 animate-in relative">
+    <div className="flex items-center gap-4 mb-8">
         <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
           <Wallet size={24} />
         </div>
@@ -296,7 +281,7 @@ export function CashSessionsPanel() {
 
       {selectedSession && (
         <div className="fixed inset-0 z-50 bg-background/40 flex items-center justify-center p-4" onClick={() => setSelectedSession(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 space-y-4" onClick={e => e.stopPropagation()}>
+          <div className="bg-card rounded-2xl shadow-2xl max-w-lg w-full p-8 space-y-4" onClick={e => e.stopPropagation()}>
             <h3 className="font-display text-xl text-bosque-ulmo">Detalle de Sesión</h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="text-text-muted">Representante:</div>

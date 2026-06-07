@@ -29,7 +29,7 @@ interface LocalClient {
 }
 
 export function MarketingView() {
-const h = roleGreetings.gerente;
+  const h = roleGreetings.admin;
   const [posts, setPosts] = useState<MarketingPost[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [localClients, setLocalClients] = useState<LocalClient[]>([]);

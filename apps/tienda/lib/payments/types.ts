@@ -45,27 +45,49 @@ export type PaymentCommitResult = {
   raw: Record<string, unknown>;
 };
 
-export interface PaymentProvider {
+export type PaymentProvider = {
   readonly name: 'transbank' | 'flow';
   init(buyOrder: string, sessionId: string, amount: number, returnUrl: string, email?: string): Promise<PaymentInitResult>;
   commit(token: string): Promise<PaymentCommitResult>;
   refund(buyOrder: string, amount: number): Promise<{ ok: boolean }>;
-}
+};
 
 import { createAdminClient } from '@/utils/supabase/admin';
+import { z } from 'zod';
 
-type CheckoutSessionRow = {
-  id: string;
-  buy_order: string;
-  session_id: string;
-  provider: 'transbank' | 'flow';
-  cart: CartLineInput[];
-  total: number;
-  shipping: ShippingInfo | null;
-  status: 'pending' | 'completed' | 'expired';
-  created_at: string;
-  completed_at: string | null;
-};
+const CheckoutSessionRowSchema = z.object({
+  id: z.string(),
+  buy_order: z.string(),
+  session_id: z.string(),
+  provider: z.enum(['transbank', 'flow']),
+  cart: z.array(z.object({
+    productId: z.string(),
+    slug: z.string(),
+    name: z.string(),
+    unitPrice: z.number(),
+    quantity: z.number(),
+  })),
+  total: z.number(),
+  shipping: z.union([
+    z.object({
+      nombre: z.string(),
+      email: z.string(),
+      telefono: z.string(),
+      direccion: z.string(),
+      comuna: z.string(),
+      ciudad: z.string(),
+      region: z.string(),
+      codigoPostal: z.string().optional(),
+      instrucciones: z.string().optional(),
+    }),
+    z.null(),
+  ]),
+  status: z.enum(['pending', 'completed', 'expired']),
+  created_at: z.string(),
+  completed_at: z.string().nullable(),
+});
+
+type CheckoutSessionRow = z.infer<typeof CheckoutSessionRowSchema>;
 
 function toCheckoutSession(row: CheckoutSessionRow): CheckoutSession {
   return {
@@ -102,7 +124,12 @@ export async function getCheckoutSession(buyOrder: string): Promise<CheckoutSess
     .single();
 
   if (error || !data) return undefined;
-  return toCheckoutSession(data as unknown as CheckoutSessionRow);
+  const parsed = CheckoutSessionRowSchema.safeParse(data);
+  if (!parsed.success) {
+    console.error('[checkout] session row schema mismatch:', parsed.error.flatten());
+    return undefined;
+  }
+  return toCheckoutSession(parsed.data);
 }
 
 export async function completeCheckoutSession(buyOrder: string): Promise<void> {

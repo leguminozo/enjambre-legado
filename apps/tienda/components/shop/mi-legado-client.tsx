@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { gsap } from 'gsap';
 import { Package, Clock, Leaf, ChevronRight, TreePine, Droplets, Trees, Bug, ArrowRight } from 'lucide-react';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
+import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 
 interface Order {
   id: string;
@@ -28,7 +29,7 @@ interface ClaimPoint {
 }
 
 interface MiLegadoClientProps {
-  user: unknown;
+  user: TiendaUserProfile | null;
   tierData: {
     tier: string;
     ciclos_historicos: number;
@@ -44,7 +45,6 @@ interface MiLegadoClientProps {
 }
 
 export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, ecosystemMetrics }: MiLegadoClientProps) {
-  const userData = user as Record<string, unknown> | null;
 
   useEffect(() => {
     gsap.from('.vanguard-data', {
@@ -59,7 +59,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
   const totalOrders = orders?.length || 0;
   const totalSpent = orders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
   const azucarSustituida = Math.round(totalSpent / 4500 * 0.8);
-  const arbolesPersonal = (userData?.arboles_personal as number) || 0;
+  const arbolesPersonal = user?.arboles_personal ?? 0;
   const co2PersonalEstimado = arbolesPersonal * 15;
   const irrEstimado = co2PersonalEstimado > 0
     ? (co2PersonalEstimado / Math.max(totalSpent * 0.0001, 1)).toFixed(1)
@@ -80,7 +80,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
               Mi Legado
             </span>
             <h1 className="vanguard-data font-display text-5xl md:text-7xl font-light text-foreground mb-4">
-              {(userData?.full_name as string) || 'Guardián del Bosque'}
+              {(user?.full_name) || 'Guardián del Bosque'}
             </h1>
             <p className="vanguard-data font-display italic text-xl text-muted-foreground">
               {tierData?.tier || 'OBRERA'} · {tierData?.ciclos_historicos || 0} Ciclos Acumulados

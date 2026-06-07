@@ -82,31 +82,31 @@ export function useSidebarBadges() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'varroa_records' }, () => {
         fetchBadges()
       })
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          console.error('[Realtime] sidebar-varroa channel error')
-        }
-      }),
-    supabase
-      .channel('sidebar-envios')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'logistica_envios' }, () => {
-        fetchBadges()
-      })
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          console.error('[Realtime] sidebar-envios channel error')
-        }
-      }),
-    supabase
-      .channel('sidebar-facturas')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'facturas_emitidas' }, () => {
-        fetchBadges()
-      })
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          console.error('[Realtime] sidebar-facturas channel error')
-        }
-      }),
+.subscribe((status: string) => {
+    if (status === 'CHANNEL_ERROR') {
+      console.error('[Realtime] sidebar-varroa channel error')
+    }
+  }),
+  supabase
+  .channel('sidebar-envios')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'logistica_envios' }, () => {
+    fetchBadges()
+  })
+  .subscribe((status: string) => {
+    if (status === 'CHANNEL_ERROR') {
+      console.error('[Realtime] sidebar-envios channel error')
+    }
+  }),
+  supabase
+  .channel('sidebar-facturas')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'facturas_emitidas' }, () => {
+    fetchBadges()
+  })
+  .subscribe((status: string) => {
+    if (status === 'CHANNEL_ERROR') {
+      console.error('[Realtime] sidebar-facturas channel error')
+    }
+  }),
   ]
 
   return () => {

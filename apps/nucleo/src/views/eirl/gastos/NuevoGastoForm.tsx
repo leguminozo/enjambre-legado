@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Input, Textarea } from "@enjambre/ui";
+import { Button, Input, Textarea, toast } from "@enjambre/ui";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
@@ -112,7 +112,7 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
 
   const crearNuevoProveedor = async () => {
     if (!nuevoProveedor.nombre || !nuevoProveedor.rut) {
-      alert('Nombre y RUT son requeridos');
+      toast('Nombre y RUT son requeridos', { type: 'error' });
       return;
     }
 
@@ -140,11 +140,11 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
         });
       } else {
         const error = await response.json();
-        alert(error.error || 'Error al crear proveedor');
+        toast(error.error || 'Error al crear proveedor', { type: 'error' });
       }
     } catch (error) {
-      console.error('Error creando proveedor:', error);
-      alert('Error al crear proveedor');
+console.error('Error creando proveedor:', error);
+		toast('Error al crear proveedor', { type: 'error' });
     }
   };
 
@@ -152,7 +152,7 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
     e.preventDefault();
     
     if (!formData.fecha || !formData.descripcion || !formData.monto || !formData.categoria) {
-      alert('Fecha, descripción, monto y categoría son requeridos');
+      toast('Fecha, descripción, monto y categoría son requeridos', { type: 'error' });
       return;
     }
 
@@ -174,11 +174,11 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
         onSave(gasto);
       } else {
         const error = await response.json();
-        alert(error.error || 'Error al crear gasto');
+        toast(error.error || 'Error al crear gasto', { type: 'error' });
       }
     } catch (error) {
-      console.error('Error creando gasto:', error);
-      alert('Error al crear gasto');
+console.error('Error creando gasto:', error);
+		toast('Error al crear gasto', { type: 'error' });
     } finally {
       setLoading(false);
     }

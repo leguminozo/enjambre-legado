@@ -1,64 +1,72 @@
 export type RoleKey =
-  | 'gerente'
-  | 'apicultor'
-  | 'vendedor'
-  | 'rep_ventas'
-  | 'logistica'
-  | 'marketing'
-  | 'tienda_admin'
+  | 'admin'
   | 'creador'
+  | 'rep_ventas'
   | 'cliente'
 
+export const LEGACY_ROLE_MAP: Record<string, RoleKey> = {
+  gerente: 'admin',
+  apicultor: 'admin',
+  vendedor: 'admin',
+  logistica: 'admin',
+  marketing: 'admin',
+  tienda_admin: 'admin',
+}
+
 export const ROLE_REDIRECT_MAP: Record<string, string> = {
-  gerente: '/',
-  apicultor: '/colmenas',
-  vendedor: '/caja',
-  rep_ventas: '/caja',
-  logistica: '/operaciones',
-  marketing: '/comunidad',
-  tienda_admin: '/catalogo',
+  admin: '/',
   creador: '/creador',
+  rep_ventas: '/caja',
   cliente: '/catalogo',
+  ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map(k => [k, '/'])),
 }
 
 export function getRoleRedirectPath(role: string): string {
   return ROLE_REDIRECT_MAP[role] ?? '/colmenas'
 }
 
+export const ALL_ADMIN_ROLES: RoleKey[] = ['admin']
+
 export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
-  '/': ['gerente'],
-  '/contable': ['gerente'],
-  '/sii': ['gerente'],
-  '/banco': ['gerente'],
-  '/pagos': ['gerente'],
-  '/conciliacion': ['gerente'],
-  '/reportes': ['gerente'],
-  '/calculos-ia': ['gerente'],
-  '/vanguardia': ['gerente'],
-  '/creadores': ['gerente'],
-  '/invitaciones': ['gerente'],
-  '/reglas-comision': ['gerente'],
-  '/comisiones': ['gerente', 'rep_ventas', 'vendedor'],
-  '/reps': ['gerente'],
-  '/caja': ['gerente', 'rep_ventas', 'vendedor'],
-  '/leaderboard': ['gerente', 'rep_ventas', 'vendedor'],
-  '/colmenas': ['gerente', 'apicultor'],
-  '/regeneracion': ['gerente', 'apicultor'],
-  '/mapa': ['gerente', 'apicultor'],
-  '/catalogo': ['gerente', 'tienda_admin'],
-  '/operaciones': ['gerente', 'logistica'],
-  '/comunidad': ['gerente', 'marketing'],
-  '/creador': ['gerente', 'creador'],
-  '/perfil': ['gerente', 'apicultor', 'vendedor', 'rep_ventas', 'logistica', 'marketing', 'tienda_admin', 'creador', 'cliente'],
-  '/configuracion': ['gerente', 'apicultor', 'vendedor', 'rep_ventas', 'logistica', 'marketing', 'tienda_admin', 'creador', 'cliente'],
+  '/': ['admin'],
+  '/contable': ['admin'],
+  '/sii': ['admin'],
+  '/banco': ['admin'],
+  '/pagos': ['admin'],
+  '/conciliacion': ['admin'],
+  '/reportes': ['admin'],
+  '/calculos-ia': ['admin'],
+  '/vanguardia': ['admin'],
+  '/creadores': ['admin'],
+  '/invitaciones': ['admin'],
+  '/reglas-comision': ['admin'],
+  '/comisiones': ['admin', 'rep_ventas'],
+  '/reps': ['admin'],
+  '/caja': ['admin', 'rep_ventas'],
+  '/leaderboard': ['admin', 'rep_ventas'],
+  '/colmenas': ['admin'],
+  '/regeneracion': ['admin'],
+  '/mapa': ['admin'],
+  '/catalogo': ['admin'],
+  '/operaciones': ['admin'],
+  '/comunidad': ['admin'],
+  '/creador': ['admin', 'creador'],
+  '/perfil': ['admin', 'creador', 'rep_ventas', 'cliente'],
+  '/configuracion': ['admin', 'creador', 'rep_ventas', 'cliente'],
+}
+
+function normalizeRole(role: string): string {
+  return (LEGACY_ROLE_MAP[role] ?? role) as string
 }
 
 export function isRouteAllowed(pathname: string, role: string): boolean {
   if (pathname.startsWith('/api/')) return true
 
+  const normalized = normalizeRole(role)
+
   const exactMatch = ROUTE_ROLE_GUARDS[pathname]
   if (exactMatch) {
-    return exactMatch.includes(role as RoleKey) || role === 'gerente'
+    return exactMatch.includes(normalized as RoleKey) || normalized === 'admin'
   }
 
   const prefixMatch = Object.keys(ROUTE_ROLE_GUARDS)
@@ -67,7 +75,7 @@ export function isRouteAllowed(pathname: string, role: string): boolean {
 
   if (prefixMatch) {
     const allowed = ROUTE_ROLE_GUARDS[prefixMatch]
-    return allowed.includes(role as RoleKey) || role === 'gerente'
+    return allowed.includes(normalized as RoleKey) || normalized === 'admin'
   }
 
   return true

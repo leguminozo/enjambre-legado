@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
+import { Card, CardContent, CardHeader, CardTitle, toast } from "@enjambre/ui";
 import { Button } from "@enjambre/ui";
 import { Badge } from "@enjambre/ui";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -82,11 +82,11 @@ export function CalculosIAComponent({ empresaId }: CalculosIAComponentProps) {
         await cargarCalculos();
       } else {
         const error = await response.json();
-        alert(error.error || 'Error al ejecutar cálculo');
+        toast(error.error || 'Error al ejecutar cálculo', { type: 'error' });
       }
     } catch (error) {
-      console.error('Error ejecutando cálculo:', error);
-      alert('Error al ejecutar cálculo');
+console.error('Error ejecutando cálculo:', error);
+		toast('Error al ejecutar cálculo', { type: 'error' });
     } finally {
       setEjecutando(null);
     }
@@ -94,12 +94,12 @@ export function CalculosIAComponent({ empresaId }: CalculosIAComponentProps) {
 
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
-      case 'Completado':
-        return <CheckCircle className="h-4 w-4 text-green-400" />;
-      case 'Procesando':
-        return <Clock className="h-4 w-4 text-yellow-400 animate-spin" />;
-      case 'Error':
-        return <AlertCircle className="h-4 w-4 text-red-400" />;
+    case 'Completado':
+      return <CheckCircle className="h-4 w-4 text-primary" />;
+    case 'Procesando':
+      return <Clock className="h-4 w-4 text-primary animate-spin" />;
+    case 'Error':
+      return <AlertCircle className="h-4 w-4 text-destructive" />;
       default:
         return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
@@ -137,14 +137,14 @@ export function CalculosIAComponent({ empresaId }: CalculosIAComponentProps) {
 
   const getTipoColor = (tipo: string) => {
     switch (tipo) {
-      case 'ImpuestoMensual':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'PPM':
-        return 'bg-green-500/20 text-green-400 border-green-500/30';
-      case 'ProyeccionUtilidad':
-        return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
-      case 'OptimizacionFiscal':
-        return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
+    case 'ImpuestoMensual':
+      return 'bg-surface-raised text-foreground border-border';
+    case 'PPM':
+      return 'bg-primary/10 text-primary border-primary/30';
+    case 'ProyeccionUtilidad':
+      return 'bg-card text-foreground border-border';
+    case 'OptimizacionFiscal':
+      return 'bg-destructive/10 text-destructive border-destructive/30';
       default:
         return 'bg-muted/20 text-muted-foreground border-muted/30';
     }
@@ -240,8 +240,8 @@ const tiposCalculo = [
                   </div>
 
                   {calculo.estado === 'Error' && calculo.error && (
-                    <div className="bg-red-500/10 border border-red-500/30 rounded p-3 mb-3">
-                      <p className="text-red-400 text-sm">{calculo.error}</p>
+        <div className="bg-destructive/10 border border-destructive/30 rounded p-3 mb-3">
+                <p className="text-destructive text-sm">{calculo.error}</p>
                     </div>
                   )}
 
@@ -262,7 +262,7 @@ const tiposCalculo = [
                       </div>
                       <div className="w-full bg-surface-raised rounded-full h-2 mt-1">
                         <div 
-                          className="bg-green-400 h-2 rounded-full" 
+                          className="bg-primary h-2 rounded-full" 
                           style={{ width: `${calculo.confianza * 100}%` }}
                         ></div>
                       </div>

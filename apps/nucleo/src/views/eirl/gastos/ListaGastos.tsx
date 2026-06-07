@@ -61,31 +61,31 @@ export function ListaGastos({ onNuevoGasto, onVerGasto, onEditarGasto }: ListaGa
 
   const getEstadoColor = (estado: string) => {
     switch (estado) {
-      case 'Pagado':
-        return 'bg-green-500/20 text-green-400 border-green-500/30';
-      case 'Pendiente':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'Reembolsado':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+    case 'Pagado':
+      return 'bg-primary/10 text-primary border-primary/30';
+    case 'Pendiente':
+      return 'bg-primary/20 text-primary border-primary/30';
+    case 'Reembolsado':
+      return 'bg-surface-raised text-foreground border-border';
       default:
         return 'bg-muted/20 text-muted-foreground border-muted/30';
     }
   };
 
   const getCategoriaColor = (categoria: string) => {
-    const colors: Record<string, string> = {
-      'Arriendo': 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-      'Servicios Básicos': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-      'Transporte': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-      'Suministros': 'bg-green-500/20 text-green-400 border-green-500/30',
-      'Honorarios': 'bg-red-500/20 text-red-400 border-red-500/30',
-      'Publicidad': 'bg-pink-500/20 text-pink-400 border-pink-500/30',
-      'Seguros': 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
-      'Mantenimiento': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-      'Telecomunicaciones': 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-'Impuestos': 'bg-muted/20 text-muted-foreground border-muted/30',
+  const colors: Record<string, string> = {
+    'Arriendo': 'bg-card text-foreground border-border',
+    'Servicios Básicos': 'bg-surface-raised text-foreground border-border',
+    'Transporte': 'bg-primary/10 text-primary border-primary/30',
+    'Suministros': 'bg-primary/20 text-primary border-primary/30',
+    'Honorarios': 'bg-destructive/10 text-destructive border-destructive/30',
+    'Publicidad': 'bg-primary/10 text-primary border-primary/30',
+    'Seguros': 'bg-surface-sunken text-muted-foreground border-border',
+    'Mantenimiento': 'bg-destructive/10 text-destructive border-destructive/30',
+    'Telecomunicaciones': 'bg-surface-raised text-foreground border-border',
+    'Impuestos': 'bg-muted/20 text-muted-foreground border-muted/30',
     'Otros': 'bg-card/20 text-muted-foreground border-input/30'
-    };
+  };
     return colors[categoria] || colors['Otros'];
   };
 
@@ -170,7 +170,7 @@ if (loading) {
                   
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <div className="text-lg font-semibold text-red-400">-{formatCurrency(gasto.monto)}</div>
+                      <div className="text-lg font-semibold text-destructive">-{formatCurrency(gasto.monto)}</div>
                       <div className="text-xs text-muted-foreground">
                         Neto: {formatCurrency(gasto.montoNeto)}
                       </div>

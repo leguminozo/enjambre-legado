@@ -22,29 +22,29 @@ export function ResumenActividad({
       titulo: "Facturas Emitidas",
       valor: totalFacturasEmitidas,
       icono: FileText,
-      color: "text-blue-400",
-      bgColor: "bg-blue-400/10"
+      color: "text-foreground",
+      bgColor: "bg-surface-raised"
     },
     {
       titulo: "Facturas Recibidas",
       valor: totalFacturasRecibidas,
       icono: Receipt,
-      color: "text-green-400",
-      bgColor: "bg-green-400/10"
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     },
     {
       titulo: "Gastos Registrados",
       valor: totalGastos,
       icono: ShoppingCart,
-      color: "text-yellow-400",
-      bgColor: "bg-yellow-400/10"
+      color: "text-primary",
+      bgColor: "bg-primary/20"
     },
     {
       titulo: "Por Cobrar",
       valor: facturasPendientes,
       icono: AlertTriangle,
-      color: "text-red-400",
-      bgColor: "bg-red-400/10"
+      color: "text-destructive",
+      bgColor: "bg-destructive/10"
     }
   ];
 

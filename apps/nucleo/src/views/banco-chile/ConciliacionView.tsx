@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { toast } from '@enjambre/ui';
 
 interface SugerenciaConciliacion {
   movimiento_id: string;
@@ -72,14 +73,14 @@ export function ConciliacionView() {
 
       const result = await response.json();
       if (result.success) {
-        alert('Conciliación exitosa');
+        toast('Conciliación exitosa', { type: 'success' });
         fetchSugerencias();
       } else {
-        alert(result.error || 'Error al conciliar');
+        toast(result.error || 'Error al conciliar', { type: 'error' });
       }
     } catch (error) {
-      console.error('Error conciliando:', error);
-      alert('Error al conciliar');
+console.error('Error conciliando:', error);
+			toast('Error al conciliar', { type: 'error' });
     }
   }
 
@@ -101,14 +102,14 @@ export function ConciliacionView() {
 
       const result = await response.json();
       if (result.success) {
-        alert(`${result.conciliados} movimientos conciliados automáticamente`);
+        toast(`${result.conciliados} movimientos conciliados automáticamente`, { type: 'success' });
         fetchSugerencias();
       } else {
-        alert(result.error || 'Error en auto-conciliación');
+        toast(result.error || 'Error en auto-conciliación', { type: 'error' });
       }
     } catch (error) {
-      console.error('Error auto-conciliando:', error);
-      alert('Error en auto-conciliación');
+console.error('Error auto-conciliando:', error);
+			toast('Error en auto-conciliación', { type: 'error' });
     } finally {
       setAutoConciliando(false);
     }
@@ -116,12 +117,12 @@ export function ConciliacionView() {
 
   function getConfianzaColor(confianza: string) {
     switch (confianza) {
-      case 'alta':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'media':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      default:
-        return 'bg-secondary text-foreground dark:bg-background dark:text-secondary-foreground';
+    case 'alta':
+      return 'bg-primary/10 text-primary';
+    case 'media':
+      return 'bg-primary/10 text-primary';
+    default:
+      return 'bg-secondary text-foreground';
     }
   }
 
@@ -203,8 +204,8 @@ export function ConciliacionView() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Movimiento Bancario */}
-                    <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded">
-                      <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">
+    <div className="bg-surface-raised p-3 rounded">
+      <p className="text-xs text-foreground font-medium mb-1">
                         Movimiento Bancario
                       </p>
                       <p className="text-sm font-medium">{sug.movimiento?.descripcion || 'N/A'}</p>
@@ -219,8 +220,8 @@ export function ConciliacionView() {
                     </div>
 
                     {/* Venta */}
-                    <div className="bg-green-50 dark:bg-green-950/20 p-3 rounded">
-                      <p className="text-xs text-green-600 dark:text-green-400 font-medium mb-1">
+    <div className="bg-primary/10 p-3 rounded">
+      <p className="text-xs text-primary font-medium mb-1">
                         Venta
                       </p>
                       <p className="text-sm font-medium">
@@ -240,29 +241,29 @@ export function ConciliacionView() {
                   {/* Indicadores de coincidencia */}
                   <div className="flex gap-2 mt-3 text-xs">
                     {sug.monto_iguales ? (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded">
-                        ✓ Montos iguales
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded">
-                        ✗ Montos diferentes
-                      </span>
-                    )}
-                    {sug.fecha_cercana ? (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded">
-                        ✓ Fechas cercanas
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded">
-                        ✗ Fechas lejanas
-                      </span>
-                    )}
-                    {sug.rut_coincide ? (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded">
-                        ✓ RUT coincide
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 bg-secondary text-foreground dark:bg-background dark:text-secondary-foreground rounded">
+      <span className="px-2 py-1 bg-primary/10 text-primary rounded">
+        ✓ Montos iguales
+      </span>
+    ) : (
+      <span className="px-2 py-1 bg-destructive/10 text-destructive rounded">
+        ✗ Montos diferentes
+      </span>
+    )}
+    {sug.fecha_cercana ? (
+      <span className="px-2 py-1 bg-primary/10 text-primary rounded">
+        ✓ Fechas cercanas
+      </span>
+    ) : (
+      <span className="px-2 py-1 bg-destructive/10 text-destructive rounded">
+        ✗ Fechas lejanas
+      </span>
+    )}
+    {sug.rut_coincide ? (
+      <span className="px-2 py-1 bg-primary/10 text-primary rounded">
+        ✓ RUT coincide
+      </span>
+    ) : (
+      <span className="px-2 py-1 bg-secondary text-foreground rounded">
                         RUT no disponible
                       </span>
                     )}
@@ -277,4 +278,4 @@ export function ConciliacionView() {
   );
 }
 
-export default ConciliacionView;
+

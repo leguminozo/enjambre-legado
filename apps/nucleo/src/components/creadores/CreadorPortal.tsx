@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
+import { friendlyError, friendlySupabaseError, toast } from '@enjambre/ui';
 import {
   Sparkles, Copy, Check, TrendingUp, DollarSign,
   Users, Gift, ArrowUpRight, Loader2, AlertCircle,
@@ -74,7 +74,6 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
   const [retiros, setRetiros] = useState<RetiroRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'usos' | 'retiros'>('dashboard');
   const [showRetiroForm, setShowRetiroForm] = useState(false);
   const [retiroForm, setRetiroForm] = useState({ monto: 0, metodo: 'transferencia' as const, datos: '' });
@@ -82,11 +81,6 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
   useEffect(() => {
     fetchCreadorData();
   }, []);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
 
   const fetchCreadorData = async () => {
     setLoading(true);
@@ -117,7 +111,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
       if (retRes.data) setRetiros(retRes.data);
 	} catch (err) {
 			console.error('Error fetching creador data:', err);
-			showToast(friendlyError(err, 'Error al cargar datos'), 'error');
+			toast(friendlyError(err, 'Error al cargar datos'), { type: 'error' });
 		} finally {
       setLoading(false);
     }
@@ -125,11 +119,11 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
 
   const handleRetiro = async () => {
     if (!profile || retiroForm.monto < 5000) {
-      showToast('Monto mínimo de retiro: $5.000', 'error');
+      toast('Monto mínimo de retiro: $5.000', { type: 'error' });
       return;
     }
     if (balance && retiroForm.monto > Number(balance.balance_disponible)) {
-      showToast('Monto excede tu balance disponible', 'error');
+      toast('Monto excede tu balance disponible', { type: 'error' });
       return;
     }
 
@@ -152,22 +146,22 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
 
 		if (error) {
 				if (error.message === 'TOO_MANY_PENDING') {
-					showToast('Máximo 3 retiros pendientes simultáneos', 'error');
+					toast('Máximo 3 retiros pendientes simultáneos', { type: 'error' });
 				} else if (error.message === 'INSUFFICIENT_BALANCE') {
-					showToast('Balance insuficiente', 'error');
+					toast('Balance insuficiente', { type: 'error' });
 				} else {
-					showToast(friendlySupabaseError(error), 'error');
+					toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
 				}
 				return;
 			}
 
-      showToast('Solicitud de retiro enviada', 'success');
+      toast('Solicitud de retiro enviada', { type: 'success' });
       setShowRetiroForm(false);
       setRetiroForm({ monto: 0, metodo: 'transferencia', datos: '' });
       await fetchCreadorData();
 	} catch (err) {
 			console.error('Error creating retiro:', err);
-			showToast(friendlyError(err, 'Error al solicitar retiro'), 'error');
+			toast(friendlyError(err, 'Error al solicitar retiro'), { type: 'error' });
 		}
   };
 
@@ -211,17 +205,8 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
   const isInactive = profile.estado !== 'activo';
 
   return (
-    <div className="space-y-8 animate-in relative">
-      {toast && (
-        <div className={`fixed top-24 right-8 z-[100] px-6 py-3 rounded-lg shadow-xl border flex items-center gap-3 animate-in ${
-          toast.type === 'success' ? 'bg-salud-optima/10 border-salud-optima text-salud-optima' : 'bg-salud-riesgo/10 border-salud-riesgo text-salud-riesgo'
-        }`}>
-          {toast.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
-          <span className="text-sm font-medium">{toast.message}</span>
-        </div>
-      )}
-
-      {isInactive && (
+  <div className="space-y-8 animate-in relative">
+    {isInactive && (
         <div className="p-4 rounded-xl bg-amber/10 border border-amber/30 text-amber text-sm flex items-center gap-3">
           <AlertCircle size={18} />
           <span>Tu cuenta de creador está <strong>{profile.estado}</strong>. {profile.estado === 'pendiente' ? 'Estamos revisando tu solicitud.' : 'Contacta al equipo para más info.'}</span>

@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError } from '@enjambre/ui';
+import { friendlyError, toast } from '@enjambre/ui';
 import {
-  Users, Check, AlertCircle, Loader2, Search, Filter,
+  Users, AlertCircle, Loader2, Search, Filter,
   Edit3, Trash2, X, ChevronRight
 } from 'lucide-react';
 
@@ -29,17 +29,11 @@ export function RepsPanel() {
   const [reps, setReps] = useState<RepRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterActive, setFilterActive] = useState<string>('todos');
   const [editRep, setEditRep] = useState<{ userId: string; tier: string; fixedMonthly: number; tierOverride: string | null } | null>(null);
 
   useEffect(() => { fetchReps(); }, []);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
 
   const fetchReps = async () => {
     setLoading(true);
@@ -52,7 +46,7 @@ export function RepsPanel() {
       if (error) throw error;
       setReps((data as unknown as RepRow[]) || []);
     } catch (err) {
-      showToast(friendlyError(err, 'Error al cargar reps'), 'error');
+      toast(friendlyError(err, 'Error al cargar reps'), { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -67,11 +61,11 @@ export function RepsPanel() {
         .eq('user_id', userId);
 
       if (error) throw error;
-      showToast('Representante actualizado', 'success');
+      toast('Representante actualizado', { type: 'success' });
       setEditRep(null);
       await fetchReps();
     } catch (err) {
-      showToast(friendlyError(err, 'Error al actualizar'), 'error');
+      toast(friendlyError(err, 'Error al actualizar'), { type: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -86,10 +80,10 @@ export function RepsPanel() {
         .eq('user_id', userId);
 
       if (error) throw error;
-      showToast('Representante desactivado', 'success');
+      toast('Representante desactivado', { type: 'success' });
       await fetchReps();
     } catch (err) {
-      showToast(friendlyError(err, 'Error al desactivar'), 'error');
+      toast(friendlyError(err, 'Error al desactivar'), { type: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -109,7 +103,7 @@ export function RepsPanel() {
     base: 'bg-secondary text-muted-foreground',
     senior: 'bg-oro-miel-glow/30 text-oro-miel-dark',
     elite: 'bg-salud-optima/10 text-salud-optima',
-    legend: 'bg-purple-100 text-purple-600',
+    legend: 'bg-card text-foreground',
   };
 
   if (loading) {
@@ -122,17 +116,8 @@ export function RepsPanel() {
   }
 
   return (
-    <div className="space-y-8 animate-in relative">
-      {toast && (
-        <div className={`fixed top-24 right-8 z-[100] px-6 py-3 rounded-lg shadow-xl border flex items-center gap-3 animate-in ${
-          toast.type === 'success' ? 'bg-salud-optima/10 border-salud-optima text-salud-optima' : 'bg-salud-riesgo/10 border-salud-riesgo text-salud-riesgo'
-        }`}>
-          {toast.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
-          <span className="text-sm font-medium">{toast.message}</span>
-        </div>
-      )}
-
-      <div className="flex items-center gap-4 mb-8">
+  <div className="space-y-8 animate-in relative">
+    <div className="flex items-center gap-4 mb-8">
         <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
           <Users size={24} />
         </div>
@@ -203,7 +188,7 @@ export function RepsPanel() {
                 <div className="flex gap-2 flex-shrink-0">
                   <button
                     onClick={() => setEditRep(editRep?.userId === rep.user_id ? null : { userId: rep.user_id, tier: rep.commission_tier, fixedMonthly: rep.fixed_monthly, tierOverride: rep.commission_tier })}
-                    className="w-9 h-9 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center hover:bg-blue-100 transition-all"
+                    className="w-9 h-9 rounded-full bg-surface-raised text-foreground flex items-center justify-center hover:bg-card transition-all"
                     title="Editar"
                   >
                     <Edit3 size={16} />
@@ -222,7 +207,7 @@ export function RepsPanel() {
               </div>
 
   {editRep?.userId === rep.user_id && (
-    <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
+        <div className="mt-4 pt-4 border-t border-border space-y-3">
       <div className="flex gap-3 items-end">
         <div className="flex-1">
           <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Nivel</label>
@@ -244,7 +229,7 @@ export function RepsPanel() {
         <button onClick={() => updateRep(rep.user_id, { commission_tier: editRep.tier, fixed_monthly: editRep.fixedMonthly, tier_override: editRep.tierOverride })} className="btn btn-gold text-xs">Guardar</button>
         <button onClick={() => setEditRep(null)} className="btn btn-outline text-xs"><X size={14} /></button>
         </div>
-        {editRep.tierOverride && <p className="text-[0.6rem] text-amber-600">Excepción manual activa: la evaluación automática no cambiará este nivel.</p>}
+        {editRep.tierOverride && <p className="text-[0.6rem] text-primary">Excepción manual activa: la evaluación automática no cambiará este nivel.</p>}
     </div>
   )}
             </div>

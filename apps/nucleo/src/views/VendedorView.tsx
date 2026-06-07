@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { ShoppingBag, Users, MapPin, CalendarDays, TrendingUp, Star, ArrowUpRight, QrCode, Truck, X, ChevronDown, Plus, Minus } from 'lucide-react';
 import { roleGreetings, type Product } from '../data/mockData';
 import { supabase } from '../lib/supabase';
-import { friendlySupabaseError } from '@enjambre/ui';
+import { friendlySupabaseError, toast } from '@enjambre/ui';
 
 function mapProductoRow(p: Record<string, unknown>): Product {
     const precio = Number(p.precio) || 0;
@@ -35,13 +35,13 @@ const pitches: Record<string, string> = {
 };
 
 export function VendedorView() {
-    const { greeting, title, subtitle } = roleGreetings.gerente;
+    const { greeting, title, subtitle } = roleGreetings.admin;
     const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
 
     useEffect(() => {
         (async () => {
             const { data } = await supabase.from('productos').select('*').order('nombre');
-            if (data?.length) setCatalogProducts(data.map((r) => mapProductoRow(r as Record<string, unknown>)));
+            if (data?.length) setCatalogProducts(data.map((r: Record<string, unknown>) => mapProductoRow(r)));
         })();
     }, []);
 
@@ -57,7 +57,7 @@ export function VendedorView() {
     const [showAddClient, setShowAddClient] = useState(false);
     const [newClientForm, setNewClientForm] = useState({ name: '', type: 'Particular', purchases: 0, level: 'Guardián Bronce', lastOrder: 'Ninguna' });
 
-    const [localClients, setLocalClients] = useState<any[]>([]);
+    const [localClients, setLocalClients] = useState<{ name: string; type: string; purchases: number; level: string; lastOrder: string; id: string }[]>([]);
   const [ventasTotal, setVentasTotal] = useState(0);
 
     useEffect(() => {
@@ -70,7 +70,7 @@ const { data } = await supabase.from('clientes')
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false });
       if (data && data.length > 0) {
-        setLocalClients(data.map(d => ({ name: d.name, type: d.type, purchases: d.total_spent > 0 ? 1 : 0, level: 'Guardián Bronce', lastOrder: 'Reciente', id: d.id })));
+        setLocalClients(data.map((d: Record<string, unknown>) => ({ name: String(d.name), type: String(d.type), purchases: Number(d.total_spent) > 0 ? 1 : 0, level: 'Guardián Bronce', lastOrder: 'Reciente', id: String(d.id) })));
       }
       const { data: ventasData } = await supabase.from('ventas')
         .select('total')
@@ -232,14 +232,14 @@ const { data } = await supabase.from('clientes')
                                                 });
 					if (error) throw error;
 						}
-						alert(typeof navigator !== 'undefined' && !navigator.onLine
-							? 'Venta guardada localmente; se sincronizará al recuperar conexión.'
-							: 'Venta registrada correctamente.');
+toast(typeof navigator !== 'undefined' && !navigator.onLine
+					? 'Venta guardada localmente; se sincronizará al recuperar conexión.'
+					: 'Venta registrada correctamente.', { type: 'success' });
 						setPosCart({});
 						setShowPos(false);
 					} catch (e) {
-						console.error('Error POS:', e);
-						alert('No se pudo registrar la venta. Verifica tu conexión o intenta de nuevo.');
+console.error('Error POS:', e);
+					toast('No se pudo registrar la venta. Verifica tu conexión o intenta de nuevo.', { type: 'error' });
                                         } finally {
                                             setLoadingPos(false);
                                         }

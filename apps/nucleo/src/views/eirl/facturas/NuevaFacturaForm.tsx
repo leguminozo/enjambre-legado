@@ -1,7 +1,7 @@
 'use client';
 
 import { useTransition, useOptimistic } from 'react';
-import { Button, Input, Textarea } from "@enjambre/ui";
+import { Button, Input, Textarea, toast } from "@enjambre/ui";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
@@ -83,7 +83,7 @@ export function NuevaFacturaForm({ empresaId, clientes, onSuccess, onCancel }: N
     if (result.success) {
       onSuccess?.();
     } else {
-      alert((result as { success: false; error: string }).error);
+      toast((result as { success: false; error: string }).error, { type: 'error' });
     }
     });
   };

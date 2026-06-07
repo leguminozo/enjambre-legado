@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
+import { z } from 'zod';
 
 export type ShopProduct = {
   id: string;
@@ -35,27 +36,34 @@ const PRODUCT_SELECT = [
   'lotes(blockchain_hash, cosecha_ids)',
 ].join(', ');
 
-interface LoteJoin {
-  blockchain_hash: string | null;
-  cosecha_ids: string[] | null;
-}
+const LoteJoinSchema = z.object({
+  blockchain_hash: z.string().nullable(),
+  cosecha_ids: z.array(z.string()).nullable(),
+});
 
-interface ProductRow {
-  id: string;
-  slug: string | null;
-  nombre: string | null;
-  descripcion_regenerativa: string | null;
-  precio: number | null;
-  stock: number | null;
-  formato: string | null;
-  fotos: string[] | null;
-  visible: boolean | null;
-  sustituye_azucar_g: number | null;
-  co2_evitado_kg: number | null;
-  irr_referencia: number | null;
-  lote_id: string | null;
-  lotes: LoteJoin | null;
-}
+const ProductRowSchema = z.object({
+  id: z.string().uuid(),
+  slug: z.string().nullable(),
+  nombre: z.string().nullable(),
+  descripcion_regenerativa: z.string().nullable(),
+  precio: z.number().nullable(),
+  stock: z.number().nullable(),
+  formato: z.string().nullable(),
+  fotos: z.array(z.string()).nullable(),
+  visible: z.boolean().nullable(),
+  sustituye_azucar_g: z.number().nullable(),
+  co2_evitado_kg: z.number().nullable(),
+  irr_referencia: z.number().nullable(),
+  lote_id: z.string().nullable(),
+  lotes: LoteJoinSchema.nullable(),
+});
+
+const CosechaJoinSchema = z.object({
+  fecha: z.string().nullable(),
+  colmenas: z.object({ name: z.string().nullable() }).nullable(),
+});
+
+type ProductRow = z.infer<typeof ProductRowSchema>;
 
 function mapProduct(p: ProductRow): ShopProduct {
   return {
@@ -86,7 +94,12 @@ export async function listVisibleProducts(): Promise<ShopProduct[]> {
     .order('created_at', { ascending: false });
 
   if (error) throw new Error(error.message);
-  return ((data as unknown as ProductRow[] | null) ?? []).map(mapProduct);
+  const parsed = z.array(ProductRowSchema).safeParse(data);
+  if (!parsed.success) {
+    console.error('[products] listVisibleProducts schema mismatch:', parsed.error.flatten());
+    return [];
+  }
+  return parsed.data.map(mapProduct);
 }
 
 export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduct | null> {
@@ -101,7 +114,8 @@ export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduc
     .maybeSingle();
 
   if (bySlug.error) throw new Error(bySlug.error.message);
-    row = bySlug.data as unknown as ProductRow | null;
+  const slugParsed = ProductRowSchema.safeParse(bySlug.data);
+  if (slugParsed.success) row = slugParsed.data;
 
   if (!row) {
     const byId = await supabase
@@ -111,7 +125,8 @@ export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduc
       .maybeSingle();
 
     if (byId.error) throw new Error(byId.error.message);
-    row = byId.data as unknown as ProductRow | null;
+    const idParsed = ProductRowSchema.safeParse(byId.data);
+    if (idParsed.success) row = idParsed.data;
   }
 
   if (!row) return null;
@@ -125,10 +140,13 @@ export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduc
       .in('id', row.lotes.cosecha_ids)
       .limit(1);
 
-    const first = cosechas?.[0] as unknown as { fecha: string; colmenas: { name: string } } | undefined;
-    if (first) {
-      product.fecha_cosecha = first.fecha ?? null;
-      product.colmena_origen = first.colmenas?.name ?? null;
+    const firstRaw = cosechas?.[0];
+    if (firstRaw) {
+      const first = CosechaJoinSchema.safeParse(firstRaw);
+      if (first.success) {
+        product.fecha_cosecha = first.data.fecha ?? null;
+        product.colmena_origen = first.data.colmenas?.name ?? null;
+      }
     }
   }
 

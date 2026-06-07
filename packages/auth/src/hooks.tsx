@@ -1,6 +1,11 @@
 import { useEffect } from 'react'
 import { useAuthStore } from './auth-store'
-import { getRoleRedirectPath } from './role-redirect'
+import { getRoleRedirectPath, LEGACY_ROLE_MAP } from './role-redirect'
+
+function normalizeRole(role: string | undefined): string {
+  if (!role) return ''
+  return (LEGACY_ROLE_MAP[role] ?? role)
+}
 
 export function useRoleBasedRedirect(expectedRole?: string, redirectUrl: string = '/login') {
   const { user, isLoading, isAuthenticated } = useAuthStore()
@@ -12,7 +17,7 @@ export function useRoleBasedRedirect(expectedRole?: string, redirectUrl: string 
       if (window.location.pathname !== redirectUrl) {
         window.location.href = redirectUrl
       }
-    } else if (expectedRole && user?.role !== expectedRole && user?.role !== 'gerente') {
+    } else if (expectedRole && normalizeRole(user?.role) !== expectedRole && normalizeRole(user?.role) !== 'admin') {
       const rolePath = getRoleRedirectPath(user?.role ?? '')
       if (window.location.pathname !== rolePath) {
         window.location.href = rolePath

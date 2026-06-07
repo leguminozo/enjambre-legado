@@ -38,7 +38,7 @@ export function MetricasCards({
     <Card className="bg-background border-border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">Ingresos Mes</CardTitle>
-        <TrendingUp className="h-4 w-4 text-green-400" />
+        <TrendingUp className="h-4 w-4 text-primary" />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{formatCurrency(ingresosMes)}</div>
@@ -49,7 +49,7 @@ export function MetricasCards({
     <Card className="bg-background border-border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">Gastos Mes</CardTitle>
-        <TrendingDown className="h-4 w-4 text-red-400" />
+        <TrendingDown className="h-4 w-4 text-destructive" />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{formatCurrency(gastosMes)}</div>
@@ -60,7 +60,7 @@ export function MetricasCards({
     <Card className="bg-background border-border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">Utilidad Neta</CardTitle>
-        <DollarSign className="h-4 w-4 text-yellow-400" />
+        <DollarSign className="h-4 w-4 text-primary" />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{formatCurrency(utilidadNeta)}</div>
@@ -71,7 +71,7 @@ export function MetricasCards({
     <Card className="bg-background border-border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">Impuestos</CardTitle>
-        <FileText className="h-4 w-4 text-blue-400" />
+        <FileText className="h-4 w-4 text-foreground" />
       </CardHeader>
       <CardContent>
         <div className="space-y-1">

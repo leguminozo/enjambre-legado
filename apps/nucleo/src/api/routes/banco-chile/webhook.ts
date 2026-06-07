@@ -170,8 +170,8 @@ async function procesarNotificacion(
         }
         break;
 
-      default:
-        console.log(`Tipo de notificación no manejada: ${tipo}`);
+default:
+      break;
     }
 
     // Marcar notificación como procesada

@@ -1,6 +1,13 @@
 import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { Compass, MapPin, Zap, Activity } from 'lucide-react';
+import { z } from 'zod';
+
+const ColmenaSchema = z.object({
+  name: z.string().nullable().default(null),
+  estado: z.string().nullable().default(null),
+  peso_kg: z.number().nullable().default(null),
+});
 
 export default async function PasaportePage() {
   const supabase = await createClient();
@@ -12,7 +19,9 @@ export default async function PasaportePage() {
     .eq('user_id', user?.id)
     .single();
 
-  const hive = subConfig?.colmenas as Record<string, unknown> | null;
+  const hiveRaw = subConfig?.colmenas;
+  const hiveParsed = ColmenaSchema.safeParse(hiveRaw);
+  const hive = hiveParsed.success ? hiveParsed.data : null;
 
   return (
     <div className="space-y-16 animate-in">
@@ -45,23 +54,23 @@ export default async function PasaportePage() {
 
               <div className="relative z-10">
                 <span className="text-[0.6rem] uppercase tracking-[0.4em] text-accent mb-8 block">Estado Vital</span>
-                <h3 className="font-display text-5xl text-foreground mb-4">{String(hive.name ?? '')}</h3>
-                <div className="flex items-center gap-4 text-muted-foreground mb-8">
-                  <div className="flex items-center gap-2">
-                    <MapPin size={14} className="text-accent" />
-                    <span className="text-xs uppercase tracking-widest">Sector Pureo</span>
-                  </div>
-                  <span className="text-muted-foreground">·</span>
-                  <div className="flex items-center gap-2">
-                    <Activity size={14} className="text-accent" />
-                    <span className="text-xs uppercase tracking-widest">{hive.estado === 'optima' ? 'Ritmo Estable' : 'En Observación'}</span>
-                  </div>
-                </div>
+      <h3 className="font-display text-5xl text-foreground mb-4">{hive.name ?? ''}</h3>
+      <div className="flex items-center gap-4 text-muted-foreground mb-8">
+        <div className="flex items-center gap-2">
+          <MapPin size={14} className="text-accent" />
+          <span className="text-xs uppercase tracking-widest">Sector Pureo</span>
+        </div>
+        <span className="text-muted-foreground">·</span>
+        <div className="flex items-center gap-2">
+          <Activity size={14} className="text-accent" />
+          <span className="text-xs uppercase tracking-widest">{hive.estado === 'optima' ? 'Ritmo Estable' : 'En Observación'}</span>
+        </div>
+      </div>
 
-                <div className="grid grid-cols-2 gap-8 pt-8 border-t border-border">
-                  <div>
-                    <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Peso Estimado</span>
-                    <span className="text-3xl font-display text-foreground">{hive.peso_kg ? String(hive.peso_kg) : '--'} <span className="text-sm italic text-muted-foreground">kg</span></span>
+      <div className="grid grid-cols-2 gap-8 pt-8 border-t border-border">
+        <div>
+          <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Peso Estimado</span>
+          <span className="text-3xl font-display text-foreground">{hive.peso_kg != null ? String(hive.peso_kg) : '--'} <span className="text-sm italic text-muted-foreground">kg</span></span>
                   </div>
                   <div>
                     <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Último Reporte</span>
@@ -74,7 +83,7 @@ export default async function PasaportePage() {
             <div className="p-8 rounded-3xl border border-border bg-secondary/30">
               <h4 className="text-[0.7rem] uppercase tracking-[0.3em] text-accent mb-6">Bitácora Biocultural</h4>
               <p className="text-sm text-muted-foreground leading-relaxed italic font-display">
-                "Las abejas de {String(hive.name ?? '')} han mostrado una actividad excepcional durante la floración del Ulmo.
+                "Las abejas de {hive.name ?? ''} han mostrado una actividad excepcional durante la floración del Ulmo.
                 La humedad relativa en el Sector Pureo ha favorecido una néctar de alta densidad que será
                 cosechado en el próximo ciclo ritual."
               </p>

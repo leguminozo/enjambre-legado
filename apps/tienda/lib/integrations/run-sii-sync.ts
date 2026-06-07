@@ -28,8 +28,8 @@ export async function runSiiSyncJob(opts: RunOpts): Promise<RunSiiSyncJobResult>
 
   const config =
     row.config && typeof row.config === 'object' && !Array.isArray(row.config)
-      ? (row.config as Record<string, unknown>)
-      : {};
+    ? row.config as Record<string, unknown>
+    : {};
   const provider = typeof config.provider === 'string' ? config.provider : 'manual';
   const connector = resolveSiiConnector(provider);
   const env = parseIntegrationsEnv();

@@ -78,19 +78,19 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
   };
 
   const getAhorroColor = (value: number) => {
-    if (value > 1000000) return 'text-green-400';
-    if (value > 500000) return 'text-yellow-400';
-    return 'text-orange-400';
+  if (value > 1000000) return 'text-primary';
+  if (value > 500000) return 'text-primary';
+  return 'text-destructive';
   };
 
   const getRiesgoColor = (riesgo: string) => {
     switch (riesgo.toLowerCase()) {
-      case 'bajo':
-        return 'bg-green-500 text-foreground';
-      case 'medio':
-        return 'bg-yellow-500 text-foreground';
-      case 'alto':
-        return 'bg-red-500 text-foreground';
+    case 'bajo':
+      return 'bg-primary/20 text-primary';
+    case 'medio':
+      return 'bg-primary/10 text-primary';
+    case 'alto':
+      return 'bg-destructive/20 text-destructive';
       default:
         return 'bg-muted text-foreground';
     }
@@ -143,11 +143,11 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
       <CardContent className="space-y-6">
         {/* Métricas Principales */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-green-500/10 border-green-500/30">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Ahorro Potencial</span>
-                <DollarSign className="h-4 w-4 text-green-400" />
+    <Card className="bg-primary/10 border-primary/30">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm text-muted-foreground">Ahorro Potencial</span>
+          <DollarSign className="h-4 w-4 text-primary" />
               </div>
               <div className={`text-2xl font-bold ${getAhorroColor(optimizacion.ahorroPotencial)}`}>
                 {formatCurrency(optimizacion.ahorroPotencial)}
@@ -156,11 +156,11 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
             </CardContent>
           </Card>
 
-          <Card className="bg-blue-500/10 border-blue-500/30">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Riesgo Cumplimiento</span>
-                <Shield className="h-4 w-4 text-blue-400" />
+    <Card className="bg-surface-raised border-border">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm text-muted-foreground">Riesgo Cumplimiento</span>
+          <Shield className="h-4 w-4 text-foreground" />
               </div>
               <div className="flex items-center gap-2">
                 <Badge className={getRiesgoColor(optimizacion.riesgoCumplimiento)}>
@@ -171,13 +171,13 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
             </CardContent>
           </Card>
 
-          <Card className="bg-purple-500/10 border-purple-500/30">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Deducciones</span>
-                <Calculator className="h-4 w-4 text-purple-400" />
-              </div>
-              <div className="text-2xl font-bold text-purple-400">
+    <Card className="bg-card border-border">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm text-muted-foreground">Deducciones</span>
+          <Calculator className="h-4 w-4 text-foreground" />
+        </div>
+        <div className="text-2xl font-bold text-foreground">
                 {optimizacion.deduccionesDisponibles.length}
               </div>
               <div className="text-xs text-muted-foreground mt-2">Oportunidades identificadas</div>
@@ -199,7 +199,7 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
                 <div key={index} className="p-4 border border-border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium">{deduccion.nombre}</h4>
-                    <span className="text-sm text-green-400">
+                    <span className="text-sm text-primary">
                       {formatCurrency(deduccion.montoMaximo)}
                     </span>
                   </div>
@@ -212,9 +212,9 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
 
         {/* Alertas */}
         {optimizacion.alertas.length > 0 && (
-          <Card className="bg-red-500/10 border-red-500/30">
-            <CardHeader>
-              <CardTitle className="text-lg font-medium flex items-center gap-2 text-red-400">
+    <Card className="bg-destructive/10 border-destructive/30">
+      <CardHeader>
+        <CardTitle className="text-lg font-medium flex items-center gap-2 text-destructive">
                 <AlertTriangle className="h-5 w-5" />
                 Alertas de Cumplimiento
               </CardTitle>
@@ -223,8 +223,8 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
               <div className="space-y-2">
                 {optimizacion.alertas.map((alerta, index) => (
                   <div key={index} className="flex items-start gap-2 text-sm">
-                    <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
-                    <span className="text-red-300">{alerta}</span>
+        <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+              <span className="text-destructive">{alerta}</span>
                   </div>
                 ))}
               </div>
@@ -233,9 +233,9 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
         )}
 
         {/* Plan de Acción */}
-        <Card className="bg-blue-500/10 border-blue-500/30">
-          <CardHeader>
-            <CardTitle className="text-lg font-medium flex items-center gap-2 text-blue-400">
+    <Card className="bg-surface-raised border-border">
+      <CardHeader>
+        <CardTitle className="text-lg font-medium flex items-center gap-2 text-foreground">
               <Lightbulb className="h-5 w-5" />
               Plan de Acción Inteligente
             </CardTitle>
@@ -243,23 +243,23 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
           <CardContent>
             <div className="space-y-4">
               {optimizacion.planAccion.map((accion, index) => (
-                <div key={index} className="p-4 bg-blue-500/5 rounded-lg border border-blue-500/20">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Badge 
-                         
-                        className={
-                          accion.plazo === 'Corto' ? 'border-green-500 text-green-400' :
-                          accion.plazo === 'Mediano' ? 'border-yellow-500 text-yellow-400' :
-                          'border-purple-500 text-purple-400'
-                        }
+    <div key={index} className="p-4 bg-surface-sunken rounded-lg border border-border">
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Badge
+
+            className={
+              accion.plazo === 'Corto' ? 'border-primary text-primary' :
+              accion.plazo === 'Mediano' ? 'border-primary/50 text-primary' :
+              'border-border text-foreground'
+            }
                       >
                         {accion.plazo} Plazo
                       </Badge>
                       <span className="text-sm font-medium">{accion.impacto}</span>
                     </div>
                   </div>
-                  <p className="text-sm text-blue-300">{accion.accion}</p>
+                  <p className="text-sm text-foreground">{accion.accion}</p>
                 </div>
               ))}
             </div>
@@ -278,7 +278,7 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {optimizacion.recomendaciones.map((recomendacion, index) => (
                 <div key={index} className="flex items-start gap-2 p-2">
-                  <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-secondary-foreground">{recomendacion}</p>
                 </div>
               ))}

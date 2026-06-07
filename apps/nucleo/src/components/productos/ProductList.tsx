@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Trash2, Eye, EyeOff, MoreVertical, ExternalLink, Package } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { Button } from '@enjambre/ui';
+import { Button, toast } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
 import type { Product } from '@/lib/product-types';
 
@@ -31,7 +31,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      const mappedProducts = (data || []).map((p) => {
+      const mappedProducts = (data || []).map((p: Record<string, unknown>) => {
         const product: Product = {
           id: String(p.id),
           nombre: String(p.nombre ?? ''),
@@ -56,8 +56,8 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
       });
       setProducts(mappedProducts);
     } catch (error) {
-      console.error('Error loading products:', error);
-      alert(friendlySupabaseError(error));
+console.error('Error loading products:', error);
+		toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -75,10 +75,10 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
       setProducts(prev => prev.map(p => 
         p.id === id ? { ...p, visible: !currentVisible } : p
       ));
-      alert(currentVisible ? 'Producto ocultado' : 'Producto publicado');
+      toast(currentVisible ? 'Producto ocultado' : 'Producto publicado', { type: 'success' });
     } catch (error) {
-      console.error('Error toggling visibility:', error);
-      alert(friendlySupabaseError(error));
+console.error('Error toggling visibility:', error);
+		toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
     }
   };
 
@@ -97,10 +97,10 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
       if (error) throw error;
       
       setProducts(prev => prev.filter(p => p.id !== id));
-      alert('Producto eliminado');
+      toast('Producto eliminado', { type: 'success' });
     } catch (error) {
-      console.error('Error deleting product:', error);
-      alert(friendlySupabaseError(error));
+console.error('Error deleting product:', error);
+		toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
     } finally {
       setDeletingId(null);
     }

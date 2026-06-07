@@ -19,7 +19,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState('apicultor');
+  const [role, setRole] = useState('admin');
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -110,13 +110,11 @@ export default function LoginPage() {
                     <label className="uppercase tracking-widest font-semibold text-crema-natural m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Rol Principal</label>
                     <div className="relative text-left">
                       <ShieldCheck size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'var(--crema-natural)' }} />
-                      <select className="input-field" value={role} onChange={e => setRole(e.target.value)} style={{ paddingLeft: '2.8rem', appearance: 'none' }}>
-                        <option value="apicultor" style={{ background: 'var(--negro-tinta)' }}>Apicultor</option>
-                        <option value="vendedor" style={{ background: 'var(--negro-tinta)' }}>Vendedor</option>
-                        <option value="gerente" style={{ background: 'var(--negro-tinta)' }}>Gerente</option>
-                        <option value="logistica" style={{ background: 'var(--negro-tinta)' }}>Logística</option>
-                        <option value="marketing" style={{ background: 'var(--negro-tinta)' }}>Marketing</option>
-                      </select>
+                <select className="input-field" value={role} onChange={e => setRole(e.target.value)} style={{ paddingLeft: '2.8rem', appearance: 'none' }}>
+                  <option value="admin" style={{ background: 'var(--negro-tinta)' }}>Admin</option>
+                  <option value="creador" style={{ background: 'var(--negro-tinta)' }}>Creador</option>
+                  <option value="rep_ventas" style={{ background: 'var(--negro-tinta)' }}>Rep Ventas</option>
+                </select>
                     </div>
                   </div>
                 </>

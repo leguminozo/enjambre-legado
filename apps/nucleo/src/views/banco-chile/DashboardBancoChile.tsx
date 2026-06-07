@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { toast } from '@enjambre/ui';
 
 interface ResumenEjecutivo {
   totalCuentas: number;
@@ -80,7 +81,7 @@ export function DashboardBancoChile() {
         .eq('estado', 'pendiente');
 
       // Calcular saldo total
-      const saldoTotal = resumenData?.reduce((acc, c) => acc + (c.saldo_disponible || 0), 0) || 0;
+      const saldoTotal = resumenData?.reduce((acc: number, c: Record<string, unknown>) => acc + (Number(c.saldo_disponible) || 0), 0) || 0;
 
       setResumen({
         totalCuentas: cuentasCount || 0,
@@ -150,12 +151,12 @@ export function DashboardBancoChile() {
 
       const result = await response.json();
       if (result.success) {
-        alert(`Se conciliaron ${result.conciliados} movimientos automáticamente`);
+        toast(`Se conciliaron ${result.conciliados} movimientos automáticamente`, { type: 'success' });
         fetchDashboard();
       }
     } catch (error) {
-      console.error('Error auto-conciliando:', error);
-      alert('Error al auto-conciliar');
+console.error('Error auto-conciliando:', error);
+		toast('Error al auto-conciliar', { type: 'error' });
     }
   }
 
@@ -379,4 +380,4 @@ function ResumenCard({
   );
 }
 
-export default DashboardBancoChile;
+

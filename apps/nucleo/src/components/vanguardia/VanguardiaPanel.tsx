@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
-import { Shield, Users, Star, Check, X, AlertCircle, Loader2 } from 'lucide-react';
+import { friendlyError, friendlySupabaseError, toast } from '@enjambre/ui';
+import { Shield, Users, Star, Check, X, Loader2 } from 'lucide-react';
 
 interface Revendedor {
   user_id: string;
@@ -35,16 +35,10 @@ export function VanguardiaPanel() {
   const [resenas, setResenas] = useState<Resena[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     fetchVanguardData();
   }, []);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
 
   const fetchVanguardData = async () => {
     setLoading(true);
@@ -70,7 +64,7 @@ export function VanguardiaPanel() {
       if (reviews) setResenas(reviews as unknown as Resena[]);
 	} catch (err) {
 			console.error("Error fetching vanguard data:", err);
-			showToast(friendlyError(err, "Error al cargar datos de vanguardia"), "error");
+			toast(friendlyError(err, "Error al cargar datos de vanguardia"), { type: "error" });
 		} finally {
       setLoading(false);
     }
@@ -95,11 +89,11 @@ export function VanguardiaPanel() {
         if (roleError) throw roleError;
       }
 
-      showToast(`Revendedor ${status === 'activo' ? 'activado' : 'suspendido'} con éxito`, "success");
+      toast(`Revendedor ${status === 'activo' ? 'activado' : 'suspendido'} con éxito`, { type: "success" });
       await fetchVanguardData();
 	} catch (err) {
 			console.error("Error updating status:", err);
-			showToast(friendlyError(err, "No se pudo actualizar el estado"), "error");
+			toast(friendlyError(err, "No se pudo actualizar el estado"), { type: "error" });
 		} finally {
       setActionLoading(null);
     }
@@ -115,18 +109,8 @@ export function VanguardiaPanel() {
   }
 
   return (
-    <div className="space-y-8 animate-in relative">
-      {/* Local Toast */}
-      {toast && (
-        <div className={`fixed top-24 right-8 z-[100] px-6 py-3 rounded-lg shadow-xl border flex items-center gap-3 animate-in ${
-          toast.type === 'success' ? 'bg-salud-optima/10 border-salud-optima text-salud-optima' : 'bg-salud-riesgo/10 border-salud-riesgo text-salud-riesgo'
-        }`}>
-          {toast.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
-          <span className="text-sm font-medium">{toast.message}</span>
-        </div>
-      )}
-
-      <div className="flex items-center gap-4 mb-8">
+  <div className="space-y-8 animate-in relative">
+    <div className="flex items-center gap-4 mb-8">
         <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
           <Shield size={24} />
         </div>
@@ -206,7 +190,7 @@ export function VanguardiaPanel() {
                       <p className="text-sm font-bold text-bosque-ulmo">{res.profiles?.full_name || 'Anónimo'}</p>
                       <p className="text-[0.6rem] text-oro-miel-dark mt-1">Lote: {res.lotes?.blockchain_hash?.slice(0, 12) || 'Sin Hash'}...</p>
                     </div>
-                    <span className="text-[0.6rem] text-text-muted font-medium bg-white/50 px-2 py-1 rounded">
+                    <span className="text-[0.6rem] text-text-muted font-medium bg-surface-raised px-2 py-1 rounded">
                       {new Date(res.created_at).toLocaleDateString()}
                     </span>
                   </div>
@@ -227,7 +211,7 @@ export function VanguardiaPanel() {
                   </div>
                   
                   {res.notas_personales && (
-                    <div className="mt-2 pt-3 border-t border-black/5">
+                    <div className="mt-2 pt-3 border-t border-border">
                       <p className="text-xs text-text-secondary italic leading-relaxed">"{res.notas_personales}"</p>
                     </div>
                   )}

@@ -1,4 +1,13 @@
 import type { PaymentProvider, PaymentInitResult, PaymentCommitResult } from './types';
+import { z } from 'zod';
+
+const TransbankCommitResultSchema = z.object({
+  status: z.string().optional(),
+  buyOrder: z.string().optional(),
+  authorizationCode: z.string().optional(),
+  paymentTypeCode: z.string().optional(),
+  cardDetail: z.object({ cardNumber: z.string().optional() }).optional(),
+}).passthrough();
 
 export class TransbankProvider implements PaymentProvider {
   readonly name = 'transbank' as const;
@@ -22,7 +31,14 @@ export class TransbankProvider implements PaymentProvider {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { WebpayPlus } = require('transbank-sdk');
     const tx = new WebpayPlus.Transaction();
-    const result = await tx.commit(token);
+    const rawResult = await tx.commit(token);
+
+    const parsed = TransbankCommitResultSchema.safeParse(rawResult);
+    const result = parsed.success ? parsed.data : null;
+
+    if (!parsed.success) {
+      console.error('[transbank] commit response schema mismatch:', parsed.error.flatten());
+    }
 
     const authorized = result?.status === 'AUTHORIZED';
 
@@ -32,7 +48,7 @@ export class TransbankProvider implements PaymentProvider {
       authorizationCode: result?.authorizationCode ?? '',
       cardType: result?.paymentTypeCode ?? '',
       last4: result?.cardDetail?.cardNumber ?? '',
-      raw: result as Record<string, unknown>,
+      raw: (rawResult ?? {}) as Record<string, unknown>,
     };
   }
 

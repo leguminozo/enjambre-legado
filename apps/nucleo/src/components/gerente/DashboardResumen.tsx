@@ -82,7 +82,7 @@ const TIER_COLORS: Record<string, string> = {
   base: TEXT_MUTED,
   senior: ORO_MIEL,
   elite: BOSQUE_ULMO,
-  legend: '#8B5CF6',
+  legend: 'hsl(var(--primary))',
 }
 
 export function DashboardResumen() {

@@ -1,18 +1,21 @@
 import { Hono } from "hono";
 import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
 import { authMiddleware } from "@/api/lib/middleware";
 import { logSecurityEvent } from "@enjambre/auth/security-events";
 
 export const securityEventRoutes = new Hono();
 
-type SecurityEventBody = {
-  eventType: string;
-  email: string;
-  userId?: string | null;
-  ipAddress?: string;
-  userAgent?: string;
-  details?: Record<string, unknown>;
-};
+const SecurityEventSchema = z.strictObject({
+  eventType: z.string().min(1),
+  email: z.string().min(1),
+  userId: z.string().nullable().optional(),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
+});
+
+const toUndefined = (v: string | null | undefined): string | undefined => v ?? undefined;
 
 securityEventRoutes.post("/internal", async (c) => {
   const internalKey = c.req.header("x-internal-key");
@@ -20,7 +23,10 @@ securityEventRoutes.post("/internal", async (c) => {
     return c.json({ code: "unauthorized", message: "Invalid internal key" }, 401);
   }
 
-  const body = await c.req.json<SecurityEventBody>();
+  const parsed = SecurityEventSchema.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ code: "validation_error", errors: parsed.error.flatten() }, 400);
+  const body = parsed.data;
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -31,8 +37,8 @@ securityEventRoutes.post("/internal", async (c) => {
     eventType: body.eventType as "access_denied",
     email: body.email,
     userId: body.userId ?? null,
-    ipAddress: body.ipAddress ?? c.req.header("x-forwarded-for") ?? null,
-    userAgent: body.userAgent ?? c.req.header("user-agent") ?? null,
+    ipAddress: body.ipAddress ?? toUndefined(c.req.header("x-forwarded-for")),
+    userAgent: body.userAgent ?? toUndefined(c.req.header("user-agent")),
     details: body.details ?? {},
     appSource: "nucleo",
   });
@@ -41,15 +47,18 @@ securityEventRoutes.post("/internal", async (c) => {
 });
 
 securityEventRoutes.post("/", authMiddleware, async (c) => {
-  const body = await c.req.json<SecurityEventBody>();
+  const parsed = SecurityEventSchema.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ code: "validation_error", errors: parsed.error.flatten() }, 400);
+  const body = parsed.data;
+
   const supabase = c.get("supabase");
 
   await logSecurityEvent(supabase, {
     eventType: body.eventType as "access_denied",
     email: body.email,
     userId: body.userId ?? null,
-    ipAddress: body.ipAddress ?? c.req.header("x-forwarded-for") ?? null,
-    userAgent: body.userAgent ?? c.req.header("user-agent") ?? null,
+    ipAddress: body.ipAddress ?? toUndefined(c.req.header("x-forwarded-for")),
+    userAgent: body.userAgent ?? toUndefined(c.req.header("user-agent")),
     details: body.details ?? {},
     appSource: "nucleo",
   });

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError } from '@enjambre/ui';
+import { friendlyError, toast } from '@enjambre/ui';
 import { Trophy, Medal, Crown, TrendingUp, Loader2 } from 'lucide-react';
 
 interface LeaderboardEntry {
@@ -17,9 +17,9 @@ interface LeaderboardEntry {
 
 const rankIcons = [Trophy, Medal, Crown];
 const rankColors = [
-  'bg-amber-50 border-amber-200 text-amber-700',
+  'bg-primary/10 border-primary/20 text-primary',
   'bg-primary-foreground border-border text-muted-foreground',
-  'bg-orange-50 border-orange-200 text-orange-700',
+  'bg-card border-border text-foreground',
 ];
 const rankIconColors = ['text-accent', 'text-muted-foreground', 'text-warning'];
 
@@ -27,20 +27,14 @@ const tierBadge: Record<string, string> = {
   base: 'bg-secondary text-muted-foreground',
   senior: 'bg-oro-miel-glow/30 text-oro-miel-dark',
   elite: 'bg-salud-optima/10 text-salud-optima',
-  legend: 'bg-purple-100 text-purple-600',
+  legend: 'bg-card text-foreground',
 };
 
 export function LeaderboardPanel() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => { fetchLeaderboard(); }, []);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
 
   const fetchLeaderboard = async () => {
     setLoading(true);
@@ -51,7 +45,7 @@ export function LeaderboardPanel() {
       if (error) throw error;
       setEntries((data as unknown as LeaderboardEntry[]) || []);
     } catch (err) {
-      showToast(friendlyError(err, 'Error al cargar ranking'), 'error');
+      toast(friendlyError(err, 'Error al cargar ranking'), { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -78,16 +72,8 @@ export function LeaderboardPanel() {
   const totalSales = entries.reduce((s, e) => s + Number(e.total_sales || 0), 0);
 
   return (
-    <div className="space-y-8 animate-in relative">
-      {toast && (
-        <div className={`fixed top-24 right-8 z-[100] px-6 py-3 rounded-lg shadow-xl border flex items-center gap-3 animate-in ${
-          toast.type === 'success' ? 'bg-salud-optima/10 border-salud-optima text-salud-optima' : 'bg-salud-riesgo/10 border-salud-riesgo text-salud-riesgo'
-        }`}>
-          <span className="text-sm font-medium">{toast.message}</span>
-        </div>
-      )}
-
-      <div className="flex items-center gap-4 mb-8">
+  <div className="space-y-8 animate-in relative">
+    <div className="flex items-center gap-4 mb-8">
         <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
           <Trophy size={24} />
         </div>
@@ -102,7 +88,7 @@ export function LeaderboardPanel() {
           { icon: <Trophy size={18} />, val: entries.length, label: 'Representantes Activos', accent: '' },
           { icon: <TrendingUp size={18} />, val: formatCLP(totalCommissions), label: 'Comisiones Totales', accent: 'text-oro-miel-dark' },
           { icon: <Medal size={18} />, val: totalSales, label: 'Ventas Totales', accent: '' },
-          { icon: <Crown size={18} />, val: entries[0]?.display_name || '—', label: 'Líder Semanal', accent: 'text-amber-600' },
+          { icon: <Crown size={18} />, val: entries[0]?.display_name || '—', label: 'Líder Semanal', accent: 'text-primary' },
         ].map((s, i) => (
           <div key={i} className="stat-card animate-in" style={{ animationDelay: `${i * 80}ms` }}>
             <div className="stat-header"><div className="stat-icon">{s.icon}</div></div>
@@ -117,7 +103,7 @@ export function LeaderboardPanel() {
           {top3.map((entry, i) => {
             const RankIcon = rankIcons[i] || TrendingUp;
             return (
-              <div key={entry.rep_id} className={`card p-6 text-center border-2 ${rankColors[i] || 'border-white/10'} ${i === 0 ? 'lg:scale-105 lg:z-10' : ''}`}>
+              <div key={entry.rep_id} className={`card p-6 text-center border-2 ${rankColors[i] || 'border-border'} ${i === 0 ? 'lg:scale-105 lg:z-10' : ''}`}>
                 <RankIcon className={`w-8 h-8 mx-auto mb-3 ${rankIconColors[i] || 'text-muted-foreground'}`} />
                 <p className="text-lg font-bold text-bosque-ulmo">{entry.display_name}</p>
                 <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${tierBadge[entry.commission_tier] || tierBadge.base}`}>

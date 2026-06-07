@@ -37,7 +37,7 @@ interface ReflexionData {
 type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad';
 
 export function ApicultorView() {
-    const { greeting, title, subtitle } = roleGreetings.gerente;
+    const { greeting, title, subtitle } = roleGreetings.admin;
     const [localColmenas, setLocalColmenas] = useState<Colmena[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedColmena, setSelectedColmena] = useState<Colmena | null>(null);
@@ -56,7 +56,7 @@ export function ApicultorView() {
                 const uid = session?.user?.id;
 
                 const { data: apiarios } = await supabase.from('apiarios').select('*');
-                const apiarioMap = new Map(apiarios?.map((a) => [a.id, (a as { name?: string }).name]) || []);
+                const apiarioMap = new Map(apiarios?.map((a: Record<string, unknown>) => [a.id, (a as { name?: string }).name]) || []);
 
                 const nested = await supabase.from('colmenas').select(`
                     *,

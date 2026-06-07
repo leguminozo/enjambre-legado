@@ -1,6 +1,21 @@
 import { Hono } from "hono";
+import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+
+const CreateFacturaEmitidaSchema = z.strictObject({
+  numero: z.string().min(1),
+  fecha: z.string().min(1),
+  fechaVencimiento: z.string().optional(),
+  montoTotal: z.number().positive(),
+  montoNeto: z.number().nonnegative(),
+  montoIva: z.number().nonnegative(),
+  montoExento: z.number().nonnegative().default(0),
+  montoIvaUsado: z.number().nonnegative().default(0),
+  descripcion: z.string().optional(),
+  tipoDocumento: z.enum(["Factura", "Nota de Crédito", "Nota de Débito", "Boleta", "Otro"]).default("Factura"),
+  clienteId: z.string().uuid().optional(),
+});
 
 export const facturasEmitidasRoutes = new Hono<{
   Variables: AppVariables;
@@ -35,23 +50,11 @@ facturasEmitidasRoutes.get("/", async (c) => {
 facturasEmitidasRoutes.post("/", async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase");
-  const body = await c.req.json();
+  const parsed = CreateFacturaEmitidaSchema.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ code: "validation_error", errors: parsed.error.flatten() }, 400);
+  const body = parsed.data;
 
-  const {
-    numero,
-    fecha,
-    fechaVencimiento,
-    montoTotal,
-    montoNeto,
-    montoIva,
-    montoExento = 0,
-    montoIvaUsado = 0,
-    descripcion,
-    tipoDocumento = "Factura",
-    clienteId,
-  } = body;
-
-  const fechaDate = new Date(fecha);
+  const fechaDate = new Date(body.fecha);
   const mes = fechaDate.getMonth() + 1;
   const anio = fechaDate.getFullYear();
 
@@ -87,18 +90,18 @@ facturasEmitidasRoutes.post("/", async (c) => {
 
   const payload = {
     empresa_id: empresaId,
-    tercero_id: clienteId ?? null,
+    tercero_id: body.clienteId ?? null,
     periodo_id: periodo.id,
-    numero,
-    fecha_emision: fecha,
-    fecha_vencimiento: fechaVencimiento ?? null,
-    monto_neto: montoNeto,
-    monto_iva: montoIva,
-    monto_total: montoTotal,
-    monto_exento: montoExento,
-    monto_iva_usado: montoIvaUsado,
-    descripcion: descripcion ?? null,
-    tipo_documento: tipoDocumento,
+    numero: body.numero,
+    fecha_emision: body.fecha,
+    fecha_vencimiento: body.fechaVencimiento ?? null,
+    monto_neto: body.montoNeto,
+    monto_iva: body.montoIva,
+    monto_total: body.montoTotal,
+    monto_exento: body.montoExento,
+    monto_iva_usado: body.montoIvaUsado,
+    descripcion: body.descripcion ?? null,
+    tipo_documento: body.tipoDocumento,
     estado: "pendiente",
   };
 

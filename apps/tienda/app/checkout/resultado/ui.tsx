@@ -14,6 +14,37 @@ import { friendlyApiError } from '@enjambre/ui';
 
 type CommitState = 'loading' | 'success' | 'failed';
 
+type PendingCheckout = { buyOrder?: string; provider?: string };
+
+function parsePendingCheckout(raw: string | null): PendingCheckout | null {
+  if (!raw) return null;
+  try {
+    const obj = JSON.parse(raw);
+    if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
+      return {
+        buyOrder: typeof obj.buyOrder === 'string' ? obj.buyOrder : undefined,
+        provider: typeof obj.provider === 'string' ? obj.provider : undefined,
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+type CommitResponse = { ok?: boolean; authorized?: boolean; error?: string; buyOrder?: string };
+
+function parseCommitResponse(obj: unknown): CommitResponse {
+  if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) return {};
+  const record = obj as Record<string, unknown>;
+  return {
+    ok: typeof record.ok === 'boolean' ? record.ok : undefined,
+    authorized: typeof record.authorized === 'boolean' ? record.authorized : undefined,
+    error: typeof record.error === 'string' ? record.error : undefined,
+    buyOrder: typeof record.buyOrder === 'string' ? record.buyOrder : undefined,
+  };
+}
+
 export function CheckoutResultClient() {
   const params = useSearchParams();
   const token = params.get('token_ws') || params.get('token');
@@ -39,10 +70,8 @@ export function CheckoutResultClient() {
       return;
     }
 
-    const raw = sessionStorage.getItem('oyz_pending_checkout');
-  const pending = raw
-    ? (JSON.parse(raw) as { buyOrder?: string; provider?: string })
-    : null;
+  const raw = sessionStorage.getItem('oyz_pending_checkout');
+  const pending = parsePendingCheckout(raw);
 
     void (async () => {
       const res = await fetch('/api/checkout/commit', {
@@ -57,15 +86,9 @@ export function CheckoutResultClient() {
           provider: pending?.provider || undefined,
         }),
       });
-      const json = (await res.json()) as {
-        ok?: boolean;
-        authorized?: boolean;
-        error?: string;
-        buyOrder?: string;
-      };
+    const json = parseCommitResponse(await res.json());
 
-      if (!res.ok || !json.ok || !json.authorized) {
-        setState('failed');
+      if (!res.ok || !json.ok || !json.authorized) {        setState('failed');
         setMessage(json.error ? friendlyApiError(undefined, json.error) : 'Pago no autorizado.');
         return;
       }

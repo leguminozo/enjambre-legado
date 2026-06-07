@@ -4,10 +4,11 @@ import React, { useState } from 'react';
 import { Menu } from 'lucide-react';
 import { GuardianSidebar } from '@/components/shop/guardian-sidebar';
 import { BeeCanvas } from '@/components/shop/bee-canvas';
+import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 
 interface PerfilLayoutClientProps {
   children: React.ReactNode;
-  user: unknown;
+  user: TiendaUserProfile | null;
 }
 
 export function PerfilLayoutClient({ children, user }: PerfilLayoutClientProps) {
