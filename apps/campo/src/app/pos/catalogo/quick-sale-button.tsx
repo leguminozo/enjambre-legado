@@ -187,8 +187,9 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
                   }
                 }
                 setStep('done');
-                } catch {
-                  setStep('idle');
+} catch (error) {
+      console.error('[quick-sale] error:', error);
+      setStep('idle');
                   setQty(1);
                 } finally {
                   setLoading(false);

@@ -246,7 +246,7 @@ export function ReglasComisionPanel() {
             </div>
           </div>
 
-      <div className="border-t border-white/5 pt-4">
+      <div className="border-t border-foreground/5 pt-4">
       <p className="text-[0.6rem] uppercase text-text-muted tracking-wider mb-3">Parámetros</p>
       {formType === 'tier_bonus' ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -332,7 +332,7 @@ export function ReglasComisionPanel() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
               <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                  rule.rule_type === 'base' ? 'bg-stone-100 text-stone-600' :
+                  rule.rule_type === 'base' ? 'bg-secondary text-muted-foreground' :
                   rule.rule_type === 'channel_rate' ? 'bg-blue-100 text-blue-600' :
                   rule.rule_type === 'volume_threshold' ? 'bg-oro-miel-glow/30 text-oro-miel-dark' :
                   rule.rule_type === 'loyalty' ? 'bg-salud-optima/10 text-salud-optima' :
@@ -377,7 +377,7 @@ export function ReglasComisionPanel() {
                 >
                   {rule.active
                     ? <ToggleRight size={20} className="text-salud-optima" />
-                    : <ToggleLeft size={20} className="text-stone-400" />
+                    : <ToggleLeft size={20} className="text-muted-foreground" />
                   }
                 </button>
                 <button onClick={() => startEdit(rule)} className="w-9 h-9 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center hover:bg-blue-100 transition-all" title="Editar">
@@ -386,7 +386,7 @@ export function ReglasComisionPanel() {
                 <button
                   disabled={actionLoading === rule.id}
                   onClick={() => deleteRule(rule.id)}
-                  className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-white transition-all disabled:opacity-50"
+                  className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-foreground transition-all disabled:opacity-50"
                   title="Eliminar"
                 >
                   <Trash2 size={16} />

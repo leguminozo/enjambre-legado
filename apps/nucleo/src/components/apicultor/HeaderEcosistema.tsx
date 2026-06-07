@@ -9,7 +9,7 @@ const fasesLunares = [
   { nombre: 'Cuarto Menguante', icon: <Moon size={16} fill="rgba(255,255,255,0.2)" /> },
 ];
 
-export default function HeaderEcosistema() {
+export function HeaderEcosistema() {
   const [faseActual, setFaseActual] = useState(fasesLunares[1]); // Simulando cuarto creciente
   const [marea, setMarea] = useState('Subiendo - Alta a las 14:30');
   const [floracion, setFloracion] = useState({ especie: 'Tepú', porcentaje: 45 });

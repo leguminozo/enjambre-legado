@@ -61,8 +61,9 @@ export function useSidebarBadges() {
           ? { type: 'dot', color: 'orange' as BadgeDotColor }
           : { type: 'dot', color: 'green' as BadgeDotColor },
       }))
-    } catch {
-      setBadges(DEFAULT_BADGES)
+} catch (error) {
+    console.error('[sidebar-badges] fetch error:', error)
+    setBadges(DEFAULT_BADGES)
     } finally {
       setIsLoading(false)
     }
@@ -75,30 +76,42 @@ export function useSidebarBadges() {
   useEffect(() => {
     if (!supabase) return
 
-    const channels = [
-      supabase
-        .channel('sidebar-varroa')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'varroa_records' }, () => {
-          fetchBadges()
-        })
-        .subscribe(),
-      supabase
-        .channel('sidebar-envios')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'logistica_envios' }, () => {
-          fetchBadges()
-        })
-        .subscribe(),
-      supabase
-        .channel('sidebar-facturas')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'facturas_emitidas' }, () => {
-          fetchBadges()
-        })
-        .subscribe(),
-    ]
+  const channels = [
+    supabase
+      .channel('sidebar-varroa')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'varroa_records' }, () => {
+        fetchBadges()
+      })
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('[Realtime] sidebar-varroa channel error')
+        }
+      }),
+    supabase
+      .channel('sidebar-envios')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'logistica_envios' }, () => {
+        fetchBadges()
+      })
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('[Realtime] sidebar-envios channel error')
+        }
+      }),
+    supabase
+      .channel('sidebar-facturas')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'facturas_emitidas' }, () => {
+        fetchBadges()
+      })
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('[Realtime] sidebar-facturas channel error')
+        }
+      }),
+  ]
 
-    return () => {
-      channels.forEach(ch => supabase.removeChannel(ch))
-    }
+  return () => {
+    channels.forEach(ch => supabase.removeChannel(ch))
+  }
   }, [fetchBadges])
 
   return { badges, isLoading, refetch: fetchBadges }

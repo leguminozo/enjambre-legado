@@ -6,10 +6,13 @@ import { ThemeProvider } from '@enjambre/ui'
 import { useAuthProvider, useAuthStore, createClient } from '@enjambre/auth'
 import type { Session, SupabaseClient } from '@supabase/supabase-js'
 
+let _cachedClient: SupabaseClient | null = null
+
 export function useSupabase(): SupabaseClient {
-  const client = createClient()
-  if (!client) throw new Error('Supabase not configured')
-  return client
+  if (!_cachedClient) {
+    _cachedClient = createClient()
+  }
+  return _cachedClient
 }
 
 export function useSession(): Session | null {

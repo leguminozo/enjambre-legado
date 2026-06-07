@@ -3,7 +3,7 @@ import { X, MapPin, Crown, Droplets, Scale, DollarSign, Link, AlertTriangle, Che
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { BOSQUE_ULMO, BOSQUE_ULMO_LIGHT, ORO_MIEL, TEXT_MUTED } from '@/lib/colors';
 import { useChartDimensions } from '@/lib/use-chart-dimensions';
-import type { Colmena } from '../../data/mockData';
+import type { Colmena, InspeccionRecord } from '../../data/mockData';
 import { supabase } from '../../lib/supabase';
 
 type Tab = 'resumen' | 'inspecciones' | 'varroa' | 'peso' | 'costos' | 'blockchain';
@@ -13,7 +13,7 @@ interface Props { colmena: Colmena; onClose: () => void; onUpdate: (updated: Col
 const varroaColor = (v: number) => v <= 1.5 ? 'hsl(var(--success))' : v <= 3 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))';
 const healthLabel = (h: string) => h === 'optimal' ? 'Óptima' : h === 'attention' ? 'Atención' : 'Riesgo';
 
-export default function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
+export function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
     const [tab, setTab] = useState<Tab>('resumen');
 
     // Modal forms states
@@ -149,7 +149,7 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                             <option value="Media">Población: Media</option>
                                             <option value="Alta">Población: Alta</option>
                                         </select>
-                                        <select className="input-field" value={inspeccionForm.enjambrazon_riesgo} onChange={e => setInspeccionForm({ ...inspeccionForm, enjambrazon_riesgo: e.target.value as any })}>
+                                        <select className="input-field" value={inspeccionForm.enjambrazon_riesgo} onChange={e => setInspeccionForm({ ...inspeccionForm, enjambrazon_riesgo: e.target.value as InspeccionRecord['enjambrazon_riesgo'] })}>
                                             <option value="bajo">Enjambración: Bajo</option>
                                             <option value="medio">Enjambración: Medio</option>
                                             <option value="alto">Enjambración: Alto</option>
@@ -163,7 +163,7 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                     <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
                                         <button className="btn btn-ghost btn-sm" onClick={() => setShowInspeccionForm(false)}>Cancelar</button>
                                         <button className="btn btn-primary btn-sm" onClick={async () => {
-                                            const newInspeccion = inspeccionForm as any;
+                                            const newInspeccion = inspeccionForm as unknown as InspeccionRecord;
 
                                             // Write to Supabase first
                                             if (colmena.id && !colmena.id.includes('mock')) {

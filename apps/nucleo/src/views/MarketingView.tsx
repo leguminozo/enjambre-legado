@@ -28,7 +28,7 @@ interface LocalClient {
   [k: string]: string;
 }
 
-export default function MarketingView() {
+export function MarketingView() {
 const h = roleGreetings.gerente;
   const [posts, setPosts] = useState<MarketingPost[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);

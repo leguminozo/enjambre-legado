@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import ContableView from '@/views/ContableView';
+import { ContableView } from '@/views/ContableView';
 import { ListaFacturas } from '@/views/eirl/facturas/ListaFacturas';
 import { ListaGastos } from '@/views/eirl/gastos/ListaGastos';
 import { MetricasCards } from '@/views/eirl/dashboard/MetricasCards';
@@ -49,8 +49,9 @@ export default function ContablePage() {
         const data = await res.json();
         setDashboard(data);
       }
-    } catch {
-      setDashboard(null);
+} catch (error) {
+    console.error('[contable] fetch error:', error);
+    setDashboard(null);
     } finally {
       setLoading(false);
     }

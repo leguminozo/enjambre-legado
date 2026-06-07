@@ -24,7 +24,7 @@ const rankColors = [
 const rankIconColors = ['text-accent', 'text-muted-foreground', 'text-warning'];
 
 const tierBadge: Record<string, string> = {
-  base: 'bg-stone-100 text-stone-600',
+  base: 'bg-secondary text-muted-foreground',
   senior: 'bg-oro-miel-glow/30 text-oro-miel-dark',
   elite: 'bg-salud-optima/10 text-salud-optima',
   legend: 'bg-purple-100 text-purple-600',
@@ -118,7 +118,7 @@ export function LeaderboardPanel() {
             const RankIcon = rankIcons[i] || TrendingUp;
             return (
               <div key={entry.rep_id} className={`card p-6 text-center border-2 ${rankColors[i] || 'border-white/10'} ${i === 0 ? 'lg:scale-105 lg:z-10' : ''}`}>
-                <RankIcon className={`w-8 h-8 mx-auto mb-3 ${rankIconColors[i] || 'text-stone-400'}`} />
+                <RankIcon className={`w-8 h-8 mx-auto mb-3 ${rankIconColors[i] || 'text-muted-foreground'}`} />
                 <p className="text-lg font-bold text-bosque-ulmo">{entry.display_name}</p>
                 <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${tierBadge[entry.commission_tier] || tierBadge.base}`}>
                   {entry.commission_tier}
@@ -140,7 +140,7 @@ export function LeaderboardPanel() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-text-muted text-[0.65rem] uppercase tracking-wider border-b border-white/5">
+                <tr className="text-left text-text-muted text-[0.65rem] uppercase tracking-wider border-b border-foreground/5">
                   <th className="pb-3 w-12">#</th>
         <th className="pb-3">Representante</th>
         <th className="pb-3">Nivel</th>
@@ -151,7 +151,7 @@ export function LeaderboardPanel() {
               </thead>
               <tbody>
                 {rest.map(entry => (
-                  <tr key={entry.rep_id} className="border-b border-white/[0.03] hover:bg-black/[0.02]">
+                  <tr key={entry.rep_id} className="border-b border-foreground/[0.03] hover:bg-background/[0.02]">
                     <td className="py-3 font-mono text-text-muted">{entry.rank}</td>
                     <td className="py-3 font-medium text-bosque-ulmo">{entry.display_name}</td>
                     <td className="py-3">

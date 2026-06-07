@@ -3,7 +3,7 @@
 import { Settings, Moon, Sun, Monitor, Bell, Database, Construction } from 'lucide-react';
 import { useTheme, type Theme } from '@enjambre/ui';
 
-export default function ConfiguracionView() {
+export function ConfiguracionView() {
   const { theme, setTheme, resolvedTheme } = useTheme();
 
   const themes: { value: Theme; icon: React.ReactNode; label: string }[] = [

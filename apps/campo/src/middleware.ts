@@ -61,7 +61,8 @@ export async function middleware(request: NextRequest) {
     }
 
     return response;
-  } catch {
+  } catch (error) {
+    console.error('[campo-middleware] error:', error);
     return NextResponse.next({ request });
   }
 }

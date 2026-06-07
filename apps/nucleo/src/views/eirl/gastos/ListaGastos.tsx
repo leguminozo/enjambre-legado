@@ -68,7 +68,7 @@ export function ListaGastos({ onNuevoGasto, onVerGasto, onEditarGasto }: ListaGa
       case 'Reembolsado':
         return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
       default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+        return 'bg-muted/20 text-muted-foreground border-muted/30';
     }
   };
 

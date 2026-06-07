@@ -146,7 +146,7 @@ className="bg-background border-border"
                   type="number"
                   {...register('montoNeto')}
                   onBlur={calcularIVA}
-                  className="bg-black border-gray-700"
+                  className="bg-background border-border"
                   required
                 />
               </div>
@@ -156,7 +156,7 @@ className="bg-background border-border"
                   id="montoIva"
                   type="number"
                   {...register('montoIva')}
-                  className="bg-black border-gray-700"
+                  className="bg-background border-border"
                   required
                 />
               </div>
@@ -166,7 +166,7 @@ className="bg-background border-border"
                   id="montoTotal"
                   type="number"
                   {...register('montoTotal')}
-                  className="bg-black border-gray-700"
+                  className="bg-background border-border"
                   required
                 />
               </div>
@@ -178,7 +178,7 @@ className="bg-background border-border"
             <Textarea
               id="descripcion"
               {...register('descripcion')}
-              className="bg-black border-gray-700"
+              className="bg-background border-border"
               rows={3}
             />
           </div>
@@ -187,7 +187,7 @@ className="bg-background border-border"
             <Button 
               type="submit" 
               disabled={isPending} 
-              className="bg-white text-black hover:bg-gray-200"
+              className="bg-primary-foreground text-foreground hover:bg-secondary"
             >
               {isPending ? (
                 <>
@@ -205,7 +205,7 @@ className="bg-background border-border"
               type="button" 
                
               onClick={onCancel} 
-              className="border-gray-600"
+              className="border-input"
             >
               <X className="h-4 w-4 mr-2" />
               Cancelar

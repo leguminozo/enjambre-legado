@@ -73,7 +73,8 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
           router.push('/perfil');
         }, 3000);
       }
-    } catch {
+    } catch (error) {
+      console.error('[claim] error:', error);
       setMessage({ type: 'error', text: 'Error al procesar el reclamo' });
     } finally {
       setClaiming(false);

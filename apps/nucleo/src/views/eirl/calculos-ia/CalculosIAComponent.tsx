@@ -101,7 +101,7 @@ export function CalculosIAComponent({ empresaId }: CalculosIAComponentProps) {
       case 'Error':
         return <AlertCircle className="h-4 w-4 text-red-400" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-400" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -146,7 +146,7 @@ export function CalculosIAComponent({ empresaId }: CalculosIAComponentProps) {
       case 'OptimizacionFiscal':
         return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
       default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+        return 'bg-muted/20 text-muted-foreground border-muted/30';
     }
 };
 
@@ -160,7 +160,7 @@ const tiposCalculo = [
   return (
     <div className="space-y-6">
       {/* Acciones Rápidas */}
-      <Card className="bg-black border-gray-800">
+      <Card className="bg-background border-border">
         <CardHeader>
           <CardTitle className="text-xl font-light flex items-center gap-2">
             <Brain className="h-5 w-5" />
@@ -178,7 +178,7 @@ const tiposCalculo = [
                   key={tipo.value}
                   onClick={() => ejecutarCalculo(tipo.value)}
                   disabled={isEjecutando}
-                  className="h-20 flex-col bg-black border-gray-700 hover:bg-gray-800"
+                  className="h-20 flex-col bg-background border-border hover:bg-surface-sunken"
                 >
                   <Icon className="h-6 w-6 mb-2" />
                   {isEjecutando ? (
@@ -195,7 +195,7 @@ const tiposCalculo = [
       </Card>
 
       {/* Historial de Cálculos */}
-      <Card className="bg-black border-gray-800">
+      <Card className="bg-background border-border">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-light">Historial de Cálculos</CardTitle>
@@ -203,7 +203,7 @@ const tiposCalculo = [
               
               onClick={cargarCalculos}
               disabled={loading}
-              className="border-gray-600"
+              className="border-input"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Actualizar
@@ -213,14 +213,14 @@ const tiposCalculo = [
         <CardContent>
           {calculos.length === 0 ? (
             <div className="text-center py-12">
-              <Brain className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-medium mb-2">No hay cálculos realizados</h3>
-              <p className="text-gray-400">Ejecuta un cálculo inteligente para comenzar</p>
+              <p className="text-muted-foreground">Ejecuta un cálculo inteligente para comenzar</p>
             </div>
           ) : (
             <div className="space-y-4">
               {calculos.map((calculo) => (
-                <div key={calculo.id} className="border border-gray-800 rounded-lg p-4">
+                <div key={calculo.id} className="border border-border rounded-lg p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                       {getTipoIcon(calculo.tipo)}
@@ -234,7 +234,7 @@ const tiposCalculo = [
                         </div>
                       </div>
                     </div>
-                    <div className="text-right text-sm text-gray-400">
+                    <div className="text-right text-sm text-muted-foreground">
                       {formatDate(calculo.createdAt)}
                     </div>
                   </div>
@@ -246,9 +246,9 @@ const tiposCalculo = [
                   )}
 
                   {calculo.estado === 'Completado' && calculo.resultado && (
-                    <div className="bg-gray-900 rounded p-3">
+                    <div className="bg-background rounded p-3">
                       <h4 className="text-sm font-medium mb-2">Resultado:</h4>
-                      <pre className="text-xs text-gray-300 overflow-x-auto">
+                      <pre className="text-xs text-secondary-foreground overflow-x-auto">
                         {JSON.stringify(JSON.parse(calculo.resultado), null, 2)}
                       </pre>
                     </div>
@@ -260,7 +260,7 @@ const tiposCalculo = [
                         <span>Confianza del cálculo:</span>
                         <span className="font-medium">{(calculo.confianza * 100).toFixed(0)}%</span>
                       </div>
-                      <div className="w-full bg-gray-700 rounded-full h-2 mt-1">
+                      <div className="w-full bg-surface-raised rounded-full h-2 mt-1">
                         <div 
                           className="bg-green-400 h-2 rounded-full" 
                           style={{ width: `${calculo.confianza * 100}%` }}

@@ -19,7 +19,7 @@ function mapRowToTreeRecord(r: Record<string, unknown>): TreeRecord {
   };
 }
 
-export default function RegeneracionView() {
+export function RegeneracionView() {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ species: '', count: '', location: '', notes: '' });
   const [records, setRecords] = useState<TreeRecord[]>([]);

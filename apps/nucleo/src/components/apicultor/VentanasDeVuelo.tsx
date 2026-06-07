@@ -17,7 +17,7 @@ const generarPronosticoDummy = () => {
   });
 };
 
-export default function VentanasDeVuelo() {
+export function VentanasDeVuelo() {
   const [pronostico, setPronostico] = useState(generarPronosticoDummy());
 
   const radius = 80;

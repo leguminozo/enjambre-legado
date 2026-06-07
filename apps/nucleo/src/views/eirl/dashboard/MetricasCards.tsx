@@ -35,49 +35,49 @@ export function MetricasCards({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <Card className="bg-black border-gray-800">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-400">Ingresos Mes</CardTitle>
-          <TrendingUp className="h-4 w-4 text-green-400" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(ingresosMes)}</div>
-          <p className="text-xs text-gray-400">+0% vs mes anterior</p>
-        </CardContent>
-      </Card>
-      
-      <Card className="bg-black border-gray-800">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-400">Gastos Mes</CardTitle>
-          <TrendingDown className="h-4 w-4 text-red-400" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(gastosMes)}</div>
-          <p className="text-xs text-gray-400">+0% vs mes anterior</p>
-        </CardContent>
-      </Card>
-      
-      <Card className="bg-black border-gray-800">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-400">Utilidad Neta</CardTitle>
-          <DollarSign className="h-4 w-4 text-yellow-400" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(utilidadNeta)}</div>
-          <p className="text-xs text-gray-400">Margen: {formatPercentage(margenUtilidad)}</p>
-        </CardContent>
-      </Card>
-      
-      <Card className="bg-black border-gray-800">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-400">Impuestos</CardTitle>
-          <FileText className="h-4 w-4 text-blue-400" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-1">
-            <div className="text-sm font-bold">{formatCurrency(ivaPagar)}</div>
-            <div className="text-xs text-gray-400">IVA a pagar</div>
-            <div className="text-xs text-gray-500">PPM: {formatCurrency(ppm)}</div>
+    <Card className="bg-background border-border">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">Ingresos Mes</CardTitle>
+        <TrendingUp className="h-4 w-4 text-green-400" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{formatCurrency(ingresosMes)}</div>
+        <p className="text-xs text-muted-foreground">+0% vs mes anterior</p>
+      </CardContent>
+    </Card>
+
+    <Card className="bg-background border-border">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">Gastos Mes</CardTitle>
+        <TrendingDown className="h-4 w-4 text-red-400" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{formatCurrency(gastosMes)}</div>
+        <p className="text-xs text-muted-foreground">+0% vs mes anterior</p>
+      </CardContent>
+    </Card>
+
+    <Card className="bg-background border-border">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">Utilidad Neta</CardTitle>
+        <DollarSign className="h-4 w-4 text-yellow-400" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{formatCurrency(utilidadNeta)}</div>
+        <p className="text-xs text-muted-foreground">Margen: {formatPercentage(margenUtilidad)}</p>
+      </CardContent>
+    </Card>
+
+    <Card className="bg-background border-border">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">Impuestos</CardTitle>
+        <FileText className="h-4 w-4 text-blue-400" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-1">
+          <div className="text-sm font-bold">{formatCurrency(ivaPagar)}</div>
+          <div className="text-xs text-muted-foreground">IVA a pagar</div>
+          <div className="text-xs text-muted-foreground">PPM: {formatCurrency(ppm)}</div>
           </div>
         </CardContent>
       </Card>

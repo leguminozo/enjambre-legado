@@ -29,9 +29,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const parsed = JSON.parse(raw) as CartLine[];
         if (Array.isArray(parsed)) setLines(parsed);
       }
-    } catch {
-      /* ignore */
-    }
+} catch (error) {
+    console.error('[cart] localStorage parse error:', error);
+  }
     setReady(true);
   }, []);
 

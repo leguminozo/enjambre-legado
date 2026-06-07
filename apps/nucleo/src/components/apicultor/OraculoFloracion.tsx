@@ -8,7 +8,7 @@ const especiesNativas = [
   { id: 'tiaca', nombre: 'Tiaca', gddRequerido: 450, gddActual: 120, color: 'hsl(var(--primary-foreground))' }
 ];
 
-export default function OraculoFloracion() {
+export function OraculoFloracion() {
   const [datos, setDatos] = useState(especiesNativas);
 
   return (

@@ -129,8 +129,9 @@ export class FlowClProvider implements PaymentProvider {
         body: JSON.stringify(params),
       });
       return { ok: res.ok };
-    } catch {
-      return { ok: false };
+} catch (error) {
+    console.error('[flow-cl] refund error:', error);
+    return { ok: false };
     }
   }
 }

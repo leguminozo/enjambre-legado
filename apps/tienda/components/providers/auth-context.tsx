@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/client';
 import { friendlySupabaseError } from '@enjambre/ui';
 import { useAuthStore, logSecurityEvent } from '@enjambre/auth';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 
 export type TiendaUser = {
@@ -47,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useAuthStore.getState().setAppSource('tienda');
     checkUser();
 
-    const { data: { subscription } } = clientRef.current!.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = clientRef.current!.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       if (session) {
         checkUser();
       } else {

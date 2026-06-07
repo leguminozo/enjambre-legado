@@ -28,7 +28,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
     setValue,
     getValues,
   } = useForm<ProductFormData>({
-    resolver: zodResolver(productFormSchema) as any,
+    resolver: zodResolver(productFormSchema) as unknown as Parameters<typeof useForm<ProductFormData>>[0]['resolver'],
     defaultValues: {
       nombre: initialData?.nombre || '',
       descripcion_regenerativa: initialData?.descripcion_regenerativa || '',

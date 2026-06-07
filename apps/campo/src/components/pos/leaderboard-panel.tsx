@@ -83,7 +83,7 @@ export function LeaderboardPanel() {
               'from-stone-400/20 to-stone-500/5 border-stone-400/30',
               'from-orange-700/20 to-orange-800/5 border-orange-700/30',
             ];
-            const iconColors = ['text-amber-400', 'text-stone-300', 'text-orange-600'];
+            const iconColors = ['text-amber-400', 'text-secondary-foreground', 'text-warning'];
 
             return (
               <div key={entry.rep_id} className={`bg-gradient-to-b ${colors[i] || colors[2]} border rounded-xl p-4 text-center ${i === 0 ? 'sm:scale-105 sm:z-10' : ''}`}>

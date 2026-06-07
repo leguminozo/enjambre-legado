@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import type { Session, AuthChangeEvent } from '@supabase/supabase-js'
 import { createClient } from './supabase'
 import { useAuthStore } from './auth-store'
 
@@ -13,7 +14,7 @@ export function useAuthProvider() {
     const supabase = createClient()
     if (!supabase) return
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       if (session) {
         checkUser()
       } else {

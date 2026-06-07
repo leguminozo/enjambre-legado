@@ -224,7 +224,7 @@ export function InvitacionesPanel() {
             {codes.length === 0 ? (
               <p className="text-sm text-text-muted italic py-8 text-center">No hay códigos de invitación.</p>
             ) : codes.map(c => (
-              <div key={c.id} className={`p-5 rounded-xl bg-black/[0.03] border border-white/[0.06] hover:border-oro-miel/20 transition-all ${!c.active ? 'opacity-50' : ''}`}>
+              <div key={c.id} className={`p-5 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-oro-miel/20 transition-all ${!c.active ? 'opacity-50' : ''}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -244,7 +244,7 @@ export function InvitacionesPanel() {
                     <button
                       disabled={actionLoading === c.id}
                       onClick={() => toggleCodeActive(c.id, c.active)}
-                      className={`w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:opacity-50 ${c.active ? 'bg-amber/10 text-amber hover:bg-amber hover:text-white' : 'bg-salud-optima/10 text-salud-optima hover:bg-salud-optima hover:text-white'}`}
+                      className={`w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:opacity-50 ${c.active ? 'bg-amber/10 text-amber hover:bg-amber hover:text-foreground' : 'bg-salud-optima/10 text-salud-optima hover:bg-salud-optima hover:text-foreground'}`}
                       title={c.active ? 'Desactivar' : 'Activar'}
                     >
                       {actionLoading === c.id ? <Loader2 className="animate-spin" size={16} /> : c.active ? <Clock size={16} /> : <Check size={16} />}
@@ -252,7 +252,7 @@ export function InvitacionesPanel() {
                     <button
                       disabled={actionLoading === c.id}
                       onClick={() => deleteCode(c.id)}
-                      className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-white transition-all disabled:opacity-50"
+                      className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-foreground transition-all disabled:opacity-50"
                       title="Eliminar"
                     >
                       <X size={16} />
@@ -271,7 +271,7 @@ export function InvitacionesPanel() {
             {redemptions.length === 0 ? (
               <p className="text-sm text-text-muted italic py-8 text-center">No hay canjes registrados.</p>
             ) : redemptions.map(r => (
-              <div key={r.id} className="p-4 rounded-xl bg-black/[0.03] border border-white/[0.06]">
+              <div key={r.id} className="p-4 rounded-xl bg-background/[0.03] border border-foreground/[0.06]">
                 <div className="flex items-center gap-2 mb-1">
                   <CheckCircle2 size={14} className="text-salud-optima" />
                   <p className="font-bold text-sm text-bosque-ulmo">{r.profiles?.full_name || 'Usuario'}</p>

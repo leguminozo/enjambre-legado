@@ -39,7 +39,8 @@ function load(): CartLine[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as CartLine[];
     return Array.isArray(parsed) ? parsed : [];
-  } catch {
+  } catch (error) {
+    console.error('[cart] localStorage parse error:', error);
     return [];
   }
 }

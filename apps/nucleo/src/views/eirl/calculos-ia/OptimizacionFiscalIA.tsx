@@ -86,19 +86,19 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
   const getRiesgoColor = (riesgo: string) => {
     switch (riesgo.toLowerCase()) {
       case 'bajo':
-        return 'bg-green-500 text-white';
+        return 'bg-green-500 text-foreground';
       case 'medio':
-        return 'bg-yellow-500 text-white';
+        return 'bg-yellow-500 text-foreground';
       case 'alto':
-        return 'bg-red-500 text-white';
+        return 'bg-red-500 text-foreground';
       default:
-        return 'bg-gray-500 text-white';
+        return 'bg-muted text-foreground';
     }
   };
 
   if (!optimizacion) {
     return (
-      <Card className="bg-black border-gray-800">
+      <Card className="bg-background border-border">
         <CardHeader>
           <CardTitle className="text-xl font-light flex items-center gap-2">
             <Shield className="h-5 w-5" />
@@ -107,8 +107,8 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
         </CardHeader>
         <CardContent>
           <div className="text-center py-12">
-            <Brain className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-400 mb-4">Optimización fiscal no disponible</p>
+            <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground mb-4">Optimización fiscal no disponible</p>
             <Button onClick={cargarOptimizacion} disabled={loading}>
               {loading ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : null}
               Ejecutar Optimización
@@ -120,7 +120,7 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
   }
 
   return (
-    <Card className="bg-black border-gray-800">
+    <Card className="bg-background border-border">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl font-light flex items-center gap-2">
@@ -129,7 +129,7 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
           </CardTitle>
           <div className="flex items-center gap-2">
             {ultimoAnalisis && (
-              <span className="text-sm text-gray-400">
+              <span className="text-sm text-muted-foreground">
                 Último análisis: {ultimoAnalisis}
               </span>
             )}
@@ -146,7 +146,7 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
           <Card className="bg-green-500/10 border-green-500/30">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-400">Ahorro Potencial</span>
+                <span className="text-sm text-muted-foreground">Ahorro Potencial</span>
                 <DollarSign className="h-4 w-4 text-green-400" />
               </div>
               <div className={`text-2xl font-bold ${getAhorroColor(optimizacion.ahorroPotencial)}`}>
@@ -159,7 +159,7 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
           <Card className="bg-blue-500/10 border-blue-500/30">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-400">Riesgo Cumplimiento</span>
+                <span className="text-sm text-muted-foreground">Riesgo Cumplimiento</span>
                 <Shield className="h-4 w-4 text-blue-400" />
               </div>
               <div className="flex items-center gap-2">
@@ -167,26 +167,26 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
                   {optimizacion.riesgoCumplimiento}
                 </Badge>
               </div>
-              <div className="text-xs text-gray-400 mt-2">Nivel de riesgo fiscal</div>
+              <div className="text-xs text-muted-foreground mt-2">Nivel de riesgo fiscal</div>
             </CardContent>
           </Card>
 
           <Card className="bg-purple-500/10 border-purple-500/30">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-400">Deducciones</span>
+                <span className="text-sm text-muted-foreground">Deducciones</span>
                 <Calculator className="h-4 w-4 text-purple-400" />
               </div>
               <div className="text-2xl font-bold text-purple-400">
                 {optimizacion.deduccionesDisponibles.length}
               </div>
-              <div className="text-xs text-gray-400 mt-2">Oportunidades identificadas</div>
+              <div className="text-xs text-muted-foreground mt-2">Oportunidades identificadas</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Deducciones Disponibles */}
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-background border-border">
           <CardHeader>
             <CardTitle className="text-lg font-medium flex items-center gap-2">
               <FileText className="h-5 w-5" />
@@ -196,14 +196,14 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {optimizacion.deduccionesDisponibles.map((deduccion, index) => (
-                <div key={index} className="p-4 border border-gray-700 rounded-lg">
+                <div key={index} className="p-4 border border-border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium">{deduccion.nombre}</h4>
                     <span className="text-sm text-green-400">
                       {formatCurrency(deduccion.montoMaximo)}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-400">{deduccion.aplicabilidad}</p>
+                  <p className="text-sm text-muted-foreground">{deduccion.aplicabilidad}</p>
                 </div>
               ))}
             </div>
@@ -267,7 +267,7 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
         </Card>
 
         {/* Recomendaciones Generales */}
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-background border-border">
           <CardHeader>
             <CardTitle className="text-lg font-medium flex items-center gap-2">
               <Brain className="h-5 w-5" />
@@ -279,7 +279,7 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
               {optimizacion.recomendaciones.map((recomendacion, index) => (
                 <div key={index} className="flex items-start gap-2 p-2">
                   <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-gray-300">{recomendacion}</p>
+                  <p className="text-sm text-secondary-foreground">{recomendacion}</p>
                 </div>
               ))}
             </div>

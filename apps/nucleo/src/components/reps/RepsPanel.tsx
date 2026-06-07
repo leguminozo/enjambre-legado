@@ -106,7 +106,7 @@ export function RepsPanel() {
   const formatCLP = (n: number) => '$' + Number(n || 0).toLocaleString('es-CL');
 
   const tierBadge: Record<string, string> = {
-    base: 'bg-stone-100 text-stone-600',
+    base: 'bg-secondary text-muted-foreground',
     senior: 'bg-oro-miel-glow/30 text-oro-miel-dark',
     elite: 'bg-salud-optima/10 text-salud-optima',
     legend: 'bg-purple-100 text-purple-600',
@@ -180,7 +180,7 @@ export function RepsPanel() {
           {filteredReps.length === 0 ? (
             <p className="text-sm text-text-muted italic py-8 text-center">No hay representantes que coincidan.</p>
           ) : filteredReps.map(rep => (
-            <div key={rep.user_id} className={`p-5 rounded-xl bg-black/[0.03] border border-white/[0.06] hover:border-oro-miel/20 transition-all ${!rep.active ? 'opacity-50' : ''}`}>
+            <div key={rep.user_id} className={`p-5 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-oro-miel/20 transition-all ${!rep.active ? 'opacity-50' : ''}`}>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -212,7 +212,7 @@ export function RepsPanel() {
                     <button
                       disabled={actionLoading === rep.user_id}
                       onClick={() => deactivateRep(rep.user_id)}
-                      className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-white transition-all disabled:opacity-50"
+                      className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-foreground transition-all disabled:opacity-50"
                       title="Desactivar"
                     >
                       {actionLoading === rep.user_id ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}

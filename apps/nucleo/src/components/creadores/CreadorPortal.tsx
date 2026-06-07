@@ -229,7 +229,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
       )}
 
       <div className="flex items-center gap-4 mb-2">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-oro-miel to-oro-miel-dark flex items-center justify-center text-white shadow-lg">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-oro-miel to-oro-miel-dark flex items-center justify-center text-foreground shadow-lg">
           <Sparkles size={28} />
         </div>
         <div>
@@ -348,7 +348,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
           ) : (
             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
               {usos.map(u => (
-                <div key={u.id} className="p-4 rounded-xl bg-black/[0.03] border border-white/[0.06] flex items-center justify-between">
+                <div key={u.id} className="p-4 rounded-xl bg-background/[0.03] border border-foreground/[0.06] flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-bosque-ulmo">Venta ${u.monto_venta.toLocaleString('es-CL')}</p>
                     <p className="text-xs text-text-muted">{new Date(u.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}</p>

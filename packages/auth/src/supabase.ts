@@ -18,8 +18,13 @@ export function isSupabaseConfigured(): boolean {
   return getSupabaseUrl().length > 0 && key.startsWith('eyJ')
 }
 
+let _browserClient: ReturnType<typeof createBrowserClient> | null = null
+
 export const createClient = () => {
-  return createBrowserClient(getSupabaseUrl(), getSupabaseKey())
+  if (!_browserClient) {
+    _browserClient = createBrowserClient(getSupabaseUrl(), getSupabaseKey())
+  }
+  return _browserClient
 }
 
 export function createAdminClient() {

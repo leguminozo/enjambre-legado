@@ -104,7 +104,7 @@ function sourceBadge(sourceType: string | null) {
   return icon ? <span className="inline-flex items-center gap-1">{icon} {label}</span> : label;
 }
 
-export default function SiiDteView() {
+export function SiiDteView() {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<"list" | "manual" | "gasto">("list");
   const [folio, setFolio] = useState("");

@@ -30,7 +30,7 @@ interface Resena {
   } | null;
 }
 
-export default function VanguardiaPanel() {
+export function VanguardiaPanel() {
   const [revendedores, setRevendedores] = useState<Revendedor[]>([]);
   const [resenas, setResenas] = useState<Resena[]>([]);
   const [loading, setLoading] = useState(true);
@@ -152,7 +152,7 @@ export default function VanguardiaPanel() {
               <p className="text-sm text-text-muted italic py-4">No hay solicitudes registradas.</p>
             ) : (
               revendedores.map((rev) => (
-                <div key={rev.user_id} className="p-4 rounded-lg bg-black/5 border border-white/5 flex items-center justify-between group hover:border-oro-miel/30 transition-colors">
+                <div key={rev.user_id} className="p-4 rounded-lg bg-background/5 border border-foreground/5 flex items-center justify-between group hover:border-oro-miel/30 transition-colors">
                   <div>
                     <p className="font-bold text-sm text-bosque-ulmo">{rev.razon_social}</p>
                     <p className="text-xs text-text-muted">{rev.profiles?.full_name || 'Sin nombre'} · RUT: {rev.rut}</p>
@@ -164,14 +164,14 @@ export default function VanguardiaPanel() {
                         <button 
                           disabled={actionLoading === rev.user_id}
                           onClick={() => updateRevendedorStatus(rev.user_id, 'activo')}
-                          className="w-9 h-9 rounded-full bg-salud-optima/10 text-salud-optima flex items-center justify-center hover:bg-salud-optima hover:text-white transition-all disabled:opacity-50"
+                          className="w-9 h-9 rounded-full bg-salud-optima/10 text-salud-optima flex items-center justify-center hover:bg-salud-optima hover:text-foreground transition-all disabled:opacity-50"
                         >
                           {actionLoading === rev.user_id ? <Loader2 className="animate-spin" size={16} /> : <Check size={18} />}
                         </button>
                         <button 
                           disabled={actionLoading === rev.user_id}
                           onClick={() => updateRevendedorStatus(rev.user_id, 'suspendido')}
-                          className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-white transition-all disabled:opacity-50"
+                          className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-foreground transition-all disabled:opacity-50"
                         >
                           <X size={18} />
                         </button>
@@ -200,7 +200,7 @@ export default function VanguardiaPanel() {
               <p className="text-sm text-text-muted italic py-4">Sin reseñas sensoriales aún.</p>
             ) : (
               resenas.map((res) => (
-                <div key={res.id} className="p-5 rounded-lg bg-black/5 border border-white/5 hover:border-oro-miel/20 transition-colors">
+                <div key={res.id} className="p-5 rounded-lg bg-background/5 border border-foreground/5 hover:border-oro-miel/20 transition-colors">
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <p className="text-sm font-bold text-bosque-ulmo">{res.profiles?.full_name || 'Anónimo'}</p>

@@ -28,7 +28,7 @@ function formatCLP(value: number) {
   return new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", minimumFractionDigits: 0 }).format(value);
 }
 
-export default function ContableView() {
+export function ContableView() {
   const queryClient = useQueryClient();
   const [terceroId, setTerceroId] = useState("");
   const [numero, setNumero] = useState("");

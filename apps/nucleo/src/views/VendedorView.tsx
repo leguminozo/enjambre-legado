@@ -34,7 +34,7 @@ const pitches: Record<string, string> = {
     '🌿 Eco-consciente': '"Cada producto de Enjambre Legado es trazable desde la colmena hasta tu mesa. Escaneá el QR y mirá el video de Cristina cosechando tu miel en Pureo, Chiloé. 22 años de apicultura regenerativa, 5.000 árboles plantados, cero huella negativa."',
 };
 
-export default function VendedorView() {
+export function VendedorView() {
     const { greeting, title, subtitle } = roleGreetings.gerente;
     const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
 

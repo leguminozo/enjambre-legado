@@ -30,7 +30,7 @@ interface Provider {
   urgent: boolean;
 }
 
-export default function LogisticaView() {
+export function LogisticaView() {
 const h = roleGreetings.gerente;
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [stockCenters, setStockCenters] = useState<StockCenter[]>([]);

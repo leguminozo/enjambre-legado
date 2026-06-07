@@ -86,7 +86,8 @@ export default function CarritoPage() {
         setSuccessData({ id: data.id, claim_token: data.claim_token });
       }
       clear();
-    } catch {
+    } catch (error) {
+      console.error('[carrito] sale error:', error);
       setError('Error de conexión con el servidor');
     } finally {
       setLoading(false);

@@ -50,7 +50,8 @@ export async function proxy(request: NextRequest) {
     }
 
     return response;
-  } catch {
+  } catch (error) {
+    console.error('[proxy] error:', error);
     return NextResponse.next({ request });
   }
 }

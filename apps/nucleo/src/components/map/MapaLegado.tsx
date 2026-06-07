@@ -91,7 +91,7 @@ interface MapaLegadoProps {
     filterRole?: string;
 }
 
-export default function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
+export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
     const [liveMarkers, setLiveMarkers] = useState<MapMarker[]>([]);
 
     useEffect(() => {

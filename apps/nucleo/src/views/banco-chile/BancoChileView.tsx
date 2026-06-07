@@ -190,7 +190,7 @@ export function BancoChileView() {
         <div className="space-y-6">
           <div className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 rounded-full ${config.enabled ? 'bg-green-500' : 'bg-gray-400'}`} />
+              <div className={`w-3 h-3 rounded-full ${config.enabled ? 'bg-green-500' : 'bg-muted'}`} />
               <div>
                 <p className="font-medium text-sm">{config.enabled ? 'Conectado' : 'Desconectado'}</p>
                 <p className="text-xs text-muted-foreground">Ambiente: {config.environment}</p>
@@ -292,7 +292,7 @@ export function BancoChileView() {
       )}
 
       {showConfig && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-background/50 flex items-center justify-center z-50">
           <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full mx-4">
             <h2 className="font-display text-lg mb-4">Configurar Banco Chile</h2>
             <form onSubmit={handleSubmitConfig} className="space-y-4">

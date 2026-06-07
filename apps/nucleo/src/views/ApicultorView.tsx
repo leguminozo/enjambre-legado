@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity } from 'lucide-react';
 import { roleGreetings } from '../data/mockData';
-import type { Colmena, InspeccionRecord } from '../data/mockData';
+import type { Colmena, InspeccionRecord, VarroaRecord, PesoRecord } from '../data/mockData';
 
 function healthFromEstado(estado: string | null | undefined): Colmena['health'] {
     if (estado === 'optima') return 'optimal';
@@ -9,19 +9,34 @@ function healthFromEstado(estado: string | null | undefined): Colmena['health'] 
     return 'risk';
 }
 import { supabase } from '../lib/supabase';
-import ColmenaFicha from '../components/apicultor/ColmenaFicha';
-import CalendarioCiclico from '../components/apicultor/CalendarioCiclico';
-import TrazabilidadPanel from '../components/apicultor/TrazabilidadPanel';
-import ApiarioManager from '../components/apicultor/ApiarioManager';
-import HeaderEcosistema from '../components/apicultor/HeaderEcosistema';
-import OraculoFloracion from '../components/apicultor/OraculoFloracion';
-import VentanasDeVuelo from '../components/apicultor/VentanasDeVuelo';
+import { ColmenaFicha } from '../components/apicultor/ColmenaFicha';
+import { CalendarioCiclico } from '../components/apicultor/CalendarioCiclico';
+import { TrazabilidadPanel } from '../components/apicultor/TrazabilidadPanel';
+import { ApiarioManager } from '../components/apicultor/ApiarioManager';
+import { HeaderEcosistema } from '../components/apicultor/HeaderEcosistema';
+import { OraculoFloracion } from '../components/apicultor/OraculoFloracion';
+import { VentanasDeVuelo } from '../components/apicultor/VentanasDeVuelo';
 import { GemeloApiario } from '../components/apicultor/GemeloApiario';
-import EspectroVivo from '../components/apicultor/EspectroVivo';
+import { EspectroVivo } from '../components/apicultor/EspectroVivo';
+
+interface AlertItem {
+  id?: string | number;
+  severity: 'critical' | 'warning' | 'success';
+  title: string;
+  message: string;
+}
+
+interface ReflexionData {
+  date: string;
+  content: string;
+  author?: string;
+  date_display?: string;
+  created_at?: string;
+}
 
 type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad';
 
-export default function ApicultorView() {
+export function ApicultorView() {
     const { greeting, title, subtitle } = roleGreetings.gerente;
     const [localColmenas, setLocalColmenas] = useState<Colmena[]>([]);
     const [loading, setLoading] = useState(true);
@@ -29,8 +44,8 @@ export default function ApicultorView() {
     const [activeView, setActiveView] = useState<ViewTab>('colmenas');
 
     // Phase 4 dynamic data
-    const [alerts, setAlerts] = useState<any[]>([]);
-    const [reflexion, setReflexion] = useState<any>(null);
+  const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [reflexion, setReflexion] = useState<ReflexionData | null>(null);
 
     // Fetch data from Supabase
     useEffect(() => {
@@ -68,8 +83,8 @@ export default function ApicultorView() {
                         queen: (c.queen as string) || '',
                         reinaHistory: [],
                         lastInspection: String(c.last_inspection || c.ultima_inspeccion || ''),
-  inspecciones:
-  (c.inspecciones as any[])?.map((i: Record<string, unknown>) => ({
+          inspecciones:
+            (c.inspecciones as Record<string, unknown>[])?.map((i: Record<string, unknown>) => ({
     date: String(i.date ?? ''),
     inspector: String(i.inspector ?? ''),
     marcos_cria: Number(i.marcos_cria ?? 0),
@@ -81,14 +96,14 @@ export default function ApicultorView() {
     notes: String(i.notes ?? ''),
   })) || [],
                         production: parseFloat(String(c.production_total ?? 0)) || 0,
-                        pesoHistory:
-                            (c.peso_records as any[])?.map((p: Record<string, unknown>) => ({
+          pesoHistory:
+            (c.peso_records as Record<string, unknown>[])?.map((p: Record<string, unknown>) => ({
                                 date: p.date,
                                 kg: parseFloat(String(p.kg)),
                                 note: p.note as string | undefined,
                             })) || [],
-                        varroaHistory:
-                            (c.varroa_records as any[])?.map((v: Record<string, unknown>) => ({
+          varroaHistory:
+            (c.varroa_records as Record<string, unknown>[])?.map((v: Record<string, unknown>) => ({
                                 date: v.date,
                                 level: parseFloat(String(v.level)),
                                 method: v.method as string,
@@ -107,9 +122,8 @@ export default function ApicultorView() {
                         loteActivo: (c.lote_activo as string) || '',
                         alzas: (c.alzas as number) || 1,
                         nucleosCandidatos: Boolean(c.nucleos_candidatos),
-                    }));
-                    // @ts-expect-error Supabase dynamic records don't perfectly match Colmena type
-      setLocalColmenas(mapped as Colmena[]);
+ }));
+ setLocalColmenas(mapped as Colmena[]);
                 } else {
                     setLocalColmenas([]);
                 }

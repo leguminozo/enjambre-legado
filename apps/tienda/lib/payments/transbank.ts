@@ -43,8 +43,9 @@ export class TransbankProvider implements PaymentProvider {
     try {
       await tx.refund(buyOrder, amount);
       return { ok: true };
-    } catch {
-      return { ok: false };
+} catch (error) {
+    console.error('[transbank] refund error:', error);
+    return { ok: false };
     }
   }
 }

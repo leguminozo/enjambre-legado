@@ -19,8 +19,8 @@ const categoryLabels: Record<CalendarioTask['category'], string> = {
 const priorityBadge = (p: string) =>
     p === 'alta' ? 'badge-danger' : p === 'media' ? 'badge-gold' : 'badge-warning';
 
-export default function CalendarioCiclico() {
-    const [tasks, setTasks] = useState<any[]>([]);
+export function CalendarioCiclico() {
+    const [tasks, setTasks] = useState<CalendarioTask[]>([]);
     const [filterCat, setFilterCat] = useState<CalendarioTask['category'] | 'all'>('all');
     const [showMonth, setShowMonth] = useState<string>('Marzo');
     const [showNewTaskForm, setShowNewTaskForm] = useState(false);
@@ -181,7 +181,7 @@ formatter={(v, name) =>
                             <select className="input-field" value={newTaskForm.week} onChange={e => setNewTaskForm({ ...newTaskForm, week: parseInt(e.target.value) })}>
                                 {[1, 2, 3, 4].map(w => <option key={w} value={w}>Semana {w}</option>)}
                             </select>
-                            <select className="input-field" value={newTaskForm.category} onChange={e => setNewTaskForm({ ...newTaskForm, category: e.target.value as any })}>
+                            <select className="input-field" value={newTaskForm.category} onChange={e => setNewTaskForm({ ...newTaskForm, category: e.target.value as CalendarioTask['category'] })}>
                                 <option value="inspeccion">Inspección</option>
                                 <option value="tratamiento">Tratamiento</option>
                                 <option value="cosecha">Cosecha</option>
@@ -191,7 +191,7 @@ formatter={(v, name) =>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-                            <select className="input-field" value={newTaskForm.priority} onChange={e => setNewTaskForm({ ...newTaskForm, priority: e.target.value as any })}>
+                            <select className="input-field" value={newTaskForm.priority} onChange={e => setNewTaskForm({ ...newTaskForm, priority: e.target.value as CalendarioTask['priority'] })}>
                                 <option value="baja">Prioridad Baja</option>
                                 <option value="media">Prioridad Media</option>
                                 <option value="alta">Prioridad Alta</option>

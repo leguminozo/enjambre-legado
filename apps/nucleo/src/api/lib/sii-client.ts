@@ -39,7 +39,7 @@ function extractP12(p12Base64: string, p12Password: string): P12ExtractResult {
 
     return { privateKeyPem, certPem };
   } finally {
-    try { execSync(`rm -f "${tmpP12}" "${tmpKey}" "${tmpCert}"`, { stdio: "pipe" }); } catch {}
+    try { execSync(`rm -f "${tmpP12}" "${tmpKey}" "${tmpCert}"`, { stdio: "pipe" }); } catch (error) { console.error('[sii-client] cleanup error:', error) }
   }
 }
 

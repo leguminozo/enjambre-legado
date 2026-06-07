@@ -2,13 +2,13 @@
 
 import { createClient } from '@enjambre/auth'
 import { useAuthStore } from '@enjambre/auth'
+import { supabase } from '@/lib/supabase'
 
 export function useApiFetch() {
   const session = useAuthStore((s) => s.session)
 
   return async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
-    const supabase = createClient()
-    const currentSession = session ?? (await supabase?.auth.getSession())?.data?.session ?? null
+    const currentSession = session ?? (await supabase.auth.getSession())?.data?.session ?? null
     const token = currentSession?.access_token ?? ''
     const empresaId = currentSession?.user?.app_metadata?.empresa_id ?? ''
 

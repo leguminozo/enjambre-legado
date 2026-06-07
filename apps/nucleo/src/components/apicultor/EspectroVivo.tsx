@@ -1,20 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
 import Meyda from 'meyda';
+import type { MeydaAnalyzer } from 'meyda/dist/esm/meyda-wa';
 import { Mic, MicOff, Activity } from 'lucide-react';
 import { SCENE_DARK } from '@/lib/colors';
 
-export default function EspectroVivo() {
+interface AudioFeatures {
+  rms: number;
+  spectralCentroid: number;
+  spectralFlatness?: number;
+}
+
+export function EspectroVivo() {
   const [isRecording, setIsRecording] = useState(false);
-  const [features, setFeatures] = useState<any>(null);
+  const [features, setFeatures] = useState<AudioFeatures | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
-  const analyzerRef = useRef<any>(null);
+  const analyzerRef = useRef<MeydaAnalyzer | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const startListening = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioContextRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
       sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
 
       analyzerRef.current = Meyda.createMeydaAnalyzer({
@@ -22,7 +29,7 @@ export default function EspectroVivo() {
         source: sourceRef.current,
         bufferSize: 512,
         featureExtractors: ['rms', 'spectralCentroid', 'spectralFlatness'],
-        callback: (features: { rms: number; spectralCentroid: number; spectralFlatness?: number }) => {
+        callback: (features: AudioFeatures) => {
           setFeatures(features);
           draw(features);
         },

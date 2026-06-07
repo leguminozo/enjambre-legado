@@ -162,7 +162,7 @@ conciliacionAutoRouter.post('/auto-conciliar', async (c) => {
     };
 
     const puntajeMinimo = nivelConfianza[confianzaMinima] || 70;
-    const sugerenciasFiltradas = sugerencias.filter((s: any) => s.puntaje >= puntajeMinimo);
+    const sugerenciasFiltradas = sugerencias.filter((s: SugerenciaConciliacion) => s.puntaje >= puntajeMinimo);
 
     // Conciliar automáticamente
     const conciliados: string[] = [];

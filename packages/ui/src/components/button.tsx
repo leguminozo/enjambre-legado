@@ -13,13 +13,13 @@ const variantClasses: Record<Variant, string> = {
   primary:
     'bg-primary text-primary-foreground shadow-md hover:brightness-110 active:scale-[0.96]',
   gold:
-    'bg-gradient-to-r from-miel-dark via-miel to-miel-dark bg-[length:200%_auto] text-bosque-dark font-semibold border border-white/20 shadow-md hover:bg-right hover:shadow-glow hover:-translate-y-0.5 active:scale-[0.96]',
+    'bg-gradient-to-r from-miel-dark via-miel to-miel-dark bg-[length:200%_auto] text-bosque-dark font-semibold border border-foreground/20 shadow-md hover:bg-right hover:shadow-glow hover:-translate-y-0.5 active:scale-[0.96]',
   outline:
     'border border-border bg-transparent text-foreground hover:bg-surface-raised hover:border-foreground/20',
   ghost:
     'bg-transparent text-muted-foreground hover:bg-surface-raised hover:text-foreground',
   destructive:
-    'bg-destructive text-white shadow-md hover:brightness-110 active:scale-[0.96]',
+    'bg-destructive text-primary-foreground shadow-md hover:brightness-110 active:scale-[0.96]',
 };
 
 const sizeClasses: Record<Size, string> = {

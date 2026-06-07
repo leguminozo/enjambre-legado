@@ -32,8 +32,9 @@ export async function POST(request: Request) {
   };
   try {
     body = (await request.json()) as typeof body;
-  } catch {
-		return NextResponse.json({ error: 'Los datos enviados no son válidos' }, { status: 400 });
+} catch (error) {
+    console.error('[pos/venta] JSON parse error:', error);
+    return NextResponse.json({ error: 'Los datos enviados no son válidos' }, { status: 400 });
   }
 
   if (body.origen !== 'feria' && body.origen !== 'local') {

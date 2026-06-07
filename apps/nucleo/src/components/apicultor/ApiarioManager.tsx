@@ -9,7 +9,7 @@ interface ApiarioManagerProps {
     onSelectColmena: (c: Colmena) => void;
 }
 
-export default function ApiarioManager({ colmenas: localColmenas, setColmenas: setLocalColmenas, onSelectColmena }: ApiarioManagerProps) {
+export function ApiarioManager({ colmenas: localColmenas, setColmenas: setLocalColmenas, onSelectColmena }: ApiarioManagerProps) {
     const [expandedApiarios, setExpandedApiarios] = useState<string[]>([]);
     const [editingColmena, setEditingColmena] = useState<Colmena | null>(null);
 
@@ -235,7 +235,7 @@ const apiarioHealth = apiarioColmenas.some(c => c.health === 'risk') ? 'hsl(var(
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                                 <div>
                                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Estado de salud</label>
-                                    <select className="input-field" value={editingColmena.health} onChange={e => setEditingColmena({ ...editingColmena, health: e.target.value as any })}>
+                                    <select className="input-field" value={editingColmena.health} onChange={e => setEditingColmena({ ...editingColmena, health: e.target.value as Colmena['health'] })}>
                                         <option value="optimal">Óptima</option>
                                         <option value="attention">Atención</option>
                                         <option value="risk">Riesgo / Critica</option>

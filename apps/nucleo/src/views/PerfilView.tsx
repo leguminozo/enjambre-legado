@@ -108,8 +108,9 @@ export function PerfilView() {
       setProfile(prev => prev ? { ...prev, full_name: editName } : null);
       setEditMode(false);
       setMessage({ type: 'success', text: 'Perfil actualizado' });
-    } catch {
-      setMessage({ type: 'error', text: 'Error guardando perfil' });
+} catch (error) {
+        console.error('[perfil] save error:', error);
+        setMessage({ type: 'error', text: 'Error guardando perfil' });
     } finally {
       setSaving(false);
     }
@@ -134,8 +135,9 @@ export function PerfilView() {
       if (updateErr) throw updateErr;
       setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
       setMessage({ type: 'success', text: 'Avatar actualizado' });
-    } catch {
-      setMessage({ type: 'error', text: 'Error subiendo avatar' });
+} catch (error) {
+        console.error('[perfil] avatar upload error:', error);
+        setMessage({ type: 'error', text: 'Error subiendo avatar' });
     } finally {
       setAvatarUploading(false);
     }
@@ -159,8 +161,9 @@ export function PerfilView() {
       setNewPassword('');
       setConfirmPassword('');
       setMessage({ type: 'success', text: 'Contraseña actualizada' });
-    } catch {
-      setMessage({ type: 'error', text: 'Error cambiando contraseña' });
+} catch (error) {
+        console.error('[perfil] password change error:', error);
+        setMessage({ type: 'error', text: 'Error cambiando contraseña' });
     } finally {
       setPasswordSaving(false);
     }

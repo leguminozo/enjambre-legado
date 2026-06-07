@@ -58,9 +58,9 @@ export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasPro
       case 'Vencida':
         return 'bg-red-500/20 text-red-400 border-red-500/30';
       case 'Anulada':
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+        return 'bg-muted/20 text-muted-foreground border-muted/30';
       default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+        return 'bg-muted/20 text-muted-foreground border-muted/30';
     }
   };
 
@@ -79,7 +79,7 @@ export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasPro
   }
 
   return (
-    <Card className="bg-black border-gray-800">
+    <Card className="bg-background border-border">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl font-light flex items-center gap-2">
@@ -88,7 +88,7 @@ export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasPro
           </CardTitle>
           <Button 
             onClick={() => setMostrarFormulario(true)} 
-            className="bg-white text-black hover:bg-gray-200"
+            className="bg-primary-foreground text-foreground hover:bg-secondary"
             disabled={isPending}
           >
             {isPending ? (
@@ -103,12 +103,12 @@ export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasPro
       <CardContent>
         {facturas.length === 0 ? (
           <div className="text-center py-12">
-            <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+            <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-medium mb-2">No hay facturas emitidas</h3>
-            <p className="text-gray-400 mb-4">Comienza creando tu primera factura</p>
+            <p className="text-muted-foreground mb-4">Comienza creando tu primera factura</p>
             <Button 
               onClick={() => setMostrarFormulario(true)} 
-              className="bg-white text-black hover:bg-gray-200"
+              className="bg-primary-foreground text-foreground hover:bg-secondary"
             >
               <Plus className="h-4 w-4 mr-2" />
               Crear Factura
@@ -119,7 +119,7 @@ export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasPro
             {facturas.map((factura) => (
               <div 
                 key={factura.id} 
-                className="border border-gray-800 rounded-lg p-4 hover:bg-gray-900/50 transition-colors"
+                className="border border-border rounded-lg p-4 hover:bg-background/50 transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -130,32 +130,32 @@ export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasPro
                       </Badge>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-400">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
                       <div>
-                        <span className="text-gray-500">Cliente:</span>
-                        <span className="ml-2 text-white">
+                        <span className="text-muted-foreground">Cliente:</span>
+                        <span className="ml-2 text-foreground">
                           {factura.cliente ? `${factura.cliente.nombre} (${factura.cliente.rut})` : 'Sin cliente'}
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Fecha:</span>
-                        <span className="ml-2 text-white">{formatDate(factura.fecha)}</span>
+                        <span className="text-muted-foreground">Fecha:</span>
+                        <span className="ml-2 text-foreground">{formatDate(factura.fecha)}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Período:</span>
-                        <span className="ml-2 text-white">{factura.periodo.nombre}</span>
+                        <span className="text-muted-foreground">Período:</span>
+                        <span className="ml-2 text-foreground">{factura.periodo.nombre}</span>
                       </div>
                     </div>
 
                     {factura.descripcion && (
-                      <p className="text-sm text-gray-400 mt-2">{factura.descripcion}</p>
+                      <p className="text-sm text-muted-foreground mt-2">{factura.descripcion}</p>
                     )}
                   </div>
 
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <div className="text-lg font-semibold">{formatCurrency(factura.montoTotal)}</div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-xs text-muted-foreground">
                         Neto: {formatCurrency(factura.montoNeto)}
                       </div>
                     </div>
@@ -164,14 +164,14 @@ export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasPro
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="hover:bg-gray-800"
+                        className="hover:bg-surface-sunken"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="hover:bg-gray-800"
+                        className="hover:bg-surface-sunken"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -179,7 +179,7 @@ export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasPro
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(factura.id)}
-                        className="hover:bg-gray-800 text-red-400 hover:text-red-300"
+                        className="hover:bg-surface-sunken text-red-400 hover:text-red-300"
                         disabled={isPending}
                       >
                         {isPending ? (

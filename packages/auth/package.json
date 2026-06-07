@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./browser": "./src/supabase.ts",
     "./middleware": "./src/middleware.ts",
     "./server-index": "./src/server-index.ts",
     "./security-events": "./src/security-events.ts"

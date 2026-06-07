@@ -72,9 +72,9 @@ function fmtNum(n: number): string {
 const CHANNEL_COLORS: Record<string, string> = {
   feria: BOSQUE_ULMO,
   delivery: ORO_MIEL,
-  local: '#3B82F6',
-  corporativo: '#8B5CF6',
-  web: '#06B6D4',
+  local: 'hsl(var(--info))',
+  corporativo: 'hsl(var(--chart-1))',
+  web: 'hsl(var(--chart-5))',
   referido: SALUD_OPTIMA,
 }
 

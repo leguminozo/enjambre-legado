@@ -90,7 +90,7 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
 
   if (!analisis) {
     return (
-      <Card className="bg-black border-gray-800">
+      <Card className="bg-background border-border">
         <CardHeader>
           <CardTitle className="text-xl font-light flex items-center gap-2">
             <Target className="h-5 w-5" />
@@ -99,8 +99,8 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
         </CardHeader>
         <CardContent>
           <div className="text-center py-12">
-            <Brain className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-400 mb-4">Análisis de rentabilidad no disponible</p>
+            <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground mb-4">Análisis de rentabilidad no disponible</p>
             <Button onClick={cargarAnalisis} disabled={loading}>
               {loading ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : null}
               Ejecutar Análisis
@@ -114,7 +114,7 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
   const rentabilidadLevel = getRentabilidadLevel(analisis.rentabilidadNeta);
 
   return (
-    <Card className="bg-black border-gray-800">
+    <Card className="bg-background border-border">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl font-light flex items-center gap-2">
@@ -123,7 +123,7 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
           </CardTitle>
           <div className="flex items-center gap-2">
             {ultimoAnalisis && (
-              <span className="text-sm text-gray-400">
+              <span className="text-sm text-muted-foreground">
                 Último análisis: {ultimoAnalisis}
               </span>
             )}
@@ -137,10 +137,10 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
       <CardContent className="space-y-6">
         {/* Métricas Principales */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-background border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-400">Rentabilidad Neta</span>
+                <span className="text-sm text-muted-foreground">Rentabilidad Neta</span>
                 {analisis.rentabilidadNeta > 0 ? 
                   <TrendingUp className="h-4 w-4 text-green-400" /> : 
                   <TrendingDown className="h-4 w-4 text-red-400" />
@@ -149,16 +149,16 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
               <div className={`text-2xl font-bold ${getRentabilidadColor(analisis.rentabilidadNeta)}`}>
                 {formatPercentage(analisis.rentabilidadNeta)}
               </div>
-              <Badge className={`${rentabilidadLevel.color} text-white mt-2`}>
+              <Badge className={`${rentabilidadLevel.color} text-foreground mt-2`}>
                 {rentabilidadLevel.label}
               </Badge>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-background border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-400">Margen Utilidad</span>
+                <span className="text-sm text-muted-foreground">Margen Utilidad</span>
                 <Percent className="h-4 w-4 text-blue-400" />
               </div>
               <div className="text-2xl font-bold text-blue-400">
@@ -168,10 +168,10 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-background border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-400">ROI</span>
+                <span className="text-sm text-muted-foreground">ROI</span>
                 <DollarSign className="h-4 w-4 text-green-400" />
               </div>
               <div className="text-2xl font-bold text-green-400">
@@ -181,16 +181,16 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-900 border-gray-700">
+          <Card className="bg-background border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-400">Punto Equilibrio</span>
+                <span className="text-sm text-muted-foreground">Punto Equilibrio</span>
                 <Target className="h-4 w-4 text-purple-400" />
               </div>
               <div className="text-lg font-bold text-purple-400">
                 {formatCurrency(analisis.puntoEquilibrio)}
               </div>
-              <div className="text-xs text-gray-400 mt-1">Mensual</div>
+              <div className="text-xs text-muted-foreground mt-1">Mensual</div>
             </CardContent>
           </Card>
         </div>
@@ -234,7 +234,7 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
             </CardHeader>
             <CardContent>
               {analisis.oportunidades.length === 0 ? (
-                <div className="text-sm text-gray-400">
+                <div className="text-sm text-muted-foreground">
                   No se identificaron oportunidades inmediatas
                 </div>
               ) : (

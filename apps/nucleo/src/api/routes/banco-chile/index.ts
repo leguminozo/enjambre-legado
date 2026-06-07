@@ -1,6 +1,18 @@
 import type { AppVariables } from '@/api/lib/middleware';
 import { Hono } from 'hono';
 import { z } from 'zod';
+
+interface BancoChileConfigRow {
+  id: string;
+  empresa_id: string;
+  client_id: string;
+  client_secret: string;
+  username: string;
+  password: string;
+  environment: string;
+  enabled: boolean;
+  [key: string]: unknown;
+}
 import { zValidator } from '@hono/zod-validator';
 import { authMiddleware } from '@/api/lib/middleware';
 import { tenantMiddleware } from '@/api/lib/middleware';
@@ -49,7 +61,7 @@ bancoChileRoutes.get('/config', async (c) => {
   }
 
   // No devolver credenciales sensibles
-  const { client_id, client_secret, username, password, ...safeConfig } = data as any;
+  const { client_id, client_secret, username, password, ...safeConfig } = data as BancoChileConfigRow;
   return c.json({
     config: {
       ...safeConfig,
@@ -132,7 +144,7 @@ bancoChileRoutes.post('/auth', async (c) => {
     .eq('empresa_id', empresaId)
     .single();
 
-  if (!config || !(config as any).client_id) {
+  if (!config || !(config as BancoChileConfigRow).client_id) {
     return c.json({ error: 'Configuración no encontrada' }, 404);
   }
 

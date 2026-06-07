@@ -1,4 +1,5 @@
 import type { AppVariables } from '@/api/lib/middleware';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { Hono } from 'hono';
 import { z } from 'zod';
 
@@ -89,7 +90,7 @@ webhookRouter.get('/status', async (c) => {
 
 // Función para procesar notificaciones por tipo
 async function procesarNotificacion(
-  supabase: any,
+  supabase: SupabaseClient,
   tipo: string,
   data: {
     id: string;

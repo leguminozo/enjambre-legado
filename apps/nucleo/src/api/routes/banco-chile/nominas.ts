@@ -1,6 +1,11 @@
 import type { AppVariables } from '@/api/lib/middleware';
 import { Hono } from 'hono';
 import { z } from 'zod';
+
+interface BancoChileNomina {
+  id: string;
+  [key: string]: unknown;
+}
 import { zValidator } from '@hono/zod-validator';
 import { BancoChileClient, NominaRequestSchema } from '@enjambre/banco-chile';
 
@@ -111,7 +116,7 @@ nominasRouter.post(
 
       // Guardar detalles
       const detalles = body.detalles.map((det) => ({
-        nomina_id: (nominaData as any).id,
+        nomina_id: (nominaData as BancoChileNomina).id,
         rut_beneficiario: det.rutBeneficiario,
         nombre_beneficiario: det.nombreBeneficiario,
         banco: det.banco,

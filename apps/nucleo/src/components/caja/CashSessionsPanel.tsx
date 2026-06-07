@@ -229,7 +229,7 @@ export function CashSessionsPanel() {
           ) : filteredSessions.map(s => {
             const StatusIcon = statusIcon[s.session_status] || Clock;
             return (
-              <div key={s.id} className="p-5 rounded-xl bg-black/[0.03] border border-white/[0.06] hover:border-oro-miel/20 transition-all">
+              <div key={s.id} className="p-5 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-oro-miel/20 transition-all">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -280,7 +280,7 @@ export function CashSessionsPanel() {
                       <button
                         disabled={actionLoading === s.id}
                         onClick={() => reconcileSession(s.id)}
-                        className="w-9 h-9 rounded-full bg-salud-optima/10 text-salud-optima flex items-center justify-center hover:bg-salud-optima hover:text-white transition-all disabled:opacity-50"
+                        className="w-9 h-9 rounded-full bg-salud-optima/10 text-salud-optima flex items-center justify-center hover:bg-salud-optima hover:text-foreground transition-all disabled:opacity-50"
                         title="Reconciliar"
                       >
                         {actionLoading === s.id ? <Loader2 className="animate-spin" size={16} /> : <Check size={18} />}
@@ -295,7 +295,7 @@ export function CashSessionsPanel() {
       </div>
 
       {selectedSession && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setSelectedSession(null)}>
+        <div className="fixed inset-0 z-50 bg-background/40 flex items-center justify-center p-4" onClick={() => setSelectedSession(null)}>
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 space-y-4" onClick={e => e.stopPropagation()}>
             <h3 className="font-display text-xl text-bosque-ulmo">Detalle de Sesión</h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
@@ -317,7 +317,7 @@ export function CashSessionsPanel() {
               </div>
             </div>
             {selectedSession.notas && <p className="text-xs text-text-muted italic mt-2">Notas: {selectedSession.notas}</p>}
-            <button onClick={() => setSelectedSession(null)} className="w-full py-2 bg-stone-100 rounded-lg text-sm font-medium hover:bg-stone-200 transition-colors">Cerrar</button>
+            <button onClick={() => setSelectedSession(null)} className="w-full py-2 bg-secondary rounded-lg text-sm font-medium hover:bg-secondary transition-colors">Cerrar</button>
           </div>
         </div>
       )}

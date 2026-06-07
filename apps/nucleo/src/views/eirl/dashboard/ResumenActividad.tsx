@@ -49,19 +49,19 @@ export function ResumenActividad({
   ];
 
   return (
-    <Card className="bg-black border-gray-800">
+    <Card className="bg-background border-border">
       <CardHeader>
         <CardTitle className="text-lg font-light">Resumen de Actividad</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {actividades.map((actividad, index) => (
-            <div key={index} className="text-center p-4 border border-gray-800 rounded-lg">
+            <div key={index} className="text-center p-4 border border-border rounded-lg">
               <div className={`w-12 h-12 ${actividad.bgColor} rounded-lg flex items-center justify-center mx-auto mb-3`}>
                 <actividad.icono className={`h-6 w-6 ${actividad.color}`} />
               </div>
               <div className="text-2xl font-bold">{actividad.valor}</div>
-              <div className="text-sm text-gray-400 mt-1">{actividad.titulo}</div>
+              <div className="text-sm text-muted-foreground mt-1">{actividad.titulo}</div>
             </div>
           ))}
         </div>

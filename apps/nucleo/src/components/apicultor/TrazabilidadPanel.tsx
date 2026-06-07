@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, ChevronRight, CheckCircle2, ImageOff, Plus, X } from 'lucide-react';
 import { arbolesPlantados, colmenas, reflexiones } from '../../data/mockData';
 
-export default function TrazabilidadPanel() {
+export function TrazabilidadPanel() {
     const [selectedLote, setSelectedLote] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'arboles' | 'lotes' | 'reflexiones'>('arboles');
 

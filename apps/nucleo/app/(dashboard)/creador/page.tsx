@@ -1,6 +1,6 @@
 'use client'
 
-import CreadorView from '@/views/CreadorView'
+import { CreadorView } from '@/views/CreadorView'
 import { useAuthStore } from '@enjambre/auth'
 
 export default function CreadorPage() {

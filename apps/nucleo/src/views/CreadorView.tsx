@@ -6,7 +6,7 @@ interface CreadorViewProps {
   userId?: string;
 }
 
-export default function CreadorView({ userId }: CreadorViewProps) {
+export function CreadorView({ userId }: CreadorViewProps) {
   const [activeTab, setActiveTab] = useState<'portal' | 'admin'>('admin');
 
   return (

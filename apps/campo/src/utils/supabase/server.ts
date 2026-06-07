@@ -20,9 +20,9 @@ export async function createClient(): Promise<SupabaseClient | null> {
           cookiesToSet.forEach(({ name, value, options }) =>
             cookieStore.set(name, value, options),
           );
-        } catch {
-          // setAll desde Server Component: ignorar si el middleware refresca la sesión.
-        }
+} catch (error) {
+      console.error('[campo-supabase-server] cookie set error:', error);
+    }
       },
     },
   });

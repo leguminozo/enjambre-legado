@@ -212,7 +212,7 @@ export function ComisionesPanel() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-      <tr className="text-left text-text-muted text-[0.65rem] uppercase tracking-wider border-b border-white/5">
+      <tr className="text-left text-text-muted text-[0.65rem] uppercase tracking-wider border-b border-foreground/5">
         {!filterPaid?.startsWith('pag') && <th className="pb-3 w-8"></th>}
         <th className="pb-3">Representante</th>
         <th className="pb-3">Base</th>
@@ -230,11 +230,11 @@ export function ComisionesPanel() {
               {filteredCommissions.length === 0 ? (
                 <tr><td colSpan={11} className="text-center py-8 text-text-muted italic">No hay comisiones que coincidan.</td></tr>
               ) : filteredCommissions.map(c => (
-                <tr key={c.id} className="border-b border-white/[0.03] hover:bg-black/[0.02]">
+                <tr key={c.id} className="border-b border-foreground/[0.03] hover:bg-background/[0.02]">
                   {!filterPaid?.startsWith('pag') && (
                     <td className="py-3">
                       {!c.paid && (
-                        <input type="checkbox" checked={selectedIds.has(c.id)} onChange={() => toggleSelect(c.id)} className="rounded border-stone-300" />
+                        <input type="checkbox" checked={selectedIds.has(c.id)} onChange={() => toggleSelect(c.id)} className="rounded border-border" />
                       )}
                     </td>
                   )}

@@ -1,6 +1,6 @@
-import MapaLegado from '../components/map/MapaLegado';
+import { MapaLegado } from '../components/map/MapaLegado';
 
-export default function MapaView() {
+export function MapaView() {
   return (
     <div>
       <div className="section-header animate-in">

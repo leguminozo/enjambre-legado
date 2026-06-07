@@ -38,7 +38,8 @@ export async function updateSession(request: NextRequest): Promise<AuthResult> {
       response: supabaseResponse,
       user: user ? { id: user.id, email: user.email ?? '' } : null,
     };
-  } catch {
+  } catch (error) {
+    console.error('[campo-supabase-middleware] error:', error);
     return { response: NextResponse.next({ request }), user: null };
   }
 }
