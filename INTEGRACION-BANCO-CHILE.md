@@ -51,7 +51,7 @@ Se han implementado **todas las APIs de Banco Chile Empresas** solicitadas en el
 - ✅ `docs/BANCO_CHILE.md` - Documentación completa
 - ✅ `docs/BANCO_CHILE_IMPLEMENTACION.md` - Resumen técnico
 - ✅ `INTEGRACION-BANCO-CHILE.md` - Esta guía
-- ✅ `apps/api/.env.example` - Variables de entorno
+- ✅ Variables de entorno documentadas en `docs/VERCEL.md`
 
 ---
 
@@ -85,15 +85,15 @@ pnpm db:push
 
 ### 3. Configurar en Nucleo
 1. Abre Nucleo → Dashboard
-2. Selecciona rol **Gerente**
+2. Selecciona rol **admin**
 3. Ve a **Integraciones** → **Banco Chile**
 4. Ingresa tus credenciales
 5. Habilita la integración
 
 ### 4. Probar
 ```bash
-# Probar conexión
-curl http://localhost:3001/api/banco-chile/cuentas \
+# Probar conexión (rutas servidas por nucleo BFF)
+curl http://localhost:3000/api/banco-chile/cuentas \
   -H "Authorization: Bearer TU_TOKEN" \
   -H "x-empresa-id: TU_EMPRESA_UUID"
 ```
@@ -133,7 +133,7 @@ const transferencia = await client.crearTransferencia({
 
 ### Conciliar movimiento
 ```bash
-curl -X POST http://localhost:3001/api/banco-chile/conciliacion/conciliar \
+curl -X POST http://localhost:3000/api/banco-chile/conciliacion/conciliar \
   -H "Authorization: Bearer TOKEN" \
   -H "x-empresa-id: UUID" \
   -H "Content-Type: application/json" \
@@ -159,22 +159,12 @@ packages/
         └── client.ts
 
 apps/
-  api/
-    src/routes/banco-chile/   # Nuevas routes
-      ├── index.ts
-      ├── routes.ts
-      ├── conciliacion.ts
-      ├── transferencias.ts
-      ├── nominas.ts
-      ├── documentos.ts
-      ├── cotizaciones.ts
-      ├── rentas.ts
-      └── montos.ts
-  
-  nucleo/
-    src/views/banco-chile/    # Nueva UI
-      ├── index.ts
-      └── BancoChileView.tsx
+nucleo/
+src/app/api/banco-chile/ # BFF routes (Hono via Next.js)
+├── route.ts
+src/views/banco-chile/ # UI
+├── index.ts
+└── BancoChileView.tsx
 
 packages/database/
   supabase/migrations/
@@ -215,7 +205,7 @@ docs/
 
 - [x] Migraciones DB creadas (21 y 22)
 - [x] Paquete `@enjambre/banco-chile` creado
-- [x] Routes Hono implementadas (8 módulos)
+- [x] Routes Hono implementadas (8 módulos, servidas via nucleo BFF)
 - [x] UI Nucleo creada
 - [x] Variables de entorno documentadas
 - [x] Documentación completa

@@ -35,8 +35,6 @@ export function ComisionesPanel() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  useEffect(() => { fetchCommissions(); }, []);
-
   const fetchCommissions = async () => {
     setLoading(true);
     try {
@@ -79,6 +77,8 @@ export function ComisionesPanel() {
       setLoading(false);
     }
   };
+
+  useEffect(() => { fetchCommissions(); }, []);
 
   const payCommissions = async () => {
     if (selectedIds.size === 0) return;

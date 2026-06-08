@@ -48,18 +48,17 @@ export function parseUberReceipt(
 
   if (!Number.isFinite(montoTotal) || montoTotal <= 0) return null;
 
-  let fechaEmision = "";
-  if (dateMatch) {
-    const raw = dateMatch[1];
-    if (raw.includes("/")) {
-      const [d, m, y] = raw.split("/");
-      fechaEmision = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
-    } else {
-      fechaEmision = raw;
+  const fechaEmision = (() => {
+    if (dateMatch) {
+      const raw = dateMatch[1];
+      if (raw.includes("/")) {
+        const [d, m, y] = raw.split("/");
+        return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+      }
+      return raw;
     }
-  } else {
-    fechaEmision = new Date().toISOString().slice(0, 10);
-  }
+    return new Date().toISOString().slice(0, 10);
+  })();
 
   let montoNeto: number;
   let montoIva: number;

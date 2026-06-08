@@ -26,7 +26,7 @@ export async function createClient() {
             );
 } catch (error) {
     console.error('[nucleo-supabase-server] cookie set error:', error);
-    throw new Error("Supabase server client cannot set cookies in Server Component");
+      throw new Error("Supabase server client cannot set cookies in Server Component", { cause: error });
           }
         },
       },

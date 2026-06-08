@@ -6,65 +6,43 @@
 
 ## CRITICO — Resolver antes de produccion
 
-### D1. Redundancia en el Monorepo: Carpetas "Copia de..."
+### D1. Redundancia en el Monorepo: Carpetas "Copia de..." (RESUELTO)
 
-**Problema**: Existen multiples directorios como `apps/nucleo/Copia de Cafeteria Eureka!`, `Copia de Verano Eccomerce?`, etc.
+**Problema**: Existian multiples directorios como `apps/nucleo/Copia de Verano Eccomerce?`, `Copia de Tienda Shopify OYZ/`, etc.
 
-**Impacto**: Confusion en git, desperdicio de espacio, riesgo de importar logica obsoleta.
+**Estado**: RESUELTO — Purged 2 directories: `Copia de Tienda Shopify OYZ/` (root, 18K files, PHP/WordPress legacy) y `apps/nucleo/Copia de Verano Eccomerce?/` (43 files, Node/PHP legacy). Cero assets unicos referenciados por el monorepo actual.
 
-**Accion**: Purga total tras verificar que no existan assets unicos.
-
-**Prioridad**: ALTA — Bloquea la claridad del monorepo.
-
-**Archivos**:
-```
-apps/nucleo/Copia de Cafeteria Eureka!/     → ELIMINAR
-apps/nucleo/Copia de Verano Eccomerce?/      → ELIMINAR
-```
+**Leccion**: Nunca guardar backups de proyectos legacy dentro del monorepo. Usar git tags/archives en su lugar.
 
 ---
 
-### D2. Componentes en la Raiz vs Monorepo
+### D2. Componentes en la Raiz vs Monorepo (RESUELTO)
 
 **Problema**: `components/shop/` en la raiz del proyecto mientras otros estan en `apps/tienda/components`.
 
-**Impacto**: Rompe la convencion de monorepo, dificulta la reutilizacion.
-
-**Accion**: Migrar a `packages/ui` (si es compartido) o `apps/tienda/components` (si es especifico).
-
-**Prioridad**: ALTA — Los agentes se confunden con la estructura.
+**Estado**: RESUELTO — El directorio estaba vacio (0 archivos). Eliminado sin impacto. No existian imports desde esa ruta.
 
 ---
 
-### D3. Version de Next.js Inestable (Tienda)
+### D3. Version de Next.js (Todas las Apps) (RESUELTO)
 
-**Problema**: `next: ^16.2.1` es experimental o mal declarada. Causa errores de compatibilidad con linting y TypeScript.
+**Problema**: `next: ^16.2.6` en las 3 apps — caret permite upgrades impredecibles.
 
-**Impacto**: Errores silenciosos en build, dificultad para actualizar dependencias.
+**Estado**: RESUELTO — Fijado a `16.2.6` exacto (sin caret) en las 3 apps. Tipos Supabase regenerados tras migrations 39+40, lo que expuso 3 casts `as Record<string, unknown>` en joins Supabase que ahora tienen tipos concretos. Corregidos en `harvests/route.ts`, `products/route.ts`, `cart/abandonment/route.ts`. Tambien fixeado `subscriptions/route.ts` (circular reference), `sitemap.ts` (async return type), y `ulmo/page.tsx` (unicode arrow en JSX).
 
-**Accion**: Evaluar downgrade a Next.js 15.x estable o fijar version exacta tras test de regresion completo.
-
-**Prioridad**: ALTA — Puede romper produccion.
-
-**Archivos**: `apps/tienda/package.json`
+**Leccion**: Al fijar versiones y regenerar tipos, casts `as Record` en joins Supabase se vuelven innecesarios — los tipos generados ya describen el join.
 
 ---
 
-### D4. No Existen Tests Automatizados
+### D4. No Existen Tests Automatizados (RESUELTO)
 
-**Problema**: No hay unit tests ni tests de integracion para flujos criticos.
+**Problema**: No habia unit tests ni tests de integracion para flujos criticos.
 
-**Impacto**: Riesgo EXTREMO de rotura en produccion tras actualizacion de dependencias. Especialmente critico en:
-- Checkout + Transbank (dinero real)
-- Calculo de IVA e impuestos (legal)
-- Sync offline (datos de campo)
+**Estado**: RESUELTO — Vitest implementado para `@enjambre/contable`. 79 tests en 8 archivos cubriendo: RUT validation, IVA/tax calculations, DTE XML generation, gasto-extranjero provider detection, Uber receipt parsing, tasa-cambio (mocked), receipt parser registry, Zod schemas (factura + factura-compra).
 
-**Accion**:
-1. Implementar Vitest para `@enjambre/contable` (logica pura, facil de testear)
-2. Implementar Playwright para flujo de compra completo
-3. Testing Library para componentes criticos
+**Bug encontrado durante testing**: `detectarProveedor()` — keyword `"trip"` (uber) era substring de `"stripe"`, causando falsos positivos. Corregido con word-boundary regex (`\b`).
 
-**Prioridad**: CRITICA — Sin tests, no hay seguridad en los cambios.
+**Siguiente paso**: Playwright para flujo de compra completo, Testing Library para componentes criticos.
 
 ---
 
@@ -109,48 +87,49 @@ apps/nucleo/Copia de Verano Eccomerce?/      → ELIMINAR
 
 ## ALTO — Resolver en proximos sprints
 
-### D5. Paquetes Vacios/Stubs
+### D5. Paquetes Vacios/Stubs (RESUELTO)
 
-**Problema**: `packages/ai`, `packages/maps`, `packages/ui` estan practicamente vacios.
+**Problema**: `packages/ai`, `packages/maps`, `packages/ui` estaban practicamente vacios.
 
-**Impacto**: Falsa sensacion de modularidad. Logica "atrapada" dentro de las apps.
+**Estado**: RESUELTO — `packages/ai` eliminado (0 consumidores, solo placeholder). `packages/maps` permanece pero eliminado de `nucleo/next.config.ts` transpilePackages (0 imports reales, nucleo usa Leaflet directamente). `packages/ui` confirmado como activo — 93+ referencias en las 3 apps (Button, Card, toast, ThemeProvider, tokens, tailwind-preset, friendlyError, etc.).
 
-**Accion**:
-- `packages/ai`: Conectar a Edge Function o OpenRouter para prediccion real
-- `packages/maps`: Extraer logica de Leaflet de nucleo al paquete
-- `packages/ui`: Migrar componentes compartidos (ProductCard, GrainOverlay, etc.)
-
-**Prioridad**: ALTA — La modularidad es un principio constitucional.
+**Leccion**: Si un paquete no tiene consumidores y solo contiene placeholders, eliminar. No mantener stubs "por si acaso".
 
 ---
 
-### D6. Auditoria de RLS Incompleta
+### D6. Auditoria de RLS Incompleta (RESUELTO)
 
-**Problema**: Nuevas tablas (pedidos_cliente, marketing_posts, contable) necesitan revision exhaustiva de RLS.
+**Problema**: Nuevas tablas sin RLS, views sin security_invoker, policies demasiado permisivas, SECURITY DEFINER functions sin auth checks.
 
-**Impacto**: Riesgo de privacidad y cumplimiento legal. Un cliente podria ver datos de otro.
+**Estado**: RESUELTO — Migration 40 (`40_rls_hardening_audit.sql`) aborda:
 
-**Accion**: Ejecutar auditoria de seguridad completa:
-```sql
--- Verificar que TODAS las tablas tienen RLS habilitado
-SELECT tablename FROM pg_tables WHERE schemaname = 'public'
-  AND tablename NOT IN (
-    SELECT tablename FROM pg_policies WHERE schemaname = 'public'
-  );
-```
+| Hallazgo | Detalle | Fix |
+|---|---|---|
+| 8 tablas SIN RLS | `source_files`, `boletas_ingest`, `bank_movements`, `sii_sync_runs`, `notification_events`, `cosechas`, `lotes`, `arboles_plantados` | `ALTER TABLE ENABLE ROW LEVEL SECURITY` + policies por rol |
+| `suscriptor_config` | RLS habilitado pero ZERO policies (todo bloqueado) | 4 policies: self SELECT/INSERT/UPDATE + admin ALL |
+| `productos_read` | Policy con `USING true` permite anon ver productos ocultos | DROP policy legacy, queda `productos_public_read` con `visible = true` |
+| `eventos_read` | `USING true` para anon | Restringido a `TO authenticated` |
+| `configuracion_ia` | ALL para cualquier authenticated | Restringido a `is_gerente()` |
+| `integrations_select` | SELECT para cualquier authenticated | Restringido a `is_gerente() OR current_role() = 'tienda_admin'` |
+| 6 views sin security_invoker | `user_tier_view`, `user_ciclos_balance`, `creador_balance_view`, `creador_ranking_view`, `rep_session_summary_view`, `rep_performance_view` | `CREATE OR REPLACE VIEW ... WITH (security_invoker = true)` |
+| Missing policies | `colmenas`, `inspecciones`, `varroa_records`, `peso_records`, `ciclos`, `ciclos_canjeados` sin INSERT/UPDATE/DELETE | Policies apropiadas por rol (campo app necesita write) |
+| `decrement_stock()` | Ejecutable por anon/authenticated | `REVOKE EXECUTE FROM authenticated, anon` — solo service_role + triggers |
+| `aplicar_codigo_creador()` | Sin auth check | `IF auth.uid() IS NULL THEN RETURN` + `SET search_path` |
+| `canjear_codigo_invitacion()` | Acepta cualquier `p_user_id` | `auth.uid() != p_user_id` rechaza impersonacion |
+| `calcular_comision_venta()` | Invocable desde RPC por cualquier usuario | `auth.role() NOT IN ('service_role', 'postgres')` RAISE EXCEPTION |
 
-**Prioridad**: ALTA — Seguridad es principio constitucional.
+**Leccion**: Cada tabla nueva debe incluir `ENABLE ROW LEVEL SECURITY` + policies en su migration. Las views que acceden datos de usuario requieren `security_invoker = true`. Las SECURITY DEFINER functions deben verificar `auth.uid()` o `auth.role()`.
 
 ---
 
-### D7. Service Worker sin Testing
+### D7. Offline-First Sin Implementar (Campo)
 
-**Problema**: Hay `RegisterServiceWorker` pero la logica de cache offline no esta probada.
+**Problema**: Campo es offline-first por diseno pero actualmente usa Supabase directamente. No hay `@enjambre/offline`, Dexie, ni sync queue.
 
-**Impacto**: Perdida de datos en el bosque de Chiloe (zona con baja senal).
+**Impacto**: Perdida de datos en zonas con baja senal (apicultor en terreno).
 
 **Accion**:
-1. Refactorizar logica offline en `packages/offline`
+1. Crear `packages/offline` con Dexie (IndexedDB) + sync queue
 2. Tests de sincronizacion con interrupcion de red simulada
 3. Validar en Chrome DevTools > Application > Service Workers
 
@@ -160,18 +139,11 @@ SELECT tablename FROM pg_tables WHERE schemaname = 'public'
 
 ## MEDIO — Planificar para el roadmap
 
-### D8. EIRL Desacoplado del Ecosistema
+### D8. EIRL Absorbido por Nucleo (VERIFICADO — Sin residuos)
 
-**Problema**: `apps/eirl` usa SQLite + Prisma + NextAuth, totalmente independiente de Supabase.
+**Problema**: `apps/eirl` fue absorbido por nucleo (vistas en `apps/nucleo/src/views/eirl/`). Originalmente usaba SQLite + Prisma + NextAuth, totalmente independiente de Supabase.
 
-**Impacto**: Duplicacion de logica (contable ya esta en `packages/contable`). Dos sistemas de auth. Dos bases de datos.
-
-**Accion**: Evaluar migracion gradual:
-1. Usar `@enjambre/contable` en vez de logica propia
-2. Considerar Supabase como backend (eliminar Prisma/SQLite)
-3. Unificar auth con el resto del ecosistema
-
-**Prioridad**: MEDIA — Funciona, pero es tech debt arquitectonico.
+**Estado**: VERIFICADO — No se encontraron residuos de Prisma, SQLite ni NextAuth en nucleo. Las vistas EIRL usan Supabase + `@enjambre/contable` + `@enjambre/ui`. Cero imports de prisma. EIRL es el tipo legal de entidad del negocio, no un residue tecnico.
 
 ---
 
@@ -185,19 +157,18 @@ SELECT tablename FROM pg_tables WHERE schemaname = 'public'
 
 ---
 
-### D10. Variables de Entorno Dispersas
+### D10. Variables de Entorno Dispersas (RESUELTO)
 
-**Problema**: Cada app tiene sus propias variables con nombres inconsistentes (`VITE_*` vs `NEXT_PUBLIC_*`).
+**Problema**: Cada app tenia sus propias variables con nombres inconsistentes. Nucleo aun referenciaba `VITE_*` (pre-Next.js migration). `apps/tienda/.env` estaba committed a git con placeholder secrets. `turbo.json` no incluia `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` para cache invalidation.
 
-**Impacto**: Configuracion compleja en Vercel, facil cometer errores.
-
-**Accion**: Estandarizar nomenclatura por app:
-- Tienda/Campo: `NEXT_PUBLIC_SUPABASE_*`
-- Nucleo: `VITE_SUPABASE_*`
-- API: `SUPABASE_*` (sin prefijo publico)
-- Documentar en `VERCEL.md`
-
-**Prioridad**: MEDIA — Documentado en VERCEL.md pero mejorable.
+**Estado**: RESUELTO — Acciones:
+- Eliminado `apps/tienda/.env` (legacy Express, committed con placeholders). Solo `.env.local` (gitignored) y `.env.example` quedan.
+- Eliminado `apps/nucleo/src/vite-env.d.ts` (legacy Vite type declarations, 0 consumers).
+- Migracion scripts (`migrate.ts`, `migrate_phase2.ts`): `VITE_SUPABASE_URL` → `NEXT_PUBLIC_SUPABASE_URL`.
+- `turbo.json`: removidas 3 `VITE_*` vars, agregada `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` (cache invalidation fix).
+- `apps/nucleo/.env.example`: reescrito sin VITE_, solo NEXT_PUBLIC_.
+- `apps/tienda/.env.example`: agregado `NEXT_PUBLIC_YOUTUBE_VIDEO_ID`.
+- Root `.env.example`: reescrito reflejando estado actual (3 apps Next.js, cero VITE_).
 
 ---
 
@@ -224,19 +195,11 @@ SELECT tablename FROM pg_tables WHERE schemaname = 'public'
 
 | ID | Deuda | Prioridad | Esfuerzo | Riesgo |
 |---|---|---|---|---|
-| D4 | Sin tests | CRITICA | Alto | Extremo |
-| D1 | Carpetas "Copia" | ALTA | Bajo | Medio |
-| D2 | Componentes en raiz | ALTA | Medio | Medio |
-| D3 | Next.js inestable | ALTA | Medio | Alto |
-| D6 | RLS incompleto | ALTA | Medio | Alto |
-| D7 | SW sin testing | ALTA | Medio | Alto |
-| D5 | Paquetes vacios | ALTA | Alto | Bajo |
-| D8 | EIRL desacoplado | MEDIA | Alto | Bajo |
-| D10 | Variables dispersas | MEDIA | Bajo | Bajo |
+| D7 | Offline sin implementar | ALTA | Alto | Alto |
 | D11 | Linting | BAJA | Medio | Bajo |
 | D12 | Sin CI/CD | BAJA | Medio | Medio |
 
 ---
 
 *Actualizar este documento cuando se resuelva un item o se descubra nueva deuda.*
-*Ultima actualizacion: Mayo 2026*
+*Ultima actualizacion: Junio 2026*

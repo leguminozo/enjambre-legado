@@ -64,10 +64,6 @@ export function CreadoresAdminPanel() {
   const [activeSection, setActiveSection] = useState<'creadores' | 'ranking' | 'retiros'>('creadores');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchAllData();
-  }, []);
-
   const fetchAllData = async () => {
     setLoading(true);
     try {
@@ -99,6 +95,10 @@ export function CreadoresAdminPanel() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
 
   const updateCreadorEstado = async (creadorId: string, userId: string, estado: string) => {
     setActionLoading(creadorId);

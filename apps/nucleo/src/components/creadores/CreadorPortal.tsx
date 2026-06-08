@@ -78,10 +78,6 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
   const [showRetiroForm, setShowRetiroForm] = useState(false);
   const [retiroForm, setRetiroForm] = useState({ monto: 0, metodo: 'transferencia' as const, datos: '' });
 
-  useEffect(() => {
-    fetchCreadorData();
-  }, []);
-
   const fetchCreadorData = async () => {
     setLoading(true);
     try {
@@ -116,6 +112,10 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchCreadorData();
+  }, []);
 
   const handleRetiro = async () => {
     if (!profile || retiroForm.monto < 5000) {

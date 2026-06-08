@@ -9,7 +9,7 @@ export interface AuthResult {
 }
 
 export async function updateSession(request: NextRequest): Promise<AuthResult> {
-  let response = NextResponse.next({ request })
+  const response = NextResponse.next({ request })
 
   const supabase = createServerClient(getSupabaseUrl(), getSupabaseKey(), {
     cookies: {

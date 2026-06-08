@@ -51,26 +51,23 @@ Los buckets se crean en la migracion `02_storage_buckets.sql`:
 
 ## 3. Despliegue por App
 
-### 3.1 Nucleo (Vite SPA)
+### 3.1 Nucleo (Next.js)
 
 | Config | Valor |
 |---|---|
 | **Root Directory** | `apps/nucleo` |
-| **Framework** | Vite |
+| **Framework** | Next.js |
 | **Node.js** | 24.x |
 | **Install Command** | `cd ../.. && npx pnpm@10.32.1 install --frozen-lockfile` |
 | **Build Command** | `cd ../.. && npx pnpm@10.32.1 exec turbo run build --filter=@enjambre/nucleo` |
-| **Output** | `dist` |
+| **Output** | Default (Next / `.next`) |
 
 **Variables**:
 | Clave | Valor |
 |---|---|
-| `VITE_SUPABASE_URL` | `https://hdhamxiblwwskvvqbcfo.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | `eyJ...` |
-| `VITE_PUBLIC_URL_TIENDA` | URL de la tienda en Vercel |
-| `VITE_PUBLIC_URL_CAMPO` | URL de campo en Vercel |
-
-**PWA**: El build genera service worker + manifest automaticamente via `vite-plugin-pwa`.
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://hdhamxiblwwskvvqbcfo.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJ...` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only (para BFF) |
 
 ### 3.2 Tienda (Next.js)
 
@@ -118,33 +115,9 @@ Los buckets se crean en la migracion `02_storage_buckets.sql`:
 
 **Troubleshooting**: Si ves `500 MIDDLEWARE_INVOCATION_FAILED`, verificar que las variables `NEXT_PUBLIC_SUPABASE_*` existen. El middleware actual reescribe a `/setup-error` en vez de crashear.
 
-### 3.4 API (Hono/Node)
+### 3.4 EIRL (Absorbido por Nucleo)
 
-| Config | Propuesta |
-|---|---|
-| **Plataforma** | Docker en VPS o Railway/Render |
-| **Build** | `tsc` (compila a `dist/`) |
-| **Start** | `node dist/index.js` |
-| **Port** | 3001 |
-
-**Variables**:
-| Clave | Valor |
-|---|---|
-| `PORT` | 3001 |
-| `SUPABASE_URL` | URL del proyecto |
-| `SUPABASE_ANON_KEY` | JWT anon |
-
-**Health checks**: `GET /api/health/live` (liveness), `GET /api/health/ready` (readiness con Bearer)
-
-### 3.5 EIRL (Next.js + SQLite)
-
-| Config | Propuesta |
-|---|---|
-| **Plataforma** | VPS con Node.js |
-| **Start** | `tsx server.ts` (custom server con Socket.IO) |
-| **Database** | SQLite (archivo local) |
-
-**Independiente**: No usa Supabase. Tiene su propia base de datos, autenticacion y logica.
+Las vistas de contabilidad EIRL fueron absorbidas por nucleo. Se encuentran en `apps/nucleo/src/views/eirl/`. No existe una app `apps/eirl` independiente.
 
 ---
 
@@ -155,34 +128,27 @@ Los buckets se crean en la migracion `02_storage_buckets.sql`:
 **Nucleo**:
 - [ ] Login funciona y redirige por rol
 - [ ] Mapa carga con apiarios
-- [ ] PWA instalable (Chrome/Safari)
-- [ ] Service Worker activo (DevTools > Application)
+- [ ] BFF health checks responden
+- [ ] Dashboard contable retorna datos
 
 **Tienda**:
 - [ ] Landing carga con estetica premium
 - [ ] Catalogo muestra productos
 - [ ] Checkout completo con Transbank (sandbox primero)
-- [ ] Admin dashboard accesible con rol tienda_admin
+- [ ] Admin dashboard accesible con rol admin
 
 **Campo**:
 - [ ] Login funciona
 - [ ] POS catalogo + carrito funcionan
 - [ ] API `/api/pos/venta` responde correctamente
-- [ ] Offline: cargar, desconectar, operar, reconectar, sincronizar
-
-**API**:
-- [ ] Health checks responden
-- [ ] Bearer token valido aceptado
-- [ ] Dashboard contable retorna datos
-- [ ] Factura emitida con IVA calculado correctamente
 
 ### 4.2 Integracion Cross-App
 
 Despues de desplegar nucleo, tienda y campo:
 
-1. Copiar URLs `*.vercel.app` de tienda y campo
-2. Configurar en nucleo: `VITE_PUBLIC_URL_TIENDA` y `VITE_PUBLIC_URL_CAMPO`
-3. Redeploy nucleo para que los enlaces funcionen
+1. Copiar URLs `*.vercel.app` de cada proyecto
+2. Configurar segun sea necesario en cada app
+3. Redeploy si hay cambios en variables de entorno
 
 ---
 
@@ -213,7 +179,6 @@ vercel rollback [deployment-url]
 | Tienda | Vercel Dashboard > Functions/Logs |
 | Nucleo | Vercel Dashboard > Functions/Logs |
 | Campo | Vercel Dashboard > Functions/Logs |
-| API | Docker logs / PM2 logs |
 | Supabase | Supabase Dashboard > Logs > Postgres/Auth/API |
 | Transbank | Transbank Portal > Comercio |
 
@@ -230,9 +195,9 @@ vercel rollback [deployment-url]
 - [ ] Lighthouse score > 80 en mobile
 - [ ] Test de flujo de compra completo
 - [ ] Test de login/logout con multiples roles
-- [ ] Test de offline en campo
+- [ ] Service Role Key nunca en cliente
 
 ---
 
 *Para detalles especificos de Vercel, ver `VERCEL.md`.*
-*Ultima actualizacion: Mayo 2026*
+*Ultima actualizacion: Junio 2026*

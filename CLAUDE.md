@@ -17,26 +17,25 @@
 
 ### Monorepo Structure
 ```
-apps/tienda    → Next.js 16  (e-commerce + admin)
-apps/nucleo    → Vite 7 SPA  (management dashboard, PWA)
-apps/campo     → Next.js 15  (field PWA, offline-first)
-apps/api       → Hono        (BFF, accounting, integrations)
-apps/eirl      → Next.js 15  (EIRL accounting, INDEPENDENT)
-packages/database  → Supabase migrations + types
-packages/contable  → Chilean tax logic (IVA, RUT)
-packages/auth      → Auth helpers + Zustand store
-packages/offline   → Dexie sync queue
-packages/ui        → Design tokens
+apps/tienda → Next.js 16 (e-commerce + admin)
+apps/nucleo → Next.js 16 App Router (management dashboard, Hono BFF, contable)
+apps/campo → Next.js 16 (field PWA, offline-first planned)
+packages/database → Supabase migrations + types
+packages/contable → Chilean tax logic (IVA, RUT)
+packages/auth → Auth helpers + Zustand store
+packages/ui → Design tokens
+packages/sumup → SumUp POS integration
+packages/banco-chile → Banco Chile Empresas API client
 ```
 
 ### Stack
-- React 19, Next.js 15/16, Vite 7, Tailwind CSS 3/4
+- React 19, Next.js 16, Tailwind CSS 3/4
 - Supabase (Postgres 17 + PostGIS + RLS)
-- Zustand, TanStack Query, Dexie
+- Zustand, TanStack Query
 - GSAP, Framer Motion
 - Transbank SDK (Webpay Chile)
 - Hono (BFF), Zod
-- Turborepo + pnpm 10.32.1
+- Turborepo + pnpm
 
 ### Commands
 ```bash
@@ -53,7 +52,7 @@ cd packages/database && pnpm db:typegen          # Regenerate DB types
 2. **No `any`** — Use `unknown` + type guards
 3. **Tailwind tokens** — No hex colors, use semantic tokens (`bg-background`, `text-foreground`)
 4. **RLS always** — Every new table needs Row Level Security
-5. **Offline-first for campo** — Dexie before Supabase
+5. **Offline-first for campo** — Planned (Dexie + sync queue). Currently uses Supabase directly.
 6. **Premium aesthetics** — Dark mode, Cormorant Garamond, GSAP animations
 7. **Surgery, not butchery** — Minimal, precise changes only
 8. **Build verification** — Always run `pnpm --filter @enjambre/<app> build` after changes
@@ -67,10 +66,10 @@ cd packages/database && pnpm db:typegen          # Regenerate DB types
 | Negro Tinta | `#1a1a1a` |
 
 ### Roles
-`apicultor`, `vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`, `cliente`
+`admin`, `cliente`, `creador`, `rep_ventas`
+
+> Legacy roles (`apicultor`, `vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) consolidated into `admin` via migration 39.
 
 ### Environment Variables
 - Apps Next.js: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Nucleo (Vite): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-- API (Hono): `SUPABASE_URL`, `SUPABASE_ANON_KEY`
 - Server-only: `SUPABASE_SERVICE_ROLE_KEY`, `TRANSBANK_*`

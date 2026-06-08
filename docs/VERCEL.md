@@ -2,15 +2,15 @@
 
 Usa esta lista en **Vercel → Project → Settings → General / Build & Development** para alinear el despliegue con el monorepo.
 
-## Proyecto principal (núcleo — SPA Vite)
+## Proyecto principal (nucleo — Next.js 16)
 
-Objetivo: servir el build de [`apps/nucleo`](../apps/nucleo) (React Router). La fuente de verdad de install/build/output es [`apps/nucleo/vercel.json`](../apps/nucleo/vercel.json) (rewrites SPA + monorepo).
+Objetivo: servir el build de [`apps/nucleo`](../apps/nucleo) (Next.js 16 App Router + Hono BFF). La fuente de verdad de install/build/output es [`apps/nucleo/next.config.ts`](../apps/nucleo/next.config.ts).
 
 ### Recrear / alinear proyecto «nucleo» en Vercel
 
 1. **Conectar** el repo `guillermoc2710-cmd/enjambre-legado`, rama `main`.
 2. **Root Directory:** `apps/nucleo` (sin barra final).
-3. **Framework Preset:** Vite.
+3. **Framework Preset:** Next.js.
 4. **Node.js:** 24.x (en *Settings → General* y `engines` en `apps/nucleo/package.json`; alineado con el monorepo).
 5. **Build & Development:** activa **Override** en los tres y pega exactamente (evita el «default» que solo instala en la subcarpeta):
 
@@ -18,28 +18,25 @@ Objetivo: servir el build de [`apps/nucleo`](../apps/nucleo) (React Router). La 
 |--------|--------|
 | **Install Command** | `cd ../.. && npx pnpm@10.32.1 install --frozen-lockfile` |
 | **Build Command** | `cd ../.. && npx pnpm@10.32.1 exec turbo run build --filter=@enjambre/nucleo` |
-| **Output Directory** | `dist` |
+| **Output Directory** | Dejar default (Next / `.next`) |
 
-Si los overrides están **apagados**, Vercel debería leer igualmente `vercel.json`; si el build falla, fuerza los overrides de arriba.
+Si los overrides están **apagados**, Vercel debería leer `next.config.ts`; si el build falla, fuerza los overrides de arriba.
 
 6. **Variables de entorno (Production)** — copia la URL y la clave **tal cual** desde Supabase → *Settings → API* (un carácter mal y falla el cliente):
 
 | Clave | Valor |
 |--------|--------|
-| `VITE_SUPABASE_URL` | `https://<ref>.supabase.co` (ej. `hdhamxiblwwskvvqbcfo.supabase.co`) |
-| `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | clave publishable `sb_publishable_...` **o** |
-| `VITE_SUPABASE_ANON_KEY` | JWT anon `eyJ...` (solo una de las dos claves hace falta) |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://<ref>.supabase.co` (ej. `hdhamxiblwwskvvqbcfo.supabase.co`) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | JWT anon `eyJ...` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only (para BFF routes) |
 
-No uses `NEXT_PUBLIC_*` solo para el SPA Vite salvo que también compiles la landing Next en el mismo proyecto.
+**Nota historica:** Nucleo migro de Vite SPA a Next.js 16. Las variables `VITE_*` ya no aplican; usar `NEXT_PUBLIC_*` para client-side y sin prefijo para server-only.
 
-**Antigua referencia (root = repo vs `apps/nucleo`):** si el Root Directory fuera la raíz del monorepo, Output sería `apps/nucleo/dist` y los comandos usarían la raíz sin `cd ../..`.
+### BFF (Nucleo)
 
-### PWA (núcleo)
-
-- El build de [`apps/nucleo`](../apps/nucleo) ejecuta `scripts/rasterize-pwa-icons.mjs` (PNG 192/512 + `apple-touch-icon`) y genera el **service worker** y `manifest.webmanifest` vía [`vite-plugin-pwa`](https://vite-pwa-org.netlify.app/) en [`apps/nucleo/vite.config.ts`](../apps/nucleo/vite.config.ts).
-- **Probar instalación:** Chrome → icono de instalar; Safari iOS → Compartir → «Añadir a la pantalla de inicio».
-- **Tras un despliegue:** el SW usa `autoUpdate`; si algo se ve «atascado», cerrar pestañas del origen o «Borrar datos del sitio» en ajustes del navegador (misma URL que Vercel).
-- **Iconos maestros:** SVG en `apps/nucleo/public/icons/` (alineados con la tienda); al cambiar la marca, edita el SVG y vuelve a build (los PNG se regeneran).
+- Las rutas BFF estan en `apps/nucleo/src/app/api/[[...routes]]/route.ts` (Hono dentro de Next.js).
+- Endpoints: `/api/tienda/*`, `/api/banco-chile/*`, `/api/contable/*`, `/api/security-events/*`, etc.
+- Health checks: `GET /api/health/live` (liveness), `GET /api/health/ready` (readiness con Bearer)
 
 ## Proyecto adicional: tienda (Next.js)
 
@@ -94,8 +91,8 @@ Suele ser el middleware de Next que lanza antes (p. ej. variables `NEXT_PUBLIC_S
 
 ## Tras crear tienda y campo
 
-Copia las URLs `*.vercel.app` de cada proyecto y configúralas en el proyecto del núcleo como `VITE_PUBLIC_URL_TIENDA` y `VITE_PUBLIC_URL_CAMPO` para que los enlaces del ecosistema apunten a los despliegues reales.
+Copia las URLs `*.vercel.app` de cada proyecto. Nucleo ya no necesita `VITE_PUBLIC_URL_TIENDA` ni `VITE_PUBLIC_URL_CAMPO` (migro a Next.js con SSR). Si se requieren URLs cross-app, configurar como `NEXT_PUBLIC_*` en nucleo.
 
 ## Raíz del repo y `vercel.json`
 
-En la raíz del monorepo hay un [`vercel.json`](../vercel.json) orientado al núcleo (rewrites a `index.html`). **No** uses ese proyecto Vercel como sustituto de **tienda** o **campo** (Next): cada app Next debe ser un **proyecto Vercel separado** con su **Root Directory** (`apps/tienda` o `apps/campo`) y sus variables.
+En la raíz del monorepo hay un [`vercel.json`](../vercel.json) orientado al nucleo (legacy del Vite SPA). **No** uses ese proyecto Vercel como sustituto de **tienda** o **campo** (Next): cada app Next debe ser un **proyecto Vercel separado** con su **Root Directory** (`apps/tienda` o `apps/campo`) y sus variables.

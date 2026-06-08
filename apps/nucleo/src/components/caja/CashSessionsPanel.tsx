@@ -40,8 +40,6 @@ export function CashSessionsPanel() {
   const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
 
-  useEffect(() => { fetchSessions(); }, []);
-
   const fetchSessions = async () => {
     setLoading(true);
     try {
@@ -59,6 +57,8 @@ export function CashSessionsPanel() {
       setLoading(false);
     }
   };
+
+  useEffect(() => { fetchSessions(); }, []);
 
   const reconcileSession = async (sessionId: string) => {
     setActionLoading(sessionId);

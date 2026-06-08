@@ -63,12 +63,14 @@ export function TextCarousel() {
     }
   }, []);
 
+  const advanceRef = useRef<() => void>(() => {});
+
   const advance = useCallback(() => {
     if (!mountedRef.current) return;
 
     if (prefersReducedMotion) {
       setCurrent((prev) => (prev + 1) % SLIDES.length);
-      timerRef.current = setTimeout(advance, INTERVAL_MS);
+      timerRef.current = setTimeout(() => advanceRef.current(), INTERVAL_MS);
       return;
     }
 
@@ -82,10 +84,14 @@ export function TextCarousel() {
       timerRef.current = setTimeout(() => {
         if (!mountedRef.current) return;
         setPhase('visible');
-        timerRef.current = setTimeout(advance, INTERVAL_MS);
+        timerRef.current = setTimeout(() => advanceRef.current(), INTERVAL_MS);
       }, SLIDE_MS);
     }, FADE_MS);
-  }, [prefersReducedMotion, clearTimer]);
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    advanceRef.current = advance;
+  }, [advance]);
 
   useEffect(() => {
     mountedRef.current = true;

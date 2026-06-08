@@ -26,7 +26,7 @@
 1. `00_EMPEZA_AQUI.md` → `ARCHITECTURE.md` → `FRONTEND_ROADMAP.md`
 
 ### Desarrollador Backend
-1. `00_EMPEZA_AQUI.md` → `DATABASE_SCHEMA.md` → `ARCHITECTURE.md` (seccion API)
+1. `00_EMPEZA_AQUI.md` → `DATABASE_SCHEMA.md` → `ARCHITECTURE.md` (seccion BFF/Nucleo)
 
 ### DevOps
 1. `00_EMPEZA_AQUI.md` → `DEPLOY.md` → `VERCEL.md`
@@ -36,4 +36,4 @@
 
 ---
 
-*Ultima actualizacion: Mayo 2026*
+*Ultima actualizacion: Junio 2026*

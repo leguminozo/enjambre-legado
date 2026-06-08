@@ -1,4 +1,3 @@
-Initialising login role...
 export type Json =
   | string
   | number
@@ -1190,6 +1189,45 @@ export type Database = {
           income?: number | null
           month?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      checkout_sessions: {
+        Row: {
+          buy_order: string
+          cart: Json
+          completed_at: string | null
+          created_at: string
+          id: string
+          provider: string
+          session_id: string
+          shipping: Json | null
+          status: string
+          total: number
+        }
+        Insert: {
+          buy_order: string
+          cart: Json
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          provider: string
+          session_id: string
+          shipping?: Json | null
+          status?: string
+          total: number
+        }
+        Update: {
+          buy_order?: string
+          cart?: Json
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          provider?: string
+          session_id?: string
+          shipping?: Json | null
+          status?: string
+          total?: number
         }
         Relationships: []
       }
@@ -3587,7 +3625,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
-          role: string | null
+          role: string
           updated_at: string | null
         }
         Insert: {
@@ -3595,7 +3633,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
-          role?: string | null
+          role?: string
           updated_at?: string | null
         }
         Update: {
@@ -3603,7 +3641,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
-          role?: string | null
+          role?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -5466,6 +5504,7 @@ export type Database = {
       enablelongtransactions: { Args: never; Returns: string }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
       evaluar_tier_rep: { Args: { p_rep_id: string }; Returns: string }
+      expire_checkout_sessions: { Args: never; Returns: undefined }
       generar_codigo_creador: { Args: { nombre: string }; Returns: string }
       generar_codigo_invitacion: {
         Args: { p_empresa_id: string }
@@ -5575,6 +5614,7 @@ export type Database = {
         Args: { target_empresa_id: string }
         Returns: boolean
       }
+      is_admin: { Args: never; Returns: boolean }
       is_gerente: { Args: never; Returns: boolean }
       longtransactionsenabled: { Args: never; Returns: boolean }
       populate_geometry_columns:

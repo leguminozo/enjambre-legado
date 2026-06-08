@@ -37,27 +37,29 @@ export function LogisticaView() {
   const [providers, setProviders] = useState<Provider[]>([]);
 
     // Form state for new shipment
-    const [showNewEnvio, setShowNewEnvio] = useState(false);
-    const [envioForm, setEnvioForm] = useState({ tracking_code: `ENV-${Math.floor(Math.random() * 1000)}`, destino: '', items: '', status: 'Programado', eta: 'Pendiente', via: 'Terrestre' });
+  const [showNewEnvio, setShowNewEnvio] = useState(false);
+  const [envioForm, setEnvioForm] = useState({ tracking_code: '', destino: '', items: '', status: 'Programado', eta: 'Pendiente', via: 'Terrestre' });
 
-    useEffect(() => {
-        async function loadData() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-            const uid = session.user.id;
+  const loadData = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const uid = session.user.id;
 
-            const [resE, resS, resP] = await Promise.all([
-                supabase.from('logistica_envios').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
-                supabase.from('stock_centers').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
-                supabase.from('proveedores').select('*').eq('user_id', uid).order('created_at', { ascending: false })
-            ]);
+    const [resE, resS, resP] = await Promise.all([
+      supabase.from('logistica_envios').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+      supabase.from('stock_centers').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+      supabase.from('proveedores').select('*').eq('user_id', uid).order('created_at', { ascending: false })
+    ]);
 
-            setShipments(resE.data ?? []);
-            setStockCenters(resS.data ?? []);
-            setProviders(resP.data ?? []);
-        }
-        loadData();
-    }, []);
+    setShipments(resE.data ?? []);
+    setStockCenters(resS.data ?? []);
+    setProviders(resP.data ?? []);
+  };
+
+  useEffect(() => {
+    loadData();
+    setEnvioForm(f => ({ ...f, tracking_code: `ENV-${Math.floor(Math.random() * 1000)}` }));
+  }, []);
 
     const handleAddEnvio = async () => {
         if (!envioForm.destino || !envioForm.items) return;

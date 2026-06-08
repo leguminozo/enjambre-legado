@@ -107,7 +107,11 @@ export function getProveedorById(id: string): ProveedorConfig | undefined {
 
 export function detectarProveedor(text: string): ProveedorConfig | undefined {
   const lower = text.toLowerCase();
-  return PROVEEDORES.find((p) => p.keywords.some((kw) => lower.includes(kw)));
+  return PROVEEDORES.find((p) => p.keywords.some((kw) => new RegExp(`\\b${escapeRegex(kw)}\\b`).test(lower)));
+}
+
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 export function convertirALCLP(monto: number, moneda: Moneda, tasaCambio: number): number {

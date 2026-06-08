@@ -88,16 +88,8 @@ packages/banco-chile/
 
 **Estructura:**
 ```
-apps/api/src/routes/banco-chile/
-├── index.ts            # Router principal + config
-├── routes.ts           # Cuentas y movimientos
-├── conciliacion.ts     # Conciliación bancaria
-├── transferencias.ts   # Abono en línea
-├── nominas.ts          # Nóminas/Confirming
-├── documentos.ts       # Factoring
-├── cotizaciones.ts     # Cotizaciones previsionales
-├── rentas.ts           # Rentas depuradas
-└── montos.ts           # Montos preaprobados
+apps/nucleo/src/app/api/banco-chile/ # BFF routes (Hono via Next.js)
+├── route.ts
 ```
 
 **Endpoints principales:**
@@ -147,7 +139,6 @@ apps/nucleo/src/views/banco-chile/
 |-----------|-----------|
 | README completo | `docs/BANCO_CHILE.md` |
 | Resumen ejecutivo | `docs/BANCO_CHILE_IMPLEMENTACION.md` |
-| Ejemplo de env | `apps/api/.env.example` |
 
 ---
 
@@ -196,13 +187,13 @@ if (result.success) {
 ### 3. Llamar endpoints API
 
 ```bash
-# Obtener cuentas
+# Obtener cuentas (nucleo BFF)
 curl -H "Authorization: Bearer TOKEN" \
-     -H "x-empresa-id: UUID" \
-     http://localhost:3001/api/banco-chile/cuentas
+-H "x-empresa-id: UUID" \
+http://localhost:3000/api/banco-chile/cuentas
 
 # Crear transferencia
-curl -X POST http://localhost:3001/api/banco-chile/transferencias \
+curl -X POST http://localhost:3000/api/banco-chile/transferencias \
      -H "Authorization: Bearer TOKEN" \
      -H "x-empresa-id: UUID" \
      -H "Content-Type: application/json" \
@@ -271,7 +262,7 @@ curl -X POST http://localhost:3001/api/banco-chile/transferencias \
 ### Archivos del Proyecto
 - `docs/BANCO_CHILE.md` - Documentación completa
 - `packages/banco-chile/src/client.ts` - Cliente API
-- `apps/api/src/routes/banco-chile/` - Routes Hono
+- `apps/nucleo/src/app/api/banco-chile/` - BFF routes (Hono via Next.js)
 - `packages/database/supabase/migrations/21_banco_chile.sql` - Migración DB
 
 ---

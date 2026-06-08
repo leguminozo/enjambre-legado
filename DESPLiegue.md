@@ -1,62 +1,20 @@
-# 🚀 Guía de Despliegue - Enjambre Legado
+# Guia de Despliegue - Enjambre Legado
 
 ## Resumen Ejecutivo
 
-| App | Qué es | Dónde desplegar | Estado |
+| App | Que es | Donde desplegar | Estado |
 |-----|--------|-----------------|---------|
-| `apps/tienda` | Frontend público (e-commerce) | Vercel | ✅ Listo |
-| `apps/nucleo` | Dashboard unificado (ERP) | Vercel | ✅ Listo |
-| `apps/api` | Backend unificado (Hono) | Railway | ⏳ Pendiente |
-| `apps/campo` | PWA offline-first | Vercel | ✅ Listo |
+| `apps/tienda` | Frontend publico (e-commerce) | Vercel | Listo |
+| `apps/nucleo` | Dashboard + BFF + contable (Next.js 16) | Vercel | Listo |
+| `apps/campo` | PWA campo (offline-first planificado) | Vercel | Listo |
+
+> **Nota historica**: `apps/api` (Hono en Railway) fue absorbido por nucleo. Las rutas BFF ahora viven dentro de nucleo en `/api/[[...routes]]`. `apps/eirl` fue absorbido por nucleo (vistas en `apps/nucleo/src/views/eirl/`).
 
 ---
 
-## 1️⃣ Desplegar API en Railway (CRÍTICO)
+## 1. Desplegar Nucleo en Vercel
 
-La API **NO** puede ir a Vercel porque es Node.js puro (Hono), no Next.js.
-
-### Pasos:
-
-```bash
-# 1. Crear cuenta en Railway
-https://railway.app/dashboard
-
-# 2. Nuevo proyecto
-# - Deploy from GitHub repo
-# - Seleccionar: oyz-app
-
-# 3. Configurar variables de entorno:
-SUPABASE_URL=https://hdhamxiblwwskvvqbcfo.supabase.co
-SUPABASE_ANON_KEY=sb_publishable_sqF0fBsTuNzSKgpapPrU3Q_VUf0s-A1
-PORT=3001
-
-# 4. Build & Start commands:
-# Build: npm install && npm run build
-# Start: npm run start
-```
-
-### URLs después del deploy:
-
-```
-Producción: https://api-obrerayzangano.railway.app
-Desarrollo: http://localhost:3001
-```
-
-### Endpoints clave:
-
-```
-/api/tienda/products      → Productos CRUD
-/api/tienda/orders        → Pedidos
-/api/tienda/customers     → Clientes
-/api/tienda/dashboard     → Métricas
-/api/contable/dashboard   → Contable
-```
-
----
-
-## 2️⃣ Desplegar Nucleo en Vercel
-
-Nucleo es un dashboard unificado (sin roles, todo visible).
+Nucleo es un dashboard Next.js 16 con Hono BFF integrado.
 
 ### Pasos:
 
@@ -68,25 +26,25 @@ https://vercel.com/dashboard
 # - Root: apps/nucleo
 
 # 3. Variables de entorno (Vercel > Settings > Environment Variables)
-VITE_SUPABASE_URL=https://hdhamxiblwwskvvqbcfo.supabase.co
-VITE_SUPABASE_ANON_KEY=sb_publishable_sqF0fBsTuNzSKgpapPrU3Q_VUf0s-A1
-VITE_API_URL=https://api-obrerayzangano.railway.app  # ← URL de Railway
+NEXT_PUBLIC_SUPABASE_URL=https://hdhamxiblwwskvvqbcfo.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...  # Server-only para BFF
 
 # 4. Deploy
 ```
 
-### URL después del deploy:
+### URL despues del deploy:
 
 ```
-Producción: https://nucleo.obrerayzangano.com
-Desarrollo: http://localhost:3001
+Produccion: https://nucleo.obrerayzangano.com
+Desarrollo: http://localhost:3000
 ```
 
 ---
 
-## 3️⃣ Desplegar Tienda en Vercel
+## 2. Desplegar Tienda en Vercel
 
-Tienda es solo frontend público (sin admin).
+Tienda es e-commerce publico (Next.js 16).
 
 ### Pasos:
 
@@ -96,7 +54,10 @@ Tienda es solo frontend público (sin admin).
 
 # 2. Variables:
 NEXT_PUBLIC_SUPABASE_URL=https://hdhamxiblwwskvvqbcfo.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_sqF0fBsTuNzSKgpapPrU3Q_VUf0s-A1
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+TRANSBANK_COMMERCE_CODE=...
+TRANSBANK_API_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...  # Server-only para API routes
 
 # 3. Deploy
 ```
@@ -104,73 +65,60 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_sqF0fBsTuNzSKgpapPrU3Q_VUf0s-A1
 ### URL:
 
 ```
-Producción: https://obrerayzangano.com
+Produccion: https://obrerayzangano.com
 Desarrollo: http://localhost:3000
 ```
 
 ---
 
-## 4️⃣ Desplegar Campo en Vercel
+## 3. Desplegar Campo en Vercel
 
-Campo es PWA offline-first para trabajo en terreno.
+Campo es PWA para trabajo en terreno (Next.js 16).
 
 ### Pasos:
 
 ```bash
 # Root: apps/campo
-# Mismas vars que Nucleo
+# Variables:
+NEXT_PUBLIC_SUPABASE_URL=https://hdhamxiblwwskvvqbcfo.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+NEXT_PUBLIC_NUCLEO_API_URL=https://nucleo.obrerayzangano.com  # BFF endpoint
 ```
 
 ---
 
-## 📊 Arquitectura Final
+## Arquitectura Final
 
 ```
-┌─────────────────────────────────────────────┐
-│              USUARIO                        │
-└──────────────────┬──────────────────────────┘
-                   │
-    ┌──────────────┼──────────────┐
-    │              │              │
-    ▼              ▼              ▼
-┌─────────┐  ┌─────────┐  ┌─────────┐
-│ Tienda  │  │ Nucleo  │  │ Campo   │
-│ (Vercel)│  │ (Vercel)│  │ (Vercel)│
-└────┬────┘  └────┬────┘  └────┬────┘
-     │           │           │
-     └───────────┼───────────┘
-                 │
-                 ▼
-         ┌───────────────┐
-         │    API        │
-         │  (Railway)    │
-         └───────┬───────┘
-                 │
-                 ▼
-         ┌───────────────┐
-         │  Supabase     │
-         │  (Postgres)   │
-         └───────────────┘
++----------+  +----------+  +----------+
+| Tienda   |  | Nucleo   |  | Campo   |
+| (Vercel) |  | (Vercel) |  | (Vercel)|
++----+-----+  +----+-----+  +----+----+
+     |              |              |
+     +--------------+--------------+
+                    |
+                    v
+           +----------------+
+           |    Supabase    |
+           |   (Postgres)   |
+           +----------------+
 ```
 
 ---
 
-## 🔧 Comandos Útiles
+## Comandos Utiles
 
 ### Desarrollo Local
 
 ```bash
-# API (puerto 3001)
-cd apps/api
-pnpm dev
-
-# Nucleo (puerto 3002)
-cd apps/nucleo
-pnpm dev
+# Nucleo (puerto 3000)
+pnpm --filter @enjambre/nucleo dev
 
 # Tienda (puerto 3000)
-cd apps/tienda
-pnpm dev
+pnpm --filter @enjambre/tienda dev
+
+# Campo (puerto 3002)
+pnpm --filter @enjambre/campo dev
 ```
 
 ### Build
@@ -180,46 +128,37 @@ pnpm dev
 pnpm build
 
 # Solo una app
-pnpm --filter @enjambre/api build
 pnpm --filter @enjambre/nucleo build
 pnpm --filter @enjambre/tienda build
+pnpm --filter @enjambre/campo build
 ```
 
 ---
 
-## ✅ Checklist Pre-Despliegue
-
-### API (Railway)
-- [ ] Variables de entorno configuradas
-- [ ] Base de datos Supabase conectada
-- [ ] Health check responde (`/api/health`)
-- [ ] Endpoints de tienda funcionan
-- [ ] CORS configurado
+## Checklist Pre-Despliegue
 
 ### Nucleo (Vercel)
-- [ ] API_URL apunta a Railway
 - [ ] Supabase configurado
 - [ ] Login funciona
 - [ ] Dashboard carga
-- [ ] Tienda panel funciona
+- [ ] BFF health checks responden
 
 ### Tienda (Vercel)
 - [ ] Supabase configurado
 - [ ] Checkout funciona
-- [ ] Catálogo visible
-- [ ] Sin admin (solo frontend)
+- [ ] Catalogo visible
+
+### Campo (Vercel)
+- [ ] Supabase configurado
+- [ ] POS funciona
+- [ ] NUCLEO_API_URL apunta a nucleo BFF
 
 ---
 
-## 🔗 URLs Finales
+## URLs Finales
 
-| Servicio | URL | Estado |
-|----------|-----|--------|
-| Tienda | https://obrerayzangano.com | ⏳ |
-| Nucleo | https://nucleo.obrerayzangano.com | ⏳ |
-| API | https://api-obrerayzangano.railway.app | ⏳ |
-| Campo | https://campo.obrerayzangano.com | ⏳ |
-
----
-
-**Siguiente paso:** Desplegar API en Railway primero.
+| Servicio | URL |
+|----------|-----|
+| Tienda | https://obrerayzangano.com |
+| Nucleo | https://nucleo.obrerayzangano.com |
+| Campo | https://campo.obrerayzangano.com |

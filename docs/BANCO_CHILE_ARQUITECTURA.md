@@ -4,16 +4,16 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         USUARIO (Nucleo)                            │
-│                    Dashboard React - Banco Chile                    │
+│ USUARIO (Nucleo) │
+│ Dashboard React - Banco Chile │
 └─────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    │ HTTPS
-                                    ▼
+│
+│ HTTPS
+▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         API Hono (BFF)                              │
-│                     apps/api/src/routes/                            │
-│  ┌──────────────────────────────────────────────────────────────┐  │
+│ Nucleo BFF (Next.js + Hono) │
+│ apps/nucleo/src/app/api/ │
+│ ┌──────────────────────────────────────────────────────────────┐ │
 │  │  /api/banco-chile/*                                          │  │
 │  │  ├── config           # Configuración                        │  │
 │  │  ├── cuentas          # Listar cuentas                       │  │
@@ -74,7 +74,7 @@ Usuario (Nucleo)
     │    - Password
     │
     ▼
-API Hono (/api/banco-chile/config POST)
+API Nucleo BFF (/api/banco-chile/config POST)
     │
     │ 2. Valida JWT y empresa
     │
@@ -95,7 +95,7 @@ Usuario (Nucleo)
     │ 1. Click "Sincronizar cuentas"
     │
     ▼
-API Hono (/api/banco-chile/cuentas GET)
+API Nucleo BFF (/api/banco-chile/cuentas GET)
     │
     │ 2. Valida autenticación
     │
@@ -116,7 +116,7 @@ Supabase (banco_chile_cuentas)
     │ 6. Guarda/actualiza cuentas
     │
     ▼
-API Hono
+API Nucleo BFF
     │
     │ 7. Retorna JSON al frontend
     │
@@ -137,7 +137,7 @@ Usuario (Nucleo)
     │    - Concepto
     │
     ▼
-API Hono (/api/banco-chile/transferencias POST)
+API Nucleo BFF (/api/banco-chile/transferencias POST)
     │
     │ 2. Valida datos con Zod schema
     │
@@ -171,7 +171,7 @@ Job Programado (cron)
     │ 1. Ejecutar cada hora
     │
     ▼
-API Hono (/api/banco-chile/conciliacion/sync)
+API Nucleo BFF (/api/banco-chile/conciliacion/sync)
     │
     │ 2. Obtiene últimos movimientos
     │

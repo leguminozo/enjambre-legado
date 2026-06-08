@@ -43,8 +43,6 @@ export function InvitacionesPanel() {
 
   const [newCode, setNewCode] = useState({ maxUses: '', expiresAt: '' });
 
-  useEffect(() => { fetchAll(); }, []);
-
   const fetchAll = async () => {
     setLoading(true);
     try {
@@ -60,6 +58,8 @@ export function InvitacionesPanel() {
       setLoading(false);
     }
   };
+
+  useEffect(() => { fetchAll(); }, []);
 
   const createCode = async () => {
     setActionLoading('creating');

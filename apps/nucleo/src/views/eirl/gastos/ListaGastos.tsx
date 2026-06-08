@@ -40,10 +40,6 @@ export function ListaGastos({ onNuevoGasto, onVerGasto, onEditarGasto }: ListaGa
   const [loading, setLoading] = useState(true);
   const apiFetch = useApiFetch();
 
-  useEffect(() => {
-    cargarGastos();
-  }, []);
-
   const cargarGastos = async () => {
     try {
       setLoading(true);
@@ -58,6 +54,10 @@ export function ListaGastos({ onNuevoGasto, onVerGasto, onEditarGasto }: ListaGa
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    cargarGastos();
+  }, []);
 
   const getEstadoColor = (estado: string) => {
     switch (estado) {

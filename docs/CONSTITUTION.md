@@ -35,18 +35,17 @@ El frontend no es un "producto minimo viable". Es una pieza de diseno de lujo.
 
 - El codigo compartido vive en `packages/`. Lo que puede ser compartido, **debe** ser compartido.
 - Las `apps/` son interfaces especificas para roles especificos. No duplican logica.
-- La base de datos es una sola (Supabase). EIRL es la unica excepcion (SQLite propio).
+- La base de datos es una sola (Supabase).
 - Toda nueva funcionalidad que cruza apps debe evaluarse primero como `package`.
 
 ```
 packages/
-  database/   Fuente de verdad del esquema
-  contable/   Logica tributaria reutilizable
-  auth/       Sesion y roles compartidos
-  offline/    Sincronizacion offline-first
-  ui/         Design tokens + componentes base
-  ai/         Integraciones de IA
-  maps/       Utilidades cartograficas
+database/ Fuente de verdad del esquema
+contable/ Logica tributaria reutilizable
+auth/ Sesion y roles compartidos
+ui/ Design tokens + componentes base
+sumup/ SumUp POS integration
+banco-chile/ Banco Chile Empresas API client
 ```
 
 ### 3. Seguridad Nativa (RLS)
@@ -54,7 +53,7 @@ packages/
 La base de datos (Supabase) es la fuente de verdad. La seguridad no es negociable.
 
 - **Row Level Security (RLS)**: Nunca se confia en el cliente. La seguridad vive en Postgres.
-- **Roles Estrictos**: `apicultor`, `vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`, `cliente`. Cada rol ve exactamente lo que le corresponde.
+- **Roles Estrictos**: `admin`, `cliente`, `creador`, `rep_ventas`. Los roles granulares anteriores (`apicultor`, `vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) fueron consolidados en `admin` via migration 39. Cada rol ve exactamente lo que le corresponde.
 - **Multi-tenant contable**: La capa contable usa `has_empresa_access()` para aislar datos por empresa.
 - **Validacion en BFF**: La API Hono valida JWT via Supabase Auth antes de cada operacion.
 - **Service Role Key**: Solo se usa en server-side (API routes, BFF). Nunca en el cliente.
@@ -63,10 +62,10 @@ La base de datos (Supabase) es la fuente de verdad. La seguridad no es negociabl
 
 El apicultor trabaja en el bosque. No hay internet.
 
-- **Dexie (IndexedDB)** es la primera parada de toda escritura en campo.
-- Las mutaciones se encolan en `sync-queue` y se sincronizan con Supabase al recuperar conexion.
-- El Service Worker cachea el catalogo y las interfaces criticas.
-- **Prohibido** hacer `supabase.insert()` directo desde un componente UI de campo. Siempre a traves del hook de sincronizacion.
+- **Offline-first es planificado pero no implementado.** Campo actualmente usa Supabase directamente.
+- Futuro: **Dexie (IndexedDB)** sera la primera parada de toda escritura en campo.
+- Las mutaciones se encolaran en `sync-queue` y se sincronizaran con Supabase al recuperar conexion.
+- **Prohibido** hacer `supabase.insert()` directo desde un componente UI de campo cuando offline esté implementado. Siempre a traves del hook de sincronizacion.
 
 ### 5. Codigo para Agentes (AI-Ready)
 
@@ -86,9 +85,9 @@ Este repositorio esta disenado para ser co-escrito con IA.
 2. TRANSFORMA   lotes vinculados a colmenas especificas (nucleo)
 3. TRAZA        blockchain_hash por colmena para certificacion
 4. PRODUCTO     productos premium con descripcion regenerativa (tienda)
-5. VENTA        transbank + impacto ambiental (tienda/api)
-6. IMPACTO      arboles plantados por pedido (nucleo + tienda)
-7. CONTABILIDAD facturas, IVA, impuestos (eirl/api)
+5. VENTA transbank + impacto ambiental (tienda/nucleo BFF)
+6. IMPACTO arboles plantados por pedido (nucleo + tienda)
+7. CONTABILIDAD facturas, IVA, impuestos (nucleo BFF)
 ```
 
 Cada etapa del flujo es trazable. Un cliente puede escanear un QR y ver exactamente de que colmena viene su miel.
@@ -116,7 +115,7 @@ Cada etapa del flujo es trazable. Un cliente puede escanear un QR y ver exactame
 | Hex sueltos (`#fff`) | Tokens semanticos (`bg-background`) |
 | `bg-white` en superficies | `bg-card` / `surface-raised` |
 | `catch(e) {}` vacio | `toast.error()` con mensaje al usuario |
-| `supabase.insert()` directo en UI | Hook de sincronizacion |
+| `supabase.insert()` directo en UI (campo) | Hook de sincronizacion (cuando offline implementado) |
 | Componentes en la raiz del repo | `packages/ui` o `apps/*/components` |
 | `console.log` en produccion | Logger estructurado o remover |
 | Service Role Key en el cliente | Solo server-side |

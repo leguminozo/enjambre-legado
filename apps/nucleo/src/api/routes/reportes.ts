@@ -59,7 +59,7 @@ reportesRoutes.post("/", async (c) => {
   const facturasRecibidas = (periodoData as Record<string, unknown>)?.facturas_recibidas as Record<string, unknown>[] ?? [];
   const gastos = (periodoData as Record<string, unknown>)?.gastos as Record<string, unknown>[] ?? [];
 
-  let datos: Record<string, unknown> = {};
+  let datos!: Record<string, unknown>;
 
   switch (tipo) {
     case "BalanceGeneral": {

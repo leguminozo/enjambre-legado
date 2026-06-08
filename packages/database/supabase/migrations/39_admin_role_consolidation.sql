@@ -3,14 +3,20 @@
 -- are now unified under a single 'admin' role. Only 'cliente' and 'creador' remain as separate roles.
 -- This simplifies RLS policies, storage policies, and middleware route guards.
 
--- Step 1: Add 'admin' to profiles.role CHECK constraint
+-- Step 1: Drop old constraint FIRST (it blocks UPDATE to 'admin')
 ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
-ALTER TABLE profiles ADD CONSTRAINT profiles_role_check
-  CHECK (role IN ('admin', 'cliente', 'creador', 'rep_ventas'));
 
 -- Step 2: Migrate existing nucleo roles to 'admin'
 UPDATE profiles SET role = 'admin'
 WHERE role IN ('gerente', 'tienda_admin', 'vendedor', 'logistica', 'marketing', 'apicultor');
+
+-- Step 2b: Fix any NULL roles to 'admin' default + make NOT NULL
+UPDATE profiles SET role = 'admin' WHERE role IS NULL;
+ALTER TABLE public.profiles ALTER COLUMN role SET NOT NULL;
+
+-- Step 3: Add new CHECK constraint (now safe — all rows valid)
+ALTER TABLE profiles ADD CONSTRAINT profiles_role_check
+CHECK (role IN ('admin', 'cliente', 'creador', 'rep_ventas'));
 
 -- Step 3: Update handle_new_user() trigger default
 CREATE OR REPLACE FUNCTION public.handle_new_user()

@@ -25,7 +25,7 @@ function formatDateSii(isoDate: string): string {
   return dateOnly;
 }
 
-const DTE_NOMBRES: Record<number, string> = {
+export const DTE_NOMBRES: Record<number, string> = {
   [DTE_TIPO.FACTURA_ELECTRONICA]: "FACTURA ELECTRONICA",
   [DTE_TIPO.FACTURA_NO_AFECTA]: "FACTURA NO AFECTA O EXENTA ELECTRONICA",
   [DTE_TIPO.BOLETA_ELECTRONICA]: "BOLETA ELECTRONICA",
@@ -126,7 +126,6 @@ export function buildDteXml(doc: DteDocumento): string {
     : "";
 
   const tipo = doc.encabezado.tipoDte;
-  const nombre = DTE_NOMBRES[tipo] ?? "DTE";
 
   return `<?xml version="1.0" encoding="ISO-8859-1"?>
 <DTE xmlns="http://www.sii.cl/SiiDte" version="1.0">

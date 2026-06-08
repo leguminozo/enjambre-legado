@@ -35,11 +35,15 @@ La tabla maestra que define quien es quien en el ecosistema.
 | `nivel_guardian` | TEXT | - | Nivel en el programa de fidelizacion |
 | `created_at` | TIMESTAMPTZ | DEFAULT now() | Fecha de creacion |
 
-**Roles validos**: `apicultor`, `vendedor`, `gerente`, `logistica`, `marketing`, `cliente`, `tienda_admin`, `creador`, `rep_ventas`
+**Roles validos**: `admin`, `cliente`, `creador`, `rep_ventas`
+
+> Los roles granulares anteriores (`apicultor`, `vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) fueron consolidados en `admin` via migration 39. Existe `LEGACY_ROLE_MAP` para compatibilidad.
 
 **Funciones helper**:
 - `current_role()` → retorna el `role` del `auth.uid()` actual
-- `is_gerente()` → booleano si el usuario es gerente
+- `is_admin()` → booleano si el usuario es admin
+- `is_gerente()` → booleano si el usuario es gerente (ahora mapea a `role = 'admin'` tras consolidacion)
+- `has_empresa_access(empresa_id)` → verifica acceso del usuario actual a una empresa
 
 ---
 

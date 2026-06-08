@@ -47,10 +47,6 @@ export function ReportesComponent({ empresaId }: ReportesComponentProps) {
   const [generando, setGenerando] = useState<string | null>(null);
   const apiFetch = useApiFetch();
 
-  useEffect(() => {
-    cargarReportes();
-  }, [empresaId]);
-
   const cargarReportes = async () => {
     try {
       setLoading(true);
@@ -65,6 +61,10 @@ export function ReportesComponent({ empresaId }: ReportesComponentProps) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    cargarReportes();
+  }, [empresaId]);
 
   const generarReporte = async (tipo: string) => {
     try {

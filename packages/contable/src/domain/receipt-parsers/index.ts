@@ -1,5 +1,5 @@
 import type { ReceiptParser, GastoExtranjeroResult, ProveedorConfig } from "../gasto-extranjero";
-import { detectarProveedor, PROVEEDORES } from "../gasto-extranjero";
+import { detectarProveedor } from "../gasto-extranjero";
 import { uberParser } from "./uber";
 import { googleAdsParser } from "./google-ads";
 import { metaAdsParser } from "./meta-ads";

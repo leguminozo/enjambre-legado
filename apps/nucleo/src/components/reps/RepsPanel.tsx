@@ -33,8 +33,6 @@ export function RepsPanel() {
   const [filterActive, setFilterActive] = useState<string>('todos');
   const [editRep, setEditRep] = useState<{ userId: string; tier: string; fixedMonthly: number; tierOverride: string | null } | null>(null);
 
-  useEffect(() => { fetchReps(); }, []);
-
   const fetchReps = async () => {
     setLoading(true);
     try {
@@ -51,6 +49,8 @@ export function RepsPanel() {
       setLoading(false);
     }
   };
+
+  useEffect(() => { fetchReps(); }, []);
 
   const updateRep = async (userId: string, updates: Partial<Pick<RepRow, 'commission_tier' | 'fixed_monthly' | 'active'>> & { tier_override?: string | null }) => {
     setActionLoading(userId);

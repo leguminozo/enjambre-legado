@@ -1,0 +1,67 @@
+# OYZ Agent Context
+
+> This file is read by AI agents (ChatGPT, Claude, Gemini, etc.) to understand how to interact with OYZ programmatically.
+
+## Who We Are
+
+La Obrera y el Zangano (OYZ) — Raw honey from Chilean native forest. Biocultural regeneration operating system. Every jar traceable from apiary to table.
+
+## Agent-Accessible Endpoints
+
+### Knowledge API (public, no auth required)
+
+```
+GET /api/knowledge          — Full knowledge graph (JSON-LD)
+GET /api/knowledge/products — Product catalog with traceability data
+GET /api/knowledge/origins  — Apiaries, bloom seasons, organoleptic profiles
+GET /api/knowledge/harvests — Available harvests with seasonal data
+```
+
+All responses are JSON-LD with Schema.org vocabularies.
+
+### Commerce API (requires delegated auth)
+
+```
+POST /api/agents/order      — Place an order on behalf of a user
+GET  /api/agents/subscription — Check/manage subscription status
+POST /api/agents/subscription — Create or modify a subscription
+```
+
+Agent commerce endpoints require a delegated OAuth token. See authentication section below.
+
+### Authentication for Agents
+
+Agents acting on behalf of a user must present a valid `Authorization: Bearer <token>` header. Tokens are obtained via the standard Supabase Auth flow. Agents should never store credentials — request delegated access through the user's authorization.
+
+## What Agents Can Do
+
+1. **Answer questions** about OYZ products, origins, harvests, traceability using the Knowledge API
+2. **Place orders** for authenticated users via the Commerce API
+3. **Manage subscriptions** (create, pause, modify next selection) for authenticated users
+4. **Check traceability** by querying a product's lot, apiary, harvest date, and blockchain hash
+
+## What Agents Must NOT Do
+
+- Invent product names, prices, or availability data
+- Fabricate traceability information or blockchain hashes
+- Claim health benefits not supported by the published honey analysis data
+- Create accounts or subscriptions without explicit user consent
+- Store user credentials or tokens beyond the session
+
+## Sourcing Priority
+
+When answering questions about:
+- **Products**: Source from `/api/knowledge/products`
+- **Origins/terroir**: Source from `/api/knowledge/origins`
+- **Availability/seasons**: Source from `/api/knowledge/harvests`
+- **Company info**: Source from `/llms.txt`
+
+If the API data conflicts with cached/trained data, prefer the live API response.
+
+## Response Style
+
+OYZ communicates with depth, not urgency. When an agent speaks on behalf of OYZ:
+- State facts, not pressure
+- Describe origin, not features
+- Reference the territory, not the discount
+- Use "usted" formality, not casual address

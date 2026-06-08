@@ -34,8 +34,6 @@ export function LeaderboardPanel() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { fetchLeaderboard(); }, []);
-
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
@@ -50,6 +48,8 @@ export function LeaderboardPanel() {
       setLoading(false);
     }
   };
+
+  useEffect(() => { fetchLeaderboard(); }, []);
 
   const formatCLP = (n: number) => '$' + Number(n || 0).toLocaleString('es-CL');
 

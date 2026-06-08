@@ -58,13 +58,16 @@ facturasEmitidasRoutes.post("/", async (c) => {
   const mes = fechaDate.getMonth() + 1;
   const anio = fechaDate.getFullYear();
 
-  let { data: periodo, error: periodoError } = await supabase
-    .from("periodos_contables")
-    .select("id")
-    .eq("empresa_id", empresaId)
-    .eq("mes", mes)
-    .eq("anio", anio)
-    .maybeSingle();
+  const periodoResult = await supabase
+  .from("periodos_contables")
+  .select("id")
+  .eq("empresa_id", empresaId)
+  .eq("mes", mes)
+  .eq("anio", anio)
+  .maybeSingle();
+
+  const { error: periodoError } = periodoResult;
+  let { data: periodo } = periodoResult;
 
   if (periodoError) {
     return c.json({ code: "periodo_lookup_failed", message: periodoError.message }, 500);

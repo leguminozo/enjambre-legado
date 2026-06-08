@@ -51,28 +51,18 @@ Implementación completa de las APIs de **Banco Chile Empresas** para el ecosist
 
 ```
 packages/
-  banco-chile/           # Cliente API oficial
-    src/
-      index.ts          # Exports
-      types.ts          # Tipos TypeScript
-      client.ts         # Cliente API
+banco-chile/ # Cliente API oficial
+src/
+index.ts # Exports
+types.ts # Tipos TypeScript
+client.ts # Cliente API
 
 apps/
-  api/
-    src/routes/banco-chile/
-      index.ts          # Router principal
-      routes.ts         # Rutas generales
-      conciliacion.ts   # Conciliación bancaria
-      transferencias.ts # Transferencias
-      nominas.ts        # Nóminas
-      documentos.ts     # Documentos/Factoring
-      cotizaciones.ts   # Cotizaciones
-      rentas.ts         # Rentas
-      montos.ts         # Montos preaprobados
-
-  nucleo/
-    src/views/banco-chile/
-      BancoChileView.tsx  # Dashboard UI
+nucleo/
+src/app/api/banco-chile/ # BFF routes (Hono via Next.js)
+├── route.ts
+src/views/banco-chile/
+BancoChileView.tsx # Dashboard UI
 ```
 
 ## Base de Datos
@@ -115,7 +105,7 @@ BANCO_CHILE_ENVIRONMENT=sandbox  # sandbox | production
 ### Setup en Nucleo
 
 1. Ir a **Nucleo** → Dashboard
-2. Seleccionar rol **Gerente**
+2. Seleccionar rol **admin**
 3. Navegar a **Integraciones** → **Banco Chile**
 4. Completar credenciales
 5. Habilitar integración

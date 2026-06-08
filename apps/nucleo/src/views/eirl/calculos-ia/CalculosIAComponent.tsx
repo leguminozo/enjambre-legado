@@ -33,10 +33,6 @@ export function CalculosIAComponent({ empresaId }: CalculosIAComponentProps) {
   const [ejecutando, setEjecutando] = useState<string | null>(null);
   const apiFetch = useApiFetch();
 
-  useEffect(() => {
-    cargarCalculos();
-  }, [empresaId]);
-
   const cargarCalculos = async () => {
     try {
       setLoading(true);
@@ -51,6 +47,10 @@ export function CalculosIAComponent({ empresaId }: CalculosIAComponentProps) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    cargarCalculos();
+  }, [empresaId]);
 
   const ejecutarCalculo = async (tipo: string) => {
     try {

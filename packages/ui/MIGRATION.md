@@ -4,7 +4,7 @@
 
 ### ✅ 1. Utilidad `cn()` (ClassNames)
 
-**Antes** (en `apps/eirl/src/lib/utils.ts`):
+**Antes** (en `apps/nucleo/src/lib/utils.ts`):
 ```typescript
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
@@ -35,9 +35,9 @@ import { SearchIcon, CheckIcon } from '@enjambre/ui';
 
 ### ✅ 3. Toast Notifications
 
-**Antes** (múltiples formas en diferentes apps):
+**Antes** (multiples formas en diferentes apps):
 ```typescript
-// apps/eirl
+// apps/nucleo (legacy)
 import { toast } from 'sonner';
 
 // apps/tienda
@@ -56,7 +56,6 @@ toast('Error!', { type: 'error' });
 
 **Antes** (duplicado en cada app):
 ```typescript
-// apps/eirl/src/components/ui/dialog.tsx
 // apps/nucleo/src/components/ui/dialog.tsx
 // apps/tienda/src/components/ui/dialog.tsx
 ```

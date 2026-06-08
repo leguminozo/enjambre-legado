@@ -1,13 +1,61 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { getProductBySlugOrId } from '@/lib/shop/products';
 import { formatCLP } from '@/lib/shop/format';
+import {
+  productJsonLd,
+  breadcrumbJsonLd,
+  renderJsonLd,
+} from '@/lib/shop/json-ld';
 import { AddToCartButton, TraceabilitySection } from './ui';
 import { ProductGallery } from '@/components/shop/product-gallery';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { ChevronRight } from 'lucide-react';
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const product = await getProductBySlugOrId(params.slug);
+  if (!product) {
+    return { title: 'Producto no encontrado' };
+  }
+
+  const canonicalUrl = `${SITE_URL}/producto/${product.slug}`;
+  const primaryImage = product.photos[0] ?? undefined;
+
+  return {
+    title: product.name,
+    description:
+      product.description ??
+      `Miel cruda artesanal del bosque nativo de Chile. ${product.name} — La Obrera y el Zángano.`,
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      title: product.name,
+      description:
+        product.description ??
+        'Miel cruda del bosque nativo. Trazable desde el apiario.',
+      url: canonicalUrl,
+      type: 'website',
+      images: primaryImage ? [{ url: primaryImage, alt: product.name }] : [],
+      locale: 'es_CL',
+      siteName: 'La Obrera y el Zángano',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: product.name,
+      description: product.description ?? undefined,
+      images: primaryImage ? [primaryImage] : [],
+    },
+  };
+}
 
 function Shell({ children }: { children: ReactNode }) {
   return (
@@ -67,9 +115,38 @@ export default async function ProductoPage({
 
   const inStock = product.stock == null || product.stock > 0;
 
+  const productSchema = productJsonLd({
+    name: product.name,
+    slug: product.slug,
+    description: product.description,
+    price: product.price,
+    photos: product.photos,
+    stock: product.stock,
+    format: product.format,
+    co2EvitadoKg: product.co2_evitado_kg,
+    irrReferencia: product.irr_referencia,
+    blockchainHash: product.blockchain_hash,
+    colmenaOrigen: product.colmena_origen,
+    fechaCosecha: product.fecha_cosecha,
+  });
+
+  const breadcrumbSchema = breadcrumbJsonLd([
+    { name: 'Inicio', href: '/' },
+    { name: 'Creaciones', href: '/catalogo' },
+    { name: product.name, href: `/producto/${product.slug}` },
+  ]);
+
   return (
     <Shell>
-      <main className="bg-background pb-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: renderJsonLd(productSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: renderJsonLd(breadcrumbSchema) }}
+      />
+    <main className="bg-background pb-16">
         <div className="border-b border-border px-4 py-4 sm:px-6">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
             <Link href="/" className="hover:text-accent">

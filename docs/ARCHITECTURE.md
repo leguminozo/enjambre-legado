@@ -7,58 +7,48 @@
 ## 1. Topologia del Monorepo
 
 ```
-enjambre-legado/                    (pnpm workspace + Turborepo)
+enjambre-legado/ (pnpm workspace + Turborepo)
 |
 |-- apps/
-|   |-- tienda/                     Next.js 16 · React 19 · Tailwind 3
-|   |   |-- E-commerce publico + admin comercial
-|   |   |-- Transbank Webpay + integraciones SII
-|   |   |-- Puerto: 3000
-|   |
+| |-- tienda/ Next.js 16 · React 19 · Tailwind 3
+| | |-- E-commerce publico + admin comercial
+| | |-- Transbank Webpay + integraciones SII
+| | |-- Puerto: 3000
+| |
 | |-- nucleo/ Next.js 16 · React 19 · TanStack Query · Hono BFF
 | | |-- Dashboard gerencial multi-rol (App Router)
 | | |-- Mapas Leaflet + PostGIS + Caja/Comisiones/Reps/Leaderboard
 | | |-- BFF: cash-sessions, rep-ventas, invitations, commission-rules
+| | |-- EIRL contable views (absorbido de apps/eirl)
 | | |-- Puerto: 3000
 | |
-| |-- campo/ Next.js 15 · React 19 · Tailwind 3
+| |-- campo/ Next.js 16 · React 19 · Tailwind 3
 | | |-- PWA para campo (apicultor/vendedor/rep_ventas)
 | | |-- POS: CashProvider, QuickSale, TierBadge, Leaderboard, Threshold
+| | |-- Offline-first planificado (no implementado aun)
 | | |-- Puerto: 3002
-|   |
-|   |-- api/                        Hono 4 · Node.js
-|   |   |-- BFF contable + integraciones
-|   |   |-- Multi-tenant con JWT + empresa context
-|   |   |-- Puerto: 3001
-|   |
-|   |-- eirl/                       Next.js 15 · Prisma + SQLite
-|       |-- Contabilidad EIRL PROPYME (independiente)
-|       |-- NextAuth + Socket.IO
-|       |-- Puerto: 3000
 |
 |-- packages/
-|   |-- database/                   Supabase + Postgres 17 + PostGIS
-|   |   |-- Migraciones + tipos generados
-|   |   |-- 10 migraciones, 20+ tablas, RLS completo
-|   |
-|   |-- contable/                   Logica tributaria chilena
-|   |   |-- IVA 19%, RUT, facturas (Zod schemas)
-|   |
-|   |-- auth/                       Autenticacion compartida
-|   |   |-- Supabase client + Zustand store + role redirect
-|   |
-|   |-- offline/                    Sincronizacion offline-first
-|   |   |-- Dexie DB + sync queue
-|   |
-|   |-- ui/                         Design tokens
-|   |   |-- 4 tokens semanticos + CSS custom properties
-|   |
-|   |-- ai/                         Stub - prediccion floracion
-|   |-- maps/                       Tipos cartograficos + utilidades
+| |-- database/ Supabase + Postgres 17 + PostGIS
+| | |-- Migraciones + tipos generados
+| | |-- 43+ migraciones, 20+ tablas, RLS completo
+| |
+| |-- contable/ Logica tributaria chilena
+| | |-- IVA 19%, RUT, facturas (Zod schemas)
+| |
+| |-- auth/ Autenticacion compartida
+| | |-- Supabase client + Zustand store + role redirect
+| |
+| |-- ui/ Design tokens
+| | |-- 4 tokens semanticos + CSS custom properties
+| |
+| |-- sumup/ SumUp POS integration
+| |
+| |-- banco-chile/ Banco Chile Empresas API client
 |
-|-- components/shop/                DEUDA: migrar a packages/ui o apps/tienda
-|-- docs/                           Documentacion (estas aqui)
-|-- skills/                         Supabase agent skills (gitignored)
+|-- components/shop/ DEUDA: migrar a packages/ui o apps/tienda
+|-- docs/ Documentacion (estas aqui)
+|-- skills/ Supabase agent skills (gitignored)
 ```
 
 ---
@@ -69,50 +59,52 @@ enjambre-legado/                    (pnpm workspace + Turborepo)
 
 La autenticacion se gestiona via **Supabase Auth**. La tabla `profiles` en el esquema publico es el nexo de union, vinculando el `uuid` de auth con un `role` especifico.
 
-```
-                          Supabase Auth
-                               |
-                               v
-                    +---------------------+
-                    | auth.users (uuid)   |
-                    +---------------------+
-                               |
-                               v
-                    +---------------------+
-                    | profiles            |
-                    | - id (uuid FK)      |
-                    | - role (enum)       |
-                    | - full_name         |
-                    | - nivel_guardian    |
-                    +---------------------+
-                               |
-          +----------+---------+----------+-----------+
-          |          |         |          |           |
-          v          v         v          v           v
-    apicultor    vendedor   gerente   logistica   tienda_admin
-    campo/       campo/     nucleo/   nucleo/     tienda/
-    nucleo/      nucleo/                         nucleo/
+```console
+Supabase Auth
+|
+v
++---------------------+
+| auth.users (uuid) |
++---------------------+
+|
+v
++---------------------+
+| profiles |
+| - id (uuid FK) |
+| - role (enum) |
+| - full_name |
+| - nivel_guardian |
++---------------------+
+|
++----------+---------+-----------+-----------+
+| | | |
+v v v v
+admin cliente creador rep_ventas
+nucleo/ tienda/ nucleo/ campo/
+campo/
 ```
 
-### 2.2 Flujo Offline-First (Campo)
+### 2.2 Flujo Offline-First (Campo) — Planificado
 
-```
+> **Nota**: El offline-first no esta implementado aun. Campo actualmente usa Supabase directamente.
+
+```console
 UI Component (campo)
-    |
-    v
-Custom Hook (useSync)
-    |
-    v
-Dexie DB (IndexedDB) ← escritura inmediata
-    |
-    v
-Sync Queue (pendientes)
-    |
-    v (cuando hay conexion)
+|
+v
+Custom Hook (useSync) — futuro
+|
+v
+Dexie DB (IndexedDB) ← escritura inmediata — futuro
+|
+v
+Sync Queue (pendientes) — futuro
+|
+v (cuando haya conexion)
 Supabase (Postgres)
 ```
 
-**Regla critica**: Toda escritura en campo persiste primero en Dexie. Nunca directamente a Supabase desde la UI.
+**Regla critica** (cuando se implemente): Toda escritura en campo persiste primero en Dexie. Nunca directamente a Supabase desde la UI.
 
 ### 2.3 Flujo de Pagos (Tienda)
 
@@ -142,20 +134,20 @@ Confirmacion al cliente
 
 **Tabla de sesiones**: `checkout_sessions` (Migration 38) — RLS service_role only, auto-expire 30 min, audit trail completo.
 
-### 2.4 Flujo Contable (API/EIRL)
+### 2.4 Flujo Contable (Nucleo BFF)
 
-```
-Nucleo/EIRL (frontend)
-    |
-    v
-BFF Hono (apps/api)
-    |-- auth.ts    → valida JWT via Supabase Auth
-    |-- tenant.ts  → resuelve empresa via x-empresa-id
-    |
-    v
+```console
+Nucleo (frontend)
+|
+v
+BFF Hono (apps/nucleo /api/[[...routes]])
+|-- auth.ts → valida JWT via Supabase Auth
+|-- tenant.ts → resuelve empresa via x-empresa-id
+|
+v
 /packages/contable → calcula IVA, neto, total
-    |
-    v
+|
+v
 Supabase: facturas_emitidas, gastos, impuestos
 ```
 
@@ -167,7 +159,7 @@ Supabase: facturas_emitidas, gastos, impuestos
 
 **Stack**: Next.js 16.2.1 + React 19.2.4 + Tailwind CSS 3.3 + GSAP 3.15 + Hono 4 BFF
 
-**Auth**: Integrado con `@enjambre/auth` via `AuthProvider` wrapper (`auth-context.tsx`). Usa `useAuthStore` como fuente de verdad, expone `useAuth()` API compatible con `TiendaUser`. `onAuthStateChange` con cliente local. `appSource: 'tienda'`. Middleware logea `access_denied` via Supabase REST API directa con service role key (sin dependencia BFF).
+**Auth**: Middleware propio (`utils/supabase/middleware.ts`) con `updateSession()`. No usa `createAuthMiddleware`. No logea `access_denied` actualmente.
 
 **Rutas publicas**:
 - `/` Landing editorial premium
@@ -206,17 +198,15 @@ Supabase: facturas_emitidas, gastos, impuestos
 | Ruta | Rol | Componente | Funcionalidad |
 |---|---|---|---|
 | `/` | Todos | Auth | Login/register |
-| `/mapa` | gerente | MapaView | Mapa interactivo (apiarios, arboles, ferias, ventas) |
-| `/caja` | gerente, tienda_admin | CashSessionsPanel | Sesiones de caja, CSV export, alertas Δ |
-| `/reps` | gerente, tienda_admin | RepsPanel | Gestión reps, tier override |
-| `/comisiones` | gerente, tienda_admin | ComisionesPanel | Comisiones con Tier + Canal |
-| `/invitaciones` | gerente, tienda_admin | InvitacionesPanel | Códigos invitación + redenciones |
-| `/reglas-comision` | gerente, tienda_admin | ReglasComisionPanel | 6 rule_types (base, channel_rate, volume_threshold, loyalty, streak, tier_bonus) |
-| `/leaderboard` | gerente, tienda_admin | LeaderboardPanel | Ranking semanal (stat cards + top 3 + tabla) |
-| `/apicultor` | apicultor | ApicultorView | Gestion de colmenas, inspecciones |
-| `/logistica` | logistica | LogisticaView | Envios, stock, seguimiento |
-| `/marketing` | marketing | MarketingView | Campanas, redes |
-| `/contable` | gerente | ContableView | Integracion contable via BFF |
+| `/mapa` | admin | MapaView | Mapa interactivo (apiarios, arboles, ferias, ventas) |
+| `/caja` | admin | CashSessionsPanel | Sesiones de caja, CSV export, alertas Δ |
+| `/reps` | admin | RepsPanel | Gestión reps, tier override |
+| `/comisiones` | admin | ComisionesPanel | Comisiones con Tier + Canal |
+| `/invitaciones` | admin | InvitacionesPanel | Códigos invitación + redenciones |
+| `/reglas-comision` | admin | ReglasComisionPanel | 6 rule_types (base, channel_rate, volume_threshold, loyalty, streak, tier_bonus) |
+| `/leaderboard` | admin | LeaderboardPanel | Ranking semanal (stat cards + top 3 + tabla) |
+| `/contable` | admin | ContableView | Integracion contable via BFF |
+| `/eirl` | admin | EIRL views | Contabilidad EIRL (absorbido de apps/eirl) |
 
 **Entorno**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 
@@ -224,7 +214,7 @@ Supabase: facturas_emitidas, gastos, impuestos
 
 ### 3.3 Campo (`@enjambre/campo`)
 
-**Stack**: Next.js 15.3.5 + React 19.2.0 + Tailwind CSS 3.4 + `@enjambre/offline`
+**Stack**: Next.js 16.2.6 + React 19.2.0 + Tailwind CSS 3.4
 
 **Rutas**:
 - `/` Landing
@@ -236,13 +226,13 @@ Supabase: facturas_emitidas, gastos, impuestos
 - `/api/pos/venta` POST (fallback local sin sesion de caja)
 - `/setup-error` Error cuando Supabase no esta configurado
 
-**Auth**: Integrado con `@enjambre/auth` via `CampoAuthProvider` (sync `onAuthStateChange` → `useAuthStore`, `appSource: 'campo'`). Middleware protege `/pos/*` con redirect a `/login` si no autenticado. `access_denied` logging via fire-and-forget `POST /api/security-events/internal`.
+**Auth**: Middleware propio con custom `logAccessDenied()` que posta a nucleo BFF (`POST /api/security-events/internal` con `x-internal-key`). No usa `createAuthMiddleware` directamente. Middleware protege `/pos/*` con redirect a `/login` si no autenticado.
 
 **Middleware**: Auth guard en `/pos/*` + manejo de sesion Supabase con graceful degradation. Si faltan variables, reescribe a `/setup-error` en vez de crashear. `access_denied` se logea via BFF internal route.
 
 **Styling**: 100% semantic Tailwind tokens (`bg-background`, `text-foreground`, `text-primary`, `bg-card`, `border-border`, `text-muted-foreground`, `text-destructive`, `text-primary-foreground`, `bg-surface-raised`, `bg-surface-sunken`). Sin colores hardcoded. Tokens mapeados en `tailwind.config.js` desde `@enjambre/ui` CSS variables.
 
-**Offline**: Usa `@enjambre/offline` (Dexie + sync queue) para operar sin conexion.
+**Offline**: Offline-first planificado. Campo actualmente usa Supabase directamente. Futuro: `@enjambre/offline` (Dexie + sync queue).
 
 **Entorno**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (o PUBLISHABLE), `NEXT_PUBLIC_NUCLEO_API_URL` (BFF endpoint para cash sessions/comisiones)
 
@@ -283,21 +273,6 @@ Request → auth.ts (valida JWT) → tenant.ts (resuelve empresa) → Route Hand
 **Tipos**: `AppVariables` (user, accessToken, supabase, empresaId, rol)
 
 **Entorno**: `PORT` (3001), `SUPABASE_URL`, `SUPABASE_ANON_KEY`
-
----
-
-### 3.5 EIRL (`@enjambre/eirl`)
-
-**Stack**: Next.js 15.3.5 + Prisma 6.11 + SQLite + NextAuth 4.24 + Socket.IO + shadcn/ui + Zustand
-
-**Independiente del ecosistema Supabase**:
-- Base de datos propia (SQLite via Prisma)
-- Autenticacion propia (NextAuth)
-- Servidor custom con WebSocket (Socket.IO)
-
-**Modelos Prisma**: Empresa, Tercero, FacturaEmitida, FacturaRecibida, Gasto, Impuesto, PeriodoContable, Reporte, CalculoIA, ConfiguracionIA
-
-**Taxonomia tributaria chilena**: IVA, PPM, Retencion, Primera Categoria, impuestos especificos.
 
 ---
 
@@ -373,7 +348,7 @@ Autenticacion y clientes Supabase compartidos para apps Next.js. Dos puntos de e
 |---|---|
 | `middleware.ts` | `createAuthMiddleware()` — factory con role redirect + route guards + logging `access_denied` via BFF |
 
-**Uso en apps**: Nucleo usa `@enjambre/auth` via re-exports en `@/lib/` (71 consumidores, cero rotos). Tienda usa `auth-context.tsx` que wrapesa `useAuthStore` + expone `useAuth()` compatible con `TiendaUser`, sincroniza `onAuthStateChange` con cliente local, setea `appSource: 'tienda'`. Campo usa `CampoAuthProvider` con el mismo patrón (cliente local + `appSource: 'campo'`). Los archivos `env.ts` locales son necesarios para evitar que Turbopack resuelva el barrel de `@enjambre/auth` (que incluye hooks de React) en contextos server-side.
+**Uso en apps**: Nucleo usa `@enjambre/auth` via re-exports en `@/lib/` (71 consumidores, cero rotos). `useAuthProvider()` hook en root. Middleware usa `createAuthMiddleware()` de `@enjambre/auth/middleware`. Tienda tiene middleware propio (`utils/supabase/middleware.ts`) con `updateSession()`, no usa `createAuthMiddleware`. Campo tiene middleware propio con custom `logAccessDenied()` que posta a nucleo BFF. Los archivos `env.ts` locales son necesarios para evitar que Turbopack resuelva el barrel de `@enjambre/auth` (que incluye hooks de React) en contextos server-side.
 
 **Eventos de seguridad** (Phase 5 — logging centralizado):
 
@@ -382,7 +357,7 @@ Autenticacion y clientes Supabase compartidos para apps Next.js. Dos puntos de e
 | Login page (3 apps) | `login_success`, `login_failed`, `password_reset_requested`, `signup_success` | `logSecurityEvent(supabase, ...)` directo |
 | Nucleo middleware | `access_denied` | Fire-and-forget `POST /api/security-events/internal` con `x-internal-key` |
 | Campo middleware | `access_denied` | Fire-and-forget `POST /api/security-events/internal` (via BFF nucleo) |
-| Tienda middleware | `access_denied` | Supabase REST API directa con service role key (sin BFF dependency) |
+| Tienda middleware | — | No logea `access_denied` actualmente |
 | Auth store `signOut()` | `session_revoked` | `logSecurityEvent(supabase, ...)` antes de `supabase.auth.signOut()`, con `appSource` dinámico |
 
 **BFF route de seguridad** (`/api/security-events`):
@@ -390,20 +365,11 @@ Autenticacion y clientes Supabase compartidos para apps Next.js. Dos puntos de e
 - `POST /internal` — autenticado via `x-internal-key` = `SUPABASE_SERVICE_ROLE_KEY` para middleware/Edge logging
 
 **RLS en `security_events`**:
-- SELECT: `is_gerente()` OR `current_role() = 'tienda_admin'`
+- SELECT: `is_admin()` (consolidated role)
 - INSERT (auth): `auth.uid() IS NOT NULL`
 - INSERT (anon): solo para `login_failed`, `password_reset_requested`, `signup_success`
 
-### 4.4 `@enjambre/offline`
-
-Sincronizacion offline-first para campo:
-
-| Modulo | Funcionalidad |
-|---|---|
-| `dexie-db.ts` | BD IndexedDB: tablas `transacciones` + `tickets` con indices |
-| `sync-queue.ts` | `syncPendingTransactions()` — itera pendientes y pushea via callback |
-
-### 4.5 `@enjambre/ui`
+### 4.4 `@enjambre/ui`
 
 Design tokens (4 tokens semanticos + CSS custom properties):
 
@@ -414,16 +380,13 @@ Design tokens (4 tokens semanticos + CSS custom properties):
 | `cremaNatural` | `#FDFBF7` | Crema natural de cera |
 | `negroTinta` | `#1a1a1a` | Negro profundo |
 
-### 4.6 `@enjambre/ai` (Stub)
+### 4.5 `@enjamble/sumup`
 
-Placeholder para prediccion de floracion. Funcion `predictFloracion()` retorna ceros.
-Futuro: Edge Function o integracion con OpenRouter.
+Integracion con SumUp POS para punto de venta.
 
-### 4.7 `@enjambre/maps` (Minimo)
+### 4.6 `@enjambre/banco-chile`
 
-Tipos y utilidades cartograficas:
-- `MapLayerId`: `'apiarios' | 'arboles' | 'ferias' | 'ventas'`
-- `latLngKey()`: Utilidad para claves de mapa
+Cliente TypeScript para Banco Chile Empresas API. Autenticacion OAuth 2.0, refresh automatico, tipos estrictos con Zod.
 
 ---
 
@@ -431,19 +394,13 @@ Tipos y utilidades cartograficas:
 
 ```
 tienda -----> @enjambre/database, @supabase/ssr, @supabase/supabase-js
-              gsap, lucide-react, recharts, transbank-sdk, zod
+gsap, lucide-react, recharts, transbank-sdk, zod
 
-nucleo -----> @supabase/supabase-js, @tanstack/react-query
-              leaflet, react-leaflet, recharts, zustand
+nucleo -----> @supabase/supabase-js, @tanstack/react-query, @enjambre/contable
+leaflet, react-leaflet, recharts, zustand, hono
 
-campo  -----> @enjambre/offline, @supabase/ssr, @supabase/supabase-js
-              lucide-react
-
-api    -----> @enjambre/contable, @supabase/supabase-js
-              hono, @hono/zod-validator, zod
-
-eirl   -----> (independiente)
-              prisma, next-auth, shadcn/ui, zustand, socket.io
+campo -----> @supabase/ssr, @supabase/supabase-js
+lucide-react
 ```
 
 ---
@@ -453,8 +410,8 @@ eirl   -----> (independiente)
 | Servicio | Estado | App | Proposito |
 |---|---|---|---|
 | Transbank Webpay | Implementado | tienda | Pagos online Chile |
-| SII | Stub | tienda, api | Sincronizacion tributaria |
-| Bancos | Stub | tienda, api | Conciliacion bancaria |
+| SII | Stub | tienda, nucleo BFF | Sincronizacion tributaria |
+| Bancos | Stub | tienda, nucleo BFF | Conciliacion bancaria |
 | Notificaciones | Stub | tienda | Eventos de notificacion |
 | Blockchain | Planificado | nucleo | Certificacion de origen |
 | IA/ML | Stub | packages/ai | Prediccion de floracion |
@@ -465,11 +422,9 @@ eirl   -----> (independiente)
 
 | App | Plataforma | Framework | Root Directory |
 |---|---|---|---|
-| nucleo | Vercel | Vite | `apps/nucleo` |
+| nucleo | Vercel | Next.js | `apps/nucleo` |
 | tienda | Vercel | Next.js | `apps/tienda` |
 | campo | Vercel | Next.js | `apps/campo` |
-| api | TBD (Docker/VPS) | Hono/Node | `apps/api` |
-| eirl | TBD | Next.js custom server | `apps/eirl` |
 
 Cada app es un **proyecto Vercel separado** con su propio Root Directory y variables de entorno.
 
@@ -478,4 +433,4 @@ Ver `DEPLOY.md` y `VERCEL.md` para instrucciones detalladas.
 ---
 
 *Este documento es la referencia tecnica maestra. Actualizar cuando cambie la estructura o se agreguen apps/paquetes.*
-*Ultima actualizacion: Junio 2026 — Auth centralizada en 3 apps, campo 100% semantic tokens, security events phase 5 completa, checkout_sessions persistidas (Migration 38)*
+*Ultima actualizacion: Junio 2026 — 3 apps en Next.js 16, roles consolidados (migration 39), EIRL absorbido por nucleo, BFF Hono dentro de nucleo, packages/sumup + banco-chile agregados, offline-first planificado*

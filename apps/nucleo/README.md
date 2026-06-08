@@ -1,73 +1,48 @@
-# React + TypeScript + Vite
+# @enjambre/nucleo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Dashboard de gestion + BFF + contable para Enjambre Legado.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Next.js 16 (App Router)
+- Hono (BFF via `/api/[[...routes]]/route.ts`)
+- Supabase (Postgres + Auth)
+- TanStack Query
+- Leaflet (mapa interactivo)
+- Tailwind CSS (tokens semanticos de `@enjambre/ui`)
 
-## React Compiler
+## Funcionalidades
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Mapa**: Apiarios, arboles, ferias, ventas (Leaflet + PostGIS)
+- **Caja**: Sesiones de caja, CSV export, alertas delta
+- **Reps**: Gestion de reps de ventas, tier override
+- **Comisiones**: Comisiones con Tier + Canal
+- **Invitaciones**: Codigos de invitacion + redenciones
+- **Reglas Comision**: 6 rule_types (base, channel_rate, volume_threshold, loyalty, streak, tier_bonus)
+- **Leaderboard**: Ranking semanal
+- **Contable**: Integracion contable via BFF (IVA 19%, RUT, DTE)
+- **EIRL**: Contabilidad EIRL (absorbido de apps/eirl)
+- **Banco Chile**: Dashboard de integracion bancaria
+- **BFF**: API routes para tienda, contable, banco-chile, security-events
 
-## Expanding the ESLint configuration
+## Desarrollo
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+# Desde la raiz del monorepo
+pnpm --filter @enjambre/nucleo dev
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Build
+pnpm --filter @enjambre/nucleo build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Auth
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Usa `@enjambre/auth` via re-exports en `@/lib/`. Middleware usa `createAuthMiddleware()` de `@enjambre/auth/middleware`.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Variables de Entorno
+
+| Variable | Obligatoria | Notas |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Si | URL del proyecto Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Si | JWT anon |
+| `SUPABASE_SERVICE_ROLE_KEY` | Si | Server-only para BFF |

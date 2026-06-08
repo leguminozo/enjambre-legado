@@ -38,7 +38,7 @@
 - [x] `docs/BANCO_CHILE_IMPLEMENTACION.md` - Resumen técnico
 - [x] `docs/BANCO_CHILE_ARQUITECTURA.md` - Diagramas y flujos
 - [x] `INTEGRACION-BANCO-CHILE.md` - Guía rápida
-- [x] `apps/api/.env.example` - Variables de entorno
+- [x] `apps/api/.env.example` → variables ahora documentadas en `docs/VERCEL.md`
 
 ---
 
@@ -157,14 +157,14 @@ pnpm db:push
 # Typecheck
 pnpm --filter @enjambre/banco-chile typecheck
 
-# Build API
-pnpm --filter @enjambre/api build
+# Build Nucleo (con BFF incluido)
+pnpm --filter @enjambre/nucleo build
 
-# Dev API
-pnpm --filter @enjambre/api dev
+# Dev Nucleo
+pnpm --filter @enjambre/nucleo dev
 
 # Test endpoint
-curl http://localhost:3001/api/banco-chile/cuentas \
+curl http://localhost:3000/api/banco-chile/cuentas \
   -H "Authorization: Bearer TOKEN" \
   -H "x-empresa-id: UUID"
 ```

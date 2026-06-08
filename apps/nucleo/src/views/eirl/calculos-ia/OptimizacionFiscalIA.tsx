@@ -42,10 +42,6 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
   const [ultimoAnalisis, setUltimoAnalisis] = useState<string | null>(null);
   const apiFetch = useApiFetch();
 
-  useEffect(() => {
-    cargarOptimizacion();
-  }, [empresaId]);
-
   const cargarOptimizacion = async () => {
     try {
       setLoading(true);
@@ -68,6 +64,10 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    cargarOptimizacion();
+  }, [empresaId]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-CL', {

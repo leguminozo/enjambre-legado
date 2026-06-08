@@ -9,25 +9,23 @@ Este archivo define las reglas arquitectonicas, metodologicas y de codificacion 
 - **Seguridad en Postgres**: RLS obligatorio. Nunca confiar en el cliente para seguridad.
 
 ## 2. STACK TECNOLOGICO STRICTO
-- **Core Frontend**: React 19 + Next.js 15/16 (App Router) + Vite 7 (SPA)
+- **Core Frontend**: React 19 + Next.js 16 (App Router)
 - **Estilos**: Tailwind CSS 3/4 con tokens semanticos (`bg-background`). Prohibido hex sueltos.
-- **Estado**: Zustand (global) + TanStack Query (remoto) + Dexie 4 (offline)
-- **Backend**: Supabase (Postgres 17 + PostGIS + RLS) + Hono (BFF)
+- **Estado**: Zustand (global) + TanStack Query (remoto)
+- **Backend**: Supabase (Postgres 17 + PostGIS + RLS) + Hono (BFF dentro de nucleo)
 - **Animaciones**: GSAP (premium) + Framer Motion (micro-transiciones)
 - **Pagos**: Transbank SDK (Webpay Chile)
 - **Validacion**: Zod
 
 ## 3. ARQUITECTURA MONOREPO
 - Monorepo con Turborepo + pnpm. Apps en `apps/`, logica compartida en `packages/`.
-- **Apps**: tienda (Next.js), nucleo (Vite SPA), campo (Next.js), api (Hono), eirl (Next.js+Prisma)
-- **Packages**: database, contable, auth, offline, ui, ai, maps
+- **Apps**: tienda (Next.js), nucleo (Next.js + Hono BFF), campo (Next.js)
+- **Packages**: database, contable, auth, ui, sumup, banco-chile
 - Lo que se usa en 2+ apps pertenece a un `package`.
 
 ## 4. FLUJO DE DATOS OFFLINE-FIRST (CAMPO)
-1. **UI Component** interactua con un **Custom Hook**.
-2. El hook lee/escribe a **Dexie DB** (IndexedDB).
-3. Dexie encola la mutacion en la **Sync Queue**.
-4. **Supabase** se sincroniza en background (si hay conexion).
+- **Offline-first es planificado pero no implementado.** Campo actualmente usa Supabase directamente.
+- Futuro: UI Component → Custom Hook → Dexie DB → Sync Queue → Supabase
 
 ## 5. CONVENCIONES DE CODIGO
 - **Componentes**: `PascalCase.tsx`. Named exports (`export function MiComp()`). Prohibido `export default`.
@@ -39,10 +37,8 @@ Este archivo define las reglas arquitectonicas, metodologicas y de codificacion 
 
 ## 6. DOMINIOS CLAVE
 - **Tienda**: E-commerce premium con Transbank + CMS dinamico
-- **Nucleo**: Dashboard multi-rol con mapas (Leaflet + PostGIS)
-- **Campo**: PWA offline-first para apicultores/vendedores
-- **API**: BFF multi-tenant con JWT + empresa context
-- **EIRL**: Contabilidad independiente (SQLite + Prisma + NextAuth)
+- **Nucleo**: Dashboard multi-rol con mapas (Leaflet + PostGIS), Hono BFF + contable
+- **Campo**: PWA para campo (apicultor/vendedor/rep_ventas), offline-first planificado
 - **Contable**: IVA 19%, RUT chileno, facturas (Zod schemas)
 
 ## 7. REGLAS DE RESPUESTA

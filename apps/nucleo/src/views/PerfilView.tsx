@@ -55,10 +55,6 @@ export function PerfilView() {
   const [showNew, setShowNew] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
   async function fetchProfile() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -94,6 +90,10 @@ export function PerfilView() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   async function handleSaveProfile() {
     if (!profile) return;

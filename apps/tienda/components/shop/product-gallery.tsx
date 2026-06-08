@@ -22,7 +22,6 @@ export function ProductGallery({ photos, alt }: Props) {
   return (
     <div className="space-y-4">
       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={main} alt={alt} className="aspect-square w-full object-cover" />
       </div>
       {photos.length > 1 ? (
@@ -38,8 +37,7 @@ export function ProductGallery({ photos, alt }: Props) {
                   : 'border-transparent opacity-75 hover:opacity-100'
               }`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" className="h-full w-full object-cover" />
+          <img src={src} alt="" className="h-full w-full object-cover" />
             </button>
           ))}
         </div>

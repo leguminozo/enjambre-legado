@@ -2,21 +2,18 @@
 
 import { useAuthStore } from '@enjambre/auth';
 import { createClient } from '@/utils/supabase/client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 
 export function CampoAuthProvider({ children }: { children: React.ReactNode }) {
   const checkUser = useAuthStore((s) => s.checkUser);
-  const clientRef = useRef<ReturnType<typeof createClient> | null>(null);
-
-  if (!clientRef.current) clientRef.current = createClient();
+  const client = useMemo(() => createClient(), []);
 
   useEffect(() => {
+    if (!client) return;
     useAuthStore.getState().setAppSource('campo');
     checkUser();
 
-    if (!clientRef.current) return;
-
-    const { data: { subscription } } = clientRef.current.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
       if (session) {
         checkUser();
       } else {
@@ -25,7 +22,7 @@ export function CampoAuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, [checkUser]);
+  }, [checkUser, client]);
 
   return <>{children}</>;
 }

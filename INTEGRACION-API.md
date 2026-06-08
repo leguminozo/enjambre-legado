@@ -1,4 +1,4 @@
-# ✅ API Integrada en Nucleo (sin Railway)
+# API Integrada en Nucleo (sin Railway)
 
 ## Cambio de Arquitectura
 
@@ -9,8 +9,10 @@ apps/nucleo → apps/api (Hono en Railway) → Supabase
 
 **AHORA:**
 ```
-apps/nucleo → API Routes (Next.js) → Supabase
+apps/nucleo (Next.js 16) → API Routes (Hono BFF) → Supabase
 ```
+
+Las rutas BFF viven en `apps/nucleo/src/app/api/[[...routes]]/route.ts`. El directorio `apps/api` nunca existio en el codebase actual — toda la funcionalidad BFF fue implementada directamente dentro de nucleo.
 
 ## Ventajas
 
@@ -39,15 +41,20 @@ apps/nucleo → API Routes (Next.js) → Supabase
 ### `/api/tienda/dashboard`
 - `GET` - Métricas del dashboard
 
-## Archivos Creados
+## Archivos
 
 ```
 apps/nucleo/src/app/api/
+├── [[...routes]]/
+│   └── route.ts          # Hono BFF entrypoint
 ├── tienda/
 │   ├── products/route.ts
 │   ├── orders/route.ts
 │   ├── customers/route.ts
 │   └── dashboard/route.ts
+├── banco-chile/          # Banco Chile integration
+├── contable/             # Contable endpoints
+└── security-events/      # Security event logging
 ```
 
 ## Uso en el Frontend
@@ -77,19 +84,16 @@ pnpm build
 pnpm deploy
 ```
 
-## ¿Qué pasó con apps/api?
+## Que paso con apps/api?
 
-Se puede:
-1. **Eliminar** (recomendado)
-2. **Mantener** como backup
-3. **Migrar** la lógica contable y de creadores
+`apps/api` fue un plano arquitectonico que nunca se implemento como app independiente. Toda la logica BFF se integro directamente en nucleo via Next.js API Routes + Hono. No existe directorio `apps/api` en el codebase.
 
 ## Siguientes Pasos
 
-1. Mover contable a API routes
-2. Mover creadores a API routes
-3. Eliminar apps/api
-4. Deploy a Vercel
+1. ✅ Mover contable a API routes (hecho)
+2. ✅ Mover creadores a API routes (hecho)
+3. ~~Eliminar apps/api~~ (nunca existio como directorio)
+4. ✅ Deploy a Vercel (nucleo con BFF incluido)
 
 ---
 

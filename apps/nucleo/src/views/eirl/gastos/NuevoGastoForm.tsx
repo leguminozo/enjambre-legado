@@ -68,10 +68,6 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
   });
   const [mostrarNuevoProveedor, setMostrarNuevoProveedor] = useState(false);
 
-  useEffect(() => {
-    cargarProveedores();
-  }, []);
-
   const cargarProveedores = async () => {
     try {
       const response = await apiFetch('/api/terceros?tipo=Proveedor');
@@ -83,6 +79,10 @@ export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
       console.error('Error cargando proveedores:', error);
     }
   };
+
+  useEffect(() => {
+    cargarProveedores();
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({

@@ -53,8 +53,6 @@ export function ReglasComisionPanel() {
   const [formPriority, setFormPriority] = useState(0);
   const [formParams, setFormParams] = useState<Record<string, unknown>>(defaultParams.base);
 
-  useEffect(() => { fetchRules(); }, []);
-
   const fetchRules = async () => {
     setLoading(true);
     try {
@@ -71,6 +69,8 @@ export function ReglasComisionPanel() {
       setLoading(false);
     }
   };
+
+  useEffect(() => { fetchRules(); }, []);
 
   const resetForm = () => {
     setFormType('base');

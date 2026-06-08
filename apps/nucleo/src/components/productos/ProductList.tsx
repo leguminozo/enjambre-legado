@@ -19,10 +19,6 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
   const [filterVisible, setFilterVisible] = useState<'all' | 'visible' | 'hidden'>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadProducts();
-  }, []);
-
   const loadProducts = async () => {
     try {
       const { data, error } = await supabase
@@ -62,6 +58,10 @@ console.error('Error loading products:', error);
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
 
   const toggleVisibility = async (id: string, currentVisible: boolean) => {
     try {

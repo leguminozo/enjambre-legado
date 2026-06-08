@@ -35,10 +35,6 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
   const [ultimoAnalisis, setUltimoAnalisis] = useState<string | null>(null);
   const apiFetch = useApiFetch();
 
-  useEffect(() => {
-    cargarAnalisis();
-  }, [empresaId]);
-
   const cargarAnalisis = async () => {
     try {
       setLoading(true);
@@ -61,6 +57,10 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    cargarAnalisis();
+  }, [empresaId]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-CL', {

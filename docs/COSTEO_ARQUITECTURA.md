@@ -28,7 +28,7 @@
 - **Cero trazabilidad** de producción por frasco (solo cosecha → lote de miel)
 - **Cero historial** de precios de ingredientes
 - **Cero receta/BOM** — `productos.ingredientes` es texto libre
-- **Paquete `@enjambre/offline`** no existe (solo localStorage en campo)
+- **Paquete `@enjambre/offline`** no existe (planificado, no implementado — campo usa Supabase directamente)
 - **Cero funciones SQL** de costeo, margen, o alertas de precio
 
 ### Brecha exacta
@@ -294,19 +294,19 @@ ALTER TABLE price_observations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE recipes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE recipe_lines ENABLE ROW LEVEL SECURITY;
 
--- Ingredients: gerente/admin por empresa
+-- Ingredients: admin por empresa (is_gerente() mapea a role = 'admin' post-consolidacion)
 CREATE POLICY ingredients_select ON ingredients FOR SELECT USING (has_empresa_access(empresa_id));
 CREATE POLICY ingredients_insert ON ingredients FOR INSERT WITH CHECK (has_empresa_access(empresa_id) AND is_gerente());
 CREATE POLICY ingredients_update ON ingredients FOR UPDATE USING (has_empresa_access(empresa_id) AND is_gerente());
 CREATE POLICY ingredients_delete ON ingredients FOR DELETE USING (has_empresa_access(empresa_id) AND is_gerente());
 
--- Price observations: gerente/admin por empresa
+-- Price observations: admin por empresa
 CREATE POLICY price_obs_select ON price_observations FOR SELECT USING (has_empresa_access(empresa_id));
 CREATE POLICY price_obs_insert ON price_observations FOR INSERT WITH CHECK (has_empresa_access(empresa_id) AND is_gerente());
 CREATE POLICY price_obs_update ON price_observations FOR UPDATE USING (has_empresa_access(empresa_id) AND is_gerente());
 CREATE POLICY price_obs_delete ON price_observations FOR DELETE USING (has_empresa_access(empresa_id) AND is_gerente());
 
--- Recipes: gerente/admin por empresa
+-- Recipes: admin por empresa
 CREATE POLICY recipes_select ON recipes FOR SELECT USING (has_empresa_access(empresa_id));
 CREATE POLICY recipes_insert ON recipes FOR INSERT WITH CHECK (has_empresa_access(empresa_id) AND is_gerente());
 CREATE POLICY recipes_update ON recipes FOR UPDATE USING (has_empresa_access(empresa_id) AND is_gerente());
@@ -825,8 +825,8 @@ Cada paso es verificable de forma independiente.
 5. Verificar: `pnpm --filter @enjambre/nucleo build`
 
 ### Fase 6 (futura): Offline en Campo
-1. Crear `@enjambre/offline` con Dexie (tablas: ingredientes, recetas, lotes pendientes)
-2. Sync queue que drena al nucleo BFF cuando hay conexión
+1. Crear `@enjambre/offline` con Dexie (tablas: ingredientes, recetas, lotes pendientes) — actualmente planificado, no implementado
+2. Sync queue que drena al nucleo BFF cuando hay conexion
 3. UI en campo: registro de lote con manos de miel (3 toques, sin teclado)
 
 ---

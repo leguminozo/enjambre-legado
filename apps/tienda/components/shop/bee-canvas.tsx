@@ -40,8 +40,8 @@ export function BeeCanvas() {
 
     let width: number;
     let height: number;
-    let bees: Bee[] = [];
-    let honeyParticles: HoneyParticle[] = [];
+    const bees: Bee[] = [];
+    const honeyParticles: HoneyParticle[] = [];
 
     function resize() {
       if (!canvas) return;

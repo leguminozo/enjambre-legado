@@ -36,10 +36,6 @@ export function VanguardiaPanel() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchVanguardData();
-  }, []);
-
   const fetchVanguardData = async () => {
     setLoading(true);
     try {
@@ -69,6 +65,10 @@ export function VanguardiaPanel() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchVanguardData();
+  }, []);
 
   const updateRevendedorStatus = async (userId: string, status: 'activo' | 'suspendido') => {
     setActionLoading(userId);

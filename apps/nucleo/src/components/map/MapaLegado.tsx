@@ -15,40 +15,39 @@ L.Icon.Default.mergeOptions({
 });
 
 function createCustomIcon(marker: MapMarker): L.DivIcon {
-    let html = '';
-    let className = '';
+  const configs: Record<string, { className: string; html: string }> = {
+    obrera: {
+      className: 'marker-obrera',
+      html: `<div class="marker-obrera-inner health-${marker.health || 'optimal'}">
+<span style="transform:rotate(45deg);font-size:14px;">🐝</span>
+</div>`,
+    },
+    zangano: {
+      className: 'marker-obrera',
+      html: `<div class="marker-zangano-inner" title="${marker.name}"></div>`,
+    },
+    nectar: {
+      className: 'marker-obrera',
+      html: `<div class="marker-nectar-inner"></div>`,
+    },
+    tree: {
+      className: 'marker-obrera',
+      html: `<div class="marker-tree-inner" style="display:flex;align-items:center;justify-content:center;">
+<span style="font-size:14px;">🌳</span>
+</div>`,
+    },
+    feria: {
+      className: 'marker-obrera',
+      html: `<div class="marker-zangano-inner" style="background:var(--oro-miel);border-color:var(--bosque-ulmo);">
+<span style="font-size:11px;transform:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)">📍</span>
+</div>`,
+    },
+  };
 
-    switch (marker.type) {
-        case 'obrera':
-            className = 'marker-obrera';
-            html = `<div class="marker-obrera-inner health-${marker.health || 'optimal'}">
-        <span style="transform:rotate(45deg);font-size:14px;">🐝</span>
-      </div>`;
-            break;
-        case 'zangano':
-            className = 'marker-obrera';
-            html = `<div class="marker-zangano-inner" title="${marker.name}"></div>`;
-            break;
-        case 'nectar':
-            className = 'marker-obrera';
-            html = `<div class="marker-nectar-inner"></div>`;
-            break;
-        case 'tree':
-            className = 'marker-obrera';
-            html = `<div class="marker-tree-inner" style="display:flex;align-items:center;justify-content:center;">
-        <span style="font-size:14px;">🌳</span>
-      </div>`;
-            break;
-        case 'feria':
-            className = 'marker-obrera';
-            html = `<div class="marker-zangano-inner" style="background:var(--oro-miel);border-color:var(--bosque-ulmo);">
-        <span style="font-size:11px;transform:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)">📍</span>
-      </div>`;
-            break;
-        default:
-            className = 'marker-obrera';
-            html = `<div class="marker-obrera-inner"></div>`;
-    }
+  const { className, html } = configs[marker.type] ?? {
+    className: 'marker-obrera',
+    html: `<div class="marker-obrera-inner"></div>`,
+  };
 
     return L.divIcon({
         className,
