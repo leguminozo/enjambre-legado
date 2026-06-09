@@ -43,14 +43,27 @@ export function BeeCanvas() {
     const bees: Bee[] = [];
     const honeyParticles: HoneyParticle[] = [];
 
-    function resize() {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    }
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
-    window.addEventListener('resize', resize);
-    resize();
+  function resize() {
+    if (!canvas) return;
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    if (ctx) ctx.scale(dpr, dpr);
+  }
+
+  let resizeTimer: ReturnType<typeof setTimeout>;
+  const onResize = () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resize, 150);
+  };
+
+  window.addEventListener('resize', onResize);
+  resize();
 
     class Bee {
       x: number;
@@ -244,17 +257,17 @@ export function BeeCanvas() {
 
     animate();
 
-    return () => {
-      window.removeEventListener('resize', resize);
-      cancelAnimationFrame(animationFrameId);
-    };
+  return () => {
+    window.removeEventListener('resize', onResize);
+    clearTimeout(resizeTimer);
+    cancelAnimationFrame(animationFrameId);
+  };
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
       className="absolute inset-0 z-0 pointer-events-none"
-      style={{ width: '100%', height: '100%' }}
     />
   );
 }

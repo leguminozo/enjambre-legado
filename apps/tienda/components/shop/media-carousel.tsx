@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { gsap } from 'gsap';
 
 interface MediaItem {
@@ -57,22 +58,24 @@ export function MediaCarousel({ items, autoplayMs = 5000 }: MediaCarouselProps) 
       <div ref={trackRef} className="flex h-full" style={{ width: `${items.length * 100}%` }}>
         {items.map((item, i) => (
           <div key={i} className="relative h-full flex-shrink-0" style={{ width: `${100 / items.length}%` }}>
-            {item.type === 'video' ? (
-              <video
-                src={item.src}
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <img
-                src={item.src}
-                alt={item.alt || ''}
-                className="h-full w-full object-cover"
-              />
-            )}
+                {item.type === 'video' ? (
+                  <video
+                    src={item.src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={item.src}
+                    alt={item.alt || ''}
+                    fill
+                    sizes="100vw"
+                    className="object-cover"
+                  />
+                )}
             <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent pointer-events-none" />
           </div>
         ))}

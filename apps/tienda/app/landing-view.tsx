@@ -1,23 +1,37 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { BeeCanvas } from '@/components/shop/bee-canvas';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
-import { CustomCursor } from '@/components/shop/custom-cursor';
-import { LandingLoader } from '@/components/shop/landing-loader';
 import { TextCarousel } from '@/components/shop/text-carousel';
-import { MediaCarousel } from '@/components/shop/media-carousel';
-import { LandingProducts } from '@/components/shop/landing-products';
-import { WorldMapBlock } from '@/components/shop/world-map-block';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
+
+const BeeCanvas = lazy(() =>
+  import('@/components/shop/bee-canvas').then((m) => ({ default: m.BeeCanvas })),
+);
+const CustomCursor = lazy(() =>
+  import('@/components/shop/custom-cursor').then((m) => ({ default: m.CustomCursor })),
+);
+const LandingLoader = lazy(() =>
+  import('@/components/shop/landing-loader').then((m) => ({ default: m.LandingLoader })),
+);
+const MediaCarousel = lazy(() =>
+  import('@/components/shop/media-carousel').then((m) => ({ default: m.MediaCarousel })),
+);
+const LandingProducts = lazy(() =>
+  import('@/components/shop/landing-products').then((m) => ({ default: m.LandingProducts })),
+);
+const WorldMapBlock = lazy(() =>
+  import('@/components/shop/world-map-block').then((m) => ({ default: m.WorldMapBlock })),
+);
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -73,15 +87,16 @@ export function TiendaLandingView({
   ecosystemMetrics,
 }: TiendaLandingProps) {
   useEffect(() => {
-    const tl = gsap.timeline();
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline();
 
-    tl.to('.hero-eyebrow', {
-      opacity: 1,
-      y: 0,
-      duration: 1.2,
-      ease: 'power3.out',
-      delay: 0.5,
-    })
+      tl.to('.hero-eyebrow', {
+        opacity: 1,
+        y: 0,
+        duration: 1.2,
+        ease: 'power3.out',
+        delay: 0.5,
+      })
       .to('.hero-title .line-inner', {
         y: 0,
         duration: 1.4,
@@ -101,54 +116,57 @@ export function TiendaLandingView({
         ease: 'power3.out',
       }, '-=0.3');
 
-    const sections = ['#collections', '#media-carousel', '#creaciones', '#central-video', '#world-location'];
-    sections.forEach((section) => {
-      gsap.from(section, {
-        scrollTrigger: {
-          trigger: section,
-          start: 'top 85%',
-          toggleActions: 'play none none reverse',
-        },
-        y: 60,
-        opacity: 0,
-        duration: 1,
-        ease: 'power3.out',
+      const sections = ['#collections', '#media-carousel', '#creaciones', '#central-video', '#world-location'];
+      sections.forEach((section) => {
+        gsap.from(section, {
+          scrollTrigger: {
+            trigger: section,
+            start: 'top 85%',
+            toggleActions: 'play none none reverse',
+          },
+          y: 60,
+          opacity: 0,
+          duration: 1,
+          ease: 'power3.out',
+        });
+      });
+
+      gsap.utils.toArray<HTMLElement>('.counter-value').forEach((el) => {
+        const target = parseInt(el.dataset.target || '0', 10);
+        const prefix = el.dataset.prefix || '';
+        const suffix = el.dataset.suffix || '';
+        const obj = { val: 0 };
+        gsap.to(obj, {
+          val: target,
+          duration: 2,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 80%',
+            once: true,
+          },
+          onUpdate: () => {
+            el.textContent = prefix + Math.round(obj.val).toLocaleString('es-CL') + suffix;
+          },
+        });
       });
     });
 
-    gsap.utils.toArray<HTMLElement>('.counter-value').forEach((el) => {
-      const target = parseInt(el.dataset.target || '0', 10);
-      const prefix = el.dataset.prefix || '';
-      const suffix = el.dataset.suffix || '';
-      const obj = { val: 0 };
-      gsap.to(obj, {
-        val: target,
-        duration: 2,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: el,
-          start: 'top 80%',
-          once: true,
-        },
-        onUpdate: () => {
-          el.textContent = prefix + Math.round(obj.val).toLocaleString('es-CL') + suffix;
-        },
-      });
-    });
+    return () => ctx.revert();
   }, []);
 
   return (
     <StoreShell>
-      <LandingLoader />
-      <GrainOverlay />
-      <CustomCursor />
-      <TextCarousel />
-      <ShopHeader />
+    <Suspense fallback={null}><LandingLoader /></Suspense>
+    <GrainOverlay />
+    <Suspense fallback={null}><CustomCursor /></Suspense>
+    <TextCarousel />
+    <ShopHeader />
 
-      <main className="relative overflow-hidden">
-        {/* ── HERO ── */}
-        <section className="relative h-[90vh] flex flex-col items-center justify-center text-center px-4">
-          <BeeCanvas />
+    <main className="relative overflow-hidden">
+      {/* ── HERO ── */}
+      <section className="relative h-[90vh] flex flex-col items-center justify-center text-center px-4">
+        <Suspense fallback={null}><BeeCanvas /></Suspense>
           <div className="absolute inset-0 bg-gradient-radial from-transparent to-background opacity-60 pointer-events-none" />
 
           <div className="relative z-10 max-w-4xl">
@@ -273,12 +291,14 @@ export function TiendaLandingView({
               const imageSrc = getCollectionImage(c.kicker);
               return (
                 <Link key={c.title} href={c.href} className="group flex flex-col">
-                  <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-6 rounded-lg">
-                    <img
-                      src={imageSrc}
-                      alt={c.title}
-                      className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-elegant"
-                    />
+              <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-6 rounded-lg">
+                <Image
+                  src={imageSrc}
+                  alt={c.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-elegant"
+                />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-base" />
                   </div>
                   <div className="text-center px-2">
@@ -292,15 +312,15 @@ export function TiendaLandingView({
           </div>
         </section>
 
-        {/* ── CARRUSEL DE MEDIAS (imágenes/videos) ── */}
-        <section id="media-carousel">
-          <MediaCarousel items={mediaItems} />
-        </section>
+      {/* ── CARRUSEL DE MEDIAS (imágenes/videos) ── */}
+      <section id="media-carousel">
+        <Suspense fallback={<div className="w-full h-[50vh] md:h-[70vh] bg-surface-raised" />}><MediaCarousel items={mediaItems} /></Suspense>
+      </section>
 
-        {/* ── CREACIONES — Productos directos 2x4 ── */}
-        <div id="creaciones">
-          <LandingProducts products={products} pageSize={8} />
-        </div>
+      {/* ── CREACIONES — Productos directos 2x4 ── */}
+      <div id="creaciones">
+        <Suspense fallback={<div className="editorial-section"><div className="editorial-container text-center text-muted-foreground italic">Cargando creaciones…</div></div>}><LandingProducts products={products} pageSize={8} /></Suspense>
+      </div>
 
         {/* ── VIDEO CENTRAL YOUTUBE ── */}
         <section id="central-video" className="editorial-section">
@@ -318,10 +338,10 @@ export function TiendaLandingView({
           </div>
         </section>
 
-        {/* ── NUESTRO LUGAR EN EL MUNDO ── */}
-        <div id="world-location">
-          <WorldMapBlock />
-        </div>
+      {/* ── NUESTRO LUGAR EN EL MUNDO ── */}
+      <div id="world-location">
+        <Suspense fallback={<div className="editorial-section"><div className="editorial-container text-center text-muted-foreground italic">Cargando mapa…</div></div>}><WorldMapBlock /></Suspense>
+      </div>
       </main>
 
       <ShopFooter />
