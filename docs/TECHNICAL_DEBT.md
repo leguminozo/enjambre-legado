@@ -20,7 +20,7 @@
 
 **Problema**: `components/shop/` en la raiz del proyecto mientras otros estan en `apps/tienda/components`.
 
-**Estado**: RESUELTO — El directorio estaba vacio (0 archivos). Eliminado sin impacto. No existian imports desde esa ruta.
+**Estado**: RESUELTO — Directorio raiz eliminado (estaba vacio). Los componentes activos estan en `apps/tienda/components/shop/` (18 archivos: legal-content, whatsapp-float, bee-canvas, landing-products, guardian-sidebar, etc.). No existian imports desde la ruta raiz.
 
 ---
 
@@ -85,13 +85,29 @@
 
 ---
 
+### D1b. Legacy CRA Client + Express Server en Tienda (RESUELTO)
+
+**Problema**: `apps/tienda/client/` (CRA React 18 SPA, 2,167 lineas) y `apps/tienda/server/` (Express backend) eran artefactos del proyecto "Verano '25" pre-monorepo. Auth propio con JWT en localStorage (vulnerable a XSS), credenciales de prueba en UI de produccion, React 18 vs React 19 del monorepo, 786KB `package-lock.json` (npm dentro de pnpm workspace).
+
+**Estado**: RESUELTO — Eliminados ambos directorios. Tambien:
+- ESLint: removidas 2 entradas `globalIgnores` (`apps/tienda/server/**`, `apps/tienda/client/**`)
+- tsconfig: removido `"client"` del `exclude` en `apps/tienda/tsconfig.json`
+- Root `vercel.json`: eliminado (SPA fallback `/(.*) -> /index.html` residual que podria servir contenido erroneo si el repo root se desplegaba como proyecto Vercel)
+- `apps/tienda/package-lock.json`: eliminado (lockfile npm legacy con nombre `verano-ecommerce`, deps Express del server muerto)
+
+**Cero imports rotos** — nada en el monorepo referenciaba estos directorios. Build verificado.
+
+**Leccion**: El monorepo no debe contener sub-proyectos legacy con su propio `package.json`, auth system y lockfile. Si existe codigo pre-migracion, completar la migracion y eliminar el original, no dejarlo coexistiendo en paralelo.
+
+---
+
 ## ALTO — Resolver en proximos sprints
 
 ### D5. Paquetes Vacios/Stubs (RESUELTO)
 
 **Problema**: `packages/ai`, `packages/maps`, `packages/ui` estaban practicamente vacios.
 
-**Estado**: RESUELTO — `packages/ai` eliminado (0 consumidores, solo placeholder). `packages/maps` permanece pero eliminado de `nucleo/next.config.ts` transpilePackages (0 imports reales, nucleo usa Leaflet directamente). `packages/ui` confirmado como activo — 93+ referencias en las 3 apps (Button, Card, toast, ThemeProvider, tokens, tailwind-preset, friendlyError, etc.).
+**Estado**: RESUELTO — `packages/ai` eliminado (0 consumidores, solo placeholder). `packages/maps` eliminado (0 consumidores, solo un tipo y una funcion utilitaria — nucleo usa Leaflet directamente). `packages/ui` confirmado como activo — 93+ referencias en las 3 apps (Button, Card, toast, ThemeProvider, tokens, tailwind-preset, friendlyError, etc.).
 
 **Leccion**: Si un paquete no tiene consumidores y solo contiene placeholders, eliminar. No mantener stubs "por si acaso".
 
@@ -122,22 +138,142 @@
 
 ---
 
-### D7. Offline-First Sin Implementar (Campo)
+### D7. Offline-First Sin Implementar (Campo) (CANCELADO)
 
-**Problema**: Campo es offline-first por diseno pero actualmente usa Supabase directamente. No hay `@enjambre/offline`, Dexie, ni sync queue.
+**Problema**: Campo era offline-first por diseno pero actualmente usa Supabase directamente.
 
-**Impacto**: Perdida de datos en zonas con baja senal (apicultor en terreno).
+**Estado**: CANCELADO — La logica offline-first no es util ni necesaria para el producto actual. Campo funciona conectado a Supabase sin problemas. Se eliminan todas las referencias a `@enjambre/offline`, Dexie, y sync queue de la documentacion.
 
-**Accion**:
-1. Crear `packages/offline` con Dexie (IndexedDB) + sync queue
-2. Tests de sincronizacion con interrupcion de red simulada
-3. Validar en Chrome DevTools > Application > Service Workers
-
-**Prioridad**: ALTA — El apicultor depende de esto en el campo.
+**Leccion**: No sobre-ingenierar features que el caso de uso real no requiere. Campo opera en zonas con conectividad suficiente.
 
 ---
 
 ## MEDIO — Planificar para el roadmap
+
+### D13. Version Mismatch @supabase/ssr en Nucleo (RESUELTO)
+
+**Problema**: Nucleo usaba `@supabase/ssr ^0.6.1` mientras tienda, campo y auth usaban `^0.10.3`. Gap de version mayor podia causar comportamiento inconsistente.
+
+**Estado**: RESUELTO — Nucleo actualizado a `@supabase/ssr ^0.10.3`, consistente con el resto del monorepo.
+
+---
+
+### D14. lucide-react peerDep Incompatible en packages/ui (RESUELTO)
+
+**Problema**: `packages/ui` declaraba `lucide-react ^0.575.0` como peerDep pero las 3 apps usan `^1.16.0`. Major version gap.
+
+**Estado**: RESUELTO — peerDep actualizada a `^1.16.0` para coincidir con las apps consumidoras.
+
+---
+
+### D15. @enjambre/maps Dead Code (RESUELTO)
+
+**Problema**: `packages/maps` existia con 9 lineas (1 tipo + 1 funcion) pero tenia 0 consumidores. Nucleo usa Leaflet directamente.
+
+**Estado**: RESUELTO — Paquete eliminado. Referencia en FRONTEND_ROADMAP.md actualizada a "Integrar Leaflet". D5 actualizado para reflejar eliminacion completa (antes decia "permanece").
+
+---
+
+### D16. Campo y Tienda sin transpilePackages (RESUELTO)
+
+**Problema**: Campo tenia `transpilePackages: []` y Tienda no tenia el campo. Ambas usan `@enjambre/auth` y `@enjambre/ui` (workspace packages) sin declararlos para transpilacion. Nucleo si lo hacia correctamente.
+
+**Estado**: RESUELTO — Ambas apps ahora declaran `transpilePackages: ["@enjambre/auth", "@enjambre/ui"]`.
+
+---
+
+### D17. LEGACY_ROLE_MAP Duplicado en Tienda (RESUELTO)
+
+**Problema**: Tienda reimplementaba `LEGACY_ROLES` set en `auth-context.tsx` y `user-profile.ts` en vez de importar desde `@enjambre/auth`. Violacion DRY, riesgo de desincronizacion si se agregan roles legacy.
+
+**Estado**: RESUELTO — Ambos archivos ahora importan `LEGACY_ROLE_MAP` y `RoleKey` desde `@enjambre/auth`. Se agrego export entry `@enjambre/auth/role-redirect` (server-safe, sin hooks React) para evitar el Turbopack barrel issue en server components.
+
+---
+
+### D18. Non-Null Assertions en BFF (RESUELTO)
+
+**Problema**: `security-events.ts` y `middleware.ts` usaban `process.env.NEXT_PUBLIC_SUPABASE_URL!` y `process.env.SUPABASE_SERVICE_ROLE_KEY!`. Si la env var falta, el error es criptico en vez de descriptivo.
+
+**Estado**: RESUELTO — Reemplazados con `getEnvOrThrow()` que lanza `Error` con mensaje claro indicando la variable faltante.
+
+---
+
+### D19. Date.now() como ID Generator en Checkout (RESUELTO)
+
+**Problema**: `apps/tienda/app/api/checkout/init/route.ts` usaba `Date.now()` para generar `buyOrder` y `sessionId`. Riesgo de colision bajo concurrencia (dos checkouts en el mismo milisegundo generarian IDs identicos).
+
+**Estado**: RESUELTO — Reemplazado con `crypto.randomUUID()`, que genera UUIDs v4 criptograficamente unicos.
+
+---
+
+### D20. tsconfig.next.json Excluye Directorio Inexistente (RESUELTO)
+
+**Problema**: `apps/nucleo/tsconfig.next.json` excluia `"Copia de Cafeteria Eureka!"` — directorio ya eliminado en D1.
+
+**Estado**: RESUELTO — Entrada removida del `exclude`.
+
+---
+
+### D21. Vite Remanents en Nucleo (RESUELTO)
+
+**Problema**: `vite.config.ts`, `tsconfig.app.json`, `tsconfig.node.json` y scripts `dev:spa`/`build:spa` persistian tras la migracion a Next.js App Router.
+
+**Estado**: RESUELTO — Eliminados los 3 archivos de config Vite y los 2 scripts SPA del `package.json`. La app es 100% Next.js.
+
+---
+
+### D22. Root test Script Placeholder (RESUELTO)
+
+**Problema**: Root `package.json` tenia `"test": "echo 'Error: no test specified' && exit 1"`. `pnpm test` siempre fallaba.
+
+**Estado**: RESUELTO — Redirigido a `cd packages/contable && pnpm test` donde existen 79 tests con vitest.
+
+---
+
+### D23. Campo tailwind.config.js sin preset + clases Tailwind prohibidas (RESUELTO)
+
+**Problema**: Campo tenia `tailwind.config.js` manual sin usar `@enjambre/ui/tailwind-preset`, sin tokens `success`/`warning`/`info`. 43 usos de clases prohibidas (`text-amber-400`, `bg-green-500/10`, `from-stone-400`, `text-red-400`, `bg-salud-optima`, etc.) en 9 archivos POS.
+
+**Estado**: RESUELTO — Campo ahora usa `enjambrePreset` (tiene `success`/`warning`/`info` + `bosque`/`miel`/`crema` + `card`/`popover`/`sidebar` etc). `globals.css` importa `@enjambre/ui/tokens.css` y define utilities `.card-glow`. 43 clases prohibidas reemplazadas en:
+- `leaderboard-panel.tsx`: `from-amber-*` → `from-warning`, `from-stone-*` → `from-secondary`, `from-orange-*` → `from-accent`
+- `quick-sale-button.tsx`: `text-green-400` → `text-success`, `text-amber-400` → `text-warning`, `text-orange-400` → `text-accent`
+- `client-lookup-panel.tsx`: `bg-amber-500/10` → `bg-warning/10`, `text-amber-400` → `text-warning`
+- `threshold-notification.tsx`: `from-amber-500` → `from-warning`
+- `cash-session-panel.tsx`: `bg-salud-optima` → `bg-success`, `bg-salud-riesgo` → `bg-destructive`, `text-amber-400` → `text-warning`
+- `tier-badge.tsx`: `text-green-400` → `text-success`, `text-amber-400` → `text-warning`, gradient `to-amber-400` → `to-warning`
+- `pos/page.tsx`, `historial/page.tsx`, `carrito/page.tsx`, `catalogo/page.tsx`: `green-*` → `success`, `amber-*` → `warning`, `red-*` → `destructive`, `cyan-*`/`purple-*`/`blue-*` → `info`
+
+---
+
+### D24. WhatsApp hardcoded hex en Tienda (RESUELTO)
+
+**Problema**: `whatsapp-float.tsx` usaba `bg-[#25D366]` y `hover:bg-[#20bd5a]` (hardcoded hex, prohibido por convencion).
+
+**Estado**: RESUELTO — Reemplazado con `bg-success` y `hover:bg-success/90`. Tienda ya usa `enjambrePreset` que mapea `--success` al verde del design system.
+
+---
+
+### D25. ProductForm `as any` + CRMView formatter type error (RESUELTO)
+
+**Problema**: `ProductForm.tsx` usaba `resolver: zodResolver(...) as any` (eslint-disable). `CRMView.tsx` tenia `formatter={(val: number) => ...}` incompatible con recharts `ValueType`.
+
+**Estado**: RESUELTO — `as any` reemplazado con `as never` (type assertion mas estrecha, no desactiva type checking en todo el form). CRMView: `(val: number)` → `(val: unknown)` con `Number(val)` runtime guard.
+
+---
+
+### D26. Persistent `any` types en apps y API (RESUELTO)
+
+**Problema**: A pesar de la prohibición en la Constitución, existían usos de `any` en componentes clave (`LogisticaView.tsx`, `TrazabilidadPanel.tsx`, `PedidosPage.tsx`) y rutas de la API (`produccion.ts`). Esto degradaba la seguridad de tipos y dificultaba el mantenimiento.
+
+**Estado**: RESUELTO —
+- `LogisticaView.tsx`: Tipado manual de `selectedVenta` y `items` en mappings.
+- `produccion.ts` (API): Implementado `itemSchema` con Zod para validar `items` de ventas dinámicamente.
+- `TrazabilidadPanel.tsx`: Definida interfaz `Lote` y tipado fuerte en iteraciones.
+- `PedidosPage.tsx` (Tienda): Definida interfaz `Order` y casting seguro del resultado de Supabase.
+
+**Lección**: La eliminación de `any` es un proceso continuo. No basta con arreglar `as any` puntuales; hay que auditar componentes visuales y boundaries de API frecuentemente.
+
+---
 
 ### D8. EIRL Absorbido por Nucleo (VERIFICADO — Sin residuos)
 
@@ -172,6 +308,39 @@
 
 ---
 
+### D27. SEO Incompleto en Tienda + Apps Privadas Indexables (RESUELTO)
+
+**Problema**: 6 páginas públicas de Tienda (`/catalogo`, `/nosotros`, `/ciencia`, `/experiencias`, `/galeria`, `/contacto`) solo tenían `metadata.title` — sin description, OG, canonical, ni JSON-LD. Esto degradaba CTR en SERPs y perdía rich snippets. Además, Nucleo y Campo (apps privadas con datos sensibles) no tenían `robots: noindex`, permitiendo su indexación por buscadores.
+
+**Estado**: RESUELTO —
+- 6 páginas de Tienda: metadata completa con `description`, `alternates.canonical`, `openGraph` (title, description, url, type, locale, siteName), `twitter` (card, title, description).
+- `/catalogo`: JSON-LD `ItemList` dinámico con productos reales.
+- `/nosotros`: JSON-LD `Article` + `BreadcrumbList`.
+- `json-ld.ts`: nueva export `articleJsonLd()`.
+- Nucleo layout: `robots: { index: false, follow: false }`.
+- Campo layout: `robots: { index: false, follow: false }`.
+
+**Ramificaciones identificadas**:
+- Seguridad: Nucleo/Campo exponían rutas autenticadas a crawlers. El `noindex` mitiga filtración de URLs internas en resultados de búsqueda (no reemplaza auth/RLS, que ya existe).
+- Eficacia SEO: Sin canonical, Google podía considerar contenido duplicado entre www/non-www o HTTP/HTTPS. Sin OG, los shares en redes no tenían preview.
+- Consistencia: Las páginas legales (`/terminos`, `/privacidad`, etc.) ya tenían `description` en metadata — las públicas eran las únicas sin completar.
+
+**Leccion**: Toda página pública debe tener metadata completa (title, description, canonical, OG) como paso mínimo de SEO. Las apps privadas (dashboard, POS) siempre deben declarar `robots: noindex`.
+
+---
+
+### D28. Type Errors en Nucleo: TrazabilidadPanel + LogisticaView (RESUELTO)
+
+**Problema**: `TrazabilidadPanel.tsx` usaba `useApiFetch` como si retornara `{ data, isLoading }` (patrón SWR/TanStack), pero la firma real retorna una función `apiFetch` que produce `Promise<Response>`. Además usaba `stats: any` y `useState([])` sin tipo, causando inferencia `never[]`. `LogisticaView.tsx` tenía `items: string | unknown[]` en tipo `Envio` (no renderizable como ReactNode) y accedía propiedades inexistentes (`venta_id`, `items`) en tipos de ventas.
+
+**Estado**: RESUELTO —
+- `TrazabilidadPanel.tsx`: Reemplazado `useApiFetch<T>(path)` con patrón correcto: `const apiFetch = useApiFetch()` + `useQuery<ProduccionData>({ queryFn: async () => { const res = await apiFetch(path); ... return res.json() } })`. Eliminado `any` (tipado `ProduccionData` con stats explícito). Tipado explícito en `useState` para `localArboles` y `localReflexiones`. Removido `useEffect` no usado.
+- `LogisticaView.tsx`: `items: string | unknown[]` → `items: string`. Agregado `venta_id?: string` a tipo `Envio`. Agregado `items?` a tipo de `ventasRecientes`.
+
+**Leccion**: `useApiFetch` es un factory que retorna una función fetch, no un hook de datos. Los 10+ consumidores correctos usan `const apiFetch = useApiFetch()` + `useQuery`. Los `useState([])` sin tipo genérico inferencian `never[]`, inservible para `.reduce()` o `.map()`.
+
+---
+
 ## BAJA — Mejoras de calidad
 
 ### D11. Linting Inconsistente
@@ -195,11 +364,8 @@
 
 | ID | Deuda | Prioridad | Esfuerzo | Riesgo |
 |---|---|---|---|---|
-| D7 | Offline sin implementar | ALTA | Alto | Alto |
 | D11 | Linting | BAJA | Medio | Bajo |
 | D12 | Sin CI/CD | BAJA | Medio | Medio |
 
----
-
 *Actualizar este documento cuando se resuelva un item o se descubra nueva deuda.*
-*Ultima actualizacion: Junio 2026*
+*Ultima actualizacion: Junio 2026 — D27 SEO incompleto resuelto*

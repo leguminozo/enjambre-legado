@@ -47,7 +47,7 @@ export function VanguardiaPanel() {
         .limit(50);
       
       if (revError) throw revError;
-      if (revs) setRevendedores(revs as unknown as Revendedor[]);
+      if (revs) setRevendedores(Array.isArray(revs) ? (revs as Revendedor[]) : []);
 
       // 2. Fetch recent sensory reviews
       const { data: reviews, error: reviewError } = await supabase
@@ -57,7 +57,7 @@ export function VanguardiaPanel() {
         .limit(20);
       
       if (reviewError) throw reviewError;
-      if (reviews) setResenas(reviews as unknown as Resena[]);
+      if (reviews) setResenas(Array.isArray(reviews) ? (reviews as Resena[]) : []);
 	} catch (err) {
 			console.error("Error fetching vanguard data:", err);
 			toast(friendlyError(err, "Error al cargar datos de vanguardia"), { type: "error" });
@@ -102,8 +102,8 @@ export function VanguardiaPanel() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-oro-miel-dark" size={32} />
-        <p className="text-sm text-text-muted font-datos uppercase tracking-widest">Sincronizando con la Colmena...</p>
+        <Loader2 className="animate-spin text-accent" size={32} />
+        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Sincronizando con la Colmena...</p>
       </div>
     );
   }
@@ -111,12 +111,12 @@ export function VanguardiaPanel() {
   return (
   <div className="space-y-8 animate-in relative">
     <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
+        <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center text-accent">
           <Shield size={24} />
         </div>
         <div>
-          <h2 className="text-2xl font-display text-bosque-ulmo">Centro de Mando Vanguardia</h2>
-          <p className="text-sm text-text-muted">Gestión de roles, economía de ciclos y huella sensorial</p>
+          <h2 className="text-2xl font-display text-primary">Centro de Mando Vanguardia</h2>
+          <p className="text-sm text-muted-foreground">Gestión de roles, economía de ciclos y huella sensorial</p>
         </div>
       </div>
 
@@ -125,7 +125,7 @@ export function VanguardiaPanel() {
         <div className="card">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <Users size={18} className="text-oro-miel-dark" />
+              <Users size={18} className="text-accent" />
               <h3 className="font-display text-lg">Solicitudes B2B (Revendedores)</h3>
             </div>
             <span className="badge badge-gold">{revendedores.filter(r => r.estado === 'pendiente').length} Pendientes</span>
@@ -133,14 +133,14 @@ export function VanguardiaPanel() {
 
           <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
             {revendedores.length === 0 ? (
-              <p className="text-sm text-text-muted italic py-4">No hay solicitudes registradas.</p>
+              <p className="text-sm text-muted-foreground italic py-4">No hay solicitudes registradas.</p>
             ) : (
               revendedores.map((rev) => (
-                <div key={rev.user_id} className="p-4 rounded-lg bg-background/5 border border-foreground/5 flex items-center justify-between group hover:border-oro-miel/30 transition-colors">
+                <div key={rev.user_id} className="p-4 rounded-lg bg-background/5 border border-foreground/5 flex items-center justify-between group hover:border-accent/30 transition-colors">
                   <div>
-                    <p className="font-bold text-sm text-bosque-ulmo">{rev.razon_social}</p>
-                    <p className="text-xs text-text-muted">{rev.profiles?.full_name || 'Sin nombre'} · RUT: {rev.rut}</p>
-                    <p className="text-[0.65rem] text-oro-miel-dark mt-1 font-medium">Volumen estimado: {rev.volumen_kg_mes} kg/mes</p>
+                    <p className="font-bold text-sm text-primary">{rev.razon_social}</p>
+                    <p className="text-xs text-muted-foreground">{rev.profiles?.full_name || 'Sin nombre'} · RUT: {rev.rut}</p>
+                    <p className="text-[0.65rem] text-accent mt-1 font-medium">Volumen estimado: {rev.volumen_kg_mes} kg/mes</p>
                   </div>
                   <div className="flex gap-2">
                     {rev.estado === 'pendiente' ? (
@@ -148,20 +148,20 @@ export function VanguardiaPanel() {
                         <button 
                           disabled={actionLoading === rev.user_id}
                           onClick={() => updateRevendedorStatus(rev.user_id, 'activo')}
-                          className="w-9 h-9 rounded-full bg-salud-optima/10 text-salud-optima flex items-center justify-center hover:bg-salud-optima hover:text-foreground transition-all disabled:opacity-50"
+                          className="w-9 h-9 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
                         >
                           {actionLoading === rev.user_id ? <Loader2 className="animate-spin" size={16} /> : <Check size={18} />}
                         </button>
                         <button 
                           disabled={actionLoading === rev.user_id}
                           onClick={() => updateRevendedorStatus(rev.user_id, 'suspendido')}
-                          className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-foreground transition-all disabled:opacity-50"
+                          className="w-9 h-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
                         >
                           <X size={18} />
                         </button>
                       </>
                     ) : (
-                      <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${rev.estado === 'activo' ? 'bg-salud-optima/10 text-salud-optima' : 'bg-salud-riesgo/10 text-salud-riesgo'}`}>
+                      <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${rev.estado === 'activo' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
                         {rev.estado}
                       </span>
                     )}
@@ -175,44 +175,44 @@ export function VanguardiaPanel() {
         {/* Huella Sensorial de la Comunidad */}
         <div className="card">
           <div className="flex items-center gap-2 mb-6">
-            <Star size={18} className="text-oro-miel-dark" />
+            <Star size={18} className="text-accent" />
             <h3 className="font-display text-lg">Huella Sensorial Reciente</h3>
           </div>
 
           <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
             {resenas.length === 0 ? (
-              <p className="text-sm text-text-muted italic py-4">Sin reseñas sensoriales aún.</p>
+              <p className="text-sm text-muted-foreground italic py-4">Sin reseñas sensoriales aún.</p>
             ) : (
               resenas.map((res) => (
-                <div key={res.id} className="p-5 rounded-lg bg-background/5 border border-foreground/5 hover:border-oro-miel/20 transition-colors">
+                <div key={res.id} className="p-5 rounded-lg bg-background/5 border border-foreground/5 hover:border-accent/20 transition-colors">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <p className="text-sm font-bold text-bosque-ulmo">{res.profiles?.full_name || 'Anónimo'}</p>
-                      <p className="text-[0.6rem] text-oro-miel-dark mt-1">Lote: {res.lotes?.blockchain_hash?.slice(0, 12) || 'Sin Hash'}...</p>
+                      <p className="text-sm font-bold text-primary">{res.profiles?.full_name || 'Anónimo'}</p>
+                      <p className="text-[0.6rem] text-accent mt-1">Lote: {res.lotes?.blockchain_hash?.slice(0, 12) || 'Sin Hash'}...</p>
                     </div>
-                    <span className="text-[0.6rem] text-text-muted font-medium bg-surface-raised px-2 py-1 rounded">
+                    <span className="text-[0.6rem] text-muted-foreground font-medium bg-surface-raised px-2 py-1 rounded">
                       {new Date(res.created_at).toLocaleDateString()}
                     </span>
                   </div>
                   
                   <div className="grid grid-cols-3 gap-3 mb-4">
-                    <div className="text-center p-2 rounded-lg bg-oro-miel-glow/20 border border-oro-miel/5">
-                      <p className="text-[0.55rem] uppercase text-text-muted mb-1">Cuerpo</p>
-                      <p className="text-[0.7rem] font-bold text-bosque-ulmo">{res.cristalizacion_percibida}</p>
+                    <div className="text-center p-2 rounded-lg bg-accent/10 border border-accent/5">
+                      <p className="text-[0.55rem] uppercase text-muted-foreground mb-1">Cuerpo</p>
+                      <p className="text-[0.7rem] font-bold text-primary">{res.cristalizacion_percibida}</p>
                     </div>
-                    <div className="text-center p-2 rounded-lg bg-oro-miel-glow/20 border border-oro-miel/5">
-                      <p className="text-[0.55rem] uppercase text-text-muted mb-1">Aroma</p>
-                      <p className="text-[0.7rem] font-bold text-bosque-ulmo">{res.familia_aromatica}</p>
+                    <div className="text-center p-2 rounded-lg bg-accent/10 border border-accent/5">
+                      <p className="text-[0.55rem] uppercase text-muted-foreground mb-1">Aroma</p>
+                      <p className="text-[0.7rem] font-bold text-primary">{res.familia_aromatica}</p>
                     </div>
-                    <div className="text-center p-2 rounded-lg bg-oro-miel-glow/20 border border-oro-miel/5">
-                      <p className="text-[0.55rem] uppercase text-text-muted mb-1">Intensidad</p>
-                      <p className="text-[0.7rem] font-bold text-bosque-ulmo">{res.intensidad_fondo}/10</p>
+                    <div className="text-center p-2 rounded-lg bg-accent/10 border border-accent/5">
+                      <p className="text-[0.55rem] uppercase text-muted-foreground mb-1">Intensidad</p>
+                      <p className="text-[0.7rem] font-bold text-primary">{res.intensidad_fondo}/10</p>
                     </div>
                   </div>
                   
                   {res.notas_personales && (
                     <div className="mt-2 pt-3 border-t border-border">
-                      <p className="text-xs text-text-secondary italic leading-relaxed">"{res.notas_personales}"</p>
+                      <p className="text-xs text-muted-foreground italic leading-relaxed">"{res.notas_personales}"</p>
                     </div>
                   )}
                 </div>

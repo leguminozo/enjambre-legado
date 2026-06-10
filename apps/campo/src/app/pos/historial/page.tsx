@@ -102,12 +102,12 @@ export default function HistorialPage() {
         <p className="text-[9px] uppercase text-muted-foreground tracking-widest">Pendiente</p>
       </div>
       <div className="card-glow p-4 text-center">
-        <TrendingUp className="w-4 h-4 text-green-400 mx-auto mb-2" />
+        <TrendingUp className="w-4 h-4 text-success mx-auto mb-2" />
         <p className="text-lg font-bold text-foreground">{formatCLP(Number(profile.total_revenue_lifetime))}</p>
         <p className="text-[9px] uppercase text-muted-foreground tracking-widest">Lifetime</p>
       </div>
       <div className="card-glow p-4 text-center">
-        <Zap className="w-4 h-4 text-amber-400 mx-auto mb-2" />
+        <Zap className="w-4 h-4 text-warning mx-auto mb-2" />
         <p className="text-lg font-bold text-foreground">{profile.current_streak_days}d</p>
         <p className="text-[9px] uppercase text-muted-foreground tracking-widest">Racha</p>
       </div>
@@ -171,16 +171,16 @@ export default function HistorialPage() {
         <p className="text-sm font-bold text-foreground">{formatCLP(Number(c.total_commission))}</p>
         <div className="flex items-center gap-2 mt-1">
           <span className="text-[9px] text-muted-foreground">Base: {formatCLP(Number(c.base_commission))}</span>
-            {Number(c.volume_multiplier) > 1 && <span className="text-[9px] text-amber-400">×{Number(c.volume_multiplier).toFixed(1)}</span>}
-            {Number(c.loyalty_bonus) > 0 && <span className="text-[9px] text-green-400">+loyalty</span>}
-            {Number(c.streak_bonus) > 0 && <span className="text-[9px] text-purple-400">+streak</span>}
-            {Number(c.tier_multiplier) > 1 && <span className="text-[9px] text-cyan-400">tier ×{Number(c.tier_multiplier).toFixed(1)}</span>}
-            {c.channel_rate != null && Number(c.channel_rate) !== 0.10 && <span className="text-[9px] text-blue-400">{(Number(c.channel_rate) * 100).toFixed(0)}%</span>}
+        {Number(c.volume_multiplier) > 1 && <span className="text-[9px] text-warning">×{Number(c.volume_multiplier).toFixed(1)}</span>}
+        {Number(c.loyalty_bonus) > 0 && <span className="text-[9px] text-success">+loyalty</span>}
+        {Number(c.streak_bonus) > 0 && <span className="text-[9px] text-info">+streak</span>}
+        {Number(c.tier_multiplier) > 1 && <span className="text-[9px] text-info">tier ×{Number(c.tier_multiplier).toFixed(1)}</span>}
+        {c.channel_rate != null && Number(c.channel_rate) !== 0.10 && <span className="text-[9px] text-info">{(Number(c.channel_rate) * 100).toFixed(0)}%</span>}
           </div>
               </div>
               <div className="text-right">
                 <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                  c.paid ? 'bg-green-500/10 text-green-400' : 'bg-amber-500/10 text-amber-400'
+                  c.paid ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
                 }`}>
                   {c.paid ? 'pagada' : 'pendiente'}
                 </span>
@@ -206,15 +206,15 @@ export default function HistorialPage() {
         <div className="flex items-center gap-2 mt-1">
           <span className="text-[9px] text-muted-foreground">Base: {formatCLP(s.opening_cash)}</span>
                   {s.cash_difference !== null && (
-                    <span className={`text-[9px] font-bold ${Number(s.cash_difference) === 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    <span className={`text-[9px] font-bold ${Number(s.cash_difference) === 0 ? 'text-success' : 'text-destructive'}`}>
                       Δ {Number(s.cash_difference) >= 0 ? '+' : '-'}{formatCLP(Number(s.cash_difference))}
                     </span>
                   )}
                 </div>
               </div>
               <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                s.session_status === 'reconciled' ? 'bg-green-500/10 text-green-400' :
-                s.session_status === 'closed' ? 'bg-amber-500/10 text-amber-400' :
+          s.session_status === 'reconciled' ? 'bg-success/10 text-success' :
+          s.session_status === 'closed' ? 'bg-warning/10 text-warning' :
                 'bg-primary/10 text-primary'
               }`}>
                 {s.session_status}

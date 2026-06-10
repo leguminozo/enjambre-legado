@@ -23,14 +23,15 @@ function logAccessDenied(request: NextRequest, email: string) {
       'Content-Type': 'application/json',
       'x-internal-key': serviceRoleKey,
     },
-    body: JSON.stringify({
-      event_type: 'access_denied',
-      email,
-      ip_address: request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? null,
-      user_agent: request.headers.get('user-agent') ?? null,
-      app_source: 'campo',
-      details: { path: request.nextUrl.pathname },
-    }),
+  body: JSON.stringify({
+    eventType: 'access_denied',
+    email,
+    userId: null,
+    ipAddress: request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? null,
+    userAgent: request.headers.get('user-agent') ?? null,
+    details: { path: request.nextUrl.pathname },
+    appSource: 'campo',
+  }),
   }).catch(() => {});
 }
 

@@ -89,7 +89,7 @@ export default async function CatalogoPage() {
 
               {p.stock != null && (
                 <div className="flex items-center gap-2 mb-6">
-                  <div className={`w-1.5 h-1.5 rounded-full ${p.stock > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <div className={`w-1.5 h-1.5 rounded-full ${p.stock > 0 ? 'bg-success' : 'bg-destructive'}`} />
                   <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
                     {p.stock} unidades en stock
                   </span>

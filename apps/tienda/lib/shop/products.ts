@@ -14,6 +14,9 @@ export type ShopProduct = {
   blockchain_hash?: string | null;
   colmena_origen?: string | null;
   fecha_cosecha?: string | null;
+  fecha_envasado?: string | null;
+  nombre_lote?: string | null;
+  descripcion_lote?: string | null;
   sustituye_azucar_g?: number | null;
   co2_evitado_kg?: number | null;
   irr_referencia?: number | null;
@@ -33,12 +36,15 @@ const PRODUCT_SELECT = [
   'co2_evitado_kg',
   'irr_referencia',
   'lote_id',
-  'lotes(blockchain_hash, cosecha_ids)',
+  'lotes(blockchain_hash, cosecha_ids, nombre_lote, descripcion, fecha_envasado)',
 ].join(', ');
 
 const LoteJoinSchema = z.object({
   blockchain_hash: z.string().nullable(),
   cosecha_ids: z.array(z.string()).nullable(),
+  nombre_lote: z.string().nullable(),
+  descripcion: z.string().nullable(),
+  fecha_envasado: z.string().nullable(),
 });
 
 const ProductRowSchema = z.object({
@@ -79,6 +85,9 @@ function mapProduct(p: ProductRow): ShopProduct {
     blockchain_hash: p.lotes?.blockchain_hash ?? null,
     colmena_origen: null,
     fecha_cosecha: null,
+    fecha_envasado: p.lotes?.fecha_envasado ?? null,
+    nombre_lote: p.lotes?.nombre_lote ?? null,
+    descripcion_lote: p.lotes?.descripcion ?? null,
     sustituye_azucar_g: p.sustituye_azucar_g ?? null,
     co2_evitado_kg: p.co2_evitado_kg ?? null,
     irr_referencia: p.irr_referencia ?? null,

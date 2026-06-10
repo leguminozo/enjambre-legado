@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useCashSession } from './cash-context';
 import { TierBadge, useTierProgress } from './tier-badge';
 import { useThresholdNotification, ThresholdNotificationBanner } from './threshold-notification';
-import { Wallet, Lock, TrendingUp, ChevronRight, Zap, Crown, Radio } from 'lucide-react';
+import { Wallet, Lock, TrendingUp, ChevronRight, Zap, Crown, Radio, Banknote, CreditCard, Smartphone, Nfc } from 'lucide-react';
 
 export function CashSessionPanel() {
   const { session, loading, todayCommissions, todaySales, todayRevenue, nextThreshold, lastCommission, openSession, closeSession } = useCashSession();
@@ -81,8 +81,8 @@ export function CashSessionPanel() {
       <div className="card-glow p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-salud-optima/10 flex items-center justify-center">
-              <div className="w-3 h-3 rounded-full bg-salud-optima animate-pulse" />
+      <div className="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center">
+        <div className="w-3 h-3 rounded-full bg-success animate-pulse" />
             </div>
             <div>
           <p className="text-sm font-bold text-foreground">Caja Abierta</p>
@@ -114,8 +114,8 @@ export function CashSessionPanel() {
         <div className="mt-3 bg-background/20 rounded-lg p-2.5 flex items-center gap-3 border border-border/50">
           {lastCommission.tier_multiplier > 1 && (
             <div className="flex items-center gap-1.5">
-              <Crown className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-[10px] text-amber-400 font-bold">×{lastCommission.tier_multiplier.toFixed(1)}</span>
+        <Crown className="w-3.5 h-3.5 text-warning" />
+        <span className="text-[10px] text-warning font-bold">×{lastCommission.tier_multiplier.toFixed(1)}</span>
             </div>
           )}
           {lastCommission.channel_rate !== null && (
@@ -130,14 +130,14 @@ export function CashSessionPanel() {
 
       {nextThreshold && (
           <div className="mt-4 bg-background/20 rounded-lg p-3 flex items-center gap-3 border border-border/50">
-            <Zap className="w-4 h-4 text-amber-400 shrink-0" />
+            <Zap className="w-4 h-4 text-warning shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                 Próximo multiplicador ×{nextThreshold.multiplier}
               </p>
               <div className="mt-1 h-1.5 bg-card rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-primary to-amber-400 rounded-full transition-all"
+                  className="h-full bg-gradient-to-r from-primary to-warning rounded-full transition-all"
                   style={{ width: `${Math.min((todayRevenue / nextThreshold.threshold) * 100, 100)}%` }}
                 />
               </div>
@@ -153,7 +153,7 @@ export function CashSessionPanel() {
       {closeResult ? (
         <div className="card-glow p-5 space-y-3">
           <div className="flex items-center gap-2 mb-2">
-            <Lock className="w-4 h-4 text-salud-optima" />
+            <Lock className="w-4 h-4 text-success" />
             <h3 className="text-sm font-bold text-foreground">Cierre Completado</h3>
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
@@ -164,19 +164,47 @@ export function CashSessionPanel() {
             <div className="text-muted-foreground">Contado:</div>
             <div className="text-foreground font-medium">{formatCLP(Number(closeResult.counted_cash ?? 0))}</div>
             <div className="text-muted-foreground">Diferencia:</div>
-            <div className={`font-bold ${Number(closeResult.difference ?? 0) === 0 ? 'text-salud-optima' : 'text-salud-riesgo'}`}>
+            <div className={`font-bold ${Number(closeResult.difference ?? 0) === 0 ? 'text-success' : 'text-destructive'}`}>
               {Number(closeResult.difference ?? 0) >= 0 ? '+' : ''}{formatCLP(Number(closeResult.difference ?? 0))}
             </div>
-            <div className="text-muted-foreground">Comisiones del día:</div>
-            <div className="text-primary font-bold">{formatCLP(Number(closeResult.total_commission ?? 0))}</div>
-          </div>
-          <button
-            onClick={() => setCloseResult(null)}
-            className="w-full py-2 bg-card text-muted-foreground text-xs uppercase tracking-widest rounded-lg"
-          >
-            Entendido
-          </button>
+      <div className="text-muted-foreground">Comisiones del día:</div>
+      <div className="text-primary font-bold">{formatCLP(Number(closeResult.total_commission ?? 0))}</div>
+    </div>
+
+    {(() => {
+      const bd = closeResult.breakdown as Record<string, number> | undefined;
+      if (!bd || typeof bd !== 'object' || Object.keys(bd).length === 0) return null;
+      return (
+        <div className="mt-3 pt-3 border-t border-border space-y-1.5">
+          <p className="text-[9px] uppercase text-muted-foreground tracking-widest font-bold">Desglose por metodo</p>
+          {Object.entries(bd).map(([method, amount]) => {
+            const icon = method === 'efectivo' ? <Banknote className="w-3 h-3" />
+              : method === 'tarjeta' || method === 'pos_terminal' ? <CreditCard className="w-3 h-3" />
+              : method === 'transferencia' ? <Smartphone className="w-3 h-3" />
+              : <Nfc className="w-3 h-3" />;
+            const label = method === 'efectivo' ? 'Efectivo'
+              : method === 'tarjeta' ? 'Debito'
+              : method === 'pos_terminal' ? 'Terminal POS'
+              : method === 'transferencia' ? 'Transferencia'
+              : method;
+            return (
+              <div key={method} className="flex items-center justify-between text-[10px]">
+                <span className="flex items-center gap-1.5 text-muted-foreground">{icon}{label}</span>
+                <span className="text-foreground font-medium">{formatCLP(Number(amount))}</span>
+              </div>
+            );
+          })}
         </div>
+      );
+    })()}
+
+    <button
+      onClick={() => setCloseResult(null)}
+      className="w-full py-2 bg-card text-muted-foreground text-xs uppercase tracking-widest rounded-lg"
+    >
+      Entendido
+    </button>
+  </div>
       ) : (
         <div className="card-glow p-5 space-y-3">
           <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -219,7 +247,7 @@ export function CashSessionPanel() {
                 setActionLoading(false);
               }
             }}
-            className="w-full py-3 bg-salud-riesgo/80 text-foreground font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-salud-riesgo transition-all disabled:opacity-40"
+            className="w-full py-3 bg-destructive/80 text-foreground font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-destructive transition-all disabled:opacity-40"
           >
             {actionLoading ? 'Cerrando...' : 'Cerrar Caja'}
           </button>

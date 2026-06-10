@@ -167,7 +167,7 @@ export function DashboardResumen() {
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
                 <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
                 <Tooltip contentStyle={CHART_TOOLTIP} />
-                <Area type="monotone" dataKey="cosecha" stroke={BOSQUE_ULMO} fill={`hsl(var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) var(--enj-bosque-ulmo-l) / 0.15)`} strokeWidth={2} />
+                <Area type="monotone" dataKey="cosecha" stroke={BOSQUE_ULMO} fill={`hsl(var(--primary) / 0.15)`} strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -220,8 +220,8 @@ export function DashboardResumen() {
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
                 <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
                 <Tooltip contentStyle={CHART_TOOLTIP} />
-                <Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill={`hsl(var(--enj-verde-h) var(--enj-verde-s) var(--enj-verde-l) / 0.12)`} strokeWidth={2} />
-                <Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill={`hsl(var(--enj-rojo-h) var(--enj-rojo-s) var(--enj-rojo-l) / 0.08)`} strokeWidth={2} />
+                <Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill={`hsl(var(--success) / 0.12)`} strokeWidth={2} />
+                <Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill={`hsl(var(--destructive) / 0.08)`} strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           </div>

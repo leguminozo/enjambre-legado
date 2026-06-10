@@ -7,6 +7,7 @@ export const DTE_TIPO = {
   NOTA_CREDITO: 61,
   NOTA_DEBITO: 56,
   GUIA_DESPACHO: 52,
+  BOLETA_HONORARIOS: 66,
 } as const;
 
 export type DteTipo = (typeof DTE_TIPO)[keyof typeof DTE_TIPO];

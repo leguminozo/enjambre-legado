@@ -22,6 +22,7 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: 'Campo · POS Experiencial',
   description: 'Vanguardia en experiencia de marca y fidelización cíclica.',
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

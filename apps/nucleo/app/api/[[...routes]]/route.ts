@@ -18,7 +18,12 @@ import { repVentasRoutes } from "@/api/routes/rep-ventas";
 import { invitationsRoutes } from "@/api/routes/invitations";
 import { commissionRulesRoutes } from "@/api/routes/commission-rules";
 import { dashboardResumenRoutes } from "@/api/routes/dashboard-resumen";
+import { dashboardEjecutivoRoutes } from "@/api/routes/dashboard-ejecutivo";
 import { costeoRoutes } from "@/api/routes/costeo";
+import { cmsRoutes } from "@/api/routes/cms";
+import { logisticaRoutes } from "@/api/routes/logistica";
+import { produccionRoutes } from "@/api/routes/produccion";
+import { crmRoutes } from "@/api/routes/crm";
 import { securityEventRoutes } from "@/api/routes/security-events";
 
 export type { AppVariables };
@@ -42,7 +47,12 @@ app.route("/rep-ventas", repVentasRoutes);
 app.route("/invitations", invitationsRoutes);
 app.route("/commission-rules", commissionRulesRoutes);
 app.route("/dashboard/resumen", dashboardResumenRoutes);
+app.route("/dashboard/ejecutivo", dashboardEjecutivoRoutes);
 app.route("/costeo", costeoRoutes);
+app.route("/cms", cmsRoutes);
+app.route("/logistica", logisticaRoutes);
+app.route("/produccion", produccionRoutes);
+app.route("/crm", crmRoutes);
 app.route("/security-events", securityEventRoutes);
 
 app.onError((err, c) => {

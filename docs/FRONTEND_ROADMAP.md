@@ -51,7 +51,7 @@
 ### Estado Actual
 - [x] Login con redireccion por rol
 - [x] Vista de mapa interactivo (Leaflet + PostGIS)
-- [x] Vistas por rol (Apicultor, Vendedor, Gerente, Logistica, Marketing, Cliente, Contable)
+- [x] Vistas por rol (consolidadas a `admin` via migration 39; views legacy pendientes limpieza)
 - [x] PWA con service worker y manifest
 - [x] TanStack Query para datos remotos
 - [x] Zustand para estado global
@@ -87,7 +87,7 @@
 
 #### [ ] Dashboard de Logistica en Tiempo Real
 - Mapa con pedidos en transito y colmenas con mayor produccion
-- Integrar `packages/maps` para capas adicionales
+- Integrar Leaflet para capas adicionales
 - Notificaciones push para actualizaciones de envio
 
 #### [ ] CRM de Vendedores
@@ -97,13 +97,12 @@
 
 ---
 
-## 3. Campo — Herramienta del Terreno
+## 3. Campo — POS Completo
 
 ### Estado Actual
 - [x] Landing + Login
 - [x] POS Catalogo + Carrito
 - [x] API de venta (`/api/pos/venta`)
-- [x] Offline-first con `@enjambre/offline`
 - [x] Middleware con graceful error handling
 - [x] CashProvider + CashSessionPanel (abrir/cerrar caja, métricas en vivo, barra multiplicador)
 - [x] QuickSaleButton — 4 toques (producto→cantidad→canal→pago), channel selector
@@ -123,14 +122,9 @@
 - Animaciones GSAP en TierBadge al subir de tier
 - Sonido/haptic al cruzar umbral de multiplicador
 
-#### [ ] Offline Dexie Real
-- `@enjambre/offline` vacío — necesita implementación Dexie (IndexedDB)
-- Sync queue para ventas sin conexión + reconciliación al recuperar conexión
-- Nunca `supabase.insert()` directo desde UI campo
-
-#### [ ] Inspeccion de Colmenas Offline
-- Formulario de inspeccion que funciona sin internet
-- Fotos que se almacenan localmente y se suben al recuperar conexion
+#### [ ] Inspeccion de Colmenas
+- Formulario de inspeccion
+- Fotos que se suben a Supabase Storage
 - Sincronizacion con `varroa_records` y `peso_records`
 
 #### [ ] Captura GPS de Apiarios
@@ -181,11 +175,6 @@
 - Pipeline de procesamiento automatico (Sharp en build)
 - Lazy loading nativo + blur placeholders
 
-### [ ] Soporte Offline Real (Tienda)
-- Navegacion del catalogo sin conexion
-- Cache inteligente via Service Worker
-- Cola de acciones pendientes (agregar al carrito offline)
-
 ### [ ] Performance Budget
 - Lighthouse score > 90 en todas las metricas
 - First Contentful Paint < 1.5s
@@ -206,4 +195,4 @@
 ---
 
 *Este documento es la vision de producto. Priorizar segun impacto en la experiencia del cliente.*
-*Ultima actualizacion: Mayo 2026 — Cierres de Caja + Comisiones + Tier + Leaderboard + Notificaciones implementadas*
+*Ultima actualizacion: Junio 2026 — Campo redefinido como POS completo, nucleo views con roles consolidados*

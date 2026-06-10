@@ -106,8 +106,8 @@ export async function POST(request: Request) {
     }
 
   const total = Math.max(1, Math.round(serverTotal));
-  const buyOrder = `ORD-${Date.now()}`;
-  const sessionId = `sess-${Date.now()}`;
+  const buyOrder = `ORD-${crypto.randomUUID()}`;
+  const sessionId = `sess-${crypto.randomUUID()}`;
 
   const baseReturnUrl = rawReturnUrl || `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/checkout/resultado`;
   const returnUrl = `${baseReturnUrl}?buyOrder=${encodeURIComponent(buyOrder)}`;

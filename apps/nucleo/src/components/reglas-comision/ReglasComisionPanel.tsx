@@ -62,7 +62,7 @@ export function ReglasComisionPanel() {
         .order('priority', { ascending: true });
 
       if (error) throw error;
-      setRules((data as unknown as CommissionRuleRow[]) || []);
+      setRules(Array.isArray(data) ? (data as CommissionRuleRow[]) : []);
     } catch (err) {
       toast(friendlyError(err, 'Error al cargar reglas'), { type: 'error' });
     } finally {
@@ -168,8 +168,8 @@ export function ReglasComisionPanel() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-oro-miel-dark" size={32} />
-        <p className="text-sm text-text-muted font-datos uppercase tracking-widest">Cargando reglas...</p>
+        <Loader2 className="animate-spin text-accent" size={32} />
+        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Cargando reglas...</p>
       </div>
     );
   }
@@ -177,12 +177,12 @@ export function ReglasComisionPanel() {
   return (
   <div className="space-y-8 animate-in relative">
     <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
+        <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center text-accent">
           <Percent size={24} />
         </div>
         <div>
-          <h2 className="text-2xl font-display text-bosque-ulmo">Reglas de Comisión</h2>
-          <p className="text-sm text-text-muted">Configura tasas, multiplicadores, bonos de fidelización y racha</p>
+          <h2 className="text-2xl font-display text-primary">Reglas de Comisión</h2>
+          <p className="text-sm text-muted-foreground">Configura tasas, multiplicadores, bonos de fidelización y racha</p>
         </div>
       </div>
 
@@ -211,33 +211,33 @@ export function ReglasComisionPanel() {
         <div className="card p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-lg">{editRule ? 'Editar Regla' : 'Nueva Regla'}</h3>
-            <button onClick={resetForm} className="text-text-muted hover:text-bosque-ulmo"><X size={18} /></button>
+            <button onClick={resetForm} className="text-muted-foreground hover:text-primary"><X size={18} /></button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Tipo</label>
+              <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Tipo</label>
               <select value={formType} onChange={(e) => handleTypeChange(e.target.value as RuleType)} className="input-field text-sm">
                 {ruleTypes.map(t => <option key={t} value={t}>{ruleTypeLabels[t]}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Nombre</label>
+              <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Nombre</label>
               <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} className="input-field text-sm" />
             </div>
             <div>
-              <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Prioridad</label>
+              <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Prioridad</label>
               <input type="number" min={0} value={formPriority} onChange={(e) => setFormPriority(Number(e.target.value))} className="input-field text-sm" />
             </div>
           </div>
 
       <div className="border-t border-foreground/5 pt-4">
-      <p className="text-[0.6rem] uppercase text-text-muted tracking-wider mb-3">Parámetros</p>
+      <p className="text-[0.6rem] uppercase text-muted-foreground tracking-wider mb-3">Parámetros</p>
       {formType === 'tier_bonus' ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {(['base', 'senior', 'elite', 'legend'] as const).map(tier => (
             <div key={tier}>
-              <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">{tier} ×</label>
+              <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">{tier} ×</label>
               <input
                 type="number"
                 step="0.1"
@@ -256,7 +256,7 @@ export function ReglasComisionPanel() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {(['feria', 'delivery', 'local', 'corporativo', 'referido', 'web'] as const).map(ch => (
             <div key={ch}>
-              <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">{ch} (%)</label>
+              <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">{ch} (%)</label>
               <input
                 type="number"
                 step="0.5"
@@ -276,7 +276,7 @@ export function ReglasComisionPanel() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {Object.entries(formParams).map(([key, val]) => (
             <div key={key}>
-              <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">{key}</label>
+              <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">{key}</label>
               <input
                 type="number"
                 step="any"
@@ -309,7 +309,7 @@ export function ReglasComisionPanel() {
       <div className="space-y-3">
         {rules.length === 0 ? (
           <div className="card p-8 text-center">
-            <p className="text-sm text-text-muted italic">No hay reglas de comisión. Crea la primera.</p>
+            <p className="text-sm text-muted-foreground italic">No hay reglas de comisión. Crea la primera.</p>
           </div>
         ) : rules.map(rule => (
           <div key={rule.id} className={`card p-5 ${!rule.active ? 'opacity-50' : ''}`}>
@@ -319,37 +319,37 @@ export function ReglasComisionPanel() {
               <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
                   rule.rule_type === 'base' ? 'bg-secondary text-muted-foreground' :
         rule.rule_type === 'channel_rate' ? 'bg-surface-raised text-foreground' :
-        rule.rule_type === 'volume_threshold' ? 'bg-oro-miel-glow/30 text-oro-miel-dark' :
-        rule.rule_type === 'loyalty' ? 'bg-salud-optima/10 text-salud-optima' :
+        rule.rule_type === 'volume_threshold' ? 'bg-accent/15 text-accent' :
+        rule.rule_type === 'loyalty' ? 'bg-success/10 text-success' :
         rule.rule_type === 'tier_bonus' ? 'bg-card text-foreground' :
         'bg-card text-foreground'
                 }`}>
                     {ruleTypeLabels[rule.rule_type as RuleType] || rule.rule_type}
                   </span>
-                  <p className="font-bold text-sm text-bosque-ulmo">{rule.name}</p>
-                  {!rule.active && <span className="text-[0.6rem] uppercase text-salud-riesgo font-bold">inactiva</span>}
+                  <p className="font-bold text-sm text-primary">{rule.name}</p>
+                  {!rule.active && <span className="text-[0.6rem] uppercase text-destructive font-bold">inactiva</span>}
                 </div>
               <div className="flex items-center gap-4 mt-2 flex-wrap">
                 {rule.rule_type === 'tier_bonus' && rule.parameter.tiers ? (
                   Object.entries(rule.parameter.tiers as Record<string, unknown>).map(([tier, val]) => (
-                    <span key={tier} className="text-[0.65rem] text-text-muted">
-                      {tier}: <strong className="text-bosque-ulmo">×{Number(val).toFixed(1)}</strong>
+                    <span key={tier} className="text-[0.65rem] text-muted-foreground">
+                      {tier}: <strong className="text-primary">×{Number(val).toFixed(1)}</strong>
                     </span>
                   ))
                 ) : rule.rule_type === 'channel_rate' && rule.parameter.channels ? (
                   Object.entries(rule.parameter.channels as Record<string, unknown>).map(([ch, val]) => (
-                    <span key={ch} className="text-[0.65rem] text-text-muted">
-                      {ch}: <strong className="text-bosque-ulmo">{(Number(val) * 100).toFixed(0)}%</strong>
+                    <span key={ch} className="text-[0.65rem] text-muted-foreground">
+                      {ch}: <strong className="text-primary">{(Number(val) * 100).toFixed(0)}%</strong>
                     </span>
                   ))
                 ) : (
                   Object.entries(rule.parameter).map(([key, val]) => (
-                    <span key={key} className="text-[0.65rem] text-text-muted">
-                      {key}: <strong className="text-bosque-ulmo">{typeof val === 'number' ? (key.includes('rate') || key.includes('multiplier') ? (val * (key.includes('rate') ? 100 : 1)).toFixed(key.includes('rate') ? 0 : 1) + (key.includes('rate') ? '%' : '×') : val.toLocaleString('es-CL')) : String(val)}</strong>
+                    <span key={key} className="text-[0.65rem] text-muted-foreground">
+                      {key}: <strong className="text-primary">{typeof val === 'number' ? (key.includes('rate') || key.includes('multiplier') ? (val * (key.includes('rate') ? 100 : 1)).toFixed(key.includes('rate') ? 0 : 1) + (key.includes('rate') ? '%' : '×') : val.toLocaleString('es-CL')) : String(val)}</strong>
                     </span>
                   ))
                 )}
-                <span className="text-[0.65rem] text-text-muted">Prioridad: <strong>{rule.priority}</strong></span>
+                <span className="text-[0.65rem] text-muted-foreground">Prioridad: <strong>{rule.priority}</strong></span>
               </div>
               </div>
 
@@ -361,7 +361,7 @@ export function ReglasComisionPanel() {
                   title={rule.active ? 'Desactivar' : 'Activar'}
                 >
                   {rule.active
-                    ? <ToggleRight size={20} className="text-salud-optima" />
+                    ? <ToggleRight size={20} className="text-success" />
                     : <ToggleLeft size={20} className="text-muted-foreground" />
                   }
                 </button>
@@ -371,7 +371,7 @@ export function ReglasComisionPanel() {
                 <button
                   disabled={actionLoading === rule.id}
                   onClick={() => deleteRule(rule.id)}
-                  className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-foreground transition-all disabled:opacity-50"
+                  className="w-9 h-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
                   title="Eliminar"
                 >
                   <Trash2 size={16} />

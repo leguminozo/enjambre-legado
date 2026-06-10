@@ -20,16 +20,8 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
   const [imageUploading, setImageUploading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    watch,
-    setValue,
-    getValues,
-  } = useForm<ProductFormData>({
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-resolver: zodResolver(productFormSchema) as any,
+  const form = useForm<ProductFormData>({
+    resolver: zodResolver(productFormSchema) as never,
     defaultValues: {
       nombre: initialData?.nombre || '',
       descripcion_regenerativa: initialData?.descripcion_regenerativa || '',
@@ -52,6 +44,15 @@ resolver: zodResolver(productFormSchema) as any,
       irr_referencia: initialData?.irr_referencia || undefined,
     },
   });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+    getValues,
+  } = form;
 
   const fotos = watch('fotos') || [];
   const visible = watch('visible');
@@ -85,7 +86,7 @@ resolver: zodResolver(productFormSchema) as any,
       const currentFotos = getValues('fotos') || [];
       setValue('fotos', [...currentFotos, data.publicUrl]);
       toast('Imagen subida correctamente', { type: 'success' });
-} catch (error) {
+    } catch (error) {
       console.error('Error uploading image:', error);
       toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
     } finally {
@@ -128,25 +129,23 @@ resolver: zodResolver(productFormSchema) as any,
 
         let result;
         if (initialData?.id) {
-          // Update existing product
           const { data: updated, error } = await supabase
             .from('productos')
             .update(payload)
             .eq('id', initialData.id)
             .select()
             .single();
-          
+
           if (error) throw error;
           result = updated;
           toast('Producto actualizado correctamente', { type: 'success' });
         } else {
-          // Create new product
           const { data: created, error } = await supabase
             .from('productos')
             .insert([{ ...payload, created_at: new Date().toISOString() }])
             .select()
             .single();
-          
+
           if (error) throw error;
           result = created;
           toast('Producto creado correctamente', { type: 'success' });
@@ -154,31 +153,30 @@ resolver: zodResolver(productFormSchema) as any,
 
         onSuccess?.();
       } catch (error) {
-console.error('Error saving product:', error);
-  toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
+        console.error('Error saving product:', error);
+        toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
       }
     });
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="product-form">
-      {/* Header Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)', paddingBottom: 'var(--space-md)', borderBottom: '1px solid hsl(var(--border))' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
+      <div className="flex items-center justify-between pb-4 mb-6 border-b border-border">
+        <div className="flex items-center gap-4">
+          <h2 className="text-xl font-semibold text-foreground">
             {initialData?.id ? 'Editar Producto' : 'Nuevo Producto'}
           </h2>
           <button
             type="button"
             onClick={() => setValue('visible', !visible)}
-            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: visible ? 'var(--text-success)' : 'hsl(var(--muted-foreground))', display: 'flex', alignItems: 'center', gap: 4 }}
+            className={`flex items-center gap-1 bg-transparent border-none cursor-pointer text-xs ${visible ? 'text-success' : 'text-muted-foreground'}`}
             title={visible ? 'Visible en tienda' : 'Oculto en tienda'}
           >
             {visible ? <Eye size={18} /> : <EyeOff size={18} />}
-            <span style={{ fontSize: '0.75rem' }}>{visible ? 'Visible' : 'Oculto'}</span>
+            <span className="text-xs">{visible ? 'Visible' : 'Oculto'}</span>
           </button>
         </div>
-        <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+        <div className="flex gap-2">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
@@ -190,120 +188,98 @@ console.error('Error saving product:', error);
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 'var(--space-xl)' }}>
-        {/* Left Column - Main Fields */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-          {/* Nombre y Slug */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-foreground">
               Nombre del producto *
             </label>
             <input
               {...register('nombre')}
               type="text"
               placeholder="Ej. Miel de Ulmo Premium"
-              className="input-field"
-              style={{ fontSize: '1rem', padding: 'var(--space-md)' }}
+              className="input-field text-base p-4"
             />
-            {errors.nombre && <span style={{ fontSize: '0.75rem', color: 'var(--text-error)' }}>{errors.nombre.message}</span>}
-            
-            <div style={{ marginTop: 'var(--space-xs)', display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-              <span style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))' }}>Slug:</span>
+            {errors.nombre && <span className="text-xs text-destructive">{errors.nombre.message}</span>}
+
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Slug:</span>
               <input
                 {...register('slug')}
                 type="text"
                 placeholder="miel-de-ulmo-premium"
-                className="input-field"
-                style={{ fontSize: '0.75rem', padding: 'var(--space-xs) var(--space-sm)', width: 200 }}
+                className="input-field text-xs px-2 py-1 w-[200px]"
                 onBlur={(e) => {
                   if (!e.target.value && nombre) {
                     setValue('slug', generateSlug(nombre));
                   }
                 }}
               />
-              <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
+              <span className="text-[0.7rem] text-muted-foreground">
                 obreyzangano.com/producto/
               </span>
             </div>
           </div>
 
-          {/* Descripción Regenerativa */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-foreground">
               Descripción Regenerativa *
             </label>
             <textarea
               {...register('descripcion_regenerativa')}
               placeholder="Contá la historia de este producto: origen, impacto regenerativo, árboles plantados..."
-              className="input-field"
+              className="input-field text-[0.9rem] p-4 resize-y"
               rows={5}
-              style={{ fontSize: '0.9rem', padding: 'var(--space-md)', resize: 'vertical' }}
             />
             {errors.descripcion_regenerativa && (
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-error)' }}>{errors.descripcion_regenerativa.message}</span>
+              <span className="text-xs text-destructive">{errors.descripcion_regenerativa.message}</span>
             )}
-            <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
+            <span className="text-[0.7rem] text-muted-foreground">
               Esta descripción aparece en la página del producto y comunica el impacto regenerativo
             </span>
           </div>
 
-          {/* Descripción Corta */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-foreground">
               Descripción Corta
             </label>
             <input
               {...register('descripcion_corta')}
               type="text"
               placeholder="Resumen para tarjetas y listados"
-              className="input-field"
-              style={{ fontSize: '0.9rem', padding: 'var(--space-md)' }}
+              className="input-field text-[0.9rem] p-4"
             />
-            <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
+            <span className="text-[0.7rem] text-muted-foreground">
               Aparece en el catálogo y tarjetas de producto
             </span>
           </div>
 
-          {/* Imágenes */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-foreground">
               Imágenes del Producto
             </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-sm)', marginBottom: 'var(--space-sm)' }}>
+            <div className="flex flex-wrap gap-2 mb-2">
               {fotos.map((foto, index) => (
-                <div key={index} style={{ position: 'relative', width: 100, height: 100, borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid hsl(var(--border))' }}>
-                  <img src={foto} alt={`Producto ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div key={index} className="relative w-[100px] h-[100px] rounded-sm overflow-hidden border border-border">
+                  <img src={foto} alt={`Producto ${index + 1}`} className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => removeImage(index)}
-                    style={{ position: 'absolute', top: 4, right: 4, background: 'hsl(var(--foreground) / 0.7)', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'hsl(var(--primary-foreground))' }}
+                    className="absolute top-1 right-1 bg-foreground/70 border-none rounded-full w-6 h-6 flex items-center justify-center cursor-pointer text-primary-foreground"
                   >
                     <X size={14} />
                   </button>
                 </div>
               ))}
               <label
-                style={{
-                  width: 100,
-                  height: 100,
-                  border: '2px dashed hsl(var(--input))',
-                  borderRadius: 'var(--radius-sm)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: imageUploading ? 'not-allowed' : 'pointer',
-                  background: 'hsl(var(--accent) / 0.05)',
-                  color: 'hsl(var(--muted-foreground))',
-                  gap: 4,
-                }}
+                className={`w-[100px] h-[100px] border-2 border-dashed border-input rounded-sm flex flex-col items-center justify-center bg-accent/5 text-muted-foreground gap-1 ${imageUploading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 {imageUploading ? (
-                  <span style={{ fontSize: '0.7rem' }}>Subiendo...</span>
+                  <span className="text-[0.7rem]">Subiendo...</span>
                 ) : (
                   <>
                     <Upload size={20} />
-                    <span style={{ fontSize: '0.7rem' }}>Subir</span>
+                    <span className="text-[0.7rem]">Subir</span>
                   </>
                 )}
                 <input
@@ -311,64 +287,58 @@ console.error('Error saving product:', error);
                   accept="image/*"
                   onChange={handleImageUpload}
                   disabled={imageUploading}
-                  style={{ display: 'none' }}
+                  className="hidden"
                 />
               </label>
             </div>
-            <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
+            <span className="text-[0.7rem] text-muted-foreground">
               Primera imagen será la principal. Recomendado: 1200x1200px mínimo
             </span>
           </div>
 
-          {/* Video URL */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-foreground">
               Video de Trazabilidad (YouTube/Vimeo)
             </label>
             <input
               {...register('video_url')}
               type="url"
               placeholder="https://youtube.com/watch?v=..."
-              className="input-field"
-              style={{ fontSize: '0.9rem', padding: 'var(--space-md)' }}
+              className="input-field text-[0.9rem] p-4"
             />
             {errors.video_url && (
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-error)' }}>{errors.video_url.message}</span>
+              <span className="text-xs text-destructive">{errors.video_url.message}</span>
             )}
-            <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
+            <span className="text-[0.7rem] text-muted-foreground">
               Video de Cristina en la colmena o proceso de cosecha
             </span>
           </div>
         </div>
 
-        {/* Right Column - Organization & Pricing */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-          {/* Organización */}
-          <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
-            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-md)' }}>
+        <div className="flex flex-col gap-6">
+          <div className="p-6 bg-foreground/[0.02] rounded-md border border-border/50">
+            <h3 className="text-sm font-semibold text-foreground mb-4">
               Organización
             </h3>
-            
-            {/* Formato */}
-            <div style={{ marginBottom: 'var(--space-md)' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
+
+            <div className="mb-4">
+              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
                 Formato *
               </label>
-              <select {...register('formato')} className="input-field" style={{ width: '100%' }}>
+              <select {...register('formato')} className="input-field w-full">
                 <option value="">Seleccionar formato</option>
                 {PRODUCT_FORMATS.map(f => (
                   <option key={f.value} value={f.value}>{f.label}</option>
                 ))}
               </select>
-              {errors.formato && <span style={{ fontSize: '0.75rem', color: 'var(--text-error)' }}>{errors.formato.message}</span>}
+              {errors.formato && <span className="text-xs text-destructive">{errors.formato.message}</span>}
             </div>
 
-            {/* Categoría */}
-            <div style={{ marginBottom: 'var(--space-md)' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
+            <div className="mb-4">
+              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
                 Categoría
               </label>
-              <select {...register('categoria')} className="input-field" style={{ width: '100%' }}>
+              <select {...register('categoria')} className="input-field w-full">
                 <option value="">Seleccionar categoría</option>
                 {PRODUCT_CATEGORIES.map(c => (
                   <option key={c.value} value={c.value}>{c.label}</option>
@@ -376,31 +346,21 @@ console.error('Error saving product:', error);
               </select>
             </div>
 
-            {/* Tags */}
             <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
+              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
                 Tags
               </label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+              <div className="flex flex-wrap gap-1 mb-1.5">
                 {(watch('tags') || []).map(tag => (
                   <span
                     key={tag}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '2px 8px',
-                      background: 'hsl(var(--accent) / 0.15)',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: '0.75rem',
-                      color: 'hsl(var(--accent))',
-                    }}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent/15 rounded-sm text-xs text-accent"
                   >
                     {tag}
                     <button
                       type="button"
                       onClick={() => removeTag(tag)}
-                      style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, color: 'inherit' }}
+                      className="bg-transparent border-none cursor-pointer p-0 text-inherit"
                     >
                       <X size={12} />
                     </button>
@@ -410,8 +370,7 @@ console.error('Error saving product:', error);
               <input
                 type="text"
                 placeholder="Agregar tag (ej: monofloral, ulmo)"
-                className="input-field"
-                style={{ fontSize: '0.8rem', padding: 'var(--space-xs) var(--space-sm)' }}
+                className="input-field text-[0.8rem] px-2 py-1"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -423,138 +382,130 @@ console.error('Error saving product:', error);
             </div>
           </div>
 
-          {/* Precio */}
-          <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
-            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-md)' }}>
+          <div className="p-6 bg-foreground/[0.02] rounded-md border border-border/50">
+            <h3 className="text-sm font-semibold text-foreground mb-4">
               Precio
             </h3>
-            
-            <div style={{ marginBottom: 'var(--space-md)' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
+
+            <div className="mb-4">
+              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
                 Precio CLP *
               </label>
-              <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: 'var(--space-md)', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))', fontSize: '0.9rem' }}>$</span>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-[0.9rem]">$</span>
                 <input
                   {...register('precio')}
                   type="number"
                   placeholder="0"
-                  className="input-field"
-                  style={{ paddingLeft: '2rem', fontSize: '1.1rem', fontWeight: 600 }}
+                  className="input-field pl-8 text-lg font-semibold"
                 />
               </div>
-              {errors.precio && <span style={{ fontSize: '0.75rem', color: 'var(--text-error)' }}>{errors.precio.message}</span>}
+              {errors.precio && <span className="text-xs text-destructive">{errors.precio.message}</span>}
             </div>
 
             <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
+              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
                 Stock Disponible *
               </label>
               <input
                 {...register('stock')}
                 type="number"
                 placeholder="0"
-                className="input-field"
-                style={{ fontSize: '0.9rem', padding: 'var(--space-md)' }}
+                className="input-field text-[0.9rem] p-4"
               />
-              {errors.stock && <span style={{ fontSize: '0.75rem', color: 'var(--text-error)' }}>{errors.stock.message}</span>}
+              {errors.stock && <span className="text-xs text-destructive">{errors.stock.message}</span>}
             </div>
           </div>
 
-          {/* Detalles Adicionales */}
-          <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
-            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-md)' }}>
+          <div className="p-6 bg-foreground/[0.02] rounded-md border border-border/50">
+            <h3 className="text-sm font-semibold text-foreground mb-4">
               Detalles del Producto
             </h3>
-            
-            <div style={{ marginBottom: 'var(--space-md)' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
+
+            <div className="mb-4">
+              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
                 Peso Neto (g)
               </label>
               <input
                 {...register('peso_netos')}
                 type="number"
                 placeholder="500"
-                className="input-field"
-                style={{ fontSize: '0.9rem', padding: 'var(--space-md)' }}
+                className="input-field text-[0.9rem] p-4"
               />
             </div>
 
-            <div style={{ marginBottom: 'var(--space-md)' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
+            <div className="mb-4">
+              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
                 Ingredientes
               </label>
               <textarea
                 {...register('ingredientes')}
                 placeholder="100% miel de ulmo virgen, sin aditivos"
-                className="input-field"
+                className="input-field text-[0.85rem] p-4 resize-y"
                 rows={2}
-                style={{ fontSize: '0.85rem', padding: 'var(--space-md)', resize: 'vertical' }}
               />
             </div>
 
-            <div style={{ marginBottom: 'var(--space-md)' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
+            <div className="mb-4">
+              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
                 Origen Apícola
               </label>
               <input
                 {...register('origen_apicola')}
                 type="text"
                 placeholder="Pureo, Chiloé - Colmena Ulmo Mayor"
-                className="input-field"
-                style={{ fontSize: '0.85rem', padding: 'var(--space-md)' }}
+                className="input-field text-[0.85rem] p-4"
               />
-              <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
+              <span className="text-[0.7rem] text-muted-foreground">
                 Lugar específico de cosecha
               </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+            <div className="flex items-center gap-2">
               <input
                 {...register('trazabilidad_qr')}
                 type="checkbox"
                 id="trazabilidad_qr"
-                style={{ width: 16, height: 16 }}
+                className="w-4 h-4"
               />
-              <label htmlFor="trazabilidad_qr" style={{ fontSize: '0.8rem', color: 'hsl(var(--foreground))' }}>
+              <label htmlFor="trazabilidad_qr" className="text-[0.8rem] text-foreground">
                 Incluir QR de trazabilidad
               </label>
             </div>
-      </div>
+          </div>
 
-        {/* Métricas Científicas */}
-        <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--accent) / 0.15)', marginTop: 'var(--space-lg)' }}>
-          <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'hsl(var(--accent))', marginBottom: 'var(--space-md)', display: 'flex', alignItems: 'center', gap: 6 }}>
-            Métricas Científicas
-          </h3>
-          <p style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-md)' }}>
-            Datos visibles sutilmente en la tienda. El IRR aparece como chip cuando es mayor a 1.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--space-md)' }}>
-            <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
-                Sustituye azúcar (g)
-              </label>
-              <input {...register('sustituye_azucar_g')} type="number" placeholder="Ej: 25" className="input-field" style={{ fontSize: '0.9rem', padding: 'var(--space-md)' }} />
-              <span style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>Gramos de azúcar refinada que este producto reemplaza</span>
-            </div>
-            <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
-                CO₂ evitado (kg)
-              </label>
-              <input {...register('co2_evitado_kg')} type="number" placeholder="Ej: 2.7" className="input-field" style={{ fontSize: '0.9rem', padding: 'var(--space-md)' }} />
-              <span style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>kg CO₂ evitados vs azúcar refinada equivalente</span>
-            </div>
-            <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'hsl(var(--foreground))', display: 'block', marginBottom: 6 }}>
-                IRR referencia
-              </label>
-              <input {...register('irr_referencia')} type="number" step="0.01" placeholder="Ej: 3.46" className="input-field" style={{ fontSize: '0.9rem', padding: 'var(--space-md)' }} />
-              <span style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>IRR = CO₂ capturado / CO₂ emitido. &gt;1 = impacto positivo</span>
+          <div className="p-6 bg-foreground/[0.02] rounded-md border border-accent/15 mt-6">
+            <h3 className="text-sm font-semibold text-accent mb-4 flex items-center gap-1.5">
+              Métricas Científicas
+            </h3>
+            <p className="text-[0.7rem] text-muted-foreground mb-4">
+              Datos visibles sutilmente en la tienda. El IRR aparece como chip cuando es mayor a 1.
+            </p>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
+                  Sustituye azúcar (g)
+                </label>
+                <input {...register('sustituye_azucar_g')} type="number" placeholder="Ej: 25" className="input-field text-[0.9rem] p-4" />
+                <span className="text-[0.65rem] text-muted-foreground">Gramos de azúcar refinada que este producto reemplaza</span>
+              </div>
+              <div>
+                <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
+                  CO₂ evitado (kg)
+                </label>
+                <input {...register('co2_evitado_kg')} type="number" placeholder="Ej: 2.7" className="input-field text-[0.9rem] p-4" />
+                <span className="text-[0.65rem] text-muted-foreground">kg CO₂ evitados vs azúcar refinada equivalente</span>
+              </div>
+              <div>
+                <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
+                  IRR referencia
+                </label>
+                <input {...register('irr_referencia')} type="number" step="0.01" placeholder="Ej: 3.46" className="input-field text-[0.9rem] p-4" />
+                <span className="text-[0.65rem] text-muted-foreground">IRR = CO₂ capturado / CO₂ emitido. &gt;1 = impacto positivo</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
     </form>
   );

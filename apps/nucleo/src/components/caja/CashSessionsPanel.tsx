@@ -50,7 +50,7 @@ export function CashSessionsPanel() {
         .limit(100);
 
       if (error) throw error;
-      setSessions((data as unknown as CashSessionRow[]) || []);
+      setSessions(Array.isArray(data) ? (data as CashSessionRow[]) : []);
     } catch (err) {
       toast(friendlyError(err, 'Error al cargar sesiones'), { type: 'error' });
     } finally {
@@ -146,8 +146,8 @@ export function CashSessionsPanel() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-oro-miel-dark" size={32} />
-        <p className="text-sm text-text-muted font-datos uppercase tracking-widest">Cargando sesiones de caja...</p>
+        <Loader2 className="animate-spin text-accent" size={32} />
+        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Cargando sesiones de caja...</p>
       </div>
     );
   }
@@ -155,22 +155,22 @@ export function CashSessionsPanel() {
   return (
   <div className="space-y-8 animate-in relative">
     <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
+        <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center text-accent">
           <Wallet size={24} />
         </div>
         <div>
-          <h2 className="text-2xl font-display text-bosque-ulmo">Cierres de Caja</h2>
-          <p className="text-sm text-text-muted">Sesiones de caja diarias · Reconciliación y auditoría</p>
+          <h2 className="text-2xl font-display text-primary">Cierres de Caja</h2>
+          <p className="text-sm text-muted-foreground">Sesiones de caja diarias · Reconciliación y auditoría</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           { icon: <Wallet size={18} />, val: sessions.length, label: 'Total Sesiones', accent: '' },
-          { icon: <Clock size={18} />, val: statusCounts['open'] || 0, label: 'Abiertas', accent: 'text-amber' },
-          { icon: <Shield size={18} />, val: statusCounts['closed'] || 0, label: 'Cerradas', accent: 'text-oro-miel-dark' },
-          { icon: <CheckCircle2 size={18} />, val: statusCounts['reconciled'] || 0, label: 'Reconciliadas', accent: 'text-salud-optima' },
-      { icon: <AlertTriangle size={18} />, val: sessions.filter(s => s.cash_difference !== null && Math.abs(Number(s.cash_difference)) >= CASH_ALERT_THRESHOLD).length, label: 'Alertas Δ', accent: 'text-salud-riesgo' },
+          { icon: <Clock size={18} />, val: statusCounts['open'] || 0, label: 'Abiertas', accent: 'text-warning' },
+          { icon: <Shield size={18} />, val: statusCounts['closed'] || 0, label: 'Cerradas', accent: 'text-accent' },
+          { icon: <CheckCircle2 size={18} />, val: statusCounts['reconciled'] || 0, label: 'Reconciliadas', accent: 'text-success' },
+      { icon: <AlertTriangle size={18} />, val: sessions.filter(s => s.cash_difference !== null && Math.abs(Number(s.cash_difference)) >= CASH_ALERT_THRESHOLD).length, label: 'Alertas Δ', accent: 'text-destructive' },
         ].map((s, i) => (
           <div key={i} className="stat-card animate-in" style={{ animationDelay: `${i * 80}ms` }}>
             <div className="stat-header"><div className="stat-icon">{s.icon}</div></div>
@@ -185,11 +185,11 @@ export function CashSessionsPanel() {
           <h3 className="font-display text-lg">Sesiones</h3>
           <div className="flex gap-3 items-center">
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input type="text" placeholder="Buscar por rep..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="input-field pl-9 text-sm" style={{ width: 200 }} />
             </div>
             <div className="relative">
-              <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+              <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="input-field pl-9 text-sm" style={{ width: 150 }}>
             <option value="todos">Todos</option>
             <option value="open">Abierta</option>
@@ -200,7 +200,7 @@ export function CashSessionsPanel() {
         <button
           onClick={() => void exportCSV()}
           disabled={exportLoading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-oro-miel-glow/30 text-oro-miel-dark text-xs font-bold uppercase tracking-widest hover:bg-oro-miel-glow/50 transition-all disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent/15 text-accent text-xs font-bold uppercase tracking-widest hover:bg-accent/25 transition-all disabled:opacity-50"
         >
           {exportLoading ? <Loader2 className="animate-spin" size={14} /> : <Download size={14} />}
           CSV
@@ -210,42 +210,42 @@ export function CashSessionsPanel() {
 
       <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
           {filteredSessions.length === 0 ? (
-            <p className="text-sm text-text-muted italic py-8 text-center">No hay sesiones que coincidan.</p>
+            <p className="text-sm text-muted-foreground italic py-8 text-center">No hay sesiones que coincidan.</p>
           ) : filteredSessions.map(s => {
             const StatusIcon = statusIcon[s.session_status] || Clock;
             return (
-              <div key={s.id} className="p-5 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-oro-miel/20 transition-all">
+              <div key={s.id} className="p-5 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-accent/20 transition-all">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <StatusIcon size={14} className={s.session_status === 'reconciled' ? 'text-salud-optima' : s.session_status === 'closed' ? 'text-oro-miel-dark' : 'text-amber'} />
-                      <p className="font-bold text-sm text-bosque-ulmo truncate">
+                      <StatusIcon size={14} className={s.session_status === 'reconciled' ? 'text-success' : s.session_status === 'closed' ? 'text-accent' : 'text-warning'} />
+                      <p className="font-bold text-sm text-primary truncate">
                         {s.rep_profiles?.display_name || s.profiles?.full_name || 'Representante desconocido'}
                       </p>
                       <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                        s.session_status === 'reconciled' ? 'bg-salud-optima/10 text-salud-optima' :
-                        s.session_status === 'closed' ? 'bg-oro-miel-glow/30 text-oro-miel-dark' :
-                        'bg-amber/10 text-amber'
+                        s.session_status === 'reconciled' ? 'bg-success/10 text-success' :
+                        s.session_status === 'closed' ? 'bg-accent/15 text-accent' :
+                        'bg-warning/10 text-warning'
                       }`}>
                         {s.session_status}
                       </span>
                     </div>
-                    <p className="text-xs text-text-muted">
+                    <p className="text-xs text-muted-foreground">
                       {new Date(s.opened_at).toLocaleDateString('es-CL')} · {new Date(s.opened_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
                       {s.closed_at && ` → ${new Date(s.closed_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`}
                     </p>
                     <div className="flex items-center gap-4 mt-2 flex-wrap">
-                      <span className="text-[0.65rem] text-text-muted">Apertura: <strong className="text-bosque-ulmo">{formatCLP(s.opening_cash)}</strong></span>
+                      <span className="text-[0.65rem] text-muted-foreground">Apertura: <strong className="text-primary">{formatCLP(s.opening_cash)}</strong></span>
                       {s.closing_cash_counted !== null && (
-                        <span className="text-[0.65rem] text-text-muted">Contado: <strong className="text-bosque-ulmo">{formatCLP(s.closing_cash_counted)}</strong></span>
+                        <span className="text-[0.65rem] text-muted-foreground">Contado: <strong className="text-primary">{formatCLP(s.closing_cash_counted)}</strong></span>
                       )}
                 {s.cash_difference !== null && (
-                  <span className={`text-[0.65rem] font-bold ${Number(s.cash_difference) === 0 ? 'text-salud-optima' : 'text-salud-riesgo'}`}>
+                  <span className={`text-[0.65rem] font-bold ${Number(s.cash_difference) === 0 ? 'text-success' : 'text-destructive'}`}>
                     Delta: {Number(s.cash_difference) >= 0 ? '+' : '-'}{formatCLP(Number(s.cash_difference))}
                   </span>
                 )}
                 {s.cash_difference !== null && Math.abs(Number(s.cash_difference)) >= CASH_ALERT_THRESHOLD && (
-                  <span className="inline-flex items-center gap-1 text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-salud-riesgo/10 text-salud-riesgo">
+                  <span className="inline-flex items-center gap-1 text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
                     <AlertTriangle size={10} />
                     Alerta
                   </span>
@@ -256,7 +256,7 @@ export function CashSessionsPanel() {
                   <div className="flex gap-2 flex-shrink-0">
                     <button
                       onClick={() => fetchSessionDetail(s.id)}
-                      className="w-9 h-9 rounded-full bg-oro-miel-glow/30 text-oro-miel-dark flex items-center justify-center hover:bg-oro-miel-glow/50 transition-all"
+                      className="w-9 h-9 rounded-full bg-accent/15 text-accent flex items-center justify-center hover:bg-accent/25 transition-all"
                       title="Ver detalle"
                     >
                       <Eye size={16} />
@@ -265,7 +265,7 @@ export function CashSessionsPanel() {
                       <button
                         disabled={actionLoading === s.id}
                         onClick={() => reconcileSession(s.id)}
-                        className="w-9 h-9 rounded-full bg-salud-optima/10 text-salud-optima flex items-center justify-center hover:bg-salud-optima hover:text-foreground transition-all disabled:opacity-50"
+                        className="w-9 h-9 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
                         title="Reconciliar"
                       >
                         {actionLoading === s.id ? <Loader2 className="animate-spin" size={16} /> : <Check size={18} />}
@@ -282,26 +282,26 @@ export function CashSessionsPanel() {
       {selectedSession && (
         <div className="fixed inset-0 z-50 bg-background/40 flex items-center justify-center p-4" onClick={() => setSelectedSession(null)}>
           <div className="bg-card rounded-2xl shadow-2xl max-w-lg w-full p-8 space-y-4" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-xl text-bosque-ulmo">Detalle de Sesión</h3>
+            <h3 className="font-display text-xl text-primary">Detalle de Sesión</h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="text-text-muted">Representante:</div>
-              <div className="font-medium text-bosque-ulmo">{selectedSession.rep_profiles?.display_name || selectedSession.profiles?.full_name}</div>
-              <div className="text-text-muted">Ventas:</div>
+              <div className="text-muted-foreground">Representante:</div>
+              <div className="font-medium text-primary">{selectedSession.rep_profiles?.display_name || selectedSession.profiles?.full_name}</div>
+              <div className="text-muted-foreground">Ventas:</div>
               <div className="font-medium">{selectedSession.ventas_count}</div>
-              <div className="text-text-muted">Ingresos:</div>
+              <div className="text-muted-foreground">Ingresos:</div>
               <div className="font-medium">{formatCLP(selectedSession.total_revenue)}</div>
-              <div className="text-text-muted">Comisiones:</div>
-              <div className="font-medium text-oro-miel-dark">{formatCLP(selectedSession.total_commissions)}</div>
-              <div className="text-text-muted">Efectivo esperado:</div>
+              <div className="text-muted-foreground">Comisiones:</div>
+              <div className="font-medium text-accent">{formatCLP(selectedSession.total_commissions)}</div>
+              <div className="text-muted-foreground">Efectivo esperado:</div>
               <div className="font-medium">{selectedSession.closing_cash_expected ? formatCLP(Number(selectedSession.closing_cash_expected)) : '—'}</div>
-              <div className="text-text-muted">Efectivo contado:</div>
+              <div className="text-muted-foreground">Efectivo contado:</div>
               <div className="font-medium">{selectedSession.closing_cash_counted ? formatCLP(Number(selectedSession.closing_cash_counted)) : '—'}</div>
-              <div className="text-text-muted">Diferencia:</div>
-              <div className={`font-bold ${Number(selectedSession.cash_difference ?? 0) === 0 ? 'text-salud-optima' : 'text-salud-riesgo'}`}>
+              <div className="text-muted-foreground">Diferencia:</div>
+              <div className={`font-bold ${Number(selectedSession.cash_difference ?? 0) === 0 ? 'text-success' : 'text-destructive'}`}>
                 {selectedSession.cash_difference !== null ? `${Number(selectedSession.cash_difference) >= 0 ? '+' : '-'}${formatCLP(Number(selectedSession.cash_difference))}` : '—'}
               </div>
             </div>
-            {selectedSession.notas && <p className="text-xs text-text-muted italic mt-2">Notas: {selectedSession.notas}</p>}
+            {selectedSession.notas && <p className="text-xs text-muted-foreground italic mt-2">Notas: {selectedSession.notas}</p>}
             <button onClick={() => setSelectedSession(null)} className="w-full py-2 bg-secondary rounded-lg text-sm font-medium hover:bg-secondary transition-colors">Cerrar</button>
           </div>
         </div>

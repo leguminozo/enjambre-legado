@@ -64,7 +64,7 @@ export function BancoChileView() {
         console.error('Error fetching config:', error.message);
         return;
       }
-      if (data) setConfig(data as unknown as BancoChileConfig);
+      if (data) setConfig(data as BancoChileConfig);
     } catch (err) {
       console.error('Error fetching config:', err);
     } finally {
@@ -115,7 +115,7 @@ export function BancoChileView() {
         .eq('empresa_id', session.user.id);
 
       if (error) throw error;
-      setCuentas((data ?? []) as unknown as CuentaBancaria[]);
+      setCuentas(Array.isArray(data) ? (data as CuentaBancaria[]) : []);
     } catch (err) {
       console.error('Error sincronizando cuentas:', err);
     } finally {
@@ -140,7 +140,7 @@ export function BancoChileView() {
       const { data, error } = await query;
 
       if (error) throw error;
-      setMovimientos((data ?? []) as unknown as MovimientoBancario[]);
+      setMovimientos(Array.isArray(data) ? (data as MovimientoBancario[]) : []);
     } catch (err) {
       console.error('Error fetching movimientos:', err);
     }

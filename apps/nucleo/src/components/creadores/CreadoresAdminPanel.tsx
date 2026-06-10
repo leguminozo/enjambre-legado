@@ -85,9 +85,9 @@ export function CreadoresAdminPanel() {
           .limit(50),
       ]);
 
-      if (revsRes.data) setCreadores(revsRes.data as unknown as CreadorRow[]);
-      if (rankRes.data) setRanking(rankRes.data as unknown as RankingRow[]);
-      if (retRes.data) setRetiros(retRes.data as unknown as RetiroRow[]);
+      if (revsRes.data) setCreadores(Array.isArray(revsRes.data) ? (revsRes.data as CreadorRow[]) : []);
+      if (rankRes.data) setRanking(Array.isArray(rankRes.data) ? (rankRes.data as RankingRow[]) : []);
+      if (retRes.data) setRetiros(Array.isArray(retRes.data) ? (retRes.data as RetiroRow[]) : []);
 	} catch (err) {
 			console.error('Error fetching creadores data:', err);
 			toast(friendlyError(err, 'Error al cargar datos de creadores'), { type: 'error' });
@@ -209,8 +209,8 @@ export function CreadoresAdminPanel() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-oro-miel-dark" size={32} />
-        <p className="text-sm text-text-muted font-datos uppercase tracking-widest">Cargando red de creadores...</p>
+        <Loader2 className="animate-spin text-accent" size={32} />
+        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Cargando red de creadores...</p>
       </div>
     );
   }
@@ -218,20 +218,20 @@ export function CreadoresAdminPanel() {
   return (
   <div className="space-y-8 animate-in relative">
     <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
+        <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center text-accent">
           <Sparkles size={24} />
         </div>
         <div>
-          <h2 className="text-2xl font-display text-bosque-ulmo">Red de Creadores</h2>
-          <p className="text-sm text-text-muted">Gestión de códigos de referencia, comisiones y retiros</p>
+          <h2 className="text-2xl font-display text-primary">Red de Creadores</h2>
+          <p className="text-sm text-muted-foreground">Gestión de códigos de referencia, comisiones y retiros</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { icon: <Users size={18} />, val: creadores.length, label: 'Total Creadores', accent: '' },
-          { icon: <CheckCircle2 size={18} />, val: estadoCounts['activo'] || 0, label: 'Activos', accent: 'text-salud-optima' },
-          { icon: <DollarSign size={18} />, val: `$${creadores.reduce((s, c) => s + Number(c.total_comisiones || 0), 0).toLocaleString('es-CL')}`, label: 'Comisiones Totales', accent: 'text-oro-miel-dark' },
+          { icon: <CheckCircle2 size={18} />, val: estadoCounts['activo'] || 0, label: 'Activos', accent: 'text-success' },
+          { icon: <DollarSign size={18} />, val: `$${creadores.reduce((s, c) => s + Number(c.total_comisiones || 0), 0).toLocaleString('es-CL')}`, label: 'Comisiones Totales', accent: 'text-accent' },
           { icon: <TrendingUp size={18} />, val: creadores.reduce((s, c) => s + (c.total_usos_codigo || 0), 0), label: 'Usos de Códigos', accent: '' },
         ].map((s, i) => (
           <div key={i} className="stat-card animate-in" style={{ animationDelay: `${i * 80}ms` }}>
@@ -263,12 +263,12 @@ export function CreadoresAdminPanel() {
         <div className="card">
           <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
             <div className="flex items-center gap-3">
-              <Users size={18} className="text-oro-miel-dark" />
+              <Users size={18} className="text-accent" />
               <h3 className="font-display text-lg">Creadores Registrados</h3>
             </div>
             <div className="flex gap-3 items-center">
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder="Buscar creador..."
@@ -279,7 +279,7 @@ export function CreadoresAdminPanel() {
                 />
               </div>
               <div className="relative">
-                <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <select
                   value={filterEstado}
                   onChange={e => setFilterEstado(e.target.value)}
@@ -298,49 +298,49 @@ export function CreadoresAdminPanel() {
 
           <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
             {filteredCreadores.length === 0 ? (
-              <p className="text-sm text-text-muted italic py-8 text-center">No hay creadores que coincidan.</p>
+              <p className="text-sm text-muted-foreground italic py-8 text-center">No hay creadores que coincidan.</p>
             ) : (
               filteredCreadores.map(creador => (
                 <div
                   key={creador.id}
-                  className="p-5 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-oro-miel/20 transition-all group"
+                  className="p-5 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-accent/20 transition-all group"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-sm">{plataformaIcon[creador.plataforma] || '🌐'}</span>
-                        <p className="font-bold text-sm text-bosque-ulmo truncate">{creador.nombre_publico}</p>
+                        <p className="font-bold text-sm text-primary truncate">{creador.nombre_publico}</p>
                         <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                          creador.estado === 'activo' ? 'bg-salud-optima/10 text-salud-optima' :
-                          creador.estado === 'pendiente' ? 'bg-amber/10 text-amber' :
-                          creador.estado === 'suspendido' ? 'bg-salud-riesgo/10 text-salud-riesgo' :
+                          creador.estado === 'activo' ? 'bg-success/10 text-success' :
+                          creador.estado === 'pendiente' ? 'bg-warning/10 text-warning' :
+                          creador.estado === 'suspendido' ? 'bg-destructive/10 text-destructive' :
                           'bg-secondary text-muted-foreground'
                         }`}>
                           {creador.estado}
                         </span>
                       </div>
-                      <p className="text-xs text-text-muted">{creador.profiles?.full_name || 'Sin nombre'} · {creador.profiles?.email || ''}</p>
+                      <p className="text-xs text-muted-foreground">{creador.profiles?.full_name || 'Sin nombre'} · {creador.profiles?.email || ''}</p>
                       <div className="flex items-center gap-4 mt-2 flex-wrap">
                         <button
                           onClick={() => copyCode(creador.codigo_ref)}
-                          className="flex items-center gap-1 text-xs font-mono bg-oro-miel-glow/30 border border-oro-miel/10 px-2 py-1 rounded-md hover:bg-oro-miel-glow/50 transition-colors"
+                          className="flex items-center gap-1 text-xs font-mono bg-accent/15/30 border border-accent/10 px-2 py-1 rounded-md hover:bg-accent/15/50 transition-colors"
                         >
-                          {copiedCode === creador.codigo_ref ? <Check size={12} className="text-salud-optima" /> : <Copy size={12} className="text-oro-miel-dark" />}
-                          <span className="text-oro-miel-dark font-bold">{creador.codigo_ref}</span>
+                          {copiedCode === creador.codigo_ref ? <Check size={12} className="text-success" /> : <Copy size={12} className="text-accent" />}
+                          <span className="text-accent font-bold">{creador.codigo_ref}</span>
                         </button>
-                        <span className="text-[0.65rem] text-text-muted">
-                          Comisión: <strong className="text-bosque-ulmo">{creador.porcentaje_comision}%</strong>
+                        <span className="text-[0.65rem] text-muted-foreground">
+                          Comisión: <strong className="text-primary">{creador.porcentaje_comision}%</strong>
                         </span>
-                        <span className="text-[0.65rem] text-text-muted">
-                          Descuento: <strong className="text-bosque-ulmo">{creador.descuento_cliente}%</strong>
+                        <span className="text-[0.65rem] text-muted-foreground">
+                          Descuento: <strong className="text-primary">{creador.descuento_cliente}%</strong>
                         </span>
-                        <span className="text-[0.65rem] text-text-muted">
+                        <span className="text-[0.65rem] text-muted-foreground">
                           {creador.seguidores_aprox?.toLocaleString() || 0} seguidores
                         </span>
                       </div>
                       <div className="flex gap-4 mt-2">
-                        <span className="text-[0.6rem] text-text-muted">Usos: <strong>{creador.total_usos_codigo}</strong></span>
-                        <span className="text-[0.6rem] text-text-muted">Comisiones: <strong className="text-oro-miel-dark">${Number(creador.total_comisiones || 0).toLocaleString('es-CL')}</strong></span>
+                        <span className="text-[0.6rem] text-muted-foreground">Usos: <strong>{creador.total_usos_codigo}</strong></span>
+                        <span className="text-[0.6rem] text-muted-foreground">Comisiones: <strong className="text-accent">${Number(creador.total_comisiones || 0).toLocaleString('es-CL')}</strong></span>
                       </div>
                     </div>
 
@@ -350,7 +350,7 @@ export function CreadoresAdminPanel() {
                           <button
                             disabled={actionLoading === creador.id}
                             onClick={() => updateCreadorEstado(creador.id, creador.user_id, 'activo')}
-                            className="w-9 h-9 rounded-full bg-salud-optima/10 text-salud-optima flex items-center justify-center hover:bg-salud-optima hover:text-foreground transition-all disabled:opacity-50"
+                            className="w-9 h-9 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
                             title="Activar"
                           >
                             {actionLoading === creador.id ? <Loader2 className="animate-spin" size={16} /> : <Check size={18} />}
@@ -358,7 +358,7 @@ export function CreadoresAdminPanel() {
                           <button
                             disabled={actionLoading === creador.id}
                             onClick={() => updateCreadorEstado(creador.id, creador.user_id, 'suspendido')}
-                            className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-foreground transition-all disabled:opacity-50"
+                            className="w-9 h-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
                             title="Rechazar"
                           >
                             <X size={18} />
@@ -369,7 +369,7 @@ export function CreadoresAdminPanel() {
                         <>
                           <button
                             onClick={() => setSelectedCreador(selectedCreador?.id === creador.id ? null : creador)}
-                            className="w-9 h-9 rounded-full bg-oro-miel-glow/30 text-oro-miel-dark flex items-center justify-center hover:bg-oro-miel-glow/50 transition-all"
+                            className="w-9 h-9 rounded-full bg-accent/15/30 text-accent flex items-center justify-center hover:bg-accent/15/50 transition-all"
                             title="Ver detalles"
                           >
                             <Eye size={16} />
@@ -384,7 +384,7 @@ export function CreadoresAdminPanel() {
                           <button
                             disabled={actionLoading === creador.id}
                             onClick={() => updateCreadorEstado(creador.id, creador.user_id, 'suspendido')}
-                            className="w-9 h-9 rounded-full bg-salud-riesgo/10 text-salud-riesgo flex items-center justify-center hover:bg-salud-riesgo hover:text-foreground transition-all disabled:opacity-50"
+                            className="w-9 h-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
                             title="Suspender"
                           >
                             <X size={16} />
@@ -395,7 +395,7 @@ export function CreadoresAdminPanel() {
                         <button
                           disabled={actionLoading === creador.id}
                           onClick={() => updateCreadorEstado(creador.id, creador.user_id, 'activo')}
-                          className="w-9 h-9 rounded-full bg-salud-optima/10 text-salud-optima flex items-center justify-center hover:bg-salud-optima hover:text-foreground transition-all disabled:opacity-50"
+                          className="w-9 h-9 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
                           title="Reactivar"
                         >
                           {actionLoading === creador.id ? <Loader2 className="animate-spin" size={16} /> : <Check size={18} />}
@@ -408,7 +408,7 @@ export function CreadoresAdminPanel() {
                     <div className="mt-4 pt-4 border-t border-background/5">
                       <div className="flex items-center gap-4 flex-wrap">
                         <div>
-                          <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Comisión %</label>
+                          <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Comisión %</label>
                           <input
                             type="number"
                             min={0}
@@ -421,7 +421,7 @@ export function CreadoresAdminPanel() {
                           />
                         </div>
                         <div>
-                          <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Descuento cliente %</label>
+                          <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Descuento cliente %</label>
                           <input
                             type="number"
                             min={0}
@@ -446,10 +446,10 @@ export function CreadoresAdminPanel() {
 
                   {selectedCreador?.id === creador.id && (
                     <div className="mt-4 pt-4 border-t border-background/5 space-y-2">
-                      {creador.nicho && <p className="text-xs text-text-muted">Nicho: <span className="text-bosque-ulmo">{creador.nicho}</span></p>}
-                      {creador.bio && <p className="text-xs text-text-secondary italic">"{creador.bio}"</p>}
-                      {creador.notas_internas && <p className="text-xs text-amber bg-amber/5 p-2 rounded">Notas internas: {creador.notas_internas}</p>}
-                      <p className="text-[0.6rem] text-text-muted">Registrado: {new Date(creador.created_at).toLocaleDateString('es-CL')}</p>
+                      {creador.nicho && <p className="text-xs text-muted-foreground">Nicho: <span className="text-primary">{creador.nicho}</span></p>}
+                      {creador.bio && <p className="text-xs text-muted-foreground italic">"{creador.bio}"</p>}
+                      {creador.notas_internas && <p className="text-xs text-warning bg-warning/5 p-2 rounded">Notas internas: {creador.notas_internas}</p>}
+                      <p className="text-[0.6rem] text-muted-foreground">Registrado: {new Date(creador.created_at).toLocaleDateString('es-CL')}</p>
                     </div>
                   )}
                 </div>
@@ -462,44 +462,44 @@ export function CreadoresAdminPanel() {
       {activeSection === 'ranking' && (
         <div className="card">
           <div className="flex items-center gap-2 mb-6">
-            <TrendingUp size={18} className="text-oro-miel-dark" />
+            <TrendingUp size={18} className="text-accent" />
             <h3 className="font-display text-lg">Ranking de Creadores</h3>
           </div>
 
           <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
             {ranking.length === 0 ? (
-              <p className="text-sm text-text-muted italic py-8 text-center">Sin datos de ranking aún.</p>
+              <p className="text-sm text-muted-foreground italic py-8 text-center">Sin datos de ranking aún.</p>
             ) : (
               ranking.map(r => (
                 <div
                   key={r.id}
                   className={`p-4 rounded-xl flex items-center justify-between transition-all ${
                     r.ranking <= 3
-                      ? 'bg-oro-miel-glow/20 border border-oro-miel/20'
+                      ? 'bg-accent/15/20 border border-accent/20'
                       : 'bg-background/[0.03] border border-foreground/[0.06]'
                   }`}
                 >
                   <div className="flex items-center gap-4">
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${
-                      r.ranking === 1 ? 'bg-oro-miel text-foreground' :
+                      r.ranking === 1 ? 'bg-accent text-foreground' :
                       r.ranking === 2 ? 'bg-secondary text-foreground' :
                       r.ranking === 3 ? 'bg-card text-foreground' :
-                      'bg-background/5 text-text-muted'
+                      'bg-background/5 text-muted-foreground'
                     }`}>
                       #{r.ranking}
                     </div>
                     <div>
-                      <p className="font-bold text-sm text-bosque-ulmo">{r.nombre_publico}</p>
+                      <p className="font-bold text-sm text-primary">{r.nombre_publico}</p>
                       <div className="flex gap-3 mt-0.5">
-                        <span className="text-[0.65rem] text-text-muted font-mono">{r.codigo_ref}</span>
+                        <span className="text-[0.65rem] text-muted-foreground font-mono">{r.codigo_ref}</span>
                         <span className="text-[0.65rem]">{plataformaIcon[r.plataforma] || '🌐'}</span>
-                        <span className="text-[0.65rem] text-text-muted">{r.seguidores_aprox?.toLocaleString() || 0} seg.</span>
+                        <span className="text-[0.65rem] text-muted-foreground">{r.seguidores_aprox?.toLocaleString() || 0} seg.</span>
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-oro-miel-dark">${Number(r.total_comisiones || 0).toLocaleString('es-CL')}</p>
-                    <p className="text-[0.6rem] text-text-muted">{r.total_usos_codigo} usos</p>
+                    <p className="text-sm font-bold text-accent">${Number(r.total_comisiones || 0).toLocaleString('es-CL')}</p>
+                    <p className="text-[0.6rem] text-muted-foreground">{r.total_usos_codigo} usos</p>
                   </div>
                 </div>
               ))
@@ -511,34 +511,34 @@ export function CreadoresAdminPanel() {
       {activeSection === 'retiros' && (
         <div className="card">
           <div className="flex items-center gap-2 mb-6">
-            <DollarSign size={18} className="text-oro-miel-dark" />
+            <DollarSign size={18} className="text-accent" />
             <h3 className="font-display text-lg">Solicitudes de Retiro</h3>
             <span className="badge badge-gold">{retiros.filter(r => r.estado === 'pendiente').length} Pendientes</span>
           </div>
 
           <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
             {retiros.length === 0 ? (
-              <p className="text-sm text-text-muted italic py-8 text-center">No hay solicitudes de retiro pendientes.</p>
+              <p className="text-sm text-muted-foreground italic py-8 text-center">No hay solicitudes de retiro pendientes.</p>
             ) : (
               retiros.map(retiro => (
                 <div
                   key={retiro.id}
-                  className="p-4 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-oro-miel/20 transition-all"
+                  className="p-4 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-accent/20 transition-all"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="font-bold text-sm text-bosque-ulmo">{retiro.creadores?.nombre_publico || 'Desconocido'}</p>
-                      <p className="text-xs text-text-muted font-mono">{retiro.creadores?.codigo_ref}</p>
+                      <p className="font-bold text-sm text-primary">{retiro.creadores?.nombre_publico || 'Desconocido'}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{retiro.creadores?.codigo_ref}</p>
                       <div className="flex gap-4 mt-2">
-                        <span className="text-sm font-bold text-oro-miel-dark">${Number(retiro.monto_solicitado).toLocaleString('es-CL')}</span>
-                        <span className="text-xs text-text-muted">Vía: {retiro.metodo_pago}</span>
+                        <span className="text-sm font-bold text-accent">${Number(retiro.monto_solicitado).toLocaleString('es-CL')}</span>
+                        <span className="text-xs text-muted-foreground">Vía: {retiro.metodo_pago}</span>
                       </div>
                       {retiro.datos_pago && (
-                        <p className="text-[0.65rem] text-text-muted mt-1 bg-background/5 p-2 rounded font-mono">
+                        <p className="text-[0.65rem] text-muted-foreground mt-1 bg-background/5 p-2 rounded font-mono">
                           {JSON.stringify(retiro.datos_pago)}
                         </p>
                       )}
-                      <p className="text-[0.6rem] text-text-muted mt-1">{new Date(retiro.created_at).toLocaleDateString('es-CL')}</p>
+                      <p className="text-[0.6rem] text-muted-foreground mt-1">{new Date(retiro.created_at).toLocaleDateString('es-CL')}</p>
                     </div>
 
                     {retiro.estado === 'pendiente' && (
@@ -546,14 +546,14 @@ export function CreadoresAdminPanel() {
                         <button
                           disabled={actionLoading === retiro.id}
                           onClick={() => updateRetiroEstado(retiro.id, 'aprobado', retiro.monto_solicitado)}
-                          className="btn btn-sm bg-salud-optima/10 text-salud-optima hover:bg-salud-optima hover:text-foreground transition-all disabled:opacity-50"
+                          className="btn btn-sm bg-success/10 text-success hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
                         >
                           {actionLoading === retiro.id ? <Loader2 className="animate-spin" size={14} /> : <><Check size={14} /> Aprobar</>}
                         </button>
                         <button
                           disabled={actionLoading === retiro.id}
                           onClick={() => updateRetiroEstado(retiro.id, 'rechazado')}
-                          className="btn btn-sm bg-salud-riesgo/10 text-salud-riesgo hover:bg-salud-riesgo hover:text-foreground transition-all disabled:opacity-50"
+                          className="btn btn-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
                         >
                           <X size={14} /> Rechazar
                         </button>
@@ -562,9 +562,9 @@ export function CreadoresAdminPanel() {
 
                     {retiro.estado !== 'pendiente' && (
                       <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${
-                        retiro.estado === 'aprobado' ? 'bg-salud-optima/10 text-salud-optima' :
+                        retiro.estado === 'aprobado' ? 'bg-success/10 text-success' :
                         retiro.estado === 'pagado' ? 'bg-surface-raised text-foreground' :
-                        'bg-salud-riesgo/10 text-salud-riesgo'
+                        'bg-destructive/10 text-destructive'
                       }`}>
                         {retiro.estado}
                       </span>

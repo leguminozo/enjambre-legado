@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { formatCLP } from '@/lib/shop/format';
-import { GrainOverlay } from '@/components/shop/grain-overlay';
+import { GrainOverlay } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
 import { Sparkles, Mail, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';

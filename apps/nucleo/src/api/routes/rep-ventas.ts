@@ -8,7 +8,7 @@ const QuickSaleSchema = z.object({
   cash_session_id: z.string().uuid(),
   producto_id: z.string().uuid(),
   cantidad: z.number().int().min(1).default(1),
-  metodo_pago: z.enum(["efectivo", "transferencia", "tarjeta", "mixto"]),
+  metodo_pago: z.enum(["efectivo", "transferencia", "tarjeta", "pos_terminal", "mixto"]),
   channel: z.enum(["feria", "delivery", "local", "corporativo", "referido"]).optional(),
   cliente_id: z.string().uuid().optional(),
   is_new_client: z.boolean().default(true),
@@ -22,6 +22,8 @@ const QuickSaleSchema = z.object({
       }),
     )
     .optional(),
+  sumup_checkout_id: z.string().optional(),
+  sumup_transaction_id: z.string().optional(),
 });
 
 export const repVentasRoutes = new Hono<{ Variables: AppVariables }>();
@@ -98,7 +100,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     total = producto.precio * input.cantidad;
   }
 
-  const { data, error } = await supabase
+  const { data: venta, error: ventaError } = await supabase
     .from("ventas")
     .insert({
       vendedor_id: user.id,
@@ -112,18 +114,28 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
       is_new_client: input.is_new_client,
       estado: "completada",
       origen: input.channel ?? "feria",
+      sumup_checkout_id: input.sumup_checkout_id ?? null,
+      sumup_transaction_id: input.sumup_transaction_id ?? null,
     })
     .select("id, total, metodo_pago, channel, created_at, rep_commission_total")
     .single();
 
-  if (error) {
-    return c.json({ code: "venta_create_failed", message: error.message }, 400);
+  if (ventaError) {
+    return c.json({ code: "venta_create_failed", message: ventaError.message }, 400);
+  }
+
+  // 2. Descontar stock de productos (esto disparará el trigger de lotes)
+  for (const item of items) {
+    await supabase.rpc("decrement_stock", {
+      p_id: item.producto_id,
+      p_qty: item.cantidad,
+    });
   }
 
   const { data: lastCommission } = await supabase
     .from("commission_records")
     .select("base_commission, volume_multiplier, loyalty_bonus, streak_bonus, tier_multiplier, channel_rate, total_commission")
-    .eq("venta_id", data.id)
+    .eq("venta_id", venta.id)
     .single();
 
   const { data: sessionCommissions } = await supabase
@@ -164,7 +176,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
   }
 
   return c.json({
-    data,
+    data: venta,
     meta: {
       accumulated_commission: accumulatedCommission,
       day_total: dayTotal,

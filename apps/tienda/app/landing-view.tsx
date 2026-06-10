@@ -1,36 +1,43 @@
 'use client';
 
-import React, { useEffect, Suspense, lazy } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { GrainOverlay } from '@/components/shop/grain-overlay';
+import { GrainOverlay } from '@enjambre/ui';
 import { TextCarousel } from '@/components/shop/text-carousel';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 
-const BeeCanvas = lazy(() =>
-  import('@/components/shop/bee-canvas').then((m) => ({ default: m.BeeCanvas })),
+const BeeCanvas = dynamic(
+  () => import('@/components/shop/bee-canvas').then((m) => m.BeeCanvas),
+  { ssr: false },
 );
-const CustomCursor = lazy(() =>
-  import('@/components/shop/custom-cursor').then((m) => ({ default: m.CustomCursor })),
+const CustomCursor = dynamic(
+  () => import('@/components/shop/custom-cursor').then((m) => m.CustomCursor),
+  { ssr: false },
 );
-const LandingLoader = lazy(() =>
-  import('@/components/shop/landing-loader').then((m) => ({ default: m.LandingLoader })),
+const LandingLoader = dynamic(
+  () => import('@/components/shop/landing-loader').then((m) => m.LandingLoader),
+  { ssr: false },
 );
-const MediaCarousel = lazy(() =>
-  import('@/components/shop/media-carousel').then((m) => ({ default: m.MediaCarousel })),
+const WorldMapBlock = dynamic(
+  () => import('@/components/shop/world-map-block').then((m) => m.WorldMapBlock),
+  { ssr: false },
 );
-const LandingProducts = lazy(() =>
-  import('@/components/shop/landing-products').then((m) => ({ default: m.LandingProducts })),
+const MediaCarousel = dynamic(
+  () => import('@/components/shop/media-carousel').then((m) => m.MediaCarousel),
+  { ssr: false, loading: () => <div className="w-full h-[50vh] md:h-[70vh] bg-surface-raised" /> },
 );
-const WorldMapBlock = lazy(() =>
-  import('@/components/shop/world-map-block').then((m) => ({ default: m.WorldMapBlock })),
+const LandingProducts = dynamic(
+  () => import('@/components/shop/landing-products').then((m) => m.LandingProducts),
+  { loading: () => <div className="editorial-section"><div className="editorial-container text-center text-muted-foreground italic">Cargando creaciones…</div></div> },
 );
 
 if (typeof window !== 'undefined') {
@@ -157,16 +164,16 @@ export function TiendaLandingView({
 
   return (
     <StoreShell>
-    <Suspense fallback={null}><LandingLoader /></Suspense>
+    <LandingLoader />
     <GrainOverlay />
-    <Suspense fallback={null}><CustomCursor /></Suspense>
+    <CustomCursor />
     <TextCarousel />
     <ShopHeader />
 
     <main className="relative overflow-hidden">
       {/* ── HERO ── */}
       <section className="relative h-[90vh] flex flex-col items-center justify-center text-center px-4">
-        <Suspense fallback={null}><BeeCanvas /></Suspense>
+        <BeeCanvas />
           <div className="absolute inset-0 bg-gradient-radial from-transparent to-background opacity-60 pointer-events-none" />
 
           <div className="relative z-10 max-w-4xl">
@@ -210,7 +217,7 @@ export function TiendaLandingView({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center mb-16">
               {[
                 { value: ecosystemMetrics.arboles_total, label: 'Árboles plantados', suffix: '+' },
-                { value: ecosystemMetrics.co2_ton, label: 'Ton CO₂ capturado', suffix: '', prefix: '~' },
+                { value: ecosystemMetrics.co2_evitado_total_kg, label: 'CO₂ evitado (kg)', suffix: '', prefix: '~' },
                 { value: ecosystemMetrics.colmenas_total, label: 'Colmenas custodiadas', suffix: '' },
                 { value: ecosystemMetrics.especies_nativas, label: 'Especies nativas', suffix: '' },
               ].map((stat) => (

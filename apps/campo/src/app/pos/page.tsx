@@ -50,8 +50,8 @@ export default function PosIndex() {
             href="/pos/carrito"
             className="card-glow p-5 flex items-center gap-4 hover:border-primary/40 transition-colors group"
           >
-            <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
-              <ShoppingCart className="w-6 h-6 text-amber-400" />
+        <div className="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center group-hover:bg-warning/20 transition-colors">
+          <ShoppingCart className="w-6 h-6 text-warning" />
             </div>
             <div>
         <p className="text-sm font-bold text-foreground">Carrito</p>
@@ -62,8 +62,8 @@ export default function PosIndex() {
             href="/pos/historial"
             className="card-glow p-5 flex items-center gap-4 hover:border-primary/40 transition-colors group"
           >
-            <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
-              <TrendingUp className="w-6 h-6 text-green-400" />
+        <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors">
+          <TrendingUp className="w-6 h-6 text-success" />
             </div>
             <div>
         <p className="text-sm font-bold text-foreground">Historial</p>

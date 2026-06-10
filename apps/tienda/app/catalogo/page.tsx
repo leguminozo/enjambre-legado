@@ -1,12 +1,34 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { listVisibleProducts } from '@/lib/shop/products';
+import { itemListJsonLd, renderJsonLd } from '@/lib/shop/json-ld';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { CatalogoView } from './catalog-view';
 
-export const metadata = {
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+
+export const metadata: Metadata = {
   title: 'Creaciones · Catálogo',
+  description:
+    'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y suscripciones con trazabilidad regenerativa — La Obrera y el Zángano.',
+  alternates: { canonical: `${SITE_URL}/catalogo` },
+  openGraph: {
+    title: 'Creaciones · Catálogo',
+    description:
+      'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y suscripciones con trazabilidad regenerativa.',
+    url: `${SITE_URL}/catalogo`,
+    type: 'website',
+    locale: 'es_CL',
+    siteName: 'La Obrera y el Zángano',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Creaciones · Catálogo',
+    description:
+      'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y suscripciones con trazabilidad regenerativa.',
+  },
 };
 
 export default async function CatalogoPage() {
@@ -18,9 +40,19 @@ export default async function CatalogoPage() {
     loadError = e instanceof Error ? e.message : 'Error cargando catálogo';
   }
 
+  const listSchema = products.length > 0
+    ? itemListJsonLd(products.map((p, i) => ({ name: p.name, slug: p.slug, position: i + 1 })))
+    : null;
+
   return (
     <StoreShell>
       <ShopHeader />
+      {listSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: renderJsonLd(listSchema) }}
+        />
+      )}
       <main className="min-h-[50vh] bg-background">
         {loadError ? (
           <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">

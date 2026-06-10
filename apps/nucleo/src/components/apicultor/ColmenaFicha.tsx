@@ -163,7 +163,7 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                     <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
                                         <button className="btn btn-ghost btn-sm" onClick={() => setShowInspeccionForm(false)}>Cancelar</button>
                                         <button className="btn btn-primary btn-sm" onClick={async () => {
-                                            const newInspeccion = inspeccionForm as unknown as InspeccionRecord;
+                                            const newInspeccion = inspeccionForm as InspeccionRecord;
 
                                             // Write to Supabase first
                                             if (colmena.id && !colmena.id.includes('mock')) {

@@ -103,7 +103,7 @@ export function DashboardBancoChile() {
         .limit(10);
 
       if (cuentasData) {
-        setCuentas(cuentasData as unknown as CuentaResumen[]);
+        setCuentas(Array.isArray(cuentasData) ? (cuentasData as CuentaResumen[]) : []);
       }
 
       // Obtener movimientos recientes
@@ -115,7 +115,7 @@ export function DashboardBancoChile() {
         .limit(10);
 
       if (movsData) {
-        setMovimientos(movsData as unknown as MovimientoReciente[]);
+        setMovimientos(Array.isArray(movsData) ? (movsData as MovimientoReciente[]) : []);
       }
 
       // Obtener sugerencias de conciliación
@@ -182,28 +182,28 @@ console.error('Error auto-conciliando:', error);
           value={`$${resumen?.saldoTotal.toLocaleString('es-CL') || '0'}`}
           subtitle={`${resumen?.totalCuentas || 0} cuentas activas`}
           icon="💰"
-          color="bg-green-500"
+          color="bg-success"
         />
         <ResumenCard
           title="Pendientes Conciliar"
           value={resumen?.conciliacionesPendientes || 0}
           subtitle="Movimientos sin conciliar"
           icon="📋"
-          color="bg-yellow-500"
+          color="bg-warning"
         />
         <ResumenCard
           title="Documentos"
           value={resumen?.documentosPendientes || 0}
           subtitle="Por revisar"
           icon="📄"
-          color="bg-blue-500"
+          color="bg-info"
         />
         <ResumenCard
           title="Sugerencias"
           value={sugerenciasConciliacion}
           subtitle="Conciliaciones sugeridas"
           icon="✨"
-          color="bg-purple-500"
+          color="bg-accent"
           action={sugerenciasConciliacion > 0 ? autoConciliar : undefined}
         />
       </div>
@@ -281,7 +281,7 @@ console.error('Error auto-conciliando:', error);
                   <div className="text-right ml-2">
                     <p
                       className={`font-bold ${
-                        mov.monto > 0 ? 'text-green-600' : 'text-red-600'
+                        mov.monto > 0 ? 'text-success' : 'text-destructive'
                       }`}
                     >
                       {mov.monto > 0 ? '+' : ''}
@@ -289,9 +289,9 @@ console.error('Error auto-conciliando:', error);
                     </p>
                     <p className="text-xs">
                       {mov.conciliado ? (
-                        <span className="text-green-600">✓ Conciliado</span>
-                      ) : (
-                        <span className="text-yellow-600">⏳ Pendiente</span>
+<span className="text-success">✓ Conciliado</span>
+                ) : (
+                <span className="text-warning">⏳ Pendiente</span>
                       )}
                     </p>
                   </div>

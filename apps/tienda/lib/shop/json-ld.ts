@@ -251,6 +251,43 @@ export function harvestEventJsonLd(input: {
   };
 }
 
+export function articleJsonLd(input: {
+  headline: string;
+  description: string;
+  url: string;
+  datePublished?: string;
+  dateModified?: string;
+  authorName?: string;
+  imageUrl?: string;
+}): JsonLdRecord {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: input.headline,
+    description: input.description,
+    url: input.url,
+    datePublished: input.datePublished ?? '2025-07-02',
+    dateModified: input.dateModified ?? undefined,
+    author: {
+      '@type': 'Organization',
+      name: input.authorName ?? SITE_NAME,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/icons/icon-512.svg`,
+      },
+    },
+    image: input.imageUrl ?? undefined,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': input.url,
+    },
+  };
+}
+
 export function mergeJsonLd(records: JsonLdRecord[]): JsonLdRecord {
   if (records.length === 1) return records[0];
   return {

@@ -5,7 +5,7 @@ import { Eye, EyeOff, Lock, Mail, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { GrainOverlay } from '@/components/shop/grain-overlay';
+import { GrainOverlay } from '@enjambre/ui';
 
 const TIENDA_ROLE_REDIRECT: Record<string, string> = {
   cliente: '/perfil',

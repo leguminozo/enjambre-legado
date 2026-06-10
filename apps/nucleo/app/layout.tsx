@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Enjambre Legado · Núcleo",
   description: "Plataforma central de apicultura regenerativa — Centro de mando unificado",
   icons: { icon: "/favicon.ico" },
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {

@@ -38,7 +38,7 @@ function createCustomIcon(marker: MapMarker): L.DivIcon {
     },
     feria: {
       className: 'marker-obrera',
-      html: `<div class="marker-zangano-inner" style="background:var(--oro-miel);border-color:var(--bosque-ulmo);">
+      html: `<div class="marker-zangano-inner" style="background:hsl(var(--accent));border-color:hsl(var(--primary));">
 <span style="font-size:11px;transform:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)">📍</span>
 </div>`,
     },
@@ -160,12 +160,12 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                         >
                             <Popup>
                                 <div style={{ minWidth: 180 }}>
-                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: 4 }}>
+                                    <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>
                                         {getMarkerTypeLabel(marker.type)}
                                     </div>
                                     <strong style={{ fontSize: '0.95rem', color: BOSQUE_ULMO }}>{marker.name}</strong>
                                     {marker.details && (
-                                        <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: 6, lineHeight: 1.4 }}>
+                                        <p style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', marginTop: 6, lineHeight: 1.4 }}>
                                             {marker.details}
                                         </p>
                                     )}
@@ -213,7 +213,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                         <span style={{ width: 12, height: 12, borderRadius: '50%', background: BOSQUE_ULMO, border: `2px solid ${ORO_MIEL}`, display: 'inline-block' }} /> Zángano (expansión)
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 10, height: 13, borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%', background: ORO_MIEL, display: 'inline-block', border: '2px solid white' }} /> Gota de néctar (venta)
+                        <span style={{ width: 10, height: 13, borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%', background: ORO_MIEL, display: 'inline-block', border: '2px solid hsl(var(--foreground))' }} /> Gota de néctar (venta)
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ width: 12, height: 12, borderRadius: '50%', background: SALUD_OPTIMA, border: `2px solid ${BOSQUE_ULMO}`, display: 'inline-block' }} /> Árbol ulmo (bosque)

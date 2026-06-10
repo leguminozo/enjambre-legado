@@ -12,7 +12,7 @@
 ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │ Nucleo BFF (Next.js + Hono) │
-│ apps/nucleo/src/app/api/ │
+│ apps/nucleo/src/api/routes/banco-chile/ │
 │ ┌──────────────────────────────────────────────────────────────┐ │
 │  │  /api/banco-chile/*                                          │  │
 │  │  ├── config           # Configuración                        │  │

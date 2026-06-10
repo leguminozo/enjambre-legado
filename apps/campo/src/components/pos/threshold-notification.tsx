@@ -76,7 +76,7 @@ export function ThresholdNotificationBanner({ notification, onDismiss }: {
 
   return (
     <div className={`fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-sm z-50 animate-in slide-in-from-bottom-4 ${
-      isCrossed ? 'bg-gradient-to-r from-amber-500/90 to-amber-600/90' : 'bg-gradient-to-r from-primary/90 to-primary/80'
+      isCrossed ? 'bg-gradient-to-r from-warning/90 to-warning/90' : 'bg-gradient-to-r from-primary/90 to-primary/80'
     } rounded-xl p-4 shadow-2xl backdrop-blur-sm`}>
       <div className="flex items-start gap-3">
         <div className="text-2xl">{isCrossed ? '🔥' : '⚡'}</div>

@@ -70,7 +70,7 @@ export function LeaderboardPanel() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Trophy className="w-5 h-5 text-amber-400" />
+        <Trophy className="w-5 h-5 text-warning" />
         <h3 className="font-serif text-lg text-foreground">Leaderboard Semanal</h3>
       </div>
 
@@ -78,12 +78,12 @@ export function LeaderboardPanel() {
         <div className={`grid gap-3 ${top3.length >= 2 ? 'grid-cols-2' : 'grid-cols-1'} ${top3.length >= 3 ? 'sm:grid-cols-3' : ''}`}>
           {top3.map((entry, i) => {
             const RankIcon = rankIcons[i] || TrendingUp;
-            const colors = [
-              'from-amber-500/20 to-amber-600/5 border-amber-500/30',
-              'from-stone-400/20 to-stone-500/5 border-stone-400/30',
-              'from-orange-700/20 to-orange-800/5 border-orange-700/30',
-            ];
-            const iconColors = ['text-amber-400', 'text-secondary-foreground', 'text-warning'];
+        const colors = [
+          'from-warning/20 to-warning/5 border-warning/30',
+          'from-secondary/20 to-secondary/5 border-border',
+          'from-accent/20 to-accent/5 border-accent/30',
+        ];
+        const iconColors = ['text-warning', 'text-secondary-foreground', 'text-accent'];
 
             return (
               <div key={entry.rep_id} className={`bg-gradient-to-b ${colors[i] || colors[2]} border rounded-xl p-4 text-center ${i === 0 ? 'sm:scale-105 sm:z-10' : ''}`}>

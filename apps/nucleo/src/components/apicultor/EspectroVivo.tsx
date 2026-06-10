@@ -21,7 +21,7 @@ export function EspectroVivo() {
   const startListening = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioContextRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
+      audioContextRef.current = new (window.AudioContext || (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
       sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
 
       analyzerRef.current = Meyda.createMeydaAnalyzer({
@@ -62,7 +62,7 @@ export function EspectroVivo() {
     const cy = height / 2;
 
     // Limpieza suave (efecto estela)
-    ctx.fillStyle = 'rgba(26, 22, 20, 0.2)';
+    ctx.fillStyle = 'hsl(var(--background) / 0.2)';
     ctx.fillRect(0, 0, width, height);
 
     // Dibujar firma sonora circular

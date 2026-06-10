@@ -68,8 +68,8 @@ type CashContextValue = {
   openSession: (openingCash: number) => Promise<void>;
   closeSession: (closingCashCounted: number, notas?: string) => Promise<Record<string, unknown> | null>;
   refreshStatus: () => Promise<void>;
-  quickSale: (productoId: string, cantidad: number, metodoPago: string, channel?: string) => Promise<QuickSaleResult | null>;
-  cartSale: (items: CartItem[], metodoPago: string, channel?: string) => Promise<QuickSaleResult | null>;
+  quickSale: (productoId: string, cantidad: number, metodoPago: string, channel?: string, sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => Promise<QuickSaleResult | null>;
+  cartSale: (items: CartItem[], metodoPago: string, channel?: string, sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => Promise<QuickSaleResult | null>;
 };
 
 const CashContext = createContext<CashContextValue | null>(null);
@@ -155,8 +155,8 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
     return res.summary ?? null;
   }, [token, session]);
 
-  const quickSale = useCallback(async (productoId: string, cantidad: number, metodoPago: string, channel?: string) => {
-    if (!token || !session) throw new Error('Sin sesión abierta');
+  const quickSale = useCallback(async (productoId: string, cantidad: number, metodoPago: string, channel?: string, sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => {
+    if (!token || !session) throw new Error('Sin sesion abierta');
     const res = await apiFetch('/rep-ventas/quick', token, {
       method: 'POST',
       body: JSON.stringify({
@@ -167,6 +167,8 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
         channel,
         cliente_id: selectedClient?.id ?? undefined,
         is_new_client: isNewClient,
+        sumup_checkout_id: sumupFields?.sumup_checkout_id,
+        sumup_transaction_id: sumupFields?.sumup_transaction_id,
       }),
     });
     setTodayCommissions(res.meta.accumulated_commission);
@@ -177,8 +179,8 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
     return { ...res.data, commission: res.meta.commission ?? undefined };
   }, [token, session, selectedClient, isNewClient]);
 
-  const cartSale = useCallback(async (items: CartItem[], metodoPago: string, channel?: string) => {
-    if (!token || !session) throw new Error('Sin sesión abierta');
+  const cartSale = useCallback(async (items: CartItem[], metodoPago: string, channel?: string, sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => {
+    if (!token || !session) throw new Error('Sin sesion abierta');
     const res = await apiFetch('/rep-ventas/quick', token, {
       method: 'POST',
       body: JSON.stringify({
@@ -190,6 +192,8 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
         cliente_id: selectedClient?.id ?? undefined,
         is_new_client: isNewClient,
         items_override: items,
+        sumup_checkout_id: sumupFields?.sumup_checkout_id,
+        sumup_transaction_id: sumupFields?.sumup_transaction_id,
       }),
     });
     setTodayCommissions(res.meta.accumulated_commission);

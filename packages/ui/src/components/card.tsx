@@ -12,9 +12,9 @@ const variantClasses: Record<Variant, string> = {
   default:
     'bg-card text-card-foreground border border-border/50 backdrop-blur-xl shadow-sm',
   dark:
-    'bg-primary text-primary-foreground border border-white/10',
+    'bg-primary text-primary-foreground border border-foreground/10',
   glass:
-    'bg-card/60 backdrop-blur-xl border border-white/20 shadow-lg',
+    'bg-card/60 backdrop-blur-xl border border-foreground/20 shadow-lg',
   accent:
     'bg-card text-card-foreground border-l-[3px] border-l-accent',
   elevated:

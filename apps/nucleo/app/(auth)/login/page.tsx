@@ -82,7 +82,7 @@ export default function LoginPage() {
         <div ref={formRef} className="relative z-10 w-full px-6" style={{ maxWidth: '440px' }}>
           <div className="glass-panel text-center">
             <div className="mb-8">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-oro-miel-glow mb-6 border border-oro-miel" style={{ borderColor: 'rgba(212, 160, 23, 0.3)', opacity: 0.8 }}>
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-oro-miel-glow mb-6 border border-oro-miel" style={{ borderColor: 'hsl(var(--accent) / 0.3)', opacity: 0.8 }}>
                 <Hexagon size={28} className="text-oro-miel" />
               </div>
               <h2 className="font-existencial text-crema-natural mb-2 italic m-0" style={{ fontSize: '2.4rem', lineHeight: 1.1 }}>
@@ -157,11 +157,11 @@ export default function LoginPage() {
               )}
             </form>
 
-            <div className="mt-8 pt-8 border-t text-center" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+            <div className="mt-8 pt-8 border-t text-center" style={{ borderColor: 'hsl(var(--foreground) / 0.08)' }}>
               <p className="font-datos text-crema-natural mb-5 m-0" style={{ opacity: 0.5, fontSize: '0.8rem' }}>
                 {isLogin ? '¿Aún no tienes registro?' : '¿Ya eres parte del enjambre?'}
               </p>
-              <button onClick={() => { setIsLogin(!isLogin); }} className="btn btn-outline" style={{ borderRadius: '99px', fontSize: '0.75rem', letterSpacing: '0.08em', padding: '0.6rem 2rem', color: 'var(--oro-miel)', borderColor: 'rgba(212, 160, 23, 0.4)' }}>
+              <button onClick={() => { setIsLogin(!isLogin); }} className="btn btn-outline" style={{ borderRadius: '99px', fontSize: '0.75rem', letterSpacing: '0.08em', padding: '0.6rem 2rem', color: 'var(--oro-miel)', borderColor: 'hsl(var(--accent) / 0.4)' }}>
                 {isLogin ? 'Crear Legado' : 'Iniciar Sesión'}
               </button>
             </div>

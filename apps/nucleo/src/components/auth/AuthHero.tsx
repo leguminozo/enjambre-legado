@@ -42,16 +42,16 @@ export function AuthHero({ onStart }: AuthHeroProps) {
     >
       <h1 
         ref={titleRef}
-        className="text-7xl font-existencial text-crema-natural mb-6 italic m-0"
-        style={{ textShadow: '0 4px 30px rgba(0,0,0,0.6)', lineHeight: 1, fontSize: '4.5rem' }}
+        className="text-7xl font-existencial text-primary-foreground mb-6 italic m-0"
+        style={{ textShadow: '0 4px 30px hsl(var(--background) / 0.6)', lineHeight: 1, fontSize: '4.5rem' }}
       >
         El Bosque <br /> 
-        <span className="text-oro-miel">te reconoce.</span>
+        <span className="text-accent">te reconoce.</span>
       </h1>
       
       <p 
         ref={textRef}
-        className="text-xl font-datos text-crema-natural mb-10 max-w-lg m-0"
+        className="text-xl font-datos text-primary-foreground mb-10 max-w-lg m-0"
         style={{ opacity: 0.7, lineHeight: 1.6 }}
       >
         Bienvenido al núcleo digital de la regeneración biocultural. 

@@ -44,9 +44,19 @@ interface TraceabilityProps {
   blockchainHash?: string | null;
   colmenaOrigen?: string | null;
   fechaCosecha?: string | null;
+  fechaEnvasado?: string | null;
+  nombreLote?: string | null;
+  descripcionLote?: string | null;
 }
 
-export function TraceabilitySection({ blockchainHash, colmenaOrigen, fechaCosecha }: TraceabilityProps) {
+export function TraceabilitySection({ 
+  blockchainHash, 
+  colmenaOrigen, 
+  fechaCosecha,
+  fechaEnvasado,
+  nombreLote,
+  descripcionLote
+}: TraceabilityProps) {
   const [showQR, setShowQR] = useState(false);
 
   if (!blockchainHash) return null;
@@ -70,8 +80,14 @@ export function TraceabilitySection({ blockchainHash, colmenaOrigen, fechaCosech
               Este producto cuenta con certificación de trazabilidad blockchain. Cada lote está vinculado a una colmena específica del bosque nativo de Chiloé.
             </p>
             
-            {(colmenaOrigen || fechaCosecha) && (
+            {(colmenaOrigen || fechaCosecha || fechaEnvasado || nombreLote) && (
               <div className="space-y-3">
+                {nombreLote && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Shield className="h-4 w-4 text-accent" />
+                    <span className="text-foreground">Lote: <strong>{nombreLote}</strong></span>
+                  </div>
+                )}
                 {colmenaOrigen && (
                   <div className="flex items-center gap-3 text-sm">
                     <MapPin className="h-4 w-4 text-accent" />
@@ -84,6 +100,12 @@ export function TraceabilitySection({ blockchainHash, colmenaOrigen, fechaCosech
                     <span className="text-foreground">Cosecha: <strong>{new Date(fechaCosecha).toLocaleDateString('es-CL')}</strong></span>
                   </div>
                 )}
+                {fechaEnvasado && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Clock className="h-4 w-4 text-accent" />
+                    <span className="text-foreground">Envasado: <strong>{new Date(fechaEnvasado).toLocaleDateString('es-CL')}</strong></span>
+                  </div>
+                )}
                 {blockchainHash && (
                   <div className="flex items-center gap-3 text-sm">
                     <Leaf className="h-4 w-4 text-accent" />
@@ -91,6 +113,12 @@ export function TraceabilitySection({ blockchainHash, colmenaOrigen, fechaCosech
                   </div>
                 )}
               </div>
+            )}
+            
+            {descripcionLote && (
+              <p className="mt-4 text-xs italic text-muted-foreground border-l-2 border-accent/20 pl-3">
+                {descripcionLote}
+              </p>
             )}
 
             <button

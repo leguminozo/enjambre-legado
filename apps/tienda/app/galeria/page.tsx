@@ -3,9 +3,32 @@ import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContentStatic } from '@/lib/cms';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 import { z } from 'zod';
 
-export const metadata = { title: 'Galería' };
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+
+export const metadata: Metadata = {
+  title: 'Galería',
+  description:
+    'Recorrido visual del apiario, la cosecha y el bosque regenerado en Chiloé — La Obrera y el Zángano.',
+  alternates: { canonical: `${SITE_URL}/galeria` },
+  openGraph: {
+    title: 'Galería · La Obrera y el Zángano',
+    description:
+      'Recorrido visual del apiario, la cosecha y el bosque regenerado en Chiloé.',
+    url: `${SITE_URL}/galeria`,
+    type: 'website',
+    locale: 'es_CL',
+    siteName: 'La Obrera y el Zángano',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Galería · La Obrera y el Zángano',
+    description:
+      'Recorrido visual del apiario, la cosecha y el bosque regenerado en Chiloé.',
+  },
+};
 
 const GaleriaItemContentSchema = z.object({
   titulo: z.string().default(''),

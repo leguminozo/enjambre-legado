@@ -25,8 +25,8 @@ const rankIconColors = ['text-accent', 'text-muted-foreground', 'text-warning'];
 
 const tierBadge: Record<string, string> = {
   base: 'bg-secondary text-muted-foreground',
-  senior: 'bg-oro-miel-glow/30 text-oro-miel-dark',
-  elite: 'bg-salud-optima/10 text-salud-optima',
+  senior: 'bg-accent/15 text-accent',
+  elite: 'bg-success/10 text-success',
   legend: 'bg-card text-foreground',
 };
 
@@ -41,7 +41,7 @@ export function LeaderboardPanel() {
         p_empresa_id: (await supabase.from('usuarios_empresas').select('empresa_id').limit(1).single()).data?.empresa_id,
       });
       if (error) throw error;
-      setEntries((data as unknown as LeaderboardEntry[]) || []);
+      setEntries(Array.isArray(data) ? (data as LeaderboardEntry[]) : []);
     } catch (err) {
       toast(friendlyError(err, 'Error al cargar ranking'), { type: 'error' });
     } finally {
@@ -60,8 +60,8 @@ export function LeaderboardPanel() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-oro-miel-dark" size={32} />
-        <p className="text-sm text-text-muted font-datos uppercase tracking-widest">Cargando ranking...</p>
+        <Loader2 className="animate-spin text-accent" size={32} />
+        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Cargando ranking...</p>
       </div>
     );
   }
@@ -74,19 +74,19 @@ export function LeaderboardPanel() {
   return (
   <div className="space-y-8 animate-in relative">
     <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
+        <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center text-accent">
           <Trophy size={24} />
         </div>
         <div>
-          <h2 className="text-2xl font-display text-bosque-ulmo">Ranking Semanal</h2>
-          <p className="text-sm text-text-muted">{weekLabel} · Ranking por comisiones</p>
+          <h2 className="text-2xl font-display text-primary">Ranking Semanal</h2>
+          <p className="text-sm text-muted-foreground">{weekLabel} · Ranking por comisiones</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { icon: <Trophy size={18} />, val: entries.length, label: 'Representantes Activos', accent: '' },
-          { icon: <TrendingUp size={18} />, val: formatCLP(totalCommissions), label: 'Comisiones Totales', accent: 'text-oro-miel-dark' },
+          { icon: <TrendingUp size={18} />, val: formatCLP(totalCommissions), label: 'Comisiones Totales', accent: 'text-accent' },
           { icon: <Medal size={18} />, val: totalSales, label: 'Ventas Totales', accent: '' },
           { icon: <Crown size={18} />, val: entries[0]?.display_name || '—', label: 'Líder Semanal', accent: 'text-primary' },
         ].map((s, i) => (
@@ -105,12 +105,12 @@ export function LeaderboardPanel() {
             return (
               <div key={entry.rep_id} className={`card p-6 text-center border-2 ${rankColors[i] || 'border-border'} ${i === 0 ? 'lg:scale-105 lg:z-10' : ''}`}>
                 <RankIcon className={`w-8 h-8 mx-auto mb-3 ${rankIconColors[i] || 'text-muted-foreground'}`} />
-                <p className="text-lg font-bold text-bosque-ulmo">{entry.display_name}</p>
+                <p className="text-lg font-bold text-primary">{entry.display_name}</p>
                 <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${tierBadge[entry.commission_tier] || tierBadge.base}`}>
                   {entry.commission_tier}
                 </span>
-                <p className="text-2xl font-bold text-oro-miel-dark mt-3">{formatCLP(Number(entry.total_commissions))}</p>
-                <p className="text-xs text-text-muted mt-1">{entry.total_sales} ventas · {formatCLP(Number(entry.total_revenue))}</p>
+                <p className="text-2xl font-bold text-accent mt-3">{formatCLP(Number(entry.total_commissions))}</p>
+                <p className="text-xs text-muted-foreground mt-1">{entry.total_sales} ventas · {formatCLP(Number(entry.total_revenue))}</p>
               </div>
             );
           })}
@@ -120,13 +120,13 @@ export function LeaderboardPanel() {
       {rest.length > 0 && (
         <div className="card">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp size={18} className="text-oro-miel-dark" />
+            <TrendingUp size={18} className="text-accent" />
             <h3 className="font-display text-lg">Clasificación Completa</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-text-muted text-[0.65rem] uppercase tracking-wider border-b border-foreground/5">
+                <tr className="text-left text-muted-foreground text-[0.65rem] uppercase tracking-wider border-b border-foreground/5">
                   <th className="pb-3 w-12">#</th>
         <th className="pb-3">Representante</th>
         <th className="pb-3">Nivel</th>
@@ -138,8 +138,8 @@ export function LeaderboardPanel() {
               <tbody>
                 {rest.map(entry => (
                   <tr key={entry.rep_id} className="border-b border-foreground/[0.03] hover:bg-background/[0.02]">
-                    <td className="py-3 font-mono text-text-muted">{entry.rank}</td>
-                    <td className="py-3 font-medium text-bosque-ulmo">{entry.display_name}</td>
+                    <td className="py-3 font-mono text-muted-foreground">{entry.rank}</td>
+                    <td className="py-3 font-medium text-primary">{entry.display_name}</td>
                     <td className="py-3">
                       <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${tierBadge[entry.commission_tier] || tierBadge.base}`}>
                         {entry.commission_tier}
@@ -147,7 +147,7 @@ export function LeaderboardPanel() {
                     </td>
                     <td className="py-3">{entry.total_sales}</td>
                     <td className="py-3">{formatCLP(Number(entry.total_revenue))}</td>
-                    <td className="py-3 font-bold text-oro-miel-dark">{formatCLP(Number(entry.total_commissions))}</td>
+                    <td className="py-3 font-bold text-accent">{formatCLP(Number(entry.total_commissions))}</td>
                   </tr>
                 ))}
               </tbody>
@@ -158,8 +158,8 @@ export function LeaderboardPanel() {
 
       {entries.length === 0 && (
         <div className="card p-8 text-center">
-          <Trophy className="w-8 h-8 text-text-muted mx-auto mb-3" />
-          <p className="text-sm text-text-muted italic">Sin datos esta semana. El ranking se actualiza con cada venta.</p>
+          <Trophy className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground italic">Sin datos esta semana. El ranking se actualiza con cada venta.</p>
         </div>
       )}
     </div>

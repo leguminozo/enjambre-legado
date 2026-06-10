@@ -1,14 +1,16 @@
-import type {
-  SumUpAuthConfig,
-  SumUpResult,
-  SumUpTransaction,
-  SumUpTransactionHistoryResponse,
-  SumUpFinancialPayout,
-  SumUpCheckout,
-  SumUpReader,
-  SumUpMerchant,
-  ListTransactionsOptions,
-  ListPayoutsOptions,
+import {
+  CreateCheckoutSchema,
+  RefundTransactionSchema,
+  type SumUpAuthConfig,
+  type SumUpResult,
+  type SumUpTransaction,
+  type SumUpTransactionHistoryResponse,
+  type SumUpFinancialPayout,
+  type SumUpCheckout,
+  type SumUpReader,
+  type SumUpMerchant,
+  type ListTransactionsOptions,
+  type ListPayoutsOptions,
 } from "./types";
 
 export class SumUpClient {
@@ -19,9 +21,7 @@ export class SumUpClient {
   constructor(config: SumUpAuthConfig) {
     this.apiKey = config.apiKey;
     this.merchantCode = config.merchantCode;
-    this.baseUrl = config.environment === "live"
-      ? "https://api.sumup.com"
-      : "https://api.sumup.com";
+    this.baseUrl = "https://api.sumup.com";
   }
 
   private getHeaders(): HeadersInit {
@@ -115,6 +115,12 @@ export class SumUpClient {
 
   async refundTransaction(transactionId: string, amount?: number): Promise<SumUpResult<void>> {
     const body = amount !== undefined ? { amount } : undefined;
+    if (body) {
+      const parsed = RefundTransactionSchema.safeParse(body);
+      if (!parsed.success) {
+        return { success: false, error: { code: "VALIDATION_ERROR", message: parsed.error.issues.map((i) => i.message).join("; ") } };
+      }
+    }
     return this.request<void>(
       `/v1.0/merchants/${this.merchantCode}/payments/${transactionId}/refunds`,
       {
@@ -150,9 +156,13 @@ export class SumUpClient {
     redirect_url?: string;
     valid_until?: string;
   }): Promise<SumUpResult<SumUpCheckout>> {
+    const parsed = CreateCheckoutSchema.safeParse(data);
+    if (!parsed.success) {
+      return { success: false, error: { code: "VALIDATION_ERROR", message: parsed.error.issues.map((i) => i.message).join("; ") } };
+    }
     return this.request<SumUpCheckout>(`/v0.1/checkouts`, {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify(parsed.data),
     });
   }
 

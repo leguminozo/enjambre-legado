@@ -1,11 +1,32 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getEcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 
-export const metadata = {
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+
+export const metadata: Metadata = {
   title: 'La ciencia del bosque · Enjambre Legado',
+  description:
+    'Miel cruda vs azúcar refinada: índice glicémico, enzimas activas y el Índice de Regeneración Relativa (IRR). La ciencia detrás de cada frasco.',
+  alternates: { canonical: `${SITE_URL}/ciencia` },
+  openGraph: {
+    title: 'La ciencia del bosque · La Obrera y el Zángano',
+    description:
+      'Miel cruda vs azúcar refinada: índice glicémico, enzimas activas y el Índice de Regeneración Relativa (IRR).',
+    url: `${SITE_URL}/ciencia`,
+    type: 'article',
+    locale: 'es_CL',
+    siteName: 'La Obrera y el Zángano',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'La ciencia del bosque · La Obrera y el Zángano',
+    description:
+      'Miel cruda vs azúcar refinada: índice glicémico, enzimas activas y el Índice de Regeneración Relativa (IRR).',
+  },
 };
 
 export default async function CienciaPage() {

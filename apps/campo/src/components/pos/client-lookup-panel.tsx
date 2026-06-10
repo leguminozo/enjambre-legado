@@ -76,14 +76,14 @@ export function ClientLookupPanel() {
     return (
       <div className="card-glow p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center">
-            <UserPlus className="w-4 h-4 text-amber-400" />
+        <div className="w-8 h-8 rounded-full bg-warning/10 flex items-center justify-center">
+          <UserPlus className="w-4 h-4 text-warning" />
           </div>
           <div>
             <p className="text-sm font-bold text-foreground">Cliente nuevo</p>
             <p className="text-[10px] text-muted-foreground">Se aplicará comisión base (sin loyalty)</p>
           </div>
-          <span className="text-[9px] uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">Nuevo</span>
+          <span className="text-[9px] uppercase tracking-widest text-warning bg-warning/10 px-2 py-0.5 rounded-full">Nuevo</span>
         </div>
         <button onClick={() => setIsNewClient(false)} className="text-muted-foreground hover:text-foreground">
           <X className="w-4 h-4" />

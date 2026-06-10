@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { GuardianSidebar } from '@/components/shop/guardian-sidebar';
 import { PerfilLayoutClient } from './perfil-layout-client';
-import { GrainOverlay } from '@/components/shop/grain-overlay';
+import { GrainOverlay } from '@enjambre/ui';
 import { CustomCursor } from '@/components/shop/custom-cursor';
 import { toTiendaUserProfile } from '@/lib/shop/user-profile';
 

@@ -1,5 +1,7 @@
 export type Moneda = "CLP" | "USD" | "EUR";
 
+export const RUT_EXTRANJERO_GENERICO = "55555555-5";
+
 export interface ProveedorConfig {
   id: string;
   nombre: string;

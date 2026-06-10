@@ -52,7 +52,7 @@ const [resP, resC] = await Promise.all([
       setCampaigns(resC.data ?? []);
 
   const { data: clientData } = await supabase.from('clientes').select('id, nombre, tipo').eq('user_id', uid);
-  setLocalClients((clientData as unknown as LocalClient[]) ?? []);
+      setLocalClients(Array.isArray(clientData) ? (clientData as LocalClient[]) : []);
         }
         loadData();
     }, []);

@@ -10,10 +10,16 @@ export type AppVariables = {
   rol: string;
 };
 
+function getEnvOrThrow(key: string): string {
+  const value = process.env[key];
+  if (!value) throw new Error(`Missing required env var: ${key}`);
+  return value;
+}
+
 export function createSupabaseUserClient(accessToken: string): SupabaseClient {
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    getEnvOrThrow("NEXT_PUBLIC_SUPABASE_URL"),
+    getEnvOrThrow("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
     {
       global: { headers: { Authorization: `Bearer ${accessToken}` } },
       auth: { persistSession: false, autoRefreshToken: false },

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingBag, Package, Truck, CheckCircle, ArrowUpRight } from 'lucide-react';
+import { ShoppingBag, Package, Truck, CheckCircle, ArrowUpRight, Clock } from 'lucide-react';
 import { createClient } from '@/utils/supabase/server';
 import { formatCLP } from '@/lib/shop/format';
 import { formatDate as formatDateBase } from '@enjambre/ui';
@@ -8,15 +8,28 @@ function formatDate(iso: string) {
   return formatDateBase(iso, { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+interface Order {
+  id: string;
+  created_at: string;
+  total: number;
+  estado: string;
+  logistica_envios: Array<{
+    tracking_code: string;
+    status: string;
+    via: string;
+    eta?: string;
+  }>;
+}
+
 export default async function PedidosPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   const { data: orders } = await supabase
     .from('ventas')
-    .select('*')
+    .select('*, logistica_envios(tracking_code, status, via, eta)')
     .eq('cliente_id', user?.id)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }) as { data: Order[] | null };
 
   return (
     <div className="space-y-16 animate-in">
@@ -41,11 +54,14 @@ export default async function PedidosPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          {orders.map((order: Record<string, unknown>) => {
+          {orders.map((order) => {
             const orderId = String(order.id ?? '');
             const createdAt = String(order.created_at ?? '');
             const total = (order.total as number) ?? 0;
             const estado = String(order.estado ?? 'Procesando');
+            const envios = Array.isArray(order.logistica_envios) ? order.logistica_envios : [];
+            const envio = envios[0]; // Tomamos el primer envío vinculado
+            
             return (
               <div key={orderId} className="p-8 rounded-3xl bg-card border border-border hover:border-accent/20 transition-all group">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -60,6 +76,13 @@ export default async function PedidosPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-8 md:gap-12">
+                    {envio && (
+                      <div className="text-right">
+                        <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Tracking</span>
+                        <span className="text-sm font-mono text-accent">{envio.tracking_code}</span>
+                      </div>
+                    )}
+
                     <div className="text-right">
                       <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Inversión</span>
                       <span className="text-lg font-display text-foreground">{formatCLP(total)}</span>
@@ -68,8 +91,8 @@ export default async function PedidosPage() {
                     <div className="text-right">
                       <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Estado Vital</span>
                       <div className="flex items-center gap-2 justify-end">
-                        <span className={`w-1.5 h-1.5 rounded-full ${estado === 'entregado' ? 'bg-success' : 'bg-accent animate-pulse'}`} />
-                        <span className="text-[0.65rem] uppercase tracking-widest text-foreground font-bold">{estado}</span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${estado === 'entregado' || (envio && envio.status === 'Entregado') ? 'bg-success' : 'bg-accent animate-pulse'}`} />
+                        <span className="text-[0.65rem] uppercase tracking-widest text-foreground font-bold">{envio ? envio.status : estado}</span>
                       </div>
                     </div>
 
@@ -86,12 +109,23 @@ export default async function PedidosPage() {
                       <span className="text-[0.6rem] uppercase tracking-widest font-bold">Pago Confirmado</span>
                     </div>
                     <div className="w-12 h-px bg-border" />
-                    <div className={`flex items-center gap-2 ${estado === 'enviado' || estado === 'entregado' ? 'text-accent' : 'text-muted-foreground'}`}>
+                    <div className={`flex items-center gap-2 ${estado === 'enviado' || (envio && ['Enviado', 'En Tránsito', 'Entregado'].includes(envio.status)) ? 'text-accent' : 'text-muted-foreground'}`}>
                       <Truck size={14} />
-                      <span className="text-[0.6rem] uppercase tracking-widest font-bold">En Tránsito</span>
+                      <span className="text-[0.6rem] uppercase tracking-widest font-bold">{envio ? envio.status : 'Preparando'}</span>
                     </div>
+                    {envio?.eta && (
+                      <>
+                        <div className="w-12 h-px bg-border" />
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          <span className="text-[0.6rem] uppercase tracking-widest font-bold">ETA: {envio.eta}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <p className="text-[0.6rem] text-muted-foreground italic uppercase tracking-widest">Pureo Batch #CV-2025-04</p>
+                  {envio && (
+                    <p className="text-[0.6rem] text-muted-foreground italic uppercase tracking-widest">Via: {envio.via}</p>
+                  )}
                 </div>
               </div>
             );

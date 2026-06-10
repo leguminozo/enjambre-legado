@@ -11,9 +11,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
-    "dev:spa": "vite",
-    "build:spa": "vite build"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@enjambre/auth": "workspace:*",
@@ -28,7 +26,7 @@
     "@radix-ui/react-select": "^2.2.6",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
-    "@supabase/ssr": "^0.6.1",
+    "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.1",
     "@tanstack/react-query": "^5.100.11",
     "@types/three": "^0.184.1",

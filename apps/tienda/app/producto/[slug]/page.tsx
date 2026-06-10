@@ -218,10 +218,13 @@ export default async function ProductoPage({
             </div>
 
             {/* Trazabilidad QR */}
-            <TraceabilitySection 
+            <TraceabilitySection
               blockchainHash={product.blockchain_hash}
               colmenaOrigen={product.colmena_origen}
               fechaCosecha={product.fecha_cosecha}
+              fechaEnvasado={product.fecha_envasado}
+              nombreLote={product.nombre_lote}
+              descripcionLote={product.descripcion_lote}
             />
 
             <Link href="/catalogo" className="mt-10 inline-flex text-sm font-medium text-accent hover:underline">

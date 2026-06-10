@@ -1,7 +1,9 @@
+import type { Metadata } from 'next';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContent } from '@/lib/cms';
+import { articleJsonLd, breadcrumbJsonLd, mergeJsonLd, renderJsonLd } from '@/lib/shop/json-ld';
 import { X } from 'lucide-react';
 
 const EVIDENCIA_CIENTIFICA = [
@@ -122,15 +124,53 @@ fuente: 'EVIDENCIA CIENTÍFICA'
 }
 ] as const;
 
-export const metadata = { title: 'Nuestra Historia' };
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+
+export const metadata: Metadata = {
+  title: 'Nuestra Historia',
+  description:
+    '22 años de regeneración en Chiloé. Apicultura regenerativa, reforestación nativa y miel cruda del bosque valdiviano — La Obrera y el Zángano.',
+  alternates: { canonical: `${SITE_URL}/nosotros` },
+  openGraph: {
+    title: 'Nuestra Historia · La Obrera y el Zángano',
+    description:
+      '22 años de regeneración en Chiloé. Apicultura regenerativa, reforestación nativa y miel cruda del bosque valdiviano.',
+    url: `${SITE_URL}/nosotros`,
+    type: 'article',
+    locale: 'es_CL',
+    siteName: 'La Obrera y el Zángano',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Nuestra Historia · La Obrera y el Zángano',
+    description:
+      '22 años de regeneración en Chiloé. Apicultura regenerativa, reforestación nativa y miel cruda del bosque valdiviano.',
+  },
+};
 
 export default function NosotrosPage() {
+  const nosotrosJsonLd = mergeJsonLd([
+    articleJsonLd({
+      headline: 'Renacer de las Cenizas en Chiloé',
+      description:
+        '22 años de regeneración en Chiloé. Apicultura regenerativa, reforestación nativa y miel cruda del bosque valdiviano.',
+      url: `${SITE_URL}/nosotros`,
+      datePublished: '2025-07-02',
+    }),
+    breadcrumbJsonLd([
+      { name: 'Inicio', href: '/' },
+      { name: 'Nuestra Historia', href: '/nosotros' },
+    ]),
+  ]);
 
-
-return (
-<StoreShell>
-<ShopHeader />
-<main className="mx-auto max-w-5xl px-6 py-16 sm:px-8 lg:py-24">
+  return (
+    <StoreShell>
+      <ShopHeader />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: renderJsonLd(nosotrosJsonLd) }}
+      />
+      <main className="mx-auto max-w-5xl px-6 py-16 sm:px-8 lg:py-24">
 {/* Hero */}
 <div className="text-center mb-20">
 <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent mb-6">

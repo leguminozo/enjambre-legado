@@ -165,7 +165,7 @@ conciliacionRouter.post("/desconciliar/:id", async (c) => {
 
   const { data: conciliacion } = await supabase
     .from("conciliaciones")
-    .select("id, venta_id")
+    .select("id, venta_id, tipo")
     .eq("id", conciliacionId)
     .eq("empresa_id", empresaId)
     .single();
@@ -189,6 +189,19 @@ conciliacionRouter.post("/desconciliar/:id", async (c) => {
       .from("ventas")
       .update({ conciliado: false })
       .eq("id", ventaId);
+
+    const { data: txnForVenta } = await supabase
+      .from("sumup_transacciones")
+      .select("id")
+      .eq("venta_id", ventaId)
+      .limit(1);
+
+    if (txnForVenta && txnForVenta.length > 0) {
+      await supabase
+        .from("sumup_transacciones")
+        .update({ conciliado: false, venta_id: null })
+        .in("id", txnForVenta.map((t: { id: string }) => t.id));
+    }
   }
 
   return c.json({ success: true });

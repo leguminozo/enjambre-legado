@@ -2,7 +2,7 @@
 
 import { createClient } from '@/utils/supabase/client';
 import { friendlySupabaseError } from '@enjambre/ui';
-import { useAuthStore, logSecurityEvent } from '@enjambre/auth';
+import { useAuthStore, logSecurityEvent, LEGACY_ROLE_MAP, type RoleKey } from '@enjambre/auth';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import React, { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
 
@@ -10,7 +10,7 @@ export type TiendaUser = {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'cliente' | 'creador' | 'rep_ventas';
+  role: RoleKey;
 };
 
 type AuthContextValue = {
@@ -24,16 +24,7 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const LEGACY_ROLES = new Set<string>([
-  'apicultor',
-  'vendedor',
-  'gerente',
-  'logistica',
-  'marketing',
-  'tienda_admin',
-]);
-
-const VALID_ROLES = new Set<string>([
+const VALID_ROLES = new Set<RoleKey>([
   'admin',
   'cliente',
   'creador',
@@ -42,12 +33,12 @@ const VALID_ROLES = new Set<string>([
 
 function toTiendaUser(authUser: { id: string; email: string; role: string; full_name: string } | null): TiendaUser | null {
   if (!authUser) return null;
-  const normalizedRole = LEGACY_ROLES.has(authUser.role) ? 'admin' : authUser.role;
+  const normalizedRole = (LEGACY_ROLE_MAP[authUser.role] ?? authUser.role) as RoleKey;
   return {
     id: authUser.id,
     email: authUser.email,
     name: authUser.full_name || authUser.email.split('@')[0] || 'Usuario',
-    role: VALID_ROLES.has(normalizedRole) ? (normalizedRole as TiendaUser['role']) : 'cliente',
+    role: VALID_ROLES.has(normalizedRole) ? normalizedRole : 'cliente',
   };
 }
 

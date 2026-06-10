@@ -1,3 +1,5 @@
+import { LEGACY_ROLE_MAP, type RoleKey } from '@enjambre/auth/role-redirect';
+
 export type TiendaUserProfile = {
   id: string;
   full_name: string | null;
@@ -6,16 +8,7 @@ export type TiendaUserProfile = {
   arboles_personal: number | null;
 };
 
-const LEGACY_ROLES = new Set([
-  'apicultor',
-  'vendedor',
-  'gerente',
-  'logistica',
-  'marketing',
-  'tienda_admin',
-]);
-
-const VALID_ROLES = new Set([
+const VALID_ROLES = new Set<RoleKey>([
   'admin',
   'cliente',
   'creador',
@@ -28,7 +21,7 @@ export function toTiendaUserProfile(data: unknown): TiendaUserProfile | null {
 
   const record = data as Record<string, unknown>;
   const rawRole = typeof record.role === 'string' ? record.role : '';
-  const normalizedRole = LEGACY_ROLES.has(rawRole) ? 'admin' : rawRole;
+  const normalizedRole = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as RoleKey;
 
   return {
     id: typeof record.id === 'string' ? record.id : '',

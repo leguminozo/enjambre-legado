@@ -22,31 +22,29 @@ enjambre-legado/ (pnpm workspace + Turborepo)
 | | |-- EIRL contable views (absorbido de apps/eirl)
 | | |-- Puerto: 3000
 | |
-| |-- campo/ Next.js 16 · React 19 · Tailwind 3
-| | |-- PWA para campo (apicultor/vendedor/rep_ventas)
-| | |-- POS: CashProvider, QuickSale, TierBadge, Leaderboard, Threshold
-| | |-- Offline-first planificado (no implementado aun)
+| |-- campo/ Next.js 16 · React 19 · Tailwind 3 (src/ dir)
+| | |-- POS completo: CashProvider, QuickSale, TierBadge, Leaderboard, Threshold, ClientLookup
 | | |-- Puerto: 3002
 |
 |-- packages/
 | |-- database/ Supabase + Postgres 17 + PostGIS
 | | |-- Migraciones + tipos generados
-| | |-- 43+ migraciones, 20+ tablas, RLS completo
+| | |-- 50+ migraciones, 20+ tablas, RLS completo
 | |
 | |-- contable/ Logica tributaria chilena
-| | |-- IVA 19%, RUT, facturas (Zod schemas)
+| | |-- IVA 19%, RUT, facturas, DTE XML, receipt parsers (7), tasa-cambio, gasto-extranjero
 | |
-| |-- auth/ Autenticacion compartida
-| | |-- Supabase client + Zustand store + role redirect
+| |-- auth/ Autenticacion compartida (5 entry points)
+| | |-- Supabase client + Zustand store + role redirect + security events
 | |
-| |-- ui/ Design tokens
-| | |-- 4 tokens semanticos + CSS custom properties
+| |-- ui/ Design system compartido
+| | |-- 15 componentes + hooks + lib + Tailwind preset + tokens + icons
 | |
 | |-- sumup/ SumUp POS integration
 | |
 | |-- banco-chile/ Banco Chile Empresas API client
 |
-|-- components/shop/ DEUDA: migrar a packages/ui o apps/tienda
+|-- apps/tienda/components/shop/ Componentes de tienda (18 archivos activos)
 |-- docs/ Documentacion (estas aqui)
 |-- skills/ Supabase agent skills (gitignored)
 ```
@@ -84,29 +82,19 @@ nucleo/ tienda/ nucleo/ campo/
 campo/
 ```
 
-### 2.2 Flujo Offline-First (Campo) — Planificado
-
-> **Nota**: El offline-first no esta implementado aun. Campo actualmente usa Supabase directamente.
+### 2.2 Flujo de Datos (Campo)
 
 ```console
 UI Component (campo)
 |
 v
-Custom Hook (useSync) — futuro
+Custom Hook / Server Component
 |
 v
-Dexie DB (IndexedDB) ← escritura inmediata — futuro
-|
-v
-Sync Queue (pendientes) — futuro
-|
-v (cuando haya conexion)
 Supabase (Postgres)
 ```
 
-**Regla critica** (cuando se implemente): Toda escritura en campo persiste primero en Dexie. Nunca directamente a Supabase desde la UI.
-
-### 2.3 Flujo de Pagos (Tienda)
+### 2.3 Flujo de Pagos e Inventario (Tienda → Nucleo)
 
 ```
 Checkout (tienda/frontend)
@@ -123,13 +111,14 @@ v
 POST /api/checkout/commit (Next.js API Route)
 |  → Lee sesión desde checkout_sessions (Postgres, no memoria)
 |  → Idempotente: solo completa si status = 'pending'
-|  → INSERT venta + decrement_stock
+|  → INSERT venta + decrement_stock() RPC
+|  → TRIGGER trg_sync_lote_stock
+|    → Descuenta peso_neto_g del kg_total en tabla LOTES
 |  → Marca sesión como 'completed'
+|  → get_ecosystem_metrics() refleja impacto CO2 real
 v
-Supabase: INSERT venta + arboles_plantados
-|
-v
-Confirmacion al cliente
+Dashboard Nucleo (Vista Apicultor)
+|  → Refleja stock real de lotes en tiempo real
 ```
 
 **Tabla de sesiones**: `checkout_sessions` (Migration 38) — RLS service_role only, auto-expire 30 min, audit trail completo.
@@ -159,15 +148,15 @@ Supabase: facturas_emitidas, gastos, impuestos
 
 **Stack**: Next.js 16.2.1 + React 19.2.4 + Tailwind CSS 3.3 + GSAP 3.15 + Hono 4 BFF
 
-**Auth**: Middleware propio (`utils/supabase/middleware.ts`) con `updateSession()`. No usa `createAuthMiddleware`. No logea `access_denied` actualmente.
+**Auth**: Middleware `middleware.ts` propio con `updateSession()` + CSRF validation + admin route guard + `logAccessDenied()` que posta a nucleo BFF (`POST /api/security-events/internal` con `x-internal-key`). `access_denied` logging activo.
 
 **Rutas publicas**:
 - `/` Landing editorial premium
-- `/catalogo` Catalogo de productos con filtros
-- `/producto/[slug]` Ficha de producto con trazabilidad
+- `/catalogo` Catalogo de productos con filtros (metadata completa + JSON-LD ItemList)
+- `/producto/[slug]` Ficha de producto con trazabilidad (generateMetadata dinamico + JSON-LD Product)
 - `/checkout` Flow de pago (Transbank)
 - `/impacto` Pagina de impacto ambiental
-- `/nosotros`, `/contacto`, `/experiencias`, `/galeria`
+- `/nosotros`, `/contacto`, `/experiencias`, `/galeria`, `/ciencia` (metadata completa + OG + canonical)
 - `/login`, `/register`
 
 **Rutas admin** (`/(admin)/`):
@@ -193,6 +182,8 @@ Supabase: facturas_emitidas, gastos, impuestos
 
 **Stack**: Next.js 16.2.6 + React 19 + TanStack Query 5.96 + Leaflet + Zustand + Hono 4 BFF (App Router `/api/[[...routes]]`)
 
+**SEO**: `robots: noindex, nofollow` — app privada, no indexable por motores de busqueda.
+
 **Vistas por rol** (App Router con sidebar filtrado por rol):
 
 | Ruta | Rol | Componente | Funcionalidad |
@@ -207,6 +198,16 @@ Supabase: facturas_emitidas, gastos, impuestos
 | `/leaderboard` | admin | LeaderboardPanel | Ranking semanal (stat cards + top 3 + tabla) |
 | `/contable` | admin | ContableView | Integracion contable via BFF |
 | `/eirl` | admin | EIRL views | Contabilidad EIRL (absorbido de apps/eirl) |
+| `/catalogo`, `/catalogo/productos` | admin | — | Catálogo y gestión de productos |
+| `/crm` | admin | CRMView | CRM vendedores |
+| `/ejecutivo` | admin | — | Dashboard ejecutivo |
+| `/comunidad` | admin | — | Gestión de comunidad |
+| `/operaciones` | admin | — | Operaciones logísticas |
+| `/conciliacion` | admin | — | Conciliación bancaria |
+| `/pagos` | admin | — | Gestión de pagos |
+| `/sii` | admin | SiiDteView | Sincronización SII/DTE |
+| `/calculos-ia` | admin | — | Cálculos de IA |
+| `/vanguardia` | admin | — | Arquitectura vanguardia |
 
 **Entorno**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 
@@ -214,7 +215,9 @@ Supabase: facturas_emitidas, gastos, impuestos
 
 ### 3.3 Campo (`@enjambre/campo`)
 
-**Stack**: Next.js 16.2.6 + React 19.2.0 + Tailwind CSS 3.4
+**Stack**: Next.js 16.2.6 + React 19.2.0 + Tailwind CSS 3.4 (src/ dir)
+
+**SEO**: `robots: noindex, nofollow` — app privada, no indexable por motores de busqueda.
 
 **Rutas**:
 - `/` Landing
@@ -232,7 +235,7 @@ Supabase: facturas_emitidas, gastos, impuestos
 
 **Styling**: 100% semantic Tailwind tokens (`bg-background`, `text-foreground`, `text-primary`, `bg-card`, `border-border`, `text-muted-foreground`, `text-destructive`, `text-primary-foreground`, `bg-surface-raised`, `bg-surface-sunken`). Sin colores hardcoded. Tokens mapeados en `tailwind.config.js` desde `@enjambre/ui` CSS variables.
 
-**Offline**: Offline-first planificado. Campo actualmente usa Supabase directamente. Futuro: `@enjambre/offline` (Dexie + sync queue).
+**Offline**: Campo opera conectado a Supabase. Offline-first no implementado (no requerido por caso de uso).
 
 **Entorno**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (o PUBLISHABLE), `NEXT_PUBLIC_NUCLEO_API_URL` (BFF endpoint para cash sessions/comisiones)
 
@@ -254,21 +257,24 @@ Supabase: facturas_emitidas, gastos, impuestos
 | `/api/commission-rules` | `commission-rules.ts` | CRUD reglas comisión (6 tipos) + dashboard |
 | `/api/dashboard/resumen` | `dashboard-resumen.ts` | Dashboard gerencial: 17 queries paralelas (colmenas, apiarios, cosechas, ventas, caja, comisiones, leaderboard) |
 | `/api/security-events` | `security-events.ts` | Logging de eventos de seguridad: `POST /` (auth Bearer) + `POST /internal` (x-internal-key) |
-| `/api/contable/*` | (existentes) | Dashboard, facturas emitidas |
-| `/api/health/*` | (existentes) | Liveness, readiness |
-
-**Stack**: Hono 4.10.5 + Node.js + `@enjambre/contable`
-
-**Middleware pipeline**:
-```
-Request → auth.ts (valida JWT) → tenant.ts (resuelve empresa) → Route Handler
-```
-
-**Rutas**:
-- `GET /api/health/live` — Liveness (sin auth)
-- `GET /api/health/ready` — Readiness (requiere Bearer)
-- `GET /api/contable/dashboard` — Dashboard financiero por empresa
-- `POST /api/contable/facturas-emitidas` — Crear factura con calculo IVA automatico
+| `/api/contable/*` | `contable.ts` | Dashboard, facturas emitidas |
+| `/api/banco-chile/*` | `banco-chile/` | Config, cuentas, movimientos, conciliacion, transferencias, nominas, documentos, cotizaciones, rentas, montos, webhook |
+| `/api/creadores` | `creadores.ts` | Gestión de creadores |
+| `/api/sumup` | `sumup.ts` | SumUp POS integration |
+| `/api/sii` | `sii.ts` | Sincronización SII |
+| `/api/facturas-emitidas` | `facturas-emitidas.ts` | CRUD facturas emitidas |
+| `/api/gastos` | `gastos.ts` | CRUD gastos |
+| `/api/terceros` | `terceros.ts` | CRUD terceros |
+| `/api/eirl-dashboard` | `eirl-dashboard.ts` | Dashboard EIRL |
+| `/api/reportes` | `reportes.ts` | Reportes contables |
+| `/api/calculos-ia` | `calculos-ia.ts` | Cálculos IA |
+| `/api/costeo` | `costeo.ts` | Costeo de productos |
+| `/api/cms` | `cms.ts` | CMS content management |
+| `/api/logistica` | `logistica.ts` | Logística y envíos |
+| `/api/produccion` | `produccion.ts` | Producción y trazabilidad |
+| `/api/crm` | `crm.ts` | CRM vendedores |
+| `/api/dashboard/ejecutivo` | `dashboard-ejecutivo.ts` | Dashboard ejecutivo |
+| `/api/health/*` | `health.ts` | Liveness, readiness |
 
 **Tipos**: `AppVariables` (user, accessToken, supabase, empresaId, rol)
 
@@ -318,18 +324,23 @@ Logica tributaria chilena pura, sin dependencias de framework:
 
 ### 4.3 `@enjambre/auth`
 
-Autenticacion y clientes Supabase compartidos para apps Next.js. Dos puntos de entrada:
+Autenticacion y clientes Supabase compartidos para apps Next.js. **5 puntos de entrada**:
 
 **`@enjambre/auth`** (cliente/browser):
 | Modulo | Funcionalidad |
 |---|---|
-| `supabase.ts` | Cliente browser Supabase (singleton, null-safe, soporta PUBLISHABLE_DEFAULT_KEY) + env helpers (`getSupabaseUrl`, `getSupabaseKey`, `isSupabaseConfigured`) |
-| `auth-store.ts` | Zustand store: `user`, `session`, `isAuthenticated`, `isLoading`, `appSource` (`AppSource` = 'nucleo'|'tienda'|'campo'|'api'), `checkUser()`, `signOut()` (logsea `session_revoked` con `appSource` dinámico), `setAppSource()`, `refreshSession()` |
-| `auth-provider.ts` | `useAuthProvider()` — hook que sincroniza `onAuthStateChange` con Zustand store (se usa una vez en root Providers) |
+| `supabase.ts` | `createClient()` (singleton, null-safe, soporta PUBLISHABLE_DEFAULT_KEY), `createAdminClient()` (service_role), `getSupabaseUrl()`, `getSupabaseKey()`, `isSupabaseConfigured()` |
+| `auth-store.ts` | Zustand store: `user`, `session`, `isAuthenticated`, `isLoading`, `appSource` (`AppSource` = 'nucleo'\|'tienda'\|'campo'\|'api'), `checkUser()`, `signOut()` (logea `session_revoked` con `appSource` dinamico), `setAppSource()`, `refreshSession()` |
+| `auth-provider.ts` | `useAuthProvider()` — hook que sincroniza `onAuthStateChange` con Zustand store |
 | `hooks.tsx` | `useRoleBasedRedirect` — redirige segun rol post-login |
-| `security-events.ts` | `logSecurityEvent`, `fetchSecurityEvents`, `isRepeatedFailure` — 13 tipos de evento (incluye `access_denied`, `signup_success`) |
-| `role-redirect.ts` | `ROLE_REDIRECT_MAP` (rol→ruta), `ROUTE_ROLE_GUARDS` (ruta→roles), `getRoleRedirectPath()`, `isRouteAllowed()`, `RoleKey` |
+| `security-events.ts` | `logSecurityEvent`, `fetchSecurityEvents`, `isRepeatedFailure` — 13 tipos de evento |
+| `role-redirect.ts` | `ROLE_REDIRECT_MAP` (rol→ruta), `ROUTE_ROLE_GUARDS` (ruta→roles), `ALL_ADMIN_ROLES`, `getRoleRedirectPath()`, `isRouteAllowed()`, `RoleKey`, `LEGACY_ROLE_MAP` |
 | `use-security-alerts.ts` | `useSecurityAlerts` hook para monitoreo de eventos de seguridad |
+
+**`@enjambre/auth/browser`** (browser-only subset):
+| Modulo | Funcionalidad |
+|---|---|
+| `supabase.ts` | `createClient()`, `createAdminClient()`, `getSupabaseUrl()`, `getSupabaseKey()`, `isSupabaseConfigured()` |
 
 **`@enjambre/auth/server-index`** (server-only):
 | Modulo | Funcionalidad |
@@ -341,24 +352,36 @@ Autenticacion y clientes Supabase compartidos para apps Next.js. Dos puntos de e
 **`@enjambre/auth/security-events`** (server-safe, sin React):
 | Modulo | Funcionalidad |
 |---|---|
-| `security-events.ts` | `logSecurityEvent()`, `fetchSecurityEvents()`, `isRepeatedFailure()`, tipos — para uso en BFF/routes server-side sin importar hooks de React |
+| `security-events.ts` | `logSecurityEvent()`, `fetchSecurityEvents()`, `isRepeatedFailure()`, tipos `SecurityEventType`, `SecurityEvent`, `SecurityEventPayload`, `AppSource` |
 
-**`@enjambre/auth/middleware`** (Edge-safe):
+**`@enjambre/auth/role-redirect`** (server-safe, sin React):
 | Modulo | Funcionalidad |
 |---|---|
-| `middleware.ts` | `createAuthMiddleware()` — factory con role redirect + route guards + logging `access_denied` via BFF |
+| `role-redirect.ts` | `LEGACY_ROLE_MAP`, `RoleKey`, `ROLE_REDIRECT_MAP`, `ALL_ADMIN_ROLES`, `ROUTE_ROLE_GUARDS`, `getRoleRedirectPath()`, `isRouteAllowed()` |
 
-**Uso en apps**: Nucleo usa `@enjambre/auth` via re-exports en `@/lib/` (71 consumidores, cero rotos). `useAuthProvider()` hook en root. Middleware usa `createAuthMiddleware()` de `@enjambre/auth/middleware`. Tienda tiene middleware propio (`utils/supabase/middleware.ts`) con `updateSession()`, no usa `createAuthMiddleware`. Campo tiene middleware propio con custom `logAccessDenied()` que posta a nucleo BFF. Los archivos `env.ts` locales son necesarios para evitar que Turbopack resuelva el barrel de `@enjambre/auth` (que incluye hooks de React) en contextos server-side.
+**Uso en apps**: Nucleo usa `@enjambre/auth` via re-exports en `@/lib/` (71 consumidores). `useAuthProvider()` hook en root. Middleware usa `createAuthMiddleware()` de `@enjambre/auth/middleware`. Tienda tiene `middleware.ts` propio con `updateSession()` + CSRF + admin guard + `access_denied` logging. Campo tiene middleware propio con `logAccessDenied()` que posta a nucleo BFF. Los archivos `env.ts` locales son necesarios para evitar que Turbopack resuelva el barrel de `@enjambre/auth` (que incluye hooks de React) en contextos server-side.
 
-**Eventos de seguridad** (Phase 5 — logging centralizado):
+**Eventos de seguridad** (13 tipos — Phase 5 logging centralizado):
 
-| Ubicación | Eventos | Mecanismo |
+| Tipo | Descripcion |
+|---|---|
+| `login_success`, `login_failed` | Autenticacion |
+| `password_reset_requested`, `password_changed` | Password |
+| `account_locked`, `suspicious_activity` | Seguridad |
+| `role_change` | Permisos |
+| `session_revoked` | Logout |
+| `mfa_enabled`, `mfa_disabled` | MFA |
+| `oauth_linked` | OAuth |
+| `access_denied` | Route guard (middleware) |
+| `signup_success` | Registro |
+
+| Ubicacion | Eventos | Mecanismo |
 |---|---|---|
 | Login page (3 apps) | `login_success`, `login_failed`, `password_reset_requested`, `signup_success` | `logSecurityEvent(supabase, ...)` directo |
 | Nucleo middleware | `access_denied` | Fire-and-forget `POST /api/security-events/internal` con `x-internal-key` |
 | Campo middleware | `access_denied` | Fire-and-forget `POST /api/security-events/internal` (via BFF nucleo) |
-| Tienda middleware | — | No logea `access_denied` actualmente |
-| Auth store `signOut()` | `session_revoked` | `logSecurityEvent(supabase, ...)` antes de `supabase.auth.signOut()`, con `appSource` dinámico |
+| Tienda middleware | `access_denied` | Fire-and-forget `POST /api/security-events/internal` (local origin) |
+| Auth store `signOut()` | `session_revoked` | `logSecurityEvent(supabase, ...)` antes de `supabase.auth.signOut()`, con `appSource` dinamico |
 
 **BFF route de seguridad** (`/api/security-events`):
 - `POST /` — autenticado via Bearer token (`authMiddleware`) para client-side logging
@@ -371,14 +394,19 @@ Autenticacion y clientes Supabase compartidos para apps Next.js. Dos puntos de e
 
 ### 4.4 `@enjambre/ui`
 
-Design tokens (4 tokens semanticos + CSS custom properties):
+Design system compartido. 3 subpaths: `@enjambre/ui`, `@enjambre/ui/tokens.css`, `@enjambre/ui/tailwind-preset`.
 
-| Token | Hex | Significado |
-|---|---|---|
-| `bosqueUlmo` | `#0A3D2F` | Verde profundo del bosque |
-| `oroMiel` | `#D4A017` | Dorado de la miel premium |
-| `cremaNatural` | `#FDFBF7` | Crema natural de cera |
-| `negroTinta` | `#1a1a1a` | Negro profundo |
+**Componentes** (15): `Button` (5 variantes, 3 sizes), `Card` (5 variantes + subcomponentes), `Badge` (6 variantes), `Input`, `Textarea`, `StatCard`, `Spinner` (3 sizes), `EmptyState`, `SectionHeader`, `GrainOverlay`, `ModuleHero`, `Dialog` (Radix, 10 subcomponentes), `Sidebar` (4 subcomponentes + registerSidebarIcons), `ThemeProvider` + `useThemeContext`, `ThemeToggle`, `ToastProvider` + `useToast`
+
+**Hooks** (3): `useTheme` (light/dark/system), `toast` (sonner wrapper), `useToast` (context)
+
+**Icons** (24): Re-exports Lucide icons centralizados
+
+**Lib utilities** (4): `cn` (clsx+twMerge), `formatDate`/`formatDateShort`/`formatCLP`/`fmtCLP`, `friendlySupabaseError`/`friendlyApiError`/`friendlyError`, `splitCsvLine`
+
+**Tokens** (4 brand hex + 7 HSL + CSS custom properties completas con dark/light mode, tipografia editorial, spacing, radii, shadows, transitions, keyframes)
+
+**Tailwind preset**: `createEnjambrePreset(overrides?)` / `enjambrePreset` — colores semanticos (background, foreground, card, primary, accent, destructive, success, warning, info, border, surface, sidebar, bosque, miel, crema), font families (display/sans/mono), editorial font scale, spacing, animations
 
 ### 4.5 `@enjamble/sumup`
 
@@ -393,13 +421,14 @@ Cliente TypeScript para Banco Chile Empresas API. Autenticacion OAuth 2.0, refre
 ## 5. Grafo de Dependencias
 
 ```
-tienda -----> @enjambre/database, @supabase/ssr, @supabase/supabase-js
+tienda -----> @enjambre/database, @enjambre/ui, @supabase/ssr, @supabase/supabase-js
 gsap, lucide-react, recharts, transbank-sdk, zod
 
-nucleo -----> @supabase/supabase-js, @tanstack/react-query, @enjambre/contable
+nucleo -----> @enjambre/ui, @enjambre/contable, @enjambre/auth
+@supabase/supabase-js, @tanstack/react-query
 leaflet, react-leaflet, recharts, zustand, hono
 
-campo -----> @supabase/ssr, @supabase/supabase-js
+campo -----> @enjambre/ui, @enjambre/auth, @supabase/ssr, @supabase/supabase-js
 lucide-react
 ```
 
@@ -414,7 +443,6 @@ lucide-react
 | Bancos | Stub | tienda, nucleo BFF | Conciliacion bancaria |
 | Notificaciones | Stub | tienda | Eventos de notificacion |
 | Blockchain | Planificado | nucleo | Certificacion de origen |
-| IA/ML | Stub | packages/ai | Prediccion de floracion |
 
 ---
 
@@ -433,4 +461,4 @@ Ver `DEPLOY.md` y `VERCEL.md` para instrucciones detalladas.
 ---
 
 *Este documento es la referencia tecnica maestra. Actualizar cuando cambie la estructura o se agreguen apps/paquetes.*
-*Ultima actualizacion: Junio 2026 — 3 apps en Next.js 16, roles consolidados (migration 39), EIRL absorbido por nucleo, BFF Hono dentro de nucleo, packages/sumup + banco-chile agregados, offline-first planificado*
+*Ultima actualizacion: Junio 2026 — 3 apps en Next.js 16, roles consolidados (migration 39), EIRL absorbido por nucleo, BFF Hono dentro de nucleo (22 route groups), packages/sumup + banco-chile, campo POS completo, tienda middleware activo*

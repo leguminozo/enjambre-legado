@@ -168,22 +168,30 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     key: 'gestion',
     label: 'GESTIÓN',
     items: [
-      {
-      key: 'ejecutivo',
-      label: 'Panel Ejecutivo',
-      icon: 'bar-chart-3',
-      href: '/',
-        greeting: 'Comandante del enjambre',
-        mission: 'Visión total, operación total',
-      },
-      {
-      key: 'vanguardia',
-      label: 'Vanguardia B2B',
-      icon: 'shield',
-      href: '/vanguardia',
-        greeting: 'General de alianzas',
-        mission: 'Cada aliado multiplica el bosque',
-      },
+        {
+          key: 'ejecutivo',
+          label: 'Panel Ejecutivo',
+          icon: 'bar-chart-3',
+          href: '/ejecutivo',
+          greeting: 'Comandante del enjambre',
+          mission: 'Visión total, operación total',
+        },
+        {
+          key: 'crm',
+          label: 'CRM Vendedores',
+          icon: 'contact',
+          href: '/crm',
+          greeting: 'Relacionador del legado',
+          mission: 'Cada cliente es una historia que se cultiva',
+        },
+        {
+          key: 'vanguardia',
+          label: 'Vanguardia B2B',
+          icon: 'shield',
+          href: '/vanguardia',
+          greeting: 'General de alianzas',
+          mission: 'Cada aliado multiplica el bosque',
+        },
       {
       key: 'creadores-admin',
       label: 'Creadores Admin',
@@ -265,9 +273,8 @@ export const ACCOUNT_ITEMS: SidebarItem[] = [
 
 export function findActiveItem(pathname: string): SidebarItem | undefined {
   const allItems = [...SIDEBAR_GROUPS.flatMap(g => g.items), ...ACCOUNT_ITEMS]
-  if (pathname === '/') {
-    return allItems.find(item => item.href === '/')
-  }
+  const exactMatch = allItems.find(item => item.href === pathname)
+  if (exactMatch) return exactMatch
   const match = allItems.find(item => item.href !== '/' && pathname.startsWith(item.href))
   return match
 }

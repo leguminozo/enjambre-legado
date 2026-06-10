@@ -5,13 +5,11 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-  globalIgnores([
+globalIgnores([
     "**/dist/**",
     "**/.next/**",
     "**/node_modules/**",
     "**/.turbo/**",
-    "apps/tienda/server/**",
-  "apps/tienda/client/**",
   ]),
 
   {

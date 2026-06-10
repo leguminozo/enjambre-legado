@@ -1,9 +1,32 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 
-export const metadata = { title: 'Experiencias' };
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+
+export const metadata: Metadata = {
+  title: 'Experiencias',
+  description:
+    'Experiencias inmersivas del bosque: talleres, visitas al apiario y rituales de miel en Chiloé — La Obrera y el Zángano.',
+  alternates: { canonical: `${SITE_URL}/experiencias` },
+  openGraph: {
+    title: 'Experiencias · La Obrera y el Zángano',
+    description:
+      'Experiencias inmersivas del bosque: talleres, visitas al apiario y rituales de miel en Chiloé.',
+    url: `${SITE_URL}/experiencias`,
+    type: 'website',
+    locale: 'es_CL',
+    siteName: 'La Obrera y el Zángano',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Experiencias · La Obrera y el Zángano',
+    description:
+      'Experiencias inmersivas del bosque: talleres, visitas al apiario y rituales de miel en Chiloé.',
+  },
+};
 
 export default function ExperienciasPage() {
   return (

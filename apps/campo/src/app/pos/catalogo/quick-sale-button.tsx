@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useCart } from '@/components/pos/cart-context';
 import { useCashSession } from '@/components/pos/cash-context';
-import { Plus, Zap, Banknote, CreditCard, Smartphone, Loader2, CheckCircle2, Store, Truck, Building2, Users, Crown, Radio } from 'lucide-react';
+import { useSumUp } from '@/components/pos/sumup-context';
+import { SumupTerminalFlow } from '@/components/pos/sumup-terminal-flow';
+import type { PaymentMethod, TerminalFlowResult } from '@/components/pos/types';
+import { Plus, Zap, Banknote, CreditCard, Smartphone, Loader2, CheckCircle2, Store, Truck, Building2, Users, Crown, Radio, Nfc } from 'lucide-react';
 
 interface Props {
   producto_id: string;
@@ -11,7 +14,7 @@ interface Props {
   precio: number;
 }
 
-type Step = 'idle' | 'qty' | 'channel' | 'pay' | 'done';
+type Step = 'idle' | 'qty' | 'channel' | 'pay' | 'terminal' | 'done';
 
 const channels = [
   { value: 'feria', label: 'Feria', icon: <Store className="w-4 h-4" /> },
@@ -21,15 +24,17 @@ const channels = [
   { value: 'referido', label: 'Referido', icon: <Users className="w-4 h-4" /> },
 ];
 
-const paymentMethods = [
+const paymentMethods: { value: PaymentMethod; label: string; icon: React.ReactNode }[] = [
   { value: 'efectivo', label: 'Efectivo', icon: <Banknote className="w-4 h-4" /> },
-  { value: 'debito', label: 'Débito', icon: <CreditCard className="w-4 h-4" /> },
+  { value: 'debito', label: 'Debito', icon: <CreditCard className="w-4 h-4" /> },
   { value: 'transferencia', label: 'Transferencia', icon: <Smartphone className="w-4 h-4" /> },
+  { value: 'tarjeta_pos', label: 'Terminal', icon: <Nfc className="w-4 h-4" /> },
 ];
 
 export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
   const { addLine } = useCart();
   const { session, quickSale } = useCashSession();
+  const { setTerminalStep } = useSumUp();
   const [step, setStep] = useState<Step>('idle');
   const [qty, setQty] = useState(1);
   const [channel, setChannel] = useState<string>('feria');
@@ -46,15 +51,84 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
 
   const isSessionOpen = session?.session_status === 'open';
 
+  const handleSaleResult = useCallback((result: { rep_commission_total: number; commission?: { tier_multiplier: number; channel_rate: number | null; volume_multiplier: number; loyalty_bonus: number; streak_bonus: number; total: number } } | null) => {
+    if (result) {
+      setLastCommission(result.rep_commission_total);
+      if (result.commission) {
+        setLastCommissionDetail({
+          tier_multiplier: result.commission.tier_multiplier,
+          channel_rate: result.commission.channel_rate,
+          volume_multiplier: result.commission.volume_multiplier,
+          loyalty_bonus: result.commission.loyalty_bonus,
+          streak_bonus: result.commission.streak_bonus,
+          total: result.commission.total,
+        });
+      }
+    }
+  }, []);
+
+  const handlePayment = useCallback(async (pm: PaymentMethod) => {
+    if (pm === 'tarjeta_pos') {
+      setTerminalStep('selecting_reader');
+      setStep('terminal');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const metodoPago = pm === 'debito' ? 'tarjeta' : pm;
+      const result = await quickSale(producto_id, qty, metodoPago, channel);
+      handleSaleResult(result);
+      setStep('done');
+    } catch (error) {
+      console.error('[quick-sale] error:', error);
+      setStep('idle');
+      setQty(1);
+    } finally {
+      setLoading(false);
+    }
+  }, [quickSale, producto_id, qty, channel, handleSaleResult, setTerminalStep]);
+
+  const handleTerminalComplete = useCallback(async (terminalResult: TerminalFlowResult) => {
+    setLoading(true);
+    try {
+      const result = await quickSale(producto_id, qty, 'pos_terminal', channel, {
+        sumup_checkout_id: terminalResult.checkout_id,
+        sumup_transaction_id: terminalResult.transaction_id,
+      });
+      handleSaleResult(result);
+      setStep('done');
+    } catch (error) {
+      console.error('[quick-sale] terminal sale error:', error);
+      setStep('idle');
+    } finally {
+      setLoading(false);
+    }
+  }, [quickSale, producto_id, qty, channel, handleSaleResult]);
+
+  const handleTerminalCancel = useCallback(() => {
+    setStep('pay');
+    setTerminalStep('idle');
+  }, [setTerminalStep]);
+
+  const resetFlow = useCallback(() => {
+    setStep('idle');
+    setQty(1);
+    setChannel('feria');
+    setLastCommission(null);
+    setLastCommissionDetail(null);
+    setTerminalStep('idle');
+  }, [setTerminalStep]);
+
   if (!isSessionOpen) {
     return (
       <button
         type="button"
         onClick={() => addLine({ producto_id, nombre, precio_unitario: precio })}
-          className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-card border border-border px-4 py-3 text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+        className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-card border border-border px-4 py-3 text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all"
       >
         <Plus className="w-3 h-3" />
-        Añadir al carrito
+        Anadir al carrito
       </button>
     );
   }
@@ -68,18 +142,25 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
       lastCommissionDetail.tier_multiplier > 1
     );
 
+    const co2Saved = qty * 0.5 * 2.4;
+
     return (
       <div className="mt-4 w-full space-y-2">
-        <div className="flex items-center justify-center gap-2 rounded-xl bg-green-500/10 border border-green-500/20 px-4 py-3">
-          <CheckCircle2 className="w-4 h-4 text-green-400" />
-          <span className="text-sm font-bold text-green-400">
-            +{lastCommission !== null ? fmtCLP(lastCommission) : 'Vendido'}
-          </span>
+        <div className="flex flex-col items-center justify-center gap-1 rounded-xl bg-success/10 border border-success/20 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-success" />
+            <span className="text-sm font-bold text-success">
+              +{lastCommission !== null ? fmtCLP(lastCommission) : 'Vendido'}
+            </span>
+          </div>
+          <p className="text-[10px] text-success/80 font-medium uppercase tracking-tighter">
+            ~{co2Saved.toFixed(1)}kg CO2 evitado hoy
+          </p>
           <button
-            onClick={() => { setStep('idle'); setQty(1); setChannel('feria'); setLastCommission(null); setLastCommissionDetail(null); }}
-            className="ml-2 text-muted-foreground hover:text-foreground text-xs normal-case tracking-normal font-normal"
+            onClick={resetFlow}
+            className="mt-1 text-muted-foreground hover:text-foreground text-[10px] font-bold uppercase tracking-widest"
           >
-            OK
+            Siguiente venta
           </button>
         </div>
 
@@ -87,9 +168,9 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
           <div className="rounded-xl bg-background/40 border border-border px-3 py-2.5 space-y-1.5">
             {lastCommissionDetail.tier_multiplier > 1 && (
               <div className="flex items-center justify-between text-[10px]">
-                <span className="flex items-center gap-1.5 text-amber-400">
+                <span className="flex items-center gap-1.5 text-warning">
                   <Crown className="w-3 h-3" />
-                  Tier ×{lastCommissionDetail.tier_multiplier.toFixed(1)}
+                  Tier x{lastCommissionDetail.tier_multiplier.toFixed(1)}
                 </span>
                 <span className="text-muted-foreground">Amplifica todo</span>
               </div>
@@ -106,23 +187,23 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
             {lastCommissionDetail.volume_multiplier > 1 && (
               <div className="flex items-center justify-between text-[10px]">
                 <span className="text-primary">Volumen</span>
-                <span className="text-muted-foreground">×{lastCommissionDetail.volume_multiplier.toFixed(1)}</span>
+                <span className="text-muted-foreground">x{lastCommissionDetail.volume_multiplier.toFixed(1)}</span>
               </div>
             )}
             {lastCommissionDetail.loyalty_bonus > 0 && (
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-purple-400">Fidelización</span>
+                <span className="text-purple-400">Fidelizacion</span>
                 <span className="text-muted-foreground">+{fmtCLP(lastCommissionDetail.loyalty_bonus)}</span>
               </div>
             )}
             {lastCommissionDetail.streak_bonus > 0 && (
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-orange-400">Racha</span>
+                <span className="text-accent">Racha</span>
                 <span className="text-muted-foreground">+{fmtCLP(lastCommissionDetail.streak_bonus)}</span>
               </div>
             )}
             <div className="flex items-center justify-between text-[10px] border-t border-border pt-1.5">
-              <span className="text-foreground font-bold">Comisión total</span>
+              <span className="text-foreground font-bold">Comision total</span>
               <span className="text-primary font-bold">{fmtCLP(lastCommissionDetail.total)}</span>
             </div>
           </div>
@@ -131,11 +212,25 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     );
   }
 
+  if (step === 'terminal') {
+    return (
+      <div className="mt-4 w-full">
+        <SumupTerminalFlow
+          amount={precio * qty}
+          checkoutReference={`campo-qs-${producto_id}-${Date.now()}`}
+          description={`${qty}x ${nombre}`}
+          onComplete={handleTerminalComplete}
+          onCancel={handleTerminalCancel}
+        />
+      </div>
+    );
+  }
+
   if (step === 'channel') {
     return (
       <div className="mt-4 space-y-2">
         <p className="text-[10px] uppercase text-muted-foreground tracking-widest text-center">
-          {qty}× {nombre} · ${' '}{(precio * qty).toLocaleString('es-CL')}
+          {qty}x {nombre} · ${' '}{(precio * qty).toLocaleString('es-CL')}
         </p>
         <div className="grid grid-cols-5 gap-1.5">
           {channels.map((ch) => (
@@ -152,7 +247,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
           ))}
         </div>
         <button onClick={() => setStep('qty')} className="w-full text-center text-[10px] text-muted-foreground uppercase tracking-widest hover:text-muted-foreground transition-colors">
-          ← Cambiar cantidad
+          Cambiar cantidad
         </button>
       </div>
     );
@@ -162,59 +257,34 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     return (
       <div className="mt-4 space-y-2">
         <p className="text-[10px] uppercase text-muted-foreground tracking-widest text-center">
-          {qty}× {nombre} · ${' '}{(precio * qty).toLocaleString('es-CL')}
+          {qty}x {nombre} · ${' '}{(precio * qty).toLocaleString('es-CL')}
         </p>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-1.5">
           {paymentMethods.map((pm) => (
             <button
               key={pm.value}
               disabled={loading}
-              onClick={async () => {
-                setLoading(true);
-              try {
-                const result = await quickSale(producto_id, qty, pm.value, channel);
-                if (result) {
-                  setLastCommission(result.rep_commission_total);
-                  if (result.commission) {
-                    setLastCommissionDetail({
-                      tier_multiplier: result.commission.tier_multiplier,
-                      channel_rate: result.commission.channel_rate,
-                      volume_multiplier: result.commission.volume_multiplier,
-                      loyalty_bonus: result.commission.loyalty_bonus,
-                      streak_bonus: result.commission.streak_bonus,
-                      total: result.commission.total,
-                    });
-                  }
-                }
-                setStep('done');
-} catch (error) {
-      console.error('[quick-sale] error:', error);
-      setStep('idle');
-                  setQty(1);
-                } finally {
-                  setLoading(false);
-                }
-              }}
+              onClick={() => void handlePayment(pm.value)}
               className="flex flex-col items-center gap-1 rounded-xl bg-card border border-border px-2 py-3 text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all disabled:opacity-40"
             >
               {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : pm.icon}
               {pm.label}
             </button>
           ))}
-    </div>
-    <button onClick={() => setStep('channel')} className="w-full text-center text-[10px] text-muted-foreground uppercase tracking-widest hover:text-muted-foreground transition-colors">
-        ← Cambiar canal
-      </button>
-  </div>
-);
-}
+        </div>
+        <button onClick={() => setStep('channel')} className="w-full text-center text-[10px] text-muted-foreground uppercase tracking-widest hover:text-muted-foreground transition-colors">
+          Cambiar canal
+        </button>
+      </div>
+    );
+  }
 
-if (step === 'qty') {
+  if (step === 'qty') {
     return (
       <div className="mt-4 space-y-3">
         <div className="flex items-center justify-center gap-4">
           <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-10 h-10 rounded-full bg-card border border-border text-primary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all text-lg font-bold">
-            −
+            -
           </button>
           <span className="text-2xl font-mono font-bold text-foreground w-10 text-center">{qty}</span>
           <button onClick={() => setQty(qty + 1)} className="w-10 h-10 rounded-full bg-card border border-border text-primary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all text-lg font-bold">
@@ -225,11 +295,11 @@ if (step === 'qty') {
           Total: <strong className="text-foreground">${(precio * qty).toLocaleString('es-CL')}</strong>
         </p>
         <button
-      onClick={() => setStep('channel')}
-      className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 py-3 text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all"
-    >
-      <Zap className="w-3 h-3" />
-      Canal de venta →
+          onClick={() => setStep('channel')}
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 py-3 text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all"
+        >
+          <Zap className="w-3 h-3" />
+          Canal de venta
         </button>
         <button onClick={() => { setStep('idle'); setQty(1); setChannel('feria'); }} className="w-full text-center text-[10px] text-muted-foreground uppercase tracking-widest hover:text-muted-foreground transition-colors">
           Cancelar
@@ -245,7 +315,7 @@ if (step === 'qty') {
       className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 py-3 text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all"
     >
       <Zap className="w-3 h-3" />
-      Venta rápida
+      Venta rapida
     </button>
   );
 }

@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
-import { calcularIVA } from "@enjambre/contable";
+import { calcularIVA, calcularNetoDesdeTotal } from "@enjambre/contable";
 
 const CreateGastoSchema = z.strictObject({
   fecha: z.string().min(1),
@@ -10,6 +10,7 @@ const CreateGastoSchema = z.strictObject({
   monto: z.number().positive(),
   montoIva: z.number().nonnegative().optional(),
   montoNeto: z.number().nonnegative().optional(),
+  incluyeIva: z.boolean().default(true),
   categoria: z.string().min(1),
   tipoComprobante: z.enum(["Boleta", "Factura", "Nota de Crédito", "Otro"]).default("Boleta"),
   numeroComprobante: z.string().optional(),
@@ -54,8 +55,19 @@ gastosRoutes.post("/", async (c) => {
   if (!parsed.success) return c.json({ code: "validation_error", errors: parsed.error.flatten() }, 400);
   const body = parsed.data;
 
-  const computedIva = body.montoIva ?? calcularIVA(body.monto);
-  const computedNeto = body.montoNeto ?? (body.monto - computedIva);
+  let computedNeto: number;
+  let computedIva: number;
+
+  if (body.montoIva !== undefined && body.montoNeto !== undefined) {
+    computedNeto = body.montoNeto;
+    computedIva = body.montoIva;
+  } else if (body.incluyeIva) {
+    computedNeto = body.montoNeto ?? calcularNetoDesdeTotal(body.monto);
+    computedIva = body.montoIva ?? calcularIVA(computedNeto);
+  } else {
+    computedNeto = body.montoNeto ?? body.monto;
+    computedIva = body.montoIva ?? calcularIVA(computedNeto);
+  }
 
   const fechaDate = new Date(body.fecha);
   const mes = fechaDate.getMonth() + 1;

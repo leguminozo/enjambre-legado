@@ -63,3 +63,8 @@ export async function fetchTasaEuro(fecha?: string): Promise<number> {
   const tasa = await fetchTasaCambio("euro", fecha);
   return tasa.valor;
 }
+
+export async function fetchTasaUF(fecha?: string): Promise<number> {
+  const tasa = await fetchTasaCambio("uf", fecha);
+  return tasa.valor;
+}

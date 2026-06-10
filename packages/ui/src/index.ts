@@ -3,6 +3,8 @@ export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 export { Badge } from './components/badge';
 export { Input, Textarea } from './components/input';
 export { StatCard } from './components/stat-card';
+export { Spinner } from './components/spinner';
+export { EmptyState } from './components/empty-state';
 export { SectionHeader } from './components/section-header';
 export { GrainOverlay } from './components/grain-overlay';
 export { ToastProvider, useToast } from './components/toast';
@@ -16,5 +18,5 @@ export { tokens, type TokenKey } from './tokens';
 export { createEnjambrePreset, enjambrePreset } from './tailwind-preset';
 export { friendlySupabaseError, friendlyApiError, friendlyError } from './lib/friendly-error';
 export { splitCsvLine } from './lib/csv';
-export { formatDate, formatDateShort } from './lib/format';
+export { formatDate, formatDateShort, formatCLP, fmtCLP } from './lib/format';
 export * from './icons';

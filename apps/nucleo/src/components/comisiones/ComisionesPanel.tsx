@@ -131,8 +131,8 @@ export function ComisionesPanel() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-oro-miel-dark" size={32} />
-        <p className="text-sm text-text-muted font-datos uppercase tracking-widest">Cargando comisiones...</p>
+        <Loader2 className="animate-spin text-accent" size={32} />
+        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Cargando comisiones...</p>
       </div>
     );
   }
@@ -140,19 +140,19 @@ export function ComisionesPanel() {
   return (
   <div className="space-y-8 animate-in relative">
     <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-xl bg-oro-miel-glow flex items-center justify-center text-oro-miel-dark">
-          <Percent size={24} />
-        </div>
-        <div>
-          <h2 className="text-2xl font-display text-bosque-ulmo">Comisiones</h2>
-          <p className="text-sm text-text-muted">Comisiones devengadas · Pago y auditoría</p>
+    <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center text-accent">
+      <Percent size={24} />
+    </div>
+    <div>
+      <h2 className="text-2xl font-display text-primary">Comisiones</h2>
+      <p className="text-sm text-muted-foreground">Comisiones devengadas · Pago y auditoría</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: <DollarSign size={18} />, val: formatCLP(totalPending), label: 'Pendientes', accent: 'text-oro-miel-dark' },
-          { icon: <CheckCircle2 size={18} />, val: formatCLP(totalPaid), label: 'Pagadas', accent: 'text-salud-optima' },
+      { icon: <DollarSign size={18} />, val: formatCLP(totalPending), label: 'Pendientes', accent: 'text-accent' },
+      { icon: <CheckCircle2 size={18} />, val: formatCLP(totalPaid), label: 'Pagadas', accent: 'text-success' },
           { icon: <Percent size={18} />, val: commissions.length, label: 'Total', accent: '' },
           { icon: <Eye size={18} />, val: selectedIds.size, label: 'Seleccionadas', accent: 'text-foreground' },
         ].map((s, i) => (
@@ -165,8 +165,8 @@ export function ComisionesPanel() {
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-4 p-4 rounded-xl bg-oro-miel-glow/20 border border-oro-miel/20">
-        <span className="text-sm text-bosque-ulmo font-medium">{selectedIds.size} seleccionadas · Total: {formatCLP(selectedTotal)}</span>
+        <div className="flex items-center gap-4 p-4 rounded-xl bg-accent/10 border border-accent/20">
+        <span className="text-sm text-primary font-medium">{selectedIds.size} seleccionadas · Total: {formatCLP(selectedTotal)}</span>
         <button disabled={actionLoading} onClick={payCommissions} className="btn btn-gold text-xs ml-auto">
           {actionLoading ? <Loader2 className="animate-spin" size={14} /> : <DollarSign size={14} />}
           Marcar como pagadas
@@ -180,11 +180,11 @@ export function ComisionesPanel() {
           <h3 className="font-display text-lg">Comisiones del Enjambre</h3>
           <div className="flex gap-3 items-center">
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input type="text" placeholder="Buscar por representante..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="input-field pl-9 text-sm" style={{ width: 200 }} />
             </div>
             <div className="relative">
-              <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+              <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <select value={filterPaid} onChange={e => setFilterPaid(e.target.value)} className="input-field pl-9 text-sm" style={{ width: 140 }}>
                 <option value="todos">Todos</option>
                 <option value="pendientes">Pendientes</option>
@@ -197,7 +197,7 @@ export function ComisionesPanel() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-      <tr className="text-left text-text-muted text-[0.65rem] uppercase tracking-wider border-b border-foreground/5">
+      <tr className="text-left text-muted-foreground text-[0.65rem] uppercase tracking-wider border-b border-foreground/5">
         {!filterPaid?.startsWith('pag') && <th className="pb-3 w-8"></th>}
         <th className="pb-3">Representante</th>
         <th className="pb-3">Base</th>
@@ -213,7 +213,7 @@ export function ComisionesPanel() {
             </thead>
             <tbody>
               {filteredCommissions.length === 0 ? (
-                <tr><td colSpan={11} className="text-center py-8 text-text-muted italic">No hay comisiones que coincidan.</td></tr>
+                <tr><td colSpan={11} className="text-center py-8 text-muted-foreground italic">No hay comisiones que coincidan.</td></tr>
               ) : filteredCommissions.map(c => (
                 <tr key={c.id} className="border-b border-foreground/[0.03] hover:bg-background/[0.02]">
                   {!filterPaid?.startsWith('pag') && (
@@ -223,22 +223,22 @@ export function ComisionesPanel() {
                       )}
                     </td>
                   )}
-                  <td className="py-3 font-medium text-bosque-ulmo">{repNames[c.rep_id] || '—'}</td>
+                  <td className="py-3 font-medium text-primary">{repNames[c.rep_id] || '—'}</td>
                   <td className="py-3">{formatCLP(Number(c.base_commission))}</td>
                   <td className="py-3">×{Number(c.volume_multiplier || 1).toFixed(1)}</td>
                   <td className="py-3">{Number(c.loyalty_bonus) > 0 ? formatCLP(Number(c.loyalty_bonus)) : '—'}</td>
                 <td className="py-3">{Number(c.streak_bonus) > 0 ? formatCLP(Number(c.streak_bonus)) : '—'}</td>
                 <td className="py-3">{Number(c.tier_multiplier) > 1 ? `×${Number(c.tier_multiplier).toFixed(1)}` : '—'}</td>
                 <td className="py-3">{c.channel_rate != null ? `${(Number(c.channel_rate) * 100).toFixed(0)}%` : '—'}</td>
-                <td className="py-3 font-bold text-oro-miel-dark">{formatCLP(Number(c.total_commission))}</td>
+                <td className="py-3 font-bold text-accent">{formatCLP(Number(c.total_commission))}</td>
                   <td className="py-3">
                     <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                      c.paid ? 'bg-salud-optima/10 text-salud-optima' : 'bg-amber/10 text-amber'
+                      c.paid ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
                     }`}>
                       {c.paid ? 'pagada' : 'pendiente'}
                     </span>
                   </td>
-                  <td className="py-3 text-text-muted text-xs">{new Date(c.created_at).toLocaleDateString('es-CL')}</td>
+                  <td className="py-3 text-muted-foreground text-xs">{new Date(c.created_at).toLocaleDateString('es-CL')}</td>
                 </tr>
               ))}
             </tbody>

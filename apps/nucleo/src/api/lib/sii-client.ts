@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
 import type { CafFolio, SiiAuthToken, SiiEnvioResult, SiiEstadoResult } from "@enjambre/contable";
+import type { RcvRegistroCompra, RcvRegistroVenta, RcvResumen, RcvTipoRegistro } from "@enjambre/contable";
 import { SII_ENV } from "@enjambre/contable";
 import type { SiiEnvironment } from "@enjambre/contable";
 
@@ -249,4 +250,133 @@ export async function consultarEstado(
 function formatRutForSiiHeader(rut: string): string {
   const clean = rut.replace(/[^0-9kK]/g, "").toUpperCase();
   return `${clean.slice(0, -1)}-${clean.slice(-1)}`;
+}
+
+export async function consultarRCV(
+  env: SiiEnvironment,
+  token: string,
+  rutEmpresa: string,
+  periodo: string,
+  tipoRegistro: RcvTipoRegistro,
+): Promise<RcvResumen> {
+  const baseUrl = getBaseUrl(env);
+  const rut = formatRutForSiiHeader(rutEmpresa);
+
+  const endpoint = tipoRegistro === "compras"
+    ? `${baseUrl}/cgi_dte/RCV/ConsultaCompra`
+    : `${baseUrl}/cgi_dte/RCV/ConsultaVenta`;
+
+  const response = await fetch(
+    `${endpoint}?RutEmpresa=${rut}&Periodo=${periodo}`,
+    {
+      method: "GET",
+      headers: {
+        Cookie: `token=${token}`,
+        "User-Agent": "EnjambreDTE/1.0",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    return {
+      periodo,
+      tipoRegistro,
+      totalDocumentos: 0,
+      totalNeto: 0,
+      totalIva: 0,
+      totalExento: 0,
+      totalTotal: 0,
+      registros: [],
+    };
+  }
+
+  const text = await response.text();
+  return parsearRcvXml(text, periodo, tipoRegistro);
+}
+
+function parsearRcvXml(xml: string, periodo: string, tipoRegistro: RcvTipoRegistro): RcvResumen {
+  const registros: RcvRegistroCompra[] | RcvRegistroVenta[] = [];
+  let totalNeto = 0;
+  let totalIva = 0;
+  let totalExento = 0;
+  let totalTotal = 0;
+
+  const docPattern = /<Documento>([\s\S]*?)<\/Documento>/g;
+  let docMatch: RegExpExecArray | null;
+
+  while ((docMatch = docPattern.exec(xml)) !== null) {
+    const doc = docMatch[1]!;
+
+    const tipoDte = parseInt(extractXmlValue(doc, "TipoDTE") ?? "0", 10);
+    const folio = parseInt(extractXmlValue(doc, "Folio") ?? "0", 10);
+    const fechaEmision = extractXmlValue(doc, "FchEmis") ?? "";
+    const montoNeto = parseInt(extractXmlValue(doc, "MntNeto") ?? "0", 10);
+    const montoExento = parseInt(extractXmlValue(doc, "MntExe") ?? "0", 10);
+    const montoIva = parseInt(extractXmlValue(doc, "MntIVA") ?? "0", 10);
+    const montoTotal = parseInt(extractXmlValue(doc, "MntTotal") ?? "0", 10);
+
+    totalNeto += montoNeto;
+    totalIva += montoIva;
+    totalExento += montoExento;
+    totalTotal += montoTotal;
+
+    if (tipoRegistro === "compras") {
+      const compra: RcvRegistroCompra = {
+        tipoDte,
+        folio,
+        fechaEmision,
+        rutProveedor: extractXmlValue(doc, "RUTProv") ?? "",
+        razonSocialProveedor: extractXmlValue(doc, "RznSocProv") ?? "",
+        montoNeto,
+        montoExento,
+        montoIva,
+        montoTotal,
+        estadoRcv: parsearEstadoRcvXml(extractXmlValue(doc, "Estado") ?? ""),
+        fechaRecepcion: extractXmlValue(doc, "FchRecep") ?? undefined,
+        acuseRecibo: extractXmlValue(doc, "Acuse") ?? undefined,
+      };
+      (registros as RcvRegistroCompra[]).push(compra);
+    } else {
+      const venta: RcvRegistroVenta = {
+        tipoDte,
+        folio,
+        fechaEmision,
+        rutReceptor: extractXmlValue(doc, "RUTRecep") ?? "",
+        razonSocialReceptor: extractXmlValue(doc, "RznSocRecep") ?? "",
+        montoNeto,
+        montoExento,
+        montoIva,
+        montoTotal,
+        estadoRcv: parsearEstadoRcvXml(extractXmlValue(doc, "Estado") ?? ""),
+      };
+      (registros as RcvRegistroVenta[]).push(venta);
+    }
+  }
+
+  return {
+    periodo,
+    tipoRegistro,
+    totalDocumentos: registros.length,
+    totalNeto,
+    totalIva,
+    totalExento,
+    totalTotal,
+    registros,
+  };
+}
+
+function extractXmlValue(xml: string, tag: string): string | null {
+  const match = xml.match(new RegExp(`<${tag}>([^<]+)</${tag}>`));
+  return match ? match[1]!.trim() : null;
+}
+
+function parsearEstadoRcvXml(estado: string): import("@enjambre/contable").RcvEstadoRegistro {
+  const map: Record<string, import("@enjambre/contable").RcvEstadoRegistro> = {
+    EPR: "aceptado",
+    RCP: "pendiente",
+    RCT: "reclamado",
+    ANU: "anulado",
+    REG: "registrar",
+  };
+  return map[estado] ?? "pendiente";
 }

@@ -38,7 +38,7 @@
 - [x] `docs/BANCO_CHILE_IMPLEMENTACION.md` - Resumen técnico
 - [x] `docs/BANCO_CHILE_ARQUITECTURA.md` - Diagramas y flujos
 - [x] `INTEGRACION-BANCO-CHILE.md` - Guía rápida
-- [x] `apps/api/.env.example` → variables ahora documentadas en `docs/VERCEL.md`
+- [x] Variables documentadas en `docs/VERCEL.md` y `.env.example`
 
 ---
 

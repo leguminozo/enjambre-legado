@@ -32,8 +32,8 @@ interface TierProgress {
 const TIER_CONFIG: Record<string, { label: string; icon: typeof Crown; color: string; glow: string }> = {
   base: { label: 'Base', icon: Shield, color: 'text-muted-foreground', glow: 'bg-card text-muted-foreground' },
   senior: { label: 'Senior', icon: Star, color: 'text-primary', glow: 'bg-primary/10 text-primary' },
-  elite: { label: 'Elite', icon: Crown, color: 'text-green-400', glow: 'bg-green-500/10 text-green-400' },
-  legend: { label: 'Legend', icon: Flame, color: 'text-amber-400', glow: 'bg-amber-500/10 text-amber-400' },
+  elite: { label: 'Elite', icon: Crown, color: 'text-success', glow: 'bg-success/10 text-success' },
+  legend: { label: 'Legend', icon: Flame, color: 'text-warning', glow: 'bg-warning/10 text-warning' },
 };
 
 export function TierBadge({ tier, size = 'sm' }: { tier: string; size?: 'sm' | 'lg' }) {
@@ -67,7 +67,7 @@ export function TierProgressBar({ progress }: { progress: TierProgress }) {
       </div>
       <div className="h-2 bg-card rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-primary to-amber-400 rounded-full transition-all duration-500"
+          className="h-full bg-gradient-to-r from-primary to-warning rounded-full transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -100,7 +100,7 @@ function MetricRow({ label, current, target, pct, isMoney, suffix }: {
   return (
     <div className="flex items-center justify-between text-[10px]">
     <span className="text-muted-foreground">{label}</span>
-        <span className={done ? 'text-green-400 font-bold' : 'text-muted-foreground'}>
+        <span className={done ? 'text-success font-bold' : 'text-muted-foreground'}>
         {fmt(current)}{suffix}/{fmt(target)}{suffix}
         {done && ' ✓'}
       </span>

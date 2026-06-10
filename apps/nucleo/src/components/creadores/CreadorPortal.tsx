@@ -101,7 +101,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
         supabase.from('creador_retiros').select('id,monto_solicitado,monto_aprobado,estado,metodo_pago,created_at,notas,revisado_at').eq('creador_id', creadorId).order('created_at', { ascending: false }).limit(20),
       ]);
 
-      if (balRes.data) setBalance(balRes.data as unknown as BalanceData);
+      if (balRes.data) setBalance(Array.isArray([balRes.data]) ? ([balRes.data] as BalanceData[])[0] : (balRes.data as BalanceData));
       if (usosRes.data) setUsos(usosRes.data);
       if (metRes.data) setMetricas(metRes.data);
       if (retRes.data) setRetiros(retRes.data);
@@ -184,8 +184,8 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-oro-miel-dark" size={32} />
-        <p className="text-sm text-text-muted font-datos uppercase tracking-widest">Cargando tu portal de creador...</p>
+        <Loader2 className="animate-spin text-accent" size={32} />
+        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Cargando tu portal de creador...</p>
       </div>
     );
   }
@@ -193,9 +193,9 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
   if (!profile) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Sparkles size={48} className="text-oro-miel-dark opacity-30" />
-        <p className="text-lg font-display text-bosque-ulmo">Aún no eres creador</p>
-        <p className="text-sm text-text-muted text-center max-w-md">
+        <Sparkles size={48} className="text-accent opacity-30" />
+        <p className="text-lg font-display text-primary">Aún no eres creador</p>
+        <p className="text-sm text-muted-foreground text-center max-w-md">
           Si te interesa formar parte de nuestra red de creadores de contenido, contacta al equipo de marketing.
         </p>
       </div>
@@ -207,46 +207,46 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
   return (
   <div className="space-y-8 animate-in relative">
     {isInactive && (
-        <div className="p-4 rounded-xl bg-amber/10 border border-amber/30 text-amber text-sm flex items-center gap-3">
+        <div className="p-4 rounded-xl bg-warning/10 border border-warning/30 text-warning text-sm flex items-center gap-3">
           <AlertCircle size={18} />
           <span>Tu cuenta de creador está <strong>{profile.estado}</strong>. {profile.estado === 'pendiente' ? 'Estamos revisando tu solicitud.' : 'Contacta al equipo para más info.'}</span>
         </div>
       )}
 
       <div className="flex items-center gap-4 mb-2">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-oro-miel to-oro-miel-dark flex items-center justify-center text-foreground shadow-lg">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-accent flex items-center justify-center text-foreground shadow-lg">
           <Sparkles size={28} />
         </div>
         <div>
-          <h2 className="text-2xl font-display text-bosque-ulmo">Portal de Creador</h2>
-          <p className="text-sm text-text-muted">{profile.nombre_publico} · {plataformaLabel[profile.plataforma] || profile.plataforma}</p>
+          <h2 className="text-2xl font-display text-primary">Portal de Creador</h2>
+          <p className="text-sm text-muted-foreground">{profile.nombre_publico} · {plataformaLabel[profile.plataforma] || profile.plataforma}</p>
         </div>
       </div>
 
-      <div className="p-6 rounded-2xl bg-gradient-to-br from-bosque-ulmo to-bosque-ulmo-dark text-crema-natural relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-oro-miel/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+      <div className="p-6 rounded-2xl bg-gradient-to-br from-primary to-primary text-primary-foreground relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="relative">
-          <p className="text-[0.7rem] uppercase tracking-widest text-crema-natural/60 mb-1">Tu código de referencia</p>
+          <p className="text-[0.7rem] uppercase tracking-widest text-primary-foreground/60 mb-1">Tu código de referencia</p>
           <div className="flex items-center gap-4 mb-4">
-            <span className="text-3xl font-mono font-bold tracking-wider text-oro-miel">{profile.codigo_ref}</span>
+            <span className="text-3xl font-mono font-bold tracking-wider text-accent">{profile.codigo_ref}</span>
             <button
               onClick={copyCode}
-              className="w-10 h-10 rounded-xl bg-oro-miel/20 flex items-center justify-center hover:bg-oro-miel/30 transition-colors"
+              className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center hover:bg-accent/30 transition-colors"
             >
-              {copiedCode ? <Check size={18} className="text-salud-optima" /> : <Copy size={18} className="text-oro-miel" />}
+              {copiedCode ? <Check size={18} className="text-success" /> : <Copy size={18} className="text-accent" />}
             </button>
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <p className="text-[0.65rem] uppercase text-crema-natural/50">Descuento para tus seguidores</p>
-              <p className="text-xl font-bold text-oro-miel">{profile.descuento_cliente}%</p>
+              <p className="text-[0.65rem] uppercase text-primary-foreground/50">Descuento para tus seguidores</p>
+              <p className="text-xl font-bold text-accent">{profile.descuento_cliente}%</p>
             </div>
             <div>
-              <p className="text-[0.65rem] uppercase text-crema-natural/50">Tu comisión</p>
-              <p className="text-xl font-bold text-oro-miel">{profile.porcentaje_comision}%</p>
+              <p className="text-[0.65rem] uppercase text-primary-foreground/50">Tu comisión</p>
+              <p className="text-xl font-bold text-accent">{profile.porcentaje_comision}%</p>
             </div>
             <div>
-              <p className="text-[0.65rem] uppercase text-crema-natural/50">Seguidores</p>
+              <p className="text-[0.65rem] uppercase text-primary-foreground/50">Seguidores</p>
               <p className="text-xl font-bold">{profile.seguidores_aprox?.toLocaleString() || 0}</p>
             </div>
           </div>
@@ -255,7 +255,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: <Wallet size={18} />, val: `$${Number(balance?.balance_disponible || 0).toLocaleString('es-CL')}`, label: 'Balance Disponible', accent: 'text-oro-miel-dark' },
+          { icon: <Wallet size={18} />, val: `$${Number(balance?.balance_disponible || 0).toLocaleString('es-CL')}`, label: 'Balance Disponible', accent: 'text-accent' },
           { icon: <DollarSign size={18} />, val: `$${Number(balance?.comisiones_total || 0).toLocaleString('es-CL')}`, label: 'Comisiones Totales', accent: '' },
           { icon: <Users size={18} />, val: profile.total_usos_codigo, label: 'Usos del Código', accent: '' },
           { icon: <Gift size={18} />, val: `$${Number(balance?.total_retirado || 0).toLocaleString('es-CL')}`, label: 'Total Retirado', accent: '' },
@@ -286,11 +286,11 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
       {activeTab === 'dashboard' && (
         <div className="card">
           <div className="flex items-center gap-2 mb-6">
-            <BarChart3 size={18} className="text-oro-miel-dark" />
+            <BarChart3 size={18} className="text-accent" />
             <h3 className="font-display text-lg">Rendimiento Mensual</h3>
           </div>
           {metricas.length === 0 ? (
-            <p className="text-sm text-text-muted italic py-8 text-center">Aún no hay métricas mensuales. Los datos se calcularán al cierre de cada mes.</p>
+            <p className="text-sm text-muted-foreground italic py-8 text-center">Aún no hay métricas mensuales. Los datos se calcularán al cierre de cada mes.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="data-table">
@@ -310,7 +310,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
                       <td className="font-medium">{m.mes}</td>
                       <td>{m.usos_codigo}</td>
                       <td>${Number(m.ventas_generadas).toLocaleString('es-CL')}</td>
-                      <td className="text-oro-miel-dark font-bold">${Number(m.comisiones_generadas).toLocaleString('es-CL')}</td>
+                      <td className="text-accent font-bold">${Number(m.comisiones_generadas).toLocaleString('es-CL')}</td>
                       <td>{m.nuevos_clientes}</td>
                       <td>${Number(m.ticket_promedio).toLocaleString('es-CL')}</td>
                     </tr>
@@ -325,22 +325,22 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
       {activeTab === 'usos' && (
         <div className="card">
           <div className="flex items-center gap-2 mb-6">
-            <Eye size={18} className="text-oro-miel-dark" />
+            <Eye size={18} className="text-accent" />
             <h3 className="font-display text-lg">Historial de Usos de tu Código</h3>
           </div>
           {usos.length === 0 ? (
-            <p className="text-sm text-text-muted italic py-8 text-center">Aún no hay usos registrados de tu código.</p>
+            <p className="text-sm text-muted-foreground italic py-8 text-center">Aún no hay usos registrados de tu código.</p>
           ) : (
             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
               {usos.map(u => (
                 <div key={u.id} className="p-4 rounded-xl bg-background/[0.03] border border-foreground/[0.06] flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-bosque-ulmo">Venta ${u.monto_venta.toLocaleString('es-CL')}</p>
-                    <p className="text-xs text-text-muted">{new Date(u.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                    <p className="text-sm font-medium text-primary">Venta ${u.monto_venta.toLocaleString('es-CL')}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(u.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-salud-optima">-${u.descuento_aplicado.toLocaleString('es-CL')}</p>
-                    <p className="text-xs text-oro-miel-dark font-medium">+${Number(u.comision_generada).toLocaleString('es-CL')} comisión</p>
+                    <p className="text-sm font-bold text-success">-${u.descuento_aplicado.toLocaleString('es-CL')}</p>
+                    <p className="text-xs text-accent font-medium">+${Number(u.comision_generada).toLocaleString('es-CL')} comisión</p>
                   </div>
                 </div>
               ))}
@@ -353,7 +353,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
         <div className="card">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <Wallet size={18} className="text-oro-miel-dark" />
+              <Wallet size={18} className="text-accent" />
               <h3 className="font-display text-lg">Mis Retiros</h3>
             </div>
             {profile.estado === 'activo' && Number(balance?.balance_disponible || 0) > 0 && (
@@ -367,12 +367,12 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
           </div>
 
           {showRetiroForm && (
-            <div className="p-5 rounded-xl bg-oro-miel-glow/20 border border-oro-miel/10 mb-6 space-y-4">
-              <div className="text-sm font-bold text-bosque-ulmo">Solicitar Retiro</div>
-              <p className="text-xs text-text-muted">Balance disponible: <strong className="text-oro-miel-dark">${Number(balance?.balance_disponible || 0).toLocaleString('es-CL')}</strong></p>
+            <div className="p-5 rounded-xl bg-accent/15/20 border border-accent/10 mb-6 space-y-4">
+              <div className="text-sm font-bold text-primary">Solicitar Retiro</div>
+              <p className="text-xs text-muted-foreground">Balance disponible: <strong className="text-accent">${Number(balance?.balance_disponible || 0).toLocaleString('es-CL')}</strong></p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Monto (CLP)</label>
+                  <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Monto (CLP)</label>
                   <input
             type="number"
             min={5000}
@@ -384,7 +384,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
                   />
                 </div>
                 <div>
-                  <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">Método de pago</label>
+                  <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Método de pago</label>
                   <select
                     value={retiroForm.metodo}
                     onChange={e => setRetiroForm({ ...retiroForm, metodo: e.target.value as typeof retiroForm.metodo })}
@@ -397,7 +397,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
                   </select>
                 </div>
                 <div>
-                  <label className="text-[0.6rem] uppercase text-text-muted tracking-wider block mb-1">
+                  <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">
                     {retiroForm.metodo === 'transferencia' ? 'N° de cuenta' : retiroForm.metodo === 'paypal' ? 'Email PayPal' : 'Referencia'}
                   </label>
                   <input
@@ -423,7 +423,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
           )}
 
           {retiros.length === 0 ? (
-            <p className="text-sm text-text-muted italic py-8 text-center">No hay solicitudes de retiro.</p>
+            <p className="text-sm text-muted-foreground italic py-8 text-center">No hay solicitudes de retiro.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="data-table">

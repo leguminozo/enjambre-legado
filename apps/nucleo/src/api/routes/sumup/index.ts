@@ -7,6 +7,7 @@ import { tenantMiddleware } from "@/api/lib/middleware";
 import { transactionsRouter } from "./transactions";
 import { payoutsRouter } from "./payouts";
 import { conciliacionRouter } from "./conciliacion";
+import { readersRouter } from "./readers";
 
 export const sumupRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -90,3 +91,4 @@ sumupRoutes.post(
 sumupRoutes.route("/transactions", transactionsRouter);
 sumupRoutes.route("/payouts", payoutsRouter);
 sumupRoutes.route("/conciliacion", conciliacionRouter);
+sumupRoutes.route("/readers", readersRouter);

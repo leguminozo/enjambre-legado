@@ -59,7 +59,7 @@ export default function CatalogoPage() {
       )}
 
       {(view === 'create' || view === 'edit') && (
-        <div style={{ background: 'white', padding: 'var(--space-xl)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(10,61,47,0.08)' }}>
+        <div className="bg-card border border-border/50" style={{ padding: 'var(--space-xl)', borderRadius: 'var(--radius-md)' }}>
           <ProductForm
             initialData={selectedProduct ? {
               ...selectedProduct,

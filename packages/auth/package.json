@@ -8,7 +8,8 @@
     "./browser": "./src/supabase.ts",
     "./middleware": "./src/middleware.ts",
     "./server-index": "./src/server-index.ts",
-    "./security-events": "./src/security-events.ts"
+    "./security-events": "./src/security-events.ts",
+    "./role-redirect": "./src/role-redirect.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

@@ -1,149 +1,88 @@
 # @enjambre/ui
 
-Componentes y utilidades compartidas para el ecosistema Enjambre Legado.
+Design system compartido para el ecosistema Enjambre Legado. 3 subpaths de export.
 
-## Instalación
+## Instalacion
 
 ```bash
 pnpm add @enjambre/ui
 ```
 
-## Uso
+## Subpaths
 
-### 1. Utilidad `cn` (ClassNames)
+| Subpath | Uso |
+|---|---|
+| `@enjambre/ui` | Componentes, hooks, lib, icons |
+| `@enjambre/ui/tokens.css` | CSS custom properties (importar en globals.css) |
+| `@enjambre/ui/tailwind-preset` | Tailwind preset con colores semanticos, tipografia editorial, animaciones |
 
-```typescript
-import { cn } from '@enjambre/ui';
+## Componentes (15)
 
-// Combinar clases condicionalmente
-<div className={cn('base-class', isActive && 'active', className)} />
-```
+| Componente | Variantes / Notas |
+|---|---|
+| `Button` | primary, gold, outline, ghost, destructive · sm, md, lg |
+| `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter` | default, dark, glass, accent, elevated |
+| `Badge` | default, success, warning, danger, gold, info |
+| `Input`, `Textarea` | - |
+| `StatCard` | Metrica con valor + label |
+| `Spinner` | sm, md, lg |
+| `EmptyState` | Estado vacio con icono + texto |
+| `SectionHeader` | Titulo de seccion |
+| `GrainOverlay` | Overlay de textura granulada |
+| `ModuleHero` | Hero de modulo con titulo + descripcion |
+| `Dialog`, `DialogTrigger`, `DialogPortal`, `DialogClose`, `DialogOverlay`, `DialogContent`, `DialogHeader`, `DialogFooter`, `DialogTitle`, `DialogDescription` | Radix UI Dialog |
+| `SidebarSection`, `SidebarNavItem`, `SidebarBadgeIndicator`, `registerSidebarIcons` | Sidebar con iconos + badge indicators |
+| `ThemeProvider`, `useThemeContext` | light/dark/system |
+| `ThemeToggle` | Toggle de tema |
+| `ToastProvider`, `useToast` | default, success, warning, error |
 
-### 2. Iconos (Lucide)
+## Hooks (3)
 
-Todos los iconos de Lucide están disponibles:
+| Hook | Descripcion |
+|---|---|
+| `useTheme` | Retorna tema actual (`light`/`dark`/`system`) + setter |
+| `toast` | Wrapper de sonner para notificaciones |
+| `useToast` | Context hook para toast desde componentes |
 
-```typescript
-import { SearchIcon, CheckIcon, ChevronDownIcon } from '@enjambre/ui';
+## Icons (24)
 
-function MyComponent() {
-  return <SearchIcon className="w-4 h-4" />;
+Re-exports de Lucide: `ChevronDownIcon`, `ChevronUpIcon`, `ChevronRightIcon`, `ChevronLeftIcon`, `ArrowRightIcon`, `ArrowLeftIcon`, `ArrowUpIcon`, `ArrowDownIcon`, `SearchIcon`, `PlusIcon`, `MinusIcon`, `XIcon`, `CheckIcon`, `CircleIcon`, `Loader2Icon`, `ExternalLinkIcon`, `LinkIcon`, `CopyIcon`, `PanelLeftIcon`, `GripVerticalIcon`, `ImageIcon`, `AlertCircleIcon`, `InfoIcon`, `CheckCircleIcon`, `XCircleIcon`
+
+## Lib Utilities (4)
+
+| Utilidad | Descripcion |
+|---|---|
+| `cn(...inputs)` | clsx + tailwind-merge para clases condicionales |
+| `formatDate`, `formatDateShort`, `formatCLP`, `fmtCLP` | Formateo de fechas y moneda CLP |
+| `friendlySupabaseError`, `friendlyApiError`, `friendlyError` | Mensajes de error amigables |
+| `splitCsvLine` | Parser de lineas CSV |
+
+## Tailwind Preset
+
+```js
+// tailwind.config.js
+const { enjambrePreset } = require('@enjambre/ui/tailwind-preset')
+
+module.exports = {
+  ...enjambrePreset,
+  // o con overrides:
+  presets: [enjambrePreset],
 }
 ```
 
-**Iconos disponibles:** Ver `packages/ui/src/icons/index.ts`
+Colores semanticos: `background`, `foreground`, `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `success`, `warning`, `info`, `border`, `input`, `ring`, `surface`, `chart`, `sidebar`, `bosque`, `miel`, `crema`
 
-### 3. Componentes de Diálogo
+Font families: `font-display` (Cormorant Garamond), `font-sans` (Inter), `font-mono` (JetBrains Mono)
 
-```typescript
-import { Dialog, DialogTrigger, DialogContent, DialogTitle } from '@enjambre/ui';
+## Tokens
 
-function MyDialog() {
-  return (
-    <Dialog>
-      <DialogTrigger>Open</DialogTrigger>
-      <DialogContent>
-        <DialogTitle>Title</DialogTitle>
-        <p>Content</p>
-      </DialogContent>
-    </Dialog>
-  );
-}
-```
+4 brand hex: `bosqueUlmo` (#0A3D2F), `oroMiel` (#D4A017), `cremaNatural` (#FDFBF7), `negroTinta` (#1a1a1a)
 
-### 4. Dropdown Menu
-
-```typescript
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@enjambre/ui';
-
-function MyDropdown() {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>Options</DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem>Item 1</DropdownMenuItem>
-        <DropdownMenuItem>Item 2</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-```
-
-### 5. Toast Notifications
-
-```typescript
-import { toast } from '@enjambre/ui';
-
-function MyComponent() {
-  const handleSuccess = () => {
-    toast('Operación exitosa', { type: 'success' });
-  };
-
-  const handleError = () => {
-    toast('Error ocurrido', { type: 'error' });
-  };
-
-  return (
-    <div>
-      <button onClick={handleSuccess}>Success</button>
-      <button onClick={handleError}>Error</button>
-    </div>
-  );
-}
-```
-
-**Tipos de toast:** `default`, `success`, `error`, `warning`, `info`
-
-### 6. Utilidades de Formato
-
-```typescript
-import { formatDate, formatDateShort } from '@enjambre/ui';
-
-formatDate(new Date()); // "19 de mayo de 2026"
-formatDateShort(new Date()); // "19/05/2026"
-```
-
-### 7. Manejo de Errores
-
-```typescript
-import { friendlySupabaseError, friendlyApiError } from '@enjambre/ui';
-
-try {
-  // ... código
-} catch (error) {
-  const message = friendlySupabaseError(error);
-  toast(message, { type: 'error' });
-}
-```
-
-## Componentes Disponibles
-
-- **Básicos:** `Button`, `Badge`, `Input`, `Textarea`, `Card`
-- **Layout:** `StatCard`, `SectionHeader`
-- **Feedback:** `GrainOverlay`, `ToastProvider`
-- **Diálogo:** `Dialog`, `DialogTrigger`, `DialogContent`, etc.
-- **Dropdown:** `DropdownMenu`, `DropdownMenuItem`, etc.
-- **Iconos:** Todos los de Lucide
-
-## Estilos
-
-Los componentes usan **Tailwind CSS** con tokens semánticos:
-
-- `bg-background`, `bg-surface`, `bg-surface-raised`
-- `text-foreground`, `text-muted-foreground`
-- `border-border`
-- `primary`, `accent`, `destructive`
-
-Ver `tokens.css` para la lista completa.
+7 HSL tokens + CSS custom properties completas con dark/light mode en `tokens.css`.
 
 ## Convenciones
 
-- **Named exports only:** `export function Component`
-- **Sin `any`:** Usar `unknown` + type guards
-- **Props con interfaz:** `interface ComponentProps`
-- **Sin comentarios** a menos que expliquen el "por qué"
+- Named exports only
+- Sin `any`
+- Props con `interface ComponentProps`
+- Sin comentarios a menos que expliquen el "porque"

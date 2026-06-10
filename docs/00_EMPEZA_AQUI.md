@@ -44,21 +44,19 @@ Lee en orden segun tu rol y tiempo disponible:
 
 ```
 enjambre-legado/
-  apps/
-    tienda/     Next.js 16   E-commerce publico + admin
-    nucleo/     Vite 7 SPA   Dashboard gerencial (PWA)
-    campo/      Next.js 15   PWA campo (apicultor/vendedor)
-    api/        Hono         BFF contable + integraciones
-    eirl/       Next.js 15   Contabilidad EIRL (independiente)
-  packages/
-    database/   Supabase     Migraciones + tipos
-    contable/   Zod          Logica tributaria chilena
-    auth/       Supabase     Sesion + roles + redirect
-    offline/    Dexie        Sync offline-first
-    ui/         Tokens       Design tokens compartidos
-    ai/         Stub         Prediccion de floracion
-    maps/       Tipos        Utilidades cartograficas
-  docs/                      Documentacion (estas leyendo esto)
+apps/
+  tienda/          Next.js 16 E-commerce publico + admin
+  nucleo/          Next.js 16 Dashboard gerencial + BFF Hono (App Router)
+  campo/           Next.js 16 PWA campo (apicultor/vendedor/rep_ventas)
+packages/
+  database/        Supabase Migraciones + tipos
+  contable/        Zod Logica tributaria chilena
+  auth/            Supabase Sesion + roles + redirect
+  ui/              Design tokens compartidos
+  sumup/           SumUp POS integration
+  banco-chile/     Banco Chile Empresas API client
+  maps/            Utilidades cartograficas (sin consumidores activos)
+docs/              Documentacion (estas leyendo esto)
 ```
 
 ---
@@ -68,14 +66,14 @@ enjambre-legado/
 | Capa | Tecnologia | Version |
 |---|---|---|
 | Monorepo | Turborepo + pnpm | 2.8 / 10.32 |
-| Frontend | React 19, Next.js 15/16, Vite 7 | - |
-| Estilos | Tailwind CSS 3/4, GSAP, Framer Motion | - |
+| Frontend | React 19, Next.js 16 | - |
+| Estilos | Tailwind CSS 3, GSAP | - |
 | Base de datos | Supabase (Postgres 17 + PostGIS + RLS) | - |
-| Estado | Zustand, TanStack Query, Dexie (offline) | - |
+| Estado | Zustand, TanStack Query | - |
 | Pagos | Transbank SDK (Webpay) | 6.1 |
 | Validacion | Zod | 4.x |
-| BFF | Hono | 4.10 |
-| Contabilidad | Prisma + SQLite (EIRL independiente) | 6.x |
+| BFF | Hono (dentro de nucleo) | 4.10 |
+| Contabilidad | @enjambre/contable (Zod) | - |
 | Node | >=20 (apps usan 24.x) | - |
 
 ---
@@ -84,13 +82,10 @@ enjambre-legado/
 
 | Rol | App principal | Que hace |
 |---|---|---|
-| `apicultor` | campo, nucleo | Inspecciona colmenas, registra cosechas |
-| `vendedor` | campo, nucleo | POS en ferias, ventas directas |
-| `gerente` | nucleo | Panel ejecutivo, ve todo |
-| `logistica` | nucleo | Envios, stock, seguimiento |
-| `marketing` | nucleo | Campanas, redes, comunidad |
-| `tienda_admin` | tienda | Administra catalogo, ordenes |
+| `admin` | nucleo | Panel ejecutivo, gestiona todo (roles granulares previos consolidados via migration 39) |
 | `cliente` | tienda | Compra, ve impacto, fidelizacion |
+| `creador` | nucleo | Portal auto-servicio, comisiones |
+| `rep_ventas` | campo, nucleo | POS en ferias, ventas directas |
 
 ---
 
@@ -111,7 +106,6 @@ pnpm dev
 pnpm --filter @enjambre/tienda dev
 pnpm --filter @enjambre/nucleo dev
 pnpm --filter @enjambre/campo dev
-pnpm --filter @enjambre/api dev
 ```
 
 ---
@@ -128,4 +122,4 @@ pnpm --filter @enjambre/api dev
 ---
 
 *Documento maestro. Actualizar cuando cambie la estructura del proyecto.*
-*Ultima actualizacion: Mayo 2026*
+*Ultima actualizacion: Junio 2026*

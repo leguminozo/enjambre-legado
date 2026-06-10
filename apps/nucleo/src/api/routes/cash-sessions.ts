@@ -106,6 +106,12 @@ cashSessionsRoutes.post("/:id/close", zValidator("json", CloseSessionSchema), as
     0,
   );
 
+  const breakdown: Record<string, number> = {};
+  for (const v of (ventas ?? []) as Array<{ total: number; metodo_pago: string }>) {
+    const key = v.metodo_pago;
+    breakdown[key] = (breakdown[key] ?? 0) + v.total;
+  }
+
   const { data: openSession } = await supabase
     .from("cash_sessions")
     .select("opening_cash")
@@ -142,15 +148,16 @@ cashSessionsRoutes.post("/:id/close", zValidator("json", CloseSessionSchema), as
   }
 
   return c.json({
-    data,
-    summary: {
-      cash_sales: cashSales,
-      expected_cash: expectedCash,
-      counted_cash: input.closing_cash_counted,
-      difference,
-      total_commission: totalCommission,
-    },
-  });
+  data,
+  summary: {
+    cash_sales: cashSales,
+    expected_cash: expectedCash,
+    counted_cash: input.closing_cash_counted,
+    difference,
+    total_commission: totalCommission,
+    breakdown,
+  },
+});
 });
 
 cashSessionsRoutes.patch("/:id/reconcile", zValidator("json", ReconcileSchema), async (c) => {

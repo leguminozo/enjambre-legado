@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 // Fase lunar simulada. En el futuro integrar SunCalc.js
 const fasesLunares = [
   { nombre: 'Luna Nueva', icon: <Moon size={16} fill="transparent" /> },
-  { nombre: 'Cuarto Creciente', icon: <Moon size={16} fill="rgba(255,255,255,0.5)" /> },
+  { nombre: 'Cuarto Creciente', icon: <Moon size={16} fill="hsl(var(--foreground) / 0.5)" /> },
   { nombre: 'Luna Llena', icon: <Moon size={16} fill="currentColor" /> },
-  { nombre: 'Cuarto Menguante', icon: <Moon size={16} fill="rgba(255,255,255,0.2)" /> },
+  { nombre: 'Cuarto Menguante', icon: <Moon size={16} fill="hsl(var(--foreground) / 0.2)" /> },
 ];
 
 export function HeaderEcosistema() {
@@ -21,8 +21,8 @@ export function HeaderEcosistema() {
       gap: 'var(--space-md)',
       padding: 'var(--space-md) var(--space-xl)',
       background: 'var(--surface-app)',
-      borderBottom: '1px solid rgba(255,255,255,0.05)',
-      color: 'var(--text-secondary)',
+      borderBottom: '1px solid hsl(var(--foreground) / 0.05)',
+      color: 'hsl(var(--muted-foreground))',
       fontSize: '0.8rem',
       fontFamily: 'var(--font-datos)',
       textTransform: 'uppercase',
@@ -33,13 +33,13 @@ export function HeaderEcosistema() {
       <div style={{ display: 'flex', gap: 'var(--space-xl)', alignItems: 'center' }}>
         
         {/* Fase Lunar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--oro-miel)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'hsl(var(--accent))' }}>
           {faseActual.icon}
           <span>{faseActual.nombre}</span>
         </div>
 
         {/* Marea */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'hsl(var(--muted-foreground))' }}>
           <Droplets size={16} />
           <span>Marea: {marea}</span>
         </div>
@@ -48,8 +48,8 @@ export function HeaderEcosistema() {
 
       {/* Floración */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Flower2 size={16} style={{ color: 'var(--salud-optima)' }} />
-        <span>Floración Actual: <strong style={{ color: 'var(--text-primary)' }}>{floracion.especie} ({floracion.porcentaje}%)</strong></span>
+        <Flower2 size={16} style={{ color: 'hsl(var(--success))' }} />
+        <span>Floración Actual: <strong style={{ color: 'hsl(var(--foreground))' }}>{floracion.especie} ({floracion.porcentaje}%)</strong></span>
       </div>
     </div>
   );

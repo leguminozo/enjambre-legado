@@ -62,12 +62,12 @@ ENJAMBRE LEGADO — Design System
   --radius-xl: 28px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 1px 3px hsl(0 0% 0% / 0.06);
-  --shadow-md: 0 4px 12px hsl(0 0% 0% / 0.08);
-  --shadow-lg: 0 8px 30px hsl(0 0% 0% / 0.1);
-  --shadow-xl: 0 20px 60px hsl(0 0% 0% / 0.12);
+  --shadow-sm: 0 1px 3px hsl(var(--background) / 0.06);
+  --shadow-md: 0 4px 12px hsl(var(--background) / 0.08);
+  --shadow-lg: 0 8px 30px hsl(var(--background) / 0.1);
+  --shadow-xl: 0 20px 60px hsl(var(--background) / 0.12);
   --shadow-glow: 0 0 20px var(--oro-miel-glow);
-  --shadow-inner: inset 0 2px 6px hsl(0 0% 0% / 0.06);
+  --shadow-inner: inset 0 2px 6px hsl(var(--background) / 0.06);
 
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -82,6 +82,29 @@ ENJAMBRE LEGADO — Design System
   --header-height: 64px;
   --nav-height: 68px;
   --max-content-width: 1400px;
+}
+
+/* ── Legacy variable bridge — Light overrides ── */
+:root.light {
+  --negro-suave: hsl(0 0% 85%);
+
+  --surface-dark: hsl(var(--primary));
+  --surface-dark-elevated: hsl(var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 30%);
+  --surface-glass: hsl(var(--enj-crema-h) var(--enj-crema-s) 95% / 0.04);
+  --surface-glass-heavy: hsl(var(--card) / 0.6);
+
+  --text-on-dark: hsl(var(--primary-foreground));
+
+  --shadow-sm: 0 1px 3px hsl(var(--enj-bosque-ulmo-h) 20% 20% / 0.06);
+  --shadow-md: 0 4px 12px hsl(var(--enj-bosque-ulmo-h) 20% 20% / 0.08);
+  --shadow-lg: 0 8px 30px hsl(var(--enj-bosque-ulmo-h) 20% 20% / 0.1);
+  --shadow-xl: 0 20px 60px hsl(var(--enj-bosque-ulmo-h) 20% 20% / 0.12);
+  --shadow-glow: 0 0 20px hsl(var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l) / 0.1);
+  --shadow-inner: inset 0 2px 6px hsl(var(--enj-bosque-ulmo-h) 20% 20% / 0.06);
+
+  --glass-bg: hsl(var(--enj-crema-h) var(--enj-crema-s) 95% / 0.4);
+  --glass-border: hsl(var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l) / 0.15);
+  --glass-shine: linear-gradient(135deg, hsl(var(--foreground) / 0.05), transparent);
 }
 
 /* ── Reset & Base ── */
