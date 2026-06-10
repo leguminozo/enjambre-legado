@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS public.pre_orders (
   quantity integer NOT NULL DEFAULT 1,
   deposit_amount integer DEFAULT 0,
   status text NOT NULL DEFAULT 'reserved' CHECK (status IN ('reserved', 'confirmed', 'converted', 'cancelled', 'refunded')),
-  converted_venta_id uuid REFERENCES public.ventas(id),
+  converted_venta_id text,
   created_at timestamptz DEFAULT now()
 );
 
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS public.palate_profiles (
 -- Regenerative footprint per order
 CREATE TABLE IF NOT EXISTS public.order_regenerative_footprint (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  venta_id uuid NOT NULL UNIQUE REFERENCES public.ventas(id) ON DELETE CASCADE,
+  venta_id text NOT NULL UNIQUE,
   co2_evitado_kg numeric DEFAULT 0,
   bosque_m2_protegido numeric DEFAULT 0,
   azucar_sustituida_g numeric DEFAULT 0,
@@ -189,7 +189,7 @@ CREATE POLICY "Users see own palate profile"
   ON public.palate_profiles FOR SELECT
   USING (user_id = auth.uid());
 
-CREATE POLICY "Users can update own palate profile"
+CREATE POLICY "Users can insert own palate profile"
   ON public.palate_profiles FOR INSERT
   WITH CHECK (user_id = auth.uid());
 

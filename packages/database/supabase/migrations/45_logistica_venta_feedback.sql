@@ -1,7 +1,7 @@
 -- Migración 45: Relación Logística-Venta y Mejoras en Trazabilidad
 -- Añade vínculo opcional entre envíos y ventas para retroalimentación tienda-núcleo
 
-ALTER TABLE logistica_envios ADD COLUMN IF NOT EXISTS venta_id UUID REFERENCES ventas(id) ON DELETE SET NULL;
+ALTER TABLE logistica_envios ADD COLUMN IF NOT EXISTS venta_id TEXT REFERENCES ventas(id) ON DELETE SET NULL;
 ALTER TABLE logistica_envios ADD COLUMN IF NOT EXISTS empresa_id UUID REFERENCES empresas(id) ON DELETE CASCADE;
 
 -- Comentario para documentar el propósito

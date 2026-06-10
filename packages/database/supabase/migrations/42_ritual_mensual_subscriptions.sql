@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS public.subscription_deliveries (
   period_number integer NOT NULL,
   scheduled_for timestamptz NOT NULL,
   items jsonb NOT NULL DEFAULT '[]',
-  venta_id uuid REFERENCES public.ventas(id),
+  venta_id text REFERENCES public.ventas(id),
   status text NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'processing', 'shipped', 'delivered', 'failed')),
   tracking_url text,
   created_at timestamptz DEFAULT now()

@@ -31,7 +31,8 @@ FOR EACH ROW
 EXECUTE FUNCTION update_lote_stock_from_product();
 
 -- 4. Mejorar decrement_stock para ser más robusto y devolver más info
-CREATE OR REPLACE FUNCTION decrement_stock(p_id UUID, p_qty INT)
+DROP FUNCTION IF EXISTS decrement_stock(UUID, INT);
+CREATE FUNCTION decrement_stock(p_id UUID, p_qty INT)
 RETURNS TABLE (id UUID, stock INT, lote_id UUID, kg_restante_lote DECIMAL) AS $$
 DECLARE
     v_lote_id UUID;
@@ -54,6 +55,8 @@ BEGIN
     RETURN QUERY SELECT id, v_new_stock, v_lote_id, v_kg_restante;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION decrement_stock(UUID, INT) TO service_role;
 
 -- 5. Actualizar get_ecosystem_metrics para incluir impacto de ventas
 CREATE OR REPLACE FUNCTION get_ecosystem_metrics()
