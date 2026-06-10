@@ -3,8 +3,8 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { GuardianSidebar } from '@/components/shop/guardian-sidebar';
 import { PerfilLayoutClient } from './perfil-layout-client';
-import { GrainOverlay } from '@enjambre/ui';
-import { CustomCursor } from '@/components/shop/custom-cursor';
+import { GrainOverlay } from '@/components/ui/grain-overlay';
+import { CustomCursor } from '@/components/ui/custom-cursor';
 import { toTiendaUserProfile } from '@/lib/shop/user-profile';
 
 export default async function PerfilLayout({

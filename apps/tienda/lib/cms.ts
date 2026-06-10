@@ -1,5 +1,4 @@
 import { createClient } from '@/utils/supabase/server';
-import { createClient as createAnonClient } from '@/utils/supabase/client';
 
 export type SiteSectionItem = {
   id: string;
@@ -8,10 +7,6 @@ export type SiteSectionItem = {
   item_order: number;
 };
 
-/**
- * Obtiene el contenido de una sección específica del CMS.
- * @param sectionKey Clave de la sección (ej. 'servicios', 'talleres')
- */
 export async function getSiteContent(sectionKey: string): Promise<SiteSectionItem[]> {
   try {
     const supabase = await createClient();
@@ -34,14 +29,9 @@ export async function getSiteContent(sectionKey: string): Promise<SiteSectionIte
   }
 }
 
-/**
- * Obtiene contenido CMS sin autenticación (para páginas estáticas legales).
- * Usa cliente anónimo para evitar cookies y permitir static generation.
- * @param sectionKey Clave de la sección
- */
 export async function getSiteContentStatic(sectionKey: string): Promise<SiteSectionItem[]> {
   try {
-    const supabase = createAnonClient();
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('site_content')
       .select('*')
