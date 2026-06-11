@@ -53,7 +53,7 @@ export function BeeCanvas() {
     canvas.height = height * dpr;
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
-    if (ctx) ctx.scale(dpr, dpr);
+    if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
   let resizeTimer: ReturnType<typeof setTimeout>;
@@ -234,7 +234,10 @@ export function BeeCanvas() {
 
     function animate() {
       if (!ctx) return;
-      ctx.clearRect(0, 0, width, height);
+      ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas!.width, canvas!.height);
+    ctx.restore();
       
       const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width * 0.6);
       gradient.addColorStop(0, goldHex + '08');

@@ -174,7 +174,14 @@ export function TiendaLandingView({
       {/* ── HERO ── */}
       <section className="relative h-[90vh] flex flex-col items-center justify-center text-center px-4">
         <BeeCanvas />
-          <div className="absolute inset-0 bg-gradient-radial from-transparent to-background opacity-60 pointer-events-none" />
+          <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse at center, transparent 0%, hsl(var(--background)) 70%)',
+          opacity: 0.6,
+        }}
+      />
 
           <div className="relative z-10 max-w-4xl">
             <span className="hero-eyebrow editorial-kicker mb-8 opacity-0 translate-y-5 block">
