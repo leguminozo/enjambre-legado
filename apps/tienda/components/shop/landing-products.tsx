@@ -52,7 +52,7 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
               className="group relative bg-card/40 border border-border/30 rounded-lg overflow-hidden hover:border-accent/35 transition-all duration-base"
             >
               <Link href={`/producto/${encodeURIComponent(p.slug)}`} className="block">
-              <div className="aspect-square bg-card overflow-hidden">
+              <div className="relative aspect-square bg-card overflow-hidden">
                 {img ? (
                   <Image
                     src={img}

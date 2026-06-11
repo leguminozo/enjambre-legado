@@ -1,5 +1,3 @@
-'use client';
-
 import type { ReactNode } from 'react';
 import { WhatsAppFloat } from '@/components/shop/whatsapp-float';
 

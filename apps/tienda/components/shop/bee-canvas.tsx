@@ -43,7 +43,7 @@ export function BeeCanvas() {
     const bees: Bee[] = [];
     const honeyParticles: HoneyParticle[] = [];
 
-  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
   function resize() {
     if (!canvas) return;

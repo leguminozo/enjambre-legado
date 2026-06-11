@@ -1,5 +1,3 @@
-'use client';
-
 /** Define NEXT_PUBLIC_WHATSAPP_E164=569XXXXXXXX (solo dígitos, con código país). */
 export function WhatsAppFloat() {
   const phone = process.env.NEXT_PUBLIC_WHATSAPP_E164?.replace(/\D/g, '');

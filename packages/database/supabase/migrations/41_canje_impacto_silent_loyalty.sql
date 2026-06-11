@@ -201,15 +201,14 @@ CREATE POLICY "Admins see all palate profiles"
   ON public.palate_profiles FOR SELECT
   USING (public.is_admin());
 
--- order_regenerative_footprint: users see own (via venta), admin sees all
 CREATE POLICY "Users see own order footprints"
-  ON public.order_regenerative_footprint FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.ventas v
-      WHERE v.id = venta_id AND v.buyer_id = auth.uid()
-    )
-  );
+ON public.order_regenerative_footprint FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM public.ventas v
+    WHERE v.id = venta_id AND v.user_id = auth.uid()
+  )
+);
 
 CREATE POLICY "Admins see all footprints"
   ON public.order_regenerative_footprint FOR SELECT
@@ -250,17 +249,17 @@ DECLARE
   v_points integer;
   v_balance integer;
   v_tier_key text;
+  v_buyer_id uuid;
 BEGIN
-  IF NEW.buyer_id IS NULL THEN
+  v_buyer_id := COALESCE(NEW.user_id, NEW.vendedor_id);
+  IF v_buyer_id IS NULL THEN
     RETURN NEW;
   END IF;
 
-  -- 1 point per 100 CLP spent
   v_points := GREATEST(1, FLOOR(NEW.total / 100));
 
-  -- Get current balance
   SELECT puntos_acumulados INTO v_balance
-  FROM profiles WHERE id = NEW.buyer_id;
+  FROM profiles WHERE id = v_buyer_id;
 
   IF v_balance IS NULL THEN
     v_balance := 0;
@@ -268,23 +267,20 @@ BEGIN
 
   v_balance := v_balance + v_points;
 
-  -- Update profile balance
-  UPDATE profiles SET puntos_acumulados = v_balance WHERE id = NEW.buyer_id;
+  UPDATE profiles SET puntos_acumulados = v_balance WHERE id = v_buyer_id;
 
-  -- Determine tier
   SELECT key INTO v_tier_key FROM loyalty_tiers
   WHERE min_points <= v_balance
   ORDER BY min_points DESC
   LIMIT 1;
 
   IF v_tier_key IS NOT NULL THEN
-    UPDATE profiles SET nivel_guardian = v_tier_key WHERE id = NEW.buyer_id;
+    UPDATE profiles SET nivel_guardian = v_tier_key WHERE id = v_buyer_id;
   END IF;
 
-  -- Record transaction
   INSERT INTO loyalty_transactions (user_id, action_type, points, balance_after, source_id, description)
   VALUES (
-    NEW.buyer_id,
+    v_buyer_id,
     'compra',
     v_points,
     v_balance,
@@ -314,36 +310,53 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
+  v_item jsonb;
+  v_producto_id uuid;
+  v_cantidad int;
   v_co2 numeric;
   v_azucar numeric;
   v_irr numeric;
+  v_total_co2 numeric := 0;
+  v_total_azucar numeric := 0;
+  v_best_irr numeric;
 BEGIN
-  IF NEW.buyer_id IS NULL OR NEW.producto_id IS NULL THEN
+  IF NEW.user_id IS NULL OR NEW.items IS NULL THEN
     RETURN NEW;
   END IF;
 
-  SELECT co2_evitado_kg, sustituye_azucar_g, irr_referencia
-  INTO v_co2, v_azucar, v_irr
-  FROM productos WHERE id = NEW.producto_id;
+  FOR v_item IN SELECT * FROM jsonb_array_elements(NEW.items)
+  LOOP
+    v_producto_id := (v_item->>'producto_id')::uuid;
+    v_cantidad := COALESCE((v_item->>'cantidad')::int, 1);
 
-  -- Scale by quantity
-  v_co2 := COALESCE(v_co2, 0) * NEW.cantidad;
-  v_azucar := COALESCE(v_azucar, 0) * NEW.cantidad;
+    IF v_producto_id IS NULL THEN
+      CONTINUE;
+    END IF;
 
-  -- Bosque m2: heuristic — 1m2 per 0.5kg CO2 avoided
+    SELECT co2_evitado_kg, sustituye_azucar_g, irr_referencia
+    INTO v_co2, v_azucar, v_irr
+    FROM productos WHERE id = v_producto_id;
+
+    v_total_co2 := v_total_co2 + COALESCE(v_co2, 0) * v_cantidad;
+    v_total_azucar := v_total_azucar + COALESCE(v_azucar, 0) * v_cantidad;
+    IF v_irr IS NOT NULL AND (v_best_irr IS NULL OR v_irr > v_best_irr) THEN
+      v_best_irr := v_irr;
+    END IF;
+  END LOOP;
+
   INSERT INTO order_regenerative_footprint (venta_id, co2_evitado_kg, bosque_m2_protegido, azucar_sustituida_g, irr_score)
   VALUES (
     NEW.id,
-    v_co2,
-    GREATEST(1, v_co2 / 0.5),
-    v_azucar,
-    v_irr
+    v_total_co2,
+    GREATEST(1, v_total_co2 / 0.5),
+    v_total_azucar,
+    v_best_irr
   )
   ON CONFLICT (venta_id) DO UPDATE SET
-    co2_evitado_kg = v_co2,
-    bosque_m2_protegido = GREATEST(1, v_co2 / 0.5),
-    azucar_sustituida_g = v_azucar,
-    irr_score = v_irr;
+    co2_evitado_kg = v_total_co2,
+    bosque_m2_protegido = GREATEST(1, v_total_co2 / 0.5),
+    azucar_sustituida_g = v_total_azucar,
+    irr_score = v_best_irr;
 
   RETURN NEW;
 END;

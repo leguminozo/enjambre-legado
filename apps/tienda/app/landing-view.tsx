@@ -10,7 +10,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { GrainOverlay } from '@enjambre/ui';
+import { GrainOverlay } from '@/components/ui/grain-overlay';
 import { TextCarousel } from '@/components/shop/text-carousel';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
@@ -305,6 +305,7 @@ export function TiendaLandingView({
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-elegant"
+                  unoptimized
                 />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-base" />
                   </div>
