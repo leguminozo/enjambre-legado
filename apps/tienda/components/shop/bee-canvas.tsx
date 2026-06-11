@@ -40,30 +40,17 @@ export function BeeCanvas() {
 
     let width: number;
     let height: number;
-    const bees: Bee[] = [];
-    const honeyParticles: HoneyParticle[] = [];
+    let bees: Bee[] = [];
+    let honeyParticles: HoneyParticle[] = [];
 
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    function resize() {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
 
-  function resize() {
-    if (!canvas) return;
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-    if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-
-  let resizeTimer: ReturnType<typeof setTimeout>;
-  const onResize = () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(resize, 150);
-  };
-
-  window.addEventListener('resize', onResize);
-  resize();
+    window.addEventListener('resize', resize);
+    resize();
 
     class Bee {
       x: number;
@@ -151,7 +138,7 @@ export function BeeCanvas() {
         ctx.globalAlpha = this.opacity * 0.3;
         ctx.fillStyle = creamHex;
         const wingFlap = Math.sin(this.wingAngle) * 0.3;
-        
+
         ctx.save();
         ctx.rotate(-0.5 + wingFlap);
         ctx.beginPath();
@@ -204,7 +191,7 @@ export function BeeCanvas() {
         this.y += this.vy;
         this.x += this.vx;
         this.life--;
-        
+
         if (this.y > height || this.life <= 0) {
           this.reset();
           this.y = -10;
@@ -234,11 +221,8 @@ export function BeeCanvas() {
 
     function animate() {
       if (!ctx) return;
-      ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, canvas!.width, canvas!.height);
-    ctx.restore();
-      
+      ctx.clearRect(0, 0, width, height);
+
       const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width * 0.6);
       gradient.addColorStop(0, goldHex + '08');
       gradient.addColorStop(1, inkHex + '00');
@@ -260,17 +244,17 @@ export function BeeCanvas() {
 
     animate();
 
-  return () => {
-    window.removeEventListener('resize', onResize);
-    clearTimeout(resizeTimer);
-    cancelAnimationFrame(animationFrameId);
-  };
+    return () => {
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(animationFrameId);
+    };
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
       className="absolute inset-0 z-0 pointer-events-none"
+      style={{ width: '100%', height: '100%' }}
     />
   );
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import { gsap } from 'gsap';
 
 interface MediaItem {
@@ -68,13 +67,10 @@ export function MediaCarousel({ items, autoplayMs = 5000 }: MediaCarouselProps) 
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                <Image
+                <img
                   src={item.src}
                   alt={item.alt || ''}
-                  fill
-                  sizes="100vw"
-                  className="object-cover"
-                  unoptimized
+                  className="h-full w-full object-cover"
                 />
                 )}
             <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent pointer-events-none" />

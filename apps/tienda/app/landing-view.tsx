@@ -2,7 +2,6 @@
 
 import React, { useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -10,7 +9,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { GrainOverlay } from '@/components/ui/grain-overlay';
+import { GrainOverlay } from '@/components/shop/grain-overlay';
 import { TextCarousel } from '@/components/shop/text-carousel';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
@@ -305,15 +304,12 @@ export function TiendaLandingView({
               const imageSrc = getCollectionImage(c.kicker);
               return (
                 <Link key={c.title} href={c.href} className="group flex flex-col">
-              <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-6 rounded-lg">
-                <Image
-                  src={imageSrc}
-                  alt={c.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-elegant"
-                  unoptimized
-                />
+            <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-6 rounded-lg">
+                  <img
+                    src={imageSrc}
+                    alt={c.title}
+                    className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-elegant"
+                  />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-base" />
                   </div>
                   <div className="text-center px-2">

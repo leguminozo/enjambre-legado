@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
 import type { ShopProduct } from '@/lib/shop/products';
 import { formatCLP } from '@/lib/shop/format';
@@ -52,16 +51,14 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
               className="group relative bg-card/40 border border-border/30 rounded-lg overflow-hidden hover:border-accent/35 transition-all duration-base"
             >
               <Link href={`/producto/${encodeURIComponent(p.slug)}`} className="block">
-              <div className="relative aspect-square bg-card overflow-hidden">
-                {img ? (
-                  <Image
-                    src={img}
-                    alt={p.name}
-                    fill
-                    sizes="(max-width: 640px) 50vw, 25vw"
-                    className="object-cover transition duration-500 group-hover:scale-[1.03]"
-                  />
-                ) : (
+        <div className="aspect-square bg-card overflow-hidden">
+                  {img ? (
+                    <img
+                      src={img}
+                      alt={p.name}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                    />
+                  ) : (
                     <div className="flex h-full items-center justify-center text-xs text-muted-foreground/60">
                       Sin imagen
                     </div>
