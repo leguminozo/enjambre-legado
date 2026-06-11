@@ -3,7 +3,7 @@
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { GrainOverlay } from '@enjambre/ui';
+import { GrainOverlay } from '@/components/shop/grain-overlay';
 import { useEffect, useState } from 'react';
 
 interface LegalContentProps {

@@ -5,7 +5,7 @@ import { Eye, EyeOff, Lock, Mail, User, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { GrainOverlay } from '@enjambre/ui';
+import { GrainOverlay } from '@/components/shop/grain-overlay';
 
 export function RegisterForm() {
   const [email, setEmail] = useState('');
