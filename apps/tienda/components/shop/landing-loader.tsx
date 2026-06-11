@@ -8,7 +8,7 @@ export function LandingLoader() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
-    }, 2000);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, []);

@@ -218,9 +218,19 @@ export function BeeCanvas() {
     }
 
     let animationFrameId: number;
+    let isVisible = true;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible) animate();
+      },
+      { threshold: 0 },
+    );
+    observer.observe(canvas);
 
     function animate() {
-      if (!ctx) return;
+      if (!ctx || !isVisible) return;
       ctx.clearRect(0, 0, width, height);
 
       const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width * 0.6);
@@ -245,6 +255,7 @@ export function BeeCanvas() {
     animate();
 
     return () => {
+      observer.disconnect();
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(animationFrameId);
     };

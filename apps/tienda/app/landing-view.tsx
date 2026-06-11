@@ -24,7 +24,7 @@ const CustomCursor = dynamic(
 );
 const LandingLoader = dynamic(
   () => import('@/components/shop/landing-loader').then((m) => m.LandingLoader),
-  { ssr: false },
+  { loading: () => <div className="fixed inset-0 bg-background z-[9999]" /> },
 );
 const WorldMapBlock = dynamic(
   () => import('@/components/shop/world-map-block').then((m) => m.WorldMapBlock),
@@ -32,7 +32,7 @@ const WorldMapBlock = dynamic(
 );
 const MediaCarousel = dynamic(
   () => import('@/components/shop/media-carousel').then((m) => m.MediaCarousel),
-  { ssr: false, loading: () => <div className="w-full h-[50vh] md:h-[70vh] bg-surface-raised" /> },
+  { loading: () => <div className="w-full h-[50vh] md:h-[70vh] bg-surface-raised" /> },
 );
 const LandingProducts = dynamic(
   () => import('@/components/shop/landing-products').then((m) => m.LandingProducts),
@@ -128,7 +128,7 @@ export function TiendaLandingView({
           scrollTrigger: {
             trigger: section,
             start: 'top 85%',
-            toggleActions: 'play none none reverse',
+            once: true,
           },
           y: 60,
           opacity: 0,
