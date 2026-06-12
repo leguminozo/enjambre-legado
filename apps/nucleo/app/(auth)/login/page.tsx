@@ -53,7 +53,7 @@ export default function LoginPage() {
         const userId = useAuthStore.getState().user?.id;
         logSecurityEvent(supabase, { eventType: 'login_success', email, userId, appSource: 'nucleo' });
         const userRole = useAuthStore.getState().user?.role ?? role;
-        router.push(getRoleRedirectPath(userRole));
+        window.location.href = getRoleRedirectPath(userRole);
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, role } } });
         if (error) throw error;

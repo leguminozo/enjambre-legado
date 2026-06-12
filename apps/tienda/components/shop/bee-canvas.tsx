@@ -34,9 +34,10 @@ export function BeeCanvas() {
       );
     };
 
-    const inkHex = hslVar('--background');
+    const bgHex = hslVar('--background');
     const goldHex = hslVar('--accent');
     const creamHex = hslVar('--foreground');
+    const beeBodyHex = '#2a1f14';
 
     let width: number;
     let height: number;
@@ -122,7 +123,7 @@ export function BeeCanvas() {
         ctx.rotate(this.angle);
         ctx.globalAlpha = this.opacity;
 
-        ctx.fillStyle = inkHex;
+        ctx.fillStyle = beeBodyHex;
         ctx.beginPath();
         ctx.ellipse(0, 0, this.size * 2.5, this.size, 0, 0, Math.PI * 2);
         ctx.fill();
@@ -235,7 +236,7 @@ export function BeeCanvas() {
 
       const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width * 0.6);
       gradient.addColorStop(0, goldHex + '08');
-      gradient.addColorStop(1, inkHex + '00');
+      gradient.addColorStop(1, bgHex + '00');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
 
