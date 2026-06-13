@@ -79,6 +79,27 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
     const admin = createAdminClient();
     const productIds = cart.map((line) => line.productId);
 
+    // 1. Verify user and role from Authorization header securely
+    const authHeader = c.req.header('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    let role = 'comprador';
+    let userId: string | null = null;
+    let pastOrdersCount = 0;
+
+    if (token) {
+      const { data: { user }, error: authErr } = await admin.auth.getUser(token);
+      if (!authErr && user) {
+        userId = user.id;
+        role = user.app_metadata?.oyz_role || 'comprador';
+        
+        if (role === 'revendedor' || role === 'embajador') {
+          const { data: pastOrders } = await admin.from('pedidos').select('id').eq('user_id', user.id);
+          pastOrdersCount = pastOrders?.length || 0;
+        }
+      }
+    }
+
+    // 2. Fetch products
     const { data: products, error: fetchError } = await admin
       .from('productos')
       .select('id, precio, stock, nombre, visible')
@@ -87,6 +108,18 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
     if (fetchError) {
       return c.json({ code: "fetch_error", message: 'Error consultando productos' }, 500);
     }
+
+    // 3. Compute multipliers
+    let roleMultiplier = 1.0;
+    if (role === 'embajador') roleMultiplier = 0.70;
+    else if (role === 'revendedor') roleMultiplier = 0.80;
+    else if (role === 'suscriptor') roleMultiplier = 0.90;
+
+    let volumeMultiplier = 1.0;
+    if ((role === 'revendedor' || role === 'embajador') && pastOrdersCount >= 10) {
+      volumeMultiplier = 0.95;
+    }
+    const finalMultiplier = roleMultiplier * volumeMultiplier;
 
     const productMap = new Map((products ?? []).map((p) => [p.id, p]));
     const verifiedCart: CartLineInput[] = [];
@@ -111,9 +144,13 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
         continue;
       }
 
-      const serverPrice = product.precio;
-      if (line.unitPrice !== serverPrice) {
-        errors.push(`Producto ${product.nombre}: precio cambió de $${line.unitPrice} a $${serverPrice}`);
+      // Compute discounted price server-side
+      const basePrice = product.precio;
+      const discountedPrice = Math.round(basePrice * finalMultiplier);
+
+      if (line.unitPrice !== discountedPrice) {
+        // Only error if the client submitted a mismatch against the DISCOUNTED price
+        errors.push(`Producto ${product.nombre}: precio cambió de $${line.unitPrice} a $${discountedPrice}`);
         continue;
       }
 
@@ -121,11 +158,11 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
         productId: line.productId,
         slug: line.slug,
         name: product.nombre,
-        unitPrice: serverPrice,
+        unitPrice: discountedPrice,
         quantity: line.quantity,
       });
 
-      serverTotal += serverPrice * line.quantity;
+      serverTotal += discountedPrice * line.quantity;
     }
 
     if (errors.length > 0) {

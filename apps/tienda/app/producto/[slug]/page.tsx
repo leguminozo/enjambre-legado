@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getProductBySlugOrId } from '@/lib/shop/products';
+import { getProductBySlugOrId, listVisibleProducts } from '@/lib/shop/products';
 import { formatCLP } from '@/lib/shop/format';
 import {
   productJsonLd,
@@ -19,12 +19,20 @@ import { ChevronRight } from 'lucide-react';
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
-  const product = await getProductBySlugOrId(params.slug);
+type PageProps = {
+  params: Promise<{ slug: string }>;
+};
+
+export async function generateStaticParams() {
+  const products = await listVisibleProducts();
+  return products.map((p) => ({ slug: p.slug }));
+}
+export const revalidate = 3600;
+export const dynamicParams = true;
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await getProductBySlugOrId(slug);
   if (!product) {
     return { title: 'Producto no encontrado' };
   }
@@ -68,12 +76,8 @@ function Shell({ children }: { children: ReactNode }) {
   );
 }
 
-export default async function ProductoPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
-  const { slug } = params;
+export default async function ProductoPage({ params }: PageProps) {
+  const { slug } = await params;
   const product = await getProductBySlugOrId(slug);
 
   if (!product) {

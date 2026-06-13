@@ -114,29 +114,18 @@ export async function listVisibleProducts(): Promise<ShopProduct[]> {
 export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduct | null> {
   const supabase = await createClient();
 
-  let row: ProductRow | null = null;
-
-  const bySlug = await supabase
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
+  const { data, error } = await supabase
     .from('productos')
     .select(PRODUCT_SELECT)
-    .eq('slug', slugOrId)
+    .eq(isUuid ? 'id' : 'slug', slugOrId)
     .maybeSingle();
 
-  if (bySlug.error) throw new Error(bySlug.error.message);
-  const slugParsed = ProductRowSchema.safeParse(bySlug.data);
-  if (slugParsed.success) row = slugParsed.data;
-
-  if (!row) {
-    const byId = await supabase
-      .from('productos')
-      .select(PRODUCT_SELECT)
-      .eq('id', slugOrId)
-      .maybeSingle();
-
-    if (byId.error) throw new Error(byId.error.message);
-    const idParsed = ProductRowSchema.safeParse(byId.data);
-    if (idParsed.success) row = idParsed.data;
-  }
+  if (error) throw new Error(error.message);
+  
+  let row: ProductRow | null = null;
+  const parsed = ProductRowSchema.safeParse(data);
+  if (parsed.success) row = parsed.data;
 
   if (!row) return null;
 

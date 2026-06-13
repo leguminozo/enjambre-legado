@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
+import { cors } from "hono/cors";
 import type { AppVariables } from "@/api/lib/middleware";
 import { healthRoutes } from "@/api/routes/health";
 import { contableRoutes } from "@/api/routes/contable";
@@ -30,6 +31,35 @@ import { checkoutRoutes } from "@/api/routes/checkout";
 export type { AppVariables };
 
 const app = new Hono<{ Variables: AppVariables }>().basePath("/api");
+
+app.use("*", cors({
+  origin: process.env.NEXT_PUBLIC_SITE_URL || "*",
+  allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowHeaders: ["Content-Type", "Authorization", "x-empresa-id", "x-internal-key"],
+  credentials: true,
+}));
+
+app.use("*", async (c, next) => {
+  const publicPaths = [
+    "/api/health",
+    "/api/checkout",
+    "/api/security-events",
+    "/api/creadores",
+    "/api/invitations"
+  ];
+  const path = new URL(c.req.url).pathname;
+  
+  if (publicPaths.some(p => path.startsWith(p))) {
+    return next();
+  }
+  
+  const authHeader = c.req.header("authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return c.json({ code: "unauthorized", message: "Global fallback: Missing token" }, 401);
+  }
+  
+  return next();
+});
 
 app.route("/health", healthRoutes);
 app.route("/contable", contableRoutes);

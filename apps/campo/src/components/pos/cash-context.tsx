@@ -157,19 +157,34 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
 
   const quickSale = useCallback(async (productoId: string, cantidad: number, metodoPago: string, channel?: string, sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => {
     if (!token || !session) throw new Error('Sin sesion abierta');
+    const payload = {
+      cash_session_id: session.id,
+      producto_id: productoId,
+      cantidad,
+      metodo_pago: metodoPago,
+      channel,
+      cliente_id: selectedClient?.id ?? undefined,
+      is_new_client: isNewClient,
+      sumup_checkout_id: sumupFields?.sumup_checkout_id,
+      sumup_transaction_id: sumupFields?.sumup_transaction_id,
+    };
+
+    if (!navigator.onLine) {
+      console.log('[CashProvider] Offline mode: queueing quickSale to Dexie');
+      const { db } = await import('@/lib/offline/db');
+      await db.sync_queue.add({
+        payload,
+        status: 'pending',
+        created_at: Date.now(),
+      });
+      // Optimistic increment
+      setTodaySales((prev) => prev + 1);
+      return { id: `offline-${Date.now()}`, total: 0, metodo_pago: metodoPago, channel: channel || '', created_at: new Date().toISOString(), rep_commission_total: 0 };
+    }
+
     const res = await apiFetch('/rep-ventas/quick', token, {
       method: 'POST',
-      body: JSON.stringify({
-        cash_session_id: session.id,
-        producto_id: productoId,
-        cantidad,
-        metodo_pago: metodoPago,
-        channel,
-        cliente_id: selectedClient?.id ?? undefined,
-        is_new_client: isNewClient,
-        sumup_checkout_id: sumupFields?.sumup_checkout_id,
-        sumup_transaction_id: sumupFields?.sumup_transaction_id,
-      }),
+      body: JSON.stringify(payload),
     });
     setTodayCommissions(res.meta.accumulated_commission);
     setTodayRevenue(res.meta.day_total);
@@ -181,20 +196,34 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
 
   const cartSale = useCallback(async (items: CartItem[], metodoPago: string, channel?: string, sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => {
     if (!token || !session) throw new Error('Sin sesion abierta');
+    const payload = {
+      cash_session_id: session.id,
+      producto_id: items[0]?.producto_id ?? '',
+      cantidad: 1,
+      metodo_pago: metodoPago,
+      channel,
+      cliente_id: selectedClient?.id ?? undefined,
+      is_new_client: isNewClient,
+      items_override: items,
+      sumup_checkout_id: sumupFields?.sumup_checkout_id,
+      sumup_transaction_id: sumupFields?.sumup_transaction_id,
+    };
+
+    if (!navigator.onLine) {
+      console.log('[CashProvider] Offline mode: queueing cartSale to Dexie');
+      const { db } = await import('@/lib/offline/db');
+      await db.sync_queue.add({
+        payload,
+        status: 'pending',
+        created_at: Date.now(),
+      });
+      setTodaySales((prev) => prev + items.length);
+      return { id: `offline-${Date.now()}`, total: 0, metodo_pago: metodoPago, channel: channel || '', created_at: new Date().toISOString(), rep_commission_total: 0 };
+    }
+
     const res = await apiFetch('/rep-ventas/quick', token, {
       method: 'POST',
-      body: JSON.stringify({
-        cash_session_id: session.id,
-        producto_id: items[0]?.producto_id ?? '',
-        cantidad: 1,
-        metodo_pago: metodoPago,
-        channel,
-        cliente_id: selectedClient?.id ?? undefined,
-        is_new_client: isNewClient,
-        items_override: items,
-        sumup_checkout_id: sumupFields?.sumup_checkout_id,
-        sumup_transaction_id: sumupFields?.sumup_transaction_id,
-      }),
+      body: JSON.stringify(payload),
     });
     setTodayCommissions(res.meta.accumulated_commission);
     setTodayRevenue(res.meta.day_total);

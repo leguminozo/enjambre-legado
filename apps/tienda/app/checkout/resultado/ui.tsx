@@ -74,7 +74,8 @@ export function CheckoutResultClient() {
   const pending = parsePendingCheckout(raw);
 
     void (async () => {
-      const res = await fetch('/api/checkout/commit', {
+      const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
+      const res = await fetch(`${NUCLEO_URL}/api/checkout/commit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

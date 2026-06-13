@@ -118,13 +118,36 @@ export function CheckoutClient() {
 
     const returnUrl = `${window.location.origin}/checkout/resultado`;
 
-    const res = await fetch('/api/checkout/init', {
+    const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
+    
+    // We need to fetch the session token to authenticate to Nucleo securely.
+    // Since we are in a client component, we use the Supabase client.
+    let token: string | undefined;
+    try {
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
+      const { data } = await supabase.auth.getSession();
+      token = data?.session?.access_token;
+    } catch (e) {
+      // Allow guest checkout if token fetch fails
+    }
+
+    const payloadCart = cart.pricing?.line_items.map(l => ({
+      productId: l.product_id,
+      slug: l.slug,
+      name: l.name,
+      unitPrice: l.unit_price,
+      quantity: l.quantity,
+    })) || [];
+
+    const res = await fetch(`${NUCLEO_URL}/api/checkout/init`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       },
-      body: JSON.stringify({ cart: cart.lines, shipping, returnUrl }),
+      body: JSON.stringify({ cart: payloadCart, shipping, returnUrl }),
     });
 
     const json = (await res.json()) as {
@@ -217,7 +240,12 @@ export function CheckoutClient() {
         </div>
 
         <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 relative z-10" ref={formRef}>
-          {cart.lines.length === 0 ? (
+          {cart.isLoading || !cart.pricing ? (
+            <div className="rounded-xl border border-border bg-card/50 p-8 text-center animate-pulse">
+              <Trees className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+              <p className="text-muted-foreground mb-4">Calculando beneficios y disponibilidad...</p>
+            </div>
+          ) : cart.items.length === 0 ? (
             <div className="rounded-xl border border-border bg-card/50 p-8 text-center">
               <Trees className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-4">Tu carrito está vacío.</p>
@@ -234,22 +262,27 @@ export function CheckoutClient() {
                   Tu pedido
                 </h2>
                 <ul className="divide-y divide-border rounded-xl border border-border bg-card/40 px-5 py-2">
-                  {cart.lines.map((line) => (
-                    <li key={line.productId} className="flex justify-between gap-4 py-4 text-sm">
+                  {cart.pricing.line_items.map((line) => (
+                    <li key={line.product_id} className="flex justify-between gap-4 py-4 text-sm">
                       <span className="text-foreground/80">
                         <span className="font-medium">{line.name}</span>
                         <span className="text-muted-foreground"> × {line.quantity}</span>
                       </span>
                       <span className="shrink-0 font-medium tabular-nums text-foreground">
-                        ${(line.unitPrice * line.quantity).toLocaleString('es-CL')}
+                        ${line.line_total.toLocaleString('es-CL')}
                       </span>
                     </li>
                   ))}
                 </ul>
                 <div className="flex items-center justify-between rounded-xl border border-accent/40 bg-surface-sunken px-6 py-5 mt-4">
-                  <span className="font-display text-lg text-foreground">Total</span>
+                  <div className="flex flex-col">
+                    <span className="font-display text-lg text-foreground">Total a pagar</span>
+                    {cart.pricing.discount_amount > 0 && (
+                      <span className="text-xs text-accent">Incluye -${cart.pricing.discount_amount.toLocaleString('es-CL')} descuento por Guardianía</span>
+                    )}
+                  </div>
                   <span className="font-display text-2xl font-semibold tabular-nums text-accent">
-                    ${cart.subtotal.toLocaleString('es-CL')}
+                    ${cart.pricing.total.toLocaleString('es-CL')}
                   </span>
                 </div>
               </section>
@@ -341,11 +374,11 @@ export function CheckoutClient() {
                 </p>
               ) : null}
 
-              <button
+                <button
                 ref={buttonRef}
                 type="button"
                 className="checkout-button w-full rounded-full bg-primary py-4 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
-                disabled={loading}
+                disabled={loading || !cart.pricing}
                 onClick={() => void startCheckout()}
               >
                 {loading ? (
@@ -359,7 +392,7 @@ export function CheckoutClient() {
                 ) : (
                   <span className="flex items-center justify-center gap-2">
                     <Lock className="h-4 w-4" />
-                    Pagar ahora — ${cart.subtotal.toLocaleString('es-CL')}
+                    Pagar ahora — ${(cart.pricing?.total || 0).toLocaleString('es-CL')}
                   </span>
                 )}
               </button>

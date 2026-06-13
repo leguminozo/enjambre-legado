@@ -3,6 +3,7 @@ import { Inter, Cormorant_Garamond } from 'next/font/google';
 import React from 'react';
 import { ThemeProvider } from '@enjambre/ui';
 import { CampoAuthProvider } from '@/components/campo-auth-provider';
+import { SyncProvider } from '@/components/sync-provider';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
@@ -25,6 +26,7 @@ export const metadata: Metadata = {
   title: 'Campo · POS Experiencial',
   description: 'Vanguardia en experiencia de marca y fidelización cíclica.',
   robots: { index: false, follow: false },
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -33,7 +35,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.className} bg-background antialiased`}>
     <ThemeProvider defaultTheme="system">
       <CampoAuthProvider>
-        {children}
+        <SyncProvider>
+          {children}
+        </SyncProvider>
       </CampoAuthProvider>
     </ThemeProvider>
         <SpeedInsights />

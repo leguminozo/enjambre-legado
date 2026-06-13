@@ -4,14 +4,15 @@ import React, { useState } from 'react';
 import { Menu } from 'lucide-react';
 import { GuardianSidebar } from '@/components/shop/guardian-sidebar';
 import { BeeCanvas } from '@/components/shop/bee-canvas';
-import type { TiendaUserProfile } from '@/lib/shop/user-profile';
+import type { OyzRole } from '@/lib/shop/role';
 
 interface PerfilLayoutClientProps {
   children: React.ReactNode;
-  user: TiendaUserProfile | null;
+  user: any | null; // Keep typing loose here since we decouple full profile
+  role: OyzRole;
 }
 
-export function PerfilLayoutClient({ children, user }: PerfilLayoutClientProps) {
+export function PerfilLayoutClient({ children, user, role }: PerfilLayoutClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (

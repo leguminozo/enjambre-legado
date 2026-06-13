@@ -35,6 +35,12 @@ export async function middleware(request: NextRequest) {
     const { response, user } = await updateSession(request);
     const path = request.nextUrl.pathname;
 
+    // Inject the OYZ role into headers so layouts/pages can read it securely
+    // without making secondary database queries.
+    if (user) {
+      response.headers.set('x-oyz-role', user.oyz_role);
+    }
+
     // Admin paths now belong to nucleo. Tienda has no (admin) routes anymore.
     // If we wanted to redirect /dashboard to nucleo, we could do it here, but 
     // for security we just don't match any admin routes locally unless explicitly defined.

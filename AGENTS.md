@@ -78,7 +78,7 @@ packages/banco-chile → Banco Chile Empresas API client (OAuth 2.0, 8 APIs)
 | Hardcoded hex (`#fff`) | Semantic tokens (`bg-background`) |
 | Hardcoded Tailwind (`text-white`, `bg-black`, `text-stone-*`) | Semantic tokens (`text-foreground`, `bg-background`, `text-muted-foreground`) |
 | `catch(e) {}` | `toast.error()` + logging |
-| Direct Supabase in campo UI | Hook with sync queue |
+| Offline-First Sync Queues | Use Direct Supabase (Campo is now purely online-only) |
 | Components at repo root | `packages/ui` or `apps/*/components` |
 | Massive refactors | Surgical, minimal changes |
 | Skip build verification | Always build after changes |

@@ -16,15 +16,19 @@
   "dependencies": {
     "@enjambre/auth": "workspace:*",
     "@enjambre/ui": "workspace:*",
+    "@serwist/next": "^9.5.11",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.1",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "dexie": "^4.4.3",
+    "dexie-react-hooks": "^4.4.0",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "serwist": "^9.5.11"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
