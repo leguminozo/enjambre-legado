@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useEffect, useRef, Suspense } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
@@ -22,7 +24,10 @@ const CustomCursor = dynamic(
   () => import('@/components/shop/custom-cursor').then((m) => m.CustomCursor),
   { ssr: false },
 );
-
+const LandingLoader = dynamic(
+  () => import('@/components/shop/landing-loader').then((m) => m.LandingLoader),
+  { loading: () => <div className="fixed inset-0 bg-background z-[9999]" /> },
+);
 const WorldMapBlock = dynamic(
   () => import('@/components/shop/world-map-block').then((m) => m.WorldMapBlock),
   { ssr: false },
@@ -36,9 +41,8 @@ const LandingProducts = dynamic(
   { loading: () => <div className="editorial-section"><div className="editorial-container text-center text-muted-foreground italic">Cargando creaciones…</div></div> },
 );
 
-interface GSAPInstance {
-  gsap: typeof import('gsap')['gsap'];
-  ScrollTrigger: typeof import('gsap/ScrollTrigger')['ScrollTrigger'];
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
 }
 
 interface ColeccionItem {
@@ -90,103 +94,87 @@ export function TiendaLandingView({
   footerData,
   ecosystemMetrics,
 }: TiendaLandingProps) {
-  const gsapRef = useRef<GSAPInstance | null>(null);
-
   useEffect(() => {
-    let ctx: ReturnType<typeof import('gsap')['gsap']['context']> | undefined;
-    let cancelled = false;
+    // Forzamos un refresh de ScrollTrigger después de un pequeño delay
+    // para dar tiempo a que los componentes dinámicos se monten
+    const refreshTimer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 1500);
 
-    import('gsap').then((gsapMod) => {
-      import('gsap/ScrollTrigger').then((scrollTriggerMod) => {
-        if (cancelled) return;
-        const gsap = gsapMod.gsap;
-        const ScrollTrigger = scrollTriggerMod.ScrollTrigger;
-        gsap.registerPlugin(ScrollTrigger);
-        gsapRef.current = { gsap, ScrollTrigger };
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline();
 
-        ctx = gsap.context(() => {
-          const tl = gsap.timeline();
+      tl.from('.hero-eyebrow', {
+        opacity: 0,
+        y: 20,
+        duration: 1.2,
+        ease: 'power3.out',
+        delay: 0.2,
+      })
+      .from('.hero-title .line-inner', {
+        y: '100%',
+        duration: 1.4,
+        stagger: 0.15,
+        ease: 'power4.out',
+      }, '-=0.8')
+      .from('.hero-subtitle', {
+        opacity: 0,
+        y: 30,
+        duration: 1,
+        ease: 'power3.out',
+      }, '-=0.6')
+      .from('.hero-formula', {
+        opacity: 0,
+        y: 20,
+        duration: 0.8,
+        ease: 'power3.out',
+      }, '-=0.3');
 
-          tl.from('.hero-eyebrow', {
-            opacity: 0,
-            y: 20,
-            duration: 1.2,
-            ease: 'power3.out',
-            delay: 0.2,
-          })
-          .from('.hero-title .line-inner', {
-            y: '100%',
-            duration: 1.4,
-            stagger: 0.15,
-            ease: 'power4.out',
-          }, '-=0.8')
-          .from('.hero-subtitle', {
-            opacity: 0,
-            y: 30,
-            duration: 1,
-            ease: 'power3.out',
-          }, '-=0.6')
-          .from('.hero-formula', {
-            opacity: 0,
-            y: 20,
-            duration: 0.8,
-            ease: 'power3.out',
-          }, '-=0.3');
-
-          setTimeout(() => {
-            const sections = ['#collections', '#media-carousel', '#creaciones', '#central-video', '#world-location'];
-            sections.forEach((section) => {
-              gsap.from(section, {
-                scrollTrigger: {
-                  trigger: section,
-                  start: 'top 85%',
-                  once: true,
-                },
-                y: 60,
-                opacity: 0,
-                duration: 1,
-                ease: 'power3.out',
-              });
-            });
-
-            gsap.utils.toArray<HTMLElement>('.counter-value').forEach((el) => {
-              const target = parseInt(el.dataset.target || '0', 10);
-              const prefix = el.dataset.prefix || '';
-              const suffix = el.dataset.suffix || '';
-              const obj = { val: 0 };
-              gsap.to(obj, {
-                val: target,
-                duration: 2,
-                ease: 'power2.out',
-                scrollTrigger: {
-                  trigger: el,
-                  start: 'top 80%',
-                  once: true,
-                },
-                onUpdate: () => {
-                  el.textContent = prefix + Math.round(obj.val).toLocaleString('es-CL') + suffix;
-                },
-              });
-            });
-            
-            ScrollTrigger.refresh();
-          }, 2000);
+      const sections = ['#collections', '#media-carousel', '#creaciones', '#central-video', '#world-location'];
+      sections.forEach((section) => {
+        gsap.from(section, {
+          scrollTrigger: {
+            trigger: section,
+            start: 'top 85%',
+            once: true,
+          },
+          y: 60,
+          opacity: 0,
+          duration: 1,
+          ease: 'power3.out',
         });
+      });
 
-        setTimeout(() => {
-          ScrollTrigger.refresh();
-        }, 1500);
+      gsap.utils.toArray<HTMLElement>('.counter-value').forEach((el) => {
+        const target = parseInt(el.dataset.target || '0', 10);
+        const prefix = el.dataset.prefix || '';
+        const suffix = el.dataset.suffix || '';
+        const obj = { val: 0 };
+        gsap.to(obj, {
+          val: target,
+          duration: 2,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 80%',
+            once: true,
+          },
+          onUpdate: () => {
+            el.textContent = prefix + Math.round(obj.val).toLocaleString('es-CL') + suffix;
+          },
+        });
       });
     });
 
     return () => {
-      cancelled = true;
-      ctx?.revert();
+      ctx.revert();
+      clearTimeout(refreshTimer);
     };
   }, []);
 
   return (
     <StoreShell>
+    <LandingLoader />
     <GrainOverlay />
     <CustomCursor />
     <TextCarousel />
@@ -326,7 +314,7 @@ export function TiendaLandingView({
             {initialColecciones.map((c, index) => {
               const imageSrc = getCollectionImage(c.kicker);
               return (
-                <Link key={c.title} href={c.href} prefetch={false} className="group flex flex-col">
+                <Link key={c.title} href={c.href} className="group flex flex-col">
             <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-6 rounded-lg">
                   <Image
                     src={imageSrc}
