@@ -7,6 +7,7 @@ import {
   Users, AlertCircle, Loader2, Search, Filter,
   Edit3, Trash2, X, ChevronRight
 } from 'lucide-react';
+import { formatCurrency } from '@/lib/format';
 
 interface RepRow {
   user_id: string;
@@ -97,7 +98,7 @@ export function RepsPanel() {
     return true;
   });
 
-  const formatCLP = (n: number) => '$' + Number(n || 0).toLocaleString('es-CL');
+  const formatCLP = (n: number) => formatCurrency(n);
 
   const tierBadge: Record<string, string> = {
     base: 'bg-secondary text-muted-foreground',

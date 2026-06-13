@@ -3,10 +3,8 @@ import { useState, type FormEvent } from "react";
 import { supabase } from "../lib/supabase";
 import { calcularIVA, calcularTotal } from "@enjambre/contable";
 import { FileText, Plus, Loader2, Send, Car, AlertCircle, CheckCircle2, Clock, Receipt, Globe, DollarSign, Settings2, Calculator, Users, RefreshCw, BookOpen, Save } from "lucide-react";
-
-function getApiUrl(): string {
-  return "";
-}
+import { useApiFetch } from "@/hooks/use-api-fetch";
+import { formatCurrency } from "@/lib/format";
 
 type FacturaCompraRow = {
   id: string;
@@ -99,9 +97,7 @@ type RcvRegistroRow = {
   reconciliado: boolean;
 };
 
-function formatCLP(value: number) {
-  return new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", minimumFractionDigits: 0 }).format(value);
-}
+
 
 function estadoBadge(estado: string) {
   const map: Record<string, { icon: React.ReactNode; className: string }> = {
@@ -145,6 +141,7 @@ function sourceBadge(sourceType: string | null) {
 
 export function SiiDteView() {
   const queryClient = useQueryClient();
+  const apiFetch = useApiFetch();
   const [mode, setMode] = useState<"list" | "manual" | "gasto" | "settings" | "f29" | "f22" | "honorarios" | "rcv">("list");
   const [folio, setFolio] = useState("");
   const [terceroId, setTerceroId] = useState("");
@@ -159,12 +156,7 @@ export function SiiDteView() {
   const dashboardQuery = useQuery({
     queryKey: ["sii", "dashboard"],
     queryFn: async (): Promise<SiiDashboard> => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/dashboard`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const res = await apiFetch("/api/sii/dashboard");
       if (!res.ok) throw new Error("Error cargando dashboard SII");
       const json = await res.json();
       return json.data;
@@ -175,12 +167,7 @@ export function SiiDteView() {
   const facturasQuery = useQuery({
     queryKey: ["sii", "facturas-compra"],
     queryFn: async (): Promise<FacturaCompraRow[]> => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/facturas-compra`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const res = await apiFetch("/api/sii/facturas-compra");
       if (!res.ok) throw new Error("Error cargando facturas de compra");
       const json = await res.json();
       return json.data ?? [];
@@ -191,12 +178,7 @@ export function SiiDteView() {
   const proveedoresQuery = useQuery({
     queryKey: ["sii", "proveedores"],
     queryFn: async (): Promise<ProveedorInfo[]> => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/gastos-extranjero/proveedores`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const res = await apiFetch("/api/sii/gastos-extranjero/proveedores");
       if (!res.ok) throw new Error("Error cargando proveedores");
       const json = await res.json();
       return json.data ?? [];
@@ -206,15 +188,8 @@ export function SiiDteView() {
 
   const createManual = useMutation({
     mutationFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/facturas-compra`, {
+      const res = await apiFetch("/api/sii/facturas-compra", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           tercero_id: terceroId,
           folio: Number(folio),
@@ -244,15 +219,8 @@ export function SiiDteView() {
 
   const parseGasto = useMutation({
     mutationFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/gastos-extranjero/parse`, {
+      const res = await apiFetch("/api/sii/gastos-extranjero/parse", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           receipt_text: receiptText,
           proveedor_id: proveedorId || undefined,
@@ -273,15 +241,8 @@ export function SiiDteView() {
     mutationFn: async () => {
       if (!gastoParseado) throw new Error("No hay gasto parseado");
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/gastos-extranjero/facturar`, {
+      const res = await apiFetch("/api/sii/gastos-extranjero/facturar", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ gasto: gastoParseado }),
       });
       if (!res.ok) {
@@ -313,12 +274,7 @@ export function SiiDteView() {
   const empresaQuery = useQuery({
     queryKey: ["sii", "empresa"],
     queryFn: async (): Promise<EmpresaSettings> => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/empresa`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const res = await apiFetch("/api/sii/empresa");
       if (!res.ok) throw new Error("Error cargando datos empresa");
       const json = await res.json();
       return json.data;
@@ -336,15 +292,8 @@ export function SiiDteView() {
 
   const updateEmpresa = useMutation({
     mutationFn: async (patch: Record<string, unknown>) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/empresa`, {
+      const res = await apiFetch("/api/sii/empresa", {
         method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(patch),
       });
       if (!res.ok) {
@@ -363,15 +312,8 @@ export function SiiDteView() {
 
   const saveSiiClave = useMutation({
     mutationFn: async (clave: string) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/empresa/sii-clave`, {
+      const res = await apiFetch("/api/sii/empresa/sii-clave", {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ clave }),
       });
       if (!res.ok) {
@@ -389,12 +331,8 @@ export function SiiDteView() {
 
   const deleteSiiClave = useMutation({
     mutationFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/empresa/sii-clave`, {
+      const res = await apiFetch("/api/sii/empresa/sii-clave", {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (!res.ok) {
         const err = await res.json();
@@ -413,12 +351,7 @@ export function SiiDteView() {
   const f29Query = useQuery({
     queryKey: ["sii", "f29", f29Anio, f29Mes],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/f29/${f29Anio}/${f29Mes}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const res = await apiFetch(`/api/sii/f29/${f29Anio}/${f29Mes}`);
       if (!res.ok) throw new Error("Error cargando F29");
       const json = await res.json();
       return json.data as Record<string, unknown>;
@@ -434,12 +367,7 @@ export function SiiDteView() {
   const honorariosQuery = useQuery({
     queryKey: ["sii", "honorarios"],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/honorarios`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const res = await apiFetch("/api/sii/honorarios");
       if (!res.ok) throw new Error("Error cargando honorarios");
       const json = await res.json();
       return json.data as HonorarioRow[];
@@ -450,15 +378,8 @@ export function SiiDteView() {
 
   const createHonorario = useMutation({
     mutationFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/honorarios`, {
+      const res = await apiFetch("/api/sii/honorarios", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           fecha: honorarioFecha,
           monto_bruto: Number(honorarioMonto),
@@ -483,12 +404,7 @@ export function SiiDteView() {
   const rcvQuery = useQuery({
     queryKey: ["sii", "rcv", rcvPeriodo],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/rcv/${rcvPeriodo}?tipo=compras`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const res = await apiFetch(`/api/sii/rcv/${rcvPeriodo}?tipo=compras`);
       if (!res.ok) throw new Error("Error cargando RCV");
       const json = await res.json();
       return json.data as { sync: RcvSyncRow | null; registros: RcvRegistroRow[] };
@@ -499,12 +415,8 @@ export function SiiDteView() {
 
   const rcvSync = useMutation({
     mutationFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/rcv/${rcvPeriodo}/sync?tipo=compras`, {
+      const res = await apiFetch(`/api/sii/rcv/${rcvPeriodo}/sync?tipo=compras`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (!res.ok) {
         const err = await res.json();
@@ -522,12 +434,7 @@ export function SiiDteView() {
   const f22Query = useQuery({
     queryKey: ["sii", "f22", f22Anio],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/f22/${f22Anio}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const res = await apiFetch(`/api/sii/f22/${f22Anio}`);
       if (!res.ok) throw new Error("Error cargando F22");
       const json = await res.json();
       return json.data as Record<string, unknown>;
@@ -541,12 +448,8 @@ export function SiiDteView() {
 
   const guardarF29 = useMutation({
     mutationFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/f29/${f29GuardarAnio}/${f29GuardarMes}/guardar`, {
+      const res = await apiFetch(`/api/sii/f29/${f29GuardarAnio}/${f29GuardarMes}/guardar`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (!res.ok) {
         const err = await res.json();
@@ -561,12 +464,8 @@ export function SiiDteView() {
 
   const enviarSiiMutation = useMutation({
     mutationFn: async (facturaId: string) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/facturas-compra/${facturaId}/enviar-sii`, {
+      const res = await apiFetch(`/api/sii/facturas-compra/${facturaId}/enviar-sii`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (!res.ok) {
         const err = await res.json();
@@ -581,12 +480,7 @@ export function SiiDteView() {
 
   const pollSiiMutation = useMutation({
     mutationFn: async (facturaId: string) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesion");
-
-      const res = await fetch(`${getApiUrl()}/api/sii/facturas-compra/${facturaId}/poll-sii`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const res = await apiFetch(`/api/sii/facturas-compra/${facturaId}/poll-sii`);
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.message ?? "Error consultando estado SII");
@@ -689,9 +583,9 @@ export function SiiDteView() {
             </div>
             {montoNeto && Number(montoNeto) > 0 && (
               <div className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-3 space-y-1">
-                <div>Neto: {formatCLP(Number(montoNeto))}</div>
-                <div>IVA (19%): {formatCLP(calcularIVA(Number(montoNeto)))}</div>
-                <div className="font-bold text-foreground">Total: {formatCLP(calcularTotal(Number(montoNeto)))}</div>
+                <div>Neto: {formatCurrency(Number(montoNeto))}</div>
+                <div>IVA (19%): {formatCurrency(calcularIVA(Number(montoNeto)))}</div>
+                <div className="font-bold text-foreground">Total: {formatCurrency(calcularTotal(Number(montoNeto)))}</div>
               </div>
             )}
             <button type="submit" disabled={createManual.isPending} className="px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-bold disabled:opacity-50">
@@ -773,29 +667,29 @@ export function SiiDteView() {
                   )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Monto CLP:</span>
-                    <span className="font-bold">{formatCLP(gastoParseado.montoCLP)}</span>
+                    <span className="font-bold">{formatCurrency(gastoParseado.montoCLP)}</span>
                   </div>
                   {gastoParseado.montoExento > 0 && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Exento (sin IVA):</span>
-                      <span>{formatCLP(gastoParseado.montoExento)}</span>
+                      <span>{formatCurrency(gastoParseado.montoExento)}</span>
                     </div>
                   )}
                   {gastoParseado.montoNeto > 0 && (
                     <>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Neto:</span>
-                        <span>{formatCLP(gastoParseado.montoNeto)}</span>
+                        <span>{formatCurrency(gastoParseado.montoNeto)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">IVA (19%):</span>
-                        <span>{formatCLP(gastoParseado.montoIva)}</span>
+                        <span>{formatCurrency(gastoParseado.montoIva)}</span>
                       </div>
                     </>
                   )}
                   <div className="flex justify-between font-bold text-foreground border-t border-border pt-1">
                     <span>Total:</span>
-                    <span>{formatCLP(gastoParseado.montoTotal)}</span>
+                    <span>{formatCurrency(gastoParseado.montoTotal)}</span>
                   </div>
                 </div>
               </div>
@@ -1128,9 +1022,9 @@ export function SiiDteView() {
           </div>
           {honorarioMonto && Number(honorarioMonto) > 0 && (
             <div className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-3 space-y-1">
-              <div>Bruto: {formatCLP(Number(honorarioMonto))}</div>
-              <div>Retencion (15.25%): {formatCLP(Math.round(Number(honorarioMonto) * 0.1525))}</div>
-              <div className="font-bold text-foreground">Neto prestador: {formatCLP(Number(honorarioMonto) - Math.round(Number(honorarioMonto) * 0.1525))}</div>
+              <div>Bruto: {formatCurrency(Number(honorarioMonto))}</div>
+              <div>Retencion (15.25%): {formatCurrency(Math.round(Number(honorarioMonto) * 0.1525))}</div>
+              <div className="font-bold text-foreground">Neto prestador: {formatCurrency(Number(honorarioMonto) - Math.round(Number(honorarioMonto) * 0.1525))}</div>
             </div>
           )}
           <button
@@ -1161,8 +1055,8 @@ export function SiiDteView() {
                   {h.tercero && <span className="text-muted-foreground ml-2">({h.tercero.nombre})</span>}
                 </div>
                 <div className="text-right">
-                  <div className="text-foreground">{formatCLP(h.monto_bruto)}</div>
-                  <div className="text-xs text-destructive">Ret: {formatCLP(h.monto_retencion)}</div>
+                  <div className="text-foreground">{formatCurrency(h.monto_bruto)}</div>
+                  <div className="text-xs text-destructive">Ret: {formatCurrency(h.monto_retencion)}</div>
                 </div>
               </div>
             ))}
@@ -1213,11 +1107,11 @@ export function SiiDteView() {
                 </div>
                 <div className="p-3 bg-secondary/50 rounded-lg text-sm">
                   <div className="text-xs text-muted-foreground">Total neto</div>
-                  <div className="text-foreground font-bold">{formatCLP(s.total_neto)}</div>
+                  <div className="text-foreground font-bold">{formatCurrency(s.total_neto)}</div>
                 </div>
                 <div className="p-3 bg-secondary/50 rounded-lg text-sm">
                   <div className="text-xs text-muted-foreground">Total IVA</div>
-                  <div className="text-foreground font-bold">{formatCLP(s.total_iva)}</div>
+                  <div className="text-foreground font-bold">{formatCurrency(s.total_iva)}</div>
                 </div>
                 <div className="p-3 bg-secondary/50 rounded-lg text-sm">
                   <div className="text-xs text-muted-foreground">Ultimo sync</div>
@@ -1247,9 +1141,9 @@ export function SiiDteView() {
                           <td className="px-3 py-2 text-sm font-mono">{r.folio}</td>
                           <td className="px-3 py-2 text-sm">{new Date(r.fecha_emision).toLocaleDateString("es-CL")}</td>
                           <td className="px-3 py-2 text-sm font-mono">{r.rut_contraparte}</td>
-                          <td className="px-3 py-2 text-sm">{formatCLP(r.monto_neto)}</td>
-                          <td className="px-3 py-2 text-sm">{formatCLP(r.monto_iva)}</td>
-                          <td className="px-3 py-2 text-sm font-bold">{formatCLP(r.monto_total)}</td>
+                          <td className="px-3 py-2 text-sm">{formatCurrency(r.monto_neto)}</td>
+                          <td className="px-3 py-2 text-sm">{formatCurrency(r.monto_iva)}</td>
+                          <td className="px-3 py-2 text-sm font-bold">{formatCurrency(r.monto_total)}</td>
                           <td className="px-3 py-2">
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${r.reconciliado ? "bg-primary/10 text-primary border-primary/20" : "bg-surface-raised text-muted-foreground border-border"}`}>
                               {r.reconciliado ? <CheckCircle2 size={12} /> : <Clock size={12} />} {r.estado_rcv}
@@ -1305,9 +1199,9 @@ export function SiiDteView() {
                         <td className="px-4 py-3 text-sm font-mono">{f.folio}</td>
                         <td className="px-4 py-3 text-sm">{new Date(f.fecha_emision).toLocaleDateString("es-CL")}</td>
                         <td className="px-4 py-3 text-sm">{f.receptor_razon_social}</td>
-                        <td className="px-4 py-3 text-sm">{formatCLP(f.monto_neto)}</td>
-                        <td className="px-4 py-3 text-sm">{formatCLP(f.monto_iva)}</td>
-                        <td className="px-4 py-3 text-sm font-bold">{formatCLP(f.monto_total)}</td>
+                        <td className="px-4 py-3 text-sm">{formatCurrency(f.monto_neto)}</td>
+                        <td className="px-4 py-3 text-sm">{formatCurrency(f.monto_iva)}</td>
+                        <td className="px-4 py-3 text-sm font-bold">{formatCurrency(f.monto_total)}</td>
                         <td className="px-4 py-3">{estadoBadge(f.estado_sii)}</td>
                         <td className="px-4 py-3 text-sm">{sourceBadge(f.source_type)}</td>
                         <td className="px-4 py-3">
@@ -1354,7 +1248,7 @@ function StatCard({ label, value, accent, isCount }: { label: string; value: num
     <div className="p-5 rounded-2xl bg-card border border-border">
       <div className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">{label}</div>
       <div className={`text-2xl font-display ${accent === true ? "text-accent" : accent === false ? "text-destructive" : ""}`}>
-        {isCount ? value : (isNegative ? "-" : "") + formatCLP(Math.abs(value))}
+        {isCount ? value : (isNegative ? "-" : "") + formatCurrency(Math.abs(value))}
       </div>
     </div>
   );
@@ -1365,7 +1259,7 @@ function F29LineItem({ label, value, highlight }: { label: string; value: number
   return (
     <div className={`flex justify-between items-center py-1 ${highlight ? "font-bold text-foreground" : "text-sm"}`}>
       <span className={highlight ? "" : "text-muted-foreground"}>{label}</span>
-      <span className={highlight && value > 0 ? "text-destructive" : ""}>{(isNegative ? "-" : "") + formatCLP(Math.abs(value))}</span>
+      <span className={highlight && value > 0 ? "text-destructive" : ""}>{(isNegative ? "-" : "") + formatCurrency(Math.abs(value))}</span>
     </div>
   );
 }

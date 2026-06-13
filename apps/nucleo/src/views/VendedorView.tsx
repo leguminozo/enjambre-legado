@@ -3,6 +3,7 @@ import { ShoppingBag, Users, MapPin, CalendarDays, TrendingUp, Star, ArrowUpRigh
 import { roleGreetings, type Product } from '../data/mockData';
 import { supabase } from '../lib/supabase';
 import { friendlySupabaseError, toast } from '@enjambre/ui';
+import { useAuthStore } from '@enjambre/auth';
 
 function mapProductoRow(p: Record<string, unknown>): Product {
   const precio = Number(p.precio) || 0;
@@ -62,19 +63,19 @@ export function VendedorView() {
 
   useEffect(() => {
     async function loadData() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const user = useAuthStore.getState().user;
+      if (!user) return;
 
       const { data } = await supabase.from('clientes')
         .select('*')
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       if (data && data.length > 0) {
         setLocalClients(data.map((d: Record<string, unknown>) => ({ name: String(d.name), type: String(d.type), purchases: Number(d.total_spent) > 0 ? 1 : 0, level: 'Guardián Bronce', lastOrder: 'Reciente', id: String(d.id) })));
       }
       const { data: ventasData } = await supabase.from('ventas')
         .select('total')
-        .eq('vendedor_id', session.user.id);
+        .eq('vendedor_id', user.id);
       if (ventasData) {
         setVentasTotal(ventasData.reduce((sum: number, v: Record<string, unknown>) => sum + (Number(v.total) || 0), 0));
       }
@@ -86,12 +87,12 @@ export function VendedorView() {
     if (!newClientForm.name) return;
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      const user = useAuthStore.getState().user;
+      if (user) {
         const { data } = await supabase.from('clientes').insert({
           name: newClientForm.name,
           type: mapClientType(newClientForm.type),
-          user_id: session.user.id,
+          user_id: user.id,
           status: 'activo'
         }).select().single();
 
@@ -215,10 +216,10 @@ export function VendedorView() {
                   <button className="btn btn-primary w-full py-3.5 text-base font-semibold" disabled={cartTotal === 0 || loadingPos} onClick={async () => {
                     setLoadingPos(true);
                     try {
-                      const { data: { session } } = await supabase.auth.getSession();
-                      if (session) {
+                      const user = useAuthStore.getState().user;
+                      if (user) {
                         const { error } = await supabase.from('ventas').insert({
-                          vendedor_id: session.user.id,
+                          vendedor_id: user.id,
                           total: Math.round(cartTotal),
                           items: posCart as unknown as Record<string, number>,
                           origen: 'feria',

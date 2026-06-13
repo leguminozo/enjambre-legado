@@ -7,6 +7,8 @@ import {
   Wallet, Check, Loader2, Search, Filter,
   CheckCircle2, Clock, Shield, Eye, Download, AlertTriangle
 } from 'lucide-react';
+import { formatCurrency } from '@/lib/format';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 
 interface CashSessionRow {
   id: string;
@@ -31,6 +33,7 @@ interface SessionDetail extends CashSessionRow {
 }
 
 export function CashSessionsPanel() {
+  const apiFetch = useApiFetch();
   const CASH_ALERT_THRESHOLD = 10000;
   const [sessions, setSessions] = useState<CashSessionRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,17 +119,13 @@ export function CashSessionsPanel() {
     return acc;
   }, {});
 
-  const formatCLP = (n: number) => '$' + Math.abs(n).toLocaleString('es-CL');
+  const formatCLP = (n: number) => formatCurrency(Math.abs(n));
   const statusIcon: Record<string, typeof Clock> = { open: Clock, closed: Shield, reconciled: CheckCircle2 };
 
   const exportCSV = async () => {
     setExportLoading(true);
     try {
-      const { data: { session: authSession } } = await supabase.auth.getSession();
-      if (!authSession) throw new Error('No autenticado');
-      const res = await fetch('/api/cash-sessions/export/csv', {
-        headers: { Authorization: `Bearer ${authSession.access_token}` },
-      });
+      const res = await apiFetch('/api/cash-sessions/export/csv');
       if (!res.ok) throw new Error('Error al exportar');
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);

@@ -3,6 +3,8 @@ import { FormEvent, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { calcularIVA, calcularTotal } from "@enjambre/contable";
 import { TrendingUp, FileText, Plus, Loader2 } from "lucide-react";
+import { useAuthStore } from "@enjambre/auth";
+import { formatCurrency } from "@/lib/format";
 
 type DashboardMetrics = {
   empresaId: string;
@@ -24,9 +26,6 @@ type FacturaRow = {
   fecha_emision: string;
 };
 
-function formatCLP(value: number) {
-  return new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", minimumFractionDigits: 0 }).format(value);
-}
 
 export function ContableView() {
   const queryClient = useQueryClient();
@@ -38,10 +37,10 @@ export function ContableView() {
   const dashboardQuery = useQuery({
     queryKey: ["contable", "dashboard"],
     queryFn: async (): Promise<DashboardMetrics> => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesión activa");
+      const user = useAuthStore.getState().user;
+      if (!user) throw new Error("Sin sesión activa");
 
-      const empresaId = session.user.id;
+      const empresaId = user.id;
 
       const [facturasRes, gastosRes] = await Promise.all([
         supabase.from("facturas_emitidas").select("monto_neto, monto_iva, monto_total").eq("empresa_id", empresaId),
@@ -50,14 +49,14 @@ export function ContableView() {
 
       if (facturasRes.error) throw new Error(facturasRes.error.message);
       if (gastosRes.error) throw new Error(gastosRes.error.message);
-const ingresosNetos = (facturasRes.data ?? []).reduce(
-      (acc: number, item: Record<string, unknown>) => acc + Number(item.monto_neto ?? 0),
-      0
-    );
-    const gastosNetos = (gastosRes.data ?? []).reduce(
-      (acc: number, item: Record<string, unknown>) => acc + Number(item.monto_neto ?? 0),
-      0
-    );
+      const ingresosNetos = (facturasRes.data ?? []).reduce(
+        (acc: number, item: Record<string, unknown>) => acc + Number(item.monto_neto ?? 0),
+        0
+      );
+      const gastosNetos = (gastosRes.data ?? []).reduce(
+        (acc: number, item: Record<string, unknown>) => acc + Number(item.monto_neto ?? 0),
+        0
+      );
       return {
         empresaId,
         ingresosNetos,
@@ -73,13 +72,13 @@ const ingresosNetos = (facturasRes.data ?? []).reduce(
   const facturasQuery = useQuery({
     queryKey: ["contable", "facturas"],
     queryFn: async (): Promise<FacturaRow[]> => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesión activa");
+      const user = useAuthStore.getState().user;
+      if (!user) throw new Error("Sin sesión activa");
 
       const { data, error } = await supabase
         .from("facturas_emitidas")
         .select("id, empresa_id, numero, monto_neto, monto_iva, monto_total, descripcion, fecha_emision")
-        .eq("empresa_id", session.user.id)
+        .eq("empresa_id", user.id)
         .order("fecha_emision", { ascending: false })
         .limit(50);
 
@@ -91,8 +90,8 @@ const ingresosNetos = (facturasRes.data ?? []).reduce(
 
   const createFactura = useMutation({
     mutationFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Sin sesión activa");
+      const user = useAuthStore.getState().user;
+      if (!user) throw new Error("Sin sesión activa");
 
       const neto = Number(montoNeto);
       const iva = calcularIVA(neto);
@@ -101,7 +100,7 @@ const ingresosNetos = (facturasRes.data ?? []).reduce(
       const { data, error } = await supabase
         .from("facturas_emitidas")
         .insert({
-          empresa_id: session.user.id,
+          empresa_id: user.id,
           tercero_id: terceroId,
           numero: Number(numero),
           fecha_emision: new Date().toISOString(),
@@ -203,9 +202,9 @@ const ingresosNetos = (facturasRes.data ?? []).reduce(
           </div>
           {montoNeto && Number(montoNeto) > 0 && (
             <div className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-3 space-y-1">
-              <div>Neto: {formatCLP(Number(montoNeto))}</div>
-              <div>IVA (19%): {formatCLP(calcularIVA(Number(montoNeto)))}</div>
-              <div className="font-bold text-foreground">Total: {formatCLP(calcularTotal(Number(montoNeto)))}</div>
+              <div>Neto: {formatCurrency(Number(montoNeto))}</div>
+              <div>IVA (19%): {formatCurrency(calcularIVA(Number(montoNeto)))}</div>
+              <div className="font-bold text-foreground">Total: {formatCurrency(calcularTotal(Number(montoNeto)))}</div>
             </div>
           )}
           <button
@@ -253,9 +252,9 @@ const ingresosNetos = (facturasRes.data ?? []).reduce(
                 <tr key={f.id} className="border-b border-border/50 hover:bg-secondary/50">
                   <td className="px-4 py-3 text-sm font-mono">{f.numero}</td>
                   <td className="px-4 py-3 text-sm">{new Date(f.fecha_emision).toLocaleDateString("es-CL")}</td>
-                  <td className="px-4 py-3 text-sm">{formatCLP(f.monto_neto)}</td>
-                  <td className="px-4 py-3 text-sm">{formatCLP(f.monto_iva)}</td>
-                  <td className="px-4 py-3 text-sm font-bold">{formatCLP(f.monto_total)}</td>
+                  <td className="px-4 py-3 text-sm">{formatCurrency(f.monto_neto)}</td>
+                  <td className="px-4 py-3 text-sm">{formatCurrency(f.monto_iva)}</td>
+                  <td className="px-4 py-3 text-sm font-bold">{formatCurrency(f.monto_total)}</td>
                 </tr>
               ))
             )}
@@ -276,7 +275,7 @@ function StatCard({ label, value, accent }: { label: string; value: number; acce
     <div className="p-6 rounded-2xl bg-card border border-border">
       <div className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">{label}</div>
       <div className={`text-2xl font-display ${accent === true ? "text-accent" : accent === false ? "text-destructive" : ""}`}>
-        {isNegative ? "-" : ""}{formatCLP(Math.abs(value))}
+        {isNegative ? "-" : ""}{formatCurrency(Math.abs(value))}
       </div>
     </div>
   );

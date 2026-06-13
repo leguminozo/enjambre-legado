@@ -16,7 +16,7 @@ import {
   Brain,
   Target
 } from "lucide-react";
-import { useApiFetch } from '@/lib/use-api-fetch';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 
 interface AnalisisRentabilidad {
   rentabilidadNeta: number;

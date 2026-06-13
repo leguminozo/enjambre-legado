@@ -25,7 +25,7 @@ import {
   Briefcase,
   Store,
 } from 'lucide-react';
-import { useApiFetch } from '@/lib/use-api-fetch';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 import { toast } from '@enjambre/ui';
 import { BOSQUE_ULMO, ORO_MIEL } from '@/lib/colors';
 import {

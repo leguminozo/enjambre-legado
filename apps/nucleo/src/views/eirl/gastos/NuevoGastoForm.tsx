@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
 import { ShoppingCart, Save, X, Calculator } from "lucide-react";
-import { useApiFetch } from '@/lib/use-api-fetch';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 
 interface Tercero {
   id: string;

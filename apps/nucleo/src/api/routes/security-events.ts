@@ -3,14 +3,9 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { authMiddleware } from "@/api/lib/middleware";
 import { logSecurityEvent } from "@enjambre/auth/security-events";
+import { getEnvOrThrow } from "../lib/env";
 
 export const securityEventRoutes = new Hono();
-
-function getEnvOrThrow(key: string): string {
-  const value = process.env[key];
-  if (!value) throw new Error(`Missing required env var: ${key}`);
-  return value;
-}
 
 const SecurityEventSchema = z.strictObject({
   eventType: z.string().min(1),

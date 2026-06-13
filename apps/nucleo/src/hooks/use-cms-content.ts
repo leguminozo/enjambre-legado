@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useApiFetch } from '@/lib/use-api-fetch'
+import { useApiFetch } from '@/hooks/use-api-fetch'
 import { supabase } from '@/lib/supabase'
 
 export interface CMSContentItem {

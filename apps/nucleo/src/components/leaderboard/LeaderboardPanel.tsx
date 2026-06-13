@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { friendlyError, toast } from '@enjambre/ui';
 import { Trophy, Medal, Crown, TrendingUp, Loader2 } from 'lucide-react';
+import { formatCurrency } from '@/lib/format';
 
 interface LeaderboardEntry {
   rank: number;
@@ -18,8 +19,8 @@ interface LeaderboardEntry {
 const rankIcons = [Trophy, Medal, Crown];
 const rankColors = [
   'bg-primary/10 border-primary/20 text-primary',
-  'bg-primary-foreground border-border text-muted-foreground',
-  'bg-card border-border text-foreground',
+  'bg-slate-500/10 border-slate-500/20 text-slate-400',
+  'bg-amber-700/10 border-amber-700/20 text-amber-600',
 ];
 const rankIconColors = ['text-accent', 'text-muted-foreground', 'text-warning'];
 
@@ -37,9 +38,7 @@ export function LeaderboardPanel() {
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('weekly_leaderboard', {
-        p_empresa_id: (await supabase.from('usuarios_empresas').select('empresa_id').limit(1).single()).data?.empresa_id,
-      });
+      const { data, error } = await supabase.rpc('weekly_leaderboard');
       if (error) throw error;
       setEntries(Array.isArray(data) ? (data as LeaderboardEntry[]) : []);
     } catch (err) {
@@ -51,7 +50,7 @@ export function LeaderboardPanel() {
 
   useEffect(() => { fetchLeaderboard(); }, []);
 
-  const formatCLP = (n: number) => '$' + Number(n || 0).toLocaleString('es-CL');
+  const formatCLP = (n: number) => formatCurrency(n);
 
   const weekStart = new Date();
   weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);

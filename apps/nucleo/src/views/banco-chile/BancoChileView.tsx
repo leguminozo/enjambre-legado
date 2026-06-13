@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Building2, Settings, RefreshCw, DollarSign, Loader2, Check, X, ArrowRight } from 'lucide-react';
+import { useAuthStore } from '@enjambre/auth';
+import { formatCurrency } from '@/lib/format';
 
 interface BancoChileConfig {
   id: string;
@@ -29,10 +31,6 @@ interface MovimientoBancario {
   conciliado: boolean;
 }
 
-function formatCLP(value: number) {
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(value);
-}
-
 export function BancoChileView() {
   const [config, setConfig] = useState<BancoChileConfig | null>(null);
   const [cuentas, setCuentas] = useState<CuentaBancaria[]>([]);
@@ -51,13 +49,13 @@ export function BancoChileView() {
 
   const fetchConfig = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const user = useAuthStore.getState().user;
+      if (!user) return;
 
       const { data, error } = await supabase
         .from('banco_chile_config')
         .select('*')
-        .eq('empresa_id', session.user.id)
+        .eq('empresa_id', user.id)
         .single();
 
       if (error && error.code !== 'PGRST116') {
@@ -79,13 +77,13 @@ export function BancoChileView() {
   const handleSubmitConfig = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const user = useAuthStore.getState().user;
+      if (!user) return;
 
       const { error } = await supabase
         .from('banco_chile_config')
         .upsert({
-          empresa_id: session.user.id,
+          empresa_id: user.id,
           client_id: formData.clientId,
           client_secret: formData.clientSecret,
           username: formData.username,
@@ -106,13 +104,13 @@ export function BancoChileView() {
   const sincronizarCuentas = async () => {
     setSyncing(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const user = useAuthStore.getState().user;
+      if (!user) return;
 
       const { data, error } = await supabase
         .from('banco_chile_cuentas')
         .select('*')
-        .eq('empresa_id', session.user.id);
+        .eq('empresa_id', user.id);
 
       if (error) throw error;
       setCuentas(Array.isArray(data) ? (data as CuentaBancaria[]) : []);
@@ -125,13 +123,13 @@ export function BancoChileView() {
 
   const fetchMovimientos = useCallback(async (cuentaId?: string) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const user = useAuthStore.getState().user;
+      if (!user) return;
 
       let query = supabase
         .from('banco_chile_movimientos')
         .select('*')
-        .eq('empresa_id', session.user.id)
+        .eq('empresa_id', user.id)
         .order('fecha_contable', { ascending: false })
         .limit(50);
 
@@ -229,9 +227,9 @@ export function BancoChileView() {
                         <p className="text-xs text-muted-foreground capitalize">{cuenta.tipo_cuenta}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-sm">{formatCLP(cuenta.saldo_disponible)}</p>
+                        <p className="font-bold text-sm">{formatCurrency(cuenta.saldo_disponible)}</p>
                         <p className="text-xs text-muted-foreground">
-                          Contable: {formatCLP(cuenta.saldo_contable)}
+                          Contable: {formatCurrency(cuenta.saldo_contable)}
                         </p>
                       </div>
                     </div>
@@ -271,7 +269,7 @@ export function BancoChileView() {
                       </td>
                       <td className="px-4 py-3 text-sm">{mov.descripcion}</td>
                       <td className="px-4 py-3 text-sm text-right font-medium">
-                        {formatCLP(mov.monto)}
+                        {formatCurrency(mov.monto)}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`text-xs px-2 py-1 rounded-full ${

@@ -20,7 +20,7 @@ import {
   Filter,
   RefreshCw,
 } from 'lucide-react';
-import { useApiFetch } from '@/lib/use-api-fetch';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@enjambre/ui';
 import { BOSQUE_ULMO, ORO_MIEL, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors';

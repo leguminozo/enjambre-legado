@@ -13,7 +13,7 @@ import {
   ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell,
 } from 'recharts'
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors'
-import { useApiFetch } from '@/lib/use-api-fetch'
+import { useApiFetch } from '@/hooks/use-api-fetch'
 
 type TimeRange = 'month' | 'quarter' | 'ytd'
 

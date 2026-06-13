@@ -20,7 +20,7 @@ import {
   DollarSign
 } from "lucide-react";
 import { formatDate } from '@/lib/format';
-import { useApiFetch } from '@/lib/use-api-fetch';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 
 interface Reporte {
   id: string;

@@ -6,7 +6,7 @@ import { ListaFacturas } from '@/views/eirl/facturas/ListaFacturas';
 import { ListaGastos } from '@/views/eirl/gastos/ListaGastos';
 import { MetricasCards } from '@/views/eirl/dashboard/MetricasCards';
 import { ResumenActividad } from '@/views/eirl/dashboard/ResumenActividad';
-import { useApiFetch } from '@/lib/use-api-fetch';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Calculator, FileText, ShoppingCart, BarChart3 } from 'lucide-react';
 
 const tabs = [

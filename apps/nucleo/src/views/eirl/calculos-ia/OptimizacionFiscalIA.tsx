@@ -17,7 +17,7 @@ import {
   FileText,
   Lightbulb
 } from "lucide-react";
-import { useApiFetch } from '@/lib/use-api-fetch';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 
 interface OptimizacionFiscal {
   ahorroPotencial: number;

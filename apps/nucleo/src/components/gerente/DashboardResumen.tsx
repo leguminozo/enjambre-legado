@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { BarChart3, TrendingUp, DollarSign, Target, Leaf, Crown, ArrowUpRight, Hexagon, TreePine, Users, Wallet, Percent, Trophy } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors'
-import { useApiFetch } from '@/lib/use-api-fetch'
+import { useApiFetch } from '@/hooks/use-api-fetch'
 
 const CHART_GRID = 'hsl(var(--border) / 0.5)'
 const CHART_TOOLTIP: React.CSSProperties = {

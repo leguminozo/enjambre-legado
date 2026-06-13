@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { X, MapPin, Crown, Droplets, Scale, DollarSign, Link, AlertTriangle, CheckCircle2, ChevronRight, Plus } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { BOSQUE_ULMO, BOSQUE_ULMO_LIGHT, ORO_MIEL, TEXT_MUTED } from '@/lib/colors';
-import { useChartDimensions } from '@/lib/use-chart-dimensions';
+import { useChartDimensions } from '@/hooks/use-chart-dimensions';
 import type { Colmena, InspeccionRecord } from '../../data/mockData';
 import { supabase } from '../../lib/supabase';
 

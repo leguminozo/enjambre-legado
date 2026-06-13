@@ -7,6 +7,7 @@ import {
   Percent, Loader2, Search, Filter,
   DollarSign, CheckCircle2, Eye
 } from 'lucide-react';
+import { formatCurrency } from '@/lib/format';
 
 interface CommissionRow {
   id: string;
@@ -126,7 +127,7 @@ export function ComisionesPanel() {
   const totalPaid = commissions.filter(c => c.paid).reduce((s, c) => s + Number(c.total_commission || 0), 0);
   const selectedTotal = commissions.filter(c => selectedIds.has(c.id)).reduce((s, c) => s + Number(c.total_commission || 0), 0);
 
-  const formatCLP = (n: number) => '$' + Number(n || 0).toLocaleString('es-CL');
+  const formatCLP = (n: number) => formatCurrency(n);
 
   if (loading) {
     return (

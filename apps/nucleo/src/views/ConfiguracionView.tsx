@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { useTheme, type Theme } from '@enjambre/ui';
 import { toast } from '@enjambre/ui';
-import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/lib/use-cms-content';
+import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/use-cms-content';
 import { getUrlTienda } from '@/lib/publicUrls';
 
 const SECTION_LABELS: Record<string, string> = {

@@ -6,7 +6,7 @@ import { Button } from "@enjambre/ui";
 import { Badge } from "@enjambre/ui";
 import { ShoppingCart, Eye, Edit, Trash2, Plus } from "lucide-react";
 import { formatDate } from '@/lib/format';
-import { useApiFetch } from '@/lib/use-api-fetch';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 
 interface Gasto {
   id: string;

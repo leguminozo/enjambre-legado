@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, ChevronRight, CheckCircle2, ImageOff, Plus, X, Loader2, AlertTriangle, TrendingDown } from 'lucide-react';
-import { useApiFetch } from '../../lib/use-api-fetch';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 
 interface Lote {
   id: string;

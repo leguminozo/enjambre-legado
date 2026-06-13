@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { calcularIVA, calcularTotal } from '@enjambre/contable';
 import { Package, ShoppingCart, Users, TrendingUp, Plus, Edit3, Trash2, Eye, EyeOff, Loader2, Search } from 'lucide-react';
+import { formatCurrency } from '@/lib/format';
 
 type Product = {
   id: string;
@@ -36,13 +37,7 @@ type Customer = {
 
 type Tab = 'productos' | 'pedidos' | 'clientes' | 'dashboard';
 
-function formatCLP(value: number) {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    minimumFractionDigits: 0,
-  }).format(value);
-}
+const formatCLP = formatCurrency;
 
 export function TiendaPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { toast } from '@enjambre/ui';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 
 interface SugerenciaConciliacion {
   movimiento_id: string;
@@ -26,6 +27,7 @@ export function ConciliacionView() {
   const [sugerencias, setSugerencias] = useState<SugerenciaConciliacion[]>([]);
   const [loading, setLoading] = useState(true);
   const [autoConciliando, setAutoConciliando] = useState(false);
+  const apiFetch = useApiFetch();
 
   useEffect(() => {
     if (!supabase) return;
@@ -34,16 +36,7 @@ export function ConciliacionView() {
 
   async function fetchSugerencias() {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const response = await fetch('/api/banco-chile/conciliacion-auto/sugerencias', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'x-empresa-id': session.user.id,
-        },
-      });
-
+      const response = await apiFetch('/api/banco-chile/conciliacion-auto/sugerencias');
       const result = await response.json();
       setSugerencias(result.sugerencias || []);
     } catch (error) {
@@ -55,16 +48,8 @@ export function ConciliacionView() {
 
   async function conciliarManualmente(sugerencia: SugerenciaConciliacion) {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const response = await fetch('/api/banco-chile/conciliacion-auto/conciliar', {
+      const response = await apiFetch('/api/banco-chile/conciliacion-auto/conciliar', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-          'x-empresa-id': session.user.id,
-        },
         body: JSON.stringify({
           movimientoId: sugerencia.movimiento_id,
           ventaId: sugerencia.venta_id,
@@ -79,24 +64,16 @@ export function ConciliacionView() {
         toast(result.error || 'Error al conciliar', { type: 'error' });
       }
     } catch (error) {
-console.error('Error conciliando:', error);
-			toast('Error al conciliar', { type: 'error' });
+      console.error('Error conciliando:', error);
+      toast('Error al conciliar', { type: 'error' });
     }
   }
 
   async function autoConciliar() {
     try {
       setAutoConciliando(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const response = await fetch('/api/banco-chile/conciliacion-auto/auto-conciliar', {
+      const response = await apiFetch('/api/banco-chile/conciliacion-auto/auto-conciliar', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-          'x-empresa-id': session.user.id,
-        },
         body: JSON.stringify({ confianzaMinima: 'media' }),
       });
 
@@ -108,8 +85,8 @@ console.error('Error conciliando:', error);
         toast(result.error || 'Error en auto-conciliación', { type: 'error' });
       }
     } catch (error) {
-console.error('Error auto-conciliando:', error);
-			toast('Error en auto-conciliación', { type: 'error' });
+      console.error('Error auto-conciliando:', error);
+      toast('Error en auto-conciliación', { type: 'error' });
     } finally {
       setAutoConciliando(false);
     }

@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createMiddleware } from "hono/factory";
+import { getEnvOrThrow } from "./env";
 
 export type AppVariables = {
   user: { id: string; email?: string };
@@ -9,12 +10,6 @@ export type AppVariables = {
   empresaId: string;
   rol: string;
 };
-
-function getEnvOrThrow(key: string): string {
-  const value = process.env[key];
-  if (!value) throw new Error(`Missing required env var: ${key}`);
-  return value;
-}
 
 export function createSupabaseUserClient(accessToken: string): SupabaseClient {
   return createClient(
