@@ -79,7 +79,7 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
   if (user) {
     const rawRole = (user.app_metadata?.role as string) ?? (user.user_metadata?.role as string) ?? ''
     const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
-    if (!isRouteAllowed(pathname, role)) {
+      if (!isRouteAllowed(pathname, role)) {
         const origin = request.nextUrl.origin
         const internalKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
         fetch(`${origin}/api/security-events/internal`, {
@@ -99,6 +99,7 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
         if (pathname === targetPath) {
           return new NextResponse('Access Denied', { status: 403 })
         }
+        const url = request.nextUrl.clone()
         url.pathname = targetPath
         return NextResponse.redirect(url)
       }

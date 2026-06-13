@@ -53,7 +53,7 @@ export default function LoginPage() {
         const userId = useAuthStore.getState().user?.id;
         await logSecurityEvent(supabase, { eventType: 'login_success', email, userId, appSource: 'nucleo' });
         const userRole = useAuthStore.getState().user?.role ?? role;
-        window.location.href = getRoleRedirectPath(userRole);
+        router.replace(getRoleRedirectPath(userRole));
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, role } } });
         if (error) throw error;
@@ -61,7 +61,7 @@ export default function LoginPage() {
         if (data.user && !data.session) {
           setMessage('Revisa tu correo para confirmar la cuenta.');
         } else {
-          router.push(getRoleRedirectPath(role));
+          router.replace(getRoleRedirectPath(role));
         }
       }
     } catch (err: unknown) {
