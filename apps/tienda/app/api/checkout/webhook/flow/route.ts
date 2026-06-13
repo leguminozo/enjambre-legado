@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/utils/supabase/admin';
-import { getCheckoutSession, completeCheckoutSession } from '@/lib/payments';
 
 async function verifyFlowSignature(params: Record<string, string>): Promise<boolean> {
   const signature = params.s;
@@ -29,76 +27,34 @@ async function verifyFlowSignature(params: Record<string, string>): Promise<bool
 
 export async function POST(request: Request) {
   try {
-    const raw = await request.json() as Record<string, string>;
+    const rawText = await request.text();
+    const nucleoBffUrl = process.env.NUCLEO_BFF_URL;
 
-    const isValid = await verifyFlowSignature(raw);
-    if (!isValid) {
-      return NextResponse.json({ error: 'Firma inválida' }, { status: 403 });
+    if (!nucleoBffUrl) {
+      console.error('Missing NUCLEO_BFF_URL environment variable');
+      return NextResponse.json({ error: 'Configuración de servidor incompleta' }, { status: 500 });
     }
 
-    const status = Number(raw.status);
-    const FLOW_PAID = 2;
-
-    if (status !== FLOW_PAID) {
-      return NextResponse.json({ ok: true, status: 'ignored', message: `Estado Flow: ${status}` }, { status: 200 });
-    }
-
-    const buyOrder = raw.commerceOrder;
-    if (!buyOrder) {
-      return NextResponse.json({ error: 'Falta commerceOrder' }, { status: 400 });
-    }
-
-    const session = await getCheckoutSession(buyOrder);
-    if (!session) {
-      console.error(`Flow webhook: session not found for buyOrder ${buyOrder}`);
-      return NextResponse.json({ error: 'Sesión no encontrada' }, { status: 404 });
-    }
-
-    if (session.provider !== 'flow') {
-      return NextResponse.json({ error: 'Provider mismatch' }, { status: 400 });
-    }
-
-    const serverTotal = session.total;
-    const cart = session.cart;
-    const flowAmount = Number(raw.amount ?? 0);
-
-    if (flowAmount > 0 && Math.round(flowAmount) !== serverTotal) {
-      console.error(`Flow webhook: amount mismatch. Expected ${serverTotal}, got ${flowAmount}`);
-      return NextResponse.json({ error: 'Monto no coincide' }, { status: 409 });
-    }
-
-    const admin = createAdminClient();
-
-    const { error: ventaError } = await admin.from('ventas').insert({
-      origen: 'web',
-      estado: 'pagado',
-      total: serverTotal,
-      items: cart,
-      metodo_pago: 'flow',
-      buy_order: buyOrder,
-      auth_code: raw.flowOrder ?? '',
-      buyer_email: session.shipping?.email ?? null,
-      direccion_envio: session.shipping ?? null,
+    const response = await fetch(`${nucleoBffUrl}/api/checkout/webhook/flow`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // Flow sends application/x-www-form-urlencoded typically, but if we parsed it as JSON before,
+      // wait, the previous code did: const raw = await request.json() as Record<string, string>;
+      body: rawText,
     });
 
-    if (ventaError) {
-      console.error('Flow webhook: error persistiendo venta:', ventaError.message);
-      return NextResponse.json({ error: 'Error guardando venta' }, { status: 500 });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status });
     }
 
-    for (const line of cart) {
-      const qty = Math.max(0, Number(line.quantity || 0));
-      if (!qty) continue;
-
-      await admin.rpc('decrement_stock', { p_id: line.productId, p_qty: qty });
-    }
-
-    await completeCheckoutSession(buyOrder);
-
-    return NextResponse.json({ ok: true, status: 'confirmed' }, { status: 200 });
+    return NextResponse.json(data);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Error procesando webhook';
-    console.error('Flow webhook error:', message);
+    const message = error instanceof Error ? error.message : 'Error procesando webhook proxy';
+    console.error('Flow webhook proxy error:', message);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

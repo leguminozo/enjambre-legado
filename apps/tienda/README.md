@@ -114,6 +114,13 @@ URL: `https://obrerayzangano.com`
 - **2025:** Admin panel incluido en esta app
 - **2026-05:** Admin movido a `apps/nucleo` para centralización
 - **2026-05:** API de admin movida a `apps/api`
+- **2026-06:** Auditoría de Arquitectura (Migración a `next/image` nativo por performance LCP, adición de Security Headers en `next.config.ts` y adopción de App Router Error Boundaries en Productos).
+
+## 🛡️ Mejores Prácticas (Obligatorio)
+
+- **Imágenes (LCP & CLS):** Todo asset visual pesado DEBE usar el componente `<Image>` (`next/image`) con soporte para `priority` y atributos `sizes` correctos. Queda estrictamente desaconsejado el uso de `<img>` nativo, ya que Supabase Storage está explícitamente habilitado en el `next.config.ts`.
+- **Manejo de Errores (App Router):** En vez de usar envoltorios `try-catch` que retornen UI condicionada, deja que el framework maneje las excepciones. Utiliza `error.tsx` para fallos de red y el comando `notFound()` de `next/navigation` delegando a `not-found.tsx` en páginas dinámicas.
+- **Seguridad Perimetral:** Toda nueva ruta o asset asume el control del Content Security Policy y encabezados Strict (HSTS) inyectados automáticamente desde el `next.config.ts`.
 
 ---
 

@@ -25,6 +25,7 @@ import { logisticaRoutes } from "@/api/routes/logistica";
 import { produccionRoutes } from "@/api/routes/produccion";
 import { crmRoutes } from "@/api/routes/crm";
 import { securityEventRoutes } from "@/api/routes/security-events";
+import { checkoutRoutes } from "@/api/routes/checkout";
 
 export type { AppVariables };
 
@@ -54,6 +55,7 @@ app.route("/logistica", logisticaRoutes);
 app.route("/produccion", produccionRoutes);
 app.route("/crm", crmRoutes);
 app.route("/security-events", securityEventRoutes);
+app.route("/checkout", checkoutRoutes);
 
 app.onError((err, c) => {
   console.error(err);

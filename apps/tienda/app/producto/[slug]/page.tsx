@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getProductBySlugOrId } from '@/lib/shop/products';
 import { formatCLP } from '@/lib/shop/format';
@@ -73,44 +74,10 @@ export default async function ProductoPage({
   params: { slug: string };
 }) {
   const { slug } = params;
-  let product = null as Awaited<ReturnType<typeof getProductBySlugOrId>>;
-  let loadError: string | null = null;
-  try {
-    product = await getProductBySlugOrId(slug);
-  } catch (e) {
-    loadError = e instanceof Error ? e.message : 'Error cargando producto';
-  }
-
-  if (loadError) {
-    return (
-    <Shell>
-      <main className="min-h-[50vh] px-4 py-16 sm:px-6">
-        <div className="mx-auto max-w-2xl">
-          <h1 className="font-display text-2xl font-semibold text-foreground">No se pudo cargar</h1>
-          <p className="mt-2 text-muted-foreground">{loadError}</p>
-          <Link href="/catalogo" className="mt-6 inline-block text-sm text-accent underline">
-            Volver a creaciones
-          </Link>
-        </div>
-      </main>
-    </Shell>
-    );
-  }
+  const product = await getProductBySlugOrId(slug);
 
   if (!product) {
-    return (
-    <Shell>
-      <main className="min-h-[50vh] px-4 py-16 sm:px-6">
-        <div className="mx-auto max-w-2xl">
-          <h1 className="font-display text-2xl font-semibold text-foreground">Producto no encontrado</h1>
-          <p className="mt-2 text-muted-foreground">Revisa el enlace o vuelve al catálogo.</p>
-          <Link href="/catalogo" className="mt-6 inline-block text-sm text-accent underline">
-            Ir a creaciones
-          </Link>
-        </div>
-      </main>
-    </Shell>
-    );
+    notFound();
   }
 
   const inStock = product.stock == null || product.stock > 0;

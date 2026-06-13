@@ -2,15 +2,12 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from './utils/supabase/middleware';
 import { validateCsrf } from './lib/csrf';
 
-const ADMIN_PATHS = ['/dashboard', '/products', '/orders', '/customers', '/collections', '/integrations', '/content', '/settings'];
-
 function logAccessDenied(request: NextRequest, email: string, path: string) {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceRoleKey) return;
+  const nucleoBffUrl = process.env.NUCLEO_BFF_URL;
+  if (!serviceRoleKey || !nucleoBffUrl) return;
 
-  const origin = request.nextUrl.origin;
-
-  fetch(`${origin}/api/security-events/internal`, {
+  fetch(`${nucleoBffUrl}/api/security-events/internal`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -38,14 +35,9 @@ export async function middleware(request: NextRequest) {
     const { response, user } = await updateSession(request);
     const path = request.nextUrl.pathname;
 
-    const isAdmin = path.startsWith('/(admin)') || ADMIN_PATHS.some((p) => path.startsWith(p));
-    if (isAdmin && !user) {
-      logAccessDenied(request, '', path);
-
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', path);
-      return NextResponse.redirect(loginUrl);
-    }
+    // Admin paths now belong to nucleo. Tienda has no (admin) routes anymore.
+    // If we wanted to redirect /dashboard to nucleo, we could do it here, but 
+    // for security we just don't match any admin routes locally unless explicitly defined.
 
     return response;
   } catch (error) {

@@ -1,9 +1,12 @@
 import { ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 
 type Props = {
   ratio?: 'square' | 'video' | 'portrait';
   label?: string;
   className?: string;
+  src?: string;
+  alt?: string;
 };
 
 const ratioClass = {
@@ -12,8 +15,15 @@ const ratioClass = {
   portrait: 'aspect-[3/4]',
 } as const;
 
-/** Bloque listo para sustituir por <Image /> cuando tengas assets finales. */
-export function ImagePlaceholder({ ratio = 'square', label, className = '' }: Props) {
+export function ImagePlaceholder({ ratio = 'square', label, className = '', src, alt }: Props) {
+  if (src) {
+    return (
+      <div className={`relative w-full overflow-hidden ${ratioClass[ratio]} ${className}`}>
+        <Image src={src} alt={alt || label || 'Imagen'} fill className="object-cover" />
+      </div>
+    );
+  }
+
   return (
     <div
       className={`flex flex-col items-center justify-center bg-surface-sunken/80 ${ratioClass[ratio]} w-full border border-border/10 ${className}`}

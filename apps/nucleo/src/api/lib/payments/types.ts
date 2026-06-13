@@ -52,7 +52,14 @@ export type PaymentProvider = {
   refund(buyOrder: string, amount: number): Promise<{ ok: boolean }>;
 };
 
-import { createAdminClient } from '@/utils/supabase/admin';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+function createAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error('Missing Supabase credentials for admin client');
+  return createSupabaseClient(url, key, { auth: { persistSession: false } });
+}
 import { z } from 'zod';
 
 const CheckoutSessionRowSchema = z.object({

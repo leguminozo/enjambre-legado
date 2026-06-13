@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 type Props = {
   photos: string[];
@@ -21,8 +22,8 @@ export function ProductGallery({ photos, alt }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
-        <img src={main} alt={alt} className="aspect-square w-full object-cover" />
+      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+        <Image src={main} alt={alt} fill priority className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
       </div>
       {photos.length > 1 ? (
         <div className="flex flex-wrap gap-2">
@@ -37,7 +38,7 @@ export function ProductGallery({ photos, alt }: Props) {
                   : 'border-transparent opacity-75 hover:opacity-100'
               }`}
             >
-          <img src={src} alt="" className="h-full w-full object-cover" />
+              <Image src={src} alt={`Miniatura ${i + 1}`} fill className="object-cover" sizes="64px" />
             </button>
           ))}
         </div>
