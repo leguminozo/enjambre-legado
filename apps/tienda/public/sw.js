@@ -2,7 +2,7 @@
  * PWA mínima: NO interceptar /_next/* (chunks/CSS cambian en cada deploy).
  * HTML: red primero para no servir documentos viejos con hashes rotos.
  */
-const CACHE_NAME = 'oyz-tienda-v2.1';
+const CACHE_NAME = 'oyz-tienda-v2.2';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -44,6 +44,12 @@ self.addEventListener('fetch', (event) => {
 
   // Bundles de Next: siempre red (evita ChunkLoadError tras redeploy).
   if (url.pathname.startsWith('/_next/')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // RSC y App Router data: siempre red para no atrapar JSON/RSC viejo.
+  if (request.headers.has('RSC') || request.headers.has('Next-Router-Prefetch') || request.headers.has('Next-Router-State-Tree')) {
     event.respondWith(fetch(request));
     return;
   }
