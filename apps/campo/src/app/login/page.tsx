@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { LoginForm } from './login-form';
 
@@ -11,7 +12,9 @@ export default function LoginPage() {
       <div className="w-full max-w-sm rounded-2xl border border-border bg-surface-raised p-8 shadow-sm">
         <h1 className="text-xl font-semibold text-foreground mb-1">Campo — vendedor</h1>
         <p className="text-sm text-muted-foreground mb-6">Inicia sesión con tu cuenta de vendedor.</p>
-        <LoginForm />
+        <Suspense fallback={<div className="text-sm text-muted-foreground py-4 text-center">Cargando...</div>}>
+          <LoginForm />
+        </Suspense>
         <p className="mt-6 text-center text-sm text-muted-foreground">
           <Link href="/" className="underline text-primary">
             Volver al inicio

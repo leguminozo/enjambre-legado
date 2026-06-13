@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
@@ -26,16 +28,15 @@ calculosIARoutes.get("/", async (c) => {
   return c.json(data ?? []);
 });
 
-calculosIARoutes.post("/", async (c) => {
+const calculoIASchema = z.object({
+  tipo: z.enum(["ImpuestoMensual", "PPM", "F29", "ProyeccionUtilidad", "OptimizacionFiscal"]),
+  parametros: z.union([z.record(z.string(), z.unknown()), z.string()]).optional(),
+});
+
+calculosIARoutes.post("/", zValidator("json", calculoIASchema), async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase");
-  const body = await c.req.json();
-
-  const { tipo, parametros } = body;
-
-  if (!tipo) {
-    return c.json({ code: "validation_error", message: "tipo es requerido" }, 400);
-  }
+  const { tipo, parametros } = c.req.valid("json");
 
   const { data: calculo, error: insertError } = await supabase
     .from("calculos_ia")

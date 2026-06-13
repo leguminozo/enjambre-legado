@@ -32,7 +32,8 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
     const supabaseUrl = getSupabaseUrl()
     const supabaseAnonKey = getSupabaseKey()
 
-    if (!supabaseAnonKey.startsWith('eyJ')) {
+    const isValidKey = supabaseAnonKey.startsWith('eyJ') || supabaseAnonKey.startsWith('sb_publishable_')
+    if (!isValidKey) {
       return supabaseResponse
     }
 
@@ -94,9 +95,8 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
             details: { attemptedPath: pathname, role },
           }),
         }).catch(() => {})
-        const url = request.nextUrl.clone()
-        const targetPath = roleRedirectMap[role] ?? '/colmenas'
-        if (pathname === targetPath || pathname === '/') {
+        const targetPath = roleRedirectMap[role] ?? '/perfil'
+        if (pathname === targetPath) {
           return new NextResponse('Access Denied', { status: 403 })
         }
         url.pathname = targetPath

@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
@@ -32,16 +34,17 @@ reportesRoutes.get("/", async (c) => {
   return c.json(data ?? []);
 });
 
-reportesRoutes.post("/", async (c) => {
+const reporteSchema = z.object({
+  tipo: z.enum(["BalanceGeneral", "EstadoResultados", "FlujoEfectivo", "LibroCompras", "LibroVentas"]),
+  periodo: z.string().regex(/^\d{4}-\d{2}$/, "Formato de periodo inválido (debe ser YYYY-MM)").optional().nullable(),
+  mes: z.number().int().min(1).max(12).optional().nullable(),
+  anio: z.number().int().min(1900).max(2100).optional().nullable(),
+});
+
+reportesRoutes.post("/", zValidator("json", reporteSchema), async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase");
-  const body = await c.req.json();
-
-  const { tipo, periodo, mes, anio } = body;
-
-  if (!tipo) {
-    return c.json({ code: "validation_error", message: "tipo es requerido" }, 400);
-  }
+  const { tipo, periodo, mes, anio } = c.req.valid("json");
 
   const computedAnio = anio ?? new Date().getFullYear();
   const computedMes = mes ?? new Date().getMonth() + 1;

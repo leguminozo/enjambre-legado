@@ -1,5 +1,4 @@
 import { createAnonServerClient } from '@/utils/supabase/anon-server';
-import { createAdminClient } from '@/utils/supabase/admin';
 import { z } from 'zod';
 
 export type ShopProduct = {
@@ -96,8 +95,7 @@ function mapProduct(p: ProductRow): ShopProduct {
 }
 
 export async function listVisibleProducts(): Promise<ShopProduct[]> {
-  const supabase = createAdminClient();
-  if (!supabase) return [];
+  const supabase = createAnonServerClient();
   const { data, error } = await supabase
     .from('productos')
     .select(PRODUCT_SELECT)

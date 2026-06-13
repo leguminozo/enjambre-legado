@@ -2,29 +2,6 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from './utils/supabase/middleware';
 import { validateCsrf } from './lib/csrf';
 
-function logAccessDenied(request: NextRequest, email: string, path: string) {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const nucleoBffUrl = process.env.NUCLEO_BFF_URL;
-  if (!serviceRoleKey || !nucleoBffUrl) return;
-
-  fetch(`${nucleoBffUrl}/api/security-events/internal`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-internal-key': serviceRoleKey,
-    },
-    body: JSON.stringify({
-      eventType: 'access_denied',
-      email,
-      userId: null,
-      ipAddress: request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? null,
-      userAgent: request.headers.get('user-agent') ?? null,
-      details: { path },
-      appSource: 'tienda',
-    }),
-  }).catch(() => {});
-}
-
 export async function middleware(request: NextRequest) {
   try {
     if (request.method !== 'GET' && request.method !== 'HEAD' && request.method !== 'OPTIONS') {

@@ -33,17 +33,20 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
     setLoading(true);
     setMessage(null);
 
+    const redirectUrl = new URL('/auth/callback', window.location.origin);
+    redirectUrl.searchParams.set('next', window.location.pathname);
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.href,
+        emailRedirectTo: redirectUrl.toString(),
       },
     });
 
     if (error) {
-    setMessage({ type: 'error', text: friendlySupabaseError(error) });
-      } else {
-        setMessage({ type: 'success', text: '¡Revisa tu correo! Te enviamos un enlace para entrar.' });
+      setMessage({ type: 'error', text: friendlySupabaseError(error) });
+    } else {
+      setMessage({ type: 'success', text: '¡Revisa tu correo! Te enviamos un enlace para entrar.' });
     }
     setLoading(false);
   }

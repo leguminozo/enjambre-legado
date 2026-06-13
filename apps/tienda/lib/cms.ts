@@ -28,25 +28,3 @@ export async function getSiteContent(sectionKey: string): Promise<SiteSectionIte
     return [];
   }
 }
-
-export async function getSiteContentStatic(sectionKey: string): Promise<SiteSectionItem[]> {
-  try {
-    const supabase = createAnonServerClient();
-    const { data, error } = await supabase
-      .from('site_content')
-      .select('*')
-      .eq('section_key', sectionKey)
-      .eq('is_active', true)
-      .order('item_order', { ascending: true });
-
-    if (error) {
-      console.warn(`Error fetching static CMS content for ${sectionKey}:`, error.message);
-      return [];
-    }
-
-    return data || [];
-  } catch (err) {
-    console.error(`Unexpected error fetching static CMS content for ${sectionKey}:`, err);
-    return [];
-  }
-}

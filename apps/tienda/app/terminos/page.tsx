@@ -1,4 +1,4 @@
-import { getSiteContentStatic } from '@/lib/cms';
+import { getSiteContent } from '@/lib/cms';
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function TerminosPage() {
-  const contentData = await getSiteContentStatic('legal_terminos');
+  const contentData = await getSiteContent('legal_terminos');
   const item = contentData[0]?.content;
   const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Términos del Servicio';
   const content = (item && typeof item === 'object' && 'body' in item ? String(item.body) : null) || `

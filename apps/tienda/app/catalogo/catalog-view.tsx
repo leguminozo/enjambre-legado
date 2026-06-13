@@ -93,14 +93,14 @@ export function CatalogoView({ products }: Props) {
                     href={`/producto/${encodeURIComponent(p.slug)}`}
                     className="group block overflow-hidden rounded-xl border border-border bg-card/40 transition hover:border-accent/35"
                   >
-                    <div className="aspect-square bg-card overflow-hidden">
+                    <div className="relative aspect-square bg-card overflow-hidden">
                       {img ? (
                         <Image
                           src={img}
                           alt={p.name}
-                          width={400}
-                          height={400}
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition duration-500 group-hover:scale-[1.03]"
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center text-xs text-muted-foreground/60">

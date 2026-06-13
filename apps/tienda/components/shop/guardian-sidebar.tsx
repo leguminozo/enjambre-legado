@@ -17,7 +17,7 @@ import {
   Gem,
   Bell
 } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
+import { useAuthStore } from '@enjambre/auth';
 import { useRouter } from 'next/navigation';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 
@@ -62,10 +62,10 @@ interface GuardianSidebarProps {
 export function GuardianSidebar({ user, isOpen, onClose }: GuardianSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = createClient();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    const authStore = useAuthStore.getState();
+    await authStore.signOut();
     router.push('/');
     router.refresh();
   };

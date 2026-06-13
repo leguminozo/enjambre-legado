@@ -78,7 +78,7 @@ packages/banco-chile → Banco Chile Empresas API client (OAuth 2.0, 8 APIs)
 | Hardcoded hex (`#fff`) | Semantic tokens (`bg-background`) |
 | Hardcoded Tailwind (`text-white`, `bg-black`, `text-stone-*`) | Semantic tokens (`text-foreground`, `bg-background`, `text-muted-foreground`) |
 | `catch(e) {}` | `toast.error()` + logging |
-| Offline-First Sync Queues | Use Direct Supabase (Campo is now purely online-only) |
+| Offline-First Sync Queues | Allowed and actively used in `apps/campo` — follow the existing Dexie-based implementation. Key references: `apps/campo/src/lib/offline/db.ts` (Dexie schema: `productos`, `sync_queue`), enqueue examples in `apps/campo/src/components/pos/cash-context.tsx`, and the sync processor in `apps/campo/src/hooks/use-sync-engine.ts`. Do NOT create ad-hoc Supabase service-role clients in apps; continue to use the `apps/*/lib` re-exports and `@enjambre/auth` entry points. |
 | Components at repo root | `packages/ui` or `apps/*/components` |
 | Massive refactors | Surgical, minimal changes |
 | Skip build verification | Always build after changes |

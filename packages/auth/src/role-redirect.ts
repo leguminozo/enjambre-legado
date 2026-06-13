@@ -22,13 +22,17 @@ export const ROLE_REDIRECT_MAP: Record<string, string> = {
 }
 
 export function getRoleRedirectPath(role: string): string {
-  return ROLE_REDIRECT_MAP[role] ?? '/colmenas'
+  return ROLE_REDIRECT_MAP[role] ?? '/perfil'
 }
 
 export const ALL_ADMIN_ROLES: RoleKey[] = ['admin']
 
 export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/': ['admin'],
+  '/ejecutivo': ['admin'],
+  '/costeo': ['admin'],
+  '/produccion': ['admin'],
+  '/crm': ['admin'],
   '/contable': ['admin'],
   '/sii': ['admin'],
   '/banco': ['admin'],

@@ -56,14 +56,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ user: null, session: null, isAuthenticated: false, isLoading: false })
   },
   refreshSession: async () => {
-    get().checkUser()
+    await get().checkUser()
   },
   signOut: async () => {
     const supabase = createClient()
     if (supabase) {
       const user = get().user
       if (user?.email) {
-        logSecurityEvent(supabase, { eventType: 'session_revoked', email: user.email, userId: user.id, appSource: get().appSource }).catch(() => {})
+        try {
+          await logSecurityEvent(supabase, { eventType: 'session_revoked', email: user.email, userId: user.id, appSource: get().appSource })
+        } catch (error) {
+          console.error('[auth-store] error logging session_revoked:', error)
+        }
       }
       await supabase.auth.signOut()
     }

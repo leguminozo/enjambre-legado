@@ -80,57 +80,64 @@ conciliacionAutoRouter.post('/sincronizar', async (c) => {
   }
 });
 
+// Helper interno para obtener sugerencias de conciliación sin hacer llamadas HTTP relativas
+async function obtenerSugerenciasInterno(supabase: any, empresaId: string): Promise<SugerenciaConciliacion[]> {
+  // Obtener movimientos sin conciliar (últimos 30 días)
+  const { data: movimientos } = await supabase
+    .from('banco_chile_movimientos')
+    .select('*')
+    .eq('empresa_id', empresaId)
+    .is('conciliado', false)
+    .gte('fecha_contable', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+    .order('fecha_contable', { ascending: false })
+    .limit(100);
+
+  if (!movimientos || movimientos.length === 0) {
+    return [];
+  }
+
+  // Obtener ventas sin conciliar (últimos 30 días)
+  const { data: ventas } = await supabase
+    .from('ventas')
+    .select('*')
+    .eq('empresa_id', empresaId)
+    .is('conciliado', true)
+    .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  if (!ventas || ventas.length === 0) {
+    return [];
+  }
+
+  // Generar sugerencias
+  const sugerencias: SugerenciaConciliacion[] = [];
+
+  for (const mov of movimientos) {
+    for (const venta of ventas) {
+      const sugerencia = calcularSugerencia(mov, venta);
+      if (sugerencia.puntaje >= 50) {
+        sugerencias.push(sugerencia);
+      }
+    }
+  }
+
+  // Ordenar por puntaje
+  sugerencias.sort((a, b) => b.puntaje - a.puntaje);
+
+  return sugerencias.slice(0, 50);
+}
+
 // Obtener sugerencias de conciliación
 conciliacionAutoRouter.get('/sugerencias', async (c) => {
   try {
     const supabase = c.get('supabase');
     const empresaId = c.get('empresaId');
 
-    // Obtener movimientos sin conciliar (últimos 30 días)
-    const { data: movimientos } = await supabase
-      .from('banco_chile_movimientos')
-      .select('*')
-      .eq('empresa_id', empresaId)
-      .is('conciliado', false)
-      .gte('fecha_contable', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-      .order('fecha_contable', { ascending: false })
-      .limit(100);
-
-    if (!movimientos || movimientos.length === 0) {
-      return c.json({ sugerencias: [] });
-    }
-
-    // Obtener ventas sin conciliar (últimos 30 días)
-    const { data: ventas } = await supabase
-      .from('ventas')
-      .select('*')
-      .eq('empresa_id', empresaId)
-      .is('conciliado', true)
-      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-      .order('created_at', { ascending: false })
-      .limit(100);
-
-    if (!ventas || ventas.length === 0) {
-      return c.json({ sugerencias: [] });
-    }
-
-    // Generar sugerencias
-    const sugerencias: SugerenciaConciliacion[] = [];
-
-    for (const mov of movimientos) {
-      for (const venta of ventas) {
-        const sugerencia = calcularSugerencia(mov, venta);
-        if (sugerencia.puntaje >= 50) {
-          sugerencias.push(sugerencia);
-        }
-      }
-    }
-
-    // Ordenar por puntaje
-    sugerencias.sort((a, b) => b.puntaje - a.puntaje);
+    const sugerencias = await obtenerSugerenciasInterno(supabase, empresaId);
 
     return c.json({
-      sugerencias: sugerencias.slice(0, 50), // Máximo 50 sugerencias
+      sugerencias,
       total: sugerencias.length,
     });
   } catch (error) {
@@ -139,20 +146,19 @@ conciliacionAutoRouter.get('/sugerencias', async (c) => {
   }
 });
 
+const autoConciliarSchema = z.object({
+  confianzaMinima: z.enum(['alta', 'media', 'baja']).optional().default('media'),
+});
+
 // Conciliación automática masiva
-conciliacionAutoRouter.post('/auto-conciliar', async (c) => {
+conciliacionAutoRouter.post('/auto-conciliar', zValidator('json', autoConciliarSchema), async (c) => {
   try {
     const supabase = c.get('supabase');
     const empresaId = c.get('empresaId');
-    const { confianzaMinima = 'media' } = await c.req.json().catch(() => ({}));
+    const { confianzaMinima } = c.req.valid('json');
 
-    // Obtener sugerencias
-    const { sugerencias } = await fetch('/api/banco-chile/conciliacion/sugerencias', {
-      headers: {
-        'Authorization': c.req.header('Authorization') || '',
-        'x-empresa-id': empresaId,
-      },
-    }).then(r => r.json());
+    // Obtener sugerencias in-process
+    const sugerencias = await obtenerSugerenciasInterno(supabase, empresaId);
 
     // Filtrar por confianza
     const nivelConfianza: Record<string, number> = {
@@ -203,15 +209,18 @@ conciliacionAutoRouter.post('/auto-conciliar', async (c) => {
   }
 });
 
+const conciliarManualSchema = z.object({
+  movimientoId: z.string().uuid("movimientoId debe ser un UUID válido"),
+  ventaId: z.string().uuid("ventaId debe ser un UUID válido"),
+  monto: z.number().nullable().optional(),
+  concepto: z.string().nullable().optional(),
+});
+
 // Conciliar manualmente
-conciliacionAutoRouter.post('/conciliar', async (c) => {
+conciliacionAutoRouter.post('/conciliar', zValidator('json', conciliarManualSchema), async (c) => {
   try {
     const supabase = c.get('supabase');
-    const { movimientoId, ventaId, monto, concepto } = await c.req.json();
-
-    if (!movimientoId || !ventaId) {
-      return c.json({ error: 'movimientoId y ventaId requeridos' }, 400);
-    }
+    const { movimientoId, ventaId, monto, concepto } = c.req.valid('json');
 
     // Verificar que el movimiento no esté conciliado
     const { data: mov } = await supabase

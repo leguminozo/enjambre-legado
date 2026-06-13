@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
+import { validarRUT } from "@enjambre/contable";
 import { Hono } from "hono";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
@@ -37,16 +40,20 @@ tercerosRoutes.get("/", async (c) => {
   return c.json(data ?? []);
 });
 
-tercerosRoutes.post("/", async (c) => {
+const terceroSchema = z.object({
+  tipo: z.enum(["cliente", "proveedor", "mixto"]),
+  rut: z.string().refine((rut) => validarRUT(rut), { message: "RUT inválido" }),
+  nombre: z.string().min(1, "Nombre es requerido"),
+  email: z.string().email("Email inválido").optional().nullable(),
+  telefono: z.string().optional().nullable(),
+  direccion: z.string().optional().nullable(),
+  giro: z.string().optional().nullable(),
+});
+
+tercerosRoutes.post("/", zValidator("json", terceroSchema), async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase");
-  const body = await c.req.json();
-
-  const { tipo, rut, nombre, email, telefono, direccion, giro } = body;
-
-  if (!tipo || !rut || !nombre) {
-    return c.json({ code: "validation_error", message: "tipo, rut y nombre son requeridos" }, 400);
-  }
+  const { tipo, rut, nombre, email, telefono, direccion, giro } = c.req.valid("json");
 
   const { data: existing } = await supabase
     .from("terceros")

@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { gsap } from 'gsap';
 
 interface MediaItem {
   type: 'image' | 'video';
@@ -38,10 +37,12 @@ export function MediaCarousel({ items, autoplayMs = 5000 }: MediaCarouselProps) 
 
   useEffect(() => {
     if (!trackRef.current) return;
-    gsap.to(trackRef.current, {
-      xPercent: -100 * current,
-      duration: 1.2,
-      ease: 'power3.inOut',
+    import('gsap').then((mod) => {
+      mod.gsap.to(trackRef.current, {
+        xPercent: -100 * current,
+        duration: 1.2,
+        ease: 'power3.inOut',
+      });
     });
   }, [current]);
 
@@ -72,6 +73,7 @@ export function MediaCarousel({ items, autoplayMs = 5000 }: MediaCarouselProps) 
                     src={item.src}
                     alt={item.alt || ''}
                     fill
+                    sizes="100vw"
                     className="object-cover"
                   />
                 )}

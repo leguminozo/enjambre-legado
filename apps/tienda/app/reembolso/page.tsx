@@ -1,4 +1,4 @@
-import { getSiteContentStatic } from '@/lib/cms';
+import { getSiteContent } from '@/lib/cms';
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ReembolsoPage() {
-  const contentData = await getSiteContentStatic('legal_reembolso');
+  const contentData = await getSiteContent('legal_reembolso');
   const item = contentData[0]?.content;
   const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Política de Reembolso';
   const content = (item && typeof item === 'object' && 'body' in item ? String(item.body) : null) || `

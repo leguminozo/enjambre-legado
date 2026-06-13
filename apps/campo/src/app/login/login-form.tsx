@@ -1,17 +1,27 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { friendlySupabaseError } from '@enjambre/ui';
-import { logSecurityEvent } from '@enjambre/auth';
+import { logSecurityEvent, useAuthStore } from '@enjambre/auth';
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const redirectPath = searchParams.get('redirect') || '/pos/catalogo';
+  const { user, isAuthenticated, isLoading } = useAuthStore();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      router.push(redirectPath);
+    }
+  }, [isLoading, isAuthenticated, user, router, redirectPath]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,25 +33,37 @@ export function LoginForm() {
     }
     setLoading(true);
     const { error: signErr } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
+    
     if (signErr) {
       setError(friendlySupabaseError(signErr));
-      void logSecurityEvent(supabase, {
-        eventType: 'login_failed',
+      try {
+        await logSecurityEvent(supabase, {
+          eventType: 'login_failed',
+          email,
+          userAgent: navigator.userAgent,
+          appSource: 'campo',
+          details: { code: signErr.code, message: signErr.message },
+        });
+      } catch (err) {
+        console.error('[login] failed to log security event:', err);
+      }
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await logSecurityEvent(supabase, {
+        eventType: 'login_success',
         email,
         userAgent: navigator.userAgent,
         appSource: 'campo',
-        details: { code: signErr.code, message: signErr.message },
       });
-      return;
+    } catch (err) {
+      console.error('[login] failed to log security event:', err);
     }
-    void logSecurityEvent(supabase, {
-      eventType: 'login_success',
-      email,
-      userAgent: navigator.userAgent,
-      appSource: 'campo',
-    });
-    router.push('/pos/catalogo');
+
+    setLoading(false);
+    router.push(redirectPath);
     router.refresh();
   }
 

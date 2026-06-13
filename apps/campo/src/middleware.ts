@@ -3,7 +3,7 @@ import { updateSession } from '@/utils/supabase/middleware';
 import { isSupabaseConfigured } from '@/utils/supabase/env';
 
 const PROTECTED_PREFIXES = ['/pos'];
-const PUBLIC_PATHS = ['/', '/login', '/register', '/setup-error'];
+const PUBLIC_PATHS = ['/', '/login', '/setup-error'];
 
 function isProtected(path: string): boolean {
   if (PUBLIC_PATHS.some((p) => path === p)) return false;

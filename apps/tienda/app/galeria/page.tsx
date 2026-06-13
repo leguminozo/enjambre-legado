@@ -1,7 +1,7 @@
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { getSiteContentStatic } from '@/lib/cms';
+import { getSiteContent } from '@/lib/cms';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 import { z } from 'zod';
@@ -38,7 +38,7 @@ const GaleriaItemContentSchema = z.object({
 });
 
 export default async function GaleriaPage() {
-  const galeriaData = await getSiteContentStatic('galeria');
+  const galeriaData = await getSiteContent('galeria');
   
   const defaultImages = [
     { id: '1', content: { 

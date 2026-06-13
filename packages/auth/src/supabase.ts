@@ -15,7 +15,8 @@ export function getSupabaseKey(): string {
 
 export function isSupabaseConfigured(): boolean {
   const key = getSupabaseKey()
-  return getSupabaseUrl().length > 0 && key.startsWith('eyJ')
+  const isValidKey = key.startsWith('eyJ') || key.startsWith('sb_publishable_')
+  return getSupabaseUrl().length > 0 && isValidKey
 }
 
 let _browserClient: ReturnType<typeof createBrowserClient> | null = null

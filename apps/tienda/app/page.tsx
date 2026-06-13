@@ -1,4 +1,4 @@
-import { getSiteContentStatic, type SiteSectionItem } from '@/lib/cms';
+import { getSiteContent, type SiteSectionItem } from '@/lib/cms';
 import { getEcosystemMetrics, type EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { listVisibleProducts, type ShopProduct } from '@/lib/shop/products';
 import { TiendaLandingView } from './landing-view';
@@ -16,10 +16,10 @@ export const revalidate = 3600;
 
 export default async function TiendaPage() {
   const [coleccionesData, footerBrandingData, footerNavData, footerLegalData, ecosystemMetrics, products] = await Promise.all([
-    getSiteContentStatic('colecciones'),
-    getSiteContentStatic('footer_branding'),
-    getSiteContentStatic('footer_nav'),
-    getSiteContentStatic('footer_legal'),
+    getSiteContent('colecciones'),
+    getSiteContent('footer_branding'),
+    getSiteContent('footer_nav'),
+    getSiteContent('footer_legal'),
     getEcosystemMetrics(),
     listVisibleProducts(),
   ]);
