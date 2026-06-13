@@ -216,19 +216,23 @@ export function BeeCanvas() {
     let lastFrameTime = 0;
     const targetFps = 30;
     const frameInterval = 1000 / targetFps;
+    let isAnimating = false;
 
-    let initTimeout: ReturnType<typeof setTimeout>;
     const observer = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting;
-        if (isVisible && !initTimeout) animate();
+        if (isVisible && !isAnimating) {
+          isAnimating = true;
+          animate();
+        } else if (!isVisible) {
+          isAnimating = false;
+        }
       },
       { threshold: 0.1 },
     );
 
-    initTimeout = setTimeout(() => {
+    let initTimeout = setTimeout(() => {
       observer.observe(canvas);
-      if (isVisible) animate();
     }, 1000);
 
     function animate(timestamp = 0) {
