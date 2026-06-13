@@ -297,37 +297,91 @@ export function CheckoutClient() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="sm:col-span-2 form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Nombre completo *</label>
-                      <input type="text" className={inputCls('nombre')} value={shipping.nombre} onChange={(e) => updateField('nombre', e.target.value)} placeholder="Tu nombre" />
+                      <input
+                        type="text"
+                        id="nombre"
+                        name="nombre"
+                        className={inputCls('nombre')}
+                        value={shipping.nombre}
+                        onChange={(e) => updateField('nombre', e.target.value)}
+                        placeholder="Tu nombre"
+                      />
                       {validationErrors.nombre && <p className="text-xs text-destructive mt-1">{validationErrors.nombre}</p>}
                     </div>
                     <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Email *</label>
-                      <input type="email" className={inputCls('email')} value={shipping.email} onChange={(e) => updateField('email', e.target.value)} placeholder="tu@email.com" />
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        className={inputCls('email')}
+                        value={shipping.email}
+                        onChange={(e) => updateField('email', e.target.value)}
+                        placeholder="tu@email.com"
+                      />
                       {validationErrors.email && <p className="text-xs text-destructive mt-1">{validationErrors.email}</p>}
                     </div>
                     <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Teléfono *</label>
-                      <input type="tel" className={inputCls('telefono')} value={shipping.telefono} onChange={(e) => updateField('telefono', e.target.value)} placeholder="+56 9 1234 5678" />
+                      <input
+                        type="tel"
+                        id="telefono"
+                        name="telefono"
+                        className={inputCls('telefono')}
+                        value={shipping.telefono}
+                        onChange={(e) => updateField('telefono', e.target.value)}
+                        placeholder="+56 9 1234 5678"
+                      />
                       {validationErrors.telefono && <p className="text-xs text-destructive mt-1">{validationErrors.telefono}</p>}
                     </div>
                     <div className="sm:col-span-2 form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Dirección *</label>
-                      <input type="text" className={inputCls('direccion')} value={shipping.direccion} onChange={(e) => updateField('direccion', e.target.value)} placeholder="Calle, número, depto" />
+                      <input
+                        type="text"
+                        id="direccion"
+                        name="direccion"
+                        className={inputCls('direccion')}
+                        value={shipping.direccion}
+                        onChange={(e) => updateField('direccion', e.target.value)}
+                        placeholder="Calle, número, depto"
+                      />
                       {validationErrors.direccion && <p className="text-xs text-destructive mt-1">{validationErrors.direccion}</p>}
                     </div>
                     <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Comuna *</label>
-                      <input type="text" className={inputCls('comuna')} value={shipping.comuna} onChange={(e) => updateField('comuna', e.target.value)} placeholder="Comuna" />
+                      <input
+                        type="text"
+                        id="comuna"
+                        name="comuna"
+                        className={inputCls('comuna')}
+                        value={shipping.comuna}
+                        onChange={(e) => updateField('comuna', e.target.value)}
+                        placeholder="Comuna"
+                      />
                       {validationErrors.comuna && <p className="text-xs text-destructive mt-1">{validationErrors.comuna}</p>}
                     </div>
                     <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Ciudad *</label>
-                      <input type="text" className={inputCls('ciudad')} value={shipping.ciudad} onChange={(e) => updateField('ciudad', e.target.value)} placeholder="Ciudad" />
+                      <input
+                        type="text"
+                        id="ciudad"
+                        name="ciudad"
+                        className={inputCls('ciudad')}
+                        value={shipping.ciudad}
+                        onChange={(e) => updateField('ciudad', e.target.value)}
+                        placeholder="Ciudad"
+                      />
                       {validationErrors.ciudad && <p className="text-xs text-destructive mt-1">{validationErrors.ciudad}</p>}
                     </div>
                     <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Región *</label>
-                      <select className={inputCls('region')} value={shipping.region} onChange={(e) => updateField('region', e.target.value)}>
+                      <select
+                        id="region"
+                        name="region"
+                        className={inputCls('region')}
+                        value={shipping.region}
+                        onChange={(e) => updateField('region', e.target.value)}
+                      >
                         <option value="">Seleccionar región</option>
                         {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
                       </select>
@@ -335,11 +389,27 @@ export function CheckoutClient() {
                     </div>
                     <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Código postal</label>
-                      <input type="text" className={inputCls('codigoPostal')} value={shipping.codigoPostal} onChange={(e) => updateField('codigoPostal', e.target.value)} placeholder="Opcional" />
+                      <input
+                        type="text"
+                        id="codigoPostal"
+                        name="codigoPostal"
+                        className={inputCls('codigoPostal')}
+                        value={shipping.codigoPostal}
+                        onChange={(e) => updateField('codigoPostal', e.target.value)}
+                        placeholder="Opcional"
+                      />
                     </div>
                     <div className="sm:col-span-2 form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Instrucciones de entrega</label>
-                      <textarea className={inputCls('instrucciones')} value={shipping.instrucciones} onChange={(e) => updateField('instrucciones', e.target.value)} placeholder="Casa con reja verde, dejar en portería..." rows={2} />
+                      <textarea
+                        id="instrucciones"
+                        name="instrucciones"
+                        className={inputCls('instrucciones')}
+                        value={shipping.instrucciones}
+                        onChange={(e) => updateField('instrucciones', e.target.value)}
+                        placeholder="Casa con reja verde, dejar en portería..."
+                        rows={2}
+                      />
                     </div>
                   </div>
                 </div>

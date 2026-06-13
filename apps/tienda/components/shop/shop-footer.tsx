@@ -103,9 +103,11 @@ Suscríbete para no perderte novedades, consejos del néctar y regalos únicos q
 </p>
 <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
 <input
-type="email"
-placeholder="Ingresa tu e-mail y únete al Legado del Bosque"
-className="w-full bg-transparent border border-border rounded-lg py-4 px-6 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent transition-colors text-sm"
+  id="newsletter-email"
+  name="email"
+  type="email"
+  placeholder="Ingresa tu e-mail y únete al Legado del Bosque"
+  className="w-full bg-transparent border border-border rounded-lg py-4 px-6 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent transition-colors text-sm"
 />
 <button
 type="submit"

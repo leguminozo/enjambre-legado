@@ -143,6 +143,8 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
                 <div className="relative group">
                   <Mail className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                   <input
+                    id="claim-email"
+                    name="email"
                     type="email"
                     required
                     value={email}

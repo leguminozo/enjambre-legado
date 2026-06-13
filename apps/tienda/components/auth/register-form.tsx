@@ -58,6 +58,7 @@ export function RegisterForm() {
                 <User className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                 <input
                   id="fullName"
+                  name="fullName"
                   type="text"
                   required
                   value={fullName}
@@ -76,6 +77,7 @@ export function RegisterForm() {
                 <Mail className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                 <input
                   id="email"
+                  name="email"
                   type="email"
                   required
                   value={email}
@@ -94,6 +96,7 @@ export function RegisterForm() {
                 <Lock className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                 <input
                   id="password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}

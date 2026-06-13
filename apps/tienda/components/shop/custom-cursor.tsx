@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 
 export function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
-  const [isHovering, setIsHovering] = useState(false);
 
   useEffect(() => {
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -42,9 +41,21 @@ export function CustomCursor() {
     const onMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (target.closest('a, button, .hoverable, [role="button"]')) {
-        setIsHovering(true);
+        gsap.to(cursor, {
+          scale: 2,
+          backgroundColor: 'rgba(var(--accent), 0.1)',
+          duration: 0.3,
+          ease: 'power2.out',
+          overwrite: true
+        });
       } else {
-        setIsHovering(false);
+        gsap.to(cursor, {
+          scale: 1,
+          backgroundColor: 'transparent',
+          duration: 0.3,
+          ease: 'power2.out',
+          overwrite: true
+        });
       }
     };
 
@@ -62,25 +73,10 @@ export function CustomCursor() {
     };
   }, []); // Dependencia vacía: se suscribe una sola vez
 
-  // Actualizamos el scale por separado para no re-crear el efecto principal
-  useEffect(() => {
-    const cursor = cursorRef.current;
-    if (cursor) {
-      gsap.to(cursor, {
-        scale: isHovering ? 2 : 1,
-        duration: 0.3,
-        ease: 'power2.out',
-        overwrite: true
-      });
-    }
-  }, [isHovering]);
-
   return (
     <div
       ref={cursorRef}
-      className={`fixed w-5 h-5 border border-accent rounded-full pointer-events-none z-[9997] mix-blend-difference hidden md:block ${
-        isHovering ? 'bg-accent/10' : ''
-      }`}
+      className="fixed w-5 h-5 border border-accent rounded-full pointer-events-none z-[9997] mix-blend-difference hidden md:block"
       style={{ left: 0, top: 0 }}
     />
   );

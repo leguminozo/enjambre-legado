@@ -88,6 +88,7 @@ export function LoginForm() {
                 <Mail className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                 <input
                   id="email"
+                  name="email"
                   type="email"
                   required
                   value={email}
@@ -111,6 +112,7 @@ export function LoginForm() {
                 <Lock className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                 <input
                   id="password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}

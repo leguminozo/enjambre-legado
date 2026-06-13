@@ -73,6 +73,7 @@ export function ContactForm() {
             <input
               type="text"
               id="nombre"
+              name="nombre"
               className="mt-1 w-full rounded-full border border-foreground/30 bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="Tu nombre"
             />
@@ -84,6 +85,7 @@ export function ContactForm() {
             <input
               type="text"
               id="apellido"
+              name="apellido"
               className="mt-1 w-full rounded-full border border-foreground/30 bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="Tu apellido"
             />
@@ -95,6 +97,7 @@ export function ContactForm() {
             <input
               type="email"
               id="email"
+              name="email"
               required
               className="mt-1 w-full rounded-full border border-foreground/30 bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="Tu dirección de correo electrónico"
@@ -106,6 +109,7 @@ export function ContactForm() {
             </label>
             <textarea
               id="mensaje"
+              name="mensaje"
               required
               rows={4}
               className="mt-1 w-full rounded-2xl border border-foreground/30 bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"

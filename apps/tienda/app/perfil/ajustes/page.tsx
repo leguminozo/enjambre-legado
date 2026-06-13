@@ -60,6 +60,8 @@ export default function AjustesPage() {
               <label className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">Nombre Completo</label>
               <input
                 type="text"
+                id="fullName"
+                name="fullName"
                 placeholder="Ej: Gabriel Miranda"
                 className="w-full bg-secondary border border-border rounded-xl px-5 py-4 text-sm text-foreground focus:outline-none focus:border-accent transition-all"
               />
@@ -68,6 +70,8 @@ export default function AjustesPage() {
               <label className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">Correo Electrónico</label>
               <input
                 type="email"
+                id="email"
+                name="email"
                 disabled
                 className="w-full bg-secondary border border-border rounded-xl px-5 py-4 text-sm text-muted-foreground cursor-not-allowed"
                 placeholder="guardian@bosque.cl"
