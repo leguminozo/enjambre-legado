@@ -245,7 +245,7 @@ export function CheckoutClient() {
               <Trees className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
               <p className="text-muted-foreground mb-4">Calculando beneficios y disponibilidad...</p>
             </div>
-          ) : cart.items.length === 0 ? (
+          ) : cart.lines.length === 0 ? (
             <div className="rounded-xl border border-border bg-card/50 p-8 text-center">
               <Trees className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-4">Tu carrito está vacío.</p>

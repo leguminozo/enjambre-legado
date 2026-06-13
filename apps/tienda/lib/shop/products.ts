@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
 import { z } from 'zod';
 
 export type ShopProduct = {
@@ -95,7 +96,8 @@ function mapProduct(p: ProductRow): ShopProduct {
 }
 
 export async function listVisibleProducts(): Promise<ShopProduct[]> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from('productos')
     .select(PRODUCT_SELECT)

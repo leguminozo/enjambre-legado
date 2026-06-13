@@ -41,7 +41,7 @@ export async function calculateCartPricing(items: CartItemInput[]): Promise<Cart
     .select('id, nombre, slug, precio')
     .in('id', productIds);
     
-  let pastOrdersPromise: Promise<any> = Promise.resolve({ data: null });
+  let pastOrdersPromise: any = Promise.resolve({ data: null });
   
   const { data: { user } } = await supabase.auth.getUser();
   

@@ -1,6 +1,7 @@
 'use client';
 
 import type { ShopProduct } from '@/lib/shop/products';
+import type { CartPricing } from '@/app/actions/cart';
 import React, {
   createContext,
   useCallback,
@@ -26,6 +27,8 @@ type CartApi = {
   clear: () => void;
   itemCount: number;
   subtotal: number;
+  pricing?: CartPricing;
+  isLoading?: boolean;
 };
 
 const STORAGE_KEY = 'oyz_tienda_cart_v1';

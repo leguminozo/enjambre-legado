@@ -1,11 +1,11 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { getSupabaseUrl } from './env'
 
-export function createAdminClient() {
+export function createAdminClient(): ReturnType<typeof createSupabaseClient> | null {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!serviceRoleKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for admin operations')
+    return null
   }
 
   return createSupabaseClient(getSupabaseUrl(), serviceRoleKey)
