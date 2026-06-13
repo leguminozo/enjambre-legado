@@ -1,7 +1,9 @@
-import type { AppVariables } from '@/api/lib/middleware';
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { zValidator } from '@hono/zod-validator';
+import type { AppVariables } from "@/api/lib/middleware";
+import { Hono } from "hono";
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
+import type { Database } from "@enjambre/database/database.types";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Router para conciliación automática
@@ -31,7 +33,7 @@ interface Movimiento {
 interface SugerenciaConciliacion {
   movimiento_id: string;
   venta_id: string;
-  confianza: 'alta' | 'media' | 'baja';
+  confianza: "alta" | "media" | "baja";
   monto_iguales: boolean;
   fecha_cercana: boolean;
   rut_coincide: boolean;
@@ -39,31 +41,31 @@ interface SugerenciaConciliacion {
 }
 
 // Sincronizar movimientos desde Banco Chile
-conciliacionAutoRouter.post('/sincronizar', async (c) => {
+conciliacionAutoRouter.post("/sincronizar", async (c) => {
   try {
-    const supabase = c.get('supabase');
-    const empresaId = c.get('empresaId');
+    const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
+    const empresaId = c.get("empresaId");
 
     // Obtener configuración
     const { data: config } = await supabase
-      .from('banco_chile_config')
-      .select('*')
-      .eq('empresa_id', empresaId)
+      .from("banco_chile_config")
+      .select("*")
+      .eq("empresa_id", empresaId)
       .single();
 
     if (!config || !config.enabled) {
-      return c.json({ error: 'Banco Chile no configurado' }, 400);
+      return c.json({ error: "Banco Chile no configurado" }, 400);
     }
 
     // Obtener cuentas
     const { data: cuentas } = await supabase
-      .from('banco_chile_cuentas')
-      .select('id, numero_cuenta')
-      .eq('config_id', config.id)
-      .eq('activa', true);
+      .from("banco_chile_cuentas")
+      .select("id, numero_cuenta")
+      .eq("config_id", config.id)
+      .eq("activa", true);
 
     if (!cuentas || cuentas.length === 0) {
-      return c.json({ error: 'No hay cuentas activas' }, 404);
+      return c.json({ error: "No hay cuentas activas" }, 404);
     }
 
     // Sincronizar movimientos de cada cuenta (stub - implementar con client)
@@ -71,25 +73,28 @@ conciliacionAutoRouter.post('/sincronizar', async (c) => {
 
     return c.json({
       success: true,
-      message: 'Sincronización completada',
+      message: "Sincronización completada",
       movimientosSincronizados,
     });
   } catch (error) {
-    console.error('Error sincronizando:', error);
-    return c.json({ error: 'Error al sincronizar' }, 500);
+    console.error("Error sincronizando:", error);
+    return c.json({ error: "Error al sincronizar" }, 500);
   }
 });
 
 // Helper interno para obtener sugerencias de conciliación sin hacer llamadas HTTP relativas
-async function obtenerSugerenciasInterno(supabase: any, empresaId: string): Promise<SugerenciaConciliacion[]> {
+async function obtenerSugerenciasInterno(
+  supabase: SupabaseClient<Database>,
+  empresaId: string
+): Promise<SugerenciaConciliacion[]> {
   // Obtener movimientos sin conciliar (últimos 30 días)
   const { data: movimientos } = await supabase
-    .from('banco_chile_movimientos')
-    .select('*')
-    .eq('empresa_id', empresaId)
-    .is('conciliado', false)
-    .gte('fecha_contable', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-    .order('fecha_contable', { ascending: false })
+    .from("banco_chile_movimientos")
+    .select("*")
+    .eq("empresa_id", empresaId)
+    .is("conciliado", false)
+    .gte("fecha_contable", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+    .order("fecha_contable", { ascending: false })
     .limit(100);
 
   if (!movimientos || movimientos.length === 0) {
@@ -98,12 +103,12 @@ async function obtenerSugerenciasInterno(supabase: any, empresaId: string): Prom
 
   // Obtener ventas sin conciliar (últimos 30 días)
   const { data: ventas } = await supabase
-    .from('ventas')
-    .select('*')
-    .eq('empresa_id', empresaId)
-    .is('conciliado', true)
-    .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-    .order('created_at', { ascending: false })
+    .from("ventas")
+    .select("*")
+    .eq("empresa_id", empresaId)
+    .is("conciliado", true)
+    .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+    .order("created_at", { ascending: false })
     .limit(100);
 
   if (!ventas || ventas.length === 0) {
@@ -114,8 +119,27 @@ async function obtenerSugerenciasInterno(supabase: any, empresaId: string): Prom
   const sugerencias: SugerenciaConciliacion[] = [];
 
   for (const mov of movimientos) {
+    const mappedMov: Movimiento = {
+      id: mov.id,
+      fecha_contable: mov.fecha_contable ?? "",
+      descripcion: mov.descripcion ?? "",
+      monto: Number(mov.monto ?? 0),
+      rut_contraparte: mov.rut_contraparte ?? undefined,
+      nombre_contraparte: mov.nombre_contraparte ?? undefined,
+      referencia: mov.referencia ?? undefined,
+    };
+
     for (const venta of ventas) {
-      const sugerencia = calcularSugerencia(mov, venta);
+      const mappedVenta: Venta = {
+        id: venta.id,
+        numero: venta.buy_order ?? "",
+        monto_total: Number(venta.total ?? 0),
+        created_at: venta.created_at ?? "",
+        rut_cliente: undefined,
+        email_cliente: venta.buyer_email ?? undefined,
+      };
+
+      const sugerencia = calcularSugerencia(mappedMov, mappedVenta);
       if (sugerencia.puntaje >= 50) {
         sugerencias.push(sugerencia);
       }
@@ -129,10 +153,10 @@ async function obtenerSugerenciasInterno(supabase: any, empresaId: string): Prom
 }
 
 // Obtener sugerencias de conciliación
-conciliacionAutoRouter.get('/sugerencias', async (c) => {
+conciliacionAutoRouter.get("/sugerencias", async (c) => {
   try {
-    const supabase = c.get('supabase');
-    const empresaId = c.get('empresaId');
+    const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
+    const empresaId = c.get("empresaId");
 
     const sugerencias = await obtenerSugerenciasInterno(supabase, empresaId);
 
@@ -141,21 +165,21 @@ conciliacionAutoRouter.get('/sugerencias', async (c) => {
       total: sugerencias.length,
     });
   } catch (error) {
-    console.error('Error generando sugerencias:', error);
-    return c.json({ error: 'Error al generar sugerencias' }, 500);
+    console.error("Error generando sugerencias:", error);
+    return c.json({ error: "Error al generar sugerencias" }, 500);
   }
 });
 
 const autoConciliarSchema = z.object({
-  confianzaMinima: z.enum(['alta', 'media', 'baja']).optional().default('media'),
+  confianzaMinima: z.enum(["alta", "media", "baja"]).optional().default("media"),
 });
 
 // Conciliación automática masiva
-conciliacionAutoRouter.post('/auto-conciliar', zValidator('json', autoConciliarSchema), async (c) => {
+conciliacionAutoRouter.post("/auto-conciliar", zValidator("json", autoConciliarSchema), async (c) => {
   try {
-    const supabase = c.get('supabase');
-    const empresaId = c.get('empresaId');
-    const { confianzaMinima } = c.req.valid('json');
+    const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
+    const empresaId = c.get("empresaId");
+    const { confianzaMinima } = c.req.valid("json");
 
     // Obtener sugerencias in-process
     const sugerencias = await obtenerSugerenciasInterno(supabase, empresaId);
@@ -173,26 +197,26 @@ conciliacionAutoRouter.post('/auto-conciliar', zValidator('json', autoConciliarS
     // Conciliar automáticamente
     const conciliados: string[] = [];
     for (const sug of sugerenciasFiltradas) {
-      // Verificar que no esté ya conciliado
-      const { data: existing } = await supabase
-        .from('banco_chile_conciliaciones')
-        .select('id')
-        .eq('movimiento_id', sug.movimiento_id)
+      // Verificar que el movimiento no esté ya conciliado y obtener su monto
+      const { data: mov } = await supabase
+        .from("banco_chile_movimientos")
+        .select("id, monto, conciliado")
+        .eq("id", sug.movimiento_id)
         .single();
 
-      if (!existing) {
-        await supabase.from('banco_chile_conciliaciones').insert({
+      if (mov && !mov.conciliado) {
+        await supabase.from("banco_chile_conciliaciones").insert({
           movimiento_id: sug.movimiento_id,
           venta_id: sug.venta_id,
-          monto: sug.monto_iguales ? null : undefined,
+          monto: mov.monto,
           concepto: `Conciliación automática (confianza: ${sug.confianza})`,
           fecha_conciliacion: new Date().toISOString(),
         });
 
         await supabase
-          .from('banco_chile_movimientos')
+          .from("banco_chile_movimientos")
           .update({ conciliado: true })
-          .eq('id', sug.movimiento_id);
+          .eq("id", sug.movimiento_id);
 
         conciliados.push(sug.movimiento_id);
       }
@@ -204,8 +228,8 @@ conciliacionAutoRouter.post('/auto-conciliar', zValidator('json', autoConciliarS
       movimientos: conciliados,
     });
   } catch (error) {
-    console.error('Error en auto-conciliación:', error);
-    return c.json({ error: 'Error en auto-conciliación' }, 500);
+    console.error("Error en auto-conciliación:", error);
+    return c.json({ error: "Error en auto-conciliación" }, 500);
   }
 });
 
@@ -217,30 +241,30 @@ const conciliarManualSchema = z.object({
 });
 
 // Conciliar manualmente
-conciliacionAutoRouter.post('/conciliar', zValidator('json', conciliarManualSchema), async (c) => {
+conciliacionAutoRouter.post("/conciliar", zValidator("json", conciliarManualSchema), async (c) => {
   try {
-    const supabase = c.get('supabase');
-    const { movimientoId, ventaId, monto, concepto } = c.req.valid('json');
+    const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
+    const { movimientoId, ventaId, monto, concepto } = c.req.valid("json");
 
-    // Verificar que el movimiento no esté conciliado
+    // Verificar que el movimiento no esté conciliado y obtener su monto
     const { data: mov } = await supabase
-      .from('banco_chile_movimientos')
-      .select('conciliado')
-      .eq('id', movimientoId)
+      .from("banco_chile_movimientos")
+      .select("monto, conciliado")
+      .eq("id", movimientoId)
       .single();
 
     if (mov?.conciliado) {
-      return c.json({ error: 'Movimiento ya conciliado' }, 400);
+      return c.json({ error: "Movimiento ya conciliado" }, 400);
     }
 
     // Crear conciliación
     const { error: concilError } = await supabase
-      .from('banco_chile_conciliaciones')
+      .from("banco_chile_conciliaciones")
       .insert({
         movimiento_id: movimientoId,
         venta_id: ventaId,
-        monto: monto || null,
-        concepto: concepto || 'Conciliación manual',
+        monto: monto ?? mov?.monto ?? 0,
+        concepto: concepto || "Conciliación manual",
         fecha_conciliacion: new Date().toISOString(),
       });
 
@@ -250,52 +274,56 @@ conciliacionAutoRouter.post('/conciliar', zValidator('json', conciliarManualSche
 
     // Marcar movimiento como conciliado
     await supabase
-      .from('banco_chile_movimientos')
+      .from("banco_chile_movimientos")
       .update({ conciliado: true })
-      .eq('id', movimientoId);
+      .eq("id", movimientoId);
 
     return c.json({
       success: true,
-      message: 'Movimiento conciliado exitosamente',
+      message: "Movimiento conciliado exitosamente",
     });
   } catch (error) {
-    console.error('Error conciliando:', error);
-    return c.json({ error: 'Error al conciliar' }, 500);
+    console.error("Error conciliando:", error);
+    return c.json({ error: "Error al conciliar" }, 500);
   }
 });
 
+const desconciliarSchema = z.object({
+  id: z.string().uuid("id debe ser un UUID válido"),
+});
+
 // Desconciliar
-conciliacionAutoRouter.post('/desconciliar/:id', async (c) => {
+conciliacionAutoRouter.post("/desconciliar/:id", zValidator("param", desconciliarSchema), async (c) => {
   try {
-    const supabase = c.get('supabase');
-    const { id } = c.req.param();
+    const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
+    const { id } = c.req.valid("param");
 
     // Eliminar conciliación
     await supabase
-      .from('banco_chile_conciliaciones')
+      .from("banco_chile_conciliaciones")
       .delete()
-      .eq('movimiento_id', id);
+      .eq("movimiento_id", id);
 
     // Marcar como no conciliado
     await supabase
-      .from('banco_chile_movimientos')
+      .from("banco_chile_movimientos")
       .update({ conciliado: false })
-      .eq('id', id);
+      .eq("id", id);
 
     return c.json({
       success: true,
-      message: 'Desconciliado correctamente',
+      message: "Desconciliado correctamente",
     });
   } catch (error) {
-    console.error('Error desconciliando:', error);
-    return c.json({ error: 'Error al desconciliar' }, 500);
+    console.error("Error desconciliando:", error);
+    return c.json({ error: "Error al desconciliar" }, 500);
   }
 });
 
 // Función para calcular sugerencia de conciliación
 function calcularSugerencia(mov: Movimiento, venta: Venta): SugerenciaConciliacion {
   let puntaje = 0;
-  
+
   // Monto idéntico (50 puntos)
   const montoIguales = Math.abs(mov.monto - venta.monto_total) < 1;
   if (montoIguales) {
@@ -323,9 +351,9 @@ function calcularSugerencia(mov: Movimiento, venta: Venta): SugerenciaConciliaci
   }
 
   // Determinar confianza
-  let confianza: 'alta' | 'media' | 'baja' = 'baja';
-  if (puntaje >= 90) confianza = 'alta';
-  else if (puntaje >= 70) confianza = 'media';
+  let confianza: "alta" | "media" | "baja" = "baja";
+  if (puntaje >= 90) confianza = "alta";
+  else if (puntaje >= 70) confianza = "media";
 
   return {
     movimiento_id: mov.id,

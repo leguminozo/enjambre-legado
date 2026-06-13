@@ -120,13 +120,13 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
   }, [badges]);
 
   return (
-    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+    <aside id="sidebar-navigation" className={`sidebar ${isOpen ? 'open' : ''}`} aria-label="Menú de navegación lateral">
       <div className="sidebar-brand">
         <div className="sidebar-brand-title">Enjambre Legado</div>
         <div className="sidebar-brand-subtitle">Apicultura Regenerativa · Chiloé</div>
       </div>
 
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" aria-label="Navegación principal">
         {SIDEBAR_GROUPS.map(group => (
           <SidebarSection
             key={group.key}
@@ -156,20 +156,53 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
           <div style={{ padding: '0 var(--space-md) var(--space-md)', fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', borderBottom: '1px solid hsl(var(--border))' }}>
             <div style={{ fontWeight: 600, letterSpacing: '0.06em', marginBottom: 6, color: 'hsl(var(--foreground))', fontSize: '0.65rem' }}>ECOSISTEMA</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {urlTienda && <a href={urlTienda} target="_blank" rel="noopener noreferrer" style={{ color: 'hsl(var(--accent))', fontWeight: 500 }} onClick={() => onToggle()}>Tienda web</a>}
-              {urlCampo && <a href={urlCampo} target="_blank" rel="noopener noreferrer" style={{ color: 'hsl(var(--accent))', fontWeight: 500 }} onClick={() => onToggle()}>Terminal Campo (POS)</a>}
+              {urlTienda && (
+                <a
+                  href={urlTienda}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'hsl(var(--accent))', fontWeight: 500 }}
+                  onClick={() => onToggle()}
+                  aria-label="Tienda web (abre en una nueva pestaña)"
+                >
+                  Tienda web
+                </a>
+              )}
+              {urlCampo && (
+                <a
+                  href={urlCampo}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'hsl(var(--accent))', fontWeight: 500 }}
+                  onClick={() => onToggle()}
+                  aria-label="Terminal Campo (POS) (abre en una nueva pestaña)"
+                >
+                  Terminal Campo (POS)
+                </a>
+              )}
             </div>
           </div>
         )}
         <div className="sidebar-user">
-          <div className="sidebar-user-avatar" style={{ cursor: 'pointer' }} onClick={() => { router.push('/perfil'); onToggle(); }}>
+          <button
+            className="sidebar-user-avatar"
+            onClick={() => { router.push('/perfil'); onToggle(); }}
+            aria-label="Ver mi perfil"
+            style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+          >
             {userName.charAt(0).toUpperCase()}
-          </div>
+          </button>
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">{userName}</div>
             <div className="sidebar-user-role">{userRole}</div>
           </div>
-          <button onClick={handleLogout} className="btn btn-ghost" style={{ padding: 6, color: 'hsl(var(--muted-foreground))' }} title="Cerrar sesión">
+          <button
+            onClick={handleLogout}
+            className="btn btn-ghost"
+            style={{ padding: 6, color: 'hsl(var(--muted-foreground))' }}
+            title="Cerrar sesión"
+            aria-label="Cerrar sesión"
+          >
             <LogOut size={16} />
           </button>
         </div>

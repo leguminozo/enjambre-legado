@@ -30,7 +30,7 @@ import { checkoutRoutes } from "@/api/routes/checkout";
 
 export type { AppVariables };
 
-const app = new Hono<{ Variables: AppVariables }>().basePath("/api");
+export const app = new Hono<{ Variables: AppVariables }>().basePath("/api");
 
 app.use("*", cors({
   origin: process.env.NEXT_PUBLIC_SITE_URL || "*",

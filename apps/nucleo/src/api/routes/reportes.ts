@@ -3,6 +3,8 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import type { Database } from "@enjambre/database/database.types";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const reportesRoutes = new Hono<{
   Variables: AppVariables;
@@ -12,7 +14,7 @@ reportesRoutes.use("*", authMiddleware, tenantMiddleware);
 
 reportesRoutes.get("/", async (c) => {
   const empresaId = c.get("empresaId");
-  const supabase = c.get("supabase");
+  const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
   const tipo = c.req.query("tipo");
   const periodo = c.req.query("periodo");
 
@@ -43,7 +45,7 @@ const reporteSchema = z.object({
 
 reportesRoutes.post("/", zValidator("json", reporteSchema), async (c) => {
   const empresaId = c.get("empresaId");
-  const supabase = c.get("supabase");
+  const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
   const { tipo, periodo, mes, anio } = c.req.valid("json");
 
   const computedAnio = anio ?? new Date().getFullYear();
@@ -52,35 +54,65 @@ reportesRoutes.post("/", zValidator("json", reporteSchema), async (c) => {
 
   const { data: periodos } = await supabase
     .from("periodos_contables")
-      .select("*, facturas_emitidas(*, tercero:terceros!facturas_emitidas_tercero_id_fkey(id, nombre, rut)), facturas_recibidas(*, proveedor:terceros!facturas_recibidas_proveedor_id_fkey(id, nombre, rut)), gastos(*, proveedor:terceros!gastos_tercero_id_fkey(id, nombre, rut))")
+    .select(`
+      *,
+      facturas_emitidas (
+        *,
+        tercero:terceros!facturas_emitidas_tercero_id_fkey (id, nombre, rut)
+      ),
+      facturas_recibidas (
+        *,
+        proveedor:terceros!facturas_recibidas_proveedor_id_fkey (id, nombre, rut)
+      ),
+      gastos (
+        *,
+        proveedor:terceros!gastos_tercero_id_fkey (id, nombre, rut)
+      )
+    `)
     .eq("empresa_id", empresaId)
     .eq("anio", computedAnio)
     .eq("mes", computedMes);
 
   const periodoData = periodos?.[0];
-  const facturasEmitidas = (periodoData as Record<string, unknown>)?.facturas_emitidas as Record<string, unknown>[] ?? [];
-  const facturasRecibidas = (periodoData as Record<string, unknown>)?.facturas_recibidas as Record<string, unknown>[] ?? [];
-  const gastos = (periodoData as Record<string, unknown>)?.gastos as Record<string, unknown>[] ?? [];
+  const facturasEmitidas = (periodoData?.facturas_emitidas ?? []) as Array<
+    Database["public"]["Tables"]["facturas_emitidas"]["Row"]
+  >;
+  const facturasRecibidas = (periodoData?.facturas_recibidas ?? []) as Array<
+    Database["public"]["Tables"]["facturas_recibidas"]["Row"]
+  >;
+  const gastos = (periodoData?.gastos ?? []) as Array<
+    Database["public"]["Tables"]["gastos"]["Row"]
+  >;
 
   let datos!: Record<string, unknown>;
 
   switch (tipo) {
     case "BalanceGeneral": {
-      const activos = facturasEmitidas.reduce((a: number, f: Record<string, unknown>) => a + Number(f.monto_total ?? 0), 0);
-      const pasivos = facturasRecibidas.reduce((a: number, f: Record<string, unknown>) => a + Number(f.monto_total ?? 0), 0);
-      const gastosTotal = gastos.reduce((a: number, g: Record<string, unknown>) => a + Number(g.monto ?? 0), 0);
+      const activos = facturasEmitidas.reduce((a, f) => a + Number(f.monto_total ?? 0), 0);
+      const pasivos = facturasRecibidas.reduce((a, f) => a + Number(f.monto_total ?? 0), 0);
+      const gastosTotal = gastos.reduce((a, g) => a + Number(g.monto_total ?? 0), 0); // Note: using monto_total from gastos
       datos = { activos, pasivos, patrimonio: activos - pasivos - gastosTotal };
       break;
     }
     case "EstadoResultados": {
-      const ingresos = facturasEmitidas.reduce((a: number, f: Record<string, unknown>) => a + Number(f.monto_neto ?? 0), 0);
-      const gastosNetos = gastos.reduce((a: number, g: Record<string, unknown>) => a + Number(g.monto_neto ?? 0), 0);
-      datos = { ingresos, gastos: gastosNetos, utilidadBruta: ingresos - gastosNetos, utilidadNeta: ingresos - gastosNetos, margen: ingresos > 0 ? ((ingresos - gastosNetos) / ingresos) * 100 : 0 };
+      const ingresos = facturasEmitidas.reduce((a, f) => a + Number(f.monto_neto ?? 0), 0);
+      const gastosNetos = gastos.reduce((a, g) => a + Number(g.monto_neto ?? 0), 0);
+      datos = {
+        ingresos,
+        gastos: gastosNetos,
+        utilidadBruta: ingresos - gastosNetos,
+        utilidadNeta: ingresos - gastosNetos,
+        margen: ingresos > 0 ? ((ingresos - gastosNetos) / ingresos) * 100 : 0,
+      };
       break;
     }
     case "FlujoEfectivo": {
-    const cobrado = facturasEmitidas.filter((f: Record<string, unknown>) => f.estado === "pagada").reduce((a: number, f: Record<string, unknown>) => a + Number(f.monto_total ?? 0), 0);
-    const pagado = gastos.filter((g: Record<string, unknown>) => g.estado === "pagado").reduce((a: number, g: Record<string, unknown>) => a + Number(g.monto_total ?? 0), 0);
+      const cobrado = facturasEmitidas
+        .filter((f) => f.estado === "pagada")
+        .reduce((a, f) => a + Number(f.monto_total ?? 0), 0);
+      const pagado = gastos
+        .filter((g) => g.estado === "pagado")
+        .reduce((a, g) => a + Number(g.monto_total ?? 0), 0);
       datos = { flujoOperaciones: cobrado - pagado, cobrado, pagado };
       break;
     }

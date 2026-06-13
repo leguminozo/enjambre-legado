@@ -17,6 +17,18 @@ export interface SidebarNavItemData {
 
 export function registerSidebarIcons(_map: Record<string, React.ComponentType<{ size?: number }>>) {}
 
+const srOnlyStyle: React.CSSProperties = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+}
+
 interface SidebarBadgeProps {
   badge: NonNullable<SidebarBadgeValue>
 }
@@ -28,8 +40,15 @@ export function SidebarBadgeIndicator({ badge }: SidebarBadgeProps) {
       orange: 'hsl(38 92% 50%)',
       red: 'hsl(0 72% 51%)',
     }
+    const labelMap: Record<BadgeDotColor, string> = {
+      green: 'activo',
+      orange: 'atención requerida',
+      red: 'alerta de riesgo',
+    }
     return (
       <span
+        role="img"
+        aria-label={`Indicador: ${labelMap[badge.color]}`}
         style={{
           width: 6,
           height: 6,
@@ -61,6 +80,7 @@ export function SidebarBadgeIndicator({ badge }: SidebarBadgeProps) {
           lineHeight: 1,
         }}
       >
+        <span style={srOnlyStyle}>Pendientes: </span>
         {badge.value}
       </span>
     )
@@ -81,6 +101,7 @@ export function SidebarNavItem({ item, active, onClick }: SidebarNavItemProps) {
       href={item.href}
       onClick={onClick}
       className={`nav-item ${active ? 'active' : ''}`}
+      aria-current={active ? 'page' : undefined}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -118,7 +139,7 @@ interface SidebarSectionProps {
 export function SidebarSection({ label, items, activeKey, onItemClick }: SidebarSectionProps) {
   if (items.length === 0) return null
   return (
-    <div>
+    <div role="group" aria-label={label}>
       <div
         className="nav-section-label"
         style={{

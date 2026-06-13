@@ -4,6 +4,8 @@ import { validarRUT } from "@enjambre/contable";
 import { Hono } from "hono";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import type { Database } from "@enjambre/database/database.types";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const tercerosRoutes = new Hono<{
   Variables: AppVariables;
@@ -13,7 +15,7 @@ tercerosRoutes.use("*", authMiddleware, tenantMiddleware);
 
 tercerosRoutes.get("/", async (c) => {
   const empresaId = c.get("empresaId");
-  const supabase = c.get("supabase");
+  const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
   const tipo = c.req.query("tipo");
   const search = c.req.query("search");
 
@@ -24,7 +26,7 @@ tercerosRoutes.get("/", async (c) => {
     .order("nombre", { ascending: true });
 
   if (tipo) {
-    query = query.eq("tipo", tipo);
+    query = query.eq("tipo", tipo as "cliente" | "proveedor" | "mixto");
   }
 
   if (search && search.length >= 2) {
@@ -52,7 +54,7 @@ const terceroSchema = z.object({
 
 tercerosRoutes.post("/", zValidator("json", terceroSchema), async (c) => {
   const empresaId = c.get("empresaId");
-  const supabase = c.get("supabase");
+  const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
   const { tipo, rut, nombre, email, telefono, direccion, giro } = c.req.valid("json");
 
   const { data: existing } = await supabase
