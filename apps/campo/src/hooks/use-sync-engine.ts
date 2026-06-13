@@ -10,6 +10,7 @@ export function useSyncEngine() {
     
     try {
       const supabase = createClient();
+      if (!supabase) return;
       const { data, error } = await supabase
         .from('productos')
         .select('id, nombre, precio, stock, formato, visible')

@@ -11,6 +11,7 @@ const withSerwist = withSerwistInit({
 const nextConfig: NextConfig = {
   transpilePackages: ["@enjambre/auth", "@enjambre/ui"],
   outputFileTracingRoot: path.join(__dirname, '../..'),
+  turbopack: {},
 };
 
 export default withSerwist(nextConfig);

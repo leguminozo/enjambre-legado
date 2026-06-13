@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react';
 
 export function BeeCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const resizeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -22,13 +23,18 @@ export function BeeCanvas() {
     let bees: Bee[] = [];
     let honeyParticles: HoneyParticle[] = [];
 
+    function debouncedResize() {
+      if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current);
+      resizeTimeoutRef.current = setTimeout(resize, 150);
+    }
+
     function resize() {
       if (!canvas) return;
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
     }
 
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', debouncedResize);
     resize();
 
     class Bee {
@@ -189,27 +195,41 @@ export function BeeCanvas() {
       }
     }
 
-    for (let i = 0; i < 25; i++) {
+    const NUM_BEES = 12;
+    const NUM_PARTICLES = 20;
+
+    for (let i = 0; i < NUM_BEES; i++) {
       bees.push(new Bee());
     }
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < NUM_PARTICLES; i++) {
       honeyParticles.push(new HoneyParticle());
     }
 
     let animationFrameId: number;
     let isVisible = true;
+    let lastFrameTime = 0;
+    const targetFps = 30;
+    const frameInterval = 1000 / targetFps;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting;
         if (isVisible) animate();
       },
-      { threshold: 0 },
+      { threshold: 0.1 },
     );
     observer.observe(canvas);
 
-    function animate() {
+    function animate(timestamp = 0) {
       if (!ctx || !isVisible) return;
+
+      const elapsed = timestamp - lastFrameTime;
+      if (elapsed < frameInterval) {
+        animationFrameId = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrameTime = timestamp - (elapsed % frameInterval);
+
       ctx.clearRect(0, 0, width, height);
 
       const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width * 0.6);
@@ -235,7 +255,8 @@ export function BeeCanvas() {
 
     return () => {
       observer.disconnect();
-      window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', debouncedResize);
+      if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
