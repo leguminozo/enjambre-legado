@@ -14,11 +14,11 @@ export const LEGACY_ROLE_MAP: Record<string, RoleKey> = {
 }
 
 export const ROLE_REDIRECT_MAP: Record<string, string> = {
-  admin: '/',
+  admin: '/ejecutivo',
   creador: '/creador',
   rep_ventas: '/caja',
   cliente: '/catalogo',
-  ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map(k => [k, '/'])),
+  ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map(k => [k, '/ejecutivo'])),
 }
 
 export function getRoleRedirectPath(role: string): string {
@@ -47,7 +47,7 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/colmenas': ['admin'],
   '/regeneracion': ['admin'],
   '/mapa': ['admin'],
-  '/catalogo': ['admin'],
+  '/catalogo': ['admin', 'cliente'],
   '/operaciones': ['admin'],
   '/comunidad': ['admin'],
   '/creador': ['admin', 'creador'],

@@ -40,24 +40,24 @@ export default function LoginPage() {
       if (isForgotPassword) {
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/login` });
         if (error) throw error;
-        logSecurityEvent(supabase, { eventType: 'password_reset_requested', email, appSource: 'nucleo' });
+        await logSecurityEvent(supabase, { eventType: 'password_reset_requested', email, appSource: 'nucleo' });
         setMessage('Te hemos enviado un enlace para recuperar tu contraseña.');
         setIsForgotPassword(false);
       } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
-          logSecurityEvent(supabase, { eventType: 'login_failed', email, appSource: 'nucleo', details: { code: error.status } });
+          await logSecurityEvent(supabase, { eventType: 'login_failed', email, appSource: 'nucleo', details: { code: error.status } });
           throw error;
         }
         await useAuthStore.getState().checkUser();
         const userId = useAuthStore.getState().user?.id;
-        logSecurityEvent(supabase, { eventType: 'login_success', email, userId, appSource: 'nucleo' });
+        await logSecurityEvent(supabase, { eventType: 'login_success', email, userId, appSource: 'nucleo' });
         const userRole = useAuthStore.getState().user?.role ?? role;
         window.location.href = getRoleRedirectPath(userRole);
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, role } } });
         if (error) throw error;
-        logSecurityEvent(supabase, { eventType: 'signup_success', email, userId: data.user?.id ?? null, appSource: 'nucleo', details: { role } });
+        await logSecurityEvent(supabase, { eventType: 'signup_success', email, userId: data.user?.id ?? null, appSource: 'nucleo', details: { role } });
         if (data.user && !data.session) {
           setMessage('Revisa tu correo para confirmar la cuenta.');
         } else {

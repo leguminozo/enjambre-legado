@@ -95,7 +95,11 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
           }),
         }).catch(() => {})
         const url = request.nextUrl.clone()
-        url.pathname = roleRedirectMap[role] ?? '/colmenas'
+        const targetPath = roleRedirectMap[role] ?? '/colmenas'
+        if (pathname === targetPath || pathname === '/') {
+          return new NextResponse('Access Denied', { status: 403 })
+        }
+        url.pathname = targetPath
         return NextResponse.redirect(url)
       }
     }
