@@ -30,8 +30,14 @@ export function BeeCanvas() {
 
     function resize() {
       if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      if (ctx) ctx.scale(dpr, dpr);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
     }
 
     window.addEventListener('resize', debouncedResize);
@@ -211,14 +217,19 @@ export function BeeCanvas() {
     const targetFps = 30;
     const frameInterval = 1000 / targetFps;
 
+    let initTimeout: ReturnType<typeof setTimeout>;
     const observer = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting;
-        if (isVisible) animate();
+        if (isVisible && !initTimeout) animate();
       },
       { threshold: 0.1 },
     );
-    observer.observe(canvas);
+
+    initTimeout = setTimeout(() => {
+      observer.observe(canvas);
+      if (isVisible) animate();
+    }, 1000);
 
     function animate(timestamp = 0) {
       if (!ctx || !isVisible) {
@@ -235,12 +246,6 @@ export function BeeCanvas() {
 
       ctx.clearRect(0, 0, width, height);
 
-      const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width * 0.6);
-      gradient.addColorStop(0, HONEY + '08');
-      gradient.addColorStop(1, BG + '00');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, width, height);
-
       honeyParticles.forEach(p => {
         p.update();
         p.draw();
@@ -254,9 +259,9 @@ export function BeeCanvas() {
       animationFrameId = requestAnimationFrame(animate);
     }
 
-    animate();
 
     return () => {
+      if (initTimeout) clearTimeout(initTimeout);
       observer.disconnect();
       window.removeEventListener('resize', debouncedResize);
       if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current);

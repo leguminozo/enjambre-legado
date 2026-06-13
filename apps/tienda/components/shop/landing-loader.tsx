@@ -9,11 +9,11 @@ export function LandingLoader() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
-    }, 400);
+    }, 100);
 
     const unmountTimer = setTimeout(() => {
       setIsRendered(false);
-    }, 1600); // 400 + 1200 duration
+    }, 900); // 100 + 800 duration
 
     return () => {
       clearTimeout(timer);
@@ -24,7 +24,7 @@ export function LandingLoader() {
   if (!isRendered) return null;
 
   return (
-    <div className={`fixed inset-0 bg-background z-[9999] flex flex-col items-center justify-center transition-opacity duration-[1200ms] ease-[cubic-bezier(0.76,0,0.24,1)] ${!isVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+    <div className={`fixed inset-0 bg-background z-[9999] flex flex-col items-center justify-center transition-opacity duration-[800ms] ease-[cubic-bezier(0.76,0,0.24,1)] ${!isVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
       <div className="font-display text-2xl font-light tracking-[0.3em] text-accent overflow-hidden">
         La Obrera y el Zángano
       </div>

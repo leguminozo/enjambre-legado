@@ -72,17 +72,14 @@ export function TextCarousel() {
     if (prefersReducedMotion || paused) return;
     stopTimers();
 
-    const step = 50;
-    elapsedRef.current = 0;
-    progressRef.current = setInterval(() => {
-      elapsedRef.current += step;
-      setProgress((elapsedRef.current / INTERVAL_MS) * 100);
-    }, step);
+    setProgress(0);
+    // Pequeño delay para asegurar que el 0% se aplique sin transición si veníamos de un valor alto
+    setTimeout(() => {
+      if (!paused) setProgress(100);
+    }, 50);
 
     timerRef.current = setInterval(() => {
       setIndex((prev) => (prev + 1) % SLIDES.length);
-      elapsedRef.current = 0;
-      setProgress(0);
     }, INTERVAL_MS);
   }, [paused, prefersReducedMotion, stopTimers]);
 
@@ -225,8 +222,13 @@ export function TextCarousel() {
       </div>
       <div className="h-[1.5px] w-full bg-bosque-dark/60">
         <div
-          className="h-full bg-miel transition-[width] duration-100 ease-linear"
-          style={{ width: `${progress}%` }}
+          className="h-full bg-miel"
+          style={{
+            width: `${progress}%`,
+            transitionProperty: 'width',
+            transitionDuration: progress === 0 ? '0s' : `${INTERVAL_MS}ms`,
+            transitionTimingFunction: 'linear'
+          }}
         />
       </div>
     </div>

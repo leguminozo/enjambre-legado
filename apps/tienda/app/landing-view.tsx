@@ -95,31 +95,37 @@ export function TiendaLandingView({
   ecosystemMetrics,
 }: TiendaLandingProps) {
   useEffect(() => {
+    // Forzamos un refresh de ScrollTrigger después de un pequeño delay
+    // para dar tiempo a que los componentes dinámicos se monten
+    const refreshTimer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 1500);
+
     const ctx = gsap.context(() => {
       const tl = gsap.timeline();
 
-      tl.to('.hero-eyebrow', {
-        opacity: 1,
-        y: 0,
+      tl.from('.hero-eyebrow', {
+        opacity: 0,
+        y: 20,
         duration: 1.2,
         ease: 'power3.out',
-        delay: 0.5,
+        delay: 0.2,
       })
-      .to('.hero-title .line-inner', {
-        y: 0,
+      .from('.hero-title .line-inner', {
+        y: '100%',
         duration: 1.4,
         stagger: 0.15,
         ease: 'power4.out',
       }, '-=0.8')
-      .to('.hero-subtitle', {
-        opacity: 1,
-        y: 0,
+      .from('.hero-subtitle', {
+        opacity: 0,
+        y: 30,
         duration: 1,
         ease: 'power3.out',
       }, '-=0.6')
-      .to('.hero-formula', {
-        opacity: 1,
-        y: 0,
+      .from('.hero-formula', {
+        opacity: 0,
+        y: 20,
         duration: 0.8,
         ease: 'power3.out',
       }, '-=0.3');
@@ -160,7 +166,10 @@ export function TiendaLandingView({
       });
     });
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      clearTimeout(refreshTimer);
+    };
   }, []);
 
   return (
@@ -185,21 +194,21 @@ export function TiendaLandingView({
       />
 
           <div className="relative z-10 max-w-4xl">
-            <span className="hero-eyebrow editorial-kicker mb-8 opacity-0 translate-y-5 block">
+            <span className="hero-eyebrow editorial-kicker mb-8 block">
               Miel Virgen del Sur del Mundo
             </span>
             <h1 className="hero-title font-display text-[clamp(3rem,8vw,7rem)] font-light leading-tight mb-6 overflow-hidden">
               <span className="block overflow-hidden">
-                <span className="line-inner block translate-y-full">La Obrera</span>
+                <span className="line-inner block">La Obrera</span>
               </span>
               <span className="block overflow-hidden">
-                <span className="line-inner block translate-y-full">y el Zángano</span>
+                <span className="line-inner block">y el Zángano</span>
               </span>
             </h1>
-            <p className="hero-subtitle font-display italic text-[clamp(1.1rem,2.5vw,1.5rem)] text-muted-foreground tracking-wide opacity-0 translate-y-7">
+            <p className="hero-subtitle font-display italic text-[clamp(1.1rem,2.5vw,1.5rem)] text-muted-foreground tracking-wide">
               Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje
             </p>
-            <p className="hero-formula mt-6 font-mono text-[clamp(0.65rem,1.2vw,0.8rem)] tracking-[0.3em] uppercase text-accent/60 opacity-0 translate-y-5">
+            <p className="hero-formula mt-6 font-mono text-[clamp(0.65rem,1.2vw,0.8rem)] tracking-[0.3em] uppercase text-accent/60">
               Luz solar → Néctar → Miel virgen · Sin atajos industriales
             </p>
           </div>
@@ -302,7 +311,7 @@ export function TiendaLandingView({
           </div>
 
           <div className="editorial-container grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-            {initialColecciones.map((c) => {
+            {initialColecciones.map((c, index) => {
               const imageSrc = getCollectionImage(c.kicker);
               return (
                 <Link key={c.title} href={c.href} className="group flex flex-col">
@@ -311,6 +320,7 @@ export function TiendaLandingView({
                     src={imageSrc}
                     alt={c.title}
                     fill
+                    priority={index < 3}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-elegant"
                   />
