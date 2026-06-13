@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server';
+import { createAnonServerClient } from '@/utils/supabase/anon-server';
 
 export interface EcosystemMetrics {
   arboles_total: number;
@@ -17,7 +17,7 @@ export interface EcosystemMetrics {
 }
 
 export async function getEcosystemMetrics(): Promise<EcosystemMetrics> {
-  const supabase = await createClient();
+  const supabase = createAnonServerClient();
   const { data, error } = await supabase.rpc('get_ecosystem_metrics');
 
   if (error || !data) {

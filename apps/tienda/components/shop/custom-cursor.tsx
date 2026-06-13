@@ -29,42 +29,39 @@ export function CustomCursor() {
       cursorY += (mouseY - cursorY) * 0.15;
 
       if (cursor) {
-        cursor.style.left = `${cursorX - 10}px`;
-        cursor.style.top = `${cursorY - 10}px`;
+        cursor.style.transform = `translate3d(${cursorX - 10}px, ${cursorY - 10}px, 0) scale(${isHovering ? 2 : 1})`;
       }
 
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    const onMouseEnter = () => setIsHovering(true);
-    const onMouseLeave = () => setIsHovering(false);
+    const onMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('a, button, .hoverable')) {
+        setIsHovering(true);
+      } else {
+        setIsHovering(false);
+      }
+    };
 
     window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseover', onMouseOver);
     animationFrameId = requestAnimationFrame(animate);
-
-    const hoverables = document.querySelectorAll('a, button, .hoverable');
-    hoverables.forEach((el) => {
-      el.addEventListener('mouseenter', onMouseEnter);
-      el.addEventListener('mouseleave', onMouseLeave);
-    });
 
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', onMouseMove);
-      hoverables.forEach((el) => {
-        el.removeEventListener('mouseenter', onMouseEnter);
-        el.removeEventListener('mouseleave', onMouseLeave);
-      });
+      window.removeEventListener('mouseover', onMouseOver);
     };
-  }, []);
+  }, [isHovering]);
 
   return (
     <div
       ref={cursorRef}
-      className={`fixed w-5 h-5 border border-accent rounded-full pointer-events-none z-[9997] transition-transform duration-150 mix-blend-difference hidden md:block ${
-        isHovering ? 'scale-[2] bg-accent/10' : ''
+      className={`fixed w-5 h-5 border border-accent rounded-full pointer-events-none z-[9997] mix-blend-difference hidden md:block ${
+        isHovering ? 'bg-accent/10' : ''
       }`}
-      style={{ left: '-100px', top: '-100px' }}
+      style={{ left: 0, top: 0 }}
     />
   );
 }

@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server';
+import { createAnonServerClient } from '@/utils/supabase/anon-server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { z } from 'zod';
 
@@ -114,7 +114,7 @@ export async function listVisibleProducts(): Promise<ShopProduct[]> {
 }
 
 export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduct | null> {
-  const supabase = await createClient();
+  const supabase = createAnonServerClient();
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
   const { data, error } = await supabase

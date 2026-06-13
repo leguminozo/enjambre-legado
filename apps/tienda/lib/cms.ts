@@ -1,4 +1,3 @@
-import { createClient } from '@/utils/supabase/server';
 import { createAnonServerClient } from '@/utils/supabase/anon-server';
 
 export type SiteSectionItem = {
@@ -10,7 +9,7 @@ export type SiteSectionItem = {
 
 export async function getSiteContent(sectionKey: string): Promise<SiteSectionItem[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createAnonServerClient();
     const { data, error } = await supabase
       .from('site_content')
       .select('*')

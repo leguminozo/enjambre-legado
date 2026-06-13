@@ -12,6 +12,8 @@ function extractContent<T extends Record<string, unknown>>(items: SiteSectionIte
   return items.map((item) => item.content as T);
 }
 
+export const revalidate = 3600;
+
 export default async function TiendaPage() {
   const [coleccionesData, footerBrandingData, footerNavData, footerLegalData, ecosystemMetrics, products] = await Promise.all([
     getSiteContentStatic('colecciones'),

@@ -4,16 +4,24 @@ import React, { useEffect, useState } from 'react';
 
 export function LandingLoader() {
   const [isVisible, setIsVisible] = useState(true);
+  const [isRendered, setIsRendered] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
     }, 400);
 
-    return () => clearTimeout(timer);
+    const unmountTimer = setTimeout(() => {
+      setIsRendered(false);
+    }, 1600); // 400 + 1200 duration
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(unmountTimer);
+    };
   }, []);
 
-  if (!isVisible) return null;
+  if (!isRendered) return null;
 
   return (
     <div className={`fixed inset-0 bg-background z-[9999] flex flex-col items-center justify-center transition-opacity duration-[1200ms] ease-[cubic-bezier(0.76,0,0.24,1)] ${!isVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
