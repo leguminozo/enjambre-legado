@@ -24,7 +24,7 @@ const fontDisplay = Cormorant_Garamond({
 const fontBody = Inter({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600'],
-  variable: '--font-body',
+  variable: '--font-sans',
   display: 'swap',
 });
 

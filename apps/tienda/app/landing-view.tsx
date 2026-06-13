@@ -12,6 +12,7 @@ import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
 import { TextCarousel } from '@/components/shop/text-carousel';
+import { YoutubeLite } from '@/components/shop/youtube-lite';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 
@@ -340,14 +341,7 @@ export function TiendaLandingView({
         <section id="central-video" className="editorial-section">
           <div className="editorial-container">
             <div className="relative w-full aspect-video max-w-5xl mx-auto rounded-lg overflow-hidden border border-border/30 bg-surface-sunken">
-              <iframe
-                src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1`}
-                title="La Obrera y el Zángano"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 w-full h-full"
-                style={{ border: 0 }}
-              />
+              <YoutubeLite videoId={youtubeVideoId} title="La Obrera y el Zángano" />
             </div>
           </div>
         </section>

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import type { ShopProduct } from '@/lib/shop/products';
 import { formatCLP } from '@/lib/shop/format';
@@ -88,11 +89,13 @@ export function CatalogoView({ products }: Props) {
                     href={`/producto/${encodeURIComponent(p.slug)}`}
                     className="group block overflow-hidden rounded-xl border border-border bg-card/40 transition hover:border-accent/35"
                   >
-                    <div className="aspect-square bg-card">
+                    <div className="aspect-square bg-card overflow-hidden">
                       {img ? (
-          <img
+                        <Image
                           src={img}
-                          alt=""
+                          alt={p.name}
+                          width={400}
+                          height={400}
                           className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                         />
                       ) : (

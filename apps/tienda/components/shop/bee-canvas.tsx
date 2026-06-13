@@ -206,7 +206,7 @@ export function BeeCanvas() {
     }
 
     let animationFrameId: number;
-    let isVisible = true;
+    let isVisible = false;
     let lastFrameTime = 0;
     const targetFps = 30;
     const frameInterval = 1000 / targetFps;
@@ -221,7 +221,10 @@ export function BeeCanvas() {
     observer.observe(canvas);
 
     function animate(timestamp = 0) {
-      if (!ctx || !isVisible) return;
+      if (!ctx || !isVisible) {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        return;
+      }
 
       const elapsed = timestamp - lastFrameTime;
       if (elapsed < frameInterval) {
