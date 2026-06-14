@@ -92,12 +92,15 @@ export function SidebarBadgeIndicator({ badge }: SidebarBadgeProps) {
 interface SidebarNavItemProps {
   item: SidebarNavItemData
   active: boolean
-  onClick?: () => void
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
+  linkComponent?: React.ComponentType<any>
 }
 
-export function SidebarNavItem({ item, active, onClick }: SidebarNavItemProps) {
+export function SidebarNavItem({ item, active, onClick, linkComponent }: SidebarNavItemProps) {
+  const Component = linkComponent || 'a'
+
   return (
-    <a
+    <Component
       href={item.href}
       onClick={onClick}
       className={`nav-item ${active ? 'active' : ''}`}
@@ -125,7 +128,7 @@ export function SidebarNavItem({ item, active, onClick }: SidebarNavItemProps) {
         {item.label}
       </span>
       {item.badge && <SidebarBadgeIndicator badge={item.badge} />}
-    </a>
+    </Component>
   )
 }
 
@@ -133,10 +136,11 @@ interface SidebarSectionProps {
   label: string
   items: SidebarNavItemData[]
   activeKey?: string
-  onItemClick?: (item: SidebarNavItemData) => void
+  onItemClick?: (item: SidebarNavItemData, e: React.MouseEvent<HTMLAnchorElement>) => void
+  linkComponent?: React.ComponentType<any>
 }
 
-export function SidebarSection({ label, items, activeKey, onItemClick }: SidebarSectionProps) {
+export function SidebarSection({ label, items, activeKey, onItemClick, linkComponent }: SidebarSectionProps) {
   if (items.length === 0) return null
   return (
     <div role="group" aria-label={label}>
@@ -159,7 +163,8 @@ export function SidebarSection({ label, items, activeKey, onItemClick }: Sidebar
           key={item.key}
           item={item}
           active={item.key === activeKey}
-          onClick={() => onItemClick?.(item)}
+          onClick={(e) => onItemClick?.(item, e)}
+          linkComponent={linkComponent}
         />
       ))}
     </div>

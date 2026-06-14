@@ -60,7 +60,7 @@ function Colmena3D({ position, temp, name, weight }: Colmena3DProps) {
         position={[0, 0.8, 0]}
         fontSize={0.15}
         color="white"
-        font="/assets/CormorantGaramond-Regular.woff2"
+        font="/assets/CormorantGaramond-Regular.woff"
       >
         {name}
       </Text>
@@ -69,7 +69,7 @@ function Colmena3D({ position, temp, name, weight }: Colmena3DProps) {
       position={[0, -0.7, 0]}
       fontSize={0.12}
       color={color}
-      font="/assets/CormorantGaramond-Regular.woff2"
+      font="/assets/CormorantGaramond-Regular.woff"
     >
       {temp}°C | {weight}kg
     </Text>

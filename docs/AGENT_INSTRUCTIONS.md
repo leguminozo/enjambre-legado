@@ -207,20 +207,19 @@ pnpm --filter @enjambre/tienda build
 - GSAP en componentes client con `useGSAP` hook
 - Integraciones Transbank en server-side
 
-### 4.2 Nucleo (Vite SPA)
+### 4.2 Nucleo (Next.js 16 App Router)
 
 ```bash
 pnpm --filter @enjambre/nucleo dev
 pnpm --filter @enjambre/nucleo build
 ```
 
-- React Router para rutas (no Next.js routing)
+- Next.js 16 App Router para rutas y BFF (Hono)
 - TanStack Query para datos remotos
 - Zustand para estado global
 - Leaflet para mapas
-- PWA con vite-plugin-pwa
 
-### 4.3 Campo (Next.js 15)
+### 4.3 Campo (Next.js 16)
 
 ```bash
 pnpm --filter @enjambre/campo dev

@@ -131,6 +131,10 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
     const [showEditModal, setShowEditModal] = useState(false);
     const [editMarkerForm, setEditMarkerForm] = useState({ name: '', details: '', type: 'obrera' as 'obrera' | 'tree' });
 
+    // Timeline event states
+    const [showAddEventModal, setShowAddEventModal] = useState(false);
+    const [newEventForm, setNewEventForm] = useState({ nombre: '', fecha_inicio: new Date().toISOString().split('T')[0] });
+
     // Filter toggles
     const [showApiarios, setShowApiarios] = useState(true);
     const [showTrees, setShowTrees] = useState(true);
@@ -302,6 +306,40 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
             setSelectedMarker(null);
         } catch (error) {
             toast(friendlyError(error, 'Error al actualizar marcador'), { type: 'error' });
+        }
+    };
+
+    const handleSaveEvent = async () => {
+        if (!newEventForm.nombre || !newEventForm.fecha_inicio) return;
+        try {
+            const { data: newEvt, error } = await supabase.from('eventos').insert({
+                nombre: newEventForm.nombre,
+                fecha_inicio: newEventForm.fecha_inicio
+            }).select().single();
+            if (error) throw error;
+            if (newEvt) {
+                setEvents(prev => [...prev, newEvt].sort((a, b) => {
+                    const dateA = a.fecha_inicio ? new Date(a.fecha_inicio).getTime() : 0;
+                    const dateB = b.fecha_inicio ? new Date(b.fecha_inicio).getTime() : 0;
+                    return dateA - dateB;
+                }));
+            }
+            toast('Hito agregado exitosamente', { type: 'success' });
+            setShowAddEventModal(false);
+            setNewEventForm({ nombre: '', fecha_inicio: new Date().toISOString().split('T')[0] });
+        } catch (error) {
+            toast(friendlyError(error, 'Error al guardar hito'), { type: 'error' });
+        }
+    };
+
+    const handleDeleteEvent = async (eventId: string) => {
+        try {
+            const { error } = await supabase.from('eventos').delete().eq('id', eventId);
+            if (error) throw error;
+            setEvents(prev => prev.filter(e => e.id !== eventId));
+            toast('Hito eliminado correctamente', { type: 'success' });
+        } catch (error) {
+            toast(friendlyError(error, 'Error al eliminar hito'), { type: 'error' });
         }
     };
 
@@ -557,11 +595,19 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
 
             {/* Timeline */}
             <div className="card" style={{ marginTop: 'var(--space-lg)' }}>
-                <div className="section-header">
+                <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                         <div className="section-title">Viaje del Legado</div>
                         <div className="section-subtitle">Hitos y eventos en el territorio</div>
                     </div>
+                    {isEditMode && (
+                        <button 
+                            className="btn btn-gold btn-sm"
+                            onClick={() => setShowAddEventModal(true)}
+                        >
+                            <Plus size={13} style={{ marginRight: 4 }} /> Agregar Hito
+                        </button>
+                    )}
                 </div>
                 <div className="timeline-container">
                     {events.length === 0 ? (
@@ -573,8 +619,37 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                             {events.map((evt, i) => {
                                 const year = evt.fecha_inicio ? new Date(evt.fecha_inicio).getFullYear() : '--';
                                 return (
-                                    <div key={evt.id} style={{ display: 'flex', alignItems: 'center' }}>
-                                        <div className="timeline-node active">
+                                    <div key={evt.id} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                                        <div className="timeline-node active" style={{ position: 'relative' }}>
+                                            {isEditMode && (
+                                                <button
+                                                    onClick={() => {
+                                                        if (confirm(`¿Está seguro que desea eliminar el hito "${evt.nombre}"?`)) {
+                                                            handleDeleteEvent(evt.id);
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: -12,
+                                                        right: -12,
+                                                        background: 'hsl(var(--destructive))',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '50%',
+                                                        width: 16,
+                                                        height: 16,
+                                                        fontSize: '9px',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        zIndex: 10
+                                                    }}
+                                                    title="Eliminar hito"
+                                                >
+                                                    ✕
+                                                </button>
+                                            )}
                                             <div className="timeline-dot" />
                                             <div className="timeline-year">{year}</div>
                                             <div className="timeline-label">{evt.nombre}</div>
@@ -587,6 +662,43 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                     )}
                 </div>
             </div>
+
+            {/* Add Event Modal */}
+            {showAddEventModal && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ position: 'absolute', inset: 0, background: 'hsl(var(--foreground) / 0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setShowAddEventModal(false)} />
+                    <div className="card" style={{ position: 'relative', zIndex: 2001, width: 400, padding: 'var(--space-xl)' }}>
+                        <button onClick={() => setShowAddEventModal(false)} style={{ position: 'absolute', top: 14, right: 14, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
+                        <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
+                            Agregar Hito Histórico
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                            <div>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Nombre del Hito</label>
+                                <input 
+                                    className="input-field" 
+                                    value={newEventForm.nombre} 
+                                    onChange={e => setNewEventForm({ ...newEventForm, nombre: e.target.value })} 
+                                    placeholder="Ej. Fundación del Apiario Pureo, Ritual de Floración..."
+                                />
+                            </div>
+                            <div>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Fecha de Inicio</label>
+                                <input 
+                                    type="date"
+                                    className="input-field" 
+                                    value={newEventForm.fecha_inicio} 
+                                    onChange={e => setNewEventForm({ ...newEventForm, fecha_inicio: e.target.value })} 
+                                />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, marginTop: 'var(--space-xl)', justifyContent: 'flex-end' }}>
+                            <button className="btn btn-ghost" onClick={() => setShowAddEventModal(false)}>Cancelar</button>
+                            <button className="btn btn-primary" onClick={handleSaveEvent}>Guardar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Legend */}
             <div className="card" style={{ marginTop: 'var(--space-md)' }}>

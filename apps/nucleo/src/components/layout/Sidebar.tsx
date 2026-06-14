@@ -135,8 +135,8 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
             label={group.label}
             items={group.items.map(item => toNavItemData(item, badgeOverrides))}
             activeKey={activeItem?.key}
-            onItemClick={(clicked) => {
-              router.push(clicked.href);
+            linkComponent={Link}
+            onItemClick={() => {
               onToggle();
             }}
           />
@@ -146,8 +146,8 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
           label="CUENTA"
           items={ACCOUNT_ITEMS.map(item => toNavItemData(item, badgeOverrides))}
           activeKey={activeItem?.key}
-          onItemClick={(clicked) => {
-            router.push(clicked.href);
+          linkComponent={Link}
+          onItemClick={() => {
             onToggle();
           }}
         />
@@ -186,14 +186,15 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
           </div>
         )}
         <div className="sidebar-user">
-          <button
+          <Link
+            href="/perfil"
             className="sidebar-user-avatar"
-            onClick={() => { router.push('/perfil'); onToggle(); }}
+            onClick={() => onToggle()}
             aria-label="Ver mi perfil"
-            style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+            style={{ cursor: 'pointer', border: 'none', padding: 0 }}
           >
             {userName.charAt(0).toUpperCase()}
-          </button>
+          </Link>
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">{userName}</div>
             <div className="sidebar-user-role">{userRole}</div>
