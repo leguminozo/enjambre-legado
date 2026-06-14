@@ -220,11 +220,12 @@ impuestosRoutes.get("/f22/:anio", async (c) => {
     return c.json({ code: "empresa_not_found", message: "Empresa no encontrada" }, 404);
   }
 
-  const { data: periodos } = await (supabase as any)
+  const { data: periodosRaw } = await (supabase as any)
     .from("periodos_contables")
     .select("id, anio, mes")
     .eq("empresa_id", empresaId)
     .eq("anio", anio);
+  const periodos = (periodosRaw ?? []) as any[];
 
   if (!periodos || periodos.length === 0) {
     const empresaRegimen = ((empresa as any).regimen as import("@enjambre/contable").RegimenTributario) ?? "pro_pyme_transparente";
@@ -241,7 +242,7 @@ impuestosRoutes.get("/f22/:anio", async (c) => {
     return c.json({ data: calcularF22(f22Input) });
   }
 
-  const periodoIds = periodos.map((p) => String(p.id));
+  const periodoIds = periodos.map((p: any) => String(p.id));
 
   const [facturasRes, honorariosRes, ppmRes] = await Promise.all([
     (supabase as any)
