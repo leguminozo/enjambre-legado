@@ -144,11 +144,11 @@ const [resP, resC] = await Promise.all([
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                     <div className="card animate-in delay-3">
-                        <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)' }}>🌿 Club Legado del Bosque <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', fontWeight: 400 }}>(dato manual)</span></div>
+                        <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)' }}>🌿 Club Legado del Bosque</div>
                         <div style={{ padding: 'var(--space-lg)', background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.85))', borderRadius: 'var(--radius-md)', color: 'hsl(var(--primary-foreground))', marginBottom: 'var(--space-md)' }}>
-                            <div style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.1rem', marginBottom: 'var(--space-sm)' }}>47 Guardianes Activos</div>
+                            <div style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.1rem', marginBottom: 'var(--space-sm)' }}>{localClients.length} Guardianes Activos</div>
                             <div style={{ fontSize: '0.82rem', opacity: 0.7 }}>Suscripción desde $15.000/mes</div>
-                            <div style={{ fontSize: '0.82rem', opacity: 0.7, marginTop: 4 }}>Ingresos mensuales: $705.000</div>
+                            <div style={{ fontSize: '0.82rem', opacity: 0.7, marginTop: 4 }}>Ingresos mensuales: ${(localClients.length * 15000).toLocaleString('es-CL')}</div>
                         </div>
                         <div style={{ fontSize: '0.85rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.7 }}>
                             <p>Beneficios: miel mensual + acceso a cosechas exclusivas + nombre en bosque regenerado + contenido premium</p>
