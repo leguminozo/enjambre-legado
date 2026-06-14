@@ -137,6 +137,7 @@ export async function getSiiToken(
   });
 
   if (!response.ok) {
+    console.error('[SII] getSiiToken failed', { status: response.status, rut: rutClean });
     throw new Error(`SII auth failed: ${response.status}`);
   }
 
@@ -180,6 +181,7 @@ export async function enviarDte(
   );
 
   if (!response.ok) {
+    console.error('[SII] enviarDte HTTP error', { status: response.status, statusText: response.statusText, rutEmisor });
     return {
       trackId: "",
       estado: "error",
@@ -222,6 +224,7 @@ export async function consultarEstado(
   );
 
   if (!response.ok) {
+    console.error('[SII] consultarEstado HTTP error', { status: response.status, trackId, rutEmisor });
     return {
       estado: "error",
       glosa: `HTTP ${response.status}`,
@@ -278,6 +281,7 @@ export async function consultarRCV(
   );
 
   if (!response.ok) {
+    console.error('[SII] consultarRCV HTTP error', { status: response.status, rutEmpresa, periodo, tipoRegistro });
     return {
       periodo,
       tipoRegistro,

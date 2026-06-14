@@ -9,7 +9,11 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "skills:supabase": "npx skills add supabase/agent-skills"
+    "skills:supabase": "npx skills add supabase/agent-skills",
+    "build:ci:tienda": "pnpm install --frozen-lockfile && pnpm turbo build --filter=@enjambre/tienda",
+    "build:ci:nucleo": "pnpm install --frozen-lockfile && pnpm turbo build --filter=@enjambre/nucleo",
+    "vercel:build": "vercel build",
+    "dev:vercel": "vercel dev"
   },
   "keywords": [],
   "author": "",

@@ -155,6 +155,7 @@ dteRoutes.post(
         .single();
 
       if (cafError || !cafData) {
+        console.error('[SII DTE] No CAF activo', { empresaId, tipo_dte: input.tipo_dte, cafError });
         return c.json({ 
           code: "no_caf_activo", 
           message: `No hay CAF activo para tipo DTE ${input.tipo_dte}. Solicite uno al SII.` 
@@ -184,6 +185,7 @@ dteRoutes.post(
         .single();
 
       if (certError || !certData) {
+        console.error('[SII DTE] No certificado digital activo', { empresaId, certError });
         return c.json({ 
           code: "no_certificado_digital", 
           message: "No hay certificado digital activo para la empresa. Configure uno en SII Certificados." 
@@ -622,7 +624,7 @@ dteRoutes.post(
       }, 201);
 
     } catch (error) {
-      console.error("[SII DTE Emisión] Error:", error);
+      console.error("[SII DTE Emisión] Error:", error, { input, empresaId });
       return c.json({ 
         code: "dte_emision_failed", 
         message: error instanceof Error ? error.message : "Error inesperado al emitir DTE" 
@@ -773,7 +775,7 @@ dteRoutes.get(
       });
 
     } catch (error) {
-      console.error("[SII Consultar Estado] Error:", error);
+      console.error("[SII Consultar Estado] Error:", error, { trackId, empresaId });
       return c.json({ 
         code: "sii_consulta_failed", 
         message: error instanceof Error ? error.message : "Error al consultar estado" 
