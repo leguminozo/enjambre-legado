@@ -114,11 +114,18 @@ export async function listVisibleProducts(): Promise<ShopProduct[]> {
 export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduct | null> {
   const supabase = createAnonServerClient();
 
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
+  let decodedSlugOrId = slugOrId;
+  try {
+    decodedSlugOrId = decodeURIComponent(slugOrId);
+  } catch (e) {
+    // ignore
+  }
+
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(decodedSlugOrId);
   const { data, error } = await supabase
     .from('productos')
     .select(PRODUCT_SELECT)
-    .eq(isUuid ? 'id' : 'slug', slugOrId)
+    .eq(isUuid ? 'id' : 'slug', decodedSlugOrId)
     .maybeSingle();
 
   if (error) throw new Error(error.message);

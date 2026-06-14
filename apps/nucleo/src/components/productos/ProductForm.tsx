@@ -135,7 +135,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
 
         const payload = {
           ...data,
-          slug: data.slug || generateSlug(data.nombre),
+          slug: data.slug ? generateSlug(data.slug) : generateSlug(data.nombre),
           updated_at: new Date().toISOString(),
         };
 
