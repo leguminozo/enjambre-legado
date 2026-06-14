@@ -94,6 +94,24 @@ Root: The generated `packages/database/database.types.ts` is incomplete for SII/
 
 **Local CI value demonstrated**: After fixing the pasted contable explicit error (by clean barrel), the next `pnpm turbo ... --filter=@enjambre/nucleo` (matching Vercel) immediately surfaced the impuestos.ts "never" + the dte.ts track_id scope in consultar catch (from the rich logging we added for SII visibility). Hoisted the consts out of try (const/let in try {} not visible in catch {}), and cast the queries. Build now reaches further. Exactly the "detectar el error log en terminal antes de Vercel" behavior requested (inspired by Trama).
 
+**New dedicated command to know BEFORE deriving to Vercel** (added in this iteration):
+- `pnpm verify` (recommended) → runs `scripts/verify-before-vercel.sh`
+- The script does exactly:
+  1. `pnpm install --frozen-lockfile`
+  2. `pnpm turbo build --filter=@enjambre/contable --filter=@enjambre/nucleo --filter=@enjambre/tienda`
+- This is the closest possible local reproduction of what Vercel actually executes in the deployment logs you keep pasting.
+- `pnpm verify:ci` does the same without the install step (faster if lockfile is already good).
+- Use it **before every push** (or at least before "derivar a Vercel"). If it fails, you see the full SII / type / build error in your terminal instantly — no more waiting for the remote iad1 build.
+
+Add this to your muscle memory:
+```bash
+pnpm verify
+# fix whatever it reports
+git add ... && git commit -m "..." && git push
+```
+
+This directly addresses the repeated request: "haga algo para saber si siguen ocurriendo errores antes de derivar a vercel". Now you have a single, documented, script-backed command that fails fast locally with the exact same turbo + frozen pipeline.
+
 **Next**: Audit remaining plain supabase.from in other SII files (rcv, certificados, etc.) for the debt tables; consider a shared `createSiiClient(supabase)` helper that returns an any-cast version for those domains; improve Database types or add .d.ts augmentation for the contable tables. Continue the self-improving loop.
 
 **Update (next iteration on main after 8f8f538)**: New failure on `sii/dte.ts:10` import: `Module '"@enjambre/contable"' has no exported member 'formatDateSii'` (and siblings formatRutSii, escapeXml). The helpers live in `packages/contable/src/domain/dte-xml.ts` and were `export *` re-exported via index.ts, but the named members were not visible to the Next/Turbopack type checker in nucleo during "Running TypeScript".

@@ -12,6 +12,9 @@
     "skills:supabase": "npx skills add supabase/agent-skills",
     "build:ci:tienda": "pnpm install --frozen-lockfile && pnpm turbo build --filter=@enjambre/tienda",
     "build:ci:nucleo": "pnpm install --frozen-lockfile && pnpm turbo build --filter=@enjambre/nucleo",
+    "verify": "bash scripts/verify-before-vercel.sh",
+    "verify:ci": "pnpm turbo build --filter=@enjambre/contable --filter=@enjambre/nucleo --filter=@enjambre/tienda",
+    "verify:fast": "pnpm turbo build --filter=@enjambre/contable --filter=@enjambre/nucleo --filter=@enjambre/tienda",
     "vercel:build": "vercel build",
     "dev:vercel": "vercel dev"
   },
