@@ -40,13 +40,15 @@ export async function obtenerF29Interno(
     .eq("mes", mes)
     .maybeSingle();
 
+  // Use (supabase as any) for SII/contable tables (facturas_*, gastos, etc.) — pre-existing type debt
+  // (periodos_contables / facturas joins come back as 'never' in generated Database types).
   const [facturasRes, gastosRes, honorariosRes, gastosDigitalesRes] = await Promise.all([
-    supabase
+    (supabase as any)
       .from("facturas_emitidas")
       .select("monto_neto, monto_iva, monto_total, tipo_documento")
       .eq("empresa_id", empresaId)
       .eq("periodo_id", (periodo as any)?.id ?? ""),
-    supabase
+    (supabase as any)
       .from("gastos")
       .select("monto_iva")
       .eq("empresa_id", empresaId)
@@ -56,7 +58,7 @@ export async function obtenerF29Interno(
       .select("monto_retencion")
       .eq("empresa_id", empresaId)
       .eq("periodo_id", (periodo as any)?.id ?? ""),
-    supabase
+    (supabase as any)
       .from("facturas_compra")
       .select("monto_iva")
       .eq("empresa_id", empresaId)
@@ -135,7 +137,7 @@ impuestosRoutes.post("/f29/:anio/:mes/guardar", async (c) => {
     return c.json({ code: "invalid_period", message: "Anio o mes invalido" }, 400);
   }
 
-  const { data: periodo } = await supabase
+  const { data: periodo } = await (supabase as any)
     .from("periodos_contables")
     .select("id")
     .eq("empresa_id", empresaId)
@@ -217,7 +219,7 @@ impuestosRoutes.get("/f22/:anio", async (c) => {
     return c.json({ code: "empresa_not_found", message: "Empresa no encontrada" }, 404);
   }
 
-  const { data: periodos } = await supabase
+  const { data: periodos } = await (supabase as any)
     .from("periodos_contables")
     .select("id, anio, mes")
     .eq("empresa_id", empresaId)
@@ -241,7 +243,7 @@ impuestosRoutes.get("/f22/:anio", async (c) => {
   const periodoIds = periodos.map((p) => String(p.id));
 
   const [facturasRes, honorariosRes, ppmRes] = await Promise.all([
-    supabase
+    (supabase as any)
       .from("facturas_emitidas")
       .select("monto_neto, monto_iva, monto_total")
       .eq("empresa_id", empresaId)
