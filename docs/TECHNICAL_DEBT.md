@@ -65,6 +65,32 @@
 **Leccion / Ramificacion**: En monorepo con "main":"src/index.ts" (sin build de ui), Turbopack/Next type checker en apps consumidoras es la unica fuente de verdad para exports del barrel. Cambios en barrel deben ir acompanados inmediatamente de la impl en el modulo, y verificados con `build:ci:*` local antes de push. Esto replica exactamente el pipeline de Vercel (frozen + turbo filter) y hace visibles errores de SII/runtime/build en terminal (como se pidio inspirado en Trama). Evita "solo falla en Vercel". Futuro: agregar `turbo types` o `tsc -b` explicito en CI local + husky pre-push hook para los filters criticos (tienda/nucleo).
 
 **Siguiente**: Extender a nucleo (build:ci:nucleo), mejorar logging en todas las rutas SII (calculos-ia, reportes, rcv, certificados) con console.error(context) antes de cualquier JSON error response (para que aparezca en `vercel dev` y en los logs de build), y habilitar el worker de notifications + trigger endpoint.
+
+### D5b. SII / Contable Type Debt — Layered "ia" + "never" + "Database.public" + Scope Errors (RESUELTO in this pass)
+
+**Problema (manifestation in 8272a43 build on main)**: After fixing the ui barrel, the next `turbo build --filter=@enjambre/nucleo` (exact command in Vercel logs) failed TypeScript with:
+- `reportes.ts:132:33: Cannot find name 'ia'` (POST handler used `ia` for .insert but only GET had declared the `const ia = supabase as any`).
+- After adding the declaration: `periodos_contables` relation is `never` / no overload on `.from` (the big join select in POST for computing report datos).
+- Then: `Property 'public' does not exist on type 'Database'` on the precise `Database["public"]["Tables"]["facturas_..."]["Row"]` casts.
+- Local CI then surfaced follow-on in `sii/dte.ts:627`: `Cannot find name 'input'` in a console.error added for visibility (scope/control-flow in the large emission try).
+
+Root: The generated `packages/database/database.types.ts` is incomplete for SII/contable tables and relations (periodos_contables, facturas_emitidas/recibidas joins, reportes, calculos_ia, etc.). This is "pre-existing SII stub debt" from when the features were scaffolded before full schema/types alignment.
+
+**Estado**: RESUELTO for the current build blockers (via local iteration):
+- reportes.ts: `const ia = supabase as any` now in both GET and POST (with comment), heavy join routed through `ia`, result arrays cast to `any[]` (consistent with calculos-ia.ts and eirl-dashboard.ts).
+- dte.ts: console.error in catch now safe (`{ empresaId: c.get("empresaId") }`) + comment explaining the visibility goal.
+- Verified by running the exact Vercel command locally multiple times (`pnpm turbo build --filter=@enjambre/nucleo`); peeled the errors one by one in terminal (no more reportes or the dte 'input' failure). Full "Running TypeScript ..." now passes for these files (the only database.types.ts signature error is pre-existing/generated and not the blocker reported in app routes).
+- Pushed 80a0bff after surgical staging of only the two route files.
+
+**Leccion / Ramificaciones (para regeneracion a largo plazo de app web compleja)**:
+- **Efficacy & long-term solidity**: The `as any` / `ia` alias pattern is a deliberate temporary shield (documented) that lets real SII/DTE/CAF/emission + reporting features deliver value while the type debt is paid down. Using loose `any[]` for the joined data is acceptable because the code immediately does numeric reduces and JSON.stringify for the report "datos".
+- **Functionality**: Without these, builds are red on main; registration/other flows that hit SII paths would have been masked by generic errors. Now errors (including future runtime SII failures) will be explicit in logs thanks to the console.error work.
+- **Efficiency of feedback loop**: The `build:ci:nucleo` / `build:ci:tienda` scripts + discipline of running them locally before push (and after every surgical change) replicate the frozen-lockfile + turbo filter + remote-caching-disabled reality of Vercel. This is the "en trama si se puede detectar el error log" behavior. Multiple layers were found and fixed in < terminal session instead of waiting for Vercel each time.
+- **Security**: No impact — these are internal BFF routes behind authMiddleware + tenantMiddleware; the `any` is only for Supabase query builder on known tables.
+- **Next real fix (not workaround)**: Improve packages/database type generation (custom types for SII tables, or post-codegen augmentation), or migrate the heavy reporting queries to use views / RPCs with explicit return types. Also consider adding a `turbo types` task and pre-push hook.
+- Other SII files (impuestos.ts, rcv.ts, certificados, sii/gastos, facturas-emitidas async DTE hook) already use inline `(supabase as any)` or the ia pattern; they are lower risk but should be audited in follow-up passes as more of the "self-improving critical loop".
+
+This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, and with profundidad for planned long-term delivery (real notifications + SII compliance + Guardian flows).
 ---
 
 
