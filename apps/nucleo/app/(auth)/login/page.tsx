@@ -72,9 +72,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-negro-tinta overflow-hidden">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-background overflow-hidden">
       <div className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url(/assets/auth-bg.png)', filter: 'brightness(0.4) contrast(1.1)' }} />
-      <div className="absolute inset-0 z-0" style={{ background: 'linear-gradient(to bottom, transparent, var(--negro-tinta))' }} />
+      <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-transparent to-transparent" />
 
       {!showForm ? (
         <AuthHero onStart={() => setShowForm(true)} />
@@ -82,48 +82,48 @@ export default function LoginPage() {
         <div ref={formRef} className="relative z-10 w-full px-6" style={{ maxWidth: '440px' }}>
           <div className="glass-panel text-center">
             <div className="mb-8">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-oro-miel-glow mb-6 border border-oro-miel" style={{ borderColor: 'hsl(var(--accent) / 0.3)', opacity: 0.8 }}>
-                <Hexagon size={28} className="text-oro-miel" />
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-accent/15 mb-6 border border-accent/30">
+                <Hexagon size={28} className="text-accent" />
               </div>
-              <h2 className="font-existencial text-crema-natural mb-2 italic m-0" style={{ fontSize: '2.4rem', lineHeight: 1.1 }}>
+              <h2 className="font-existencial text-primary-foreground mb-2 italic m-0" style={{ fontSize: '2.4rem', lineHeight: 1.1 }}>
                 {isForgotPassword ? 'Recuperar Rastro' : isLogin ? 'Acceso al Núcleo' : 'Iniciar Legado'}
               </h2>
-              <p className="font-datos text-crema-natural m-0" style={{ opacity: 0.6, fontSize: '0.9rem', letterSpacing: '0.02em', marginTop: '0.5rem' }}>
+              <p className="font-datos text-muted-foreground m-0" style={{ opacity: 0.6, fontSize: '0.9rem', letterSpacing: '0.02em', marginTop: '0.5rem' }}>
                 {isForgotPassword ? 'Reestablece tu conexión.' : isLogin ? 'Identifícate para sincronizar.' : 'Crea tu perfil regenerativo.'}
               </p>
             </div>
 
             {message && <div className="mb-6 p-4 rounded-xl bg-info/10 border border-info/20 text-info text-center animate-in">{message}</div>}
-            {error && <div className="mb-6 p-4 rounded-xl bg-salud-riesgo/10 border border-salud-riesgo/20 text-salud-riesgo text-center animate-in">{error}</div>}
+            {error && <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-center animate-in">{error}</div>}
 
             <form onSubmit={handleAuth} className="flex flex-col gap-6">
               {!isLogin && !isForgotPassword && (
                 <>
                   <div className="flex flex-col gap-2">
-                    <label className="uppercase tracking-widest font-semibold text-crema-natural m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Nombre Completo</label>
+                    <label className="uppercase tracking-widest font-semibold text-muted-foreground m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Nombre Completo</label>
                     <div className="relative text-left">
-                      <User size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'var(--crema-natural)' }} />
+                      <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ opacity: 0.5 }} />
                       <input required type="text" className="input-field" placeholder="Ej. Cristina Campos" value={fullName} onChange={e => setFullName(e.target.value)} style={{ paddingLeft: '2.8rem' }} />
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="uppercase tracking-widest font-semibold text-crema-natural m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Rol Principal</label>
+                    <label className="uppercase tracking-widest font-semibold text-muted-foreground m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Rol Principal</label>
                     <div className="relative text-left">
-                      <ShieldCheck size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'var(--crema-natural)' }} />
-                <select className="input-field" value={role} onChange={e => setRole(e.target.value)} style={{ paddingLeft: '2.8rem', appearance: 'none' }}>
-                  <option value="admin" style={{ background: 'var(--negro-tinta)' }}>Admin</option>
-                  <option value="creador" style={{ background: 'var(--negro-tinta)' }}>Creador</option>
-                  <option value="rep_ventas" style={{ background: 'var(--negro-tinta)' }}>Rep Ventas</option>
-                </select>
+                      <ShieldCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ opacity: 0.5 }} />
+                  <select className="input-field" value={role} onChange={e => setRole(e.target.value)} style={{ paddingLeft: '2.8rem', appearance: 'none' }}>
+                    <option value="admin">Admin</option>
+                    <option value="creador">Creador</option>
+                    <option value="rep_ventas">Rep Ventas</option>
+                  </select>
                     </div>
                   </div>
                 </>
               )}
 
               <div className="flex flex-col gap-2">
-                <label className="uppercase tracking-widest font-semibold text-crema-natural m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Email</label>
+                <label className="uppercase tracking-widest font-semibold text-muted-foreground m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Email</label>
                 <div className="relative text-left">
-                  <Mail size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'var(--crema-natural)' }} />
+                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ opacity: 0.5 }} />
                   <input required type="email" className="input-field" placeholder="correo@ejemplo.com" value={email} onChange={e => setEmail(e.target.value)} style={{ paddingLeft: '2.8rem' }} />
                 </div>
               </div>
@@ -131,11 +131,11 @@ export default function LoginPage() {
               {!isForgotPassword && (
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center mb-1 text-left">
-                    <label className="uppercase tracking-widest font-semibold text-crema-natural m-0" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Contraseña</label>
-                    {isLogin && <button type="button" onClick={() => setIsForgotPassword(true)} className="m-0 p-0 bg-transparent border-none text-oro-miel transition-opacity cursor-pointer" style={{ fontSize: '0.65rem', opacity: 0.8 }}>¿Olvidaste tu clave?</button>}
+                    <label className="uppercase tracking-widest font-semibold text-muted-foreground m-0" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Contraseña</label>
+                    {isLogin && <button type="button" onClick={() => setIsForgotPassword(true)} className="m-0 p-0 bg-transparent border-none text-accent transition-opacity cursor-pointer" style={{ fontSize: '0.65rem', opacity: 0.8 }}>¿Olvidaste tu clave?</button>}
                   </div>
                   <div className="relative text-left">
-                    <Lock size={16} className="absolute left-4 top-1/2" style={{ transform: 'translateY(-50%)', opacity: 0.5, color: 'var(--crema-natural)' }} />
+                    <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ opacity: 0.5 }} />
                     <input required type="password" className="input-field" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} style={{ paddingLeft: '2.8rem' }} minLength={6} />
                   </div>
                 </div>
@@ -151,17 +151,17 @@ export default function LoginPage() {
               </button>
 
               {isForgotPassword && (
-                <button type="button" onClick={() => setIsForgotPassword(false)} className="btn btn-ghost text-center text-crema-natural opacity-30" style={{ fontSize: '0.75rem' }}>
+                <button type="button" onClick={() => setIsForgotPassword(false)} className="btn btn-ghost text-center text-muted-foreground opacity-70" style={{ fontSize: '0.75rem' }}>
                   <ArrowLeft size={14} className="mr-2" />Volver al login
                 </button>
               )}
             </form>
 
-            <div className="mt-8 pt-8 border-t text-center" style={{ borderColor: 'hsl(var(--foreground) / 0.08)' }}>
-              <p className="font-datos text-crema-natural mb-5 m-0" style={{ opacity: 0.5, fontSize: '0.8rem' }}>
+            <div className="mt-8 pt-8 border-t text-center" style={{ borderColor: 'hsl(var(--border))' }}>
+              <p className="font-datos text-muted-foreground mb-5 m-0" style={{ opacity: 0.5, fontSize: '0.8rem' }}>
                 {isLogin ? '¿Aún no tienes registro?' : '¿Ya eres parte del enjambre?'}
               </p>
-              <button onClick={() => { setIsLogin(!isLogin); }} className="btn btn-outline" style={{ borderRadius: '99px', fontSize: '0.75rem', letterSpacing: '0.08em', padding: '0.6rem 2rem', color: 'var(--oro-miel)', borderColor: 'hsl(var(--accent) / 0.4)' }}>
+              <button onClick={() => { setIsLogin(!isLogin); }} className="btn btn-outline rounded-full" style={{ fontSize: '0.75rem', letterSpacing: '0.08em', padding: '0.6rem 2rem' }}>
                 {isLogin ? 'Crear Legado' : 'Iniciar Sesión'}
               </button>
             </div>

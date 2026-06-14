@@ -15,6 +15,7 @@ import { SidebarSection, SidebarBadgeIndicator, type SidebarNavItemData } from '
 import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 import { useAuthStore } from '@enjambre/auth';
 import { supabase } from '@/lib/supabase';
+import { ThemeToggle } from '@enjambre/ui';
 
 const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
   'map': Map,
@@ -153,15 +154,15 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
 
       <div className="sidebar-footer">
         {(urlTienda || urlCampo) && (
-          <div style={{ padding: '0 var(--space-md) var(--space-md)', fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', borderBottom: '1px solid hsl(var(--border))' }}>
-            <div style={{ fontWeight: 600, letterSpacing: '0.06em', marginBottom: 6, color: 'hsl(var(--foreground))', fontSize: '0.65rem' }}>ECOSISTEMA</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className="px-6 pb-4 text-[0.7rem] text-muted-foreground border-b border-border">
+            <div className="font-semibold tracking-wider mb-2 text-[0.65rem] text-foreground">ECOSISTEMA</div>
+            <div className="flex flex-col gap-4">
               {urlTienda && (
                 <a
                   href={urlTienda}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: 'hsl(var(--accent))', fontWeight: 500 }}
+                  className="text-accent font-medium"
                   onClick={() => onToggle()}
                   aria-label="Tienda web (abre en una nueva pestaña)"
                 >
@@ -173,7 +174,7 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
                   href={urlCampo}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: 'hsl(var(--accent))', fontWeight: 500 }}
+                  className="text-accent font-medium"
                   onClick={() => onToggle()}
                   aria-label="Terminal Campo (POS) (abre en una nueva pestaña)"
                 >
@@ -196,15 +197,17 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
             <div className="sidebar-user-name">{userName}</div>
             <div className="sidebar-user-role">{userRole}</div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="btn btn-ghost"
-            style={{ padding: 6, color: 'hsl(var(--muted-foreground))' }}
-            title="Cerrar sesión"
-            aria-label="Cerrar sesión"
-          >
-            <LogOut size={16} />
-          </button>
+          <div className="flex items-center gap-2 ml-auto">
+            <ThemeToggle size={20} className="text-muted-foreground hover:text-accent" />
+            <button
+              onClick={handleLogout}
+              className="btn btn-ghost p-1.5 text-muted-foreground"
+              title="Cerrar sesión"
+              aria-label="Cerrar sesión"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
         </div>
       </div>
     </aside>

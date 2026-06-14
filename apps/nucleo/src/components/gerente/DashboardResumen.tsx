@@ -7,15 +7,6 @@ import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@
 import { useApiFetch } from '@/hooks/use-api-fetch'
 
 const CHART_GRID = 'hsl(var(--border) / 0.5)'
-const CHART_TOOLTIP: React.CSSProperties = {
-  borderRadius: 8,
-  border: 'none',
-  boxShadow: 'var(--shadow-md)',
-  fontFamily: 'Inter',
-  fontSize: '0.82rem',
-  background: 'hsl(var(--card))',
-  color: 'hsl(var(--foreground))',
-}
 
 interface ResumenData {
   enjambre: {
@@ -100,18 +91,18 @@ export function DashboardResumen() {
 
   if (isLoading) {
     return (
-      <div className="animate-in" style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-3xl)' }}>
-        <div style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.9rem' }}>Cargando resumen del enjambre...</div>
+      <div className="animate-in flex justify-center p-12">
+        <div className="text-muted-foreground text-[0.9rem]">Cargando resumen del enjambre...</div>
       </div>
     )
   }
 
   if (error || !data) {
     return (
-      <div className="animate-in" style={{ padding: 'var(--space-xl)' }}>
-        <div className="card" style={{ borderColor: 'hsl(var(--destructive) / 0.3)' }}>
-          <div style={{ color: 'hsl(var(--destructive))', fontWeight: 600, marginBottom: 8 }}>Error al cargar datos</div>
-          <div style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.85rem' }}>{error?.message ?? 'Sin datos disponibles'}</div>
+      <div className="animate-in p-8">
+        <div className="card border-destructive/30">
+          <div className="text-destructive font-semibold mb-2">Error al cargar datos</div>
+          <div className="text-muted-foreground text-[0.85rem]">{error?.message ?? 'Sin datos disponibles'}</div>
         </div>
       </div>
     )
@@ -143,7 +134,7 @@ export function DashboardResumen() {
           <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
             <div className="stat-header">
               <div className="stat-icon">{s.icon}</div>
-              {s.sub && <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>{s.sub}</span>}
+              {s.sub && <span className="text-[0.7rem] text-muted-foreground">{s.sub}</span>}
             </div>
             <div className="stat-value">{s.val}</div>
             <div className="stat-label">{s.label}</div>
@@ -152,7 +143,7 @@ export function DashboardResumen() {
       </div>
 
       {/* ── Row 1: Producción + Canal ── */}
-      <div className="dashboard-grid dashboard-grid-2" style={{ marginTop: 'var(--space-lg)' }}>
+      <div className="dashboard-grid dashboard-grid-2 mt-6">
         <div className="card animate-in delay-2">
           <div className="section-header">
             <div>
@@ -160,14 +151,24 @@ export function DashboardResumen() {
               <div className="section-subtitle">kg por mes · Total: {fmtNum(enjambre.cosechas.totalYTD)} kg</div>
             </div>
           </div>
-          <div style={{ height: 260 }}>
+          <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={enjambre.cosechas.byMonth}>
                 <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
                 <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-                <Tooltip contentStyle={CHART_TOOLTIP} />
-                <Area type="monotone" dataKey="cosecha" stroke={BOSQUE_ULMO} fill={`hsl(var(--primary) / 0.15)`} strokeWidth={2} />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 8,
+                    border: 'none',
+                    boxShadow: 'var(--shadow-md)',
+                    fontFamily: 'var(--font-inter)',
+                    fontSize: '0.82rem',
+                    background: 'hsl(var(--card))',
+                    color: 'hsl(var(--foreground))',
+                  }}
+                />
+                <Area type="monotone" dataKey="cosecha" stroke={BOSQUE_ULMO} fill="hsl(var(--primary) / 0.15)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -180,14 +181,24 @@ export function DashboardResumen() {
               <div className="section-subtitle">CLP YTD · {ventas.totalVentasYTD} ventas</div>
             </div>
           </div>
-          <div style={{ height: 260 }}>
+          <div className="h-[260px]">
             {channelData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={channelData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
                   <YAxis dataKey="channel" type="category" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} width={80} />
-                  <Tooltip contentStyle={CHART_TOOLTIP} />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: 8,
+                      border: 'none',
+                      boxShadow: 'var(--shadow-md)',
+                      fontFamily: 'var(--font-inter)',
+                      fontSize: '0.82rem',
+                      background: 'hsl(var(--card))',
+                      color: 'hsl(var(--foreground))',
+                    }}
+                  />
                   <Bar dataKey="revenue" radius={[0, 4, 4, 0]}>
                     {channelData.map((entry, idx) => (
                       <Cell key={idx} fill={CHANNEL_COLORS[entry.channel] ?? ORO_MIEL} />
@@ -196,7 +207,7 @@ export function DashboardResumen() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'hsl(var(--muted-foreground))', fontSize: '0.85rem' }}>
+              <div className="flex items-center justify-center h-full text-muted-foreground text-[0.85rem]">
                 Sin ventas registradas
               </div>
             )}
@@ -205,7 +216,7 @@ export function DashboardResumen() {
       </div>
 
       {/* ── Row 2: Flujo de Caja + Colmenas Health ── */}
-      <div className="dashboard-grid dashboard-grid-2-1" style={{ marginTop: 'var(--space-lg)' }}>
+      <div className="dashboard-grid dashboard-grid-2-1 mt-6">
         <div className="card animate-in delay-3">
           <div className="section-header">
             <div>
@@ -213,28 +224,38 @@ export function DashboardResumen() {
               <div className="section-subtitle">Ingresos vs Egresos YTD (CLP)</div>
             </div>
           </div>
-          <div style={{ height: 240 }}>
+          <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={finanzas.cashFlow}>
                 <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
                 <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-                <Tooltip contentStyle={CHART_TOOLTIP} />
-                <Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill={`hsl(var(--success) / 0.12)`} strokeWidth={2} />
-                <Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill={`hsl(var(--destructive) / 0.08)`} strokeWidth={2} />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 8,
+                    border: 'none',
+                    boxShadow: 'var(--shadow-md)',
+                    fontFamily: 'var(--font-inter)',
+                    fontSize: '0.82rem',
+                    background: 'hsl(var(--card))',
+                    color: 'hsl(var(--foreground))',
+                  }}
+                />
+                <Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill="hsl(var(--success) / 0.12)" strokeWidth={2} />
+                <Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill="hsl(var(--destructive) / 0.08)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-          <div className="card animate-in delay-4" style={{ flex: 1 }}>
-            <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Hexagon size={18} style={{ color: 'hsl(var(--accent))' }} /> Estado Colmenas
+        <div className="flex flex-col gap-6">
+          <div className="card animate-in delay-4 flex-1">
+            <div className="flex items-center gap-2 text-[1rem] mb-4">
+              <Hexagon size={18} className="text-accent" /> Estado Colmenas
             </div>
             {healthData.length > 0 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-lg)' }}>
-                <div style={{ width: 100, height: 100 }}>
+              <div className="flex items-center gap-6">
+                <div className="w-[100px] h-[100px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={healthData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={25} outerRadius={45} paddingAngle={2}>
@@ -245,41 +266,41 @@ export function DashboardResumen() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div className="flex flex-col gap-4">
                   {healthData.map((d, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem' }}>
-                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: d.color }} />
-                      <span style={{ color: 'hsl(var(--muted-foreground))' }}>{d.name}</span>
-                      <span style={{ color: 'hsl(var(--foreground))', fontWeight: 600 }}>{d.value}</span>
+                    <div key={i} className="flex items-center gap-2 text-[0.82rem]">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: d.color }} />
+                      <span className="text-muted-foreground">{d.name}</span>
+                      <span className="text-foreground font-semibold">{d.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div style={{ color: 'hsl(var(--muted-foreground))', fontSize: '0.85rem' }}>Sin colmenas registradas</div>
+              <div className="text-muted-foreground text-[0.85rem]">Sin colmenas registradas</div>
             )}
             {enjambre.inspecciones.latestVarroa != null && (
-              <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-sm)', background: 'hsl(var(--muted) / 0.5)', fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>
-                Varroa última: <span style={{ color: enjambre.inspecciones.latestVarroa > 3 ? 'hsl(var(--destructive))' : 'hsl(var(--success))', fontWeight: 600 }}>{enjambre.inspecciones.latestVarroa}%</span>
+              <div className="mt-4 px-4 py-2 rounded-sm bg-muted/50 text-[0.78rem] text-muted-foreground">
+                Varroa última: <span className={enjambre.inspecciones.latestVarroa > 3 ? 'text-destructive' : 'text-success'} font-semibold>{enjambre.inspecciones.latestVarroa}%</span>
               </div>
             )}
           </div>
 
-          <div className="card animate-in delay-5" style={{ flex: 1 }}>
-            <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <TreePine size={18} style={{ color: 'hsl(var(--success))' }} /> Bosque
+          <div className="card animate-in delay-5 flex-1">
+            <div className="flex items-center gap-2 text-[1rem] mb-4">
+              <TreePine size={18} className="text-success" /> Bosque
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)' }}>
-              <div style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: 'hsl(var(--success) / 0.08)', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'hsl(var(--success))' }}>{enjambre.arboles.totalYTD}</div>
-                <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))' }}>Árboles YTD</div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="p-4 rounded-sm bg-success/8 text-center">
+                <div className="text-[1.3rem] font-bold text-success">{enjambre.arboles.totalYTD}</div>
+                <div className="text-[0.72rem] text-muted-foreground">Árboles YTD</div>
               </div>
-              <div style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: 'hsl(var(--accent) / 0.1)', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{fmtNum(enjambre.arboles.co2Total)}</div>
-                <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))' }}>ton CO₂</div>
+              <div className="p-4 rounded-sm bg-accent/10 text-center">
+                <div className="text-[1.3rem] font-bold text-accent">{fmtNum(enjambre.arboles.co2Total)}</div>
+                <div className="text-[0.72rem] text-muted-foreground">ton CO₂</div>
               </div>
             </div>
-            <div style={{ marginTop: 'var(--space-sm)', fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))' }}>
+            <div className="mt-2 text-[0.75rem] text-muted-foreground">
               {enjambre.apiarios.total} apiarios · {enjambre.inspecciones.totalYTD} inspecciones YTD
             </div>
           </div>
@@ -287,7 +308,7 @@ export function DashboardResumen() {
       </div>
 
       {/* ── Row 3: Finanzas + Equipo ── */}
-      <div className="dashboard-grid dashboard-grid-2" style={{ marginTop: 'var(--space-lg)' }}>
+      <div className="dashboard-grid dashboard-grid-2 mt-6">
         <div className="card animate-in delay-4">
           <div className="section-header">
             <div>
@@ -295,25 +316,25 @@ export function DashboardResumen() {
               <div className="section-subtitle">Resumen contable YTD</div>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
-            <div style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: 'hsl(var(--success) / 0.08)' }}>
-              <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Ingresos netos</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'hsl(var(--success))' }}>{fmtCLP(finanzas.ingresosNetosYTD)}</div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-sm bg-success/8">
+              <div className="text-[0.72rem] text-muted-foreground mb-1">Ingresos netos</div>
+              <div className="text-[1.2rem] font-bold text-success">{fmtCLP(finanzas.ingresosNetosYTD)}</div>
             </div>
-            <div style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: 'hsl(var(--destructive) / 0.08)' }}>
-              <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Gastos</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'hsl(var(--destructive))' }}>{fmtCLP(finanzas.gastosYTD)}</div>
+            <div className="p-4 rounded-sm bg-destructive/8">
+              <div className="text-[0.72rem] text-muted-foreground mb-1">Gastos</div>
+              <div className="text-[1.2rem] font-bold text-destructive">{fmtCLP(finanzas.gastosYTD)}</div>
             </div>
-            <div style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: 'hsl(var(--accent) / 0.1)' }}>
-              <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Utilidad neta</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: finanzas.utilidadNetaYTD >= 0 ? 'hsl(var(--accent))' : 'hsl(var(--destructive))' }}>{fmtCLP(finanzas.utilidadNetaYTD)}</div>
+            <div className="p-4 rounded-sm bg-accent/10">
+              <div className="text-[0.72rem] text-muted-foreground mb-1">Utilidad neta</div>
+              <div className="text-[1.2rem] font-bold" style={{ color: finanzas.utilidadNetaYTD >= 0 ? 'hsl(var(--accent))' : 'hsl(var(--destructive))' }}>{fmtCLP(finanzas.utilidadNetaYTD)}</div>
             </div>
-            <div style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: 'hsl(var(--muted) / 0.5)' }}>
-              <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>IVA por pagar</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{fmtCLP(finanzas.ivaPagar)}</div>
+            <div className="p-4 rounded-sm bg-muted/50">
+              <div className="text-[0.72rem] text-muted-foreground mb-1">IVA por pagar</div>
+              <div className="text-[1.2rem] font-bold text-foreground">{fmtCLP(finanzas.ivaPagar)}</div>
             </div>
           </div>
-          <div style={{ marginTop: 'var(--space-md)', display: 'flex', gap: 'var(--space-md)', fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>
+          <div className="mt-4 flex gap-4 text-[0.78rem] text-muted-foreground">
             <span>PPM: {fmtCLP(finanzas.ppm)}</span>
             <span>·</span>
             <span>{finanzas.totalFacturasEmitidas} facturas emitidas</span>
@@ -335,55 +356,55 @@ export function DashboardResumen() {
           </div>
 
           {equipo.topRep && (
-            <div style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)', background: 'hsl(var(--accent) / 0.08)', marginBottom: 'var(--space-md)', display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'hsl(var(--accent) / 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Trophy size={18} style={{ color: 'hsl(var(--accent))' }} />
+            <div className="p-4 rounded-sm bg-accent/8 mb-4 flex items-center gap-4">
+              <div className="w-9 h-9 rounded-full bg-accent/20 flex items-center justify-center">
+                <Trophy size={18} className="text-accent" />
               </div>
               <div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>{equipo.topRep.name}</div>
-                <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))' }}>Top rep · {fmtCLP(equipo.topRep.revenue)} lifetime</div>
+                <div className="text-[0.9rem] font-semibold text-foreground">{equipo.topRep.name}</div>
+                <div className="text-[0.75rem] text-muted-foreground">Top rep · {fmtCLP(equipo.topRep.revenue)} lifetime</div>
               </div>
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-xs)', marginBottom: 'var(--space-md)' }}>
+          <div className="grid grid-cols-4 gap-1 mb-4">
             {Object.entries(equipo.repTiers).map(([tier, count]) => (
-              <div key={tier} style={{ textAlign: 'center', padding: 'var(--space-sm)', borderRadius: 'var(--radius-sm)', background: 'hsl(var(--muted) / 0.3)' }}>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: TIER_COLORS[tier] ?? 'hsl(var(--foreground))' }}>{count}</div>
-                <div style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))', textTransform: 'capitalize' }}>{tier}</div>
+              <div key={tier} className="text-center p-2 rounded-sm bg-muted/30">
+                <div className="text-[1.1rem] font-bold" style={{ color: TIER_COLORS[tier] ?? 'hsl(var(--foreground))' }}>{count}</div>
+                <div className="text-[0.65rem] text-muted-foreground capitalize">{tier}</div>
               </div>
             ))}
           </div>
 
           {equipo.comisiones.pendientes > 0 && (
-            <div style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-sm)', background: 'hsl(var(--warning) / 0.08)', fontSize: '0.78rem', marginBottom: 'var(--space-md)' }}>
-              <span style={{ color: 'hsl(var(--warning))', fontWeight: 600 }}>{fmtCLP(equipo.comisiones.pendientes)}</span>
-              <span style={{ color: 'hsl(var(--muted-foreground))' }}> comisiones pendientes</span>
+            <div className="px-4 py-2 rounded-sm bg-warning/8 text-[0.78rem] mb-4">
+              <span className="text-warning font-semibold">{fmtCLP(equipo.comisiones.pendientes)}</span>
+              <span className="text-muted-foreground ml-1"> comisiones pendientes</span>
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 'var(--space-lg)', fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div className="flex gap-6 text-[0.78rem] text-muted-foreground">
+            <div className="flex items-center gap-2">
               <Wallet size={14} />
               <span>{equipo.caja.openSessions} sesiones abiertas</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div className="flex items-center gap-2">
               <Percent size={14} />
               <span>Tier ×{equipo.comisiones.avgTierMultiplier}</span>
             </div>
           </div>
 
           {equipo.leaderboard.length > 0 && (
-            <div style={{ marginTop: 'var(--space-md)' }}>
-              <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-sm)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Leaderboard semanal</div>
+            <div className="mt-4">
+              <div className="text-[0.72rem] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Leaderboard semanal</div>
               {equipo.leaderboard.slice(0, 3).map((entry, i) => (
-                <div key={entry.rep_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: i < 2 ? '1px solid hsl(var(--border) / 0.3)' : 'none' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: i === 0 ? 'hsl(var(--accent))' : 'hsl(var(--muted-foreground))', width: 20 }}>{i + 1}.</span>
-                    <span style={{ fontSize: '0.82rem', color: 'hsl(var(--foreground))' }}>{entry.display_name}</span>
-                    <span className="badge badge-gold" style={{ fontSize: '0.65rem' }}>{entry.commission_tier}</span>
+                <div key={entry.rep_id} className="flex items-center justify-between py-1.5 border-b border-border/30 last:border-0">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 text-right font-bold" style={{ color: i === 0 ? 'hsl(var(--accent))' : 'hsl(var(--muted-foreground))', fontSize: '0.75rem' }}>{i + 1}.</span>
+                    <span className="text-[0.82rem] text-foreground">{entry.display_name}</span>
+                    <span className="badge badge-gold text-[0.65rem]">{entry.commission_tier}</span>
                   </div>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'hsl(var(--accent))' }}>{fmtCLP(entry.total_commissions)}</span>
+                  <span className="text-[0.82rem] font-semibold text-accent">{fmtCLP(entry.total_commissions)}</span>
                 </div>
               ))}
             </div>

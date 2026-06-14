@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import type { Map } from 'leaflet';
 import { supabase } from '../../lib/supabase';
 import L from 'leaflet';
 import { BOSQUE_ULMO, ORO_MIEL, ORO_MIEL_DARK, SALUD_OPTIMA } from '@/lib/colors';
 import 'leaflet/dist/leaflet.css';
 import { timelineEvents, type MapMarker } from '../../data/mockData';
+import { Plus, X, MapPin } from 'lucide-react';
 
 // Fix Leaflet default icon issue
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -85,6 +87,16 @@ function FitBounds({ markers }: { markers: MapMarker[] }) {
     return null;
 }
 
+// Component to handle map clicks for adding markers
+function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
+    useMapEvents({
+        click(e) {
+            onMapClick(e.latlng.lat, e.latlng.lng);
+        },
+    });
+    return null;
+}
+
 interface MapaLegadoProps {
     height?: string;
     filterRole?: string;
@@ -92,6 +104,10 @@ interface MapaLegadoProps {
 
 export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
     const [liveMarkers, setLiveMarkers] = useState<MapMarker[]>([]);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [newMarkerCoords, setNewMarkerCoords] = useState<{ lat: number; lng: number } | null>(null);
+    const [newMarkerForm, setNewMarkerForm] = useState({ type: 'obrera' as 'obrera' | 'tree', name: '', details: '' });
 
     useEffect(() => {
         async function loadMaps() {
@@ -126,6 +142,66 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
         loadMaps();
     }, []);
 
+    const handleMapClick = (lat: number, lng: number) => {
+        if (!isEditMode) return;
+        setNewMarkerCoords({ lat, lng });
+        setShowAddModal(true);
+    };
+
+    const handleSaveMarker = async () => {
+        if (!newMarkerCoords || !newMarkerForm.name) return;
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        try {
+            if (newMarkerForm.type === 'obrera') {
+                const { data: newApiario } = await supabase.from('apiarios').insert({
+                    name: newMarkerForm.name,
+                    lat: newMarkerCoords.lat,
+                    lng: newMarkerCoords.lng,
+                    details: newMarkerForm.details || null,
+                    user_id: user.id,
+                }).select().single();
+
+                if (newApiario) {
+                    setLiveMarkers(prev => [...prev, {
+                        id: `api-${String(newApiario.id)}`,
+                        lat: newMarkerCoords.lat,
+                        lng: newMarkerCoords.lng,
+                        type: 'obrera',
+                        name: newMarkerForm.name,
+                        details: newMarkerForm.details || undefined,
+                    }]);
+                }
+            } else if (newMarkerForm.type === 'tree') {
+                const { data: newArbol } = await supabase.from('arboles_plantados').insert({
+                    especie: newMarkerForm.name,
+                    lat: newMarkerCoords.lat,
+                    lng: newMarkerCoords.lng,
+                    user_id: user.id,
+                    fecha: new Date().toISOString().split('T')[0],
+                }).select().single();
+
+                if (newArbol) {
+                    setLiveMarkers(prev => [...prev, {
+                        id: `tree-${String(newArbol.id)}`,
+                        lat: newMarkerCoords.lat,
+                        lng: newMarkerCoords.lng,
+                        type: 'tree',
+                        name: newMarkerForm.name,
+                    }]);
+                }
+            }
+
+            setShowAddModal(false);
+            setNewMarkerForm({ type: 'obrera', name: '', details: '' });
+            setNewMarkerCoords(null);
+        } catch (error) {
+            console.error('Error saving marker:', error);
+        }
+    };
+
     // Filter markers based on role if provided
     let filteredMarkers = liveMarkers;
     if (filterRole === 'apicultor') {
@@ -141,6 +217,20 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
         <div>
             {/* Map */}
             <div className="map-container" style={{ height }}>
+                <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 1000, display: 'flex', gap: 8 }}>
+                    <button
+                        onClick={() => setIsEditMode(!isEditMode)}
+                        className={`btn btn-sm ${isEditMode ? 'btn-primary' : 'btn-ghost'}`}
+                        style={{ 
+                            background: isEditMode ? 'hsl(var(--primary))' : 'hsl(var(--card))',
+                            border: `1px solid ${isEditMode ? 'hsl(var(--primary))' : 'hsl(var(--border))'}`,
+                            color: isEditMode ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
+                        }}
+                    >
+                        <MapPin size={14} style={{ marginRight: 4 }} />
+                        {isEditMode ? 'Modo Edición ON' : 'Modo Edición'}
+                    </button>
+                </div>
                 <MapContainer
                     center={center}
                     zoom={10}
@@ -152,6 +242,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
                     <FitBounds markers={filteredMarkers} />
+                    {isEditMode && <MapClickHandler onMapClick={handleMapClick} />}
                     {filteredMarkers.map((marker) => (
                         <Marker
                             key={marker.id}
@@ -175,6 +266,59 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                     ))}
                 </MapContainer>
             </div>
+
+            {/* Add Marker Modal */}
+            {showAddModal && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ position: 'absolute', inset: 0, background: 'hsl(var(--foreground) / 0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setShowAddModal(false)} />
+                    <div className="card" style={{ position: 'relative', zIndex: 2001, width: 400, padding: 'var(--space-xl)' }}>
+                        <button onClick={() => setShowAddModal(false)} style={{ position: 'absolute', top: 14, right: 14, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
+                        <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
+                            Agregar al Mapa
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                            <div>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Tipo</label>
+                                <select 
+                                    className="input-field" 
+                                    value={newMarkerForm.type} 
+                                    onChange={e => setNewMarkerForm({ ...newMarkerForm, type: e.target.value as 'obrera' | 'tree' })}
+                                >
+                                    <option value="obrera">🐝 Apiario</option>
+                                    <option value="tree">🌳 Árbol</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Nombre</label>
+                                <input 
+                                    className="input-field" 
+                                    value={newMarkerForm.name} 
+                                    onChange={e => setNewMarkerForm({ ...newMarkerForm, name: e.target.value })} 
+                                    placeholder={newMarkerForm.type === 'obrera' ? 'Ej. Apiario Norte' : 'Ej. Ulmo'}
+                                />
+                            </div>
+                            {newMarkerForm.type === 'obrera' && (
+                                <div>
+                                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Detalles (opcional)</label>
+                                    <input 
+                                        className="input-field" 
+                                        value={newMarkerForm.details} 
+                                        onChange={e => setNewMarkerForm({ ...newMarkerForm, details: e.target.value })} 
+                                        placeholder="Sector, notas adicionales..."
+                                    />
+                                </div>
+                            )}
+                            <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
+                                Coordenadas: {newMarkerCoords?.lat.toFixed(6)}, {newMarkerCoords?.lng.toFixed(6)}
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, marginTop: 'var(--space-xl)', justifyContent: 'flex-end' }}>
+                            <button className="btn btn-ghost" onClick={() => setShowAddModal(false)}>Cancelar</button>
+                            <button className="btn btn-primary" onClick={handleSaveMarker}>Guardar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Timeline */}
             <div className="card" style={{ marginTop: 'var(--space-lg)' }}>

@@ -3,3 +3,114 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --bosque-ulmo: hsl(var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) var(--enj-bosque-ulmo-l));
+    --bosque-ulmo-light: hsl(var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 22%);
+    --bosque-ulmo-dark: hsl(var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 8%);
+    --oro-miel: hsl(var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l));
+    --oro-miel-light: hsl(var(--enj-oro-miel-h) 70% 55%);
+    --oro-miel-dark: hsl(var(--enj-oro-miel-h) var(--enj-oro-miel-s) 35%);
+    --oro-miel-glow: hsl(var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l) / 0.15);
+    --crema-natural: hsl(var(--enj-crema-h) var(--enj-crema-s) var(--enj-crema-l));
+    --crema-warm: hsl(var(--enj-crema-h) var(--enj-crema-s) 90%);
+    --crema-dark: hsl(var(--enj-crema-h) 20% 80%);
+    --negro-tinta: hsl(var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) var(--enj-negro-tinta-l));
+    --negro-suave: hsl(0 0% 10%);
+    --salud-optima: hsl(var(--enj-verde-h) var(--enj-verde-s) var(--enj-verde-l));
+    --salud-atencion: hsl(var(--enj-amber-h) var(--enj-amber-s) var(--enj-amber-l));
+    --salud-riesgo: hsl(var(--enj-rojo-h) var(--enj-rojo-s) var(--enj-rojo-l));
+    --info: hsl(var(--enj-azul-h) var(--enj-azul-s) var(--enj-azul-l));
+
+    --surface-primary: hsl(var(--background));
+    --surface-card: hsl(var(--card) / 0.7);
+    --surface-card-hover: hsl(var(--card) / 0.9);
+    --surface-dark: hsl(var(--primary));
+    --surface-dark-elevated: hsl(var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 22%);
+    --surface-glass: hsl(var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 14% / 0.04);
+    --surface-glass-heavy: hsl(var(--card) / 0.6);
+
+    --text-primary-c: hsl(var(--foreground));
+    --text-secondary: hsl(var(--muted-foreground));
+    --text-muted: hsl(var(--muted-foreground));
+    --text-on-dark: hsl(var(--primary-foreground));
+    --text-accent-c: hsl(var(--accent));
+
+    --font-existencial: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
+    --font-display: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
+    --font-datos: var(--font-inter), 'Inter', system-ui, sans-serif;
+
+    --glass-bg: hsl(var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 14% / 0.4);
+    --glass-border: hsl(var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l) / 0.2);
+    --glass-shine: linear-gradient(135deg, hsl(var(--foreground) / 0.1), transparent);
+  }
+
+  :root.light {
+    --negro-suave: hsl(0 0% 85%);
+    --surface-dark: hsl(var(--primary));
+    --surface-dark-elevated: hsl(var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 30%);
+    --surface-glass: hsl(var(--enj-crema-h) var(--enj-crema-s) 95% / 0.04);
+    --surface-glass-heavy: hsl(var(--card) / 0.6);
+    --text-on-dark: hsl(var(--primary-foreground));
+    --glass-bg: hsl(var(--enj-crema-h) var(--enj-crema-s) 95% / 0.4);
+    --glass-border: hsl(var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l) / 0.15);
+    --glass-shine: linear-gradient(135deg, hsl(var(--foreground) / 0.05), transparent);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-datos);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-existencial);
+    font-weight: 600;
+    line-height: 1.2;
+    color: hsl(var(--foreground));
+  }
+
+  a {
+    color: hsl(var(--accent));
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+
+  a:hover {
+    color: hsl(var(--enj-oro-miel-h) 70% 55%);
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.2);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.35);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

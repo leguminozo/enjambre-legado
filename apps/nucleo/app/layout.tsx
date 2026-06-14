@@ -1,8 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import "@/index.css";
+import { Inter, Cormorant_Garamond } from "next/font/google";
+import "./globals.css";
 import { Providers } from "@/providers/Providers";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  variable: "--font-cormorant",
+  weight: ["300", "400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Enjambre Legado · Núcleo",
@@ -20,8 +35,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" suppressHydrationWarning>
-      <body className="antialiased">
+    <html lang="es" className={`${inter.variable} ${cormorant.variable}`} suppressHydrationWarning>
+      <body className={`${inter.className} bg-background text-foreground antialiased`}>
         <Providers>
           {children}
         </Providers>

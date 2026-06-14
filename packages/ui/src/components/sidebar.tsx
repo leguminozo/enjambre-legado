@@ -36,9 +36,9 @@ interface SidebarBadgeProps {
 export function SidebarBadgeIndicator({ badge }: SidebarBadgeProps) {
   if (badge.type === 'dot') {
     const colorMap: Record<BadgeDotColor, string> = {
-      green: 'hsl(145 63% 42%)',
-      orange: 'hsl(38 92% 50%)',
-      red: 'hsl(0 72% 51%)',
+      green: 'hsl(var(--success))',
+      orange: 'hsl(var(--warning))',
+      red: 'hsl(var(--destructive))',
     }
     const labelMap: Record<BadgeDotColor, string> = {
       green: 'activo',

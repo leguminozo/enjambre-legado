@@ -29,6 +29,13 @@ const bottomNavLabels: Record<string, string> = {
   sistema: 'Config',
 };
 
+const notifColorMap: Record<string, string> = {
+  danger: 'bg-destructive',
+  warning: 'bg-warning',
+  success: 'bg-success',
+  gold: 'bg-accent',
+};
+
 function getBottomNavItem(key: string, pathname: string) {
   const allItems = [...SIDEBAR_GROUPS.flatMap(g => g.items), ...ACCOUNT_ITEMS];
   const item = allItems.find(i => i.key === key);
@@ -64,14 +71,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {sidebarOpen && (
         <div
-          style={{ position: 'fixed', inset: 0, background: 'hsl(var(--foreground) / 0.6)', zIndex: 99, backdropFilter: 'blur(8px)', transition: 'all 0.3s ease' }}
+          className="fixed inset-0 bg-foreground/60 backdrop-blur-sm z-[99] transition-all duration-300"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       <main className="main-content">
         <header className="main-header">
-          <div className="header-left">
+          <div className="header-left flex items-center gap-4">
             <button
               className="menu-toggle"
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -83,7 +90,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
             <span className="header-title">{headerTitle}</span>
           </div>
-          <div className="header-right" style={{ position: 'relative' }}>
+          <div className="header-right relative flex items-center gap-4">
             <button
               className="header-btn"
               onClick={() => { setSearchOpen(!searchOpen); setNotifOpen(false); }}
@@ -109,24 +116,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 id="header-search-panel"
                 role="region"
                 aria-label="Buscador"
-                style={{ position: 'absolute', top: 'calc(100% + 12px)', right: 0, width: 340, background: 'hsl(var(--card) / 0.95)', backdropFilter: 'blur(24px)', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-xl)', zIndex: 60, animation: 'fadeInUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)', overflow: 'hidden' }}
+                className="absolute top-[calc(100%+12px)] right-0 w-[340px] bg-card/95 backdrop-blur-3xl border border-border rounded-lg shadow-xl z-60 overflow-hidden animate-in"
               >
-                <div style={{ padding: 'var(--space-md)', borderBottom: '1px solid hsl(var(--border))' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', padding: 'var(--space-sm) var(--space-md)', background: 'hsl(var(--background))', borderRadius: 'var(--radius-sm)', border: '1px solid hsl(var(--border))' }}>
-                    <Search size={16} style={{ color: 'var(--text-muted)' }} />
+                <div className="p-4 border-b border-border">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-background rounded-sm border border-border">
+                    <Search size={16} className="text-muted-foreground" />
                     <input
                       type="text"
                       placeholder="Buscar en Enjambre Legado..."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       aria-label="Buscar en Enjambre Legado"
-                      style={{ border: 'none', background: 'transparent', outline: 'none', flex: 1, fontFamily: 'var(--font-datos)', fontSize: '0.85rem', color: 'hsl(var(--foreground))' }}
+                      className="border-none bg-transparent outline-none flex-1 font-datos text-[0.85rem] text-foreground"
                     />
                     {searchQuery && (
                       <button
                         onClick={() => setSearchQuery('')}
                         aria-label="Limpiar búsqueda"
-                        style={{ background: 'hsl(var(--muted) / 0.5)', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))', padding: 4, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        className="bg-muted/50 border-none cursor-pointer text-muted-foreground p-1 rounded-full flex items-center justify-center"
                       >
                         <X size={12} />
                       </button>
@@ -141,23 +148,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 id="header-notifications-panel"
                 role="region"
                 aria-label="Notificaciones"
-                style={{ position: 'absolute', top: 'calc(100% + 12px)', right: 0, width: 360, background: 'hsl(var(--card) / 0.95)', backdropFilter: 'blur(24px)', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-xl)', zIndex: 60, animation: 'fadeInUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)', overflow: 'hidden' }}
+                className="absolute top-[calc(100%+12px)] right-0 w-[360px] bg-card/95 backdrop-blur-3xl border border-border rounded-lg shadow-xl z-60 overflow-hidden animate-in"
               >
-                <div style={{ padding: 'var(--space-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid hsl(var(--border))' }}>
-                  <span style={{ fontWeight: 600, fontSize: '1rem', color: 'hsl(var(--foreground))', fontFamily: 'var(--font-existencial)' }}>Notificaciones</span>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setReadNotifs(notifications.map(n => n.id))} style={{ fontSize: '0.72rem', color: 'hsl(var(--accent))' }}>Marcar leídas</button>
+                <div className="p-6 flex justify-between items-center border-b border-border">
+                  <span className="font-semibold text-foreground font-existencial">Notificaciones</span>
+                  <button className="btn btn-ghost btn-sm text-accent text-[0.72rem]" onClick={() => setReadNotifs(notifications.map(n => n.id))}>Marcar leídas</button>
                 </div>
-                <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+                <div className="max-h-[360px] overflow-y-auto">
                   {notifications.map(n => (
                     <div
                       key={n.id}
                       onClick={() => setReadNotifs(prev => prev.includes(n.id) ? prev : [...prev, n.id])}
-                      style={{ padding: 'var(--space-md) var(--space-lg)', borderBottom: '1px solid hsl(var(--border) / 0.5)', display: 'flex', gap: 'var(--space-md)', cursor: 'pointer', background: readNotifs.includes(n.id) ? 'transparent' : 'hsl(var(--accent) / 0.04)', transition: 'background 200ms ease' }}
+                      className={`px-6 py-4 border-b border-border/50 flex gap-4 cursor-pointer transition-colors duration-200 ${readNotifs.includes(n.id) ? 'bg-transparent' : 'bg-accent/[0.04]'}`}
                     >
-                      <div style={{ width: 10, height: 10, borderRadius: '50%', marginTop: 6, flexShrink: 0, background: n.type === 'danger' ? 'var(--salud-riesgo)' : n.type === 'warning' ? 'var(--salud-atencion)' : n.type === 'success' ? 'var(--salud-optima)' : 'var(--oro-miel)' }} />
+                      <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${notifColorMap[n.type] ?? 'bg-accent'}`} />
                       <div>
-                        <div style={{ fontSize: '0.88rem', color: readNotifs.includes(n.id) ? 'hsl(var(--muted-foreground))' : 'hsl(var(--foreground))', fontWeight: readNotifs.includes(n.id) ? 400 : 500, lineHeight: 1.5 }}>{n.text}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>{n.time}</div>
+                        <div className={`text-[0.88rem] leading-relaxed ${readNotifs.includes(n.id) ? 'text-muted-foreground font-normal' : 'text-foreground font-medium'}`}>{n.text}</div>
+                        <div className="text-[0.75rem] text-muted-foreground mt-1">{n.time}</div>
                       </div>
                     </div>
                   ))}

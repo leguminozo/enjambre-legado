@@ -21,7 +21,7 @@ export function ThemeProvider({ children, defaultTheme = 'system' }: ThemeProvid
 
   return (
     <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
-      <div className={resolvedTheme === 'light' ? 'light' : 'dark'}>{children}</div>
+      {children}
     </ThemeContext.Provider>
   );
 }
