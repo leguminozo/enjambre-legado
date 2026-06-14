@@ -19,7 +19,9 @@ tercerosRoutes.get("/", async (c) => {
   const tipo = c.req.query("tipo");
   const search = c.req.query("search");
 
-  let query = supabase
+  // Use (supabase as any) for "terceros" (and similar business tables) — pre-existing type debt
+  // (tables come back as 'never' in the generated Supabase client types for these routes).
+  let query = (supabase as any)
     .from("terceros")
     .select("*")
     .eq("empresa_id", empresaId)
@@ -57,7 +59,7 @@ tercerosRoutes.post("/", zValidator("json", terceroSchema), async (c) => {
   const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
   const { tipo, rut, nombre, email, telefono, direccion, giro } = c.req.valid("json");
 
-  const { data: existing } = await supabase
+  const { data: existing } = await (supabase as any)
     .from("terceros")
     .select("id")
     .eq("rut", rut)
@@ -68,7 +70,7 @@ tercerosRoutes.post("/", zValidator("json", terceroSchema), async (c) => {
     return c.json({ code: "duplicate", message: "Ya existe un tercero con ese RUT" }, 400);
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("terceros")
     .insert({
       empresa_id: empresaId,
