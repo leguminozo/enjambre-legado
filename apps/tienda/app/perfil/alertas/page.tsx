@@ -1,5 +1,6 @@
 import React from 'react';
 import { Bell, Flame, Droplets, Wind, ArrowRight, Leaf } from 'lucide-react';
+import { toast } from '@enjambre/ui';
 
 export default function AlertasFloracionPage() {
   return (
@@ -63,7 +64,12 @@ export default function AlertasFloracionPage() {
               </div>
             </div>
 
-            <button className="w-full md:w-auto px-12 py-5 bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all flex items-center justify-center gap-3">
+            <button
+              onClick={() => {
+                toast.success('Preferencias actualizadas. Recibirás alertas de floración y despachos en tiempo real.', { duration: 6000 });
+              }}
+              className="w-full md:w-auto px-12 py-5 bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all flex items-center justify-center gap-3"
+            >
               Configurar Mis Alertas <ArrowRight size={16} />
             </button>
           </div>

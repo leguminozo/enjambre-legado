@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
+import { toast } from '@enjambre/ui';
 
 export function RegisterForm() {
   const [email, setEmail] = useState('');
@@ -24,9 +25,12 @@ export function RegisterForm() {
 
     const result = await register(email, password, fullName);
     if (result.success) {
+      toast.success('¡Bienvenido al Legado! Revisa tu correo para confirmar tu cuenta y completar el acceso.', { duration: 8000 });
       router.push('/');
     } else {
-      setError(result.message || 'Error al crear la cuenta');
+      const msg = result.message || 'Error al crear la cuenta';
+      setError(msg);
+      toast.error(msg, { duration: 6000 });
     }
     setLoading(false);
   };

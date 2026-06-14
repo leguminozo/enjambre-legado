@@ -11,6 +11,7 @@ dashboardRoutes.use("*", authMiddleware, tenantMiddleware);
 dashboardRoutes.get("/", async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase");
+  const ia = supabase as any; // SII/EIRL tables (periodos_contables, facturas_emitidas, etc.) - pre-existing type debt from SII stub
   const periodoParam = c.req.query("periodo") ?? "actual";
 
   let periodoMes: number;
@@ -26,7 +27,7 @@ dashboardRoutes.get("/", async (c) => {
     periodoMes = m;
   }
 
-  let { data: periodo } = await supabase
+  let { data: periodo } = await ia
     .from("periodos_contables")
     .select("*")
     .eq("empresa_id", empresaId)
@@ -35,7 +36,7 @@ dashboardRoutes.get("/", async (c) => {
     .maybeSingle();
 
   if (!periodo) {
-    const { data: newPeriodo } = await supabase
+    const { data: newPeriodo } = await ia
       .from("periodos_contables")
       .insert({
         empresa_id: empresaId, mes: periodoMes, anio: periodoAnio, estado: "abierto",
@@ -50,17 +51,17 @@ dashboardRoutes.get("/", async (c) => {
   const periodoId = periodo?.id;
 
   const [facturasEmitidasRes, facturasRecibidasRes, gastosRes] = await Promise.all([
-    supabase
+    ia
       .from("facturas_emitidas")
       .select("monto_neto, monto_iva, monto_total, estado")
       .eq("empresa_id", empresaId)
       .eq("periodo_id", periodoId),
-    supabase
+    ia
       .from("facturas_recibidas")
       .select("monto_neto, monto_iva")
       .eq("empresa_id", empresaId)
       .eq("periodo_id", periodoId),
-    supabase
+    ia
       .from("gastos")
       .select("monto_neto, monto_iva, monto_total, estado")
       .eq("empresa_id", empresaId)

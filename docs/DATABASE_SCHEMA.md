@@ -443,16 +443,24 @@ CMS para contenido dinamico de la landing.
 | `resultado` | JSONB | - |
 | `fecha` | TIMESTAMPTZ | - |
 
-### `notification_events`
+### `notification_events` (Historial de eventos enviados / log de entregas)
 
 | Columna | Tipo | Descripcion |
 |---|---|---|
 | `id` | UUID PK | - |
-| `tipo` | TEXT | Tipo de notificacion |
-| `destinatario` | TEXT | - |
-| `mensaje` | TEXT | - |
-| `enviado` | BOOLEAN | - |
-| `fecha` | TIMESTAMPTZ | - |
+| `channel` | TEXT | email \| whatsapp \| push \| system |
+| `recipient` | TEXT | Destinatario (email, whatsapp number, user id, etc.) |
+| `subject` | TEXT | Asunto (para email) |
+| `body` | TEXT | Contenido del mensaje |
+| `status` | TEXT | sent \| error |
+| `provider_response` | JSONB | Respuesta del proveedor (Resend, Twilio, etc.) o error |
+| `created_by` | UUID FK → profiles | Quién originó el evento (para RLS) |
+| `created_at` | TIMESTAMPTZ | - |
+
+**Notas de arquitectura**: 
+- Existe tabla separada `notification_queue` para encolado saliente (con attempts, status pending/processing/sent/failed, metadata, RLS solo admin/gerente).
+- Existe tabla `alerts` (user_id, title, message, is_read, severity) usada por el BFF de Nucleo para notificaciones in-app de sistema (diferente de events para historial transaccional).
+- Ramificación: Dos fuentes de "in-app" (alerts vs events) + bypass directo desde cliente en tienda pueden afectar consistencia, RLS y mantenimiento a largo plazo. Ver análisis en MASTER_PLAN.
 
 ---
 

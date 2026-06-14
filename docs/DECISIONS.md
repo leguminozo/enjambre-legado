@@ -16,7 +16,12 @@ Living log of technical decisions. Format: Date | Decision | Rationale | Alterna
 **Decision**: Add Upstash rate limiting to `/api/checkout`, `/api/auth/*`, webhook endpoints.
 **Rationale**: Hono-based BFF is premature abstraction. Upstash integrates in ~10 lines, works at edge, no new runtime. Next.js API routes + Zod validation already functional.
 **Alternatives Considered**: Hono BFF with versioning, OpenAPI, contract testing — rejected (architectural debt for current team size).
-**Status**: TODO — Week 1.5 Day 6
+**Implementation**: 
+- `apps/nucleo/src/api/lib/ratelimit.ts` — Upstash Redis sliding window rate limiter with per-IP tracking
+- Applied to: `/api/checkout/init`, `/api/checkout/commit`, `/api/checkout/webhook/flow`, `/api/webhooks/transbank`, `/api/banco-chile/webhook`
+- Configurable limits: checkout (5/min), auth (10/min), webhook (100/min), api (30/min)
+- Returns standard headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`, `Retry-After`
+**Status**: ✅ **COMPLETED** — Week 1.5 Day 6
 
 ---
 

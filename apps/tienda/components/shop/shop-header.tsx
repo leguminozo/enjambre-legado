@@ -6,7 +6,9 @@ import { Menu, ShoppingBag, X, User } from 'lucide-react';
 import { useCart } from '@/components/shop/cart-context';
 import { useAuth } from '@/components/providers/auth-context';
 import { LanguageSelector } from '@/components/shop/language-selector';
+import { NotificationBell } from '@enjambre/ui';
 import { useState } from 'react';
+import { useUserNotifications } from '@/lib/hooks/use-user-notifications';
 
 const NAV_PUBLIC = [
   { href: '/', label: 'Inicio' },
@@ -24,6 +26,8 @@ export function ShopHeader() {
   const { isAuthenticated, user } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+
+  const { notifications, markRead, markAllRead, isLoading, error } = useUserNotifications(user?.id);
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -67,6 +71,16 @@ export function ShopHeader() {
 
 <div className="flex items-center gap-6">
         <LanguageSelector />
+
+        {isAuthenticated && (
+          <NotificationBell
+            notifications={notifications}
+            onMarkRead={markRead}
+            onMarkAllRead={markAllRead}
+            isLoading={isLoading}
+            error={error}
+          />
+        )}
 
         <Link
             href={isAuthenticated ? '/perfil' : '/login'}

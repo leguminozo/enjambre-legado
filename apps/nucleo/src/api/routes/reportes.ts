@@ -15,10 +15,11 @@ reportesRoutes.use("*", authMiddleware, tenantMiddleware);
 reportesRoutes.get("/", async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
+  const ia = supabase as any;  // reportes table for SII/contable reporting - missing from current generated types (pre-existing SII stub debt)
   const tipo = c.req.query("tipo");
   const periodo = c.req.query("periodo");
 
-  let query = supabase
+  let query = ia
     .from("reportes")
     .select("*")
     .eq("empresa_id", empresaId)
@@ -128,7 +129,7 @@ reportesRoutes.post("/", zValidator("json", reporteSchema), async (c) => {
       datos = { raw: { facturasEmitidas, facturasRecibidas, gastos } };
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await ia
     .from("reportes")
     .insert({
       empresa_id: empresaId,

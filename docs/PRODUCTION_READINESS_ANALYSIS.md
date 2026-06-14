@@ -87,13 +87,13 @@
 | 2 | Add Transbank webhook verification via `commit(token_ws)` | | ✅ Done — `apps/nucleo/src/api/routes/webhooks.ts` |
 | 3 | Add Banco Chile webhook HMAC-SHA256 verification | | ✅ Done — `apps/nucleo/src/api/routes/banco-chile/webhook.ts` |
 | 4 | Implement idempotency keys on payment confirmation endpoints | | ✅ Done — checkout sessions track `status: completed` |
-| 5 | Add `@upstash/ratelimit` on `/api/checkout`, `/api/auth/*`, webhooks | | 🔄 Pending |
+| 5 | Add `@upstash/ratelimit` on `/api/checkout`, `/api/auth/*`, webhooks | | ✅ Done — `apps/nucleo/src/api/lib/ratelimit.ts` |
 
-### Week 1.5: Rate Limiting & SumUp (Days 6-7)
+### Week 1.5: SumUp & Auth Hardening (Days 6-7)
 | Day | Task | Owner |
 |-----|------|-------|
-| 6 | Add `@upstash/ratelimit` on checkout, auth, webhook endpoints | |
-| 7 | SumUp webhook verification (if webhooks used; currently uses polling) | |
+| 6 | SumUp webhook verification (if webhooks used; currently uses polling sync) | |
+| 7 | Auth hardening: secure `getSession()` in server actions, add CSRF to auth endpoints | |
 
 ### Week 2: DTE Pipeline & CAF (Days 6-10)
 | Day | Task | Owner |
@@ -151,7 +151,8 @@
 - [x] Transbank webhook verifies via `commit(token_ws)` — **implemented in webhooks.ts**
 - [x] Banco Chile webhook verifies HMAC-SHA256 — **implemented in banco-chile/webhook.ts**
 - [x] Payment confirmation endpoints use idempotency keys — **checkout_sessions.status prevents double-processing**
-- [ ] Rate limiting active on auth, checkout, webhooks
+- [x] Rate limiting active on checkout, webhooks — **Upstash Redis sliding window implemented**
+- [ ] Rate limiting active on auth endpoints (login, register, password reset)
 - [ ] SumUp webhook verification (currently uses polling sync)
 - [ ] Checkout success → DTE emitted (async, retried, logged) — **partial: facturas_emitidas created on commit, needs retry + CAF**
 - [ ] CAF cron runs daily, alerts on <50 folios

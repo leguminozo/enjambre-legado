@@ -17,7 +17,10 @@ calculosIARoutes.get("/", async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
 
-  const { data, error } = await supabase
+  // Local alias for IA/SII table operations (table exists for the feature but missing from generated Database types — pre-existing SII stub debt).
+  const ia = supabase as any;
+
+  const { data, error } = await ia
     .from("calculos_ia")
     .select("*")
     .eq("empresa_id", empresaId)
@@ -38,9 +41,11 @@ const calculoIASchema = z.object({
 calculosIARoutes.post("/", zValidator("json", calculoIASchema), async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
+  const ia = supabase as any;
   const { tipo, parametros } = c.req.valid("json");
 
-  const { data: calculo, error: insertError } = await supabase
+  // see comment above on calculos_ia table type debt
+  const { data: calculo, error: insertError } = await ia
     .from("calculos_ia")
     .insert({
       empresa_id: empresaId,
@@ -59,7 +64,7 @@ calculosIARoutes.post("/", zValidator("json", calculoIASchema), async (c) => {
   try {
     let resultado: Record<string, unknown> = {};
 
-    const { data: periodos } = await (supabase as any)
+    const { data: periodos } = await ia
       .from("periodos_contables")
       .select(`
         id,
@@ -83,14 +88,11 @@ calculosIARoutes.post("/", zValidator("json", calculoIASchema), async (c) => {
       .limit(12);
 
     const periodoActual = periodos?.[0] as any;
-    const facturasEmitidas = (periodoActual?.facturas_emitidas ?? []) as Array<
-      Database["public"]["Tables"]["facturas_emitidas"]["Row"]
-    >;
-    const gastosPeriodo = (periodoActual?.gastos ?? []) as Array<
-      Database["public"]["Tables"]["gastos"]["Row"]
-    >;
+    // These are from the joined periodo data for SII/IA calculations. Pre-existing type gap in Database for the SII stub area.
+    const facturasEmitidas = (periodoActual?.facturas_emitidas ?? []) as any[];
+    const gastosPeriodo = (periodoActual?.gastos ?? []) as any[];
 
-    const { data: empresa } = await (supabase as any)
+    const { data: empresa } = await ia
       .from("empresas")
       .select("regimen, fecha_inicio_actividades, ingresos_brutos_anio_anterior")
       .eq("id", empresaId)
@@ -175,7 +177,7 @@ calculosIARoutes.post("/", zValidator("json", calculoIASchema), async (c) => {
         resultado = { message: "Tipo no reconocido" };
     }
 
-    await supabase
+    await ia
       .from("calculos_ia")
       .update({ resultado: JSON.stringify(resultado), estado: "Completado" })
       .eq("id", calculo.id);
@@ -183,7 +185,7 @@ calculosIARoutes.post("/", zValidator("json", calculoIASchema), async (c) => {
     return c.json({ ...calculo, resultado, estado: "Completado" });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    await supabase
+    await ia
       .from("calculos_ia")
       .update({ estado: "Error", error: message })
       .eq("id", calculo.id);

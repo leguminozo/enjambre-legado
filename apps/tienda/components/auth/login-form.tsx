@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
+import { toast } from '@enjambre/ui';
 
 const TIENDA_ROLE_REDIRECT: Record<string, string> = {
   cliente: '/perfil',
@@ -38,12 +39,17 @@ export function LoginForm() {
     setError('');
 
     const result = await login(email, password);
-    if (result.success && user) {
-      router.push(getTiendaRedirect(user.role));
-    } else if (result.success) {
-      router.push('/perfil');
+    if (result.success) {
+      toast.success('Sesión iniciada. Bienvenido de vuelta.', { duration: 4000 });
+      if (user) {
+        router.push(getTiendaRedirect(user.role));
+      } else {
+        router.push('/perfil');
+      }
     } else {
-      setError(result.message || 'Error al iniciar sesión');
+      const msg = result.message || 'Error al iniciar sesión';
+      setError(msg);
+      toast.error(msg, { duration: 6000 });
     }
     setLoading(false);
   };
