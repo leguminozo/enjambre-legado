@@ -1,7 +1,7 @@
 import type { DteDocumento, DteEncabezado, DteDetalle, DteReferencia } from "./sii-dte";
 import { DTE_TIPO } from "./sii-dte";
 
-function escapeXml(str: string): string {
+export function escapeXml(str: string): string {
   return str
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -10,14 +10,14 @@ function escapeXml(str: string): string {
     .replace(/'/g, "&apos;");
 }
 
-function formatRutSii(rut: string): string {
+export function formatRutSii(rut: string): string {
   const clean = rut.replace(/[^0-9kK]/g, "").toUpperCase();
   const body = clean.slice(0, -1);
   const dv = clean.slice(-1);
   return `${body}-${dv}`;
 }
 
-function formatDateSii(isoDate: string): string {
+export function formatDateSii(isoDate: string): string {
   const dateOnly = isoDate.slice(0, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
     throw new Error(`Formato de fecha invalido para SII: ${dateOnly}`);
