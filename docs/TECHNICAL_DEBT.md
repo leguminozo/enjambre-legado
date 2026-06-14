@@ -48,6 +48,26 @@
 
 ### D4b. Checkout Sessions en Map en Memoria (RESUELTO)
 
+### D5. UI Barrel / Toast System Mismatch + Hidden Type Errors pre-Vercel (RESUELTO)
+
+**Problema**: El barrel `packages/ui/src/index.ts` declaraba `export { ToastProvider, useToast, useToastHistory } from './components/toast'` (y NotificationBell, QRCode, etc.) pero la implementacion en `toast.tsx` (version simple sin history/promise) no exportaba `useToastHistory`. Esto causo `Type error: Module '"./components/toast"' has no exported member 'useToastHistory'` solo durante el type-check de Next.js en `turbo build --filter=@enjambre/tienda` en Vercel (frozen-lockfile + remote). Commit 0a92323 expuso el desalineo. Similar a previos qrcode/lockfile y toast.success sugar errors. Local `next build` o turbo no siempre replicaba hasta que se corrio explicitamente el comando de CI.
+
+**Estado**: RESUELTO — 
+- Se completo la implementacion avanzada del ToastProvider en working tree (history via localStorage, promise<T>, OYZ styling con accent, exit animations, icons, persistent, actions).
+- Se agrego `export function useToastHistory()` + `export type { ... }` al final de toast.tsx.
+- Se alineo `use-toast.ts` con EnhancedToast via Object.assign (soporta tanto `toast(msg, {type:'success'})` base como `.success()` sugar).
+- Se agrego el export faltante `AlertTriangleIcon` en `icons/index.ts`.
+- Scripts de CI local en root `package.json`: `build:ci:tienda` y `build:ci:nucleo` (exacto `pnpm install --frozen-lockfile && pnpm turbo build --filter=...`).
+- Verificacion local pre-push: `pnpm turbo build --filter=@enjambre/tienda` paso "Finished TypeScript in 54s" sin errores, full build exit 0 (compilo + type check + pages).
+- Commit quirurgico f711feb solo toco los 3 archivos de ui (toast.tsx, use-toast.ts, icons/index.ts); resto de cambios (SII logs, notificaciones, trazabilidad, etc.) quedaron sin stage.
+- Push a main realizado (0a92323 -> f711feb).
+
+**Leccion / Ramificacion**: En monorepo con "main":"src/index.ts" (sin build de ui), Turbopack/Next type checker en apps consumidoras es la unica fuente de verdad para exports del barrel. Cambios en barrel deben ir acompanados inmediatamente de la impl en el modulo, y verificados con `build:ci:*` local antes de push. Esto replica exactamente el pipeline de Vercel (frozen + turbo filter) y hace visibles errores de SII/runtime/build en terminal (como se pidio inspirado en Trama). Evita "solo falla en Vercel". Futuro: agregar `turbo types` o `tsc -b` explicito en CI local + husky pre-push hook para los filters criticos (tienda/nucleo).
+
+**Siguiente**: Extender a nucleo (build:ci:nucleo), mejorar logging en todas las rutas SII (calculos-ia, reportes, rcv, certificados) con console.error(context) antes de cualquier JSON error response (para que aparezca en `vercel dev` y en los logs de build), y habilitar el worker de notifications + trigger endpoint.
+---
+
+
 **Problema**: Las sesiones de checkout se almacenaban en un `Map` en memoria. En Vercel serverless, cada cold start pierde las sesiones — el pago se autoriza pero la orden no se persiste.
 
 **Estado**: RESUELTO — Migration 38 crea tabla `checkout_sessions` en Postgres con RLS (service_role only). Las funciones `saveCheckoutSession`, `getCheckoutSession`, `completeCheckoutSession` ahora operan sobre Supabase. Ademas: idempotencia en webhooks (status `completed` previene doble insercion), auditoria trazable, auto-expire via `expire_checkout_sessions()`.
