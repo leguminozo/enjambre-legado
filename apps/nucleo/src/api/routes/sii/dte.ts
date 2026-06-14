@@ -641,10 +641,11 @@ dteRoutes.post(
 dteRoutes.get(
   "/consultar-estado/:track_id",
   async (c) => {
+    const track_id = c.req.param("track_id");
+    const empresaId = c.get("empresaId");
+    const supabase = c.get("supabase");
+
     try {
-      const track_id = c.req.param("track_id");
-      const empresaId = c.get("empresaId");
-      const supabase = c.get("supabase");
 
       // 1. Obtener datos de la empresa para credenciales
       const { data: empresaData, error: empresaError } = await supabase
