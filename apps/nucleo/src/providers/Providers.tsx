@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Toaster } from 'sonner'
-import { ThemeProvider, useTheme } from '@enjambre/ui'
+import { ThemeProvider, ToastProvider, useTheme } from '@enjambre/ui'
 import { useAuthProvider, useAuthStore, createClient } from '@enjambre/auth'
 import type { Session, SupabaseClient } from '@supabase/supabase-js'
 
@@ -70,10 +69,11 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark">
-        <AuthSync />
-        <ThemeSync />
-        {children}
-        <Toaster position="bottom-right" richColors closeButton duration={4000} />
+        <ToastProvider>
+          <AuthSync />
+          <ThemeSync />
+          {children}
+        </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
   )

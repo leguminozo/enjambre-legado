@@ -9,6 +9,7 @@ import { gastosRoutes } from "./gastos";
 import { impuestosRoutes } from "./impuestos";
 import { honorariosRoutes } from "./honorarios";
 import { rcvRoutes } from "./rcv";
+import { dteRoutes } from "./dte";
 
 export const siiRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -20,6 +21,7 @@ siiRoutes.route("/gastos-extranjero", gastosRoutes);
 siiRoutes.route("/", impuestosRoutes); // Handles /f29/... and /f22/...
 siiRoutes.route("/honorarios", honorariosRoutes);
 siiRoutes.route("/rcv", rcvRoutes);
+siiRoutes.route("/dte", dteRoutes);
 
 siiRoutes.get("/tasa-cambio", async (c) => {
   const moneda = c.req.query("moneda") ?? "dolar";

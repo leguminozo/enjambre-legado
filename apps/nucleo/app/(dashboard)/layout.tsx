@@ -3,18 +3,10 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Bell, Search, Menu, X, BarChart3, Hexagon, Calculator, Settings } from 'lucide-react';
+import { Search, Menu, X, BarChart3, Hexagon, Calculator, Settings } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { findActiveItem, BOTTOM_NAV_KEYS, SIDEBAR_GROUPS, ACCOUNT_ITEMS } from '@/config/sidebar-config';
-
-interface NotificationItem {
-  id: number;
-  text: string;
-  type: 'danger' | 'warning' | 'success' | 'gold';
-  time: string;
-}
-
-const notifications: NotificationItem[] = [];
+import { NotificationBell, type Notification } from '@enjambre/ui';
 
 const bottomNavIcons: Record<string, React.ComponentType<{ size?: number }>> = {
   ejecutivo: BarChart3,
@@ -28,13 +20,6 @@ const bottomNavLabels: Record<string, string> = {
   colmenas: 'Colmenas',
   contabilidad: 'Contable',
   sistema: 'Config',
-};
-
-const notifColorMap: Record<string, string> = {
-  danger: 'bg-destructive',
-  warning: 'bg-warning',
-  success: 'bg-success',
-  gold: 'bg-accent',
 };
 
 function getBottomNavItem(key: string, pathname: string) {
@@ -54,14 +39,37 @@ function getBottomNavItem(key: string, pathname: string) {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [readNotifs, setReadNotifs] = useState<number[]>([]);
   const pathname = usePathname();
+  const [realNotifications, setRealNotifications] = useState<Notification[]>([]);
+  const [notifLoading, setNotifLoading] = useState(false);
 
   const activeItem = findActiveItem(pathname);
   const headerTitle = activeItem?.label ?? 'Enjambre Legado';
-  const unreadCount = notifications.filter(n => !readNotifs.includes(n.id)).length;
+
+  // Real data for shared NotificationBell (interconnected with central system)
+  useEffect(() => {
+    const load = async () => {
+      setNotifLoading(true);
+      try {
+        const res = await fetch('/notifications'); // via BFF
+        if (res.ok) {
+          const json = await res.json();
+          const mapped: Notification[] = (json.data || []).map((a: any) => ({
+            id: a.id,
+            title: a.title || a.subject || 'Alerta',
+            message: a.message || a.body || '',
+            time: a.created_at ? new Date(a.created_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : undefined,
+            type: 'gold',
+            href: '/notificaciones', // or relevant
+          }));
+          setRealNotifications(mapped);
+        }
+      } catch {}
+      setNotifLoading(false);
+    };
+    load();
+  }, []);
 
   return (
     <div className="app-layout">
@@ -94,23 +102,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="header-right relative flex items-center gap-4">
             <button
               className="header-btn"
-              onClick={() => { setSearchOpen(!searchOpen); setNotifOpen(false); }}
+              onClick={() => { setSearchOpen(!searchOpen); }}
               aria-label="Buscar"
               aria-expanded={searchOpen}
               aria-controls="header-search-panel"
             >
               <Search size={18} />
             </button>
-            <button
-              className="header-btn"
-              onClick={() => { setNotifOpen(!notifOpen); setSearchOpen(false); }}
-              aria-label={`Notificaciones, ${unreadCount} no leídas`}
-              aria-expanded={notifOpen}
-              aria-controls="header-notifications-panel"
-            >
-              <Bell size={18} />
-              {unreadCount > 0 && <span className="header-btn-badge" aria-hidden="true" />}
-            </button>
+
+            <NotificationBell
+              notifications={realNotifications}
+              isLoading={notifLoading}
+              onMarkRead={(id) => {
+                // For nucleo, optimistic + could call /notifications/read
+                setRealNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+              }}
+              onMarkAllRead={() => {
+                setRealNotifications(prev => prev.map(n => ({ ...n, read: true })));
+              }}
+            />
 
             {searchOpen && (
               <div
@@ -143,45 +153,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
               </div>
             )}
-
-            {notifOpen && (
-              <div
-                id="header-notifications-panel"
-                role="region"
-                aria-label="Notificaciones"
-                className="absolute top-[calc(100%+12px)] right-0 w-[360px] bg-card/95 backdrop-blur-3xl border border-border rounded-lg shadow-xl z-60 overflow-hidden animate-in"
-              >
-                <div className="p-6 flex justify-between items-center border-b border-border">
-                  <span className="font-semibold text-foreground font-existencial">Notificaciones</span>
-                  <button className="btn btn-ghost btn-sm text-accent text-[0.72rem]" onClick={() => setReadNotifs(notifications.map(n => n.id))}>Marcar leídas</button>
-                </div>
-                <div className="max-h-[360px] overflow-y-auto">
-                  {notifications.length === 0 ? (
-                    <div className="px-6 py-8 text-center text-muted-foreground text-[0.88rem] font-datos">
-                      Sin notificaciones nuevas
-                    </div>
-                  ) : (
-                    notifications.map(n => (
-                      <div
-                        key={n.id}
-                        onClick={() => setReadNotifs(prev => prev.includes(n.id) ? prev : [...prev, n.id])}
-                        className={`px-6 py-4 border-b border-border/50 flex gap-4 cursor-pointer transition-colors duration-200 ${readNotifs.includes(n.id) ? 'bg-transparent' : 'bg-accent/[0.04]'}`}
-                      >
-                        <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${notifColorMap[n.type] ?? 'bg-accent'}`} />
-                        <div>
-                          <div className={`text-[0.88rem] leading-relaxed ${readNotifs.includes(n.id) ? 'text-muted-foreground font-normal' : 'text-foreground font-medium'}`}>{n.text}</div>
-                          <div className="text-[0.75rem] text-muted-foreground mt-1">{n.time}</div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </header>
 
-        <div className="page-content" onClick={() => { setSearchOpen(false); setNotifOpen(false); }}>
+        <div className="page-content" onClick={() => { setSearchOpen(false); }}>
           {children}
         </div>
       </main>

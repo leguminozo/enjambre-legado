@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   Map, Hexagon, TreePine, ShoppingBag, Truck, Megaphone,
   Menu, X, LogOut, Calculator, Sparkles, BarChart3, FileText,
@@ -67,7 +67,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onToggle, isOpen }: SidebarProps) {
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const pathname = usePathname();
   const router = useRouter();
   const [userName, setUserName] = useState('Usuario');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -123,10 +123,10 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
 
   return (
     <aside id="sidebar-navigation" className={`sidebar ${isOpen ? 'open' : ''}`} aria-label="Menú de navegación lateral">
-      <div className="sidebar-brand">
+      <Link href="/" className="sidebar-brand" style={{ display: 'block', textDecoration: 'none' }} onClick={() => onToggle()}>
         <div className="sidebar-brand-title">Enjambre Legado</div>
         <div className="sidebar-brand-subtitle">Apicultura Regenerativa · Chiloé</div>
-      </div>
+      </Link>
 
       <nav className="sidebar-nav" aria-label="Navegación principal">
         {SIDEBAR_GROUPS.map(group => (
@@ -135,8 +135,10 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
             label={group.label}
             items={group.items.map(item => toNavItemData(item, badgeOverrides))}
             activeKey={activeItem?.key}
-            linkComponent={Link}
-            onItemClick={() => {
+            onItemClick={(clicked) => {
+              if (clicked.href) {
+                router.push(clicked.href);
+              }
               onToggle();
             }}
           />
@@ -146,8 +148,10 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
           label="CUENTA"
           items={ACCOUNT_ITEMS.map(item => toNavItemData(item, badgeOverrides))}
           activeKey={activeItem?.key}
-          linkComponent={Link}
-          onItemClick={() => {
+          onItemClick={(clicked) => {
+            if (clicked.href) {
+              router.push(clicked.href);
+            }
             onToggle();
           }}
         />

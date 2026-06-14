@@ -22,7 +22,13 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: "Enjambre Legado · Núcleo",
   description: "Plataforma central de apicultura regenerativa — Centro de mando unificado",
-  icons: { icon: "/favicon.ico" },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
   robots: { index: false, follow: false },
 };
 
@@ -35,7 +41,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${inter.variable} ${cormorant.variable} dark`} suppressHydrationWarning>
+    <html lang="es" className={`${inter.variable} ${cormorant.variable}`} suppressHydrationWarning>
       <body className={`${inter.className} bg-background text-foreground antialiased`}>
         <Providers>
           {children}

@@ -4,6 +4,7 @@ import type { ShopProduct } from '@/lib/shop/products';
 import { useCart } from '@/components/shop/cart-context';
 import React, { useState } from 'react';
 import { QrCode, Shield, Clock, MapPin, Leaf } from 'lucide-react';
+import { QRCode } from '@enjambre/ui';
 
 export function AddToCartButton({
   product,
@@ -41,6 +42,7 @@ export function AddToCartButton({
 }
 
 interface TraceabilityProps {
+  slug: string;
   blockchainHash?: string | null;
   colmenaOrigen?: string | null;
   fechaCosecha?: string | null;
@@ -50,6 +52,7 @@ interface TraceabilityProps {
 }
 
 export function TraceabilitySection({ 
+  slug,
   blockchainHash, 
   colmenaOrigen, 
   fechaCosecha,
@@ -62,7 +65,7 @@ export function TraceabilitySection({
   if (!blockchainHash) return null;
 
   const qrUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/producto/${blockchainHash}` 
+    ? `${window.location.origin}/producto/${slug}/trazabilidad` 
     : '';
 
   return (
@@ -77,7 +80,7 @@ export function TraceabilitySection({
           {/* Info */}
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Este producto cuenta con certificación de trazabilidad blockchain. Cada lote está vinculado a una colmena específica del bosque nativo de Chiloé.
+              Este producto cuenta con certificación de trazabilidad de origen. Cada lote está firmado criptográficamente y vinculado a una colmena del bosque nativo de Chiloé.
             </p>
             
             {(colmenaOrigen || fechaCosecha || fechaEnvasado || nombreLote) && (
@@ -109,7 +112,7 @@ export function TraceabilitySection({
                 {blockchainHash && (
                   <div className="flex items-center gap-3 text-sm">
                     <Leaf className="h-4 w-4 text-accent" />
-                    <span className="text-foreground">Hash: <code className="text-xs bg-secondary px-2 py-1 rounded">{blockchainHash.slice(0, 12)}...{blockchainHash.slice(-8)}</code></span>
+                    <span className="text-foreground">Hash de Origen: <code className="text-xs bg-secondary px-2 py-1 rounded">{blockchainHash.slice(0, 12)}...{blockchainHash.slice(-8)}</code></span>
                   </div>
                 )}
               </div>
@@ -133,12 +136,7 @@ export function TraceabilitySection({
           {/* QR */}
           {showQR && (
             <div className="flex flex-col items-center justify-center p-4 bg-secondary/50 rounded-lg border border-border">
-              <div className="w-32 h-32 bg-card p-2 rounded-md mb-3">
-                {/* QR code placeholder - en producción usar librería qrcode */}
-                <div className="w-full h-full border-2 border-dashed border-accent/30 flex items-center justify-center">
-                  <QrCode className="w-24 h-24 text-foreground" />
-                </div>
-              </div>
+              <QRCode value={qrUrl} size={120} className="mb-3 border-none p-1 bg-white" fgColor="#000000" />
               <p className="text-xs text-muted-foreground text-center">
                 Escanea para verificar el origen y trazabilidad de este producto
               </p>

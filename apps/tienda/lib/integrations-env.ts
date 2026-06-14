@@ -67,8 +67,10 @@ export function getSecretsPresenceForIntegrationKey(
     case 'bancos':
       return Boolean(env.BANK_API_KEY || env.BANK_CLIENT_SECRET);
     case 'notificaciones':
+      // Actual: Worker usa Resend (RESEND_API_KEY). SendGrid/SMTP son legacy/planificados.
+      // Ver apps/nucleo/src/lib/notifications/worker.ts (sendEmail con Resend real).
       return Boolean(
-        env.NOTIFY_SENDGRID_API_KEY || (env.NOTIFY_SMTP_HOST && env.NOTIFY_SMTP_USER),
+        env.NOTIFY_SENDGRID_API_KEY || (env.NOTIFY_SMTP_HOST && env.NOTIFY_SMTP_USER) || process.env.RESEND_API_KEY,
       );
     case 'boletas':
       return Boolean(env.BOLETAS_API_KEY || env.DTE_API_TOKEN);

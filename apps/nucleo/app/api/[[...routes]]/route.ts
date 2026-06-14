@@ -30,6 +30,7 @@ import { pipelineRoutes } from "@/api/routes/pipeline";
 import { securityEventRoutes } from "@/api/routes/security-events";
 import { checkoutRoutes } from "@/api/routes/checkout";
 import { webhooksApp } from "@/api/routes/webhooks";
+import { notificationsRoutes } from "@/api/routes/notifications";
 
 export type { AppVariables };
 
@@ -184,6 +185,7 @@ app.route("/pipeline", pipelineRoutes);
 app.route("/security-events", securityEventRoutes);
 app.route("/checkout", checkoutRoutes);
 app.route("/webhooks", webhooksApp);
+app.route("/notifications", notificationsRoutes);
 
 app.onError((err, c) => {
   console.error(err);

@@ -190,6 +190,7 @@ export default async function ProductoPage({ params }: PageProps) {
 
             {/* Trazabilidad QR */}
             <TraceabilitySection
+              slug={product.slug}
               blockchainHash={product.blockchain_hash}
               colmenaOrigen={product.colmena_origen}
               fechaCosecha={product.fecha_cosecha}

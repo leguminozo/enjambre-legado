@@ -123,6 +123,7 @@ console.error('Error deleting product:', error);
   const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
   const visibleCount = products.filter(p => p.visible).length;
   const totalValue = products.reduce((sum, p) => sum + (p.precio || 0) * (p.stock || 0), 0);
+  const tiendaUrl = process.env.NEXT_PUBLIC_URL_TIENDA || 'http://localhost:3001';
 
   if (loading) {
     return (
@@ -229,7 +230,9 @@ console.error('Error deleting product:', error);
                     {product.slug && (
                       <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
                         <ExternalLink size={10} />
-                        /producto/{product.slug}
+                        <a href={`${tiendaUrl}/producto/${product.slug}`} target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} className="hover:underline">
+                          /producto/{product.slug}
+                        </a>
                       </div>
                     )}
                   </td>
@@ -273,7 +276,7 @@ console.error('Error deleting product:', error);
                         <Edit size={16} />
                       </button>
                       <a
-                        href={product.slug ? `/producto/${product.slug}` : '#'}
+                        href={product.slug ? `${tiendaUrl}/producto/${product.slug}` : '#'}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn btn-ghost btn-sm"

@@ -27,7 +27,7 @@ export function useThresholdNotification(opts: {
     const pct = todayRevenue / nextThreshold.threshold;
     if (pct >= triggerAt && pct < 1) {
       firedRef.current = true;
-      setNotification({
+      const notif = {
         id: `threshold-${Date.now()}`,
         message: pct >= 0.95 ? '¡Casi cruzas el umbral!' : 'Acercándote al próximo multiplicador',
         multiplier: nextThreshold.multiplier,
@@ -35,10 +35,15 @@ export function useThresholdNotification(opts: {
         threshold: nextThreshold.threshold,
         percentage: Math.round(pct * 100),
         dismissed: false,
-      });
+      };
+      setNotification(notif);
+
+      // TODO (profundidad entrega): entrelazar creando notification_event central (usar cliente supabase de campo + @ts-expect-error por tipos generados). Por ahora banner local + nota para nucleo/tienda.
+      // const supabase = createClient();
+      // supabase.from('notification_events').insert({...}).catch(() => {});
     } else if (pct >= 1) {
       firedRef.current = true;
-      setNotification({
+      const notif = {
         id: `threshold-crossed-${Date.now()}`,
         message: '¡Umbral cruzado! Multiplicador activado',
         multiplier: nextThreshold.multiplier,
@@ -46,7 +51,12 @@ export function useThresholdNotification(opts: {
         threshold: nextThreshold.threshold,
         percentage: 100,
         dismissed: false,
-      });
+      };
+      setNotification(notif);
+
+      // TODO (profundidad entrega): entrelazar creando notification_event central (usar cliente supabase de campo + @ts-expect-error por tipos generados). Por ahora banner local + nota para nucleo/tienda.
+      // const supabase = createClient();
+      // supabase.from('notification_events').insert({...}).catch(() => {});
     }
   }, [todayRevenue, nextThreshold, triggerAt]);
 

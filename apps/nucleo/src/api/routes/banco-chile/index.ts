@@ -18,7 +18,7 @@ import { authMiddleware } from '@/api/lib/middleware';
 import { tenantMiddleware } from '@/api/lib/middleware';
 import { bancoChileRouter } from './routes';
 import { conciliacionRouter } from './conciliacion';
-import { conciliacionAutoRouter } from './conciliacion-auto';
+import { conciliacionAutoRoutes } from './conciliacion-auto';
 import { webhookRouter } from './webhook';
 import { transferenciasRouter } from './transferencias';
 import { nominasRouter } from './nominas';
@@ -159,7 +159,7 @@ bancoChileRoutes.post('/auth', async (c) => {
 // Mount sub-routers
 bancoChileRoutes.route('', bancoChileRouter);
 bancoChileRoutes.route('/conciliacion', conciliacionRouter);
-bancoChileRoutes.route('/conciliacion-auto', conciliacionAutoRouter);
+bancoChileRoutes.route('/conciliacion-auto', conciliacionAutoRoutes);
 bancoChileRoutes.route('/webhook', webhookRouter);
 bancoChileRoutes.route('/transferencias', transferenciasRouter);
 bancoChileRoutes.route('/nominas', nominasRouter);

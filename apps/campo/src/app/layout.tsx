@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, Cormorant_Garamond } from 'next/font/google';
 import React from 'react';
-import { ThemeProvider } from '@enjambre/ui';
+import { ThemeProvider, ToastProvider } from '@enjambre/ui';
 import { CampoAuthProvider } from '@/components/campo-auth-provider';
 import { SyncProvider } from '@/components/sync-provider';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -33,17 +33,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className={`${inter.variable} ${cormorant.variable}`} suppressHydrationWarning>
       <body className={`${inter.className} bg-background antialiased`}>
-    <ThemeProvider defaultTheme="system">
-      <CampoAuthProvider>
-        <SyncProvider>
-          {children}
-        </SyncProvider>
-      </CampoAuthProvider>
-    </ThemeProvider>
+        <ThemeProvider defaultTheme="system">
+          <ToastProvider>
+            <CampoAuthProvider>
+              <SyncProvider>
+                {children}
+              </SyncProvider>
+            </CampoAuthProvider>
+          </ToastProvider>
+        </ThemeProvider>
         <SpeedInsights />
         <Analytics />
       </body>
     </html>
   );
 }
-

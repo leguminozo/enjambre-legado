@@ -2,6 +2,22 @@ import type { AppVariables } from '@/api/lib/middleware';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from '@/api/lib/ratelimit';
+
+async function webhookRateLimit(c: { req: { header: (name: string) => string | undefined; ip?: string }; json: (data: unknown, status: number) => Response; header: (name: string, value: string) => void }) {
+  const identifier = getClientIdentifier(c);
+  const result = await checkRateLimit({ identifier, ...RATE_LIMIT_CONFIGS.webhook });
+
+  c.header("X-RateLimit-Limit", String(result.limit));
+  c.header("X-RateLimit-Remaining", String(result.remaining));
+  c.header("X-RateLimit-Reset", String(result.reset));
+
+  if (!result.success) {
+    c.header("Retry-After", String(result.retryAfter || 60));
+    return c.json({ code: "rate_limited", message: "Demasiadas solicitudes. Intenta de nuevo más tarde." }, 429);
+  }
+  return null;
+}
 
 /**
  * Webhook para notificaciones de Banco Chile
@@ -53,6 +69,9 @@ async function verifyBancoChileSignature(
 
 // Endpoint principal para webhooks
 webhookRouter.post('/', async (c) => {
+  const rateLimitResult = await webhookRateLimit(c);
+  if (rateLimitResult) return rateLimitResult;
+
   try {
     const supabase = c.get('supabase');
     const rawBody = await c.req.text();

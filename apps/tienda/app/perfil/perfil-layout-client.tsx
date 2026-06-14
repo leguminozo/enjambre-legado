@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react';
 import { Menu } from 'lucide-react';
-import { GuardianSidebar } from '@/components/shop/guardian-sidebar';
+import { TiendaSidebar } from '@/components/shop/tienda-sidebar';
 import { BeeCanvas } from '@/components/shop/bee-canvas';
 import type { OyzRole } from '@/lib/shop/role';
+import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 
 interface PerfilLayoutClientProps {
   children: React.ReactNode;
-  user: any | null; // Keep typing loose here since we decouple full profile
+  user: TiendaUserProfile | null;
   role: OyzRole;
 }
 
@@ -20,7 +21,7 @@ export function PerfilLayoutClient({ children, user, role }: PerfilLayoutClientP
       <BeeCanvas />
       <div className="absolute inset-0 bg-radial-gradient from-transparent to-background opacity-90 pointer-events-none z-0" />
 
-      <GuardianSidebar
+      <TiendaSidebar
         user={user}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
