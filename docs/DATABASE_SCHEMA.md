@@ -58,8 +58,19 @@ Ubicaciones geograficas de las colmenas. Usa **PostGIS**.
 | `id` | UUID PK | Identificador unico |
 | `nombre` | TEXT | Nombre del apiario |
 | `ubicacion` | GEOGRAPHY(Point) | Coordenadas para mapas |
+| `lat` | DOUBLE PRECISION | Latitud decimal (compatibilidad) |
+| `lng` | DOUBLE PRECISION | Longitud decimal (compatibilidad) |
 | `sector` | TEXT | Descripcion del entorno (bosque, pradera, etc.) |
-| `apicultor_id` | UUID FK → profiles | Responsable del apiario |
+| `created_by` | UUID FK → profiles | Creador original (legacy) |
+| `user_id` | UUID FK → auth.users | Propietario normalizado (migration 20250614) |
+
+**RLS Policies** (migration 20250614):
+- SELECT: `user_id = auth.uid() OR created_by = auth.uid() OR public.is_admin()`
+- INSERT: `user_id = auth.uid() OR created_by = auth.uid() OR public.is_admin()`
+- UPDATE: `user_id = auth.uid() OR created_by = auth.uid() OR public.is_admin()`
+- DELETE: `user_id = auth.uid() OR created_by = auth.uid() OR public.is_admin()`
+
+**Nota**: Columna `user_id` agregada en migration 20250614 para normalizar ownership con `arboles_plantados`. Ambas columnas (`user_id` y `created_by`) son soportadas durante transición.
 
 ### `colmenas`
 

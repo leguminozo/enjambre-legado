@@ -51,6 +51,7 @@
 ### Estado Actual
 - [x] Login con redireccion por rol
 - [x] Vista de mapa interactivo (Leaflet + PostGIS)
+- [x] **Edición de mapa** — Click-to-add markers (apiarios/árboles) con RLS-safe Supabase integration (migration 20250614)
 - [x] Vistas por rol (consolidadas a `admin` via migration 39; views legacy pendientes limpieza)
 - [x] PWA con service worker y manifest
 - [x] TanStack Query para datos remotos

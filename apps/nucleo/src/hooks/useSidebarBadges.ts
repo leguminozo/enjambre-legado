@@ -36,6 +36,8 @@ export function useSidebarBadges() {
 
   const fetchBadges = useCallback(async () => {
     if (!supabase) return
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
 
     try {
       const [colmenasRisk, enviosPending, facturasPendientes, integrationsConfig] = await Promise.all([

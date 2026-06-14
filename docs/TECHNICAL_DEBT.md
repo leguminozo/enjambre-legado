@@ -121,7 +121,7 @@
 
 | Hallazgo | Detalle | Fix |
 |---|---|---|
-| 8 tablas SIN RLS | `source_files`, `boletas_ingest`, `bank_movements`, `sii_sync_runs`, `notification_events`, `cosechas`, `lotes`, `arboles_plantados` | `ALTER TABLE ENABLE ROW LEVEL SECURITY` + policies por rol |
+| 8 tablas SIN RLS | `source_files`, `boletas_ingest`, `bank_movements`, `sii_sync_runs`, `notification_events`, `cosechas`, `lotes`, `arboles_plantados` | `ALTER TABLE ENABLE ROW LEVEL SECURITY` + policies por rol (migration 40) |
 | `suscriptor_config` | RLS habilitado pero ZERO policies (todo bloqueado) | 4 policies: self SELECT/INSERT/UPDATE + admin ALL |
 | `productos_read` | Policy con `USING true` permite anon ver productos ocultos | DROP policy legacy, queda `productos_public_read` con `visible = true` |
 | `eventos_read` | `USING true` para anon | Restringido a `TO authenticated` |

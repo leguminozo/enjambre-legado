@@ -224,7 +224,18 @@ impuestosRoutes.get("/f22/:anio", async (c) => {
     .eq("anio", anio);
 
   if (!periodos || periodos.length === 0) {
-    return c.json({ code: "no_data", message: `No hay periodos contables para ${anio}` }, 404);
+    const empresaRegimen = ((empresa as any).regimen as import("@enjambre/contable").RegimenTributario) ?? "pro_pyme_transparente";
+    const f22Input: F22Input = {
+      anioComercial: anio,
+      regimen: empresaRegimen,
+      baseImponibleTransparente: 0,
+      idpcPagada: 0,
+      ppmTotalPagado: 0,
+      retencionesHonorariosTotal: 0,
+      ivaDebitoAnual: 0,
+      ivaCreditoAnual: 0,
+    };
+    return c.json({ data: calcularF22(f22Input) });
   }
 
   const periodoIds = periodos.map((p) => String(p.id));
