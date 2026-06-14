@@ -71,6 +71,7 @@ export async function obtenerF29Interno(
   const facturas = (facturasRes.data ?? []) as any[];
   const gastos = (gastosRes.data ?? []) as any[];
   const honorarios = (honorariosRes.data ?? []) as any[];
+  const gastosDigitales = (gastosDigitalesRes.data ?? []) as any[];
 
   const debitoFacturas = facturas
     .filter((f) => String(f.tipo_documento ?? "Factura") === "Factura")
@@ -79,7 +80,7 @@ export async function obtenerF29Interno(
     .filter((f) => ["Boleta", "Boleta Exenta"].includes(String(f.tipo_documento ?? "")))
     .reduce((a, f) => a + Number(f.monto_iva ?? 0), 0);
   const creditoCompras = gastos.reduce((a, g) => a + Number(g.monto_iva ?? 0), 0);
-  const creditoDigital = (gastosDigitalesRes.data ?? []).reduce((a, g) => a + Number(g.monto_iva ?? 0), 0);
+  const creditoDigital = gastosDigitales.reduce((a, g) => a + Number(g.monto_iva ?? 0), 0);
   const retencionHonorarios = honorarios.reduce((a, h) => a + Number(h.monto_retencion ?? 0), 0);
   const ingresosBrutos = facturas.reduce((a, f) => a + Number(f.monto_total ?? 0), 0);
 
