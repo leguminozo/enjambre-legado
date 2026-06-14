@@ -7,6 +7,8 @@ type Props = {
   className?: string;
   src?: string;
   alt?: string;
+  priority?: boolean;
+  sizes?: string;
 };
 
 const ratioClass = {
@@ -15,11 +17,21 @@ const ratioClass = {
   portrait: 'aspect-[3/4]',
 } as const;
 
-export function ImagePlaceholder({ ratio = 'square', label, className = '', src, alt }: Props) {
+export function ImagePlaceholder({ ratio = 'square', label, className = '', src, alt, priority = false, sizes = '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw' }: Props) {
   if (src) {
     return (
       <div className={`relative w-full overflow-hidden ${ratioClass[ratio]} ${className}`}>
-        <Image src={src} alt={alt || label || 'Imagen'} fill className="object-cover" />
+        <Image
+          src={src}
+          alt={alt || label || 'Imagen'}
+          fill
+          className="object-cover"
+          priority={priority}
+          sizes={sizes}
+          quality={85}
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwDsAB//Z"
+        />
       </div>
     );
   }

@@ -1,0 +1,56 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior"
+  },
+  "nav": {
+    "home": "Inicio",
+    "catalog": "Catálogo",
+    "about": "Nosotros",
+    "contact": "Contacto",
+    "profile": "Perfil",
+    "cart": "Carrito",
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión"
+  },
+  "hero": {
+    "title": "Miel de Bosque Nativo",
+    "subtitle": "Regenerando el ecosistema de Chiloé con cada frasco",
+    "cta": "Explorar productos"
+  },
+  "product": {
+    "addToCart": "Agregar al carrito",
+    "outOfStock": "Agotado",
+    "price": "Precio",
+    "description": "Descripción",
+    "origin": "Origen",
+    "harvest": "Cosecha"
+  },
+  "checkout": {
+    "title": "Finalizar compra",
+    "shipping": "Envío",
+    "payment": "Pago",
+    "summary": "Resumen",
+    "total": "Total",
+    "placeOrder": "Realizar pedido"
+  },
+  "profile": {
+    "myLegacy": "Mi Legado",
+    "orders": "Pedidos",
+    "impact": "Impacto",
+    "hive": "Colmena",
+    "settings": "Ajustes"
+  }
+}

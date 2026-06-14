@@ -1,9 +1,34 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { getPaymentProvider, saveCheckoutSession, getCheckoutSession, completeCheckoutSession } from "../lib/payments";
+import {
+  getPaymentProvider,
+  getPaymentProviderByName,
+  saveCheckoutSession,
+  getCheckoutSession,
+} from "../lib/payments";
 import type { CartLineInput } from "../lib/payments";
+import { fulfillCheckout } from "../lib/payments/checkout-fulfill";
 import { createClient } from "@supabase/supabase-js";
+import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from "../lib/ratelimit";
+
+async function rateLimitMiddleware(
+  c: { req: { header: (name: string) => string | undefined; ip?: string }; json: (data: unknown, status: number) => Response; header: (name: string, value: string) => void },
+  config: { readonly limit: number; readonly window: `${number} ${"s" | "m" | "h" | "d"}` }
+) {
+  const identifier = getClientIdentifier(c);
+  const result = await checkRateLimit({ identifier, ...config });
+
+  c.header("X-RateLimit-Limit", String(result.limit));
+  c.header("X-RateLimit-Remaining", String(result.remaining));
+  c.header("X-RateLimit-Reset", String(result.reset));
+
+  if (!result.success) {
+    c.header("Retry-After", String(result.retryAfter || 60));
+    return c.json({ code: "rate_limited", message: "Demasiadas solicitudes. Intenta de nuevo más tarde." }, 429);
+  }
+  return null;
+}
 
 const CartLineSchema = z.object({
   productId: z.string().uuid(),
@@ -25,12 +50,12 @@ const ShippingSchema = z.object({
   instrucciones: z.string().max(500).optional(),
 });
 
-const WebhookBodySchema = z.record(z.string(), z.string());
-
 const InitBodySchema = z.object({
   cart: z.array(CartLineSchema).min(1),
   shipping: ShippingSchema,
   returnUrl: z.string().url().optional(),
+  buyerMode: z.enum(['legado', 'privada', 'b2b']).optional().default('legado'),
+  organizacionId: z.string().uuid().optional(),
 });
 
 const CommitBodySchema = z.object({
@@ -41,31 +66,6 @@ const CommitBodySchema = z.object({
 
 export const checkoutRoutes = new Hono();
 
-async function verifyFlowSignature(params: Record<string, string>): Promise<boolean> {
-  const signature = params.s;
-  if (!signature) return false;
-
-  const sorted = Object.keys(params)
-    .filter((k) => k !== 's')
-    .sort()
-    .map((k) => `${k}=${params[k]}`)
-    .join('&');
-
-  const secret = process.env.FLOW_SECRET;
-  if (!secret) return false;
-
-  const encoder = new TextEncoder();
-  const data = encoder.encode(sorted);
-  const keyData = encoder.encode(secret);
-  const cryptoKey = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const sig = await crypto.subtle.sign('HMAC', cryptoKey, data);
-  const computed = Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-
-  return computed === signature;
-}
-
 function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -74,12 +74,14 @@ function createAdminClient() {
 }
 
 checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
+  const rateLimitResult = await rateLimitMiddleware(c, RATE_LIMIT_CONFIGS.checkout);
+  if (rateLimitResult) return rateLimitResult;
+
   try {
-    const { cart, shipping, returnUrl: rawReturnUrl } = c.req.valid("json");
+    const { cart, shipping, returnUrl: rawReturnUrl, buyerMode, organizacionId } = c.req.valid("json");
     const admin = createAdminClient();
     const productIds = cart.map((line) => line.productId);
 
-    // 1. Verify user and role from Authorization header securely
     const authHeader = c.req.header('Authorization');
     const token = authHeader?.replace('Bearer ', '');
     let role = 'comprador';
@@ -91,15 +93,20 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       if (!authErr && user) {
         userId = user.id;
         role = user.app_metadata?.oyz_role || 'comprador';
-        
+
         if (role === 'revendedor' || role === 'embajador') {
-          const { data: pastOrders } = await admin.from('pedidos').select('id').eq('user_id', user.id);
-          pastOrdersCount = pastOrders?.length || 0;
+          const { count } = await admin
+            .from('ventas')
+            .select('id', { count: 'exact', head: true })
+            .eq('cliente_id', user.id);
+          pastOrdersCount = count ?? 0;
         }
       }
     }
 
-    // 2. Fetch products
+    const effectiveBuyerMode = buyerMode === 'legado' && !userId ? 'privada' : buyerMode;
+    const effectiveClienteId = effectiveBuyerMode === 'privada' ? null : userId;
+
     const { data: products, error: fetchError } = await admin
       .from('productos')
       .select('id, precio, stock, nombre, visible')
@@ -109,7 +116,6 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       return c.json({ code: "fetch_error", message: 'Error consultando productos' }, 500);
     }
 
-    // 3. Compute multipliers
     let roleMultiplier = 1.0;
     if (role === 'embajador') roleMultiplier = 0.70;
     else if (role === 'revendedor') roleMultiplier = 0.80;
@@ -144,12 +150,10 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
         continue;
       }
 
-      // Compute discounted price server-side
       const basePrice = product.precio;
       const discountedPrice = Math.round(basePrice * finalMultiplier);
 
       if (line.unitPrice !== discountedPrice) {
-        // Only error if the client submitted a mismatch against the DISCOUNTED price
         errors.push(`Producto ${product.nombre}: precio cambió de $${line.unitPrice} a $${discountedPrice}`);
         continue;
       }
@@ -191,6 +195,9 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       provider: provider.name,
       shipping,
       createdAt: Date.now(),
+      buyerMode: effectiveBuyerMode,
+      clienteId: effectiveClienteId,
+      organizacionId: organizacionId ?? null,
     });
 
     return c.json({
@@ -200,6 +207,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       sessionId: result.sessionId,
       total,
       provider: provider.name,
+      buyerMode: effectiveBuyerMode,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo iniciar checkout';
@@ -208,6 +216,9 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
 });
 
 checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) => {
+  const rateLimitResult = await rateLimitMiddleware(c, RATE_LIMIT_CONFIGS.checkout);
+  if (rateLimitResult) return rateLimitResult;
+
   try {
     const { token_ws, buyOrder: clientBuyOrder } = c.req.valid("json");
     const provider = getPaymentProvider();
@@ -230,79 +241,31 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
       }, 200);
     }
 
-    const serverTotal = session.total;
-    const cart = session.cart;
     const admin = createAdminClient();
-
-    const { data: existingVenta } = await admin.from('ventas').select('id').eq('buy_order', buyOrder).maybeSingle();
-    if (existingVenta) {
-      return c.json({ ok: true, authorized: true, buyOrder, message: 'Venta ya procesada' }, 200);
-    }
-
-    const { error: ventaError } = await admin.from('ventas').insert({
-      origen: 'web',
-      estado: 'pagado',
-      total: serverTotal,
-      items: cart,
-      metodo_pago: session.provider,
-      buy_order: buyOrder,
-      auth_code: result.authorizationCode,
-      buyer_email: session.shipping?.email ?? null,
-      direccion_envio: session.shipping ?? null,
+    const fulfilled = await fulfillCheckout(admin, {
+      buyOrder,
+      session,
+      authorizationCode: result.authorizationCode,
+      paymentProvider: session.provider,
     });
 
-    if (ventaError) {
-      console.error('Error persistiendo venta:', ventaError.message);
-    }
-
-    const stockErrors: string[] = [];
-    for (const line of cart) {
-      const qty = Math.max(0, Number(line.quantity || 0));
-      if (!qty) continue;
-
-      const { data: decremented, error: rpcErr } = await admin.rpc('decrement_stock', {
-        p_id: line.productId,
-        p_qty: qty,
-      });
-
-      if (rpcErr || !decremented || (decremented as unknown[]).length === 0) {
-        stockErrors.push(`Producto ${line.productId}: stock insuficiente o error al descontar`);
-      }
-    }
-
-    if (stockErrors.length > 0) {
-      console.error('Stock update errors:', stockErrors);
-    }
-
-    await completeCheckoutSession(buyOrder);
-
-    // Contable Integration - Create Boleta Automáticamente
-    const montoNeto = Math.round(serverTotal / 1.19);
-    const montoIva = serverTotal - montoNeto;
-
-    const { data: defaultEmpresa } = await admin.from('empresas').select('id').limit(1).single();
-    if (defaultEmpresa) {
-       await admin.from("facturas_emitidas").insert({
-        empresa_id: defaultEmpresa.id,
-        numero: `BWEB-${buyOrder}`,
-        fecha_emision: new Date().toISOString().split('T')[0],
-        monto_neto: montoNeto,
-        monto_iva: montoIva,
-        monto_total: serverTotal,
-        monto_exento: 0,
-        monto_iva_usado: 0,
-        tipo_documento: "Boleta",
-        descripcion: `Venta Web - ${buyOrder}`,
-        estado: "pendiente",
-      });
+    if (!fulfilled.ok) {
+      return c.json({
+        ok: false,
+        authorized: true,
+        error: 'Pago autorizado pero no se pudo registrar la venta. Contacta soporte con orden ' + buyOrder,
+        buyOrder,
+      }, 200);
     }
 
     return c.json({
       ok: true,
       authorized: true,
       buyOrder,
-      total: serverTotal,
-      cart,
+      total: session.total,
+      cart: session.cart,
+      ventaId: fulfilled.ventaId,
+      alreadyProcessed: fulfilled.alreadyProcessed ?? false,
       result: result.raw,
     }, 200);
   } catch (error) {
@@ -311,24 +274,27 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
   }
 });
 
-checkoutRoutes.post("/webhook/flow", zValidator("json", WebhookBodySchema), async (c) => {
+checkoutRoutes.post("/webhook/flow", async (c) => {
+  const rateLimitResult = await rateLimitMiddleware(c, RATE_LIMIT_CONFIGS.webhook);
+  if (rateLimitResult) return rateLimitResult;
+
   try {
-    const raw = c.req.valid("json");
-    const isValid = await verifyFlowSignature(raw);
-    if (!isValid) {
-      return c.json({ error: 'Firma inválida' }, 403);
+    const body = await c.req.parseBody();
+    const token = typeof body.token === 'string' ? body.token : '';
+    if (!token) {
+      return c.json({ error: 'Falta token' }, 400);
     }
 
-    const status = Number(raw.status);
-    const FLOW_PAID = 2;
+    const provider = getPaymentProviderByName('flow');
+    const result = await provider.commit(token);
 
-    if (status !== FLOW_PAID) {
-      return c.json({ ok: true, status: 'ignored', message: `Estado Flow: ${status}` }, 200);
+    if (!result.authorized) {
+      return c.json({ ok: true, status: 'not_paid' }, 200);
     }
 
-    const buyOrder = raw.commerceOrder;
+    const buyOrder = result.buyOrder;
     if (!buyOrder) {
-      return c.json({ error: 'Falta commerceOrder' }, 400);
+      return c.json({ error: 'Falta commerceOrder en respuesta Flow' }, 400);
     }
 
     const session = await getCheckoutSession(buyOrder);
@@ -337,72 +303,19 @@ checkoutRoutes.post("/webhook/flow", zValidator("json", WebhookBodySchema), asyn
       return c.json({ error: 'Sesión no encontrada' }, 404);
     }
 
-    if (session.provider !== 'flow') {
-      return c.json({ error: 'Provider mismatch' }, 400);
-    }
-
-    const serverTotal = session.total;
-    const cart = session.cart;
-    const flowAmount = Number(raw.amount ?? 0);
-
-    if (flowAmount > 0 && Math.round(flowAmount) !== serverTotal) {
-      console.error(`Flow webhook: amount mismatch. Expected ${serverTotal}, got ${flowAmount}`);
-      return c.json({ error: 'Monto no coincide' }, 409);
-    }
-
     const admin = createAdminClient();
-    
-    const { data: existingVenta } = await admin.from('ventas').select('id').eq('buy_order', buyOrder).maybeSingle();
-    if (existingVenta) {
-      return c.json({ ok: true, status: 'already_processed' }, 200);
-    }
-
-    const { error: ventaError } = await admin.from('ventas').insert({
-      origen: 'web',
-      estado: 'pagado',
-      total: serverTotal,
-      items: cart,
-      metodo_pago: 'flow',
-      buy_order: buyOrder,
-      auth_code: raw.flowOrder ?? '',
-      buyer_email: session.shipping?.email ?? null,
-      direccion_envio: session.shipping ?? null,
+    const fulfilled = await fulfillCheckout(admin, {
+      buyOrder,
+      session,
+      authorizationCode: result.authorizationCode,
+      paymentProvider: 'flow',
     });
 
-    if (ventaError) {
-      console.error('Flow webhook: error persistiendo venta:', ventaError.message);
+    if (!fulfilled.ok) {
       return c.json({ error: 'Error guardando venta' }, 500);
     }
 
-    for (const line of cart) {
-      const qty = Math.max(0, Number(line.quantity || 0));
-      if (!qty) continue;
-      await admin.rpc('decrement_stock', { p_id: line.productId, p_qty: qty });
-    }
-
-    await completeCheckoutSession(buyOrder);
-    
-    // Contable Integration
-    const montoNeto = Math.round(serverTotal / 1.19);
-    const montoIva = serverTotal - montoNeto;
-    const { data: defaultEmpresa } = await admin.from('empresas').select('id').limit(1).single();
-    if (defaultEmpresa) {
-       await admin.from("facturas_emitidas").insert({
-        empresa_id: defaultEmpresa.id,
-        numero: `BWEB-${buyOrder}`,
-        fecha_emision: new Date().toISOString().split('T')[0],
-        monto_neto: montoNeto,
-        monto_iva: montoIva,
-        monto_total: serverTotal,
-        monto_exento: 0,
-        monto_iva_usado: 0,
-        tipo_documento: "Boleta",
-        descripcion: `Venta Web - ${buyOrder}`,
-        estado: "pendiente",
-      });
-    }
-
-    return c.json({ ok: true, status: 'confirmed' }, 200);
+    return c.json({ ok: true, status: fulfilled.alreadyProcessed ? 'already_processed' : 'confirmed' }, 200);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error procesando webhook';
     console.error('Flow webhook error:', message);

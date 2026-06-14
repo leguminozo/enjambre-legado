@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { app } from "../../../../app/api/[[...routes]]/route";
 
+vi.mock("@/api/lib/payments/checkout-fulfill", () => ({
+  fulfillCheckout: vi.fn().mockResolvedValue({ ok: true, ventaId: "venta-uuid-1" }),
+}));
+
 vi.mock("@/api/lib/payments", () => {
   return {
     getPaymentProvider: () => ({
@@ -31,7 +35,17 @@ vi.mock("@/api/lib/payments", () => {
         },
       ],
       provider: "transbank",
-      shipping: { email: "buyer@example.com" },
+      shipping: {
+        nombre: "Juan",
+        email: "buyer@example.com",
+        telefono: "+56912345678",
+        direccion: "Calle 1",
+        comuna: "Providencia",
+        ciudad: "Santiago",
+        region: "Metropolitana",
+      },
+      buyerMode: "legado",
+      clienteId: "mock-user-id",
     }),
     completeCheckoutSession: vi.fn().mockResolvedValue(undefined),
   };
@@ -95,6 +109,7 @@ describe("Checkout API Routes", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "origin": "http://localhost:3000",
         },
         body: JSON.stringify({}),
       });
@@ -107,6 +122,7 @@ describe("Checkout API Routes", () => {
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer valid-token",
+          "origin": "http://localhost:3000",
         },
         body: JSON.stringify({
           cart: [
@@ -145,6 +161,7 @@ describe("Checkout API Routes", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "origin": "http://localhost:3000",
         },
         body: JSON.stringify({
           token_ws: "mock-ws-token",

@@ -68,7 +68,7 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
     }
 
   if (user && pathname === authRedirect) {
-    const rawRole = (user.app_metadata?.role as string) ?? (user.user_metadata?.role as string) ?? ''
+    const rawRole = (user.app_metadata?.role as string) ?? 'cliente'
     const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
     const redirectPath = roleRedirectMap[role] ?? '/'
     const url = request.nextUrl.clone()
@@ -77,11 +77,11 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
   }
 
   if (user) {
-    const rawRole = (user.app_metadata?.role as string) ?? (user.user_metadata?.role as string) ?? ''
+    const rawRole = (user.app_metadata?.role as string) ?? 'cliente'
     const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
       if (!isRouteAllowed(pathname, role)) {
         const origin = request.nextUrl.origin
-        const internalKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
+        const internalKey = process.env.INTERNAL_API_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
         fetch(`${origin}/api/security-events/internal`, {
           method: 'POST',
           headers: {

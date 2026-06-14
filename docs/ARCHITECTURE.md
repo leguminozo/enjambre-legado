@@ -465,7 +465,7 @@ Ver `DEPLOY.md` y `VERCEL.md` para instrucciones detalladas.
 En el proceso de transición de datos mock/estáticos a flujos dinámicos con Supabase en apps complejas como Nucleo, se deben considerar las siguientes ramificaciones arquitectónicas:
 
 ### 8.1 Seguridad (Security)
-- **Alineación con RLS**: Al remover variables locales `ROLE` u objetos mock de autenticación, toda consulta o mutación debe ser filtrada basándose en el identificador de sesión obtenido mediante `supabase.auth.getSession()` o los estados provistos por el package `@enjambre/auth`.
+- **Alineación con RLS (Zero-Trust)**: Al remover variables locales `ROLE` u objetos mock de autenticación, toda consulta o mutación debe ser filtrada basándose en el identificador de usuario verificado mediante `supabase.auth.getUser()`. **ADVERTENCIA CRÍTICA**: Nunca utilizar `supabase.auth.getSession()` para verificar o autorizar el estado del usuario en el lado del servidor o del cliente de forma confiable, ya que lee el token del almacenamiento local sin validar su firma con Supabase, permitiendo falsificaciones de JWT y escalación de privilegios. El uso de `getSession()` queda limitado a la lectura en memoria del Bearer token de forma rápida (ej. para adjuntarlo en headers de peticiones al BFF).
 - **Pre-auth vs Post-auth**: No exponer selectores ni realizar fetching en el cliente antes de validar la existencia de una sesión de usuario activa.
 - **Acceso Restringido**: El mapa y otros componentes que consumen la tabla `eventos` o `apiarios` deben adherirse estrictamente a políticas RLS que limitan la lectura a usuarios autenticados, previniendo la filtración de coordenadas sensibles a crawlers o accesos anónimos.
 

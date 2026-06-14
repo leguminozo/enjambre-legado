@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
-import { ThemeProvider } from '@enjambre/ui'
+import { ThemeProvider, useTheme } from '@enjambre/ui'
 import { useAuthProvider, useAuthStore, createClient } from '@enjambre/auth'
 import type { Session, SupabaseClient } from '@supabase/supabase-js'
 
@@ -25,6 +25,39 @@ function AuthSync() {
   return null
 }
 
+function ThemeSync() {
+  const { theme, setTheme } = useTheme()
+  const user = useAuthStore((s) => s.user)
+
+  // 1. Sync from DB to device on load
+  useEffect(() => {
+    if (user?.theme_preference && user.theme_preference !== theme) {
+      setTheme(user.theme_preference)
+    }
+  }, [user?.theme_preference])
+
+  // 2. Sync from device to DB on change
+  useEffect(() => {
+    if (user?.id && theme) {
+      const supabase = createClient()
+      if (supabase) {
+        const updateTheme = async () => {
+          const { error } = await supabase
+            .from('profiles')
+            .update({ theme_preference: theme })
+            .eq('id', user.id)
+          if (error) {
+            console.error('[ThemeSync] Error updating theme preference:', error)
+          }
+        }
+        updateTheme()
+      }
+    }
+  }, [theme, user?.id])
+
+  return null
+}
+
 interface ProvidersProps {
   children: React.ReactNode
 }
@@ -38,6 +71,7 @@ export function Providers({ children }: ProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark">
         <AuthSync />
+        <ThemeSync />
         {children}
         <Toaster position="bottom-right" richColors closeButton duration={4000} />
       </ThemeProvider>

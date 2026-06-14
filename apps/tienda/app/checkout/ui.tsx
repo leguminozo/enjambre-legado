@@ -8,8 +8,12 @@ import { useState } from 'react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { Lock, Shield, Truck, CheckCircle, Leaf, Trees } from 'lucide-react';
+import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star } from 'lucide-react';
 import { friendlyApiError } from '@enjambre/ui';
+import { useAuth } from '@/components/providers/auth-context';
+import { useLoyaltyPoints } from '@/lib/hooks/use-loyalty-points';
+
+type BuyerMode = 'legado' | 'privada';
 
 type ShippingForm = {
   nombre: string;
@@ -55,15 +59,39 @@ function fieldError(form: ShippingForm): Record<string, string> {
 
 export function CheckoutClient() {
   const cart = useCart();
+  const { isAuthenticated, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [priceConflicts, setPriceConflicts] = useState<string[] | null>(null);
   const [shipping, setShipping] = useState<ShippingForm>(initialShipping);
   const [touched, setTouched] = useState(false);
+  const [buyerMode, setBuyerMode] = useState<BuyerMode>('privada');
+  const [usarPuntos, setUsarPuntos] = useState(false);
   
   const formRef = useRef<HTMLDivElement>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const totalCompra = cart.pricing?.total ?? 0;
+  const {
+    loyaltyData,
+    loading: loyaltyLoading,
+    puntosACanjear,
+    setPuntosACanjear,
+    descuentoPorPuntos,
+    canMaxPoints,
+  } = useLoyaltyPoints(totalCompra);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      setBuyerMode('legado');
+      setShipping((prev) => ({
+        ...prev,
+        email: prev.email || user.email,
+        nombre: prev.nombre || user.name,
+      }));
+    }
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -147,7 +175,7 @@ export function CheckoutClient() {
         'X-Requested-With': 'XMLHttpRequest',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       },
-      body: JSON.stringify({ cart: payloadCart, shipping, returnUrl }),
+      body: JSON.stringify({ cart: payloadCart, shipping, returnUrl, buyerMode }),
     });
 
     const json = (await res.json()) as {
@@ -280,10 +308,152 @@ export function CheckoutClient() {
                     {cart.pricing.discount_amount > 0 && (
                       <span className="text-xs text-accent">Incluye -${cart.pricing.discount_amount.toLocaleString('es-CL')} descuento por Guardianía</span>
                     )}
+                    {usarPuntos && descuentoPorPuntos > 0 && (
+                      <span className="text-xs text-accent">Incluye -${descuentoPorPuntos.toLocaleString('es-CL')} descuento por puntos</span>
+                    )}
                   </div>
                   <span className="font-display text-2xl font-semibold tabular-nums text-accent">
-                    ${cart.pricing.total.toLocaleString('es-CL')}
+                    ${(cart.pricing.total - (usarPuntos ? descuentoPorPuntos : 0)).toLocaleString('es-CL')}
                   </span>
+                </div>
+              </section>
+
+              {/* Loyalty points section */}
+              {isAuthenticated && loyaltyData && (
+                <section className="checkout-section">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Star className="h-5 w-5 text-accent" />
+                    <h2 className="font-display text-lg text-foreground">Puntos de Fidelización</h2>
+                  </div>
+                  <div className="rounded-xl border border-accent/40 bg-surface-sunken p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Puntos disponibles</p>
+                        <p className="font-display text-2xl font-semibold text-foreground">
+                          {loyaltyData.puntos.toLocaleString('es-CL')}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Nivel actual</p>
+                        <p className="text-sm font-medium text-accent capitalize">
+                          {loyaltyData.nivel_actual}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Descuento disponible</span>
+                      <span className="font-medium text-foreground">
+                        ${loyaltyData.descuento_disponible.toLocaleString('es-CL')}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Ganarás con esta compra</span>
+                      <span className="font-medium text-accent">
+                        +{loyaltyData.puntos_ganados_compra} puntos
+                      </span>
+                    </div>
+
+                    <div className="pt-4 border-t border-border">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={usarPuntos}
+                          onChange={(e) => {
+                            setUsarPuntos(e.target.checked);
+                            if (e.target.checked) {
+                              setPuntosACanjear(canMaxPoints);
+                            } else {
+                              setPuntosACanjear(0);
+                            }
+                          }}
+                          className="w-5 h-5 rounded border-border bg-surface text-accent focus:ring-accent"
+                        />
+                        <span className="text-sm text-foreground">
+                          Usar puntos para descuento
+                        </span>
+                      </label>
+
+                      {usarPuntos && (
+                        <div className="mt-4 space-y-3">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Puntos a canjear</span>
+                            <span className="font-medium text-foreground">
+                              {puntosACanjear.toLocaleString('es-CL')}
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max={canMaxPoints}
+                            step="100"
+                            value={puntosACanjear}
+                            onChange={(e) => setPuntosACanjear(Number(e.target.value))}
+                            className="w-full h-2 bg-surface rounded-lg appearance-none cursor-pointer accent-accent"
+                          />
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Descuento aplicado</span>
+                            <span className="font-medium text-accent">
+                              -${descuentoPorPuntos.toLocaleString('es-CL')}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Buyer mode */}
+              <section className="checkout-section">
+                <div className="flex items-center gap-2 mb-4">
+                  <User className="h-5 w-5 text-accent" />
+                  <h2 className="font-display text-lg text-foreground">Tu compra</h2>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => setBuyerMode('legado')}
+                    className={`rounded-xl border p-5 text-left transition-all ${
+                      buyerMode === 'legado'
+                        ? 'border-accent bg-accent/5'
+                        : 'border-border bg-card/40 hover:border-accent/40'
+                    }`}
+                  >
+                    <p className="font-display text-sm text-foreground mb-1">Continuar mi legado</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Guardamos tu historial, impacto y direcciones para futuras visitas.
+                    </p>
+                    {!isAuthenticated && buyerMode === 'legado' && (
+                      <p className="mt-3 text-xs text-accent">
+                        <Link href="/login?returnTo=/checkout" className="underline underline-offset-2">
+                          Inicia sesión
+                        </Link>
+                        {' '}o{' '}
+                        <Link href="/register?returnTo=/checkout" className="underline underline-offset-2">
+                          crea tu cuenta
+                        </Link>
+                      </p>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBuyerMode('privada')}
+                    className={`rounded-xl border p-5 text-left transition-all ${
+                      buyerMode === 'privada'
+                        ? 'border-accent bg-accent/5'
+                        : 'border-border bg-card/40 hover:border-accent/40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
+                      <p className="font-display text-sm text-foreground">Compra privada</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Entrega puntual sin cuenta. Tus datos no quedan en tu perfil.
+                    </p>
+                  </button>
                 </div>
               </section>
 

@@ -82,6 +82,8 @@ packages/banco-chile → Banco Chile Empresas API client (OAuth 2.0, 8 APIs)
 | Components at repo root | `packages/ui` or `apps/*/components` |
 | Massive refactors | Surgical, minimal changes |
 | Skip build verification | Always build after changes |
+| `supabase.auth.getSession()` para verificar sesión | `supabase.auth.getUser()` (valida la firma del JWT con el servidor, previniendo falsificaciones) |
+| Confiar en `user` / `user_metadata` para roles | Confiar únicamente en `app_metadata` o en la tabla `profiles` (el usuario puede autodeclarar `user_metadata` a través del cliente) |
 
 ## Auth Package Convention
 

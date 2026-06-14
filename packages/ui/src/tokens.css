@@ -65,15 +65,15 @@
   --secondary-foreground: var(--enj-crema-h) var(--enj-crema-s) 80%;
 
   --muted: 0 0% 10%;
-  --muted-foreground: var(--enj-crema-h) 15% 50%;
+  --muted-foreground: var(--enj-crema-h) 15% 65%;
 
   --accent: var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l);
   --accent-foreground: var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 8%;
 
   --destructive: var(--enj-rojo-h) var(--enj-rojo-s) var(--enj-rojo-l);
 
-  --border: 0 0% 14%;
-  --input: 0 0% 14%;
+  --border: 0 0% 18%;
+  --input: 0 0% 18%;
   --ring: var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l);
 
   --surface-raised: 0 0% 8%;
@@ -196,19 +196,19 @@
   --secondary-foreground: var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) 20%;
 
   --muted: var(--enj-crema-h) 15% 92%;
-  --muted-foreground: var(--enj-negro-tinta-h) 0% 45%;
+  --muted-foreground: var(--enj-negro-tinta-h) 0% 35%;
 
   --accent: var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l);
   --accent-foreground: var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 8%;
 
   --destructive: var(--enj-rojo-h) var(--enj-rojo-s) var(--enj-rojo-l);
 
-  --border: var(--enj-bosque-ulmo-h) 10% 88%;
-  --input: var(--enj-bosque-ulmo-h) 10% 88%;
+  --border: var(--enj-crema-h) 20% 86%;
+  --input: var(--enj-crema-h) 20% 86%;
   --ring: var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l);
 
   --surface-raised: var(--enj-crema-h) var(--enj-crema-s) 100%;
-  --surface-sunken: var(--enj-crema-h) 20% 94%;
+  --surface-sunken: var(--enj-crema-h) 30% 92%;
 
   --shadow-sm: 0 1px 3px hsl(var(--enj-bosque-ulmo-h) 20% 20% / 0.06);
   --shadow-md: 0 4px 12px hsl(var(--enj-bosque-ulmo-h) 20% 20% / 0.08);

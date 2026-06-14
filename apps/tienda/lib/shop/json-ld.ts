@@ -300,5 +300,7 @@ export function mergeJsonLd(records: JsonLdRecord[]): JsonLdRecord {
 }
 
 export function renderJsonLd(record: JsonLdRecord): string {
-  return JSON.stringify(record, null, 0);
+  return JSON.stringify(record, null, 0)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e');
 }

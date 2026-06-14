@@ -25,6 +25,10 @@ export async function middleware(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('[tienda-middleware] error:', error);
+    const path = request.nextUrl.pathname;
+    if (path.startsWith('/perfil')) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
     return NextResponse.next({ request });
   }
 }

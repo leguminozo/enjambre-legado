@@ -1,0 +1,56 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "nav": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "about": "About",
+    "contact": "Contact",
+    "profile": "Profile",
+    "cart": "Cart",
+    "login": "Sign in",
+    "logout": "Sign out"
+  },
+  "hero": {
+    "title": "Native Forest Honey",
+    "subtitle": "Regenerating the Chiloé ecosystem with every jar",
+    "cta": "Explore products"
+  },
+  "product": {
+    "addToCart": "Add to cart",
+    "outOfStock": "Out of stock",
+    "price": "Price",
+    "description": "Description",
+    "origin": "Origin",
+    "harvest": "Harvest"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "shipping": "Shipping",
+    "payment": "Payment",
+    "summary": "Summary",
+    "total": "Total",
+    "placeOrder": "Place order"
+  },
+  "profile": {
+    "myLegacy": "My Legacy",
+    "orders": "Orders",
+    "impact": "Impact",
+    "hive": "Hive",
+    "settings": "Settings"
+  }
+}

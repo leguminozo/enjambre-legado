@@ -103,6 +103,19 @@ export function usePerfil() {
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !profile) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const maxBytes = 2 * 1024 * 1024; // 2MB
+
+    if (!allowedTypes.includes(file.type)) {
+      setMessage({ type: "error", text: "Solo se permiten imágenes (JPEG, PNG, WEBP, GIF)" });
+      return;
+    }
+    if (file.size > maxBytes) {
+      setMessage({ type: "error", text: "El tamaño máximo permitido es 2MB" });
+      return;
+    }
+
     setAvatarUploading(true);
     try {
       const ext = file.name.split(".").pop();

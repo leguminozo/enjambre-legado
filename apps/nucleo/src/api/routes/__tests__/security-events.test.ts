@@ -86,6 +86,9 @@ describe("Security Events API Routes", () => {
     it("should return 401 if unauthorized", async () => {
       const res = await app.request("/api/security-events", {
         method: "POST",
+        headers: {
+          "origin": "http://localhost:3000",
+        },
         body: JSON.stringify({
           eventType: "access_denied",
           email: "test@example.com",
@@ -94,21 +97,40 @@ describe("Security Events API Routes", () => {
       expect(res.status).toBe(401);
     });
 
-    it("should return 201 if valid JWT and body are sent", async () => {
+    it("should return 201 if valid JWT and body are sent with matching email", async () => {
       const res = await app.request("/api/security-events", {
         method: "POST",
         headers: {
           "Authorization": "Bearer valid-token",
           "Content-Type": "application/json",
+          "origin": "http://localhost:3000",
         },
         body: JSON.stringify({
           eventType: "access_denied",
-          email: "test@example.com",
+          email: "mock@example.com",
         }),
       });
       expect(res.status).toBe(201);
       const json = await res.json();
       expect(json).toEqual({ logged: true });
+    });
+
+    it("should return 403 if email in JWT does not match payload email", async () => {
+      const res = await app.request("/api/security-events", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer valid-token",
+          "Content-Type": "application/json",
+          "origin": "http://localhost:3000",
+        },
+        body: JSON.stringify({
+          eventType: "access_denied",
+          email: "mismatch@example.com",
+        }),
+      });
+      expect(res.status).toBe(403);
+      const json = await res.json();
+      expect(json.code).toBe("forbidden");
     });
   });
 });

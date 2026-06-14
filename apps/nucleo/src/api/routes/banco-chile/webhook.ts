@@ -20,20 +20,53 @@ const WebhookEventSchema = z.object({
   datos: z.record(z.string(), z.unknown()).optional(),
 });
 
+function getBancoChileWebhookSecret(): string {
+  const secret = process.env.BANCO_CHILE_WEBHOOK_SECRET;
+  if (!secret) throw new Error('Falta BANCO_CHILE_WEBHOOK_SECRET');
+  return secret;
+}
+
+async function verifyBancoChileSignature(
+  payload: string,
+  signature: string | undefined
+): Promise<boolean> {
+  if (!signature) return false;
+
+  const secret = getBancoChileWebhookSecret();
+  const encoder = new TextEncoder();
+  const data = encoder.encode(payload);
+  const keyData = encoder.encode(secret);
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', cryptoKey, data);
+  const computed = Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+
+  return computed === signature;
+}
+
 // Endpoint principal para webhooks
 webhookRouter.post('/', async (c) => {
   try {
     const supabase = c.get('supabase');
-    const body = await c.req.json();
+    const rawBody = await c.req.text();
     const signature = c.req.header('x-banco-chile-signature');
 
-    // Verificar firma (implementar validación de firma)
-    if (!signature) {
-      console.warn('Webhook sin firma');
-      // En producción: return c.json({ error: 'Unauthorized' }, 401);
+    // Verificar firma HMAC-SHA256
+    const isValid = await verifyBancoChileSignature(rawBody, signature);
+    if (!isValid) {
+      console.warn('Banco Chile webhook: firma inválida');
+      return c.json({ error: 'Unauthorized' }, 401);
     }
 
     // Validar datos
+    const body = JSON.parse(rawBody);
     const parsed = WebhookEventSchema.safeParse(body);
     if (!parsed.success) {
       return c.json({ error: 'Invalid payload' }, 400);

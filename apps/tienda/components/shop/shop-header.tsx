@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, ShoppingBag, X, User } from 'lucide-react';
 import { useCart } from '@/components/shop/cart-context';
 import { useAuth } from '@/components/providers/auth-context';
+import { LanguageSelector } from '@/components/shop/language-selector';
 import { useState } from 'react';
 
 const NAV_PUBLIC = [
@@ -14,6 +15,7 @@ const NAV_PUBLIC = [
   { href: '/galeria', label: 'Galería' },
   { href: '/ciencia', label: 'Ciencia' },
   { href: '/nosotros', label: 'Nosotros' },
+  { href: '/qr-scan', label: 'Escáner QR' },
   { href: '/contacto', label: 'Contacto' },
 ] as const;
 
@@ -64,6 +66,8 @@ export function ShopHeader() {
         </nav>
 
 <div className="flex items-center gap-6">
+        <LanguageSelector />
+
         <Link
             href={isAuthenticated ? '/perfil' : '/login'}
             className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-2"

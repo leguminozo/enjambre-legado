@@ -190,7 +190,7 @@ describe("Auth Integration Flow", () => {
         user: {
           id: "u2",
           email: "creador@test.com",
-          user_metadata: { role: "creador" },
+          app_metadata: { role: "creador" },
         },
       });
       const res = await middleware(req);
@@ -229,7 +229,7 @@ describe("Auth Integration Flow", () => {
         user: {
           id: "u2",
           email: "creador@test.com",
-          user_metadata: { role: "creador" },
+          app_metadata: { role: "creador" },
         },
       });
       const res = await middleware(req);
@@ -279,6 +279,21 @@ describe("Auth Integration Flow", () => {
     it("fallback user is constructed from session.user metadata when profile is missing", async () => {
       const mockSupabase = {
         auth: {
+          getUser: async () => ({
+            data: {
+              user: {
+                id: "fallback-id",
+                email: "fallback@test.com",
+                app_metadata: { role: "creador" },
+                user_metadata: {
+                  full_name: "Fallback User",
+                  nivel_guardian: "1",
+                  avatar_url: "https://example.com/avatar.png",
+                },
+              },
+            },
+            error: null,
+          }),
           getSession: async () => ({
             data: {
               session: {

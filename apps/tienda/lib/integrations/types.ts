@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { IntegrationsEnv } from '@/lib/integrations-env';
 
-export type IntegrationSyncMode = 'stub' | 'live';
+export type IntegrationSyncMode = 'stub' | 'live' | 'cert' | 'error';
 
 export type SiiSyncContext = {
   supabase: SupabaseClient;

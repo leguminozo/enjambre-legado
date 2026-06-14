@@ -7,8 +7,24 @@ import { getEnvOrThrow } from "../lib/env";
 
 export const securityEventRoutes = new Hono();
 
+const SecurityEventTypeSchema = z.enum([
+  "login_failed",
+  "login_success",
+  "password_reset_requested",
+  "password_changed",
+  "account_locked",
+  "suspicious_activity",
+  "role_change",
+  "session_revoked",
+  "mfa_enabled",
+  "mfa_disabled",
+  "oauth_linked",
+  "access_denied",
+  "signup_success"
+]);
+
 const SecurityEventSchema = z.strictObject({
-  eventType: z.string().min(1),
+  eventType: SecurityEventTypeSchema,
   email: z.string().min(1),
   userId: z.string().nullable().optional(),
   ipAddress: z.string().optional(),
@@ -21,7 +37,8 @@ const toUndefined = (v: string | null | undefined): string | undefined => v ?? u
 
 securityEventRoutes.post("/internal", async (c) => {
   const internalKey = c.req.header("x-internal-key");
-  if (!internalKey || internalKey !== process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  const expectedSecret = process.env.INTERNAL_API_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!internalKey || internalKey !== expectedSecret) {
     return c.json({ code: "unauthorized", message: "Invalid internal key" }, 401);
   }
 
@@ -53,16 +70,21 @@ securityEventRoutes.post("/", authMiddleware, async (c) => {
   if (!parsed.success) return c.json({ code: "validation_error", errors: parsed.error.flatten() }, 400);
   const body = parsed.data;
 
+  const user = c.get("user");
+  if (body.email !== user.email || (body.userId && body.userId !== user.id)) {
+    return c.json({ code: "forbidden", message: "Forbidden: Cannot log security events for other users" }, 403);
+  }
+
   const supabase = c.get("supabase");
 
   await logSecurityEvent(supabase, {
-    eventType: body.eventType as "access_denied",
+    eventType: body.eventType as any,
     email: body.email,
     userId: body.userId ?? null,
     ipAddress: body.ipAddress ?? toUndefined(c.req.header("x-forwarded-for")),
     userAgent: body.userAgent ?? toUndefined(c.req.header("user-agent")),
     details: body.details ?? {},
-    appSource: (body.appSource ?? "nucleo") as "nucleo",
+    appSource: (body.appSource ?? "nucleo") as any,
   });
 
   return c.json({ logged: true }, 201);

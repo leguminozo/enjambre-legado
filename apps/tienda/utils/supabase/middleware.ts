@@ -32,10 +32,8 @@ export async function updateSession(request: NextRequest): Promise<AuthResult> {
     },
   })
 
-  // getSession() decodes the JWT locally unless it's expired (in which case it refreshes it).
-  // This avoids a 100-300ms network penalty on every page load compared to getUser().
-  const { data: { session } } = await supabase.auth.getSession()
-  const user = session?.user ?? null;
+  // getUser() validates the user JWT with the Supabase Auth server on every request.
+  const { data: { user } } = await supabase.auth.getUser()
 
   // Default to comprador if claim is missing (fail-safe)
   const oyzRole = user?.app_metadata?.oyz_role ?? 'comprador';

@@ -153,6 +153,16 @@ export function useCMSContent() {
       sectionKey: CMSSectionKey
       fieldName: string
     }) => {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf']
+      const maxBytes = 10 * 1024 * 1024 // 10MB
+
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error('Tipo de archivo no permitido (solo JPEG, PNG, GIF, WEBP, PDF)')
+      }
+      if (file.size > maxBytes) {
+        throw new Error('El archivo supera el tamaño máximo permitido (10MB)')
+      }
+
       const ext = file.name.split('.').pop()
       const path = `cms/${sectionKey}/${crypto.randomUUID()}.${ext}`
 

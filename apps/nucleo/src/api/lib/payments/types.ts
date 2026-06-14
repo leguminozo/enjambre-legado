@@ -18,6 +18,8 @@ export type ShippingInfo = {
   instrucciones?: string;
 };
 
+export type BuyerMode = 'legado' | 'privada' | 'b2b';
+
 export type CheckoutSession = {
   buyOrder: string;
   sessionId: string;
@@ -26,6 +28,9 @@ export type CheckoutSession = {
   provider: 'transbank' | 'flow';
   shipping: ShippingInfo | null;
   createdAt: number;
+  buyerMode?: BuyerMode;
+  clienteId?: string | null;
+  organizacionId?: string | null;
 };
 
 export type PaymentInitResult = {
@@ -92,6 +97,9 @@ const CheckoutSessionRowSchema = z.object({
   status: z.enum(['pending', 'completed', 'expired']),
   created_at: z.string(),
   completed_at: z.string().nullable(),
+  buyer_mode: z.enum(['legado', 'privada', 'b2b']).optional(),
+  cliente_id: z.string().uuid().nullable().optional(),
+  organizacion_id: z.string().uuid().nullable().optional(),
 });
 
 type CheckoutSessionRow = z.infer<typeof CheckoutSessionRowSchema>;
@@ -105,6 +113,9 @@ function toCheckoutSession(row: CheckoutSessionRow): CheckoutSession {
     total: row.total,
     shipping: row.shipping,
     createdAt: new Date(row.created_at).getTime(),
+    buyerMode: row.buyer_mode ?? 'legado',
+    clienteId: row.cliente_id ?? null,
+    organizacionId: row.organizacion_id ?? null,
   };
 }
 
@@ -117,6 +128,9 @@ export async function saveCheckoutSession(session: CheckoutSession): Promise<voi
     cart: session.cart,
     total: session.total,
     shipping: session.shipping,
+    buyer_mode: session.buyerMode ?? 'legado',
+    cliente_id: session.clienteId ?? null,
+    organizacion_id: session.organizacionId ?? null,
   });
   if (error) throw new Error(`Failed to save checkout session: ${error.message}`);
 }

@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build-tienda:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+          
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Build tienda
+        run: pnpm --filter @enjambre/tienda build
+        
+      - name: Lint tienda
+        run: pnpm --filter @enjambre/tienda lint
+
+  build-nucleo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+          
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Build nucleo
+        run: pnpm --filter @enjambre/nucleo build
+        
+      - name: Lint nucleo
+        run: pnpm --filter @enjambre/nucleo lint
+
+  build-campo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+          
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Build campo
+        run: pnpm --filter @enjambre/campo build
+        
+      - name: Lint campo
+        run: pnpm --filter @enjambre/campo lint
+
+  test-contable:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+          
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Test contable
+        run: cd packages/database && pnpm test

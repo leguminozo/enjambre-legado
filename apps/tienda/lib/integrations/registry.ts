@@ -1,4 +1,5 @@
 import type { SiiConnector, SiiSyncContext, SiiSyncOutcome } from './types';
+import { liveSiiConnector, certSiiConnector } from './sii-connector';
 
 /** Conector por defecto: no llama APIs externas; solo deja traza en integration_job_runs. */
 const stubSiiConnector: SiiConnector = {
@@ -15,13 +16,17 @@ const stubSiiConnector: SiiConnector = {
 
 /**
  * Resuelve implementación según `provider` en integrations.config (no secreto).
- * Hoy todo camino termina en stub hasta existir integración certificada.
+ * - 'live' o 'api': Conector real para producción
+ * - 'cert': Conector para ambiente de certificación SII
+ * - 'manual' o default: Conector stub
  */
 export function resolveSiiConnector(provider: string | undefined): SiiConnector {
   const p = (provider ?? 'manual').trim().toLowerCase();
   if (p === 'live' || p === 'api') {
-    // Reservado: aquí irá el conector real (DTE/RCV/proveedor).
-    return stubSiiConnector;
+    return liveSiiConnector;
+  }
+  if (p === 'cert') {
+    return certSiiConnector;
   }
   return stubSiiConnector;
 }

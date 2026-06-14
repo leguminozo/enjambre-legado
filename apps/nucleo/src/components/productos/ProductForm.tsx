@@ -71,9 +71,21 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    const file = files[0];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const maxBytes = 5 * 1024 * 1024; // 5MB
+
+    if (!allowedTypes.includes(file.type)) {
+      toast('Solo se permiten imágenes (JPEG, PNG, WEBP, GIF)', { type: 'error' });
+      return;
+    }
+    if (file.size > maxBytes) {
+      toast('El archivo supera el tamaño máximo permitido (5MB)', { type: 'error' });
+      return;
+    }
+
     setImageUploading(true);
     try {
-      const file = files[0];
       const fileExt = file.name.split('.').pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage

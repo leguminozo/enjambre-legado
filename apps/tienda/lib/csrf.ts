@@ -12,30 +12,33 @@ export function validateCsrf(request: NextRequest): NextResponse | null {
     return null;
   }
 
+  const requestOrigin = request.nextUrl.origin;
   const origin = request.headers.get('origin');
-  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+  const referer = request.headers.get('referer');
+
+  // Verify Origin header if present
+  if (origin) {
+    if (origin === requestOrigin || ALLOWED_ORIGINS.has(origin)) {
+      return null;
+    }
     return NextResponse.json({ error: 'Origin no permitido' }, { status: 403 });
   }
 
-  const contentType = request.headers.get('content-type') ?? '';
-  const isFormOrJson = contentType.includes('application/json') || contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data');
-
-  if (origin && isFormOrJson) {
-    return null;
+  // Fallback to Referer validation if Origin is missing
+  if (referer) {
+    try {
+      const refererOrigin = new URL(referer).origin;
+      if (refererOrigin === requestOrigin || ALLOWED_ORIGINS.has(refererOrigin)) {
+        return null;
+      }
+    } catch {
+      // Invalid URL format in referer header
+    }
+    return NextResponse.json({ error: 'Referer no permitido o inválido' }, { status: 403 });
   }
 
-  if (!origin && isFormOrJson) {
-    const secFetchDest = request.headers.get('sec-fetch-dest');
-    const secFetchMode = request.headers.get('sec-fetch-mode');
-    if (secFetchDest === 'empty' && secFetchMode === 'cors') {
-      return null;
-    }
-    if (secFetchDest === 'empty') {
-      return null;
-    }
-  }
-
-  return null;
+  // Reject mutating requests if both Origin and Referer are missing
+  return NextResponse.json({ error: 'Falta cabecera de origen (CSRF protection)' }, { status: 403 });
 }
 
 export function requireCsrfHeader(request: Request): NextResponse | null {

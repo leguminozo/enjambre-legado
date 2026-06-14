@@ -1,6 +1,7 @@
 import './globals.css';
 import { AppProviders } from '@/components/providers/app-providers';
 import { RegisterServiceWorker } from '@/components/pwa/register-sw';
+import { I18nProvider } from '@/lib/i18n-context';
 import type { Metadata } from 'next';
 import { Cormorant_Garamond, Inter } from 'next/font/google';
 import React from 'react';
@@ -87,7 +88,9 @@ export default function RootLayout({
     </head>
       <body className="font-sans antialiased bg-background text-foreground">
         <RegisterServiceWorker />
-        <AppProviders>{children}</AppProviders>
+        <I18nProvider>
+          <AppProviders>{children}</AppProviders>
+        </I18nProvider>
         <SpeedInsights />
         <Analytics />
       </body>

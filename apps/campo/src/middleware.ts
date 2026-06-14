@@ -11,8 +11,8 @@ function isProtected(path: string): boolean {
 }
 
 function logAccessDenied(request: NextRequest, email: string) {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceRoleKey) return;
+  const internalKey = process.env.INTERNAL_API_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!internalKey) return;
 
   const url = process.env.NEXT_PUBLIC_NUCLEO_API_URL;
   if (!url) return;
@@ -21,7 +21,7 @@ function logAccessDenied(request: NextRequest, email: string) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-internal-key': serviceRoleKey,
+      'x-internal-key': internalKey,
     },
   body: JSON.stringify({
     eventType: 'access_denied',
@@ -64,6 +64,9 @@ export async function middleware(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('[campo-middleware] error:', error);
+    if (isProtected(request.nextUrl.pathname)) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
     return NextResponse.next({ request });
   }
 }

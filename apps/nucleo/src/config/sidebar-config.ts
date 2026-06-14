@@ -185,6 +185,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
           mission: 'Cada cliente es una historia que se cultiva',
         },
         {
+          key: 'pipeline',
+          label: 'Pipeline Ventas',
+          icon: 'trending-up',
+          href: '/pipeline',
+          greeting: 'Arquitecto del flujo',
+          mission: 'Cada lead es una semilla de bosque',
+        },
+        {
           key: 'vanguardia',
           label: 'Vanguardia B2B',
           icon: 'shield',

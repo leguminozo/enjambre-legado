@@ -1,11 +1,52 @@
 -- Migration 42: Idempotent Loyalty Redemption RPC
 
+-- Bootstrap loyalty tables if migration 41 was never applied on remote
+CREATE TABLE IF NOT EXISTS public.loyalty_rewards (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  description text,
+  points_cost integer NOT NULL,
+  reward_type text NOT NULL CHECK (reward_type IN ('exclusive_harvest', 'territorial_content', 'early_access', 'experience')),
+  metadata jsonb DEFAULT '{}',
+  active boolean DEFAULT true,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.loyalty_redemptions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  reward_id uuid NOT NULL REFERENCES public.loyalty_rewards(id),
+  points_spent integer NOT NULL,
+  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'fulfilled', 'expired')),
+  fulfilled_at timestamptz,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.loyalty_transactions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  action_type public.accion_tipo NOT NULL,
+  points integer NOT NULL,
+  balance_after integer NOT NULL,
+  source_id text,
+  description text,
+  created_at timestamptz DEFAULT now()
+);
+
 -- 1. Add 'canje' to accion_tipo if it doesn't exist
-ALTER TYPE public.accion_tipo ADD VALUE IF NOT EXISTS 'canje';
+DO $$ BEGIN
+  ALTER TYPE public.accion_tipo ADD VALUE IF NOT EXISTS 'canje';
+EXCEPTION
+  WHEN undefined_object THEN NULL;
+END $$;
 
 -- 2. Add idempotency_key to loyalty_redemptions
-ALTER TABLE public.loyalty_redemptions 
-ADD COLUMN IF NOT EXISTS idempotency_key text UNIQUE;
+ALTER TABLE public.loyalty_redemptions
+  ADD COLUMN IF NOT EXISTS idempotency_key text;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_loyalty_redemptions_idempotency
+  ON public.loyalty_redemptions(idempotency_key)
+  WHERE idempotency_key IS NOT NULL;
 
 -- 3. Create the RPC function
 CREATE OR REPLACE FUNCTION public.redeem_loyalty_reward(
