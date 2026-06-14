@@ -7,13 +7,14 @@ import { Bell, Search, Menu, X, BarChart3, Hexagon, Calculator, Settings } from 
 import { Sidebar } from '@/components/layout/Sidebar';
 import { findActiveItem, BOTTOM_NAV_KEYS, SIDEBAR_GROUPS, ACCOUNT_ITEMS } from '@/config/sidebar-config';
 
-const notifications = [
-  { id: 1, text: 'Colmena Quilineja Vieja sin reina detectada', type: 'danger', time: 'Hace 2h' },
-  { id: 2, text: 'Varroa nivel 3/10 en Avellano Sur', type: 'warning', time: 'Hace 5h' },
-  { id: 3, text: 'Feria Ancud confirmada para el 15 de marzo', type: 'success', time: 'Ayer' },
-  { id: 4, text: 'Nuevo pedido de Gimnasio Peak: Sachets x100', type: 'gold', time: 'Ayer' },
-  { id: 5, text: 'Flujo de néctar de tepú en aumento', type: 'success', time: 'Hace 2d' },
-];
+interface NotificationItem {
+  id: number;
+  text: string;
+  type: 'danger' | 'warning' | 'success' | 'gold';
+  time: string;
+}
+
+const notifications: NotificationItem[] = [];
 
 const bottomNavIcons: Record<string, React.ComponentType<{ size?: number }>> = {
   ejecutivo: BarChart3,
@@ -155,19 +156,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <button className="btn btn-ghost btn-sm text-accent text-[0.72rem]" onClick={() => setReadNotifs(notifications.map(n => n.id))}>Marcar leídas</button>
                 </div>
                 <div className="max-h-[360px] overflow-y-auto">
-                  {notifications.map(n => (
-                    <div
-                      key={n.id}
-                      onClick={() => setReadNotifs(prev => prev.includes(n.id) ? prev : [...prev, n.id])}
-                      className={`px-6 py-4 border-b border-border/50 flex gap-4 cursor-pointer transition-colors duration-200 ${readNotifs.includes(n.id) ? 'bg-transparent' : 'bg-accent/[0.04]'}`}
-                    >
-                      <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${notifColorMap[n.type] ?? 'bg-accent'}`} />
-                      <div>
-                        <div className={`text-[0.88rem] leading-relaxed ${readNotifs.includes(n.id) ? 'text-muted-foreground font-normal' : 'text-foreground font-medium'}`}>{n.text}</div>
-                        <div className="text-[0.75rem] text-muted-foreground mt-1">{n.time}</div>
-                      </div>
+                  {notifications.length === 0 ? (
+                    <div className="px-6 py-8 text-center text-muted-foreground text-[0.88rem] font-datos">
+                      Sin notificaciones nuevas
                     </div>
-                  ))}
+                  ) : (
+                    notifications.map(n => (
+                      <div
+                        key={n.id}
+                        onClick={() => setReadNotifs(prev => prev.includes(n.id) ? prev : [...prev, n.id])}
+                        className={`px-6 py-4 border-b border-border/50 flex gap-4 cursor-pointer transition-colors duration-200 ${readNotifs.includes(n.id) ? 'bg-transparent' : 'bg-accent/[0.04]'}`}
+                      >
+                        <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${notifColorMap[n.type] ?? 'bg-accent'}`} />
+                        <div>
+                          <div className={`text-[0.88rem] leading-relaxed ${readNotifs.includes(n.id) ? 'text-muted-foreground font-normal' : 'text-foreground font-medium'}`}>{n.text}</div>
+                          <div className="text-[0.75rem] text-muted-foreground mt-1">{n.time}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}

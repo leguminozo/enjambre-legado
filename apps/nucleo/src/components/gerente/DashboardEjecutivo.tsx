@@ -14,6 +14,8 @@ import {
 } from 'recharts'
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors'
 import { useApiFetch } from '@/hooks/use-api-fetch'
+import { KpiCard } from '@/components/ui/KpiCard'
+import { SegmentControl } from '@/components/ui/SegmentControl'
 
 type TimeRange = 'month' | 'quarter' | 'ytd'
 
@@ -211,17 +213,12 @@ export function DashboardEjecutivo() {
             {rangeLabel} · {data.range.from} → {data.range.to}
           </div>
         </div>
-        <div className="flex gap-1 bg-muted/40 rounded-md p-0.5">
-          {RANGE_OPTIONS.map(opt => (
-            <button
-              key={opt.key}
-              onClick={() => setRange(opt.key)}
-              className={`px-3.5 py-1.5 rounded-sm border-none cursor-pointer text-[0.8rem] transition-all duration-150 ${range === opt.key ? 'font-semibold bg-card text-foreground shadow-sm' : 'font-normal bg-transparent text-muted-foreground'}`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        <SegmentControl
+          options={RANGE_OPTIONS.map(opt => ({ value: opt.key, label: opt.label }))}
+          selectedValue={range}
+          onChange={(val) => setRange(val as TimeRange)}
+          className="w-64"
+        />
       </div>
 
       {alerts.length > 0 && (
@@ -229,11 +226,13 @@ export function DashboardEjecutivo() {
           {alerts.map((alert, i) => {
             const IconComp = ALERT_ICONS[alert.severity]
             return (
-              <div key={i} className="card animate-in flex items-center gap-4 px-6 py-4" style={{
-                background: ALERT_BG[alert.severity],
-                borderColor: `${ALERT_COLORS[alert.severity]} / 0.2`,
-                animationDelay: `${i * 50}ms`,
-              }}>
+              <div
+                key={i}
+                className="p-4 rounded-xl flex gap-3 animate-in border border-border/30 glass shadow-glass"
+                style={{
+                  borderLeft: `4px solid ${ALERT_COLORS[alert.severity]}`,
+                  animationDelay: `${i * 50}ms`,
+                }}>
                 <IconComp size={18} className="shrink-0" style={{ color: ALERT_COLORS[alert.severity] }} />
                 <div className="flex-1">
                   <div className="text-[0.85rem] font-semibold text-foreground">{alert.title}</div>
@@ -245,24 +244,47 @@ export function DashboardEjecutivo() {
         </div>
       )}
 
-      <div className="stats-grid">
-        {[
-          { icon: <DollarSign size={20} />, val: fmtCLP(kpis.facturacion), label: `Facturación ${rangeLabel}`, sub: `YTD: ${fmtCLP(kpis.facturacionYTD)}` },
-          { icon: <ShoppingCart size={20} />, val: `${kpis.ventas}`, label: 'Ventas', sub: `Ticket prom: ${fmtCLP(kpis.ticketPromedio)}` },
-          { icon: <Target size={20} />, val: `${fmtNum(kpis.cosecha)} kg`, label: `Cosecha ${rangeLabel}`, sub: `YTD: ${fmtNum(kpis.cosechaYTD)} kg` },
-          { icon: <TrendingUp size={20} />, val: `${kpis.margenUtilidad}%`, label: 'Margen utilidad', sub: `YTD: ${kpis.margenUtilidadYTD}%` },
-          { icon: <Users size={20} />, val: `${kpis.clientesNuevos}`, label: 'Clientes nuevos', sub: `${enjambre.colmenas.total} colmenas` },
-          { icon: <Leaf size={20} />, val: `${fmtNum(kpis.co2Total)} ton`, label: 'CO₂ secuestrado', sub: `${kpis.arbolesYTD} árboles YTD` },
-        ].map((s, i) => (
-          <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
-            <div className="stat-header">
-              <div className="stat-icon">{s.icon}</div>
-              {s.sub && <span className="text-[0.7rem] text-muted-foreground">{s.sub}</span>}
-            </div>
-            <div className="stat-value">{s.val}</div>
-            <div className="stat-label">{s.label}</div>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        <KpiCard
+          title={`Facturaciones YTD`}
+          value={fmtCLP(kpis.facturacion)}
+          icon={<DollarSign size={20} />}
+          description={`Acumulado YTD: ${fmtCLP(kpis.facturacionYTD)}.`}
+          sparkline={ventas.trend.map(t => t.total)}
+        />
+        <KpiCard
+          title="Ventas"
+          value={kpis.ventas}
+          icon={<ShoppingCart size={20} />}
+          description={`Ticket promedio: ${fmtCLP(kpis.ticketPromedio)}.`}
+          sparkline={ventas.trend.map(t => t.count)}
+        />
+        <KpiCard
+          title={`Cosecha ${rangeLabel}`}
+          value={`${fmtNum(kpis.cosecha)} kg`}
+          icon={<Target size={20} />}
+          description={`YTD: ${fmtNum(kpis.cosechaYTD)} kg.`}
+          sparkline={enjambre.cosechas.byMonth.map(m => m.cosecha)}
+        />
+        <KpiCard
+          title="Margen Utilidad"
+          value={`${kpis.margenUtilidad}%`}
+          icon={<TrendingUp size={20} />}
+          description={`Promedio YTD: ${kpis.margenUtilidadYTD}%.`}
+        />
+        <KpiCard
+          title="Clientes Nuevos"
+          value={kpis.clientesNuevos}
+          icon={<Users size={20} />}
+          description={`${enjambre.colmenas.total} colmenas.`}
+        />
+        <KpiCard
+          title="CO₂ Secuestrado"
+          value={`${fmtNum(kpis.co2Total)} ton`}
+          icon={<Leaf size={20} />}
+          description={`${kpis.arbolesYTD} árboles nativos YTD.`}
+          sparkline={[20, 35, 50, 75, 110, 140]}
+        />
       </div>
 
       <div className="dashboard-grid dashboard-grid-2 mt-6">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity } from 'lucide-react';
-import { roleGreetings } from '../data/mockData';
 import type { Colmena, InspeccionRecord, VarroaRecord, PesoRecord } from '../data/mockData';
+import { SegmentControl } from '../components/ui/SegmentControl';
 
 function healthFromEstado(estado: string | null | undefined): Colmena['health'] {
     if (estado === 'optima') return 'optimal';
@@ -37,7 +37,8 @@ interface ReflexionData {
 type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad';
 
 export function ApicultorView() {
-    const { greeting, title, subtitle } = roleGreetings.admin;
+    const [userProfile, setUserProfile] = useState<{ full_name?: string } | null>(null);
+    const [treesCount, setTreesCount] = useState<number>(0);
     const [localColmenas, setLocalColmenas] = useState<Colmena[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedColmena, setSelectedColmena] = useState<Colmena | null>(null);
@@ -54,6 +55,14 @@ export function ApicultorView() {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
                 const uid = session?.user?.id;
+
+                if (uid) {
+                    const { data: prof } = await supabase.from('profiles').select('*').eq('id', uid).single();
+                    setUserProfile(prof);
+
+                    const { count: trees } = await supabase.from('arboles_plantados').select('id', { count: 'exact', head: true });
+                    setTreesCount(trees ?? 0);
+                }
 
                 const { data: apiarios } = await supabase.from('apiarios').select('*');
                 const apiarioMap = new Map(apiarios?.map((a: Record<string, unknown>) => [a.id, (a as { name?: string }).name]) || []);
@@ -122,8 +131,8 @@ export function ApicultorView() {
                         loteActivo: (c.lote_activo as string) || '',
                         alzas: (c.alzas as number) || 1,
                         nucleosCandidatos: Boolean(c.nucleos_candidatos),
- }));
- setLocalColmenas(mapped as Colmena[]);
+  }));
+  setLocalColmenas(mapped as Colmena[]);
                 } else {
                     setLocalColmenas([]);
                 }
@@ -183,22 +192,21 @@ export function ApicultorView() {
             )}
 
             <div className="hero-banner animate-in">
-                <div className="hero-greeting">{greeting}</div>
-                <h1 className="hero-title">{title}</h1>
-                <p className="hero-subtitle">{subtitle}</p>
+                <div className="hero-greeting">¡Hola, {userProfile?.full_name || 'Apicultor'}!</div>
+                <h1 className="hero-title">Estás conectado al Bosque Nativo</h1>
+                <p className="hero-subtitle">Monitorea colmenas y analiza flujos de floración</p>
             </div>
 
             <div className="stats-grid">
                 {[
-                    { icon: <Hexagon size={20} />, val: localColmenas.length, label: 'Colmenas activas', trend: '+1 nueva' },
-                    { icon: <Droplets size={20} />, val: `${totalProduction} kg`, label: 'Producción temporada', trend: '+18%' },
-                    { icon: <ThermometerSun size={20} />, val: '14°C', label: 'Temp. Pureo ahora' },
-                    { icon: <TreePine size={20} />, val: '4.200', label: 'Árboles Pureo', trend: '+120' },
+                    { icon: <Hexagon size={20} />, val: localColmenas.length, label: 'Colmenas activas' },
+                    { icon: <Droplets size={20} />, val: `${totalProduction} kg`, label: 'Producción temporada' },
+                    { icon: <ThermometerSun size={20} />, val: '--', label: 'Temp. Pureo ahora' },
+                    { icon: <TreePine size={20} />, val: treesCount.toLocaleString('es-CL'), label: 'Árboles Pureo' },
                 ].map((s, i) => (
                     <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
                         <div className="stat-header">
                             <div className="stat-icon">{s.icon}</div>
-                            {s.trend && <span className="stat-trend up">{s.trend}</span>}
                         </div>
                         <div className="stat-value">{s.val}</div>
                         <div className="stat-label">{s.label}</div>
@@ -206,27 +214,16 @@ export function ApicultorView() {
                 ))}
             </div>
 
-            {/* Main Feature Tabs */}
-            <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-xl)', marginBottom: 'var(--space-lg)', borderBottom: '1px solid hsl(var(--border))' }}>
-                {[
-                    { id: 'colmenas', label: 'Mis Colmenas (IoT)', icon: <Activity size={16} /> },
-                    { id: 'calendario', label: 'Ciclo del Bosque (IA)', icon: <CalendarDays size={16} /> },
-                    { id: 'trazabilidad', label: 'Trazabilidad & Legado', icon: <LineChart size={16} /> },
-                ].map(tab => (
-                    <button key={tab.id} onClick={() => setActiveView(tab.id as ViewTab)}
-                        style={{
-                            display: 'flex', alignItems: 'center', gap: 8, padding: 'var(--space-md) var(--space-lg)',
-                            background: activeView === tab.id ? 'hsl(var(--card))' : 'transparent',
-                            border: 'none', borderTopLeftRadius: 'var(--radius-md)', borderTopRightRadius: 'var(--radius-md)',
-borderTop: activeView === tab.id ? '2px solid hsl(var(--accent))' : '2px solid transparent',
-color: activeView === tab.id ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
-                            fontWeight: activeView === tab.id ? 600 : 500, fontSize: '0.9rem', cursor: 'pointer',
-                            marginBottom: -1, transition: 'all 150ms'
-                        }}>
-                        {tab.icon} {tab.label}
-                    </button>
-                ))}
-            </div>
+            <SegmentControl
+              options={[
+                { value: 'colmenas', label: 'Mis Colmenas (IoT)', icon: <Activity size={16} /> },
+                { value: 'calendario', label: 'Ciclo del Bosque (IA)', icon: <CalendarDays size={16} /> },
+                { value: 'trazabilidad', label: 'Trazabilidad & Legado', icon: <LineChart size={16} /> },
+              ]}
+              selectedValue={activeView}
+              onChange={(val) => setActiveView(val as ViewTab)}
+              className="mt-6 mb-6"
+            />
 
             <div className="dashboard-grid dashboard-grid-2-1">
                 {/* Left Column (Main Content based on tab) */}

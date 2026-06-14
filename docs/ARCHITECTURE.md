@@ -460,5 +460,38 @@ Ver `DEPLOY.md` y `VERCEL.md` para instrucciones detalladas.
 
 ---
 
+## 8. Seguridad, Funcionalidad, Eficiencia y Eficacia (Directrices de Regeneración)
+
+En el proceso de transición de datos mock/estáticos a flujos dinámicos con Supabase en apps complejas como Nucleo, se deben considerar las siguientes ramificaciones arquitectónicas:
+
+### 8.1 Seguridad (Security)
+- **Alineación con RLS**: Al remover variables locales `ROLE` u objetos mock de autenticación, toda consulta o mutación debe ser filtrada basándose en el identificador de sesión obtenido mediante `supabase.auth.getSession()` o los estados provistos por el package `@enjambre/auth`.
+- **Pre-auth vs Post-auth**: No exponer selectores ni realizar fetching en el cliente antes de validar la existencia de una sesión de usuario activa.
+- **Acceso Restringido**: El mapa y otros componentes que consumen la tabla `eventos` o `apiarios` deben adherirse estrictamente a políticas RLS que limitan la lectura a usuarios autenticados, previniendo la filtración de coordenadas sensibles a crawlers o accesos anónimos.
+
+### 8.2 Funcionalidad (Functionality)
+- **Null-Safety y Coalescencia**: Los datos dinámicos introducen la posibilidad de retornos vacíos (`null` o `[]`). Todos los componentes visuales deben usar operadores de coalescencia nula (`??`) y estados vacíos (`EmptyState`) amigables para el usuario.
+- **Mapeo Riguroso de Base de Datos**: Asegurar consistencia entre los nombres de columnas de las tablas de Supabase y las interfaces locales. Por ejemplo, evitar la discrepancia típica de mock data utilizando los tipos generados en `database.types.ts`.
+- **Mapeos Auxiliares**: Cuando el backend devuelva campos genéricos, usar funciones puras de mapeo (ej. `mapProductoRow`) para adaptarlos a la UI, manteniendo la presentación separada del modelo físico de base de datos.
+
+### 8.3 Eficiencia (Efficiency)
+- **Selección Acotada (Column Narrowing)**: Evitar consultas pesadas `select('*')` en tablas de gran volumen (como `arboles_plantados` o `ventas`). Consultar únicamente los campos requeridos para el renderizado del componente (ej. `select('id, lat, lng, type')`).
+- **Control de Paralelismo**: Agrupar peticiones independientes de carga inicial mediante `Promise.all` en lugar de encadenar `await` secuenciales, optimizando el tiempo de respuesta total de las vistas.
+- **Cache y Query State**: Aprovechar TanStack Query para la persistencia del estado en el cliente, evitando re-fetching redundantes al alternar entre tabs o vistas del dashboard.
+
+### 8.4 Eficacia (Efficacy)
+- **Mapeo de Errores al Usuario**: Reemplazar silencios en catch blocks y `console.error` con invocaciones controladas a `toast` con la ayuda de la utilidad `friendlyError` de `@enjambre/ui`, garantizando la visibilidad del estado de error para el operador en terreno.
+- **Flujos Idempotentes**: Garantizar que las operaciones críticas (como transacciones POS o cierres de caja) registren logs y prevengan doble envío mediante deshabilitación temporal de botones (`disabled={loading}`).
+
+### 8.5 Lecciones de Auditoría de la Fase 3
+Durante la preparación de la Fase 3 (Profundidad Funcional), se documentaron las siguientes vulnerabilidades y mejoras de diseño:
+- **Seguridad**: Las mutaciones en `apiarios` y `arboles_plantados` (inserts, updates, deletes) se realizan directamente desde el cliente Supabase utilizando la sesión activa. Se verificó que las políticas RLS restringen estas mutaciones a `user_id = auth.uid()` o a usuarios con rol `admin` (`public.is_gerente()` / `public.is_admin()`).
+- **Funcionalidad (Formato de Fechas)**: Inicializar formularios con `new Date().toLocaleDateString('es-CL')` (formato localized tipo `DD-MM-YYYY`) causa fallos de parsing en columnas SQL de tipo `DATE`. Estandarizar en `new Date().toISOString().split('T')[0]` (formato ISO `YYYY-MM-DD`) garantiza la compatibilidad en base de datos.
+- **Funcionalidad (Consistencia de Íconos)**: La falta de mapeo de llaves de íconos de la barra lateral (como `'contact'` para CRM) en `LUCIDE_MAP` de `Sidebar.tsx` degrada la interfaz al renderizar elementos vacíos.
+- **Eficiencia**: Las mutaciones de coordenadas geográficas en marcadores Leaflet deben realizarse a través de una única llamada `update` acotada en `dragend`, evitando recargas masivas o re-fetching de la base de datos completa.
+- **Eficacia**: Los catch blocks no deben usar `console.error` de forma silenciosa para el usuario. Es mandatorio propagar el error utilizando la utilidad centralizada de Sonner `toast(friendlyError(err, '...'), { type: 'error' })` para garantizar la visibilidad de fallos en terreno.
+
+---
+
 *Este documento es la referencia tecnica maestra. Actualizar cuando cambie la estructura o se agreguen apps/paquetes.*
-*Ultima actualizacion: Junio 2026 — 3 apps en Next.js 16, roles consolidados (migration 39), EIRL absorbido por nucleo, BFF Hono dentro de nucleo (22 route groups), packages/sumup + banco-chile, campo POS completo, tienda middleware activo*
+*Ultima actualizacion: Junio 2026 — Añadida sección de directrices de regeneración y lecciones de auditoría de la Fase 3.*

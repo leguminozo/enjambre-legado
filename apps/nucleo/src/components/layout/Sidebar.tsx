@@ -8,7 +8,7 @@ import {
   Menu, X, LogOut, Calculator, Sparkles, BarChart3, FileText,
   UserCog, Settings, Building2, CreditCard, GitMerge, Printer,
   Cpu, Shield, Wallet, Users, Ticket, Percent, Sliders, Trophy,
-  FlaskConical, Factory,
+  FlaskConical, Factory, Contact,
 } from 'lucide-react';
 import { SIDEBAR_GROUPS, ACCOUNT_ITEMS, findActiveItem, type SidebarItem, type SidebarBadge } from '@/config/sidebar-config';
 import { SidebarSection, SidebarBadgeIndicator, type SidebarNavItemData } from '@enjambre/ui';
@@ -44,6 +44,7 @@ const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
   'factory': Factory,
   'user-cog': UserCog,
   'settings': Settings,
+  'contact': Contact,
 };
 
 function toNavItemData(

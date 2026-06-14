@@ -5,6 +5,7 @@ import { BOSQUE_ULMO, BOSQUE_ULMO_LIGHT, ORO_MIEL, TEXT_MUTED } from '@/lib/colo
 import { useChartDimensions } from '@/hooks/use-chart-dimensions';
 import type { Colmena, InspeccionRecord } from '../../data/mockData';
 import { supabase } from '../../lib/supabase';
+import { toast, friendlyError } from '@enjambre/ui';
 
 type Tab = 'resumen' | 'inspecciones' | 'varroa' | 'peso' | 'costos' | 'blockchain';
 
@@ -18,13 +19,13 @@ export function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
 
     // Modal forms states
     const [showInspeccionForm, setShowInspeccionForm] = useState(false);
-    const [inspeccionForm, setInspeccionForm] = useState({ date: new Date().toLocaleDateString('es-CL'), marcos_cria: 0, marcos_miel: 0, varroa: 0, poblacion: 'Baja', reina: true, notes: '', enjambrazon_riesgo: 'bajo' as 'bajo' | 'medio' | 'alto' });
+    const [inspeccionForm, setInspeccionForm] = useState({ date: new Date().toISOString().split('T')[0], marcos_cria: 0, marcos_miel: 0, varroa: 0, poblacion: 'Baja', reina: true, notes: '', enjambrazon_riesgo: 'bajo' as 'bajo' | 'medio' | 'alto' });
 
     const [showVarroaForm, setShowVarroaForm] = useState(false);
-    const [varroaForm, setVarroaForm] = useState({ date: new Date().toLocaleDateString('es-CL'), level: 0, method: 'Alcohol' });
+    const [varroaForm, setVarroaForm] = useState({ date: new Date().toISOString().split('T')[0], level: 0, method: 'Alcohol' });
 
     const [showPesoForm, setShowPesoForm] = useState(false);
-    const [pesoForm, setPesoForm] = useState({ date: new Date().toLocaleDateString('es-CL'), kg: 0, note: '' });
+    const [pesoForm, setPesoForm] = useState({ date: new Date().toISOString().split('T')[0], kg: 0, note: '' });
 
     const costoProd = colmena.costos.horas_anuales * colmena.costos.costo_hora
         + colmena.costos.amortizacion_cajon + colmena.costos.insumos_anuales;
@@ -163,16 +164,20 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                     <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
                                         <button className="btn btn-ghost btn-sm" onClick={() => setShowInspeccionForm(false)}>Cancelar</button>
                                         <button className="btn btn-primary btn-sm" onClick={async () => {
-                                            const newInspeccion = inspeccionForm as InspeccionRecord;
+                                            const newInspeccion = { ...inspeccionForm, inspector: 'Apicultor' } as InspeccionRecord;
 
                                             // Write to Supabase first
-                                            if (colmena.id && !colmena.id.includes('mock')) {
+                                            if (colmena.id) {
                                                 const { error } = await supabase.from('inspecciones').insert({
                                                     colmena_id: colmena.id, date: newInspeccion.date, inspector: newInspeccion.inspector || 'Apicultor',
                                                     marcos_cria: newInspeccion.marcos_cria, marcos_miel: newInspeccion.marcos_miel, varroa: newInspeccion.varroa,
-                                                    poblacion: newInspeccion.poblacion, reina: newInspeccion.reina, enjambrazon_riesgo: newInspeccion.enjambrazon_riesgo, notes: newInspeccion.notes
+                                                    poblacion: newInspeccion.poblacion.toLowerCase(), reina: newInspeccion.reina, enjambrazon_riesgo: newInspeccion.enjambrazon_riesgo, notes: newInspeccion.notes
                                                 });
-                                                if (error) console.error("Error saving inspeccion:", error);
+                                                if (error) {
+                                                    toast(friendlyError(error, 'Error al guardar la inspección'), { type: 'error' });
+                                                    return;
+                                                }
+                                                toast('Inspección guardada exitosamente', { type: 'success' });
                                             }
 
                                             onUpdate({ ...colmena, inspecciones: [newInspeccion, ...colmena.inspecciones] });
@@ -235,11 +240,15 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                     <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
                                         <button className="btn btn-ghost btn-sm" onClick={() => setShowVarroaForm(false)}>Cancelar</button>
                                         <button className="btn btn-primary btn-sm" onClick={async () => {
-                                            if (colmena.id && !colmena.id.includes('mock')) {
+                                            if (colmena.id) {
                                                 const { error } = await supabase.from('varroa_records').insert({
                                                     colmena_id: colmena.id, date: varroaForm.date, level: varroaForm.level, method: varroaForm.method
                                                 });
-                                                if (error) console.error("Error saving varroa:", error);
+                                                if (error) {
+                                                    toast(friendlyError(error, 'Error al guardar registro de varroa'), { type: 'error' });
+                                                    return;
+                                                }
+                                                toast('Registro de varroa guardado exitosamente', { type: 'success' });
                                             }
                                             onUpdate({ ...colmena, varroaHistory: [...colmena.varroaHistory, varroaForm] });
                                             setShowVarroaForm(false);
@@ -295,11 +304,15 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                     <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
                                         <button className="btn btn-ghost btn-sm" onClick={() => setShowPesoForm(false)}>Cancelar</button>
                                         <button className="btn btn-primary btn-sm" onClick={async () => {
-                                            if (colmena.id && !colmena.id.includes('mock')) {
+                                            if (colmena.id) {
                                                 const { error } = await supabase.from('peso_records').insert({
                                                     colmena_id: colmena.id, date: pesoForm.date, kg: pesoForm.kg, note: pesoForm.note
                                                 });
-                                                if (error) console.error("Error saving peso:", error);
+                                                if (error) {
+                                                    toast(friendlyError(error, 'Error al guardar registro de peso'), { type: 'error' });
+                                                    return;
+                                                }
+                                                toast('Registro de peso guardado exitosamente', { type: 'success' });
                                             }
                                             onUpdate({ ...colmena, pesoHistory: [...colmena.pesoHistory, pesoForm] });
                                             setShowPesoForm(false);

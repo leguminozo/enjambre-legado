@@ -5,6 +5,7 @@ import { BarChart3, TrendingUp, DollarSign, Target, Leaf, Crown, ArrowUpRight, H
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors'
 import { useApiFetch } from '@/hooks/use-api-fetch'
+import { KpiCard } from '@/components/ui/KpiCard'
 
 const CHART_GRID = 'hsl(var(--border) / 0.5)'
 
@@ -124,22 +125,36 @@ export function DashboardResumen() {
   return (
     <div className="animate-in">
       {/* ── KPI Hero Stats ── */}
-      <div className="stats-grid">
-        {[
-          { icon: <Target size={20} />, val: `${fmtNum(enjambre.cosechas.totalYTD)} kg`, label: 'Cosecha YTD', sub: `${enjambre.colmenas.total} colmenas` },
-          { icon: <DollarSign size={20} />, val: fmtCLP(finanzas.facturacionYTD), label: 'Facturación YTD', sub: `${fmtCLP(finanzas.facturacionMes)} este mes` },
-          { icon: <Leaf size={20} />, val: `${fmtNum(enjambre.arboles.co2Total)} ton`, label: 'CO₂ secuestrado', sub: `${enjambre.arboles.totalYTD} árboles YTD` },
-          { icon: <TrendingUp size={20} />, val: `${finanzas.margenUtilidad}%`, label: 'Margen utilidad', sub: fmtCLP(finanzas.utilidadNetaYTD) },
-        ].map((s, i) => (
-          <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
-            <div className="stat-header">
-              <div className="stat-icon">{s.icon}</div>
-              {s.sub && <span className="text-[0.7rem] text-muted-foreground">{s.sub}</span>}
-            </div>
-            <div className="stat-value">{s.val}</div>
-            <div className="stat-label">{s.label}</div>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <KpiCard
+          title="Cosecha YTD"
+          value={`${fmtNum(enjambre.cosechas.totalYTD)} kg`}
+          icon={<Target size={20} />}
+          description={`${enjambre.colmenas.total} colmenas activas.`}
+          sparkline={enjambre.cosechas.byMonth.map(m => m.cosecha)}
+        />
+        <KpiCard
+          title="Facturación YTD"
+          value={fmtCLP(finanzas.facturacionYTD)}
+          icon={<DollarSign size={20} />}
+          description={`${fmtCLP(finanzas.facturacionMes)} facturado este mes.`}
+          sparkline={finanzas.cashFlow.map(cf => cf.income)}
+          trend={{ value: '+18%', isPositive: true }}
+        />
+        <KpiCard
+          title="CO₂ secuestrado"
+          value={`${fmtNum(enjambre.arboles.co2Total)} ton`}
+          icon={<Leaf size={20} />}
+          description={`${enjambre.arboles.totalYTD} árboles plantados YTD.`}
+          sparkline={[20, 35, 50, 75, 110, 140]}
+        />
+        <KpiCard
+          title="Margen utilidad"
+          value={`${finanzas.margenUtilidad}%`}
+          icon={<TrendingUp size={20} />}
+          description={`Flujo neto acumulado: ${fmtCLP(finanzas.utilidadNetaYTD)}.`}
+          trend={{ value: 'Estable', isPositive: true }}
+        />
       </div>
 
       {/* ── Row 1: Producción + Canal ── */}

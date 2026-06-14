@@ -18,7 +18,13 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
-import { ROLE, roleLabels } from "../data/mockData";
+const roleLabels: Record<string, string> = {
+  admin: "Administrador",
+  cliente: "Cliente",
+  creador: "Creador",
+  rep_ventas: "Representante de Ventas",
+};
+
 import { usePerfil } from "./perfil/use-perfil";
 
 const guardianLevels: Record<string, { label: string; description: string; icon: string }> = {
@@ -146,7 +152,7 @@ export function PerfilView() {
             </h3>
             <p className="text-xs text-muted-foreground mb-3 font-mono">{profile.email}</p>
             <span className="badge badge-gold px-3 py-1 rounded-full text-xs font-semibold">
-              {roleLabels[ROLE] || ROLE}
+              {roleLabels[profile.role] || profile.role}
             </span>
           </div>
 
@@ -245,7 +251,7 @@ export function PerfilView() {
                   <div className="flex items-center gap-2">
                     <Shield size={16} className="text-accent" />
                     <span className="badge badge-gold px-2.5 py-0.5 rounded-md text-xs font-semibold">
-                      {roleLabels[ROLE] || ROLE}
+                      {roleLabels[profile.role] || profile.role}
                     </span>
                   </div>
                 </div>

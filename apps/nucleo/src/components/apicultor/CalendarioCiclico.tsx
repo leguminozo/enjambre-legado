@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react';
 import { CalendarDays, CheckCircle2, Circle, Filter, Plus, X } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ORO_MIEL, TEXT_MUTED } from '@/lib/colors';
-import { flowPredictions } from '../../data/mockData';
 import { supabase } from '../../lib/supabase';
 import type { CalendarioTask } from '../../data/mockData';
 
@@ -103,50 +100,6 @@ export function CalendarioCiclico() {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-
-            {/* Predicción flujo de néctar IA */}
-            <div className="card" style={{ border: '1px solid hsl(var(--accent) / 0.15)' }}>
-                <div className="section-header">
-                    <div>
-                        <div className="section-title">🌸 Predicción IA · Flujo de Néctar</div>
-                        <div className="section-subtitle">Próximos 45 días · Chiloé · Confianza promedio 80%</div>
-                    </div>
-                    <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>IA activa</span>
-                </div>
-                <div style={{ height: 180 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={flowPredictions}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke={TEXT_MUTED}
-            tickFormatter={v => v.slice(5)} />
-          <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                            <Tooltip
-                                contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.78rem' }}
-formatter={(v, name) =>
-              name === 'flujoIndex' ? [`${v}/100`, 'Flujo néctar'] : [v, name]}
-                                labelFormatter={l => `📅 ${l}`}
-                            />
-                            <Area type="monotone" dataKey="flujoIndex" stroke={ORO_MIEL}
-                                fill="hsl(var(--accent) / 0.2)" strokeWidth={2} name="flujoIndex" />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 'var(--space-sm)', marginTop: 'var(--space-md)' }}>
-                    {flowPredictions.slice(0, 4).map((p, i) => (
-                        <div key={i} style={{ padding: 8, background: `hsl(var(--accent) / ${0.05 + p.flujoIndex / 800})`, borderRadius: 6, textAlign: 'center' }}>
-                            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{p.flujoIndex}</div>
-                            <div style={{ fontSize: '0.65rem', color: 'hsl(var(--foreground))', fontWeight: 600 }}>{p.floracion.split('(')[0]!.trim()}</div>
-                            <div style={{ fontSize: '0.6rem', color: 'hsl(var(--muted-foreground))' }}>{p.date.slice(5)} · ~{p.prediccionKg}kg/d</div>
-                        </div>
-                    ))}
-                </div>
-                <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', lineHeight: 1.6, color: 'hsl(var(--muted-foreground))' }}>
-                    <strong style={{ color: 'hsl(var(--foreground))' }}>✨ Recomendación IA:</strong>{' '}
-                    El pico de flujo ocurrirá entre <strong>2 y 8 de marzo</strong> (tepú + ulmo simultáneos).
-                    Coloca alzas extra en Pureo Norte <strong>ahora</strong> para maximizar captura.
-                    Flujo cayendo en semana del 12: programar cosecha ese fin de semana.
-                </div>
-            </div>
 
             {/* Calendario de tareas */}
             <div className="card">

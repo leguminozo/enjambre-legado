@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ShoppingBag, Users, MapPin, CalendarDays, TrendingUp, Star, ArrowUpRight, QrCode, Truck, X, ChevronDown, Plus, Minus } from 'lucide-react';
-import { roleGreetings, type Product } from '../data/mockData';
+import type { Product } from '../data/mockData';
 import { supabase } from '../lib/supabase';
-import { friendlySupabaseError, toast } from '@enjambre/ui';
+import { friendlyError, friendlySupabaseError, toast } from '@enjambre/ui';
 import { useAuthStore } from '@enjambre/auth';
 
 function mapProductoRow(p: Record<string, unknown>): Product {
@@ -36,7 +36,10 @@ const pitches: Record<string, string> = {
 };
 
 export function VendedorView() {
-  const { greeting, title, subtitle } = roleGreetings.admin;
+  const [userProfile, setUserProfile] = useState<{ full_name?: string } | null>(null);
+  const greeting = userProfile ? `¡Hola, ${userProfile.full_name || 'Representante'}!` : 'Cargando...';
+  const title = 'Centro de Ventas y Ferias';
+  const subtitle = 'Registra ventas, gestiona tus clientes y haz seguimiento de tu impacto en el territorio.';
   const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -65,6 +68,11 @@ export function VendedorView() {
     async function loadData() {
       const user = useAuthStore.getState().user;
       if (!user) return;
+
+      const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      if (prof) {
+        setUserProfile(prof);
+      }
 
       const { data } = await supabase.from('clientes')
         .select('*')
@@ -101,7 +109,7 @@ export function VendedorView() {
         }
       }
     } catch (e) {
-      console.error("Error adding client", e);
+      toast(friendlyError(e, 'Error al agregar cliente'), { type: 'error' });
     }
 
     setShowAddClient(false);
@@ -235,8 +243,7 @@ export function VendedorView() {
                       setPosCart({});
                       setShowPos(false);
                     } catch (e) {
-                      console.error('Error POS:', e);
-                      toast('No se pudo registrar la venta. Verifica tu conexión o intenta de nuevo.', { type: 'error' });
+                      toast(friendlyError(e, 'No se pudo registrar la venta'), { type: 'error' });
                     } finally {
                       setLoadingPos(false);
                     }

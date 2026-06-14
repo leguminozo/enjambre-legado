@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { GuardianSidebar } from '@/components/shop/guardian-sidebar';
 import { PerfilLayoutClient } from './perfil-layout-client';
-import { GrainOverlay } from '@/components/ui/grain-overlay';
 import { CustomCursor } from '@/components/ui/custom-cursor';
 import { getOyzRole } from '@/lib/shop/role';
 
@@ -25,7 +24,6 @@ export default async function PerfilLayout({
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
-      <GrainOverlay />
       <CustomCursor />
 
       {/* Profile data fetching is now deferred to specific parallel page queries */}

@@ -5,8 +5,18 @@ import { supabase } from '../../lib/supabase';
 import L from 'leaflet';
 import { BOSQUE_ULMO, ORO_MIEL, ORO_MIEL_DARK, SALUD_OPTIMA } from '@/lib/colors';
 import 'leaflet/dist/leaflet.css';
-import { timelineEvents, type MapMarker } from '../../data/mockData';
 import { Plus, X, MapPin } from 'lucide-react';
+import { toast, friendlyError } from '@enjambre/ui';
+
+export interface MapMarker {
+    id: string;
+    type: 'obrera' | 'zangano' | 'nectar' | 'tree' | 'feria';
+    name: string;
+    lat: number;
+    lng: number;
+    health?: 'optimal' | 'attention' | 'risk';
+    details?: string;
+}
 
 // Fix Leaflet default icon issue
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -102,42 +112,66 @@ interface MapaLegadoProps {
     filterRole?: string;
 }
 
+interface Evento {
+  id: string;
+  nombre: string | null;
+  fecha_inicio: string | null;
+}
+
 export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
     const [liveMarkers, setLiveMarkers] = useState<MapMarker[]>([]);
+    const [events, setEvents] = useState<Evento[]>([]);
     const [isEditMode, setIsEditMode] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
     const [newMarkerCoords, setNewMarkerCoords] = useState<{ lat: number; lng: number } | null>(null);
     const [newMarkerForm, setNewMarkerForm] = useState({ type: 'obrera' as 'obrera' | 'tree', name: '', details: '' });
 
+    // Edit marker states
+    const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editMarkerForm, setEditMarkerForm] = useState({ name: '', details: '', type: 'obrera' as 'obrera' | 'tree' });
+
+    // Filter toggles
+    const [showApiarios, setShowApiarios] = useState(true);
+    const [showTrees, setShowTrees] = useState(true);
+
     useEffect(() => {
         async function loadMaps() {
-            const { data: apiarios } = await supabase.from('apiarios').select('id, name, lat, lng, details');
-            const { data: arboles } = await supabase.from('arboles_plantados').select('id, especie, lat, lng').not('lat', 'is', null);
-            const markers: MapMarker[] = [];
-            apiarios?.forEach((a: Record<string, unknown>) => {
-                if (a.lat != null && a.lng != null) {
-                    markers.push({
-                        id: `api-${String(a.id)}`,
-                        lat: Number(a.lat),
-                        lng: Number(a.lng),
-                        type: 'obrera',
-                        name: String(a.name ?? 'Apiario'),
-                        details: a.details ? String(a.details) : undefined,
-                    });
-                }
-            });
-            arboles?.forEach((t: Record<string, unknown>) => {
-                if (t.lat != null && t.lng != null) {
-                    markers.push({
-                        id: `tree-${String(t.id)}`,
-                        lat: Number(t.lat),
-                        lng: Number(t.lng),
-                        type: 'tree',
-                        name: String(t.especie ?? 'Árbol nativo'),
-                    });
-                }
-            });
-            setLiveMarkers(markers);
+            try {
+                const { data: apiarios } = await supabase.from('apiarios').select('id, name, lat, lng, details');
+                const { data: arboles } = await supabase.from('arboles_plantados').select('id, especie, lat, lng').not('lat', 'is', null);
+                const { data: evts } = await supabase.from('eventos').select('id, nombre, fecha_inicio').order('fecha_inicio', { ascending: true });
+                
+                setEvents(evts ?? []);
+
+                const markers: MapMarker[] = [];
+                apiarios?.forEach((a: Record<string, unknown>) => {
+                    if (a.lat != null && a.lng != null) {
+                        markers.push({
+                            id: `api-${String(a.id)}`,
+                            lat: Number(a.lat),
+                            lng: Number(a.lng),
+                            type: 'obrera',
+                            name: String(a.name ?? 'Apiario'),
+                            details: a.details ? String(a.details) : undefined,
+                        });
+                    }
+                });
+                arboles?.forEach((t: Record<string, unknown>) => {
+                    if (t.lat != null && t.lng != null) {
+                        markers.push({
+                            id: `tree-${String(t.id)}`,
+                            lat: Number(t.lat),
+                            lng: Number(t.lng),
+                            type: 'tree',
+                            name: String(t.especie ?? 'Árbol nativo'),
+                        });
+                    }
+                });
+                setLiveMarkers(markers);
+            } catch (err) {
+                toast(friendlyError(err, 'Error al cargar datos del mapa'), { type: 'error' });
+            }
         }
         loadMaps();
     }, []);
@@ -198,16 +232,91 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
             setNewMarkerForm({ type: 'obrera', name: '', details: '' });
             setNewMarkerCoords(null);
         } catch (error) {
-            console.error('Error saving marker:', error);
+            toast(friendlyError(error, 'Error al guardar marcador'), { type: 'error' });
         }
     };
 
-    // Filter markers based on role if provided
+    const handleMoveMarker = async (id: string, lat: number, lng: number) => {
+        try {
+            if (id.startsWith('api-')) {
+                const apiId = id.substring(4);
+                const { error } = await supabase.from('apiarios').update({ lat, lng }).eq('id', apiId);
+                if (error) throw error;
+            } else if (id.startsWith('tree-')) {
+                const treeId = id.substring(5);
+                const { error } = await supabase.from('arboles_plantados').update({ lat, lng }).eq('id', treeId);
+                if (error) throw error;
+            }
+            toast('Ubicación del marcador actualizada', { type: 'success' });
+            setLiveMarkers(prev => prev.map(m => m.id === id ? { ...m, lat, lng } : m));
+        } catch (error) {
+            toast(friendlyError(error, 'Error al mover marcador'), { type: 'error' });
+        }
+    };
+
+    const handleDeleteMarker = async (id: string) => {
+        try {
+            if (id.startsWith('api-')) {
+                const apiId = id.substring(4);
+                const { error } = await supabase.from('apiarios').delete().eq('id', apiId);
+                if (error) throw error;
+            } else if (id.startsWith('tree-')) {
+                const treeId = id.substring(5);
+                const { error } = await supabase.from('arboles_plantados').delete().eq('id', treeId);
+                if (error) throw error;
+            }
+            toast('Marcador eliminado correctamente', { type: 'success' });
+            setLiveMarkers(prev => prev.filter(m => m.id !== id));
+            setShowEditModal(false);
+            setSelectedMarker(null);
+        } catch (error) {
+            toast(friendlyError(error, 'Error al eliminar marcador'), { type: 'error' });
+        }
+    };
+
+    const handleUpdateMarker = async () => {
+        if (!selectedMarker || !editMarkerForm.name) return;
+
+        try {
+            if (selectedMarker.id.startsWith('api-')) {
+                const apiId = selectedMarker.id.substring(4);
+                const { error } = await supabase.from('apiarios').update({
+                    name: editMarkerForm.name,
+                    details: editMarkerForm.details || null
+                }).eq('id', apiId);
+                if (error) throw error;
+            } else if (selectedMarker.id.startsWith('tree-')) {
+                const treeId = selectedMarker.id.substring(5);
+                const { error } = await supabase.from('arboles_plantados').update({
+                    especie: editMarkerForm.name
+                }).eq('id', treeId);
+                if (error) throw error;
+            }
+            toast('Marcador actualizado correctamente', { type: 'success' });
+            setLiveMarkers(prev => prev.map(m => m.id === selectedMarker.id ? { 
+                ...m, 
+                name: editMarkerForm.name, 
+                details: editMarkerForm.details || undefined 
+            } : m));
+            setShowEditModal(false);
+            setSelectedMarker(null);
+        } catch (error) {
+            toast(friendlyError(error, 'Error al actualizar marcador'), { type: 'error' });
+        }
+    };
+
+    // Filter markers based on role and user toggles
     let filteredMarkers = liveMarkers;
     if (filterRole === 'apicultor') {
         filteredMarkers = liveMarkers.filter(m => m.type === 'obrera' || m.type === 'tree' || m.type === 'zangano');
     } else if (filterRole === 'vendedor') {
         filteredMarkers = liveMarkers.filter(m => m.type === 'nectar' || m.type === 'feria');
+    }
+    if (!showApiarios) {
+        filteredMarkers = filteredMarkers.filter(m => m.type !== 'obrera');
+    }
+    if (!showTrees) {
+        filteredMarkers = filteredMarkers.filter(m => m.type !== 'tree');
     }
 
     // Chiloé center
@@ -217,7 +326,35 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
         <div>
             {/* Map */}
             <div className="map-container" style={{ height }}>
-                <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 1000, display: 'flex', gap: 8 }}>
+                <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 1000, display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {/* Layer Toggles */}
+                    <div style={{ display: 'flex', gap: 4, background: 'hsl(var(--card) / 0.8)', border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-md)', padding: 4, backdropFilter: 'blur(8px)' }}>
+                        <button
+                            onClick={() => setShowApiarios(!showApiarios)}
+                            className={`btn btn-sm ${showApiarios ? 'btn-primary' : 'btn-ghost'}`}
+                            style={{ 
+                                padding: '4px 10px', 
+                                fontSize: '0.72rem',
+                                background: showApiarios ? 'hsl(var(--primary))' : 'transparent',
+                                color: showApiarios ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
+                            }}
+                        >
+                            🐝 Apiarios
+                        </button>
+                        <button
+                            onClick={() => setShowTrees(!showTrees)}
+                            className={`btn btn-sm ${showTrees ? 'btn-primary' : 'btn-ghost'}`}
+                            style={{ 
+                                padding: '4px 10px', 
+                                fontSize: '0.72rem',
+                                background: showTrees ? 'hsl(var(--primary))' : 'transparent',
+                                color: showTrees ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
+                            }}
+                        >
+                            🌳 Árboles
+                        </button>
+                    </div>
+
                     <button
                         onClick={() => setIsEditMode(!isEditMode)}
                         className={`btn btn-sm ${isEditMode ? 'btn-primary' : 'btn-ghost'}`}
@@ -248,6 +385,14 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                             key={marker.id}
                             position={[marker.lat, marker.lng]}
                             icon={createCustomIcon(marker)}
+                            draggable={isEditMode}
+                            eventHandlers={{
+                                dragend: async (e) => {
+                                    const markerEvent = e.target;
+                                    const position = markerEvent.getLatLng();
+                                    await handleMoveMarker(marker.id, position.lat, position.lng);
+                                }
+                            }}
                         >
                             <Popup>
                                 <div style={{ minWidth: 180 }}>
@@ -259,6 +404,37 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                                         <p style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', marginTop: 6, lineHeight: 1.4 }}>
                                             {marker.details}
                                         </p>
+                                    )}
+
+                                    {isEditMode && (
+                                        <div style={{ display: 'flex', gap: 8, marginTop: 10, borderTop: '1px solid hsl(var(--border) / 0.5)', paddingTop: 8 }}>
+                                            <button 
+                                                className="btn btn-ghost btn-sm" 
+                                                style={{ fontSize: '0.7rem', padding: '2px 8px', color: 'hsl(var(--accent))' }}
+                                                onClick={() => {
+                                                    setSelectedMarker(marker);
+                                                    setEditMarkerForm({
+                                                        name: marker.name,
+                                                        details: marker.details || '',
+                                                        type: marker.type as 'obrera' | 'tree'
+                                                    });
+                                                    setShowEditModal(true);
+                                                }}
+                                            >
+                                                Editar
+                                            </button>
+                                            <button 
+                                                className="btn btn-ghost btn-sm" 
+                                                style={{ fontSize: '0.7rem', padding: '2px 8px', color: 'hsl(var(--destructive))' }}
+                                                onClick={() => {
+                                                    if (confirm(`¿Está seguro que desea eliminar "${marker.name}"?`)) {
+                                                        handleDeleteMarker(marker.id);
+                                                    }
+                                                }}
+                                            >
+                                                Eliminar
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             </Popup>
@@ -320,27 +496,95 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                 </div>
             )}
 
+            {/* Edit Marker Modal */}
+            {showEditModal && selectedMarker && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ position: 'absolute', inset: 0, background: 'hsl(var(--foreground) / 0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setShowEditModal(false)} />
+                    <div className="card" style={{ position: 'relative', zIndex: 2001, width: 400, padding: 'var(--space-xl)' }}>
+                        <button onClick={() => setShowEditModal(false)} style={{ position: 'absolute', top: 14, right: 14, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
+                        <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
+                            Editar Marcador
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                            <div>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Tipo</label>
+                                <div style={{ fontSize: '0.9rem', color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>
+                                    {selectedMarker.type === 'obrera' ? '🐝 Apiario' : '🌳 Árbol'}
+                                </div>
+                            </div>
+                            <div>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Nombre</label>
+                                <input 
+                                    className="input-field" 
+                                    value={editMarkerForm.name} 
+                                    onChange={e => setEditMarkerForm({ ...editMarkerForm, name: e.target.value })} 
+                                    placeholder={selectedMarker.type === 'obrera' ? 'Ej. Apiario Norte' : 'Ej. Ulmo'}
+                                />
+                            </div>
+                            {selectedMarker.type === 'obrera' && (
+                                <div>
+                                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Detalles (opcional)</label>
+                                    <input 
+                                        className="input-field" 
+                                        value={editMarkerForm.details} 
+                                        onChange={e => setEditMarkerForm({ ...editMarkerForm, details: e.target.value })} 
+                                        placeholder="Sector, notas adicionales..."
+                                    />
+                                </div>
+                            )}
+                            <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
+                                Coordenadas: {selectedMarker.lat.toFixed(6)}, {selectedMarker.lng.toFixed(6)}
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, marginTop: 'var(--space-xl)', justifyContent: 'flex-end' }}>
+                            <button className="btn btn-ghost" onClick={() => setShowEditModal(false)}>Cancelar</button>
+                            <button 
+                                className="btn btn-ghost" 
+                                style={{ color: 'hsl(var(--destructive))', marginRight: 'auto' }}
+                                onClick={() => {
+                                    if (confirm(`¿Está seguro que desea eliminar "${selectedMarker.name}"?`)) {
+                                        handleDeleteMarker(selectedMarker.id);
+                                    }
+                                }}
+                            >
+                                Eliminar
+                            </button>
+                            <button className="btn btn-primary" onClick={handleUpdateMarker}>Guardar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Timeline */}
             <div className="card" style={{ marginTop: 'var(--space-lg)' }}>
                 <div className="section-header">
                     <div>
                         <div className="section-title">Viaje del Legado</div>
-                        <div className="section-subtitle">22 años de apicultura regenerativa</div>
+                        <div className="section-subtitle">Hitos y eventos en el territorio</div>
                     </div>
                 </div>
                 <div className="timeline-container">
-                    <div className="timeline-track">
-                        {timelineEvents.map((evt, i) => (
-                            <div key={evt.year} style={{ display: 'flex', alignItems: 'center' }}>
-                                <div className={`timeline-node ${evt.active ? 'active' : ''}`}>
-                                    <div className="timeline-dot" />
-                                    <div className="timeline-year">{evt.year}</div>
-                                    <div className="timeline-label">{evt.label}</div>
-                                </div>
-                                {i < timelineEvents.length - 1 && <div className="timeline-line" />}
-                            </div>
-                        ))}
-                    </div>
+                    {events.length === 0 ? (
+                        <div style={{ textAlign: 'center', color: 'hsl(var(--muted-foreground))', fontSize: '0.82rem', padding: '16px 0' }}>
+                            No hay eventos registrados en la bitácora del territorio.
+                        </div>
+                    ) : (
+                        <div className="timeline-track">
+                            {events.map((evt, i) => {
+                                const year = evt.fecha_inicio ? new Date(evt.fecha_inicio).getFullYear() : '--';
+                                return (
+                                    <div key={evt.id} style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div className="timeline-node active">
+                                            <div className="timeline-dot" />
+                                            <div className="timeline-year">{year}</div>
+                                            <div className="timeline-label">{evt.nombre}</div>
+                                        </div>
+                                        {i < events.length - 1 && <div className="timeline-line" />}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             </div>
 

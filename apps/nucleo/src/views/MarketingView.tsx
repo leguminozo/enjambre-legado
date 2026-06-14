@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Megaphone, Users, Camera, Calendar, Gift, BookOpen, ArrowUpRight, X } from 'lucide-react';
-import { roleGreetings } from '../data/mockData';
 import { supabase } from '../lib/supabase';
 
 interface MarketingPost {
@@ -29,7 +28,7 @@ interface LocalClient {
 }
 
 export function MarketingView() {
-  const h = roleGreetings.admin;
+  const [userProfile, setUserProfile] = useState<{ full_name?: string } | null>(null);
   const [posts, setPosts] = useState<MarketingPost[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [localClients, setLocalClients] = useState<LocalClient[]>([]);
@@ -43,6 +42,9 @@ export function MarketingView() {
             if (!session) return;
             const uid = session.user.id;
 
+            const { data: prof } = await supabase.from('profiles').select('*').eq('id', uid).single();
+            setUserProfile(prof);
+
 const [resP, resC] = await Promise.all([
         supabase.from('marketing_posts').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
         supabase.from('marketing_campaigns').select('*').eq('user_id', uid).order('created_at', { ascending: false })
@@ -51,8 +53,8 @@ const [resP, resC] = await Promise.all([
       setPosts(resP.data ?? []);
       setCampaigns(resC.data ?? []);
 
-  const { data: clientData } = await supabase.from('clientes').select('id, nombre, tipo').eq('user_id', uid);
-      setLocalClients(Array.isArray(clientData) ? (clientData as LocalClient[]) : []);
+  const { data: clientData } = await supabase.from('clientes').select('id, name, type').eq('user_id', uid);
+      setLocalClients(Array.isArray(clientData) ? (clientData as unknown as LocalClient[]) : []);
         }
         loadData();
     }, []);
@@ -80,19 +82,19 @@ const [resP, resC] = await Promise.all([
     return (
         <div>
             <div className="hero-banner animate-in">
-                <div className="hero-greeting">{h.greeting}</div>
-                <h1 className="hero-title">{h.title}</h1>
-                <p className="hero-subtitle">{h.subtitle}</p>
+                <div className="hero-greeting">¡Hola, {userProfile?.full_name || 'Diseñador/Marketing'}!</div>
+                <h1 className="hero-title">Portal de Comunidad y Comunicación</h1>
+                <p className="hero-subtitle">Gestiona campañas, contenidos y fidelización del Club de Guardianes</p>
             </div>
             <div className="stats-grid">
                 {[
-{ icon: <Users size={20} />, val: String(localClients.length || 0), label: 'Guardianes del Club', trend: localClients.length > 0 ? `+${Math.min(localClients.length, 8)}` : undefined },
-        { icon: <Camera size={20} />, val: '2.4K', label: 'Seguidores IG (manual)', trend: '+12%' },
+        { icon: <Users size={20} />, val: String(localClients.length || 0), label: 'Guardianes del Club' },
+        { icon: <Camera size={20} />, val: '--', label: 'Seguidores IG' },
         { icon: <Gift size={20} />, val: String(campaigns.filter(c => c.status === 'Activa').length), label: 'Campañas activas' },
         { icon: <Megaphone size={20} />, val: String(posts.length), label: 'Contenidos programados' },
                 ].map((s, i) => (
                     <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
-                        <div className="stat-header"><div className="stat-icon">{s.icon}</div>{s.trend && <span className="stat-trend up">{s.trend}</span>}</div>
+                        <div className="stat-header"><div className="stat-icon">{s.icon}</div></div>
                         <div className="stat-value">{s.val}</div><div className="stat-label">{s.label}</div>
                     </div>
                 ))}
