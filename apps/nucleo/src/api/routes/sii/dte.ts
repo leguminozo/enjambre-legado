@@ -777,7 +777,10 @@ dteRoutes.get(
       });
 
     } catch (error) {
-      console.error("[SII Consultar Estado] Error:", error, { trackId, empresaId });
+      // Safe logging for SII consultar (track_id declared as snake_case at top of try).
+      // Prevents TS "no value in scope" for shorthand and ensures error details surface
+      // in local terminal (build:ci / vercel dev) for debugging DTE flows.
+      console.error("[SII Consultar Estado] Error:", error, { trackId: track_id, empresaId });
       return c.json({ 
         code: "sii_consulta_failed", 
         message: error instanceof Error ? error.message : "Error al consultar estado" 
