@@ -68,8 +68,8 @@ export async function obtenerF29Interno(
       .lt("fecha_emision", `${anio}-${String(mes + 1).padStart(2, "0")}-01`),
   ]);
 
-  const facturas = facturasRes.data ?? [];
-  const gastos = gastosRes.data ?? [];
+  const facturas = (facturasRes.data ?? []) as any[];
+  const gastos = (gastosRes.data ?? []) as any[];
   const honorarios = (honorariosRes.data ?? []) as any[];
 
   const debitoFacturas = facturas
@@ -260,7 +260,7 @@ impuestosRoutes.get("/f22/:anio", async (c) => {
       .eq("anio", anio),
   ]);
 
-  const facturas = facturasRes.data ?? [];
+  const facturas = (facturasRes.data ?? []) as any[];
   const honorarios = (honorariosRes.data ?? []) as any[];
   const ppmRows = (ppmRes.data ?? []) as any[];
 
