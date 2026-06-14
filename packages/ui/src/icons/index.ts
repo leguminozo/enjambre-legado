@@ -28,6 +28,7 @@ export {
   
   // Status & Feedback
   AlertCircleIcon,
+  AlertTriangleIcon,
   InfoIcon,
   CheckCircleIcon,
   XCircleIcon,
