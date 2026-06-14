@@ -8,6 +8,7 @@ export interface AuthMiddlewareConfig {
   publicRoutes?: string[]
   authRedirect?: string
   roleRedirectMap?: Record<string, string>
+  defaultRole?: string
   timeoutMs?: number
 }
 
@@ -23,6 +24,7 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
     publicRoutes = ['/', '/login'],
     authRedirect = '/login',
     roleRedirectMap = ROLE_REDIRECT_MAP,
+    defaultRole = 'cliente',
     timeoutMs = 5000,
   } = config
 
@@ -68,7 +70,7 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
     }
 
   if (user && pathname === authRedirect) {
-    const rawRole = (user.app_metadata?.role as string) ?? 'cliente'
+    const rawRole = (user.app_metadata?.role as string) ?? defaultRole
     const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
     const redirectPath = roleRedirectMap[role] ?? '/'
     const url = request.nextUrl.clone()
@@ -77,7 +79,7 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
   }
 
   if (user) {
-    const rawRole = (user.app_metadata?.role as string) ?? 'cliente'
+    const rawRole = (user.app_metadata?.role as string) ?? defaultRole
     const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
       if (!isRouteAllowed(pathname, role)) {
         const origin = request.nextUrl.origin
