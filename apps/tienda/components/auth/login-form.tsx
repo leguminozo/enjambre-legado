@@ -40,7 +40,7 @@ export function LoginForm() {
 
     const result = await login(email, password);
     if (result.success) {
-      toast.success('Sesión iniciada. Bienvenido de vuelta.', { duration: 4000 });
+      toast('Sesión iniciada. Bienvenido de vuelta.', { type: 'success', duration: 4000 });
       if (user) {
         router.push(getTiendaRedirect(user.role));
       } else {
@@ -49,7 +49,7 @@ export function LoginForm() {
     } else {
       const msg = result.message || 'Error al iniciar sesión';
       setError(msg);
-      toast.error(msg, { duration: 6000 });
+      toast(msg, { type: 'error', duration: 6000 });
     }
     setLoading(false);
   };

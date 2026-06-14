@@ -90,7 +90,7 @@ export function useUserNotifications(userId: string | undefined | null, opts: Us
       const msg = friendlyError(fetchError) || 'No se pudieron cargar las notificaciones';
       setError(msg);
       if (!background) setIsLoading(false);
-      toast.error(msg, { duration: 5000 });
+      toast(msg, { type: 'error', duration: 5000 });
       return;
     }
 

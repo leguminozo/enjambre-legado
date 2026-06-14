@@ -66,7 +66,7 @@ export default function AlertasFloracionPage() {
 
             <button
               onClick={() => {
-                toast.success('Preferencias actualizadas. Recibirás alertas de floración y despachos en tiempo real.', { duration: 6000 });
+                toast('Preferencias actualizadas. Recibirás alertas de floración y despachos en tiempo real.', { type: 'success', duration: 6000 });
               }}
               className="w-full md:w-auto px-12 py-5 bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all flex items-center justify-center gap-3"
             >
