@@ -90,6 +90,17 @@ Root: The generated `packages/database/database.types.ts` is incomplete for SII/
 - **Next real fix (not workaround)**: Improve packages/database type generation (custom types for SII tables, or post-codegen augmentation), or migrate the heavy reporting queries to use views / RPCs with explicit return types. Also consider adding a `turbo types` task and pre-push hook.
 - Other SII files (impuestos.ts, rcv.ts, certificados, sii/gastos, facturas-emitidas async DTE hook) already use inline `(supabase as any)` or the ia pattern; they are lower risk but should be audited in follow-up passes as more of the "self-improving critical loop".
 
+**Update (next iteration on main after 8f8f538)**: New failure on `sii/dte.ts:10` import: `Module '"@enjambre/contable"' has no exported member 'formatDateSii'` (and siblings formatRutSii, escapeXml). The helpers live in `packages/contable/src/domain/dte-xml.ts` and were `export *` re-exported via index.ts, but the named members were not visible to the Next/Turbopack type checker in nucleo during "Running TypeScript".
+
+Local `pnpm turbo build --filter=@enjambre/nucleo` (and previous runs) continued to peel: after reportes fixes, hit scope issues in the detailed console.error statements added for SII visibility (shorthand { input }, { trackId } where vars were track_id or declared with different casing / narrower flow in the large try blocks of /emitir and /consultar-estado).
+
+**Fixes applied**:
+- Explicit named re-exports in contable/src/index.ts for the DTE helpers (in addition to export *). Forces the public surface for consumers.
+- Surgical safe logging in the two catch blocks in dte.ts (use the actually declared vars or c.get/param() in the log object).
+- This keeps the rich `[SII DTE ...] Error: ...` logs so that real SII failures (CAF, token, stamp, enviar, consultar) appear in terminal before they are swallowed into generic JSON responses.
+
+Pushed as 0abce07. Local CI used to iterate the symptoms.
+
 This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, and with profundidad for planned long-term delivery (real notifications + SII compliance + Guardian flows).
 ---
 
