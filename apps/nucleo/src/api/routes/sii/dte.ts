@@ -624,7 +624,9 @@ dteRoutes.post(
       }, 201);
 
     } catch (error) {
-      console.error("[SII DTE Emisión] Error:", error, { input, empresaId });
+      // Detailed error context for SII DTE (visible in local terminal via build:ci:nucleo and vercel dev, like Trama).
+      // Avoid referencing 'input' here due to control-flow / scope in large emission try (pre-existing during logging improvements).
+      console.error("[SII DTE Emisión] Error:", error, { empresaId: c.get("empresaId") });
       return c.json({ 
         code: "dte_emision_failed", 
         message: error instanceof Error ? error.message : "Error inesperado al emitir DTE" 

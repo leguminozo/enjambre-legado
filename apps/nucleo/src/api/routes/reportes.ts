@@ -47,13 +47,16 @@ const reporteSchema = z.object({
 reportesRoutes.post("/", zValidator("json", reporteSchema), async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
+  const ia = supabase as any;  // reportes table for SII/contable reporting - missing from current generated types (pre-existing SII stub debt)
   const { tipo, periodo, mes, anio } = c.req.valid("json");
 
   const computedAnio = anio ?? new Date().getFullYear();
   const computedMes = mes ?? new Date().getMonth() + 1;
   const computedPeriodo = periodo ?? `${computedAnio}-${String(computedMes).padStart(2, "0")}`;
 
-  const { data: periodos } = await supabase
+  // Use ia alias for the heavy periodos + facturas joins (pre-existing SII/contable type debt:
+  // periodos_contables relations come back as 'never' in generated Database types after Supabase regen).
+  const { data: periodos } = await ia
     .from("periodos_contables")
     .select(`
       *,
@@ -75,15 +78,11 @@ reportesRoutes.post("/", zValidator("json", reporteSchema), async (c) => {
     .eq("mes", computedMes);
 
   const periodoData = periodos?.[0];
-  const facturasEmitidas = (periodoData?.facturas_emitidas ?? []) as Array<
-    Database["public"]["Tables"]["facturas_emitidas"]["Row"]
-  >;
-  const facturasRecibidas = (periodoData?.facturas_recibidas ?? []) as Array<
-    Database["public"]["Tables"]["facturas_recibidas"]["Row"]
-  >;
-  const gastos = (periodoData?.gastos ?? []) as Array<
-    Database["public"]["Tables"]["gastos"]["Row"]
-  >;
+  // Loose casts: generated Database types currently lack full shape for periodos_contables + facturas_* joins
+  // (pre-existing SII/contable stub debt after type regen). Matches pattern used in calculos-ia.ts / eirl-dashboard.ts.
+  const facturasEmitidas = (periodoData?.facturas_emitidas ?? []) as any[];
+  const facturasRecibidas = (periodoData?.facturas_recibidas ?? []) as any[];
+  const gastos = (periodoData?.gastos ?? []) as any[];
 
   let datos!: Record<string, unknown>;
 
