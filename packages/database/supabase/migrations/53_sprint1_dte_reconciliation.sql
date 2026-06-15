@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS public.reconciliation_rules (
     empresa_id UUID NOT NULL REFERENCES public.empresas(id) ON DELETE CASCADE,
     nombre TEXT NOT NULL,
     tipo TEXT NOT NULL CHECK (tipo IN ('venta', 'gasto', 'ambos')),
-    campo_primario TEXT NOT NULL CHECK (campo_primario IN ('monto', 'rut', 'concepto', 'referencia')),
+    campo_primario TEXT NOT NULL CHECK (campo_primario IN ('monto', 'rut', 'rut_contraparte', 'concepto', 'referencia')),
     operador TEXT NOT NULL CHECK (operador IN ('igual', 'mayor_que', 'menor_que', 'entre', 'contiene', 'regex')),
     valor_primario TEXT,
     valor_secundario TEXT,
