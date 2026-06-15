@@ -42,7 +42,7 @@ export function VanguardiaPanel() {
       // 1. Fetch pending revendedores (Limit to 50 for performance)
       const { data: revs, error: revError } = await supabase
         .from('revendedor_profile')
-        .select('*, profiles(full_name, email)')
+        .select('*, profiles!revendedor_profile_user_id_fkey(full_name, email)')
         .order('created_at', { ascending: false })
         .limit(50);
       
@@ -52,7 +52,7 @@ export function VanguardiaPanel() {
       // 2. Fetch recent sensory reviews
       const { data: reviews, error: reviewError } = await supabase
         .from('resenas_sensoriales')
-        .select('*, profiles(full_name), lotes(blockchain_hash)')
+        .select('*, profiles!resenas_sensoriales_user_id_fkey(full_name), lotes(blockchain_hash)')
         .order('created_at', { ascending: false })
         .limit(20);
       

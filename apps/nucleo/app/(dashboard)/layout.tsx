@@ -52,7 +52,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const load = async () => {
       setNotifLoading(true);
       try {
-        const res = await fetch('/notifications'); // via BFF
+        const res = await fetch('/api/notifications'); // via BFF
         if (res.ok) {
           const json = await res.json();
           const mapped: Notification[] = (json.data || []).map((a: any) => ({
