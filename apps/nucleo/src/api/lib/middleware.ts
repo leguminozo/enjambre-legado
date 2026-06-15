@@ -5,7 +5,12 @@ import { createMiddleware } from "hono/factory";
 import { getEnvOrThrow } from "./env";
 
 export type AppVariables = {
-  user: { id: string; email?: string };
+  user: {
+    id: string;
+    email?: string;
+    app_metadata?: Record<string, any>;
+    user_metadata?: Record<string, any>;
+  };
   accessToken: string;
   supabase: SupabaseClient<Database>;
   empresaId: string;
@@ -42,7 +47,12 @@ export const authMiddleware = createMiddleware<{
 
   c.set("accessToken", token);
   c.set("supabase", supabase);
-  c.set("user", { id: user.id, email: user.email ?? undefined });
+  c.set("user", {
+    id: user.id,
+    email: user.email ?? undefined,
+    app_metadata: user.app_metadata,
+    user_metadata: user.user_metadata,
+  });
   await next();
 });
 
