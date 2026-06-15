@@ -100,6 +100,27 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     total = (producto.precio ?? 0) * input.cantidad;
   }
 
+  // 1. Descontar stock de productos y obtener hash de trazabilidad
+  const enrichedItems = [];
+  for (const item of items) {
+    const { data: stockData } = await supabase.rpc("decrement_stock", {
+      p_id: item.producto_id,
+      p_qty: item.cantidad,
+    });
+    
+    // El array puede devolver el hash si existe
+    const dataAny = stockData as any;
+    const hash = (dataAny && dataAny[0] && dataAny[0].traceability_hash) ? dataAny[0].traceability_hash : null;
+    const lote_id = (dataAny && dataAny[0] && dataAny[0].lote_id) ? dataAny[0].lote_id : null;
+    
+    enrichedItems.push({
+      ...item,
+      traceability_hash: hash,
+      lote_id: lote_id
+    });
+  }
+
+  // 2. Crear venta con los items enriquecidos con trazabilidad
   const { data: venta, error: ventaError } = await supabase
     .from("ventas")
     .insert({
@@ -107,7 +128,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
       empresa_id: empresaId,
       cash_session_id: input.cash_session_id,
       total,
-      items,
+      items: enrichedItems,
       metodo_pago: input.metodo_pago,
       channel: input.channel ?? "feria",
       cliente_id: input.cliente_id ?? null,
@@ -122,14 +143,6 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
 
   if (ventaError) {
     return c.json({ code: "venta_create_failed", message: ventaError.message }, 400);
-  }
-
-  // 2. Descontar stock de productos (esto disparará el trigger de lotes)
-  for (const item of items) {
-    await supabase.rpc("decrement_stock", {
-      p_id: item.producto_id,
-      p_qty: item.cantidad,
-    });
   }
 
   const { data: lastCommission } = await supabase

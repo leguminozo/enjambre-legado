@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Eye, EyeOff, MoreVertical, ExternalLink, Package } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, EyeOff, MoreVertical, ExternalLink, Package, PlusSquare } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button, toast } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
@@ -18,6 +18,9 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterVisible, setFilterVisible] = useState<'all' | 'visible' | 'hidden'>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [refillProduct, setRefillProduct] = useState<Product | null>(null);
+  const [refillAmount, setRefillAmount] = useState<number>(0);
+  const [isRefilling, setIsRefilling] = useState(false);
 
   const loadProducts = async () => {
     try {
@@ -104,6 +107,42 @@ console.error('Error deleting product:', error);
 		toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleRefillSubmit = async () => {
+    if (!refillProduct || refillAmount <= 0) return;
+    setIsRefilling(true);
+    try {
+      const res = await fetch('/api/produccion/add-stock', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({
+          producto_id: refillProduct.id,
+          cantidad: refillAmount
+        })
+      });
+      
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Error agregando stock');
+      
+      toast(`Stock actualizado. Hash: ${json.data.traceability_hash.substring(0, 8)}...`, { type: 'success' });
+      
+      // Update local state
+      setProducts(prev => prev.map(p => 
+        p.id === refillProduct.id ? { ...p, stock: (p.stock || 0) + refillAmount, lote_id: json.data.lote_id } : p
+      ));
+      
+      setRefillProduct(null);
+      setRefillAmount(0);
+    } catch (error: any) {
+      console.error('Error refilling stock:', error);
+      toast(error.message, { type: 'error' });
+    } finally {
+      setIsRefilling(false);
     }
   };
 
@@ -269,6 +308,15 @@ console.error('Error deleting product:', error);
                         {product.visible ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                       <button
+                        onClick={() => { setRefillProduct(product); setRefillAmount(10); }}
+                        className="btn btn-ghost btn-sm"
+                        title="Relleno Rápido de Stock"
+                        disabled={deletingId === product.id}
+                        style={{ color: 'var(--text-success)' }}
+                      >
+                        <PlusSquare size={16} />
+                      </button>
+                      <button
                         onClick={() => onEdit?.(product)}
                         className="btn btn-ghost btn-sm"
                         title="Editar"
@@ -312,6 +360,40 @@ console.error('Error deleting product:', error);
       {filteredProducts.length > 0 && (
         <div style={{ marginTop: 'var(--space-md)', fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', textAlign: 'right' }}>
           Mostrando {filteredProducts.length} de {products.length} productos
+        </div>
+      )}
+
+      {/* Refill Modal */}
+      {refillProduct && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ background: 'var(--card)', padding: 'var(--space-xl)', borderRadius: 'var(--radius-md)', width: '100%', maxWidth: 400, border: '1px solid var(--border)' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: 'var(--space-sm)' }}>
+              Relleno Rápido: {refillProduct.nombre}
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 'var(--space-lg)' }}>
+              Ingresa la cantidad de unidades nuevas. Esto generará un nuevo Lote y Hash de Trazabilidad digital automáticamente.
+            </p>
+            
+            <div style={{ marginBottom: 'var(--space-lg)' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: 'var(--space-xs)' }}>Cantidad a sumar</label>
+              <input 
+                type="number" 
+                className="input-field w-full" 
+                value={refillAmount} 
+                onChange={(e) => setRefillAmount(parseInt(e.target.value) || 0)}
+                min="1"
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: 'var(--space-sm)', justifyContent: 'flex-end' }}>
+              <Button variant="outline" onClick={() => setRefillProduct(null)} disabled={isRefilling}>
+                Cancelar
+              </Button>
+              <Button onClick={handleRefillSubmit} disabled={isRefilling || refillAmount <= 0}>
+                {isRefilling ? 'Generando...' : 'Confirmar Trazabilidad'}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

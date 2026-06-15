@@ -1,7 +1,7 @@
 'use client'
 
-import { DashboardResumen } from '@/components/gerente/DashboardResumen'
+import { EcosistemaDashboard } from '@/components/enjambre/EcosistemaDashboard'
 
 export default function DashboardPage() {
-  return <DashboardResumen />
+  return <EcosistemaDashboard />
 }

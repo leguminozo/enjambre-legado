@@ -7,6 +7,7 @@ import { Search, Menu, X, BarChart3, Hexagon, Calculator, Settings } from 'lucid
 import { Sidebar } from '@/components/layout/Sidebar';
 import { findActiveItem, BOTTOM_NAV_KEYS, SIDEBAR_GROUPS, ACCOUNT_ITEMS } from '@/config/sidebar-config';
 import { NotificationBell, type Notification } from '@enjambre/ui';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 
 const bottomNavIcons: Record<string, React.ComponentType<{ size?: number }>> = {
   ejecutivo: BarChart3,
@@ -43,6 +44,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [realNotifications, setRealNotifications] = useState<Notification[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
+  const apiFetch = useApiFetch();
 
   const activeItem = findActiveItem(pathname);
   const headerTitle = activeItem?.label ?? 'Enjambre Legado';
@@ -52,7 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const load = async () => {
       setNotifLoading(true);
       try {
-        const res = await fetch('/api/notifications'); // via BFF
+        const res = await apiFetch('/api/notifications'); // via BFF
         if (res.ok) {
           const json = await res.json();
           const mapped: Notification[] = (json.data || []).map((a: any) => ({

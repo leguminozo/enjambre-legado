@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Settings2, Loader2, CheckCircle2 } from "lucide-react";
+import { Settings2, CheckCircle2, Save, Trash2, KeyRound } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
+import { Card, CardHeader, CardTitle, CardContent, Button, Spinner } from "@enjambre/ui";
 
 interface EmpresaSettings {
   id: string;
@@ -137,17 +138,21 @@ export function SettingsTab() {
 
   if (empresaQuery.isLoading) {
     return (
-      <div className="flex justify-center py-8 bg-card border border-border rounded-2xl">
-        <Loader2 className="animate-spin text-accent" size={24} />
-      </div>
+      <Card className="max-w-2xl">
+        <CardContent className="flex justify-center py-12">
+          <Spinner className="w-8 h-8 text-primary" />
+        </CardContent>
+      </Card>
     );
   }
 
   if (empresaQuery.isError) {
     return (
-      <div className="p-6 bg-card border border-border rounded-2xl">
-        <p className="text-sm text-destructive">{empresaQuery.error.message}</p>
-      </div>
+      <Card className="max-w-2xl border-destructive/30">
+        <CardContent className="p-6">
+          <p className="text-sm text-destructive font-medium">{empresaQuery.error.message}</p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -155,164 +160,175 @@ export function SettingsTab() {
   if (!emp) return null;
 
   return (
-    <section className="bg-card border border-border rounded-2xl p-6">
-      <h3 className="font-display text-lg mb-4 flex items-center gap-2 text-foreground">
-        <Settings2 size={18} /> Configuración SII Empresa
-      </h3>
-
-      <div className="grid gap-4 max-w-lg">
-        <div className="p-3 bg-secondary rounded-lg text-sm border border-border flex flex-wrap gap-x-4">
-          <div>
-            <span className="text-muted-foreground">RUT:</span>{" "}
-            <span className="font-mono text-foreground font-semibold">{emp.rut}</span>
+    <Card className="max-w-2xl">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Settings2 size={18} /> Configuración SII Empresa
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="p-4 bg-surface-sunken rounded-xl text-sm border border-border flex flex-wrap gap-4 items-center">
+          <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground font-medium">RUT</span>
+            <span className="font-mono text-foreground font-bold text-base">{emp.rut}</span>
           </div>
-          <div>
-            <span className="text-muted-foreground">Razon Social:</span>{" "}
-            <span className="text-foreground font-semibold">{emp.razon_social}</span>
+          <div className="w-px h-8 bg-border hidden sm:block" />
+          <div className="flex flex-col flex-1">
+            <span className="text-xs text-muted-foreground font-medium">Razón Social</span>
+            <span className="text-foreground font-semibold line-clamp-1">{emp.razon_social}</span>
           </div>
         </div>
 
-        <div>
-          <label className="text-xs text-muted-foreground mb-1 block">Régimen tributario</label>
-          <select
-            value={settingsForm.regimen}
-            onChange={(e) => setSettingsForm((prev) => ({ ...prev, regimen: e.target.value }))}
-            className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground"
-          >
-            {Object.entries(regimenLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Acteco (código SII)</label>
-            <input
-              value={settingsForm.acteco}
-              onChange={(e) => setSettingsForm((prev) => ({ ...prev, acteco: e.target.value }))}
-              placeholder="Ej: 731000"
-              type="number"
-              className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Ambiente SII</label>
+        <div className="grid gap-5">
+          <div className="space-y-1">
+            <label className="text-xs text-muted-foreground font-medium">Régimen tributario</label>
             <select
-              value={settingsForm.sii_ambiente}
-              onChange={(e) => setSettingsForm((prev) => ({ ...prev, sii_ambiente: e.target.value }))}
-              className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground"
+              value={settingsForm.regimen}
+              onChange={(e) => setSettingsForm((prev) => ({ ...prev, regimen: e.target.value }))}
+              className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             >
-              <option value="certificacion">Certificación (Maullín)</option>
-              <option value="produccion">Producción (Palena)</option>
+              {Object.entries(regimenLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
             </select>
           </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Fecha inicio actividades</label>
-            <input
-              value={settingsForm.fecha_inicio_actividades}
-              onChange={(e) => setSettingsForm((prev) => ({ ...prev, fecha_inicio_actividades: e.target.value }))}
-              type="date"
-              className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Acteco (código SII)</label>
+              <input
+                value={settingsForm.acteco}
+                onChange={(e) => setSettingsForm((prev) => ({ ...prev, acteco: e.target.value }))}
+                placeholder="Ej: 731000"
+                type="number"
+                className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Ambiente SII</label>
+              <select
+                value={settingsForm.sii_ambiente}
+                onChange={(e) => setSettingsForm((prev) => ({ ...prev, sii_ambiente: e.target.value }))}
+                className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="certificacion">Certificación (Maullín)</option>
+                <option value="produccion">Producción (Palena)</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Ingresos brutos año anterior (CLP)</label>
-            <input
-              value={settingsForm.ingresos_brutos_anio_anterior}
-              onChange={(e) => setSettingsForm((prev) => ({ ...prev, ingresos_brutos_anio_anterior: e.target.value }))}
-              placeholder="Ej: 5000000"
-              type="number"
-              className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground"
-            />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Fecha inicio actividades</label>
+              <input
+                value={settingsForm.fecha_inicio_actividades}
+                onChange={(e) => setSettingsForm((prev) => ({ ...prev, fecha_inicio_actividades: e.target.value }))}
+                type="date"
+                className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Ingresos brutos año anterior (CLP)</label>
+              <input
+                value={settingsForm.ingresos_brutos_anio_anterior}
+                onChange={(e) => setSettingsForm((prev) => ({ ...prev, ingresos_brutos_anio_anterior: e.target.value }))}
+                placeholder="Ej: 5000000"
+                type="number"
+                className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-3 pt-2">
-          <button
+          <Button
             onClick={handleSave}
             disabled={updateEmpresa.isPending}
-            className="px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-bold disabled:opacity-50"
           >
-            {updateEmpresa.isPending ? <Loader2 className="animate-spin text-accent-foreground" size={18} /> : "Guardar cambios"}
-          </button>
+            {updateEmpresa.isPending ? <Spinner className="w-4 h-4 mr-2" /> : <Save size={16} className="mr-2" />} 
+            Guardar cambios
+          </Button>
           {updateEmpresa.isSuccess && (
-            <span className="text-sm text-primary flex items-center gap-1">
-              <CheckCircle2 size={14} /> Guardado
+            <span className="text-sm text-primary flex items-center gap-1.5 font-medium bg-primary/10 px-3 py-1.5 rounded-full">
+              <CheckCircle2 size={16} /> Guardado
             </span>
           )}
-          {updateEmpresa.isError && <span className="text-sm text-destructive">{updateEmpresa.error.message}</span>}
+          {updateEmpresa.isError && <span className="text-sm text-destructive font-medium">{updateEmpresa.error.message}</span>}
         </div>
 
-        <div className="border-t border-border pt-4 mt-4">
-          <h4 className="text-sm font-bold text-foreground mb-3 font-display">Clave SII (credenciales portal)</h4>
-          <p className="text-xs text-muted-foreground mb-3 font-sans">
+        <div className="border-t border-border pt-6 mt-4">
+          <h4 className="text-sm font-bold text-foreground mb-1 font-display flex items-center gap-2">
+            <KeyRound size={16} /> Clave SII (credenciales portal)
+          </h4>
+          <p className="text-xs text-muted-foreground mb-4 font-sans">
             Se almacena encriptada. Se usa para obtener token SII y consultar RCV.
           </p>
 
           {emp.has_clave_sii && !showSiiClave ? (
-            <div className="flex items-center gap-3">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-primary/10 text-primary border-primary/20">
-                <CheckCircle2 size={12} /> Clave configurada
+            <div className="flex items-center gap-4 bg-surface-sunken p-4 rounded-xl border border-border">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border bg-primary/10 text-primary border-primary/20">
+                <CheckCircle2 size={14} /> Clave configurada
               </span>
               <button
                 onClick={() => setShowSiiClave(true)}
-                className="text-xs text-muted-foreground hover:text-foreground underline transition-colors"
+                className="text-sm text-muted-foreground hover:text-foreground font-medium transition-colors"
               >
                 Cambiar
               </button>
               <button
                 onClick={() => deleteSiiClave.mutate()}
                 disabled={deleteSiiClave.isPending}
-                className="text-xs text-destructive hover:underline disabled:opacity-50 transition-colors"
+                className="text-sm text-destructive hover:text-destructive/80 font-medium disabled:opacity-50 transition-colors flex items-center gap-1"
               >
-                {deleteSiiClave.isPending ? "Eliminando..." : "Eliminar"}
+                {deleteSiiClave.isPending ? <Spinner className="w-3 h-3 text-destructive" /> : <Trash2 size={14} />} 
+                Eliminar
               </button>
             </div>
           ) : (
-            <div className="grid gap-3 max-w-sm">
-              <input
-                value={siiClave}
-                onChange={(e) => setSiiClave(e.target.value)}
-                type="password"
-                placeholder="Ingresa tu clave SII"
-                className="bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground"
-              />
-              <div className="flex items-center gap-3">
-                <button
+            <div className="grid gap-3 max-w-sm bg-surface-sunken p-4 rounded-xl border border-border">
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground font-medium">Nueva clave SII</label>
+                <input
+                  value={siiClave}
+                  onChange={(e) => setSiiClave(e.target.value)}
+                  type="password"
+                  placeholder="••••••••"
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <div className="flex items-center gap-3 pt-2">
+                <Button
                   onClick={() => saveSiiClave.mutate(siiClave)}
                   disabled={saveSiiClave.isPending || !siiClave || siiClave.length < 4}
-                  className="px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-bold disabled:opacity-50"
+                  size="sm"
                 >
-                  {saveSiiClave.isPending ? <Loader2 className="animate-spin text-accent-foreground" size={16} /> : "Guardar clave"}
-                </button>
+                  {saveSiiClave.isPending ? <Spinner className="w-4 h-4 mr-2" /> : null} 
+                  Guardar clave
+                </Button>
                 {emp.has_clave_sii && (
                   <button
                     onClick={() => {
                       setShowSiiClave(false);
                       setSiiClave("");
                     }}
-                    className="text-xs text-muted-foreground hover:text-foreground"
+                    className="text-sm text-muted-foreground hover:text-foreground font-medium"
                   >
                     Cancelar
                   </button>
                 )}
               </div>
-              {saveSiiClave.isError && <p className="text-sm text-destructive">{saveSiiClave.error.message}</p>}
+              {saveSiiClave.isError && <p className="text-sm text-destructive font-medium mt-1">{saveSiiClave.error.message}</p>}
               {saveSiiClave.isSuccess && (
-                <p className="text-sm text-primary flex items-center gap-1">
-                  <CheckCircle2 size={14} /> Clave guardada
+                <p className="text-sm text-primary flex items-center gap-1.5 font-medium mt-1">
+                  <CheckCircle2 size={16} /> Clave guardada
                 </p>
               )}
             </div>
           )}
         </div>
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }

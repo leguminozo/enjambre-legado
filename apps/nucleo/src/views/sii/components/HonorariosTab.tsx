@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Users, Loader2, CheckCircle2 } from "lucide-react";
+import { Users, CheckCircle2 } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
+import { Card, CardHeader, CardTitle, CardContent, Button, Spinner } from "@enjambre/ui";
 import { HonorarioRow } from "../types";
 
 export function HonorariosTab() {
@@ -48,100 +49,112 @@ export function HonorariosTab() {
   });
 
   return (
-    <section className="bg-card border border-border rounded-2xl p-6">
-      <h3 className="font-display text-lg mb-4 flex items-center gap-2 text-foreground">
-        <Users size={18} /> Honorarios — Retención 15.25%
-      </h3>
-
-      <div className="bg-secondary/50 rounded-lg p-4 mb-6 max-w-lg border border-border">
-        <h4 className="text-sm font-bold text-foreground mb-3 font-display">Registrar honorario</h4>
-        <div className="grid gap-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Fecha</label>
-              <input
-                value={honorarioFecha}
-                onChange={(e) => setHonorarioFecha(e.target.value)}
-                type="date"
-                className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Monto bruto (CLP)</label>
-              <input
-                value={honorarioMonto}
-                onChange={(e) => setHonorarioMonto(e.target.value)}
-                type="number"
-                placeholder="Ej: 500000"
-                className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Descripción</label>
-            <input
-              value={honorarioDescripcion}
-              onChange={(e) => setHonorarioDescripcion(e.target.value)}
-              placeholder="Ej: Servicios contables"
-              className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground"
-            />
-          </div>
-          {honorarioMonto && Number(honorarioMonto) > 0 && (
-            <div className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-3 space-y-1 border border-border/50">
-              <div>Bruto: {formatCurrency(Number(honorarioMonto))}</div>
-              <div>Retención (15.25%): {formatCurrency(Math.round(Number(honorarioMonto) * 0.1525))}</div>
-              <div className="font-bold text-foreground">
-                Neto prestador: {formatCurrency(Number(honorarioMonto) - Math.round(Number(honorarioMonto) * 0.1525))}
+    <Card className="max-w-3xl">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Users size={18} /> Honorarios — Retención 15.25%
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="bg-surface-sunken rounded-xl p-5 border border-border">
+          <h4 className="text-sm font-bold text-foreground mb-4 font-display">Registrar honorario</h4>
+          <div className="grid gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground font-medium">Fecha</label>
+                <input
+                  value={honorarioFecha}
+                  onChange={(e) => setHonorarioFecha(e.target.value)}
+                  type="date"
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground font-medium">Monto bruto (CLP)</label>
+                <input
+                  value={honorarioMonto}
+                  onChange={(e) => setHonorarioMonto(e.target.value)}
+                  type="number"
+                  placeholder="Ej: 500000"
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                />
               </div>
             </div>
-          )}
-          <button
-            onClick={() => createHonorario.mutate()}
-            disabled={createHonorario.isPending || !honorarioMonto || !honorarioDescripcion}
-            className="px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-bold disabled:opacity-50"
-          >
-            {createHonorario.isPending ? <Loader2 className="animate-spin mx-auto text-accent-foreground" size={18} /> : "Registrar honorario"}
-          </button>
-          {createHonorario.isError && <p className="text-sm text-destructive">{createHonorario.error.message}</p>}
-          {createHonorario.isSuccess && (
-            <p className="text-sm text-primary flex items-center gap-1">
-              <CheckCircle2 size={14} /> Registrado
-            </p>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Descripción</label>
+              <input
+                value={honorarioDescripcion}
+                onChange={(e) => setHonorarioDescripcion(e.target.value)}
+                placeholder="Ej: Servicios contables"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            {honorarioMonto && Number(honorarioMonto) > 0 && (
+              <div className="text-xs text-muted-foreground bg-background rounded-lg p-3 space-y-1 border border-border">
+                <div className="flex justify-between">
+                  <span>Bruto:</span>
+                  <span className="font-mono">{formatCurrency(Number(honorarioMonto))}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Retención (15.25%):</span>
+                  <span className="font-mono text-destructive">{formatCurrency(Math.round(Number(honorarioMonto) * 0.1525))}</span>
+                </div>
+                <div className="flex justify-between font-bold text-foreground border-t border-border pt-2 mt-1">
+                  <span>Neto prestador:</span>
+                  <span className="font-mono text-primary">{formatCurrency(Number(honorarioMonto) - Math.round(Number(honorarioMonto) * 0.1525))}</span>
+                </div>
+              </div>
+            )}
+            <div className="flex items-center gap-3 mt-2">
+              <Button
+                onClick={() => createHonorario.mutate()}
+                disabled={createHonorario.isPending || !honorarioMonto || !honorarioDescripcion}
+              >
+                {createHonorario.isPending ? <Spinner className="w-4 h-4 mr-2" /> : null} 
+                Registrar honorario
+              </Button>
+              {createHonorario.isError && <p className="text-sm text-destructive">{createHonorario.error.message}</p>}
+              {createHonorario.isSuccess && (
+                <p className="text-sm text-primary flex items-center gap-1">
+                  <CheckCircle2 size={14} /> Registrado
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-border pt-6">
+          <h4 className="text-sm font-bold text-foreground mb-4 font-display">Historial de Honorarios</h4>
+          {honorariosQuery.isLoading ? (
+            <div className="flex justify-center py-6">
+              <Spinner className="w-6 h-6 text-primary" />
+            </div>
+          ) : (honorariosQuery.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4 bg-surface-sunken rounded-lg border border-border">Sin honorarios registrados</p>
+          ) : (
+            <div className="space-y-2">
+              {(honorariosQuery.data ?? []).map((h) => (
+                <div
+                  key={h.id}
+                  className="flex items-center justify-between p-4 bg-surface-sunken rounded-xl text-sm border border-border hover:border-border/80 transition-colors"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-foreground font-semibold">{h.descripcion}</span>
+                    <span className="text-xs text-muted-foreground mt-1">
+                      {new Date(h.fecha).toLocaleDateString("es-CL")}
+                      {h.tercero && <span className="ml-1 opacity-70">· {h.tercero.nombre}</span>}
+                    </span>
+                  </div>
+                  <div className="text-right flex flex-col items-end">
+                    <div className="text-foreground font-mono font-bold text-base">{formatCurrency(h.monto_bruto)}</div>
+                    <div className="text-xs text-destructive font-mono mt-0.5 bg-destructive/10 px-2 py-0.5 rounded text-destructive/90">Ret: {formatCurrency(h.monto_retencion)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
-      </div>
-
-      <div className="border-t border-border pt-4">
-        <h4 className="text-sm font-bold text-foreground mb-3 font-display">Historial</h4>
-        {honorariosQuery.isLoading ? (
-          <div className="flex justify-center py-4">
-            <Loader2 className="animate-spin text-accent" size={20} />
-          </div>
-        ) : (honorariosQuery.data ?? []).length === 0 ? (
-          <p className="text-sm text-muted-foreground">Sin honorarios registrados</p>
-        ) : (
-          <div className="space-y-2">
-            {(honorariosQuery.data ?? []).map((h) => (
-              <div
-                key={h.id}
-                className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg text-sm border border-border/50"
-              >
-                <div>
-                  <span className="text-foreground font-semibold">{h.descripcion}</span>
-                  <span className="text-muted-foreground ml-2">
-                    {new Date(h.fecha).toLocaleDateString("es-CL")}
-                  </span>
-                  {h.tercero && <span className="text-muted-foreground ml-2">({h.tercero.nombre})</span>}
-                </div>
-                <div className="text-right">
-                  <div className="text-foreground font-mono font-bold">{formatCurrency(h.monto_bruto)}</div>
-                  <div className="text-xs text-destructive font-mono">Ret: {formatCurrency(h.monto_retencion)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }

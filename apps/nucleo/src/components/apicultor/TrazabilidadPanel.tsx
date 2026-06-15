@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, ChevronRight, CheckCircle2, ImageOff, Plus, X, Loader2, AlertTriangle, TrendingDown } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, Badge, Spinner } from '@enjambre/ui';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface Lote {
   id: string;
@@ -51,9 +53,6 @@ export function TrazabilidadPanel() {
   const [showReflexionForm, setShowReflexionForm] = useState(false);
   const [reflexionForm, setReflexionForm] = useState({ colmena: '', texto: '' });
 
-  const totalTrees = localArboles.reduce((s, a) => s + a.cantidad, 0);
-  const totalCO2 = localArboles.reduce((s, a) => s + a.co2_ton, 0);
-
   const handleAddArbol = () => {
     if (!arbolForm.cantidad || !arbolForm.sector) return;
     setLocalArboles([{
@@ -87,197 +86,270 @@ export function TrazabilidadPanel() {
 
   if (isLoading) return (
     <div className="flex items-center justify-center p-20">
-      <Loader2 className="animate-spin text-primary" size={32} />
+      <Spinner size="lg" className="text-primary" />
     </div>
   );
 
   return (
-    <div className="flex flex-col gap-6">
-
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { val: stats.total_kg_lotes.toFixed(1) + ' kg', label: 'Stock en Lotes', color: 'hsl(var(--accent))' },
-          { val: stats.lotes_criticos, label: 'Lotes Críticos (<50kg)', color: 'var(--text-destructive)' },
-          { val: stats.productos_quiebre, label: 'Productos en Quiebre', color: 'var(--text-destructive)' },
-        ].map((s, i) => (
-          <div key={i} className="text-center p-6 bg-primary/[0.04] rounded-md">
-            <div className="text-[1.8rem] font-bold" style={{ color: s.color }}>{s.val}</div>
-            <div className="text-[0.72rem] text-muted-foreground mt-1">{s.label}</div>
-          </div>
-        ))}
+    <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="bg-surface-sunken/30 border-border/50">
+          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+            <div className="text-[1.8rem] font-bold text-accent">{stats.total_kg_lotes.toFixed(1)} kg</div>
+            <div className="text-[0.72rem] text-muted-foreground mt-1 uppercase tracking-wider">Stock en Lotes</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-surface-sunken/30 border-border/50">
+          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+            <div className="text-[1.8rem] font-bold text-destructive">{stats.lotes_criticos}</div>
+            <div className="text-[0.72rem] text-muted-foreground mt-1 uppercase tracking-wider">Lotes Críticos (&lt;50kg)</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-surface-sunken/30 border-border/50">
+          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+            <div className="text-[1.8rem] font-bold text-destructive">{stats.productos_quiebre}</div>
+            <div className="text-[0.72rem] text-muted-foreground mt-1 uppercase tracking-wider">Productos en Quiebre</div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="flex gap-1.5">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
         {([['arboles', '🌳 Bosque plantado'], ['lotes', '🍯 Lotes de miel'], ['reflexiones', '📖 Reflexiones']] as const).map(([id, label]) => (
-          <button key={id} onClick={() => setActiveTab(id)}
-            className={`btn btn-sm ${activeTab === id ? 'btn-primary' : 'btn-ghost'} text-[0.78rem]`}>{label}</button>
+          <Button 
+            key={id} 
+            variant={activeTab === id ? 'primary' : 'outline'}
+            size="sm"
+            onClick={() => setActiveTab(id)}
+            className="text-[0.78rem] whitespace-nowrap"
+          >
+            {label}
+          </Button>
         ))}
       </div>
 
-      {activeTab === 'arboles' && (
-        <div className="card">
-          <div className="section-header">
-            <div>
-              <div className="section-title">Registro de Reforestación</div>
-              <div className="section-subtitle">Árbol → Colmena → Lote de miel · Trazabilidad completa</div>
-            </div>
-            <button className="btn btn-gold btn-sm" onClick={() => setShowArbolForm(true)}><Plus size={14} style={{ marginRight: 4 }} /> Planta</button>
-          </div>
-
-          {showArbolForm && (
-            <div className="p-4 bg-miel-glow rounded-md mb-4 border border-accent/30 relative">
-              <button onClick={() => setShowArbolForm(false)} className="absolute top-3 right-3 bg-transparent border-none cursor-pointer text-muted-foreground"><X size={16} /></button>
-              <div className="text-[0.85rem] font-semibold text-bosque mb-2">Registrar Reforestación</div>
-
-              <div className="grid grid-cols-3 gap-2 mb-2">
-                <select className="input-field" value={arbolForm.especie} onChange={e => setArbolForm({ ...arbolForm, especie: e.target.value })}>
-                  <option value="Ulmo">Ulmo</option>
-                  <option value="Tepú">Tepú</option>
-                  <option value="Tiaca">Tiaca</option>
-                  <option value="Avellano">Avellano</option>
-                </select>
-                <input type="number" placeholder="Cantidad" className="input-field" value={arbolForm.cantidad || ''} onChange={e => setArbolForm({ ...arbolForm, cantidad: parseInt(e.target.value) || 0 })} />
-                <input type="text" placeholder="Sector" className="input-field" value={arbolForm.sector} onChange={e => setArbolForm({ ...arbolForm, sector: e.target.value })} />
-              </div>
-
-              <div className="flex justify-end items-center gap-3">
-                <span className="text-[0.7rem] text-muted-foreground">Proyección: ~{(arbolForm.cantidad * 0.05).toFixed(2)} ton CO₂/año</span>
-                <button className="btn btn-primary btn-sm" onClick={handleAddArbol}>Registrar Vida</button>
-              </div>
-            </div>
-          )}
-          <div className="flex flex-col gap-2">
-            {localArboles.map(a => (
-              <div key={a.id} className="flex items-center gap-4 p-4 rounded-sm border border-primary/[0.06] bg-primary/[0.01]">
-                <div className="text-[1.5rem] shrink-0">🌳</div>
-                <div className="flex-1">
-                  <div className="font-semibold text-bosque text-[0.9rem]">
-                    {a.especie} × {a.cantidad.toLocaleString()}
-                  </div>
-                  <div className="text-[0.72rem] text-muted-foreground">
-                    {a.sector} · {a.fecha}
-                  </div>
-                  <div className="text-[0.7rem] text-success mt-0.5">
-                    🍯 Lotes: {a.lotesMiel.join(', ')}
-                  </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+        >
+          {activeTab === 'arboles' && (
+            <Card>
+              <CardHeader className="flex flex-row justify-between items-start pb-4">
+                <div>
+                  <CardTitle className="text-xl">Registro de Reforestación</CardTitle>
+                  <CardDescription>Árbol → Colmena → Lote de miel · Trazabilidad completa</CardDescription>
                 </div>
-                <div className="text-right">
-                  <span className={`badge ${a.status === 'adulto' ? 'badge-success' : a.status === 'creciendo' ? 'badge-gold' : 'badge-warning'}`}>
-                    {a.status}
-                  </span>
-                  <div className="text-[0.7rem] text-success mt-1">
-                    🌿 {a.co2_ton} ton CO₂
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'lotes' && (
-        <div className="card">
-          <div className="section-header">
-            <div><div className="section-title">Lotes y Producción Real</div>
-            <div className="section-subtitle">Kg disponibles en bodega vs Productos vinculados</div></div>
-          </div>
-          <div className="flex flex-col gap-2">
-            {lotes.map((l: Lote) => (
-              <div key={l.id} onClick={() => setSelectedLote(selectedLote === l.id ? null : l.id)}
-                className={`p-4 rounded-sm cursor-pointer transition-all duration-150 ${selectedLote === l.id ? 'border border-accent/40 bg-miel-glow' : 'border border-primary/[0.06] bg-transparent'}`}>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-semibold text-bosque text-[0.88rem]">
-                      {l.nombre_lote || `Lote ${l.id.slice(0, 8)}`}
+                <Button size="sm" variant="primary" onClick={() => setShowArbolForm(true)} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                  <Plus size={14} className="mr-2" /> Planta
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {showArbolForm && (
+                  <div className="p-5 bg-surface-sunken/50 rounded-lg mb-6 border border-border relative">
+                    <Button variant="ghost" size="sm" onClick={() => setShowArbolForm(false)} className="absolute top-2 right-2 h-8 w-8 p-1">
+                      <X size={14} />
+                    </Button>
+                    <div className="text-sm font-semibold text-foreground mb-4">Registrar Reforestación</div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                      <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" value={arbolForm.especie} onChange={e => setArbolForm({ ...arbolForm, especie: e.target.value })}>
+                        <option value="Ulmo">Ulmo</option>
+                        <option value="Tepú">Tepú</option>
+                        <option value="Tiaca">Tiaca</option>
+                        <option value="Avellano">Avellano</option>
+                      </select>
+                      <input type="number" placeholder="Cantidad" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" value={arbolForm.cantidad || ''} onChange={e => setArbolForm({ ...arbolForm, cantidad: parseInt(e.target.value) || 0 })} />
+                      <input type="text" placeholder="Sector" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" value={arbolForm.sector} onChange={e => setArbolForm({ ...arbolForm, sector: e.target.value })} />
                     </div>
-                    <div className="text-[0.72rem] text-muted-foreground">
-                      Stock: <strong>{Number(l.kg_total).toFixed(2)} kg</strong> · {l.estado}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {Number(l.kg_total) < 50 && (
-                      <span className="badge badge-warning text-[0.62rem]">
-                        <AlertTriangle size={9} style={{ display: 'inline', marginRight: 3 }} />Stock Bajo
-                      </span>
-                    )}
-                    <ChevronRight size={14} className="text-muted-foreground" style={{ transform: selectedLote === l.id ? 'rotate(90deg)' : 'none', transition: 'transform 200ms' }} />
-                  </div>
-                </div>
-                {selectedLote === l.id && (
-                  <div className="mt-4 pt-4 border-t border-accent/20">
-                    <div className="text-[0.75rem] font-semibold mb-2 text-bosque">Productos del Lote:</div>
-                    {l.productos?.length > 0 ? (
-                      <div className="flex flex-col gap-1">
-                        {l.productos.map((p) => (
-                          <div key={p.id} className="flex justify-between text-[0.75rem] bg-foreground/[0.03] px-2 py-1 rounded">
-                            <span>{p.nombre} ({p.peso_neto_g}g)</span>
-                            <span className="font-semibold">{p.stock} un.</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-[0.7rem] text-muted-foreground italic">Sin productos asignados</div>
-                    )}
-                    <div className="mt-3 flex gap-2 text-[0.78rem]">
-                      <span className="text-muted-foreground w-[90px] shrink-0">Blockchain</span>
-                      <span className="font-mono text-success font-medium break-all">{l.blockchain_hash || 'Sin firmar'}</span>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-[0.7rem] text-muted-foreground">Proyección: ~{(arbolForm.cantidad * 0.05).toFixed(2)} ton CO₂/año</span>
+                      <Button onClick={handleAddArbol} size="sm">Registrar Vida</Button>
                     </div>
                   </div>
                 )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'reflexiones' && (
-        <div className="flex flex-col gap-4">
-
-          <button className="btn btn-gold w-full flex justify-center" onClick={() => setShowReflexionForm(true)}>
-            <Plus size={16} /> Agregar Reflexión del Bosque
-          </button>
-
-          {showReflexionForm && (
-            <div className="p-4 bg-miel-glow rounded-md border border-accent/30 relative">
-              <button onClick={() => setShowReflexionForm(false)} className="absolute top-3 right-3 bg-transparent border-none cursor-pointer text-muted-foreground"><X size={16} /></button>
-              <div className="text-[0.85rem] font-semibold text-bosque mb-2">Nueva Reflexión ({new Date().toLocaleDateString('es-CL')})</div>
-
-              <input type="text" placeholder="Colmena (opcional, ej. 'Quilineja Madre')" className="input-field mb-2" value={reflexionForm.colmena} onChange={e => setReflexionForm({ ...reflexionForm, colmena: e.target.value })} />
-
-              <textarea placeholder="Qué observaste en la naturaleza, el comportamiento de las abejas o el clima hoy..." className="input-field mb-2" value={reflexionForm.texto} onChange={e => setReflexionForm({ ...reflexionForm, texto: e.target.value })} style={{ minHeight: 80, resize: 'vertical' }} />
-
-              <div className="flex justify-end">
-                <button className="btn btn-primary btn-sm" onClick={handleAddReflexion}>Guardar Legado</button>
-              </div>
-            </div>
+                
+                <div className="flex flex-col gap-3">
+                  {localArboles.map(a => (
+                    <div key={a.id} className="flex items-center gap-4 p-4 rounded-lg border border-border/50 bg-card hover:bg-muted/20 transition-colors">
+                      <div className="text-3xl shrink-0">🌳</div>
+                      <div className="flex-1">
+                        <div className="font-medium text-foreground text-sm">
+                          {a.especie} × {a.cantidad.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {a.sector} · {a.fecha}
+                        </div>
+                        <div className="text-xs text-primary mt-1 font-medium">
+                          🍯 Lotes: {a.lotesMiel.join(', ')}
+                        </div>
+                      </div>
+                      <div className="text-right flex flex-col items-end gap-2">
+                        <Badge variant={a.status === 'adulto' ? 'success' : a.status === 'creciendo' ? 'info' : 'default'}>
+                          {a.status}
+                        </Badge>
+                        <div className="text-xs text-primary font-medium">
+                          🌿 {a.co2_ton} ton CO₂
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {localArboles.length === 0 && (
+                     <div className="text-center py-8 text-sm text-muted-foreground">Aún no has registrado plantaciones.</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
-          {localReflexiones.map((r, i) => (
-            <div key={i} className="card" style={i === 0 ? { background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.8))', border: 'none', color: 'hsl(var(--foreground))' } : undefined}>
-              <div className="flex justify-between mb-2">
-                <div className="text-[0.65rem] uppercase tracking-[0.12em]" style={{ color: i === 0 ? 'hsl(var(--accent))' : undefined }}>
-                  <span className={i !== 0 ? 'text-muted-foreground' : ''}>Reflexión del bosque · {r.fecha}</span>
+          {activeTab === 'lotes' && (
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl">Lotes y Producción Real</CardTitle>
+                <CardDescription>Kg disponibles en bodega vs Productos vinculados</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-3">
+                  {lotes.map((l: Lote) => (
+                    <div key={l.id} onClick={() => setSelectedLote(selectedLote === l.id ? null : l.id)}
+                      className={`p-5 rounded-lg cursor-pointer transition-all duration-200 ${selectedLote === l.id ? 'border-accent/40 bg-accent/5 shadow-sm' : 'border-border bg-card hover:bg-muted/10'} border`}>
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="font-medium text-foreground text-sm mb-1">
+                            {l.nombre_lote || `Lote ${l.id.slice(0, 8)}`}
+                          </div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-2">
+                            <span>Stock: <strong className="text-foreground font-semibold">{Number(l.kg_total).toFixed(2)} kg</strong></span>
+                            <span>·</span>
+                            <span>{l.estado}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {Number(l.kg_total) < 50 && (
+                            <Badge variant="danger" className="text-[0.65rem] h-5 px-1.5 flex items-center gap-1">
+                              <AlertTriangle size={10} /> Stock Bajo
+                            </Badge>
+                          )}
+                          <ChevronRight size={16} className="text-muted-foreground transition-transform duration-300" style={{ transform: selectedLote === l.id ? 'rotate(90deg)' : 'none' }} />
+                        </div>
+                      </div>
+                      
+                      <AnimatePresence>
+                        {selectedLote === l.id && (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0 }} 
+                            animate={{ height: 'auto', opacity: 1 }} 
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="mt-4 pt-4 border-t border-border">
+                              <div className="text-xs font-medium mb-3 text-foreground">Productos del Lote:</div>
+                              {l.productos?.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                  {l.productos.map((p) => (
+                                    <div key={p.id} className="flex justify-between items-center text-xs bg-surface-sunken/50 px-3 py-2 rounded-md border border-border/30">
+                                      <span className="text-muted-foreground">{p.nombre} <span className="text-[0.65rem] opacity-70">({p.peso_neto_g}g)</span></span>
+                                      <span className="font-medium text-foreground">{p.stock} un.</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-xs text-muted-foreground italic py-2">Sin productos asignados</div>
+                              )}
+                              <div className="mt-4 p-3 bg-primary/5 rounded-md border border-primary/10 flex items-center gap-3 text-xs">
+                                <span className="text-primary font-medium shrink-0 uppercase tracking-widest text-[0.6rem]">Blockchain</span>
+                                <span className="font-mono text-foreground/80 break-all select-all">{l.blockchain_hash || 'Sin firmar'}</span>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ))}
+                  {lotes.length === 0 && (
+                    <div className="text-center py-8 text-sm text-muted-foreground">No se encontraron lotes de producción.</div>
+                  )}
                 </div>
-                <div className="text-[0.68rem]" style={{ color: i === 0 ? 'hsl(var(--foreground) / 0.5)' : undefined }}>
-                  <span className={i !== 0 ? 'text-muted-foreground' : ''}>{r.colmena}</span>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === 'reflexiones' && (
+            <div className="flex flex-col gap-5">
+              <Button size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm border border-accent/20 font-medium" onClick={() => setShowReflexionForm(true)}>
+                <Plus size={16} className="mr-2" /> Agregar Reflexión del Bosque
+              </Button>
+
+              <AnimatePresence>
+                {showReflexionForm && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                    <Card className="bg-surface-sunken/40 border-accent/30 relative shadow-sm">
+                      <Button variant="ghost" size="sm" onClick={() => setShowReflexionForm(false)} className="absolute top-2 right-2 h-8 w-8 !p-0 text-muted-foreground hover:text-foreground">
+                        <X size={16} />
+                      </Button>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Nueva Reflexión ({new Date().toLocaleDateString('es-CL')})</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <input type="text" placeholder="Colmena (opcional, ej. 'Quilineja Madre')" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" value={reflexionForm.colmena} onChange={e => setReflexionForm({ ...reflexionForm, colmena: e.target.value })} />
+                        <textarea placeholder="Qué observaste en la naturaleza, el comportamiento de las abejas o el clima hoy..." className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y" value={reflexionForm.texto} onChange={e => setReflexionForm({ ...reflexionForm, texto: e.target.value })} />
+                        <div className="flex justify-end pt-2">
+                          <Button onClick={handleAddReflexion}>Guardar Legado</Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {localReflexiones.map((r, i) => (
+                <Card key={i} className={`overflow-hidden transition-all duration-300 ${i === 0 ? 'border-primary/30 shadow-md bg-gradient-to-br from-card to-primary/5' : 'border-border/60 bg-surface-sunken/20'}`}>
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <Badge variant="default" className={`text-[0.65rem] uppercase tracking-widest ${i === 0 ? 'border-primary/40 text-primary' : 'text-muted-foreground'}`}>
+                        Reflexión · {r.fecha}
+                      </Badge>
+                      <span className={`text-xs font-medium ${i === 0 ? 'text-foreground/80' : 'text-muted-foreground'}`}>
+                        {r.colmena}
+                      </span>
+                    </div>
+                    
+                    <div className={`w-full rounded-lg flex items-center justify-center mb-5 gap-3 border ${i === 0 ? 'bg-background/60 border-primary/10 h-32' : 'bg-background/40 border-border/50 h-24'}`}>
+                      <ImageOff size={20} className={i === 0 ? 'text-primary/40' : 'text-muted-foreground/40'} />
+                      <span className={`text-xs font-medium ${i === 0 ? 'text-primary/60' : 'text-muted-foreground/60'}`}>
+                        Foto de visita · Toca para agregar
+                      </span>
+                    </div>
+                    
+                    <p className={`italic leading-relaxed ${i === 0 ? 'text-[0.95rem] text-foreground' : 'text-sm text-muted-foreground'}`} style={{ fontFamily: 'var(--font-existencial)' }}>
+                      "{r.texto}"
+                    </p>
+                    
+                    <div className="mt-5 pt-4 border-t border-border/40 text-[0.7rem] flex items-center justify-between">
+                      <span className="text-muted-foreground italic flex items-center gap-1.5"><TrendingDown size={10} /> Generado por IA</span>
+                      <span className="text-muted-foreground/60">{r.fecha}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {localReflexiones.length === 0 && (
+                <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl">
+                  <div className="text-3xl mb-3 opacity-50">📖</div>
+                  <h3 className="text-base font-medium text-foreground mb-1">El diario del bosque está vacío</h3>
+                  <p className="text-sm text-muted-foreground">Registra tus observaciones de la naturaleza y las colmenas para mantener vivo el legado.</p>
                 </div>
-              </div>
-              <div className={`h-[${i === 0 ? 120 : 80}px] rounded-sm flex items-center justify-center mb-4 gap-2 ${i === 0 ? 'bg-foreground/[0.08]' : 'bg-primary/[0.05]'}`} style={{ height: i === 0 ? 120 : 80 }}>
-                <ImageOff size={18} style={{ color: i === 0 ? 'hsl(var(--foreground) / 0.3)' : undefined }} className={i !== 0 ? 'text-muted-foreground' : ''} />
-                <span className="text-[0.75rem]" style={{ color: i === 0 ? 'hsl(var(--foreground) / 0.3)' : undefined }}>
-                  <span className={i !== 0 ? 'text-muted-foreground' : ''}>Foto de visita · Toca para agregar</span>
-                </span>
-              </div>
-              <p className="italic leading-relaxed" style={{ fontFamily: 'var(--font-existencial)', fontSize: i === 0 ? '0.95rem' : '0.88rem', color: i === 0 ? 'hsl(var(--foreground) / 0.85)' : undefined }}>
-                <span className={i !== 0 ? 'text-muted-foreground' : ''}>{r.texto}</span>
-              </p>
-              <div className="mt-4 text-[0.7rem]" style={{ color: i === 0 ? 'hsl(var(--foreground) / 0.35)' : undefined }}>
-                <span className={i !== 0 ? 'text-muted-foreground' : ''}>— Generado por IA a partir de tus notas de visita</span>
-              </div>
+              )}
             </div>
-          ))}
-        </div>
-      )}
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
+

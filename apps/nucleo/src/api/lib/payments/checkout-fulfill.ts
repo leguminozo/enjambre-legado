@@ -57,13 +57,45 @@ export async function fulfillCheckout(
     return { ok: true, alreadyProcessed: true, ventaId: existingVenta.id as string };
   }
 
+  const stockErrors: string[] = [];
+  const enrichedCart = [];
+
+  for (const line of cart) {
+    const qty = Math.max(0, Number(line.quantity || 0));
+    if (!qty) {
+      enrichedCart.push(line);
+      continue;
+    }
+
+    const { data: decremented, error: rpcErr } = await admin.rpc('decrement_stock', {
+      p_id: line.productId,
+      p_qty: qty,
+    });
+
+    if (rpcErr || !decremented || (decremented as any[]).length === 0) {
+      stockErrors.push(`Producto ${line.productId}: stock insuficiente o error al descontar`);
+      enrichedCart.push(line);
+    } else {
+      const stockData = decremented as any[];
+      enrichedCart.push({
+        ...line,
+        traceability_hash: stockData[0]?.traceability_hash || null,
+        lote_id: stockData[0]?.lote_id || null,
+      });
+    }
+  }
+
+  if (stockErrors.length > 0) {
+    console.error('[checkout-fulfill] stock errors:', stockErrors);
+  }
+
   const { data: venta, error: ventaError } = await admin
     .from('ventas')
     .insert({
       origen: 'web',
       estado: 'paid',
       total: serverTotal,
-      productos: cart,
+      productos: enrichedCart,
       channel: 'web',
       metodo_pago: paymentProvider,
       buy_order: buyOrder,
@@ -85,25 +117,6 @@ export async function fulfillCheckout(
   }
 
   const ventaId = venta.id as string;
-  const stockErrors: string[] = [];
-
-  for (const line of cart) {
-    const qty = Math.max(0, Number(line.quantity || 0));
-    if (!qty) continue;
-
-    const { data: decremented, error: rpcErr } = await admin.rpc('decrement_stock', {
-      p_id: line.productId,
-      p_qty: qty,
-    });
-
-    if (rpcErr || !decremented || (decremented as unknown[]).length === 0) {
-      stockErrors.push(`Producto ${line.productId}: stock insuficiente o error al descontar`);
-    }
-  }
-
-  if (stockErrors.length > 0) {
-    console.error('[checkout-fulfill] stock errors:', stockErrors);
-  }
 
   const trackingCode = `OYZ-${buyOrder.replace(/^ORD-/, '').slice(0, 8).toUpperCase()}`;
   const { data: defaultEmpresa } = await admin.from('empresas').select('id').limit(1).maybeSingle();

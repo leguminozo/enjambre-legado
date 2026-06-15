@@ -29,6 +29,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     label: 'EL ENJAMBRE',
     items: [
       {
+        key: 'ecosistema',
+        label: 'Ecosistema',
+        icon: 'network',
+        href: '/',
+        greeting: 'Alma del Enjambre',
+        mission: 'Todo está conectado en el bosque vivo',
+      },
+      {
         key: 'territorio',
         label: 'Territorio',
         icon: 'map',

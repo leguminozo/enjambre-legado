@@ -1,9 +1,13 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { db } from '@/lib/offline/db';
+import { useAuthStore } from '@enjambre/auth';
+
+const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
 
 export function useSyncEngine() {
   const isSyncing = useRef(false);
+  const token = useAuthStore((s) => s.session?.access_token);
 
   const performDownsync = useCallback(async () => {
     if (!navigator.onLine) return;
@@ -42,13 +46,21 @@ export function useSyncEngine() {
       const pendingItems = await db.sync_queue.where('status').equals('pending').toArray();
       if (pendingItems.length === 0) return;
 
+      if (!token) {
+        console.warn('[SyncEngine] Upsync paused: No auth token available.');
+        return;
+      }
+
       console.log(`[SyncEngine] Upsync starting for ${pendingItems.length} items...`);
 
       for (const item of pendingItems) {
         try {
-          const res = await fetch('/api/pos/venta', {
+          const res = await fetch(`${API_BASE}/api/rep-ventas/quick`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}` 
+            },
             body: JSON.stringify(item.payload),
           });
 
@@ -57,12 +69,19 @@ export function useSyncEngine() {
             await db.sync_queue.delete(item.id!);
           } else {
             const data = await res.json().catch(() => ({}));
+            
+            // If the token expired or is invalid, do not drop the payload!
+            if (res.status === 401 || res.status === 403) {
+              console.warn('[SyncEngine] Auth rejected sync, keeping item pending.');
+              break; 
+            }
+
             // If the error is not a 5xx, it might be a fatal logic error (e.g., bad payload). 
             // We should mark it as error so it doesn't block the queue forever, but keep it for review.
             if (res.status >= 400 && res.status < 500) {
               await db.sync_queue.update(item.id!, { 
                 status: 'error', 
-                error_message: data.error || 'Client logic error' 
+                error_message: data.error || data.message || 'Client logic error' 
               });
             }
           }
@@ -77,7 +96,7 @@ export function useSyncEngine() {
     } finally {
       isSyncing.current = false;
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     // Initial sync on mount

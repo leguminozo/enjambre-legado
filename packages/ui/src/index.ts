@@ -23,3 +23,19 @@ export { splitCsvLine } from './lib/csv';
 export { formatDate, formatDateShort, formatCLP, fmtCLP } from './lib/format';
 export { QRCode } from './components/QRCode';
 export * from './icons';
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+} from './components/dialog';
+export { BentoGrid, BentoGridItem } from './components/bento-grid';
+export { CinematicCard } from './components/cinematic-card';
+export { PredictivePill } from './components/predictive-pill';
+

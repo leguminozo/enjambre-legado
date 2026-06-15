@@ -51,12 +51,46 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: 'El total de la venta no es válido' }, { status: 400 });
   }
 
+  // Descontar stock y capturar trazabilidad antes de insertar la venta
+  const stockErrors: string[] = [];
+  const enrichedItems = [];
+  for (const item of items) {
+    const qty = Math.max(0, Number(item.cantidad || 0));
+    if (!qty) {
+      enrichedItems.push(item);
+      continue;
+    }
+
+    const { data: decremented, error: rpcErr } = await supabase.rpc('decrement_stock', {
+      p_id: item.producto_id,
+      p_qty: qty,
+    });
+
+    if (rpcErr || !decremented || (decremented as any[]).length === 0) {
+      stockErrors.push(`Producto ${item.producto_id}: stock insuficiente o error`);
+      enrichedItems.push(item);
+    } else {
+      const stockData = decremented as any[];
+      const hash = stockData[0]?.traceability_hash || null;
+      const lote_id = stockData[0]?.lote_id || null;
+      enrichedItems.push({
+        ...item,
+        traceability_hash: hash,
+        lote_id: lote_id
+      });
+    }
+  }
+
+  if (stockErrors.length > 0) {
+    console.error('[pos/venta] stock errors:', stockErrors);
+  }
+
   const payload = {
     vendedor_id: user.id,
     origen: body.origen,
     estado: body.estado ?? 'confirmado',
     total,
-    items: items as unknown as Record<string, unknown>,
+    items: enrichedItems as unknown as Record<string, unknown>,
     metodo_pago: body.metodo_pago ?? 'efectivo',
   };
 

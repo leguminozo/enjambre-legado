@@ -70,3 +70,30 @@ produccionRoutes.get("/dashboard", async (c) => {
     }
   });
 });
+
+produccionRoutes.post(
+  "/add-stock",
+  zValidator(
+    "json",
+    z.object({
+      producto_id: z.string().uuid(),
+      cantidad: z.number().int().positive()
+    })
+  ),
+  async (c) => {
+    const supabase = c.get("supabase");
+    const { producto_id, cantidad } = c.req.valid("json");
+
+    const { data, error } = await (supabase as any).rpc("add_traceable_stock", {
+      p_producto_id: producto_id,
+      p_qty: cantidad
+    });
+
+    if (error) {
+      console.error("[Produccion] Error agregando stock:", error);
+      return c.json({ error: error.message }, 400);
+    }
+
+    return c.json({ data });
+  }
+);
