@@ -126,7 +126,7 @@ dteRoutes.post(
       // 1. Obtener datos de la empresa
       const { data: empresaData, error: empresaError } = await supabase
         .from("empresas")
-        .select("rut, razon_social, giro, direccion, comuna, ciudad, actividad_economica, sii_ambiente")
+        .select("rut, razon_social, giro, direccion, comuna, ciudad, acteco, sii_ambiente")
         .eq("id", empresaId)
         .single();
 
@@ -134,14 +134,14 @@ dteRoutes.post(
         return c.json({ code: "empresa_not_found", message: "Empresa no encontrada" }, 404);
       }
 
-      const empresa = empresaData as {
+      const empresa = (empresaData as unknown) as {
         rut: string;
         razon_social: string;
         giro: string | null;
         direccion: string | null;
         comuna: string | null;
         ciudad: string | null;
-        actividad_economica: number | null;
+        acteco: string | null;
         sii_ambiente: string;
       };
 
@@ -257,7 +257,7 @@ dteRoutes.post(
                   direccion: empresa.direccion ?? "",
                   comuna: empresa.comuna ?? "",
                   ciudad: empresa.ciudad ?? "",
-                  actividadEconomica: empresa.actividad_economica ?? 0,
+                  actividadEconomica: Number(empresa.acteco) || 0,
                 },
                 receptor: {
                   rut: formatRutSii(input.receptor_rut),
@@ -300,7 +300,7 @@ dteRoutes.post(
                   direccion: empresa.direccion ?? "",
                   comuna: empresa.comuna ?? "",
                   ciudad: empresa.ciudad ?? "",
-                  actividadEconomica: empresa.actividad_economica ?? 0,
+                  actividadEconomica: Number(empresa.acteco) || 0,
                 },
                 receptor: {
                   rut: formatRutSii(input.receptor_rut),
@@ -350,7 +350,7 @@ dteRoutes.post(
                   direccion: empresa.direccion ?? "",
                   comuna: empresa.comuna ?? "",
                   ciudad: empresa.ciudad ?? "",
-                  actividadEconomica: empresa.actividad_economica ?? 0,
+                  actividadEconomica: Number(empresa.acteco) || 0,
                 },
                 receptor: {
                   rut: formatRutSii(input.receptor_rut),
@@ -408,7 +408,7 @@ dteRoutes.post(
 
       // 10. Determinar ambiente SII
       const ambienteRaw = empresa.sii_ambiente ?? "certificacion";
-      const ambiente = (ambienteRaw.toUpperCase() === "PRODUCCION" ? "PRODUCCION" : "CERTIFICACION") as any;
+      const ambiente = (ambienteRaw.toUpperCase() === "PRODUCCION" ? "PRODUCCION" : "CERTIFICACION") as import("@enjambre/contable").SiiEnvironment;
 
       // 11. Obtener token SII
       const token = await getSiiToken(ambiente, empresa.rut, p12Password);
@@ -699,7 +699,7 @@ dteRoutes.get(
 
       // 3. Determinar ambiente
       const ambienteRaw = empresa.sii_ambiente ?? "certificacion";
-      const ambiente = (ambienteRaw.toUpperCase() === "PRODUCCION" ? "PRODUCCION" : "CERTIFICACION") as any;
+      const ambiente = (ambienteRaw.toUpperCase() === "PRODUCCION" ? "PRODUCCION" : "CERTIFICACION") as import("@enjambre/contable").SiiEnvironment;
 
       // 4. Obtener token
       const token = await getSiiToken(ambiente, empresa.rut, p12Password);
@@ -712,7 +712,7 @@ dteRoutes.get(
       let updated = false;
       
       // Primero buscar en facturas_emitidas
-      const { data: facturaData, error: facturaError } = await supabase
+      const { data: facturaData, error: facturaError } = await (supabase as any)
         .from("facturas_emitidas")
         .select("id, tipo_dte, folio, estado_sii")
         .eq("track_id", track_id)
@@ -723,7 +723,7 @@ dteRoutes.get(
         const nuevoEstado = estadoResult.aceptados > 0 ? "aceptado" :
                            estadoResult.rechazados > 0 ? "rechazado" : facturaData.estado_sii;
                            
-        await supabase
+        await (supabase as any)
           .from("facturas_emitidas")
           .update({ 
             estado_sii: nuevoEstado,
@@ -734,7 +734,7 @@ dteRoutes.get(
               rechazados: estadoResult.rechazados,
               reparos: estadoResult.reparos,
             }
-          })
+          } as any)
           .eq("id", facturaData.id);
           
         updated = true;
@@ -742,7 +742,7 @@ dteRoutes.get(
 
       // Si no se encontró en facturas_emitidas, buscar en facturas_compra
       if (!updated) {
-        const { data: compraData, error: compraError } = await supabase
+        const { data: compraData, error: compraError } = await (supabase as any)
           .from("facturas_compra")
           .select("id, tipo_dte, folio, estado_sii")
           .eq("track_id", track_id)
@@ -753,7 +753,7 @@ dteRoutes.get(
           const nuevoEstado = estadoResult.aceptados > 0 ? "aceptado" :
                              estadoResult.rechazados > 0 ? "rechazado" : compraData.estado_sii;
                              
-          await supabase
+          await (supabase as any)
             .from("facturas_compra")
             .update({ 
               estado_sii: nuevoEstado,
@@ -764,7 +764,7 @@ dteRoutes.get(
                 rechazados: estadoResult.rechazados,
                 reparos: estadoResult.reparos,
               }
-            })
+            } as any)
             .eq("id", compraData.id);
             
           updated = true;

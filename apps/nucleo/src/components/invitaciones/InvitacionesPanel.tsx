@@ -64,12 +64,12 @@ export function InvitacionesPanel() {
   const createCode = async () => {
     setActionLoading('creating');
     try {
-      const { data: { session: authSession } } = await supabase.auth.getSession();
-      if (!authSession) throw new Error('No autenticado');
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('No autenticado');
 
         const payload: Record<string, unknown> = {
           code: generateCode(),
-          created_by: authSession.user.id,
+          created_by: authUser.id,
           roles: ['admin'],
           active: true,
         };

@@ -8,9 +8,10 @@ export function useApiFetch() {
   const session = useAuthStore((s) => s.session)
 
   return async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+    const { data: { user } } = await supabase.auth.getUser()
     const currentSession = session ?? (await supabase.auth.getSession())?.data?.session ?? null
     const token = currentSession?.access_token ?? ''
-    const empresaId = currentSession?.user?.app_metadata?.empresa_id ?? ''
+    const empresaId = user?.app_metadata?.empresa_id ?? ''
 
     const headers = new Headers(init?.headers)
     if (token) headers.set('Authorization', `Bearer ${token}`)

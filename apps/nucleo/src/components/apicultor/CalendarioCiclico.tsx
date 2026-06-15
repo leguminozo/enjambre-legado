@@ -28,12 +28,12 @@ export function CalendarioCiclico() {
 
     useEffect(() => {
         async function loadTasks() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
 
             const { data } = await supabase.from('calendario_tasks')
                 .select('*')
-                .eq('user_id', session.user.id)
+                .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
             if (data && data.length > 0) {
                 setTasks(data);
@@ -66,10 +66,10 @@ export function CalendarioCiclico() {
         if (!newTaskForm.title) return;
 
         try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
                 const { data } = await supabase.from('calendario_tasks').insert({
-                    user_id: session.user.id,
+                    user_id: user.id,
                     title: newTaskForm.title,
                     month: newTaskForm.month,
                     week: newTaskForm.week,

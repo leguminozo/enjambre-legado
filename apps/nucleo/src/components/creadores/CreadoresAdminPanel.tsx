@@ -157,8 +157,8 @@ export function CreadoresAdminPanel() {
 
       if (montoAprobado) updatePayload.monto_aprobado = montoAprobado;
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) updatePayload.revisado_por = session.user.id;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) updatePayload.revisado_por = user.id;
 
       const { error } = await supabase
         .from('creador_retiros')

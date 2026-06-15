@@ -44,7 +44,7 @@ rcvRoutes.get("/:periodo", async (c) => {
     const { data: registros } = await supabase
       .from("rcv_registros")
       .select("*")
-      .eq("rcv_sync_id", (existing as Record<string, unknown>).id)
+      .eq("rcv_sync_id", (existing as any).id)
       .order("fecha_emision", { ascending: false });
 
     return c.json({ data: { sync: existing, registros: registros ?? [] } });
@@ -98,7 +98,7 @@ rcvRoutes.post("/:periodo/sync", async (c) => {
 
     const { data: sync, error: syncError } = await supabase
       .from("rcv_sync")
-      .upsert(syncPayload, { onConflict: "empresa_id,periodo,tipo_registro" })
+      .upsert(syncPayload as any, { onConflict: "empresa_id,periodo,tipo_registro" })
       .select("*")
       .single();
 

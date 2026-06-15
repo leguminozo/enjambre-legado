@@ -38,9 +38,9 @@ export function MarketingView() {
 
     useEffect(() => {
         async function loadData() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-            const uid = session.user.id;
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+            const uid = user.id;
 
             const { data: prof } = await supabase.from('profiles').select('*').eq('id', uid).single();
             setUserProfile(prof);
@@ -63,10 +63,10 @@ const [resP, resC] = await Promise.all([
         if (!postForm.content) return;
 
         try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
                 const { data } = await supabase.from('marketing_posts').insert({
-                    user_id: session.user.id,
+                    user_id: user.id,
                     ...postForm
                 }).select().single();
 

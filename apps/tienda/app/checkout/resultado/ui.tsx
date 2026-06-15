@@ -75,21 +75,29 @@ export function CheckoutResultClient() {
 
     void (async () => {
       const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
-      const res = await fetch(`${NUCLEO_URL}/api/checkout/commit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({
-          token_ws: token,
-          buyOrder: buyOrderParam || pending?.buyOrder || undefined,
-          provider: pending?.provider || undefined,
-        }),
-      });
-    const json = parseCommitResponse(await res.json());
+      let res: Response;
+      try {
+        res = await fetch(`${NUCLEO_URL}/api/checkout/commit`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({
+            token_ws: token,
+            buyOrder: buyOrderParam || pending?.buyOrder || undefined,
+            provider: pending?.provider || undefined,
+          }),
+        });
+      } catch (networkError) {
+        setState('failed');
+        setMessage('Error de conexión. Verifica tu internet e intenta de nuevo.');
+        return;
+      }
+      const json = parseCommitResponse(await res.json());
 
-      if (!res.ok || !json.ok || !json.authorized) {        setState('failed');
+      if (!res.ok || !json.ok || !json.authorized) {
+        setState('failed');
         setMessage(json.error ? friendlyApiError(undefined, json.error) : 'Pago no autorizado.');
         return;
       }

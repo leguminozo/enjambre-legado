@@ -191,7 +191,7 @@ documentosRouter.post(
         .eq('empresa_id', empresaId)
         .single();
 
-      const { error: insertError, data } = await supabase
+      const { error: insertError, data } = await (supabase as any)
         .from('banco_chile_documentos')
         .insert({
           config_id: config?.id || null,

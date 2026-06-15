@@ -81,10 +81,10 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
   const fetchCreadorData = async () => {
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-      const profRes = await supabase.from('creadores').select('*').eq('user_id', session.user.id).single();
+      const profRes = await supabase.from('creadores').select('*').eq('user_id', user.id).single();
 
       if (!profRes.data) {
         setLoading(false);
@@ -134,11 +134,11 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
         ? { email: retiroForm.datos }
         : { referencia: retiroForm.datos };
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
       const { error } = await supabase.rpc('solicitar_retiro_creador', {
-        p_user_id: session.user.id,
+        p_user_id: user.id,
         p_monto: retiroForm.monto,
         p_metodo_pago: retiroForm.metodo,
         p_datos_pago: datosPago,

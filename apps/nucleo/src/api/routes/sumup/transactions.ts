@@ -108,7 +108,7 @@ transactionsRouter.post("/sincronizar", async (c) => {
 
     const { error } = await supabase
       .from("sumup_transacciones")
-      .upsert(row, { onConflict: "empresa_id,sumup_id" });
+      .upsert(row as any, { onConflict: "empresa_id,sumup_id" });
 
     if (!error) upserted++;
   }

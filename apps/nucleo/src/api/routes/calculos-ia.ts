@@ -4,7 +4,6 @@ import { Hono } from "hono";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import { calcularPPM, calcularF29, type EmpresaRegimen, type F29Input } from "@enjambre/contable";
-import type { Database } from "@enjambre/database/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const calculosIARoutes = new Hono<{
@@ -15,10 +14,8 @@ calculosIARoutes.use("*", authMiddleware, tenantMiddleware);
 
 calculosIARoutes.get("/", async (c) => {
   const empresaId = c.get("empresaId");
-  const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
-
-  // Local alias for IA/SII table operations (table exists for the feature but missing from generated Database types — pre-existing SII stub debt).
-  const ia = supabase as any;
+  const supabase = c.get("supabase");
+  const ia = supabase;
 
   const { data, error } = await ia
     .from("calculos_ia")
@@ -40,8 +37,8 @@ const calculoIASchema = z.object({
 
 calculosIARoutes.post("/", zValidator("json", calculoIASchema), async (c) => {
   const empresaId = c.get("empresaId");
-  const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
-  const ia = supabase as any;
+  const supabase = c.get("supabase");
+  const ia = supabase;
   const { tipo, parametros } = c.req.valid("json");
 
   // see comment above on calculos_ia table type debt
@@ -87,10 +84,9 @@ calculosIARoutes.post("/", zValidator("json", calculoIASchema), async (c) => {
       .order("mes", { ascending: false })
       .limit(12);
 
-    const periodoActual = periodos?.[0] as any;
-    // These are from the joined periodo data for SII/IA calculations. Pre-existing type gap in Database for the SII stub area.
-    const facturasEmitidas = (periodoActual?.facturas_emitidas ?? []) as any[];
-    const gastosPeriodo = (periodoActual?.gastos ?? []) as any[];
+    const periodoActual = periodos?.[0];
+    const facturasEmitidas = periodoActual?.facturas_emitidas ?? [];
+    const gastosPeriodo = periodoActual?.gastos ?? [];
 
     const { data: empresa } = await ia
       .from("empresas")
@@ -99,9 +95,9 @@ calculosIARoutes.post("/", zValidator("json", calculoIASchema), async (c) => {
       .single();
 
     const empresaRegimen: EmpresaRegimen = {
-      regimen: ((empresa as any)?.regimen as EmpresaRegimen["regimen"]) ?? "pro_pyme_transparente",
-      fechaInicioActividades: (empresa as any)?.fecha_inicio_actividades ?? null,
-      ingresosBrutosAnioAnterior: Number((empresa as any)?.ingresos_brutos_anio_anterior ?? 0),
+      regimen: (empresa?.regimen as EmpresaRegimen["regimen"]) ?? "pro_pyme_transparente",
+      fechaInicioActividades: empresa?.fecha_inicio_actividades ?? null,
+      ingresosBrutosAnioAnterior: Number(empresa?.ingresos_brutos_anio_anterior ?? 0),
     };
 
     switch (tipo) {

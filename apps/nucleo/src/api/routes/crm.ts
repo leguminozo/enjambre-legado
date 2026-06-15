@@ -95,7 +95,7 @@ crmRoutes.get("/dashboard", async (c) => {
       .select("id, name, type, status, total_spent, last_purchase, fuente, vendedor_id, ultimo_contacto")
       .order("last_purchase", { ascending: true, nullsFirst: true })
       .limit(200),
-    supabase
+    (supabase as any)
       .from("interacciones")
       .select("id, tipo, resultado, created_at, proximo_seguimiento, rep_id, cliente_id")
       .eq("empresa_id", empresaId)
@@ -107,7 +107,7 @@ crmRoutes.get("/dashboard", async (c) => {
       .gte("fecha_fin", new Date().toISOString().slice(0, 10))
       .order("fecha_inicio", { ascending: true })
       .limit(20),
-    supabase
+    (supabase as any)
       .from("evento_rep_assignments")
       .select("id, evento_id, rep_id, rol_evento, meta_ventas")
       .eq("empresa_id", empresaId),
@@ -131,30 +131,30 @@ crmRoutes.get("/dashboard", async (c) => {
 
   const totalClientes = clientes.length;
   const clientesByStatus: Record<string, number> = {};
-  clientes.forEach((cl: { status: string | null }) => {
+  clientes.forEach((cl: any) => {
     const s = cl.status ?? "sin_status";
     clientesByStatus[s] = (clientesByStatus[s] ?? 0) + 1;
   });
 
   const clientesByFuente: Record<string, number> = {};
-  clientes.forEach((cl: { fuente: string | null }) => {
+  clientes.forEach((cl: any) => {
     const f = cl.fuente ?? "sin_fuente";
     clientesByFuente[f] = (clientesByFuente[f] ?? 0) + 1;
   });
 
   const interaccionesByTipo: Record<string, number> = {};
-  interacciones.forEach((i: { tipo: string }) => {
+  interacciones.forEach((i: any) => {
     interaccionesByTipo[i.tipo] = (interaccionesByTipo[i.tipo] ?? 0) + 1;
   });
 
   const interaccionesByResultado: Record<string, number> = {};
-  interacciones.forEach((i: { resultado: string | null }) => {
+  interacciones.forEach((i: any) => {
     const r = i.resultado ?? "sin_resultado";
     interaccionesByResultado[r] = (interaccionesByResultado[r] ?? 0) + 1;
   });
 
   const proximosSeguimientos = interacciones.filter(
-    (i: { proximo_seguimiento: string | null }) =>
+    (i: any) =>
       i.proximo_seguimiento != null &&
       i.proximo_seguimiento >= new Date().toISOString().slice(0, 10)
   );
@@ -190,16 +190,7 @@ crmRoutes.get("/dashboard", async (c) => {
     streak: number;
     tier: string;
   }> = reps.map(
-    (r: {
-      user_id: string;
-      display_name: string;
-      clients_captured: number;
-      total_sales_lifetime: number;
-      total_revenue_lifetime: number;
-      balance_pendiente: number;
-      current_streak_days: number;
-      commission_tier: string;
-    }) => ({
+    (r: any) => ({
       rep_id: r.user_id,
       display_name: r.display_name,
       clients_captured: Number(r.clients_captured ?? 0),
@@ -244,7 +235,7 @@ crmRoutes.get("/clientes", async (c) => {
   const status = c.req.query("status");
   const search = c.req.query("q");
 
-  let query = supabase
+  let query = (supabase as any)
     .from("clientes")
     .select("id, name, type, status, total_spent, last_purchase, fuente, email, telefono, empresa, vendedor_id, ultimo_contacto, notes")
     .order("last_purchase", { ascending: true, nullsFirst: true })
@@ -285,7 +276,7 @@ crmRoutes.post("/clientes", zValidator("json", CreateClienteSchema), async (c) =
       status: input.status ?? "prospecto",
       vendedor_id: user.id,
       ultimo_contacto: new Date().toISOString(),
-    })
+    } as any)
     .select("*")
     .single();
 
@@ -303,7 +294,7 @@ crmRoutes.patch("/clientes/:id", zValidator("json", UpdateClienteSchema), async 
 
   const { data, error } = await supabase
     .from("clientes")
-    .update(input)
+    .update(input as any)
     .eq("id", clienteId)
     .select("*")
     .single();
@@ -320,7 +311,7 @@ crmRoutes.get("/interacciones", async (c) => {
   const empresaId = c.get("empresaId");
   const clienteId = c.req.query("cliente_id");
 
-  let query = supabase
+  let query = (supabase as any)
     .from("interacciones")
     .select("*")
     .eq("empresa_id", empresaId)
@@ -349,7 +340,7 @@ crmRoutes.post(
     const user = c.get("user");
     const empresaId = c.get("empresaId");
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("interacciones")
       .insert({
         cliente_id: input.cliente_id,
@@ -359,7 +350,7 @@ crmRoutes.post(
         notas: input.notas ?? null,
         resultado: input.resultado ?? null,
         proximo_seguimiento: input.proximo_seguimiento ?? null,
-      })
+      } as any)
       .select("*")
       .single();
 
@@ -367,9 +358,9 @@ crmRoutes.post(
       return c.json({ code: "interaccion_create_failed", message: error.message }, 400);
     }
 
-    await supabase
+    await (supabase as any)
       .from("clientes")
-      .update({ ultimo_contacto: new Date().toISOString() })
+      .update({ ultimo_contacto: new Date().toISOString() } as any)
       .eq("id", input.cliente_id);
 
     return c.json({ data }, 201);
@@ -390,7 +381,7 @@ crmRoutes.get("/eventos", async (c) => {
     return c.json({ code: "query_failed", message: error.message }, 500);
   }
 
-  const assignmentsRes = await supabase
+  const assignmentsRes = await (supabase as any)
     .from("evento_rep_assignments")
     .select("id, evento_id, rep_id, rol_evento, meta_ventas")
     .eq("empresa_id", empresaId);
@@ -399,8 +390,8 @@ crmRoutes.get("/eventos", async (c) => {
 
   const eventosWithAssignments = (data ?? []).map((e: Record<string, unknown>) => ({
     ...e,
-    reps: assignments.filter(
-      (a: { evento_id: string }) => a.evento_id === e.id
+    reps: (assignments as any[]).filter(
+      (a) => a.evento_id === e.id
     ),
   }));
 
@@ -412,7 +403,7 @@ crmRoutes.post("/eventos/assign", zValidator("json", AssignRepSchema), async (c)
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
 
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("evento_rep_assignments")
     .insert({
       evento_id: input.evento_id,

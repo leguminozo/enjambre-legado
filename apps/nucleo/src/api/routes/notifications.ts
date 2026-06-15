@@ -92,7 +92,7 @@ notificationsRoutes.post(
     const input = c.req.valid("json");
 
     // Encolar en notification_queue
-    const { data: queueData, error: queueError } = await supabase
+    const { data: queueData, error: queueError } = await (supabase as any)
       .from("notification_queue")
       .insert({
         empresa_id: empresaId,
@@ -140,7 +140,7 @@ notificationsRoutes.post(
  */
 notificationsRoutes.post("/trigger-worker", authMiddleware, async (c) => {
   const user = c.get("user");
-  const role = (user as any)?.app_metadata?.role || (user as any)?.user_metadata?.role;
+  const role = (user as any)?.app_metadata?.role;
 
   const isAdmin = role === "admin" || role === "gerente";
   const secret = c.req.header("x-worker-secret");

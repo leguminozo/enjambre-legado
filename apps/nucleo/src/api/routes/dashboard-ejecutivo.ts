@@ -78,13 +78,13 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
       .gte("date", yearStart)
       .order("date", { ascending: false })
       .limit(50),
-    supabase
+    (supabase as any)
       .from("cosechas")
       .select("id, kg, fecha, floracion")
       .eq("empresa_id", empresaId)
       .gte("fecha", from)
       .lte("fecha", to),
-    supabase
+    (supabase as any)
       .from("cosechas")
       .select("id, kg, fecha, floracion")
       .eq("empresa_id", empresaId)
@@ -161,7 +161,7 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
       .eq("empresa_id", empresaId)
       .order("created_at", { ascending: false })
       .limit(10),
-    supabase
+    (supabase as any)
       .from("productos")
       .select("id, nombre, precio, stock, categoria")
       .eq("empresa_id", empresaId),

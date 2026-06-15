@@ -105,7 +105,7 @@ webhookRouter.post('/', async (c) => {
     }
 
     // Guardar notificación
-    await supabase.from('banco_chile_notificaciones').insert({
+    await (supabase as any).from('banco_chile_notificaciones').insert({
       empresa_id: empresaId,
       tipo_evento: tipo,
       cuenta_afectada: cuenta_id,
@@ -285,7 +285,7 @@ webhookRouter.post('/reprocesar/:id', async (c) => {
       monto: notificacion.monto,
       descripcion: notificacion.descripcion,
       datos: notificacion.datos_raw,
-    });
+    } as any);
 
     return c.json({ success: true, message: 'Notificación reprocesada' });
   } catch (error) {

@@ -100,14 +100,14 @@ cashSessionsRoutes.post("/:id/close", zValidator("json", CloseSessionSchema), as
     .select("total, metodo_pago")
     .eq("cash_session_id", sessionId);
 
-  const cashSales = (ventas ?? []).reduce(
-    (sum: number, v: { total: number; metodo_pago: string }) =>
+  const cashSales = ((ventas as any[]) ?? []).reduce(
+    (sum: number, v: any) =>
       v.metodo_pago === "efectivo" ? sum + v.total : sum,
     0,
   );
 
   const breakdown: Record<string, number> = {};
-  for (const v of (ventas ?? []) as Array<{ total: number; metodo_pago: string }>) {
+  for (const v of ((ventas as any[]) ?? [])) {
     const key = v.metodo_pago;
     breakdown[key] = (breakdown[key] ?? 0) + v.total;
   }

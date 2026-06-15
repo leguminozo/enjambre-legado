@@ -11,7 +11,7 @@ dashboardRoutes.use("*", authMiddleware, tenantMiddleware);
 dashboardRoutes.get("/", async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase");
-  const ia = supabase as any; // SII/EIRL tables (periodos_contables, facturas_emitidas, etc.) - pre-existing type debt from SII stub
+  const ia = supabase; // SII/EIRL tables (periodos_contables, facturas_emitidas, etc.)
   const periodoParam = c.req.query("periodo") ?? "actual";
 
   let periodoMes: number;
@@ -55,17 +55,17 @@ dashboardRoutes.get("/", async (c) => {
       .from("facturas_emitidas")
       .select("monto_neto, monto_iva, monto_total, estado")
       .eq("empresa_id", empresaId)
-      .eq("periodo_id", periodoId),
+      .eq("periodo_id", periodoId ?? ""),
     ia
       .from("facturas_recibidas")
       .select("monto_neto, monto_iva")
       .eq("empresa_id", empresaId)
-      .eq("periodo_id", periodoId),
+      .eq("periodo_id", periodoId ?? ""),
     ia
       .from("gastos")
       .select("monto_neto, monto_iva, monto_total, estado")
       .eq("empresa_id", empresaId)
-      .eq("periodo_id", periodoId),
+      .eq("periodo_id", periodoId ?? ""),
   ]);
 
   const facturasEmitidas = facturasEmitidasRes.data ?? [];
@@ -94,7 +94,7 @@ dashboardRoutes.get("/", async (c) => {
     .select("monto")
     .eq("empresa_id", empresaId)
     .eq("tipo", "ppm")
-    .eq("periodo_id", periodoId)
+    .eq("periodo_id", periodoId ?? "")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();

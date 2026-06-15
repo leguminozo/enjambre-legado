@@ -65,8 +65,8 @@ export default async function TrazabilidadPage({ params }: PageProps) {
     colmena: product.colmena_origen ?? 'N/A',
     cosecha: product.fecha_cosecha ?? 'N/A',
     envasado: product.fecha_envasado ?? 'N/A',
-    co2_evitado_kg: product.co2_evitado_kg ?? 0,
-    irr: product.irr_referencia ?? 1.0,
+    co2_evitado_kg: product.co2_evitado_kg ?? null,
+    irr: product.irr_referencia ?? null,
   };
 
   const payloadString = JSON.stringify(payloadAuditable, null, 2);
@@ -222,11 +222,11 @@ export default async function TrazabilidadPage({ params }: PageProps) {
               <h4 className="text-[0.68rem] uppercase tracking-[0.2em] text-success font-bold">Métricas Bioculturales</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-background/50 border border-success/10 rounded-xl text-center">
-                  <div className="text-2xl font-bold text-success tabular-nums">{product.co2_evitado_kg ?? 1.8}kg</div>
+                  <div className="text-2xl font-bold text-success tabular-nums">{product.co2_evitado_kg != null ? `${product.co2_evitado_kg}kg` : 'Sin datos'}</div>
                   <div className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">CO2 Evitado</div>
                 </div>
                 <div className="p-4 bg-background/50 border border-success/10 rounded-xl text-center">
-                  <div className="text-2xl font-bold text-success tabular-nums">IRR {product.irr_referencia ?? 2.4}</div>
+                  <div className="text-2xl font-bold text-success tabular-nums">{product.irr_referencia != null ? `IRR ${product.irr_referencia}` : 'Sin datos'}</div>
                   <div className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">Índice Regeneración</div>
                 </div>
               </div>

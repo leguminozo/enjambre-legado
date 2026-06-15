@@ -66,14 +66,14 @@ export function CashSessionsPanel() {
   const reconcileSession = async (sessionId: string) => {
     setActionLoading(sessionId);
     try {
-      const { data: { session: authSession } } = await supabase.auth.getSession();
-      if (!authSession) throw new Error('No autenticado');
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('No autenticado');
 
       const { error } = await supabase
         .from('cash_sessions')
         .update({
           session_status: 'reconciled',
-          reconciled_by: authSession.user.id,
+          reconciled_by: authUser.id,
         })
         .eq('id', sessionId);
 

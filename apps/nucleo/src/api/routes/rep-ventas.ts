@@ -92,12 +92,12 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     items = [
       {
         producto_id: producto.id,
-        nombre: producto.nombre,
+        nombre: producto.nombre ?? "",
         cantidad: input.cantidad,
-        precio_unitario: producto.precio,
+        precio_unitario: producto.precio ?? 0,
       },
     ];
-    total = producto.precio * input.cantidad;
+    total = (producto.precio ?? 0) * input.cantidad;
   }
 
   const { data: venta, error: ventaError } = await supabase
@@ -116,7 +116,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
       origen: input.channel ?? "feria",
       sumup_checkout_id: input.sumup_checkout_id ?? null,
       sumup_transaction_id: input.sumup_transaction_id ?? null,
-    })
+    } as any)
     .select("id, total, metodo_pago, channel, created_at, rep_commission_total")
     .single();
 
@@ -166,8 +166,9 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
   let nextThreshold: { threshold: number; multiplier: number } | null = null;
   if (rules) {
     for (const rule of rules) {
-      const threshold = Number(rule.parameter?.threshold ?? 0);
-      const multiplier = Number(rule.parameter?.multiplier ?? 1);
+      const param = rule.parameter as Record<string, unknown> | null;
+      const threshold = Number(param?.threshold ?? 0);
+      const multiplier = Number(param?.multiplier ?? 1);
       if (dayTotal < threshold) {
         nextThreshold = { threshold, multiplier };
         break;

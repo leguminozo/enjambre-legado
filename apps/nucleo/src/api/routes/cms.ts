@@ -106,7 +106,7 @@ cmsRoutes.post("/items", zValidator("json", ContentItemSchema), async (c) => {
       item_order: input.item_order,
       content: input.content,
       is_active: input.is_active,
-    })
+    } as any)
     .select("*")
     .single();
 
@@ -129,7 +129,7 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
 
   const { data, error } = await supabase
     .from("site_content")
-    .update(payload)
+    .update(payload as any)
     .eq("id", itemId)
     .select("*")
     .single();

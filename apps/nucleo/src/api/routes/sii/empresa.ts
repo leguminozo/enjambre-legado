@@ -58,7 +58,7 @@ empresaRoutes.patch("/", async (c) => {
 
   const { data, error } = await supabase
     .from("empresas")
-    .update(update)
+    .update(update as any)
     .eq("id", empresaId)
     .select("id, rut, razon_social, giro, regimen, acteco, sii_ambiente, fecha_inicio_actividades, ingresos_brutos_anio_anterior")
     .single();

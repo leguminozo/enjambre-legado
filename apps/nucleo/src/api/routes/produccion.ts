@@ -21,7 +21,7 @@ produccionRoutes.get("/dashboard", async (c) => {
       .from("productos")
       .select("*")
       .eq("visible", true),
-    supabase
+    (supabase as any)
       .from("ventas")
       .select("items, created_at")
       .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
@@ -39,9 +39,9 @@ produccionRoutes.get("/dashboard", async (c) => {
 
   // Calcular demanda (unidades vendidas últimos 30 días por producto)
   const demandaMap: Record<string, number> = {};
-  ventas.forEach((v) => {
+  ventas.forEach((v: any) => {
     if (Array.isArray(v.items)) {
-      v.items.forEach((rawItem) => {
+      v.items.forEach((rawItem: any) => {
         const parsed = itemSchema.safeParse(rawItem);
         if (parsed.success) {
           const item = parsed.data;

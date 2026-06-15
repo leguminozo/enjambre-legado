@@ -68,9 +68,10 @@ export default function CatalogoPage() {
               categoria: selectedProduct.categoria ?? '',
               tags: selectedProduct.tags ?? [],
               descripcion_corta: selectedProduct.descripcion_corta ?? '',
-              peso_netos: selectedProduct.peso_netos ?? undefined,
+              peso_neto_g: selectedProduct.peso_neto_g ?? undefined,
               ingredientes: selectedProduct.ingredientes ?? '',
               origen_apicola: selectedProduct.origen_apicola ?? '',
+              lote_id: selectedProduct.lote_id ?? undefined,
             } : undefined}
             onSuccess={handleSuccess}
             onCancel={handleCancel}

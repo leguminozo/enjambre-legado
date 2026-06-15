@@ -111,8 +111,8 @@ adminRoutes.post("/", zValidator("json", CreateInvitationSchema), async (c) => {
       empresa_id: empresaId,
       code,
       created_by: user.id,
-      roles: input.roles,
-      tools: input.tools,
+      roles: input.roles as any,
+      tools: input.tools as any,
       max_uses: input.max_uses ?? null,
       expires_at: input.expires_at ?? null,
     })
@@ -158,7 +158,7 @@ adminRoutes.patch("/:id", zValidator("json", UpdateInvitationSchema), async (c) 
 
   const { data, error } = await supabase
     .from("invitation_codes")
-    .update(payload)
+    .update(payload as any)
     .eq("id", invitationId)
     .select("*")
     .single();
@@ -220,7 +220,7 @@ adminRoutes.patch("/reps/:userId", zValidator("json", UpdateRepSchema), async (c
 
   const { data, error } = await supabase
     .from("rep_profiles")
-    .update(payload)
+    .update(payload as any)
     .eq("user_id", targetUserId)
     .select("*")
     .single();

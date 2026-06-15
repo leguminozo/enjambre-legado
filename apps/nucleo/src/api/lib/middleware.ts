@@ -1,17 +1,18 @@
 import { createClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@enjambre/database/database.types";
 import { createMiddleware } from "hono/factory";
 import { getEnvOrThrow } from "./env";
 
 export type AppVariables = {
   user: { id: string; email?: string };
   accessToken: string;
-  supabase: SupabaseClient;
+  supabase: SupabaseClient<Database>;
   empresaId: string;
   rol: string;
 };
 
-export function createSupabaseUserClient(accessToken: string): SupabaseClient {
+export function createSupabaseUserClient(accessToken: string): SupabaseClient<Database> {
   return createClient(
     getEnvOrThrow("NEXT_PUBLIC_SUPABASE_URL"),
     getEnvOrThrow("NEXT_PUBLIC_SUPABASE_ANON_KEY"),

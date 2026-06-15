@@ -43,9 +43,10 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
           categoria: String(p.categoria ?? ''),
           tags: Array.isArray(p.tags) ? p.tags : [],
           descripcion_corta: String(p.descripcion_corta ?? ''),
-          peso_netos: Number(p.peso_netos) || undefined,
+          peso_neto_g: Number(p.peso_neto_g) || undefined,
           ingredientes: String(p.ingredientes ?? ''),
           origen_apicola: String(p.origen_apicola ?? ''),
+          lote_id: p.lote_id ? String(p.lote_id) : undefined,
           created_at: String(p.created_at ?? ''),
         };
         return product;

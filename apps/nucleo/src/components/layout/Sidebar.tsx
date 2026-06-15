@@ -82,12 +82,12 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
   useEffect(() => {
     async function fetchUser() {
       if (!supabase) return;
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        if (session.user.user_metadata?.full_name) {
-          setUserName(session.user.user_metadata.full_name);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        if (user.user_metadata?.full_name) {
+          setUserName(user.user_metadata.full_name);
         } else {
-          const { data } = await supabase.from('profiles').select('full_name').eq('id', session.user.id).single();
+          const { data } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
           if (data?.full_name) setUserName(data.full_name);
         }
       }

@@ -39,13 +39,13 @@ export function ComisionesPanel() {
   const fetchCommissions = async () => {
     setLoading(true);
     try {
-      const { data: { session: authSession } } = await supabase.auth.getSession();
-      if (!authSession) throw new Error('No autenticado');
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('No autenticado');
 
       const { data: ueData } = await supabase
         .from('usuarios_empresas')
         .select('empresa_id')
-        .eq('user_id', authSession.user.id)
+        .eq('user_id', authUser.id)
         .limit(1);
       const empresaId = ueData?.[0]?.empresa_id;
       if (!empresaId) throw new Error('Sin empresa asignada');
@@ -85,12 +85,13 @@ export function ComisionesPanel() {
     if (selectedIds.size === 0) return;
     setActionLoading(true);
     try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('No autenticado');
       const { data: { session: authSession } } = await supabase.auth.getSession();
-      if (!authSession) throw new Error('No autenticado');
 
       const res = await fetch('/api/invitations/commissions/pay', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authSession.access_token}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authSession?.access_token}` },
         body: JSON.stringify({ commission_ids: Array.from(selectedIds) }),
       });
       if (!res.ok) {

@@ -7,13 +7,12 @@ import {
 } from "@enjambre/contable";
 import type { F22Input, F29Input, EmpresaRegimen } from "@enjambre/contable";
 import type { AppVariables } from "@/api/lib/middleware";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@enjambre/database/database.types";
 
 export const impuestosRoutes = new Hono<{ Variables: AppVariables }>();
 
 export async function obtenerF29Interno(
-  supabase: SupabaseClient<Database>,
+  supabase: AppVariables['supabase'],
   empresaId: string,
   anio: number,
   mes: number,
@@ -22,7 +21,7 @@ export async function obtenerF29Interno(
     throw new Error("Anio o mes invalido");
   }
 
-  const { data: empresa } = await (supabase as any)
+  const { data: empresa } = await supabase
     .from("empresas")
     .select("regimen, fecha_inicio_actividades, ingresos_brutos_anio_anterior")
     .eq("id", empresaId)
@@ -32,7 +31,7 @@ export async function obtenerF29Interno(
     throw new Error("Empresa no encontrada");
   }
 
-  const { data: periodo } = await (supabase as any)
+  const { data: periodo } = await supabase
     .from("periodos_contables")
     .select("id, remanente_cf_anterior")
     .eq("empresa_id", empresaId)
@@ -40,25 +39,24 @@ export async function obtenerF29Interno(
     .eq("mes", mes)
     .maybeSingle();
 
-  // Use (supabase as any) for SII/contable tables (facturas_*, gastos, etc.) — pre-existing type debt
-  // (periodos_contables / facturas joins come back as 'never' in generated Database types).
+  // Supabase typed properly now
   const [facturasRes, gastosRes, honorariosRes, gastosDigitalesRes] = await Promise.all([
-    (supabase as any)
+    supabase
       .from("facturas_emitidas")
       .select("monto_neto, monto_iva, monto_total, tipo_documento")
       .eq("empresa_id", empresaId)
-      .eq("periodo_id", (periodo as any)?.id ?? ""),
-    (supabase as any)
+      .eq("periodo_id", periodo?.id ?? ""),
+    supabase
       .from("gastos")
       .select("monto_iva")
       .eq("empresa_id", empresaId)
-      .eq("periodo_id", (periodo as any)?.id ?? ""),
-    (supabase as any)
+      .eq("periodo_id", periodo?.id ?? ""),
+    supabase
       .from("honorarios")
       .select("monto_retencion")
       .eq("empresa_id", empresaId)
-      .eq("periodo_id", (periodo as any)?.id ?? ""),
-    (supabase as any)
+      .eq("periodo_id", periodo?.id ?? ""),
+    supabase
       .from("facturas_compra")
       .select("monto_iva")
       .eq("empresa_id", empresaId)
@@ -68,10 +66,10 @@ export async function obtenerF29Interno(
       .lt("fecha_emision", `${anio}-${String(mes + 1).padStart(2, "0")}-01`),
   ]);
 
-  const facturas = (facturasRes.data ?? []) as any[];
-  const gastos = (gastosRes.data ?? []) as any[];
-  const honorarios = (honorariosRes.data ?? []) as any[];
-  const gastosDigitales = (gastosDigitalesRes.data ?? []) as any[];
+  const facturas = facturasRes.data ?? [];
+  const gastos = gastosRes.data ?? [];
+  const honorarios = honorariosRes.data ?? [];
+  const gastosDigitales = gastosDigitalesRes.data ?? [];
 
   const debitoFacturas = facturas
     .filter((f) => String(f.tipo_documento ?? "Factura") === "Factura")
@@ -85,15 +83,17 @@ export async function obtenerF29Interno(
   const ingresosBrutos = facturas.reduce((a, f) => a + Number(f.monto_total ?? 0), 0);
 
   const empresaRegimen: EmpresaRegimen = {
-    regimen: ((empresa as any).regimen as EmpresaRegimen["regimen"]) ?? "pro_pyme_transparente",
-    fechaInicioActividades: (empresa as any).fecha_inicio_actividades ?? null,
-    ingresosBrutosAnioAnterior: Number((empresa as any).ingresos_brutos_anio_anterior ?? 0),
+    regimen: (empresa.regimen as EmpresaRegimen["regimen"]) ?? "pro_pyme_transparente",
+    fechaInicioActividades: empresa.fecha_inicio_actividades ?? null,
+    ingresosBrutosAnioAnterior: Number(empresa.ingresos_brutos_anio_anterior ?? 0),
   };
 
   let valorUF = 40766;
   try {
     valorUF = await fetchTasaUF();
-  } catch { /* fallback hardcoded */ }
+  } catch (err) {
+    console.warn("Failed to fetch UF, using fallback:", err);
+  }
 
   const ppmResult = calcularPPM(empresaRegimen, ingresosBrutos, valorUF);
 
@@ -115,7 +115,7 @@ export async function obtenerF29Interno(
 
 impuestosRoutes.get("/f29/:anio/:mes", async (c) => {
   const empresaId = c.get("empresaId");
-  const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
+  const supabase = c.get("supabase");
   const anio = Number(c.req.param("anio"));
   const mes = Number(c.req.param("mes"));
 
@@ -130,7 +130,7 @@ impuestosRoutes.get("/f29/:anio/:mes", async (c) => {
 
 impuestosRoutes.post("/f29/:anio/:mes/guardar", async (c) => {
   const empresaId = c.get("empresaId");
-  const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
+  const supabase = c.get("supabase");
   const anio = Number(c.req.param("anio"));
   const mes = Number(c.req.param("mes"));
 
@@ -138,7 +138,7 @@ impuestosRoutes.post("/f29/:anio/:mes/guardar", async (c) => {
     return c.json({ code: "invalid_period", message: "Anio o mes invalido" }, 400);
   }
 
-  const { data: periodo } = await (supabase as any)
+  const { data: periodo } = await supabase
     .from("periodos_contables")
     .select("id")
     .eq("empresa_id", empresaId)
@@ -152,7 +152,7 @@ impuestosRoutes.post("/f29/:anio/:mes/guardar", async (c) => {
 
   const periodoId = periodo.id;
 
-  const { data: existing } = await (supabase as any)
+  const { data: existing } = await supabase
     .from("declaraciones_f29")
     .select("id")
     .eq("empresa_id", empresaId)
@@ -161,7 +161,7 @@ impuestosRoutes.post("/f29/:anio/:mes/guardar", async (c) => {
     .maybeSingle();
 
   if (existing) {
-    const { error: delError } = await (supabase as any)
+    const { error: delError } = await supabase
       .from("declaraciones_f29")
       .delete()
       .eq("id", existing.id);
@@ -173,14 +173,14 @@ impuestosRoutes.post("/f29/:anio/:mes/guardar", async (c) => {
   try {
     const f29Data = await obtenerF29Interno(supabase, empresaId, anio, mes);
 
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("declaraciones_f29")
       .insert({
         empresa_id: empresaId,
         periodo_id: periodoId,
         anio,
         mes,
-        lineas: f29Data,
+        lineas: f29Data as any,
         iva_pagar: Number(f29Data.ivaPagar ?? 0),
         remanente_proximo_periodo: Number(f29Data.remanenteProximoPeriodo ?? 0),
         ppm_determinado: Number(f29Data.ppmDeterminado ?? 0),
@@ -203,14 +203,14 @@ impuestosRoutes.post("/f29/:anio/:mes/guardar", async (c) => {
 
 impuestosRoutes.get("/f22/:anio", async (c) => {
   const empresaId = c.get("empresaId");
-  const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
+  const supabase = c.get("supabase");
   const anio = Number(c.req.param("anio"));
 
   if (anio < 2000) {
     return c.json({ code: "invalid_anio", message: "Anio invalido" }, 400);
   }
 
-  const { data: empresa } = await (supabase as any)
+  const { data: empresa } = await supabase
     .from("empresas")
     .select("regimen, fecha_inicio_actividades, ingresos_brutos_anio_anterior")
     .eq("id", empresaId)
@@ -220,15 +220,15 @@ impuestosRoutes.get("/f22/:anio", async (c) => {
     return c.json({ code: "empresa_not_found", message: "Empresa no encontrada" }, 404);
   }
 
-  const { data: periodosRaw } = await (supabase as any)
+  const { data: periodosRaw } = await supabase
     .from("periodos_contables")
     .select("id, anio, mes")
     .eq("empresa_id", empresaId)
     .eq("anio", anio);
-  const periodos = (periodosRaw ?? []) as any[];
+  const periodos = periodosRaw ?? [];
 
   if (!periodos || periodos.length === 0) {
-    const empresaRegimen = ((empresa as any).regimen as import("@enjambre/contable").RegimenTributario) ?? "pro_pyme_transparente";
+    const empresaRegimen = (empresa.regimen as import("@enjambre/contable").RegimenTributario) ?? "pro_pyme_transparente";
     const f22Input: F22Input = {
       anioComercial: anio,
       regimen: empresaRegimen,
@@ -242,36 +242,36 @@ impuestosRoutes.get("/f22/:anio", async (c) => {
     return c.json({ data: calcularF22(f22Input) });
   }
 
-  const periodoIds = periodos.map((p: any) => String(p.id));
+  const periodoIds = periodos.map((p) => String(p.id));
 
   const [facturasRes, honorariosRes, ppmRes] = await Promise.all([
-    (supabase as any)
+    supabase
       .from("facturas_emitidas")
       .select("monto_neto, monto_iva, monto_total")
       .eq("empresa_id", empresaId)
       .in("periodo_id", periodoIds),
-    (supabase as any)
+    supabase
       .from("honorarios")
       .select("monto_retencion")
       .eq("empresa_id", empresaId)
       .in("periodo_id", periodoIds),
-    (supabase as any)
+    supabase
       .from("declaraciones_f29")
       .select("ppm_determinado, iva_pagar")
       .eq("empresa_id", empresaId)
       .eq("anio", anio),
   ]);
 
-  const facturas = (facturasRes.data ?? []) as any[];
-  const honorarios = (honorariosRes.data ?? []) as any[];
-  const ppmRows = (ppmRes.data ?? []) as any[];
+  const facturas = facturasRes.data ?? [];
+  const honorarios = honorariosRes.data ?? [];
+  const ppmRows = ppmRes.data ?? [];
 
   const baseImponible = facturas.reduce((a, f) => a + Number(f.monto_total ?? 0), 0);
   const ivaDebito = facturas.reduce((a, f) => a + Number(f.monto_iva ?? 0), 0);
   const retencionesTotal = honorarios.reduce((a, h) => a + Number(h.monto_retencion ?? 0), 0);
   const ppmTotalPagado = ppmRows.reduce((a, p) => a + Number(p.ppm_determinado ?? 0), 0);
 
-  const empresaRegimen = ((empresa as any).regimen as import("@enjambre/contable").RegimenTributario) ?? "pro_pyme_transparente";
+  const empresaRegimen = (empresa.regimen as import("@enjambre/contable").RegimenTributario) ?? "pro_pyme_transparente";
 
   const f22Input: F22Input = {
     anioComercial: anio,

@@ -211,7 +211,7 @@ gastosRoutes.patch("/:id/estado", async (c) => {
 
   const { data, error } = await supabase
     .from("gastos_extranjeros")
-    .update(update)
+    .update(update as any)
     .eq("id", gastoId)
     .eq("empresa_id", empresaId)
     .select("*")

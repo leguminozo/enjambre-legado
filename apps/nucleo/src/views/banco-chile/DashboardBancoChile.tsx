@@ -46,38 +46,39 @@ export function DashboardBancoChile() {
 
   async function fetchDashboard() {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
 
       // Obtener resumen
       const { data: resumenData } = await supabase
         .from('banco_chile_cuentas')
         .select('saldo_disponible')
-        .eq('empresa_id', session.user.id)
+        .eq('empresa_id', user.id)
         .eq('activa', true);
 
       const { count: cuentasCount } = await supabase
         .from('banco_chile_cuentas')
         .select('*', { count: 'exact' })
-        .eq('empresa_id', session.user.id)
+        .eq('empresa_id', user.id)
         .eq('activa', true);
 
       const { count: movsCount } = await supabase
         .from('banco_chile_movimientos')
         .select('*', { count: 'exact' })
-        .eq('empresa_id', session.user.id)
+        .eq('empresa_id', user.id)
         .is('conciliado', false);
 
       const { count: conciliacionesCount } = await supabase
         .from('banco_chile_movimientos')
         .select('*', { count: 'exact' })
-        .eq('empresa_id', session.user.id)
+        .eq('empresa_id', user.id)
         .is('conciliado', false);
 
       const { count: documentosCount } = await supabase
         .from('banco_chile_documentos')
         .select('*', { count: 'exact' })
-        .eq('empresa_id', session.user.id)
+        .eq('empresa_id', user.id)
         .eq('estado', 'pendiente');
 
       // Calcular saldo total
@@ -98,7 +99,7 @@ export function DashboardBancoChile() {
       const { data: cuentasData } = await supabase
         .from('banco_chile_cuentas')
         .select('*')
-        .eq('empresa_id', session.user.id)
+        .eq('empresa_id', user.id)
         .eq('activa', true)
         .limit(10);
 
@@ -110,7 +111,7 @@ export function DashboardBancoChile() {
       const { data: movsData } = await supabase
         .from('banco_chile_movimientos')
         .select('*')
-        .eq('empresa_id', session.user.id)
+        .eq('empresa_id', user.id)
         .order('fecha_contable', { ascending: false })
         .limit(10);
 
@@ -121,8 +122,8 @@ export function DashboardBancoChile() {
       // Obtener sugerencias de conciliación
       const response = await fetch('/api/banco-chile/conciliacion-auto/sugerencias', {
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'x-empresa-id': session.user.id,
+          'Authorization': `Bearer ${session?.access_token}`,
+          'x-empresa-id': user.id,
         },
       });
       const sugerencias = await response.json();
@@ -136,15 +137,16 @@ export function DashboardBancoChile() {
 
   async function autoConciliar() {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
 
       const response = await fetch('/api/banco-chile/conciliacion-auto/auto-conciliar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-          'x-empresa-id': session.user.id,
+          'Authorization': `Bearer ${session?.access_token}`,
+          'x-empresa-id': user.id,
         },
         body: JSON.stringify({ confianzaMinima: 'media' }),
       });

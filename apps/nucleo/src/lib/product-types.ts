@@ -14,12 +14,13 @@ export const productFormSchema = z.object({
   categoria: z.string().optional().or(z.literal('')),
   tags: z.array(z.string()).optional(),
   descripcion_corta: z.string().optional(),
-  peso_netos: z.coerce.number().optional(),
+  peso_neto_g: z.coerce.number().optional(),
   ingredientes: z.string().optional(),
   origen_apicola: z.string().optional(),
   sustituye_azucar_g: z.coerce.number().optional(),
   co2_evitado_kg: z.coerce.number().optional(),
   irr_referencia: z.coerce.number().optional(),
+  lote_id: z.string().uuid().optional(),
 });
 
 export type ProductFormData = z.infer<typeof productFormSchema>;
@@ -41,12 +42,13 @@ export interface Product {
   categoria?: string;
   tags?: string[];
   descripcion_corta?: string;
-  peso_netos?: number;
+  peso_neto_g?: number;
   ingredientes?: string;
   origen_apicola?: string;
   sustituye_azucar_g?: number;
   co2_evitado_kg?: number;
   irr_referencia?: number;
+  lote_id?: string;
 }
 
 export interface ProductVariant {

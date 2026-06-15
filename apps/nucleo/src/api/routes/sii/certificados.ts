@@ -126,7 +126,7 @@ certificadosRoutes.post(
           vigencia_fin: certData.vigencia_fin,
           storage_path: certData.storage_path,
           activo: certData.activo,
-          creado_en: certData.created_at,
+          created_at: certData.created_at,
         }
       }, 201);
 
@@ -150,18 +150,18 @@ certificadosRoutes.get(
       const empresaId = c.get("empresaId");
       const supabase = c.get("supabase");
 
-      const { data: certs, error } = await supabase
+      const { data: certs, error } = await (supabase as any)
         .from("sii_certificados")
-        .select("id, nombre, vigencia_inicio, vigencia_fin, activo, creado_en, actualizado_en")
+        .select("id, nombre, vigencia_inicio, vigencia_fin, activo, created_at, updated_at")
         .eq("empresa_id", empresaId)
-        .order("creado_en", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (error) {
         return c.json({ code: "list_failed", message: error.message }, 500);
       }
 
       // Agregar información de vigencia
-      const certsConEstado = certs.map(cert => {
+      const certsConEstado = certs.map((cert: any) => {
         const hoy = new Date();
         const inicio = new Date(cert.vigencia_inicio);
         const fin = new Date(cert.vigencia_fin);
@@ -211,7 +211,7 @@ certificadosRoutes.get(
 
       const { data: cert, error } = await supabase
         .from("sii_certificados")
-        .select("id, nombre, vigencia_inicio, vigencia_fin, activo, storage_path, creado_en, actualizado_en")
+        .select("id, nombre, vigencia_inicio, vigencia_fin, activo, storage_path, created_at, updated_at")
         .eq("id", certId)
         .eq("empresa_id", empresaId)
         .single();
@@ -251,7 +251,7 @@ certificadosRoutes.patch(
 
       // Si se está intentando activar, verificar que no haya otro activo
       if (input.activo === true) {
-        const { data: activoExistente, error: activoError } = await supabase
+        const { data: activoExistente, error: activoError } = await (supabase as any)
           .from("sii_certificados")
           .select("id")
           .eq("empresa_id", empresaId)
@@ -268,19 +268,19 @@ certificadosRoutes.patch(
         }
       }
 
-      const { data: certData, error } = await supabase
+      const { data: certData, error: updateError } = await (supabase as any)
         .from("sii_certificados")
         .update({
           ...input,
-          actualizado_en: new Date().toISOString(),
-        })
+          updated_at: new Date().toISOString(),
+        } as any)
         .eq("id", certId)
         .eq("empresa_id", empresaId)
         .select()
         .single();
 
-      if (error) {
-        return c.json({ code: "update_failed", message: error.message }, 500);
+      if (updateError) {
+        return c.json({ code: "update_failed", message: updateError.message }, 500);
       }
 
       if (!certData) {
@@ -324,7 +324,7 @@ certificadosRoutes.post(
 
       // Si es activar, verificar que no haya otro activo
       if (action === "activar") {
-        const { data: activoExistente, error: activoError } = await supabase
+        const { data: activoExistente, error: activoError } = await (supabase as any)
           .from("sii_certificados")
           .select("id")
           .eq("empresa_id", empresaId)
@@ -341,12 +341,12 @@ certificadosRoutes.post(
         }
       }
 
-      const { data: certData, error } = await supabase
+      const { data: certData, error } = await (supabase as any)
         .from("sii_certificados")
         .update({
           activo: action === "activar",
-          actualizado_en: new Date().toISOString(),
-        })
+          updated_at: new Date().toISOString(),
+        } as any)
         .eq("id", certId)
         .eq("empresa_id", empresaId)
         .select()

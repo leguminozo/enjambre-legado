@@ -65,7 +65,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           }));
           setRealNotifications(mapped);
         }
-      } catch {}
+      } catch (err) {
+        console.error('Failed to load notifications:', err);
+      }
       setNotifLoading(false);
     };
     load();

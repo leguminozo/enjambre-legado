@@ -41,13 +41,13 @@ export function usePerfil() {
 
   async function fetchProfile() {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
       const { data: prof, error: profErr } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", session.user.id)
+        .eq("id", user.id)
         .single();
 
       if (profErr) throw profErr;
@@ -57,7 +57,7 @@ export function usePerfil() {
       const { data: ueData } = await supabase
         .from("usuarios_empresas")
         .select("empresa_id, rol, empresas(id, razon_social, rut)")
-        .eq("user_id", session.user.id);
+        .eq("user_id", user.id);
 
       if (ueData) {
         const mapped: EmpresaMember[] = ueData.map((ue: Record<string, unknown>) => ({

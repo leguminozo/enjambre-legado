@@ -233,14 +233,14 @@ pipelineRoutes.post("/tareas", zValidator("json", CreateTareaSchema), async (c) 
   const empresaId = c.get("empresaId");
 
   const { data, error } = await supabase.rpc("crear_tarea_crm", {
-    p_lead_id: input.lead_id ?? null,
+    p_lead_id: input.lead_id ?? undefined,
     p_empresa_id: empresaId,
     p_vendedor_id: user.id,
     p_titulo: input.titulo,
-    p_descripcion: input.descripcion ?? null,
+    p_descripcion: input.descripcion ?? undefined,
     p_tipo: input.tipo,
     p_fecha_vencimiento: input.fecha_vencimiento,
-    p_hora: input.hora ?? null,
+    p_hora: input.hora ?? undefined,
     p_prioridad: input.prioridad,
   });
 

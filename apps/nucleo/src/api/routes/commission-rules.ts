@@ -53,7 +53,7 @@ commissionRulesRoutes.post("/", zValidator("json", CreateRuleSchema), async (c) 
       empresa_id: empresaId,
       rule_type: input.rule_type,
       name: input.name,
-      parameter: input.parameter,
+      parameter: input.parameter as any,
       active: input.active,
       priority: input.priority,
     })
@@ -77,7 +77,7 @@ commissionRulesRoutes.patch("/:id", zValidator("json", UpdateRuleSchema), async 
 
   const { data, error } = await supabase
     .from("commission_rules")
-    .update(payload)
+    .update(payload as any)
     .eq("id", ruleId)
     .eq("empresa_id", empresaId)
     .select("*")

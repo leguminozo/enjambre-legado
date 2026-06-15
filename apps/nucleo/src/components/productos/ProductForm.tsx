@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff } from 'lucide-react';
@@ -19,6 +19,17 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
   const [isPending, startTransition] = useTransition();
   const [imageUploading, setImageUploading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [lotes, setLotes] = useState<{ id: string; codigo_lote: string }[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from('lotes')
+      .select('id, codigo_lote')
+      .order('created_at', { ascending: false })
+      .then(({ data }: { data: any }) => {
+        if (data) setLotes(data);
+      });
+  }, []);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema) as never,
@@ -35,13 +46,14 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
       categoria: initialData?.categoria || '',
       tags: initialData?.tags || [],
       descripcion_corta: initialData?.descripcion_corta || '',
-      peso_netos: initialData?.peso_netos || undefined,
+      peso_neto_g: initialData?.peso_neto_g || undefined,
       ingredientes: initialData?.ingredientes || '',
       origen_apicola: initialData?.origen_apicola || '',
       trazabilidad_qr: initialData?.trazabilidad_qr ?? true,
       sustituye_azucar_g: initialData?.sustituye_azucar_g || undefined,
       co2_evitado_kg: initialData?.co2_evitado_kg || undefined,
       irr_referencia: initialData?.irr_referencia || undefined,
+      lote_id: initialData?.lote_id || undefined,
     },
   });
 
@@ -127,8 +139,8 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
   const onSubmit = async (data: ProductFormData) => {
     startTransition(async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
           toast('Debes iniciar sesión', { type: 'error' });
           return;
         }
@@ -439,7 +451,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
                 Peso Neto (g)
               </label>
               <input
-                {...register('peso_netos')}
+                {...register('peso_neto_g')}
                 type="number"
                 placeholder="500"
                 className="input-field text-[0.9rem] p-4"
@@ -483,6 +495,18 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
               <label htmlFor="trazabilidad_qr" className="text-[0.8rem] text-foreground">
                 Incluir QR de trazabilidad
               </label>
+            </div>
+
+            <div className="mt-4">
+              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
+                Lote Asignado
+              </label>
+              <select {...register('lote_id')} className="input-field w-full">
+                <option value="">Sin lote asignado</option>
+                {lotes.map(l => (
+                  <option key={l.id} value={l.id}>{l.codigo_lote}</option>
+                ))}
+              </select>
             </div>
           </div>
 

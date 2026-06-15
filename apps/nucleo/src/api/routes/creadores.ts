@@ -228,7 +228,7 @@ protectedRoutes.patch("/me", zValidator("json", CreadorSelfEditSchema), async (c
 
   const { data, error } = await supabase
     .from("creadores")
-    .update(safeInput)
+    .update(safeInput as any)
     .eq("user_id", user.id)
     .select("*")
     .single();
@@ -279,7 +279,7 @@ protectedRoutes.get("/me/comisiones", async (c) => {
     .order("created_at", { ascending: false })
     .limit(100);
 
-  if (estado) query = query.eq("estado", estado);
+  if (estado) query = query.eq("estado", estado as any);
 
   const { data, error } = await query;
 
@@ -355,7 +355,7 @@ protectedRoutes.post("/me/retiros", zValidator("json", RetiroSchema), async (c) 
     p_user_id: user.id,
     p_monto: input.monto_solicitado,
     p_metodo_pago: input.metodo_pago,
-    p_datos_pago: input.datos_pago || null,
+    p_datos_pago: input.datos_pago as any || null,
   });
 
   if (error) {
@@ -414,7 +414,7 @@ protectedRoutes.get("/admin/todos", async (c) => {
     .order("created_at", { ascending: false })
     .limit(200);
 
-  if (estado) query = query.eq("estado", estado);
+  if (estado) query = query.eq("estado", estado as any);
 
   const { data, error } = await query;
 
@@ -446,7 +446,7 @@ protectedRoutes.patch("/admin/:id/estado", async (c) => {
   if (body.estado === "activo") {
     const { error: roleError } = await supabase
       .from("user_roles")
-      .upsert({ user_id: data.user_id, role: "creador", is_active: true });
+      .upsert({ user_id: data.user_id as any, role: "creador", is_active: true });
 
     if (roleError) {
       console.error("Failed to upsert creador role on activation:", roleError.message);
@@ -468,7 +468,7 @@ protectedRoutes.patch("/admin/:id/comision-tasa", async (c) => {
 
   const { data, error } = await supabase
     .from("creadores")
-    .update(updatePayload)
+    .update(updatePayload as any)
     .eq("id", creadorId)
     .select("*")
     .single();
@@ -515,7 +515,7 @@ protectedRoutes.patch("/admin/retiros/:retiroId", zValidator("json", AprobarReti
 
   const { data, error } = await supabase
     .from("creador_retiros")
-    .update(updatePayload)
+    .update(updatePayload as any)
     .eq("id", retiroId)
     .select("*")
     .single();

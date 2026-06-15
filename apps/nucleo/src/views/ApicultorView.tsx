@@ -53,8 +53,8 @@ export function ApicultorView() {
         async function loadData() {
             setLoading(true);
             try {
-                const { data: { session } } = await supabase.auth.getSession();
-                const uid = session?.user?.id;
+                const { data: { user } } = await supabase.auth.getUser();
+                const uid = user?.id;
 
                 if (uid) {
                     const { data: prof } = await supabase.from('profiles').select('*').eq('id', uid).single();

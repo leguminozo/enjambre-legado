@@ -148,14 +148,15 @@ export function CheckoutClient() {
 
     const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
     
-    // We need to fetch the session token to authenticate to Nucleo securely.
-    // Since we are in a client component, we use the Supabase client.
     let token: string | undefined;
     try {
       const { createClient } = await import('@/utils/supabase/client');
       const supabase = createClient();
-      const { data } = await supabase.auth.getSession();
-      token = data?.session?.access_token;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        token = sessionData?.session?.access_token;
+      }
     } catch (e) {
       // Allow guest checkout if token fetch fails
     }
@@ -168,15 +169,22 @@ export function CheckoutClient() {
       quantity: l.quantity,
     })) || [];
 
-    const res = await fetch(`${NUCLEO_URL}/api/checkout/init`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-      },
-      body: JSON.stringify({ cart: payloadCart, shipping, returnUrl, buyerMode }),
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${NUCLEO_URL}/api/checkout/init`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ cart: payloadCart, shipping, returnUrl, buyerMode }),
+      });
+    } catch (networkError) {
+      setError('Error de conexión. Verifica tu internet e intenta de nuevo.');
+      setLoading(false);
+      return;
+    }
 
     const json = (await res.json()) as {
       url?: string;
