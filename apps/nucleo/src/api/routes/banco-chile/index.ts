@@ -16,6 +16,7 @@ interface BancoChileConfigRow {
 import { zValidator } from '@hono/zod-validator';
 import { authMiddleware } from '@/api/lib/middleware';
 import { tenantMiddleware } from '@/api/lib/middleware';
+import { BancoChileClient } from '@enjambre/banco-chile';
 import { bancoChileRouter } from './routes';
 import { conciliacionRouter } from './conciliacion';
 import { conciliacionAutoRoutes } from './conciliacion-auto';
@@ -148,11 +149,59 @@ bancoChileRoutes.post('/auth', async (c) => {
     return c.json({ error: 'Configuración no encontrada' }, 404);
   }
 
-  // Aquí se llamaría al cliente de Banco Chile
-  // Por ahora retornamos stub
+  const row = config as BancoChileConfigRow;
+  const client = new BancoChileClient({
+    clientId: row.client_id,
+    clientSecret: row.client_secret,
+    username: row.username,
+    password: row.password,
+    environment: row.environment === 'production' ? 'production' : 'sandbox',
+  });
+
+  const result = await client.authenticate();
+  if (!result.success) {
+    return c.json(
+      {
+        error: result.error.message,
+        code: result.error.code,
+      },
+      502,
+    );
+  }
+
+  const expiresAt = new Date(Date.now() + result.data.expires_in * 1000).toISOString();
+  const tokenPayload = {
+    config_id: row.id,
+    access_token: result.data.access_token,
+    refresh_token: result.data.refresh_token ?? null,
+    expires_at: expiresAt,
+    token_type: result.data.token_type,
+  };
+
+  const { data: existingToken } = await supabase
+    .from('banco_chile_tokens')
+    .select('id')
+    .eq('config_id', row.id)
+    .maybeSingle();
+
+  const { error: tokenError } = existingToken
+    ? await supabase.from('banco_chile_tokens').update(tokenPayload).eq('id', existingToken.id)
+    : await supabase.from('banco_chile_tokens').insert(tokenPayload);
+
+  if (tokenError) {
+    console.error('[banco-chile/auth] token persist failed:', tokenError.message);
+    return c.json({ error: 'Autenticación OK pero falló guardar token' }, 500);
+  }
+
+  await supabase
+    .from('banco_chile_config')
+    .update({ last_sync: new Date().toISOString() })
+    .eq('id', row.id);
+
   return c.json({
     success: true,
-    message: 'Autenticación stub - implementar con cliente real',
+    expires_at: expiresAt,
+    token_type: result.data.token_type,
   });
 });
 

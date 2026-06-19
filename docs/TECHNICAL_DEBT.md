@@ -221,6 +221,37 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ---
 
+### D58. INTERNAL_API_SECRET reutilizaba service role (RESUELTO — P1 Jun 2026)
+
+**Problema**: Rutas internas (`/api/security-events/internal`, `/api/notifications/internal/*`, middleware cross-app) aceptaban `SUPABASE_SERVICE_ROLE_KEY` como fallback de `x-internal-key`. En producción eso expone el service role si alguien intercepta el header.
+
+**Estado**: RESUELTO —
+- `@enjambre/auth/internal-api-secret`: `getInternalApiSecret()` + `verifyInternalApiKey()`
+- Producción (`NODE_ENV=production` o `VERCEL`): exige `INTERNAL_API_SECRET`; sin fallback
+- Dev/test: fallback a service role con `console.warn`
+- Consumidores actualizados: nucleo BFF, tienda welcome, campo middleware, auth middleware
+
+---
+
+### D59. Rate limit deshabilitado sin Upstash (RESUELTO — P1 Jun 2026)
+
+**Problema**: Sin `UPSTASH_REDIS_*`, `checkRateLimit()` devolvía `success: true` ilimitado — checkout y webhooks quedaban sin protección en entornos sin Redis.
+
+**Estado**: RESUELTO —
+- Fallback in-memory (`rate-limit.ts`) cuando Upstash no está configurado
+- Test `ratelimit.test.ts` verifica enforcement local
+- Upstash sigue siendo recomendado para multi-instancia en producción
+
+---
+
+### D60. Banco Chile /auth era stub (RESUELTO — P1 Jun 2026)
+
+**Problema**: `POST /api/banco-chile/auth` retornaba mensaje stub aunque `@enjambre/banco-chile` y credenciales en DB existían.
+
+**Estado**: RESUELTO — Autentica con `BancoChileClient`, persiste token en `banco_chile_tokens`, actualiza `last_sync`.
+
+---
+
 ### D57. fulfillCheckout permitía venta con stock insuficiente (RESUELTO — P0 Jun 2026)
 
 **Problema**: `decrement_stock` fallaba en líneas pero `fulfillCheckout` insertaba `ventas` igual (`ok: true` + `stockErrors` opcional). Mismo patrón en Campo `POST /api/pos/venta`.

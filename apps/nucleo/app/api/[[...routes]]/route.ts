@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { handle } from "hono/vercel";
 import { cors } from "hono/cors";
 import { type AppVariables, csrfMiddleware } from "@/api/lib/middleware";
+import { getInternalApiSecret } from "@enjambre/auth/internal-api-secret";
 import { rateLimit, getIdentifierFromRequest } from "@/api/lib/rate-limit";
 import { healthRoutes } from "@/api/routes/health";
 import { contableRoutes } from "@/api/routes/contable";
@@ -103,7 +104,7 @@ app.use("*", async (c, next) => {
     if (strictPaths.some(p => path.startsWith(p))) {
       try {
         const origin = new URL(c.req.url).origin;
-        const internalKey = process.env.INTERNAL_API_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const internalKey = getInternalApiSecret();
         fetch(`${origin}/api/security-events/internal`, {
           method: "POST",
           headers: {

@@ -14,7 +14,8 @@
     "./security-events": "./src/security-events.ts",
     "./role-redirect": "./src/role-redirect.ts",
     "./in-app-notifications": "./src/in-app-notifications.ts",
-    "./notification-preferences": "./src/notification-preferences.ts"
+    "./notification-preferences": "./src/notification-preferences.ts",
+    "./internal-api-secret": "./src/internal-api-secret.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

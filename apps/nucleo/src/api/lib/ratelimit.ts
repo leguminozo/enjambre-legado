@@ -1,8 +1,41 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { rateLimit as createMemoryRateLimit } from "./rate-limit";
 
 let _ratelimit: Ratelimit | null = null;
 let _redis: Redis | null = null;
+let _memoryFallbackWarned = false;
+
+const memoryLimiters = new Map<string, ReturnType<typeof createMemoryRateLimit>>();
+
+function parseWindowMs(window: string): number {
+  const [amount, unit] = window.split(" ");
+  const value = Number(amount);
+  if (!Number.isFinite(value) || value <= 0) return 10_000;
+
+  switch (unit) {
+    case "s":
+      return value * 1_000;
+    case "m":
+      return value * 60_000;
+    case "h":
+      return value * 3_600_000;
+    case "d":
+      return value * 86_400_000;
+    default:
+      return 10_000;
+  }
+}
+
+function getMemoryLimiter(limit: number, windowMs: number) {
+  const cacheKey = `${limit}:${windowMs}`;
+  let limiter = memoryLimiters.get(cacheKey);
+  if (!limiter) {
+    limiter = createMemoryRateLimit({ windowMs, maxRequests: limit });
+    memoryLimiters.set(cacheKey, limiter);
+  }
+  return limiter;
+}
 
 function getRatelimit(): Ratelimit | null {
   if (_ratelimit) return _ratelimit;
@@ -46,15 +79,42 @@ export async function checkRateLimit(config: RateLimitConfig): Promise<{
   reset: number;
   retryAfter?: number;
 }> {
+  const limit = config.limit || 10;
+  const window = config.window || "10 s";
   const ratelimit = getRatelimit();
 
   if (!ratelimit) {
-    return { success: true, limit: 9999, remaining: 9999, reset: Date.now() + 60000 };
+    if (!_memoryFallbackWarned) {
+      console.warn(
+        "[ratelimit] Upstash not configured — using in-memory limiter (single-instance only).",
+      );
+      _memoryFallbackWarned = true;
+    }
+
+    const memoryResult = getMemoryLimiter(limit, parseWindowMs(window))(config.identifier);
+    return {
+      success: memoryResult.success,
+      limit,
+      remaining: memoryResult.remaining,
+      reset: memoryResult.resetTime,
+      retryAfter: memoryResult.success
+        ? undefined
+        : Math.max(1, Math.ceil((memoryResult.resetTime - Date.now()) / 1000)),
+    };
   }
 
   const redis = getRedis();
   if (!redis) {
-    return { success: true, limit: 9999, remaining: 9999, reset: Date.now() + 60000 };
+    const memoryResult = getMemoryLimiter(limit, parseWindowMs(window))(config.identifier);
+    return {
+      success: memoryResult.success,
+      limit,
+      remaining: memoryResult.remaining,
+      reset: memoryResult.resetTime,
+      retryAfter: memoryResult.success
+        ? undefined
+        : Math.max(1, Math.ceil((memoryResult.resetTime - Date.now()) / 1000)),
+    };
   }
 
   const customRatelimit = new Ratelimit({

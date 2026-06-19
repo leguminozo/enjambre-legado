@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getSupabaseUrl, getSupabaseKey } from './supabase'
+import { getInternalApiSecret } from './internal-api-secret'
 import { ROLE_REDIRECT_MAP, isRouteAllowed, LEGACY_ROLE_MAP } from './role-redirect'
 
 export interface AuthMiddlewareConfig {
@@ -83,7 +84,7 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
     const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
       if (!isRouteAllowed(pathname, role)) {
         const origin = request.nextUrl.origin
-        const internalKey = process.env.INTERNAL_API_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+        const internalKey = getInternalApiSecret() || ''
         fetch(`${origin}/api/security-events/internal`, {
           method: 'POST',
           headers: {

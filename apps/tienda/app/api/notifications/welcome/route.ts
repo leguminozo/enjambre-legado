@@ -1,3 +1,4 @@
+import { getInternalApiSecret } from '@enjambre/auth/internal-api-secret';
 import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 
@@ -16,8 +17,7 @@ export async function POST() {
   }
 
   const nucleoUrl = process.env.NEXT_PUBLIC_NUCLEO_API_URL;
-  const internalKey =
-    process.env.INTERNAL_API_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const internalKey = getInternalApiSecret();
 
   if (!nucleoUrl || !internalKey) {
     console.error('[notifications/welcome] Missing NUCLEO_API_URL or internal key');

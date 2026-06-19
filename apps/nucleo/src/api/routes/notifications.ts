@@ -10,6 +10,7 @@ import {
   parseNotificationPreferences,
   shouldSendNotification,
 } from "@enjambre/auth/notification-preferences";
+import { verifyInternalApiKey } from "@enjambre/auth/internal-api-secret";
 import { getEnvOrThrow } from "../lib/env";
 
 const EnqueueNotificationSchema = z.object({
@@ -41,8 +42,7 @@ export const notificationsRoutes = new Hono<{ Variables: AppVariables }>();
  */
 notificationsRoutes.post("/internal/welcome", async (c) => {
   const internalKey = c.req.header("x-internal-key");
-  const expectedSecret = process.env.INTERNAL_API_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!internalKey || internalKey !== expectedSecret) {
+  if (!verifyInternalApiKey(internalKey)) {
     return c.json({ code: "unauthorized", message: "Invalid internal key" }, 401);
   }
 

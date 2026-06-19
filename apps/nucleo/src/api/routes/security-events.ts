@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { authMiddleware } from "@/api/lib/middleware";
+import { verifyInternalApiKey } from "@enjambre/auth/internal-api-secret";
 import { logSecurityEvent } from "@enjambre/auth/security-events";
 import { getEnvOrThrow } from "../lib/env";
 
@@ -37,8 +38,7 @@ const toUndefined = (v: string | null | undefined): string | undefined => v ?? u
 
 securityEventRoutes.post("/internal", async (c) => {
   const internalKey = c.req.header("x-internal-key");
-  const expectedSecret = process.env.INTERNAL_API_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!internalKey || internalKey !== expectedSecret) {
+  if (!verifyInternalApiKey(internalKey)) {
     return c.json({ code: "unauthorized", message: "Invalid internal key" }, 401);
   }
 

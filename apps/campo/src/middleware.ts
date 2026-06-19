@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { getInternalApiSecret } from '@enjambre/auth/internal-api-secret';
 import { updateSession } from '@/utils/supabase/middleware';
 import { isSupabaseConfigured } from '@/utils/supabase/env';
 
@@ -11,7 +12,7 @@ function isProtected(path: string): boolean {
 }
 
 function logAccessDenied(request: NextRequest, email: string) {
-  const internalKey = process.env.INTERNAL_API_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const internalKey = getInternalApiSecret();
   if (!internalKey) return;
 
   const url = process.env.NEXT_PUBLIC_NUCLEO_API_URL;
