@@ -253,10 +253,18 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
     });
 
     if (!fulfilled.ok) {
+      const stockDetail = fulfilled.stockErrors?.length
+        ? ` Stock: ${fulfilled.stockErrors.join('; ')}.`
+        : '';
       return c.json({
         ok: false,
         authorized: true,
-        error: 'Pago autorizado pero no se pudo registrar la venta. Contacta soporte con orden ' + buyOrder,
+        error:
+          'Pago autorizado pero no se pudo registrar la venta.' +
+          stockDetail +
+          ' Contacta soporte con orden ' +
+          buyOrder,
+        stockErrors: fulfilled.stockErrors,
         buyOrder,
       }, 200);
     }

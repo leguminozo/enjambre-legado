@@ -221,6 +221,18 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ---
 
+### D57. fulfillCheckout permitía venta con stock insuficiente (RESUELTO — P0 Jun 2026)
+
+**Problema**: `decrement_stock` fallaba en líneas pero `fulfillCheckout` insertaba `ventas` igual (`ok: true` + `stockErrors` opcional). Mismo patrón en Campo `POST /api/pos/venta`.
+
+**Estado**: RESUELTO —
+- `cart-stock.ts`: pre-validación + decrement atómico con rollback manual si falla mid-cart
+- `fulfillCheckout`: aborta antes de insertar venta si stock gate falla (`ok: false`, `stockErrors`)
+- `checkout/commit`: mensaje explícito cuando pago autorizado pero stock falló
+- Campo POS: 409 sin insertar venta; rollback si insert falla post-decrement
+
+---
+
 ### D4c. 15 Unsafe `as` Casts en Tienda (RESUELTO)
 
 **Problema**: 15 casts `as` sin validacion runtime en boundaries criticos (Supabase rows, API responses, JSON.parse, user objects). Un cambio de schema o respuesta inesperada causa silent data corruption o crash.
@@ -514,14 +526,15 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 **Accion**: Configurar ESLint flat config con reglas compartidas en la raiz.
 
-### D12. Sin CI/CD Pipeline
+### D12. Sin CI/CD Pipeline (PARCIALMENTE RESUELTO — Jun 2026)
 
-**Problema**: No hay pipeline de integracion continua. Los builds se verifican manualmente.
+**Problema**: No había pipeline fiable; job `test-contable` apuntaba a `packages/database` sin script `test`.
 
-**Accion**: GitHub Actions con:
-- Build de la app afectada en cada PR
-- Lint + typecheck
-- Tests (cuando existan)
+**Estado**: PARCIALMENTE RESUELTO —
+- `.github/workflows/ci.yml`: `pnpm install --frozen-lockfile`, tests (contable, pricing, auth, nucleo, tienda), builds+lint por app
+- Root `pnpm test` ejecuta el mismo stack de packages
+
+**Siguiente**: Playwright e2e en CI; `verify` script en pre-push hook.
 
 ---
 

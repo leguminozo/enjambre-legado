@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { decrementCartStock } from '@/api/lib/stock/cart-stock';
 import { markCartAbandonmentConverted } from '@/lib/notifications/cart-abandonment-worker';
 import { notifyCheckoutConfirmed } from '@/lib/notifications/enqueue-transactional';
 import type { CartLineInput, CheckoutSession, ShippingInfo } from './types';
@@ -59,37 +60,22 @@ export async function fulfillCheckout(
     return { ok: true, alreadyProcessed: true, ventaId: existingVenta.id as string };
   }
 
-  const stockErrors: string[] = [];
-  const enrichedCart = [];
+  const stockResult = await decrementCartStock(
+    admin,
+    cart.map((line) => ({
+      productId: line.productId,
+      quantity: line.quantity,
+      name: line.name,
+      ...line,
+    })),
+  );
 
-  for (const line of cart) {
-    const qty = Math.max(0, Number(line.quantity || 0));
-    if (!qty) {
-      enrichedCart.push(line);
-      continue;
-    }
-
-    const { data: decremented, error: rpcErr } = await admin.rpc('decrement_stock', {
-      p_id: line.productId,
-      p_qty: qty,
-    });
-
-    if (rpcErr || !decremented || (decremented as any[]).length === 0) {
-      stockErrors.push(`Producto ${line.productId}: stock insuficiente o error al descontar`);
-      enrichedCart.push(line);
-    } else {
-      const stockData = decremented as any[];
-      enrichedCart.push({
-        ...line,
-        traceability_hash: stockData[0]?.traceability_hash || null,
-        lote_id: stockData[0]?.lote_id || null,
-      });
-    }
+  if (!stockResult.ok) {
+    console.error('[checkout-fulfill] stock gate failed:', stockResult.errors);
+    return { ok: false, stockErrors: stockResult.errors };
   }
 
-  if (stockErrors.length > 0) {
-    console.error('[checkout-fulfill] stock errors:', stockErrors);
-  }
+  const enrichedCart = stockResult.enrichedLines;
 
   const { data: venta, error: ventaError } = await admin
     .from('ventas')
@@ -210,5 +196,5 @@ export async function fulfillCheckout(
     }
   }
 
-  return { ok: true, ventaId, stockErrors: stockErrors.length > 0 ? stockErrors : undefined };
+  return { ok: true, ventaId };
 }

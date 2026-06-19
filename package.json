@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "cd packages/contable && pnpm test",
+    "test": "pnpm --filter @enjambre/contable test && pnpm --filter @enjambre/pricing test && pnpm --filter @enjambre/auth test && pnpm --filter @enjambre/nucleo test && pnpm --filter @enjambre/tienda test",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
