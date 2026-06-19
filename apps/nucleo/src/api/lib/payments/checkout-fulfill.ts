@@ -1,4 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { markCartAbandonmentConverted } from '@/lib/notifications/cart-abandonment-worker';
+import { notifyCheckoutConfirmed } from '@/lib/notifications/enqueue-transactional';
 import type { CartLineInput, CheckoutSession, ShippingInfo } from './types';
 import { completeCheckoutSession } from './types';
 
@@ -185,6 +187,27 @@ export async function fulfillCheckout(
       descripcion: `Venta Web - ${buyOrder}`,
       estado: 'pendiente',
     });
+  }
+
+  if (authUserId) {
+    await markCartAbandonmentConverted(admin, authUserId);
+  }
+
+  const recipientEmail = shipping?.email ?? null;
+  if (recipientEmail || authUserId) {
+    try {
+      await notifyCheckoutConfirmed(admin, {
+        buyOrder,
+        ventaId,
+        total: serverTotal,
+        trackingCode,
+        email: recipientEmail,
+        userId: authUserId,
+        empresaId: defaultEmpresa?.id ?? null,
+      });
+    } catch (notifErr) {
+      console.error('[checkout-fulfill] post-pago notification failed:', notifErr);
+    }
   }
 
   return { ok: true, ventaId, stockErrors: stockErrors.length > 0 ? stockErrors : undefined };

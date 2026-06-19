@@ -16,7 +16,8 @@ export interface AuthResult {
 }
 
 export async function updateSession(request: NextRequest): Promise<AuthResult> {
-  const response = NextResponse.next({ request })
+  const requestHeaders = new Headers(request.headers)
+  const response = NextResponse.next({ request: { headers: requestHeaders } })
 
   const supabase = createServerClient(getSupabaseUrl(), getSupabaseKey(), {
     cookies: {
@@ -35,8 +36,11 @@ export async function updateSession(request: NextRequest): Promise<AuthResult> {
   // getUser() validates the user JWT with the Supabase Auth server on every request.
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Default to comprador if claim is missing (fail-safe)
-  const oyzRole = user?.app_metadata?.oyz_role ?? 'comprador';
+  const oyzRole = user?.app_metadata?.oyz_role ?? 'comprador'
+
+  if (user) {
+    requestHeaders.set('x-oyz-role', oyzRole)
+  }
 
   return {
     response,

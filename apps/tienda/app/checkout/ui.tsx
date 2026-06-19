@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import Link from 'next/link';
-import { useCart } from '@/components/shop/cart-context';
+import { useCartLines, useCartPricing } from '@/components/shop/cart-context';
 import { useState } from 'react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
@@ -12,6 +12,7 @@ import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star } fro
 import { friendlyApiError } from '@enjambre/ui';
 import { useAuth } from '@/components/providers/auth-context';
 import { useLoyaltyPoints } from '@/lib/hooks/use-loyalty-points';
+import { useCartAbandonmentTracking } from '@/lib/hooks/use-cart-abandonment';
 
 type BuyerMode = 'legado' | 'privada';
 
@@ -58,8 +59,10 @@ function fieldError(form: ShippingForm): Record<string, string> {
 }
 
 export function CheckoutClient() {
-  const cart = useCart();
+  const { lines } = useCartLines();
+  const { pricing, isLoading: pricingLoading, pricingError } = useCartPricing();
   const { isAuthenticated, user } = useAuth();
+  useCartAbandonmentTracking(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [priceConflicts, setPriceConflicts] = useState<string[] | null>(null);
@@ -72,7 +75,7 @@ export function CheckoutClient() {
   const summaryRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const totalCompra = cart.pricing?.total ?? 0;
+  const totalCompra = pricing?.total ?? 0;
   const {
     loyaltyData,
     loading: loyaltyLoading,
@@ -138,7 +141,7 @@ export function CheckoutClient() {
     setError(null);
     setPriceConflicts(null);
 
-    if (cart.lines.length === 0) {
+    if (lines.length === 0) {
       setError('Tu carrito está vacío.');
       setLoading(false);
       return;
@@ -161,7 +164,7 @@ export function CheckoutClient() {
       // Allow guest checkout if token fetch fails
     }
 
-    const payloadCart = cart.pricing?.line_items.map(l => ({
+    const payloadCart = pricing?.line_items.map(l => ({
       productId: l.product_id,
       slug: l.slug,
       name: l.name,
@@ -276,12 +279,19 @@ export function CheckoutClient() {
         </div>
 
         <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 relative z-10" ref={formRef}>
-          {cart.isLoading || !cart.pricing ? (
+          {pricingError && !pricingLoading ? (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-8 text-center">
+              <p className="text-destructive mb-4">{pricingError}</p>
+              <Link href="/catalogo" className="inline-block text-sm font-semibold text-accent underline hover:text-accent/80 transition-colors">
+                Volver al catálogo
+              </Link>
+            </div>
+          ) : pricingLoading || !pricing ? (
             <div className="rounded-xl border border-border bg-card/50 p-8 text-center animate-pulse">
               <Trees className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
               <p className="text-muted-foreground mb-4">Calculando beneficios y disponibilidad...</p>
             </div>
-          ) : cart.lines.length === 0 ? (
+          ) : lines.length === 0 ? (
             <div className="rounded-xl border border-border bg-card/50 p-8 text-center">
               <Trees className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-4">Tu carrito está vacío.</p>
@@ -298,7 +308,7 @@ export function CheckoutClient() {
                   Tu pedido
                 </h2>
                 <ul className="divide-y divide-border rounded-xl border border-border bg-card/40 px-5 py-2">
-                  {cart.pricing.line_items.map((line) => (
+                  {pricing.line_items.map((line) => (
                     <li key={line.product_id} className="flex justify-between gap-4 py-4 text-sm">
                       <span className="text-foreground/80">
                         <span className="font-medium">{line.name}</span>
@@ -313,15 +323,15 @@ export function CheckoutClient() {
                 <div className="flex items-center justify-between rounded-xl border border-accent/40 bg-surface-sunken px-6 py-5 mt-4">
                   <div className="flex flex-col">
                     <span className="font-display text-lg text-foreground">Total a pagar</span>
-                    {cart.pricing.discount_amount > 0 && (
-                      <span className="text-xs text-accent">Incluye -${cart.pricing.discount_amount.toLocaleString('es-CL')} descuento por Guardianía</span>
+                    {pricing.discount_amount > 0 && (
+                      <span className="text-xs text-accent">Incluye -${pricing.discount_amount.toLocaleString('es-CL')} descuento por Guardianía</span>
                     )}
                     {usarPuntos && descuentoPorPuntos > 0 && (
                       <span className="text-xs text-accent">Incluye -${descuentoPorPuntos.toLocaleString('es-CL')} descuento por puntos</span>
                     )}
                   </div>
                   <span className="font-display text-2xl font-semibold tabular-nums text-accent">
-                    ${(cart.pricing.total - (usarPuntos ? descuentoPorPuntos : 0)).toLocaleString('es-CL')}
+                    ${(pricing.total - (usarPuntos ? descuentoPorPuntos : 0)).toLocaleString('es-CL')}
                   </span>
                 </div>
               </section>
@@ -626,7 +636,7 @@ export function CheckoutClient() {
                 ref={buttonRef}
                 type="button"
                 className="checkout-button w-full rounded-full bg-primary py-4 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
-                disabled={loading || !cart.pricing}
+                disabled={loading || !pricing}
                 onClick={() => void startCheckout()}
               >
                 {loading ? (
@@ -640,7 +650,7 @@ export function CheckoutClient() {
                 ) : (
                   <span className="flex items-center justify-center gap-2">
                     <Lock className="h-4 w-4" />
-                    Pagar ahora — ${(cart.pricing?.total || 0).toLocaleString('es-CL')}
+                    Pagar ahora — ${(pricing?.total || 0).toLocaleString('es-CL')}
                   </span>
                 )}
               </button>

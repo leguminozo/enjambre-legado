@@ -17,6 +17,7 @@ interface NotificationBellProps {
   notifications?: Notification[];
   onMarkRead?: (id: string | number) => void;
   onMarkAllRead?: () => void;
+  onOpenChange?: (open: boolean) => void;
   className?: string;
   isLoading?: boolean;
   error?: string | null;
@@ -34,6 +35,7 @@ export function NotificationBell({
   notifications = [],
   onMarkRead,
   onMarkAllRead,
+  onOpenChange,
   className,
   isLoading = false,
   error = null,
@@ -41,7 +43,18 @@ export function NotificationBell({
   const [open, setOpen] = useState(false);
   const unread = notifications.filter((n) => !n.read).length;
 
-  const handleToggle = () => setOpen((o) => !o);
+  const handleToggle = () => {
+    setOpen((prev) => {
+      const next = !prev;
+      onOpenChange?.(next);
+      return next;
+    });
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    onOpenChange?.(false);
+  };
 
   const handleMark = (id: string | number) => {
     onMarkRead?.(id);
@@ -49,7 +62,7 @@ export function NotificationBell({
 
   const handleMarkAll = () => {
     onMarkAllRead?.();
-    setOpen(false);
+    handleClose();
   };
 
   return (
@@ -82,7 +95,7 @@ export function NotificationBell({
                 Marcar todas leídas
               </button>
             )}
-            <button onClick={() => setOpen(false)} aria-label="Cerrar" className="text-muted-foreground hover:text-foreground">
+            <button onClick={handleClose} aria-label="Cerrar" className="text-muted-foreground hover:text-foreground">
               <X size={16} />
             </button>
           </div>
@@ -122,7 +135,7 @@ export function NotificationBell({
                   >
                     <div className="flex-1 min-w-0">
                       {n.href ? (
-                        <a href={n.href} className="block" onClick={() => setOpen(false)}>
+                        <a href={n.href} className="block" onClick={handleClose}>
                           {content}
                           <span className="mt-1 inline-flex items-center gap-1 text-[10px] text-accent group-hover:underline">
                             Ver detalle <ArrowRight size={11} />
@@ -142,7 +155,7 @@ export function NotificationBell({
           <div className="border-t border-border p-2 text-center">
             <a
               href="/perfil/alertas"
-              onClick={() => setOpen(false)}
+              onClick={handleClose}
               className="inline-block w-full py-2 text-[0.65rem] uppercase tracking-[0.25em] text-accent hover:text-foreground transition-colors"
             >
               Ver todas las alertas y preferencias →

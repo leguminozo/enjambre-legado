@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
 import type { ShopProduct } from '@/lib/shop/products';
 import { formatCLP } from '@/lib/shop/format';
-import { useCart } from '@/components/shop/cart-context';
+import { useCartLines } from '@/components/shop/cart-context';
 
 interface LandingProductsProps {
   products: ShopProduct[];
@@ -15,7 +15,7 @@ interface LandingProductsProps {
 
 export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps) {
   const [page, setPage] = useState(1);
-  const { add } = useCart();
+  const { add } = useCartLines();
 
   const totalPages = Math.max(1, Math.ceil(products.length / pageSize));
   const start = (page - 1) * pageSize;

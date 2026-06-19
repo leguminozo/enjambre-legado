@@ -137,6 +137,90 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ---
 
+### D55. Tienda — Carrito sin Pricing + Abandono Roto (RESUELTO — P0 Jun 2026)
+
+**Problema (ramificaciones detectadas en auditoría quirúrgica)**:
+
+| Capa | Fallo | Impacto |
+|---|---|---|
+| **Funcionalidad** | `CartProvider` declaraba `pricing`/`isLoading` pero nunca llamaba `calculateCartPricing` | Checkout bloqueado en `!cart.pricing` (spinner infinito) |
+| **Funcionalidad** | `/api/cart/abandonment` consultaba tabla fantasma `carrito_items` (no existe en migraciones) | Pipeline de abandono 100% roto |
+| **Seguridad** | RLS en `cart_abandonment_events`: usuarios podían INSERT pero no SELECT propio | Check de idempotencia fallaba → eventos duplicados |
+| **Seguridad** | `x-oyz-role` se inyectaba en response headers, no request headers | `getOyzRole()` en Server Actions siempre devolvía `comprador` |
+| **Eficacia** | `calculateCartPricing` consultaba tabla `pedidos` (inexistente) para volumen B2B | Descuentos revendedor/embajador nunca aplicaban en preview |
+| **Eficiencia** | Sin debounce en pricing | N+1 Server Action calls por cada click en qty |
+
+**Estado**: RESUELTO (P0) —
+- `cart-context.tsx`: debounce 300ms → `calculateCartPricing`; expone `pricing`, `isLoading`, `pricingError`
+- `app/actions/cart.ts`: rol vía `resolveOyzRole(user)` + conteo en `ventas` (paridad con Nucleo checkout)
+- `utils/supabase/middleware.ts`: `x-oyz-role` en request headers
+- `app/api/cart/abandonment/route.ts`: Zod + enriquecimiento server-side desde `productos`
+- `lib/hooks/use-cart-abandonment.ts`: tracking en checkout (pagehide/visibility)
+- Migration `55_cart_abandonment_user_select.sql`: policy SELECT propia
+
+**Pricing unificado (P2 Jun 2026)**: RESUELTO —
+- `@enjambre/pricing`: multiplicadores rol/volumen + `computeCartPricing` (SoT matemática)
+- Tienda `calculateCartPricing` + Nucleo `checkout/init` consumen el package
+- Nucleo `POST /api/checkout/preview` para preview autoritativo cross-app
+- Fix: conteo volumen B2B en `ventas.user_id` (antes `cliente_id` con auth uid incorrecto)
+
+**Carrito multi-dispositivo (P2 Jun 2026)**: RESUELTO —
+- Migration `57_carrito_items.sql`: tabla + RLS SELECT/INSERT/UPDATE/DELETE propio
+- Tienda: `cart-sync` server actions (`mergeCartOnLogin`, `syncRemoteCart`, `clearRemoteCart`)
+- `CartLinesProvider`: merge al login, sync debounced 500ms, clear remoto post-checkout
+- Guest sigue en localStorage; autenticado sincroniza cross-dispositivo
+
+---
+
+### D56. Tienda — Signup Bypass de notification_queue (RESUELTO — P1 Jun 2026)
+
+**Problema**: `auth-context.tsx` insertaba directo en `notification_events` desde el cliente, saltándose `notification_queue` y el worker (sin retry, sin auditoría de cola). Documentado en MASTER_PLAN como riesgo de seguridad/eficacia.
+
+**Estado**: RESUELTO —
+- Nucleo: `POST /api/notifications/internal/welcome` (x-internal-key) → `notification_queue` + `notification_events` in_app (service role)
+- Tienda: `POST /api/notifications/welcome` (sesión validada con `getUser()`) → proxy a Nucleo
+- Register: fire-and-forget post-`checkUser()`; cero inserts Supabase desde cliente
+
+**In-app unificado (P2 Jun 2026)**: RESUELTO —
+- SoT in-app: `notification_events` channel `in_app` (tabla `alerts` legada, sin writes nuevos)
+- `@enjambre/auth`: `useInAppNotifications` + mappers compartidos (tienda + nucleo NotificationBell)
+- BFF `GET /api/notifications` lee `notification_events`; `/enqueue` system → `notification_events` in_app
+- Estado leído: localStorage `oyz-notif-read-{userId}` cross-app
+
+**React perf tienda (P2 Jun 2026)**: RESUELTO —
+- `CartLinesProvider` + `CartPricingProvider`: split evita re-renders en add/catalogo cuando pricing cambia
+- Pricing server-side solo cuando `useCartPricing()` está montado (checkout)
+- Realtime notificaciones lazy: `enableRealtime` al abrir NotificationBell (`onOpenChange`)
+
+**Preferencias de notificación (P2 Jun 2026)**: RESUELTO —
+- Migration `56_notification_preferences.sql`: JSONB en `profiles` (pedidos / floracion / sistema × in_app / email)
+- `@enjambre/auth/notification-preferences`: parse, merge, `shouldSendNotification`, `sourceToNotificationCategory`
+- Tienda: `getNotificationPreferences` / `updateNotificationPreferences` + UI real en `/perfil/ajustes#notificaciones`
+- Nucleo: gate en `enqueue-transactional.ts` + `internal/welcome` (dedupe si usuario deshabilitó ambos canales)
+
+**Abandono email worker (P2 Jun 2026)**: RESUELTO —
+- `cart-abandonment-worker.ts`: grace 30 min, email vía Resend, prefs `pedidos.email`, auditoría en `notification_queue`
+- Cron `GET /api/cron/notifications` ejecuta cola + abandono en paralelo
+- `fulfillCheckout` marca `cart_abandonment_events.converted=true`
+
+**Realtime carrito (P2 Jun 2026)**: RESUELTO —
+- Migration `58_carrito_items_realtime.sql` → publicación `supabase_realtime`
+- `CartLinesProvider`: subscribe `carrito_items` + reload debounced; `applyingRemoteRef` evita echo con sync local
+
+**Estado triggers (P1++ Jun 2026)**: RESUELTO —
+- `enqueue-transactional.ts`: helper idempotente (`metadata.dedupe_key`) → `notification_queue` email + `notification_events` in_app
+- `fulfillCheckout`: `notifyCheckoutConfirmed` post-venta (no bloquea checkout si falla)
+- `PATCH /api/logistica/envios/:id`: `notifyShipmentDispatched` al pasar a enviado/en tránsito
+
+**Estado cron (P1+ Jun 2026)**: RESUELTO —
+- `GET /api/cron/notifications` (Next route, fuera del catch-all Hono): auth `Authorization: Bearer CRON_SECRET` (Vercel) o `x-worker-secret`
+- `apps/nucleo/vercel.json`: cron `* * * * *` → procesa `notification_queue`
+- `worker.ts`: `syncInAppEvent()` idempotente para `metadata.in_app` en reintentos; evita duplicar historial `system`+in_app
+
+**Leccion**: Server Actions que dependen de headers de middleware deben mutar `request.headers` en `NextResponse.next({ request })`, no `response.headers`. Toda ruta que hace idempotency check bajo RLS necesita policy SELECT explícita, no solo INSERT.
+
+---
+
 ### D4c. 15 Unsafe `as` Casts en Tienda (RESUELTO)
 
 **Problema**: 15 casts `as` sin validacion runtime en boundaries criticos (Supabase rows, API responses, JSON.parse, user objects). Un cambio de schema o respuesta inesperada causa silent data corruption o crash.

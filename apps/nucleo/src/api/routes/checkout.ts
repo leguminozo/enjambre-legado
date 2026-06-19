@@ -9,6 +9,11 @@ import {
 } from "../lib/payments";
 import type { CartLineInput } from "../lib/payments";
 import { fulfillCheckout } from "../lib/payments/checkout-fulfill";
+import {
+  previewCartPricing,
+  resolveBuyerPricingContext,
+} from "../lib/pricing/cart-pricing-service";
+import { computeUnitPrice } from "@enjambre/pricing";
 import { createClient } from "@supabase/supabase-js";
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from "../lib/ratelimit";
 
@@ -64,6 +69,17 @@ const CommitBodySchema = z.object({
   provider: z.enum(['transbank', 'flow']).optional(),
 });
 
+const PreviewBodySchema = z.object({
+  items: z
+    .array(
+      z.object({
+        product_id: z.string().uuid(),
+        quantity: z.number().int().positive(),
+      }),
+    )
+    .min(1),
+});
+
 export const checkoutRoutes = new Hono();
 
 function createAdminClient() {
@@ -72,6 +88,22 @@ function createAdminClient() {
   if (!url || !key) throw new Error('Missing Supabase credentials for admin client');
   return createClient(url, key, { auth: { persistSession: false } });
 }
+
+checkoutRoutes.post("/preview", zValidator("json", PreviewBodySchema), async (c) => {
+  const rateLimitResult = await rateLimitMiddleware(c, RATE_LIMIT_CONFIGS.checkout);
+  if (rateLimitResult) return rateLimitResult;
+
+  try {
+    const { items } = c.req.valid("json");
+    const admin = createAdminClient();
+    const token = c.req.header("Authorization")?.replace("Bearer ", "") || null;
+    const pricing = await previewCartPricing(admin, items, token);
+    return c.json({ success: true, pricing });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "No se pudo calcular el preview";
+    return c.json({ code: "preview_failed", message }, 500);
+  }
+});
 
 checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
   const rateLimitResult = await rateLimitMiddleware(c, RATE_LIMIT_CONFIGS.checkout);
@@ -83,26 +115,8 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
     const productIds = cart.map((line) => line.productId);
 
     const authHeader = c.req.header('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
-    let role = 'comprador';
-    let userId: string | null = null;
-    let pastOrdersCount = 0;
-
-    if (token) {
-      const { data: { user }, error: authErr } = await admin.auth.getUser(token);
-      if (!authErr && user) {
-        userId = user.id;
-        role = user.app_metadata?.oyz_role || 'comprador';
-
-        if (role === 'revendedor' || role === 'embajador') {
-          const { count } = await admin
-            .from('ventas')
-            .select('id', { count: 'exact', head: true })
-            .eq('cliente_id', user.id);
-          pastOrdersCount = count ?? 0;
-        }
-      }
-    }
+    const token = authHeader?.replace('Bearer ', '') || null;
+    const { role, userId, pastOrdersCount } = await resolveBuyerPricingContext(admin, token);
 
     const effectiveBuyerMode = buyerMode === 'legado' && !userId ? 'privada' : buyerMode;
     const effectiveClienteId = effectiveBuyerMode === 'privada' ? null : userId;
@@ -115,17 +129,6 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
     if (fetchError) {
       return c.json({ code: "fetch_error", message: 'Error consultando productos' }, 500);
     }
-
-    let roleMultiplier = 1.0;
-    if (role === 'embajador') roleMultiplier = 0.70;
-    else if (role === 'revendedor') roleMultiplier = 0.80;
-    else if (role === 'suscriptor') roleMultiplier = 0.90;
-
-    let volumeMultiplier = 1.0;
-    if ((role === 'revendedor' || role === 'embajador') && pastOrdersCount >= 10) {
-      volumeMultiplier = 0.95;
-    }
-    const finalMultiplier = roleMultiplier * volumeMultiplier;
 
     const productMap = new Map((products ?? []).map((p) => [p.id, p]));
     const verifiedCart: CartLineInput[] = [];
@@ -151,7 +154,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       }
 
       const basePrice = product.precio;
-      const discountedPrice = Math.round(basePrice * finalMultiplier);
+      const discountedPrice = computeUnitPrice(basePrice, role, pastOrdersCount);
 
       if (line.unitPrice !== discountedPrice) {
         errors.push(`Producto ${product.nombre}: precio cambió de $${line.unitPrice} a $${discountedPrice}`);

@@ -94,13 +94,47 @@ v
 Supabase (Postgres)
 ```
 
+### 2.2.1 Flujo de Carrito (Tienda — localStorage + Server Action)
+
+```
+UI (CartProvider)
+|
+v
+localStorage `oyz_tienda_cart_v1` (guest + caché instantánea) ↔ `carrito_items` (usuario autenticado, multi-dispositivo)
+|
+v (debounce 300ms)
+Server Action `calculateCartPricing` (app/actions/cart.ts)
+|  → Input: solo product_id + quantity (anti-tampering)
+|  → Precios desde `productos` en Supabase
+|  → Rol B2B desde JWT `app_metadata.oyz_role` (+ header middleware)
+|  → Multiplicadores alineados con Nucleo checkout
+v
+`cart.pricing` hidratado en cliente (preview UI + checkout payload)
+```
+
+**Pricing (P2)**: `@enjambre/pricing` centraliza multiplicadores (embajador 0.70, revendedor 0.80, suscriptor 0.90, volumen −5% con ≥10 ventas). Tienda Server Action y Nucleo `checkout/init` usan `computeCartPricing`; preview API: `POST {NUCLEO}/api/checkout/preview` con `{ items: [{ product_id, quantity }] }` + Bearer opcional.
+
+**Abandono (mig. 42 + 55)**: `POST /api/cart/abandonment` recibe snapshot `{ items: [{ product_id, quantity }] }`, enriquece precios server-side, inserta en `cart_abandonment_events`. Trigger en checkout vía `useCartAbandonmentTracking` (visibility/pagehide). RLS: INSERT + SELECT propio (`user_id = auth.uid()`). Worker cron (`processCartAbandonmentEmails`): email único tras 30 min de gracia, respeta prefs `pedidos.email`; `fulfillCheckout` marca `converted=true`.
+
+**Notificaciones signup (P1)**: Tienda `POST /api/notifications/welcome` (auth) → Nucleo `POST /api/notifications/internal/welcome` (x-internal-key) → `notification_queue` (auditoría/retry) + `notification_events` channel `in_app` (NotificationBell). Sin inserts directos desde cliente.
+
+**Worker de notificaciones (P1+)**: Vercel Cron `GET /api/cron/notifications` cada minuto (`CRON_SECRET`) → `processNotificationQueue()` (email/WhatsApp/push/system). Reintentos `metadata.in_app` crean `notification_events` in_app si el insert síncrono falló. Trigger manual: `POST /api/notifications/trigger-worker` (admin o `x-worker-secret`).
+
+**Notificaciones transaccionales (P1++)**: `enqueue-transactional.ts` — post-pago en `fulfillCheckout` (email + in_app, dedupe `checkout_paid:{buyOrder}`); post-despacho en `PATCH /api/logistica/envios/:id` cuando status → enviado/en tránsito (dedupe `shipment_dispatched:{envioId}:{status}`).
+
+**In-app unificado (P2)**: `notification_events` (`channel=in_app`, `created_by=user`) es la SoT para NotificationBell en tienda y núcleo. Hook compartido `useInAppNotifications` en `@enjambre/auth`. Tabla `alerts` queda legada (sin nuevos inserts). Leído/no-leído en `localStorage` (`oyz-notif-read-{userId}`).
+
+**Preferencias de notificación (P2)**: `profiles.notification_preferences` JSONB — categorías `pedidos`, `floracion`, `sistema` × canales `in_app` / `email`. UI en tienda `/perfil/ajustes#notificaciones`. `enqueue-transactional` y `internal/welcome` consultan prefs antes de encolar; si ambos canales están off, registra dedupe en `notification_queue` con `skipped_preferences: true`.
+
+**Carrito multi-dispositivo (P2)**: Tabla `carrito_items` (`user_id`, `product_id`, `quantity`). Guest → solo localStorage. Login → `mergeCartOnLogin` suma cantidades local+remoto y persiste. Cambios con sesión → debounce 500ms → `syncRemoteCart`. Realtime (mig. 58): suscripción `postgres_changes` en `carrito_items` recarga carrito cross-tab/dispositivo. Checkout exitoso → `clear` local + remoto. RLS: CRUD propio (`user_id = auth.uid()`).
+
 ### 2.3 Flujo de Pagos e Inventario (Tienda → Nucleo)
 
 ```
 Checkout (tienda/frontend)
 |
 v
-POST /api/checkout/init (Next.js API Route)
+POST {NUCLEO}/api/checkout/init (BFF Hono en nucleo)
 |  → Verifica precios + stock en Supabase
 |  → Persiste sesión en checkout_sessions (Postgres)
 |  → Retorna URL + token del provider
@@ -108,7 +142,7 @@ v
 Transbank SDK (Webpay) / Flow.cl
 |
 v
-POST /api/checkout/commit (Next.js API Route)
+POST {NUCLEO}/api/checkout/commit (BFF Hono en nucleo)
 |  → Lee sesión desde checkout_sessions (Postgres, no memoria)
 |  → Idempotente: solo completa si status = 'pending'
 |  → INSERT venta + decrement_stock() RPC

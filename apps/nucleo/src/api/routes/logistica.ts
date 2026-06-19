@@ -1,8 +1,10 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
+import { createAdminClient } from "@enjambre/auth/browser";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import { isShippedStatus, notifyShipmentDispatched } from "@/lib/notifications/enqueue-transactional";
 
 const CreateEnvioSchema = z.object({
   tracking_code: z.string().min(1),
@@ -163,6 +165,19 @@ logisticaRoutes.patch("/envios/:id", zValidator("json", UpdateEnvioSchema), asyn
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
 
+  const { data: previous, error: fetchError } = await supabase
+    .from("logistica_envios")
+    .select("id, status, tracking_code, destino, user_id, venta_id, empresa_id")
+    .eq("id", envioId)
+    .maybeSingle();
+
+  if (fetchError) {
+    return c.json({ code: "fetch_failed", message: fetchError.message }, 500);
+  }
+  if (!previous) {
+    return c.json({ code: "not_found", message: "Envío no encontrado" }, 404);
+  }
+
   const { data, error } = await supabase
     .from("logistica_envios")
     .update(input)
@@ -172,6 +187,46 @@ logisticaRoutes.patch("/envios/:id", zValidator("json", UpdateEnvioSchema), asyn
 
   if (error) {
     return c.json({ code: "update_failed", message: error.message }, 400);
+  }
+
+  const newStatus = input.status ?? data.status;
+  const statusChanged = Boolean(input.status) && input.status !== previous.status;
+  if (statusChanged && isShippedStatus(newStatus)) {
+    const admin = createAdminClient();
+    if (admin) {
+      let buyerEmail: string | null = null;
+      let buyerUserId: string | null = previous.user_id;
+      let buyOrder: string | null = null;
+
+      if (previous.venta_id) {
+        const { data: venta } = await admin
+          .from("ventas")
+          .select("buyer_email, user_id, buy_order")
+          .eq("id", previous.venta_id)
+          .maybeSingle();
+
+        buyerEmail = (venta?.buyer_email as string | null) ?? null;
+        buyerUserId = buyerUserId ?? (venta?.user_id as string | null) ?? null;
+        buyOrder = (venta?.buy_order as string | null) ?? null;
+      }
+
+      if (buyerEmail || buyerUserId) {
+        try {
+          await notifyShipmentDispatched(admin, {
+            envioId,
+            trackingCode: data.tracking_code,
+            destino: data.destino,
+            status: newStatus,
+            email: buyerEmail,
+            userId: buyerUserId,
+            buyOrder,
+            empresaId: (data.empresa_id as string | null) ?? previous.empresa_id,
+          });
+        } catch (notifErr) {
+          console.error("[logistica/envios] shipment notification failed:", notifErr);
+        }
+      }
+    }
   }
 
   return c.json({ data });

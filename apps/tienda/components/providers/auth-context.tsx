@@ -125,21 +125,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       details: { role: 'cliente' },
     });
 
-    // Create a real persistent notification event for the new user (in_app channel)
-    try {
-      await supabase.from('notification_events').insert({
-        channel: 'in_app',
-        recipient: email.trim(),
-        subject: 'Bienvenido al Legado',
-        body: 'Gracias por unirte. Explora tus alertas de floración y el impacto de tu colmena.',
-        created_by: authData.user.id,
-        status: 'sent',
-      });
-    } catch {
-      // Non-blocking for UX
-    }
-
     await useAuthStore.getState().checkUser();
+
+    // Bienvenida vía BFF Núcleo (notification_queue + notification_events) — no insert directo
+    void fetch('/api/notifications/welcome', {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => {});
+
     return { success: true, message: undefined };
   }, []);
 

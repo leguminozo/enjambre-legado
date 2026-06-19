@@ -70,13 +70,20 @@ describe("Notifications API Routes", () => {
       expect(res.status).toBe(401);
     });
 
-    it("should return 200 and user alerts if authorized", async () => {
-      const mockAlerts = [
-        { id: "1", title: "Test alert", message: "Hello", is_read: false },
+    it("should return 200 and in_app notification_events if authorized", async () => {
+      const mockEvents = [
+        {
+          id: "1",
+          channel: "in_app",
+          subject: "Pedido confirmado",
+          body: "Tu pago fue procesado",
+          created_at: "2026-06-18T12:00:00Z",
+          provider_response: { source: "checkout_paid" },
+        },
       ];
       mockFrom.mockImplementation((table: string) => {
-        if (table === "alerts") {
-          return makeChain({ data: mockAlerts, error: null });
+        if (table === "notification_events") {
+          return makeChain({ data: mockEvents, error: null });
         }
         return makeChain({ data: [], error: null });
       });
@@ -90,19 +97,13 @@ describe("Notifications API Routes", () => {
       expect(res.status).toBe(200);
       const json = await res.json();
       expect(json.success).toBe(true);
-      expect(json.data).toEqual(mockAlerts);
+      expect(json.data[0].title).toBe("Pedido confirmado");
+      expect(json.data[0].message).toBe("Tu pago fue procesado");
     });
   });
 
   describe("POST /api/notifications/read", () => {
-    it("should return 200 after marking all notifications as read", async () => {
-      mockFrom.mockImplementation((table: string) => {
-        if (table === "alerts") {
-          return makeChain({ data: null, error: null });
-        }
-        return makeChain({ data: [], error: null });
-      });
-
+    it("should return 200 after marking all notifications as read (client-side compat)", async () => {
       const res = await app.request("/api/notifications/read", {
         method: "POST",
         headers: {
@@ -116,17 +117,9 @@ describe("Notifications API Routes", () => {
       expect(res.status).toBe(200);
       const json = await res.json();
       expect(json.success).toBe(true);
-      expect(json.message).toBe("Alertas marcadas como leídas");
     });
 
-    it("should return 200 after marking specific notification as read", async () => {
-      mockFrom.mockImplementation((table: string) => {
-        if (table === "alerts") {
-          return makeChain({ data: null, error: null });
-        }
-        return makeChain({ data: [], error: null });
-      });
-
+    it("should return 200 after marking specific notification as read (client-side compat)", async () => {
       const res = await app.request("/api/notifications/read", {
         method: "POST",
         headers: {

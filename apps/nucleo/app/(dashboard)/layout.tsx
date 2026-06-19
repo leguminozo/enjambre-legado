@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Search, Menu, X, BarChart3, Hexagon, Calculator, Settings } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { findActiveItem, BOTTOM_NAV_KEYS, SIDEBAR_GROUPS, ACCOUNT_ITEMS } from '@/config/sidebar-config';
-import { NotificationBell, type Notification } from '@enjambre/ui';
-import { useApiFetch } from '@/hooks/use-api-fetch';
+import { NotificationBell } from '@enjambre/ui';
+import { createClient, useAuthStore, useInAppNotifications } from '@enjambre/auth';
 
 const bottomNavIcons: Record<string, React.ComponentType<{ size?: number }>> = {
   ejecutivo: BarChart3,
@@ -42,38 +42,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const pathname = usePathname();
-  const [realNotifications, setRealNotifications] = useState<Notification[]>([]);
-  const [notifLoading, setNotifLoading] = useState(false);
-  const apiFetch = useApiFetch();
+  const userId = useAuthStore((s) => s.user?.id);
+  const [realtimeOn, setRealtimeOn] = useState(false);
+  const { notifications, markRead, markAllRead, isLoading: notifLoading, error: notifError } = useInAppNotifications({
+    userId,
+    supabaseClient: createClient(),
+    app: 'nucleo',
+    enableRealtime: realtimeOn,
+  });
 
   const activeItem = findActiveItem(pathname);
   const headerTitle = activeItem?.label ?? 'Enjambre Legado';
-
-  // Real data for shared NotificationBell (interconnected with central system)
-  useEffect(() => {
-    const load = async () => {
-      setNotifLoading(true);
-      try {
-        const res = await apiFetch('/api/notifications'); // via BFF
-        if (res.ok) {
-          const json = await res.json();
-          const mapped: Notification[] = (json.data || []).map((a: any) => ({
-            id: a.id,
-            title: a.title || a.subject || 'Alerta',
-            message: a.message || a.body || '',
-            time: a.created_at ? new Date(a.created_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : undefined,
-            type: 'gold',
-            href: '/notificaciones', // or relevant
-          }));
-          setRealNotifications(mapped);
-        }
-      } catch (err) {
-        console.error('Failed to load notifications:', err);
-      }
-      setNotifLoading(false);
-    };
-    load();
-  }, []);
 
   return (
     <div className="app-layout">
@@ -115,14 +94,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
 
             <NotificationBell
-              notifications={realNotifications}
+              notifications={notifications}
               isLoading={notifLoading}
-              onMarkRead={(id) => {
-                // For nucleo, optimistic + could call /notifications/read
-                setRealNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-              }}
-              onMarkAllRead={() => {
-                setRealNotifications(prev => prev.map(n => ({ ...n, read: true })));
+              error={notifError}
+              onMarkRead={markRead}
+              onMarkAllRead={markAllRead}
+              onOpenChange={(isOpen) => {
+                if (isOpen) setRealtimeOn(true);
               }}
             />
 

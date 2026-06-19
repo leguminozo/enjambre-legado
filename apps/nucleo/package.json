@@ -19,6 +19,7 @@
     "@enjambre/auth": "workspace:*",
     "@enjambre/banco-chile": "workspace:*",
     "@enjambre/contable": "workspace:*",
+    "@enjambre/pricing": "workspace:*",
     "@enjambre/database": "workspace:*",
     "@enjambre/sumup": "workspace:*",
     "@enjambre/ui": "workspace:*",

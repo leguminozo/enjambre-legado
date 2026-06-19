@@ -3,13 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest run"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./browser": "./src/supabase.ts",
     "./middleware": "./src/middleware.ts",
     "./server-index": "./src/server-index.ts",
     "./security-events": "./src/security-events.ts",
-    "./role-redirect": "./src/role-redirect.ts"
+    "./role-redirect": "./src/role-redirect.ts",
+    "./in-app-notifications": "./src/in-app-notifications.ts",
+    "./notification-preferences": "./src/notification-preferences.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
@@ -23,6 +28,7 @@
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "next": "16.2.6",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.8"
   }
 }

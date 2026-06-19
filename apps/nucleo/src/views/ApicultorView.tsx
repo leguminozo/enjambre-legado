@@ -8,6 +8,7 @@ function healthFromEstado(estado: string | null | undefined): Colmena['health'] 
     if (estado === 'atencion') return 'attention';
     return 'risk';
 }
+import { mapInAppNotificationToAlertItem } from '@enjambre/auth';
 import { supabase } from '../lib/supabase';
 import { ColmenaFicha } from '../components/apicultor/ColmenaFicha';
 import { CalendarioCiclico } from '../components/apicultor/CalendarioCiclico';
@@ -139,11 +140,17 @@ export function ApicultorView() {
 
                 if (uid) {
                     const [resA, resR] = await Promise.all([
-                        supabase.from('alerts').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(3),
+                        supabase
+                            .from('notification_events')
+                            .select('*')
+                            .eq('created_by', uid)
+                            .eq('channel', 'in_app')
+                            .order('created_at', { ascending: false })
+                            .limit(3),
                         supabase.from('reflexiones').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(1),
                     ]);
 
-                    setAlerts(resA.data ?? []);
+                    setAlerts((resA.data ?? []).map(mapInAppNotificationToAlertItem));
                     const row = resR.data?.[0];
                     if (row) {
                         setReflexion({

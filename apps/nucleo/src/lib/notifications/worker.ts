@@ -1,4 +1,5 @@
 import { createAdminClient } from "@enjambre/auth/browser";
+import { sendNotificationEmail } from "./email-sender";
 
 interface QueueItem {
   id: string;
@@ -12,40 +13,9 @@ interface QueueItem {
   metadata: Record<string, any>;
 }
 
-/**
- * Enviar un correo electrónico utilizando la API de Resend
- */
-async function sendEmail(recipient: string, subject: string, body: string): Promise<{ success: boolean; response: any }> {
-  // Provider: Resend (ver integrations-env.ts para otras NOTIFY_* legacy como SendGrid).
-  // Si no hay RESEND_API_KEY, usa mock (útil para dev). Para producción configurar clave.
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.log(`[Resend Mock Email] Enviando a: ${recipient} | Asunto: ${subject} | Cuerpo: ${body.substring(0, 100)}...`);
-    return { success: true, response: { mock: true, provider: "mock_resend" } };
-  }
-
+async function sendEmail(recipient: string, subject: string, body: string) {
   try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "Enjambre Legado <contacto@enjambrelegado.cl>",
-        to: recipient,
-        subject: subject,
-        html: body,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error en Resend API (${response.status}): ${errorText}`);
-    }
-
-    const data = await response.json();
-    return { success: true, response: data };
+    return await sendNotificationEmail(recipient, subject, body);
   } catch (error) {
     console.error("[Email Worker] Falló envío real de email:", error);
     throw error;
@@ -93,6 +63,53 @@ async function sendWhatsApp(recipient: string, body: string): Promise<{ success:
     console.error("[WhatsApp Worker] Falló envío real de WhatsApp:", error);
     throw error;
   }
+}
+
+/**
+ * Garantiza notification_events in_app cuando metadata.in_app está activo (idempotente).
+ * Cubre reintentos si el insert síncrono en internal/welcome falló tras encolar.
+ */
+async function syncInAppEvent(
+  supabase: NonNullable<ReturnType<typeof createAdminClient>>,
+  item: QueueItem,
+): Promise<boolean> {
+  if (!item.metadata?.in_app) return false;
+
+  const userId = typeof item.metadata.user_id === "string" ? item.metadata.user_id : null;
+  const source = typeof item.metadata.source === "string" ? item.metadata.source : "notification_queue";
+
+  let existingQuery = supabase
+    .from("notification_events")
+    .select("id")
+    .eq("channel", "in_app")
+    .eq("recipient", item.recipient)
+    .limit(1);
+
+  if (item.subject) {
+    existingQuery = existingQuery.eq("subject", item.subject);
+  }
+  if (userId) {
+    existingQuery = existingQuery.eq("created_by", userId);
+  }
+
+  const { data: existing } = await existingQuery.maybeSingle();
+  if (existing) return false;
+
+  const { error } = await supabase.from("notification_events").insert({
+    channel: "in_app",
+    recipient: item.recipient,
+    subject: item.subject,
+    body: item.body,
+    status: "sent",
+    created_by: userId,
+    provider_response: { source, via: "notification_worker", queue_id: item.id },
+  });
+
+  if (error) {
+    throw new Error(`in_app event failed: ${error.message}`);
+  }
+
+  return true;
 }
 
 /**
@@ -156,25 +173,34 @@ export async function processNotificationQueue(): Promise<{ processedCount: numb
 
       if (sendResult.success) {
         successCount++;
+        const inAppSynced = await syncInAppEvent(supabase, item);
+
         // 3a. Marcar como enviado en la cola
         await supabase
           .from("notification_queue")
           .update({
             status: "sent",
             last_attempt_at: new Date().toISOString(),
-            metadata: { ...item.metadata, provider_response: sendResult.response },
+            metadata: {
+              ...item.metadata,
+              provider_response: sendResult.response,
+              ...(inAppSynced ? { in_app_event_created: true } : {}),
+            },
           })
           .eq("id", item.id);
 
-        // 3b. Registrar en el historial de eventos
-        await supabase.from("notification_events").insert({
-          channel: item.channel,
-          recipient: item.recipient,
-          subject: item.subject,
-          body: item.body,
-          status: "sent",
-          provider_response: sendResult.response,
-        });
+        // 3b. Historial de canales externos (system+in_app ya vive en notification_events in_app)
+        const skipChannelHistory = item.channel === "system" && item.metadata?.in_app;
+        if (!skipChannelHistory) {
+          await supabase.from("notification_events").insert({
+            channel: item.channel,
+            recipient: item.recipient,
+            subject: item.subject,
+            body: item.body,
+            status: "sent",
+            provider_response: sendResult.response,
+          });
+        }
       }
     } catch (error: any) {
       console.error(`[Notification Worker] Error enviando item ${item.id}:`, error.message);

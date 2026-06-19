@@ -155,6 +155,28 @@ describe("Checkout API Routes", () => {
     });
   });
 
+  describe("POST /api/checkout/preview", () => {
+    it("should return pricing preview for valid items", async () => {
+      const res = await app.request("/api/checkout/preview", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer valid-token",
+          "origin": "http://localhost:3000",
+        },
+        body: JSON.stringify({
+          items: [{ product_id: "a2b724f8-4e12-40f4-90cc-172bf421e428", quantity: 1 }],
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.success).toBe(true);
+      expect(json.pricing.total).toBe(10000);
+      expect(json.pricing.line_items).toHaveLength(1);
+    });
+  });
+
   describe("POST /api/checkout/commit", () => {
     it("should process authorized transaction and return 200", async () => {
       const res = await app.request("/api/checkout/commit", {

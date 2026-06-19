@@ -55,6 +55,7 @@ apps/nucleo → Management dashboard + BFF + contable (Next.js 16 App Router, Ho
 apps/campo → POS completo (Next.js 16, CashProvider, QuickSale, TierBadge, Leaderboard, ClientLookup)
 packages/database → Supabase migrations + types (Postgres 17 + PostGIS, 50+ migrations)
 packages/contable → Chilean tax logic (IVA 19%, RUT, DTE XML, receipt parsers x7, tasa-cambio, gasto-extranjero)
+packages/pricing → Cart pricing multipliers + computeCartPricing (tienda preview + nucleo checkout)
 packages/auth → Supabase clients (5 entry points: browser/browser/server/middleware/security-events/role-redirect) + Zustand store + role redirect + security events (13 types)
 packages/ui → Design system (15 components, 3 hooks, 4 lib utils, Tailwind preset, tokens, 24 icons)
 packages/sumup → SumUp POS integration (SumUpClient + types)

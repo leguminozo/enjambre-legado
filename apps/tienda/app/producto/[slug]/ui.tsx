@@ -1,7 +1,7 @@
 'use client';
 
 import type { ShopProduct } from '@/lib/shop/products';
-import { useCart } from '@/components/shop/cart-context';
+import { useCartLines } from '@/components/shop/cart-context';
 import React, { useState } from 'react';
 import { QrCode, Shield, Clock, MapPin, Leaf } from 'lucide-react';
 import { QRCode } from '@enjambre/ui';
@@ -13,7 +13,7 @@ export function AddToCartButton({
   product: ShopProduct;
   disabled?: boolean;
 }) {
-  const cart = useCart();
+  const { add } = useCartLines();
   const [added, setAdded] = useState(false);
 
   return (
@@ -23,7 +23,7 @@ export function AddToCartButton({
       className="rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-45"
       onClick={() => {
         if (disabled) return;
-        cart.add(
+        add(
           {
             id: product.id,
             slug: product.slug,

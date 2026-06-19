@@ -63,11 +63,17 @@ Los buckets se crean en la migracion `02_storage_buckets.sql`:
 | **Output** | Default (Next / `.next`) |
 
 **Variables**:
-| Clave | Valor |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://hdhamxiblwwskvvqbcfo.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJ...` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-only (para BFF) |
+| Clave | Obligatoria | Notas |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Si | URL del proyecto |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Si | JWT anon |
+| `SUPABASE_SERVICE_ROLE_KEY` | Si | Server-only (BFF + worker) |
+| `CRON_SECRET` | Auto (Vercel) | Vercel lo genera al desplegar `vercel.json` crons; auth del cron de notificaciones |
+| `NOTIFICATIONS_WORKER_SECRET` | No | Trigger manual `POST /api/notifications/trigger-worker` |
+| `RESEND_API_KEY` | No | Email real; mock si falta |
+| `TWILIO_*` | No | WhatsApp real; mock si falta |
+
+**Cron**: `apps/nucleo/vercel.json` programa `GET /api/cron/notifications` cada minuto. Requiere plan Vercel con crons habilitados.
 
 ### 3.2 Tienda (Next.js)
 

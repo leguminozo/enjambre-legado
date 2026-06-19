@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, ShoppingBag, X, User } from 'lucide-react';
-import { useCart } from '@/components/shop/cart-context';
+import { useCartLines } from '@/components/shop/cart-context';
 import { useAuth } from '@/components/providers/auth-context';
 import { LanguageSelector } from '@/components/shop/language-selector';
 import { NotificationBell } from '@enjambre/ui';
@@ -22,12 +22,15 @@ const NAV_PUBLIC = [
 ] as const;
 
 export function ShopHeader() {
-  const cart = useCart();
+  const { itemCount } = useCartLines();
   const { isAuthenticated, user } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [realtimeOn, setRealtimeOn] = useState(false);
 
-  const { notifications, markRead, markAllRead, isLoading, error } = useUserNotifications(user?.id);
+  const { notifications, markRead, markAllRead, isLoading, error } = useUserNotifications(user?.id, {
+    enableRealtime: realtimeOn,
+  });
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -77,6 +80,9 @@ export function ShopHeader() {
             notifications={notifications}
             onMarkRead={markRead}
             onMarkAllRead={markAllRead}
+            onOpenChange={(isOpen) => {
+              if (isOpen) setRealtimeOn(true);
+            }}
             isLoading={isLoading}
             error={error}
           />
@@ -94,9 +100,9 @@ export function ShopHeader() {
 
           <Link href="/checkout" className="relative group">
             <ShoppingBag size={20} strokeWidth={1.5} className="text-muted-foreground group-hover:text-accent transition-colors" />
-            {cart.itemCount > 0 && (
+            {itemCount > 0 && (
               <span className="absolute -top-2 -right-2 w-4 h-4 bg-accent text-accent-foreground text-[0.6rem] font-bold flex items-center justify-center rounded-full">
-                {cart.itemCount}
+                {itemCount}
               </span>
             )}
           </Link>

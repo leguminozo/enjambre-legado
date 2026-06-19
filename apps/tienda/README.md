@@ -79,12 +79,29 @@ La autenticación usa Supabase Auth. Los clientes pueden:
 - Recuperar contraseña
 - Gestionar su perfil
 
-## 🛒 Checkout
+## 🛒 Carrito y Checkout
+
+### Carrito (P0 — Jun 2026)
+
+| Capa | Implementación |
+|---|---|
+| Persistencia local | `localStorage` key `oyz_tienda_cart_v1` |
+| Precios server-side | Server Action `calculateCartPricing` (solo `product_id` + `quantity`) |
+| Preview en UI | `useCartPricing()` en checkout → debounce 300ms (inactivo en catálogo) |
+| Abandono | `POST /api/cart/abandonment` → `cart_abandonment_events` (snapshot validado con Zod) |
+
+El checkout en Núcleo **re-verifica** precios y stock; el preview en tienda es UX, no autoridad de pago.
+
+### Notificaciones (P1)
+
+Tras registro, `POST /api/notifications/welcome` (server, sesión `getUser()`) proxea a Nucleo `POST /api/notifications/internal/welcome`. La cola `notification_queue` registra el evento; `notification_events` alimenta el NotificationBell.
+
+### Checkout
 
 El checkout soporta:
-- Transbank Webpay
-- MercadoPago (próximamente)
-- Checkout flow asíncrono con webhooks
+- Transbank Webpay (vía BFF Núcleo `POST /api/checkout/init|commit`)
+- Flow.cl (provider alternativo)
+- Sesiones en Postgres (`checkout_sessions`, migration 38)
 
 ## 📱 Páginas
 

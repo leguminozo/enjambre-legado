@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
+import { CartAbandonmentBodySchema } from '@/lib/cart/schemas';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -11,40 +12,65 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data: items } = await supabase
-    .from('carrito_items')
-    .select('producto_id, cantidad, productos(id, nombre, precio, slug, fotos)')
-    .eq('user_id', user.id);
-
-  if (!items || items.length === 0) {
-    return NextResponse.json({ status: 'empty_cart' });
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const cartItems = items.map((item) => {
-    const producto = Array.isArray(item.productos) && item.productos.length > 0
-      ? item.productos[0]
-      : null;
-    return {
-      producto_id: item.producto_id,
-      nombre: producto?.nombre ?? '',
-      precio: producto?.precio ?? 0,
-      slug: producto?.slug ?? '',
-      cantidad: item.cantidad,
-    };
-  });
+  const parsed = CartAbandonmentBodySchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
+
+  const productIds = parsed.data.items.map((i) => i.product_id);
+  const { data: products, error: productsError } = await supabase
+    .from('productos')
+    .select('id, nombre, precio, slug')
+    .in('id', productIds);
+
+  if (productsError) {
+    console.error('[cart/abandonment] productos query failed:', productsError);
+    return NextResponse.json({ error: 'Failed to load products' }, { status: 500 });
+  }
+
+  const productMap = new Map((products ?? []).map((p) => [p.id, p]));
+  const cartItems = parsed.data.items
+    .map((item) => {
+      const product = productMap.get(item.product_id);
+      if (!product) return null;
+      return {
+        producto_id: product.id,
+        nombre: product.nombre ?? '',
+        precio: product.precio ?? 0,
+        slug: product.slug ?? '',
+        cantidad: item.quantity,
+      };
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null);
+
+  if (cartItems.length === 0) {
+    return NextResponse.json({ status: 'empty_cart' });
+  }
 
   const cartTotal = cartItems.reduce(
     (sum, item) => sum + item.precio * item.cantidad,
     0,
   );
 
-  const { data: existing } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from('cart_abandonment_events')
     .select('id, email_sent_at')
     .eq('user_id', user.id)
     .is('email_sent_at', null)
     .eq('converted', false)
     .maybeSingle();
+
+  if (existingError) {
+    console.error('[cart/abandonment] idempotency check failed:', existingError);
+    return NextResponse.json({ error: 'Failed to check abandonment' }, { status: 500 });
+  }
 
   if (existing) {
     return NextResponse.json({ status: 'already_tracked' });
@@ -60,6 +86,7 @@ export async function POST(request: NextRequest) {
     });
 
   if (error) {
+    console.error('[cart/abandonment] insert failed:', error);
     return NextResponse.json(
       { error: 'Failed to track abandonment' },
       { status: 500 },

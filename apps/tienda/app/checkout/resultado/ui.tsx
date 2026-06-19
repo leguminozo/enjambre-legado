@@ -5,7 +5,7 @@ import { gsap } from 'gsap';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { useCart } from '@/components/shop/cart-context';
+import { useCartLines } from '@/components/shop/cart-context';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -52,7 +52,7 @@ export function CheckoutResultClient() {
   const statusParam = params.get('status');
   const [state, setState] = useState<CommitState>('loading');
   const [message, setMessage] = useState('Confirmando pago...');
-  const cart = useCart();
+  const { clear } = useCartLines();
   
   const contentRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
@@ -103,7 +103,7 @@ export function CheckoutResultClient() {
       }
 
       sessionStorage.removeItem('oyz_pending_checkout');
-      cart.clear();
+      clear();
       setState('success');
       setMessage('Pago confirmado. Tu pedido fue registrado.');
     })();
