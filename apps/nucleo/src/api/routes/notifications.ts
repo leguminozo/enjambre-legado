@@ -251,7 +251,7 @@ notificationsRoutes.post(
     const input = c.req.valid("json");
 
     // Encolar en notification_queue
-    const { data: queueData, error: queueError } = await (supabase as any)
+    const { data: queueData, error: queueError } = await supabase
       .from("notification_queue")
       .insert({
         empresa_id: empresaId,

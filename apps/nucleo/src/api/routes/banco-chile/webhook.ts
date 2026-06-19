@@ -104,17 +104,18 @@ webhookRouter.post('/', async (c) => {
       empresaId = data?.empresa_id;
     }
 
-    // Guardar notificación
-    await (supabase as any).from('banco_chile_notificaciones').insert({
-      empresa_id: empresaId,
-      tipo_evento: tipo,
-      cuenta_afectada: cuenta_id,
-      monto: monto,
-      descripcion: descripcion,
-      datos_raw: datos,
-      procesado: false,
-      created_at: new Date(fecha),
-    });
+    if (empresaId) {
+      await supabase.from('banco_chile_notificaciones').insert({
+        empresa_id: empresaId,
+        tipo_evento: tipo,
+        cuenta_afectada: cuenta_id,
+        monto: monto,
+        descripcion: descripcion,
+        datos_raw: datos,
+        procesado: false,
+        created_at: new Date(fecha),
+      });
+    }
 
     // Procesar notificación según tipo
     await procesarNotificacion(supabase, tipo, {

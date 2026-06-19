@@ -19,6 +19,7 @@ import {
   consultarEstado,
   getSiiToken,
 } from "@/api/lib/sii-client";
+import { resolveSiiAmbiente, resolveSiiCredentials } from "@/api/lib/sii-credentials";
 import type { AppVariables } from "@/api/lib/middleware";
 import { createClient } from "@supabase/supabase-js";
 
@@ -176,53 +177,12 @@ dteRoutes.post(
         fch_resol: string;
       };
 
-      // 3. Obtener certificado digital de la empresa
-      const { data: certData, error: certError } = await supabase
-        .from("sii_certificados")
-        .select("storage_path, nombre")
-        .eq("empresa_id", empresaId)
-        .eq("activo", true)
-        .single();
-
-      if (certError || !certData) {
-        console.error('[SII DTE] No certificado digital activo', { empresaId, certError });
-        return c.json({ 
-          code: "no_certificado_digital", 
-          message: "No hay certificado digital activo para la empresa. Configure uno en SII Certificados." 
-        }, 400);
+      const credsResult = await resolveSiiCredentials(supabase, empresaId);
+      if (!credsResult.ok) {
+        const status = credsResult.code === "no_certificado" ? 400 : 500;
+        return c.json({ code: credsResult.code, message: credsResult.message }, status);
       }
-
-      // 4. Leer el certificado P12 desde storage
-      let p12Base64 = "";
-      if (certData?.storage_path) {
-        try {
-          const { data: fileData, error: downloadError } = await supabase
-            .storage
-            .from("sii-certificados")
-            .download(certData.storage_path);
-
-          if (!downloadError && fileData) {
-            const buffer = await fileData.arrayBuffer();
-            p12Base64 = Buffer.from(buffer).toString("base64");
-          } else if (downloadError) {
-            console.warn("[SII DTE Emisión] Fallo descarga de storage, usando fallback:", downloadError.message);
-          }
-        } catch (storageErr) {
-          console.warn("[SII DTE Emisión] Error leyendo certificado de storage:", storageErr);
-        }
-      }
-
-      if (!p12Base64) {
-        p12Base64 = process.env.SII_P12_BASE64 ?? "";
-      }
-      const p12Password = process.env.SII_P12_PASSWORD ?? "";
-
-      if (!p12Base64 || !p12Password) {
-        return c.json({ 
-          code: "no_credenciales_sii", 
-          message: "Credenciales SII no configuradas. Suba un certificado a Supabase Storage o defina SII_P12_BASE64 y SII_P12_PASSWORD en variables de entorno." 
-        }, 500);
-      }
+      const { p12Base64, p12Password } = credsResult.credentials;
 
       // 5. Construir el documento DTE según el tipo
       let dteDoc: any;
@@ -660,46 +620,14 @@ dteRoutes.get(
 
       const empresa = empresaData as { rut: string; sii_ambiente: string };
 
-      // 2. Obtener certificado y credenciales
-      const { data: certData } = await supabase
-        .from("sii_certificados")
-        .select("storage_path")
-        .eq("empresa_id", empresaId)
-        .eq("activo", true)
-        .maybeSingle();
-
-      let p12Base64 = "";
-      if (certData?.storage_path) {
-        try {
-          const { data: fileData, error: downloadError } = await supabase
-            .storage
-            .from("sii-certificados")
-            .download(certData.storage_path);
-
-          if (!downloadError && fileData) {
-            const buffer = await fileData.arrayBuffer();
-            p12Base64 = Buffer.from(buffer).toString("base64");
-          }
-        } catch (storageErr) {
-          console.warn("[SII Consultar Estado] Error leyendo certificado de storage:", storageErr);
-        }
+      const credsResult = await resolveSiiCredentials(supabase, empresaId);
+      if (!credsResult.ok) {
+        const status = credsResult.code === "no_certificado" ? 400 : 500;
+        return c.json({ code: credsResult.code, message: credsResult.message }, status);
       }
+      const { p12Password } = credsResult.credentials;
 
-      if (!p12Base64) {
-        p12Base64 = process.env.SII_P12_BASE64 ?? "";
-      }
-      const p12Password = process.env.SII_P12_PASSWORD ?? "";
-
-      if (!p12Base64 || !p12Password) {
-        return c.json({ 
-          code: "no_credenciales_sii", 
-          message: "Credenciales SII no configuradas" 
-        }, 500);
-      }
-
-      // 3. Determinar ambiente
-      const ambienteRaw = empresa.sii_ambiente ?? "certificacion";
-      const ambiente = (ambienteRaw.toUpperCase() === "PRODUCCION" ? "PRODUCCION" : "CERTIFICACION") as import("@enjambre/contable").SiiEnvironment;
+      const ambiente = resolveSiiAmbiente(empresa.sii_ambiente) as import("@enjambre/contable").SiiEnvironment;
 
       // 4. Obtener token
       const token = await getSiiToken(ambiente, empresa.rut, p12Password);

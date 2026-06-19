@@ -221,6 +221,35 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ---
 
+### D61. Perfil Guardian — nombre/email decorativos en Ajustes (RESUELTO — P1 Jun 2026)
+
+**Problema**: `/perfil/ajustes` mostraba inputs estáticos sin persistencia; layout pasaba `user={null}` al sidebar.
+
+**Estado**: RESUELTO —
+- `app/actions/profile.ts` + `ProfileIdentityForm` (nombre editable, email read-only)
+- Layout carga `profiles` y alimenta `TiendaSidebar` con nombre real
+- Tras guardar: `refreshSession()` + `router.refresh()`
+
+---
+
+### D62. SII credenciales duplicadas en rutas DTE (RESUELTO — P1 Jun 2026)
+
+**Problema**: Lógica de certificado P12 (storage + env fallback) copiada en `dte.ts`, `facturas.ts`, `rcv.ts`.
+
+**Estado**: RESUELTO — `api/lib/sii-credentials.ts` centraliza `resolveSiiCredentials()` + `resolveSiiAmbiente()`.
+
+---
+
+### D63. `as any` obsoleto en tablas ya tipadas (RESUELTO — P1 Jun 2026)
+
+**Problema**: `terceros`, `notification_queue`, `reconciliation_rules`, `banco_chile_notificaciones` seguían con casts aunque existen en `database.types.ts`.
+
+**Estado**: RESUELTO — casts removidos en rutas nucleo correspondientes.
+
+**Siguiente**: `pnpm db:push:all && pnpm db:typegen` para tablas CRM/subscriptions (migrations 41–44) aún ausentes en remoto.
+
+---
+
 ### D58. INTERNAL_API_SECRET reutilizaba service role (RESUELTO — P1 Jun 2026)
 
 **Problema**: Rutas internas (`/api/security-events/internal`, `/api/notifications/internal/*`, middleware cross-app) aceptaban `SUPABASE_SERVICE_ROLE_KEY` como fallback de `x-internal-key`. En producción eso expone el service role si alguien intercepta el header.

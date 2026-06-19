@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { parsearEstadoRcv } from "@enjambre/contable";
 import type { RcvTipoRegistro, RcvRegistroCompra, RcvRegistroVenta } from "@enjambre/contable";
 import { getSiiToken, consultarRCV } from "@/api/lib/sii-client";
+import { resolveSiiAmbiente, resolveSiiCredentials } from "@/api/lib/sii-credentials";
 import type { AppVariables } from "@/api/lib/middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -74,12 +75,15 @@ rcvRoutes.post("/:periodo/sync", async (c) => {
   }
 
   const emisor = empresa as Record<string, unknown>;
-  const p12Password = process.env.SII_P12_PASSWORD ?? "";
-  const ambienteRaw = String(emisor.sii_ambiente ?? "certificacion");
-  const ambiente = (ambienteRaw.toUpperCase() === "PRODUCCION" ? "PRODUCCION" : "CERTIFICACION") as import("@enjambre/contable").SiiEnvironment;
+  const credsResult = await resolveSiiCredentials(supabase, empresaId);
+  if (!credsResult.ok) {
+    return c.json({ code: credsResult.code, message: credsResult.message }, credsResult.code === "no_certificado" ? 400 : 500);
+  }
+
+  const ambiente = resolveSiiAmbiente(String(emisor.sii_ambiente ?? "certificacion")) as import("@enjambre/contable").SiiEnvironment;
 
   try {
-    const token = await getSiiToken(ambiente, String(emisor.rut), p12Password);
+    const token = await getSiiToken(ambiente, String(emisor.rut), credsResult.credentials.p12Password);
     const rcvResumen = await consultarRCV(ambiente, token.token, String(emisor.rut), periodo, tipo);
 
     const syncPayload = {

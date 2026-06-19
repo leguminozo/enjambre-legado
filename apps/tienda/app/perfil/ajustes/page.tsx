@@ -1,11 +1,16 @@
 import React from 'react';
 import { Settings, User } from 'lucide-react';
 import { getNotificationPreferences } from '@/app/actions/notification-preferences';
+import { getProfileIdentity } from '@/app/actions/profile';
 import { NotificationPreferencesForm } from '@/components/perfil/notification-preferences-form';
+import { ProfileIdentityForm } from '@/components/perfil/profile-identity-form';
 import { AjustesThemeSection } from './ajustes-theme-section';
 
 export default async function AjustesPage() {
-  const notificationPreferences = await getNotificationPreferences();
+  const [notificationPreferences, profileIdentity] = await Promise.all([
+    getNotificationPreferences(),
+    getProfileIdentity(),
+  ]);
 
   return (
     <div className="space-y-16 animate-in">
@@ -30,33 +35,12 @@ export default async function AjustesPage() {
             <h3 className="text-[0.65rem] uppercase tracking-[0.2em] font-bold">Identidad Pública</h3>
           </div>
 
-          <div className="grid gap-6">
-            <div className="space-y-2">
-              <label className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                Nombre Completo
-              </label>
-              <input
-                type="text"
-                id="fullName"
-                name="fullName"
-                placeholder="Ej: Gabriel Miranda"
-                className="w-full bg-secondary border border-border rounded-xl px-5 py-4 text-sm text-foreground focus:outline-none focus:border-accent transition-all"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                Correo Electrónico
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                disabled
-                className="w-full bg-secondary border border-border rounded-xl px-5 py-4 text-sm text-muted-foreground cursor-not-allowed"
-                placeholder="guardian@bosque.cl"
-              />
-            </div>
-          </div>
+          {profileIdentity ? (
+            <ProfileIdentityForm
+              initialFullName={profileIdentity.full_name}
+              email={profileIdentity.email}
+            />
+          ) : null}
         </section>
 
         <NotificationPreferencesForm initialPreferences={notificationPreferences} />

@@ -65,7 +65,7 @@ conciliacionAutoRoutes.post(
       }
 
       // Ejecutar la función de conciliación automática
-      const { data: propuestas, error } = await (supabase as any)
+      const { data: propuestas, error } = await supabase
         .rpc('aplicar_reglas_conciliacion', { p_empresa_id: empresaId })
         .limit(limite);
 
@@ -266,7 +266,7 @@ conciliacionAutoRoutes.get(
       const empresaId = c.get("empresaId");
       const supabase = c.get("supabase");
 
-      const { data: reglas, error } = await (supabase as any)
+      const { data: reglas, error } = await supabase
         .from("reconciliation_rules")
         .select("id, nombre, tipo, campo_primario, operador, valor_primario, campo_secundario, operador_secundario, valor_secundario, valor_secundario_2, activo, prioridad, creado_en, actualizado_en")
         .eq("empresa_id", empresaId)
@@ -318,14 +318,14 @@ conciliacionAutoRoutes.post(
         }, 400);
       }
 
-      const { data: reglaData, error } = await (supabase as any)
+      const { data: reglaData, error } = await supabase
         .from("reconciliation_rules")
         .insert({
           empresa_id: empresaId,
           ...input,
           creado_en: new Date().toISOString(),
           actualizado_en: new Date().toISOString(),
-        } as any)
+        })
         .select()
         .single();
 
@@ -378,12 +378,12 @@ conciliacionAutoRoutes.patch(
         }, 400);
       }
 
-      const { data: reglaData, error } = await (supabase as any)
+      const { data: reglaData, error } = await supabase
         .from("reconciliation_rules")
         .update({
           ...input,
           actualizado_en: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", reglaId)
         .eq("empresa_id", empresaId)
         .select()
@@ -424,7 +424,7 @@ conciliacionAutoRoutes.delete(
       const empresaId = c.get("empresaId");
       const supabase = c.get("supabase");
 
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("reconciliation_rules")
         .delete()
         .eq("id", reglaId)

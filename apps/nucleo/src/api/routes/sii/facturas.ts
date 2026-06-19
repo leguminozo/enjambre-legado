@@ -18,6 +18,7 @@ import {
   consultarEstado,
   getSiiToken,
 } from "@/api/lib/sii-client";
+import { resolveSiiAmbiente, resolveSiiCredentials } from "@/api/lib/sii-credentials";
 import type { AppVariables } from "@/api/lib/middleware";
 import type { DteDocumento } from "@enjambre/contable";
 import { createFacturaCompraFromGasto } from "./helpers";
@@ -239,16 +240,15 @@ facturasRoutes.post("/:id/enviar-sii", async (c) => {
   try {
     const dteXml = buildDteXml(dteDoc);
 
-    const p12Base64 = process.env.SII_P12_BASE64 ?? "";
-    const p12Password = process.env.SII_P12_PASSWORD ?? "";
-
-    if (!p12Base64 || !p12Password) {
+    const credsResult = await resolveSiiCredentials(supabase, empresaId);
+    if (!credsResult.ok) {
       return c.json({
-        code: "no_certificado",
-        message: "No hay certificado digital configurado. Configure SII_P12_BASE64 y SII_P12_PASSWORD.",
+        code: credsResult.code,
+        message: credsResult.message,
         xml: dteXml,
-      }, 400);
+      }, credsResult.code === "no_certificado" ? 400 : 500);
     }
+    const { p12Base64, p12Password } = credsResult.credentials;
 
     const signedXml = signDteXml(dteXml, p12Base64, p12Password);
 
@@ -271,8 +271,7 @@ facturasRoutes.post("/:id/enviar-sii", async (c) => {
       String(caf.fch_resol ?? "2024-01-01"),
     );
 
-    const ambienteRaw = String(emisor.sii_ambiente ?? "certificacion");
-    const ambiente = (ambienteRaw.toUpperCase() === "PRODUCCION" ? "PRODUCCION" : "CERTIFICACION") as import("@enjambre/contable").SiiEnvironment;
+    const ambiente = resolveSiiAmbiente(String(emisor.sii_ambiente ?? "certificacion")) as import("@enjambre/contable").SiiEnvironment;
     const token = await getSiiToken(ambiente, String(emisor.rut), p12Password);
 
     const envioResult = await enviarDte(ambiente, token.token, envioXml, String(emisor.rut));

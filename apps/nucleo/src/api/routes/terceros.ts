@@ -4,9 +4,6 @@ import { validarRUT } from "@enjambre/contable";
 import { Hono } from "hono";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
-import type { Database } from "@enjambre/database/database.types";
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 export const tercerosRoutes = new Hono<{
   Variables: AppVariables;
 }>();
@@ -15,13 +12,11 @@ tercerosRoutes.use("*", authMiddleware, tenantMiddleware);
 
 tercerosRoutes.get("/", async (c) => {
   const empresaId = c.get("empresaId");
-  const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
+  const supabase = c.get("supabase");
   const tipo = c.req.query("tipo");
   const search = c.req.query("search");
 
-  // Use (supabase as any) for "terceros" (and similar business tables) — pre-existing type debt
-  // (tables come back as 'never' in the generated Supabase client types for these routes).
-  let query = (supabase as any)
+  let query = supabase
     .from("terceros")
     .select("*")
     .eq("empresa_id", empresaId)
@@ -56,10 +51,10 @@ const terceroSchema = z.object({
 
 tercerosRoutes.post("/", zValidator("json", terceroSchema), async (c) => {
   const empresaId = c.get("empresaId");
-  const supabase = c.get("supabase") as unknown as SupabaseClient<Database>;
+  const supabase = c.get("supabase");
   const { tipo, rut, nombre, email, telefono, direccion, giro } = c.req.valid("json");
 
-  const { data: existing } = await (supabase as any)
+  const { data: existing } = await supabase
     .from("terceros")
     .select("id")
     .eq("rut", rut)
@@ -70,7 +65,7 @@ tercerosRoutes.post("/", zValidator("json", terceroSchema), async (c) => {
     return c.json({ code: "duplicate", message: "Ya existe un tercero con ese RUT" }, 400);
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("terceros")
     .insert({
       empresa_id: empresaId,

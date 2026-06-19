@@ -5,6 +5,7 @@ import { GuardianSidebar } from '@/components/shop/guardian-sidebar';
 import { PerfilLayoutClient } from './perfil-layout-client';
 import { CustomCursor } from '@/components/ui/custom-cursor';
 import { getOyzRole } from '@/lib/shop/role';
+import { toTiendaUserProfile } from '@/lib/shop/user-profile';
 
 export default async function PerfilLayout({
   children,
@@ -19,15 +20,31 @@ export default async function PerfilLayout({
     redirect('/login');
   }
 
-  // Severed DB fetch here - O(0) lookup via Edge JWT claims
   const role = await getOyzRole();
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, full_name, email, role, arboles_personal')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  const tiendaUser = toTiendaUserProfile(
+    profile
+      ? {
+          id: user.id,
+          full_name: profile.full_name,
+          email: profile.email ?? user.email,
+          role: profile.role,
+          arboles_personal: profile.arboles_personal,
+        }
+      : null,
+  );
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
       <CustomCursor />
 
-      {/* Profile data fetching is now deferred to specific parallel page queries */}
-      <PerfilLayoutClient user={null} role={role}>
+      <PerfilLayoutClient user={tiendaUser} role={role}>
         {children}
       </PerfilLayoutClient>
     </div>
