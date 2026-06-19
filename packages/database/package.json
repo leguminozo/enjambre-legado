@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "db:push": "supabase db push",
-    "db:push:all": "supabase db push --include-all",
+    "db:push:all": "supabase db push --include-all --yes",
     "db:typegen": "supabase gen types typescript --linked > database.types.ts"
   }
 }

@@ -221,6 +221,29 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ---
 
+### D64. Perfil Guardian — páginas decorativas cableadas (RESUELTO — P2 Jun 2026)
+
+**Problema**: `/perfil/circular`, `/ritual`, `/reservas`, `/canje` tenían datos hardcodeados sin conexión a DB/API.
+
+**Estado**: RESUELTO —
+- `perfil-experiences.ts`: loyalty, subscriptions, pre_orders, referral
+- Componentes cliente con acciones reales (canje, suscripción, reserva, copiar enlace)
+- `/api/loyalty` corregido: usa `puntos_fidelizacion` en lugar de columnas inexistentes en `profiles`
+
+---
+
+### D65. Migraciones 55–61 aplicadas en remoto + typegen (RESUELTO — P1 Jun 2026)
+
+**Problema**: Colisiones de versión (47/48 duplicados), `cart_abandonment_events` ausente pese a migration 42 registrada, tablas subscription/pre_orders faltantes.
+
+**Estado**: RESUELTO —
+- Renombrado `47_sumup` → `59`, `48_regimen` → `60`
+- `55` bootstrap de `cart_abandonment_events` + RLS SELECT
+- `61_bootstrap_subscriptions_preorders.sql` crea tablas + seed planes
+- `pnpm db:push:all --yes` + `db:typegen` ejecutados; tipos incluyen `carrito_items`, `subscription_plans`, `pre_orders`
+
+---
+
 ### D61. Perfil Guardian — nombre/email decorativos en Ajustes (RESUELTO — P1 Jun 2026)
 
 **Problema**: `/perfil/ajustes` mostraba inputs estáticos sin persistencia; layout pasaba `user={null}` al sidebar.

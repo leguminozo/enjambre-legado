@@ -1,4 +1,4 @@
--- Migration: 47_sumup_pos_terminal
+-- Migration: 59_sumup_pos_terminal
 -- Purpose: Add SumUp terminal integration columns to ventas for POS reader checkout tracking
 
 ALTER TABLE ventas

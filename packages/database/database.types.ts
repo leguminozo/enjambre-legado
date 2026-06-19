@@ -1232,6 +1232,114 @@ export type Database = {
           },
         ]
       }
+      carrito_items: {
+        Row: {
+          id: string
+          product_id: string
+          quantity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          quantity: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          quantity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrito_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carrito_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carrito_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_ciclos_balance"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "carrito_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_tier_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      cart_abandonment_events: {
+        Row: {
+          cart_items: Json
+          cart_total: number | null
+          converted: boolean | null
+          created_at: string | null
+          email: string | null
+          email_sent_at: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          cart_items?: Json
+          cart_total?: number | null
+          converted?: boolean | null
+          created_at?: string | null
+          email?: string | null
+          email_sent_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          cart_items?: Json
+          cart_total?: number | null
+          converted?: boolean | null
+          created_at?: string | null
+          email?: string | null
+          email_sent_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_abandonment_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_abandonment_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_ciclos_balance"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "cart_abandonment_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_tier_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       cash_sessions: {
         Row: {
           cash_difference: number | null
@@ -1385,45 +1493,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_tier_view"
             referencedColumns: ["user_id"]
-          },
-        ]
-      }
-      carrito_items: {
-        Row: {
-          id: string
-          product_id: string
-          quantity: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          product_id: string
-          quantity: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          id?: string
-          product_id?: string
-          quantity?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "carrito_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "productos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "carrito_items_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
           },
         ]
       }
@@ -4629,6 +4698,71 @@ export type Database = {
           },
         ]
       }
+      pre_orders: {
+        Row: {
+          converted_venta_id: string | null
+          created_at: string | null
+          deposit_amount: number | null
+          email: string | null
+          id: string
+          producto_id: string | null
+          quantity: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          converted_venta_id?: string | null
+          created_at?: string | null
+          deposit_amount?: number | null
+          email?: string | null
+          id?: string
+          producto_id?: string | null
+          quantity?: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          converted_venta_id?: string | null
+          created_at?: string | null
+          deposit_amount?: number | null
+          email?: string | null
+          id?: string
+          producto_id?: string | null
+          quantity?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pre_orders_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_ciclos_balance"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "pre_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_tier_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       price_observations: {
         Row: {
           created_at: string
@@ -6262,6 +6396,180 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      subscription_deliveries: {
+        Row: {
+          created_at: string | null
+          id: string
+          items: Json
+          period_number: number
+          scheduled_for: string
+          status: string
+          subscription_id: string
+          tracking_url: string | null
+          venta_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          items?: Json
+          period_number: number
+          scheduled_for: string
+          status?: string
+          subscription_id: string
+          tracking_url?: string | null
+          venta_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          items?: Json
+          period_number?: number
+          scheduled_for?: string
+          status?: string
+          subscription_id?: string
+          tracking_url?: string | null
+          venta_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_deliveries_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_deliveries_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
+            referencedRelation: "ventas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_deliveries_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
+            referencedRelation: "ventas_pendientes_logistica"
+            referencedColumns: ["venta_id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          description: string | null
+          frequency: string
+          id: string
+          included_items: Json | null
+          key: string
+          name: string
+          price_clp: number
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          frequency?: string
+          id?: string
+          included_items?: Json | null
+          key: string
+          name: string
+          price_clp: number
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          frequency?: string
+          id?: string
+          included_items?: Json | null
+          key?: string
+          name?: string
+          price_clp?: number
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          canceled_at: string | null
+          created_at: string | null
+          current_period_end: string
+          current_period_start: string
+          id: string
+          metadata: Json | null
+          next_selection: Json | null
+          pause_scheduled_until: string | null
+          plan_id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          canceled_at?: string | null
+          created_at?: string | null
+          current_period_end: string
+          current_period_start?: string
+          id?: string
+          metadata?: Json | null
+          next_selection?: Json | null
+          pause_scheduled_until?: string | null
+          plan_id: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          canceled_at?: string | null
+          created_at?: string | null
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          metadata?: Json | null
+          next_selection?: Json | null
+          pause_scheduled_until?: string | null
+          plan_id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_ciclos_balance"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_tier_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       sumup_config: {
         Row: {

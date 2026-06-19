@@ -30,15 +30,15 @@ export async function GET() {
       .eq('active', true)
       .order('points_cost'),
     supabase
-      .from('profiles')
-      .select('puntos_acumulados, nivel_guardian')
-      .eq('id', user.id)
-      .single(),
+      .from('puntos_fidelizacion')
+      .select('puntos, nivel_actual')
+      .eq('user_id', user.id)
+      .maybeSingle(),
   ]);
 
   return NextResponse.json({
-    balance: tier.data?.puntos_acumulados ?? 0,
-    tier: tier.data?.nivel_guardian ?? 'polinizador',
+    balance: tier.data?.puntos ?? 0,
+    tier: tier.data?.nivel_actual ?? 'polinizador',
     transactions: transactions.data ?? [],
     redemptions: redemptions.data ?? [],
     rewards: rewards.data ?? [],
