@@ -30,6 +30,7 @@ import { crmRoutes } from "@/api/routes/crm";
 import { pipelineRoutes } from "@/api/routes/pipeline";
 import { securityEventRoutes } from "@/api/routes/security-events";
 import { checkoutRoutes } from "@/api/routes/checkout";
+import { subscriptionsCheckoutRoutes } from "@/api/routes/subscriptions-checkout";
 import { webhooksApp } from "@/api/routes/webhooks";
 import { notificationsRoutes } from "@/api/routes/notifications";
 
@@ -185,6 +186,7 @@ app.route("/crm", crmRoutes);
 app.route("/pipeline", pipelineRoutes);
 app.route("/security-events", securityEventRoutes);
 app.route("/checkout", checkoutRoutes);
+app.route("/subscriptions/checkout", subscriptionsCheckoutRoutes);
 app.route("/webhooks", webhooksApp);
 app.route("/notifications", notificationsRoutes);
 

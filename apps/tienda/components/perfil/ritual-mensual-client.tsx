@@ -1,13 +1,10 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState } from 'react';
 import { Repeat, ArrowRight, Sparkles } from 'lucide-react';
 import { toast } from '@enjambre/ui';
-import {
-  subscribeToPlan,
-  type SubscriptionPlan,
-  type UserSubscription,
-} from '@/app/actions/perfil-experiences';
+import { friendlyApiError } from '@enjambre/ui';
+import type { SubscriptionPlan, UserSubscription } from '@/app/actions/perfil-experiences';
 
 type RitualMensualClientProps = {
   subscription: UserSubscription | null;
@@ -20,22 +17,90 @@ function formatPrice(clp: number): string {
 
 export function RitualMensualClient({ subscription, plans }: RitualMensualClientProps) {
   const [selectedPlanId, setSelectedPlanId] = useState(plans[1]?.id ?? plans[0]?.id ?? '');
-  const [isPending, startTransition] = useTransition();
+  const [loading, setLoading] = useState(false);
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     if (!selectedPlanId) {
       toast('Selecciona un plan', { type: 'error' });
       return;
     }
 
-    startTransition(async () => {
-      try {
-        await subscribeToPlan(selectedPlanId);
-        toast('Ritual activado', { type: 'success' });
-      } catch (error) {
-        toast(error instanceof Error ? error.message : 'No se pudo activar', { type: 'error' });
+    setLoading(true);
+
+    try {
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        toast('Debes iniciar sesión para activar el ritual', { type: 'error' });
+        setLoading(false);
+        return;
       }
-    });
+
+      const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
+      const returnUrl = `${window.location.origin}/perfil/ritual/resultado`;
+
+      const res = await fetch(`${NUCLEO_URL}/api/subscriptions/checkout/init`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ planId: selectedPlanId, returnUrl }),
+      });
+
+      const json = (await res.json()) as {
+        url?: string;
+        token?: string;
+        buyOrder?: string;
+        provider?: string;
+        message?: string;
+        code?: string;
+      };
+
+      if (!res.ok) {
+        toast(json.message ? friendlyApiError(undefined, json.message) : 'No se pudo iniciar el pago', {
+          type: 'error',
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (!json.url || !json.token) {
+        toast('No se pudo iniciar el pago', { type: 'error' });
+        setLoading(false);
+        return;
+      }
+
+      sessionStorage.setItem(
+        'oyz_pending_subscription',
+        JSON.stringify({
+          buyOrder: json.buyOrder,
+          provider: json.provider,
+        }),
+      );
+
+      if (json.provider === 'flow' && json.url) {
+        window.location.href = `${json.url}?token=${json.token}`;
+      } else if (json.url && json.token) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = json.url;
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = 'token_ws';
+        tokenInput.value = json.token;
+        form.appendChild(tokenInput);
+        document.body.appendChild(form);
+        form.submit();
+      }
+    } catch {
+      toast('Error de conexión. Intenta de nuevo.', { type: 'error' });
+      setLoading(false);
+    }
   };
 
   const nextDate = subscription?.current_period_end
@@ -117,11 +182,11 @@ export function RitualMensualClient({ subscription, plans }: RitualMensualClient
 
               <button
                 type="button"
-                disabled={isPending}
-                onClick={handleSubscribe}
+                disabled={loading}
+                onClick={() => void handleSubscribe()}
                 className="px-12 py-5 bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all flex items-center gap-3 disabled:opacity-50"
               >
-                {isPending ? 'Activando…' : 'Activar Mi Ritual'} <ArrowRight size={16} />
+                {loading ? 'Redirigiendo al pago…' : 'Activar Mi Ritual'} <ArrowRight size={16} />
               </button>
             </>
           )}

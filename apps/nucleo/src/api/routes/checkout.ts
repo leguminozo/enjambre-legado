@@ -9,6 +9,7 @@ import {
 } from "../lib/payments";
 import type { CartLineInput } from "../lib/payments";
 import { fulfillCheckout } from "../lib/payments/checkout-fulfill";
+import { fulfillSubscriptionFromWebhook } from "./subscriptions-checkout";
 import {
   previewCartPricing,
   resolveBuyerPricingContext,
@@ -306,6 +307,14 @@ checkoutRoutes.post("/webhook/flow", async (c) => {
     const buyOrder = result.buyOrder;
     if (!buyOrder) {
       return c.json({ error: 'Falta commerceOrder en respuesta Flow' }, 400);
+    }
+
+    if (buyOrder.startsWith('SUB-')) {
+      const subResult = await fulfillSubscriptionFromWebhook(buyOrder, result.authorizationCode);
+      if (!subResult.ok) {
+        return c.json({ error: subResult.error }, subResult.status ?? 500);
+      }
+      return c.json({ ok: true, status: subResult.status }, 200);
     }
 
     const session = await getCheckoutSession(buyOrder);

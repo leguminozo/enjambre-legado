@@ -93,45 +93,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { plan_id } = parsed.data;
-
-  const { data: plan, error: planError } = await supabase
-    .from('subscription_plans')
-    .select('id, key, frequency')
-    .eq('id', plan_id)
-    .eq('active', true)
-    .single();
-
-  if (planError || !plan) {
-    return NextResponse.json({ error: 'Plan not found' }, { status: 404 });
-  }
-
-  const periodMonths =
-    plan.frequency === 'monthly'
-      ? 1
-      : plan.frequency === 'quarterly'
-        ? 3
-        : 12;
-
-  const periodEnd = new Date();
-  periodEnd.setMonth(periodEnd.getMonth() + periodMonths);
-
-  const { error: subError } = await supabase
-    .from('subscriptions')
-    .insert({
-      user_id: user.id,
-      plan_id,
-      status: 'active',
-      current_period_start: new Date().toISOString(),
-      current_period_end: periodEnd.toISOString(),
-    });
-
-  if (subError) {
-    return NextResponse.json(
-      { error: 'Failed to create subscription' },
-      { status: 500 },
-    );
-  }
-
-  return NextResponse.json({ success: true }, { status: 201 });
+  return NextResponse.json(
+    {
+      error: 'Use subscription checkout',
+      message: 'Las suscripciones requieren pago vía /api/subscriptions/checkout en Núcleo',
+    },
+    { status: 410 },
+  );
 }

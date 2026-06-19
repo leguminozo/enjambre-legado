@@ -153,45 +153,9 @@ export async function getSubscriptionDashboard(): Promise<{
   }
 }
 
-export async function subscribeToPlan(planId: string): Promise<void> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error('Debes iniciar sesión para activar el ritual')
-  }
-
-  const { data: plan, error: planError } = await supabase
-    .from('subscription_plans')
-    .select('id, frequency')
-    .eq('id', planId)
-    .eq('active', true)
-    .single()
-
-  if (planError || !plan) {
-    throw new Error('Plan no encontrado')
-  }
-
-  const periodMonths =
-    plan.frequency === 'monthly' ? 1 : plan.frequency === 'quarterly' ? 3 : 12
-  const periodEnd = new Date()
-  periodEnd.setMonth(periodEnd.getMonth() + periodMonths)
-
-  const { error } = await supabase.from('subscriptions').insert({
-    user_id: user.id,
-    plan_id: planId,
-    status: 'active',
-    current_period_start: new Date().toISOString(),
-    current_period_end: periodEnd.toISOString(),
-  })
-
-  if (error) {
-    throw new Error('No se pudo activar la suscripción')
-  }
-
-  revalidatePath('/perfil/ritual')
+/** @deprecated Use Flow checkout via RitualMensualClient */
+export async function subscribeToPlan(_planId: string): Promise<void> {
+  throw new Error('El ritual requiere pago. Usa el flujo de checkout en la página del ritual.')
 }
 
 export async function getReservasDashboard(): Promise<{
@@ -280,15 +244,21 @@ export async function getReferralDashboard(): Promise<ReferralStats> {
     return { referralUrl: getSiteUrl(), referralCount: 0, referralPurchases: 0 }
   }
 
-  const { count } = await supabase
-    .from('loyalty_transactions')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .eq('action_type', 'referido')
+  const [referralCountResult, purchasesResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('referred_by', user.id),
+    supabase
+      .from('loyalty_transactions')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('action_type', 'referido'),
+  ])
 
   return {
-    referralUrl: `${getSiteUrl()}/registro?ref=${user.id}`,
-    referralCount: count ?? 0,
-    referralPurchases: count ?? 0,
+    referralUrl: `${getSiteUrl()}/register?ref=${user.id}`,
+    referralCount: referralCountResult.count ?? 0,
+    referralPurchases: purchasesResult.count ?? 0,
   }
 }

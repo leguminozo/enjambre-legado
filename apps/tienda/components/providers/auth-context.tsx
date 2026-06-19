@@ -18,7 +18,12 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
-  register: (email: string, password: string, fullName: string) => Promise<{ success: boolean; message?: string }>;
+  register: (
+    email: string,
+    password: string,
+    fullName: string,
+    referrerId?: string,
+  ) => Promise<{ success: boolean; message?: string }>;
   logout: () => Promise<void>;
 };
 
@@ -94,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { success: true, message: undefined };
   }, []);
 
-  const register = useCallback(async (email: string, password: string, fullName: string) => {
+  const register = useCallback(async (email: string, password: string, fullName: string, referrerId?: string) => {
     if (!email?.trim() || !password || !fullName?.trim()) {
       return { success: false, message: 'Completa todos los campos' };
     }
@@ -132,6 +137,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       method: 'POST',
       credentials: 'include',
     }).catch(() => {});
+
+    if (referrerId && referrerId !== authData.user.id) {
+      void fetch('/api/referrals/complete', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ referrerId }),
+      }).catch(() => {});
+    }
 
     return { success: true, message: undefined };
   }, []);

@@ -3,8 +3,8 @@
 import { useAuth } from '@/components/providers/auth-context';
 import { Eye, EyeOff, Lock, Mail, User, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
 import { toast } from '@enjambre/ui';
 
@@ -17,15 +17,35 @@ export function RegisterForm() {
   const [error, setError] = useState('');
   const { register } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const refParam = searchParams.get('ref')?.trim() ?? '';
+
+  useEffect(() => {
+    if (refParam) {
+      sessionStorage.setItem('oyz_ref', refParam);
+    }
+  }, [refParam]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    const result = await register(email, password, fullName);
+    const storedRef = sessionStorage.getItem('oyz_ref')?.trim() || refParam;
+    const referrerId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(storedRef)
+      ? storedRef
+      : undefined;
+
+    const result = await register(email, password, fullName, referrerId);
     if (result.success) {
-      toast('¡Bienvenido al Legado! Revisa tu correo para confirmar tu cuenta y completar el acceso.', { type: 'success', duration: 8000 });
+      sessionStorage.removeItem('oyz_ref');
+      const referralNote = referrerId
+        ? ' Tu invitación quedó vinculada a la colmena.'
+        : '';
+      toast(`¡Bienvenido al Legado! Revisa tu correo para confirmar tu cuenta.${referralNote}`, {
+        type: 'success',
+        duration: 8000,
+      });
       router.push('/');
     } else {
       const msg = result.message || 'Error al crear la cuenta';

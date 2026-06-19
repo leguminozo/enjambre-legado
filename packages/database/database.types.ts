@@ -4920,6 +4920,7 @@ export type Database = {
           full_name: string | null
           id: string
           notification_preferences: Json
+          referred_by: string | null
           role: string
           theme_preference: string
           updated_at: string | null
@@ -4930,6 +4931,7 @@ export type Database = {
           full_name?: string | null
           id: string
           notification_preferences?: Json
+          referred_by?: string | null
           role?: string
           theme_preference?: string
           updated_at?: string | null
@@ -4940,11 +4942,34 @@ export type Database = {
           full_name?: string | null
           id?: string
           notification_preferences?: Json
+          referred_by?: string | null
           role?: string
           theme_preference?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "user_ciclos_balance"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "user_tier_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       proveedores: {
         Row: {
@@ -6397,6 +6422,77 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_checkout_sessions: {
+        Row: {
+          buy_order: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          payment_authorization_code: string | null
+          plan_id: string
+          provider: string
+          session_id: string
+          status: string
+          total: number
+          user_id: string
+        }
+        Insert: {
+          buy_order: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          payment_authorization_code?: string | null
+          plan_id: string
+          provider: string
+          session_id: string
+          status?: string
+          total: number
+          user_id: string
+        }
+        Update: {
+          buy_order?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          payment_authorization_code?: string | null
+          plan_id?: string
+          provider?: string
+          session_id?: string
+          status?: string
+          total?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_checkout_sessions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_checkout_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_checkout_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_ciclos_balance"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "subscription_checkout_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_tier_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       subscription_deliveries: {
         Row: {
           created_at: string | null
@@ -7701,6 +7797,10 @@ export type Database = {
           p_recompensa_id: string
           p_user_id: string
         }
+        Returns: Json
+      }
+      complete_referral_signup: {
+        Args: { p_new_user_id: string; p_referrer_id: string }
         Returns: Json
       }
       crear_qr_producto: {
