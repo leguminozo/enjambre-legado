@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { parseReceipt, getParserById, ALL_PARSERS } from "../domain/receipt-parsers";
 
 describe("ALL_PARSERS", () => {
-  it("has 7 parsers matching providers", () => {
-    expect(ALL_PARSERS).toHaveLength(7);
+  it("has 12 parsers matching providers", () => {
+    expect(ALL_PARSERS).toHaveLength(12);
   });
 
   it("each parser has detect and parse methods", () => {

@@ -3,7 +3,7 @@ import { FileText, Plus, Receipt, Settings2, Calculator, Users, RefreshCw, BookO
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardTab } from "./components/DashboardTab";
 import { FacturaCompraForm } from "./components/FacturaCompraForm";
-import { GastoExtranjeroTab } from "./components/GastoExtranjeroTab";
+import { BandejaFiscalTab } from "./components/BandejaFiscalTab";
 import { SettingsTab } from "./components/SettingsTab";
 import { ImpuestosTab } from "./components/ImpuestosTab";
 import { HonorariosTab } from "./components/HonorariosTab";
@@ -17,7 +17,7 @@ export function SiiDteView() {
   const tabs = [
     { id: "list", label: "Listado DTEs", icon: FileText },
     { id: "manual", label: "Nueva Manual", icon: Plus },
-    { id: "gasto", label: "Desde Recibo", icon: Receipt },
+    { id: "gasto", label: "Bandeja Fiscal", icon: Receipt },
     { id: "rcv", label: "Registro C/V", icon: RefreshCw },
     { id: "honorarios", label: "Honorarios", icon: Users },
     { id: "f29", label: "F29", icon: Calculator },
@@ -49,6 +49,7 @@ export function SiiDteView() {
             return (
               <button
                 key={tab.id}
+                data-testid={`sii-tab-${tab.id}`}
                 onClick={() => setMode(tab.id as SiiMode)}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 whitespace-nowrap ${
                   isActive
@@ -75,7 +76,7 @@ export function SiiDteView() {
           >
             {mode === "list" && <DashboardTab />}
             {mode === "manual" && <FacturaCompraForm onComplete={() => setMode("list")} />}
-            {mode === "gasto" && <GastoExtranjeroTab />}
+            {mode === "gasto" && <BandejaFiscalTab />}
             {mode === "settings" && <SettingsTab />}
             {mode === "f29" && <ImpuestosTab key="f29-tab" initialType="f29" />}
             {mode === "f22" && <ImpuestosTab key="f22-tab" initialType="f22" />}

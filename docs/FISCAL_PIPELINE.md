@@ -226,8 +226,9 @@ No bloquear checkout si emisión falla — job async + alerta.
 | ✅ | `emit-boleta-venta.ts` | Boleta 39 post-checkout |
 | ✅ | `checkout-dte.ts` | `maybeEmitBoletaPostCheckout` |
 | ✅ | `poll-factura-emitida.ts` | Poll boletas `enviado` en cron |
-| ⬜ Ola 2 | `packages/fiscal/` + `63_fiscal_sovereignty.sql` | Cola `sii_document_jobs`, upload PDF |
-| ⬜ Ola 2 | `fiscal-jobs.ts` + Bandeja Fiscal UI | Reemplaza flujo textarea-only |
+| ✅ Ola 2 | `packages/fiscal/` + `63`+`64` migrations | Cola `sii_document_jobs`, upload PDF/imagen, OCR |
+| ✅ Ola 2 | `sii-document-jobs.ts` + `BandejaFiscalTab.tsx` | Async emit (`SII_ASYNC_EMIT`), reintentar |
+| 🟡 Ola 3 | CSV/email, OpenAPI, trazabilidad, checklist | Base API; prod go-live pendiente |
 
 ---
 

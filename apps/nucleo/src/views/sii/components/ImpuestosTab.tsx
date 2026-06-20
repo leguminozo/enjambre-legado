@@ -144,8 +144,10 @@ export function ImpuestosTab({ initialType }: ImpuestosTabProps) {
                   
                   <div className="border-t border-border my-2" />
                   
-                  <F29LineItem label="Crédito facturas nacionales (cod 538)" value={Number(f29Query.data.creditoFacturas ?? 0)} />
-                  <F29LineItem label="Crédito FC digital (cod 519/520)" value={Number(f29Query.data.creditoFacturaCompraDigital ?? 0)} />
+                  <F29LineItem label="Crédito facturas nacionales (cod 503)" value={Number(f29Query.data.creditoFacturas ?? 0)} />
+                  <F29LineItem label="Cantidad FC46 digitales (cod 519)" value={Number(f29Query.data.cantidadDocsDigital ?? 0)} integer />
+                  <F29LineItem label="Monto neto digital (cod 520)" value={Number(f29Query.data.montoNetoDigital ?? 0)} />
+                  <F29LineItem label="IVA digital cambio sujeto (cod 511)" value={Number(f29Query.data.creditoFacturaCompraDigital ?? 0)} />
                   <F29LineItem label="Total crédito IVA" value={Number(f29Query.data.totalCredito ?? 0)} />
                   
                   <div className="border-t border-border my-2" />
@@ -168,6 +170,49 @@ export function ImpuestosTab({ initialType }: ImpuestosTabProps) {
                   </div>
                   <F29LineItem label="PPM monto (cod 62)" value={Number(f29Query.data.ppmMonto ?? 0)} highlight />
                 </div>
+
+                {Array.isArray(f29Query.data.fc46Aceptadas) && f29Query.data.fc46Aceptadas.length > 0 && (
+                  <div className="mt-6 space-y-3">
+                    <h3 className="text-sm font-semibold text-foreground">
+                      FC46 aceptadas en el período ({f29Query.data.fc46Aceptadas.length})
+                    </h3>
+                    <div className="rounded-xl border border-border overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-surface-sunken text-xs text-muted-foreground">
+                          <tr>
+                            <th className="text-left px-3 py-2">Folio</th>
+                            <th className="text-left px-3 py-2">Proveedor</th>
+                            <th className="text-right px-3 py-2">Neto/Exento</th>
+                            <th className="text-right px-3 py-2">IVA</th>
+                            <th className="text-right px-3 py-2">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {(f29Query.data.fc46Aceptadas as Array<{
+                            folio: number;
+                            proveedor: string;
+                            montoNeto: number;
+                            montoExento: number;
+                            montoIva: number;
+                            montoTotal: number;
+                          }>).map((fc) => (
+                            <tr key={fc.folio} className="text-foreground">
+                              <td className="px-3 py-2 font-mono">{fc.folio}</td>
+                              <td className="px-3 py-2 truncate max-w-[140px]">{fc.proveedor}</td>
+                              <td className="px-3 py-2 text-right font-mono">
+                                {formatCurrency(fc.montoNeto + fc.montoExento)}
+                              </td>
+                              <td className="px-3 py-2 text-right font-mono">{formatCurrency(fc.montoIva)}</td>
+                              <td className="px-3 py-2 text-right font-mono font-medium">
+                                {formatCurrency(fc.montoTotal)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-6 flex items-center gap-3">
                   <Button
@@ -265,13 +310,27 @@ export function ImpuestosTab({ initialType }: ImpuestosTabProps) {
   );
 }
 
-function F29LineItem({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+function F29LineItem({
+  label,
+  value,
+  highlight,
+  integer,
+}: {
+  label: string;
+  value: number;
+  highlight?: boolean;
+  integer?: boolean;
+}) {
   const isNegative = value < 0;
+  const display = integer
+    ? String(Math.round(value))
+    : (isNegative ? "-" : "") + formatCurrency(Math.abs(value));
+
   return (
     <div className={`flex justify-between items-center py-2 ${highlight ? "font-bold text-foreground" : "text-sm text-muted-foreground"}`}>
       <span className={highlight ? "" : "text-muted-foreground"}>{label}</span>
       <span className={`${highlight ? "text-foreground text-base" : "text-foreground font-mono"} ${highlight && value > 0 ? "text-primary" : ""}`}>
-        {(isNegative ? "-" : "") + formatCurrency(Math.abs(value))}
+        {display}
       </span>
     </div>
   );

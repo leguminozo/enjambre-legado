@@ -1,7 +1,10 @@
 import { createAuthMiddleware } from "@enjambre/auth/middleware";
 
+const e2ePublicRoutes =
+  process.env.E2E_SKIP_AUTH === "1" ? ["/sii"] as const : [];
+
 export const middleware = createAuthMiddleware({
-  publicRoutes: ["/", "/login"],
+  publicRoutes: ["/", "/login", ...e2ePublicRoutes],
   authRedirect: "/login",
   defaultRole: "admin",
 });

@@ -13,12 +13,15 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "lint": "eslint ."
   },
   "dependencies": {
     "@enjambre/auth": "workspace:*",
     "@enjambre/banco-chile": "workspace:*",
     "@enjambre/contable": "workspace:*",
+    "@enjambre/fiscal": "workspace:*",
     "@enjambre/pricing": "workspace:*",
     "@enjambre/database": "workspace:*",
     "@enjambre/sumup": "workspace:*",
@@ -58,6 +61,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.15",

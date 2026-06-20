@@ -263,23 +263,22 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ---
 
-### D66. Pipeline fiscal Ola 1 — cableado parcial (EN PROGRESO — P0 Jun 2026)
+### D66. Pipeline fiscal — soberanía Ola 1–3 (EN PROGRESO — P0 Jun 2026)
 
 **Problema**: Gastos extranjeros tenían parse/facturar desconectados de emisión SII, poll usaba solo `SII_P12_PASSWORD`, RCV no se disparaba post-aceptación, y duplicación de lógica en `facturas.ts` / `rcv.ts`.
 
-**Estado**: RESUELTO — Ola 1 S1.1–S1.6 completada (Jun 2026) —
-- Módulos `apps/nucleo/src/api/lib/fiscal/*` + `POST /gastos-extranjero/procesar`
-- `poll-factura-compra.ts` usa `resolveSiiCredentials` (fix seguridad vs `poll-sii` legacy)
-- Cron `/api/cron/fiscal` + worker `processPendingSiiPolls`
-- UI `GastoExtranjeroTab` → pipeline 1-click
-- Tests: `caf-guard.test.ts`, `gasto-idempotency.test.ts`, `caf-alert-worker.test.ts`, `cron/fiscal/route.test.ts`
-- S1.4: `monitorCafFolios` + `notifyCafLowFolios` (email owner/contador/empresa)
-- S1.5: `emit-boleta-venta.ts` + `maybeEmitBoletaPostCheckout` en `fulfillCheckout`
-- S1.6: tests integración fiscal (101 tests núcleo): Meta→FC46, checkout→boleta, mock SII
+**Estado**: Ola 1 RESUELTA; Ola 2–3 implementadas en código (Jun 2026) —
+- Ola 1: módulos `apps/nucleo/src/api/lib/fiscal/*`, cron `/api/cron/fiscal`, boleta post-checkout, 101+ tests núcleo
+- Ola 2: `@enjambre/fiscal`, migraciones `63`+`64`, upload PDF/imagen, Bandeja Fiscal UI, 12 parsers, F29 FC46
+- Ola 3: CSV/email ingest, conciliación stats, OpenAPI esqueleto, trazabilidad, checklist certificación
+- P0 fix: migración `64_fiscal_jobs_rls_fix.sql` (INSERT authenticated en `sii_document_jobs`)
+- Emisión async por defecto (`SII_ASYNC_EMIT !== 'false'`), worker actualiza `gastos_extranjeros` al completar job
+- OCR imágenes PNG/JPG/WebP vía `tesseract.js` en `extractTextFromDocument`
 
-**Pendiente Ola 2**:
-- Cola `sii_document_jobs` para emisión async con reintentos
-- Playwright UI bandeja fiscal (opcional; API cubierta por Vitest)
+**Pendiente producción**:
+- `pnpm db:push` + `pnpm db:typegen` (migraciones 63–64 en remoto)
+- Playwright E2E bandeja fiscal (`apps/nucleo/e2e/bandeja-fiscal.spec.ts`)
+- Certificación SII producción (checklist API existe; go-live operativo pendiente)
 
 **Ramificaciones mitigadas**:
 | Área | Antes | Ahora |
@@ -657,4 +656,4 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 | D12 | Sin CI/CD | BAJA | Medio | Medio |
 
 *Actualizar este documento cuando se resuelva un item o se descubra nueva deuda.*
-*Ultima actualizacion: Junio 2026 — D66 pipeline fiscal Ola 1 COMPLETA (S1.1–S1.6)*
+*Ultima actualizacion: Junio 2026 — D66 Ola 1–3 en código; P0 RLS+async+OCR; pendiente db:push remoto*

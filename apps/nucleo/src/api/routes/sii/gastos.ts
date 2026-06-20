@@ -11,6 +11,8 @@ import {
 import type { GastoExtranjeroResult } from "@enjambre/contable";
 import type { AppVariables } from "@/api/lib/middleware";
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from "@/api/lib/ratelimit";
+import { createAdminClient } from "@enjambre/auth/browser";
+import { enqueueSiiDocumentJob, ingestFiscalDocument, loadFiscalDocumentText } from "@enjambre/fiscal";
 import { processGastoExtranjero } from "@/api/lib/fiscal/gasto-pipeline";
 import { createFacturaCompraFromGasto } from "./helpers";
 
@@ -39,13 +41,14 @@ const ProcesarGastoBodySchema = z
   .object({
     gasto: GastoExtranjeroResultSchema.optional(),
     receipt_text: z.string().min(10).optional(),
+    fiscal_document_id: z.string().uuid().optional(),
     proveedor_id: z.string().optional(),
     receipt_raw: z.string().optional(),
     emit_to_sii: z.boolean().optional(),
     sync_rcv: z.boolean().optional(),
   })
-  .refine((body) => body.gasto || body.receipt_text, {
-    message: "gasto o receipt_text es requerido",
+  .refine((body) => body.gasto || body.receipt_text || body.fiscal_document_id, {
+    message: "gasto, receipt_text o fiscal_document_id es requerido",
   });
 
 async function rateLimitMiddleware(
@@ -115,6 +118,80 @@ gastosRoutes.post("/parse", async (c) => {
   }
 });
 
+gastosRoutes.post("/upload", async (c) => {
+  const rateLimitResult = await rateLimitMiddleware(c, RATE_LIMIT_CONFIGS.api);
+  if (rateLimitResult) return rateLimitResult;
+
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+
+  const body = await c.req.parseBody();
+  const file = body.file;
+
+  if (!file || typeof file === "string") {
+    return c.json({ code: "missing_file", message: "Archivo file es requerido (multipart/form-data)" }, 400);
+  }
+
+  const uploadFile = file as File;
+  const buffer = Buffer.from(await uploadFile.arrayBuffer());
+  const mimeType = uploadFile.type || "application/octet-stream";
+
+  const result = await ingestFiscalDocument(supabase, empresaId, {
+    buffer,
+    mimeType,
+    fileName: uploadFile.name,
+  });
+
+  if (!result.ok) {
+    const status =
+      result.code === "unsupported_mime" || result.code === "file_too_large" ? 400 : 500;
+    return c.json({ code: result.code, message: result.message }, status);
+  }
+
+  return c.json(
+    {
+      data: {
+        id: result.document.id,
+        sha256: result.document.sha256,
+        mime_type: result.document.mime_type,
+        storage_path: result.document.storage_path,
+        proveedor_detectado: result.document.proveedor_detectado,
+        extracted_text: result.extractedText,
+        already_exists: result.alreadyExists,
+      },
+    },
+    result.alreadyExists ? 200 : 201,
+  );
+});
+
+gastosRoutes.get("/bandeja", async (c) => {
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+
+  const limite = Math.min(Number(c.req.query("limit") ?? 50), 200);
+  const offset = Number(c.req.query("offset") ?? 0);
+  const estado = c.req.query("estado");
+
+  let query = supabase
+    .from("gastos_extranjeros")
+    .select("*, fiscal_documents(id, storage_path, mime_type, sha256, proveedor_detectado)")
+    .eq("empresa_id", empresaId)
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limite - 1);
+
+  if (estado) {
+    query = query.eq("estado", estado);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    return c.json({ code: "bandeja_query_failed", message: error.message }, 500);
+  }
+
+  return c.json({ data: data ?? [] });
+});
+
 gastosRoutes.post(
   "/procesar",
   zValidator("json", ProcesarGastoBodySchema),
@@ -128,14 +205,33 @@ gastosRoutes.post(
 
     let gasto: GastoExtranjeroResult;
     let receiptRaw = body.receipt_raw;
+    let fiscalDocumentId = body.fiscal_document_id;
+
+    let receiptText = body.receipt_text;
 
     if (body.gasto) {
       gasto = body.gasto;
     } else {
+      if (body.fiscal_document_id && !receiptText) {
+        const docResult = await loadFiscalDocumentText(supabase, empresaId, body.fiscal_document_id);
+        if (!docResult.ok) {
+          const status = docResult.code === "document_not_found" ? 404 : 422;
+          return c.json({ code: docResult.code, message: docResult.message }, status);
+        }
+        fiscalDocumentId = docResult.document.id;
+        receiptText = docResult.text;
+      }
+
+      if (!receiptText) {
+        return c.json(
+          { code: "missing_input", message: "receipt_text o fiscal_document_id con texto extraído es requerido" },
+          400,
+        );
+      }
       const proveedorOverride = body.proveedor_id
         ? PROVEEDORES.find((p) => p.id === body.proveedor_id)
         : undefined;
-      const detectado = detectarProveedor(body.receipt_text!);
+      const detectado = detectarProveedor(receiptText);
 
       try {
         let tasaCambio = 1;
@@ -145,7 +241,7 @@ gastosRoutes.post(
           tasaCambio = await fetchTasaEuro();
         }
 
-        const parsed = parseReceipt(body.receipt_text!, proveedorOverride, tasaCambio);
+        const parsed = parseReceipt(receiptText, proveedorOverride, tasaCambio);
         if (!parsed) {
           return c.json(
             {
@@ -158,7 +254,7 @@ gastosRoutes.post(
         }
 
         gasto = parsed;
-        receiptRaw = receiptRaw ?? body.receipt_text;
+        receiptRaw = receiptRaw ?? receiptText;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Error obteniendo tasa de cambio";
         return c.json({ code: "tasa_cambio_failed", message }, 502);
@@ -168,6 +264,7 @@ gastosRoutes.post(
     const result = await processGastoExtranjero(supabase, empresaId, {
       gasto,
       receiptRaw,
+      fiscalDocumentId,
       emitToSii: body.emit_to_sii ?? true,
       syncRcv: body.sync_rcv ?? true,
     });
@@ -185,6 +282,187 @@ gastosRoutes.post(
     return c.json({ data: result }, result.alreadyProcessed ? 200 : 201);
   },
 );
+
+gastosRoutes.post("/ingest-email", async (c) => {
+  const rateLimitResult = await rateLimitMiddleware(c, RATE_LIMIT_CONFIGS.api);
+  if (rateLimitResult) return rateLimitResult;
+
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+
+  const body = await c.req.json<{
+    from?: string;
+    subject?: string;
+    body_text: string;
+    emit_to_sii?: boolean;
+  }>();
+
+  if (!body.body_text || body.body_text.length < 10) {
+    return c.json({ code: "missing_body", message: "body_text es requerido" }, 400);
+  }
+
+  const receiptText = [body.subject, body.body_text].filter(Boolean).join("\n\n");
+  const detectado = detectarProveedor(receiptText);
+
+  try {
+    let tasaCambio = 1;
+    if (detectado?.moneda === "USD") tasaCambio = await fetchTasaDolar();
+    else if (detectado?.moneda === "EUR") tasaCambio = await fetchTasaEuro();
+
+    const parsed = parseReceipt(receiptText, undefined, tasaCambio);
+    if (!parsed) {
+      return c.json({ code: "receipt_parse_failed", message: "No se pudo parsear el email" }, 422);
+    }
+
+    const result = await processGastoExtranjero(supabase, empresaId, {
+      gasto: parsed,
+      receiptRaw: receiptText,
+      emitToSii: body.emit_to_sii ?? false,
+      syncRcv: false,
+    });
+
+    if (!result.ok) {
+      return c.json({ code: result.code, message: result.message }, 400);
+    }
+
+    return c.json({ data: result }, 201);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Error procesando email";
+    return c.json({ code: "ingest_email_failed", message }, 500);
+  }
+});
+
+gastosRoutes.post("/import-csv", async (c) => {
+  const rateLimitResult = await rateLimitMiddleware(c, RATE_LIMIT_CONFIGS.api);
+  if (rateLimitResult) return rateLimitResult;
+
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+
+  const body = await c.req.json<{ csv_text: string; emit_to_sii?: boolean }>();
+  if (!body.csv_text?.trim()) {
+    return c.json({ code: "missing_csv", message: "csv_text es requerido" }, 400);
+  }
+
+  const lines = body.csv_text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l.length >= 10 && !l.toLowerCase().startsWith("proveedor"));
+
+  const results: Array<{ line: number; ok: boolean; gastoId?: string; error?: string }> = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const commaIdx = line.indexOf(",");
+    let proveedorId: string | undefined;
+    let receiptText = line;
+
+    if (commaIdx > 0 && commaIdx < 40) {
+      const maybeProveedor = line.slice(0, commaIdx).trim();
+      if (PROVEEDORES.some((p) => p.id === maybeProveedor)) {
+        proveedorId = maybeProveedor;
+        receiptText = line.slice(commaIdx + 1).trim();
+      }
+    }
+
+    try {
+      const proveedorOverride = proveedorId
+        ? PROVEEDORES.find((p) => p.id === proveedorId)
+        : undefined;
+      const detectado = detectarProveedor(receiptText);
+
+      let tasaCambio = 1;
+      if (detectado?.moneda === "USD" || proveedorOverride?.moneda === "USD") {
+        tasaCambio = await fetchTasaDolar();
+      } else if (detectado?.moneda === "EUR" || proveedorOverride?.moneda === "EUR") {
+        tasaCambio = await fetchTasaEuro();
+      }
+
+      const parsed = parseReceipt(receiptText, proveedorOverride, tasaCambio);
+      if (!parsed) {
+        results.push({ line: i + 1, ok: false, error: "parse_failed" });
+        continue;
+      }
+
+      const processed = await processGastoExtranjero(supabase, empresaId, {
+        gasto: parsed,
+        receiptRaw: receiptText,
+        emitToSii: body.emit_to_sii ?? true,
+        syncRcv: false,
+      });
+
+      if (!processed.ok) {
+        results.push({ line: i + 1, ok: false, error: processed.message });
+        continue;
+      }
+
+      results.push({ line: i + 1, ok: true, gastoId: processed.gastoId });
+    } catch (err) {
+      results.push({
+        line: i + 1,
+        ok: false,
+        error: err instanceof Error ? err.message : "Error",
+      });
+    }
+  }
+
+  const okCount = results.filter((r) => r.ok).length;
+  return c.json(
+    {
+      data: {
+        total: lines.length,
+        exitosos: okCount,
+        fallidos: lines.length - okCount,
+        results,
+      },
+    },
+    201,
+  );
+});
+
+gastosRoutes.post("/procesar/:id/reintentar", async (c) => {
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+  const gastoId = c.req.param("id");
+
+  const { data: gasto, error } = await supabase
+    .from("gastos_extranjeros")
+    .select("id, factura_compra_id, estado")
+    .eq("id", gastoId)
+    .eq("empresa_id", empresaId)
+    .single();
+
+  if (error || !gasto?.factura_compra_id) {
+    return c.json({ code: "not_found", message: "Gasto sin factura de compra para reintentar" }, 404);
+  }
+
+  if (!["facturado", "rechazado_sii", "enviado_sii"].includes(gasto.estado)) {
+    return c.json(
+      { code: "invalid_state", message: `Estado ${gasto.estado} no admite reintento` },
+      400,
+    );
+  }
+
+  const jobInput = {
+    empresaId,
+    sourceType: "gasto_extranjero" as const,
+    sourceId: gastoId,
+    tipoDte: 46,
+    idempotencyKey: `retry-fc46-${gasto.factura_compra_id}-${Date.now()}`,
+    payload: { facturaCompraId: gasto.factura_compra_id },
+  };
+
+  let job = await enqueueSiiDocumentJob(supabase, jobInput);
+  if (!job.ok) {
+    job = await enqueueSiiDocumentJob(createAdminClient(), jobInput);
+  }
+
+  if (!job.ok) {
+    return c.json({ code: "enqueue_failed", message: job.error }, 500);
+  }
+
+  return c.json({ data: { jobId: job.id, gastoId, facturaCompraId: gasto.factura_compra_id } }, 202);
+});
 
 gastosRoutes.post("/facturar", async (c) => {
   const empresaId = c.get("empresaId");

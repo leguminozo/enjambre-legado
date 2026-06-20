@@ -16,7 +16,7 @@ export function useApiFetch() {
     const headers = new Headers(init?.headers)
     if (token) headers.set('Authorization', `Bearer ${token}`)
     if (empresaId) headers.set('x-empresa-id', empresaId)
-    if (!headers.has('Content-Type') && init?.body) {
+    if (!headers.has('Content-Type') && init?.body && !(init.body instanceof FormData)) {
       headers.set('Content-Type', 'application/json')
     }
 

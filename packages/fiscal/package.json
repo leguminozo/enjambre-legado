@@ -1,0 +1,25 @@
+{
+  "name": "@enjambre/fiscal",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc --watch -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@enjambre/contable": "workspace:*",
+    "pdf-parse": "^1.1.1",
+    "tesseract.js": "^6.0.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/pdf-parse": "^1.1.4",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.8"
+  }
+}

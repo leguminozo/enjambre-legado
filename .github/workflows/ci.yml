@@ -28,6 +28,9 @@ jobs:
       - name: Test contable
         run: pnpm --filter @enjambre/contable test
 
+      - name: Test fiscal
+        run: pnpm --filter @enjambre/fiscal test
+
       - name: Test pricing
         run: pnpm --filter @enjambre/pricing test
 

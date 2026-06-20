@@ -1,5 +1,5 @@
 import React from "react";
-import { Clock, Send, CheckCircle2, AlertCircle, Car, Globe } from "lucide-react";
+import { Clock, Send, CheckCircle2, AlertCircle, Car, Globe, FileText } from "lucide-react";
 
 export type FacturaCompraRow = {
   id: string;
@@ -41,6 +41,47 @@ export type GastoParseado = {
   numeroDocumento: string;
   concepto: string;
   detalle: string;
+};
+
+export type GastoExtranjeroEstado =
+  | "parseado"
+  | "facturado"
+  | "enviado_sii"
+  | "aceptado_sii"
+  | "rechazado_sii";
+
+export type BandejaGastoRow = {
+  id: string;
+  proveedor_id: string;
+  proveedor_nombre: string;
+  proveedor_rut: string;
+  monto_total: number;
+  monto_clp: number;
+  moneda_original: string;
+  fecha_emision: string;
+  numero_documento: string | null;
+  concepto: string;
+  estado: GastoExtranjeroEstado;
+  factura_compra_id: string | null;
+  fiscal_document_id: string | null;
+  created_at: string;
+  fiscal_documents: {
+    id: string;
+    storage_path: string;
+    mime_type: string;
+    sha256: string;
+    proveedor_detectado: string | null;
+  } | null;
+};
+
+export type FiscalUploadResult = {
+  id: string;
+  sha256: string;
+  mime_type: string;
+  storage_path: string;
+  proveedor_detectado: string | null;
+  extracted_text: string | null;
+  already_exists: boolean;
 };
 
 export type ProveedorInfo = {
@@ -92,6 +133,24 @@ export type RcvRegistroRow = {
   reconciliado: boolean;
 };
 
+export function gastoEstadoBadge(estado: GastoExtranjeroEstado | string) {
+  const map: Record<string, { icon: React.ReactNode; className: string; label: string }> = {
+    parseado: { icon: React.createElement(Clock, { size: 14 }), className: "bg-surface-raised text-muted-foreground border-border", label: "Parseado" },
+    facturado: { icon: React.createElement(FileText, { size: 14 }), className: "bg-primary/10 text-primary border-primary/20", label: "Facturado" },
+    enviado_sii: { icon: React.createElement(Send, { size: 14 }), className: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20", label: "Enviado SII" },
+    aceptado_sii: { icon: React.createElement(CheckCircle2, { size: 14 }), className: "bg-primary/10 text-primary border-primary/20", label: "Aceptado SII" },
+    rechazado_sii: { icon: React.createElement(AlertCircle, { size: 14 }), className: "bg-destructive/10 text-destructive border-destructive/20", label: "Rechazado SII" },
+  };
+  const cfg = map[estado] ?? map.parseado;
+  return React.createElement(
+    "span",
+    { className: `inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${cfg.className}` },
+    cfg.icon,
+    " ",
+    cfg.label,
+  );
+}
+
 export function estadoBadge(estado: string) {
   const map: Record<string, { icon: React.ReactNode; className: string }> = {
     pendiente: { icon: React.createElement(Clock, { size: 14 }), className: "bg-primary/10 text-primary border-primary/20" },
@@ -128,6 +187,11 @@ export function sourceBadge(sourceType: string | null) {
     aws: "AWS",
     shopify: "Shopify",
     stripe: "Stripe",
+    openai: "OpenAI",
+    "google-workspace": "Workspace",
+    vercel: "Vercel",
+    notion: "Notion",
+    canva: "Canva",
   };
   const icon = icons[sourceType];
   const label = labels[sourceType] ?? sourceType;

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import {
+  buildF29Detalle,
   calcularF22,
   calcularF29,
   calcularPPM,
@@ -7,12 +8,19 @@ import {
 } from "@enjambre/contable";
 import type { F22Input, F29Input, EmpresaRegimen } from "@enjambre/contable";
 import type { AppVariables } from "@/api/lib/middleware";
-import type { Database } from "@enjambre/database/database.types";
 
 export const impuestosRoutes = new Hono<{ Variables: AppVariables }>();
 
+export function periodoFechaRango(anio: number, mes: number): { desde: string; hastaExclusive: string } {
+  const desde = `${anio}-${String(mes).padStart(2, "0")}-01`;
+  const nextMes = mes === 12 ? 1 : mes + 1;
+  const nextAnio = mes === 12 ? anio + 1 : anio;
+  const hastaExclusive = `${nextAnio}-${String(nextMes).padStart(2, "0")}-01`;
+  return { desde, hastaExclusive };
+}
+
 export async function obtenerF29Interno(
-  supabase: AppVariables['supabase'],
+  supabase: AppVariables["supabase"],
   empresaId: string,
   anio: number,
   mes: number,
@@ -39,8 +47,9 @@ export async function obtenerF29Interno(
     .eq("mes", mes)
     .maybeSingle();
 
-  // Supabase typed properly now
-  const [facturasRes, gastosRes, honorariosRes, gastosDigitalesRes] = await Promise.all([
+  const { desde, hastaExclusive } = periodoFechaRango(anio, mes);
+
+  const [facturasRes, gastosRes, honorariosRes, fc46Res] = await Promise.all([
     supabase
       .from("facturas_emitidas")
       .select("monto_neto, monto_iva, monto_total, tipo_documento")
@@ -58,18 +67,26 @@ export async function obtenerF29Interno(
       .eq("periodo_id", periodo?.id ?? ""),
     supabase
       .from("facturas_compra")
-      .select("monto_iva")
+      .select("id, folio, receptor_razon_social, monto_neto, monto_exento, monto_iva, monto_total, source_type")
       .eq("empresa_id", empresaId)
+      .eq("tipo_dte", 46)
       .eq("estado_sii", "aceptado")
-      .eq("source_type", "manual")
-      .gte("fecha_emision", `${anio}-${String(mes).padStart(2, "0")}-01`)
-      .lt("fecha_emision", `${anio}-${String(mes + 1).padStart(2, "0")}-01`),
+      .gte("fecha_emision", desde)
+      .lt("fecha_emision", hastaExclusive),
   ]);
 
   const facturas = facturasRes.data ?? [];
   const gastos = gastosRes.data ?? [];
   const honorarios = honorariosRes.data ?? [];
-  const gastosDigitales = gastosDigitalesRes.data ?? [];
+  const fc46Aceptadas = (fc46Res.data ?? []).map((row) => ({
+    id: String(row.id),
+    folio: Number(row.folio),
+    proveedor: String(row.receptor_razon_social ?? "Proveedor extranjero"),
+    montoNeto: Number(row.monto_neto ?? 0),
+    montoExento: Number(row.monto_exento ?? 0),
+    montoIva: Number(row.monto_iva ?? 0),
+    montoTotal: Number(row.monto_total ?? 0),
+  }));
 
   const debitoFacturas = facturas
     .filter((f) => String(f.tipo_documento ?? "Factura") === "Factura")
@@ -78,7 +95,14 @@ export async function obtenerF29Interno(
     .filter((f) => ["Boleta", "Boleta Exenta"].includes(String(f.tipo_documento ?? "")))
     .reduce((a, f) => a + Number(f.monto_iva ?? 0), 0);
   const creditoCompras = gastos.reduce((a, g) => a + Number(g.monto_iva ?? 0), 0);
-  const creditoDigital = gastosDigitales.reduce((a, g) => a + Number(g.monto_iva ?? 0), 0);
+
+  const creditoDigital = fc46Aceptadas.reduce((a, fc) => a + fc.montoIva, 0);
+  const montoNetoDigital = fc46Aceptadas.reduce(
+    (a, fc) => a + fc.montoNeto + fc.montoExento,
+    0,
+  );
+  const cantidadDocsDigital = fc46Aceptadas.length;
+
   const retencionHonorarios = honorarios.reduce((a, h) => a + Number(h.monto_retencion ?? 0), 0);
   const ingresosBrutos = facturas.reduce((a, f) => a + Number(f.monto_total ?? 0), 0);
 
@@ -103,6 +127,8 @@ export async function obtenerF29Interno(
     debitoNotasDebito: 0,
     creditoFacturasNacionales: creditoCompras,
     creditoFacturaCompraDigital: creditoDigital,
+    cantidadDocsDigital,
+    montoNetoDigital,
     remanenteCFAnteriorReajustado: Number(periodo?.remanente_cf_anterior ?? 0),
     retencionHonorarios,
     ppmBase: ppmResult.baseCalculo,
@@ -110,7 +136,8 @@ export async function obtenerF29Interno(
     ppmMonto: ppmResult.monto,
   };
 
-  return calcularF29(f29Input);
+  const resultado = calcularF29(f29Input);
+  return buildF29Detalle(f29Input, resultado, fc46Aceptadas);
 }
 
 impuestosRoutes.get("/f29/:anio/:mes", async (c) => {
@@ -180,7 +207,7 @@ impuestosRoutes.post("/f29/:anio/:mes/guardar", async (c) => {
         periodo_id: periodoId,
         anio,
         mes,
-        lineas: f29Data as any,
+        lineas: f29Data as unknown as Record<string, unknown>,
         iva_pagar: Number(f29Data.ivaPagar ?? 0),
         remanente_proximo_periodo: Number(f29Data.remanenteProximoPeriodo ?? 0),
         ppm_determinado: Number(f29Data.ppmDeterminado ?? 0),

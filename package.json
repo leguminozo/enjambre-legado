@@ -5,7 +5,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "pnpm --filter @enjambre/contable test && pnpm --filter @enjambre/pricing test && pnpm --filter @enjambre/auth test && pnpm --filter @enjambre/nucleo test && pnpm --filter @enjambre/tienda test",
+    "test": "pnpm --filter @enjambre/contable test && pnpm --filter @enjambre/fiscal test && pnpm --filter @enjambre/pricing test && pnpm --filter @enjambre/auth test && pnpm --filter @enjambre/nucleo test && pnpm --filter @enjambre/tienda test",
+    "test:e2e:nucleo": "pnpm --filter @enjambre/nucleo test:e2e",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
@@ -26,6 +27,9 @@
     "pnpm": ">=9"
   },
   "packageManager": "pnpm@10.32.1",
+  "pnpm": {
+    "onlyBuiltDependencies": ["tesseract.js"]
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/leaflet": "^1.9.21",

@@ -18,11 +18,40 @@ debitoBoletasAfectas: number;
 debitoNotasDebito: number;
 creditoFacturasNacionales: number;
 creditoFacturaCompraDigital: number;
+cantidadDocsDigital?: number;
+montoNetoDigital?: number;
 remanenteCFAnteriorReajustado: number;
 retencionHonorarios: number;
 ppmBase: number;
 ppmTasa: number;
 ppmMonto: number;
+}
+
+export interface F29Detalle extends F29Resultado {
+debitoFacturas: number;
+debitoBoletas: number;
+totalDebito: number;
+creditoFacturas: number;
+creditoFacturaCompraDigital: number;
+cantidadDocsDigital: number;
+montoNetoDigital: number;
+totalCredito: number;
+remanenteCFAnteriorReajustado: number;
+remanenteCFPeriodo: number;
+remanenteCFSiguiente: number;
+retencionHonorarios: number;
+ppmBase: number;
+ppmTasa: number;
+ppmMonto: number;
+fc46Aceptadas: Array<{
+  id: string;
+  folio: number;
+  proveedor: string;
+  montoNeto: number;
+  montoExento: number;
+  montoIva: number;
+  montoTotal: number;
+}>;
 }
 
 export const F29_CODIGO = {
@@ -58,9 +87,14 @@ const remanenteProximoPeriodo = Math.max(0, totalCreditos - totalDebitos);
 
 const totalPagar = ivaPagar + input.retencionHonorarios + input.ppmMonto;
 
-const montoNetoDigital = input.creditoFacturaCompraDigital > 0
-? Math.round(input.creditoFacturaCompraDigital / 0.19)
-: 0;
+const montoNetoDigital =
+  input.montoNetoDigital != null && input.montoNetoDigital > 0
+    ? input.montoNetoDigital
+    : input.creditoFacturaCompraDigital > 0
+      ? Math.round(input.creditoFacturaCompraDigital / 0.19)
+      : 0;
+
+const cantidadDocsDigital = input.cantidadDocsDigital ?? 0;
 
 const lineas: F29Linea[] = [
 {
@@ -91,7 +125,7 @@ monto: input.creditoFacturasNacionales,
 {
 codigo: F29_CODIGO.CANTIDAD_DOCS_DIGITAL,
 descripcion: "Cantidad documentos servicios digitales extranjeros (cambio sujeto)",
-monto: 0,
+monto: cantidadDocsDigital,
 },
 {
 codigo: F29_CODIGO.MONTO_NETO_DIGITAL,
@@ -152,4 +186,44 @@ remanenteProximoPeriodo,
 ppmDeterminado: input.ppmMonto,
 totalPagar,
 };
+}
+
+export function buildF29Detalle(
+  input: F29Input,
+  resultado: F29Resultado,
+  fc46Aceptadas: F29Detalle["fc46Aceptadas"] = [],
+): F29Detalle {
+  const totalDebito =
+    input.debitoFacturas + input.debitoBoletasAfectas + input.debitoNotasDebito;
+  const totalCredito =
+    input.creditoFacturasNacionales +
+    input.creditoFacturaCompraDigital +
+    input.remanenteCFAnteriorReajustado;
+
+  const montoNetoDigital =
+    input.montoNetoDigital != null && input.montoNetoDigital > 0
+      ? input.montoNetoDigital
+      : input.creditoFacturaCompraDigital > 0
+        ? Math.round(input.creditoFacturaCompraDigital / 0.19)
+        : 0;
+
+  return {
+    ...resultado,
+    debitoFacturas: input.debitoFacturas,
+    debitoBoletas: input.debitoBoletasAfectas,
+    totalDebito,
+    creditoFacturas: input.creditoFacturasNacionales,
+    creditoFacturaCompraDigital: input.creditoFacturaCompraDigital,
+    cantidadDocsDigital: input.cantidadDocsDigital ?? 0,
+    montoNetoDigital,
+    totalCredito,
+    remanenteCFAnteriorReajustado: input.remanenteCFAnteriorReajustado,
+    remanenteCFPeriodo: resultado.remanenteProximoPeriodo,
+    remanenteCFSiguiente: resultado.remanenteProximoPeriodo,
+    retencionHonorarios: input.retencionHonorarios,
+    ppmBase: input.ppmBase,
+    ppmTasa: input.ppmTasa,
+    ppmMonto: input.ppmMonto,
+    fc46Aceptadas,
+  };
 }

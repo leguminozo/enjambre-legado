@@ -14,12 +14,7 @@ const DTE_TIPO_LABELS: Record<number, string> = {
   61: 'Nota de Credito',
 };
 
-export function periodoFromFecha(fecha: string): string {
-  const normalized = fecha.slice(0, 10);
-  const [year, month] = normalized.split('-');
-  if (!year || !month) throw new Error(`Fecha inválida para período RCV: ${fecha}`);
-  return `${year}${month}`;
-}
+export { periodoFromFecha } from '@enjambre/fiscal';
 
 async function reconciliarRcv(
   supabase: SupabaseClient,

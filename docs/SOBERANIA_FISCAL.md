@@ -321,22 +321,22 @@ Banco Chile ──────► movimiento ────► conciliación ─�
 
 | ID | Entrega | DoD |
 |----|---------|-----|
-| S2.1 | Package `@enjambre/fiscal` + migración 63 | Pipeline en package |
-| S2.2 | Upload PDF + `fiscal_documents` | Storage RLS |
-| S2.3 | `POST /procesar` unificado | Estados completos |
-| S2.4 | Bandeja Fiscal UI | Reemplaza flujo textarea-only |
-| S2.5 | +5 parsers (OpenAI, Google Workspace, Vercel, Notion, Canva) | Tests cada uno |
-| S2.6 | F29 líneas desde FC aceptadas | Vista impuestos coherente |
+| S2.1 | Package `@enjambre/fiscal` + migración 63–64 | ✅ Pipeline en package; RLS jobs fix |
+| S2.2 | Upload PDF/imagen + `fiscal_documents` | ✅ Storage RLS; OCR tesseract |
+| S2.3 | `POST /procesar` unificado | ✅ `fiscal_document_id` + estados |
+| S2.4 | Bandeja Fiscal UI | ✅ Reemplaza textarea-only |
+| S2.5 | +5 parsers (OpenAI, Google Workspace, Vercel, Notion, Canva) | ✅ 12 proveedores total |
+| S2.6 | F29 líneas desde FC aceptadas | ✅ `impuestos.ts` + `ImpuestosTab` |
 
 ### Ola 3 — Escala marca (4–6 semanas)
 
 | ID | Entrega | DoD |
 |----|---------|-----|
-| S3.1 | Ingesta email + bulk CSV | |
-| S3.2 | Conciliación banco auto ≥90% match | |
-| S3.3 | API pública documentada (OpenAPI) para partners | Sin Wasabil — **nuestra** API |
-| S3.4 | Trazabilidad QR → lote → DTE venta | Diferenciador export |
-| S3.5 | Certificación SII producción checklist | Go-live fiscal |
+| S3.1 | Ingesta email + bulk CSV | ✅ `import-csv` + `ingest-email` |
+| S3.2 | Conciliación banco auto ≥90% match | 🟡 Métricas API; match auto en progreso |
+| S3.3 | API pública documentada (OpenAPI) para partners | 🟡 Esqueleto `/api/sii/openapi/json` |
+| S3.4 | Trazabilidad QR → lote → DTE venta | 🟡 `GET /trazabilidad/:codigo` |
+| S3.5 | Certificación SII producción checklist | 🟡 Checklist API; go-live pendiente |
 
 ---
 
@@ -373,9 +373,9 @@ Ver entrada en [`DECISIONS.md`](./DECISIONS.md): **Soberanía fiscal — sin fac
 
 ## 14. Próximo paso inmediato
 
-1. Aprobar este documento como **fuente de verdad producto fiscal**.
-2. Ejecutar **Ola 1** (cablear lo existente antes de OCR/upload).
-3. Abrir migración `63_fiscal_sovereignty.sql` cuando Ola 2 arranque.
+1. Aplicar migraciones `63`+`64` en remoto (`pnpm db:push && pnpm db:typegen`).
+2. Validar Bandeja Fiscal en staging con `SII_ASYNC_EMIT` (default async).
+3. Cerrar certificación SII producción (S3.5) y Playwright E2E bandeja.
 
 ---
 

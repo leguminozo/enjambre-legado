@@ -3305,6 +3305,57 @@ export type Database = {
           },
         ]
       }
+      fiscal_documents: {
+        Row: {
+          created_at: string
+          empresa_id: string
+          extracted_text: string | null
+          gasto_extranjero_id: string | null
+          id: string
+          mime_type: string
+          proveedor_detectado: string | null
+          sha256: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          empresa_id: string
+          extracted_text?: string | null
+          gasto_extranjero_id?: string | null
+          id?: string
+          mime_type: string
+          proveedor_detectado?: string | null
+          sha256: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string
+          extracted_text?: string | null
+          gasto_extranjero_id?: string | null
+          id?: string
+          mime_type?: string
+          proveedor_detectado?: string | null
+          sha256?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiscal_documents_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiscal_documents_gasto_extranjero_id_fkey"
+            columns: ["gasto_extranjero_id"]
+            isOneToOne: false
+            referencedRelation: "gastos_extranjeros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gastos: {
         Row: {
           categoria: string
@@ -3396,7 +3447,9 @@ export type Database = {
           estado: string
           factura_compra_id: string | null
           fecha_emision: string
+          fiscal_document_id: string | null
           id: string
+          idempotency_key: string | null
           moneda_original: string
           monto_clp: number
           monto_exento: number
@@ -3408,6 +3461,7 @@ export type Database = {
           proveedor_id: string
           proveedor_nombre: string
           proveedor_rut: string
+          rcv_registro_id: string | null
           receipt_raw: string | null
           tasa_cambio: number
           updated_at: string
@@ -3420,7 +3474,9 @@ export type Database = {
           estado?: string
           factura_compra_id?: string | null
           fecha_emision: string
+          fiscal_document_id?: string | null
           id?: string
+          idempotency_key?: string | null
           moneda_original?: string
           monto_clp: number
           monto_exento?: number
@@ -3432,6 +3488,7 @@ export type Database = {
           proveedor_id: string
           proveedor_nombre: string
           proveedor_rut: string
+          rcv_registro_id?: string | null
           receipt_raw?: string | null
           tasa_cambio?: number
           updated_at?: string
@@ -3444,7 +3501,9 @@ export type Database = {
           estado?: string
           factura_compra_id?: string | null
           fecha_emision?: string
+          fiscal_document_id?: string | null
           id?: string
+          idempotency_key?: string | null
           moneda_original?: string
           monto_clp?: number
           monto_exento?: number
@@ -3456,6 +3515,7 @@ export type Database = {
           proveedor_id?: string
           proveedor_nombre?: string
           proveedor_rut?: string
+          rcv_registro_id?: string | null
           receipt_raw?: string | null
           tasa_cambio?: number
           updated_at?: string
@@ -3473,6 +3533,20 @@ export type Database = {
             columns: ["factura_compra_id"]
             isOneToOne: false
             referencedRelation: "facturas_compra"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_extranjeros_fiscal_document_id_fkey"
+            columns: ["fiscal_document_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_extranjeros_rcv_registro_id_fkey"
+            columns: ["rcv_registro_id"]
+            isOneToOne: false
+            referencedRelation: "rcv_registros"
             referencedColumns: ["id"]
           },
         ]
@@ -6221,6 +6295,65 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "sii_certificados_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sii_document_jobs: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          empresa_id: string
+          id: string
+          idempotency_key: string
+          last_error: string | null
+          payload: Json
+          scheduled_at: string
+          source_id: string
+          source_type: string
+          status: string
+          tipo_dte: number
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          empresa_id: string
+          id?: string
+          idempotency_key: string
+          last_error?: string | null
+          payload?: Json
+          scheduled_at?: string
+          source_id: string
+          source_type: string
+          status?: string
+          tipo_dte: number
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          idempotency_key?: string
+          last_error?: string | null
+          payload?: Json
+          scheduled_at?: string
+          source_id?: string
+          source_type?: string
+          status?: string
+          tipo_dte?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sii_document_jobs_empresa_id_fkey"
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"

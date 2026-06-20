@@ -20,6 +20,7 @@ import { BancoChileClient } from '@enjambre/banco-chile';
 import { bancoChileRouter } from './routes';
 import { conciliacionRouter } from './conciliacion';
 import { conciliacionAutoRoutes } from './conciliacion-auto';
+import { conciliacionStatsRoutes } from './conciliacion-stats';
 import { webhookRouter } from './webhook';
 import { transferenciasRouter } from './transferencias';
 import { nominasRouter } from './nominas';
@@ -209,6 +210,7 @@ bancoChileRoutes.post('/auth', async (c) => {
 bancoChileRoutes.route('', bancoChileRouter);
 bancoChileRoutes.route('/conciliacion', conciliacionRouter);
 bancoChileRoutes.route('/conciliacion-auto', conciliacionAutoRoutes);
+bancoChileRoutes.route('/conciliacion-stats', conciliacionStatsRoutes);
 bancoChileRoutes.route('/webhook', webhookRouter);
 bancoChileRoutes.route('/transferencias', transferenciasRouter);
 bancoChileRoutes.route('/nominas', nominasRouter);

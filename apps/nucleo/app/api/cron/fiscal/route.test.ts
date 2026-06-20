@@ -3,6 +3,7 @@ import { GET } from "./route";
 
 const mockProcessPendingSiiPolls = vi.fn();
 const mockMonitorCafFolios = vi.fn();
+const mockProcessFiscalDocumentJobs = vi.fn();
 
 vi.mock("@/lib/fiscal/pending-poll-worker", () => ({
   processPendingSiiPolls: () => mockProcessPendingSiiPolls(),
@@ -10,6 +11,10 @@ vi.mock("@/lib/fiscal/pending-poll-worker", () => ({
 
 vi.mock("@/lib/fiscal/caf-alert-worker", () => ({
   monitorCafFolios: () => mockMonitorCafFolios(),
+}));
+
+vi.mock("@/lib/fiscal/document-jobs-worker", () => ({
+  processFiscalDocumentJobs: () => mockProcessFiscalDocumentJobs(),
 }));
 
 describe("GET /api/cron/fiscal", () => {
@@ -24,6 +29,12 @@ describe("GET /api/cron/fiscal", () => {
       alertsQueued: 0,
       skipped: 0,
       errors: [],
+    });
+    mockProcessFiscalDocumentJobs.mockResolvedValue({
+      processed: 0,
+      completed: 0,
+      failed: 0,
+      deadLetter: 0,
     });
   });
 

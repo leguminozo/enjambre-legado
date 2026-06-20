@@ -81,6 +81,22 @@ describe("calcularF29", () => {
     expect(result.ivaPagar).toBe(20000);
   });
 
+  it("cantidad y neto digital explicitos desde FC46 aceptadas", () => {
+    const input: F29Input = {
+      ...baseInput,
+      creditoFacturaCompraDigital: 0,
+      cantidadDocsDigital: 3,
+      montoNetoDigital: 300000,
+    };
+    const result = calcularF29(input);
+
+    const cantidad = result.lineas.find((l) => l.codigo === F29_CODIGO.CANTIDAD_DOCS_DIGITAL);
+    const neto = result.lineas.find((l) => l.codigo === F29_CODIGO.MONTO_NETO_DIGITAL);
+
+    expect(cantidad?.monto).toBe(3);
+    expect(neto?.monto).toBe(300000);
+  });
+
   it("IVA digital se incluye como credito en cambio sujeto", () => {
     const input: F29Input = {
       ...baseInput,
