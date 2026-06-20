@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   enqueueTransactionalNotification,
   isShippedStatus,
+  notifyCafLowFolios,
   notifyCheckoutConfirmed,
 } from "./enqueue-transactional";
 import { DEFAULT_NOTIFICATION_PREFERENCES } from "@enjambre/auth/notification-preferences";
@@ -158,5 +159,37 @@ describe("enqueue-transactional", () => {
     const insertArg = queueChain.insert.mock.calls[0]?.[0];
     expect(insertArg.subject).toContain("ORD-ABC");
     expect(insertArg.body).toContain("OYZ-ABC123");
+  });
+
+  it("notifyCafLowFolios uses caf dedupe key and sistema category", async () => {
+    const queueChain = makeChain({ data: null, error: null });
+    const eventsChain = makeChain({ data: null, error: null });
+    const profilesChain = makeChain({
+      data: { notification_preferences: DEFAULT_NOTIFICATION_PREFERENCES },
+      error: null,
+    });
+    const admin = makeAdminMock({
+      notification_queue: () => queueChain,
+      notification_events: () => eventsChain,
+      profiles: () => profilesChain,
+    });
+
+    await notifyCafLowFolios(admin, {
+      empresaId: "emp-1",
+      empresaNombre: "OYZ SpA",
+      tipoDte: 46,
+      foliosRestantes: 12,
+      folioDesde: 1,
+      folioHasta: 100,
+      cafId: "caf-1",
+      email: "fiscal@oyz.cl",
+      userId: "user-1",
+    });
+
+    expect(queueChain.insert).toHaveBeenCalled();
+    const insertArg = queueChain.insert.mock.calls[0]?.[0];
+    expect(insertArg.metadata.dedupe_key).toBe("caf_alert_low:emp-1:46:caf-1");
+    expect(insertArg.metadata.source).toBe("caf_low_folios");
+    expect(insertArg.subject).toContain("12 folios");
   });
 });

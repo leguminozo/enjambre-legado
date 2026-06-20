@@ -263,6 +263,34 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ---
 
+### D66. Pipeline fiscal Ola 1 — cableado parcial (EN PROGRESO — P0 Jun 2026)
+
+**Problema**: Gastos extranjeros tenían parse/facturar desconectados de emisión SII, poll usaba solo `SII_P12_PASSWORD`, RCV no se disparaba post-aceptación, y duplicación de lógica en `facturas.ts` / `rcv.ts`.
+
+**Estado**: RESUELTO — Ola 1 S1.1–S1.6 completada (Jun 2026) —
+- Módulos `apps/nucleo/src/api/lib/fiscal/*` + `POST /gastos-extranjero/procesar`
+- `poll-factura-compra.ts` usa `resolveSiiCredentials` (fix seguridad vs `poll-sii` legacy)
+- Cron `/api/cron/fiscal` + worker `processPendingSiiPolls`
+- UI `GastoExtranjeroTab` → pipeline 1-click
+- Tests: `caf-guard.test.ts`, `gasto-idempotency.test.ts`, `caf-alert-worker.test.ts`, `cron/fiscal/route.test.ts`
+- S1.4: `monitorCafFolios` + `notifyCafLowFolios` (email owner/contador/empresa)
+- S1.5: `emit-boleta-venta.ts` + `maybeEmitBoletaPostCheckout` en `fulfillCheckout`
+- S1.6: tests integración fiscal (101 tests núcleo): Meta→FC46, checkout→boleta, mock SII
+
+**Pendiente Ola 2**:
+- Cola `sii_document_jobs` para emisión async con reintentos
+- Playwright UI bandeja fiscal (opcional; API cubierta por Vitest)
+
+**Ramificaciones mitigadas**:
+| Área | Antes | Ahora |
+|------|-------|-------|
+| Seguridad | Poll sin credenciales por empresa | `resolveSiiCredentials` centralizado |
+| Funcionalidad | UI no persistía `gastos_extranjeros` | Pipeline enlaza `factura_compra_id` + estados |
+| Eficacia | CAF consumido sin guard previo | `assertCafAvailable` pre-RPC |
+| Eficacia | `enviado` sin poll | Cron cada 2 min |
+
+---
+
 ### D63. `as any` obsoleto en tablas ya tipadas (RESUELTO — P1 Jun 2026)
 
 **Problema**: `terceros`, `notification_queue`, `reconciliation_rules`, `banco_chile_notificaciones` seguían con casts aunque existen en `database.types.ts`.
@@ -629,4 +657,4 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 | D12 | Sin CI/CD | BAJA | Medio | Medio |
 
 *Actualizar este documento cuando se resuelva un item o se descubra nueva deuda.*
-*Ultima actualizacion: Junio 2026 — D27 SEO incompleto resuelto*
+*Ultima actualizacion: Junio 2026 — D66 pipeline fiscal Ola 1 COMPLETA (S1.1–S1.6)*

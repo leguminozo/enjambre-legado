@@ -275,6 +275,63 @@ export type ShipmentDispatchedNotificationInput = {
   empresaId?: string | null;
 };
 
+const DTE_TIPO_LABELS: Record<number, string> = {
+  33: "Factura electrónica",
+  34: "Factura exenta",
+  39: "Boleta electrónica",
+  41: "Boleta exenta",
+  46: "Factura de compra",
+  52: "Guía de despacho",
+  56: "Nota de débito",
+  61: "Nota de crédito",
+};
+
+export type CafLowFoliosNotificationInput = {
+  empresaId: string;
+  empresaNombre: string;
+  tipoDte: number;
+  foliosRestantes: number;
+  folioDesde: number;
+  folioHasta: number;
+  cafId: string;
+  email: string;
+  userId?: string | null;
+};
+
+export async function notifyCafLowFolios(
+  admin: SupabaseClient,
+  input: CafLowFoliosNotificationInput,
+): Promise<TransactionalNotificationResult> {
+  const tipoLabel = DTE_TIPO_LABELS[input.tipoDte] ?? `DTE ${input.tipoDte}`;
+  const minFolios = Number(process.env.SII_CAF_MIN_FOLIOS ?? 10);
+  const critico = input.foliosRestantes < minFolios;
+  const subject = critico
+    ? `Urgente: CAF ${tipoLabel} sin folios operativos`
+    : `Alerta CAF: quedan ${input.foliosRestantes} folios (${tipoLabel})`;
+
+  const body = [
+    `Empresa: ${input.empresaNombre}`,
+    `Documento: ${tipoLabel} (tipo ${input.tipoDte})`,
+    `Rango CAF: ${input.folioDesde}–${input.folioHasta}`,
+    `Folios restantes: ${input.foliosRestantes}`,
+    critico
+      ? `La emisión está bloqueada hasta cargar un nuevo CAF (mínimo operativo: ${minFolios}).`
+      : "Sube un nuevo CAF en Núcleo → SII antes de quedar sin folios.",
+    "Este aviso es idempotente por lote CAF activo.",
+  ].join("\n");
+
+  return enqueueTransactionalNotification(admin, {
+    dedupeKey: `caf_alert_low:${input.empresaId}:${input.tipoDte}:${input.cafId}`,
+    source: "caf_low_folios",
+    email: input.email,
+    userId: input.userId,
+    subject,
+    body,
+    empresaId: input.empresaId,
+    category: "sistema",
+  });
+}
+
 export async function notifyShipmentDispatched(
   admin: SupabaseClient,
   input: ShipmentDispatchedNotificationInput,

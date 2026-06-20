@@ -6,21 +6,10 @@ import {
   FacturaCompraInputSchema,
   parseReceipt,
   fetchTasaDolar,
-  DTE_TIPO,
-  RUT_EXTRANJERO_GENERICO,
-  buildDteXml,
-  buildEnvioDteXml,
 } from "@enjambre/contable";
-import {
-  signDteXml,
-  stampDteXml,
-  enviarDte,
-  consultarEstado,
-  getSiiToken,
-} from "@/api/lib/sii-client";
-import { resolveSiiAmbiente, resolveSiiCredentials } from "@/api/lib/sii-credentials";
+import { emitFacturaCompraToSii } from "@/api/lib/fiscal/emit-factura-compra";
+import { pollFacturaCompraSii } from "@/api/lib/fiscal/poll-factura-compra";
 import type { AppVariables } from "@/api/lib/middleware";
-import type { DteDocumento } from "@enjambre/contable";
 import { createFacturaCompraFromGasto } from "./helpers";
 
 export const facturasRoutes = new Hono<{ Variables: AppVariables }>();
@@ -161,136 +150,24 @@ facturasRoutes.post("/:id/enviar-sii", async (c) => {
   const supabase = c.get("supabase");
   const facturaId = c.req.param("id");
 
-  const { data: factura, error: facturaError } = await supabase
-    .from("facturas_compra")
-    .select("*")
-    .eq("id", facturaId)
-    .eq("empresa_id", empresaId)
-    .single();
+  const result = await emitFacturaCompraToSii(supabase, empresaId, facturaId);
 
-  if (facturaError || !factura) {
-    return c.json({ code: "not_found", message: "Factura de compra no encontrada" }, 404);
+  if (!result.ok) {
+    const status =
+      result.code === "not_found" ? 404 :
+      result.code === "invalid_state" || result.code === "no_caf" || result.code === "caf_exhausted" || result.code === "no_certificado" ? 400 :
+      500;
+    return c.json({ code: result.code, message: result.message }, status);
   }
 
-  if ((factura as Record<string, unknown>).estado_sii !== "pendiente") {
-    return c.json({ code: "invalid_state", message: "La factura ya fue enviada al SII" }, 400);
-  }
-
-  const { data: empresa } = await supabase
-    .from("empresas")
-    .select("rut, razon_social, giro, direccion, comuna, ciudad, acteco, sii_ambiente")
-    .eq("id", empresaId)
-    .single();
-
-  if (!empresa) {
-    return c.json({ code: "empresa_not_found", message: "Empresa no encontrada" }, 404);
-  }
-
-  const { data: cafRows } = await supabase
-    .from("sii_caf")
-    .select("id, tipo_dte, folio_desde, folio_hasta, folio_actual, fecha_autorizacion, firma_caf, private_key, public_key, nro_resol, fch_resol")
-    .eq("empresa_id", empresaId)
-    .eq("tipo_dte", 46)
-    .eq("activo", true)
-    .limit(1);
-
-  if (!cafRows || cafRows.length === 0) {
-    return c.json({ code: "no_caf", message: "No hay CAF activo para DTE 46" }, 400);
-  }
-
-  const caf = cafRows[0] as Record<string, unknown>;
-  const emisor = empresa as Record<string, unknown>;
-
-  const dteDoc: DteDocumento = {
-    encabezado: {
-      tipoDte: DTE_TIPO.FACTURA_COMPRA,
-      folio: Number((factura as Record<string, unknown>).folio),
-      fechaEmision: String((factura as Record<string, unknown>).fecha_emision),
-      emisor: {
-        rut: String(emisor.rut),
-        razonSocial: String(emisor.razon_social),
-        giro: String(emisor.giro ?? ""),
-        direccion: String(emisor.direccion ?? ""),
-        comuna: String(emisor.comuna ?? ""),
-        ciudad: String(emisor.ciudad ?? ""),
-        actividadEconomica: Number(emisor.acteco ?? 0),
-      },
-      receptor: {
-        rut: RUT_EXTRANJERO_GENERICO,
-        razonSocial: String((factura as Record<string, unknown>).receptor_razon_social ?? "PROVEEDOR EXTRANJERO"),
-        giro: String((factura as Record<string, unknown>).receptor_giro ?? ""),
-        direccion: "",
-        comuna: "",
-        ciudad: "",
-      },
-      montoNeto: Number((factura as Record<string, unknown>).monto_neto ?? 0),
-      montoExento: Number((factura as Record<string, unknown>).monto_exento ?? 0),
-      tasaIva: 0.19,
-      montoIva: Number((factura as Record<string, unknown>).monto_iva ?? 0),
-      montoTotal: Number((factura as Record<string, unknown>).monto_total ?? 0),
+  return c.json({
+    data: {
+      trackId: result.trackId,
+      estado: result.estado,
+      glosa: result.glosa,
+      estadoSii: result.estadoSii,
     },
-    detalles: [{
-      nombre: String((factura as Record<string, unknown>).descripcion ?? "SERVICIOS DIGITALES EXTRANJEROS"),
-      cantidad: 1,
-      precioUnitario: Number((factura as Record<string, unknown>).monto_neto ?? 0),
-      montoItem: Number((factura as Record<string, unknown>).monto_total ?? 0),
-    }],
-  };
-
-  try {
-    const dteXml = buildDteXml(dteDoc);
-
-    const credsResult = await resolveSiiCredentials(supabase, empresaId);
-    if (!credsResult.ok) {
-      return c.json({
-        code: credsResult.code,
-        message: credsResult.message,
-        xml: dteXml,
-      }, credsResult.code === "no_certificado" ? 400 : 500);
-    }
-    const { p12Base64, p12Password } = credsResult.credentials;
-
-    const signedXml = signDteXml(dteXml, p12Base64, p12Password);
-
-    const cafFolio = {
-      tipoDte: DTE_TIPO.FACTURA_COMPRA,
-      desde: Number(caf.folio_desde),
-      hasta: Number(caf.folio_hasta),
-      fechaAutorizacion: String(caf.fecha_autorizacion),
-      firma: String(caf.firma_caf),
-      privateKey: String(caf.private_key),
-      publicKey: String(caf.public_key),
-    };
-
-    const stampedXml = stampDteXml(signedXml, cafFolio, Number((factura as Record<string, unknown>).folio));
-
-    const envioXml = buildEnvioDteXml(
-      [stampedXml],
-      String(emisor.rut),
-      Number(caf.nro_resol ?? 0),
-      String(caf.fch_resol ?? "2024-01-01"),
-    );
-
-    const ambiente = resolveSiiAmbiente(String(emisor.sii_ambiente ?? "certificacion")) as import("@enjambre/contable").SiiEnvironment;
-    const token = await getSiiToken(ambiente, String(emisor.rut), p12Password);
-
-    const envioResult = await enviarDte(ambiente, token.token, envioXml, String(emisor.rut));
-
-    await supabase
-      .from("facturas_compra")
-      .update({
-        estado_sii: envioResult.estado === "aceptado" ? "aceptado" : envioResult.estado === "rechazado" ? "rechazado" : "enviado",
-        track_id: envioResult.trackId,
-        sii_response: { estado: envioResult.estado, glosa: envioResult.glosa },
-        sii_xml: stampedXml,
-      })
-      .eq("id", facturaId);
-
-    return c.json({ data: { trackId: envioResult.trackId, estado: envioResult.estado, glosa: envioResult.glosa } });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Error enviando DTE al SII";
-    return c.json({ code: "sii_send_failed", message }, 500);
-  }
+  });
 });
 
 facturasRoutes.get("/:id/poll-sii", async (c) => {
@@ -298,61 +175,34 @@ facturasRoutes.get("/:id/poll-sii", async (c) => {
   const supabase = c.get("supabase");
   const facturaId = c.req.param("id");
 
-  const { data: factura } = await supabase
-    .from("facturas_compra")
-    .select("id, track_id, estado_sii, empresa_id")
-    .eq("id", facturaId)
-    .eq("empresa_id", empresaId)
-    .single();
+  const result = await pollFacturaCompraSii(supabase, empresaId, facturaId);
 
-  if (!factura) {
-    return c.json({ code: "not_found", message: "Factura de compra no encontrada" }, 404);
+  if (!result.ok) {
+    const status = result.code === "not_found" ? 404 : result.code === "no_track_id" ? 400 : 500;
+    return c.json({ code: result.code, message: result.message }, status);
   }
 
-  const f = factura as Record<string, unknown>;
-  if (!f.track_id) {
-    return c.json({ code: "no_track_id", message: "La factura no tiene track_id" }, 400);
-  }
-
-  const { data: empresa } = await supabase
-    .from("empresas")
-    .select("rut, sii_ambiente")
-    .eq("id", empresaId)
-    .single();
-
-  if (!empresa) {
-    return c.json({ code: "empresa_not_found" }, 404);
-  }
-
-  const emisor = empresa as Record<string, unknown>;
-  const p12Password = process.env.SII_P12_PASSWORD ?? "";
-  const ambienteRaw = String(emisor.sii_ambiente ?? "certificacion");
-  const ambiente = (ambienteRaw.toUpperCase() === "PRODUCCION" ? "PRODUCCION" : "CERTIFICACION") as import("@enjambre/contable").SiiEnvironment;
-
-  try {
-    const token = await getSiiToken(ambiente, String(emisor.rut), p12Password);
-    const estadoResult = await consultarEstado(ambiente, token.token, String(f.track_id), String(emisor.rut));
-
-    const nuevoEstado = estadoResult.aceptados > 0 ? "aceptado" :
-      estadoResult.rechazados > 0 ? "rechazado" : String(f.estado_sii);
-
+  if (result.estadoSii === "aceptado") {
     await supabase
-      .from("facturas_compra")
-      .update({
-        estado_sii: nuevoEstado,
-        sii_response: {
-          estado: estadoResult.estado,
-          glosa: estadoResult.glosa,
-          aceptados: estadoResult.aceptados,
-          rechazados: estadoResult.rechazados,
-          reparos: estadoResult.reparos,
-        },
-      })
-      .eq("id", facturaId);
-
-    return c.json({ data: estadoResult });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Error consultando estado SII";
-    return c.json({ code: "sii_poll_failed", message }, 500);
+      .from("gastos_extranjeros")
+      .update({ estado: "aceptado_sii" })
+      .eq("factura_compra_id", facturaId)
+      .eq("empresa_id", empresaId);
+  } else if (result.estadoSii === "rechazado") {
+    await supabase
+      .from("gastos_extranjeros")
+      .update({ estado: "rechazado_sii" })
+      .eq("factura_compra_id", facturaId)
+      .eq("empresa_id", empresaId);
   }
+
+  return c.json({
+    data: {
+      estadoSii: result.estadoSii,
+      aceptados: result.aceptados,
+      rechazados: result.rechazados,
+      reparos: result.reparos,
+      glosa: result.glosa,
+    },
+  });
 });

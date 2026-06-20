@@ -13,6 +13,8 @@
 | [`DATABASE_SCHEMA.md`](./DATABASE_SCHEMA.md) | Esquema canonico completo. 20+ tablas, RLS, relaciones | 15 min |
 | [`PROMPT_LIBRARY.md`](./PROMPT_LIBRARY.md) | Prompts pre-construidos para dirigir agentes con precision | 10 min |
 | [`FRONTEND_ROADMAP.md`](./FRONTEND_ROADMAP.md) | Vision de producto por aplicacion. Pendientes y mejoras | 10 min |
+| [`SOBERANIA_FISCAL.md`](./SOBERANIA_FISCAL.md) | **Estrategia fiscal soberana** — superar facturadores, e-commerce Chile, roadmap | 20 min |
+| [`FISCAL_PIPELINE.md`](./FISCAL_PIPELINE.md) | Especificacion tecnica pipeline documento → SII → RCV | 15 min |
 | [`TECHNICAL_DEBT.md`](./TECHNICAL_DEBT.md) | Deuda tecnica priorizada. Critico, alto, medio, bajo | 5 min |
 | [`VERCEL.md`](./VERCEL.md) | Checklist especifico para despliegue en Vercel | 5 min |
 | [`../DEPLOY.md`](../DEPLOY.md) | Guia de despliegue multi-plataforma completa | 10 min |
@@ -27,6 +29,10 @@
 
 ### Desarrollador Backend
 1. `00_EMPEZA_AQUI.md` → `DATABASE_SCHEMA.md` → `ARCHITECTURE.md` (seccion BFF/Nucleo)
+2. Fiscal/contable: `SOBERANIA_FISCAL.md` → `FISCAL_PIPELINE.md` → `packages/contable/README.md`
+
+### Contador / Producto fiscal
+1. `SOBERANIA_FISCAL.md` → `FISCAL_PIPELINE.md` §5 (flujo documento → RCV)
 
 ### DevOps
 1. `00_EMPEZA_AQUI.md` → `DEPLOY.md` → `VERCEL.md`

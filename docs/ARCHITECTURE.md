@@ -354,7 +354,16 @@ Logica tributaria chilena pura, sin dependencias de framework:
 | `rut.ts` | `normalize()`, `validate()`, `format()` — Digito verificador |
 | `impuestos.ts` | `calcularIVA()`, `calcularNetoDesdeTotal()`, `calcularTotal()` — 4 decimales |
 | `factura.ts` | Zod schemas: `FacturaEmitidaInput`, `FacturaEmitidaOutput` |
+| `gasto-extranjero.ts` | 7 proveedores digitales, deteccion, conversion CLP |
+| `receipt-parsers/` | Uber, Meta, Google, AWS, Shopify, Stripe, Hostinger |
+| `dte-xml.ts` / `sii-dte.ts` | XML DTE, tipos SII |
 | `api.ts` | Tipos genericos: `ApiSuccess<T>`, `ApiError` |
+
+Ver [`packages/contable/README.md`](../packages/contable/README.md). **79 tests Vitest.**
+
+### 4.2.1 Soberania fiscal (plan `@enjambre/fiscal`)
+
+Estrategia: [`SOBERANIA_FISCAL.md`](./SOBERANIA_FISCAL.md). Pipeline: [`FISCAL_PIPELINE.md`](./FISCAL_PIPELINE.md). Emision e ingestión **nativas** — sin facturadores terceros.
 
 ### 4.3 `@enjambre/auth`
 
@@ -473,7 +482,7 @@ lucide-react
 | Servicio | Estado | App | Proposito |
 |---|---|---|---|
 | Transbank Webpay | Implementado | tienda | Pagos online Chile |
-| SII | Stub | tienda, nucleo BFF | Sincronizacion tributaria |
+| SII | Parcial (nativo) | nucleo BFF `/api/sii` | DTE, FC46, RCV, gastos extranjeros — ver SOBERANIA_FISCAL.md |
 | Bancos | Stub | tienda, nucleo BFF | Conciliacion bancaria |
 | Notificaciones | Stub | tienda | Eventos de notificacion |
 | Blockchain | Planificado | nucleo | Certificacion de origen |

@@ -1,10 +1,21 @@
 import React, { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Receipt, CheckCircle2 } from "lucide-react";
+import { Receipt, CheckCircle2, Send } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
 import { Card, CardHeader, CardTitle, CardContent, Button, Spinner } from "@enjambre/ui";
 import { GastoParseado, ProveedorInfo } from "../types";
+
+type ProcesarResult = {
+  ok: true;
+  alreadyProcessed: boolean;
+  gastoId: string;
+  facturaCompraId: string;
+  idempotencyKey: string;
+  emission?: { trackId: string; estadoSii: string };
+  rcv?: { periodo: string; reconciledCount: number };
+  warnings?: string[];
+};
 
 export function GastoExtranjeroTab() {
   const queryClient = useQueryClient();
@@ -13,6 +24,7 @@ export function GastoExtranjeroTab() {
   const [receiptText, setReceiptText] = useState("");
   const [proveedorId, setProveedorId] = useState("");
   const [gastoParseado, setGastoParseado] = useState<GastoParseado | null>(null);
+  const [procesarResult, setProcesarResult] = useState<ProcesarResult | null>(null);
 
   const proveedoresQuery = useQuery({
     queryKey: ["sii", "proveedores"],
@@ -43,27 +55,32 @@ export function GastoExtranjeroTab() {
     },
     onSuccess: (result) => {
       setGastoParseado(result.data);
+      setProcesarResult(null);
     },
   });
 
-  const facturarGasto = useMutation({
+  const procesarGasto = useMutation({
     mutationFn: async () => {
       if (!gastoParseado) throw new Error("No hay gasto parseado");
 
-      const res = await apiFetch("/api/sii/gastos-extranjero/facturar", {
+      const res = await apiFetch("/api/sii/gastos-extranjero/procesar", {
         method: "POST",
-        body: JSON.stringify({ gasto: gastoParseado }),
+        body: JSON.stringify({
+          gasto: gastoParseado,
+          receipt_raw: receiptText,
+          emit_to_sii: true,
+          sync_rcv: true,
+        }),
       });
+      const json = await res.json();
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message ?? "Error creando factura");
+        throw new Error(json.message ?? "Error procesando gasto");
       }
-      return res.json();
+      return json.data as ProcesarResult;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      setProcesarResult(result);
       queryClient.invalidateQueries({ queryKey: ["sii"] });
-      setReceiptText("");
-      setGastoParseado(null);
     },
   });
 
@@ -72,17 +89,23 @@ export function GastoExtranjeroTab() {
     parseGasto.mutate();
   };
 
+  const resetForm = () => {
+    setReceiptText("");
+    setGastoParseado(null);
+    setProcesarResult(null);
+  };
+
   const proveedores = proveedoresQuery.data ?? [];
 
   return (
     <Card className="max-w-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Receipt size={18} /> Recibo → Factura de Compra
+          <Receipt size={18} /> Recibo → Factura de Compra → SII
         </CardTitle>
         <p className="text-sm text-muted-foreground mt-2">
           Pega el texto de cualquier recibo (Uber, Google Ads, Meta, Hostinger, AWS, Shopify, Stripe).
-          El sistema detecta el proveedor, convierte moneda, y genera la Factura de Compra tipo 46.
+          El sistema detecta el proveedor, genera la Factura de Compra tipo 46 y la envía al SII.
         </p>
       </CardHeader>
       <CardContent>
@@ -106,7 +129,33 @@ export function GastoExtranjeroTab() {
           )}
         </div>
 
-        {!gastoParseado ? (
+        {procesarResult ? (
+          <div className="grid gap-4">
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-5 space-y-3 text-sm">
+              <div className="flex items-center gap-2 text-primary font-bold">
+                <CheckCircle2 size={18} />
+                {procesarResult.alreadyProcessed ? "Gasto ya procesado" : "Pipeline completado"}
+              </div>
+              <div className="grid gap-1 text-muted-foreground font-mono text-xs">
+                <div>Gasto: {procesarResult.gastoId}</div>
+                <div>Factura compra: {procesarResult.facturaCompraId}</div>
+                {procesarResult.emission && (
+                  <>
+                    <div>Track SII: {procesarResult.emission.trackId}</div>
+                    <div>Estado SII: {procesarResult.emission.estadoSii}</div>
+                  </>
+                )}
+                {procesarResult.rcv && (
+                  <div>RCV {procesarResult.rcv.periodo}: {procesarResult.rcv.reconciledCount} reconciliados</div>
+                )}
+              </div>
+              {procesarResult.warnings?.map((w) => (
+                <p key={w} className="text-xs text-amber-600 dark:text-amber-400">{w}</p>
+              ))}
+            </div>
+            <Button variant="outline" onClick={resetForm}>Procesar otro recibo</Button>
+          </div>
+        ) : !gastoParseado ? (
           <form onSubmit={onSubmitParse} className="grid gap-4">
             <textarea
               value={receiptText}
@@ -121,7 +170,7 @@ export function GastoExtranjeroTab() {
               disabled={parseGasto.isPending}
               className="w-full sm:w-auto sm:justify-self-start"
             >
-              {parseGasto.isPending ? <Spinner className="w-4 h-4 mr-2" /> : null} 
+              {parseGasto.isPending ? <Spinner className="w-4 h-4 mr-2" /> : null}
               Analizar recibo
             </Button>
             {parseGasto.isError && <p className="text-sm text-destructive">{parseGasto.error.message}</p>}
@@ -185,11 +234,11 @@ export function GastoExtranjeroTab() {
 
             <div className="flex flex-wrap gap-3">
               <Button
-                onClick={() => facturarGasto.mutate()}
-                disabled={facturarGasto.isPending}
+                onClick={() => procesarGasto.mutate()}
+                disabled={procesarGasto.isPending}
               >
-                {facturarGasto.isPending ? <Spinner className="w-4 h-4 mr-2" /> : null} 
-                Emitir Factura de Compra
+                {procesarGasto.isPending ? <Spinner className="w-4 h-4 mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                Procesar y enviar al SII
               </Button>
               <Button
                 variant="outline"
@@ -198,7 +247,7 @@ export function GastoExtranjeroTab() {
                 Cancelar y Volver
               </Button>
             </div>
-            {facturarGasto.isError && <p className="text-sm text-destructive">{facturarGasto.error.message}</p>}
+            {procesarGasto.isError && <p className="text-sm text-destructive">{procesarGasto.error.message}</p>}
           </div>
         )}
       </CardContent>

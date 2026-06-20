@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { decrementCartStock } from '@/api/lib/stock/cart-stock';
 import { markCartAbandonmentConverted } from '@/lib/notifications/cart-abandonment-worker';
 import { notifyCheckoutConfirmed } from '@/lib/notifications/enqueue-transactional';
+import { maybeEmitBoletaPostCheckout } from '@/lib/fiscal/checkout-dte';
 import type { CartLineInput, CheckoutSession, ShippingInfo } from './types';
 import { completeCheckoutSession } from './types';
 
@@ -19,6 +20,13 @@ export interface FulfillCheckoutResult {
   ventaId?: string;
   alreadyProcessed?: boolean;
   stockErrors?: string[];
+  dte?: {
+    folio?: number;
+    trackId?: string;
+    estadoSii?: string;
+    skipped?: boolean;
+    error?: string;
+  };
 }
 
 function formatEnvioItems(cart: CartLineInput[]): string {
@@ -159,20 +167,36 @@ export async function fulfillCheckout(
   const montoNeto = Math.round(serverTotal / 1.19);
   const montoIva = serverTotal - montoNeto;
 
+  let facturaEmitidaId: string | null = null;
+  const fechaEmision = new Date().toISOString().split('T')[0]!;
+
   if (defaultEmpresa) {
-    await admin.from('facturas_emitidas').insert({
-      empresa_id: defaultEmpresa.id,
-      numero: `BWEB-${buyOrder}`,
-      fecha_emision: new Date().toISOString().split('T')[0],
-      monto_neto: montoNeto,
-      monto_iva: montoIva,
-      monto_total: serverTotal,
-      monto_exento: 0,
-      monto_iva_usado: 0,
-      tipo_documento: 'Boleta',
-      descripcion: `Venta Web - ${buyOrder}`,
-      estado: 'pendiente',
-    });
+    const { data: facturaRow, error: facturaError } = await admin
+      .from('facturas_emitidas')
+      .insert({
+        empresa_id: defaultEmpresa.id,
+        numero: `BWEB-${buyOrder}`,
+        fecha_emision: fechaEmision,
+        monto_neto: montoNeto,
+        monto_iva: montoIva,
+        monto_total: serverTotal,
+        monto_exento: 0,
+        monto_iva_usado: 0,
+        tipo_documento: 'Boleta',
+        tipo_dte: 39,
+        descripcion: `Venta Web - ${buyOrder}`,
+        estado: 'pendiente',
+        estado_sii: 'pendiente',
+        idempotency_key: `venta:${ventaId}`,
+      })
+      .select('id')
+      .single();
+
+    if (facturaError) {
+      console.error('[checkout-fulfill] facturas_emitidas insert error:', facturaError.message);
+    } else {
+      facturaEmitidaId = (facturaRow?.id as string | undefined) ?? null;
+    }
   }
 
   if (authUserId) {
@@ -196,5 +220,31 @@ export async function fulfillCheckout(
     }
   }
 
-  return { ok: true, ventaId };
+  let dteResult: FulfillCheckoutResult['dte'];
+
+  if (defaultEmpresa?.id && facturaEmitidaId) {
+    const emission = await maybeEmitBoletaPostCheckout(admin, {
+      empresaId: defaultEmpresa.id,
+      facturaEmitidaId,
+      ventaId,
+      buyOrder,
+      receptorNombre: shipping?.nombre ?? 'Consumidor Final',
+      cart: enrichedCart,
+      fechaEmision,
+    });
+
+    if (emission.skipped) {
+      dteResult = { skipped: true };
+    } else if (emission.ok) {
+      dteResult = {
+        folio: emission.folio,
+        trackId: emission.trackId,
+        estadoSii: emission.estadoSii,
+      };
+    } else {
+      dteResult = { error: emission.message };
+    }
+  }
+
+  return { ok: true, ventaId, dte: dteResult };
 }

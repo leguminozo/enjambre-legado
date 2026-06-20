@@ -1,4 +1,6 @@
 import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
 import {
   parseReceipt,
   fetchTasaDolar,
@@ -8,9 +10,66 @@ import {
 } from "@enjambre/contable";
 import type { GastoExtranjeroResult } from "@enjambre/contable";
 import type { AppVariables } from "@/api/lib/middleware";
+import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from "@/api/lib/ratelimit";
+import { processGastoExtranjero } from "@/api/lib/fiscal/gasto-pipeline";
 import { createFacturaCompraFromGasto } from "./helpers";
 
 export const gastosRoutes = new Hono<{ Variables: AppVariables }>();
+
+const GastoExtranjeroResultSchema = z.object({
+  proveedorId: z.string().min(1),
+  proveedorRut: z.string().min(1),
+  proveedorNombre: z.string(),
+  proveedorGiro: z.string(),
+  montoOriginal: z.number(),
+  monedaOriginal: z.enum(["CLP", "USD", "EUR"]),
+  montoCLP: z.number(),
+  tasaCambio: z.number(),
+  montoNeto: z.number(),
+  montoExento: z.number(),
+  montoIva: z.number(),
+  montoTotal: z.number(),
+  fechaEmision: z.string().min(1),
+  numeroDocumento: z.string(),
+  concepto: z.string().min(1),
+  detalle: z.string(),
+});
+
+const ProcesarGastoBodySchema = z
+  .object({
+    gasto: GastoExtranjeroResultSchema.optional(),
+    receipt_text: z.string().min(10).optional(),
+    proveedor_id: z.string().optional(),
+    receipt_raw: z.string().optional(),
+    emit_to_sii: z.boolean().optional(),
+    sync_rcv: z.boolean().optional(),
+  })
+  .refine((body) => body.gasto || body.receipt_text, {
+    message: "gasto o receipt_text es requerido",
+  });
+
+async function rateLimitMiddleware(
+  c: {
+    req: { header: (name: string) => string | undefined; ip?: string };
+    json: (data: unknown, status: number) => Response;
+    header: (name: string, value: string) => void;
+  },
+  config: { readonly limit: number; readonly window: `${number} ${"s" | "m" | "h" | "d"}` },
+) {
+  const identifier = getClientIdentifier(c);
+  const result = await checkRateLimit({ identifier, ...config });
+
+  c.header("X-RateLimit-Limit", String(result.limit));
+  c.header("X-RateLimit-Remaining", String(result.remaining));
+  c.header("X-RateLimit-Reset", String(result.reset));
+
+  if (!result.success) {
+    c.header("Retry-After", String(result.retryAfter || 60));
+    return c.json({ code: "rate_limited", message: "Demasiadas solicitudes. Intenta de nuevo más tarde." }, 429);
+  }
+
+  return undefined;
+}
 
 gastosRoutes.post("/parse", async (c) => {
   const body = await c.req.json<{ receipt_text: string; proveedor_id?: string }>();
@@ -55,6 +114,77 @@ gastosRoutes.post("/parse", async (c) => {
     return c.json({ code: "tasa_cambio_failed", message }, 502);
   }
 });
+
+gastosRoutes.post(
+  "/procesar",
+  zValidator("json", ProcesarGastoBodySchema),
+  async (c) => {
+    const rateLimitResult = await rateLimitMiddleware(c, RATE_LIMIT_CONFIGS.api);
+    if (rateLimitResult) return rateLimitResult;
+
+    const body = c.req.valid("json");
+    const empresaId = c.get("empresaId");
+    const supabase = c.get("supabase");
+
+    let gasto: GastoExtranjeroResult;
+    let receiptRaw = body.receipt_raw;
+
+    if (body.gasto) {
+      gasto = body.gasto;
+    } else {
+      const proveedorOverride = body.proveedor_id
+        ? PROVEEDORES.find((p) => p.id === body.proveedor_id)
+        : undefined;
+      const detectado = detectarProveedor(body.receipt_text!);
+
+      try {
+        let tasaCambio = 1;
+        if (detectado?.moneda === "USD" || proveedorOverride?.moneda === "USD") {
+          tasaCambio = await fetchTasaDolar();
+        } else if (detectado?.moneda === "EUR" || proveedorOverride?.moneda === "EUR") {
+          tasaCambio = await fetchTasaEuro();
+        }
+
+        const parsed = parseReceipt(body.receipt_text!, proveedorOverride, tasaCambio);
+        if (!parsed) {
+          return c.json(
+            {
+              code: "receipt_parse_failed",
+              message: "No se pudo detectar el proveedor o extraer datos",
+              detectado: detectado?.id ?? null,
+            },
+            422,
+          );
+        }
+
+        gasto = parsed;
+        receiptRaw = receiptRaw ?? body.receipt_text;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Error obteniendo tasa de cambio";
+        return c.json({ code: "tasa_cambio_failed", message }, 502);
+      }
+    }
+
+    const result = await processGastoExtranjero(supabase, empresaId, {
+      gasto,
+      receiptRaw,
+      emitToSii: body.emit_to_sii ?? true,
+      syncRcv: body.sync_rcv ?? true,
+    });
+
+    if (!result.ok) {
+      const status =
+        result.code === "caf_exhausted" || result.code === "factura_create_failed" ? 400 :
+        500;
+      return c.json(
+        { code: result.code, message: result.message, details: result.details },
+        status,
+      );
+    }
+
+    return c.json({ data: result }, result.alreadyProcessed ? 200 : 201);
+  },
+);
 
 gastosRoutes.post("/facturar", async (c) => {
   const empresaId = c.get("empresaId");

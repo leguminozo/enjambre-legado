@@ -4,6 +4,25 @@ Living log of technical decisions. Format: Date | Decision | Rationale | Alterna
 
 ---
 
+## 2026-06-19 | Soberanía fiscal — sin facturadores de terceros
+
+**Decision**: Toda emisión DTE, ingestión de invoices extranjeros, sincronización RCV y preparación F29 se implementa de forma **nativa** en el monorepo (`@enjambre/contable`, `@enjambre/fiscal`, Núcleo BFF). No se integrarán APIs de facturadores externos (Wasabil, etc.) como dependencia de producto.
+
+**Rationale**:
+- Soberanía de datos, marca y UX alineada a Enjambre Legado (territorio, trazabilidad, tienda+campo+núcleo unificados).
+- Ventaja competitiva: fiscal + e-commerce chileno en una sola fuente de verdad, no “plugin de facturación”.
+- El código existente (7 parsers, `enviar-sii`, RCV sync, 79 tests contable) ya es la base — falta cablear pipeline, no reemplazar por SaaS.
+
+**Alternatives considered**:
+- Adaptador API Wasabil para time-to-market — **rejected** (contradice estrategia de marca y dependencia).
+- Solo facturador manual SII sin software — **rejected** (no escala rentabilidad).
+
+**Implementation path**: Ver [`docs/SOBERANIA_FISCAL.md`](./SOBERANIA_FISCAL.md) y [`docs/FISCAL_PIPELINE.md`](./FISCAL_PIPELINE.md). Ola 1: cablear UI → emisión → poll → RCV. Ola 2: `@enjambre/fiscal` + upload PDF + bandeja.
+
+**Status**: OLA 1 COMPLETE — S1.1–S1.6 (Jun 2026). Ver `TECHNICAL_DEBT.md` D66. Siguiente: Ola 2 documental.
+
+---
+
 ## 2026-06-14 | Auth Fix Strategy: Surgical `getSession()` → `getUser()` Replacement
 **Decision**: Audit all server components for `getSession()` usage. Replace with `getUser()` only where middleware bypass is possible.
 **Rationale**: Supabase SSR with httpOnly cookies + middleware refresh validates JWT server-side. Full migration to Hono/Auth middleware adds complexity for marginal gain. Risk is localized to routes skipping middleware.
