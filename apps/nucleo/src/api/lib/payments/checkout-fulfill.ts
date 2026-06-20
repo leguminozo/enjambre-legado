@@ -71,10 +71,10 @@ export async function fulfillCheckout(
   const stockResult = await decrementCartStock(
     admin,
     cart.map((line) => ({
+      ...line,
       productId: line.productId,
       quantity: line.quantity,
       name: line.name,
-      ...line,
     })),
   );
 

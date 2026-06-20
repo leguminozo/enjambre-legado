@@ -13,7 +13,7 @@ import {
   getSiiToken,
 } from '@/api/lib/sii-client';
 import { resolveSiiAmbiente, resolveSiiCredentials } from '@/api/lib/sii-credentials';
-import { assertCafAvailable } from './caf-guard';
+import { assertCafAvailable, CafExhaustedError } from './caf-guard';
 
 export type FacturaCompraRow = {
   id: string;
@@ -74,12 +74,11 @@ export async function emitFacturaCompraToSii(
   try {
     await assertCafAvailable(supabase, empresaId, DTE_TIPO.FACTURA_COMPRA);
   } catch (err) {
-    if (err instanceof Error && 'code' in err && err.code === 'caf_exhausted') {
-      const cafErr = err as { tipoDte: number; foliosRestantes: number };
+    if (err instanceof CafExhaustedError) {
       return {
         ok: false,
         code: 'caf_exhausted',
-        message: `CAF insuficiente para tipo 46 (${cafErr.foliosRestantes} folios restantes)`,
+        message: `CAF insuficiente para tipo 46 (${err.foliosRestantes} folios restantes)`,
       };
     }
     throw err;

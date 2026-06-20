@@ -8,6 +8,7 @@ import {
 } from "@enjambre/contable";
 import type { F22Input, F29Input, EmpresaRegimen } from "@enjambre/contable";
 import type { AppVariables } from "@/api/lib/middleware";
+import type { Json } from "@enjambre/database/database.types";
 
 export const impuestosRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -207,7 +208,7 @@ impuestosRoutes.post("/f29/:anio/:mes/guardar", async (c) => {
         periodo_id: periodoId,
         anio,
         mes,
-        lineas: f29Data as unknown as Record<string, unknown>,
+        lineas: f29Data as unknown as Json,
         iva_pagar: Number(f29Data.ivaPagar ?? 0),
         remanente_proximo_periodo: Number(f29Data.remanenteProximoPeriodo ?? 0),
         ppm_determinado: Number(f29Data.ppmDeterminado ?? 0),

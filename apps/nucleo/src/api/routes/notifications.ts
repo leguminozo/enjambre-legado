@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
+import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import { processNotificationQueue } from "@/lib/notifications/worker";
@@ -260,7 +261,7 @@ notificationsRoutes.post(
         subject: input.subject ?? null,
         body: input.body,
         status: "pending",
-        metadata: input.metadata,
+        metadata: input.metadata as Json,
       })
       .select()
       .single();

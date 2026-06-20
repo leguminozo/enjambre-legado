@@ -312,7 +312,7 @@ checkoutRoutes.post("/webhook/flow", async (c) => {
     if (buyOrder.startsWith('SUB-')) {
       const subResult = await fulfillSubscriptionFromWebhook(buyOrder, result.authorizationCode);
       if (!subResult.ok) {
-        return c.json({ error: subResult.error }, subResult.status ?? 500);
+        return c.json({ error: subResult.error }, (subResult.status ?? 500) as 500);
       }
       return c.json({ ok: true, status: subResult.status }, 200);
     }

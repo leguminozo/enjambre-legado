@@ -1,4 +1,5 @@
 import type { AppVariables } from '@/api/lib/middleware';
+import type { Json } from '@enjambre/database/database.types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { Hono } from 'hono';
 import { z } from 'zod';
@@ -111,9 +112,9 @@ webhookRouter.post('/', async (c) => {
         cuenta_afectada: cuenta_id,
         monto: monto,
         descripcion: descripcion,
-        datos_raw: datos,
+        datos_raw: datos as Json,
         procesado: false,
-        created_at: new Date(fecha),
+        created_at: new Date(fecha).toISOString(),
       });
     }
 

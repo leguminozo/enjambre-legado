@@ -430,6 +430,9 @@ importers:
       '@enjambre/contable':
         specifier: workspace:*
         version: link:../contable
+      '@supabase/supabase-js':
+        specifier: ^2.106.1
+        version: 2.106.1
       pdf-parse:
         specifier: ^1.1.1
         version: 1.1.4

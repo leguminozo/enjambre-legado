@@ -273,7 +273,7 @@ export async function processGastoExtranjero(
     .update({ estado: gastoEstado })
     .eq('id', gastoId);
 
-  let rcvResult: ProcessGastoResult extends { ok: true; rcv?: infer R } ? R : never | undefined;
+  let rcvResult: { periodo: string; reconciledCount: number } | undefined;
 
   if (syncRcv && deps.syncRcv && emission.estadoSii === 'aceptado') {
     try {
