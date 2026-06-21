@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npx pnpm@10.32.1 install --frozen-lockfile",
+  "buildCommand": "npx pnpm@10.32.1 exec turbo run build --filter=@enjambre/nucleo",
+  "outputDirectory": "apps/nucleo/.next",
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/notifications",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/fiscal",
+      "schedule": "0 13 * * *"
+    }
+  ]
+}

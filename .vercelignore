@@ -1,0 +1,13 @@
+.git
+**/node_modules
+**/.next
+**/.turbo
+**/.cache
+**/dist
+**/.env.local
+**/.env.secrets.local
+.DS_Store
+*.log
+.cursor
+.grok
+.agents
