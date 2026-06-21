@@ -4,6 +4,52 @@ Living log of technical decisions. Format: Date | Decision | Rationale | Alterna
 
 ---
 
+## 2026-06-21 | Puente incentivo_ledger → honorarios SII
+
+**Decision**: Tras aprobar un ítem en `incentivo_ledger` (tipos honorario feria/bonos), el admin ejecuta `preparar_honorario_desde_ledger` (migración 71) vía `POST /api/sii/honorarios/desde-ledger`. Crea registro en `honorarios` con `incentivo_ledger_id` UNIQUE y actualiza `referencia_tabla/id` en el ledger. No marca `pagado` ni emite DTE 66 automáticamente.
+
+**Rationale**: Cierra el ciclo legal-operativo (honorarios + retención art. 42 N°2 en F29) sin saltarse revisión humana. `impuestos.ts` ya suma `honorarios.monto_retencion` para F29.
+
+**Alternatives considered**: Auto-emitir DTE 66 al aprobar — **rejected** (riesgo fiscal sin boleta del prestador). Duplicar monto en ledger y honorarios sin FK — **rejected** (sin trazabilidad).
+
+**Status**: Implementado (migración 71, BFF, UI Operadores Feria, badge en HonorariosTab).
+
+---
+
+## 2026-06-21 | Panel reps sin contrato feria — visibilidad admin, sin bloquear caja
+
+**Decision**: Exponer en `/reps` y `/operadores-feria` los `rep_ventas` / `rep_profiles` activos sin `participante_contrato.estado = activo`. Deep-link `/operadores-feria?rep={userId}` pre-rellena formulario de borrador. Guard en UI impide crear segundo borrador/activo; no migración DB.
+
+**Rationale**: Un rep puede operar caja y comisiones (`rep_profiles`) sin contrato feria (`participante_contrato`). Eso deja hueco legal-operativo (sin consignación, arqueo ni honorarios trazados). La solución P2 es visibilidad + onboarding acelerado, no bloquear ventas (P3+ si se requiere hard gate en POS).
+
+**Alternatives considered**: UNIQUE `user_id` en contrato — **deferred** (requiere limpieza de datos). Bloquear `channel=feria` sin contrato — **deferred** (impacta Campo offline).
+
+**Status**: Implementado (`feria-contrato-status.ts`, `RepsPanel`, `OperadoresFeriaPanel`).
+
+---
+
+## 2026-06-21 | Devolución consignación feria — operador declara, RPC atómica
+
+**Decision**: La devolución física de stock consignado se registra solo vía RPC `registrar_devolucion_consignacion_feria` (migración 70). El operador (`rep_ventas` con contrato activo) puede declarar devoluciones **solo** en su evento `en_curso`; admin puede registrar en cualquier evento no `cerrado`. Por defecto repone `productos.stock` (simetría con migración 68).
+
+**Rationale**: Sin RPC, el operador no tiene RLS de escritura en `participante_consignacion` (solo SELECT). La devolución reduce `pendiente` y evita falsos 409 en POS (`validar_consignacion_feria`). No reutilizar `revertir_consignacion_feria` (service_role, revierte ventas).
+
+**Alternatives considered**: Solo admin registra devoluciones — **rejected** (cuello de botella operativo en feria). UPDATE directo con policy amplia — **rejected** (riesgo de manipular `cantidad_vendida`).
+
+**Status**: Implementado (migración 70, UI núcleo).
+
+---
+
+## 2026-06-21 | Red de Intercambio — participantes sin fragmentar roles
+
+**Decision**: Portal creador en **tienda** (`/perfil/creador`); Vanguardia absorbida en **CRM** (tabs Aliados B2B + Huella Sensorial); operadores feria modelados en `participante_contrato` sin nuevo rol auth. Puntos legales frágiles documentados en [`RED_INTERCAMBIO_LEGAL.md`](./RED_INTERCAMBIO_LEGAL.md).
+
+**Rationale**: Un participante externo no debe ver el sidebar de admin; la relación jurídica se expresa en perfiles y capabilities, no en multiplicar `profiles.role`. Comisiones = referidos; honorarios feria = prestación independiente con revisión humana.
+
+**Status**: Implementado (migración 65, UI tienda + CRM, redirect auth).
+
+---
+
 ## 2026-06-19 | Soberanía fiscal — sin facturadores de terceros
 
 **Decision**: Toda emisión DTE, ingestión de invoices extranjeros, sincronización RCV y preparación F29 se implementa de forma **nativa** en el monorepo (`@enjambre/contable`, `@enjambre/fiscal`, Núcleo BFF). No se integrarán APIs de facturadores externos (Wasabil, etc.) como dependencia de producto.

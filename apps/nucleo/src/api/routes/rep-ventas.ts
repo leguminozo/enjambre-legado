@@ -2,7 +2,13 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
-import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import { authMiddleware, requireProfileRole, tenantMiddleware } from "@/api/lib/middleware";
+import {
+  applyFeriaPostVenta,
+  formatFeriaValidationError,
+  validateFeriaConsignacion,
+  type FeriaSaleItem,
+} from "@/api/lib/feria-pos";
 
 const QuickSaleSchema = z.object({
   cash_session_id: z.string().uuid(),
@@ -28,7 +34,7 @@ const QuickSaleSchema = z.object({
 
 export const repVentasRoutes = new Hono<{ Variables: AppVariables }>();
 
-repVentasRoutes.use("*", authMiddleware, tenantMiddleware);
+repVentasRoutes.use("*", authMiddleware, tenantMiddleware, requireProfileRole("rep_ventas", "admin"));
 
 const quickSaleLimiter = new Map<string, { count: number; resetAt: number }>();
 const QUICK_SALE_LIMIT = 30;
@@ -60,6 +66,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
+  const channel = input.channel ?? "feria";
 
   const { data: session } = await supabase
     .from("cash_sessions")
@@ -100,23 +107,59 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     total = (producto.precio ?? 0) * input.cantidad;
   }
 
+  const feriaItems: FeriaSaleItem[] = items.map((i) => ({
+    producto_id: i.producto_id,
+    nombre: i.nombre,
+    cantidad: i.cantidad,
+    precio_unitario: i.precio_unitario,
+  }));
+
+  try {
+    const feriaValidation = await validateFeriaConsignacion(supabase, user.id, feriaItems, channel);
+    if (feriaValidation.required && !feriaValidation.ok) {
+      return c.json(
+        {
+          code: "consignacion_insuficiente",
+          message: formatFeriaValidationError(feriaValidation),
+          details: feriaValidation.errors ?? [],
+        },
+        409,
+      );
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Error validando consignación feria";
+    return c.json({ code: "feria_validation_failed", message }, 500);
+  }
+
   // 1. Descontar stock de productos y obtener hash de trazabilidad
   const enrichedItems = [];
+  const decremented: { productId: string; quantity: number }[] = [];
   for (const item of items) {
-    const { data: stockData } = await supabase.rpc("decrement_stock", {
+    const { data: stockData, error: stockErr } = await supabase.rpc("decrement_stock", {
       p_id: item.producto_id,
       p_qty: item.cantidad,
     });
-    
-    // El array puede devolver el hash si existe
-    const dataAny = stockData as any;
-    const hash = (dataAny && dataAny[0] && dataAny[0].traceability_hash) ? dataAny[0].traceability_hash : null;
-    const lote_id = (dataAny && dataAny[0] && dataAny[0].lote_id) ? dataAny[0].lote_id : null;
-    
+
+    if (stockErr || !stockData || (stockData as unknown[]).length === 0) {
+      for (const d of decremented) {
+        const { data: product } = await supabase.from("productos").select("stock").eq("id", d.productId).maybeSingle();
+        if (product?.stock != null) {
+          await supabase.from("productos").update({ stock: product.stock + d.quantity }).eq("id", d.productId);
+        }
+      }
+      return c.json({ code: "stock_insufficient", message: "Stock insuficiente en almacén" }, 409);
+    }
+
+    decremented.push({ productId: item.producto_id, quantity: item.cantidad });
+
+    const dataAny = stockData as Array<{ traceability_hash?: string; lote_id?: string }>;
+    const hash = dataAny[0]?.traceability_hash ?? null;
+    const lote_id = dataAny[0]?.lote_id ?? null;
+
     enrichedItems.push({
       ...item,
       traceability_hash: hash,
-      lote_id: lote_id
+      lote_id: lote_id,
     });
   }
 
@@ -130,11 +173,11 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
       total,
       items: enrichedItems,
       metodo_pago: input.metodo_pago,
-      channel: input.channel ?? "feria",
+      channel,
       cliente_id: input.cliente_id ?? null,
       is_new_client: input.is_new_client,
       estado: "completada",
-      origen: input.channel ?? "feria",
+      origen: channel === "feria" || channel === "local" ? channel : "feria",
       sumup_checkout_id: input.sumup_checkout_id ?? null,
       sumup_transaction_id: input.sumup_transaction_id ?? null,
     } as any)
@@ -142,7 +185,35 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     .single();
 
   if (ventaError) {
+    for (const d of decremented) {
+      const { data: product } = await supabase.from("productos").select("stock").eq("id", d.productId).maybeSingle();
+      if (product?.stock != null) {
+        await supabase.from("productos").update({ stock: product.stock + d.quantity }).eq("id", d.productId);
+      }
+    }
     return c.json({ code: "venta_create_failed", message: ventaError.message }, 400);
+  }
+
+  let feriaMeta: Record<string, unknown> | null = null;
+  try {
+    feriaMeta = (await applyFeriaPostVenta(
+      supabase,
+      user.id,
+      venta.id,
+      feriaItems,
+      total,
+      channel,
+    )) as Record<string, unknown>;
+  } catch (err) {
+    await supabase.from("ventas").delete().eq("id", venta.id);
+    for (const d of decremented) {
+      const { data: product } = await supabase.from("productos").select("stock").eq("id", d.productId).maybeSingle();
+      if (product?.stock != null) {
+        await supabase.from("productos").update({ stock: product.stock + d.quantity }).eq("id", d.productId);
+      }
+    }
+    const message = err instanceof Error ? err.message : "Error aplicando consignación feria";
+    return c.json({ code: "feria_apply_failed", message }, 409);
   }
 
   const { data: lastCommission } = await supabase
@@ -192,6 +263,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
   return c.json({
     data: venta,
     meta: {
+      feria: feriaMeta,
       accumulated_commission: accumulatedCommission,
       day_total: dayTotal,
       next_threshold: nextThreshold,
@@ -236,6 +308,64 @@ repVentasRoutes.get("/session/:sessionId", async (c) => {
   }
 
   return c.json({ data: ventas ?? [] });
+});
+
+repVentasRoutes.get("/feria-context", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+
+  const { data: contrato } = await supabase
+    .from("participante_contrato")
+    .select("id, tipo, comision_base_pct, score_confianza, bono_puntualidad_clp, estado")
+    .eq("user_id", user.id)
+    .eq("estado", "activo")
+    .maybeSingle();
+
+  if (!contrato) {
+    return c.json({
+      data: {
+        active: false,
+        contrato: null,
+        evento: null,
+        consignaciones: [],
+      },
+    });
+  }
+
+  const { data: evento } = await supabase
+    .from("participante_evento")
+    .select("id, nombre_evento, ubicacion, fecha_inicio, estado")
+    .eq("contrato_id", contrato.id)
+    .eq("estado", "en_curso")
+    .order("fecha_inicio", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let consignaciones: unknown[] = [];
+  if (evento) {
+    const { data: cons } = await supabase
+      .from("participante_consignacion")
+      .select("id, producto_id, cantidad_entregada, cantidad_vendida, cantidad_devuelta, productos(nombre)")
+      .eq("evento_id", evento.id);
+    consignaciones = (cons ?? []).map((row: Record<string, unknown>) => {
+      const entregada = Number(row.cantidad_entregada ?? 0);
+      const vendida = Number(row.cantidad_vendida ?? 0);
+      const devuelta = Number(row.cantidad_devuelta ?? 0);
+      return {
+        ...row,
+        pendiente: entregada - vendida - devuelta,
+      };
+    });
+  }
+
+  return c.json({
+    data: {
+      active: Boolean(evento),
+      contrato,
+      evento: evento ?? null,
+      consignaciones,
+    },
+  });
 });
 
 repVentasRoutes.get("/commission-status", async (c) => {

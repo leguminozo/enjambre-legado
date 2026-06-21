@@ -3,12 +3,27 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getSupabaseUrl, getSupabaseKey } from './supabase'
 import { getInternalApiSecret } from './internal-api-secret'
-import { ROLE_REDIRECT_MAP, isRouteAllowed, LEGACY_ROLE_MAP } from './role-redirect'
+import {
+  isRouteAllowed,
+  LEGACY_ROLE_MAP,
+  isExternalRedirect,
+  NUCLEO_ROLE_REDIRECT_MAP,
+} from './role-redirect'
+
+function resolveRedirect(target: string, request: NextRequest): NextResponse {
+  if (isExternalRedirect(target)) {
+    return NextResponse.redirect(target)
+  }
+  const url = request.nextUrl.clone()
+  url.pathname = target
+  return NextResponse.redirect(url)
+}
 
 export interface AuthMiddlewareConfig {
   publicRoutes?: string[]
   authRedirect?: string
   roleRedirectMap?: Record<string, string>
+
   defaultRole?: string
   timeoutMs?: number
 }
@@ -24,7 +39,7 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
   const {
     publicRoutes = ['/', '/login'],
     authRedirect = '/login',
-    roleRedirectMap = ROLE_REDIRECT_MAP,
+    roleRedirectMap = NUCLEO_ROLE_REDIRECT_MAP,
     defaultRole = 'cliente',
     timeoutMs = 5000,
   } = config
@@ -70,18 +85,16 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
       return NextResponse.redirect(url)
     }
 
-  if (user && pathname === authRedirect) {
-    const rawRole = (user.app_metadata?.role as string) ?? defaultRole
-    const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
-    const redirectPath = roleRedirectMap[role] ?? '/'
-    const url = request.nextUrl.clone()
-    url.pathname = redirectPath
-    return NextResponse.redirect(url)
-  }
+    if (user && pathname === authRedirect) {
+      const rawRole = (user.app_metadata?.role as string) ?? defaultRole
+      const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
+      const redirectPath = roleRedirectMap[role] ?? '/'
+      return resolveRedirect(redirectPath, request)
+    }
 
-  if (user) {
-    const rawRole = (user.app_metadata?.role as string) ?? defaultRole
-    const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
+    if (user) {
+      const rawRole = (user.app_metadata?.role as string) ?? defaultRole
+      const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
       if (!isRouteAllowed(pathname, role)) {
         const origin = request.nextUrl.origin
         const internalKey = getInternalApiSecret() || ''
@@ -99,12 +112,10 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
           }),
         }).catch(() => {})
         const targetPath = roleRedirectMap[role] ?? '/perfil'
-        if (pathname === targetPath) {
+        if (!isExternalRedirect(targetPath) && pathname === targetPath) {
           return new NextResponse('Access Denied', { status: 403 })
         }
-        const url = request.nextUrl.clone()
-        url.pathname = targetPath
-        return NextResponse.redirect(url)
+        return resolveRedirect(targetPath, request)
       }
     }
 

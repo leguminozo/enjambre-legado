@@ -60,6 +60,7 @@ describe("Notifications API Routes", () => {
     chain.update = vi.fn().mockReturnValue(chain);
     chain.insert = vi.fn().mockReturnValue(chain);
     chain.single = vi.fn().mockReturnValue(chain);
+    chain.maybeSingle = vi.fn().mockResolvedValue(finalValue);
     chain.then = (onfulfilled: any) => Promise.resolve(finalValue).then(onfulfilled);
     return chain;
   };
@@ -181,6 +182,9 @@ describe("Notifications API Routes", () => {
       mockFrom.mockImplementation((table: string) => {
         if (table === "usuarios_empresas") {
           return makeChain({ data: [{ empresa_id: "empresa-1", rol: "admin" }], error: null });
+        }
+        if (table === "profiles") {
+          return makeChain({ data: { role: "admin" }, error: null });
         }
         if (table === "notification_queue") {
           return makeChain({ data: mockQueueEntry, error: null });

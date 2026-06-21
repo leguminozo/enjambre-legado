@@ -13,16 +13,30 @@ export const LEGACY_ROLE_MAP: Record<string, RoleKey> = {
   tienda_admin: 'admin',
 }
 
+/** Rutas home por rol dentro de la app actual */
 export const ROLE_REDIRECT_MAP: Record<string, string> = {
   admin: '/ejecutivo',
-  creador: '/creador',
+  creador: '/perfil/creador',
   rep_ventas: '/caja',
   cliente: '/catalogo',
   ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map(k => [k, '/ejecutivo'])),
 }
 
-export function getRoleRedirectPath(role: string): string {
-  return ROLE_REDIRECT_MAP[role] ?? '/perfil'
+/** En núcleo, creador vive en tienda */
+export const NUCLEO_ROLE_REDIRECT_MAP: Record<string, string> = {
+  ...ROLE_REDIRECT_MAP,
+  creador: process.env.NEXT_PUBLIC_URL_TIENDA
+    ? `${process.env.NEXT_PUBLIC_URL_TIENDA.replace(/\/$/, '')}/perfil/creador`
+    : '/perfil/creador',
+}
+
+export function getRoleRedirectPath(role: string, app: 'nucleo' | 'tienda' = 'nucleo'): string {
+  const map = app === 'nucleo' ? NUCLEO_ROLE_REDIRECT_MAP : ROLE_REDIRECT_MAP
+  return map[role] ?? '/perfil'
+}
+
+export function isExternalRedirect(path: string): boolean {
+  return path.startsWith('http://') || path.startsWith('https://')
 }
 
 export const ALL_ADMIN_ROLES: RoleKey[] = ['admin']
@@ -42,6 +56,8 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/calculos-ia': ['admin'],
   '/vanguardia': ['admin'],
   '/creadores': ['admin'],
+  '/operadores-feria': ['admin'],
+  '/mi-feria': ['admin', 'rep_ventas'],
   '/invitaciones': ['admin'],
   '/reglas-comision': ['admin'],
   '/comisiones': ['admin', 'rep_ventas'],
@@ -54,7 +70,7 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/catalogo': ['admin', 'cliente'],
   '/operaciones': ['admin'],
   '/comunidad': ['admin'],
-  '/creador': ['admin', 'creador'],
+  '/creador': ['admin'],
   '/perfil': ['admin', 'creador', 'rep_ventas', 'cliente'],
   '/configuracion': ['admin', 'creador', 'rep_ventas', 'cliente'],
 }

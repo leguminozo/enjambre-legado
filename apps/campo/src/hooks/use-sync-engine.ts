@@ -11,7 +11,7 @@ export function useSyncEngine() {
 
   const performDownsync = useCallback(async () => {
     if (!navigator.onLine) return;
-    
+
     try {
       const supabase = createClient();
       if (!supabase) return;
@@ -27,20 +27,41 @@ export function useSyncEngine() {
 
       if (data) {
         await db.transaction('rw', db.productos, async () => {
-          // Clear and replace to handle deletions or visibility changes easily
           await db.productos.clear();
           await db.productos.bulkAdd(data);
         });
         console.log('[SyncEngine] Downsync complete. Products updated in local DB.');
       }
+
+      if (token) {
+        const feriaRes = await fetch(`${API_BASE}/api/rep-ventas/feria-context`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (feriaRes.ok) {
+          const feriaJson = await feriaRes.json();
+          const feriaData = feriaJson.data ?? {};
+          await db.feria_context.put({
+            id: 'current',
+            active: Boolean(feriaData.active),
+            evento: feriaData.evento ?? null,
+            consignaciones: feriaData.consignaciones ?? [],
+            updated_at: Date.now(),
+          });
+          console.log('[SyncEngine] Feria context cached locally.');
+        }
+      }
     } catch (err) {
       console.error('[SyncEngine] Downsync failed:', err);
     }
-  }, []);
+  }, [token]);
 
   const performUpsync = useCallback(async () => {
     if (!navigator.onLine || isSyncing.current) return;
-    
+
     isSyncing.current = true;
     try {
       const pendingItems = await db.sync_queue.where('status').equals('pending').toArray();
@@ -57,53 +78,62 @@ export function useSyncEngine() {
         try {
           const res = await fetch(`${API_BASE}/api/rep-ventas/quick`, {
             method: 'POST',
-            headers: { 
+            headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}` 
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(item.payload),
           });
 
           if (res.ok) {
-            // Success: remove from queue
             await db.sync_queue.delete(item.id!);
-          } else {
-            const data = await res.json().catch(() => ({}));
-            
-            // If the token expired or is invalid, do not drop the payload!
-            if (res.status === 401 || res.status === 403) {
-              console.warn('[SyncEngine] Auth rejected sync, keeping item pending.');
-              break; 
-            }
+            continue;
+          }
 
-            // If the error is not a 5xx, it might be a fatal logic error (e.g., bad payload). 
-            // We should mark it as error so it doesn't block the queue forever, but keep it for review.
-            if (res.status >= 400 && res.status < 500) {
-              await db.sync_queue.update(item.id!, { 
-                status: 'error', 
-                error_message: data.error || data.message || 'Client logic error' 
-              });
-            }
+          const data = await res.json().catch(() => ({} as Record<string, unknown>));
+
+          if (res.status === 401 || res.status === 403) {
+            console.warn('[SyncEngine] Auth rejected sync, keeping item pending.');
+            break;
+          }
+
+          const errorMessage =
+            (data.message as string | undefined) ||
+            (data.error as string | undefined) ||
+            'Client logic error';
+
+          if (res.status === 409 && data.code === 'consignacion_insuficiente') {
+            await db.sync_queue.update(item.id!, {
+              status: 'error',
+              error_message: `Consignación feria: ${errorMessage}`,
+            });
+            continue;
+          }
+
+          if (res.status >= 400 && res.status < 500) {
+            await db.sync_queue.update(item.id!, {
+              status: 'error',
+              error_message: errorMessage,
+            });
           }
         } catch (fetchErr) {
-          // Network error during fetch, leave as pending to retry later
           console.warn('[SyncEngine] Network error pushing item, will retry later.', fetchErr);
-          break; // Stop processing the queue if network drops
+          break;
         }
       }
+
+      await performDownsync();
     } catch (err) {
       console.error('[SyncEngine] Upsync failed:', err);
     } finally {
       isSyncing.current = false;
     }
-  }, [token]);
+  }, [token, performDownsync]);
 
   useEffect(() => {
-    // Initial sync on mount
     performDownsync();
     performUpsync();
 
-    // Listen to online events to trigger sync when network recovers
     const handleOnline = () => {
       console.log('[SyncEngine] Network restored. Triggering sync...');
       performDownsync();

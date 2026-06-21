@@ -95,18 +95,35 @@ docs/              Documentacion (estas leyendo esto)
 # 1. Instalar dependencias (raiz del monorepo)
 pnpm install
 
-# 2. Variables de entorno
-cp .env.example .env.local
-# Configurar SUPABASE_URL y SUPABASE_ANON_KEY
+# 2. Secretos (una vez) — Supabase Dashboard → Settings → API → service_role
+# Crear en la raíz: .env.secrets.local con SUPABASE_SERVICE_ROLE_KEY=eyJ...
+pnpm go-live:bootstrap    # fusiona a nucleo/tienda/campo + INTERNAL_API_SECRET
 
-# 3. Levantar todo
-pnpm dev
+# 3. Verificar
+pnpm go-live:check        # env obligatorio
+pnpm verify               # build igual que Vercel
 
-# 4. O levantar una app especifica
-pnpm --filter @enjambre/tienda dev
-pnpm --filter @enjambre/nucleo dev
-pnpm --filter @enjambre/campo dev
+# 4. Local (puertos fijos)
+pnpm --filter @enjambre/nucleo dev              # http://localhost:3000
+pnpm --filter @enjambre/tienda dev -- --port 3001
+pnpm --filter @enjambre/campo dev               # http://localhost:3002
+
+# 5. Producción Vercel (proyectos: nucleo-theta, tienda, campo)
+pnpm go-live:vercel-env   # sube env desde .env.secrets.local
+cd apps/nucleo && vercel --prod
+cd apps/tienda && vercel --prod
+cd apps/campo && vercel --prod
 ```
+
+### Checklist operativo feria (admin)
+
+1. `/operadores-feria` — contrato activo + evento `en_curso` + consignación  
+2. Campo POS — ventas `channel=feria`  
+3. Devolución stock si aplica  
+4. Rep cierra arqueo en `/mi-feria`  
+5. Ledger → aprobar → **Preparar SII** → F29 en módulo Impuestos  
+
+Ver `docs/RED_INTERCAMBIO_LEGAL.md` y `docs/VERCEL.md`.
 
 ---
 

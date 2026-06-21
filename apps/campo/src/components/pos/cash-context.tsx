@@ -76,6 +76,31 @@ const CashContext = createContext<CashContextValue | null>(null);
 
 const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
 
+async function validateOfflineFeriaBeforeQueue(
+  payload: Record<string, unknown>,
+): Promise<void> {
+  const channel = (payload.channel as string | undefined) ?? 'feria';
+  if (channel !== 'feria') return;
+
+  const { db } = await import('@/lib/offline/db');
+  const { extractSaleItemsFromPayload, validateOfflineFeriaSale } = await import('@/lib/offline/feria-offline');
+
+  const snapshot = await db.feria_context.get('current');
+  if (!snapshot) return;
+
+  const items = extractSaleItemsFromPayload(payload);
+  const check = validateOfflineFeriaSale(items, channel, {
+    active: snapshot.active,
+    evento: snapshot.evento,
+    consignaciones: snapshot.consignaciones,
+    updated_at: snapshot.updated_at,
+  });
+
+  if (!check.ok) {
+    throw new Error(check.message ?? 'Stock consignado insuficiente para venta offline');
+  }
+}
+
 async function apiFetch(path: string, token: string, options?: RequestInit) {
   const res = await fetch(`${API_BASE}/api${path}`, {
     ...options,
@@ -170,6 +195,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
     };
 
     if (!navigator.onLine) {
+      await validateOfflineFeriaBeforeQueue(payload);
       console.log('[CashProvider] Offline mode: queueing quickSale to Dexie');
       const { db } = await import('@/lib/offline/db');
       await db.sync_queue.add({
@@ -210,6 +236,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
     };
 
     if (!navigator.onLine) {
+      await validateOfflineFeriaBeforeQueue(payload);
       console.log('[CashProvider] Offline mode: queueing cartSale to Dexie');
       const { db } = await import('@/lib/offline/db');
       await db.sync_queue.add({

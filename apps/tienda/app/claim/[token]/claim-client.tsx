@@ -57,19 +57,15 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
     setMessage(null);
 
     try {
-      const { error } = await supabase
-        .from('ventas')
-        .update({
-          claim_status: 'claimed',
-          claimed_by: user.id,
-          claimed_at: new Date().toISOString(),
-          cliente_id: user.id,
-        })
-        .eq('claim_token', token)
-        .eq('claim_status', 'pending');
+      const { error } = await supabase.rpc('reclamar_venta_por_claim_token', {
+        p_token: token,
+      });
 
       if (error) {
-        setMessage({ type: 'error', text: friendlySupabaseError(error) });
+        const msg = error.message === 'NOT_FOUND_OR_ALREADY_CLAIMED'
+          ? 'Este ticket ya fue reclamado o no es válido'
+          : friendlySupabaseError(error);
+        setMessage({ type: 'error', text: msg });
       } else {
         setClaimed(true);
         setTimeout(() => {

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Hexagon, Lock, Mail, User, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Hexagon, Lock, Mail, User, ArrowRight, ArrowLeft } from 'lucide-react';
 import { AuthHero } from '@/components/auth/AuthHero';
 import { friendlyError } from '@enjambre/ui';
 import { supabase } from '@/lib/supabase';
@@ -19,7 +19,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState('admin');
+
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,16 +52,27 @@ export default function LoginPage() {
         await useAuthStore.getState().checkUser();
         const userId = useAuthStore.getState().user?.id;
         await logSecurityEvent(supabase, { eventType: 'login_success', email, userId, appSource: 'nucleo' });
-        const userRole = useAuthStore.getState().user?.role ?? role;
+        const userRole = useAuthStore.getState().user?.role ?? 'cliente';
         router.replace(getRoleRedirectPath(userRole));
       } else {
-        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, role } } });
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName } },
+        });
         if (error) throw error;
-        await logSecurityEvent(supabase, { eventType: 'signup_success', email, userId: data.user?.id ?? null, appSource: 'nucleo', details: { role } });
+        await logSecurityEvent(supabase, {
+          eventType: 'signup_success',
+          email,
+          userId: data.user?.id ?? null,
+          appSource: 'nucleo',
+          details: { role: 'cliente' },
+        });
         if (data.user && !data.session) {
-          setMessage('Revisa tu correo para confirmar la cuenta.');
+          setMessage('Revisa tu correo para confirmar la cuenta. El acceso al núcleo requiere invitación de un administrador.');
         } else {
-          router.replace(getRoleRedirectPath(role));
+          setMessage('Cuenta creada como cliente. El acceso al núcleo requiere que un administrador asigne tu rol.');
+          setIsLogin(true);
         }
       }
     } catch (err: unknown) {
@@ -106,17 +117,9 @@ export default function LoginPage() {
                       <input required type="text" className="input-field" placeholder="Ej. Cristina Campos" value={fullName} onChange={e => setFullName(e.target.value)} style={{ paddingLeft: '2.8rem' }} />
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="uppercase tracking-widest font-semibold text-muted-foreground m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Rol Principal</label>
-                    <div className="relative text-left">
-                      <ShieldCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ opacity: 0.5 }} />
-                  <select className="input-field" value={role} onChange={e => setRole(e.target.value)} style={{ paddingLeft: '2.8rem', appearance: 'none' }}>
-                    <option value="admin">Admin</option>
-                    <option value="creador">Creador</option>
-                    <option value="rep_ventas">Rep Ventas</option>
-                  </select>
-                    </div>
-                  </div>
+                  <p className="text-left text-xs text-muted-foreground leading-relaxed m-0">
+                    Las cuentas del núcleo se crean como <strong>cliente</strong>. Un administrador debe asignar tu rol operativo después del registro.
+                  </p>
                 </>
               )}
 

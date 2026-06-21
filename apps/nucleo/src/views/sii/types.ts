@@ -103,6 +103,7 @@ export type HonorarioRow = {
   descripcion: string;
   numero_bhe: string | null;
   estado: string;
+  incentivo_ledger_id: string | null;
   tercero: { id: string; nombre: string; rut: string } | null;
 };
 

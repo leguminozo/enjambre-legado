@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@enjambre/database/database.types";
 import { createMiddleware } from "hono/factory";
 import { getEnvOrThrow } from "./env";
+import { getSupabaseAnonKey, getSupabaseUrl } from "./supabase-env";
 
 export type AppVariables = {
   user: {
@@ -15,12 +16,20 @@ export type AppVariables = {
   supabase: SupabaseClient<Database>;
   empresaId: string;
   rol: string;
+  profileRole: string;
 };
 
 export function createSupabaseUserClient(accessToken: string): SupabaseClient<Database> {
+  const url = getSupabaseUrl();
+  const anonKey = getSupabaseAnonKey();
+  if (!url || !anonKey) {
+    throw new Error(
+      "Falta NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY o NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY",
+    );
+  }
   return createClient(
-    getEnvOrThrow("NEXT_PUBLIC_SUPABASE_URL"),
-    getEnvOrThrow("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+    url,
+    anonKey,
     {
       global: { headers: { Authorization: `Bearer ${accessToken}` } },
       auth: { persistSession: false, autoRefreshToken: false },
@@ -88,10 +97,32 @@ export const tenantMiddleware = createMiddleware<{
     return c.json({ code: "tenant_forbidden", message: "User has no access to requested company" }, 403);
   }
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    return c.json({ code: "profile_lookup_failed", message: profileError.message }, 500);
+  }
+
   c.set("empresaId", membership.empresa_id);
   c.set("rol", membership.rol);
+  c.set("profileRole", profile?.role ?? "cliente");
   await next();
 });
+
+/** Zero-Trust: autorización por profiles.role (no solo JWT válido). */
+export function requireProfileRole(...allowed: string[]) {
+  return createMiddleware<{ Variables: AppVariables }>(async (c, next) => {
+    const profileRole = c.get("profileRole");
+    if (!allowed.includes(profileRole)) {
+      return c.json({ code: "forbidden", message: "Rol insuficiente para esta operación" }, 403);
+    }
+    await next();
+  });
+}
 
 export const csrfMiddleware = createMiddleware(async (c, next) => {
   const method = c.req.method;

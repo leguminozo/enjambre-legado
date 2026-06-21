@@ -1,7 +1,6 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { VanguardiaPanel } from '@/components/vanguardia/VanguardiaPanel';
-
-export default function VanguardiaPage() {
-  return <VanguardiaPanel />;
+/** @deprecated Vanguardia absorbida en CRM → Aliados B2B + Huella Sensorial */
+export default function VanguardiaRedirectPage() {
+  redirect('/crm?tab=aliados');
 }

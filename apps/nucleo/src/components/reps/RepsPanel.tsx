@@ -8,6 +8,12 @@ import {
   Edit3, Trash2, X, ChevronRight
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
+import Link from 'next/link';
+import {
+  feriaContratoEstadoForUser,
+  FERIA_CONTRATO_ESTADO_LABEL,
+  type FeriaContratoRef,
+} from '@/components/operadores-feria/feria-contrato-status';
 
 interface RepRow {
   user_id: string;
@@ -28,6 +34,7 @@ interface RepRow {
 
 export function RepsPanel() {
   const [reps, setReps] = useState<RepRow[]>([]);
+  const [feriaContratos, setFeriaContratos] = useState<FeriaContratoRef[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,13 +44,19 @@ export function RepsPanel() {
   const fetchReps = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('rep_profiles')
-        .select('*, profiles!rep_profiles_user_id_fkey(full_name, email)')
-        .order('active', { ascending: false });
+      const [repsRes, contratosRes] = await Promise.all([
+        supabase
+          .from('rep_profiles')
+          .select('*, profiles!rep_profiles_user_id_fkey(full_name, email)')
+          .order('active', { ascending: false }),
+        supabase
+          .from('participante_contrato')
+          .select('id, user_id, estado'),
+      ]);
 
-      if (error) throw error;
-      setReps(Array.isArray(data) ? (data as RepRow[]) : []);
+      if (repsRes.error) throw repsRes.error;
+      setReps(Array.isArray(repsRes.data) ? (repsRes.data as RepRow[]) : []);
+      setFeriaContratos((contratosRes.data ?? []) as FeriaContratoRef[]);
     } catch (err) {
       toast(friendlyError(err, 'Error al cargar reps'), { type: 'error' });
     } finally {
@@ -90,6 +103,10 @@ export function RepsPanel() {
     }
   };
 
+  const repsSinContratoFeria = reps.filter(
+    (r) => r.active && feriaContratoEstadoForUser(feriaContratos, r.user_id) !== 'activo',
+  );
+
   const filteredReps = reps.filter(r => {
     if (filterActive === 'activos' && !r.active) return false;
     if (filterActive === 'inactivos' && r.active) return false;
@@ -128,12 +145,26 @@ export function RepsPanel() {
         </div>
       </div>
 
+      {repsSinContratoFeria.length > 0 && (
+        <div className="p-4 rounded-xl border border-warning/25 bg-warning/5 text-sm flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground flex items-start gap-2">
+            <AlertCircle size={14} className="text-warning shrink-0 mt-0.5" />
+            <span>
+              {repsSinContratoFeria.length} representante{repsSinContratoFeria.length === 1 ? '' : 's'} activo{repsSinContratoFeria.length === 1 ? '' : 's'} sin contrato feria. Pueden vender en caja sin trazabilidad de consignación.
+            </span>
+          </p>
+          <Link href="/operadores-feria" className="btn btn-outline btn-sm shrink-0">
+            Ir a Operadores Feria
+          </Link>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { icon: <Users size={18} />, val: reps.length, label: 'Total Representantes', accent: '' },
           { icon: <ChevronRight size={18} />, val: reps.filter(r => r.active).length, label: 'Activos', accent: 'text-success' },
-          { icon: <AlertCircle size={18} />, val: formatCLP(reps.reduce((s, r) => s + Number(r.total_commissions_earned || 0) - Number(r.total_commissions_paid || 0), 0)), label: 'Comisiones Pendientes', accent: 'text-accent' },
-          { icon: <ChevronRight size={18} />, val: Math.max(...reps.map(r => r.best_streak_days || 0), 0), label: 'Mejor Racha (días)', accent: '' },
+          { icon: <AlertCircle size={18} />, val: repsSinContratoFeria.length, label: 'Sin contrato feria', accent: 'text-warning' },
+          { icon: <ChevronRight size={18} />, val: formatCLP(reps.reduce((s, r) => s + Number(r.total_commissions_earned || 0) - Number(r.total_commissions_paid || 0), 0)), label: 'Comisiones Pendientes', accent: 'text-accent' },
         ].map((s, i) => (
           <div key={i} className="stat-card animate-in" style={{ animationDelay: `${i * 80}ms` }}>
             <div className="stat-header"><div className="stat-icon">{s.icon}</div></div>
@@ -175,6 +206,17 @@ export function RepsPanel() {
                       {rep.commission_tier}
                     </span>
                     {!rep.active && <span className="text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">inactivo</span>}
+                    {rep.active && (() => {
+                      const feriaEstado = feriaContratoEstadoForUser(feriaContratos, rep.user_id);
+                      const warn = feriaEstado !== 'activo';
+                      return (
+                        <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                          warn ? 'bg-warning/15 text-warning' : 'bg-success/10 text-success'
+                        }`}>
+                          {FERIA_CONTRATO_ESTADO_LABEL[feriaEstado]}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <p className="text-xs text-muted-foreground">{rep.profiles?.email}</p>
                   <div className="flex items-center gap-4 mt-2 flex-wrap">
@@ -187,6 +229,15 @@ export function RepsPanel() {
                 </div>
 
                 <div className="flex gap-2 flex-shrink-0">
+                  {rep.active && feriaContratoEstadoForUser(feriaContratos, rep.user_id) !== 'activo' && (
+                    <Link
+                      href={`/operadores-feria?rep=${rep.user_id}`}
+                      className="btn btn-outline btn-sm text-xs"
+                      title="Crear contrato de feria"
+                    >
+                      Contrato feria
+                    </Link>
+                  )}
                   <button
                     onClick={() => setEditRep(editRep?.userId === rep.user_id ? null : { userId: rep.user_id, tier: rep.commission_tier, fixedMonthly: rep.fixed_monthly, tierOverride: rep.commission_tier })}
                     className="w-9 h-9 rounded-full bg-surface-raised text-foreground flex items-center justify-center hover:bg-card transition-all"

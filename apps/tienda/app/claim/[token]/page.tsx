@@ -10,15 +10,13 @@ export default async function ClaimPage({ params }: ClaimPageProps) {
   const { token } = await params;
   const supabase = await createClient();
 
-  // Fetch minimal sale info to show the user what they are claiming
-  // We use the anon client, but we need a policy to allow selecting by token if pending
-  const { data: venta, error } = await supabase
-    .from('ventas')
-    .select('id, total, items, claim_status')
-    .eq('claim_token', token)
-    .single();
+  const { data: ventaRaw, error } = await supabase.rpc('obtener_venta_por_claim_token', {
+    p_token: token,
+  });
 
-  if (error || !venta) {
+  const venta = ventaRaw as { id?: string; total?: number; items?: unknown; claim_status?: string } | null;
+
+  if (error || !venta?.id) {
     return notFound();
   }
 

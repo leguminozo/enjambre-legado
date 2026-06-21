@@ -11,21 +11,43 @@ export interface ProductoLocal {
 
 export interface SyncQueueItem {
   id?: number; // Auto-increment primary key in Dexie
-  payload: any;
+  payload: Record<string, unknown>;
   status: 'pending' | 'error';
   error_message?: string;
   created_at: number;
 }
 
+export interface FeriaContextLocal {
+  id: 'current';
+  active: boolean;
+  evento: { id: string; nombre_evento: string; ubicacion?: string | null } | null;
+  consignaciones: Array<{
+    id: string;
+    producto_id: string;
+    cantidad_entregada: number;
+    cantidad_vendida: number;
+    cantidad_devuelta: number;
+    pendiente: number;
+    productos?: { nombre: string | null } | null;
+  }>;
+  updated_at: number;
+}
+
 const db = new Dexie('CampoPOSDatabase') as Dexie & {
   productos: EntityTable<ProductoLocal, 'id'>;
   sync_queue: EntityTable<SyncQueueItem, 'id'>;
+  feria_context: EntityTable<FeriaContextLocal, 'id'>;
 };
 
-// Schema versioning
 db.version(1).stores({
-  productos: 'id, nombre, visible', // Primary key and indexed props
-  sync_queue: '++id, status, created_at', // ++ means auto-increment
+  productos: 'id, nombre, visible',
+  sync_queue: '++id, status, created_at',
+});
+
+db.version(2).stores({
+  productos: 'id, nombre, visible',
+  sync_queue: '++id, status, created_at',
+  feria_context: 'id',
 });
 
 export { db };

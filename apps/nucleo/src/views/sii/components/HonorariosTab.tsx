@@ -143,6 +143,9 @@ export function HonorariosTab() {
                     <span className="text-xs text-muted-foreground mt-1">
                       {new Date(h.fecha).toLocaleDateString("es-CL")}
                       {h.tercero && <span className="ml-1 opacity-70">· {h.tercero.nombre}</span>}
+                      {h.incentivo_ledger_id && (
+                        <span className="ml-1 text-accent opacity-90">· desde ledger feria</span>
+                      )}
                     </span>
                   </div>
                   <div className="text-right flex flex-col items-end">

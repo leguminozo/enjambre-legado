@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { friendlySupabaseError } from '@enjambre/ui';
+import {
+  applyFeriaPostVenta,
+  formatFeriaValidationError,
+  validateFeriaConsignacion,
+  type FeriaSaleItem,
+} from '@/lib/feria-pos';
 
 type ItemRow = {
   producto_id: string;
@@ -76,7 +82,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'El total de la venta no es válido' }, { status: 400 });
   }
 
+  const channel = body.origen;
   const activeItems = items.filter((item) => Math.max(0, Number(item.cantidad || 0)) > 0);
+  const feriaItems: FeriaSaleItem[] = activeItems.map((item) => ({
+    producto_id: item.producto_id,
+    nombre: item.nombre,
+    cantidad: Math.max(0, Number(item.cantidad || 0)),
+    precio_unitario: item.precio_unitario,
+  }));
+
+  try {
+    const feriaValidation = await validateFeriaConsignacion(supabase, user.id, feriaItems, channel);
+    if (feriaValidation.required && !feriaValidation.ok) {
+      return NextResponse.json(
+        {
+          error: formatFeriaValidationError(feriaValidation),
+          code: 'consignacion_insuficiente',
+          details: feriaValidation.errors ?? [],
+        },
+        { status: 409 },
+      );
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Error validando consignación feria';
+    return NextResponse.json({ error: message, code: 'feria_validation_failed' }, { status: 500 });
+  }
+
   const productIds = activeItems.map((item) => item.producto_id);
   const { data: products, error: productsError } = await supabase
     .from('productos')
@@ -153,6 +184,7 @@ export async function POST(request: Request) {
   const payload = {
     vendedor_id: user.id,
     origen: body.origen,
+    channel: body.origen,
     estado: body.estado ?? 'confirmado',
     total,
     items: enrichedItems as unknown as Record<string, unknown>,
@@ -166,5 +198,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: friendlySupabaseError(error) }, { status: 400 });
   }
 
-  return NextResponse.json({ ok: true, id: data?.id, claim_token: data?.claim_token });
+  let feriaMeta: Record<string, unknown> | null = null;
+  try {
+    feriaMeta = (await applyFeriaPostVenta(
+      supabase,
+      user.id,
+      data.id,
+      feriaItems,
+      total,
+      channel,
+    )) as Record<string, unknown>;
+  } catch (err) {
+    await supabase.from('ventas').delete().eq('id', data.id);
+    await restoreStock(supabase, decremented);
+    const message = err instanceof Error ? err.message : 'Error aplicando consignación feria';
+    return NextResponse.json({ error: message, code: 'feria_apply_failed' }, { status: 409 });
+  }
+
+  return NextResponse.json({
+    ok: true,
+    id: data?.id,
+    claim_token: data?.claim_token,
+    meta: { feria: feriaMeta },
+  });
 }

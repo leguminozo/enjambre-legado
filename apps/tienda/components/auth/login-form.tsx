@@ -10,7 +10,7 @@ import { toast } from '@enjambre/ui';
 
 const TIENDA_ROLE_REDIRECT: Record<string, string> = {
   cliente: '/perfil',
-  creador: '/perfil',
+  creador: '/perfil/creador',
 }
 
 function getTiendaRedirect(role: string): string {

@@ -69,8 +69,8 @@ describe("Auth Integration Flow", () => {
       expect(getRoleRedirectPath("admin")).toBe("/ejecutivo");
     });
 
-    it("redirects creador to /creador", () => {
-      expect(getRoleRedirectPath("creador")).toBe("/creador");
+    it("redirects creador to tienda portal path", () => {
+      expect(getRoleRedirectPath("creador", "tienda")).toBe("/perfil/creador");
     });
 
     it("redirects rep_ventas to /caja", () => {
@@ -110,8 +110,8 @@ describe("Auth Integration Flow", () => {
       expect(isRouteAllowed("/ejecutivo", "rep_ventas")).toBe(false);
     });
 
-    it("allows creador to access /creador", () => {
-      expect(isRouteAllowed("/creador", "creador")).toBe(true);
+    it("denies creador to access /creador in nucleo (portal en tienda)", () => {
+      expect(isRouteAllowed("/creador", "creador")).toBe(false);
     });
 
     it("denies creador to access /ejecutivo", () => {
@@ -185,7 +185,7 @@ describe("Auth Integration Flow", () => {
       expect(res.headers.get("location")).toBe("http://localhost:3000/ejecutivo");
     });
 
-    it("redirects authenticated creador from /login to /creador", async () => {
+    it("redirects authenticated creador from /login to tienda portal", async () => {
       const req = buildRequest("/login", {
         user: {
           id: "u2",
@@ -195,7 +195,7 @@ describe("Auth Integration Flow", () => {
       });
       const res = await middleware(req);
       expect(res.status).toBe(302);
-      expect(res.headers.get("location")).toBe("http://localhost:3000/creador");
+      expect(res.headers.get("location")).toBe("http://localhost:3000/perfil/creador");
     });
 
     it("redirects authenticated rep_ventas from /login to /caja", async () => {
@@ -224,7 +224,7 @@ describe("Auth Integration Flow", () => {
       expect(res.headers.get("location")).toBe("http://localhost:3000/caja");
     });
 
-    it("redirects creador from /ejecutivo to /creador", async () => {
+    it("redirects creador from /ejecutivo to tienda portal", async () => {
       const req = buildRequest("/ejecutivo", {
         user: {
           id: "u2",
@@ -234,7 +234,7 @@ describe("Auth Integration Flow", () => {
       });
       const res = await middleware(req);
       expect(res.status).toBe(302);
-      expect(res.headers.get("location")).toBe("http://localhost:3000/creador");
+      expect(res.headers.get("location")).toBe("http://localhost:3000/perfil/creador");
     });
 
     it("allows admin to access /ejecutivo", async () => {

@@ -2419,6 +2419,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          capabilities: Json
           codigo_ref: string
           created_at: string | null
           descuento_cliente: number
@@ -2440,6 +2441,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          capabilities?: Json
           codigo_ref: string
           created_at?: string | null
           descuento_cliente?: number
@@ -2461,6 +2463,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          capabilities?: Json
           codigo_ref?: string
           created_at?: string | null
           descuento_cliente?: number
@@ -3640,6 +3643,7 @@ export type Database = {
           estado: string
           fecha: string
           id: string
+          incentivo_ledger_id: string | null
           monto_bruto: number
           monto_retencion: number
           numero_bhe: string | null
@@ -3655,6 +3659,7 @@ export type Database = {
           estado?: string
           fecha: string
           id?: string
+          incentivo_ledger_id?: string | null
           monto_bruto: number
           monto_retencion: number
           numero_bhe?: string | null
@@ -3670,6 +3675,7 @@ export type Database = {
           estado?: string
           fecha?: string
           id?: string
+          incentivo_ledger_id?: string | null
           monto_bruto?: number
           monto_retencion?: number
           numero_bhe?: string | null
@@ -3684,6 +3690,13 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "honorarios_incentivo_ledger_id_fkey"
+            columns: ["incentivo_ledger_id"]
+            isOneToOne: false
+            referencedRelation: "incentivo_ledger"
             referencedColumns: ["id"]
           },
           {
@@ -3749,6 +3762,78 @@ export type Database = {
             columns: ["periodo_id"]
             isOneToOne: false
             referencedRelation: "periodos_contables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentivo_ledger: {
+        Row: {
+          aprobado_at: string | null
+          aprobado_por: string | null
+          contrato_id: string | null
+          created_at: string
+          estado: Database["public"]["Enums"]["incentivo_estado"]
+          evento_id: string | null
+          id: string
+          moneda: string
+          monto: number
+          notas: string | null
+          pagado_at: string | null
+          participante_tipo: string
+          referencia_id: string | null
+          referencia_tabla: string | null
+          tipo: Database["public"]["Enums"]["incentivo_tipo"]
+          user_id: string
+        }
+        Insert: {
+          aprobado_at?: string | null
+          aprobado_por?: string | null
+          contrato_id?: string | null
+          created_at?: string
+          estado?: Database["public"]["Enums"]["incentivo_estado"]
+          evento_id?: string | null
+          id?: string
+          moneda?: string
+          monto: number
+          notas?: string | null
+          pagado_at?: string | null
+          participante_tipo: string
+          referencia_id?: string | null
+          referencia_tabla?: string | null
+          tipo: Database["public"]["Enums"]["incentivo_tipo"]
+          user_id: string
+        }
+        Update: {
+          aprobado_at?: string | null
+          aprobado_por?: string | null
+          contrato_id?: string | null
+          created_at?: string
+          estado?: Database["public"]["Enums"]["incentivo_estado"]
+          evento_id?: string | null
+          id?: string
+          moneda?: string
+          monto?: number
+          notas?: string | null
+          pagado_at?: string | null
+          participante_tipo?: string
+          referencia_id?: string | null
+          referencia_tabla?: string | null
+          tipo?: Database["public"]["Enums"]["incentivo_tipo"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentivo_ledger_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "participante_contrato"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentivo_ledger_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "participante_evento"
             referencedColumns: ["id"]
           },
         ]
@@ -4570,6 +4655,227 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      participante_arqueo: {
+        Row: {
+          cerrado_at: string | null
+          cerrado_por: string | null
+          created_at: string
+          diferencia_efectivo: number | null
+          diferencia_stock: number | null
+          efectivo_contado: number
+          efectivo_teorico: number
+          evento_id: string
+          id: string
+          notas: string | null
+          stock_contado: number
+          stock_teorico: number
+        }
+        Insert: {
+          cerrado_at?: string | null
+          cerrado_por?: string | null
+          created_at?: string
+          diferencia_efectivo?: number | null
+          diferencia_stock?: number | null
+          efectivo_contado?: number
+          efectivo_teorico?: number
+          evento_id: string
+          id?: string
+          notas?: string | null
+          stock_contado?: number
+          stock_teorico?: number
+        }
+        Update: {
+          cerrado_at?: string | null
+          cerrado_por?: string | null
+          created_at?: string
+          diferencia_efectivo?: number | null
+          diferencia_stock?: number | null
+          efectivo_contado?: number
+          efectivo_teorico?: number
+          evento_id?: string
+          id?: string
+          notas?: string | null
+          stock_contado?: number
+          stock_teorico?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participante_arqueo_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "participante_evento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      participante_consignacion: {
+        Row: {
+          cantidad_devuelta: number
+          cantidad_entregada: number
+          cantidad_vendida: number
+          created_at: string
+          evento_id: string
+          id: string
+          producto_id: string | null
+        }
+        Insert: {
+          cantidad_devuelta?: number
+          cantidad_entregada: number
+          cantidad_vendida?: number
+          created_at?: string
+          evento_id: string
+          id?: string
+          producto_id?: string | null
+        }
+        Update: {
+          cantidad_devuelta?: number
+          cantidad_entregada?: number
+          cantidad_vendida?: number
+          created_at?: string
+          evento_id?: string
+          id?: string
+          producto_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participante_consignacion_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "participante_evento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participante_consignacion_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      participante_contrato: {
+        Row: {
+          acepto_terminos_at: string | null
+          acepto_terminos_version: string | null
+          bono_puntualidad_clp: number | null
+          bono_volumen_tiers: Json
+          capabilities: Json
+          comision_base_pct: number
+          created_at: string
+          estado: Database["public"]["Enums"]["participante_contrato_estado"]
+          honorario_fijo_mensual: number | null
+          id: string
+          notas_internas: string | null
+          score_confianza: number
+          tipo: string
+          tope_efectivo_caja: number | null
+          tope_stock_consignado: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          acepto_terminos_at?: string | null
+          acepto_terminos_version?: string | null
+          bono_puntualidad_clp?: number | null
+          bono_volumen_tiers?: Json
+          capabilities?: Json
+          comision_base_pct?: number
+          created_at?: string
+          estado?: Database["public"]["Enums"]["participante_contrato_estado"]
+          honorario_fijo_mensual?: number | null
+          id?: string
+          notas_internas?: string | null
+          score_confianza?: number
+          tipo: string
+          tope_efectivo_caja?: number | null
+          tope_stock_consignado?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          acepto_terminos_at?: string | null
+          acepto_terminos_version?: string | null
+          bono_puntualidad_clp?: number | null
+          bono_volumen_tiers?: Json
+          capabilities?: Json
+          comision_base_pct?: number
+          created_at?: string
+          estado?: Database["public"]["Enums"]["participante_contrato_estado"]
+          honorario_fijo_mensual?: number | null
+          id?: string
+          notas_internas?: string | null
+          score_confianza?: number
+          tipo?: string
+          tope_efectivo_caja?: number | null
+          tope_stock_consignado?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participante_contrato_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participante_contrato_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_ciclos_balance"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "participante_contrato_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_tier_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      participante_evento: {
+        Row: {
+          contrato_id: string
+          created_at: string
+          estado: Database["public"]["Enums"]["participante_evento_estado"]
+          fecha_fin: string | null
+          fecha_inicio: string | null
+          id: string
+          nombre_evento: string
+          ubicacion: string | null
+        }
+        Insert: {
+          contrato_id: string
+          created_at?: string
+          estado?: Database["public"]["Enums"]["participante_evento_estado"]
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          nombre_evento: string
+          ubicacion?: string | null
+        }
+        Update: {
+          contrato_id?: string
+          created_at?: string
+          estado?: Database["public"]["Enums"]["participante_evento_estado"]
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          nombre_evento?: string
+          ubicacion?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participante_evento_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "participante_contrato"
             referencedColumns: ["id"]
           },
         ]
@@ -7289,6 +7595,7 @@ export type Database = {
           metodo_pago: string | null
           organizacion_id: string | null
           origen: string | null
+          participante_evento_id: string | null
           productos: Json
           rep_commission_base: number | null
           rep_commission_loyalty: number | null
@@ -7324,6 +7631,7 @@ export type Database = {
           metodo_pago?: string | null
           organizacion_id?: string | null
           origen?: string | null
+          participante_evento_id?: string | null
           productos: Json
           rep_commission_base?: number | null
           rep_commission_loyalty?: number | null
@@ -7359,6 +7667,7 @@ export type Database = {
           metodo_pago?: string | null
           organizacion_id?: string | null
           origen?: string | null
+          participante_evento_id?: string | null
           productos?: Json
           rep_commission_base?: number | null
           rep_commission_loyalty?: number | null
@@ -7418,6 +7727,13 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_participante_evento_id_fkey"
+            columns: ["participante_evento_id"]
+            isOneToOne: false
+            referencedRelation: "participante_evento"
             referencedColumns: ["id"]
           },
         ]
@@ -7538,6 +7854,20 @@ export type Database = {
           f_table_schema?: unknown
           srid?: number | null
           type?: string | null
+        }
+        Relationships: []
+      }
+      incentivo_unificado_view: {
+        Row: {
+          created_at: string | null
+          estado: Database["public"]["Enums"]["incentivo_estado"] | null
+          id: string | null
+          moneda: string | null
+          monto: number | null
+          origen_tabla: string | null
+          participante_tipo: string | null
+          tipo: Database["public"]["Enums"]["incentivo_tipo"] | null
+          user_id: string | null
         }
         Relationships: []
       }
@@ -7866,6 +8196,16 @@ export type Database = {
           tipo_entidad: string
         }[]
       }
+      aplicar_venta_feria_post_venta: {
+        Args: {
+          p_channel?: string
+          p_items: Json
+          p_total: number
+          p_user_id: string
+          p_venta_id: string
+        }
+        Returns: Json
+      }
       buscar_factura_por_regla: {
         Args: {
           mov: Database["public"]["Tables"]["banco_chile_movimientos"]["Row"]
@@ -7931,6 +8271,18 @@ export type Database = {
           p_user_id: string
         }
         Returns: Json
+      }
+      cerrar_arqueo_feria: {
+        Args: {
+          p_cerrado_por?: string
+          p_efectivo_contado: number
+          p_efectivo_teorico: number
+          p_evento_id: string
+          p_notas?: string
+          p_stock_contado: number
+          p_stock_teorico: number
+        }
+        Returns: string
       }
       complete_referral_signup: {
         Args: { p_new_user_id: string; p_referrer_id: string }
@@ -8190,6 +8542,10 @@ export type Database = {
           vendedor_id: string
         }[]
       }
+      obtener_venta_por_claim_token: {
+        Args: { p_token: string }
+        Returns: Json
+      }
       populate_geometry_columns:
         | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
         | { Args: { use_typmod?: boolean }; Returns: string }
@@ -8230,11 +8586,39 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      preparar_honorario_desde_ledger: {
+        Args: {
+          p_empresa_id: string
+          p_fecha: string
+          p_ledger_id: string
+          p_numero_bhe?: string
+          p_tasa_retencion?: number
+          p_tercero_nombre: string
+          p_tercero_rut: string
+        }
+        Returns: Json
+      }
+      reclamar_venta_por_claim_token: {
+        Args: { p_token: string }
+        Returns: Json
+      }
       redeem_loyalty_reward: {
         Args: {
           p_idempotency_key: string
           p_reward_id: string
           p_user_id: string
+        }
+        Returns: Json
+      }
+      registrar_consignacion_feria: {
+        Args: { p_cantidad: number; p_evento_id: string; p_producto_id: string }
+        Returns: Json
+      }
+      registrar_devolucion_consignacion_feria: {
+        Args: {
+          p_cantidad: number
+          p_consignacion_id: string
+          p_reponer_almacen?: boolean
         }
         Returns: Json
       }
@@ -8268,6 +8652,10 @@ export type Database = {
       }
       resolve_payment_failure: {
         Args: { p_failure_id: string }
+        Returns: undefined
+      }
+      revertir_consignacion_feria: {
+        Args: { p_evento_id: string; p_items: Json }
         Returns: undefined
       }
       schedule_payment_retry: {
@@ -8890,6 +9278,10 @@ export type Database = {
         }
         Returns: string
       }
+      validar_consignacion_feria: {
+        Args: { p_channel?: string; p_items: Json; p_user_id: string }
+        Returns: Json
+      }
       verificar_integridad_audit_trail: {
         Args: { p_qr_id: string }
         Returns: {
@@ -8925,6 +9317,25 @@ export type Database = {
         | "canje"
       comision_estado: "pendiente" | "aprobada" | "pagada" | "rechazada"
       creador_estado: "pendiente" | "activo" | "suspendido" | "inactivo"
+      incentivo_estado: "pendiente" | "aprobado" | "pagado" | "rechazado"
+      incentivo_tipo:
+        | "comision_venta"
+        | "bono_puntualidad"
+        | "bono_volumen"
+        | "honorario_feria"
+        | "comision_creador"
+        | "liquidacion_creador"
+        | "ajuste_admin"
+      participante_contrato_estado:
+        | "borrador"
+        | "activo"
+        | "suspendido"
+        | "terminado"
+      participante_evento_estado:
+        | "programado"
+        | "en_curso"
+        | "cerrado"
+        | "cancelado"
       perfil_estado: "pendiente" | "activo" | "suspendido"
     }
     CompositeTypes: {
@@ -9075,6 +9486,28 @@ export const Constants = {
       ],
       comision_estado: ["pendiente", "aprobada", "pagada", "rechazada"],
       creador_estado: ["pendiente", "activo", "suspendido", "inactivo"],
+      incentivo_estado: ["pendiente", "aprobado", "pagado", "rechazado"],
+      incentivo_tipo: [
+        "comision_venta",
+        "bono_puntualidad",
+        "bono_volumen",
+        "honorario_feria",
+        "comision_creador",
+        "liquidacion_creador",
+        "ajuste_admin",
+      ],
+      participante_contrato_estado: [
+        "borrador",
+        "activo",
+        "suspendido",
+        "terminado",
+      ],
+      participante_evento_estado: [
+        "programado",
+        "en_curso",
+        "cerrado",
+        "cancelado",
+      ],
       perfil_estado: ["pendiente", "activo", "suspendido"],
     },
   },

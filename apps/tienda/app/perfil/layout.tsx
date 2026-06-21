@@ -5,6 +5,7 @@ import { GuardianSidebar } from '@/components/shop/guardian-sidebar';
 import { PerfilLayoutClient } from './perfil-layout-client';
 import { CustomCursor } from '@/components/ui/custom-cursor';
 import { getOyzRole } from '@/lib/shop/role';
+import { getParticipacionActiva } from '@/lib/shop/participacion';
 import { toTiendaUserProfile } from '@/lib/shop/user-profile';
 
 export default async function PerfilLayout({
@@ -21,6 +22,7 @@ export default async function PerfilLayout({
   }
 
   const role = await getOyzRole();
+  const participacion = await getParticipacionActiva(supabase, user.id);
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -44,7 +46,7 @@ export default async function PerfilLayout({
     <div className="min-h-screen bg-background text-foreground flex">
       <CustomCursor />
 
-      <PerfilLayoutClient user={tiendaUser} role={role}>
+      <PerfilLayoutClient user={tiendaUser} role={role} participacion={participacion}>
         {children}
       </PerfilLayoutClient>
     </div>

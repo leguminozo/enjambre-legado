@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import type { AppVariables } from "@/api/lib/middleware";
+import { postHonorarioDesdeLedger } from "./honorarios-desde-ledger";
 
 export const honorariosRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -90,3 +91,5 @@ honorariosRoutes.post("/", async (c) => {
 
   return c.json({ data }, 201);
 });
+
+honorariosRoutes.post("/desde-ledger", postHonorarioDesdeLedger);

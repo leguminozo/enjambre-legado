@@ -2,7 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
-import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import { authMiddleware, requireProfileRole, tenantMiddleware } from "@/api/lib/middleware";
 
 const OpenSessionSchema = z.object({
   opening_cash: z.number().min(0, "Efectivo inicial debe ser >= 0"),
@@ -19,7 +19,11 @@ const ReconcileSchema = z.object({
 
 export const cashSessionsRoutes = new Hono<{ Variables: AppVariables }>();
 
-cashSessionsRoutes.use("*", authMiddleware, tenantMiddleware);
+cashSessionsRoutes.use("*", authMiddleware, tenantMiddleware, requireProfileRole("rep_ventas", "admin"));
+
+cashSessionsRoutes.use("/:id/reconcile", requireProfileRole("admin"));
+cashSessionsRoutes.use("/export/csv", requireProfileRole("admin"));
+cashSessionsRoutes.use("/history", requireProfileRole("admin"));
 
 cashSessionsRoutes.post("/", zValidator("json", OpenSessionSchema), async (c) => {
   const input = c.req.valid("json");

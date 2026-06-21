@@ -16,6 +16,10 @@
     "verify": "bash scripts/verify-before-vercel.sh",
     "verify:ci": "pnpm turbo build --filter=@enjambre/contable --filter=@enjambre/nucleo --filter=@enjambre/tienda",
     "verify:fast": "pnpm turbo build --filter=@enjambre/contable --filter=@enjambre/nucleo --filter=@enjambre/tienda",
+    "go-live:check": "node scripts/go-live-check.mjs",
+    "go-live:bootstrap": "bash scripts/bootstrap-local-env.sh",
+    "go-live:vercel-env": "bash scripts/push-vercel-env.sh",
+    "go-live:smoke": "node scripts/smoke-test.mjs",
     "vercel:build": "vercel build",
     "dev:vercel": "vercel dev"
   },

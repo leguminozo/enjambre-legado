@@ -5,15 +5,17 @@ import { Menu } from 'lucide-react';
 import { TiendaSidebar } from '@/components/shop/tienda-sidebar';
 import { BeeCanvas } from '@/components/shop/bee-canvas';
 import type { OyzRole } from '@/lib/shop/role';
+import type { ParticipacionActiva } from '@/lib/shop/participacion';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 
 interface PerfilLayoutClientProps {
   children: React.ReactNode;
   user: TiendaUserProfile | null;
   role: OyzRole;
+  participacion: ParticipacionActiva;
 }
 
-export function PerfilLayoutClient({ children, user, role }: PerfilLayoutClientProps) {
+export function PerfilLayoutClient({ children, user, role, participacion }: PerfilLayoutClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -23,6 +25,7 @@ export function PerfilLayoutClient({ children, user, role }: PerfilLayoutClientP
 
       <TiendaSidebar
         user={user}
+        participacion={participacion}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />

@@ -345,10 +345,13 @@ Cada INSERT en `ventas` con `cash_session_id` dispara:
 - [x] Admin override tier: checkbox en RepsPanel
 - [x] ReglasComisionPanel: editores especiales channel_rate (6 inputs %) + tier_bonus (4 inputs ×N)
 
-### Fase 5 — Offline Real (pendiente)
-- [ ] Implementar `@enjambre/offline` (Dexie) para ventas sin conexión
-- [ ] Sync queue que purga al recuperar conexión
-- [ ] Conflict resolution para ventas offline que se sincronizan
+### Fase 5 — Offline Real (parcial ✅)
+- [x] Dexie en Campo (`productos` + `sync_queue`) para ventas sin conexión
+- [x] Sync queue que purga al recuperar conexión (`use-sync-engine.ts`)
+- [x] Cache feria offline (`feria_context`) + validación consignación pre-encolado
+- [x] Upsync marca error explícito en 409 `consignacion_insuficiente`
+- [ ] Paquete `@enjambre/offline` compartido (extracción desde Campo)
+- [ ] Conflict resolution avanzada para ventas offline duplicadas
 - [ ] Cierre de caja offline con reconciliación diferida
 
 ### Fase 6 — Pulido y Seguridad

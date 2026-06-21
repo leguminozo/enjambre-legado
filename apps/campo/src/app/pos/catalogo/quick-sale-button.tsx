@@ -39,6 +39,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
   const [qty, setQty] = useState(1);
   const [channel, setChannel] = useState<string>('feria');
   const [loading, setLoading] = useState(false);
+  const [saleError, setSaleError] = useState<string | null>(null);
   const [lastCommission, setLastCommission] = useState<number | null>(null);
   const [lastCommissionDetail, setLastCommissionDetail] = useState<{
     tier_multiplier: number;
@@ -75,6 +76,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     }
 
     setLoading(true);
+    setSaleError(null);
     try {
       const metodoPago = pm === 'debito' ? 'tarjeta' : pm;
       const result = await quickSale(producto_id, qty, metodoPago, channel);
@@ -82,8 +84,8 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
       setStep('done');
     } catch (error) {
       console.error('[quick-sale] error:', error);
-      setStep('idle');
-      setQty(1);
+      setSaleError(error instanceof Error ? error.message : 'No se pudo registrar la venta');
+      setStep('pay');
     } finally {
       setLoading(false);
     }
@@ -91,6 +93,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
 
   const handleTerminalComplete = useCallback(async (terminalResult: TerminalFlowResult) => {
     setLoading(true);
+    setSaleError(null);
     try {
       const result = await quickSale(producto_id, qty, 'pos_terminal', channel, {
         sumup_checkout_id: terminalResult.checkout_id,
@@ -100,7 +103,8 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
       setStep('done');
     } catch (error) {
       console.error('[quick-sale] terminal sale error:', error);
-      setStep('idle');
+      setSaleError(error instanceof Error ? error.message : 'No se pudo registrar la venta');
+      setStep('pay');
     } finally {
       setLoading(false);
     }
@@ -115,6 +119,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     setStep('idle');
     setQty(1);
     setChannel('feria');
+    setSaleError(null);
     setLastCommission(null);
     setLastCommissionDetail(null);
     setTerminalStep('idle');
@@ -272,6 +277,11 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
             </button>
           ))}
         </div>
+        {saleError && (
+          <p className="text-xs text-destructive bg-destructive/10 p-2 rounded-lg border border-destructive/20 text-center">
+            {saleError}
+          </p>
+        )}
         <button onClick={() => setStep('channel')} className="w-full text-center text-[10px] text-muted-foreground uppercase tracking-widest hover:text-muted-foreground transition-colors">
           Cambiar canal
         </button>

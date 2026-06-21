@@ -1,16 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Users, TrendingUp, MessageSquare, Calendar, Target, Loader2 } from "lucide-react";
+import { Users, TrendingUp, MessageSquare, Calendar, Target, Loader2, Shield, Star } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { OverviewTab } from "./components/OverviewTab";
 import { ClientesTab } from "./components/ClientesTab";
 import { InteraccionesTab } from "./components/InteraccionesTab";
 import { FeriasTab } from "./components/FeriasTab";
+import { AliadosB2BTab } from "./components/AliadosB2BTab";
+import { ResenasSensorialesTab } from "./components/ResenasSensorialesTab";
 import { CRMDashboard, EMPTY_DASHBOARD } from "./types";
+
+type CrmTab = "overview" | "clientes" | "interacciones" | "ferias" | "aliados" | "resenas";
+
+const TAB_FROM_PARAM: Record<string, CrmTab> = {
+  overview: "overview",
+  clientes: "clientes",
+  interacciones: "interacciones",
+  ferias: "ferias",
+  aliados: "aliados",
+  resenas: "resenas",
+};
 
 export function CRMView() {
   const apiFetch = useApiFetch();
-  const [tab, setTab] = useState<"overview" | "clientes" | "interacciones" | "ferias">("overview");
+  const searchParams = useSearchParams();
+  const initialTab = TAB_FROM_PARAM[searchParams.get("tab") ?? ""] ?? "overview";
+  const [tab, setTab] = useState<CrmTab>(initialTab);
+
+  useEffect(() => {
+    const param = searchParams.get("tab");
+    if (param && TAB_FROM_PARAM[param]) {
+      setTab(TAB_FROM_PARAM[param]);
+    }
+  }, [searchParams]);
   const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery<{ data: CRMDashboard }>({
@@ -26,11 +49,13 @@ export function CRMView() {
   const dashboard = data?.data ?? EMPTY_DASHBOARD;
   const stats = dashboard.stats;
 
-  const tabs = [
-    { key: "overview" as const, label: "Vista General", icon: <TrendingUp size={16} /> },
-    { key: "clientes" as const, label: "Clientes", icon: <Users size={16} /> },
-    { key: "interacciones" as const, label: "Interacciones", icon: <MessageSquare size={16} /> },
-    { key: "ferias" as const, label: "Agenda Ferias", icon: <Calendar size={16} /> },
+  const tabs: { key: CrmTab; label: string; icon: React.ReactNode }[] = [
+    { key: "overview", label: "Vista General", icon: <TrendingUp size={16} /> },
+    { key: "clientes", label: "Clientes", icon: <Users size={16} /> },
+    { key: "interacciones", label: "Interacciones", icon: <MessageSquare size={16} /> },
+    { key: "ferias", label: "Agenda Ferias", icon: <Calendar size={16} /> },
+    { key: "aliados", label: "Aliados B2B", icon: <Shield size={16} /> },
+    { key: "resenas", label: "Huella Sensorial", icon: <Star size={16} /> },
   ];
 
   return (
@@ -118,6 +143,8 @@ export function CRMView() {
             <InteraccionesTab dashboard={dashboard} selectedClienteId={selectedClienteId} />
           )}
           {tab === "ferias" && <FeriasTab dashboard={dashboard} />}
+          {tab === "aliados" && <AliadosB2BTab />}
+          {tab === "resenas" && <ResenasSensorialesTab />}
         </div>
       )}
     </div>

@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useState, useCallback } from 'react';
 import { useCart } from '@/components/pos/cart-context';
 import { useCashSession } from '@/components/pos/cash-context';
+import { getConsignacionIssues, useFeriaContext } from '@/components/pos/feria-context';
 import { useSumUp } from '@/components/pos/sumup-context';
 import { SumupTerminalFlow } from '@/components/pos/sumup-terminal-flow';
 import type { VentaChannel, PaymentMethod, TerminalFlowResult } from '@/components/pos/types';
-import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft, Banknote, CreditCard, Smartphone, Store, Truck, Building2, Users, Nfc } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft, Banknote, CreditCard, Smartphone, Store, Truck, Building2, Users, Nfc, AlertTriangle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 const paymentMethods: { value: PaymentMethod; label: string; icon: React.ReactNode }[] = [
@@ -31,7 +32,8 @@ type CheckoutMode = 'standard' | 'terminal';
 export default function CarritoPage() {
   const router = useRouter();
   const { lines, setQty, removeLine, clear, total, ready } = useCart();
-  const { session, cartSale, selectedClient, isNewClient } = useCashSession();
+  const { session, cartSale } = useCashSession();
+  const { active: feriaActiva, consignaciones, refresh: refreshFeria } = useFeriaContext();
   const { setTerminalStep } = useSumUp();
   const [channel, setChannel] = useState<VentaChannel>('feria');
   const [metodoPago, setMetodoPago] = useState<PaymentMethod>('efectivo');
@@ -43,9 +45,19 @@ export default function CarritoPage() {
 
   const isSessionOpen = session?.session_status === 'open';
 
+  const consignacionIssues = getConsignacionIssues(lines, consignaciones, {
+    channel,
+    eventoActivo: feriaActiva,
+  });
+  const hasConsignacionBlock = consignacionIssues.length > 0;
+
   const confirmarVenta = useCallback(async () => {
     setError(null);
     if (lines.length === 0) return;
+    if (hasConsignacionBlock) {
+      setError('Corrige el stock consignado antes de confirmar la venta feria');
+      return;
+    }
 
     if (metodoPago === 'tarjeta_pos') {
       setCheckoutMode('terminal');
@@ -99,13 +111,15 @@ export default function CarritoPage() {
         setSuccessData({ id: data.id, claim_token: data.claim_token });
       }
       clear();
+      void refreshFeria();
     } catch (err) {
       console.error('[carrito] sale error:', err);
-      setError('Error de conexion con el servidor');
+      const msg = err instanceof Error ? err.message : 'Error de conexion con el servidor';
+      setError(msg);
     } finally {
       setLoading(false);
     }
-  }, [lines, metodoPago, isSessionOpen, channel, total, cartSale, clear]);
+  }, [lines, metodoPago, isSessionOpen, channel, total, cartSale, clear, hasConsignacionBlock, refreshFeria]);
 
   const handleTerminalComplete = useCallback(async (terminalResult: TerminalFlowResult) => {
     setTerminalComplete(terminalResult);
@@ -130,13 +144,15 @@ export default function CarritoPage() {
         setSuccessData({ id: result.id, commission: result.rep_commission_total });
       }
       clear();
+      void refreshFeria();
     } catch (err) {
       console.error('[carrito] terminal sale error:', err);
-      setError('Error al registrar la venta');
+      const msg = err instanceof Error ? err.message : 'Error al registrar la venta';
+      setError(msg);
     } finally {
       setLoading(false);
     }
-  }, [lines, isSessionOpen, channel, cartSale, clear]);
+  }, [lines, isSessionOpen, channel, cartSale, clear, refreshFeria]);
 
   const handleTerminalCancel = useCallback(() => {
     setCheckoutMode('standard');
@@ -278,6 +294,24 @@ export default function CarritoPage() {
               <span>{new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(total)}</span>
             </div>
 
+            {channel === 'feria' && feriaActiva && consignacionIssues.length > 0 && (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-2">
+                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-widest">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  Consignación insuficiente
+                </div>
+                <ul className="space-y-1 text-xs text-foreground/80">
+                  {consignacionIssues.map((issue) => (
+                    <li key={issue.producto_id}>
+                      {issue.tipo === 'sin_consignacion'
+                        ? `${issue.nombre}: no consignado para este evento`
+                        : `${issue.nombre}: ${issue.pendiente} disponible, ${issue.solicitado} en carrito`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <div>
               <label className="block text-xs uppercase tracking-widest text-muted-foreground font-bold mb-2">Canal de Venta</label>
               <div className="grid grid-cols-5 gap-1.5">
@@ -341,7 +375,7 @@ export default function CarritoPage() {
 
               <button
                 onClick={() => void confirmarVenta()}
-                disabled={loading || lines.length === 0}
+                disabled={loading || lines.length === 0 || hasConsignacionBlock}
                 className="w-full py-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full font-bold shadow-2xl shadow-primary/10 transition-all transform active:scale-95 disabled:opacity-30 disabled:grayscale"
               >
                 {loading ? (

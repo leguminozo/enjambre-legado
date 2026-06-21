@@ -4,13 +4,20 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
-  Map, Hexagon, TreePine, ShoppingBag, Truck, Megaphone,
+  Map, Hexagon, TreePine, ShoppingBag, Truck, Megaphone, Calendar,
   Menu, X, LogOut, Calculator, Sparkles, BarChart3, FileText,
   UserCog, Settings, Building2, CreditCard, GitMerge, Printer,
   Cpu, Shield, Wallet, Users, Ticket, Percent, Sliders, Trophy,
   FlaskConical, Factory, Contact,
 } from 'lucide-react';
-import { SIDEBAR_GROUPS, ACCOUNT_ITEMS, findActiveItem, type SidebarItem, type SidebarBadge } from '@/config/sidebar-config';
+import {
+  getSidebarGroupsForRole,
+  getAccountItemsForRole,
+  findActiveItem,
+  type SidebarItem,
+  type SidebarBadge,
+} from '@/config/sidebar-config';
+import type { RoleKey } from '@enjambre/auth/role-redirect';
 import { SidebarSection, SidebarBadgeIndicator, type SidebarNavItemData } from '@enjambre/ui';
 import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 import { useAuthStore } from '@enjambre/auth';
@@ -45,6 +52,7 @@ const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
   'user-cog': UserCog,
   'settings': Settings,
   'contact': Contact,
+  'calendar': Calendar,
 };
 
 function toNavItemData(
@@ -74,7 +82,9 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const { badges } = useSidebarBadges();
-  const userRole = useAuthStore((s) => s.user?.role ?? 'admin');
+  const userRole = (useAuthStore((s) => s.user?.role ?? 'admin')) as RoleKey;
+  const sidebarGroups = useMemo(() => getSidebarGroupsForRole(userRole), [userRole]);
+  const accountItems = useMemo(() => getAccountItemsForRole(userRole), [userRole]);
 
   const urlTienda = process.env.NEXT_PUBLIC_URL_TIENDA?.trim() || '';
   const urlCampo = process.env.NEXT_PUBLIC_URL_CAMPO?.trim() || '';
@@ -99,7 +109,10 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
     if (searchOpen && searchRef.current) searchRef.current.focus();
   }, [searchOpen]);
 
-  const allItems = useMemo(() => [...SIDEBAR_GROUPS.flatMap(g => g.items), ...ACCOUNT_ITEMS], []);
+  const allItems = useMemo(
+    () => [...sidebarGroups.flatMap(g => g.items), ...accountItems],
+    [sidebarGroups, accountItems],
+  );
   const filteredSearch = searchQuery.trim()
     ? allItems.filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase()))
     : [];
@@ -129,7 +142,7 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
       </Link>
 
       <nav className="sidebar-nav" aria-label="Navegación principal">
-        {SIDEBAR_GROUPS.map(group => (
+        {sidebarGroups.map(group => (
           <SidebarSection
             key={group.key}
             label={group.label}
@@ -146,7 +159,7 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
 
         <SidebarSection
           label="CUENTA"
-          items={ACCOUNT_ITEMS.map(item => toNavItemData(item, badgeOverrides))}
+          items={accountItems.map(item => toNavItemData(item, badgeOverrides))}
           activeKey={activeItem?.key}
           onItemClick={(clicked) => {
             if (clicked.href) {

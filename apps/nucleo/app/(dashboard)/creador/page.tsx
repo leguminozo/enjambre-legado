@@ -1,9 +1,10 @@
-'use client'
+import { redirect } from 'next/navigation';
 
-import { CreadorView } from '@/views/CreadorView'
-import { useAuthStore } from '@enjambre/auth'
-
-export default function CreadorPage() {
-  const userId = useAuthStore((s) => s.user?.id ?? '')
-  return <CreadorView userId={userId} />
+/** Portal creador vive en tienda — ver docs/RED_INTERCAMBIO_LEGAL.md */
+export default function CreadorRedirectPage() {
+  const tiendaUrl = process.env.NEXT_PUBLIC_URL_TIENDA?.replace(/\/$/, '');
+  if (tiendaUrl) {
+    redirect(`${tiendaUrl}/perfil/creador`);
+  }
+  redirect('/creadores');
 }

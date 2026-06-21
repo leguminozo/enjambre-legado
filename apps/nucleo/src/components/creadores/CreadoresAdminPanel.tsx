@@ -22,6 +22,7 @@ interface CreadorRow {
   total_comisiones: number;
   bio: string | null;
   notas_internas: string | null;
+  capabilities: Record<string, unknown> | null;
   created_at: string;
   profiles: { full_name: string; email: string } | null;
 }
@@ -122,6 +123,35 @@ export function CreadoresAdminPanel() {
 			console.error('Error updating creador:', err);
 			toast(friendlyError(err, 'No se pudo actualizar el estado'), { type: 'error' });
 		} finally {
+      setActionLoading(null);
+    }
+  };
+
+  const updateCapabilities = async (
+    creadorId: string,
+    caps: { puede_retirar: boolean; tope_retiro_mensual: number },
+  ) => {
+    setActionLoading(creadorId);
+    try {
+      const existing = creadores.find((c) => c.id === creadorId)?.capabilities ?? {};
+      const { error } = await supabase
+        .from('creadores')
+        .update({
+          capabilities: {
+            ...existing,
+            puede_retirar: caps.puede_retirar,
+            tope_retiro_mensual: caps.tope_retiro_mensual,
+          },
+        })
+        .eq('id', creadorId);
+
+      if (error) throw error;
+      toast('Capabilities actualizadas', { type: 'success' });
+      await fetchAllData();
+    } catch (err) {
+      console.error('Error updating capabilities:', err);
+      toast(friendlyError(err, 'Error al actualizar capabilities'), { type: 'error' });
+    } finally {
       setActionLoading(null);
     }
   };
@@ -445,10 +475,42 @@ export function CreadoresAdminPanel() {
                   )}
 
                   {selectedCreador?.id === creador.id && (
-                    <div className="mt-4 pt-4 border-t border-background/5 space-y-2">
+                    <div className="mt-4 pt-4 border-t border-background/5 space-y-3">
                       {creador.nicho && <p className="text-xs text-muted-foreground">Nicho: <span className="text-primary">{creador.nicho}</span></p>}
                       {creador.bio && <p className="text-xs text-muted-foreground italic">"{creador.bio}"</p>}
                       {creador.notas_internas && <p className="text-xs text-warning bg-warning/5 p-2 rounded">Notas internas: {creador.notas_internas}</p>}
+                      <div className="p-3 rounded-lg bg-background/5 border border-border space-y-2">
+                        <p className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-bold">Capabilities (ver docs/RED_INTERCAMBIO_LEGAL.md)</p>
+                        <label className="flex items-center gap-2 text-xs">
+                          <input
+                            type="checkbox"
+                            defaultChecked={creador.capabilities?.puede_retirar !== false}
+                            id={`retiro-${creador.id}`}
+                          />
+                          Puede solicitar liquidación de comisiones
+                        </label>
+                        <div className="flex items-center gap-2 text-xs">
+                          <span>Tope mensual CLP:</span>
+                          <input
+                            type="number"
+                            id={`tope-${creador.id}`}
+                            defaultValue={Number(creador.capabilities?.tope_retiro_mensual ?? 500000)}
+                            className="input-field text-sm"
+                            style={{ width: 120 }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="btn btn-outline btn-sm"
+                          onClick={() => {
+                            const puede = (document.getElementById(`retiro-${creador.id}`) as HTMLInputElement)?.checked ?? true;
+                            const tope = Number((document.getElementById(`tope-${creador.id}`) as HTMLInputElement)?.value ?? 500000);
+                            updateCapabilities(creador.id, { puede_retirar: puede, tope_retiro_mensual: tope });
+                          }}
+                        >
+                          Guardar capabilities
+                        </button>
+                      </div>
                       <p className="text-[0.6rem] text-muted-foreground">Registrado: {new Date(creador.created_at).toLocaleDateString('es-CL')}</p>
                     </div>
                   )}
