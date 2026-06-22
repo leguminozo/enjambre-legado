@@ -7,7 +7,13 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
-import { PROJECTS, TEAM_ID, vercelFetch } from './lib/vercel-auth.mjs';
+import {
+  PROJECTS,
+  TEAM_ID,
+  PRODUCTION_URLS,
+  PRODUCTION_TEAM_SLUG,
+  vercelFetch,
+} from './lib/vercel-auth.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const secretsFile = resolve(root, '.env.secrets.local');
@@ -180,8 +186,10 @@ try {
     }
 
     const aliases = p.targets?.production?.alias ?? [];
-    const short = aliases.find((a) => !a.includes('-gabos-projects-') && !a.includes('-gaboxxc-'));
-    const picked = proj.productionUrl ?? (short ? `https://${short}` : null);
+    const short = aliases.find(
+      (a) => !a.includes('-gabos-projects-') && !a.includes('-gaboxxc-') && !a.includes('-8540s-projects'),
+    );
+    const picked = PRODUCTION_URLS[key] ?? proj.productionUrl ?? (short ? `https://${short}` : null);
     prodUrls[key] = picked?.startsWith('http') ? picked : picked ? `https://${picked}` : null;
 
     const deps = await vercelFetch(`/v6/deployments?projectId=${proj.id}&target=production&limit=1`, {
@@ -274,9 +282,9 @@ if (failed) {
   console.log('  5. pnpm go-live:vercel-env');
   console.log('  6. pnpm go-live:github-secrets');
   console.log('  7. Vercel Dashboard → Git (nucleo-theta, tienda, campo):');
-  console.log('     https://vercel.com/gabos-projects-e4e7d9ab/nucleo-theta/settings/git');
-  console.log('     https://vercel.com/gabos-projects-e4e7d9ab/tienda/settings/git');
-  console.log('     https://vercel.com/gabos-projects-e4e7d9ab/campo/settings/git');
+  console.log(`     https://vercel.com/${PRODUCTION_TEAM_SLUG}/nucleo-theta/settings/git`);
+  console.log(`     https://vercel.com/${PRODUCTION_TEAM_SLUG}/tienda/settings/git`);
+  console.log(`     https://vercel.com/${PRODUCTION_TEAM_SLUG}/campo/settings/git`);
   console.log('  8. pnpm go-live:smoke:prod\n');
 }
 

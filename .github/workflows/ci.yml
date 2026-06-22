@@ -13,9 +13,9 @@ env:
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: sb_publishable_sqF0fBsTuNzSKgpapPrU3Q_VUf0s-A1
   NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_sqF0fBsTuNzSKgpapPrU3Q_VUf0s-A1
   NEXT_PUBLIC_NUCLEO_API_URL: https://nucleo-theta.vercel.app
-  NEXT_PUBLIC_URL_TIENDA: https://tienda-gabos-projects-e4e7d9ab.vercel.app
-  NEXT_PUBLIC_URL_CAMPO: https://campo-gabos-projects-e4e7d9ab.vercel.app
-  NEXT_PUBLIC_SITE_URL: https://tienda-gabos-projects-e4e7d9ab.vercel.app
+  NEXT_PUBLIC_URL_TIENDA: https://tienda-eta-lime.vercel.app
+  NEXT_PUBLIC_URL_CAMPO: https://campo-olive.vercel.app
+  NEXT_PUBLIC_SITE_URL: https://tienda-eta-lime.vercel.app
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
 jobs:

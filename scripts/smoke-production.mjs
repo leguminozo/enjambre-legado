@@ -2,7 +2,7 @@
 /**
  * Smoke test producción — resuelve URLs desde Vercel API o env.
  */
-import { PROJECTS, TEAM_ID, vercelFetch } from './lib/vercel-auth.mjs';
+import { PROJECTS, TEAM_ID, PRODUCTION_URLS, vercelFetch } from './lib/vercel-auth.mjs';
 
 async function resolveProdUrl(key, fallback) {
   if (process.env[`${key.toUpperCase()}_URL`]) {
@@ -14,13 +14,16 @@ async function resolveProdUrl(key, fallback) {
     campo: process.env.CAMPO_URL ?? process.env.NEXT_PUBLIC_URL_CAMPO,
   };
   if (envMap[key]) return envMap[key];
+  if (PRODUCTION_URLS[key]) return PRODUCTION_URLS[key];
 
   try {
     const proj = PROJECTS[key];
     const p = await vercelFetch(`/v9/projects/${proj.id}`, { teamId: TEAM_ID });
     if (proj.productionUrl) return proj.productionUrl;
     const aliases = p.targets?.production?.alias ?? [];
-    const short = aliases.find((a) => !a.includes('-gabos-projects-') && !a.includes('-gaboxxc-'));
+    const short = aliases.find(
+      (a) => !a.includes('-gabos-projects-') && !a.includes('-gaboxxc-') && !a.includes('-8540s-projects'),
+    );
     if (short) return `https://${short.replace(/^https?:\/\//, '')}`;
   } catch {
     /* fallback */

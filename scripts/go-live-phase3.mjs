@@ -6,7 +6,13 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
-import { PROJECTS, TEAM_ID, vercelFetch } from './lib/vercel-auth.mjs';
+import {
+  PROJECTS,
+  TEAM_ID,
+  PRODUCTION_URLS,
+  PRODUCTION_TEAM_SLUG,
+  vercelFetch,
+} from './lib/vercel-auth.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const checks = [];
@@ -72,7 +78,7 @@ try {
       teamId: TEAM_ID,
     });
     const latest = deps.deployments?.[0];
-    prodUrls[key] = proj.productionUrl;
+    prodUrls[key] = PRODUCTION_URLS[key] ?? proj.productionUrl;
 
     if (latest?.state === 'READY') pass(`vercel-deploy-${key}`, latest.url);
     else if (latest?.state === 'ERROR') warn(`vercel-deploy-${key}`, `ERROR — pnpm go-live:deploy:prebuilt ${key}`);
@@ -131,7 +137,7 @@ if (failed || warnings) {
   console.log('Acciones producción (sin .env.local):');
   console.log('  1. supabase login && bash scripts/apply-supabase-migrations.sh');
   console.log('  2. Pegar service_role en .env.secrets.local → pnpm go-live:vercel-env');
-  console.log('  3. Vercel Dashboard → Git en nucleo-theta, tienda, campo');
+  console.log(`  3. Vercel Dashboard → Git: https://vercel.com/${PRODUCTION_TEAM_SLUG}`);
   console.log('  4. O: pnpm go-live:deploy:prebuilt tienda && pnpm go-live:deploy:prebuilt campo');
   console.log('  5. pnpm go-live:smoke:prod\n');
 }

@@ -35,8 +35,8 @@ resolve_url() {
 }
 
 NUCLEO_URL="${NUCLEO_PRODUCTION_URL:-$(resolve_url "$ROOT/apps/nucleo" "https://nucleo-theta.vercel.app")}"
-TIENDA_URL="${TIENDA_PRODUCTION_URL:-$(resolve_url "$ROOT/apps/tienda" "https://tienda.vercel.app")}"
-CAMPO_URL="${CAMPO_PRODUCTION_URL:-$(resolve_url "$ROOT/apps/campo" "https://campo.vercel.app")}"
+TIENDA_URL="${TIENDA_PRODUCTION_URL:-$(resolve_url "$ROOT/apps/tienda" "https://tienda-eta-lime.vercel.app")}"
+CAMPO_URL="${CAMPO_PRODUCTION_URL:-$(resolve_url "$ROOT/apps/campo" "https://campo-olive.vercel.app")}"
 
 add_env() {
   local dir="$1" env_name="$2" key="$3" val="$4"

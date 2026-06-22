@@ -44,7 +44,18 @@ export async function vercelFetch(path, { method = 'GET', body, teamId } = {}) {
   return json;
 }
 
-export const TEAM_ID = 'team_rNqDhUzfkUFiZkh6qksRYYzd';
+/** Team producción real: guillermc / github guillermoc2710-cmd */
+export const PRODUCTION_TEAM_SLUG = 'guillermoc2710-8540s-projects';
+
+/** Dominios prod verificados (independiente del CLI local) */
+export const PRODUCTION_URLS = {
+  nucleo: 'https://nucleo-theta.vercel.app',
+  tienda: 'https://tienda-eta-lime.vercel.app',
+  campo: 'https://campo-olive.vercel.app',
+};
+
+/** Override: VERCEL_TEAM_ID tras `vercel login` + `vercel link` en apps/* */
+export const TEAM_ID = process.env.VERCEL_TEAM_ID ?? 'team_rNqDhUzfkUFiZkh6qksRYYzd';
 
 export const PROJECTS = {
   nucleo: {
@@ -52,20 +63,20 @@ export const PROJECTS = {
     id: 'prj_Zqryfjs668jil3F77QU9XEpDCad9',
     rootDirectory: 'apps/nucleo',
     filter: '@enjambre/nucleo',
-    productionUrl: 'https://nucleo-theta.vercel.app',
+    productionUrl: PRODUCTION_URLS.nucleo,
   },
   tienda: {
     name: 'tienda',
     id: 'prj_TgR3VOe0pUlkPeoAj1r2geiLBn73',
     rootDirectory: 'apps/tienda',
     filter: '@enjambre/tienda',
-    productionUrl: 'https://tienda-gabos-projects-e4e7d9ab.vercel.app',
+    productionUrl: PRODUCTION_URLS.tienda,
   },
   campo: {
     name: 'campo',
     id: 'prj_hq7k1qmHe1sujXIxvRPEhSE5nxWY',
     rootDirectory: 'apps/campo',
     filter: '@enjambre/campo',
-    productionUrl: 'https://campo-gabos-projects-e4e7d9ab.vercel.app',
+    productionUrl: PRODUCTION_URLS.campo,
   },
 };
