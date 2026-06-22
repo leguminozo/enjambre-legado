@@ -1,7 +1,7 @@
 'use client';
 
-import { ComisionesPanel } from '@/components/comisiones/ComisionesPanel';
+import { LazyComisionesPanel } from '@/lib/navigation/lazy-views';
 
 export default function ComisionesPage() {
-  return <ComisionesPanel />;
+  return <LazyComisionesPanel />;
 }

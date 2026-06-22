@@ -1,9 +1,7 @@
-'use client'
+'use client';
 
-import { ReportesComponent } from '@/views/eirl/reportes/ReportesComponent'
-import { useAuthStore } from '@enjambre/auth'
+import { LazyReportesView } from '@/lib/navigation/lazy-views';
 
 export default function ReportesPage() {
-  const empresaId = useAuthStore((s) => s.session?.user?.app_metadata?.empresa_id ?? '')
-  return <ReportesComponent empresaId={empresaId} />
+  return <LazyReportesView />;
 }

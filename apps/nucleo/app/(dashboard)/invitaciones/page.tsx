@@ -1,7 +1,7 @@
 'use client';
 
-import { InvitacionesPanel } from '@/components/invitaciones/InvitacionesPanel';
+import { LazyInvitacionesPanel } from '@/lib/navigation/lazy-views';
 
 export default function InvitacionesPage() {
-  return <InvitacionesPanel />;
+  return <LazyInvitacionesPanel />;
 }

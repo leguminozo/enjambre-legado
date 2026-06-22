@@ -1,7 +1,7 @@
 'use client';
 
-import { ReglasComisionPanel } from '@/components/reglas-comision/ReglasComisionPanel';
+import { LazyReglasComisionPanel } from '@/lib/navigation/lazy-views';
 
 export default function ReglasComisionPage() {
-  return <ReglasComisionPanel />;
+  return <LazyReglasComisionPanel />;
 }

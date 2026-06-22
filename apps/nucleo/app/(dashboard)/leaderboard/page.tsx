@@ -1,7 +1,7 @@
 'use client';
 
-import { LeaderboardPanel } from '@/components/leaderboard/LeaderboardPanel';
+import { LazyLeaderboardPanel } from '@/lib/navigation/lazy-views';
 
 export default function LeaderboardPage() {
-  return <LeaderboardPanel />;
+  return <LazyLeaderboardPanel />;
 }

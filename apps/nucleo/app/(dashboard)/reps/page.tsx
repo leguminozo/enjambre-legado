@@ -1,7 +1,7 @@
 'use client';
 
-import { RepsPanel } from '@/components/reps/RepsPanel';
+import { LazyRepsPanel } from '@/lib/navigation/lazy-views';
 
 export default function RepsPage() {
-  return <RepsPanel />;
+  return <LazyRepsPanel />;
 }

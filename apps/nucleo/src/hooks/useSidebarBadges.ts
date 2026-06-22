@@ -17,6 +17,13 @@ interface SidebarBadgeValues {
   conciliacion: SidebarBadge
 }
 
+interface SidebarBadgesRpc {
+  colmenas_risk: number
+  envios_pending: number
+  facturas_pendientes: number
+  banco_enabled: number
+}
+
 const DEFAULT_BADGES: SidebarBadgeValues = {
   territorio: { type: 'dot', color: 'green' },
   colmenas: null,
@@ -30,7 +37,7 @@ const DEFAULT_BADGES: SidebarBadgeValues = {
   conciliacion: null,
 }
 
-const CACHE_KEY = 'nucleo:sidebar-badges:v1'
+const CACHE_KEY = 'nucleo:sidebar-badges:v2'
 const CACHE_TTL_MS = 60_000
 
 type CountResult = { count: number | null; error: unknown }
@@ -57,6 +64,24 @@ function writeCache(badges: SidebarBadgeValues) {
   }
 }
 
+function mapRpcToBadges(data: SidebarBadgesRpc): SidebarBadgeValues {
+  return {
+    ...DEFAULT_BADGES,
+    colmenas:
+      data.colmenas_risk > 0 ? { type: 'count', value: data.colmenas_risk } : null,
+    despacho:
+      data.envios_pending > 0 ? { type: 'count', value: data.envios_pending } : null,
+    sii:
+      data.facturas_pendientes > 0
+        ? { type: 'count', value: data.facturas_pendientes }
+        : null,
+    banco:
+      data.banco_enabled === 0
+        ? { type: 'dot', color: 'orange' as BadgeDotColor }
+        : { type: 'dot', color: 'green' as BadgeDotColor },
+  }
+}
+
 async function safeCount(
   query: PromiseLike<{ count: number | null; error: unknown }>,
 ): Promise<CountResult> {
@@ -69,6 +94,59 @@ async function safeCount(
   }
 }
 
+async function fetchBadgesLegacy(): Promise<SidebarBadgeValues> {
+  if (!supabase) return DEFAULT_BADGES
+
+  const [colmenasRisk, enviosPending, facturasPendientes, integrationsConfig] =
+    await Promise.all([
+      safeCount(
+        supabase
+          .from('varroa_records')
+          .select('colmena_id', { count: 'exact', head: true })
+          .gt('level', 3),
+      ),
+      safeCount(
+        supabase
+          .from('logistica_envios')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'pendiente'),
+      ),
+      safeCount(
+        supabase
+          .from('facturas_emitidas')
+          .select('id', { count: 'exact', head: true })
+          .eq('estado_sii', 'pendiente'),
+      ),
+      safeCount(
+        supabase
+          .from('integrations')
+          .select('id', { count: 'exact', head: true })
+          .eq('key', 'banco_chile')
+          .eq('enabled', true),
+      ),
+    ])
+
+  return {
+    ...DEFAULT_BADGES,
+    colmenas:
+      (colmenasRisk.count ?? 0) > 0
+        ? { type: 'count', value: colmenasRisk.count ?? 0 }
+        : null,
+    despacho:
+      (enviosPending.count ?? 0) > 0
+        ? { type: 'count', value: enviosPending.count ?? 0 }
+        : null,
+    sii:
+      (facturasPendientes.count ?? 0) > 0
+        ? { type: 'count', value: facturasPendientes.count ?? 0 }
+        : null,
+    banco:
+      (integrationsConfig.count ?? 0) === 0
+        ? { type: 'dot', color: 'orange' as BadgeDotColor }
+        : { type: 'dot', color: 'green' as BadgeDotColor },
+  }
+}
+
 export function useSidebarBadges() {
   const [badges, setBadges] = useState<SidebarBadgeValues>(() => readCache() ?? DEFAULT_BADGES)
   const [isLoading, setIsLoading] = useState(() => readCache() === null)
@@ -78,41 +156,21 @@ export function useSidebarBadges() {
       setIsLoading(false)
       return
     }
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
     if (!user) {
       setIsLoading(false)
       return
     }
 
-    const [colmenasRisk, enviosPending, facturasPendientes, integrationsConfig] = await Promise.all([
-      safeCount(
-        supabase.from('varroa_records').select('colmena_id', { count: 'exact', head: true }).gt('level', 3),
-      ),
-      safeCount(
-        supabase.from('logistica_envios').select('id', { count: 'exact', head: true }).eq('status', 'pendiente'),
-      ),
-      safeCount(
-        supabase.from('facturas_emitidas').select('id', { count: 'exact', head: true }).eq('estado_sii', 'pendiente'),
-      ),
-      safeCount(
-        supabase.from('integrations').select('id', { count: 'exact', head: true }).eq('key', 'banco_chile').eq('enabled', true),
-      ),
-    ])
+    let next = DEFAULT_BADGES
 
-    const next: SidebarBadgeValues = {
-      ...DEFAULT_BADGES,
-      colmenas: (colmenasRisk.count ?? 0) > 0
-        ? { type: 'count', value: colmenasRisk.count ?? 0 }
-        : null,
-      despacho: (enviosPending.count ?? 0) > 0
-        ? { type: 'count', value: enviosPending.count ?? 0 }
-        : null,
-      sii: (facturasPendientes.count ?? 0) > 0
-        ? { type: 'count', value: facturasPendientes.count ?? 0 }
-        : null,
-      banco: (integrationsConfig.count ?? 0) === 0
-        ? { type: 'dot', color: 'orange' as BadgeDotColor }
-        : { type: 'dot', color: 'green' as BadgeDotColor },
+    const { data, error } = await supabase.rpc('get_sidebar_badges')
+    if (!error && data && typeof data === 'object') {
+      next = mapRpcToBadges(data as SidebarBadgesRpc)
+    } else {
+      next = await fetchBadgesLegacy()
     }
 
     setBadges(next)
@@ -121,9 +179,10 @@ export function useSidebarBadges() {
   }, [])
 
   useEffect(() => {
-    const defer = typeof requestIdleCallback !== 'undefined'
-      ? (cb: () => void) => requestIdleCallback(cb, { timeout: 3000 })
-      : (cb: () => void) => window.setTimeout(cb, 800)
+    const defer =
+      typeof requestIdleCallback !== 'undefined'
+        ? (cb: () => void) => requestIdleCallback(cb, { timeout: 3000 })
+        : (cb: () => void) => window.setTimeout(cb, 800)
 
     const id = defer(() => {
       void fetchBadges()

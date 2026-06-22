@@ -1,7 +1,7 @@
 'use client';
 
-import { CashSessionsPanel } from '@/components/caja/CashSessionsPanel';
+import { LazyCashSessionsPanel } from '@/lib/navigation/lazy-views';
 
 export default function CajaPage() {
-  return <CashSessionsPanel />;
+  return <LazyCashSessionsPanel />;
 }

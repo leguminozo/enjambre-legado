@@ -1,7 +1,7 @@
 'use client';
 
-import { CreadoresAdminPanel } from '@/components/creadores/CreadoresAdminPanel';
+import { LazyCreadoresAdminPanel } from '@/lib/navigation/lazy-views';
 
 export default function CreadoresPage() {
-  return <CreadoresAdminPanel />;
+  return <LazyCreadoresAdminPanel />;
 }

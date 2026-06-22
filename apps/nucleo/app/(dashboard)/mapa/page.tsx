@@ -1,9 +1,7 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-
-const MapaView = dynamic(() => import('@/views/MapaView').then(m => ({ default: m.MapaView })), { ssr: false });
+import { LazyMapaView } from '@/lib/navigation/lazy-views';
 
 export default function MapaPage() {
-  return <MapaView />;
+  return <LazyMapaView />;
 }

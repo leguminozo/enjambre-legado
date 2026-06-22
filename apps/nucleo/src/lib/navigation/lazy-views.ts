@@ -69,3 +69,48 @@ export const LazyMiFeriaPortal = named(
   'MiFeriaPortal',
   'Mi feria',
 );
+export const LazyCatalogoView = named(() => import('@/views/CatalogoView'), 'CatalogoView', 'Catálogo');
+export const LazyProductosCatalogoView = named(
+  () => import('@/views/ProductosCatalogoView'),
+  'ProductosCatalogoView',
+  'Productos',
+);
+export const LazyContableHubView = named(
+  () => import('@/views/contable/ContableHubView'),
+  'ContableHubView',
+  'Contable',
+);
+export const LazyMapaView = named(() => import('@/views/MapaView'), 'MapaView', 'Mapa');
+export const LazyCashSessionsPanel = named(
+  () => import('@/components/caja/CashSessionsPanel'),
+  'CashSessionsPanel',
+  'Caja',
+);
+export const LazyComisionesPanel = named(
+  () => import('@/components/comisiones/ComisionesPanel'),
+  'ComisionesPanel',
+  'Comisiones',
+);
+export const LazyCreadoresAdminPanel = named(
+  () => import('@/components/creadores/CreadoresAdminPanel'),
+  'CreadoresAdminPanel',
+  'Creadores',
+);
+export const LazyInvitacionesPanel = named(
+  () => import('@/components/invitaciones/InvitacionesPanel'),
+  'InvitacionesPanel',
+  'Invitaciones',
+);
+export const LazyLeaderboardPanel = named(
+  () => import('@/components/leaderboard/LeaderboardPanel'),
+  'LeaderboardPanel',
+  'Leaderboard',
+);
+export const LazyRepsPanel = named(() => import('@/components/reps/RepsPanel'), 'RepsPanel', 'Reps');
+export const LazyReglasComisionPanel = named(
+  () => import('@/components/reglas-comision/ReglasComisionPanel'),
+  'ReglasComisionPanel',
+  'Reglas comisión',
+);
+export const LazyCalculosIAView = named(() => import('@/views/CalculosIAView'), 'CalculosIAView', 'Cálculos IA');
+export const LazyReportesView = named(() => import('@/views/ReportesView'), 'ReportesView', 'Reportes');

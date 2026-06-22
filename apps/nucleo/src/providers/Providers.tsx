@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { ThemeProvider, ToastProvider, useTheme } from '@enjambre/ui'
 import { useAuthProvider, useAuthStore, createClient } from '@enjambre/auth'
 import type { Session, SupabaseClient } from '@supabase/supabase-js'
+import { createNucleoPersister, shouldPersistQuery } from '@/lib/query-persist'
 
 let _cachedClient: SupabaseClient | null = null
 
@@ -77,15 +79,34 @@ export function Providers({ children }: ProvidersProps) {
       }),
   )
 
+  const persister = createNucleoPersister()
+
+  const content = (
+    <ThemeProvider defaultTheme="dark">
+      <ToastProvider>
+        <AuthSync />
+        <ThemeSync />
+        {children}
+      </ToastProvider>
+    </ThemeProvider>
+  )
+
+  if (!persister) {
+    return <QueryClientProvider client={queryClient}>{content}</QueryClientProvider>
+  }
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark">
-        <ToastProvider>
-          <AuthSync />
-          <ThemeSync />
-          {children}
-        </ToastProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister,
+        maxAge: 30 * 60 * 1000,
+        dehydrateOptions: {
+          shouldDehydrateQuery: shouldPersistQuery,
+        },
+      }}
+    >
+      {content}
+    </PersistQueryClientProvider>
   )
 }
