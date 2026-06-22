@@ -4,8 +4,7 @@ import React from 'react';
 import { ThemeProvider, ToastProvider } from '@enjambre/ui';
 import { CampoAuthProvider } from '@/components/campo-auth-provider';
 import { SyncProvider } from '@/components/sync-provider';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/next';
+import { VercelInsights } from '@/components/VercelInsights';
 import './globals.css';
 
 const inter = Inter({
@@ -42,8 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </CampoAuthProvider>
           </ToastProvider>
         </ThemeProvider>
-        <SpeedInsights />
-        <Analytics />
+        <VercelInsights />
       </body>
     </html>
   );

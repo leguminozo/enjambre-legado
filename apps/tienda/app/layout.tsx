@@ -11,8 +11,7 @@ import {
   mergeJsonLd,
   renderJsonLd,
 } from '@/lib/shop/json-ld';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/next';
+import { VercelInsights } from '@/components/VercelInsights';
 
 const fontDisplay = Cormorant_Garamond({
   subsets: ['latin'],
@@ -91,8 +90,7 @@ export default function RootLayout({
         <I18nProvider>
           <AppProviders>{children}</AppProviders>
         </I18nProvider>
-        <SpeedInsights />
-        <Analytics />
+        <VercelInsights />
       </body>
     </html>
   );
