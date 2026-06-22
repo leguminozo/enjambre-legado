@@ -21,6 +21,11 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Tests de middleware asumen origen localhost:3000; builds usan URLs prod del workflow env.
+    env:
+      NEXT_PUBLIC_URL_TIENDA: http://localhost:3000
+      NEXT_PUBLIC_URL_CAMPO: http://localhost:3002
+      NEXT_PUBLIC_SITE_URL: http://localhost:3001
     steps:
       - uses: actions/checkout@v4
 

@@ -6,6 +6,13 @@ import {
   ROUTE_ROLE_GUARDS,
 } from "@enjambre/auth/role-redirect";
 
+function expectedRoleRedirect(origin: string, role: string): string {
+  const path = getRoleRedirectPath(role);
+  return path.startsWith("http://") || path.startsWith("https://")
+    ? path
+    : `${origin}${path}`;
+}
+
 // ─── Mocks ───
 let mockSessionUser: any = null;
 let mockProfile: any = null;
@@ -69,8 +76,18 @@ describe("Auth Integration Flow", () => {
       expect(getRoleRedirectPath("admin")).toBe("/ejecutivo");
     });
 
-    it("redirects creador to tienda portal path", () => {
+    it("redirects creador to tienda portal path in tienda app", () => {
       expect(getRoleRedirectPath("creador", "tienda")).toBe("/perfil/creador");
+    });
+
+    it("redirects creador to external tienda URL in nucleo when configured", () => {
+      const path = getRoleRedirectPath("creador");
+      if (process.env.NEXT_PUBLIC_URL_TIENDA) {
+        const base = process.env.NEXT_PUBLIC_URL_TIENDA.replace(/\/$/, "");
+        expect(path).toBe(`${base}/perfil/creador`);
+      } else {
+        expect(path).toBe("/perfil/creador");
+      }
     });
 
     it("redirects rep_ventas to /caja", () => {
@@ -195,7 +212,9 @@ describe("Auth Integration Flow", () => {
       });
       const res = await middleware(req);
       expect(res.status).toBe(302);
-      expect(res.headers.get("location")).toBe("http://localhost:3000/perfil/creador");
+      expect(res.headers.get("location")).toBe(
+        expectedRoleRedirect("http://localhost:3000", "creador")
+      );
     });
 
     it("redirects authenticated rep_ventas from /login to /caja", async () => {
@@ -234,7 +253,9 @@ describe("Auth Integration Flow", () => {
       });
       const res = await middleware(req);
       expect(res.status).toBe(302);
-      expect(res.headers.get("location")).toBe("http://localhost:3000/perfil/creador");
+      expect(res.headers.get("location")).toBe(
+        expectedRoleRedirect("http://localhost:3000", "creador")
+      );
     });
 
     it("allows admin to access /ejecutivo", async () => {
