@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { createAnonServerClient } from '@/utils/supabase/anon-server';
 import { z } from 'zod';
 
@@ -94,7 +95,7 @@ function mapProduct(p: ProductRow): ShopProduct {
   };
 }
 
-export async function listVisibleProducts(): Promise<ShopProduct[]> {
+export const listVisibleProducts = cache(async function listVisibleProducts(): Promise<ShopProduct[]> {
   const supabase = createAnonServerClient();
   const { data, error } = await supabase
     .from('productos')
@@ -109,9 +110,11 @@ export async function listVisibleProducts(): Promise<ShopProduct[]> {
     return [];
   }
   return parsed.data.map(mapProduct);
-}
+});
 
-export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduct | null> {
+export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
+  slugOrId: string,
+): Promise<ShopProduct | null> {
   const supabase = createAnonServerClient();
 
   let decodedSlugOrId = slugOrId;
@@ -156,4 +159,4 @@ export async function getProductBySlugOrId(slugOrId: string): Promise<ShopProduc
   }
 
   return product;
-}
+});

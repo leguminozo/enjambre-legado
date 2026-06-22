@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { createAnonServerClient } from '@/utils/supabase/anon-server';
 
 export interface EcosystemMetrics {
@@ -16,7 +17,7 @@ export interface EcosystemMetrics {
   anos_legado: string;
 }
 
-export async function getEcosystemMetrics(): Promise<EcosystemMetrics> {
+export const getEcosystemMetrics = cache(async function getEcosystemMetrics(): Promise<EcosystemMetrics> {
   const supabase = createAnonServerClient();
   const { data, error } = await supabase.rpc('get_ecosystem_metrics');
 
@@ -39,4 +40,4 @@ export async function getEcosystemMetrics(): Promise<EcosystemMetrics> {
   }
 
   return data as EcosystemMetrics;
-}
+});

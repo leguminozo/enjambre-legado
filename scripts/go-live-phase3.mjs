@@ -41,14 +41,17 @@ for (const id of ['72_sidebar_badges_rpc.sql', '73_sidebar_badges_indexes.sql'])
 }
 
 // 2. Supabase — RPC prod (72) + CLI para futuras migraciones
-const publishable =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ??
-  'sb_publishable_sqF0fBsTuNzSKgpapPrU3Q_VUf0s-A1';
-const rpcProbe = run(
-  `curl -sS -m 12 "https://hdhamxiblwwskvvqbcfo.supabase.co/rest/v1/rpc/get_sidebar_badges" ` +
-    `-H "apikey: ${publishable}" -H "Authorization: Bearer ${publishable}" ` +
-    `-H "Content-Type: application/json" -d '{}'`,
-);
+const publishable = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY?.trim();
+if (!publishable) {
+  warn('supabase-rpc-72', 'define NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY para probar RPC');
+}
+const rpcProbe = publishable
+  ? run(
+      `curl -sS -m 12 "https://hdhamxiblwwskvvqbcfo.supabase.co/rest/v1/rpc/get_sidebar_badges" ` +
+        `-H "apikey: ${publishable}" -H "Authorization: Bearer ${publishable}" ` +
+        `-H "Content-Type: application/json" -d '{}'`,
+    )
+  : null;
 if (rpcProbe?.includes('colmenas_risk')) {
   pass('supabase-rpc-72', 'get_sidebar_badges OK en prod');
 } else {

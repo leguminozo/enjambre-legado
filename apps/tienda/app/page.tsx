@@ -1,4 +1,4 @@
-import { getSiteContent, type SiteSectionItem } from '@/lib/cms';
+import { getSiteContentBatch, type SiteSectionItem } from '@/lib/cms';
 import { getEcosystemMetrics, type EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { listVisibleProducts, type ShopProduct } from '@/lib/shop/products';
 import { TiendaLandingView } from './landing-view';
@@ -12,17 +12,19 @@ function extractContent<T extends Record<string, unknown>>(items: SiteSectionIte
   return items.map((item) => item.content as T);
 }
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export default async function TiendaPage() {
-  const [coleccionesData, footerBrandingData, footerNavData, footerLegalData, ecosystemMetrics, products] = await Promise.all([
-    getSiteContent('colecciones'),
-    getSiteContent('footer_branding'),
-    getSiteContent('footer_nav'),
-    getSiteContent('footer_legal'),
+  const [cmsBatch, ecosystemMetrics, products] = await Promise.all([
+    getSiteContentBatch(['colecciones', 'footer_branding', 'footer_nav', 'footer_legal']),
     getEcosystemMetrics(),
     listVisibleProducts(),
   ]);
+
+  const coleccionesData = cmsBatch.colecciones ?? [];
+  const footerBrandingData = cmsBatch.footer_branding ?? [];
+  const footerNavData = cmsBatch.footer_nav ?? [];
+  const footerLegalData = cmsBatch.footer_legal ?? [];
 
   const colecciones = coleccionesData.length > 0
     ? extractContent<ColeccionItem>(coleccionesData)

@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { handle } from "hono/vercel";
 import { cors } from "hono/cors";
 import { type AppVariables, csrfMiddleware } from "@/api/lib/middleware";
-import { getInternalApiSecret } from "@enjambre/auth/internal-api-secret";
+import { getInternalApiSecret, verifyInternalApiKey } from "@enjambre/auth/internal-api-secret";
 import { rateLimit, getIdentifierFromRequest } from "@/api/lib/rate-limit";
 import { healthRoutes } from "@/api/routes/health";
 import { contableRoutes } from "@/api/routes/contable";
@@ -144,19 +144,27 @@ app.use("*", async (c, next) => {
     "/api/checkout",
     "/api/security-events",
     "/api/creadores",
-    "/api/invitations"
+    "/api/invitations",
+    "/api/webhooks",
   ];
   const path = new URL(c.req.url).pathname;
-  
-  if (publicPaths.some(p => path.startsWith(p))) {
+
+  if (publicPaths.some((p) => path.startsWith(p))) {
     return next();
   }
-  
+
+  if (path.startsWith("/api/notifications/internal")) {
+    if (verifyInternalApiKey(c.req.header("x-internal-key"))) {
+      return next();
+    }
+    return c.json({ code: "unauthorized", message: "Invalid internal key" }, 401);
+  }
+
   const authHeader = c.req.header("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return c.json({ code: "unauthorized", message: "Global fallback: Missing token" }, 401);
   }
-  
+
   return next();
 });
 

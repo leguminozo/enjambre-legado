@@ -60,6 +60,9 @@ jobs:
       - name: Test tienda
         run: pnpm --filter @enjambre/tienda test
 
+      - name: Test campo
+        run: pnpm --filter @enjambre/campo test
+
   build-tienda:
     runs-on: ubuntu-latest
     needs: test

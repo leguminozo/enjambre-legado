@@ -18,6 +18,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   transpilePackages: ["@enjambre/auth", "@enjambre/ui"],
   outputFileTracingRoot: path.join(__dirname, '../..'),
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'gsap', 'leaflet'],
+  },
   images: {
     remotePatterns: [
       {

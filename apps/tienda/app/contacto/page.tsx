@@ -25,7 +25,7 @@ export const metadata: Metadata = {
       'Escríbenos a hola@obrerayzangano.com o por WhatsApp. Estamos en Pureo, Quellón, Chiloé.',
   },
 };
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export default function ContactoPage() {
   return (

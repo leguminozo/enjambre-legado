@@ -232,8 +232,17 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
       return c.json({ ok: false, authorized: false, result: result.raw }, 200);
     }
 
-    const buyOrder = clientBuyOrder || result.buyOrder;
-    const session = buyOrder ? await getCheckoutSession(buyOrder) : undefined;
+    const buyOrder = result.buyOrder?.trim();
+    if (!buyOrder) {
+      return c.json({ ok: false, authorized: true, error: 'Proveedor no devolvió buyOrder' }, 200);
+    }
+
+    if (clientBuyOrder && clientBuyOrder !== buyOrder) {
+      console.warn(`[Checkout commit] buyOrder mismatch client=${clientBuyOrder} provider=${buyOrder}`);
+      return c.json({ code: 'buy_order_mismatch', message: 'buyOrder no coincide con el proveedor de pago' }, 400);
+    }
+
+    const session = await getCheckoutSession(buyOrder);
 
     if (!session) {
       console.error(`Checkout session not found for buyOrder: ${buyOrder}. Payment authorized but order not persisted.`);

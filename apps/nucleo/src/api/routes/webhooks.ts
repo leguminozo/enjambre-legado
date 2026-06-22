@@ -4,6 +4,7 @@ import { createAdminClient } from "@enjambre/auth/browser";
 import { getPaymentProviderByName } from "@/api/lib/payments/provider";
 import { getCheckoutSession } from "@/api/lib/payments/types";
 import { fulfillCheckout } from "@/api/lib/payments/checkout-fulfill";
+import { verifyInternalApiKey } from "@enjambre/auth/internal-api-secret";
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from "@/api/lib/ratelimit";
 
 const webhooksApp = new Hono();
@@ -25,7 +26,7 @@ async function webhookRateLimit(c: { req: { header: (name: string) => string | u
 
 const TransbankWebhookSchema = z.object({
   token_ws: z.string(),
-  buyOrder: z.string(),
+  buyOrder: z.string().optional(),
   sessionId: z.string().optional(),
   cardNumber: z.string().optional(),
   accountingDate: z.string().optional(),
@@ -49,8 +50,21 @@ webhooksApp.post("/transbank", async (c) => {
       return c.json({ code: "invalid_payload", message: "Invalid Transbank webhook payload" }, 400);
     }
 
-    const { token_ws, buyOrder } = parsed.data;
+    const { token_ws, buyOrder: clientBuyOrder } = parsed.data;
     const supabase = createAdminClient();
+
+    const provider = getPaymentProviderByName('transbank');
+    const commitResult = await provider.commit(token_ws);
+
+    const buyOrder = commitResult.buyOrder?.trim();
+    if (!buyOrder) {
+      return c.json({ code: "invalid_provider_response", message: "Missing buyOrder from payment provider" }, 400);
+    }
+
+    if (clientBuyOrder && clientBuyOrder !== buyOrder) {
+      console.warn(`[Webhook Transbank] buyOrder mismatch client=${clientBuyOrder} provider=${buyOrder}`);
+      return c.json({ code: "buy_order_mismatch", message: "buyOrder does not match payment provider" }, 400);
+    }
 
     const { data: sessionRow, error: sessionError } = await supabase
       .from("checkout_sessions")
@@ -72,9 +86,6 @@ webhooksApp.post("/transbank", async (c) => {
     if (sessionRow.status === "completed") {
       return c.json({ code: "already_completed", message: "Payment already processed" }, 200);
     }
-
-    const provider = getPaymentProviderByName('transbank');
-    const commitResult = await provider.commit(token_ws);
 
     if (!commitResult.authorized) {
       await supabase
@@ -116,8 +127,11 @@ webhooksApp.post("/transbank", async (c) => {
 });
 
 webhooksApp.post("/retry-failed", async (c) => {
-  const authHeader = c.req.header("authorization");
-  if (!authHeader?.startsWith("Bearer ") || authHeader.slice(7) !== process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  const internalKey = c.req.header("x-internal-key");
+  const bearer = c.req.header("authorization")?.startsWith("Bearer ")
+    ? c.req.header("authorization")!.slice(7)
+    : null;
+  if (!verifyInternalApiKey(internalKey) && !verifyInternalApiKey(bearer)) {
     return c.json({ code: "unauthorized", message: "Unauthorized" }, 401);
   }
 

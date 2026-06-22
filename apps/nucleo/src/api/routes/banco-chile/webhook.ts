@@ -3,6 +3,7 @@ import type { Json } from '@enjambre/database/database.types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { createAdminClient } from '@enjambre/auth/browser';
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from '@/api/lib/ratelimit';
 
 async function webhookRateLimit(c: { req: { header: (name: string) => string | undefined; ip?: string }; json: (data: unknown, status: number) => Response; header: (name: string, value: string) => void }) {
@@ -74,7 +75,7 @@ webhookRouter.post('/', async (c) => {
   if (rateLimitResult) return rateLimitResult;
 
   try {
-    const supabase = c.get('supabase');
+    const supabase = createAdminClient();
     const rawBody = await c.req.text();
     const signature = c.req.header('x-banco-chile-signature');
 
@@ -242,7 +243,7 @@ default:
 // Endpoint para listar notificaciones no procesadas
 webhookRouter.get('/pendientes', async (c) => {
   try {
-    const supabase = c.get('supabase');
+    const supabase = createAdminClient();
     const empresaId = c.get('empresaId');
 
     const { data, error } = await supabase
@@ -267,7 +268,7 @@ webhookRouter.get('/pendientes', async (c) => {
 // Endpoint para reprocesar notificaciones
 webhookRouter.post('/reprocesar/:id', async (c) => {
   try {
-    const supabase = c.get('supabase');
+    const supabase = createAdminClient();
     const { id } = c.req.param();
 
     const { data: notificacion } = await supabase

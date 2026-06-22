@@ -9,14 +9,14 @@ export async function middleware(request: NextRequest) {
       if (csrfError) return csrfError;
     }
 
-    const { response } = await updateSession(request);
+    const { response, user } = await updateSession(request);
     const path = request.nextUrl.pathname;
 
-    // x-oyz-role is injected on the request headers in updateSession (Server Actions / RSC).
-
-    // Admin paths now belong to nucleo. Tienda has no (admin) routes anymore.
-    // If we wanted to redirect /dashboard to nucleo, we could do it here, but 
-    // for security we just don't match any admin routes locally unless explicitly defined.
+    if (!user && path.startsWith('/perfil')) {
+      const login = new URL('/login', request.url);
+      login.searchParams.set('redirect', path);
+      return NextResponse.redirect(login);
+    }
 
     return response;
   } catch (error) {

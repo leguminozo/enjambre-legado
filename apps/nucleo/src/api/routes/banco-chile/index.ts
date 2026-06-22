@@ -45,6 +45,9 @@ import { montosRouter } from './montos';
  */
 export const bancoChileRoutes = new Hono<{ Variables: AppVariables }>();
 
+// Webhooks bancarios: sin JWT de usuario (verificación HMAC en handler)
+bancoChileRoutes.route('/webhook', webhookRouter);
+
 bancoChileRoutes.use('*', authMiddleware, tenantMiddleware);
 
 // Rutas de configuración
@@ -211,7 +214,6 @@ bancoChileRoutes.route('', bancoChileRouter);
 bancoChileRoutes.route('/conciliacion', conciliacionRouter);
 bancoChileRoutes.route('/conciliacion-auto', conciliacionAutoRoutes);
 bancoChileRoutes.route('/conciliacion-stats', conciliacionStatsRoutes);
-bancoChileRoutes.route('/webhook', webhookRouter);
 bancoChileRoutes.route('/transferencias', transferenciasRouter);
 bancoChileRoutes.route('/nominas', nominasRouter);
 bancoChileRoutes.route('/documentos', documentosRouter);

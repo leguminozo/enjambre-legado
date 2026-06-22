@@ -5,18 +5,23 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { useEffect, useRef } from 'react';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const MAP_COORDINATES = { lat: -42.854935, lng: -73.67796 };
 
 export function ContactForm() {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<L.Map | null>(null);
+  const mapInstance = useRef<{ remove: () => void } | null>(null);
 
   useEffect(() => {
-    if (mapRef.current && !mapInstance.current) {
-      mapInstance.current = L.map(mapRef.current, {
+    let cancelled = false;
+
+    async function initMap() {
+      if (!mapRef.current || mapInstance.current) return;
+      const L = (await import('leaflet')).default;
+      if (cancelled || !mapRef.current) return;
+
+      const map = L.map(mapRef.current, {
         zoomControl: true,
         scrollWheelZoom: false,
       }).setView([MAP_COORDINATES.lat, MAP_COORDINATES.lng], 15);
@@ -24,7 +29,7 @@ export function ContactForm() {
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19,
-      }).addTo(mapInstance.current);
+      }).addTo(map);
 
       const icon = L.icon({
         iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -36,10 +41,14 @@ export function ContactForm() {
         shadowSize: [41, 41],
       });
 
-      L.marker([MAP_COORDINATES.lat, MAP_COORDINATES.lng], { icon }).addTo(mapInstance.current);
+      L.marker([MAP_COORDINATES.lat, MAP_COORDINATES.lng], { icon }).addTo(map);
+      mapInstance.current = map;
     }
 
+    void initMap();
+
     return () => {
+      cancelled = true;
       if (mapInstance.current) {
         mapInstance.current.remove();
         mapInstance.current = null;
