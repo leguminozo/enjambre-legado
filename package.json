@@ -28,6 +28,8 @@
     "go-live:smoke": "node scripts/smoke-test.mjs",
     "go-live:smoke:prod": "node scripts/smoke-production.mjs",
     "go-live:deploy:prebuilt": "node scripts/deploy-prebuilt.mjs",
+    "go-live:phase3": "node scripts/go-live-phase3.mjs",
+    "go-live:db-push": "bash scripts/apply-supabase-migrations.sh",
     "vercel:build": "vercel build",
     "dev:vercel": "vercel dev"
   },

@@ -2,6 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Hono } from 'hono';
 import { parseReceipt } from '@enjambre/contable';
 
+vi.mock('@enjambre/contable', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@enjambre/contable')>();
+  return {
+    ...actual,
+    fetchTasaDolar: vi.fn().mockResolvedValue(950),
+    fetchTasaEuro: vi.fn().mockResolvedValue(1050),
+  };
+});
+
 const mockProcessGasto = vi.fn();
 
 vi.mock('@/api/lib/fiscal/gasto-pipeline', () => ({
