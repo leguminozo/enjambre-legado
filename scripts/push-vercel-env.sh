@@ -4,6 +4,11 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SECRETS="$ROOT/.env.secrets.local"
+PROD_TEAM="${VERCEL_SCOPE:-guillermoc2710-8540s-projects}"
+SCOPE_ARGS=()
+if [[ -n "$PROD_TEAM" ]]; then
+  SCOPE_ARGS=(--scope "$PROD_TEAM")
+fi
 
 if [[ ! -f "$SECRETS" ]]; then
   echo "Falta $SECRETS — copia desde .env.secrets.local.example"
@@ -34,15 +39,24 @@ resolve_url() {
   fi
 }
 
-NUCLEO_URL="${NUCLEO_PRODUCTION_URL:-$(resolve_url "$ROOT/apps/nucleo" "https://nucleo-theta.vercel.app")}"
-TIENDA_URL="${TIENDA_PRODUCTION_URL:-$(resolve_url "$ROOT/apps/tienda" "https://tienda-eta-lime.vercel.app")}"
-CAMPO_URL="${CAMPO_PRODUCTION_URL:-$(resolve_url "$ROOT/apps/campo" "https://campo-olive.vercel.app")}"
+NUCLEO_URL="${NUCLEO_PRODUCTION_URL:-https://nucleo-theta.vercel.app}"
+TIENDA_URL="${TIENDA_PRODUCTION_URL:-https://tienda-eta-lime.vercel.app}"
+CAMPO_URL="${CAMPO_PRODUCTION_URL:-https://campo-olive.vercel.app}"
+
+CLI_USER="$(vercel whoami 2>/dev/null || true)"
+if [[ "$CLI_USER" != "guillermc" && -z "${VERCEL_FORCE_ENV_PUSH:-}" ]]; then
+  echo "⚠ CLI logueado como: ${CLI_USER:-desconocido}"
+  echo "  Prod está en team ${PROD_TEAM} (guillermc)."
+  echo "  Ejecuta: vercel login   y vuelve a correr este script."
+  echo "  O define VERCEL_FORCE_ENV_PUSH=1 para intentar igual."
+  exit 1
+fi
 
 add_env() {
   local dir="$1" env_name="$2" key="$3" val="$4"
   echo "  → [$env_name] $key en $(basename "$dir")"
-  (cd "$dir" && printf '%s' "$val" | vercel env add "$key" "$env_name" --force 2>/dev/null) || \
-    (cd "$dir" && printf '%s' "$val" | vercel env add "$key" "$env_name")
+  (cd "$dir" && printf '%s' "$val" | vercel env add "$key" "$env_name" --force "${SCOPE_ARGS[@]}" 2>/dev/null) || \
+    (cd "$dir" && printf '%s' "$val" | vercel env add "$key" "$env_name" "${SCOPE_ARGS[@]}")
 }
 
 push_app_env() {

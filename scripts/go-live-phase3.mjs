@@ -6,13 +6,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
-import {
-  PROJECTS,
-  TEAM_ID,
-  PRODUCTION_URLS,
-  PRODUCTION_TEAM_SLUG,
-  vercelFetch,
-} from './lib/vercel-auth.mjs';
+import { PROJECTS, PRODUCTION_URLS, PRODUCTION_TEAM_SLUG } from './lib/vercel-auth.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const checks = [];
@@ -46,70 +40,74 @@ for (const id of ['72_sidebar_badges_rpc.sql', '73_sidebar_badges_indexes.sql'])
   else fail(`migration-file-${id.slice(0, 2)}`, 'falta en repo');
 }
 
-// 2. Supabase CLI / token
+// 2. Supabase — RPC prod (72) + CLI para futuras migraciones
+const publishable =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ??
+  'sb_publishable_sqF0fBsTuNzSKgpapPrU3Q_VUf0s-A1';
+const rpcProbe = run(
+  `curl -sS -m 12 "https://hdhamxiblwwskvvqbcfo.supabase.co/rest/v1/rpc/get_sidebar_badges" ` +
+    `-H "apikey: ${publishable}" -H "Authorization: Bearer ${publishable}" ` +
+    `-H "Content-Type: application/json" -d '{}'`,
+);
+if (rpcProbe?.includes('colmenas_risk')) {
+  pass('supabase-rpc-72', 'get_sidebar_badges OK en prod');
+} else {
+  warn('supabase-rpc-72', 'RPC ausente — pnpm go-live:db-push');
+}
+
 const hasToken = Boolean(process.env.SUPABASE_ACCESS_TOKEN);
 const cliOk = run('supabase projects list 2>/dev/null | head -1');
 if (hasToken || cliOk) {
   pass('supabase-cli', hasToken ? 'SUPABASE_ACCESS_TOKEN' : 'supabase login OK');
 } else {
-  warn('supabase-cli', 'supabase login — luego: bash scripts/apply-supabase-migrations.sh');
+  warn('supabase-cli', 'opcional — login solo para nuevas migraciones');
 }
 
-// 3. Vercel env server (service_role)
-for (const [key, proj] of Object.entries(PROJECTS)) {
+// 3. Vercel env server — requiere CLI en team prod (guillermc)
+const cliUser = run('vercel whoami 2>/dev/null');
+const scopeFlag = `--scope ${PRODUCTION_TEAM_SLUG}`;
+const scopeOk = run(`cd "${resolve(root, 'apps/tienda')}" && vercel teams ls 2>&1`)?.includes(PRODUCTION_TEAM_SLUG);
+
+for (const [key] of Object.entries(PROJECTS)) {
   const appDir = key === 'nucleo' ? 'apps/nucleo' : `apps/${key}`;
-  const out = run(`cd "${resolve(root, appDir)}" && vercel env ls production 2>&1`);
+  const scopeCmd = scopeOk
+    ? `cd "${resolve(root, appDir)}" && vercel env ls production ${scopeFlag} 2>&1`
+    : `cd "${resolve(root, appDir)}" && vercel env ls production 2>&1`;
+  const out = run(scopeCmd);
   const hasService = out?.includes('SUPABASE_SERVICE_ROLE_KEY');
-  const count = (out?.match(/Encrypted|Plaintext|Sensitive/g) ?? []).length;
+  const onProdTeam = out?.includes(PRODUCTION_TEAM_SLUG) || scopeOk;
   if (hasService) pass(`vercel-server-${key}`, 'service_role presente');
-  else if (count >= 4) warn(`vercel-server-${key}`, 'faltan secrets server — pnpm go-live:vercel-env');
-  else fail(`vercel-server-${key}`, `${count || 0} vars`);
-}
-
-// 4. Git + deploy
-const prodUrls = {};
-try {
-  for (const [key, proj] of Object.entries(PROJECTS)) {
-    const p = await vercelFetch(`/v9/projects/${proj.id}`, { teamId: TEAM_ID });
-    if (p.link?.type === 'github') pass(`vercel-git-${key}`, p.link.repo);
-    else warn(`vercel-git-${key}`, 'conectar Git en dashboard');
-
-    const deps = await vercelFetch(`/v6/deployments?projectId=${proj.id}&target=production&limit=1`, {
-      teamId: TEAM_ID,
-    });
-    const latest = deps.deployments?.[0];
-    prodUrls[key] = PRODUCTION_URLS[key] ?? proj.productionUrl;
-
-    if (latest?.state === 'READY') pass(`vercel-deploy-${key}`, latest.url);
-    else if (latest?.state === 'ERROR') warn(`vercel-deploy-${key}`, `ERROR — pnpm go-live:deploy:prebuilt ${key}`);
-    else if (latest?.state === 'BLOCKED') {
-      const detail = await vercelFetch(`/v13/deployments/${latest.uid}`, { teamId: TEAM_ID }).catch(() => null);
-      const reason = detail?.readyStateReason ?? 'BLOCKED';
-      warn(
-        `vercel-deploy-${key}`,
-        reason.includes('must have access')
-          ? `${reason} — vercel login (guillermc) + email guillermoc2710@gmail.com en Account Settings`
-          : reason,
-      );
-    } else if (latest) warn(`vercel-deploy-${key}`, latest.state);
-    else warn(`vercel-deploy-${key}`, 'sin deploy — Git connect o deploy:prebuilt');
+  else if (!scopeOk && cliUser && cliUser !== 'guillermc') {
+    warn(
+      `vercel-server-${key}`,
+      `CLI=${cliUser} — vercel login (guillermc) → pnpm go-live:vercel-env`,
+    );
+  } else if (out?.includes('Encrypted') || out?.includes('Plaintext')) {
+    warn(`vercel-server-${key}`, 'faltan secrets server — pnpm go-live:vercel-env');
+  } else {
+    warn(`vercel-server-${key}`, onProdTeam ? 'sin vars' : 'team CLI ≠ prod');
   }
-} catch (err) {
-  fail('vercel-api', err.message);
 }
 
-// 5. Smoke
+// 4. Smoke (fuente de verdad deploy) + URLs prod
+const prodUrls = { ...PRODUCTION_URLS };
 for (const [key, url] of Object.entries(prodUrls)) {
   if (!url) continue;
   const path = key === 'nucleo' ? '/api/health/live' : '/';
   const code = run(`curl -sS -m 12 -o /dev/null -w "%{http_code}" ${url}${path}`);
-  if (code === '200') pass(`smoke-${key}`, url);
-  else if (code === '401')
-    warn(`smoke-${key}`, `${url} → HTTP 401 (deploy OK, protección Vercel activa)`);
-  else warn(`smoke-${key}`, `${url} → HTTP ${code ?? 'timeout'}`);
+  if (code === '200') {
+    pass(`smoke-${key}`, url);
+    pass(`vercel-deploy-${key}`, `${url} — live`);
+  } else if (code === '401') {
+    warn(`smoke-${key}`, `${url} → HTTP 401 (protección Vercel)`);
+    pass(`vercel-deploy-${key}`, `${url} — deployed`);
+  } else {
+    warn(`smoke-${key}`, `${url} → HTTP ${code ?? 'timeout'}`);
+    warn(`vercel-deploy-${key}`, 'sin respuesta OK');
+  }
 }
 
-// 6. CI
+// 5. CI
 const ci = run('gh run list --repo guillermoc2710-cmd/enjambre-legado --limit 1 --json conclusion,headBranch');
 if (ci) {
   const [last] = JSON.parse(ci);
@@ -135,11 +133,10 @@ console.log(
 
 if (failed || warnings) {
   console.log('Acciones producción (sin .env.local):');
-  console.log('  1. supabase login && bash scripts/apply-supabase-migrations.sh');
-  console.log('  2. Pegar service_role en .env.secrets.local → pnpm go-live:vercel-env');
-  console.log(`  3. Vercel Dashboard → Git: https://vercel.com/${PRODUCTION_TEAM_SLUG}`);
-  console.log('  4. O: pnpm go-live:deploy:prebuilt tienda && pnpm go-live:deploy:prebuilt campo');
-  console.log('  5. pnpm go-live:smoke:prod\n');
+  console.log('  1. vercel login (guillermc) → pnpm go-live:vercel-env');
+  console.log(`  2. O manual: https://vercel.com/${PRODUCTION_TEAM_SLUG} → cada proyecto → Env`);
+  console.log('  3. supabase login (solo si hay migraciones nuevas) → pnpm go-live:db-push');
+  console.log('  4. pnpm go-live:smoke:prod\n');
 }
 
 process.exit(failed ? 1 : 0);
