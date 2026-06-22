@@ -18,8 +18,13 @@ fi
 # shellcheck disable=SC1090
 source "$SECRETS"
 
+if [[ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" && -f "$ROOT/apps/nucleo/.env.local" ]]; then
+  SUPABASE_SERVICE_ROLE_KEY="$(grep -E '^SUPABASE_SERVICE_ROLE_KEY=' "$ROOT/apps/nucleo/.env.local" | cut -d= -f2- || true)"
+fi
+
 if [[ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]]; then
   echo "Falta SUPABASE_SERVICE_ROLE_KEY en $SECRETS"
+  echo "Supabase Dashboard → hdhamxiblwwskvvqbcfo → Settings → API → service_role"
   exit 1
 fi
 
@@ -66,9 +71,13 @@ append_or_replace "$CAMPO_ENV" "NEXT_PUBLIC_SUPABASE_URL" "$SUPABASE_URL"
 append_or_replace "$CAMPO_ENV" "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY" "$PUBLISHABLE"
 append_or_replace "$CAMPO_ENV" "NEXT_PUBLIC_NUCLEO_API_URL" "http://localhost:3000"
 
+if ! grep -q '^INTERNAL_API_SECRET=' "$SECRETS" 2>/dev/null; then
+  echo "INTERNAL_API_SECRET=$INTERNAL_API_SECRET" >> "$SECRETS"
+fi
+
 echo ""
 echo "✓ Env local actualizado (nucleo/tienda/campo)"
-echo "  INTERNAL_API_SECRET generado/guardado en nucleo/.env.local"
+echo "  INTERNAL_API_SECRET en nucleo/.env.local y .env.secrets.local"
 echo ""
 echo "Siguiente:"
 echo "  node scripts/go-live-check.mjs"
