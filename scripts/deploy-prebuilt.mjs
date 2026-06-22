@@ -37,9 +37,19 @@ execSync('vercel pull --yes --environment=production', { cwd: appDir, stdio: 'in
 copyFileSync(linkSrc, linkDst);
 
 execSync('vercel build --prod --yes', { cwd: root, stdio: 'inherit' });
-execSync('vercel deploy --prebuilt --prod --yes --archive=tgz', { cwd: root, stdio: 'inherit' });
 
-console.log('\n✓ Deploy enviado. Si rate-limit (api-upload-free), usa Git connect + push a main.\n');
+// Hobby team: el autor del commit en GitHub debe coincidir con el email de la cuenta Vercel.
+const vercelEmail = process.env.VERCEL_DEPLOY_AUTHOR_EMAIL ?? 'gaboxxc@gmail.com';
+const vercelName = process.env.VERCEL_DEPLOY_AUTHOR_NAME ?? 'gaboxxc-3075';
+const deployCmd = [
+  'vercel deploy --prebuilt --prod --yes --archive=tgz --no-wait',
+  `-m githubCommitAuthorEmail=${vercelEmail}`,
+  `-m githubCommitAuthorName=${vercelName}`,
+].join(' ');
+execSync(deployCmd, { cwd: root, stdio: 'inherit', shell: true });
+
+console.log('\n✓ Deploy enviado (async). Revisa estado: vercel ls (en apps/<app>).');
+console.log('  Si rate-limit (api-upload-free), conecta Git en Vercel + push a main.\n');
 
 // Limpia link raíz para no interferir con otros proyectos
 try {

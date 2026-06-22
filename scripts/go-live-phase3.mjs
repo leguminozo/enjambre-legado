@@ -76,7 +76,16 @@ try {
 
     if (latest?.state === 'READY') pass(`vercel-deploy-${key}`, latest.url);
     else if (latest?.state === 'ERROR') warn(`vercel-deploy-${key}`, `ERROR — pnpm go-live:deploy:prebuilt ${key}`);
-    else if (latest) warn(`vercel-deploy-${key}`, latest.state);
+    else if (latest?.state === 'BLOCKED') {
+      const detail = await vercelFetch(`/v13/deployments/${latest.uid}`, { teamId: TEAM_ID }).catch(() => null);
+      const reason = detail?.readyStateReason ?? 'BLOCKED';
+      warn(
+        `vercel-deploy-${key}`,
+        reason.includes('must have access')
+          ? `${reason} — alinea git user.email con Vercel o añade email en Account Settings`
+          : reason,
+      );
+    } else if (latest) warn(`vercel-deploy-${key}`, latest.state);
     else warn(`vercel-deploy-${key}`, 'sin deploy — Git connect o deploy:prebuilt');
   }
 } catch (err) {
@@ -89,6 +98,8 @@ for (const [key, url] of Object.entries(prodUrls)) {
   const path = key === 'nucleo' ? '/api/health/live' : '/';
   const code = run(`curl -sS -m 12 -o /dev/null -w "%{http_code}" ${url}${path}`);
   if (code === '200') pass(`smoke-${key}`, url);
+  else if (code === '401')
+    warn(`smoke-${key}`, `${url} → HTTP 401 (deploy OK, protección Vercel activa)`);
   else warn(`smoke-${key}`, `${url} → HTTP ${code ?? 'timeout'}`);
 }
 
