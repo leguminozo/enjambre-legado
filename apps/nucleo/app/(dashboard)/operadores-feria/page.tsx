@@ -1,7 +1,7 @@
 'use client';
 
-import { OperadoresFeriaPanel } from '@/components/operadores-feria/OperadoresFeriaPanel';
+import { LazyOperadoresFeriaPanel } from '@/lib/navigation/lazy-views';
 
 export default function OperadoresFeriaPage() {
-  return <OperadoresFeriaPanel />;
+  return <LazyOperadoresFeriaPanel />;
 }

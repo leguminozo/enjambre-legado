@@ -1,7 +1,7 @@
 'use client';
 
-import { PerfilView } from '@/views/PerfilView';
+import { LazyPerfilView } from '@/lib/navigation/lazy-views';
 
 export default function PerfilPage() {
-  return <PerfilView />;
+  return <LazyPerfilView />;
 }

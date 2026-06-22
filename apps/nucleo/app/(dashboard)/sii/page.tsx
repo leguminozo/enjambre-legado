@@ -1,7 +1,7 @@
 'use client';
 
-import { SiiDteView } from '@/views/sii/SiiDteView';
+import { LazySiiDteView } from '@/lib/navigation/lazy-views';
 
 export default function SiiPage() {
-  return <SiiDteView />;
+  return <LazySiiDteView />;
 }

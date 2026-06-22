@@ -1,13 +1,7 @@
-import { ProduccionView } from '@/views/produccion/ProduccionView';
+'use client';
 
-export const metadata = {
-  title: 'Producción | Enjambre Legado',
-};
+import { LazyProduccionView } from '@/lib/navigation/lazy-views';
 
 export default function ProduccionPage() {
-  return (
-    <div className="p-4 md:p-8 animate-in fade-in duration-500">
-      <ProduccionView />
-    </div>
-  );
+  return <LazyProduccionView />;
 }

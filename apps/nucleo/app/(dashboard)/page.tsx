@@ -1,7 +1,7 @@
 'use client'
 
-import { EcosistemaDashboard } from '@/components/enjambre/EcosistemaDashboard'
+import { LazyEcosistemaDashboard } from '@/lib/navigation/lazy-views'
 
 export default function DashboardPage() {
-  return <EcosistemaDashboard />
+  return <LazyEcosistemaDashboard />
 }

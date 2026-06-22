@@ -151,6 +151,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link
               key={key}
               href={navItem.href}
+              prefetch
               className={`bottom-nav-item ${navItem.isActive ? 'active' : ''}`}
               aria-current={navItem.isActive ? 'page' : undefined}
             >

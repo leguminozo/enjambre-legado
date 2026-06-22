@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { DashboardEjecutivo } from '@/components/gerente/DashboardEjecutivo'
+import { LazyDashboardEjecutivo } from '@/lib/navigation/lazy-views';
 
 export default function EjecutivoPage() {
-  return <DashboardEjecutivo />
+  return <LazyDashboardEjecutivo />;
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import { MarketingView } from '@/views/MarketingView';
+import { LazyMarketingView } from '@/lib/navigation/lazy-views';
 
 export default function ComunidadPage() {
-  return <MarketingView />;
+  return <LazyMarketingView />;
 }

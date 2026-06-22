@@ -2,8 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers/Providers";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Analytics } from "@vercel/analytics/next";
+import { VercelInsights } from "@/components/VercelInsights";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -46,8 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           {children}
         </Providers>
-        <SpeedInsights />
-        <Analytics />
+        <VercelInsights />
       </body>
     </html>
   );

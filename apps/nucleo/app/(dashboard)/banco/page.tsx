@@ -1,7 +1,7 @@
 'use client';
 
-import { BancoChileView } from '@/views/banco-chile/BancoChileView';
+import { LazyBancoChileView } from '@/lib/navigation/lazy-views';
 
 export default function BancoPage() {
-  return <BancoChileView />;
+  return <LazyBancoChileView />;
 }

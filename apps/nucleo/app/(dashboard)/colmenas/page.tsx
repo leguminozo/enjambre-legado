@@ -1,7 +1,7 @@
 'use client';
 
-import { ApicultorView } from '@/views/ApicultorView';
+import { LazyApicultorView } from '@/lib/navigation/lazy-views';
 
 export default function ColmenasPage() {
-  return <ApicultorView />;
+  return <LazyApicultorView />;
 }

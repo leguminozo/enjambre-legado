@@ -1,13 +1,7 @@
-import { CosteoView } from '@/views/costeo/CosteoView';
+'use client';
 
-export const metadata = {
-  title: 'Costeo | Enjambre Legado',
-};
+import { LazyCosteoView } from '@/lib/navigation/lazy-views';
 
 export default function CosteoPage() {
-  return (
-    <div className="p-4 md:p-8 animate-in fade-in duration-500">
-      <CosteoView />
-    </div>
-  );
+  return <LazyCosteoView />;
 }

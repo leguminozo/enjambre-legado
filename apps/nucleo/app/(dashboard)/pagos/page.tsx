@@ -1,13 +1,7 @@
-import { SumUpView } from '@/views/sumup/SumUpView';
+'use client';
 
-export const metadata = {
-  title: 'Pagos SumUp | Enjambre Legado',
-};
+import { LazySumUpView } from '@/lib/navigation/lazy-views';
 
 export default function PagosPage() {
-  return (
-    <div className="p-4 md:p-8 animate-in fade-in duration-500">
-      <SumUpView />
-    </div>
-  );
+  return <LazySumUpView />;
 }

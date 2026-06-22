@@ -1,7 +1,7 @@
 'use client';
 
-import { RegeneracionView } from '@/views/RegeneracionView';
+import { LazyRegeneracionView } from '@/lib/navigation/lazy-views';
 
 export default function RegeneracionPage() {
-  return <RegeneracionView />;
+  return <LazyRegeneracionView />;
 }

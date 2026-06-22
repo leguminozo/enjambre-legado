@@ -1,7 +1,7 @@
 'use client';
 
-import { MiFeriaPortal } from '@/components/operadores-feria/MiFeriaPortal';
+import { LazyMiFeriaPortal } from '@/lib/navigation/lazy-views';
 
 export default function MiFeriaPage() {
-  return <MiFeriaPortal />;
+  return <LazyMiFeriaPortal />;
 }

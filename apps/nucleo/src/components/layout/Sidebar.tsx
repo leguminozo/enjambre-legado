@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
+import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
 import {
   Map, Hexagon, TreePine, ShoppingBag, Truck, Megaphone, Calendar,
   Menu, X, LogOut, Calculator, Sparkles, BarChart3, FileText,
@@ -74,9 +75,33 @@ interface SidebarProps {
   isOpen: boolean;
 }
 
+function PrefetchLink({
+  href,
+  onMouseEnter,
+  children,
+  ...props
+}: React.ComponentProps<typeof Link>) {
+  const { prefetch } = useRoutePrefetch();
+  return (
+    <Link
+      href={href}
+      prefetch
+      onMouseEnter={(e) => {
+        const path = typeof href === 'string' ? href : (href.pathname ?? '');
+        if (path) prefetch(path);
+        onMouseEnter?.(e);
+      }}
+      {...props}
+    >
+      {children}
+    </Link>
+  );
+}
+
 export function Sidebar({ onToggle, isOpen }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { prefetchMany } = useRoutePrefetch();
   const [userName, setUserName] = useState('Usuario');
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -113,6 +138,18 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
     () => [...sidebarGroups.flatMap(g => g.items), ...accountItems],
     [sidebarGroups, accountItems],
   );
+
+  // Prefetch rutas del rol en idle — navegación casi instantánea al primer click
+  useEffect(() => {
+    const hrefs = allItems.map((item) => item.href);
+    const run = () => prefetchMany(hrefs);
+    if (typeof requestIdleCallback !== 'undefined') {
+      const id = requestIdleCallback(run, { timeout: 4000 });
+      return () => cancelIdleCallback(id);
+    }
+    const t = window.setTimeout(run, 1200);
+    return () => window.clearTimeout(t);
+  }, [allItems, prefetchMany]);
   const filteredSearch = searchQuery.trim()
     ? allItems.filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase()))
     : [];
@@ -148,12 +185,8 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
             label={group.label}
             items={group.items.map(item => toNavItemData(item, badgeOverrides))}
             activeKey={activeItem?.key}
-            onItemClick={(clicked) => {
-              if (clicked.href) {
-                router.push(clicked.href);
-              }
-              onToggle();
-            }}
+            linkComponent={PrefetchLink}
+            onItemClick={() => onToggle()}
           />
         ))}
 
@@ -161,12 +194,8 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
           label="CUENTA"
           items={accountItems.map(item => toNavItemData(item, badgeOverrides))}
           activeKey={activeItem?.key}
-          onItemClick={(clicked) => {
-            if (clicked.href) {
-              router.push(clicked.href);
-            }
-            onToggle();
-          }}
+          linkComponent={PrefetchLink}
+          onItemClick={() => onToggle()}
         />
       </nav>
 

@@ -18,7 +18,7 @@ interface SidebarBadgeValues {
 }
 
 const DEFAULT_BADGES: SidebarBadgeValues = {
-  territorio: null,
+  territorio: { type: 'dot', color: 'green' },
   colmenas: null,
   bosque: null,
   productos: null,
@@ -30,90 +30,141 @@ const DEFAULT_BADGES: SidebarBadgeValues = {
   conciliacion: null,
 }
 
+const CACHE_KEY = 'nucleo:sidebar-badges:v1'
+const CACHE_TTL_MS = 60_000
+
+type CountResult = { count: number | null; error: unknown }
+
+function readCache(): SidebarBadgeValues | null {
+  if (typeof sessionStorage === 'undefined') return null
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY)
+    if (!raw) return null
+    const { at, badges } = JSON.parse(raw) as { at: number; badges: SidebarBadgeValues }
+    if (Date.now() - at > CACHE_TTL_MS) return null
+    return badges
+  } catch {
+    return null
+  }
+}
+
+function writeCache(badges: SidebarBadgeValues) {
+  if (typeof sessionStorage === 'undefined') return
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), badges }))
+  } catch {
+    /* quota */
+  }
+}
+
+async function safeCount(
+  query: PromiseLike<{ count: number | null; error: unknown }>,
+): Promise<CountResult> {
+  try {
+    const result = await query
+    if (result.error) return { count: null, error: result.error }
+    return { count: result.count, error: null }
+  } catch (error) {
+    return { count: null, error }
+  }
+}
+
 export function useSidebarBadges() {
-  const [badges, setBadges] = useState<SidebarBadgeValues>(DEFAULT_BADGES)
-  const [isLoading, setIsLoading] = useState(true)
+  const [badges, setBadges] = useState<SidebarBadgeValues>(() => readCache() ?? DEFAULT_BADGES)
+  const [isLoading, setIsLoading] = useState(() => readCache() === null)
 
   const fetchBadges = useCallback(async () => {
-    if (!supabase) return
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    try {
-      const [colmenasRisk, enviosPending, facturasPendientes, integrationsConfig] = await Promise.all([
-        supabase.from('varroa_records').select('colmena_id', { count: 'exact', head: true }).gt('level', 3),
-        supabase.from('logistica_envios').select('id', { count: 'exact', head: true }).eq('status', 'pendiente'),
-        supabase.from('facturas_emitidas').select('id', { count: 'exact', head: true }).eq('estado_sii', 'pendiente'),
-        supabase.from('integrations').select('id', { count: 'exact', head: true }).eq('key', 'banco_chile').eq('enabled', true),
-      ])
-
-      setBadges(prev => ({
-        ...prev,
-        territorio: { type: 'dot', color: 'green' as BadgeDotColor },
-        colmenas: (colmenasRisk.count ?? 0) > 0
-          ? { type: 'count', value: colmenasRisk.count ?? 0 }
-          : null,
-        despacho: (enviosPending.count ?? 0) > 0
-          ? { type: 'count', value: enviosPending.count ?? 0 }
-          : null,
-        sii: (facturasPendientes.count ?? 0) > 0
-          ? { type: 'count', value: facturasPendientes.count ?? 0 }
-          : null,
-        banco: (integrationsConfig.count ?? 0) === 0
-          ? { type: 'dot', color: 'orange' as BadgeDotColor }
-          : { type: 'dot', color: 'green' as BadgeDotColor },
-      }))
-} catch (error) {
-    console.error('[sidebar-badges] fetch error:', error)
-    setBadges(DEFAULT_BADGES)
-    } finally {
+    if (!supabase) {
       setIsLoading(false)
+      return
     }
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setIsLoading(false)
+      return
+    }
+
+    const [colmenasRisk, enviosPending, facturasPendientes, integrationsConfig] = await Promise.all([
+      safeCount(
+        supabase.from('varroa_records').select('colmena_id', { count: 'exact', head: true }).gt('level', 3),
+      ),
+      safeCount(
+        supabase.from('logistica_envios').select('id', { count: 'exact', head: true }).eq('status', 'pendiente'),
+      ),
+      safeCount(
+        supabase.from('facturas_emitidas').select('id', { count: 'exact', head: true }).eq('estado_sii', 'pendiente'),
+      ),
+      safeCount(
+        supabase.from('integrations').select('id', { count: 'exact', head: true }).eq('key', 'banco_chile').eq('enabled', true),
+      ),
+    ])
+
+    const next: SidebarBadgeValues = {
+      ...DEFAULT_BADGES,
+      colmenas: (colmenasRisk.count ?? 0) > 0
+        ? { type: 'count', value: colmenasRisk.count ?? 0 }
+        : null,
+      despacho: (enviosPending.count ?? 0) > 0
+        ? { type: 'count', value: enviosPending.count ?? 0 }
+        : null,
+      sii: (facturasPendientes.count ?? 0) > 0
+        ? { type: 'count', value: facturasPendientes.count ?? 0 }
+        : null,
+      banco: (integrationsConfig.count ?? 0) === 0
+        ? { type: 'dot', color: 'orange' as BadgeDotColor }
+        : { type: 'dot', color: 'green' as BadgeDotColor },
+    }
+
+    setBadges(next)
+    writeCache(next)
+    setIsLoading(false)
   }, [])
 
   useEffect(() => {
-    fetchBadges()
+    const defer = typeof requestIdleCallback !== 'undefined'
+      ? (cb: () => void) => requestIdleCallback(cb, { timeout: 3000 })
+      : (cb: () => void) => window.setTimeout(cb, 800)
+
+    const id = defer(() => {
+      void fetchBadges()
+    })
+
+    return () => {
+      if (typeof cancelIdleCallback !== 'undefined' && typeof id === 'number') {
+        cancelIdleCallback(id)
+      } else {
+        window.clearTimeout(id as number)
+      }
+    }
   }, [fetchBadges])
 
   useEffect(() => {
     if (!supabase) return
 
-  const channels = [
-    supabase
-      .channel('sidebar-varroa')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'varroa_records' }, () => {
-        fetchBadges()
-      })
-.subscribe((status: string) => {
-    if (status === 'CHANNEL_ERROR') {
-      console.error('[Realtime] sidebar-varroa channel error')
-    }
-  }),
-  supabase
-  .channel('sidebar-envios')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'logistica_envios' }, () => {
-    fetchBadges()
-  })
-  .subscribe((status: string) => {
-    if (status === 'CHANNEL_ERROR') {
-      console.error('[Realtime] sidebar-envios channel error')
-    }
-  }),
-  supabase
-  .channel('sidebar-facturas')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'facturas_emitidas' }, () => {
-    fetchBadges()
-  })
-  .subscribe((status: string) => {
-    if (status === 'CHANNEL_ERROR') {
-      console.error('[Realtime] sidebar-facturas channel error')
-    }
-  }),
-  ]
+    const channels = [
+      supabase
+        .channel('sidebar-varroa')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'varroa_records' }, () => {
+          void fetchBadges()
+        })
+        .subscribe(),
+      supabase
+        .channel('sidebar-envios')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'logistica_envios' }, () => {
+          void fetchBadges()
+        })
+        .subscribe(),
+      supabase
+        .channel('sidebar-facturas')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'facturas_emitidas' }, () => {
+          void fetchBadges()
+        })
+        .subscribe(),
+    ]
 
-  return () => {
-    channels.forEach(ch => supabase.removeChannel(ch))
-  }
+    return () => {
+      channels.forEach((ch) => supabase.removeChannel(ch))
+    }
   }, [fetchBadges])
 
   return { badges, isLoading, refetch: fetchBadges }

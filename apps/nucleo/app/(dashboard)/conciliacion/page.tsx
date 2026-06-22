@@ -1,13 +1,7 @@
-import { ConciliacionAutoView } from '@/views/banco-chile/ConciliacionAutoView';
+'use client';
 
-export const metadata = {
-  title: 'Conciliación Bancaria | Enjambre Legado',
-};
+import { LazyConciliacionAutoView } from '@/lib/navigation/lazy-views';
 
 export default function ConciliacionPage() {
-  return (
-    <div className="p-4 md:p-8 animate-in fade-in duration-500">
-      <ConciliacionAutoView />
-    </div>
-  );
+  return <LazyConciliacionAutoView />;
 }

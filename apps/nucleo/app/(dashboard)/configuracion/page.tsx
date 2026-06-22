@@ -1,7 +1,7 @@
 'use client';
 
-import { ConfiguracionView } from '@/views/ConfiguracionView';
+import { LazyConfiguracionView } from '@/lib/navigation/lazy-views';
 
 export default function ConfiguracionPage() {
-  return <ConfiguracionView />;
+  return <LazyConfiguracionView />;
 }

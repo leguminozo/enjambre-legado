@@ -1,7 +1,7 @@
 'use client';
 
-import { LogisticaView } from '@/views/LogisticaView';
+import { LazyLogisticaView } from '@/lib/navigation/lazy-views';
 
 export default function OperacionesPage() {
-  return <LogisticaView />;
+  return <LazyLogisticaView />;
 }

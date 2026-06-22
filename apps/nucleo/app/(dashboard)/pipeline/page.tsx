@@ -1,5 +1,7 @@
-import { PipelineView } from '@/views/PipelineView';
+'use client';
+
+import { LazyPipelineView } from '@/lib/navigation/lazy-views';
 
 export default function PipelinePage() {
-  return <PipelineView />;
+  return <LazyPipelineView />;
 }
