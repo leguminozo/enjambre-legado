@@ -14,7 +14,15 @@ import {
   previewCartPricing,
   resolveBuyerPricingContext,
 } from "../lib/pricing/cart-pricing-service";
-import { computeUnitPrice } from "@enjambre/pricing";
+import { computeShippingCost, isCourierCode, resolveCourierCode } from "@enjambre/logistica";
+import {
+  computeDiscountClp,
+  computePaidTotal,
+  computeUnitPrice,
+  isDiscountRowValid,
+  validatePointsRedeemInput,
+  type DiscountRow,
+} from "@enjambre/pricing";
 import { createClient } from "@supabase/supabase-js";
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from "../lib/ratelimit";
 
@@ -62,6 +70,17 @@ const InitBodySchema = z.object({
   returnUrl: z.string().url().optional(),
   buyerMode: z.enum(['legado', 'privada', 'b2b']).optional().default('legado'),
   organizacionId: z.string().uuid().optional(),
+  courierCode: z.string().optional(),
+  puntosACanjear: z.number().int().nonnegative().optional().default(0),
+  codigoDescuento: z.string().trim().min(2).max(40).optional(),
+});
+
+const QuoteBodySchema = z.object({
+  subtotal: z.number().int().nonnegative(),
+  region: z.string().min(2),
+  courierCode: z.string().optional(),
+  codigoDescuento: z.string().trim().optional(),
+  puntosACanjear: z.number().int().nonnegative().optional().default(0),
 });
 
 const CommitBodySchema = z.object({
@@ -90,6 +109,95 @@ function createAdminClient() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
+async function resolveDiscountClp(
+  admin: ReturnType<typeof createAdminClient>,
+  codigo: string | undefined,
+  subtotal: number,
+): Promise<{ discountClp: number; discountCode: string | null; discountId: string | null; envioGratis: boolean }> {
+  if (!codigo) {
+    return { discountClp: 0, discountCode: null, discountId: null, envioGratis: false };
+  }
+
+  const { data: row, error } = await admin
+    .from('descuentos')
+    .select('*')
+    .eq('codigo', codigo.toUpperCase())
+    .maybeSingle();
+
+  if (error || !row) {
+    throw new Error('Código no válido');
+  }
+
+  const discount = row as DiscountRow;
+  const valid = isDiscountRowValid(discount, subtotal);
+  if (!valid.ok) {
+    throw new Error(`Código no aplicable (${valid.code})`);
+  }
+
+  const discountClp = computeDiscountClp(discount.tipo, Number(discount.valor), subtotal);
+  return {
+    discountClp,
+    discountCode: discount.codigo,
+    discountId: discount.id,
+    envioGratis: discount.tipo === 'envio_gratis',
+  };
+}
+
+checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => {
+  try {
+    const body = c.req.valid("json");
+    const admin = createAdminClient();
+    const courierCode = resolveCourierCode(body.courierCode);
+    let shippingCost = computeShippingCost({
+      region: body.region,
+      courierCode,
+      subtotalClp: body.subtotal,
+    });
+
+    let discountClp = 0;
+    if (body.codigoDescuento) {
+      const d = await resolveDiscountClp(admin, body.codigoDescuento, body.subtotal);
+      discountClp = d.discountClp;
+      if (d.envioGratis) shippingCost = 0;
+    }
+
+    const netSubtotal = Math.max(0, body.subtotal - discountClp);
+    let loyaltyDiscountClp = 0;
+    if (body.puntosACanjear > 0) {
+      const token = c.req.header("Authorization")?.replace("Bearer ", "") || null;
+      const { userId } = await resolveBuyerPricingContext(admin, token);
+      if (userId) {
+        const { data: empresa } = await admin.from('empresas').select('id').limit(1).maybeSingle();
+        const { data: puntosRow } = await admin
+          .from('puntos_fidelizacion')
+          .select('puntos')
+          .eq('user_id', userId)
+          .eq('empresa_id', empresa?.id ?? '')
+          .maybeSingle();
+        const validation = validatePointsRedeemInput(
+          body.puntosACanjear,
+          (puntosRow?.puntos as number) ?? 0,
+          netSubtotal,
+        );
+        if (validation.ok) loyaltyDiscountClp = validation.discountClp;
+      }
+    }
+
+    const total = computePaidTotal(netSubtotal, shippingCost, loyaltyDiscountClp);
+    return c.json({
+      subtotal: body.subtotal,
+      discountClp,
+      shippingCost,
+      loyaltyDiscountClp,
+      total,
+      courierCode,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'No se pudo cotizar';
+    return c.json({ code: 'quote_failed', message }, 400);
+  }
+});
+
 checkoutRoutes.post("/preview", zValidator("json", PreviewBodySchema), async (c) => {
   const rateLimitResult = await rateLimitMiddleware(c, RATE_LIMIT_CONFIGS.checkout);
   if (rateLimitResult) return rateLimitResult;
@@ -111,7 +219,16 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
   if (rateLimitResult) return rateLimitResult;
 
   try {
-    const { cart, shipping, returnUrl: rawReturnUrl, buyerMode, organizacionId } = c.req.valid("json");
+    const {
+      cart,
+      shipping,
+      returnUrl: rawReturnUrl,
+      buyerMode,
+      organizacionId,
+      courierCode: requestedCourier,
+      puntosACanjear: requestedPoints,
+      codigoDescuento,
+    } = c.req.valid("json");
     const admin = createAdminClient();
     const productIds = cart.map((line) => line.productId);
 
@@ -181,7 +298,87 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       return c.json({ code: "empty_cart", message: 'Carrito vacío después de verificación' }, 400);
     }
 
-    const total = Math.max(1, Math.round(serverTotal));
+    if (requestedCourier && !isCourierCode(requestedCourier)) {
+      return c.json({ code: 'invalid_courier', message: 'Courier no disponible' }, 400);
+    }
+
+    let courierCode = resolveCourierCode(requestedCourier);
+    if (userId && !requestedCourier) {
+      const { data: profile } = await admin
+        .from('profiles')
+        .select('courier_preferido')
+        .eq('id', userId)
+        .maybeSingle();
+      courierCode = resolveCourierCode(profile?.courier_preferido as string | null | undefined);
+    }
+
+    const subtotal = Math.round(serverTotal);
+
+    let discountClp = 0;
+    let discountCode: string | null = null;
+    let discountId: string | null = null;
+    let envioGratis = false;
+
+    if (codigoDescuento) {
+      try {
+        const d = await resolveDiscountClp(admin, codigoDescuento, subtotal);
+        discountClp = d.discountClp;
+        discountCode = d.discountCode;
+        discountId = d.discountId;
+        envioGratis = d.envioGratis;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Código inválido';
+        return c.json({ code: 'invalid_discount', message }, 400);
+      }
+    }
+
+    const netSubtotal = Math.max(0, subtotal - discountClp);
+    let shippingCost = computeShippingCost({
+      region: shipping.region,
+      courierCode,
+      subtotalClp: subtotal,
+    });
+    if (envioGratis) shippingCost = 0;
+
+    let loyaltyPointsRedeemed = 0;
+    let loyaltyDiscountClp = 0;
+
+    if (requestedPoints > 0) {
+      if (!userId || effectiveBuyerMode === 'privada') {
+        return c.json({
+          code: 'loyalty_auth_required',
+          message: 'Inicia sesión para canjear puntos',
+        }, 401);
+      }
+
+      const { data: defaultEmpresa } = await admin.from('empresas').select('id').limit(1).maybeSingle();
+      if (!defaultEmpresa?.id) {
+        return c.json({ code: 'empresa_missing', message: 'Configuración de empresa incompleta' }, 500);
+      }
+
+      const { data: puntosRow } = await admin
+        .from('puntos_fidelizacion')
+        .select('puntos')
+        .eq('user_id', userId)
+        .eq('empresa_id', defaultEmpresa.id)
+        .maybeSingle();
+
+      const balance = (puntosRow?.puntos as number | undefined) ?? 0;
+      const validation = validatePointsRedeemInput(requestedPoints, balance, netSubtotal);
+
+      if (!validation.ok) {
+        return c.json({
+          code: 'invalid_loyalty_redeem',
+          message: 'Canje de puntos inválido',
+          details: validation.code,
+        }, 400);
+      }
+
+      loyaltyPointsRedeemed = requestedPoints;
+      loyaltyDiscountClp = validation.discountClp;
+    }
+
+    const total = computePaidTotal(netSubtotal, shippingCost, loyaltyDiscountClp);
     const buyOrder = `ORD-${crypto.randomUUID()}`;
     const sessionId = `sess-${crypto.randomUUID()}`;
 
@@ -198,11 +395,46 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       total,
       provider: provider.name,
       shipping,
+      courierCode,
+      shippingCost,
+      subtotal,
+      discountCode,
+      discountClp,
+      discountId,
+      loyaltyPointsRedeemed,
+      loyaltyDiscountClp,
       createdAt: Date.now(),
       buyerMode: effectiveBuyerMode,
       clienteId: effectiveClienteId,
       organizacionId: organizacionId ?? null,
     });
+
+    const { data: reserveResult, error: reserveError } = await admin.rpc('reserve_checkout_stock', {
+      p_buy_order: buyOrder,
+      p_cart: verifiedCart,
+      p_ttl_minutes: 30,
+    });
+
+    const reserveOk =
+      !reserveError &&
+      reserveResult &&
+      typeof reserveResult === 'object' &&
+      (reserveResult as { success?: boolean }).success === true;
+
+    if (!reserveOk) {
+      await admin.from('checkout_sessions').delete().eq('buy_order', buyOrder);
+      return c.json({
+        code: 'stock_hold_failed',
+        message: 'No hay stock suficiente para reservar tu pedido. Intenta de nuevo.',
+      }, 409);
+    }
+
+    if (userId && requestedCourier && isCourierCode(requestedCourier)) {
+      await admin
+        .from('profiles')
+        .update({ courier_preferido: requestedCourier })
+        .eq('id', userId);
+    }
 
     return c.json({
       url: result.url,
@@ -210,6 +442,12 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       buyOrder: result.buyOrder,
       sessionId: result.sessionId,
       total,
+      subtotal,
+      shippingCost,
+      discountClp,
+      discountCode,
+      loyaltyDiscountClp,
+      loyaltyPointsRedeemed,
       provider: provider.name,
       buyerMode: effectiveBuyerMode,
     });

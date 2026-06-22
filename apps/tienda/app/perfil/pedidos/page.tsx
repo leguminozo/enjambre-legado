@@ -2,6 +2,7 @@ import React from 'react';
 import { ShoppingBag, Package, Truck, CheckCircle, ArrowUpRight, Clock } from 'lucide-react';
 import { createClient } from '@/utils/supabase/server';
 import { formatCLP } from '@/lib/shop/format';
+import { getCourierLabel } from '@enjambre/logistica';
 import { formatDate as formatDateBase } from '@enjambre/ui';
 
 function formatDate(iso: string) {
@@ -17,6 +18,7 @@ interface Order {
     tracking_code: string;
     status: string;
     via: string;
+    courier_code?: string | null;
     eta?: string;
   }>;
 }
@@ -25,11 +27,15 @@ export default async function PedidosPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: orders } = await supabase
-    .from('ventas')
-    .select('*, logistica_envios(tracking_code, status, via, eta)')
-    .eq('cliente_id', user?.id)
-    .order('created_at', { ascending: false }) as { data: Order[] | null };
+  let orders: Order[] | null = null;
+  if (user) {
+    const { data } = await supabase
+      .from('ventas')
+      .select('*, logistica_envios(tracking_code, status, via, courier_code, eta)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    orders = data as Order[] | null;
+  }
 
   return (
     <div className="space-y-16 animate-in">
@@ -124,7 +130,9 @@ export default async function PedidosPage() {
                     )}
                   </div>
                   {envio && (
-                    <p className="text-[0.6rem] text-muted-foreground italic uppercase tracking-widest">Via: {envio.via}</p>
+                    <p className="text-[0.6rem] text-muted-foreground italic uppercase tracking-widest">
+                      Courier: {getCourierLabel(envio.courier_code ?? envio.via)}
+                    </p>
                   )}
                 </div>
               </div>

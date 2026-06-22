@@ -1,6 +1,12 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
+import {
+  DEFAULT_COURIER,
+  getCourierLabel,
+  isCourierCode,
+  resolveCourierCode,
+} from "@enjambre/logistica";
 import { createAdminClient } from "@enjambre/auth/browser";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
@@ -13,6 +19,7 @@ const CreateEnvioSchema = z.object({
   status: z.string().min(1),
   eta: z.string().optional(),
   via: z.string().optional(),
+  courier_code: z.string().optional(),
   venta_id: z.string().uuid().optional(),
 });
 
@@ -23,6 +30,8 @@ const UpdateEnvioSchema = z.object({
   status: z.string().min(1).optional(),
   eta: z.string().nullable().optional(),
   via: z.string().nullable().optional(),
+  courier_code: z.string().nullable().optional(),
+  courier_tracking_url: z.string().url().nullable().optional(),
 });
 
 export const logisticaRoutes = new Hono<{
@@ -72,8 +81,8 @@ logisticaRoutes.get("/dashboard", async (c) => {
   });
 
   const byVia: Record<string, number> = {};
-  envios.forEach((e: { via: string | null }) => {
-    const v = e.via ?? "sin_via";
+  envios.forEach((e: { via: string | null; courier_code?: string | null }) => {
+    const v = getCourierLabel(e.courier_code ?? e.via);
     byVia[v] = (byVia[v] ?? 0) + 1;
   });
 
@@ -138,6 +147,13 @@ logisticaRoutes.post("/envios", zValidator("json", CreateEnvioSchema), async (c)
   const supabase = c.get("supabase");
   const user = c.get("user");
 
+  const courierCode = input.courier_code
+    ? resolveCourierCode(input.courier_code)
+    : DEFAULT_COURIER;
+  if (input.courier_code && !isCourierCode(input.courier_code)) {
+    return c.json({ code: "invalid_courier", message: "Courier no disponible" }, 400);
+  }
+
   const { data, error } = await supabase
     .from("logistica_envios")
     .insert({
@@ -147,7 +163,8 @@ logisticaRoutes.post("/envios", zValidator("json", CreateEnvioSchema), async (c)
       items: input.items,
       status: input.status,
       eta: input.eta ?? null,
-      via: input.via ?? null,
+      via: input.via ?? getCourierLabel(courierCode),
+      courier_code: courierCode,
       venta_id: input.venta_id ?? null,
     })
     .select("*")

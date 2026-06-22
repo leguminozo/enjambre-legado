@@ -4,14 +4,16 @@ import React, { useTransition } from 'react';
 import { Gem, Star, Flame } from 'lucide-react';
 import { toast } from '@enjambre/ui';
 import { redeemLoyaltyReward, type LoyaltyReward } from '@/app/actions/perfil-experiences';
+import type { UnifiedTierDisplay } from '@/lib/shop/tier-display';
 
 type CanjeImpactoClientProps = {
   balance: number;
   tier: string;
+  tierDisplay: UnifiedTierDisplay;
   rewards: LoyaltyReward[];
 };
 
-export function CanjeImpactoClient({ balance, tier, rewards }: CanjeImpactoClientProps) {
+export function CanjeImpactoClient({ balance, tier, tierDisplay, rewards }: CanjeImpactoClientProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleRedeem = (rewardId: string, name: string, cost: number) => {
@@ -45,10 +47,17 @@ export function CanjeImpactoClient({ balance, tier, rewards }: CanjeImpactoClien
           </p>
         </div>
 
-        <div className="px-6 py-2 bg-accent/10 border border-accent/20 rounded-full">
-          <span className="text-[0.6rem] uppercase tracking-[0.3em] text-accent font-bold">
-            {balance.toLocaleString('es-CL')} Puntos · {tier}
-          </span>
+        <div className="flex flex-wrap gap-2">
+          <div className="px-6 py-2 bg-accent/10 border border-accent/20 rounded-full">
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] text-accent font-bold">
+              {balance.toLocaleString('es-CL')} Puntos · {tierDisplay.loyaltyLabel}
+            </span>
+          </div>
+          <div className="px-6 py-2 bg-secondary border border-border rounded-full">
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground font-bold">
+              Guardianía {tierDisplay.guardianTier} · {tierDisplay.guardianCiclos.toLocaleString('es-CL')} ciclos
+            </span>
+          </div>
         </div>
       </div>
 

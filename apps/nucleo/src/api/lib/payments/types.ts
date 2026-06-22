@@ -27,6 +27,15 @@ export type CheckoutSession = {
   total: number;
   provider: 'transbank' | 'flow';
   shipping: ShippingInfo | null;
+  courierCode: string;
+  shippingCost: number;
+  subtotal: number;
+  discountCode?: string | null;
+  discountClp?: number;
+  discountId?: string | null;
+  stockReserved?: boolean;
+  loyaltyPointsRedeemed: number;
+  loyaltyDiscountClp: number;
   createdAt: number;
   buyerMode?: BuyerMode;
   clienteId?: string | null;
@@ -57,6 +66,7 @@ export type PaymentProvider = {
   refund(buyOrder: string, amount: number): Promise<{ ok: boolean }>;
 };
 
+import { resolveCourierCode } from '@enjambre/logistica';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 function createAdminClient() {
@@ -100,6 +110,15 @@ const CheckoutSessionRowSchema = z.object({
   buyer_mode: z.enum(['legado', 'privada', 'b2b']).optional(),
   cliente_id: z.string().uuid().nullable().optional(),
   organizacion_id: z.string().uuid().nullable().optional(),
+  courier_code: z.string().optional(),
+  shipping_cost: z.number().int().nonnegative().optional(),
+  subtotal: z.number().int().nonnegative().optional(),
+  loyalty_points_redeemed: z.number().int().nonnegative().optional(),
+  loyalty_discount_clp: z.number().int().nonnegative().optional(),
+  discount_code: z.string().nullable().optional(),
+  discount_id: z.string().uuid().nullable().optional(),
+  discount_clp: z.number().int().nonnegative().optional(),
+  stock_reserved: z.boolean().optional(),
 });
 
 type CheckoutSessionRow = z.infer<typeof CheckoutSessionRowSchema>;
@@ -112,6 +131,15 @@ function toCheckoutSession(row: CheckoutSessionRow): CheckoutSession {
     cart: row.cart,
     total: row.total,
     shipping: row.shipping,
+    courierCode: resolveCourierCode(row.courier_code),
+    shippingCost: row.shipping_cost ?? 0,
+    subtotal: row.subtotal ?? row.total,
+    loyaltyPointsRedeemed: row.loyalty_points_redeemed ?? 0,
+    loyaltyDiscountClp: row.loyalty_discount_clp ?? 0,
+    discountCode: row.discount_code ?? null,
+    discountClp: row.discount_clp ?? 0,
+    discountId: row.discount_id ?? null,
+    stockReserved: row.stock_reserved ?? false,
     createdAt: new Date(row.created_at).getTime(),
     buyerMode: row.buyer_mode ?? 'legado',
     clienteId: row.cliente_id ?? null,
@@ -131,6 +159,14 @@ export async function saveCheckoutSession(session: CheckoutSession): Promise<voi
     buyer_mode: session.buyerMode ?? 'legado',
     cliente_id: session.clienteId ?? null,
     organizacion_id: session.organizacionId ?? null,
+    courier_code: session.courierCode,
+    shipping_cost: session.shippingCost,
+    subtotal: session.subtotal,
+    loyalty_points_redeemed: session.loyaltyPointsRedeemed,
+    loyalty_discount_clp: session.loyaltyDiscountClp,
+    discount_code: session.discountCode ?? null,
+    discount_id: session.discountId ?? null,
+    discount_clp: session.discountClp ?? 0,
   });
   if (error) throw new Error(`Failed to save checkout session: ${error.message}`);
 }

@@ -11,6 +11,7 @@ import {
   Settings,
   Sparkles,
   Store,
+  Star,
 } from 'lucide-react';
 import type { ParticipacionActiva } from './participacion';
 
@@ -42,6 +43,7 @@ const BASE_SECTIONS: SidebarSectionConfig[] = [
       { href: '/perfil/ritual', label: 'Ritual Mensual', icon: Repeat },
       { href: '/perfil/reservas', label: 'Reserva Cosecha', icon: Calendar },
       { href: '/perfil/pedidos', label: 'Historial Ritual', icon: ShoppingBag },
+      { href: '/perfil/resenas', label: 'Mis Reseñas', icon: Star },
     ],
   },
   {

@@ -1,5 +1,6 @@
 'use client';
 
+import { maxRedeemablePoints, formatLoyaltyNivel } from '@enjambre/pricing';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/providers/auth-context';
 
@@ -44,7 +45,7 @@ export function useLoyaltyPoints(totalCompra: number) {
         }
 
         const puntos = puntosData?.puntos ?? 0;
-        const nivel = puntosData?.nivel_actual ?? 'bronze';
+        const nivel = formatLoyaltyNivel(puntosData?.nivel_actual ?? 'bronze');
         const puntosTotales = puntosData?.puntos_acumulados_total ?? 0;
 
         // Calcular puntos ganados por esta compra (1 punto por cada $100 CLP)
@@ -80,6 +81,6 @@ export function useLoyaltyPoints(totalCompra: number) {
     puntosACanjear,
     setPuntosACanjear,
     descuentoPorPuntos,
-    canMaxPoints: loyaltyData ? Math.min(loyaltyData.puntos, Math.floor(totalCompra / 100) * 100) : 0,
+    canMaxPoints: loyaltyData ? maxRedeemablePoints(loyaltyData.puntos, totalCompra) : 0,
   };
 }

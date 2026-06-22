@@ -10,6 +10,8 @@ import {
   renderJsonLd,
 } from '@/lib/shop/json-ld';
 import { AddToCartButton, TraceabilitySection } from './ui';
+import { ResenasSection } from '@/components/shop/resenas-section';
+import { fetchResenas } from '@/lib/shop/resenas-api';
 import { ProductGallery } from '@/components/shop/product-gallery';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
@@ -85,6 +87,7 @@ export default async function ProductoPage({ params }: PageProps) {
   }
 
   const inStock = product.stock == null || product.stock > 0;
+  const resenasData = await fetchResenas(product.id);
 
   const productSchema = productJsonLd({
     name: product.name,
@@ -99,6 +102,13 @@ export default async function ProductoPage({ params }: PageProps) {
     blockchainHash: product.blockchain_hash,
     colmenaOrigen: product.colmena_origen,
     fechaCosecha: product.fecha_cosecha,
+    reviews: resenasData.items.slice(0, 5).map((r) => ({
+      author: r.display_name ?? 'Guardián',
+      rating: r.rating,
+      body: r.comentario_corto ?? r.notas_personales ?? '',
+      datePublished: r.created_at,
+    })),
+    aggregateRating: resenasData.aggregate ?? undefined,
   });
 
   const breadcrumbSchema = breadcrumbJsonLd([
@@ -203,6 +213,14 @@ export default async function ProductoPage({ params }: PageProps) {
               ← Seguir explorando
             </Link>
           </div>
+        </div>
+
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 pb-8">
+          <ResenasSection
+            productoId={product.id}
+            productName={product.name}
+            initialAggregate={resenasData.aggregate}
+          />
         </div>
       </main>
     </Shell>

@@ -51,8 +51,9 @@ export function VanguardiaPanel() {
 
       // 2. Fetch recent sensory reviews
       const { data: reviews, error: reviewError } = await supabase
-        .from('resenas_sensoriales')
-        .select('*, profiles!resenas_sensoriales_user_id_fkey(full_name), lotes(blockchain_hash)')
+        .from('resenas_producto')
+        .select('*, profiles!resenas_producto_user_id_fkey(full_name), productos(nombre)')
+        .eq('estado', 'aprobada')
         .order('created_at', { ascending: false })
         .limit(20);
       

@@ -4198,12 +4198,15 @@ export type Database = {
       }
       logistica_envios: {
         Row: {
+          courier_code: string | null
+          courier_tracking_url: string | null
           created_at: string | null
           destino: string
           empresa_id: string | null
           eta: string | null
           id: string
           items: string
+          shipping_cost: number | null
           status: string
           tracking_code: string
           user_id: string | null
@@ -4211,12 +4214,15 @@ export type Database = {
           via: string | null
         }
         Insert: {
+          courier_code?: string | null
+          courier_tracking_url?: string | null
           created_at?: string | null
           destino: string
           empresa_id?: string | null
           eta?: string | null
           id?: string
           items: string
+          shipping_cost?: number | null
           status: string
           tracking_code: string
           user_id?: string | null
@@ -4224,12 +4230,15 @@ export type Database = {
           via?: string | null
         }
         Update: {
+          courier_code?: string | null
+          courier_tracking_url?: string | null
           created_at?: string | null
           destino?: string
           empresa_id?: string | null
           eta?: string | null
           id?: string
           items?: string
+          shipping_cost?: number | null
           status?: string
           tracking_code?: string
           user_id?: string | null

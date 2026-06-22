@@ -11,6 +11,8 @@ import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { CheckCircle, XCircle, Clock, Leaf, Trees, Package } from 'lucide-react';
 import { friendlyApiError } from '@enjambre/ui';
+import { ResenaInvite } from '@/components/shop/resena-invite';
+import { WalletButtons } from '@/components/shop/wallet-buttons';
 
 type CommitState = 'loading' | 'success' | 'failed';
 
@@ -243,6 +245,13 @@ export function CheckoutResultClient() {
                       <Trees className="w-4 h-4" />
                       <span>Gracias por ser parte del Legado del Bosque</span>
                     </div>
+                  </div>
+                  <ResenaInvite />
+                  <div className="pt-4 border-t border-border/60">
+                    <p className="text-xs text-muted-foreground mb-3 text-center">
+                      Lleva tu progreso de sellos en el teléfono
+                    </p>
+                    <WalletButtons compact />
                   </div>
                 </div>
               )}

@@ -6,6 +6,28 @@
 
 ## CRITICO — Resolver antes de produccion
 
+### D67. Checkout loyalty cosmético — puntos no enviados ni ganados (RESUELTO — Jun 2026)
+
+**Problema**: `checkout/ui.tsx` mostraba descuento por puntos pero `startCheckout` no enviaba `puntosACanjear`; `fulfillCheckout` no llamaba RPCs de fidelización ni insertaba `ciclos`.
+
+**Solución (Ola 0)**:
+- `@enjambre/pricing/loyalty-checkout` — validación compartida cliente/servidor.
+- `checkout.ts` — valida saldo, guarda `subtotal`, `loyalty_points_redeemed`, `loyalty_discount_clp` en sesión.
+- `loyalty-fulfill.ts` — `canjear_puntos_checkout`, `calcular_puntos_compra`, `agregar_puntos_usuario`, `ciclos`.
+- Migración `76_ola0_loyalty_checkout.sql` — columnas sesión + RPC canje idempotente.
+
+**Ramificación**: Fallo de canje post-pago (race de saldo) retorna error en fulfill — mismo patrón que stock gate; requiere mig 76 en prod.
+
+---
+
+### D68. TiendaPanel pedidos — columna `items` inexistente (RESUELTO — Jun 2026)
+
+**Problema**: `TiendaPanel.tsx` seleccionaba `ventas.items`; schema usa `productos` → query fallaba silenciosamente.
+
+**Estado**: RESUELTO — select corregido a `productos`, `channel`.
+
+---
+
 ### D1. Redundancia en el Monorepo: Carpetas "Copia de..." (RESUELTO)
 
 **Problema**: Existian multiples directorios como `apps/nucleo/Copia de Verano Eccomerce?`, `Copia de Tienda Shopify OYZ/`, etc.

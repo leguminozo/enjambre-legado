@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { app } from "../../../../app/api/[[...routes]]/route";
+import { cleanupRateLimitMap } from "@/api/lib/rate-limit";
 
 vi.mock("@/api/lib/payments/checkout-fulfill", () => ({
   fulfillCheckout: vi.fn().mockResolvedValue({ ok: true, ventaId: "venta-uuid-1" }),
@@ -46,6 +47,11 @@ vi.mock("@/api/lib/payments", () => {
       },
       buyerMode: "legado",
       clienteId: "mock-user-id",
+      courierCode: "blueexpress",
+      shippingCost: 0,
+      subtotal: 10000,
+      loyaltyPointsRedeemed: 0,
+      loyaltyDiscountClp: 0,
     }),
     completeCheckoutSession: vi.fn().mockResolvedValue(undefined),
   };
@@ -89,28 +95,45 @@ vi.mock("@supabase/supabase-js", () => {
           }),
         }),
         insert: async () => ({ error: null }),
+        delete: () => ({
+          eq: async () => ({ error: null }),
+        }),
       }),
-      rpc: async () => ({ data: true, error: null }),
+      rpc: async (fn: string) => ({
+        data: fn === 'reserve_checkout_stock' ? { success: true } : true,
+        error: null,
+      }),
     }),
   };
 });
 
+let requestSeq = 0;
+
+function checkoutHeaders(extra: Record<string, string> = {}) {
+  requestSeq += 1;
+  return {
+    "Content-Type": "application/json",
+    origin: "http://localhost:3000",
+    "x-forwarded-for": `10.99.0.${requestSeq}`,
+    ...extra,
+  };
+}
+
 describe("Checkout API Routes", () => {
   beforeEach(() => {
+    cleanupRateLimitMap();
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
     process.env.SUPABASE_SERVICE_ROLE_KEY = "mock-key";
     process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
     process.env.FLOW_SECRET = "mock-secret";
+    process.env.INTERNAL_API_SECRET = "mock-internal";
   });
 
   describe("POST /api/checkout/init", () => {
     it("should return 400 if request body is invalid", async () => {
       const res = await app.request("/api/checkout/init", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "origin": "http://localhost:3000",
-        },
+        headers: checkoutHeaders(),
         body: JSON.stringify({}),
       });
       expect(res.status).toBe(400);
@@ -119,11 +142,7 @@ describe("Checkout API Routes", () => {
     it("should return 200 and payment details if request is valid", async () => {
       const res = await app.request("/api/checkout/init", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer valid-token",
-          "origin": "http://localhost:3000",
-        },
+        headers: checkoutHeaders({ Authorization: "Bearer valid-token" }),
         body: JSON.stringify({
           cart: [
             {
@@ -151,7 +170,27 @@ describe("Checkout API Routes", () => {
       expect(res.status).toBe(200);
       const json = await res.json();
       expect(json.url).toBe("https://webpay.cl/mock");
-      expect(json.total).toBe(10000);
+      expect(json.total).toBe(15900);
+      expect(json.shippingCost).toBe(5900);
+    });
+  });
+
+  describe('POST /api/checkout/quote', () => {
+    it('returns shipping and total for valid quote', async () => {
+      const res = await app.request('/api/checkout/quote', {
+        method: 'POST',
+        headers: checkoutHeaders(),
+        body: JSON.stringify({
+          subtotal: 10000,
+          region: 'Metropolitana',
+          courierCode: 'blueexpress',
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.shippingCost).toBe(5900);
+      expect(json.total).toBe(15900);
     });
   });
 
@@ -159,11 +198,7 @@ describe("Checkout API Routes", () => {
     it("should return pricing preview for valid items", async () => {
       const res = await app.request("/api/checkout/preview", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer valid-token",
-          "origin": "http://localhost:3000",
-        },
+        headers: checkoutHeaders({ Authorization: "Bearer valid-token" }),
         body: JSON.stringify({
           items: [{ product_id: "a2b724f8-4e12-40f4-90cc-172bf421e428", quantity: 1 }],
         }),
@@ -181,10 +216,7 @@ describe("Checkout API Routes", () => {
     it("should process authorized transaction and return 200", async () => {
       const res = await app.request("/api/checkout/commit", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "origin": "http://localhost:3000",
-        },
+        headers: checkoutHeaders(),
         body: JSON.stringify({
           token_ws: "mock-ws-token",
         }),

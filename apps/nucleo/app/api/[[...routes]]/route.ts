@@ -33,6 +33,9 @@ import { checkoutRoutes } from "@/api/routes/checkout";
 import { subscriptionsCheckoutRoutes } from "@/api/routes/subscriptions-checkout";
 import { webhooksApp } from "@/api/routes/webhooks";
 import { notificationsRoutes } from "@/api/routes/notifications";
+import { resenasRoutes } from "@/api/routes/resenas";
+import { walletRoutes } from "@/api/routes/wallet";
+import { ritualRoutes } from "@/api/routes/ritual";
 
 export type { AppVariables };
 
@@ -146,6 +149,8 @@ app.use("*", async (c, next) => {
     "/api/creadores",
     "/api/invitations",
     "/api/webhooks",
+    "/api/resenas",
+    "/api/wallet",
   ];
   const path = new URL(c.req.url).pathname;
 
@@ -153,7 +158,7 @@ app.use("*", async (c, next) => {
     return next();
   }
 
-  if (path.startsWith("/api/notifications/internal")) {
+  if (path.startsWith("/api/notifications/internal") || path.startsWith("/api/ritual/cron")) {
     if (verifyInternalApiKey(c.req.header("x-internal-key"))) {
       return next();
     }
@@ -197,6 +202,9 @@ app.route("/checkout", checkoutRoutes);
 app.route("/subscriptions/checkout", subscriptionsCheckoutRoutes);
 app.route("/webhooks", webhooksApp);
 app.route("/notifications", notificationsRoutes);
+app.route("/resenas", resenasRoutes);
+app.route("/wallet", walletRoutes);
+app.route("/ritual", ritualRoutes);
 
 app.onError((err, c) => {
   console.error(err);

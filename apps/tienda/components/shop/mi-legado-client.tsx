@@ -5,6 +5,7 @@ import { gsap } from 'gsap';
 import { Package, Clock, Leaf, ChevronRight, TreePine, Droplets, Trees, Bug, ArrowRight } from 'lucide-react';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
+import { GuardianStampsSection } from '@/components/shop/guardian-stamps-section';
 
 interface Order {
   id: string;
@@ -268,6 +269,10 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
                 </p>
               )}
             </div>
+          </div>
+
+          <div className="vanguard-data mt-20">
+            <GuardianStampsSection />
           </div>
         </div>
       </div>

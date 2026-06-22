@@ -35,7 +35,10 @@
   "dependencies": {
     "qrcode.react": "^4.2.0",
     "@enjambre/auth": "workspace:*",
+    "@enjambre/logistica": "workspace:*",
     "@enjambre/pricing": "workspace:*",
+    "@enjambre/resenas": "workspace:*",
+    "@enjambre/wallet": "workspace:*",
     "@enjambre/ui": "workspace:*",
     "@sentry/nextjs": "^10.57.0",
     "@supabase/ssr": "^0.10.3",

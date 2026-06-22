@@ -13,6 +13,9 @@
 | [`DATABASE_SCHEMA.md`](./DATABASE_SCHEMA.md) | Esquema canonico completo. 20+ tablas, RLS, relaciones | 15 min |
 | [`PROMPT_LIBRARY.md`](./PROMPT_LIBRARY.md) | Prompts pre-construidos para dirigir agentes con precision | 10 min |
 | [`FRONTEND_ROADMAP.md`](./FRONTEND_ROADMAP.md) | Vision de producto por aplicacion. Pendientes y mejoras | 10 min |
+| [`PLAN_COLOSAL.md`](./PLAN_COLOSAL.md) | **Hoja de ruta maestra** — 5 olas: loyalty, reseñas, wallet, ritual, catálogo | 30 min |
+| [`COMERCIO_SOBERANO.md`](./COMERCIO_SOBERANO.md) | **App comercial OYZ** — no Shopify; top apps como inspiración; loyalty y roadmap | 20 min |
+| [`WALLET_GUARDIAN.md`](./WALLET_GUARDIAN.md) | **Tarjetas Apple/Google Wallet** — sellos por producto, progreso “te faltan N” | 15 min |
 | [`SOBERANIA_FISCAL.md`](./SOBERANIA_FISCAL.md) | **Estrategia fiscal soberana** — superar facturadores, e-commerce Chile, roadmap | 20 min |
 | [`FISCAL_PIPELINE.md`](./FISCAL_PIPELINE.md) | Especificacion tecnica pipeline documento → SII → RCV | 15 min |
 | [`TECHNICAL_DEBT.md`](./TECHNICAL_DEBT.md) | Deuda tecnica priorizada. Critico, alto, medio, bajo | 5 min |
@@ -38,7 +41,7 @@
 1. `00_EMPEZA_AQUI.md` → `DEPLOY.md` → `VERCEL.md`
 
 ### Product Owner
-1. `CONSTITUTION.md` → `FRONTEND_ROADMAP.md`
+1. `CONSTITUTION.md` → `PLAN_COLOSAL.md` → `COMERCIO_SOBERANO.md` → `WALLET_GUARDIAN.md`
 
 ---
 

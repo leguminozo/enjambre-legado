@@ -8,7 +8,13 @@ import { useState } from 'react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star } from 'lucide-react';
+import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag } from 'lucide-react';
+import {
+  DEFAULT_COURIER,
+  getCheckoutCourierOptions,
+  getCourier,
+  type CourierCode,
+} from '@enjambre/logistica';
 import { friendlyApiError } from '@enjambre/ui';
 import { useAuth } from '@/components/providers/auth-context';
 import { useLoyaltyPoints } from '@/lib/hooks/use-loyalty-points';
@@ -67,15 +73,30 @@ export function CheckoutClient() {
   const [error, setError] = useState<string | null>(null);
   const [priceConflicts, setPriceConflicts] = useState<string[] | null>(null);
   const [shipping, setShipping] = useState<ShippingForm>(initialShipping);
+  const [courierCode, setCourierCode] = useState<CourierCode>(DEFAULT_COURIER);
   const [touched, setTouched] = useState(false);
   const [buyerMode, setBuyerMode] = useState<BuyerMode>('privada');
   const [usarPuntos, setUsarPuntos] = useState(false);
-  
+  const [codigoDescuento, setCodigoDescuento] = useState('');
+  const [codigoAplicado, setCodigoAplicado] = useState<string | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [quote, setQuote] = useState<{
+    subtotal: number;
+    discountClp: number;
+    shippingCost: number;
+    loyaltyDiscountClp: number;
+    total: number;
+  } | null>(null);
+
   const formRef = useRef<HTMLDivElement>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const totalCompra = pricing?.total ?? 0;
+  const subtotalCompra = pricing?.subtotal ?? pricing?.total ?? 0;
+  const totalCompra = quote?.total ?? pricing?.total ?? 0;
+  const shippingCost = quote?.shippingCost ?? 0;
+  const promoDiscount = quote?.discountClp ?? 0;
   const {
     loyaltyData,
     loading: loyaltyLoading,
@@ -83,7 +104,115 @@ export function CheckoutClient() {
     setPuntosACanjear,
     descuentoPorPuntos,
     canMaxPoints,
-  } = useLoyaltyPoints(totalCompra);
+  } = useLoyaltyPoints(subtotalCompra - promoDiscount);
+
+  useEffect(() => {
+    if (!pricing || subtotalCompra <= 0) {
+      setQuote(null);
+      return;
+    }
+
+    const region = shipping.region.trim();
+    if (region.length < 2) {
+      setQuote(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
+
+    const fetchQuote = async () => {
+      setQuoteLoading(true);
+      setQuoteError(null);
+
+      try {
+        let token: string | undefined;
+        if (isAuthenticated) {
+          const { createClient } = await import('@/utils/supabase/client');
+          const supabase = createClient();
+          const { data: sessionData } = await supabase.auth.getSession();
+          token = sessionData?.session?.access_token;
+        }
+
+        const res = await fetch(`${NUCLEO_URL}/api/checkout/quote`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            subtotal: subtotalCompra,
+            region,
+            courierCode,
+            codigoDescuento: codigoAplicado ?? undefined,
+            puntosACanjear: usarPuntos ? puntosACanjear : 0,
+          }),
+          signal: controller.signal,
+        });
+
+        const json = (await res.json()) as {
+          subtotal?: number;
+          discountClp?: number;
+          shippingCost?: number;
+          loyaltyDiscountClp?: number;
+          total?: number;
+          message?: string;
+        };
+
+        if (!res.ok) {
+          if (codigoAplicado) {
+            setCodigoAplicado(null);
+            setQuoteError(json.message ?? 'Código no válido');
+          }
+          setQuote(null);
+          return;
+        }
+
+        setQuote({
+          subtotal: json.subtotal ?? subtotalCompra,
+          discountClp: json.discountClp ?? 0,
+          shippingCost: json.shippingCost ?? 0,
+          loyaltyDiscountClp: json.loyaltyDiscountClp ?? 0,
+          total: json.total ?? subtotalCompra,
+        });
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          setQuoteError('No se pudo calcular envío y descuentos');
+        }
+      } finally {
+        setQuoteLoading(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      void fetchQuote();
+    }, 350);
+
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [
+    pricing,
+    subtotalCompra,
+    shipping.region,
+    courierCode,
+    codigoAplicado,
+    usarPuntos,
+    puntosACanjear,
+    isAuthenticated,
+  ]);
+
+  const applyPromoCode = () => {
+    const code = codigoDescuento.trim();
+    if (code.length < 2) {
+      setQuoteError('Ingresa un código válido');
+      return;
+    }
+    setQuoteError(null);
+    setCodigoAplicado(code.toUpperCase());
+  };
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -93,6 +222,23 @@ export function CheckoutClient() {
         email: prev.email || user.email,
         nombre: prev.nombre || user.name,
       }));
+
+      void (async () => {
+        try {
+          const { createClient } = await import('@/utils/supabase/client');
+          const supabase = createClient();
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('courier_preferido')
+            .eq('id', user.id)
+            .maybeSingle();
+          if (profile?.courier_preferido) {
+            setCourierCode(profile.courier_preferido as CourierCode);
+          }
+        } catch {
+          // Mantener BlueExpress si no se puede leer preferencia
+        }
+      })();
     }
   }, [isAuthenticated, user]);
 
@@ -181,7 +327,15 @@ export function CheckoutClient() {
           'X-Requested-With': 'XMLHttpRequest',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
-        body: JSON.stringify({ cart: payloadCart, shipping, returnUrl, buyerMode }),
+        body: JSON.stringify({
+          cart: payloadCart,
+          shipping,
+          returnUrl,
+          buyerMode,
+          courierCode,
+          puntosACanjear: usarPuntos ? puntosACanjear : 0,
+          codigoDescuento: codigoAplicado ?? undefined,
+        }),
       });
     } catch (networkError) {
       setError('Error de conexión. Verifica tu internet e intenta de nuevo.');
@@ -320,20 +474,95 @@ export function CheckoutClient() {
                     </li>
                   ))}
                 </ul>
+                <div className="rounded-xl border border-border bg-card/30 px-6 py-4 mt-4 space-y-2 text-sm">
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Subtotal</span>
+                    <span className="tabular-nums">${subtotalCompra.toLocaleString('es-CL')}</span>
+                  </div>
+                  {pricing.discount_amount > 0 && (
+                    <div className="flex justify-between text-accent">
+                      <span>Descuento Guardianía</span>
+                      <span className="tabular-nums">-${pricing.discount_amount.toLocaleString('es-CL')}</span>
+                    </div>
+                  )}
+                  {promoDiscount > 0 && (
+                    <div className="flex justify-between text-accent">
+                      <span>Código promocional</span>
+                      <span className="tabular-nums">-${promoDiscount.toLocaleString('es-CL')}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Envío ({getCourier(courierCode).shortLabel})</span>
+                    <span className="tabular-nums">
+                      {quoteLoading && !quote
+                        ? '…'
+                        : shippingCost === 0
+                          ? 'Gratis'
+                          : `$${shippingCost.toLocaleString('es-CL')}`}
+                    </span>
+                  </div>
+                  {usarPuntos && (quote?.loyaltyDiscountClp ?? descuentoPorPuntos) > 0 && (
+                    <div className="flex justify-between text-accent">
+                      <span>Puntos canjeados</span>
+                      <span className="tabular-nums">
+                        -${(quote?.loyaltyDiscountClp ?? descuentoPorPuntos).toLocaleString('es-CL')}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex items-center justify-between rounded-xl border border-accent/40 bg-surface-sunken px-6 py-5 mt-4">
                   <div className="flex flex-col">
                     <span className="font-display text-lg text-foreground">Total a pagar</span>
-                    {pricing.discount_amount > 0 && (
-                      <span className="text-xs text-accent">Incluye -${pricing.discount_amount.toLocaleString('es-CL')} descuento por Guardianía</span>
-                    )}
-                    {usarPuntos && descuentoPorPuntos > 0 && (
-                      <span className="text-xs text-accent">Incluye -${descuentoPorPuntos.toLocaleString('es-CL')} descuento por puntos</span>
+                    {quoteError && (
+                      <span className="text-xs text-destructive">{quoteError}</span>
                     )}
                   </div>
                   <span className="font-display text-2xl font-semibold tabular-nums text-accent">
-                    ${(pricing.total - (usarPuntos ? descuentoPorPuntos : 0)).toLocaleString('es-CL')}
+                    {quoteLoading && !quote
+                      ? '…'
+                      : `$${totalCompra.toLocaleString('es-CL')}`}
                   </span>
                 </div>
+              </section>
+
+              <section className="checkout-section">
+                <div className="flex items-center gap-2 mb-4">
+                  <Tag className="h-5 w-5 text-accent" />
+                  <h2 className="font-display text-lg text-foreground">Código promocional</h2>
+                </div>
+                <div className="rounded-xl border border-border bg-card/40 p-6 flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="text"
+                    value={codigoDescuento}
+                    onChange={(e) => setCodigoDescuento(e.target.value.toUpperCase())}
+                    placeholder="Ej: BIENVENIDA10"
+                    className="flex-1 rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground uppercase tracking-wider focus:outline-none focus:border-accent/50"
+                  />
+                  <button
+                    type="button"
+                    onClick={applyPromoCode}
+                    className="rounded-full border border-accent/40 px-6 py-3 text-sm font-semibold text-accent hover:bg-accent/10 transition-colors"
+                  >
+                    Aplicar
+                  </button>
+                </div>
+                {codigoAplicado && (
+                  <p className="text-xs text-accent mt-2">
+                    Código aplicado: {codigoAplicado}
+                    {' '}
+                    <button
+                      type="button"
+                      className="underline"
+                      onClick={() => {
+                        setCodigoAplicado(null);
+                        setCodigoDescuento('');
+                      }}
+                    >
+                      Quitar
+                    </button>
+                  </p>
+                )}
               </section>
 
               {/* Loyalty points section */}
@@ -475,13 +704,44 @@ export function CheckoutClient() {
                 </div>
               </section>
 
-              {/* Shipping address */}
+              {/* Courier + shipping */}
               <section className="checkout-section">
                 <div className="flex items-center gap-2 mb-4">
                   <Truck className="h-5 w-5 text-accent" />
-                  <h2 className="font-display text-lg text-foreground">Datos de envío</h2>
+                  <h2 className="font-display text-lg text-foreground">Envío en Chile</h2>
                 </div>
                 <div className="rounded-xl border border-border bg-card/40 p-6 space-y-4">
+                  <div className="form-field">
+                    <label className="block text-xs text-muted-foreground mb-1">Courier</label>
+                    <select
+                      id="courier"
+                      name="courier"
+                      className="w-full rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all"
+                      value={courierCode}
+                      onChange={(e) => setCourierCode(e.target.value as CourierCode)}
+                    >
+                      {getCheckoutCourierOptions().map((courier) => (
+                        <option key={courier.code} value={courier.code}>
+                          {courier.label}
+                          {courier.code === DEFAULT_COURIER ? ' — predeterminado' : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                      Por defecto despachamos con BlueExpress. Si necesitas otro operador o modalidad,
+                      elígelo aquí o contáctanos para coordinar algo a medida.
+                    </p>
+                    {courierCode === 'retiro_tienda' && (
+                      <p className="text-xs text-accent mt-2">
+                        Te avisaremos cuando tu pedido esté listo para retiro.
+                      </p>
+                    )}
+                    {getCourier(courierCode).integracionApi && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Seguimiento integrado con {getCourier(courierCode).shortLabel}.
+                      </p>
+                    )}
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="sm:col-span-2 form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Nombre completo *</label>
@@ -650,7 +910,7 @@ export function CheckoutClient() {
                 ) : (
                   <span className="flex items-center justify-center gap-2">
                     <Lock className="h-4 w-4" />
-                    Pagar ahora — ${(pricing?.total || 0).toLocaleString('es-CL')}
+                    Pagar ahora — ${totalCompra.toLocaleString('es-CL')}
                   </span>
                 )}
               </button>

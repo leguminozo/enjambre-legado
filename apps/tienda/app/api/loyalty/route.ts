@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { buildUnifiedTierDisplay } from '@/lib/shop/tier-display';
 
 export async function GET() {
   const supabase = await createClient();
@@ -11,7 +12,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const [transactions, redemptions, rewards, tier] = await Promise.all([
+  const [transactions, redemptions, rewards, tier, guardian] = await Promise.all([
     supabase
       .from('loyalty_transactions')
       .select('id, action_type, points, balance_after, description, created_at')
@@ -34,11 +35,22 @@ export async function GET() {
       .select('puntos, nivel_actual')
       .eq('user_id', user.id)
       .maybeSingle(),
+    supabase
+      .from('user_tier_view')
+      .select('ciclos_historicos, tier')
+      .eq('user_id', user.id)
+      .maybeSingle(),
   ]);
+
+  const tierDisplay = buildUnifiedTierDisplay({
+    ciclosHistoricos: guardian.data?.ciclos_historicos ?? 0,
+    loyaltyNivel: tier.data?.nivel_actual,
+  });
 
   return NextResponse.json({
     balance: tier.data?.puntos ?? 0,
-    tier: tier.data?.nivel_actual ?? 'polinizador',
+    tier: tierDisplay.loyaltyNivel,
+    tierDisplay,
     transactions: transactions.data ?? [],
     redemptions: redemptions.data ?? [],
     rewards: rewards.data ?? [],

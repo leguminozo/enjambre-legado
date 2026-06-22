@@ -22,6 +22,10 @@ vi.mock('@/lib/notifications/cart-abandonment-worker', () => ({
   markCartAbandonmentConverted: (...args: unknown[]) => mockMarkConverted(...args),
 }));
 
+vi.mock('./loyalty-fulfill', () => ({
+  applyCheckoutLoyalty: vi.fn().mockResolvedValue({ ok: true }),
+}));
+
 vi.mock('./types', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./types')>();
   return {
@@ -41,7 +45,9 @@ function buildAdminMock() {
     return handler();
   });
 
-  return { from, handlers };
+  const rpc = vi.fn().mockResolvedValue({ data: { success: true }, error: null });
+
+  return { from, rpc, handlers };
 }
 
 function makeChain(value: unknown) {
@@ -114,6 +120,12 @@ describe('fulfillCheckout fiscal hook', () => {
       maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'addr-1' }, error: null }),
     });
 
+    admin.handlers.wallet_pass_registrations = () => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockResolvedValue({ data: [], error: null }),
+    });
+
     const result = await fulfillCheckout(admin as any, {
       buyOrder: 'ORD-TEST-1',
       authorizationCode: 'AUTH1',
@@ -135,6 +147,12 @@ describe('fulfillCheckout fiscal hook', () => {
         },
         buyerMode: 'legado',
         clienteId: 'user-1',
+        courierCode: 'blueexpress',
+        shippingCost: 0,
+        subtotal: 11900,
+        loyaltyPointsRedeemed: 0,
+        loyaltyDiscountClp: 0,
+        createdAt: Date.now(),
       },
     });
 

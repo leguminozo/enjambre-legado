@@ -80,6 +80,13 @@ export function productJsonLd(input: {
   blockchainHash?: string | null;
   colmenaOrigen?: string | null;
   fechaCosecha?: string | null;
+  aggregateRating?: { ratingValue: number; reviewCount: number };
+  reviews?: Array<{
+    author: string;
+    rating: number;
+    body: string;
+    datePublished: string;
+  }>;
 }): JsonLdRecord {
   const inStock =
     input.stock == null ? 'https://schema.org/InStock' : input.stock > 0
@@ -152,6 +159,31 @@ export function productJsonLd(input: {
         description: `Miel producida en colmena: ${input.colmenaOrigen}`,
       },
     }),
+    ...(input.aggregateRating &&
+      input.aggregateRating.reviewCount > 0 && {
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: input.aggregateRating.ratingValue,
+          reviewCount: input.aggregateRating.reviewCount,
+          bestRating: 5,
+          worstRating: 1,
+        },
+      }),
+    ...(input.reviews &&
+      input.reviews.length > 0 && {
+        review: input.reviews.map((r) => ({
+          '@type': 'Review',
+          author: { '@type': 'Person', name: r.author },
+          reviewRating: {
+            '@type': 'Rating',
+            ratingValue: r.rating,
+            bestRating: 5,
+            worstRating: 1,
+          },
+          reviewBody: r.body || undefined,
+          datePublished: r.datePublished,
+        })),
+      }),
   };
 }
 

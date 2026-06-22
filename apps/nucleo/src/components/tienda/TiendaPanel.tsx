@@ -23,7 +23,8 @@ type Order = {
   estado: string;
   total: number;
   metodo_pago: string;
-  items: unknown[];
+  productos: unknown[] | null;
+  channel: string | null;
   created_at: string;
 };
 
@@ -82,7 +83,7 @@ export function TiendaPanel() {
   const fetchOrders = useCallback(async () => {
     const { data, error } = await supabase
       .from('ventas')
-      .select('id, origen, estado, total, metodo_pago, items, created_at')
+      .select('id, origen, estado, total, metodo_pago, productos, channel, created_at')
       .order('created_at', { ascending: false })
       .limit(200);
 

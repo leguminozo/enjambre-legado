@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { buildUnifiedTierDisplay, type UnifiedTierDisplay } from '@/lib/shop/tier-display'
 
 export type LoyaltyReward = {
   id: string
@@ -48,6 +49,7 @@ function getSiteUrl(): string {
 export async function getLoyaltyDashboard(): Promise<{
   balance: number
   tier: string
+  tierDisplay: UnifiedTierDisplay
   rewards: LoyaltyReward[]
 }> {
   const supabase = await createClient()
@@ -55,11 +57,13 @@ export async function getLoyaltyDashboard(): Promise<{
     data: { user },
   } = await supabase.auth.getUser()
 
+  const emptyTier = buildUnifiedTierDisplay({ ciclosHistoricos: 0, loyaltyNivel: 'bronze' })
+
   if (!user) {
-    return { balance: 0, tier: 'polinizador', rewards: [] }
+    return { balance: 0, tier: emptyTier.loyaltyNivel, tierDisplay: emptyTier, rewards: [] }
   }
 
-  const [pointsResult, rewardsResult] = await Promise.all([
+  const [pointsResult, rewardsResult, guardianResult] = await Promise.all([
     supabase
       .from('puntos_fidelizacion')
       .select('puntos, nivel_actual')
@@ -70,11 +74,22 @@ export async function getLoyaltyDashboard(): Promise<{
       .select('id, name, description, points_cost, reward_type')
       .eq('active', true)
       .order('points_cost'),
+    supabase
+      .from('user_tier_view')
+      .select('ciclos_historicos, tier')
+      .eq('user_id', user.id)
+      .maybeSingle(),
   ])
+
+  const tierDisplay = buildUnifiedTierDisplay({
+    ciclosHistoricos: guardianResult.data?.ciclos_historicos ?? 0,
+    loyaltyNivel: pointsResult.data?.nivel_actual,
+  })
 
   return {
     balance: pointsResult.data?.puntos ?? 0,
-    tier: pointsResult.data?.nivel_actual ?? 'polinizador',
+    tier: tierDisplay.loyaltyNivel,
+    tierDisplay,
     rewards: (rewardsResult.data ?? []) as LoyaltyReward[],
   }
 }

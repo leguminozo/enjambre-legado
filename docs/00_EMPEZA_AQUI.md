@@ -29,6 +29,9 @@ Lee en orden segun tu rol y tiempo disponible:
 | Archivo | Proposito |
 |---|---|
 | `CONSTITUTION.md` | Principios inviolables. Vision, filosofia, mandamientos |
+| `PLAN_COLOSAL.md` | **Plan maestro** — 5 olas (reseñas, wallet, ritual, catálogo, vanguardia) |
+| `COMERCIO_SOBERANO.md` | App comercial propia (no Shopify). Inspiracion apps top + roadmap |
+| `WALLET_GUARDIAN.md` | Tarjetas Wallet iOS/Android con sellos por producto |
 | `ARCHITECTURE.md` | Topologia del monorepo, flujo de datos, integraciones |
 | `AGENT_INSTRUCTIONS.md` | Reglas para agentes de IA. Convenciones, stack, workflow |
 | `DATABASE_SCHEMA.md` | Esquema canonico de base de datos completo |

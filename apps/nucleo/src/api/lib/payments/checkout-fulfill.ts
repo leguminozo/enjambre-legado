@@ -3,6 +3,13 @@ import { decrementCartStock } from '@/api/lib/stock/cart-stock';
 import { markCartAbandonmentConverted } from '@/lib/notifications/cart-abandonment-worker';
 import { notifyCheckoutConfirmed } from '@/lib/notifications/enqueue-transactional';
 import { maybeEmitBoletaPostCheckout } from '@/lib/fiscal/checkout-dte';
+import {
+  buildCourierTrackingUrl,
+  getCourierLabel,
+  resolveCourierCode,
+} from '@enjambre/logistica';
+import { applyCheckoutLoyalty } from './loyalty-fulfill';
+import { applyGuardianStamps, enqueueWalletPassUpdate } from '@/api/lib/wallet/stamp-fulfill';
 import type { CartLineInput, CheckoutSession, ShippingInfo } from './types';
 import { completeCheckoutSession } from './types';
 
@@ -116,6 +123,10 @@ export async function fulfillCheckout(
 
   const trackingCode = `OYZ-${buyOrder.replace(/^ORD-/, '').slice(0, 8).toUpperCase()}`;
   const { data: defaultEmpresa } = await admin.from('empresas').select('id').limit(1).maybeSingle();
+  const courierCode = resolveCourierCode(session.courierCode);
+  const courierLabel = getCourierLabel(courierCode);
+  const courierTrackingUrl = buildCourierTrackingUrl(courierCode, trackingCode);
+  const shippingCost = session.shippingCost ?? 0;
 
   const { error: envioError } = await admin.from('logistica_envios').insert({
     venta_id: ventaId,
@@ -125,12 +136,42 @@ export async function fulfillCheckout(
     destino: formatDestino(shipping),
     items: formatEnvioItems(cart),
     status: 'pendiente',
-    via: null,
+    via: courierLabel,
+    courier_code: courierCode,
+    courier_tracking_url: courierTrackingUrl,
+    shipping_cost: shippingCost,
     eta: null,
   });
 
   if (envioError) {
     console.error('[checkout-fulfill] logistica_envios insert error:', envioError.message);
+  }
+
+  if (!isGuest && authUserId && defaultEmpresa?.id) {
+    const loyaltyResult = await applyCheckoutLoyalty(admin, {
+      buyOrder,
+      ventaId,
+      userId: authUserId,
+      empresaId: defaultEmpresa.id as string,
+      paidTotalClp: serverTotal,
+      pointsRedeemed: session.loyaltyPointsRedeemed ?? 0,
+    });
+    if (!loyaltyResult.ok) {
+      console.error('[checkout-fulfill] loyalty apply failed:', loyaltyResult.error);
+      return { ok: false, stockErrors: [`Loyalty: ${loyaltyResult.error ?? 'unknown'}`] };
+    }
+
+    const stampResult = await applyGuardianStamps(admin, {
+      userId: authUserId,
+      ventaId,
+      channel: 'web',
+      lines: enrichedCart,
+    });
+    if (!stampResult.ok) {
+      console.error('[checkout-fulfill] stamp apply failed:', stampResult.error);
+    } else {
+      await enqueueWalletPassUpdate(admin, authUserId);
+    }
   }
 
   if (!isGuest && authUserId && shipping) {
@@ -162,6 +203,16 @@ export async function fulfillCheckout(
     }
   }
 
+  if (session.discountId) {
+    const { error: discountUseError } = await admin.rpc('incrementar_usos_descuento', {
+      p_descuento_id: session.discountId,
+    });
+    if (discountUseError) {
+      console.error('[checkout-fulfill] incrementar_usos_descuento failed:', discountUseError.message);
+    }
+  }
+
+  await admin.rpc('release_checkout_stock', { p_buy_order: buyOrder });
   await completeCheckoutSession(buyOrder);
 
   const montoNeto = Math.round(serverTotal / 1.19);

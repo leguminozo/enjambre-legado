@@ -4,6 +4,54 @@ Living log of technical decisions. Format: Date | Decision | Rationale | Alterna
 
 ---
 
+## 2026-06-22 | Comercio soberano — no Shopify; apps top como inspiración
+
+**Decision**: La tienda D2C es una **app personalizada OYZ** (estética editorial, filosofía guardian, profundidad Chile). No se migra a Shopify. Las categorías de apps Shopify más usadas (ReCharge, Smile, Stamp Me, Klaviyo, Route, PassKit…) son **checklist de mecánica**, no dependencias. Especificación en [`COMERCIO_SOBERANO.md`](./COMERCIO_SOBERANO.md).
+
+**Rationale**: Shopify aplana marca y desconecta fiscal CL, trazabilidad colmena→frasco y ritual biocultural. El moat es nativo en el monorepo.
+
+**Alternatives considered**: Headless Shopify + custom storefront — **rejected** (soberanía de datos y costo apps). WooCommerce — **rejected** (legacy purgado).
+
+**Status**: Documentado; implementación por fases A–F en `COMERCIO_SOBERANO.md` §6.
+
+---
+
+## 2026-06-22 | Ola 0 — Loyalty checkout server-authoritative
+
+**Decision**: Canje de puntos solo vía BFF `checkout/init` (validación) + RPC `canjear_puntos_checkout` en fulfill (idempotente por `buy_order` + `venta_id`). Reglas en `@enjambre/pricing/loyalty-checkout` (100 pts = $1.000 CLP; mínimo pago $1). Ganancia de puntos y ciclos en `loyalty-fulfill.ts` tras insertar venta.
+
+**Rationale**: Evita fraude de descuento; alinea monto Flow con sesión Postgres; cierra loop guardian antes de wallet/reseñas.
+
+**Alternatives considered**: Canje solo en cliente — **rejected**. Reserva de puntos en init — **deferred** (complejidad TTL).
+
+**Status**: Implementado; requiere `pnpm go-live:db-push` para mig 76.
+
+---
+
+## 2026-06-22 | Reseñas duales — anónima rápida vs guardian profunda
+
+**Decision**: En tienda, dos modos de reseña con trade-offs explícitos. **Anónima**: rating + texto corto, moderación estricta, visibilidad secundaria en PDP, sin ciclos. **Guardian (registrada)**: huella sensorial completa, compra verificada, destacada en PDP, +ciclos al aprobar. Post-reseña anónima, CTA para registrarse y **elevar** vía `resenas_claim_tokens`. Spec en [`PLAN_COLOSAL.md`](./PLAN_COLOSAL.md) §3.
+
+**Rationale**: Inspiración Judge.me/Okendo pero con profundidad OYZ; la anónima no compite con la profunda — la invita a convertirse en guardian.
+
+**Alternatives considered**: Solo reseñas con cuenta — **rejected** (fricción alta, menos voces). Reseñas anónimas sin moderación — **rejected** (spam).
+
+**Status**: Implementado (Ola 1); mig **77**, `@enjambre/resenas`, BFF `/api/resenas`, PDP + perfil. Requiere `pnpm go-live:db-push` (74–77).
+
+---
+
+## 2026-06-22 | Wallet Guardian — sellos por producto en Apple/Google Wallet
+
+**Decision**: Ofrecer tarjeta **storeCard** (Apple) / **Loyalty Object** (Google) con progreso visible del tipo “te faltan N unidades de [producto] para 1 gratis”. Requiere tablas `guardian_stamp_programs` + `guardian_stamp_progress` y paquete `@enjambre/wallet`. Spec en [`WALLET_GUARDIAN.md`](./WALLET_GUARDIAN.md).
+
+**Rationale**: Supera apps tipo Stamp Me al combinar wallet nativo + narrativa OYZ + mismo ledger que `ventas` y POS Campo (QR).
+
+**Alternatives considered**: Solo PWA / perfil web — **rejected** (baja retención vs lock screen). Puntos genéricos sin producto — **rejected** (no comunica “10 sachets”).
+
+**Status**: Implementado Ola 2 (B1–B3 + stubs W1–W2); mig **78**; firma `.pkpass` / Google JWT requiere certs en Vercel. `pnpm go-live:db-push`.
+
+---
+
 ## 2026-06-21 | Puente incentivo_ledger → honorarios SII
 
 **Decision**: Tras aprobar un ítem en `incentivo_ledger` (tipos honorario feria/bonos), el admin ejecuta `preparar_honorario_desde_ledger` (migración 71) vía `POST /api/sii/honorarios/desde-ledger`. Crea registro en `honorarios` con `incentivo_ledger_id` UNIQUE y actualiza `referencia_tabla/id` en el ledger. No marca `pagado` ni emite DTE 66 automáticamente.

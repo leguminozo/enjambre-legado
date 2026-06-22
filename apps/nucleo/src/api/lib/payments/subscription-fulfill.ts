@@ -54,7 +54,7 @@ export async function fulfillSubscription(
 
   const { data: plan, error: planError } = await admin
     .from('subscription_plans')
-    .select('id, frequency, active')
+    .select('id, frequency, active, included_items')
     .eq('id', session.planId)
     .single();
 
@@ -101,6 +101,18 @@ export async function fulfillSubscription(
   if (subError || !subscription) {
     console.error('[subscription-fulfill] insert failed:', subError);
     return { ok: false, error: 'No se pudo crear la suscripción' };
+  }
+
+  const { error: deliveryError } = await admin.from('subscription_deliveries').insert({
+    subscription_id: subscription.id,
+    period_number: 1,
+    scheduled_for: periodStart.toISOString(),
+    items: plan.included_items ?? [],
+    status: 'scheduled',
+  });
+
+  if (deliveryError) {
+    console.error('[subscription-fulfill] first delivery insert failed:', deliveryError.message);
   }
 
   await completeSubscriptionCheckoutSession(buyOrder, authorizationCode);

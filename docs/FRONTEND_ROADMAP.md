@@ -11,7 +11,7 @@
 - [x] Catalogo de productos con filtros
 - [x] Ficha de producto individual (`/producto/[slug]`)
 - [x] Checkout funcional con Transbank Webpay
-- [x] Admin dashboard (productos, ordenes, clientes, colecciones)
+- [x] Panel comercial en **Núcleo** (`ProductForm`, `ProductList`); admin en tienda vía docs legacy — ver `COMERCIO_SOBERANO.md`
 - [x] Integraciones SII/Bancos/Notificaciones (stub)
 - [x] CMS dinamico via `site_content`
 
@@ -39,10 +39,19 @@
 - El cliente ve: colmena de origen, fecha de cosecha, certificaciones, arboles financiados
 - Integrar con `blockchain_hash` de la colmena
 
+#### [ ] Reseñas en Tienda (Ola 1 — ver `PLAN_COLOSAL.md` §3)
+- [ ] PDP: sección reseñas con modo anónimo (rápido) vs guardian (huella sensorial)
+- [ ] Incentivo registro: elevar reseña anónima tras crear cuenta
+- [ ] Post-checkout: invitación a reseñar producto comprado
+- [ ] Perfil `/perfil/resenas` + moderación en Núcleo CRM
+- [ ] JSON-LD `aggregateRating` en producto
+
 #### [ ] Fidelizacion "Guardian del Bosque"
-- Sistema de puntos por compra
+- Sistema de puntos por compra (cerrar loop checkout → fulfill)
 - Niveles con beneficios (descuentos, acceso a ediciones limitadas)
 - Visualizacion de impacto acumulado
+- **Sellos por producto** (compra X → 1 gratis) — ver `WALLET_GUARDIAN.md`
+- **Tarjeta Apple / Google Wallet** con progreso en tiempo real
 
 ---
 

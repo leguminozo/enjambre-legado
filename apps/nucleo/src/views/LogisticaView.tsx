@@ -24,6 +24,12 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@enjambre/ui';
 import { BOSQUE_ULMO, ORO_MIEL, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors';
+import {
+  CHILEAN_COURIERS,
+  DEFAULT_COURIER,
+  getCourierLabel,
+  type CourierCode,
+} from '@enjambre/logistica';
 
 import dynamic from 'next/dynamic';
 
@@ -40,6 +46,8 @@ type Envio = {
   status: string;
   eta: string | null;
   via: string | null;
+  courier_code?: string | null;
+  courier_tracking_url?: string | null;
   created_at: string | null;
   venta_id?: string;
 };
@@ -135,7 +143,7 @@ export function LogisticaView() {
     items: '',
     status: 'Programado',
     eta: '',
-    via: 'Terrestre',
+    courier_code: DEFAULT_COURIER as CourierCode,
     venta_id: undefined as string | undefined,
   });
 
@@ -176,7 +184,7 @@ export function LogisticaView() {
           items: form.items,
           status: form.status,
           eta: form.eta || null,
-          via: form.via || null,
+          courier_code: form.courier_code,
           venta_id: form.venta_id || null,
         }),
       });
@@ -197,7 +205,7 @@ export function LogisticaView() {
         items: '',
         status: 'Programado',
         eta: '',
-        via: 'Terrestre',
+        courier_code: DEFAULT_COURIER,
         venta_id: undefined,
       });
     },
@@ -402,19 +410,24 @@ export function LogisticaView() {
                   </div>
                   <div>
                     <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1 block">
-                      Vía
+                      Courier
                     </label>
                     <select
-                      value={envioForm.via}
+                      value={envioForm.courier_code}
                       onChange={(e) =>
-                        setEnvioForm((f) => ({ ...f, via: e.target.value }))
+                        setEnvioForm((f) => ({
+                          ...f,
+                          courier_code: e.target.value as CourierCode,
+                        }))
                       }
                       className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
                     >
-                      <option value="Terrestre">Terrestre</option>
-                      <option value="Marítimo">Marítimo</option>
-                      <option value="Aéreo">Aéreo</option>
-                      <option value="Retiro en tienda">Retiro en tienda</option>
+                      {CHILEAN_COURIERS.map((courier) => (
+                        <option key={courier.code} value={courier.code}>
+                          {courier.label}
+                          {courier.code === DEFAULT_COURIER ? ' (predeterminado)' : ''}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -465,7 +478,7 @@ export function LogisticaView() {
                         </div>
                         <div className="text-xs text-muted-foreground truncate">
                           {envio.tracking_code} · {envio.items}
-                          {envio.via && ` · Vía: ${envio.via}`}
+                          {` · Courier: ${getCourierLabel(envio.courier_code ?? envio.via)}`}
                           {envio.eta && ` · ETA: ${envio.eta}`}
                         </div>
                       </div>

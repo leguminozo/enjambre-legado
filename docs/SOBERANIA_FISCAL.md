@@ -102,7 +102,7 @@ Leyenda: ✅ existe · 🟡 parcial · ⬜ por construir
 | Stock gate atómico | ✅ | `cart-stock.ts` |
 | Comisiones reps + caja + leaderboard | ✅ | Campo + Núcleo |
 | Ritual suscripción con pago | ✅ | `subscriptions/checkout` |
-| Referidos + loyalty | ✅ | Perfil + RPC |
+| Referidos + loyalty | 🟡 | Perfil + RPC; ver [`COMERCIO_SOBERANO.md`](./COMERCIO_SOBERANO.md) §5 (wiring incompleto) |
 | Conciliación banco ↔ documentos | 🟡 | `conciliaciones`, Banco Chile |
 | DTE automático post-venta web | 🟡 | en progreso |
 | Trazabilidad lote → producto → QR | 🟡 | schema listo, UI parcial |
