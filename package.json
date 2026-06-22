@@ -27,6 +27,7 @@
     "go-live:github-secrets": "bash scripts/push-github-secrets.sh",
     "go-live:smoke": "node scripts/smoke-test.mjs",
     "go-live:smoke:prod": "node scripts/smoke-production.mjs",
+    "go-live:deploy:prebuilt": "node scripts/deploy-prebuilt.mjs",
     "vercel:build": "vercel build",
     "dev:vercel": "vercel dev"
   },

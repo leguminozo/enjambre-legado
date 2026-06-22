@@ -41,9 +41,8 @@ CAMPO_URL="${CAMPO_PRODUCTION_URL:-$(resolve_url "$ROOT/apps/campo" "https://cam
 add_env() {
   local dir="$1" env_name="$2" key="$3" val="$4"
   echo "  → [$env_name] $key en $(basename "$dir")"
-  cd "$dir"
-  printf '%s' "$val" | vercel env add "$key" "$env_name" --force 2>/dev/null || \
-    printf '%s' "$val" | vercel env add "$key" "$env_name"
+  (cd "$dir" && printf '%s' "$val" | vercel env add "$key" "$env_name" --force 2>/dev/null) || \
+    (cd "$dir" && printf '%s' "$val" | vercel env add "$key" "$env_name")
 }
 
 push_app_env() {
