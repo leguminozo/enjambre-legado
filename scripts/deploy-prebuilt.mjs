@@ -38,9 +38,22 @@ copyFileSync(linkSrc, linkDst);
 
 execSync('vercel build --prod --yes', { cwd: root, stdio: 'inherit' });
 
-// Hobby team: el autor del commit en GitHub debe coincidir con el email de la cuenta Vercel.
-const vercelEmail = process.env.VERCEL_DEPLOY_AUTHOR_EMAIL ?? 'gaboxxc@gmail.com';
-const vercelName = process.env.VERCEL_DEPLOY_AUTHOR_NAME ?? 'gaboxxc-3075';
+// Hobby team: autor del commit = email verificado en la cuenta Vercel (guillermc).
+const vercelEmail = process.env.VERCEL_DEPLOY_AUTHOR_EMAIL ?? 'guillermoc2710@gmail.com';
+const vercelName = process.env.VERCEL_DEPLOY_AUTHOR_NAME ?? 'guillermc';
+
+let cliUser = '';
+try {
+  cliUser = execSync('vercel whoami 2>/dev/null', { encoding: 'utf8' }).trim();
+} catch {
+  /* ignore */
+}
+if (cliUser && cliUser !== vercelName && cliUser !== 'guillermc') {
+  console.warn(
+    `\n⚠ CLI logueado como "${cliUser}" pero deploy author es "${vercelName}".`,
+    'Si ves BLOCKED, ejecuta: vercel login (cuenta guillermc)\n',
+  );
+}
 const deployCmd = [
   'vercel deploy --prebuilt --prod --yes --archive=tgz --no-wait',
   `-m githubCommitAuthorEmail=${vercelEmail}`,

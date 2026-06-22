@@ -82,7 +82,7 @@ try {
       warn(
         `vercel-deploy-${key}`,
         reason.includes('must have access')
-          ? `${reason} — alinea git user.email con Vercel o añade email en Account Settings`
+          ? `${reason} — vercel login (guillermc) + email guillermoc2710@gmail.com en Account Settings`
           : reason,
       );
     } else if (latest) warn(`vercel-deploy-${key}`, latest.state);
