@@ -8337,6 +8337,15 @@ export type Database = {
           stock: number
         }[]
       }
+      decrement_stock_force: {
+        Args: { p_id: string; p_qty: number }
+        Returns: {
+          id: string
+          kg_restante_lote: number
+          lote_id: string
+          stock: number
+        }[]
+      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {

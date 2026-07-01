@@ -323,6 +323,20 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
     };
   });
 
+  const co2ByMonthMap = new Map<string, number>();
+  arboles.forEach((a: { co2_ton: number | null; fecha: string | null }) => {
+    if (a.fecha) {
+      const monthKey = String(a.fecha).slice(0, 7);
+      if (/^\d{4}-\d{2}$/.test(monthKey)) {
+        co2ByMonthMap.set(monthKey, (co2ByMonthMap.get(monthKey) ?? 0) + Number(a.co2_ton ?? 0));
+      }
+    }
+  });
+  const co2MonthData = Array.from({ length: 12 }, (_, i) => {
+    const monthKey = `${currentYear}-${String(i + 1).padStart(2, "0")}`;
+    return co2ByMonthMap.get(monthKey) ?? 0;
+  });
+
   const ventasByMonthRange = new Map<string, { total: number; count: number }>();
   ventasRange.forEach((v: { total: number; created_at: string | null }) => {
     if (v.created_at) {
@@ -397,7 +411,7 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
       apiarios: { total: totalApiarios, byHealth: apiariosByHealth },
       inspecciones: { totalYTD: inspecciones.length, latestVarroa },
       cosechas: { totalYTD: cosechaYTD, byMonth: productionData },
-      arboles: { totalYTD: totalArbolesYTD, co2Total: totalCO2 },
+      arboles: { totalYTD: totalArbolesYTD, co2Total: totalCO2, byMonth: co2MonthData },
     },
     finanzas: {
       ingresosNetos: ingresosNetosRange,

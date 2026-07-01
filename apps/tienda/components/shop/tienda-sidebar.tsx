@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
@@ -26,6 +27,7 @@ interface TiendaSidebarProps {
 }
 
 export function TiendaSidebar({ user, participacion, isOpen, onClose }: TiendaSidebarProps) {
+  useOverlayLock(isOpen);
   const pathname = usePathname();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
@@ -61,8 +63,10 @@ export function TiendaSidebar({ user, participacion, isOpen, onClose }: TiendaSi
   return (
     <>
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[60] lg:hidden"
+        <button
+          type="button"
+          className="tienda-overlay-backdrop z-[60] lg:hidden"
+          aria-label="Cerrar menú"
           onClick={onClose}
         />
       )}
@@ -71,7 +75,7 @@ export function TiendaSidebar({ user, participacion, isOpen, onClose }: TiendaSi
         id="sidebar-navigation"
         className={`
           fixed lg:static inset-y-0 left-0 z-[70] w-72
-          bg-card border-r border-border
+          bg-background border-r border-border shadow-xl
           transform transition-transform duration-500 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
@@ -122,11 +126,11 @@ export function TiendaSidebar({ user, participacion, isOpen, onClose }: TiendaSi
               <button
                 type="button"
                 onClick={handleLogout}
-                className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
                 title="Cerrar sesión"
                 aria-label="Cerrar sesión"
               >
-                <LogOut size={14} />
+                <LogOut size={18} />
               </button>
             </div>
 
@@ -137,14 +141,14 @@ export function TiendaSidebar({ user, participacion, isOpen, onClose }: TiendaSi
                     key={t.value}
                     type="button"
                     onClick={() => setTheme(t.value)}
-                    className={`flex flex-col items-center gap-1.5 p-2.5 rounded-lg border transition-all ${
+                    className={`flex flex-col items-center gap-1.5 p-3 min-h-[44px] rounded-lg border transition-all ${
                       theme === t.value
                         ? 'border-accent bg-accent/10 text-accent'
                         : 'border-border bg-secondary hover:border-accent/50'
                     }`}
                   >
                     {t.icon}
-                    <span className="text-[0.55rem] uppercase tracking-widest">{t.label}</span>
+                    <span className="text-[0.6rem] uppercase tracking-widest">{t.label}</span>
                   </button>
                 ))}
               </div>

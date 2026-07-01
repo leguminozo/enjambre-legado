@@ -6,6 +6,8 @@ import {
   Users, Gift, ArrowUpRight, Loader2, AlertCircle,
   BarChart3, Wallet, Eye, ExternalLink
 } from 'lucide-react';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 interface CreadorProfile {
   id: string;
@@ -84,7 +86,8 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const profRes = await supabase.from('creadores').select('*').eq('user_id', user.id).single();
+      const targetUserId = userId ?? user.id;
+      const profRes = await supabase.from('creadores').select('*').eq('user_id', targetUserId).single();
 
       if (!profRes.data) {
         setLoading(false);
@@ -115,7 +118,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
 
   useEffect(() => {
     fetchCreadorData();
-  }, []);
+  }, [userId]);
 
   const handleRetiro = async () => {
     if (!profile || retiroForm.monto < 5000) {
@@ -253,14 +256,14 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="stats-grid">
         {[
           { icon: <Wallet size={18} />, val: `$${Number(balance?.balance_disponible || 0).toLocaleString('es-CL')}`, label: 'Balance Disponible', accent: 'text-accent' },
           { icon: <DollarSign size={18} />, val: `$${Number(balance?.comisiones_total || 0).toLocaleString('es-CL')}`, label: 'Comisiones Totales', accent: '' },
           { icon: <Users size={18} />, val: profile.total_usos_codigo, label: 'Usos del Código', accent: '' },
           { icon: <Gift size={18} />, val: `$${Number(balance?.total_retirado || 0).toLocaleString('es-CL')}`, label: 'Total Retirado', accent: '' },
         ].map((s, i) => (
-          <div key={i} className="stat-card animate-in" style={{ animationDelay: `${i * 80}ms` }}>
+          <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
             <div className="stat-header"><div className="stat-icon">{s.icon}</div></div>
             <div className={`stat-value ${s.accent}`}>{s.val}</div>
             <div className="stat-label">{s.label}</div>
@@ -268,20 +271,17 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
         ))}
       </div>
 
-      <div className="flex gap-3 mb-2">
-        {(['dashboard', 'usos', 'retiros'] as const).map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`btn flex items-center gap-2 ${activeTab === tab ? 'btn-gold' : 'btn-outline'}`}
-          >
-            {tab === 'dashboard' && <BarChart3 size={16} />}
-            {tab === 'usos' && <Eye size={16} />}
-            {tab === 'retiros' && <Wallet size={16} />}
-            {tab === 'dashboard' ? 'Métricas' : tab === 'usos' ? 'Historial de Usos' : 'Retiros'}
-          </button>
-        ))}
-      </div>
+      <ResponsiveTabBar
+        variant="pill"
+        layoutId="creador-portal-tabs"
+        tabs={[
+          { id: 'dashboard', label: 'Métricas', icon: <BarChart3 size={16} /> },
+          { id: 'usos', label: 'Historial de Usos', icon: <Eye size={16} /> },
+          { id: 'retiros', label: 'Retiros', icon: <Wallet size={16} /> },
+        ]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as 'dashboard' | 'usos' | 'retiros')}
+      />
 
       {activeTab === 'dashboard' && (
         <div className="card">
@@ -292,7 +292,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
           {metricas.length === 0 ? (
             <p className="text-sm text-muted-foreground italic py-8 text-center">Aún no hay métricas mensuales. Los datos se calcularán al cierre de cada mes.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <EnjTableShell>
               <table className="data-table">
                 <thead>
                   <tr>
@@ -317,7 +317,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </EnjTableShell>
           )}
         </div>
       )}
@@ -425,7 +425,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
           {retiros.length === 0 ? (
             <p className="text-sm text-muted-foreground italic py-8 text-center">No hay solicitudes de retiro.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <EnjTableShell>
               <table className="data-table">
                 <thead>
                   <tr>
@@ -455,7 +455,7 @@ export function CreadorPortal({ userId }: CreadorPortalProps) {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </EnjTableShell>
           )}
         </div>
       )}

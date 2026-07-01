@@ -15,7 +15,8 @@ import {
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors'
 import { useApiFetch } from '@/hooks/use-api-fetch'
 import { KpiCard } from '@/components/ui/KpiCard'
-import { SegmentControl } from '@/components/ui/SegmentControl'
+import { ViewShell } from '@/components/layout/ViewShell'
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar'
 
 type TimeRange = 'month' | 'quarter' | 'ytd'
 
@@ -44,7 +45,7 @@ interface EjecutivoData {
     apiarios: { total: number; byHealth: { optima: number; atencion: number; riesgo: number } }
     inspecciones: { totalYTD: number; latestVarroa: number | null }
     cosechas: { totalYTD: number; byMonth: { month: string; cosecha: number }[] }
-    arboles: { totalYTD: number; co2Total: number }
+    arboles: { totalYTD: number; co2Total: number; byMonth: number[] }
   }
   finanzas: {
     ingresosNetos: number
@@ -202,24 +203,28 @@ export function DashboardEjecutivo() {
   }))
 
   return (
-    <div className="animate-in">
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-        <div>
-          <div className="text-2xl font-bold text-foreground" style={{ fontFamily: 'var(--font-existencial)' }}>
-            Panel Ejecutivo
-          </div>
-          <div className="text-[0.82rem] text-muted-foreground mt-1 flex items-center gap-1.5">
+    <div className="space-y-6 animate-in">
+      <ViewShell
+        variant="compact"
+        eyebrow="Gerencia"
+        title="Panel Ejecutivo"
+        subtitle={`${rangeLabel} · ${data.range.from} → ${data.range.to}`}
+        icon={<BarChart3 size={20} />}
+        actions={
+          <span className="text-[0.78rem] text-muted-foreground flex items-center gap-1.5">
             <Clock size={14} />
-            {rangeLabel} · {data.range.from} → {data.range.to}
-          </div>
-        </div>
-        <SegmentControl
-          options={RANGE_OPTIONS.map(opt => ({ value: opt.key, label: opt.label }))}
-          selectedValue={range}
-          onChange={(val) => setRange(val as TimeRange)}
-          className="w-64"
-        />
-      </div>
+            Actualizado
+          </span>
+        }
+      />
+
+      <ResponsiveTabBar
+        variant="pill"
+        layoutId="ejecutivo-range"
+        tabs={RANGE_OPTIONS.map((opt) => ({ id: opt.key, label: opt.label }))}
+        activeId={range}
+        onChange={(id) => setRange(id as TimeRange)}
+      />
 
       {alerts.length > 0 && (
         <div className="flex flex-col gap-2 mb-6">
@@ -283,7 +288,7 @@ export function DashboardEjecutivo() {
           value={`${fmtNum(kpis.co2Total)} ton`}
           icon={<Leaf size={20} />}
           description={`${kpis.arbolesYTD} árboles nativos YTD.`}
-          sparkline={[20, 35, 50, 75, 110, 140]}
+          sparkline={enjambre.arboles.byMonth}
         />
       </div>
 
@@ -295,7 +300,7 @@ export function DashboardEjecutivo() {
               <div className="section-subtitle">{rangeLabel} · CLP por mes</div>
             </div>
           </div>
-          <div className="h-[260px]">
+          <div className="chart-shell h-[260px]">
             {ventas.trend.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={ventas.trend}>
@@ -321,7 +326,7 @@ export function DashboardEjecutivo() {
               <div className="section-subtitle">{rangeLabel} · {ventas.totalVentasRange} ventas</div>
             </div>
           </div>
-          <div className="h-[260px]">
+          <div className="chart-shell h-[260px]">
             {channelData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={channelData} layout="vertical">
@@ -353,7 +358,7 @@ export function DashboardEjecutivo() {
               <div className="section-subtitle">Ingresos vs Egresos YTD (CLP)</div>
             </div>
           </div>
-          <div className="h-[240px]">
+          <div className="chart-shell h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={finanzas.cashFlow}>
                 <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
@@ -470,7 +475,7 @@ export function DashboardEjecutivo() {
               <div className="section-subtitle">{rangeLabel} · Top 6</div>
             </div>
           </div>
-          <div className="h-[260px]">
+          <div className="chart-shell h-[260px]">
             {gastosCategoryData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={gastosCategoryData} layout="vertical">
@@ -562,7 +567,7 @@ export function DashboardEjecutivo() {
               <div className="section-subtitle">{rangeLabel} · Distribución por método</div>
             </div>
           </div>
-          <div className="h-[200px]">
+          <div className="chart-shell h-[200px]">
             {metodoPagoData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={metodoPagoData}>

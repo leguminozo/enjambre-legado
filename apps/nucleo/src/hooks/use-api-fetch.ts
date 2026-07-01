@@ -8,6 +8,7 @@ export function useApiFetch() {
   const session = useAuthStore((s) => s.session)
 
   return async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+    // getUser() validates JWT with Supabase Auth server
     const { data: { user } } = await supabase.auth.getUser()
     const currentSession = session ?? (await supabase.auth.getSession())?.data?.session ?? null
     const token = currentSession?.access_token ?? ''

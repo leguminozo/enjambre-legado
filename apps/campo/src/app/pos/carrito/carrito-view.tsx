@@ -234,7 +234,7 @@ export default function CarritoView() {
         </div>
 
         {!lines.length ? (
-          <div className="bg-card/30 border border-border border-dashed rounded-3xl p-20 text-center">
+          <div className="bg-card border border-border border-dashed rounded-3xl p-20 text-center">
             <ShoppingBag className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground font-light">No hay productos en el carrito.</p>
           </div>
@@ -243,7 +243,7 @@ export default function CarritoView() {
             {lines.map((l) => (
               <div
                 key={l.producto_id}
-                className="flex items-center gap-6 bg-card/50 backdrop-blur-sm border border-border p-6 rounded-3xl transition-all hover:border-border"
+                className="flex items-center gap-6 bg-card border border-border p-6 rounded-3xl transition-all hover:border-border"
               >
                 <div className="flex-1">
                   <h3 className="text-lg font-medium text-foreground mb-1">{l.nombre}</h3>
@@ -253,14 +253,14 @@ export default function CarritoView() {
                 <div className="flex items-center gap-4 bg-background rounded-full border border-border p-1">
                   <button
                     onClick={() => setQty(l.producto_id, Math.max(1, l.cantidad - 1))}
-                    className="p-2 hover:text-primary transition-colors"
+                    className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-primary transition-colors"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="w-8 text-center font-mono font-bold">{l.cantidad}</span>
                   <button
                     onClick={() => setQty(l.producto_id, l.cantidad + 1)}
-                    className="p-2 hover:text-primary transition-colors"
+                    className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-primary transition-colors"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -285,7 +285,7 @@ export default function CarritoView() {
       </div>
 
       <div className="lg:col-span-1">
-        <div className="bg-card/50 backdrop-blur-xl border border-border p-8 rounded-3xl sticky top-32">
+        <div className="bg-card border border-border p-8 rounded-3xl sticky top-32">
           <h2 className="text-xl font-serif mb-6 pb-6 border-b border-border">Resumen de Venta</h2>
 
           <div className="space-y-4 mb-8">
@@ -314,12 +314,12 @@ export default function CarritoView() {
 
             <div>
               <label className="block text-xs uppercase tracking-widest text-muted-foreground font-bold mb-2">Canal de Venta</label>
-              <div className="grid grid-cols-5 gap-1.5">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 {channels.map((ch) => (
                   <button
                     key={ch.value}
                     onClick={() => setChannel(ch.value)}
-                    className={`flex flex-col items-center gap-0.5 rounded-xl border px-1 py-2 text-[9px] font-bold uppercase tracking-widest transition-all ${
+                    className={`flex flex-col items-center gap-1 rounded-xl border min-h-[44px] px-2 py-2.5 text-xs font-bold uppercase tracking-widest transition-all ${
                       channel === ch.value ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border text-muted-foreground hover:text-primary'
                     }`}
                   >
@@ -333,12 +333,12 @@ export default function CarritoView() {
             {isSessionOpen && checkoutMode === 'standard' && (
               <div>
                 <label className="block text-xs uppercase tracking-widest text-muted-foreground font-bold mb-2">Metodo de Pago</label>
-                <div className="grid grid-cols-4 gap-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {paymentMethods.map((pm) => (
                     <button
                       key={pm.value}
                       onClick={() => setMetodoPago(pm.value)}
-                      className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                      className={`flex flex-col items-center gap-1.5 rounded-xl border min-h-[44px] px-3 py-3 text-xs font-bold uppercase tracking-widest transition-all ${
                         metodoPago === pm.value ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border text-muted-foreground hover:text-primary'
                       }`}
                     >

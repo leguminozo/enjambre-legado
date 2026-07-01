@@ -10,15 +10,25 @@ interface MetricasProps {
   margenUtilidad: number;
   ivaPagar: number;
   ppm: number;
+  ingresosVariacionPct?: number | null;
+  gastosVariacionPct?: number | null;
 }
 
-export function MetricasCards({ 
-  ingresosMes, 
-  gastosMes, 
-  utilidadNeta, 
-  margenUtilidad, 
-  ivaPagar, 
-  ppm 
+function formatVariacion(pct: number | null | undefined): string {
+  if (pct == null) return 'Sin período anterior';
+  const sign = pct >= 0 ? '+' : '';
+  return `${sign}${pct}% vs mes anterior`;
+}
+
+export function MetricasCards({
+  ingresosMes,
+  gastosMes,
+  utilidadNeta,
+  margenUtilidad,
+  ivaPagar,
+  ppm,
+  ingresosVariacionPct,
+  gastosVariacionPct,
 }: MetricasProps) {
   
   const formatCurrency = (amount: number) => {
@@ -42,7 +52,7 @@ export function MetricasCards({
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{formatCurrency(ingresosMes)}</div>
-        <p className="text-xs text-muted-foreground">+0% vs mes anterior</p>
+        <p className="text-xs text-muted-foreground">{formatVariacion(ingresosVariacionPct)}</p>
       </CardContent>
     </Card>
 
@@ -53,7 +63,7 @@ export function MetricasCards({
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{formatCurrency(gastosMes)}</div>
-        <p className="text-xs text-muted-foreground">+0% vs mes anterior</p>
+        <p className="text-xs text-muted-foreground">{formatVariacion(gastosVariacionPct)}</p>
       </CardContent>
     </Card>
 

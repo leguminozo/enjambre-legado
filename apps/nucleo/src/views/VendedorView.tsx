@@ -1,9 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ShoppingBag, Users, MapPin, CalendarDays, TrendingUp, Star, ArrowUpRight, QrCode, Truck, X, ChevronDown, Plus, Minus } from 'lucide-react';
-import type { Product } from '../data/mockData';
+import type { Product } from '@/types/ecosystem';
+import { guardianLevel } from '@/types/ecosystem';
 import { supabase } from '../lib/supabase';
-import { friendlyError, friendlySupabaseError, toast } from '@enjambre/ui';
+import { friendlyError, toast, QRCode as QRCodeSvg } from '@enjambre/ui';
+import { getUrlTienda } from '@/lib/publicUrls';
 import { useAuthStore } from '@enjambre/auth';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { useApiFetch } from '@/hooks/use-api-fetch';
+import type { CRMDashboard } from '@/views/crm/types';
 
 function mapProductoRow(p: Record<string, unknown>): Product {
   const precio = Number(p.precio) || 0;
@@ -25,6 +30,31 @@ function mapClientType(t: string): string {
   if (t === 'Chef' || t === 'Reseller') return 'B2B';
   if (t === 'Deportivo') return 'Retail';
   return 'D2C';
+}
+
+interface FeriaItem {
+  id: string;
+  name: string;
+  date: string;
+  estimated: string;
+  status: string;
+}
+
+function formatEventoDate(inicio: string | null, fin: string | null): string {
+  if (!inicio) return 'Sin fecha';
+  const start = new Date(inicio).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+  if (!fin || fin === inicio) return start;
+  const end = new Date(fin).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+  return `${start} – ${end}`;
+}
+
+function feriaStatus(inicio: string | null): string {
+  if (!inicio) return 'Pendiente';
+  const today = new Date().toISOString().slice(0, 10);
+  if (inicio <= today) return 'En curso';
+  const daysUntil = Math.ceil((new Date(inicio).getTime() - Date.now()) / 86_400_000);
+  if (daysUntil <= 14) return 'Confirmada';
+  return 'Programada';
 }
 
 const pitches: Record<string, string> = {
@@ -57,12 +87,17 @@ export function VendedorView() {
   const [crmExpanded, setCrmExpanded] = useState(false);
   const [showPos, setShowPos] = useState(false);
   const [loadingPos, setLoadingPos] = useState(false);
+  const [posMetodoPago, setPosMetodoPago] = useState<'efectivo' | 'transferencia' | 'tarjeta' | 'pos_terminal' | 'mixto'>('efectivo');
   const [posCart, setPosCart] = useState<Record<string, number>>({});
   const [showAddClient, setShowAddClient] = useState(false);
   const [newClientForm, setNewClientForm] = useState({ name: '', type: 'Particular', purchases: 0, level: 'Guardián Bronce', lastOrder: 'Ninguna' });
 
   const [localClients, setLocalClients] = useState<{ name: string; type: string; purchases: number; level: string; lastOrder: string; id: string }[]>([]);
   const [ventasTotal, setVentasTotal] = useState(0);
+  const [ventasTrend, setVentasTrend] = useState<string | undefined>();
+  const [ferias, setFerias] = useState<FeriaItem[]>([]);
+  const [qrLote, setQrLote] = useState<{ codigo: string; label: string; url: string } | null>(null);
+  const apiFetch = useApiFetch();
 
   useEffect(() => {
     async function loadData() {
@@ -70,26 +105,127 @@ export function VendedorView() {
       if (!user) return;
 
       const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      if (prof) {
-        setUserProfile(prof);
+      if (prof) setUserProfile(prof);
+
+      const [clientesRes, ventasRes, crmRes, qrRes, colmenaRes] = await Promise.all([
+        supabase.from('clientes').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('ventas').select('total, created_at, crm_cliente_id').eq('vendedor_id', user.id),
+        apiFetch('/api/crm/dashboard'),
+        supabase
+          .from('qr_codes')
+          .select('codigo, fecha_produccion, productos(nombre), lotes(nombre_lote)')
+          .eq('activo', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase.from('colmenas').select('name, lote_activo').not('lote_activo', 'is', null).limit(1).maybeSingle(),
+      ]);
+
+      const tiendaBase = getUrlTienda().replace(/\/$/, '');
+      if (qrRes.data) {
+        const qr = qrRes.data as Record<string, unknown>;
+        const producto = qr.productos as { nombre?: string } | null;
+        const lote = qr.lotes as { nombre_lote?: string } | null;
+        const codigo = String(qr.codigo);
+        const label = [
+          lote?.nombre_lote ? `Lote ${lote.nombre_lote}` : null,
+          producto?.nombre,
+          qr.fecha_produccion ? new Date(String(qr.fecha_produccion)).toLocaleDateString('es-CL') : null,
+        ].filter(Boolean).join(' · ');
+        setQrLote({
+          codigo,
+          label: label || `Código ${codigo}`,
+          url: tiendaBase ? `${tiendaBase}/qr-scan?code=${encodeURIComponent(codigo)}` : codigo,
+        });
+      } else if (colmenaRes.data) {
+        const c = colmenaRes.data as { name?: string; lote_activo?: string };
+        setQrLote({
+          codigo: String(c.lote_activo),
+          label: `${c.lote_activo} · ${c.name ?? 'Colmena'}`,
+          url: tiendaBase ? `${tiendaBase}/qr-scan?code=${encodeURIComponent(String(c.lote_activo))}` : String(c.lote_activo),
+        });
+      } else {
+        setQrLote(null);
       }
 
-      const { data } = await supabase.from('clientes')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      if (data && data.length > 0) {
-        setLocalClients(data.map((d: Record<string, unknown>) => ({ name: String(d.name), type: String(d.type), purchases: Number(d.total_spent) > 0 ? 1 : 0, level: 'Guardián Bronce', lastOrder: 'Reciente', id: String(d.id) })));
+      const purchaseCount = new Map<string, number>();
+      (ventasRes.data ?? []).forEach((v: Record<string, unknown>) => {
+        const cid = v.crm_cliente_id ? String(v.crm_cliente_id) : null;
+        if (cid) purchaseCount.set(cid, (purchaseCount.get(cid) ?? 0) + 1);
+      });
+
+      if (clientesRes.data?.length) {
+        setLocalClients(clientesRes.data.map((d: Record<string, unknown>) => {
+          const id = String(d.id);
+          const spent = Number(d.total_spent) || 0;
+          const lastPurchase = d.last_purchase ? String(d.last_purchase) : null;
+          return {
+            id,
+            name: String(d.name),
+            type: String(d.type ?? 'D2C'),
+            purchases: purchaseCount.get(id) ?? (spent > 0 ? 1 : 0),
+            level: guardianLevel(spent),
+            lastOrder: lastPurchase
+              ? new Date(lastPurchase).toLocaleDateString('es-CL')
+              : 'Sin compras',
+          };
+        }));
+      } else {
+        setLocalClients([]);
       }
-      const { data: ventasData } = await supabase.from('ventas')
-        .select('total')
-        .eq('vendedor_id', user.id);
-      if (ventasData) {
-        setVentasTotal(ventasData.reduce((sum: number, v: Record<string, unknown>) => sum + (Number(v.total) || 0), 0));
+
+      const ventasData = ventasRes.data ?? [];
+      const total = ventasData.reduce((sum: number, v: Record<string, unknown>) => sum + (Number(v.total) || 0), 0);
+      setVentasTotal(total);
+
+      const now = new Date();
+      const thisMonth = now.getMonth();
+      const thisYear = now.getFullYear();
+      const prevMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+      const prevYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+
+      const monthTotal = (month: number, year: number) =>
+        ventasData
+          .filter((v: Record<string, unknown>) => {
+            const d = new Date(String(v.created_at));
+            return d.getMonth() === month && d.getFullYear() === year;
+          })
+          .reduce((s: number, v: Record<string, unknown>) => s + (Number(v.total) || 0), 0);
+
+      const current = monthTotal(thisMonth, thisYear);
+      const previous = monthTotal(prevMonth, prevYear);
+      if (previous > 0 && current !== previous) {
+        const pct = Math.round(((current - previous) / previous) * 100);
+        setVentasTrend(pct >= 0 ? `+${pct}%` : `${pct}%`);
+      } else if (current > 0) {
+        setVentasTrend(`+$${Math.round(current / 1000)}K`);
+      } else {
+        setVentasTrend(undefined);
+      }
+
+      if (crmRes.ok) {
+        const json = await crmRes.json() as { data: CRMDashboard };
+        const dashboard = json.data;
+        const assignmentMap = new Map(
+          (dashboard.assignments ?? []).map((a) => [a.evento_id, a])
+        );
+        setFerias((dashboard.eventos ?? []).map((e) => {
+          const assignment = assignmentMap.get(e.id);
+          const meta = assignment?.meta_ventas ? Number(assignment.meta_ventas) : 0;
+          return {
+            id: e.id,
+            name: e.nombre ?? 'Evento sin nombre',
+            date: formatEventoDate(e.fecha_inicio, e.fecha_fin),
+            estimated: meta > 0 ? `$${meta.toLocaleString('es-CL')}` : '—',
+            status: feriaStatus(e.fecha_inicio),
+          };
+        }));
+      } else {
+        setFerias([]);
       }
     }
     loadData();
-  }, []);
+  }, [apiFetch]);
 
   const handleAddClient = async () => {
     if (!newClientForm.name) return;
@@ -138,12 +274,6 @@ export function VendedorView() {
 
   const displayedClients = crmExpanded ? localClients : localClients.slice(0, 4);
 
-  const ferias = [
-    { name: 'Feria Ancud', date: '15 marzo', estimated: '$450.000', status: 'Confirmada' },
-    { name: 'ExpoMundoRural Santiago', date: '22–24 abril', estimated: '$1.800.000', status: 'Inscrita' },
-    { name: 'Mercadito Puqueldón', date: '5 abril', estimated: '$120.000', status: 'Pendiente' },
-  ];
-
   const displayedProducts = showFullCatalog ? products : products.slice(0, 4);
 
   return (
@@ -153,10 +283,16 @@ export function VendedorView() {
           <div className="absolute inset-0 bg-foreground/50 backdrop-blur-sm" onClick={() => setShowQR(false)} />
           <div className="card relative z-[201] w-[90%] max-w-[400px] text-center p-8" style={{ animation: 'fadeInUp 0.3s ease' }}>
             <button onClick={() => setShowQR(false)} className="btn btn-ghost btn-sm absolute top-3 right-3"><X size={18} /></button>
-            <QrCode size={120} className="text-foreground mx-auto mb-6" />
+            {qrLote ? (
+              <QRCodeSvg value={qrLote.url} size={140} className="mx-auto mb-6 border-none p-2 bg-white rounded-sm" fgColor="#000000" />
+            ) : (
+              <QrCode size={120} className="text-foreground mx-auto mb-6 opacity-40" />
+            )}
             <h3 className="mb-2">QR de Trazabilidad</h3>
-            <p className="text-[0.85rem] text-muted-foreground leading-relaxed">Escanea este código con tu celular para ver la historia completa del lote: colmena de origen, fecha de cosecha, video de Cristina en Pureo y el impacto regenerativo de tu compra.</p>
-            <div className="mt-6 p-4 bg-accent/10 rounded-sm text-[0.82rem] text-accent font-medium">Lote #2026-ULM-047 · Colmena Ulmo Mayor · 28 feb 2026</div>
+            <p className="text-[0.85rem] text-muted-foreground leading-relaxed">Escanea este código con tu celular para ver la historia completa del lote: colmena de origen, fecha de cosecha y el impacto regenerativo de la compra.</p>
+            <div className="mt-6 p-4 bg-accent/10 rounded-sm text-[0.82rem] text-accent font-medium">
+              {qrLote ? qrLote.label : 'Sin lote activo — registra un QR en qr_codes o asigna lote_activo a una colmena'}
+            </div>
           </div>
         </div>
       )}
@@ -221,6 +357,18 @@ export function VendedorView() {
                   <div className="flex justify-between mb-4 text-xl font-bold text-foreground">
                     <span>Total</span><span>${cartTotal.toLocaleString()}</span>
                   </div>
+                  <label className="block text-xs text-muted-foreground mb-1">Método de pago</label>
+                  <select
+                    className="w-full mb-4 px-3 py-2 rounded-lg border border-border bg-card text-sm"
+                    value={posMetodoPago}
+                    onChange={(e) => setPosMetodoPago(e.target.value as typeof posMetodoPago)}
+                  >
+                    <option value="efectivo">Efectivo</option>
+                    <option value="transferencia">Transferencia</option>
+                    <option value="tarjeta">Tarjeta</option>
+                    <option value="pos_terminal">POS Terminal</option>
+                    <option value="mixto">Mixto</option>
+                  </select>
                   <button className="btn btn-primary w-full py-3.5 text-base font-semibold" disabled={cartTotal === 0 || loadingPos} onClick={async () => {
                     setLoadingPos(true);
                     try {
@@ -231,7 +379,7 @@ export function VendedorView() {
                           total: Math.round(cartTotal),
                           items: posCart as unknown as Record<string, number>,
                           origen: 'feria',
-                          metodo_pago: 'Efectivo/Transferencia',
+                          metodo_pago: posMetodoPago,
                           estado: 'completada',
                           offline_synced: typeof navigator !== 'undefined' ? !navigator.onLine : false,
                         });
@@ -257,16 +405,16 @@ export function VendedorView() {
         </div>
       )}
 
-      <div className="hero-banner animate-in">
-        <div className="hero-greeting">{greeting}</div>
-        <h1 className="hero-title">{title}</h1>
-        <p className="hero-subtitle">{subtitle}</p>
-      </div>
+      <ViewShell
+        greeting={greeting}
+        title={title}
+        subtitle={subtitle}
+      />
       <div className="stats-grid">
         {[
-          { icon: <ShoppingBag size={20} />, val: ventasTotal > 0 ? `$${(ventasTotal / 1000).toFixed(0)}K` : '0', label: 'Ventas temporada', trend: ventasTotal > 0 ? '+32%' : undefined },
-          { icon: <Users size={20} />, val: String(localClients.length), label: 'Clientes activos', trend: localClients.length > 0 ? `+${Math.min(localClients.length, 12)}` : undefined },
-          { icon: <MapPin size={20} />, val: '3', label: 'Ferias programadas' },
+          { icon: <ShoppingBag size={20} />, val: ventasTotal > 0 ? `$${(ventasTotal / 1000).toFixed(0)}K` : '0', label: 'Ventas temporada', trend: ventasTrend },
+          { icon: <Users size={20} />, val: String(localClients.filter((c) => c.purchases > 0).length || localClients.length), label: 'Clientes activos' },
+          { icon: <MapPin size={20} />, val: String(ferias.length), label: 'Ferias programadas' },
           { icon: <Truck size={20} />, val: totalStock.toLocaleString(), label: 'Unidades en stock' },
         ].map((s, i) => (
           <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
@@ -342,9 +490,12 @@ export function VendedorView() {
         <div className="flex flex-col gap-6">
           <div className="card animate-in delay-3">
             <div className="section-header"><div className="section-title flex items-center gap-2"><CalendarDays size={18} /> Próximas Ferias</div></div>
+            {ferias.length === 0 && (
+              <p className="text-center text-muted-foreground text-sm py-6">Sin ferias programadas. Configúralas desde CRM → Agenda Ferias.</p>
+            )}
             {ferias.map((f, i) => (
-              <div key={i} className={`p-4 rounded-sm mb-2 ${i === 0 ? 'bg-accent/10 border border-accent/25' : 'bg-transparent border border-transparent'}`}>
-                <div className="flex justify-between items-center"><strong className="text-[0.9rem] text-foreground">{f.name}</strong><span className={`badge ${f.status === 'Confirmada' ? 'badge-success' : f.status === 'Inscrita' ? 'badge-gold' : 'badge-warning'}`}>{f.status}</span></div>
+              <div key={f.id} className={`p-4 rounded-sm mb-2 ${i === 0 ? 'bg-accent/10 border border-accent/25' : 'bg-transparent border border-transparent'}`}>
+                <div className="flex justify-between items-center"><strong className="text-[0.9rem] text-foreground">{f.name}</strong><span className={`badge ${f.status === 'Confirmada' || f.status === 'En curso' ? 'badge-success' : f.status === 'Programada' ? 'badge-gold' : 'badge-warning'}`}>{f.status}</span></div>
                 <div className="text-[0.78rem] text-muted-foreground mt-1">📅 {f.date} · Meta: {f.estimated}</div>
               </div>
             ))}
@@ -366,7 +517,7 @@ export function VendedorView() {
             {[
               { label: 'Modo Feria (POS offline)', icon: <ShoppingBag size={16} />, desc: 'Cobro QR sin conexión', action: () => setShowPos(true) },
               { label: 'Ruta óptima del día', icon: <MapPin size={16} />, desc: 'En desarrollo', action: () => {} },
-              { label: 'Generar etiquetas QR', icon: <QrCode size={16} />, desc: 'Lote activo: #2026-ULM-047', action: () => setShowQR(true) },
+              { label: 'Generar etiquetas QR', icon: <QrCode size={16} />, desc: qrLote ? `Lote: ${qrLote.codigo}` : 'Sin lote activo', action: () => setShowQR(true) },
               { label: 'Reporte de ventas', icon: <TrendingUp size={16} />, desc: 'En desarrollo', action: () => {} },
             ].map((action, i) => (
               <button key={i} className="btn btn-ghost w-full justify-between p-4 mb-1 text-left" onClick={action.action}>

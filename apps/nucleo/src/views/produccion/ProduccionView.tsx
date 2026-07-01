@@ -12,6 +12,9 @@ import {
   Activity, Package, AlertTriangle, Layers, Calendar, BarChart2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 export function ProduccionView() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'lotes'>('dashboard');
@@ -31,35 +34,24 @@ export function ProduccionView() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-display text-foreground">Producción e Inventario</h1>
-          <p className="text-muted-foreground mt-1">
-            Control de lotes de miel, envasado y proyecciones de quiebre de stock basado en demanda real.
-          </p>
-        </div>
-        
-        <div className="flex bg-surface-sunken p-1 rounded-lg border border-border w-fit">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
-              activeTab === 'dashboard' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Activity size={16} />
-            Alertas de Stock
-          </button>
-          <button
-            onClick={() => setActiveTab('lotes')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
-              activeTab === 'lotes' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Layers size={16} />
-            Lotes Activos
-          </button>
-        </div>
-      </div>
+      <ViewShell
+        variant="compact"
+        eyebrow="Inventario"
+        title="Producción e Inventario"
+        subtitle="Control de lotes de miel, envasado y proyecciones de quiebre de stock basado en demanda real."
+        icon={<Package size={20} />}
+      />
+
+      <ResponsiveTabBar
+        variant="pill"
+        layoutId="produccion-tabs"
+        tabs={[
+          { id: 'dashboard', label: 'Alertas de Stock', icon: <Activity size={16} /> },
+          { id: 'lotes', label: 'Lotes Activos', icon: <Layers size={16} /> },
+        ]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as 'dashboard' | 'lotes')}
+      />
 
       {isLoading ? (
         <div className="flex justify-center p-12"><Spinner className="w-8 h-8 text-primary" /></div>
@@ -121,7 +113,7 @@ export function ProduccionView() {
                   <CardDescription>Cálculo de días de inventario restante cruzando Stock Actual vs Demanda de los últimos 30 días.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <div className="overflow-x-auto">
+                  <EnjTableShell>
                     <table className="w-full text-sm text-left">
                       <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
                         <tr>
@@ -177,7 +169,7 @@ export function ProduccionView() {
                         })}
                       </tbody>
                     </table>
-                  </div>
+                  </EnjTableShell>
                 </CardContent>
               </Card>
             </motion.div>
@@ -201,7 +193,7 @@ export function ProduccionView() {
                   {lotes.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">No hay lotes registrados.</p>
                   ) : (
-                    <div className="overflow-x-auto">
+                    <EnjTableShell>
                       <table className="w-full text-sm text-left">
                         <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
                           <tr>
@@ -241,7 +233,7 @@ export function ProduccionView() {
                           })}
                         </tbody>
                       </table>
-                    </div>
+                    </EnjTableShell>
                   )}
                 </CardContent>
               </Card>

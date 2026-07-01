@@ -2,7 +2,7 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContent } from '@/lib/cms';
-import Image from 'next/image';
+import { GaleriaGrid } from '@/components/shop/galeria-grid';
 import type { Metadata } from 'next';
 import { z } from 'zod';
 
@@ -102,36 +102,14 @@ export default async function GaleriaPage() {
           </p>
         </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-  {images.map((img, idx) => (
-    <div key={img.id || idx} className="group relative aspect-square overflow-hidden rounded-2xl bg-card border border-border">
-      {img.content?.url ? (
-        <Image
-          src={img.content.url}
-          alt={img.content?.titulo || 'Galería'}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-110"
+        <GaleriaGrid
+          images={images.map((img, idx) => ({
+            id: img.id || String(idx),
+            titulo: img.content?.titulo || '',
+            descripcion: img.content?.descripcion || '',
+            url: img.content?.url || '',
+          }))}
         />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-secondary/50">
-          <div className="text-muted-foreground text-sm">
-            {img.content?.titulo || `Imagen ${idx + 1}`}
-          </div>
-        </div>
-      )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <h3 className="font-display text-xl text-foreground mb-2">
-            {img.content?.titulo || 'Imagen'}
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            {img.content?.descripcion}
-          </p>
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
       </main>
       <ShopFooter />
     </StoreShell>

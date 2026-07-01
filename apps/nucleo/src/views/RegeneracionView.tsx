@@ -3,7 +3,7 @@ import { TreePine, Camera, MapPin, Leaf, Plus, ChevronDown, Edit3, Trash2, X } f
 
 import { supabase } from '@/lib/supabase';
 import { toast, friendlyError } from '@enjambre/ui';
-import { arbolesPlantados } from '@/data/mockData';
+import { ViewShell } from '@/components/layout/ViewShell';
 
 interface TreeRecord {
   id: string;
@@ -61,32 +61,7 @@ export function RegeneracionView() {
         const { data, error } = await supabase.from('arboles_plantados').select('*').order('created_at', { ascending: false });
         if (error) throw error;
 
-        if (data && data.length > 0) {
-          setRecords(data.map((r: Record<string, unknown>) => mapRowToTreeRecord(r)));
-        } else {
-          // Seeding
-          const mockRecords = arbolesPlantados.map(a => ({
-            especie: a.especie,
-            cantidad: a.cantidad,
-            fecha: a.fecha,
-            sector: a.sector,
-            lat: a.coordenadas.lat,
-            lng: a.coordenadas.lng,
-            co2_ton: a.co2_ton,
-            status: a.status,
-            user_id: uid,
-          }));
-
-          const { data: seeded, error: seedError } = await supabase
-            .from('arboles_plantados')
-            .insert(mockRecords)
-            .select();
-
-          if (seedError) throw seedError;
-          if (seeded) {
-            setRecords(seeded.map((r: Record<string, unknown>) => mapRowToTreeRecord(r)));
-          }
-        }
+        setRecords((data ?? []).map((r: Record<string, unknown>) => mapRowToTreeRecord(r)));
       } catch (err) {
         toast(friendlyError(err, 'Error al cargar o inicializar registros del bosque'), { type: 'error' });
       } finally {
@@ -203,12 +178,12 @@ export function RegeneracionView() {
   }
 
   return (
-    <div>
-      <div className="hero-banner animate-in" style={{ background: 'linear-gradient(135deg, hsl(var(--primary) / 0.85) 0%, hsl(var(--primary)) 50%, hsl(var(--primary) / 0.7) 100%)' }}>
-        <div className="hero-greeting">Módulo de Regeneración 🌿</div>
-        <h1 className="hero-title">Cada árbol plantado es un legado que el tiempo honra</h1>
-        <p className="hero-subtitle">{anosLegado} años de reforestación nativa en Chiloé. Cada lote de miel está vinculado directamente a los árboles que alimentan a las abejas.</p>
-      </div>
+    <div className="space-y-6 animate-in">
+      <ViewShell
+        eyebrow="Regeneración 🌿"
+        title="Cada árbol plantado es un legado que el tiempo honra"
+        subtitle={`${anosLegado} años de reforestación nativa en Chiloé. Cada lote de miel está vinculado directamente a los árboles que alimentan a las abejas.`}
+      />
 
       <div className="stats-grid">
         {[
@@ -228,14 +203,14 @@ export function RegeneracionView() {
         ))}
       </div>
 
-      <div className="card animate-in delay-2" style={{ marginTop: 'var(--space-lg)' }}>
+      <div className="card animate-in delay-2 mt-6">
         <div className="section-header">
           <div>
             <div className="section-title">Registro de Reforestación</div>
             <div className="section-subtitle">Trazabilidad directa: árbol ↔ colmena ↔ lote de miel</div>
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <div style={{ padding: '6px 14px', background: 'hsl(var(--success) / 0.1)', border: '1px solid hsl(var(--success) / 0.3)', borderRadius: 'var(--radius-sm)', fontSize: '0.72rem', color: 'hsl(var(--success))' }}>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="px-3.5 py-1.5 rounded-sm text-xs text-success bg-success/10 border border-success/30">
               IRR: {irrValue} {irrValue !== '—' && Number(irrValue) > 1 ? '(Impacto > Huella)' : ''}
             </div>
             <button className="btn btn-gold btn-sm" onClick={() => setShowForm(!showForm)}>
@@ -245,44 +220,38 @@ export function RegeneracionView() {
         </div>
 
         {showForm && (
-          <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-lg)', border: '1px solid hsl(var(--accent) / 0.25)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
+          <div className="p-6 mb-6 rounded-md bg-accent/10 border border-accent/25">
+            <div className="form-grid-2 mb-4">
               <div>
-                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Especie</div>
-                <input type="text" placeholder="Ej: Ulmo, Tepú, Canelo..." value={formData.species} onChange={e => setFormData(prev => ({ ...prev, species: e.target.value }))}
-                  style={{ width: '100%', padding: 'var(--space-sm) var(--space-md)', border: '1px solid hsl(var(--input))', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-datos)', fontSize: '0.85rem', background: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                <label className="micro-label block mb-1">Especie</label>
+                <input type="text" placeholder="Ej: Ulmo, Tepú, Canelo..." value={formData.species} onChange={e => setFormData(prev => ({ ...prev, species: e.target.value }))} className="input-field" />
               </div>
               <div>
-                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Cantidad</div>
-                <input type="number" placeholder="Número de árboles" value={formData.count} onChange={e => setFormData(prev => ({ ...prev, count: e.target.value }))}
-                  style={{ width: '100%', padding: 'var(--space-sm) var(--space-md)', border: '1px solid hsl(var(--input))', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-datos)', fontSize: '0.85rem', background: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                <label className="micro-label block mb-1">Cantidad</label>
+                <input type="number" placeholder="Número de árboles" value={formData.count} onChange={e => setFormData(prev => ({ ...prev, count: e.target.value }))} className="input-field" />
               </div>
               <div>
-                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Ubicación / Sector</div>
-                <input type="text" placeholder="Sector o coordenada" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                  style={{ width: '100%', padding: 'var(--space-sm) var(--space-md)', border: '1px solid hsl(var(--input))', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-datos)', fontSize: '0.85rem', background: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                <label className="micro-label block mb-1">Ubicación / Sector</label>
+                <input type="text" placeholder="Sector o coordenada" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} className="input-field" />
               </div>
               <div>
-                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Fecha</div>
-                <input type="text" placeholder="Ej: 2026-06-13 o rango" value={formData.date} onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                  style={{ width: '100%', padding: 'var(--space-sm) var(--space-md)', border: '1px solid hsl(var(--input))', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-datos)', fontSize: '0.85rem', background: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                <label className="micro-label block mb-1">Fecha</label>
+                <input type="text" placeholder="Ej: 2026-06-13 o rango" value={formData.date} onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))} className="input-field" />
               </div>
               <div>
-                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Estado de Crecimiento</div>
-                <select value={formData.status} onChange={e => setFormData(prev => ({ ...prev, status: e.target.value }))}
-                  style={{ width: '100%', padding: 'var(--space-sm) var(--space-md)', border: '1px solid hsl(var(--input))', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-datos)', fontSize: '0.85rem', background: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }}>
+                <label className="micro-label block mb-1">Estado de Crecimiento</label>
+                <select value={formData.status} onChange={e => setFormData(prev => ({ ...prev, status: e.target.value }))} className="input-field">
                   <option value="joven">Joven</option>
                   <option value="creciendo">Creciendo</option>
                   <option value="adulto">Adulto</option>
                 </select>
               </div>
               <div>
-                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Notas</div>
-                <input type="text" placeholder="Observaciones (opcional)" value={formData.notes} onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                  style={{ width: '100%', padding: 'var(--space-sm) var(--space-md)', border: '1px solid hsl(var(--input))', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-datos)', fontSize: '0.85rem', background: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                <label className="micro-label block mb-1">Notas</label>
+                <input type="text" placeholder="Observaciones (opcional)" value={formData.notes} onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))} className="input-field" />
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 'var(--space-sm)', justifyContent: 'flex-end' }}>
+            <div className="flex gap-2 justify-end">
               <button className="btn btn-ghost btn-sm" onClick={() => setShowForm(false)}>Cancelar</button>
               <button className="btn btn-primary btn-sm" onClick={handleSubmit}>Guardar registro</button>
             </div>
@@ -290,6 +259,13 @@ export function RegeneracionView() {
         )}
 
         <div className="colmena-list">
+          {records.length === 0 && (
+            <div className="text-center py-10 px-4 text-muted-foreground">
+              <div className="text-3xl mb-3 opacity-60">🌱</div>
+              <p className="text-sm font-medium text-foreground mb-1">Sin registros de reforestación</p>
+              <p className="text-xs">Registra tu primera plantación para comenzar el legado del bosque.</p>
+            </div>
+          )}
           {displayed.map(r => (
             <div key={r.id} className="colmena-item" style={{ position: 'relative' }}>
               <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-sm)', background: r.status === 'adulto' ? 'hsl(var(--success) / 0.15)' : r.status === 'creciendo' ? 'hsl(var(--accent) / 0.1)' : 'hsl(var(--info) / 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0 }}>🌳</div>

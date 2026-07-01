@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef, Suspense } from 'react';
+import React, { useEffect, useRef, Suspense, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
+import { useTranslations, useLocale } from 'next-intl';
 
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
@@ -65,6 +66,7 @@ interface TiendaLandingProps {
     legal: Array<{ label: string; href: string }>;
   };
   ecosystemMetrics: EcosystemMetrics;
+  locale: string;
 }
 
 const COLLECTION_IMAGES: Record<string, string> = {
@@ -89,10 +91,30 @@ export function TiendaLandingView({
   youtubeVideoId,
   footerData,
   ecosystemMetrics,
+  locale,
 }: TiendaLandingProps) {
+  const t = useTranslations();
+  const tHero = useTranslations('hero');
+  const tConservation = useTranslations('conservation');
+  const tCollections = useTranslations('collections');
+  const tFooter = useTranslations('footer');
+  const tCommon = useTranslations('common');
+  const tScience = useTranslations('science');
+  const currentLocale = useLocale();
+  
   const gsapRef = useRef<GSAPInstance | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return;
     let ctx: ReturnType<typeof import('gsap')['gsap']['context']> | undefined;
     let cancelled = false;
 
@@ -164,7 +186,7 @@ export function TiendaLandingView({
                   once: true,
                 },
                 onUpdate: () => {
-                  el.textContent = prefix + Math.round(obj.val).toLocaleString('es-CL') + suffix;
+                  el.textContent = prefix + Math.round(obj.val).toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US') + suffix;
                 },
               });
             });
@@ -183,49 +205,53 @@ export function TiendaLandingView({
       cancelled = true;
       ctx?.revert();
     };
-  }, []);
+  }, [currentLocale, isMobile]);
 
   return (
     <StoreShell>
     <GrainOverlay />
-    <CustomCursor />
+    {!isMobile && <CustomCursor />}
     <TextCarousel />
     <ShopHeader />
 
     <main className="relative overflow-hidden">
       {/* ── HERO ── */}
-      <section className="relative h-[90vh] flex flex-col items-center justify-center text-center px-4">
-        <BeeCanvas />
-          <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse at center, transparent 0%, hsl(var(--background)) 70%)',
-          opacity: 0.6,
-        }}
-      />
+      <section className="relative h-[72vh] md:h-[90vh] flex flex-col items-center justify-center text-center px-4">
+        {!isMobile && <BeeCanvas />}
+        <div
+          className="absolute inset-0 pointer-events-none bg-background/40 md:bg-transparent"
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse at center, transparent 0%, hsl(var(--background)) 70%)',
+            opacity: isMobile ? 0.88 : 0.6,
+          }}
+        />
 
           <div className="relative z-10 max-w-4xl">
             <span className="hero-eyebrow editorial-kicker mb-8 block">
-              Miel Virgen del Sur del Mundo
+              {tHero('subtitle') || 'Miel Virgen del Sur del Mundo'}
             </span>
             <h1 className="hero-title font-display text-[clamp(3rem,8vw,7rem)] font-light leading-tight mb-6 overflow-hidden">
               <span className="block overflow-hidden">
-                <span className="line-inner block">La Obrera</span>
+                <span className="line-inner block">{tHero('titlePart1') || 'La Obrera'}</span>
               </span>
               <span className="block overflow-hidden">
-                <span className="line-inner block">y el Zángano</span>
+                <span className="line-inner block">{tHero('titlePart2') || 'y el Zángano'}</span>
               </span>
             </h1>
             <p className="hero-subtitle font-display italic text-[clamp(1.1rem,2.5vw,1.5rem)] text-muted-foreground tracking-wide">
-              Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje
+              {tHero('description') || 'Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje'}
             </p>
             <p className="hero-formula mt-6 font-mono text-[clamp(0.65rem,1.2vw,0.8rem)] tracking-[0.3em] uppercase text-accent/60">
-              Luz solar → Néctar → Miel virgen · Sin atajos industriales
+              {tHero('formula') || 'Luz solar → Néctar → Miel virgen · Sin atajos industriales'}
             </p>
           </div>
           <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4">
-            <span className="text-editorial-xs uppercase tracking-widest text-muted-foreground [writing-mode:vertical-rl]">Descender</span>
+            <span className="text-editorial-xs uppercase tracking-widest text-muted-foreground [writing-mode:vertical-rl]">{tCommon('scrollDown') || 'Descender'}</span>
             <div className="w-px h-12 bg-gradient-to-b from-accent to-transparent animate-bounce" />
           </div>
         </section>
@@ -234,21 +260,21 @@ export function TiendaLandingView({
         <section className="editorial-section bg-surface-raised/50 border-y border-border/30">
           <div className="editorial-container">
             <div className="text-center mb-16">
-              <span className="editorial-kicker mb-4 block">Conservación demostrable</span>
+              <span className="editorial-kicker mb-4 block">{tConservation('kicker') || 'Conservación demostrable'}</span>
               <h2 className="font-display text-3xl md:text-5xl font-light text-foreground mb-6">
-                Impacto sin atajos
+                {tConservation('title') || 'Impacto sin atajos'}
               </h2>
               <p className="text-sm text-muted-foreground italic max-w-2xl mx-auto leading-relaxed">
-                No certificamos con sellos de tercera mano. Nuestro impacto se demuestra por triangulación: papers revisados por pares, datos locales de Chiloé, y cálculos abiertos que cualquier persona puede verificar.
+                {tConservation('description') || 'No certificamos con sellos de tercera mano. Nuestro impacto se demuestra por triangulación: papers revisados por pares, datos locales de Chiloé, y cálculos abiertos que cualquier persona puede verificar.'}
               </p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center mb-16">
               {[
-                { value: ecosystemMetrics.arboles_total, label: 'Árboles plantados', suffix: '+' },
-                { value: ecosystemMetrics.co2_evitado_total_kg, label: 'CO₂ evitado (kg)', suffix: '', prefix: '~' },
-                { value: ecosystemMetrics.colmenas_total, label: 'Colmenas custodiadas', suffix: '' },
-                { value: ecosystemMetrics.especies_nativas, label: 'Especies nativas', suffix: '' },
+                { value: ecosystemMetrics.arboles_total, label: tConservation('treesPlanted') || 'Árboles plantados', suffix: '+' },
+                { value: ecosystemMetrics.co2_evitado_total_kg, label: tConservation('co2Avoided') || 'CO₂ evitado (kg)', suffix: '', prefix: '~' },
+                { value: ecosystemMetrics.colmenas_total, label: tConservation('hivesCustodied') || 'Colmenas custodiadas', suffix: '' },
+                { value: ecosystemMetrics.especies_nativas, label: tConservation('nativeSpecies') || 'Especies nativas', suffix: '' },
               ].map((stat) => (
                 <div key={stat.label} className="py-4">
                   <p className="counter-value font-display text-5xl md:text-6xl font-light text-accent" data-target={stat.value} data-prefix={stat.prefix || ''} data-suffix={stat.suffix}>
@@ -260,53 +286,53 @@ export function TiendaLandingView({
             </div>
 
             <div className="max-w-3xl mx-auto border-t border-border/20 pt-10 mb-16">
-              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-6 text-center">Triangulación de fuentes</p>
+              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-6 text-center">{tScience('triangulation') || 'Triangulación de fuentes'}</p>
               <div className="grid md:grid-cols-3 gap-8">
                 <div className="text-center">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">Papers revisados por pares</p>
+                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">{tScience('peerReviewed') || 'Papers revisados por pares'}</p>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Secuestro de carbono en bosque templado lluvioso: 10–25 kg CO₂/árbol/año (Schneider et al., 2020; Gutiérrez & Lara, 2022). Actividad antimicrobiana en mieles chilenas comparable a Manuka (Montes et al., 2019).
+                    {tScience('peerReviewedDesc') || 'Secuestro de carbono en bosque templado lluvioso: 10–25 kg CO₂/árbol/año (Schneider et al., 2020; Gutiérrez & Lara, 2022). Actividad antimicrobiana en mieles chilenas comparable a Manuka (Montes et al., 2019).'}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">Datos locales de Chiloé</p>
+                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">{tScience('localData') || 'Datos locales de Chiloé'}</p>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {ecosystemMetrics.arboles_total.toLocaleString('es-CL')} árboles registrados con coordenadas y especie en {ecosystemMetrics.sectores} sectores de Pureo. {ecosystemMetrics.colmenas_total} colmenas monitoreadas en apiarios entre Quemchi, Molulco y Pureo-Quelen.
+                    {ecosystemMetrics.arboles_total.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US')} {tScience('treesRegistered') || 'árboles registrados'} {tScience('withCoordinates') || 'con coordenadas y especie'} {tScience('inSectors') || 'en'} {ecosystemMetrics.sectores} {tScience('sectorsOf') || 'sectores de'} Pureo. {ecosystemMetrics.colmenas_total} {tScience('hivesMonitored') || 'colmenas monitoreadas'} {tScience('inApiaries') || 'en apiarios'} {tScience('between') || 'entre'} Quemchi, Molulco y Pureo-Quelen.
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">Cálculo abierto</p>
+                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">{tScience('openCalculation') || 'Cálculo abierto'}</p>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    IRR = CO₂ capturado / CO₂ emitido. Nuestro ecosistema registra {ecosystemMetrics.irr_ecosistema ? `${ecosystemMetrics.irr_ecosistema}×` : 'cálculo en proceso'}. {ecosystemMetrics.anos_legado} de reforestación nativa. Fórmula y datos verificables en nuestra página de ciencia.
+                    {tScience('openCalculationDesc') || 'IRR = CO₂ capturado / CO₂ emitido. Nuestro ecosistema registra'} {ecosystemMetrics.irr_ecosistema ? `${ecosystemMetrics.irr_ecosistema}×` : tScience('calculationInProgress') || 'cálculo en proceso'}. {ecosystemMetrics.anos_legado} {tScience('yearsOfReforestation') || 'años de reforestación nativa'}. {tScience('formulaVerifiable') || 'Fórmula y datos verificables en nuestra página de ciencia.'}
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="max-w-2xl mx-auto text-center border-t border-border/20 pt-10">
-              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-4">Índice de Regeneración Relativa</p>
+              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-4">{tScience('irrIndex') || 'Índice de Regeneración Relativa'}</p>
               {ecosystemMetrics.irr_ecosistema && ecosystemMetrics.irr_ecosistema > 1 ? (
                 <>
                   <p className="font-display text-2xl md:text-3xl font-light text-foreground tracking-wide">
-                    IRR {ecosystemMetrics.irr_ecosistema} · Impacto &gt; Huella
+                    {tScience('irrPositive') || 'IRR'} {ecosystemMetrics.irr_ecosistema} · {tScience('impactGreaterThanFootprint') || 'Impacto > Huella'}
                   </p>
                   <p className="text-sm text-muted-foreground italic mt-4 max-w-lg mx-auto">
-                    El bosque captura {ecosystemMetrics.irr_ecosistema}× más CO₂ del que la cadena productiva emite. Demostrable por registro forestal + balances de emisión.
+                    {tScience('irrPositiveDesc') || 'El bosque captura'} {ecosystemMetrics.irr_ecosistema}× {tScience('moreCO2ThanEmitted') || 'más CO₂ del que la cadena productiva emite.'} {tScience('verifiableBy') || 'Demostrable por registro forestal + balances de emisión.'}
                   </p>
                 </>
               ) : (
                 <>
                   <p className="font-display text-2xl md:text-3xl font-light text-foreground tracking-wide">
-                    Miel de bosque + Reforestación &gt; Huella de producción
+                    {tScience('irrNegative') || 'Miel de bosque + Reforestación > Huella de producción'}
                   </p>
                   <p className="text-sm text-muted-foreground italic mt-4 max-w-lg mx-auto">
-                    {ecosystemMetrics.anos_legado} de reforestación nativa. Cada pedido financia árboles y sostiene apiarios en bosque nativo entre Quemchi, Molulco y Pureo-Quelen.
+                    {ecosystemMetrics.anos_legado} {tScience('yearsOfReforestation') || 'años de reforestación nativa.'} {tScience('eachOrderFunds') || 'Cada pedido financia árboles y sostiene apiarios en bosque nativo entre'} Quemchi, Molulco y Pureo-Quelen.
                   </p>
                 </>
               )}
               <div className="flex items-center justify-center gap-6 mt-6">
                 <Link href="/ciencia" className="text-editorial-xs uppercase tracking-widest text-accent hover:text-accent/80 transition-colors">
-                  Ver la ciencia detrás →
+                  {tScience('viewScience') || 'Ver la ciencia detrás'} →
                 </Link>
               </div>
             </div>
@@ -316,9 +342,9 @@ export function TiendaLandingView({
         {/* ── COLECCIONES — Explora nuestras categorías estacionales ── */}
         <section id="collections" className="editorial-section">
           <div className="editorial-container text-center mb-24">
-            <span className="editorial-kicker mb-4 block">Colecciones</span>
+            <span className="editorial-kicker mb-4 block">{tCollections('kicker') || 'Colecciones'}</span>
             <h2 className="font-display text-4xl md:text-6xl font-light text-foreground mb-4">
-              Explora nuestras categorías estacionales
+              {tCollections('subtitle') || 'Explora nuestras categorías estacionales'}
             </h2>
           </div>
 
@@ -356,7 +382,7 @@ export function TiendaLandingView({
 
       {/* ── CREACIONES — Productos directos 2x4 ── */}
       <div id="creaciones">
-        <Suspense fallback={<div className="editorial-section"><div className="editorial-container text-center text-muted-foreground italic">Cargando creaciones…</div></div>}><LandingProducts products={products} pageSize={8} /></Suspense>
+        <Suspense fallback={<div className="editorial-section"><div className="editorial-container text-center text-muted-foreground italic">{tCommon('loadingCreations') || 'Cargando creaciones…'}</div></div>}><LandingProducts products={products} pageSize={8} /></Suspense>
       </div>
 
         {/* ── VIDEO CENTRAL YOUTUBE ── */}
@@ -370,7 +396,7 @@ export function TiendaLandingView({
 
       {/* ── NUESTRO LUGAR EN EL MUNDO ── */}
       <div id="world-location">
-        <Suspense fallback={<div className="editorial-section"><div className="editorial-container text-center text-muted-foreground italic">Cargando mapa…</div></div>}><WorldMapBlock /></Suspense>
+        <Suspense fallback={<div className="editorial-section"><div className="editorial-container text-center text-muted-foreground italic">{tCommon('loadingMap') || 'Cargando mapa…'}</div></div>}><WorldMapBlock /></Suspense>
       </div>
       </main>
 

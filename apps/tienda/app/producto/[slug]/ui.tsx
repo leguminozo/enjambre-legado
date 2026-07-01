@@ -19,6 +19,7 @@ export function AddToCartButton({
   return (
     <button
       type="button"
+      data-testid="add-to-cart"
       disabled={disabled}
       className="rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-45"
       onClick={() => {

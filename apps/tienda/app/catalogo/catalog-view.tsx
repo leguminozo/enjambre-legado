@@ -91,7 +91,7 @@ export function CatalogoView({ products }: Props) {
                 <li key={p.id}>
                   <Link
                     href={`/producto/${encodeURIComponent(p.slug)}`}
-                    className="group block overflow-hidden rounded-xl border border-border bg-card/40 transition hover:border-accent/35"
+                    className="product-card group block overflow-hidden rounded-xl border border-border bg-card/40 transition hover:border-accent/35"
                   >
                     <div className="relative aspect-square bg-card overflow-hidden">
                       {img ? (

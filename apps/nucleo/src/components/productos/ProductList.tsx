@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Button, toast } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
 import type { Product } from '@/lib/product-types';
+import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 interface ProductListProps {
   onEdit?: (product: Product) => void;
@@ -114,11 +115,15 @@ console.error('Error deleting product:', error);
     if (!refillProduct || refillAmount <= 0) return;
     setIsRefilling(true);
     try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('No autenticado');
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+
       const res = await fetch('/api/produccion/add-stock', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          'Authorization': `Bearer ${authSession?.access_token}`
         },
         body: JSON.stringify({
           producto_id: refillProduct.id,
@@ -226,8 +231,7 @@ console.error('Error deleting product:', error);
         </Button>
       </div>
 
-      {/* Table */}
-      <div style={{ background: 'hsl(var(--card))', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border))', overflow: 'hidden' }}>
+      <EnjTableShell caption="Desliza para ver todas las columnas">
         <table className="data-table">
           <thead>
             <tr>
@@ -354,7 +358,7 @@ console.error('Error deleting product:', error);
             )}
           </tbody>
         </table>
-      </div>
+      </EnjTableShell>
 
       {/* Footer Info */}
       {filteredProducts.length > 0 && (

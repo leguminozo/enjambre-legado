@@ -4,40 +4,26 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
 import { Button } from "@enjambre/ui";
 import { Badge } from "@enjambre/ui";
-import { ShoppingCart, Eye, Edit, Trash2, Plus } from "lucide-react";
+import { ShoppingCart, Eye, Edit, Trash2, Plus, X } from "lucide-react";
 import { formatDate } from '@/lib/format';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { toast } from '@enjambre/ui';
+import { mapGastoFromApi, type Gasto } from './gasto-types';
 
-interface Gasto {
-  id: string;
-  fecha: string;
-  descripcion: string;
-  monto: number;
-  montoIva: number;
-  montoNeto: number;
-  categoria: string;
-  tipoComprobante: string;
-  numeroComprobante?: string;
-  estado: string;
-  proveedor?: {
-    id: string;
-    nombre: string;
-    rut: string;
-  };
-  periodo: {
-    nombre: string;
-  };
-}
+export type { Gasto };
 
 interface ListaGastosProps {
   onNuevoGasto: () => void;
   onVerGasto: (gasto: Gasto) => void;
   onEditarGasto: (gasto: Gasto) => void;
+  onDeleted?: () => void;
 }
 
-export function ListaGastos({ onNuevoGasto, onVerGasto, onEditarGasto }: ListaGastosProps) {
+export function ListaGastos({ onNuevoGasto, onVerGasto, onEditarGasto, onDeleted }: ListaGastosProps) {
   const [gastos, setGastos] = useState<Gasto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [viewGasto, setViewGasto] = useState<Gasto | null>(null);
   const apiFetch = useApiFetch();
 
   const cargarGastos = async () => {
@@ -46,7 +32,7 @@ export function ListaGastos({ onNuevoGasto, onVerGasto, onEditarGasto }: ListaGa
       const response = await apiFetch('/api/gastos');
       if (response.ok) {
         const data = await response.json();
-        setGastos(data);
+        setGastos((Array.isArray(data) ? data : []).map((row: Record<string, unknown>) => mapGastoFromApi(row)));
       }
     } catch (error) {
       console.error('Error cargando gastos:', error);
@@ -59,6 +45,32 @@ export function ListaGastos({ onNuevoGasto, onVerGasto, onEditarGasto }: ListaGa
     cargarGastos();
   }, []);
 
+  const handleDelete = async (gasto: Gasto) => {
+    if (!confirm(`¿Eliminar el gasto "${gasto.descripcion}"?`)) return;
+    setDeletingId(gasto.id);
+    try {
+      const response = await apiFetch(`/api/gastos/${gasto.id}`, { method: 'DELETE' });
+      if (response.ok) {
+        setGastos((prev) => prev.filter((g) => g.id !== gasto.id));
+        onDeleted?.();
+        toast('Gasto eliminado', { type: 'success' });
+      } else {
+        const err = await response.json();
+        toast(err.message || 'No se pudo eliminar', { type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error eliminando gasto:', error);
+      toast('Error al eliminar gasto', { type: 'error' });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleVer = (gasto: Gasto) => {
+    setViewGasto(gasto);
+    onVerGasto(gasto);
+  };
+
   const getEstadoColor = (estado: string) => {
     switch (estado) {
     case 'Pagado':
@@ -66,6 +78,7 @@ export function ListaGastos({ onNuevoGasto, onVerGasto, onEditarGasto }: ListaGa
     case 'Pendiente':
       return 'bg-primary/20 text-primary border-primary/30';
     case 'Reembolsado':
+    case 'Anulado':
       return 'bg-surface-raised text-foreground border-border';
       default:
         return 'bg-muted/20 text-muted-foreground border-muted/30';
@@ -108,22 +121,57 @@ if (loading) {
   }
 
   return (
-    <Card className="bg-background border-border">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl font-light flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
-            Gastos
-          </CardTitle>
-          <Button onClick={onNuevoGasto} className="bg-primary-foreground text-foreground hover:bg-secondary">
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Gasto
-          </Button>
+    <>
+      {viewGasto && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-foreground/40" onClick={() => setViewGasto(null)} />
+          <Card className="relative z-[201] w-[90%] max-w-lg bg-background border-border">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg">{viewGasto.descripcion}</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setViewGasto(null)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex gap-2">
+                <Badge className={getEstadoColor(viewGasto.estado)}>{viewGasto.estado}</Badge>
+                <Badge className={getCategoriaColor(viewGasto.categoria)}>{viewGasto.categoria}</Badge>
+              </div>
+              <p><span className="text-muted-foreground">Fecha:</span> {formatDate(viewGasto.fecha)}</p>
+              <p><span className="text-muted-foreground">Monto:</span> {formatCurrency(viewGasto.monto)}</p>
+              <p><span className="text-muted-foreground">Neto / IVA:</span> {formatCurrency(viewGasto.montoNeto)} / {formatCurrency(viewGasto.montoIva)}</p>
+              <p>
+                <span className="text-muted-foreground">Proveedor:</span>{' '}
+                {viewGasto.proveedor ? `${viewGasto.proveedor.nombre} (${viewGasto.proveedor.rut})` : 'Sin proveedor'}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Comprobante:</span>{' '}
+                {viewGasto.tipoComprobante}{viewGasto.numeroComprobante ? ` #${viewGasto.numeroComprobante}` : ''}
+              </p>
+              {viewGasto.periodo?.nombre && (
+                <p><span className="text-muted-foreground">Periodo:</span> {viewGasto.periodo.nombre}</p>
+              )}
+            </CardContent>
+          </Card>
         </div>
-      </CardHeader>
-      <CardContent>
-        {gastos.length === 0 ? (
-          <div className="text-center py-12">
+      )}
+
+      <Card className="bg-background border-border">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-light flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              Gastos
+            </CardTitle>
+            <Button onClick={onNuevoGasto} className="bg-primary-foreground text-foreground hover:bg-secondary">
+              <Plus className="h-4 w-4 mr-2" />
+              Nuevo Gasto
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {gastos.length === 0 ? (
+            <div className="text-center py-12">
 <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-medium mb-2">No hay gastos registrados</h3>
           <p className="text-muted-foreground mb-4">Comienza registrando tu primer gasto</p>
@@ -180,7 +228,7 @@ if (loading) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onVerGasto(gasto)}
+                        onClick={() => handleVer(gasto)}
 className="hover:bg-surface-sunken"
         >
           <Eye className="h-4 w-4" />
@@ -196,6 +244,8 @@ className="hover:bg-surface-sunken"
         <Button
           variant="ghost"
           size="sm"
+          disabled={deletingId === gasto.id}
+          onClick={() => handleDelete(gasto)}
           className="hover:bg-surface-sunken text-destructive hover:text-destructive/80"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -209,5 +259,6 @@ className="hover:bg-surface-sunken"
         )}
       </CardContent>
     </Card>
+    </>
   );
 }

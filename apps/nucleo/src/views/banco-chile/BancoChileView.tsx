@@ -3,6 +3,8 @@ import { supabase } from '../../lib/supabase';
 import { Building2, Settings, RefreshCw, DollarSign, Loader2, Check, X, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
 import { formatCurrency } from '@/lib/format';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 interface BancoChileConfig {
   id: string;
@@ -161,15 +163,13 @@ export function BancoChileView() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-3 mb-2">
-        <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
-          <Building2 size={20} />
-        </div>
-        <div>
-          <h1 className="font-display text-4xl font-light tracking-tight text-foreground">Banco Chile Empresas</h1>
-          <p className="text-muted-foreground text-sm tracking-wide">Cuentas, movimientos y conciliación bancaria</p>
-        </div>
-      </div>
+      <ViewShell
+        variant="compact"
+        eyebrow="Finanzas"
+        title="Banco Chile Empresas"
+        subtitle="Cuentas, movimientos y conciliación bancaria"
+        icon={<Building2 size={20} />}
+      />
 
       {!config ? (
         <div className="bg-card border border-border rounded-2xl p-6">
@@ -241,11 +241,12 @@ export function BancoChileView() {
             )}
           </div>
 
-          <div className="bg-card border border-border rounded-2xl overflow-hidden">
-            <div className="p-4 border-b">
+          <div className="card overflow-hidden p-0">
+            <div className="p-4 border-b border-border">
               <h2 className="font-display text-lg">Movimientos Recientes</h2>
             </div>
-            <table className="w-full">
+            <EnjTableShell>
+            <table className="w-full data-table">
               <thead>
                 <tr className="border-b border-border">
                   <th className="px-4 py-3 text-left text-xs text-muted-foreground">Fecha</th>
@@ -285,6 +286,7 @@ export function BancoChileView() {
                 )}
               </tbody>
             </table>
+            </EnjTableShell>
           </div>
         </div>
       )}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CalendarDays, CheckCircle2, Circle, Filter, Plus, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import type { CalendarioTask } from '../../data/mockData';
+import type { CalendarioTask } from '@/types/ecosystem';
 
 const categoryColors: Record<CalendarioTask['category'], string> = {
 inspeccion: 'hsl(var(--primary))', cosecha: 'hsl(var(--accent))',

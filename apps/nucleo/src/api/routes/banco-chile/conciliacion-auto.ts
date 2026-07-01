@@ -23,6 +23,12 @@ const RechazarPropuestaSchema = z.object({
   motivo: z.string().optional(),
 });
 
+const AutoAceptarSchema = z.object({
+  empresa_id: z.string().uuid(),
+  umbral_confianza: z.number().min(80).max(100).optional().default(90),
+  limite: z.number().int().positive().max(100).optional().default(50),
+});
+
 const ReglaConciliacionSchema = z.object({
   nombre: z.string().min(1, "El nombre es requerido"),
   tipo: z.enum(['venta', 'gasto', 'ambos']),
@@ -224,8 +230,8 @@ conciliacionAutoRoutes.post(
 );
 
 /**
- * Rechazar una propuesta de conciliación
- */
+  * Rechazar una propuesta de conciliación
+  */
 conciliacionAutoRoutes.post(
   "/rechazar",
   zValidator("json", RechazarPropuestaSchema),
@@ -251,6 +257,141 @@ conciliacionAutoRoutes.post(
       return c.json({ 
         code: "rechazar_error", 
         message: error instanceof Error ? error.message : "Error inesperado al rechazar propuesta" 
+      }, 500);
+    }
+  }
+);
+
+/**
+ * Auto-aceptar propuestas de conciliación con alta confianza
+ * Ejecuta aplicar_reglas_conciliacion y acepta automáticamente las que superen el umbral
+ */
+conciliacionAutoRoutes.post(
+  "/auto-aceptar",
+  zValidator("json", AutoAceptarSchema),
+  async (c) => {
+    try {
+      const input = c.req.valid("json");
+      const empresaId = input.empresa_id ?? c.get("empresaId");
+      const supabase = c.get("supabase");
+      const umbralConfianza = input.umbral_confianza ?? 90;
+      const limite = input.limite ?? 50;
+
+      // Verificar acceso
+      const { data: accesoData, error: accesoError } = await supabase
+        .from("usuarios_empresas")
+        .select("user_id")
+        .eq("empresa_id", empresaId)
+        .eq("user_id", c.get("user").id)
+        .single();
+
+      if (accesoError || !accesoData) {
+        return c.json({ code: "acceso_denegado", message: "No tiene acceso a esta empresa" }, 403);
+      }
+
+      // Ejecutar la función de conciliación automática
+      const { data: propuestas, error } = await supabase
+        .rpc('aplicar_reglas_conciliacion', { p_empresa_id: empresaId })
+        .limit(limite);
+
+      if (error) {
+        return c.json({ code: "ejecucion_fallida", message: error.message }, 500);
+      }
+
+      const aceptadas: any[] = [];
+      const pendientes: any[] = [];
+      const errores: any[] = [];
+
+      for (const propuesta of propuestas ?? []) {
+        const confianza = Number(propuesta.confianza ?? 0);
+        
+        if (confianza >= umbralConfianza) {
+          // Auto-aceptar
+          try {
+            const { data: movimientoData, error: movimientoError } = await supabase
+              .from("banco_chile_movimientos")
+              .select("empresa_id, conciliado, monto")
+              .eq("id", propuesta.movimiento_id)
+              .single();
+
+            if (movimientoError || !movimientoData || movimientoData.empresa_id !== empresaId) {
+              errores.push({ propuesta_id: propuesta.propuesta_id, error: "Movimiento no encontrado o sin acceso" });
+              continue;
+            }
+
+            if (movimientoData.conciliado) {
+              pendientes.push({ ...propuesta, motivo: "Ya conciliado" });
+              continue;
+            }
+
+            let entidadId: string | null = null;
+            let entidadTipo: 'venta_id' | 'gasto_id' | null = null;
+
+            if (propuesta.tipo_entidad === 'venta') {
+              entidadTipo = 'venta_id';
+              entidadId = propuesta.entidad_id;
+            } else if (propuesta.tipo_entidad === 'gasto') {
+              entidadTipo = 'gasto_id';
+              entidadId = propuesta.entidad_id;
+            }
+
+            const conciliacionData: Record<string, any> = {
+              movimiento_id: propuesta.movimiento_id,
+              monto: movimientoData.monto,
+              concepto: `Conciliación automática (confianza: ${confianza.toFixed(1)}%) vía regla ${propuesta.propuesta_id}`,
+              fecha_conciliacion: new Date().toISOString(),
+              regla_id: propuesta.propuesta_id,
+              confianza,
+              tipo_conciliacion: 'automatico',
+            };
+
+            if (entidadTipo) {
+              conciliacionData[entidadTipo] = entidadId;
+            }
+
+            const { data: conciliacionDataResult, error: conciliacionError } = await supabase
+              .from("banco_chile_conciliaciones")
+              .insert(conciliacionData)
+              .select()
+              .single();
+
+            if (conciliacionError) {
+              errores.push({ propuesta_id: propuesta.propuesta_id, error: conciliacionError.message });
+              continue;
+            }
+
+            // Marcar movimiento como conciliado
+            await supabase
+              .from("banco_chile_movimientos")
+              .update({ conciliado: true })
+              .eq("id", propuesta.movimiento_id);
+
+            aceptadas.push({ ...propuesta, conciliacion_id: conciliacionDataResult.id });
+
+          } catch (err) {
+            errores.push({ propuesta_id: propuesta.propuesta_id, error: err instanceof Error ? err.message : 'Error desconocido' });
+          }
+        } else {
+          pendientes.push(propuesta);
+        }
+      }
+
+      return c.json({
+        success: true,
+        empresa_id: empresaId,
+        umbral_confianza: umbralConfianza,
+        total_procesadas: propuestas?.length ?? 0,
+        auto_aceptadas: aceptadas.length,
+        pendientes_revision: pendientes.length,
+        errores: errores.length,
+        data: { aceptadas, pendientes, errores },
+      });
+
+    } catch (error) {
+      console.error("[Conciliación Auto Auto-Aceptar] Error:", error);
+      return c.json({ 
+        code: "auto_aceptar_error", 
+        message: error instanceof Error ? error.message : "Error inesperado en auto-aceptación" 
       }, 500);
     }
   }

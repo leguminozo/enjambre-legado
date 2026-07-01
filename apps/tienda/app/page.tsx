@@ -53,6 +53,7 @@ export default async function TiendaPage() {
 
   return (
     <TiendaLandingView
+      locale="es"
       initialColecciones={colecciones}
       products={products}
       mediaItems={mediaItems}

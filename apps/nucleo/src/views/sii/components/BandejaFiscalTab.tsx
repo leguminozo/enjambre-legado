@@ -21,6 +21,7 @@ import {
   gastoEstadoBadge,
   sourceBadge,
 } from "../types";
+import { ResponsiveTabBar } from "@/components/layout/ResponsiveTabBar";
 
 type ProcesarResult = {
   ok: true;
@@ -330,31 +331,16 @@ export function BandejaFiscalTab() {
           </p>
         </CardHeader>
         <CardContent className="space-y-5">
-          <div className="flex bg-surface-sunken p-1 rounded-lg border border-border w-fit">
-            <button
-              type="button"
-              onClick={() => setEntradaMode("pdf")}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md flex items-center gap-2 ${
-                entradaMode === "pdf"
-                  ? "bg-background shadow-sm text-foreground"
-                  : "text-muted-foreground"
-              }`}
-            >
-              <Upload size={14} /> PDF / Imagen
-            </button>
-            <button
-              type="button"
-              data-testid="bandeja-mode-texto"
-              onClick={() => setEntradaMode("texto")}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md flex items-center gap-2 ${
-                entradaMode === "texto"
-                  ? "bg-background shadow-sm text-foreground"
-                  : "text-muted-foreground"
-              }`}
-            >
-              <ClipboardPaste size={14} /> Pegar texto
-            </button>
-          </div>
+          <ResponsiveTabBar
+            variant="pill"
+            layoutId="bandeja-entrada"
+            tabs={[
+              { id: "pdf", label: "PDF / Imagen", icon: <Upload size={14} />, testId: "bandeja-mode-pdf" },
+              { id: "texto", label: "Pegar texto", icon: <ClipboardPaste size={14} />, testId: "bandeja-mode-texto" },
+            ]}
+            activeId={entradaMode}
+            onChange={(id) => setEntradaMode(id as "pdf" | "texto")}
+          />
 
           <div className="flex flex-wrap gap-2">
             {proveedoresQuery.isLoading ? (

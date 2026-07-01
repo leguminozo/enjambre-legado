@@ -1,11 +1,11 @@
 import { supabase } from "./supabase";
 
 export const getAccessToken = async (): Promise<string> => {
-const { data: { user } } = await supabase.auth.getUser();
+const { data: { user } } = await supabase.auth.getUser(); // Validates JWT with server
 if (!user) {
 throw new Error("No hay sesión activa");
 }
-const { data } = await supabase.auth.getSession();
+const { data } = await supabase.auth.getSession(); // Get session for access_token (after validation)
 const token = data.session?.access_token;
 if (!token) {
 throw new Error("No hay sesión activa");

@@ -3,6 +3,8 @@ import { supabase } from '../../lib/supabase';
 import { calcularIVA, calcularTotal } from '@enjambre/contable';
 import { Package, ShoppingCart, Users, TrendingUp, Plus, Edit3, Trash2, Eye, EyeOff, Loader2, Search } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 
 type Product = {
   id: string;
@@ -30,10 +32,11 @@ type Order = {
 
 type Customer = {
   id: string;
-  email: string;
-  full_name: string;
-  role: string;
-  created_at: string;
+  email: string | null;
+  full_name: string | null;
+  totalCompras: number;
+  ultimaCompra: string | null;
+  pedidos: number;
 };
 
 type Tab = 'productos' | 'pedidos' | 'clientes' | 'dashboard';
@@ -97,15 +100,42 @@ export function TiendaPanel() {
 
   const fetchCustomers = useCallback(async () => {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('id, email, full_name, role, created_at')
-      .order('created_at', { ascending: false });
+      .from('ventas')
+      .select('cliente_id, total, created_at, profiles:cliente_id(id, email, full_name)')
+      .eq('origen', 'web')
+      .not('cliente_id', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(500);
 
     if (error) {
       console.error('Error cargando clientes:', error.message);
       return;
     }
-    setCustomers((data ?? []) as Customer[]);
+
+    const byCliente = new Map<string, Customer>();
+    for (const row of data ?? []) {
+      const clienteId = row.cliente_id as string;
+      const profile = row.profiles as { id: string; email: string | null; full_name: string | null } | null;
+      const total = Number(row.total) || 0;
+      const existing = byCliente.get(clienteId);
+      if (existing) {
+        existing.totalCompras += total;
+        existing.pedidos += 1;
+        if (row.created_at && (!existing.ultimaCompra || row.created_at > existing.ultimaCompra)) {
+          existing.ultimaCompra = row.created_at;
+        }
+      } else {
+        byCliente.set(clienteId, {
+          id: clienteId,
+          email: profile?.email ?? null,
+          full_name: profile?.full_name ?? null,
+          totalCompras: total,
+          ultimaCompra: row.created_at ?? null,
+          pedidos: 1,
+        });
+      }
+    }
+    setCustomers(Array.from(byCliente.values()));
   }, []);
 
   useEffect(() => {
@@ -227,44 +257,26 @@ export function TiendaPanel() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
-              <ShoppingCart size={20} />
-            </div>
-            <h1 className="font-display text-4xl font-light tracking-tight text-foreground">Gestión de Tienda</h1>
-          </div>
-          <p className="text-muted-foreground text-sm tracking-wide">Administración unificada del ecosistema comercial</p>
-        </div>
-      </div>
+      <ViewShell
+        variant="compact"
+        eyebrow="Comercial"
+        title="Gestión de Tienda"
+        subtitle="Administración unificada del ecosistema comercial"
+        icon={<ShoppingCart size={20} />}
+      />
 
-      <div className="flex gap-4 flex-wrap">
-        <button
-          onClick={() => setActiveTab('dashboard')}
-          className={`btn flex items-center gap-2 ${activeTab === 'dashboard' ? 'btn-gold' : 'btn-outline'}`}
-        >
-          <TrendingUp size={18} /> Dashboard
-        </button>
-        <button
-          onClick={() => setActiveTab('productos')}
-          className={`btn flex items-center gap-2 ${activeTab === 'productos' ? 'btn-gold' : 'btn-outline'}`}
-        >
-          <Package size={18} /> Productos
-        </button>
-        <button
-          onClick={() => setActiveTab('pedidos')}
-          className={`btn flex items-center gap-2 ${activeTab === 'pedidos' ? 'btn-gold' : 'btn-outline'}`}
-        >
-          <ShoppingCart size={18} /> Pedidos
-        </button>
-        <button
-          onClick={() => setActiveTab('clientes')}
-          className={`btn flex items-center gap-2 ${activeTab === 'clientes' ? 'btn-gold' : 'btn-outline'}`}
-        >
-          <Users size={18} /> Clientes
-        </button>
-      </div>
+      <ResponsiveTabBar
+        variant="pill"
+        layoutId="tienda-tabs"
+        tabs={[
+          { id: 'dashboard', label: 'Dashboard', icon: <TrendingUp size={16} /> },
+          { id: 'productos', label: 'Productos', icon: <Package size={16} /> },
+          { id: 'pedidos', label: 'Pedidos', icon: <ShoppingCart size={16} /> },
+          { id: 'clientes', label: 'Clientes', icon: <Users size={16} /> },
+        ]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as Tab)}
+      />
 
       {activeTab === 'dashboard' && (
         <div className="space-y-6">
@@ -516,28 +528,30 @@ export function TiendaPanel() {
               <tr className="border-b border-border">
                 <th className="px-4 py-3 text-left text-xs text-muted-foreground">Nombre</th>
                 <th className="px-4 py-3 text-left text-xs text-muted-foreground">Email</th>
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Rol</th>
+                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Pedidos</th>
+                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Total</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
                     <Loader2 className="animate-spin mx-auto" size={24} />
                   </td>
                 </tr>
               ) : customers.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">
-                    Sin clientes
+                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                    Sin compradores web aún
                   </td>
                 </tr>
               ) : (
                 customers.map((customer) => (
                   <tr key={customer.id} className="border-b border-border/50">
                     <td className="px-4 py-3">{customer.full_name || '—'}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{customer.email}</td>
-                    <td className="px-4 py-3 capitalize text-xs">{customer.role}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{customer.email || '—'}</td>
+                    <td className="px-4 py-3 text-sm">{customer.pedidos}</td>
+                    <td className="px-4 py-3 text-sm">{formatCLP(customer.totalCompras)}</td>
                   </tr>
                 ))
               )}

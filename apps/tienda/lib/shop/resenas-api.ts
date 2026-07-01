@@ -1,6 +1,6 @@
 import type { CreateResenaInput } from '@enjambre/resenas';
-
-const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
+import { createAnonServerClient } from '@/utils/supabase/anon-server';
+import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 
 export type ResenaPublic = {
   id: string;
@@ -26,29 +26,95 @@ export type ResenasListResponse = {
   aggregate: { ratingValue: number; reviewCount: number } | null;
 };
 
+const EMPTY_RESENAS: ResenasListResponse = {
+  items: [],
+  page: 1,
+  limit: 20,
+  total: 0,
+  aggregate: null,
+};
+
+async function getSupabaseForResenas() {
+  if (typeof window === 'undefined') {
+    return createAnonServerClient();
+  }
+  const { createClient } = await import('@/utils/supabase/client');
+  return createClient();
+}
+
+async function fetchResenasFromSupabase(
+  productoId: string,
+  modo: 'anonima' | 'guardian' | 'all' = 'all',
+  page = 1,
+  limit = 20,
+): Promise<ResenasListResponse> {
+  try {
+    const supabase = await getSupabaseForResenas();
+    const offset = (page - 1) * limit;
+
+    let query = supabase
+      .from('resenas_producto')
+      .select(
+        'id, modo, rating, comentario_corto, cristalizacion_percibida, familia_aromatica, intensidad_fondo, notas_personales, momento_consumo, maridaje, venta_id, display_name, created_at',
+        { count: 'exact' },
+      )
+      .eq('producto_id', productoId)
+      .eq('estado', 'aprobada')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (modo !== 'all') {
+      query = query.eq('modo', modo);
+    }
+
+    const { data, error, count } = await query;
+    if (error) {
+      console.error('[resenas] supabase list:', error.message);
+      return EMPTY_RESENAS;
+    }
+
+    const ratingsRes = await supabase
+      .from('resenas_producto')
+      .select('rating')
+      .eq('producto_id', productoId)
+      .eq('estado', 'aprobada');
+
+    const ratings = (ratingsRes.data ?? []).map((r: { rating: number | null }) => Number(r.rating) || 0);
+    const ratingSum = ratings.reduce((acc: number, r: number) => acc + r, 0);
+    const aggregate =
+      ratings.length > 0
+        ? {
+            ratingValue: Math.round((ratingSum / ratings.length) * 10) / 10,
+            reviewCount: ratings.length,
+          }
+        : null;
+
+    return {
+      items: (data ?? []) as ResenaPublic[],
+      page,
+      limit,
+      total: count ?? 0,
+      aggregate,
+    };
+  } catch (err) {
+    console.error('[resenas] fetch failed:', err);
+    return EMPTY_RESENAS;
+  }
+}
+
+/** Lectura pública — Supabase directo (SSG/build-safe, sin depender de núcleo). */
 export async function fetchResenas(
   productoId: string,
   modo: 'anonima' | 'guardian' | 'all' = 'all',
 ): Promise<ResenasListResponse> {
-  const params = new URLSearchParams({
-    producto_id: productoId,
-    modo,
-    limit: '20',
-  });
-  const res = await fetch(`${NUCLEO_URL}/api/resenas?${params}`, {
-    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-    next: { revalidate: 120 },
-  });
-  if (!res.ok) {
-    return { items: [], page: 1, limit: 20, total: 0, aggregate: null };
-  }
-  return res.json() as Promise<ResenasListResponse>;
+  return fetchResenasFromSupabase(productoId, modo, 1, 20);
 }
 
 export async function getAuthToken(): Promise<string | undefined> {
   try {
     const { createClient } = await import('@/utils/supabase/client');
     const supabase = createClient();
+    await supabase.auth.getUser();
     const { data } = await supabase.auth.getSession();
     return data.session?.access_token;
   } catch {
@@ -60,7 +126,12 @@ export async function createResena(
   input: CreateResenaInput,
   token?: string,
 ): Promise<{ ok: boolean; claimToken?: string; message?: string; error?: string }> {
-  const res = await fetch(`${NUCLEO_URL}/api/resenas`, {
+  const nucleoUrl = getNucleoApiUrl();
+  if (!nucleoUrl) {
+    return { ok: false, error: 'Servicio de reseñas no disponible' };
+  }
+
+  const res = await fetch(`${nucleoUrl}/api/resenas`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -84,8 +155,13 @@ export async function createResena(
 }
 
 export async function checkEligible(productoId: string, token: string) {
+  const nucleoUrl = getNucleoApiUrl();
+  if (!nucleoUrl) {
+    return { eligible: false, reason: 'Servicio no disponible' };
+  }
+
   const params = new URLSearchParams({ producto_id: productoId });
-  const res = await fetch(`${NUCLEO_URL}/api/resenas/eligible?${params}`, {
+  const res = await fetch(`${nucleoUrl}/api/resenas/eligible?${params}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'X-Requested-With': 'XMLHttpRequest',

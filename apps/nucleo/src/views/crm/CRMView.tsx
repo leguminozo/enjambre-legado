@@ -10,6 +10,8 @@ import { FeriasTab } from "./components/FeriasTab";
 import { AliadosB2BTab } from "./components/AliadosB2BTab";
 import { ResenasSensorialesTab } from "./components/ResenasSensorialesTab";
 import { CRMDashboard, EMPTY_DASHBOARD } from "./types";
+import { ViewShell } from "@/components/layout/ViewShell";
+import { ResponsiveTabBar } from "@/components/layout/ResponsiveTabBar";
 
 type CrmTab = "overview" | "clientes" | "interacciones" | "ferias" | "aliados" | "resenas";
 
@@ -60,16 +62,13 @@ export function CRMView() {
 
   return (
     <div className="space-y-6 animate-in">
-      <div className="hero-banner bg-card border border-border p-6 rounded-2xl">
-        <h1 className="hero-title font-display text-4xl font-light tracking-tight text-foreground">
-          CRM de Vendedores
-        </h1>
-        <p className="hero-subtitle text-muted-foreground text-sm tracking-wide mt-1">
-          Historial de interacciones, métricas de conversión y agenda de ferias
-        </p>
-      </div>
+      <ViewShell
+        eyebrow="Relaciones"
+        title="CRM de Vendedores"
+        subtitle="Historial de interacciones, métricas de conversión y agenda de ferias"
+      />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="stats-grid">
         {[
           { icon: <Users size={20} />, val: String(stats.totalClientes), label: "Total Clientes" },
           { icon: <Target size={20} />, val: `${stats.conversionRate}%`, label: "Conversión" },
@@ -81,7 +80,7 @@ export function CRMView() {
           },
           { icon: <Calendar size={20} />, val: String(stats.upcomingEventos), label: "Próximas Ferias" },
         ].map((s, i) => (
-          <div key={i} className="stat-card p-5 rounded-2xl bg-card border border-border flex flex-col justify-between">
+          <div key={i} className="stat-card flex flex-col justify-between">
             <div className="stat-header flex items-center justify-between mb-2">
               <div className="stat-icon text-accent">{s.icon}</div>
               {s.trend && (
@@ -98,22 +97,16 @@ export function CRMView() {
         ))}
       </div>
 
-      <div className="flex gap-2 border-b border-border pb-px">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all ${
-              tab === t.key
-                ? "border-accent text-accent font-bold"
-                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
-            }`}
-          >
-            {t.icon}
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <ResponsiveTabBar
+        layoutId="crm-tabs"
+        tabs={tabs.map((t) => ({
+          id: t.key,
+          label: t.label,
+          icon: t.icon,
+        }))}
+        activeId={tab}
+        onChange={(id) => setTab(id as CrmTab)}
+      />
 
       {isLoading && (
         <div className="flex justify-center py-12">

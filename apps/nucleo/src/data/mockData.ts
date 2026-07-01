@@ -1,69 +1,22 @@
-// ─── CORE DATA TYPES ──────────────────────────────────────────────────────────
+// Types live in @/types/ecosystem — re-exported here for migrate scripts and legacy imports.
+export type {
+  VarroaRecord, PesoRecord, ReinaRecord, InspeccionRecord, CostoColmena,
+  Colmena, Product, CalendarioTask, ArbolPlantado,
+} from '@/types/ecosystem';
 
-export interface VarroaRecord { date: string; level: number; method: string; }
-export interface PesoRecord { date: string; kg: number; note?: string; }
-export interface ReinaRecord { generation: string; since: string; origin: string; status: 'activa' | 'inactiva' | 'ausente'; }
-export interface InspeccionRecord {
-    date: string; inspector: string; marcos_cria: number; marcos_miel: number;
-    varroa: number; poblacion: 'alta' | 'media' | 'baja'; reina: boolean;
-    enjambrazon_riesgo: 'bajo' | 'medio' | 'alto'; notes: string; foto?: string;
-}
-export interface CostoColmena {
-    horas_anuales: number; costo_hora: number; amortizacion_cajon: number;
-    insumos_anuales: number; produccion_kg: number;
-}
-
-export interface Colmena {
-    id: string; name: string; location: string; lat: number; lng: number;
-    health: 'optimal' | 'attention' | 'risk';
-    queen: string; reinaHistory: ReinaRecord[];
-    lastInspection: string; inspecciones: InspeccionRecord[];
-    production: number;
-    pesoHistory: PesoRecord[];
-    varroaHistory: VarroaRecord[];
-    floracion: string;
-    treatments: string[];
-    notes: string;
-    costos: CostoColmena;
-    blockchainHash: string;
-    loteActivo: string;
-    alzas: number;
-    nucleosCandidatos: boolean;
-}
-
-export interface Product {
-    id: string; name: string; description: string; price: number; format: string;
-    impactTrees: number; emoji: string; stock: number; category: string;
-    trazabilidad_qr?: boolean; slug?: string; video_url?: string; fotos?: string[];
-    categoria?: string; visible?: boolean; descripcion_regenerativa?: string;
-    precio?: number; formato?: string; origen_apicola?: string;
-}
 export interface TimelineEvent { year: number; label: string; description: string; active?: boolean; }
 export interface MapMarker {
     id: string; type: 'obrera' | 'zangano' | 'nectar' | 'tree' | 'feria';
     name: string; lat: number; lng: number; health?: 'optimal' | 'attention' | 'risk'; details?: string;
 }
 
-// Calendario cíclico mielero
-export interface CalendarioTask {
-    id: string; week: number; month: string; category: 'inspeccion' | 'cosecha' | 'tratamiento' | 'reforestacion' | 'transhumancia' | 'cera';
-    title: string; colmena?: string; priority: 'alta' | 'media' | 'baja';
-    done: boolean; notes?: string;
-}
-
-// Predicción flujo de néctar IA
 export interface FlowPrediction {
-    date: string; floracion: string; flujoIndex: number; // 0-100
+    date: string; floracion: string; flujoIndex: number;
     temperatura: number; humedad: number; prediccionKg: number;
-    confianza: number; // %
+    confianza: number;
 }
 
-// Árbol plantado para trazabilidad
-export interface ArbolPlantado {
-    id: string; especie: string; cantidad: number; fecha: string;
-    sector: string; coordenadas: { lat: number; lng: number };
-    co2_ton: number; lotesMiel: string[]; foto?: string; status: 'joven' | 'creciendo' | 'adulto';
-}
+import type { Colmena, Product, CalendarioTask, ArbolPlantado } from '@/types/ecosystem';
 
 // ─── COLMENAS (completo) ──────────────────────────────────────────────────────
 export const colmenas: Colmena[] = [

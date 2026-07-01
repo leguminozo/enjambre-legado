@@ -24,7 +24,7 @@ export function PosHeader() {
   ];
 
   return (
-    <header className="border-b border-border bg-background/80 backdrop-blur-md px-8 py-5 flex items-center justify-between sticky top-0 z-50">
+    <header className="border-b border-border bg-background md:bg-background/80 md:backdrop-blur-md px-4 md:px-8 py-5 flex items-center justify-between sticky top-0 z-50">
       <div className="flex items-center gap-12">
         <Link href="/" className="group flex items-center gap-3">
           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center font-serif text-primary-foreground font-bold">O</div>
@@ -45,6 +45,25 @@ export function PosHeader() {
               >
                 <Icon className="w-4 h-4" />
                 {item.name}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <nav className="flex md:hidden gap-4" aria-label="Navegación móvil">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-1.5 text-xs font-medium tracking-wider uppercase transition-all min-h-[44px] min-w-[44px] ${
+                  isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{item.name}</span>
               </Link>
             );
           })}

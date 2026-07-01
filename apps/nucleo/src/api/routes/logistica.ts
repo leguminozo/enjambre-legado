@@ -174,6 +174,35 @@ logisticaRoutes.post("/envios", zValidator("json", CreateEnvioSchema), async (c)
     return c.json({ code: "envio_create_failed", message: error.message }, 400);
   }
 
+  if (isShippedStatus(data.status)) {
+    const admin = createAdminClient();
+    if (admin && data.venta_id) {
+      await admin.from("ventas").update({ estado: "despachado" }).eq("id", data.venta_id);
+      const { data: venta } = await admin
+        .from("ventas")
+        .select("buyer_email, user_id, buy_order")
+        .eq("id", data.venta_id)
+        .maybeSingle();
+
+      if (venta?.buyer_email || venta?.user_id) {
+        try {
+          await notifyShipmentDispatched(admin, {
+            envioId: data.id,
+            trackingCode: data.tracking_code,
+            destino: data.destino,
+            status: data.status,
+            email: (venta.buyer_email as string | null) ?? null,
+            userId: (venta.user_id as string | null) ?? null,
+            buyOrder: (venta.buy_order as string | null) ?? null,
+            empresaId: data.empresa_id as string | null,
+          });
+        } catch (notifErr) {
+          console.error("[logistica/envios] shipment notification failed on POST:", notifErr);
+        }
+      }
+    }
+  }
+
   return c.json({ data }, 201);
 });
 
@@ -216,6 +245,7 @@ logisticaRoutes.patch("/envios/:id", zValidator("json", UpdateEnvioSchema), asyn
       let buyOrder: string | null = null;
 
       if (previous.venta_id) {
+        await admin.from("ventas").update({ estado: "despachado" }).eq("id", previous.venta_id);
         const { data: venta } = await admin
           .from("ventas")
           .select("buyer_email, user_id, buy_order")

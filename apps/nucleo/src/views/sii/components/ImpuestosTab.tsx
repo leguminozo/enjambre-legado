@@ -4,6 +4,7 @@ import { Calculator, BookOpen, Save, CheckCircle2 } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
 import { Card, CardHeader, CardTitle, CardContent, Button, Spinner } from "@enjambre/ui";
+import { ResponsiveTabBar } from "@/components/layout/ResponsiveTabBar";
 
 interface ImpuestosTabProps {
   initialType: "f29" | "f22";
@@ -67,29 +68,15 @@ export function ImpuestosTab({ initialType }: ImpuestosTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Sub-tab navigation */}
-      <div className="flex gap-2 border-b border-border pb-px">
-        <button
-          onClick={() => setActiveSubTab("f29")}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-            activeSubTab === "f29"
-              ? "border-primary text-primary font-bold"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Calculator size={14} /> F29 Mensual
-        </button>
-        <button
-          onClick={() => setActiveSubTab("f22")}
-          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-            activeSubTab === "f22"
-              ? "border-primary text-primary font-bold"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <BookOpen size={14} /> F22 Anual
-        </button>
-      </div>
+      <ResponsiveTabBar
+        layoutId={`impuestos-${initialType}`}
+        tabs={[
+          { id: "f29", label: "F29 Mensual", icon: <Calculator size={14} /> },
+          { id: "f22", label: "F22 Anual", icon: <BookOpen size={14} /> },
+        ]}
+        activeId={activeSubTab}
+        onChange={(id) => setActiveSubTab(id as "f29" | "f22")}
+      />
 
       {activeSubTab === "f29" && (
         <Card className="max-w-2xl">

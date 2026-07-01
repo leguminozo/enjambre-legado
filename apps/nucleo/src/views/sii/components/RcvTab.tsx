@@ -5,6 +5,7 @@ import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
 import { Card, CardHeader, CardTitle, CardContent, Button, Spinner } from "@enjambre/ui";
 import { RcvSyncRow, RcvRegistroRow } from "../types";
+import { EnjTableShell } from "@/components/layout/EnjTableShell";
 
 export function RcvTab() {
   const queryClient = useQueryClient();
@@ -113,8 +114,8 @@ export function RcvTab() {
                 </div>
 
                 {(rcvData.registros ?? []).length > 0 ? (
-                  <div className="overflow-x-auto rounded-xl border border-border">
-                    <table className="w-full text-sm text-left">
+                  <EnjTableShell>
+                    <table className="w-full text-sm text-left data-table">
                       <thead className="bg-surface-sunken border-b border-border">
                         <tr>
                           <th className="px-4 py-3 font-medium text-muted-foreground">Tipo</th>
@@ -157,7 +158,7 @@ export function RcvTab() {
                         ))}
                       </tbody>
                     </table>
-                  </div>
+                  </EnjTableShell>
                 ) : (
                   <div className="py-8 text-center bg-surface-sunken rounded-xl border border-border">
                     <p className="text-sm text-muted-foreground">Sin registros en este periodo</p>

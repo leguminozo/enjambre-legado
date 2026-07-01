@@ -7,6 +7,7 @@ import { BOSQUE_ULMO, ORO_MIEL, ORO_MIEL_DARK, SALUD_OPTIMA } from '@/lib/colors
 import 'leaflet/dist/leaflet.css';
 import { Plus, X, MapPin } from 'lucide-react';
 import { toast, friendlyError } from '@enjambre/ui';
+import { resolveClienteCoords } from '@/lib/cliente-coords';
 
 export interface MapMarker {
     id: string;
@@ -144,8 +145,16 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
             try {
                 const { data: apiarios } = await supabase.from('apiarios').select('id, name, lat, lng, details');
                 const { data: arboles } = await supabase.from('arboles_plantados').select('id, especie, lat, lng').not('lat', 'is', null);
-                const { data: evts } = await supabase.from('eventos').select('id, nombre, fecha_inicio').order('fecha_inicio', { ascending: true });
-                
+                const { data: evts } = await supabase
+                    .from('eventos')
+                    .select('id, nombre, fecha_inicio, lat, lng')
+                    .order('fecha_inicio', { ascending: true });
+                const { data: clientesRetail } = await supabase
+                    .from('clientes')
+                    .select('id, name, type, status, total_spent, notes, direccion, empresa')
+                    .in('type', ['B2B', 'Retail', 'Gourmet', 'Exportación'])
+                    .in('status', ['activo', 'frecuente']);
+
                 setEvents(evts ?? []);
 
                 const markers: MapMarker[] = [];
@@ -171,6 +180,35 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                             name: String(t.especie ?? 'Árbol nativo'),
                         });
                     }
+                });
+                evts?.forEach((e: Record<string, unknown>) => {
+                    if (e.lat != null && e.lng != null) {
+                        markers.push({
+                            id: `feria-${String(e.id)}`,
+                            lat: Number(e.lat),
+                            lng: Number(e.lng),
+                            type: 'feria',
+                            name: String(e.nombre ?? 'Feria / Evento'),
+                            details: e.fecha_inicio ? String(e.fecha_inicio) : undefined,
+                        });
+                    }
+                });
+                clientesRetail?.forEach((cl: Record<string, unknown>) => {
+                    const coords = resolveClienteCoords(
+                        cl.notes ? String(cl.notes) : null,
+                        cl.direccion ? String(cl.direccion) : null,
+                        cl.empresa ? String(cl.empresa) : null,
+                    );
+                    if (!coords) return;
+                    const spent = Number(cl.total_spent) || 0;
+                    markers.push({
+                        id: `nectar-${String(cl.id)}`,
+                        lat: coords.lat,
+                        lng: coords.lng,
+                        type: 'nectar',
+                        name: String(cl.name ?? 'Punto de venta'),
+                        details: spent > 0 ? `Cliente activo · $${Math.round(spent).toLocaleString('es-CL')}` : 'Punto de venta',
+                    });
                 });
                 setLiveMarkers(markers);
             } catch (err) {

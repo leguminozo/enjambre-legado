@@ -12,6 +12,9 @@ import {
   TrendingUp, BookOpen, Leaf, ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 export function CosteoView() {
   const [activeTab, setActiveTab] = useState<'margenes' | 'recetas' | 'insumos'>('margenes');
@@ -53,44 +56,25 @@ export function CosteoView() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-display text-foreground">Costeo y Rentabilidad</h1>
-          <p className="text-muted-foreground mt-1">
-            Análisis de márgenes comerciales, gestión de recetas maestras e insumos.
-          </p>
-        </div>
-        
-        <div className="flex bg-surface-sunken p-1 rounded-lg border border-border w-fit">
-          <button
-            onClick={() => setActiveTab('margenes')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
-              activeTab === 'margenes' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <TrendingUp size={16} />
-            Rentabilidad
-          </button>
-          <button
-            onClick={() => setActiveTab('recetas')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
-              activeTab === 'recetas' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <BookOpen size={16} />
-            Recetas Maestras
-          </button>
-          <button
-            onClick={() => setActiveTab('insumos')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
-              activeTab === 'insumos' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Leaf size={16} />
-            Insumos
-          </button>
-        </div>
-      </div>
+      <ViewShell
+        variant="compact"
+        eyebrow="Finanzas"
+        title="Costeo y Rentabilidad"
+        subtitle="Análisis de márgenes comerciales, gestión de recetas maestras e insumos."
+        icon={<TrendingUp size={20} />}
+      />
+
+      <ResponsiveTabBar
+        variant="pill"
+        layoutId="costeo-tabs"
+        tabs={[
+          { id: 'margenes', label: 'Rentabilidad', icon: <TrendingUp size={16} /> },
+          { id: 'recetas', label: 'Recetas', icon: <BookOpen size={16} /> },
+          { id: 'insumos', label: 'Insumos', icon: <Leaf size={16} /> },
+        ]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as 'margenes' | 'recetas' | 'insumos')}
+      />
 
       <AnimatePresence mode="wait">
         {/* PESTAÑA: MÁRGENES */}
@@ -114,7 +98,7 @@ export function CosteoView() {
                 ) : margenes.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay datos de rentabilidad calculados.</p>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <EnjTableShell>
                     <table className="w-full text-sm text-left">
                       <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
                         <tr>
@@ -156,7 +140,7 @@ export function CosteoView() {
                         })}
                       </tbody>
                     </table>
-                  </div>
+                  </EnjTableShell>
                 )}
               </CardContent>
             </Card>
@@ -183,7 +167,7 @@ export function CosteoView() {
                 ) : recetas.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay recetas configuradas.</p>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <EnjTableShell>
                     <table className="w-full text-sm text-left">
                       <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
                         <tr>
@@ -217,7 +201,7 @@ export function CosteoView() {
                         ))}
                       </tbody>
                     </table>
-                  </div>
+                  </EnjTableShell>
                 )}
               </CardContent>
             </Card>
@@ -244,7 +228,7 @@ export function CosteoView() {
                 ) : insumos.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay insumos registrados.</p>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <EnjTableShell>
                     <table className="w-full text-sm text-left">
                       <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
                         <tr>
@@ -277,7 +261,7 @@ export function CosteoView() {
                         ))}
                       </tbody>
                     </table>
-                  </div>
+                  </EnjTableShell>
                 )}
               </CardContent>
             </Card>

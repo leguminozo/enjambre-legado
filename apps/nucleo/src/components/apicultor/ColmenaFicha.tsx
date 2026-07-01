@@ -3,7 +3,7 @@ import { X, MapPin, Crown, Droplets, Scale, DollarSign, Link, AlertTriangle, Che
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { BOSQUE_ULMO, BOSQUE_ULMO_LIGHT, ORO_MIEL, TEXT_MUTED } from '@/lib/colors';
 import { useChartDimensions } from '@/hooks/use-chart-dimensions';
-import type { Colmena, InspeccionRecord } from '../../data/mockData';
+import type { Colmena, InspeccionRecord } from '@/types/ecosystem';
 import { supabase } from '../../lib/supabase';
 import { toast, friendlyError } from '@enjambre/ui';
 

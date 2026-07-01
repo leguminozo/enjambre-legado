@@ -10,6 +10,7 @@ import {
   estadoBadge,
   sourceBadge,
 } from "../types";
+import { EnjTableShell } from "@/components/layout/EnjTableShell";
 
 export function DashboardTab() {
   const queryClient = useQueryClient();
@@ -74,7 +75,7 @@ export function DashboardTab() {
       {dashboardQuery.isLoading ? (
         <div className="flex justify-center py-8"><Spinner className="w-8 h-8 text-primary" /></div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="stats-grid">
           <StatCard label="Total Compras Neto" value={dash?.totalComprasNeto ?? 0} icon={DollarSign} />
           <StatCard label="Total IVA Compras" value={dash?.totalComprasIva ?? 0} icon={DollarSign} />
           <StatCard label="Total Facturado" value={dash?.totalCompras ?? 0} icon={DollarSign} />
@@ -89,8 +90,8 @@ export function DashboardTab() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
+          <EnjTableShell caption="Desliza para ver columnas de facturas">
+            <table className="w-full text-sm text-left data-table">
               <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
                 <tr>
                   <th className="px-4 py-3">Folio</th>
@@ -153,7 +154,7 @@ export function DashboardTab() {
                 )}
               </tbody>
             </table>
-          </div>
+          </EnjTableShell>
         </CardContent>
       </Card>
       {dashboardQuery.isError && <p className="text-sm text-destructive">{dashboardQuery.error.message}</p>}

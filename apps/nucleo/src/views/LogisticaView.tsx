@@ -23,6 +23,8 @@ import {
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@enjambre/ui';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { BOSQUE_ULMO, ORO_MIEL, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors';
 import {
   CHILEAN_COURIERS,
@@ -141,7 +143,7 @@ export function LogisticaView() {
     tracking_code: `ENV-${Math.floor(Math.random() * 10000)}`,
     destino: '',
     items: '',
-    status: 'Programado',
+    status: 'En tránsito',
     eta: '',
     courier_code: DEFAULT_COURIER as CourierCode,
     venta_id: undefined as string | undefined,
@@ -203,7 +205,7 @@ export function LogisticaView() {
         tracking_code: `ENV-${Math.floor(Math.random() * 10000)}`,
         destino: '',
         items: '',
-        status: 'Programado',
+        status: 'En tránsito',
         eta: '',
         courier_code: DEFAULT_COURIER,
         venta_id: undefined,
@@ -242,10 +244,11 @@ export function LogisticaView() {
 
   return (
     <div className="space-y-6 animate-in">
-      <div className="hero-banner">
-        <h1 className="hero-title">Logística en Tiempo Real</h1>
-        <p className="hero-subtitle">Operaciones de despacho, stock multicentro y proveedores</p>
-      </div>
+      <ViewShell
+        eyebrow="Operaciones"
+        title="Logística en Tiempo Real"
+        subtitle="Operaciones de despacho, stock multicentro y proveedores"
+      />
 
       <div className="stats-grid">
         {[
@@ -324,7 +327,7 @@ export function LogisticaView() {
             </div>
 
             {statusEntries.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="filter-chips-scroll mb-4">
                 <button
                   onClick={() => setStatusFilter('all')}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -363,9 +366,15 @@ export function LogisticaView() {
                 >
                   <X size={16} />
                 </button>
-                <div className="text-sm font-semibold text-foreground mb-3">
+                <div className="text-sm font-semibold text-foreground mb-1">
                   Registrar Envío
                 </div>
+                {envioForm.status === 'En tránsito' && (
+                  <div className="text-[10px] text-info bg-info/10 border border-info/20 px-2 py-1 rounded-md mb-3 flex items-center gap-1.5">
+                    <Navigation size={12} />
+                    Al registrar como 'En tránsito', se enviará automáticamente un correo al cliente.
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1 block">
@@ -526,7 +535,7 @@ export function LogisticaView() {
               <div className="section-title">Stock Multicentro</div>
             </div>
             {dashboard.stockCenters.length > 0 ? (
-              <div className="overflow-x-auto">
+              <EnjTableShell caption="Desliza para ver columnas de stock">
                 <table className="data-table">
                   <thead>
                     <tr>
@@ -564,7 +573,7 @@ export function LogisticaView() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </EnjTableShell>
             ) : (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 <Warehouse size={32} className="mx-auto mb-2 opacity-50" />
@@ -668,6 +677,7 @@ export function LogisticaView() {
                               setEnvioForm({
                                 ...envioForm,
                                 items: itemsStr,
+                                status: 'En tránsito',
                                 venta_id: v.id,
                                 tracking_code: `VNT-${v.id.slice(0,4)}-${Math.floor(Math.random() * 1000)}`
                               });

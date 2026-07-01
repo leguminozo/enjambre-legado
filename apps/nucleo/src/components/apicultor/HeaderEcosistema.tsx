@@ -1,18 +1,41 @@
 import { Moon, Droplets, Flower2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { getMoonPhaseIndex, getMoonPhaseName } from '@/lib/moon-phase';
+import { supabase } from '@/lib/supabase';
 
-// Fase lunar simulada. En el futuro integrar SunCalc.js
-const fasesLunares = [
-  { nombre: 'Luna Nueva', icon: <Moon size={16} fill="transparent" /> },
-  { nombre: 'Cuarto Creciente', icon: <Moon size={16} fill="hsl(var(--foreground) / 0.5)" /> },
-  { nombre: 'Luna Llena', icon: <Moon size={16} fill="currentColor" /> },
-  { nombre: 'Cuarto Menguante', icon: <Moon size={16} fill="hsl(var(--foreground) / 0.2)" /> },
+const MOON_ICONS = [
+  <Moon key="nueva" size={16} fill="transparent" />,
+  <Moon key="creciente" size={16} fill="hsl(var(--foreground) / 0.5)" />,
+  <Moon key="llena" size={16} fill="currentColor" />,
+  <Moon key="menguante" size={16} fill="hsl(var(--foreground) / 0.2)" />,
 ];
 
 export function HeaderEcosistema() {
-  const [faseActual, setFaseActual] = useState(fasesLunares[1]); // Simulando cuarto creciente
-  const [marea, setMarea] = useState('Subiendo - Alta a las 14:30');
-  const [floracion, setFloracion] = useState({ especie: 'Tepú', porcentaje: 45 });
+  const [faseNombre, setFaseNombre] = useState(getMoonPhaseName());
+  const [faseIcon, setFaseIcon] = useState(MOON_ICONS[getMoonPhaseIndex()]);
+  const [floracion, setFloracion] = useState<{ especie: string; count: number } | null>(null);
+
+  useEffect(() => {
+    const idx = getMoonPhaseIndex();
+    setFaseNombre(getMoonPhaseName());
+    setFaseIcon(MOON_ICONS[idx]);
+
+    supabase
+      .from('colmenas')
+      .select('floracion')
+      .not('floracion', 'is', null)
+      .then(({ data }: { data: { floracion: string | null }[] | null }) => {
+        const counts = new Map<string, number>();
+        (data ?? []).forEach((row) => {
+          const raw = String(row.floracion ?? '').trim();
+          if (!raw) return;
+          const especie = raw.split('+')[0].trim().split(',')[0].trim();
+          counts.set(especie, (counts.get(especie) ?? 0) + 1);
+        });
+        const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+        if (top) setFloracion({ especie: top[0], count: top[1] });
+      });
+  }, []);
 
   return (
     <div style={{
@@ -28,28 +51,27 @@ export function HeaderEcosistema() {
       textTransform: 'uppercase',
       letterSpacing: '0.05em',
       alignItems: 'center',
-      justifyContent: 'space-between'
+      justifyContent: 'space-between',
     }}>
       <div style={{ display: 'flex', gap: 'var(--space-xl)', alignItems: 'center' }}>
-        
-        {/* Fase Lunar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'hsl(var(--accent))' }}>
-          {faseActual.icon}
-          <span>{faseActual.nombre}</span>
+          {faseIcon}
+          <span>{faseNombre}</span>
         </div>
-
-        {/* Marea */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'hsl(var(--muted-foreground))' }}>
           <Droplets size={16} />
-          <span>Marea: {marea}</span>
+          <span>Pureo · Chiloé</span>
         </div>
-
       </div>
 
-      {/* Floración */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <Flower2 size={16} style={{ color: 'hsl(var(--success))' }} />
-        <span>Floración Actual: <strong style={{ color: 'hsl(var(--foreground))' }}>{floracion.especie} ({floracion.porcentaje}%)</strong></span>
+        <span>
+          Floración activa:{' '}
+          <strong style={{ color: 'hsl(var(--foreground))' }}>
+            {floracion ? `${floracion.especie} (${floracion.count} colmenas)` : 'Sin datos'}
+          </strong>
+        </span>
       </div>
     </div>
   );

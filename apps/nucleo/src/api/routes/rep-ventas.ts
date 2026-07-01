@@ -131,11 +131,32 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     return c.json({ code: "feria_validation_failed", message }, 500);
   }
 
+  // 0. Prevención de Ventas Ilegales: Bloquear si quedan < 10 folios de boleta (tipo 39)
+  if (empresaId) {
+    const { data: cafData, error: cafError } = await supabase
+      .from('sii_caf')
+      .select('folio_hasta, folio_actual')
+      .eq('empresa_id', empresaId)
+      .eq('tipo_dte', 39) // Boleta Electrónica
+      .eq('activo', true)
+      .maybeSingle();
+
+    if (!cafError && cafData) {
+      const foliosDisponibles = cafData.folio_hasta - cafData.folio_actual;
+      if (foliosDisponibles < 10) {
+        return c.json({ 
+          code: "folios_exhausted", 
+          message: 'El sistema de POS se encuentra en mantenimiento (código: folios). Por favor pide más boletas.' 
+        }, 503);
+      }
+    }
+  }
+
   // 1. Descontar stock de productos y obtener hash de trazabilidad
   const enrichedItems = [];
   const decremented: { productId: string; quantity: number }[] = [];
   for (const item of items) {
-    const { data: stockData, error: stockErr } = await supabase.rpc("decrement_stock", {
+    const { data: stockData, error: stockErr } = await supabase.rpc("decrement_stock_force", {
       p_id: item.producto_id,
       p_qty: item.cantidad,
     });
@@ -152,9 +173,14 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
 
     decremented.push({ productId: item.producto_id, quantity: item.cantidad });
 
-    const dataAny = stockData as Array<{ traceability_hash?: string; lote_id?: string }>;
+    const dataAny = stockData as Array<{ traceability_hash?: string; lote_id?: string; stock?: number }>;
     const hash = dataAny[0]?.traceability_hash ?? null;
     const lote_id = dataAny[0]?.lote_id ?? null;
+    const currentStock = dataAny[0]?.stock ?? 0;
+
+    if (currentStock < 0) {
+      console.warn(`[SyncEngine] Sobregiro de inventario en POS offline: producto ${item.producto_id} quedó con stock ${currentStock}.`);
+    }
 
     enrichedItems.push({
       ...item,

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Star, ShieldCheck } from 'lucide-react';
 import { getAuthToken } from '@/lib/shop/resenas-api';
 
-const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
+import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 
 type MineResena = {
   id: string;
@@ -36,7 +36,12 @@ export default function PerfilResenasPage() {
         setLoading(false);
         return;
       }
-      const res = await fetch(`${NUCLEO_URL}/api/resenas/mine`, {
+      const nucleoUrl = getNucleoApiUrl();
+      if (!nucleoUrl) {
+        setLoading(false);
+        return;
+      }
+      const res = await fetch(`${nucleoUrl}/api/resenas/mine`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {

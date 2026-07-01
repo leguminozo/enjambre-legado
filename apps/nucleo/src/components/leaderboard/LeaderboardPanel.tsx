@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase';
 import { friendlyError, toast } from '@enjambre/ui';
 import { Trophy, Medal, Crown, TrendingUp, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 interface LeaderboardEntry {
   rank: number;
@@ -72,24 +74,22 @@ export function LeaderboardPanel() {
 
   return (
   <div className="space-y-8 animate-in relative">
-    <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center text-accent">
-          <Trophy size={24} />
-        </div>
-        <div>
-          <h2 className="text-2xl font-display text-primary">Ranking Semanal</h2>
-          <p className="text-sm text-muted-foreground">{weekLabel} · Ranking por comisiones</p>
-        </div>
-      </div>
+    <ViewShell
+        variant="compact"
+        eyebrow="Equipo"
+        title="Ranking Semanal"
+        subtitle={`${weekLabel} · Ranking por comisiones`}
+        icon={<Trophy size={22} />}
+      />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="stats-grid">
         {[
           { icon: <Trophy size={18} />, val: entries.length, label: 'Representantes Activos', accent: '' },
           { icon: <TrendingUp size={18} />, val: formatCLP(totalCommissions), label: 'Comisiones Totales', accent: 'text-accent' },
           { icon: <Medal size={18} />, val: totalSales, label: 'Ventas Totales', accent: '' },
           { icon: <Crown size={18} />, val: entries[0]?.display_name || '—', label: 'Líder Semanal', accent: 'text-primary' },
         ].map((s, i) => (
-          <div key={i} className="stat-card animate-in" style={{ animationDelay: `${i * 80}ms` }}>
+          <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
             <div className="stat-header"><div className="stat-icon">{s.icon}</div></div>
             <div className={`stat-value ${s.accent}`}>{s.val}</div>
             <div className="stat-label">{s.label}</div>
@@ -122,8 +122,8 @@ export function LeaderboardPanel() {
             <TrendingUp size={18} className="text-accent" />
             <h3 className="font-display text-lg">Clasificación Completa</h3>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <EnjTableShell>
+            <table className="w-full text-sm data-table">
               <thead>
                 <tr className="text-left text-muted-foreground text-[0.65rem] uppercase tracking-wider border-b border-foreground/5">
                   <th className="pb-3 w-12">#</th>
@@ -151,7 +151,7 @@ export function LeaderboardPanel() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </EnjTableShell>
         </div>
       )}
 

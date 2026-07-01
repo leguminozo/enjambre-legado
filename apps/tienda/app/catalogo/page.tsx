@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { listVisibleProducts } from '@/lib/shop/products';
-import { itemListJsonLd, renderJsonLd } from '@/lib/shop/json-ld';
+import { itemListJsonLd } from '@/lib/shop/json-ld';
+import { JsonLd } from '@/components/ui/JsonLd';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -49,12 +50,7 @@ export default async function CatalogoPage() {
   return (
     <StoreShell>
       <ShopHeader />
-      {listSchema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: renderJsonLd(listSchema) }}
-        />
-      )}
+      {listSchema && <JsonLd data={listSchema} />}
       <main className="min-h-[50vh] bg-background">
         {loadError ? (
           <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">

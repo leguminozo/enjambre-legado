@@ -20,6 +20,7 @@ import {
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { toast } from '@enjambre/ui';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { ViewShell } from '@/components/layout/ViewShell';
 
 type Lead = {
   id: string;
@@ -133,10 +134,11 @@ export function PipelineView() {
 
   return (
     <div className="space-y-6 animate-in">
-      <div className="hero-banner">
-        <h1 className="hero-title">Pipeline de Ventas</h1>
-        <p className="hero-subtitle">Gestión de leads, oportunidades y tareas de seguimiento</p>
-      </div>
+      <ViewShell
+        eyebrow="Ventas"
+        title="Pipeline de Ventas"
+        subtitle="Gestión de leads, oportunidades y tareas de seguimiento"
+      />
 
       {stats && (
         <div className="stats-grid">
@@ -169,7 +171,7 @@ export function PipelineView() {
           </button>
         </div>
 
-        <div className="flex gap-2 mb-6">
+        <div className="filter-chips-scroll mb-6">
           <button
             onClick={() => setSelectedEtapa('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${

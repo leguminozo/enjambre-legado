@@ -9,6 +9,7 @@ import {
   breadcrumbJsonLd,
   renderJsonLd,
 } from '@/lib/shop/json-ld';
+import { JsonLd } from '@/components/ui/JsonLd';
 import { AddToCartButton, TraceabilitySection } from './ui';
 import { ResenasSection } from '@/components/shop/resenas-section';
 import { fetchResenas } from '@/lib/shop/resenas-api';
@@ -119,14 +120,8 @@ export default async function ProductoPage({ params }: PageProps) {
 
   return (
     <Shell>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: renderJsonLd(productSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: renderJsonLd(breadcrumbSchema) }}
-      />
+      <JsonLd data={productSchema} />
+      <JsonLd data={breadcrumbSchema} />
     <main className="bg-background pb-16">
         <div className="border-b border-border px-4 py-4 sm:px-6">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">

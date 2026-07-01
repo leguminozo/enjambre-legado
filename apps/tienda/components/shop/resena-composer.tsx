@@ -8,8 +8,9 @@ import {
   type CreateResenaInput,
 } from '@enjambre/resenas';
 import { friendlyError, toast } from '@enjambre/ui';
-import { Star, Sparkles, MessageCircle, X } from 'lucide-react';
+import { Star, Sparkles, MessageCircle } from 'lucide-react';
 import { createResena, getAuthToken } from '@/lib/shop/resenas-api';
+import { TiendaModal } from '@/components/shop/tienda-modal';
 
 type Modo = 'anonima' | 'guardian';
 
@@ -21,7 +22,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
           key={n}
           type="button"
           onClick={() => onChange(n)}
-          className="p-1 transition hover:scale-110"
+          className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center transition hover:scale-110"
           aria-label={`${n} estrellas`}
         >
           <Star
@@ -34,14 +35,19 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
   );
 }
 
+const modalFieldClass =
+  'w-full rounded-lg border border-border bg-secondary/40 px-3 py-3 text-base sm:text-sm text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30';
+
 export function ResenaComposer({
   productoId,
   productName,
+  open,
   onClose,
   onSubmitted,
 }: {
   productoId: string;
   productName: string;
+  open: boolean;
   onClose: () => void;
   onSubmitted?: () => void;
 }) {
@@ -116,144 +122,137 @@ export function ResenaComposer({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center p-4 bg-background/70 backdrop-blur-sm">
-      <div
-        className={`w-full max-w-lg rounded-2xl border border-border bg-card shadow-2xl overflow-hidden ${
-          modo === 'guardian' ? 'ring-1 ring-accent/30' : ''
+  const modeTabs = (
+    <div className="flex gap-2 -mt-1">
+      <button
+        type="button"
+        onClick={() => setModo('anonima')}
+        className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 min-h-[44px] text-sm transition ${
+          modo === 'anonima' ? 'bg-muted text-foreground' : 'text-muted-foreground'
         }`}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">Reseña</p>
-            <h3 className="font-display text-lg">{productName}</h3>
-          </div>
-          <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground">
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="flex gap-2 p-4 border-b border-border bg-background/40">
-          <button
-            type="button"
-            onClick={() => setModo('anonima')}
-            className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
-              modo === 'anonima' ? 'bg-muted text-foreground' : 'text-muted-foreground'
-            }`}
-          >
-            <MessageCircle size={16} />
-            {RESENA_COPY.anonTitle}
-          </button>
-          <button
-            type="button"
-            onClick={() => setModo('guardian')}
-            className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
-              modo === 'guardian' ? 'bg-accent/15 text-accent' : 'text-muted-foreground'
-            }`}
-          >
-            <Sparkles size={16} />
-            {RESENA_COPY.guardianTitle}
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
-          <div>
-            <p className="text-xs text-muted-foreground mb-2">Tu valoración</p>
-            <StarPicker value={rating} onChange={setRating} />
-          </div>
-
-          {modo === 'anonima' ? (
-            <>
-              <p className="text-xs text-muted-foreground">{RESENA_COPY.anonSubtitle}</p>
-              <textarea
-                value={comentario}
-                onChange={(e) => setComentario(e.target.value)}
-                maxLength={280}
-                rows={4}
-                placeholder="¿Qué te transmitió esta miel?"
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none"
-              />
-              <input
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Tu apodo (opcional)"
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-              />
-            </>
-          ) : (
-            <>
-              <p className="text-xs text-accent/80">{RESENA_COPY.guardianSubtitle}</p>
-              <div className="grid grid-cols-2 gap-3">
-                <label className="text-xs space-y-1">
-                  Cuerpo
-                  <select
-                    value={cristalizacion}
-                    onChange={(e) => setCristalizacion(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-2 py-2 text-sm"
-                  >
-                    {CRISTALIZACION_OPCIONES.map((o) => (
-                      <option key={o} value={o}>{o}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="text-xs space-y-1">
-                  Aroma
-                  <select
-                    value={familia}
-                    onChange={(e) => setFamilia(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-2 py-2 text-sm"
-                  >
-                    {FAMILIAS_AROMATICAS.map((o) => (
-                      <option key={o} value={o}>{o}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <label className="text-xs block space-y-1">
-                Intensidad en boca ({intensidad}/10)
-                <input
-                  type="range"
-                  min={1}
-                  max={10}
-                  value={intensidad}
-                  onChange={(e) => setIntensidad(Number(e.target.value))}
-                  className="w-full"
-                />
-              </label>
-              <textarea
-                value={notas}
-                onChange={(e) => setNotas(e.target.value)}
-                rows={4}
-                placeholder="Describe la huella sensorial completa..."
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none"
-              />
-              <input
-                value={momento}
-                onChange={(e) => setMomento(e.target.value)}
-                placeholder="Momento de consumo (opcional)"
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-              />
-              <input
-                value={maridaje}
-                onChange={(e) => setMaridaje(e.target.value)}
-                placeholder="Maridaje sugerido (opcional)"
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-              />
-            </>
-          )}
-        </div>
-
-        <div className="p-4 border-t border-border">
-          <button
-            type="button"
-            disabled={loading}
-            onClick={() => void handleSubmit()}
-            className="w-full rounded-full bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-          >
-            {loading ? 'Enviando...' : modo === 'guardian' ? RESENA_COPY.guardianCta : RESENA_COPY.anonCta}
-          </button>
-        </div>
-      </div>
+        <MessageCircle size={16} />
+        {RESENA_COPY.anonTitle}
+      </button>
+      <button
+        type="button"
+        onClick={() => setModo('guardian')}
+        className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 min-h-[44px] text-sm transition ${
+          modo === 'guardian' ? 'bg-accent/15 text-accent' : 'text-muted-foreground'
+        }`}
+      >
+        <Sparkles size={16} />
+        {RESENA_COPY.guardianTitle}
+      </button>
     </div>
+  );
+
+  return (
+    <TiendaModal
+      open={open}
+      onClose={onClose}
+      kicker="Reseña"
+      title={productName}
+      ariaLabel={`Escribir reseña de ${productName}`}
+      size="lg"
+      headerExtra={modeTabs}
+      footer={
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => void handleSubmit()}
+          className="w-full min-h-[48px] rounded-full bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+        >
+          {loading ? 'Enviando...' : modo === 'guardian' ? RESENA_COPY.guardianCta : RESENA_COPY.anonCta}
+        </button>
+      }
+    >
+      <div className={`space-y-4 ${modo === 'guardian' ? 'ring-0' : ''}`}>
+        <div>
+          <p className="text-xs text-muted-foreground mb-2">Tu valoración</p>
+          <StarPicker value={rating} onChange={setRating} />
+        </div>
+
+        {modo === 'anonima' ? (
+          <>
+            <p className="text-xs text-muted-foreground">{RESENA_COPY.anonSubtitle}</p>
+            <textarea
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+              maxLength={280}
+              rows={4}
+              placeholder="¿Qué te transmitió esta miel?"
+              className={`${modalFieldClass} resize-none`}
+            />
+            <input
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Tu apodo (opcional)"
+              className={modalFieldClass}
+            />
+          </>
+        ) : (
+          <>
+            <p className="text-xs text-accent/80">{RESENA_COPY.guardianSubtitle}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="text-xs space-y-1.5">
+                Cuerpo
+                <select
+                  value={cristalizacion}
+                  onChange={(e) => setCristalizacion(e.target.value)}
+                  className={modalFieldClass}
+                >
+                  {CRISTALIZACION_OPCIONES.map((o) => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-xs space-y-1.5">
+                Aroma
+                <select
+                  value={familia}
+                  onChange={(e) => setFamilia(e.target.value)}
+                  className={modalFieldClass}
+                >
+                  {FAMILIAS_AROMATICAS.map((o) => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <label className="text-xs block space-y-1.5">
+              Intensidad en boca ({intensidad}/10)
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={intensidad}
+                onChange={(e) => setIntensidad(Number(e.target.value))}
+                className="w-full min-h-[44px]"
+              />
+            </label>
+            <textarea
+              value={notas}
+              onChange={(e) => setNotas(e.target.value)}
+              rows={4}
+              placeholder="Describe la huella sensorial completa..."
+              className={`${modalFieldClass} resize-none`}
+            />
+            <input
+              value={momento}
+              onChange={(e) => setMomento(e.target.value)}
+              placeholder="Momento de consumo (opcional)"
+              className={modalFieldClass}
+            />
+            <input
+              value={maridaje}
+              onChange={(e) => setMaridaje(e.target.value)}
+              placeholder="Maridaje sugerido (opcional)"
+              className={modalFieldClass}
+            />
+          </>
+        )}
+      </div>
+    </TiendaModal>
   );
 }

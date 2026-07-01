@@ -8,6 +8,7 @@ import {
   DollarSign, CheckCircle2, Eye
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
+import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 interface CommissionRow {
   id: string;
@@ -85,9 +86,9 @@ export function ComisionesPanel() {
     if (selectedIds.size === 0) return;
     setActionLoading(true);
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const { data: { user: authUser } } = await supabase.auth.getUser(); // Validates JWT
       if (!authUser) throw new Error('No autenticado');
-      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const { data: { session: authSession } } = await supabase.auth.getSession(); // Get token after validation
 
       const res = await fetch('/api/invitations/commissions/pay', {
         method: 'POST',
@@ -196,8 +197,8 @@ export function ComisionesPanel() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <EnjTableShell caption="Desliza para ver todas las columnas">
+          <table className="w-full text-sm data-table">
             <thead>
       <tr className="text-left text-muted-foreground text-[0.65rem] uppercase tracking-wider border-b border-foreground/5">
         {!filterPaid?.startsWith('pag') && <th className="pb-3 w-8"></th>}
@@ -245,7 +246,7 @@ export function ComisionesPanel() {
               ))}
             </tbody>
           </table>
-        </div>
+        </EnjTableShell>
       </div>
     </div>
   );

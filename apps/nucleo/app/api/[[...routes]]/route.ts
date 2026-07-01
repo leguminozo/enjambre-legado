@@ -36,6 +36,7 @@ import { notificationsRoutes } from "@/api/routes/notifications";
 import { resenasRoutes } from "@/api/routes/resenas";
 import { walletRoutes } from "@/api/routes/wallet";
 import { ritualRoutes } from "@/api/routes/ritual";
+import { blockchainRoutes } from "@/api/routes/blockchain/anchors";
 
 export type { AppVariables };
 
@@ -151,6 +152,7 @@ app.use("*", async (c, next) => {
     "/api/webhooks",
     "/api/resenas",
     "/api/wallet",
+    "/api/blockchain/verify",
   ];
   const path = new URL(c.req.url).pathname;
 
@@ -205,6 +207,7 @@ app.route("/notifications", notificationsRoutes);
 app.route("/resenas", resenasRoutes);
 app.route("/wallet", walletRoutes);
 app.route("/ritual", ritualRoutes);
+app.route("/blockchain", blockchainRoutes);
 
 app.onError((err, c) => {
   console.error(err);

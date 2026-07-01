@@ -298,6 +298,29 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       return c.json({ code: "empty_cart", message: 'Carrito vacío después de verificación' }, 400);
     }
 
+    // Prevención de Ventas Ilegales: Bloquear si quedan < 10 folios de boleta (tipo 39)
+    const { data: empresa } = await admin.from('empresas').select('id').limit(1).maybeSingle();
+    if (empresa) {
+      const { data: cafData, error: cafError } = await admin
+        .from('sii_caf')
+        .select('folio_hasta, folio_actual')
+        .eq('empresa_id', empresa.id)
+        .eq('tipo_dte', 39) // Boleta Electrónica
+        .eq('activo', true)
+        .maybeSingle();
+
+      if (!cafError && cafData) {
+        const foliosDisponibles = cafData.folio_hasta - cafData.folio_actual;
+        if (foliosDisponibles < 10) {
+          return c.json({ 
+            code: "folios_exhausted", 
+            message: 'El sistema de pagos se encuentra en mantenimiento (código: folios). Por favor intenta más tarde.',
+            error: 'El sistema de pagos se encuentra temporalmente en mantenimiento. Por favor intenta más tarde.'
+          }, 503);
+        }
+      }
+    }
+
     if (requestedCourier && !isCourierCode(requestedCourier)) {
       return c.json({ code: 'invalid_courier', message: 'Courier no disponible' }, 400);
     }

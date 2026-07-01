@@ -14,6 +14,9 @@ import {
   History, Settings, FileText, ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 // Types
 interface Propuesta {
@@ -155,50 +158,30 @@ export function ConciliacionAutoView() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-display text-foreground">Conciliación Automática</h1>
-          <p className="text-muted-foreground mt-1">
-            Emparejamiento inteligente de movimientos del Banco de Chile con facturas y gastos.
-          </p>
-        </div>
-        
-        {/* Tab Navigation */}
-        <div className="flex bg-surface-sunken p-1 rounded-lg border border-border w-fit">
-          <button
-            onClick={() => setActiveTab('propuestas')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
-              activeTab === 'propuestas' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <AlertCircle size={16} />
-            Propuestas
-            {propuestas.length > 0 && (
-              <span className="bg-primary/20 text-primary text-xs px-1.5 rounded-full">
-                {propuestas.length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('historial')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
-              activeTab === 'historial' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <History size={16} />
-            Historial
-          </button>
-          <button
-            onClick={() => setActiveTab('reglas')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
-              activeTab === 'reglas' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Settings size={16} />
-            Reglas
-          </button>
-        </div>
-      </div>
+      <ViewShell
+        variant="compact"
+        eyebrow="Banco Chile"
+        title="Conciliación Automática"
+        subtitle="Emparejamiento inteligente de movimientos del Banco de Chile con facturas y gastos."
+        icon={<FileText size={20} />}
+      />
+
+      <ResponsiveTabBar
+        variant="pill"
+        layoutId="conciliacion-tabs"
+        tabs={[
+          {
+            id: 'propuestas',
+            label: 'Propuestas',
+            icon: <AlertCircle size={16} />,
+            badge: propuestas.length > 0 ? propuestas.length : undefined,
+          },
+          { id: 'historial', label: 'Historial', icon: <History size={16} /> },
+          { id: 'reglas', label: 'Reglas', icon: <Settings size={16} /> },
+        ]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as 'propuestas' | 'historial' | 'reglas')}
+      />
 
       <AnimatePresence mode="wait">
         {/* PESTAÑA: PROPUESTAS */}
@@ -365,8 +348,8 @@ export function ConciliacionAutoView() {
                 ) : historial.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay registros en el historial.</p>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
+                  <EnjTableShell>
+                    <table className="w-full text-sm text-left data-table">
                       <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
                         <tr>
                           <th className="px-4 py-3 rounded-tl-lg">Fecha Conciliación</th>
@@ -406,7 +389,7 @@ export function ConciliacionAutoView() {
                         ))}
                       </tbody>
                     </table>
-                  </div>
+                  </EnjTableShell>
                 )}
               </CardContent>
             </Card>

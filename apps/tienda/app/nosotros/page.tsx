@@ -3,7 +3,8 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContent } from '@/lib/cms';
-import { articleJsonLd, breadcrumbJsonLd, mergeJsonLd, renderJsonLd } from '@/lib/shop/json-ld';
+import { articleJsonLd, breadcrumbJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
+import { JsonLd } from '@/components/ui/JsonLd';
 import { X } from 'lucide-react';
 
 const EVIDENCIA_CIENTIFICA = [
@@ -166,10 +167,7 @@ export default function NosotrosPage() {
   return (
     <StoreShell>
       <ShopHeader />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: renderJsonLd(nosotrosJsonLd) }}
-      />
+      <JsonLd data={nosotrosJsonLd} />
       <main className="mx-auto max-w-5xl px-6 py-16 sm:px-8 lg:py-24">
 {/* Hero */}
 <div className="text-center mb-20">

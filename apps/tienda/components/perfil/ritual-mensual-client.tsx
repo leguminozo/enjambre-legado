@@ -30,6 +30,8 @@ export function RitualMensualClient({ subscription, plans }: RitualMensualClient
     try {
       const { createClient } = await import('@/utils/supabase/client');
       const supabase = createClient();
+      // getUser() validates JWT with Supabase Auth server
+      await supabase.auth.getUser();
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
 
@@ -39,7 +41,13 @@ export function RitualMensualClient({ subscription, plans }: RitualMensualClient
         return;
       }
 
-      const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
+      const { getNucleoApiUrl } = await import('@/lib/shop/nucleo-url');
+      const NUCLEO_URL = getNucleoApiUrl();
+      if (!NUCLEO_URL) {
+        toast('Suscripción no disponible en este momento.', { type: 'error' });
+        setLoading(false);
+        return;
+      }
       const returnUrl = `${window.location.origin}/perfil/ritual/resultado`;
 
       const res = await fetch(`${NUCLEO_URL}/api/subscriptions/checkout/init`, {

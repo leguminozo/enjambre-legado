@@ -98,19 +98,23 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
       if (!isRouteAllowed(pathname, role)) {
         const origin = request.nextUrl.origin
         const internalKey = getInternalApiSecret() || ''
-        fetch(`${origin}/api/security-events/internal`, {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            ...(internalKey ? { 'x-internal-key': internalKey } : {}),
-          },
-          body: JSON.stringify({
-            eventType: 'access_denied',
-            email: user.email ?? '',
-            userId: user.id,
-            details: { attemptedPath: pathname, role },
-          }),
-        }).catch(() => {})
+        // Await logging with timeout to ensure event is recorded
+        await Promise.race([
+          fetch(`${origin}/api/security-events/internal`, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              ...(internalKey ? { 'x-internal-key': internalKey } : {}),
+            },
+            body: JSON.stringify({
+              eventType: 'access_denied',
+              email: user.email ?? '',
+              userId: user.id,
+              details: { attemptedPath: pathname, role },
+            }),
+          }).catch(() => {}),
+          new Promise(resolve => setTimeout(resolve, 100)),
+        ])
         const targetPath = roleRedirectMap[role] ?? '/perfil'
         if (!isExternalRedirect(targetPath) && pathname === targetPath) {
           return new NextResponse('Access Denied', { status: 403 })

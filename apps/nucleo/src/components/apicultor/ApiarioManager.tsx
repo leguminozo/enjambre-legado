@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets } from 'lucide-react';
-import type { Colmena } from '../../data/mockData';
+import type { Colmena } from '@/types/ecosystem';
+import { estadoFromHealth } from '@/types/ecosystem';
 import { supabase } from '../../lib/supabase';
 
 interface ApiarioManagerProps {
@@ -80,9 +81,13 @@ const { data: existingAp } = await supabase.from('apiarios').select('id').eq('na
                 }
             } else if (!isNew) {
                 await supabase.from('colmenas').update({
-                    name: c.name, health: c.health, floracion: c.floracion,
+                    name: c.name,
+                    estado: estadoFromHealth(c.health),
+                    floracion: c.floracion,
                     last_inspection: c.lastInspection || null,
-                    alzas: c.alzas || 1, notes: c.notes || ''
+                    production_total: c.production || 0,
+                    alzas: c.alzas || 1,
+                    notes: c.notes || '',
                 }).eq('id', c.id);
             }
         } catch (err) {

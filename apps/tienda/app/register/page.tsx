@@ -7,7 +7,13 @@ export const metadata = {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+    <Suspense
+      fallback={
+        <div className="tienda-auth-page flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent" />
+        </div>
+      }
+    >
       <RegisterForm />
     </Suspense>
   );

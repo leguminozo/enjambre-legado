@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity } from 'lucide-react';
-import type { Colmena, InspeccionRecord, VarroaRecord, PesoRecord } from '../data/mockData';
-import { SegmentControl } from '../components/ui/SegmentControl';
-
-function healthFromEstado(estado: string | null | undefined): Colmena['health'] {
-    if (estado === 'optima') return 'optimal';
-    if (estado === 'atencion') return 'attention';
-    return 'risk';
-}
+import type { Colmena, InspeccionRecord, VarroaRecord, PesoRecord } from '@/types/ecosystem';
+import { healthFromEstado, estadoFromHealth } from '@/types/ecosystem';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { fetchPronostico } from '@/lib/meteo';
 import { mapInAppNotificationToAlertItem } from '@enjambre/auth';
 import { supabase } from '../lib/supabase';
 import { ColmenaFicha } from '../components/apicultor/ColmenaFicha';
@@ -40,6 +37,7 @@ type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad';
 export function ApicultorView() {
     const [userProfile, setUserProfile] = useState<{ full_name?: string } | null>(null);
     const [treesCount, setTreesCount] = useState<number>(0);
+    const [tempPureo, setTempPureo] = useState<string>('—');
     const [localColmenas, setLocalColmenas] = useState<Colmena[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedColmena, setSelectedColmena] = useState<Colmena | null>(null);
@@ -173,13 +171,37 @@ export function ApicultorView() {
         loadData();
     }, []);
 
+    useEffect(() => {
+        fetchPronostico().then((data) => {
+            if (!data?.temperature_2m?.length) return;
+            const hour = new Date().getHours();
+            const temp = data.temperature_2m[hour] ?? data.temperature_2m[0];
+            if (typeof temp === 'number') setTempPureo(`${Math.round(temp)}°C`);
+        });
+    }, []);
+
     const handleUpdateColmena = async (updated: Colmena) => {
-        // Optimistic update in UI
         setLocalColmenas(prev => prev.map(c => c.id === updated.id ? updated : c));
         if (selectedColmena?.id === updated.id) setSelectedColmena(updated);
 
-        // We would ideally write back to Supabase here
-        // Ex: supabase.from('colmenas').update({ name: updated.name }).eq('id', updated.id)
+        if (!updated.id || updated.id.length < 20) return;
+        try {
+            const { error } = await supabase.from('colmenas').update({
+                name: updated.name,
+                estado: estadoFromHealth(updated.health),
+                floracion: updated.floracion,
+                last_inspection: updated.lastInspection || null,
+                production_total: updated.production,
+                alzas: updated.alzas,
+                notes: updated.notes || '',
+                queen: updated.queen || null,
+                lote_activo: updated.loteActivo || null,
+                nucleos_candidatos: updated.nucleosCandidatos,
+            }).eq('id', updated.id);
+            if (error) throw error;
+        } catch (err) {
+            console.error('Error syncing colmena:', err);
+        }
     };
 
     const totalProduction = localColmenas.reduce((sum, c) => sum + c.production, 0);
@@ -189,8 +211,8 @@ export function ApicultorView() {
     }
 
     return (
-        <div>
-            <div style={{ margin: 'calc(-1 * var(--space-xl)) calc(-1 * var(--space-xl)) var(--space-xl) calc(-1 * var(--space-xl))' }}>
+        <div className="space-y-6 animate-in">
+            <div className="view-deep-header-bleed">
                 <HeaderEcosistema />
             </div>
 
@@ -198,17 +220,17 @@ export function ApicultorView() {
                 <ColmenaFicha colmena={selectedColmena} onClose={() => setSelectedColmena(null)} onUpdate={handleUpdateColmena} />
             )}
 
-            <div className="hero-banner animate-in">
-                <div className="hero-greeting">¡Hola, {userProfile?.full_name || 'Apicultor'}!</div>
-                <h1 className="hero-title">Estás conectado al Bosque Nativo</h1>
-                <p className="hero-subtitle">Monitorea colmenas y analiza flujos de floración</p>
-            </div>
+            <ViewShell
+                greeting={`¡Hola, ${userProfile?.full_name || 'Apicultor'}!`}
+                title="Estás conectado al Bosque Nativo"
+                subtitle="Monitorea colmenas y analiza flujos de floración"
+            />
 
             <div className="stats-grid">
                 {[
                     { icon: <Hexagon size={20} />, val: localColmenas.length, label: 'Colmenas activas' },
                     { icon: <Droplets size={20} />, val: `${totalProduction} kg`, label: 'Producción temporada' },
-                    { icon: <ThermometerSun size={20} />, val: '--', label: 'Temp. Pureo ahora' },
+                    { icon: <ThermometerSun size={20} />, val: tempPureo, label: 'Temp. Pureo ahora' },
                     { icon: <TreePine size={20} />, val: treesCount.toLocaleString('es-CL'), label: 'Árboles Pureo' },
                 ].map((s, i) => (
                     <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
@@ -221,15 +243,17 @@ export function ApicultorView() {
                 ))}
             </div>
 
-            <SegmentControl
-              options={[
-                { value: 'colmenas', label: 'Mis Colmenas (IoT)', icon: <Activity size={16} /> },
-                { value: 'calendario', label: 'Ciclo del Bosque (IA)', icon: <CalendarDays size={16} /> },
-                { value: 'trazabilidad', label: 'Trazabilidad & Legado', icon: <LineChart size={16} /> },
+            <ResponsiveTabBar
+              variant="pill"
+              layoutId="apicultor-tabs"
+              className="mt-2 mb-2"
+              tabs={[
+                { id: 'colmenas', label: 'Mis Colmenas', icon: <Activity size={16} /> },
+                { id: 'calendario', label: 'Ciclo del Bosque', icon: <CalendarDays size={16} /> },
+                { id: 'trazabilidad', label: 'Trazabilidad', icon: <LineChart size={16} /> },
               ]}
-              selectedValue={activeView}
-              onChange={(val) => setActiveView(val as ViewTab)}
-              className="mt-6 mb-6"
+              activeId={activeView}
+              onChange={(id) => setActiveView(id as ViewTab)}
             />
 
             <div className="dashboard-grid dashboard-grid-2-1">
@@ -237,7 +261,7 @@ export function ApicultorView() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                     {activeView === 'colmenas' && (
                         <div className="animate-in delay-2" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-                            <GemeloApiario />
+                            <GemeloApiario colmenas={localColmenas} apiarioName={localColmenas[0]?.location} />
                             <ApiarioManager colmenas={localColmenas} setColmenas={setLocalColmenas} onSelectColmena={setSelectedColmena} />
                         </div>
                     )}

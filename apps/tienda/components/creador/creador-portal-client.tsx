@@ -12,6 +12,7 @@ import {
   parseCreadorCapabilities,
   type CreadorCapabilities,
 } from '@/lib/shop/participacion';
+import { TiendaModal } from '@/components/shop/tienda-modal';
 
 interface CreadorProfile {
   id: string;
@@ -399,27 +400,48 @@ export function CreadorPortalClient() {
             </p>
           )}
 
-          {showRetiroForm && (
-            <div className="p-5 rounded-xl border border-accent/20 bg-accent/5 space-y-4">
-              <p className="text-sm font-medium">Solicitar liquidación de comisiones</p>
-              <p className="text-xs text-muted-foreground">
-                Balance: <strong>${Number(balance?.balance_disponible || 0).toLocaleString('es-CL')}</strong>
-                {' · '}Tope mensual: ${capabilities?.tope_retiro_mensual.toLocaleString('es-CL')}
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <TiendaModal
+            open={showRetiroForm}
+            onClose={() => setShowRetiroForm(false)}
+            title="Solicitar liquidación"
+            subtitle={`Balance: $${Number(balance?.balance_disponible || 0).toLocaleString('es-CL')} · Tope: $${capabilities?.tope_retiro_mensual.toLocaleString('es-CL')}`}
+            kicker="Creador"
+            ariaLabel="Solicitar liquidación de comisiones"
+            footer={
+              <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowRetiroForm(false)}
+                  className="min-h-[48px] px-4 text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRetiro}
+                  disabled={!retiroConsent || retiroForm.monto < 5000 || !retiroForm.datos}
+                  className="min-h-[48px] px-5 rounded-lg bg-accent text-accent-foreground text-sm font-medium disabled:opacity-50"
+                >
+                  Enviar solicitud
+                </button>
+              </div>
+            }
+          >
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
                 <input
                   type="number"
                   min={5000}
                   max={Number(balance?.balance_disponible || 0)}
                   value={retiroForm.monto || ''}
                   onChange={(e) => setRetiroForm({ ...retiroForm, monto: Number(e.target.value) })}
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-border bg-secondary/40 px-3 py-3 text-base sm:text-sm"
                   placeholder="Monto CLP"
                 />
                 <select
                   value={retiroForm.metodo}
                   onChange={(e) => setRetiroForm({ ...retiroForm, metodo: e.target.value as typeof retiroForm.metodo })}
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-border bg-secondary/40 px-3 py-3 text-base sm:text-sm"
                 >
                   <option value="transferencia">Transferencia</option>
                   <option value="paypal">PayPal</option>
@@ -429,7 +451,7 @@ export function CreadorPortalClient() {
                   type="text"
                   value={retiroForm.datos}
                   onChange={(e) => setRetiroForm({ ...retiroForm, datos: e.target.value })}
-                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-border bg-secondary/40 px-3 py-3 text-base sm:text-sm"
                   placeholder={retiroForm.metodo === 'transferencia' ? 'N° cuenta' : 'Referencia'}
                 />
               </div>
@@ -438,25 +460,12 @@ export function CreadorPortalClient() {
                   type="checkbox"
                   checked={retiroConsent}
                   onChange={(e) => setRetiroConsent(e.target.checked)}
-                  className="mt-0.5"
+                  className="mt-1 min-h-[20px] min-w-[20px]"
                 />
                 <span>{RETIRO_CONSENT_TEXT}</span>
               </label>
-              <div className="flex gap-3 justify-end">
-                <button type="button" onClick={() => setShowRetiroForm(false)} className="text-sm text-muted-foreground">
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRetiro}
-                  disabled={!retiroConsent || retiroForm.monto < 5000 || !retiroForm.datos}
-                  className="px-4 py-2 rounded-lg bg-accent text-accent-foreground text-sm disabled:opacity-50"
-                >
-                  Enviar solicitud
-                </button>
-              </div>
             </div>
-          )}
+          </TiendaModal>
 
           {retiros.length === 0 ? (
             <p className="text-sm text-muted-foreground italic py-4 text-center">Sin solicitudes aún.</p>

@@ -76,7 +76,13 @@ export function CheckoutResultClient() {
   const pending = parsePendingCheckout(raw);
 
     void (async () => {
-      const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
+      const { getNucleoApiUrl } = await import('@/lib/shop/nucleo-url');
+      const NUCLEO_URL = getNucleoApiUrl();
+      if (!NUCLEO_URL) {
+        setState('failed');
+        setMessage('No se pudo confirmar el pago. Servicio no disponible.');
+        return;
+      }
       let res: Response;
       try {
         res = await fetch(`${NUCLEO_URL}/api/checkout/commit`, {

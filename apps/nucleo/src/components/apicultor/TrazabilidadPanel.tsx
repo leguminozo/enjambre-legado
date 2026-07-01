@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Link, ChevronRight, CheckCircle2, ImageOff, Plus, X, Loader2, AlertTriangle, TrendingDown } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ChevronRight, ImageOff, Plus, X, AlertTriangle, TrendingDown } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, Badge, Spinner } from '@enjambre/ui';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, Badge, Spinner, toast, friendlyError } from '@enjambre/ui';
 import { AnimatePresence, motion } from 'framer-motion';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { supabase } from '@/lib/supabase';
 
 interface Lote {
   id: string;
@@ -30,8 +32,27 @@ interface ProduccionData {
   };
 }
 
+interface ArbolRow {
+  id: string;
+  especie: string;
+  cantidad: number;
+  sector: string;
+  fecha: string;
+  status: string;
+  lotesMiel: string[];
+  co2_ton: number;
+}
+
+interface ReflexionRow {
+  id: string;
+  fecha: string;
+  colmena: string;
+  texto: string;
+}
+
 export function TrazabilidadPanel() {
   const apiFetch = useApiFetch();
+  const queryClient = useQueryClient();
   const { data: prodData, isLoading } = useQuery<ProduccionData>({
     queryKey: ['produccion-dashboard'],
     queryFn: async () => {
@@ -44,41 +65,108 @@ export function TrazabilidadPanel() {
   const [selectedLote, setSelectedLote] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'arboles' | 'lotes' | 'reflexiones'>('lotes');
 
-  const [localArboles, setLocalArboles] = useState<Array<{ id: string; especie: string; cantidad: number; sector: string; fecha: string; status: string; lotesMiel: string[]; co2_ton: number; coordenadas: { lat: number; lng: number } }>>([]);
-  const [localReflexiones, setLocalReflexiones] = useState<Array<{ fecha: string; colmena: string; texto: string }>>([]);
+  const { data: localArboles = [], isLoading: loadingArboles } = useQuery<ArbolRow[]>({
+    queryKey: ['trazabilidad-arboles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('arboles_plantados')
+        .select('id, especie, cantidad, sector, fecha, status, co2_ton, lote_id')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map((r: Record<string, unknown>) => ({
+        id: String(r.id),
+        especie: String(r.especie ?? ''),
+        cantidad: Number(r.cantidad) || 0,
+        sector: String(r.sector ?? ''),
+        fecha: r.fecha ? String(r.fecha) : '—',
+        status: String(r.status ?? 'joven'),
+        co2_ton: Number(r.co2_ton) || 0,
+        lotesMiel: r.lote_id ? [`Lote ${String(r.lote_id).slice(0, 8)}`] : ['Sin lote'],
+      }));
+    },
+    staleTime: 30_000,
+  });
+
+  const { data: localReflexiones = [], isLoading: loadingReflexiones } = useQuery<ReflexionRow[]>({
+    queryKey: ['trazabilidad-reflexiones'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('reflexiones')
+        .select('id, content, date_display, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map((r: Record<string, unknown>) => ({
+        id: String(r.id),
+        fecha: r.created_at
+          ? new Date(String(r.created_at)).toLocaleDateString('es-CL')
+          : new Date().toLocaleDateString('es-CL'),
+        colmena: String(r.date_display ?? 'General'),
+        texto: String(r.content ?? ''),
+      }));
+    },
+    staleTime: 30_000,
+  });
 
   const [showArbolForm, setShowArbolForm] = useState(false);
   const [arbolForm, setArbolForm] = useState({ especie: 'Ulmo', cantidad: 0, sector: '' });
+  const [savingArbol, setSavingArbol] = useState(false);
 
   const [showReflexionForm, setShowReflexionForm] = useState(false);
   const [reflexionForm, setReflexionForm] = useState({ colmena: '', texto: '' });
+  const [savingReflexion, setSavingReflexion] = useState(false);
 
-  const handleAddArbol = () => {
+  const handleAddArbol = async () => {
     if (!arbolForm.cantidad || !arbolForm.sector) return;
-    setLocalArboles([{
-      id: 'n_' + Date.now(),
-      especie: arbolForm.especie,
-      cantidad: arbolForm.cantidad,
-      sector: arbolForm.sector,
-      fecha: new Date().toLocaleDateString('es-CL'),
-      status: 'creciendo',
-      lotesMiel: ['Pendiente'],
-      co2_ton: parseFloat((arbolForm.cantidad * 0.05).toFixed(2)),
-      coordenadas: { lat: -42.6, lng: -73.8 }
-    }, ...localArboles]);
-    setShowArbolForm(false);
-    setArbolForm({ especie: 'Ulmo', cantidad: 0, sector: '' });
+    setSavingArbol(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase.from('arboles_plantados').insert({
+        especie: arbolForm.especie,
+        cantidad: arbolForm.cantidad,
+        sector: arbolForm.sector,
+        fecha: new Date().toISOString().split('T')[0],
+        status: 'creciendo',
+        co2_ton: parseFloat((arbolForm.cantidad * 0.05).toFixed(2)),
+        lat: -42.6,
+        lng: -73.8,
+        user_id: user?.id ?? null,
+      });
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ['trazabilidad-arboles'] });
+      toast('Plantación registrada', { type: 'success' });
+      setShowArbolForm(false);
+      setArbolForm({ especie: 'Ulmo', cantidad: 0, sector: '' });
+    } catch (err) {
+      toast(friendlyError(err, 'No se pudo registrar la plantación'), { type: 'error' });
+    } finally {
+      setSavingArbol(false);
+    }
   };
 
-  const handleAddReflexion = () => {
+  const handleAddReflexion = async () => {
     if (!reflexionForm.texto) return;
-    setLocalReflexiones([{
-      fecha: new Date().toLocaleDateString('es-CL'),
-      colmena: reflexionForm.colmena || 'General',
-      texto: reflexionForm.texto
-    }, ...localReflexiones]);
-    setShowReflexionForm(false);
-    setReflexionForm({ colmena: '', texto: '' });
+    setSavingReflexion(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Sesión requerida');
+      const { error } = await supabase.from('reflexiones').insert({
+        user_id: user.id,
+        content: reflexionForm.texto,
+        date_display: reflexionForm.colmena || 'General',
+      });
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ['trazabilidad-reflexiones'] });
+      toast('Reflexión guardada', { type: 'success' });
+      setShowReflexionForm(false);
+      setReflexionForm({ colmena: '', texto: '' });
+    } catch (err) {
+      toast(friendlyError(err, 'No se pudo guardar la reflexión'), { type: 'error' });
+    } finally {
+      setSavingReflexion(false);
+    }
   };
 
   const lotes = prodData?.data?.lotes || [];
@@ -113,19 +201,17 @@ export function TrazabilidadPanel() {
         </Card>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-        {([['arboles', '🌳 Bosque plantado'], ['lotes', '🍯 Lotes de miel'], ['reflexiones', '📖 Reflexiones']] as const).map(([id, label]) => (
-          <Button 
-            key={id} 
-            variant={activeTab === id ? 'primary' : 'outline'}
-            size="sm"
-            onClick={() => setActiveTab(id)}
-            className="text-[0.78rem] whitespace-nowrap"
-          >
-            {label}
-          </Button>
-        ))}
-      </div>
+      <ResponsiveTabBar
+        variant="pill"
+        layoutId="trazabilidad-tabs"
+        tabs={[
+          { id: 'arboles', label: 'Bosque plantado' },
+          { id: 'lotes', label: 'Lotes de miel' },
+          { id: 'reflexiones', label: 'Reflexiones' },
+        ]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as 'arboles' | 'lotes' | 'reflexiones')}
+      />
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -165,12 +251,17 @@ export function TrazabilidadPanel() {
                     </div>
                     <div className="flex justify-between items-center mt-2">
                       <span className="text-[0.7rem] text-muted-foreground">Proyección: ~{(arbolForm.cantidad * 0.05).toFixed(2)} ton CO₂/año</span>
-                      <Button onClick={handleAddArbol} size="sm">Registrar Vida</Button>
+                      <Button onClick={handleAddArbol} size="sm" disabled={savingArbol}>
+                        {savingArbol ? 'Guardando…' : 'Registrar Vida'}
+                      </Button>
                     </div>
                   </div>
                 )}
                 
                 <div className="flex flex-col gap-3">
+                  {loadingArboles && (
+                    <div className="flex justify-center py-8"><Spinner size="md" /></div>
+                  )}
                   {localArboles.map(a => (
                     <div key={a.id} className="flex items-center gap-4 p-4 rounded-lg border border-border/50 bg-card hover:bg-muted/20 transition-colors">
                       <div className="text-3xl shrink-0">🌳</div>
@@ -195,7 +286,7 @@ export function TrazabilidadPanel() {
                       </div>
                     </div>
                   ))}
-                  {localArboles.length === 0 && (
+                  {!loadingArboles && localArboles.length === 0 && (
                      <div className="text-center py-8 text-sm text-muted-foreground">Aún no has registrado plantaciones.</div>
                   )}
                 </div>
@@ -299,7 +390,9 @@ export function TrazabilidadPanel() {
                         <input type="text" placeholder="Colmena (opcional, ej. 'Quilineja Madre')" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" value={reflexionForm.colmena} onChange={e => setReflexionForm({ ...reflexionForm, colmena: e.target.value })} />
                         <textarea placeholder="Qué observaste en la naturaleza, el comportamiento de las abejas o el clima hoy..." className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y" value={reflexionForm.texto} onChange={e => setReflexionForm({ ...reflexionForm, texto: e.target.value })} />
                         <div className="flex justify-end pt-2">
-                          <Button onClick={handleAddReflexion}>Guardar Legado</Button>
+                          <Button onClick={handleAddReflexion} disabled={savingReflexion}>
+                            {savingReflexion ? 'Guardando…' : 'Guardar Legado'}
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -307,8 +400,11 @@ export function TrazabilidadPanel() {
                 )}
               </AnimatePresence>
 
+              {loadingReflexiones && (
+                <div className="flex justify-center py-8"><Spinner size="md" /></div>
+              )}
               {localReflexiones.map((r, i) => (
-                <Card key={i} className={`overflow-hidden transition-all duration-300 ${i === 0 ? 'border-primary/30 shadow-md bg-gradient-to-br from-card to-primary/5' : 'border-border/60 bg-surface-sunken/20'}`}>
+                <Card key={r.id} className={`overflow-hidden transition-all duration-300 ${i === 0 ? 'border-primary/30 shadow-md bg-gradient-to-br from-card to-primary/5' : 'border-border/60 bg-surface-sunken/20'}`}>
                   <CardContent className="p-6">
                     <div className="flex justify-between items-center mb-4">
                       <Badge variant="default" className={`text-[0.65rem] uppercase tracking-widest ${i === 0 ? 'border-primary/40 text-primary' : 'text-muted-foreground'}`}>
@@ -338,7 +434,7 @@ export function TrazabilidadPanel() {
                 </Card>
               ))}
               
-              {localReflexiones.length === 0 && (
+              {!loadingReflexiones && localReflexiones.length === 0 && (
                 <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl">
                   <div className="text-3xl mb-3 opacity-50">📖</div>
                   <h3 className="text-base font-medium text-foreground mb-1">El diario del bosque está vacío</h3>

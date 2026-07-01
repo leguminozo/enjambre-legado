@@ -156,17 +156,16 @@ export function ResenasSection({
         </div>
       )}
 
-      {composerOpen && (
-        <ResenaComposer
-          productoId={productoId}
-          productName={productName}
-          onClose={() => setComposerOpen(false)}
-          onSubmitted={() => {
-            setTab('comunidad');
-            void load();
-          }}
-        />
-      )}
+      <ResenaComposer
+        open={composerOpen}
+        productoId={productoId}
+        productName={productName}
+        onClose={() => setComposerOpen(false)}
+        onSubmitted={() => {
+          setTab('comunidad');
+          void load();
+        }}
+      />
     </section>
   );
 }

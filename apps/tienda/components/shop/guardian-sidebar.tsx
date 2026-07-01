@@ -73,8 +73,10 @@ export function GuardianSidebar({ user, isOpen, onClose }: GuardianSidebarProps)
   return (
     <>
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[60] lg:hidden"
+        <button
+          type="button"
+          className="tienda-overlay-backdrop z-[60] lg:hidden"
+          aria-label="Cerrar menú"
           onClick={onClose}
         />
       )}
@@ -146,10 +148,10 @@ export function GuardianSidebar({ user, isOpen, onClose }: GuardianSidebarProps)
             </div>
             <button
               onClick={handleLogout}
-              className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+              className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
               title="Desvincular Legado"
             >
-              <LogOut size={14} />
+              <LogOut size={18} />
             </button>
           </div>
 

@@ -26,7 +26,7 @@ export async function getProfileIdentity(): Promise<ProfileIdentity | null> {
   }
 
   return {
-    full_name: data?.full_name?.trim() || user.user_metadata?.full_name?.trim() || '',
+    full_name: data?.full_name?.trim() || '',
     email: data?.email?.trim() || user.email || '',
   }
 }

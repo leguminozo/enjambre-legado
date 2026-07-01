@@ -19,6 +19,7 @@ import { friendlyApiError } from '@enjambre/ui';
 import { useAuth } from '@/components/providers/auth-context';
 import { useLoyaltyPoints } from '@/lib/hooks/use-loyalty-points';
 import { useCartAbandonmentTracking } from '@/lib/hooks/use-cart-abandonment';
+import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 
 type BuyerMode = 'legado' | 'privada';
 
@@ -119,7 +120,12 @@ export function CheckoutClient() {
     }
 
     const controller = new AbortController();
-    const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
+    const NUCLEO_URL = getNucleoApiUrl();
+    if (!NUCLEO_URL) {
+      setQuoteError('Checkout no disponible. Configura el servicio de pagos.');
+      setQuoteLoading(false);
+      return;
+    }
 
     const fetchQuote = async () => {
       setQuoteLoading(true);
@@ -130,6 +136,8 @@ export function CheckoutClient() {
         if (isAuthenticated) {
           const { createClient } = await import('@/utils/supabase/client');
           const supabase = createClient();
+          // getUser() validates JWT with Supabase Auth server
+          await supabase.auth.getUser();
           const { data: sessionData } = await supabase.auth.getSession();
           token = sessionData?.session?.access_token;
         }
@@ -295,8 +303,13 @@ export function CheckoutClient() {
 
     const returnUrl = `${window.location.origin}/checkout/resultado`;
 
-    const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
-    
+    const NUCLEO_URL = getNucleoApiUrl();
+    if (!NUCLEO_URL) {
+      setError('Checkout no disponible. Configura el servicio de pagos.');
+      setLoading(false);
+      return;
+    }
+
     let token: string | undefined;
     try {
       const { createClient } = await import('@/utils/supabase/client');
@@ -518,7 +531,10 @@ export function CheckoutClient() {
                       <span className="text-xs text-destructive">{quoteError}</span>
                     )}
                   </div>
-                  <span className="font-display text-2xl font-semibold tabular-nums text-accent">
+                  <span
+                    data-testid="checkout-total"
+                    className="font-display text-2xl font-semibold tabular-nums text-accent"
+                  >
                     {quoteLoading && !quote
                       ? '…'
                       : `$${totalCompra.toLocaleString('es-CL')}`}

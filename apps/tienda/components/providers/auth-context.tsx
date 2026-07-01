@@ -74,80 +74,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!email?.trim() || !password) {
       return { success: false, message: 'Completa correo y contraseña' };
     }
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
-    if (error) {
-      void logSecurityEvent(supabase, {
-        eventType: 'login_failed',
-        email: email.trim(),
-        userAgent: navigator.userAgent,
-        appSource: 'tienda',
-        details: { code: error.code, message: error.message },
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: email.trim(), password }),
       });
-      return { success: false, message: friendlySupabaseError(error) };
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, message: data.error || 'Error al iniciar sesión' };
+      }
+      await useAuthStore.getState().checkUser();
+      return { success: true, message: undefined };
+    } catch {
+      return { success: false, message: 'Error de conexión' };
     }
-    void logSecurityEvent(supabase, {
-      eventType: 'login_success',
-      email: email.trim(),
-      userAgent: navigator.userAgent,
-      appSource: 'tienda',
-    });
-    await useAuthStore.getState().checkUser();
-    return { success: true, message: undefined };
   }, []);
 
   const register = useCallback(async (email: string, password: string, fullName: string, referrerId?: string) => {
     if (!email?.trim() || !password || !fullName?.trim()) {
       return { success: false, message: 'Completa todos los campos' };
     }
-    const supabase = createClient();
-
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: { data: { full_name: fullName.trim() } },
-    });
-
-    if (authError) return { success: false, message: friendlySupabaseError(authError) };
-    if (!authData.user) return { success: false, message: 'No se pudo crear el usuario' };
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({ id: authData.user.id, email: email.trim(), full_name: fullName.trim(), role: 'cliente' });
-
-    if (profileError && profileError.code !== '23505') {
-      return { success: false, message: friendlySupabaseError(profileError) };
-    }
-
-    void logSecurityEvent(supabase, {
-      eventType: 'signup_success',
-      email: email.trim(),
-      userId: authData.user.id,
-      appSource: 'tienda',
-      details: { role: 'cliente' },
-    });
-
-    await useAuthStore.getState().checkUser();
-
-    // Bienvenida vía BFF Núcleo (notification_queue + notification_events) — no insert directo
-    void fetch('/api/notifications/welcome', {
-      method: 'POST',
-      credentials: 'include',
-    }).catch(() => {});
-
-    if (referrerId && referrerId !== authData.user.id) {
-      void fetch('/api/referrals/complete', {
+    try {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
-        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ referrerId }),
-      }).catch(() => {});
+        credentials: 'include',
+        body: JSON.stringify({ email: email.trim(), password, fullName: fullName.trim(), referrerId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, message: data.error || 'Error al crear la cuenta' };
+      }
+      await useAuthStore.getState().checkUser();
+      return { success: true, message: undefined };
+    } catch {
+      return { success: false, message: 'Error de conexión' };
     }
-
-    return { success: true, message: undefined };
   }, []);
 
   const logout = useCallback(async () => {

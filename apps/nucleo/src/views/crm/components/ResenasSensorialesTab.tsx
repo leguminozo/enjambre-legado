@@ -62,7 +62,9 @@ export function ResenasSensorialesTab() {
   const moderar = async (id: string, estado: 'aprobada' | 'rechazada' | 'oculta') => {
     setModerating(id);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: { user } } = await supabase.auth.getUser(); // Validates JWT
+      if (!user) throw new Error('No autenticado');
+      const { data: sessionData } = await supabase.auth.getSession(); // Get token after validation
       const token = sessionData.session?.access_token;
       if (!token) throw new Error('Sin sesión');
 

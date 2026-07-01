@@ -6,9 +6,11 @@ import { Menu, ShoppingBag, X, User } from 'lucide-react';
 import { useCartLines } from '@/components/shop/cart-context';
 import { useAuth } from '@/components/providers/auth-context';
 import { LanguageSelector } from '@/components/shop/language-selector';
+import { useI18n } from '@/lib/i18n-context';
 import { NotificationBell } from '@enjambre/ui';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUserNotifications } from '@/lib/hooks/use-user-notifications';
+import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
 
 const NAV_PUBLIC = [
   { href: '/', label: 'Inicio' },
@@ -26,23 +28,39 @@ export function ShopHeader() {
   const { isAuthenticated, user } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [realtimeOn, setRealtimeOn] = useState(false);
 
+  const { locale, setLocale } = useI18n();
   const { notifications, markRead, markAllRead, isLoading, error } = useUserNotifications(user?.id, {
     enableRealtime: realtimeOn,
   });
 
+  const normalizedPath = pathname.replace(/^\/(es|en)/, '') || '/';
+
   const isActive = (href: string) => {
-    if (href === '/') return pathname === '/';
-    return pathname === href || pathname.startsWith(`${href}/`);
+    if (href === '/') return normalizedPath === '/';
+    return normalizedPath === href || normalizedPath.startsWith(`${href}/`);
   };
 
+  useOverlayLock(open || notifOpen);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   return (
-    <header className="sticky z-[60] bg-background/80 backdrop-blur-md border-b border-border" style={{ top: 'var(--carousel-h, 0px)' }}>
-      <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
+    <header
+      className={`tienda-shop-header sticky z-[60] border-b border-border md:backdrop-blur-md ${open ? 'is-menu-open' : ''}`}
+      style={{ top: 'var(--carousel-h, 0px)' }}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between">
         <button
-          className="md:hidden text-muted-foreground hover:text-accent transition-colors"
-          onClick={() => setOpen(!open)}
+          type="button"
+          className="md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-accent transition-colors"
+          onClick={() => setOpen((prev) => !prev)}
+          aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={open}
         >
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -72,23 +90,26 @@ export function ShopHeader() {
           ))}
         </nav>
 
-<div className="flex items-center gap-6">
-        <LanguageSelector />
+        <div className="flex items-center gap-3 sm:gap-6">
+          <div className="hidden sm:block">
+            <LanguageSelector />
+          </div>
 
-        {isAuthenticated && (
-          <NotificationBell
-            notifications={notifications}
-            onMarkRead={markRead}
-            onMarkAllRead={markAllRead}
-            onOpenChange={(isOpen) => {
-              if (isOpen) setRealtimeOn(true);
-            }}
-            isLoading={isLoading}
-            error={error}
-          />
-        )}
+          {isAuthenticated && (
+            <NotificationBell
+              notifications={notifications}
+              onMarkRead={markRead}
+              onMarkAllRead={markAllRead}
+              onOpenChange={(isOpen) => {
+                setNotifOpen(isOpen);
+                if (isOpen) setRealtimeOn(true);
+              }}
+              isLoading={isLoading}
+              error={error}
+            />
+          )}
 
-        <Link
+          <Link
             href={isAuthenticated ? '/perfil' : '/login'}
             className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-2"
           >
@@ -98,7 +119,7 @@ export function ShopHeader() {
             </span>
           </Link>
 
-          <Link href="/checkout" className="relative group">
+          <Link href="/carrito" data-testid="cart-link" className="relative group" aria-label="Carrito">
             <ShoppingBag size={20} strokeWidth={1.5} className="text-muted-foreground group-hover:text-accent transition-colors" />
             {itemCount > 0 && (
               <span className="absolute -top-2 -right-2 w-4 h-4 bg-accent text-accent-foreground text-[0.6rem] font-bold flex items-center justify-center rounded-full">
@@ -109,28 +130,59 @@ export function ShopHeader() {
         </div>
       </div>
 
-      <div className={`md:hidden fixed inset-0 top-24 bg-background z-50 transition-transform duration-500 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
-        <nav className="p-10 flex flex-col gap-8">
-          {NAV_PUBLIC.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="font-display text-3xl font-light text-foreground hover:text-accent transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              {label}
-            </Link>
-          ))}
-<div className="h-[1px] bg-border my-4" />
-          <Link
-            href={isAuthenticated ? '/perfil' : '/login'}
-            className="font-display text-2xl italic text-accent"
+      {open && (
+        <>
+          <button
+            type="button"
+            className="tienda-mobile-nav-backdrop md:hidden"
+            aria-label="Cerrar menú"
             onClick={() => setOpen(false)}
+          />
+          <div
+            className="tienda-mobile-nav-panel md:hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menú de navegación"
           >
-            {isAuthenticated ? 'Panel de Control' : 'Iniciar Sesión'}
-          </Link>
-        </nav>
-      </div>
+            <nav className="flex flex-col gap-7">
+              {NAV_PUBLIC.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`font-display text-3xl font-light transition-colors ${
+                    isActive(href) ? 'text-accent' : 'text-foreground hover:text-accent'
+                  }`}
+                  onClick={() => setOpen(false)}
+                >
+                  {label}
+                </Link>
+              ))}
+              <div className="h-px bg-border my-2" />
+              <Link
+                href="/carrito"
+                className="font-display text-2xl font-light text-foreground hover:text-accent transition-colors"
+                onClick={() => setOpen(false)}
+              >
+                Tu carrito{itemCount > 0 ? ` (${itemCount})` : ''}
+              </Link>
+              <Link
+                href={isAuthenticated ? '/perfil' : '/login'}
+                className="font-display text-2xl italic text-accent"
+                onClick={() => setOpen(false)}
+              >
+                {isAuthenticated ? 'Panel de Control' : 'Iniciar Sesión'}
+              </Link>
+              <button
+                type="button"
+                className="mt-4 self-start rounded-full border border-border bg-surface-sunken px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-accent sm:hidden"
+                onClick={() => setLocale(locale === 'es' ? 'en' : 'es')}
+              >
+                Idioma: {locale === 'es' ? 'English' : 'Español'}
+              </button>
+            </nav>
+          </div>
+        </>
+      )}
     </header>
   );
 }

@@ -75,7 +75,13 @@ export function RitualResultClient() {
     const pending = parsePending(raw);
 
     void (async () => {
-      const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
+      const { getNucleoApiUrl } = await import('@/lib/shop/nucleo-url');
+      const NUCLEO_URL = getNucleoApiUrl();
+      if (!NUCLEO_URL) {
+        setState('failed');
+        setMessage('No se pudo confirmar la suscripción. Servicio no disponible.');
+        return;
+      }
       let res: Response;
       try {
         res = await fetch(`${NUCLEO_URL}/api/subscriptions/checkout/commit`, {

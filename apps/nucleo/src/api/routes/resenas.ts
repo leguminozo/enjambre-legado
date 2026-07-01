@@ -239,6 +239,12 @@ resenasRoutes.post('/', zValidator('json', CreateResenaSchema), async (c) => {
     ventaId = match?.id ?? null;
   }
 
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .single();
+
   const { data: inserted, error: insertError } = await admin
     .from('resenas_producto')
     .insert({
@@ -256,7 +262,7 @@ resenasRoutes.post('/', zValidator('json', CreateResenaSchema), async (c) => {
       venta_id: ventaId,
       lote_id: loteId,
       user_id: user.id,
-      display_name: user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'Guardián',
+      display_name: profile?.full_name ?? user.email?.split('@')[0] ?? 'Guardián',
     })
     .select('id, estado, venta_id, created_at')
     .single();

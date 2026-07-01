@@ -2,12 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ListaFacturas } from '@/views/eirl/facturas/ListaFacturas';
-import { ListaGastos } from '@/views/eirl/gastos/ListaGastos';
+import { ListaGastos, type Gasto } from '@/views/eirl/gastos/ListaGastos';
+import { NuevoGastoForm } from '@/views/eirl/gastos/NuevoGastoForm';
 import { MetricasCards } from '@/views/eirl/dashboard/MetricasCards';
 import { ResumenActividad } from '@/views/eirl/dashboard/ResumenActividad';
 import { ContableView } from '@/views/ContableView';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { useAuthStore } from '@enjambre/auth';
 import { Calculator, FileText, ShoppingCart, BarChart3 } from 'lucide-react';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 
 const tabs = [
   { id: 'resumen', label: 'Resumen', icon: BarChart3 },
@@ -26,6 +30,8 @@ interface DashboardData {
     margenUtilidad: number;
     ivaPagar: number;
     ppm: number;
+    ingresosVariacionPct?: number | null;
+    gastosVariacionPct?: number | null;
   };
   resumen: {
     totalFacturasEmitidas: number;
@@ -37,9 +43,13 @@ interface DashboardData {
 
 export function ContableHubView() {
   const [activeTab, setActiveTab] = useState<TabId>('resumen');
+  const [gastoMode, setGastoMode] = useState<'list' | 'new' | 'edit'>('list');
+  const [editingGasto, setEditingGasto] = useState<Gasto | null>(null);
+  const [gastosKey, setGastosKey] = useState(0);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const apiFetch = useApiFetch();
+  const empresaId = useAuthStore((s) => s.session?.user?.app_metadata?.empresa_id ?? '');
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -66,22 +76,24 @@ export function ContableHubView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-2 border-b border-border pb-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              activeTab === tab.id
-                ? 'bg-primary/10 text-primary border-b-2 border-primary'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <tab.icon size={16} />
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <ViewShell
+        eyebrow="Finanzas"
+        title="Contable EIRL"
+        subtitle="Resumen, facturas, gastos y libro contable"
+        icon={<Calculator size={20} />}
+        variant="compact"
+      />
+
+      <ResponsiveTabBar
+        layoutId="contable-tabs"
+        tabs={tabs.map((tab) => ({
+          id: tab.id,
+          label: tab.label,
+          icon: <tab.icon size={16} />,
+        }))}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as TabId)}
+      />
 
       {activeTab === 'resumen' && (
         <div className="space-y-6">
@@ -96,6 +108,8 @@ export function ContableHubView() {
                 margenUtilidad={m?.margenUtilidad ?? 0}
                 ivaPagar={m?.ivaPagar ?? 0}
                 ppm={m?.ppm ?? 0}
+                ingresosVariacionPct={m?.ingresosVariacionPct}
+                gastosVariacionPct={m?.gastosVariacionPct}
               />
               <ResumenActividad
                 totalFacturasEmitidas={r?.totalFacturasEmitidas ?? 0}
@@ -107,9 +121,37 @@ export function ContableHubView() {
           )}
         </div>
       )}
-      {activeTab === 'facturas' && <ListaFacturas facturasInitiales={[]} empresaId="" />}
+      {activeTab === 'facturas' && <ListaFacturas empresaId={empresaId} />}
       {activeTab === 'gastos' && (
-        <ListaGastos onNuevoGasto={() => {}} onVerGasto={() => {}} onEditarGasto={() => {}} />
+        gastoMode === 'new' || gastoMode === 'edit' ? (
+          <NuevoGastoForm
+            gasto={gastoMode === 'edit' ? editingGasto : null}
+            onSave={() => {
+              setGastoMode('list');
+              setEditingGasto(null);
+              setGastosKey((k) => k + 1);
+              fetchDashboard();
+            }}
+            onCancel={() => {
+              setGastoMode('list');
+              setEditingGasto(null);
+            }}
+          />
+        ) : (
+          <ListaGastos
+            key={gastosKey}
+            onNuevoGasto={() => {
+              setEditingGasto(null);
+              setGastoMode('new');
+            }}
+            onVerGasto={() => {}}
+            onEditarGasto={(gasto) => {
+              setEditingGasto(gasto);
+              setGastoMode('edit');
+            }}
+            onDeleted={fetchDashboard}
+          />
+        )
       )}
       {activeTab === 'contable' && <ContableView />}
     </div>

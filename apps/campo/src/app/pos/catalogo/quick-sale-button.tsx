@@ -130,9 +130,9 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
       <button
         type="button"
         onClick={() => addLine({ producto_id, nombre, precio_unitario: precio })}
-        className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-card border border-border px-4 py-3 text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+        className="mt-4 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-card border border-border px-4 py-3 text-sm font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all"
       >
-        <Plus className="w-3 h-3" />
+        <Plus className="w-4 h-4" />
         Anadir al carrito
       </button>
     );
@@ -237,12 +237,12 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
         <p className="text-[10px] uppercase text-muted-foreground tracking-widest text-center">
           {qty}x {nombre} · ${' '}{(precio * qty).toLocaleString('es-CL')}
         </p>
-        <div className="grid grid-cols-5 gap-1.5">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {channels.map((ch) => (
             <button
               key={ch.value}
               onClick={() => { setChannel(ch.value); setStep('pay'); }}
-              className={`flex flex-col items-center gap-1 rounded-xl border px-1.5 py-2.5 text-[9px] font-bold uppercase tracking-widest transition-all ${
+              className={`flex flex-col items-center gap-1 rounded-xl border min-h-[44px] px-2 py-2.5 text-xs font-bold uppercase tracking-widest transition-all ${
                 channel === ch.value ? 'bg-primary text-primary-foreground border-primary' : 'bg-card border-border text-muted-foreground hover:text-primary'
               }`}
             >
@@ -264,13 +264,13 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
         <p className="text-[10px] uppercase text-muted-foreground tracking-widest text-center">
           {qty}x {nombre} · ${' '}{(precio * qty).toLocaleString('es-CL')}
         </p>
-        <div className="grid grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {paymentMethods.map((pm) => (
             <button
               key={pm.value}
               disabled={loading}
               onClick={() => void handlePayment(pm.value)}
-              className="flex flex-col items-center gap-1 rounded-xl bg-card border border-border px-2 py-3 text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all disabled:opacity-40"
+              className="flex flex-col items-center gap-1.5 rounded-xl min-h-[44px] bg-card border border-border px-3 py-3 text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all disabled:opacity-40"
             >
               {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : pm.icon}
               {pm.label}
@@ -293,11 +293,11 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     return (
       <div className="mt-4 space-y-3">
         <div className="flex items-center justify-center gap-4">
-          <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-10 h-10 rounded-full bg-card border border-border text-primary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all text-lg font-bold">
+          <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-11 h-11 rounded-full bg-card border border-border text-primary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all text-lg font-bold">
             -
           </button>
           <span className="text-2xl font-mono font-bold text-foreground w-10 text-center">{qty}</span>
-          <button onClick={() => setQty(qty + 1)} className="w-10 h-10 rounded-full bg-card border border-border text-primary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all text-lg font-bold">
+          <button onClick={() => setQty(qty + 1)} className="w-11 h-11 rounded-full bg-card border border-border text-primary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all text-lg font-bold">
             +
           </button>
         </div>
@@ -322,9 +322,9 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     <button
       type="button"
       onClick={() => setStep('qty')}
-      className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 py-3 text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all"
+      className="mt-4 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 py-3 text-sm font-bold uppercase tracking-widest hover:bg-primary/90 transition-all"
     >
-      <Zap className="w-3 h-3" />
+      <Zap className="w-4 h-4" />
       Venta rapida
     </button>
   );

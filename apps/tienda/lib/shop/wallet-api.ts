@@ -1,13 +1,15 @@
 import type { WalletGuardianSnapshot } from '@enjambre/wallet';
 import { getAuthToken } from '@/lib/shop/resenas-api';
-
-const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
+import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 
 export async function fetchWalletSnapshot(token?: string): Promise<WalletGuardianSnapshot | null> {
   const authToken = token ?? (await getAuthToken());
   if (!authToken) return null;
 
-  const res = await fetch(`${NUCLEO_URL}/api/wallet/stamps`, {
+  const nucleoUrl = getNucleoApiUrl();
+  if (!nucleoUrl) return null;
+
+  const res = await fetch(`${nucleoUrl}/api/wallet/stamps`, {
     headers: {
       Authorization: `Bearer ${authToken}`,
       'X-Requested-With': 'XMLHttpRequest',
@@ -23,8 +25,10 @@ export async function fetchWalletSnapshot(token?: string): Promise<WalletGuardia
 export async function downloadApplePass(): Promise<{ ok: boolean; message?: string }> {
   const token = await getAuthToken();
   if (!token) return { ok: false, message: 'Inicia sesión' };
+  const nucleoUrl = getNucleoApiUrl();
+  if (!nucleoUrl) return { ok: false, message: 'Servicio no disponible' };
 
-  const res = await fetch(`${NUCLEO_URL}/api/wallet/apple/download`, {
+  const res = await fetch(`${nucleoUrl}/api/wallet/apple/download`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'X-Requested-With': 'XMLHttpRequest',
@@ -59,14 +63,16 @@ export async function downloadApplePass(): Promise<{ ok: boolean; message?: stri
 export async function getGoogleSaveLink(): Promise<{ ok: boolean; saveUrl?: string; message?: string }> {
   const token = await getAuthToken();
   if (!token) return { ok: false, message: 'Inicia sesión' };
+  const nucleoUrl = getNucleoApiUrl();
+  if (!nucleoUrl) return { ok: false, message: 'Servicio no disponible' };
 
-  const res = await fetch(`${NUCLEO_URL}/api/wallet/google/save-link`, {
+  const res = await fetch(`${nucleoUrl}/api/wallet/google/save-link`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
-      origin: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001',
+      origin: typeof window !== 'undefined' ? window.location.origin : nucleoUrl,
     },
   });
 

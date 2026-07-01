@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
 import { Button } from "@enjambre/ui";
 import { Badge } from "@enjambre/ui";
@@ -8,6 +8,7 @@ import { FileText, Eye, Edit, Trash2, Plus, Loader2 } from "lucide-react";
 import { formatDate, formatCurrency } from '@/lib/format';
 import { deleteFacturaEmitida } from '@/lib/actions/facturas';
 import { NuevaFacturaForm } from './NuevaFacturaForm';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 
 export interface Factura {
   id: string;
@@ -31,14 +32,63 @@ export interface Factura {
 }
 
 interface ListaFacturasProps {
-  facturasInitiales: Factura[];
+  facturasInitiales?: Factura[];
   empresaId: string;
 }
 
-export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasProps) {
+function mapFacturaRow(row: Record<string, unknown>): Factura {
+  const tercero = row.tercero as Record<string, unknown> | null;
+  const periodo = row.periodo as Record<string, unknown> | null;
+  return {
+    id: String(row.id),
+    numero: String(row.numero ?? ''),
+    fecha: String(row.fecha_emision ?? row.fecha ?? ''),
+    fechaVencimiento: row.fecha_vencimiento ? String(row.fecha_vencimiento) : undefined,
+    montoTotal: Number(row.monto_total) || 0,
+    montoNeto: Number(row.monto_neto) || 0,
+    montoIva: Number(row.monto_iva) || 0,
+    estado: String(row.estado ?? 'Pendiente'),
+    descripcion: row.descripcion ? String(row.descripcion) : undefined,
+    tipoDocumento: String(row.tipo_documento ?? 'Factura'),
+    cliente: tercero ? {
+      id: String(tercero.id),
+      nombre: String(tercero.nombre ?? ''),
+      rut: String(tercero.rut ?? ''),
+    } : undefined,
+    periodo: { nombre: String(periodo?.nombre ?? '—') },
+  };
+}
+
+export function ListaFacturas({ facturasInitiales = [], empresaId }: ListaFacturasProps) {
   const [facturas, setFacturas] = useState<Factura[]>(facturasInitiales);
+  const [loading, setLoading] = useState(facturasInitiales.length === 0);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const apiFetch = useApiFetch();
+
+  const cargarFacturas = useCallback(async () => {
+    if (!empresaId) {
+      setFacturas([]);
+      setLoading(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await apiFetch('/api/facturas-emitidas');
+      if (res.ok) {
+        const data = await res.json();
+        setFacturas(Array.isArray(data) ? data.map((r: Record<string, unknown>) => mapFacturaRow(r)) : []);
+      }
+    } catch (error) {
+      console.error('[facturas] fetch error:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiFetch, empresaId]);
+
+  useEffect(() => {
+    cargarFacturas();
+  }, [cargarFacturas]);
 
   const handleDelete = (id: string) => {
     if (confirm('¿Estás seguro de eliminar esta factura?')) {
@@ -71,7 +121,7 @@ export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasPro
         clientes={[]}
         onSuccess={() => {
           setMostrarFormulario(false);
-          window.location.reload(); // Refresh para mostrar nuevos datos del servidor
+          cargarFacturas();
         }}
         onCancel={() => setMostrarFormulario(false)}
       />
@@ -101,7 +151,16 @@ export function ListaFacturas({ facturasInitiales, empresaId }: ListaFacturasPro
         </div>
       </CardHeader>
       <CardContent>
-        {facturas.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-12 text-muted-foreground text-sm flex items-center justify-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            Cargando facturas...
+          </div>
+        ) : !empresaId ? (
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            Vincula una empresa en tu perfil para gestionar facturas emitidas.
+          </div>
+        ) : facturas.length === 0 ? (
           <div className="text-center py-12">
             <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-medium mb-2">No hay facturas emitidas</h3>

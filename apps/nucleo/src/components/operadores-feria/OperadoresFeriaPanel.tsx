@@ -15,6 +15,9 @@ import {
 } from './feria-contrato-status';
 import { useSearchParams } from 'next/navigation';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 type Tab = 'contratos' | 'eventos' | 'consignacion' | 'arqueos' | 'ledger';
 
@@ -533,17 +536,13 @@ export function OperadoresFeriaPanel() {
 
   return (
     <div className="space-y-6 animate-in">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center text-accent">
-          <Calendar size={24} />
-        </div>
-        <div>
-          <h2 className="text-2xl font-display text-primary">Operadores de Feria</h2>
-          <p className="text-sm text-muted-foreground">
-            Contratos de prestación independiente, consignación, arqueo e incentivos. Sin órdenes de trabajo.
-          </p>
-        </div>
-      </div>
+      <ViewShell
+        variant="compact"
+        eyebrow="Red de intercambio"
+        title="Operadores de Feria"
+        subtitle="Contratos de prestación independiente, consignación, arqueo e incentivos. Sin órdenes de trabajo."
+        icon={<Calendar size={22} />}
+      />
 
       <div className="p-4 rounded-xl bg-warning/10 border border-warning/20 text-xs text-muted-foreground flex gap-2">
         <AlertTriangle size={16} className="text-warning shrink-0" />
@@ -553,21 +552,16 @@ export function OperadoresFeriaPanel() {
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-2 border-b border-border pb-px">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm border-b-2 transition-all ${
-              tab === t.key ? 'border-accent text-accent font-bold' : 'border-transparent text-muted-foreground'
-            }`}
-          >
-            {t.icon}
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <ResponsiveTabBar
+        layoutId="feria-tabs"
+        tabs={tabs.map((t) => ({
+          id: t.key,
+          label: t.label,
+          icon: t.icon,
+        }))}
+        activeId={tab}
+        onChange={(id) => setTab(id as Tab)}
+      />
 
       {tab === 'contratos' && (
         <div className="card space-y-4">
@@ -869,7 +863,7 @@ export function OperadoresFeriaPanel() {
               onChange={(e) => setLedgerForm({ ...ledgerForm, monto: Number(e.target.value) })} />
             <button type="button" className="btn btn-primary btn-sm" onClick={registerHonorario}>Registrar (pendiente)</button>
           </div>
-          <div className="overflow-x-auto max-h-[280px]">
+          <EnjTableShell caption="Desliza horizontalmente para ver todas las columnas">
             <table className="data-table text-sm w-full">
               <thead>
                 <tr>
@@ -892,14 +886,14 @@ export function OperadoresFeriaPanel() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </EnjTableShell>
 
           <div className="border-t border-border pt-4 space-y-3">
             <h4 className="font-display text-sm">Honorarios feria → SII</h4>
             <p className="text-xs text-muted-foreground">
               Flujo: pendiente → aprobar → preparar honorario (retención F29). No emite DTE automáticamente.
             </p>
-            <div className="overflow-x-auto max-h-[320px]">
+            <EnjTableShell caption="Desliza horizontalmente para ver todas las columnas">
               <table className="data-table text-sm w-full">
                 <thead>
                   <tr>
@@ -952,7 +946,7 @@ export function OperadoresFeriaPanel() {
                   )}
                 </tbody>
               </table>
-            </div>
+            </EnjTableShell>
           </div>
 
           {honorarioModal && (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Settings,
   Moon,
@@ -8,297 +8,125 @@ import {
   Monitor,
   Bell,
   Database,
-  Construction,
   Palette,
-  Plus,
-  Trash2,
-  GripVertical,
   Eye,
   EyeOff,
-  Image as ImageIcon,
-  Upload,
   Loader2,
-  ChevronDown,
-  ChevronRight,
-  Save,
-  ExternalLink,
+  LayoutTemplate,
 } from 'lucide-react';
 import { useTheme, type Theme } from '@enjambre/ui';
 import { toast } from '@enjambre/ui';
-import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/use-cms-content';
-import { getUrlTienda } from '@/lib/publicUrls';
+import {
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  mergeNotificationPreferences,
+  parseNotificationPreferences,
+  serializeNotificationPreferences,
+  type NotificationCategory,
+  type NotificationChannel,
+  type NotificationPreferences,
+} from '@enjambre/auth/notification-preferences';
+import { StoreEditorModal } from '@/components/cms/StoreEditorModal';
+import { supabase } from '@/lib/supabase';
+import { ViewShell } from '@/components/layout/ViewShell';
 
-const SECTION_LABELS: Record<string, string> = {
-  servicios: 'Servicios',
-  talleres: 'Talleres',
-  colecciones: 'Colecciones',
-  footer_branding: 'Footer — Marca',
-  footer_nav: 'Footer — Navegación',
-  footer_legal: 'Footer — Legal',
-  hero: 'Hero',
-  nosotros: 'Nosotros',
-  galeria: 'Galería',
-  contacto: 'Contacto',
+const NOTIF_LABELS: Record<NotificationCategory, { title: string; desc: string }> = {
+  pedidos: { title: 'Pedidos y envíos', desc: 'Confirmaciones de compra y despacho' },
+  floracion: { title: 'Alertas de floración', desc: 'Ventanas de vuelo y cosecha' },
+  sistema: { title: 'Sistema', desc: 'Bienvenida, mantenimiento y avisos generales' },
 };
 
-const SECTION_ICONS: Record<string, string> = {
-  servicios: 'briefcase',
-  talleres: 'calendar',
-  colecciones: 'layers',
-  footer_branding: 'tag',
-  footer_nav: 'navigation',
-  footer_legal: 'scale',
-  hero: 'sparkles',
-  nosotros: 'users',
-  galeria: 'image',
-  contacto: 'mail',
-};
-
-function ContentFieldEditor({
-  fieldKey,
-  value,
-  onChange,
-}: {
-  fieldKey: string;
-  value: unknown;
-  onChange: (val: unknown) => void;
-}) {
-  if (typeof value === 'string') {
-    if (fieldKey.includes('desc') || fieldKey.includes('description') || fieldKey.includes('text')) {
-      return (
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          rows={3}
-          className="w-full bg-surface-sunken border border-border rounded-lg p-3 text-sm text-foreground resize-y focus:outline-none focus:ring-2 focus:ring-accent"
-        />
-      );
-    }
-    return (
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-      />
-    );
-  }
-
-  if (typeof value === 'number') {
-    return (
-      <input
-        type="number"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-      />
-    );
-  }
-
-  if (typeof value === 'boolean') {
-    return (
-      <button
-        onClick={() => onChange(!value)}
-        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-          value
-            ? 'bg-accent/20 text-accent border border-accent'
-            : 'bg-surface-sunken border border-border text-muted-foreground'
-        }`}
-      >
-        {value ? 'Sí' : 'No'}
-      </button>
-    );
-  }
-
-  return (
-    <input
-      type="text"
-      value={String(value ?? '')}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-    />
-  );
-}
-
-function ItemCard({
-  item,
-  onUpdate,
-  onDelete,
-  onImageUpload,
-  isUpdating,
-  isDeleting,
-}: {
-  item: CMSContentItem;
-  onUpdate: (id: string, content: Record<string, unknown>, isActive: boolean) => void;
-  onDelete: (id: string) => void;
-  onImageUpload: (file: File, fieldName: string, itemId: string) => void;
-  isUpdating: boolean;
-  isDeleting: boolean;
-}) {
-  const [expanded, setExpanded] = useState(true);
-  const [localContent, setLocalContent] = useState<Record<string, unknown>>(item.content);
-  const [localActive, setLocalActive] = useState(item.is_active);
-  const [dirty, setDirty] = useState(false);
-  const [uploadingField, setUploadingField] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadTargetField, setUploadTargetField] = useState<string>('');
-
-  const handleFieldChange = useCallback((key: string, val: unknown) => {
-    setLocalContent((prev) => ({ ...prev, [key]: val }));
-    setDirty(true);
-  }, []);
-
-  const handleSave = () => {
-    onUpdate(item.id, localContent, localActive);
-    setDirty(false);
-  };
-
-  const handleToggleActive = () => {
-    setLocalActive(!localActive);
-    setDirty(true);
-  };
-
-  const handleImageClick = (fieldName: string) => {
-    setUploadTargetField(fieldName);
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !uploadTargetField) return;
-    setUploadingField(uploadTargetField);
-    onImageUpload(file, uploadTargetField, item.id);
-    e.target.value = '';
-  };
-
-  const titleField = localContent.title ?? localContent.label ?? localContent.kicker ?? null;
-  const isImageField = (key: string) =>
-    key.toLowerCase().includes('image') ||
-    key.toLowerCase().includes('img') ||
-    key.toLowerCase().includes('foto') ||
-    key.toLowerCase().includes('icon') ||
-    key.toLowerCase().includes('src');
-
-  return (
-    <div className={`bg-surface-sunken rounded-xl border border-border overflow-hidden transition-all ${!localActive ? 'opacity-60' : ''}`}>
-      <div
-        className="flex items-center gap-3 p-4 cursor-pointer hover:bg-surface-raised/50 transition-colors"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <GripVertical size={16} className="text-muted-foreground shrink-0" />
-        <ChevronDown
-          size={16}
-          className={`text-muted-foreground shrink-0 transition-transform ${expanded ? '' : '-rotate-90'}`}
-        />
-        <span className="text-sm font-medium text-foreground flex-1 truncate">
-          {titleField ? String(titleField) : `Item #${item.item_order + 1}`}
-        </span>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleToggleActive();
-          }}
-          className={`p-1.5 rounded-lg transition-colors ${
-            localActive ? 'text-accent hover:bg-accent/10' : 'text-muted-foreground hover:bg-surface-raised'
-          }`}
-          title={localActive ? 'Ocultar en tienda' : 'Mostrar en tienda'}
-        >
-          {localActive ? <Eye size={14} /> : <EyeOff size={14} />}
-        </button>
-      </div>
-
-      {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-
-          {Object.entries(localContent).map(([key, val]) => (
-            <div key={key} className="space-y-1">
-              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {key}
-              </label>
-              {isImageField(key) ? (
-                <div className="space-y-2">
-                  {val && typeof val === 'string' && val.startsWith('http') ? (
-                    <img
-                      src={val}
-                      alt={key}
-                      className="w-32 h-20 object-cover rounded-lg border border-border"
-                    />
-                  ) : null}
-                  <button
-                    onClick={() => handleImageClick(key)}
-                    disabled={uploadingField === key}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-surface border border-border hover:border-accent/50 transition-colors disabled:opacity-50"
-                  >
-                    {uploadingField === key ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Upload size={14} />
-                    )}
-                    {val ? 'Cambiar imagen' : 'Subir imagen'}
-                  </button>
-                </div>
-              ) : key === 'href' || key === 'action' ? (
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <ContentFieldEditor fieldKey={key} value={val} onChange={(v) => handleFieldChange(key, v)} />
-                  </div>
-                  {typeof val === 'string' && val.startsWith('/') && (
-                    <a
-                      href={`${getUrlTienda()}${val}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-lg border border-border hover:border-accent/50 text-muted-foreground hover:text-accent transition-colors"
-                    >
-                      <ExternalLink size={14} />
-                    </a>
-                  )}
-                </div>
-              ) : (
-                <ContentFieldEditor fieldKey={key} value={val} onChange={(v) => handleFieldChange(key, v)} />
-              )}
-            </div>
-          ))}
-
-          <div className="flex items-center justify-between pt-2">
-            <button
-              onClick={() => onDelete(item.id)}
-              disabled={isDeleting}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
-            >
-              {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-              Eliminar
-            </button>
-
-            {dirty && (
-              <button
-                onClick={handleSave}
-                disabled={isUpdating}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50"
-              >
-                {isUpdating ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                Guardar
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+interface DataStats {
+  productos: number;
+  ventas: number;
+  clientes: number;
+  colmenas: number;
+  lastUpdated: string | null;
 }
 
 export function ConfiguracionView() {
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const cms = useCMSContent();
-  const [activeSection, setActiveSection] = useState<string | null>(null);
-  const [showNewForm, setShowNewForm] = useState(false);
-  const [newContent, setNewContent] = useState('{\n  "title": "",\n  "desc": ""\n}');
+  
+  // Modal state for Store Editor
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  
+  const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES);
+  const [notifLoading, setNotifLoading] = useState(true);
+  const [notifSaving, setNotifSaving] = useState(false);
+  
+  const [dataStats, setDataStats] = useState<DataStats | null>(null);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadPrefs() {
+      setNotifLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setNotifLoading(false);
+        return;
+      }
+      const { data } = await supabase
+        .from('profiles')
+        .select('notification_preferences')
+        .eq('id', user.id)
+        .maybeSingle();
+      setNotifPrefs(parseNotificationPreferences(data?.notification_preferences));
+      setNotifLoading(false);
+    }
+    loadPrefs();
+  }, []);
+
+  useEffect(() => {
+    async function loadStats() {
+      setDataLoading(true);
+      const tables = ['productos', 'ventas', 'clientes', 'colmenas'] as const;
+      const counts = await Promise.all(
+        tables.map(async (table) => {
+          const { count } = await supabase.from(table).select('id', { count: 'exact', head: true });
+          return count ?? 0;
+        }),
+      );
+      const { data: latest } = await supabase
+        .from('ventas')
+        .select('created_at')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setDataStats({
+        productos: counts[0],
+        ventas: counts[1],
+        clientes: counts[2],
+        colmenas: counts[3],
+        lastUpdated: latest?.created_at ?? null,
+      });
+      setDataLoading(false);
+    }
+    loadStats();
+  }, []);
+
+  const handleNotifToggle = async (category: NotificationCategory, channel: NotificationChannel) => {
+    const next = mergeNotificationPreferences(notifPrefs, {
+      [category]: { [channel]: !notifPrefs[category][channel] },
+    });
+    setNotifPrefs(next);
+    setNotifSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setNotifSaving(false);
+      return;
+    }
+    const serialized = serializeNotificationPreferences(next);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ notification_preferences: serialized })
+      .eq('id', user.id);
+    setNotifSaving(false);
+    if (error) {
+      toast('No se pudieron guardar las preferencias', { type: 'error' });
+      setNotifPrefs(notifPrefs);
+    } else {
+      toast('Preferencias guardadas', { type: 'success' });
+    }
+  };
 
   const themes: { value: Theme; icon: React.ReactNode; label: string }[] = [
     { value: 'light', icon: <Sun size={18} />, label: 'Claro' },
@@ -306,80 +134,15 @@ export function ConfiguracionView() {
     { value: 'system', icon: <Monitor size={18} />, label: 'Sistema' },
   ];
 
-  const groupedData = cms.data?.data ?? {};
-  const sectionKeys = Object.keys(groupedData).length > 0
-    ? Object.keys(groupedData).sort()
-    : cms.sections;
-
-  const handleUpdateItem = (id: string, content: Record<string, unknown>, isActive: boolean) => {
-    cms.updateItem.mutate(
-      { id, content, is_active: isActive },
-      {
-        onSuccess: () => toast('Contenido actualizado', { type: 'success' }),
-        onError: (err) => toast(err.message, { type: 'error' }),
-      }
-    );
-  };
-
-  const handleDeleteItem = (id: string) => {
-    cms.deleteItem.mutate(id, {
-      onSuccess: () => toast('Item eliminado', { type: 'success' }),
-      onError: (err) => toast(err.message, { type: 'error' }),
-    });
-  };
-
-  const handleImageUpload = (file: File, fieldName: string, itemId: string) => {
-    const sectionKey = (activeSection ?? 'hero') as CMSSectionKey;
-    cms.uploadImage.mutate(
-      { file, sectionKey, fieldName },
-      {
-        onSuccess: (result) => {
-          const currentItem = groupedData[activeSection ?? '']?.find((i) => i.id === itemId);
-          if (currentItem) {
-            const updatedContent = { ...currentItem.content, [fieldName]: result.publicUrl };
-            cms.updateItem.mutate(
-              { id: itemId, content: updatedContent },
-              {
-                onSuccess: () => toast('Imagen subida y guardada', { type: 'success' }),
-                onError: (err) => toast(err.message, { type: 'error' }),
-              }
-            );
-          }
-        },
-        onError: (err) => toast(err.message, { type: 'error' }),
-      }
-    );
-  };
-
-  const handleCreateItem = () => {
-    if (!activeSection) return;
-    try {
-      const parsed = JSON.parse(newContent);
-      cms.createItem.mutate(
-        {
-          section_key: activeSection as CMSSectionKey,
-          content: parsed,
-        },
-        {
-          onSuccess: () => {
-            toast('Item creado', { type: 'success' });
-            setShowNewForm(false);
-            setNewContent('{\n  "title": "",\n  "desc": ""\n}');
-          },
-          onError: (err) => toast(err.message, { type: 'error' }),
-        }
-      );
-    } catch {
-      toast('JSON inválido — revisa el formato', { type: 'error' });
-    }
-  };
-
   return (
     <div className="space-y-8 animate-in">
-      <div className="hero-banner">
-        <h1 className="hero-title">Configuración</h1>
-        <p className="hero-subtitle">Personaliza tu experiencia y el contenido de la tienda</p>
-      </div>
+      <ViewShell
+        variant="compact"
+        eyebrow="Sistema"
+        title="Configuración"
+        subtitle="Personaliza tu experiencia y el contenido de la tienda"
+        icon={<Settings size={20} />}
+      />
 
       <div className="max-w-4xl space-y-8">
         <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
@@ -388,7 +151,7 @@ export function ConfiguracionView() {
             <h3 className="text-sm font-bold uppercase tracking-widest">Apariencia</h3>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="theme-picker-grid">
             {themes.map((t) => (
               <button
                 key={t.value}
@@ -406,163 +169,120 @@ export function ConfiguracionView() {
           </div>
         </section>
 
-        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
-          <div className="flex items-center gap-3 text-accent">
-            <Palette size={18} />
-            <h3 className="text-sm font-bold uppercase tracking-widest">Contenido de la Tienda</h3>
+        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-accent">
+            <LayoutTemplate size={120} />
           </div>
-
-          <p className="text-xs text-muted-foreground">
-            Edita los textos e imágenes que se muestran en la tienda pública. Los cambios se reflejan en tiempo real.
-          </p>
-
-          {cms.isLoading && (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 size={24} className="animate-spin text-accent" />
+          
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 text-accent mb-4">
+              <Palette size={18} />
+              <h3 className="text-sm font-bold uppercase tracking-widest">Contenido de la Tienda</h3>
             </div>
-          )}
 
-          {cms.error && (
-            <div className="p-4 rounded-xl bg-destructive/10 border border-destructive text-destructive text-sm">
-              Error al cargar contenido: {cms.error.message}
-            </div>
-          )}
+            <p className="text-sm text-muted-foreground mb-6 max-w-lg leading-relaxed">
+              Edita los textos e imágenes que se muestran en la tienda pública (Hero, Servicios, Nosotros, Galerías). 
+              Abre el editor visual inmersivo para previsualizar los cambios en tiempo real.
+            </p>
 
-          {!cms.isLoading && !cms.error && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {sectionKeys.map((key) => {
-                  const count = groupedData[key]?.length ?? 0;
-                  const isActive = activeSection === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => setActiveSection(isActive ? null : key)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                        isActive
-                          ? 'bg-accent text-accent-foreground'
-                          : 'bg-surface-sunken border border-border text-muted-foreground hover:border-accent/50 hover:text-foreground'
-                      }`}
-                    >
-                      {SECTION_LABELS[key] ?? key}
-                      {count > 0 && (
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                          isActive ? 'bg-accent-foreground/20' : 'bg-surface-raised'
-                        }`}>
-                          {count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {activeSection && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-foreground">
-                      {SECTION_LABELS[activeSection] ?? activeSection}
-                    </h4>
-                    <button
-                      onClick={() => setShowNewForm(!showNewForm)}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
-                    >
-                      <Plus size={14} />
-                      Nuevo item
-                    </button>
-                  </div>
-
-                  {showNewForm && (
-                    <div className="bg-surface-sunken rounded-xl border border-border p-4 space-y-3">
-                      <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        Contenido (JSON)
-                      </label>
-                      <textarea
-                        value={newContent}
-                        onChange={(e) => setNewContent(e.target.value)}
-                        rows={6}
-                        className="w-full bg-background border border-border rounded-lg p-3 text-sm text-foreground font-mono resize-y focus:outline-none focus:ring-2 focus:ring-accent"
-                      />
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => setShowNewForm(false)}
-                          className="px-3 py-2 rounded-lg text-xs font-medium border border-border hover:border-accent/50 transition-colors"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          onClick={handleCreateItem}
-                          disabled={cms.createItem.isPending}
-                          className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50"
-                        >
-                          {cms.createItem.isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-                          Crear
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {(groupedData[activeSection] ?? []).map((item) => (
-                    <ItemCard
-                      key={item.id}
-                      item={item}
-                      onUpdate={handleUpdateItem}
-                      onDelete={handleDeleteItem}
-                      onImageUpload={handleImageUpload}
-                      isUpdating={cms.updateItem.isPending}
-                      isDeleting={cms.deleteItem.isPending}
-                    />
-                  ))}
-
-                  {(groupedData[activeSection] ?? []).length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground text-sm">
-                      No hay items en esta sección. Crea uno nuevo.
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {!activeSection && (
-                <div className="text-center py-8 text-muted-foreground text-sm">
-                  Selecciona una sección para editar su contenido
-                </div>
-              )}
-            </div>
-          )}
+            <button
+              onClick={() => setIsEditorOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            >
+              <LayoutTemplate size={18} />
+              Abrir Editor Visual de Tienda
+            </button>
+          </div>
         </section>
 
-        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border opacity-60">
+        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
           <div className="flex items-center gap-3 text-accent">
             <Bell size={18} />
             <h3 className="text-sm font-bold uppercase tracking-widest">Notificaciones</h3>
-            <span className="text-xs text-muted-foreground">(en desarrollo)</span>
+            {notifSaving && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-xl">
-            <div>
-              <p className="text-sm font-medium">Notificaciones push</p>
-              <p className="text-xs text-muted-foreground">Funcionalidad en desarrollo. Las alertas se muestran en el panel principal.</p>
+          {notifLoading ? (
+            <div className="text-sm text-muted-foreground flex items-center gap-2">
+              <Loader2 size={14} className="animate-spin" /> Cargando preferencias...
             </div>
-            <Construction size={18} className="text-muted-foreground" />
-          </div>
+          ) : (
+            <div className="space-y-3">
+              {(Object.keys(NOTIF_LABELS) as NotificationCategory[]).map((category) => (
+                <div key={category} className="p-4 bg-secondary/50 rounded-xl space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">{NOTIF_LABELS[category].title}</p>
+                    <p className="text-xs text-muted-foreground">{NOTIF_LABELS[category].desc}</p>
+                  </div>
+                  <div className="flex gap-4">
+                    {(['in_app', 'email'] as NotificationChannel[]).map((channel) => (
+                      <button
+                        key={channel}
+                        onClick={() => handleNotifToggle(category, channel)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          notifPrefs[category][channel]
+                            ? 'bg-accent/20 text-accent border border-accent'
+                            : 'bg-surface-sunken border border-border text-muted-foreground'
+                        }`}
+                      >
+                        {notifPrefs[category][channel] ? <Eye size={14} /> : <EyeOff size={14} />}
+                        {channel === 'in_app' ? 'En app' : 'Email'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
-        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border opacity-60">
+        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
           <div className="flex items-center gap-3 text-accent">
             <Database size={18} />
             <h3 className="text-sm font-bold uppercase tracking-widest">Datos</h3>
-            <span className="text-xs text-muted-foreground">(en desarrollo)</span>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-xl">
-            <div>
-              <p className="text-sm font-medium">Sincronización automática</p>
-              <p className="text-xs text-muted-foreground">La sincronización se gestiona automáticamente vía Supabase Realtime.</p>
+          {dataLoading ? (
+            <div className="text-sm text-muted-foreground flex items-center gap-2">
+              <Loader2 size={14} className="animate-spin" /> Consultando tablas...
             </div>
-            <Construction size={18} className="text-muted-foreground" />
-          </div>
+          ) : dataStats ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { label: 'Productos', val: dataStats.productos },
+                  { label: 'Ventas', val: dataStats.ventas },
+                  { label: 'Clientes CRM', val: dataStats.clientes },
+                  { label: 'Colmenas', val: dataStats.colmenas },
+                ].map((s) => (
+                  <div key={s.label} className="p-3 bg-secondary/50 rounded-xl text-center">
+                    <div className="text-lg font-semibold">{s.val}</div>
+                    <div className="text-xs text-muted-foreground">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-xl">
+                <div>
+                  <p className="text-sm font-medium">Sincronización Supabase Realtime</p>
+                  <p className="text-xs text-muted-foreground">
+                    {dataStats.lastUpdated
+                      ? `Última venta registrada: ${new Date(dataStats.lastUpdated).toLocaleString('es-CL')}`
+                      : 'Sin actividad reciente en ventas'}
+                  </p>
+                </div>
+                <span className="text-xs px-2 py-1 rounded-full bg-accent/15 text-accent">Activo</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No se pudieron cargar las estadísticas.</p>
+          )}
         </section>
       </div>
+
+      <StoreEditorModal 
+        isOpen={isEditorOpen} 
+        onClose={() => setIsEditorOpen(false)} 
+      />
     </div>
   );
 }

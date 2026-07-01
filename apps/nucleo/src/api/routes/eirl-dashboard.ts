@@ -111,6 +111,30 @@ dashboardRoutes.get("/", async (c) => {
     (f: { estado: string }) => f.estado === "pendiente",
   ).length;
 
+  const prevMes = periodoMes === 1 ? 12 : periodoMes - 1;
+  const prevAnio = periodoMes === 1 ? periodoAnio - 1 : periodoAnio;
+  const { data: prevPeriodo } = await ia
+    .from("periodos_contables")
+    .select("id")
+    .eq("empresa_id", empresaId)
+    .eq("mes", prevMes)
+    .eq("anio", prevAnio)
+    .maybeSingle();
+
+  let ingresosMesAnterior = 0;
+  let gastosMesAnterior = 0;
+  if (prevPeriodo?.id) {
+    const [prevFeRes, prevGastosRes] = await Promise.all([
+      ia.from("facturas_emitidas").select("monto_neto").eq("empresa_id", empresaId).eq("periodo_id", prevPeriodo.id),
+      ia.from("gastos").select("monto_neto").eq("empresa_id", empresaId).eq("periodo_id", prevPeriodo.id),
+    ]);
+    ingresosMesAnterior = (prevFeRes.data ?? []).reduce((a: number, f: { monto_neto: number | null }) => a + Number(f.monto_neto ?? 0), 0);
+    gastosMesAnterior = (prevGastosRes.data ?? []).reduce((a: number, g: { monto_neto: number | null }) => a + Number(g.monto_neto ?? 0), 0);
+  }
+
+  const pctChange = (current: number, previous: number) =>
+    previous > 0 ? Math.round(((current - previous) / previous) * 1000) / 10 : null;
+
   return c.json({
     periodo,
     metricas: {
@@ -122,6 +146,8 @@ dashboardRoutes.get("/", async (c) => {
       ivaCredito,
       ivaPagar,
       ppm: Number(impuestoRes?.monto ?? 0),
+      ingresosVariacionPct: pctChange(ingresosMes, ingresosMesAnterior),
+      gastosVariacionPct: pctChange(gastosMes, gastosMesAnterior),
     },
     resumen: {
       totalFacturasEmitidas: facturasEmitidas.length,

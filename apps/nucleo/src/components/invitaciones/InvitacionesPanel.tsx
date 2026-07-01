@@ -7,6 +7,8 @@ import {
   Ticket, Loader2, Plus, Copy, Check,
   CheckCircle2, Clock, X, Eye
 } from 'lucide-react';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 
 interface InvitationCodeRow {
   id: string;
@@ -142,24 +144,22 @@ export function InvitacionesPanel() {
 
   return (
     <div className="space-y-8 animate-in relative">
-  <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center text-accent">
-          <Ticket size={24} />
-        </div>
-        <div>
-          <h2 className="text-2xl font-display text-primary">Invitaciones</h2>
-          <p className="text-sm text-muted-foreground">Códigos de acceso · Onboarding al enjambre</p>
-        </div>
-      </div>
+      <ViewShell
+        variant="compact"
+        eyebrow="Onboarding"
+        title="Invitaciones"
+        subtitle="Códigos de acceso · Onboarding al enjambre"
+        icon={<Ticket size={22} />}
+      />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="stats-grid">
         {[
       { icon: <Ticket size={18} />, val: codes.length, label: 'Invitaciones', accent: '' },
         { icon: <CheckCircle2 size={18} />, val: codes.filter(c => c.active).length, label: 'Activas', accent: 'text-success' },
         { icon: <Clock size={18} />, val: redemptions.length, label: 'Canjes', accent: 'text-accent' },
         { icon: <Eye size={18} />, val: codes.reduce((s, c) => s + c.current_uses, 0), label: 'Usos', accent: '' },
         ].map((s, i) => (
-          <div key={i} className="stat-card animate-in" style={{ animationDelay: `${i * 80}ms` }}>
+          <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
             <div className="stat-header"><div className="stat-icon">{s.icon}</div></div>
             <div className={`stat-value ${s.accent}`}>{s.val}</div>
             <div className="stat-label">{s.label}</div>
@@ -167,13 +167,19 @@ export function InvitacionesPanel() {
         ))}
       </div>
 
-      <div className="flex gap-3 mb-2">
-        {(['codigos', 'canjes'] as const).map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className={`btn flex items-center gap-2 ${activeTab === tab ? 'btn-gold' : 'btn-outline'}`}>
-            {tab === 'codigos' ? <><Ticket size={16} />Códigos</> : <><CheckCircle2 size={16} />Canjes ({redemptions.length})</>}
-          </button>
-        ))}
-        <button onClick={() => setShowCreate(!showCreate)} className="btn btn-gold flex items-center gap-2 ml-auto">
+      <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+        <ResponsiveTabBar
+          className="flex-1"
+          variant="pill"
+          layoutId="invitaciones-tabs"
+          tabs={[
+            { id: 'codigos', label: 'Códigos', icon: <Ticket size={16} /> },
+            { id: 'canjes', label: 'Canjes', icon: <CheckCircle2 size={16} />, badge: redemptions.length || undefined },
+          ]}
+          activeId={activeTab}
+          onChange={(id) => setActiveTab(id as 'codigos' | 'canjes')}
+        />
+        <button onClick={() => setShowCreate(!showCreate)} className="btn btn-gold flex items-center justify-center gap-2 shrink-0">
           <Plus size={16} />Nueva Invitación
         </button>
       </div>

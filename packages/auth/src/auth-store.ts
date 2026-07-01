@@ -61,14 +61,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     // Fallback: session exists but profile row is missing — keep authenticated
     // to avoid desync with middleware and allow app to self-heal.
+    // Only trust app_metadata for role; use safe defaults for preferences.
     const fallbackUser: AuthUser = {
       id: user.id,
       email: user.email ?? '',
       role: (user.app_metadata?.role as string) ?? 'cliente',
-      nivel_guardian: (user.user_metadata?.nivel_guardian as string) ?? '',
-      full_name: (user.user_metadata?.full_name as string) ?? '',
-      avatar_url: (user.user_metadata?.avatar_url as string) ?? '',
-      theme_preference: (user.user_metadata?.theme_preference as 'light' | 'dark' | 'system') ?? 'system',
+      nivel_guardian: '',
+      full_name: '',
+      avatar_url: '',
+      theme_preference: 'system',
     }
     set({ user: fallbackUser, session, isAuthenticated: true, isLoading: false })
   },

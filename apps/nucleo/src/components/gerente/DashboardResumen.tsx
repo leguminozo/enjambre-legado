@@ -15,7 +15,7 @@ interface ResumenData {
     apiarios: { total: number }
     inspecciones: { totalYTD: number; latestVarroa: number | null }
     cosechas: { totalYTD: number; byMonth: { month: string; cosecha: number }[] }
-    arboles: { totalYTD: number; co2Total: number }
+    arboles: { totalYTD: number; co2Total: number; byMonth: number[] }
   }
   finanzas: {
     facturacionYTD: number
@@ -122,6 +122,13 @@ export function DashboardResumen() {
     { name: 'Riesgo', value: enjambre.colmenas.byHealth.riesgo, color: SALUD_RIESGO },
   ].filter(d => d.value > 0)
 
+  const cashWithIncome = finanzas.cashFlow.filter((cf) => cf.income > 0);
+  const lastIncome = cashWithIncome[cashWithIncome.length - 1]?.income ?? 0;
+  const prevIncome = cashWithIncome[cashWithIncome.length - 2]?.income ?? 0;
+  const facturacionTrend = prevIncome > 0
+    ? { value: `${lastIncome >= prevIncome ? '+' : ''}${Math.round(((lastIncome - prevIncome) / prevIncome) * 100)}%`, isPositive: lastIncome >= prevIncome }
+    : undefined;
+
   return (
     <div className="animate-in">
       {/* ── KPI Hero Stats ── */}
@@ -139,14 +146,14 @@ export function DashboardResumen() {
           icon={<DollarSign size={20} />}
           description={`${fmtCLP(finanzas.facturacionMes)} facturado este mes.`}
           sparkline={finanzas.cashFlow.map(cf => cf.income)}
-          trend={{ value: '+18%', isPositive: true }}
+          trend={facturacionTrend}
         />
         <KpiCard
           title="CO₂ secuestrado"
           value={`${fmtNum(enjambre.arboles.co2Total)} ton`}
           icon={<Leaf size={20} />}
           description={`${enjambre.arboles.totalYTD} árboles plantados YTD.`}
-          sparkline={[20, 35, 50, 75, 110, 140]}
+          sparkline={enjambre.arboles.byMonth ?? []}
         />
         <KpiCard
           title="Margen utilidad"

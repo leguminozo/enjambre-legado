@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { formatCLP } from '@/lib/shop/format';
-import { GrainOverlay } from '@/components/shop/grain-overlay';
+import { authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
 import { friendlySupabaseError } from '@enjambre/ui';
 import { Sparkles, Mail, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -82,11 +82,9 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
 
   if (claimed) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 text-center overflow-hidden">
-        <GrainOverlay />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-accent/10 blur-[120px] pointer-events-none" />
-
-        <div className="relative z-10 animate-in fade-in zoom-in duration-1000">
+      <div className="tienda-auth-page text-foreground flex flex-col items-center justify-center text-center">
+        <div className="tienda-auth-glow pointer-events-none" aria-hidden />
+        <div className="tienda-auth-inner animate-in fade-in zoom-in duration-1000">
           <div className="inline-flex items-center justify-center w-24 h-24 bg-accent/10 rounded-full mb-8">
             <Sparkles className="w-12 h-12 text-accent" />
           </div>
@@ -101,14 +99,10 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      <GrainOverlay />
+    <div className="tienda-auth-page text-foreground flex flex-col items-center justify-center">
+      <div className="tienda-auth-glow pointer-events-none" aria-hidden />
 
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 blur-[150px]" />
-      </div>
-
-      <div className="max-w-md w-full relative z-10 space-y-12">
+      <div className="tienda-auth-inner max-w-md w-full space-y-10 sm:space-y-12">
         <div className="text-center">
           <p className="text-[0.6rem] uppercase tracking-[0.4em] text-accent font-bold mb-6">Fidelización Cíclica</p>
           <h1 className="font-display text-4xl md:text-5xl font-light tracking-tight mb-4">
@@ -119,7 +113,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
           </p>
         </div>
 
-        <div className="bg-surface-raised/80 backdrop-blur-2xl border border-border p-10 shadow-2xl rounded-sm">
+        <div className="tienda-auth-panel">
           <div className="mb-8 pb-8 border-b border-border">
             <div className="flex justify-between items-end">
               <div>
@@ -138,17 +132,21 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
           {!user ? (
             <form onSubmit={handleMagicLink} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">Ingresa tu correo para reclamar</label>
+                <label htmlFor="claim-email" className={authLabelClass}>
+                  Ingresa tu correo para reclamar
+                </label>
                 <div className="relative group">
-                  <Mail className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
                   <input
                     id="claim-email"
                     name="email"
                     type="email"
+                    autoComplete="email"
+                    inputMode="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-transparent border-b border-border pl-8 py-3 text-sm focus:outline-none focus:border-accent transition-colors"
+                    className={authFieldClass}
                     placeholder="tu@email.com"
                   />
                 </div>
@@ -157,7 +155,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold hover:bg-foreground transition-all disabled:opacity-50"
+                className="w-full min-h-[48px] py-4 rounded-lg bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold hover:bg-foreground transition-all disabled:opacity-50"
               >
                 {loading ? 'Enviando enlace...' : 'Continuar con enlace mágico'}
               </button>
@@ -177,7 +175,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
               <button
                 onClick={claimVenta}
                 disabled={claiming}
-                className="w-full py-5 border border-accent text-accent text-[0.7rem] uppercase tracking-[0.3em] font-bold hover:bg-accent hover:text-accent-foreground transition-all duration-500 flex items-center justify-center gap-3"
+                className="w-full min-h-[48px] py-5 rounded-lg border border-accent text-accent text-[0.7rem] uppercase tracking-[0.3em] font-bold hover:bg-accent hover:text-accent-foreground transition-all duration-300 flex items-center justify-center gap-3"
               >
                 {claiming ? 'Procesando...' : (
                   <>

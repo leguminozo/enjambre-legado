@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { faqJsonLd, renderJsonLd } from '@/lib/shop/json-ld';
+import { faqJsonLd } from '@/lib/shop/json-ld';
+import { JsonLd } from '@/components/ui/JsonLd';
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -56,10 +57,7 @@ const faqSchema = faqJsonLd([
 export default function UlmoPage() {
   return (
     <Shell>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: renderJsonLd(faqSchema) }}
-      />
+      <JsonLd data={faqSchema} />
       <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
           Origen · Monografía

@@ -20,3 +20,5 @@ Copia de*
 skills/
 skills-lock.json
 apps/nucleo/test-results/
+apps/tienda/test-results/
+apps/tienda/playwright-report/

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
 import { ShoppingCart, Save, X, Calculator } from "lucide-react";
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import type { Gasto } from './gasto-types';
 
 interface Tercero {
   id: string;
@@ -18,6 +19,7 @@ interface Tercero {
 interface NuevoGastoFormProps {
   onSave: (gasto: Record<string, unknown>) => void;
   onCancel: () => void;
+  gasto?: Gasto | null;
 }
 
 const categoriasGasto = [
@@ -42,18 +44,19 @@ const tiposComprobante = [
   "Otro"
 ];
 
-export function NuevoGastoForm({ onSave, onCancel }: NuevoGastoFormProps) {
+export function NuevoGastoForm({ onSave, onCancel, gasto }: NuevoGastoFormProps) {
   const apiFetch = useApiFetch();
+  const isEdit = Boolean(gasto?.id);
   const [formData, setFormData] = useState({
-    fecha: new Date().toISOString().split('T')[0],
-    descripcion: "",
-    monto: "",
-    montoIva: "",
-    montoNeto: "",
-    categoria: "",
-    tipoComprobante: "Boleta",
-    numeroComprobante: "",
-    proveedorId: ""
+    fecha: gasto?.fecha ?? new Date().toISOString().split('T')[0],
+    descripcion: gasto?.descripcion ?? "",
+    monto: gasto?.monto ? String(gasto.monto) : "",
+    montoIva: gasto?.montoIva ? String(gasto.montoIva) : "",
+    montoNeto: gasto?.montoNeto ? String(gasto.montoNeto) : "",
+    categoria: gasto?.categoria ?? "",
+    tipoComprobante: gasto?.tipoComprobante ?? "Boleta",
+    numeroComprobante: gasto?.numeroComprobante ?? "",
+    proveedorId: gasto?.proveedorId ?? ""
   });
   
   const [proveedores, setProveedores] = useState<Tercero[]>([]);
@@ -159,22 +162,28 @@ console.error('Error creando proveedor:', error);
     setLoading(true);
     
     try {
-      const response = await apiFetch('/api/gastos', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...formData,
-          monto: parseFloat(formData.monto),
-          montoIva: parseFloat(formData.montoIva) || 0,
-          montoNeto: parseFloat(formData.montoNeto) || 0
-        })
-      });
+      const payload = {
+        ...formData,
+        monto: parseFloat(formData.monto),
+        montoIva: parseFloat(formData.montoIva) || 0,
+        montoNeto: parseFloat(formData.montoNeto) || 0,
+        estado: gasto?.estado?.toLowerCase() ?? 'pendiente',
+      };
+
+      const response = await apiFetch(
+        isEdit ? `/api/gastos/${gasto!.id}` : '/api/gastos',
+        {
+          method: isEdit ? 'PATCH' : 'POST',
+          body: JSON.stringify(payload),
+        },
+      );
 
       if (response.ok) {
-        const gasto = await response.json();
-        onSave(gasto);
+        const saved = await response.json();
+        onSave(saved);
       } else {
         const error = await response.json();
-        toast(error.error || 'Error al crear gasto', { type: 'error' });
+        toast(error.message || error.error || `Error al ${isEdit ? 'actualizar' : 'crear'} gasto`, { type: 'error' });
       }
     } catch (error) {
 console.error('Error creando gasto:', error);
@@ -189,7 +198,7 @@ console.error('Error creando gasto:', error);
       <CardHeader>
         <CardTitle className="text-xl font-light flex items-center gap-2">
           <ShoppingCart className="h-5 w-5" />
-          Nuevo Gasto
+          {isEdit ? 'Editar Gasto' : 'Nuevo Gasto'}
         </CardTitle>
       </CardHeader>
       <CardContent>

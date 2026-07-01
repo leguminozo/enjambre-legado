@@ -13,6 +13,9 @@ import {
   CreditCard, RefreshCw, CheckCircle, Wallet, ArrowRight, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 export function SumUpView() {
   const [activeTab, setActiveTab] = useState<'transacciones' | 'payouts' | 'conciliacion'>('transacciones');
@@ -102,50 +105,30 @@ export function SumUpView() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-display text-foreground">Pagos SumUp</h1>
-          <p className="text-muted-foreground mt-1">
-            Gestión y conciliación de pagos con tarjeta y enlaces de pago.
-          </p>
-        </div>
-        
-        {/* Tab Navigation */}
-        <div className="flex bg-surface-sunken p-1 rounded-lg border border-border w-fit">
-          <button
-            onClick={() => setActiveTab('transacciones')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
-              activeTab === 'transacciones' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <CreditCard size={16} />
-            Transacciones
-          </button>
-          <button
-            onClick={() => setActiveTab('payouts')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
-              activeTab === 'payouts' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Wallet size={16} />
-            Depósitos
-          </button>
-          <button
-            onClick={() => setActiveTab('conciliacion')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
-              activeTab === 'conciliacion' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <CheckCircle size={16} />
-            Conciliación ERP
-            {sugerencias.length > 0 && (
-              <span className="bg-primary/20 text-primary text-xs px-1.5 rounded-full">
-                {sugerencias.length}
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
+      <ViewShell
+        variant="compact"
+        eyebrow="Pagos"
+        title="Pagos SumUp"
+        subtitle="Gestión y conciliación de pagos con tarjeta y enlaces de pago."
+        icon={<CreditCard size={20} />}
+      />
+
+      <ResponsiveTabBar
+        variant="pill"
+        layoutId="sumup-tabs"
+        tabs={[
+          { id: 'transacciones', label: 'Transacciones', icon: <CreditCard size={16} /> },
+          { id: 'payouts', label: 'Depósitos', icon: <Wallet size={16} /> },
+          {
+            id: 'conciliacion',
+            label: 'Conciliación',
+            icon: <CheckCircle size={16} />,
+            badge: sugerencias.length > 0 ? sugerencias.length : undefined,
+          },
+        ]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as 'transacciones' | 'payouts' | 'conciliacion')}
+      />
 
       <AnimatePresence mode="wait">
         {/* PESTAÑA: TRANSACCIONES */}
@@ -184,7 +167,7 @@ export function SumUpView() {
                 ) : txns.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay transacciones registradas.</p>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <EnjTableShell>
                     <table className="w-full text-sm text-left">
                       <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
                         <tr>
@@ -227,7 +210,7 @@ export function SumUpView() {
                         ))}
                       </tbody>
                     </table>
-                  </div>
+                  </EnjTableShell>
                 )}
               </CardContent>
             </Card>
@@ -254,7 +237,7 @@ export function SumUpView() {
                 ) : payouts.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay depósitos en los últimos 30 días.</p>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <EnjTableShell>
                     <table className="w-full text-sm text-left">
                       <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
                         <tr>
@@ -289,7 +272,7 @@ export function SumUpView() {
                         ))}
                       </tbody>
                     </table>
-                  </div>
+                  </EnjTableShell>
                 )}
               </CardContent>
             </Card>

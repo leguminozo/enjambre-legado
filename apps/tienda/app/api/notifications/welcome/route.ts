@@ -1,6 +1,7 @@
 import { getInternalApiSecret } from '@enjambre/auth/internal-api-secret';
 import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
+import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 
 const DEFAULT_SUBJECT = 'Bienvenido al Legado';
 const DEFAULT_BODY =
@@ -16,11 +17,11 @@ export async function POST() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const nucleoUrl = process.env.NEXT_PUBLIC_NUCLEO_API_URL;
+  const nucleoUrl = getNucleoApiUrl();
   const internalKey = getInternalApiSecret();
 
   if (!nucleoUrl || !internalKey) {
-    console.error('[notifications/welcome] Missing NUCLEO_API_URL or internal key');
+    console.error('[notifications/welcome] Nucleo URL or internal key not configured');
     return NextResponse.json({ error: 'Notifications not configured' }, { status: 503 });
   }
 

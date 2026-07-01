@@ -4,6 +4,8 @@ import React, { useState, Suspense } from "react";
 import { FileText, Plus, Receipt, Settings2, Calculator, Users, RefreshCw, BookOpen, Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { viewLoadingFallback } from "@/lib/navigation/lazy-view";
+import { ViewShell } from "@/components/layout/ViewShell";
+import { ResponsiveTabBar } from "@/components/layout/ResponsiveTabBar";
 
 const DashboardTab = dynamic(() => import("./components/DashboardTab").then((m) => ({ default: m.DashboardTab })), {
   loading: () => viewLoadingFallback("DTEs"),
@@ -55,41 +57,26 @@ export function SiiDteView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-          <FileText size={20} />
-        </div>
-        <div>
-          <h1 className="font-display text-3xl text-foreground">SII · Facturación Electrónica</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Gestión integral de DTEs, impuestos (F29/F22) y honorarios
-          </p>
-        </div>
-      </div>
+      <ViewShell
+        variant="compact"
+        eyebrow="Fiscal"
+        title="SII · Facturación Electrónica"
+        subtitle="Gestión integral de DTEs, impuestos (F29/F22) y honorarios"
+        icon={<FileText size={20} />}
+      />
 
-      <div className="overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
-        <div className="flex bg-surface-sunken p-1 rounded-lg border border-border w-max min-w-full md:min-w-0">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = mode === tab.id;
-            return (
-              <button
-                key={tab.id}
-                data-testid={`sii-tab-${tab.id}`}
-                onClick={() => setMode(tab.id as SiiMode)}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 whitespace-nowrap ${
-                  isActive
-                    ? "bg-background shadow-sm text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Icon size={16} />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <ResponsiveTabBar
+        variant="pill"
+        layoutId="sii-tabs"
+        tabs={tabs.map((tab) => ({
+          id: tab.id,
+          label: tab.label,
+          icon: <tab.icon size={16} />,
+          testId: `sii-tab-${tab.id}`,
+        }))}
+        activeId={mode}
+        onChange={(id) => setMode(id as SiiMode)}
+      />
 
       <div className="pt-2">
         <Suspense fallback={<TabFallback />}>

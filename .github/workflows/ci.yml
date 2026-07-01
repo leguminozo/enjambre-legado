@@ -6,16 +6,16 @@ on:
   pull_request:
     branches: [main, develop]
 
-# Producción: vars públicas embebidas — no requiere .env.local ni secrets para build.
-# service_role solo si está en GitHub Secrets (runtime server en Vercel).
+# Todas las variables de entorno via GitHub Secrets — nada hardcodeado.
+# service_role requerido en secrets para runtime server en Vercel.
 env:
-  NEXT_PUBLIC_SUPABASE_URL: https://hdhamxiblwwskvvqbcfo.supabase.co
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: sb_publishable_sqF0fBsTuNzSKgpapPrU3Q_VUf0s-A1
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_sqF0fBsTuNzSKgpapPrU3Q_VUf0s-A1
-  NEXT_PUBLIC_NUCLEO_API_URL: https://nucleo-theta.vercel.app
-  NEXT_PUBLIC_URL_TIENDA: https://tienda-eta-lime.vercel.app
-  NEXT_PUBLIC_URL_CAMPO: https://campo-olive.vercel.app
-  NEXT_PUBLIC_SITE_URL: https://tienda-eta-lime.vercel.app
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+  NEXT_PUBLIC_NUCLEO_API_URL: ${{ secrets.NEXT_PUBLIC_NUCLEO_API_URL }}
+  NEXT_PUBLIC_URL_TIENDA: ${{ secrets.NEXT_PUBLIC_URL_TIENDA }}
+  NEXT_PUBLIC_URL_CAMPO: ${{ secrets.NEXT_PUBLIC_URL_CAMPO }}
+  NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
 jobs:
@@ -87,7 +87,6 @@ jobs:
 
       - name: Lint tienda
         run: pnpm --filter @enjambre/tienda lint
-        continue-on-error: true
 
   build-nucleo:
     runs-on: ubuntu-latest
@@ -113,7 +112,6 @@ jobs:
 
       - name: Lint nucleo
         run: pnpm --filter @enjambre/nucleo lint
-        continue-on-error: true
 
   build-campo:
     runs-on: ubuntu-latest
@@ -139,4 +137,3 @@ jobs:
 
       - name: Lint campo
         run: pnpm --filter @enjambre/campo lint
-        continue-on-error: true

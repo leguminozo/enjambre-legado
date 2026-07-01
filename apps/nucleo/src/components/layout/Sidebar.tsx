@@ -4,75 +4,25 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
-import {
-  Map, Hexagon, TreePine, ShoppingBag, Truck, Megaphone, Calendar,
-  Menu, X, LogOut, Calculator, Sparkles, BarChart3, FileText,
-  UserCog, Settings, Building2, CreditCard, GitMerge, Printer,
-  Cpu, Shield, Wallet, Users, Ticket, Percent, Sliders, Trophy,
-  FlaskConical, Factory, Contact,
-} from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import {
   getSidebarGroupsForRole,
   getAccountItemsForRole,
   findActiveItem,
-  type SidebarItem,
   type SidebarBadge,
 } from '@/config/sidebar-config';
+import { LUCIDE_MAP, toNavItemDataFromItem } from '@/components/layout/sidebar-shared';
 import type { RoleKey } from '@enjambre/auth/role-redirect';
-import { SidebarSection, SidebarBadgeIndicator, type SidebarNavItemData } from '@enjambre/ui';
+import { SidebarSection } from '@enjambre/ui';
 import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 import { useAuthStore } from '@enjambre/auth';
 import { supabase } from '@/lib/supabase';
 import { ThemeToggle } from '@enjambre/ui';
 
-const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
-  'map': Map,
-  'hexagon': Hexagon,
-  'tree-pine': TreePine,
-  'shopping-bag': ShoppingBag,
-  'truck': Truck,
-  'megaphone': Megaphone,
-  'sparkles': Sparkles,
-  'calculator': Calculator,
-  'file-text': FileText,
-  'building-2': Building2,
-  'credit-card': CreditCard,
-  'git-merge': GitMerge,
-  'printer': Printer,
-  'cpu': Cpu,
-  'bar-chart-3': BarChart3,
-  'shield': Shield,
-  'wallet': Wallet,
-  'users': Users,
-  'ticket': Ticket,
-  'percent': Percent,
-  'sliders': Sliders,
-  'trophy': Trophy,
-  'flask-conical': FlaskConical,
-  'factory': Factory,
-  'user-cog': UserCog,
-  'settings': Settings,
-  'contact': Contact,
-  'calendar': Calendar,
-};
-
-function toNavItemData(
-  item: SidebarItem,
-  badgeOverrides: Record<string, SidebarBadge>
-): SidebarNavItemData {
-  const IconComp = LUCIDE_MAP[item.icon]
-  return {
-    key: item.key,
-    label: item.label,
-    icon: IconComp ? <IconComp size={18} /> : <span />,
-    href: item.href,
-    badge: badgeOverrides[item.key] ?? item.badge ?? null,
-  };
-}
-
 interface SidebarProps {
   onToggle: () => void;
   isOpen: boolean;
+  variant?: 'full' | 'drawer';
 }
 
 function PrefetchLink({
@@ -98,7 +48,7 @@ function PrefetchLink({
   );
 }
 
-export function Sidebar({ onToggle, isOpen }: SidebarProps) {
+export function Sidebar({ onToggle, isOpen, variant = 'full' }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { prefetchMany } = useRoutePrefetch();
@@ -119,12 +69,9 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
       if (!supabase) return;
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        if (user.user_metadata?.full_name) {
-          setUserName(user.user_metadata.full_name);
-        } else {
-          const { data } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
-          if (data?.full_name) setUserName(data.full_name);
-        }
+        // Use profiles table only (user_metadata can be spoofed)
+        const { data } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
+        if (data?.full_name) setUserName(data.full_name);
       }
     }
     fetchUser();
@@ -172,7 +119,12 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
   }, [badges]);
 
   return (
-    <aside id="sidebar-navigation" className={`sidebar ${isOpen ? 'open' : ''}`} aria-label="Menú de navegación lateral">
+    <aside
+      id="sidebar-navigation"
+      className={`sidebar sidebar--${variant} ${isOpen ? 'open' : ''}`}
+      aria-label="Menú de navegación lateral"
+      aria-hidden={variant === 'drawer' && !isOpen ? true : undefined}
+    >
       <Link href="/" className="sidebar-brand" style={{ display: 'block', textDecoration: 'none' }} onClick={() => onToggle()}>
         <div className="sidebar-brand-title">Enjambre Legado</div>
         <div className="sidebar-brand-subtitle">Apicultura Regenerativa · Chiloé</div>
@@ -183,7 +135,7 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
           <SidebarSection
             key={group.key}
             label={group.label}
-            items={group.items.map(item => toNavItemData(item, badgeOverrides))}
+            items={group.items.map((item) => toNavItemDataFromItem(item, badgeOverrides))}
             activeKey={activeItem?.key}
             linkComponent={PrefetchLink}
             onItemClick={() => onToggle()}
@@ -192,7 +144,7 @@ export function Sidebar({ onToggle, isOpen }: SidebarProps) {
 
         <SidebarSection
           label="CUENTA"
-          items={accountItems.map(item => toNavItemData(item, badgeOverrides))}
+          items={accountItems.map((item) => toNavItemDataFromItem(item, badgeOverrides))}
           activeKey={activeItem?.key}
           linkComponent={PrefetchLink}
           onItemClick={() => onToggle()}

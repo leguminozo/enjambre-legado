@@ -49,7 +49,7 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
           return (
             <div
               key={p.id}
-              className="group relative bg-card/40 border border-border/30 rounded-lg overflow-hidden hover:border-accent/35 transition-all duration-base"
+              className="group relative bg-card border border-border rounded-lg overflow-hidden hover:border-accent/35 transition-all duration-base"
             >
               <Link href={`/producto/${encodeURIComponent(p.slug)}`} className="block">
         <div className="relative aspect-square bg-card overflow-hidden">
@@ -85,7 +85,7 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
                     e.preventDefault();
                     add(p);
                   }}
-                  className="mt-3 w-full py-2.5 border border-accent text-accent text-[10px] uppercase tracking-widest hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-md flex items-center justify-center gap-2 font-medium"
+                  className="mt-3 w-full min-h-[44px] py-3 border border-accent text-accent text-xs uppercase tracking-widest hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-md flex items-center justify-center gap-2 font-medium"
                 >
                   <ShoppingBag size={14} />
                   Agregar
@@ -111,7 +111,7 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
               <button
                 key={i}
                 onClick={() => setPage(i + 1)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs tracking-wider transition-all duration-base ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-xs tracking-wider transition-all duration-base ${
                   page === i + 1
                     ? 'bg-accent text-accent-foreground font-semibold'
                     : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'

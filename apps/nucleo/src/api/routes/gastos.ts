@@ -122,3 +122,92 @@ gastosRoutes.post("/", async (c) => {
 
   return c.json(data, 201);
 });
+
+const UpdateGastoSchema = CreateGastoSchema.partial().extend({
+  descripcion: z.string().min(1).optional(),
+  monto: z.number().positive().optional(),
+  categoria: z.string().min(1).optional(),
+});
+
+gastosRoutes.patch("/:id", async (c) => {
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+  const id = c.req.param("id");
+  const parsed = UpdateGastoSchema.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ code: "validation_error", errors: parsed.error.flatten() }, 400);
+  const body = parsed.data;
+
+  type GastoPatch = {
+    fecha?: string;
+    descripcion?: string;
+    categoria?: string;
+    tipo_comprobante?: string;
+    numero_comprobante?: string | null;
+    tercero_id?: string | null;
+    estado?: string;
+    monto?: number;
+    monto_total?: number;
+    monto_neto?: number;
+    monto_iva?: number;
+  };
+
+  const patch: GastoPatch = {};
+  if (body.fecha !== undefined) patch.fecha = body.fecha;
+  if (body.descripcion !== undefined) patch.descripcion = body.descripcion;
+  if (body.categoria !== undefined) patch.categoria = body.categoria;
+  if (body.tipoComprobante !== undefined) patch.tipo_comprobante = body.tipoComprobante;
+  if (body.numeroComprobante !== undefined) patch.numero_comprobante = body.numeroComprobante ?? null;
+  if (body.proveedorId !== undefined) patch.tercero_id = body.proveedorId ?? null;
+  if (body.estado !== undefined) patch.estado = body.estado;
+
+  if (body.monto !== undefined) {
+    let computedNeto: number;
+    let computedIva: number;
+    if (body.montoIva !== undefined && body.montoNeto !== undefined) {
+      computedNeto = body.montoNeto;
+      computedIva = body.montoIva;
+    } else if (body.incluyeIva !== false) {
+      computedNeto = body.montoNeto ?? calcularNetoDesdeTotal(body.monto);
+      computedIva = body.montoIva ?? calcularIVA(computedNeto);
+    } else {
+      computedNeto = body.montoNeto ?? body.monto;
+      computedIva = body.montoIva ?? calcularIVA(computedNeto);
+    }
+    patch.monto = body.monto;
+    patch.monto_total = body.monto;
+    patch.monto_neto = computedNeto;
+    patch.monto_iva = computedIva;
+  }
+
+  const { data, error } = await supabase
+    .from("gastos")
+    .update(patch)
+    .eq("id", id)
+    .eq("empresa_id", empresaId)
+    .select("*, proveedor:terceros!gastos_tercero_id_fkey(id, nombre, rut), periodo:periodos_contables(nombre)")
+    .single();
+
+  if (error) {
+    return c.json({ code: "gasto_update_failed", message: error.message }, 400);
+  }
+
+  return c.json(data);
+});
+
+gastosRoutes.delete("/:id", async (c) => {
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+  const id = c.req.param("id");
+
+  const { error } = await supabase
+    .from("gastos")
+    .delete()
+    .eq("id", id)
+    .eq("empresa_id", empresaId);
+
+  if (error) {
+    return c.json({ code: "gasto_delete_failed", message: error.message }, 400);
+  }
+
+  return c.json({ success: true });
+});

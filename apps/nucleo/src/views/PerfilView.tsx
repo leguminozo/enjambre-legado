@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { ViewShell } from "@/components/layout/ViewShell";
+import { ResponsiveTabBar } from "@/components/layout/ResponsiveTabBar";
 import {
   User,
   Mail,
@@ -93,12 +95,13 @@ export function PerfilView() {
 
   return (
     <div className="space-y-8 animate-in">
-      <div className="hero-banner bg-card border border-border p-6 rounded-2xl">
-        <h1 className="hero-title font-display text-4xl font-light tracking-tight text-foreground">Mi Perfil</h1>
-        <p className="hero-subtitle text-muted-foreground text-sm tracking-wide mt-1">
-          Gestiona tu identidad, seguridad y pertenencia al enjambre
-        </p>
-      </div>
+      <ViewShell
+        variant="compact"
+        eyebrow="Identidad"
+        title="Mi Perfil"
+        subtitle="Gestiona tu identidad, seguridad y pertenencia al enjambre"
+        icon={<User size={20} />}
+      />
 
       {message && (
         <div
@@ -113,7 +116,19 @@ export function PerfilView() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 items-start">
+      <ResponsiveTabBar
+        className="perfil-nav-mobile"
+        layoutId="perfil-tabs"
+        tabs={sections.map((s) => ({
+          id: s.key,
+          label: s.label,
+          icon: s.icon,
+        }))}
+        activeId={activeSection}
+        onChange={(id) => setActiveSection(id as Section)}
+      />
+
+      <div className="perfil-layout">
         {/* Left: Avatar + Nav */}
         <div className="flex flex-col gap-6">
           {/* Avatar Card */}
@@ -156,8 +171,8 @@ export function PerfilView() {
             </span>
           </div>
 
-          {/* Section Nav */}
-          <div className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col">
+          {/* Section Nav — desktop */}
+          <div className="perfil-nav-desktop bg-card border border-border rounded-2xl overflow-hidden flex flex-col">
             {sections.map((s) => (
               <button
                 key={s.key}

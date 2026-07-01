@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { QrCode, ScanLine, Package, MapPin, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { QrCameraScanner } from '@/components/shop/qr-camera-scanner';
 
 type AuditEvent = {
   id: string;
@@ -31,11 +32,7 @@ export default function QRScanPage() {
   const [qrData, setQrData] = useState<QRData | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
-  const handleScan = async (code: string) => {
+  const handleScan = useCallback(async (code: string) => {
     if (!code.trim()) return;
 
     setLoading(true);
@@ -86,7 +83,14 @@ export default function QRScanPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code')?.trim();
+    if (code) void handleScan(code);
+  }, [handleScan]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -139,7 +143,8 @@ export default function QRScanPage() {
 
         <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
           <div className="space-y-6">
-            {/* Scanner input */}
+            <QrCameraScanner onScan={handleScan} disabled={loading} />
+
             <div className="rounded-xl border border-border bg-card/40 p-6">
               <label className="block text-sm font-medium text-foreground mb-2">
                 Ingresa o escanea el código QR
