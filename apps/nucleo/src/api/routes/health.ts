@@ -8,6 +8,7 @@ healthRoutes.get("/live", (c) =>
   c.json({
     status: "ok",
     service: "enjambre-api",
+    version: "v1",
     timestamp: new Date().toISOString(),
   }),
 );
