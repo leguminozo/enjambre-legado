@@ -40,7 +40,11 @@ const targets = [
   { name: 'nucleo home', url: `${NUCLEO}/`, expectStatus: 200 },
 ];
 
-if (TIENDA) targets.push({ name: 'tienda home', url: `${TIENDA}/`, expectStatus: 200 });
+if (TIENDA) {
+  for (const path of ['/', '/catalogo', '/carrito', '/checkout']) {
+    targets.push({ name: `tienda ${path}`, url: `${TIENDA}${path}`, expectStatus: 200 });
+  }
+}
 if (CAMPO) targets.push({ name: 'campo home', url: `${CAMPO}/`, expectStatus: 200 });
 
 console.log('\n=== Smoke producción ===\n');

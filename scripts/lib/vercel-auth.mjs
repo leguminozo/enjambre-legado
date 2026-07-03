@@ -44,13 +44,13 @@ export async function vercelFetch(path, { method = 'GET', body, teamId } = {}) {
   return json;
 }
 
-/** Team producción real: guillermc / github guillermoc2710-cmd */
-export const PRODUCTION_TEAM_SLUG = 'guillermoc2710-8540s-projects';
+/** Team producción activo (leguminozo / gabos-projects) */
+export const PRODUCTION_TEAM_SLUG = 'gabos-projects-e4e7d9ab';
 
 /** Dominios prod verificados (independiente del CLI local) */
 export const PRODUCTION_URLS = {
-  nucleo: 'https://nucleo-theta.vercel.app',
-  tienda: 'https://tienda-eta-lime.vercel.app',
+  nucleo: 'https://nucleo-theta-gabos-projects-e4e7d9ab.vercel.app',
+  tienda: 'https://tienda-three-gamma.vercel.app',
   campo: 'https://campo-olive.vercel.app',
 };
 

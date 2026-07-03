@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SECRETS="$ROOT/.env.secrets.local"
-PROD_TEAM="${VERCEL_SCOPE:-guillermoc2710-8540s-projects}"
+PROD_TEAM="${VERCEL_SCOPE:-gabos-projects-e4e7d9ab}"
 SCOPE_ARGS=()
 if [[ -n "$PROD_TEAM" ]]; then
   SCOPE_ARGS=(--scope "$PROD_TEAM")
@@ -39,18 +39,16 @@ resolve_url() {
   fi
 }
 
-NUCLEO_URL="${NUCLEO_PRODUCTION_URL:-https://nucleo-theta.vercel.app}"
-TIENDA_URL="${TIENDA_PRODUCTION_URL:-https://tienda-eta-lime.vercel.app}"
+NUCLEO_URL="${NUCLEO_PRODUCTION_URL:-https://nucleo-theta-gabos-projects-e4e7d9ab.vercel.app}"
+TIENDA_URL="${TIENDA_PRODUCTION_URL:-https://tienda-three-gamma.vercel.app}"
 CAMPO_URL="${CAMPO_PRODUCTION_URL:-https://campo-olive.vercel.app}"
 
 CLI_USER="$(vercel whoami 2>/dev/null || true)"
-if [[ "$CLI_USER" != "guillermc" && -z "${VERCEL_FORCE_ENV_PUSH:-}" ]]; then
-  echo "⚠ CLI logueado como: ${CLI_USER:-desconocido}"
-  echo "  Prod está en team ${PROD_TEAM} (guillermc)."
-  echo "  Ejecuta: vercel login   y vuelve a correr este script."
-  echo "  O define VERCEL_FORCE_ENV_PUSH=1 para intentar igual."
+if [[ -z "$CLI_USER" ]]; then
+  echo "⚠ No hay sesión Vercel CLI. Ejecuta: vercel login"
   exit 1
 fi
+echo "CLI: $CLI_USER · team: ${PROD_TEAM}"
 
 add_env() {
   local dir="$1" env_name="$2" key="$3" val="$4"
