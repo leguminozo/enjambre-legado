@@ -16,6 +16,7 @@ import {
   type CourierCode,
 } from '@enjambre/logistica';
 import { friendlyApiError } from '@enjambre/ui';
+import { friendlyCheckoutApiMessage } from '@/lib/shop/checkout-errors';
 import { useAuth } from '@/components/providers/auth-context';
 import { useLoyaltyPoints } from '@/lib/hooks/use-loyalty-points';
 import { useCartAbandonmentTracking } from '@/lib/hooks/use-cart-abandonment';
@@ -160,6 +161,7 @@ export function CheckoutClient() {
         });
 
         const json = (await res.json()) as {
+          code?: string;
           subtotal?: number;
           discountClp?: number;
           shippingCost?: number;
@@ -169,10 +171,17 @@ export function CheckoutClient() {
         };
 
         if (!res.ok) {
-          if (codigoAplicado) {
+          const friendly = friendlyCheckoutApiMessage(json.code, json.message, 'quote');
+          const promoInvalid =
+            codigoAplicado &&
+            (json.message?.toLowerCase().includes('descuento') ||
+              json.message?.toLowerCase().includes('código') ||
+              json.message?.toLowerCase().includes('codigo') ||
+              json.message?.toLowerCase().includes('discount'));
+          if (promoInvalid) {
             setCodigoAplicado(null);
-            setQuoteError(json.message ?? 'Código no válido');
           }
+          setQuoteError(friendly);
           setQuote(null);
           return;
         }
@@ -357,12 +366,14 @@ export function CheckoutClient() {
     }
 
     const json = (await res.json()) as {
+      code?: string;
       url?: string;
       token?: string;
       buyOrder?: string;
       total?: number;
       provider?: string;
       error?: string;
+      message?: string;
       details?: string[];
       verifiedCart?: { productId: string; name: string; unitPrice: number; quantity: number }[];
     };
@@ -372,7 +383,10 @@ export function CheckoutClient() {
         setPriceConflicts(json.details ?? ['Algunos productos cambiaron de precio']);
         setError('Algunos productos cambiaron de precio. Revisa el carrito.');
       } else {
-        setError(json.error ? friendlyApiError(undefined, json.error) : 'No se pudo iniciar el pago');
+        setError(
+          friendlyCheckoutApiMessage(json.code, json.message ?? json.error, 'init') ||
+            (json.error ? friendlyApiError(undefined, json.error) : 'No se pudo iniciar el pago'),
+        );
       }
       setLoading(false);
       return;

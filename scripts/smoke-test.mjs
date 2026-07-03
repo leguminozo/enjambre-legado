@@ -35,7 +35,9 @@ console.log(`Campo:  ${CAMPO}\n`);
 
 await probe('nucleo health/live', `${NUCLEO}/api/health/live`);
 await probe('nucleo home', `${NUCLEO}/`, 200);
-await probe('tienda home', `${TIENDA}/`, 200);
+for (const path of ['/', '/catalogo', '/carrito', '/checkout']) {
+  await probe(`tienda ${path}`, `${TIENDA}${path}`, 200);
+}
 await probe('campo home', `${CAMPO}/`, 200);
 
 let failed = 0;

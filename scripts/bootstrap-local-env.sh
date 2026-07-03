@@ -62,6 +62,7 @@ TIENDA_ENV="$ROOT/apps/tienda/.env.local"
 append_or_replace "$TIENDA_ENV" "NEXT_PUBLIC_SUPABASE_URL" "$SUPABASE_URL"
 append_or_replace "$TIENDA_ENV" "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY" "$PUBLISHABLE"
 append_or_replace "$TIENDA_ENV" "SUPABASE_SERVICE_ROLE_KEY" "$SUPABASE_SERVICE_ROLE_KEY"
+append_or_replace "$TIENDA_ENV" "INTERNAL_API_SECRET" "$INTERNAL_API_SECRET"
 append_or_replace "$TIENDA_ENV" "NEXT_PUBLIC_SITE_URL" "http://localhost:3001"
 append_or_replace "$TIENDA_ENV" "NEXT_PUBLIC_NUCLEO_API_URL" "http://localhost:3000"
 

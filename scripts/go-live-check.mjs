@@ -80,9 +80,27 @@ for (const app of APPS) {
 
 const secretsFile = resolve(root, '.env.secrets.local');
 if (existsSync(secretsFile)) {
-  console.log('Found .env.secrets.local — usa scripts/bootstrap-local-env.sh para fusionar\n');
+  const { vars: secretVars } = parseEnvFile('.env.secrets.local');
+  if (!secretVars.SUPABASE_SERVICE_ROLE_KEY?.length) {
+    console.log('⚠ .env.secrets.local sin SUPABASE_SERVICE_ROLE_KEY — checkout local bloqueado');
+    console.log('  Supabase → hdhamxiblwwskvvqbcfo → Settings → API → service_role\n');
+  } else {
+    console.log('✓ .env.secrets.local tiene SUPABASE_SERVICE_ROLE_KEY — pnpm go-live:bootstrap\n');
+  }
 } else {
   console.log('Tip: crea .env.secrets.local en la raíz con SUPABASE_SERVICE_ROLE_KEY=...\n');
+}
+
+const nucleoVars = parseEnvFile('apps/nucleo/.env.local').vars;
+const tiendaVars = parseEnvFile('apps/tienda/.env.local').vars;
+const tiendaSite = tiendaVars.NEXT_PUBLIC_SITE_URL;
+const nucleoTienda = nucleoVars.NEXT_PUBLIC_URL_TIENDA;
+if (tiendaSite && nucleoTienda && tiendaSite !== nucleoTienda) {
+  console.log('⚠ URL mismatch local:');
+  console.log(`  tienda NEXT_PUBLIC_SITE_URL=${tiendaSite}`);
+  console.log(`  nucleo NEXT_PUBLIC_URL_TIENDA=${nucleoTienda}`);
+  console.log('  CSRF tienda→núcleo fallará hasta alinearlas (pnpm go-live:bootstrap)\n');
+  failed = true;
 }
 
 process.exit(failed ? 1 : 0);
