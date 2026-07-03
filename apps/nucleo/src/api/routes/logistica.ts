@@ -12,22 +12,30 @@ import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import { isShippedStatus, notifyShipmentDispatched } from "@/lib/notifications/enqueue-transactional";
 
-const CreateEnvioSchema = z.object({
-  tracking_code: z.string().min(1),
-  destino: z.string().min(1),
-  items: z.string().min(1),
-  status: z.string().min(1),
-  eta: z.string().optional(),
-  via: z.string().optional(),
-  courier_code: z.string().optional(),
-  venta_id: z.string().uuid().optional(),
+const LineItemSchema = z.object({
+  producto_id: z.string().uuid(),
+  cantidad: z.number().int().positive().max(9_999),
 });
 
+const CreateEnvioSchema = z.object({
+  tracking_code: z.string().min(1).max(120),
+  destino: z.string().min(1).max(500),
+  items: z.string().min(1).max(4000),
+  status: z.string().min(1).max(80),
+  eta: z.string().max(80).optional(),
+  via: z.string().max(120).optional(),
+  courier_code: z.string().max(40).optional(),
+  venta_id: z.string().uuid().optional(),
+  line_items: z.array(LineItemSchema).max(50).optional(),
+});
+
+type DecrementedLine = { productId: string; quantity: number };
+
 const UpdateEnvioSchema = z.object({
-  tracking_code: z.string().min(1).optional(),
-  destino: z.string().min(1).optional(),
-  items: z.string().min(1).optional(),
-  status: z.string().min(1).optional(),
+  tracking_code: z.string().min(1).max(120).optional(),
+  destino: z.string().min(1).max(500).optional(),
+  items: z.string().min(1).max(4000).optional(),
+  status: z.string().min(1).max(80).optional(),
   eta: z.string().nullable().optional(),
   via: z.string().nullable().optional(),
   courier_code: z.string().nullable().optional(),
@@ -45,7 +53,7 @@ logisticaRoutes.get("/dashboard", async (c) => {
   const empresaId = c.get("empresaId");
   const user = c.get("user");
 
-  const [enviosRes, stockRes, proveedoresRes, ventasRecientesRes] = await Promise.all([
+  const [enviosRes, stockRes, proveedoresRes, ventasRecientesRes, productosRes] = await Promise.all([
     supabase
       .from("logistica_envios")
       .select("*")
@@ -68,12 +76,18 @@ logisticaRoutes.get("/dashboard", async (c) => {
       .eq("empresa_id", empresaId)
       .order("created_at", { ascending: false })
       .limit(20),
+    supabase
+      .from("productos")
+      .select("id, nombre, stock, categoria, formato")
+      .eq("visible", true)
+      .order("nombre", { ascending: true }),
   ]);
 
   const envios = enviosRes.data ?? [];
   const stockCenters = stockRes.data ?? [];
   const proveedores = proveedoresRes.data ?? [];
   const ventasRecientes = ventasRecientesRes.data ?? [];
+  const productos = productosRes.data ?? [];
 
   const byStatus: Record<string, number> = {};
   envios.forEach((e: { status: string }) => {
@@ -100,6 +114,7 @@ logisticaRoutes.get("/dashboard", async (c) => {
       stockCenters,
       proveedores,
       ventasRecientes,
+      productos,
       stats: {
         totalEnvios: envios.length,
         pendientes: byStatus["pendiente"] ?? byStatus["Programado"] ?? 0,
@@ -154,6 +169,45 @@ logisticaRoutes.post("/envios", zValidator("json", CreateEnvioSchema), async (c)
     return c.json({ code: "invalid_courier", message: "Courier no disponible" }, 400);
   }
 
+  const decremented: DecrementedLine[] = [];
+  const lineItems = input.line_items ?? [];
+
+  if (lineItems.length > 0) {
+    const merged = new Map<string, number>();
+    for (const line of lineItems) {
+      merged.set(line.producto_id, (merged.get(line.producto_id) ?? 0) + line.cantidad);
+    }
+
+    for (const [productoId, cantidad] of merged) {
+      const { data: stockData, error: stockErr } = await supabase.rpc("decrement_stock_force", {
+        p_id: productoId,
+        p_qty: cantidad,
+      });
+
+      if (stockErr || !stockData || (stockData as unknown[]).length === 0) {
+        for (const d of decremented) {
+          const { data: product } = await supabase
+            .from("productos")
+            .select("stock")
+            .eq("id", d.productId)
+            .maybeSingle();
+          if (product?.stock != null) {
+            await supabase
+              .from("productos")
+              .update({ stock: product.stock + d.quantity })
+              .eq("id", d.productId);
+          }
+        }
+        return c.json(
+          { code: "stock_insufficient", message: "Stock insuficiente en inventario para uno o más productos" },
+          409,
+        );
+      }
+
+      decremented.push({ productId: productoId, quantity: cantidad });
+    }
+  }
+
   const { data, error } = await supabase
     .from("logistica_envios")
     .insert({
@@ -171,6 +225,19 @@ logisticaRoutes.post("/envios", zValidator("json", CreateEnvioSchema), async (c)
     .single();
 
   if (error) {
+    for (const d of decremented) {
+      const { data: product } = await supabase
+        .from("productos")
+        .select("stock")
+        .eq("id", d.productId)
+        .maybeSingle();
+      if (product?.stock != null) {
+        await supabase
+          .from("productos")
+          .update({ stock: product.stock + d.quantity })
+          .eq("id", d.productId);
+      }
+    }
     return c.json({ code: "envio_create_failed", message: error.message }, 400);
   }
 
@@ -210,11 +277,13 @@ logisticaRoutes.patch("/envios/:id", zValidator("json", UpdateEnvioSchema), asyn
   const envioId = c.req.param("id");
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
+  const user = c.get("user");
 
   const { data: previous, error: fetchError } = await supabase
     .from("logistica_envios")
     .select("id, status, tracking_code, destino, user_id, venta_id, empresa_id")
     .eq("id", envioId)
+    .eq("user_id", user.id)
     .maybeSingle();
 
   if (fetchError) {
@@ -282,11 +351,13 @@ logisticaRoutes.patch("/envios/:id", zValidator("json", UpdateEnvioSchema), asyn
 logisticaRoutes.delete("/envios/:id", async (c) => {
   const envioId = c.req.param("id");
   const supabase = c.get("supabase");
+  const user = c.get("user");
 
   const { error } = await supabase
     .from("logistica_envios")
     .delete()
-    .eq("id", envioId);
+    .eq("id", envioId)
+    .eq("user_id", user.id);
 
   if (error) {
     return c.json({ code: "delete_failed", message: error.message }, 400);

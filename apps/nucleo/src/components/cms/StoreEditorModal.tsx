@@ -15,7 +15,7 @@ import {
   EyeOff,
   ExternalLink,
 } from 'lucide-react';
-import { toast } from '@enjambre/ui';
+import { toast, ImmersiveModal } from '@enjambre/ui';
 import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/use-cms-content';
 import { getUrlTienda } from '@/lib/publicUrls';
 
@@ -294,17 +294,19 @@ export function StoreEditorModal({
   const [showNewForm, setShowNewForm] = useState(false);
   const [newContent, setNewContent] = useState('{\n  "title": "",\n  "desc": ""\n}');
 
-  // Lock body scroll when open
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
     };
-  }, [isOpen]);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -393,7 +395,14 @@ export function StoreEditorModal({
   const tiendaUrl = getUrlTienda();
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed inset-0 z-[220] flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <div className="absolute inset-0 bg-background/72 backdrop-blur-md" aria-hidden />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Editor de tienda visual"
+        className="relative z-10 flex flex-1 min-h-0 flex-col bg-background border border-border/60 shadow-2xl"
+      >
       {/* Top Navigation Bar */}
       <div className="h-14 border-b border-border bg-surface flex items-center justify-between px-4 shrink-0 shadow-sm z-10">
         <div className="flex items-center gap-3">
@@ -477,44 +486,13 @@ export function StoreEditorModal({
                 Elementos de {SECTION_LABELS[activeSection] ?? activeSection}
               </h3>
               <button
-                onClick={() => setShowNewForm(!showNewForm)}
+                onClick={() => setShowNewForm(true)}
                 className="p-1.5 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors"
                 title="Añadir nuevo elemento"
               >
                 <Plus size={16} />
               </button>
             </div>
-
-            {showNewForm && (
-              <div className="bg-surface rounded-xl border border-dashed border-accent p-4 space-y-3 shadow-inner">
-                <h4 className="text-xs font-bold text-accent mb-1">Añadir Elemento (Base JSON)</h4>
-                <p className="text-[10px] text-muted-foreground mb-2">
-                  Define la estructura inicial del elemento. Una vez creado, podrás editarlo visualmente.
-                </p>
-                <textarea
-                  value={newContent}
-                  onChange={(e) => setNewContent(e.target.value)}
-                  rows={4}
-                  className="w-full bg-background border border-border rounded-lg p-3 text-xs text-foreground font-mono resize-y focus:outline-none focus:ring-2 focus:ring-accent"
-                />
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    onClick={() => setShowNewForm(false)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-border hover:border-accent/50 transition-colors bg-background"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleCreateItem}
-                    disabled={cms.createItem.isPending}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50"
-                  >
-                    {cms.createItem.isPending ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
-                    Crear Item
-                  </button>
-                </div>
-              </div>
-            )}
 
             <div className="space-y-4 pb-8">
               {(groupedData[activeSection] ?? []).map((item) => (
@@ -592,6 +570,45 @@ export function StoreEditorModal({
         </div>
 
       </div>
+      </div>
+
+      <ImmersiveModal
+        open={showNewForm}
+        onClose={() => setShowNewForm(false)}
+        eyebrow="CMS"
+        title="Añadir elemento"
+        size="md"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setShowNewForm(false)}
+              className="btn btn-outline btn-sm"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleCreateItem}
+              disabled={cms.createItem.isPending}
+              className="btn btn-primary btn-sm"
+            >
+              {cms.createItem.isPending ? <Loader2 size={14} className="animate-spin" /> : 'Crear item'}
+            </button>
+          </>
+        }
+      >
+        <p className="text-xs text-muted-foreground mb-3">
+          Define la estructura inicial del elemento en JSON. Una vez creado, podrás editarlo visualmente.
+        </p>
+        <textarea
+          value={newContent}
+          onChange={(e) => setNewContent(e.target.value)}
+          rows={8}
+          className="w-full bg-background border border-border rounded-lg p-3 text-xs text-foreground font-mono resize-y focus:outline-none focus:ring-2 focus:ring-accent"
+          spellCheck={false}
+        />
+      </ImmersiveModal>
     </div>
   );
 }

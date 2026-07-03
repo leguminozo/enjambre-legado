@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/offline/db';
 import { QuickSaleButton } from './quick-sale-button';
 import { Info, WifiOff } from 'lucide-react';
+import { ViewLoading } from '@enjambre/ui';
 import { useEffect, useState } from 'react';
 
 export default function CatalogoPage() {
@@ -51,8 +52,8 @@ export default function CatalogoPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {!productos ? (
-          <div className="col-span-full py-20 text-center animate-pulse">
-            <p className="text-muted-foreground font-light uppercase tracking-widest text-xs">Cargando inventario...</p>
+          <div className="col-span-full py-20">
+            <ViewLoading variant="view" label="Inventario" hideLabel />
           </div>
         ) : productos.length === 0 ? (
           <div className="col-span-full py-20 text-center bg-card/30 border border-border border-dashed rounded-3xl">

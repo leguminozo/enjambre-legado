@@ -35,7 +35,7 @@ Si estos Términos de servicio se consideran una oferta, la aceptación se limit
 
 Puede revisar la versión más actual de los Términos de servicio en cualquier momento en esta página. Nos reservamos el derecho de actualizar, cambiar o reemplazar cualquier parte de estos Términos de servicio mediante la publicación de actualizaciones o cambios en nuestro sitio web. Es su responsabilidad revisar esta página periódicamente para consultar si hay cambios. El uso continuado del sitio web o el acceso al mismo tras la publicación de cualquier cambio implica la aceptación de dichos cambios.
 
-Nuestra tienda está construida sobre Next.js y se aloja en Hostinger. Los pagos son procesados por Mercado Pago a través de dLocal. Los datos de usuario y autenticación son gestionados mediante Supabase.
+Nuestra tienda está construida sobre Next.js y se aloja en Hostinger. Los pagos son procesados por Transbank Webpay Plus o Flow.cl, según el método disponible al momento de la compra. Los datos de usuario y autenticación son gestionados mediante Supabase.
 
 <strong>SECCIÓN 1: TÉRMINOS DE LA TIENDA ONLINE</strong>
 
@@ -49,7 +49,7 @@ El incumplimiento o la violación de cualquiera de los Términos dará lugar a l
 
 Nos reservamos el derecho a denegar servicio a cualquier persona por cualquier motivo y en cualquier momento.
 
-Usted entiende que su contenido (sin incluir la información de la tarjeta de crédito), se puede transferir sin cifrar e implicar (a) transmisiones a través de varias redes; y (b) cambios para ajustarse y adaptarse a los requisitos técnicos de las redes o dispositivos de conexión. La información de las tarjetas de crédito siempre se encripta durante la transferencia a través de las redes y es procesada directamente por Mercado Pago/dLocal, sin pasar por nuestros servidores (certificación PCI DSS).
+Usted entiende que su contenido (sin incluir la información de la tarjeta de crédito), se puede transferir sin cifrar e implicar (a) transmisiones a través de varias redes; y (b) cambios para ajustarse y adaptarse a los requisitos técnicos de las redes o dispositivos de conexión. La información de las tarjetas de crédito siempre se encripta durante la transferencia a través de las redes y es procesada directamente por Transbank o Flow, sin pasar por nuestros servidores (certificación PCI DSS).
 
 Usted se compromete a no reproducir, duplicar, copiar, vender, revender ni explotar ninguna parte del Servicio, el uso del servicio, o el acceso al servicio o cualquier contacto en el sitio web a través del cual se presta el servicio, sin permiso expreso y por escrito de nuestra parte.
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Megaphone, Users, Camera, Calendar, Gift, BookOpen, ArrowUpRight, X } from 'lucide-react';
+import { Megaphone, Users, Camera, Calendar, Gift, BookOpen, ArrowUpRight } from 'lucide-react';
+import { ImmersiveModal } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { supabase } from '../lib/supabase';
@@ -166,52 +167,6 @@ export function MarketingView() {
               <button className="btn btn-primary btn-sm" onClick={() => setShowNewPost(true)}>+ Contenido</button>
             </div>
 
-            {showNewPost && (
-              <div className="inline-form-panel">
-                <button
-                  onClick={() => setShowNewPost(false)}
-                  className="absolute top-3 right-3 text-muted-foreground hover:text-foreground bg-transparent border-none cursor-pointer"
-                  aria-label="Cerrar"
-                >
-                  <X size={16} />
-                </button>
-                <div className="text-sm font-semibold text-foreground mb-2">Programar Post</div>
-                <div className="grid grid-cols-1 gap-2 mb-2">
-                  <input
-                    type="text"
-                    placeholder="Idea de contenido..."
-                    className="input-field"
-                    value={postForm.content}
-                    onChange={(e) => setPostForm({ ...postForm, content: e.target.value })}
-                  />
-                </div>
-                <div className="form-grid-3 mb-2">
-                  <input
-                    type="text"
-                    placeholder="Fecha (ej: 12 mar)"
-                    className="input-field"
-                    value={postForm.post_date}
-                    onChange={(e) => setPostForm({ ...postForm, post_date: e.target.value })}
-                  />
-                  <select className="input-field" value={postForm.type} onChange={(e) => setPostForm({ ...postForm, type: e.target.value })}>
-                    <option>Reel</option>
-                    <option>Story</option>
-                    <option>Post</option>
-                    <option>Carrusel</option>
-                  </select>
-                  <select className="input-field" value={postForm.platform} onChange={(e) => setPostForm({ ...postForm, platform: e.target.value })}>
-                    <option>IG</option>
-                    <option>TikTok</option>
-                    <option>LinkedIn</option>
-                    <option>FB</option>
-                  </select>
-                </div>
-                <div className="flex justify-end">
-                  <button className="btn btn-primary btn-sm" onClick={handleAddPost}>Guardar</button>
-                </div>
-              </div>
-            )}
-
             <EnjTableShell caption="Desliza para ver columnas del calendario">
               <table className="data-table">
                 <thead>
@@ -299,6 +254,51 @@ export function MarketingView() {
           </div>
         </div>
       </div>
+
+      <ImmersiveModal
+        open={showNewPost}
+        onClose={() => setShowNewPost(false)}
+        eyebrow="Calendario editorial"
+        title="Programar contenido"
+        size="lg"
+        footer={
+          <>
+            <button className="btn btn-outline btn-sm" onClick={() => setShowNewPost(false)}>Cancelar</button>
+            <button className="btn btn-primary btn-sm" onClick={handleAddPost}>Guardar</button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <input
+            type="text"
+            placeholder="Idea de contenido..."
+            className="input-field w-full"
+            value={postForm.content}
+            onChange={(e) => setPostForm({ ...postForm, content: e.target.value })}
+          />
+          <div className="form-grid-3">
+            <input
+              type="text"
+              placeholder="Fecha (ej: 12 mar)"
+              className="input-field"
+              value={postForm.post_date}
+              onChange={(e) => setPostForm({ ...postForm, post_date: e.target.value })}
+            />
+            <select className="input-field" value={postForm.type} onChange={(e) => setPostForm({ ...postForm, type: e.target.value })}>
+              <option>Reel</option>
+              <option>Story</option>
+              <option>Post</option>
+              <option>Carrusel</option>
+            </select>
+            <select className="input-field" value={postForm.platform} onChange={(e) => setPostForm({ ...postForm, platform: e.target.value })}>
+              <option>IG</option>
+              <option>TikTok</option>
+              <option>LinkedIn</option>
+              <option>FB</option>
+            </select>
+          </div>
+        </div>
+      </ImmersiveModal>
     </div>
   );
 }

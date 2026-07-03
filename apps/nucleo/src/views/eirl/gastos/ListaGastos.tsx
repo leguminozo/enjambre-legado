@@ -7,7 +7,7 @@ import { Badge } from "@enjambre/ui";
 import { ShoppingCart, Eye, Edit, Trash2, Plus, X } from "lucide-react";
 import { formatDate } from '@/lib/format';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast } from '@enjambre/ui';
+import { toast, ImmersiveModal } from '@enjambre/ui';
 import { mapGastoFromApi, type Gasto } from './gasto-types';
 
 export type { Gasto };
@@ -122,39 +122,39 @@ if (loading) {
 
   return (
     <>
-      {viewGasto && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center">
-          <div className="absolute inset-0 bg-foreground/40" onClick={() => setViewGasto(null)} />
-          <Card className="relative z-[201] w-[90%] max-w-lg bg-background border-border">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">{viewGasto.descripcion}</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setViewGasto(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex gap-2">
-                <Badge className={getEstadoColor(viewGasto.estado)}>{viewGasto.estado}</Badge>
-                <Badge className={getCategoriaColor(viewGasto.categoria)}>{viewGasto.categoria}</Badge>
-              </div>
-              <p><span className="text-muted-foreground">Fecha:</span> {formatDate(viewGasto.fecha)}</p>
-              <p><span className="text-muted-foreground">Monto:</span> {formatCurrency(viewGasto.monto)}</p>
-              <p><span className="text-muted-foreground">Neto / IVA:</span> {formatCurrency(viewGasto.montoNeto)} / {formatCurrency(viewGasto.montoIva)}</p>
-              <p>
-                <span className="text-muted-foreground">Proveedor:</span>{' '}
-                {viewGasto.proveedor ? `${viewGasto.proveedor.nombre} (${viewGasto.proveedor.rut})` : 'Sin proveedor'}
-              </p>
-              <p>
-                <span className="text-muted-foreground">Comprobante:</span>{' '}
-                {viewGasto.tipoComprobante}{viewGasto.numeroComprobante ? ` #${viewGasto.numeroComprobante}` : ''}
-              </p>
-              {viewGasto.periodo?.nombre && (
-                <p><span className="text-muted-foreground">Periodo:</span> {viewGasto.periodo.nombre}</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <ImmersiveModal
+        open={Boolean(viewGasto)}
+        onClose={() => setViewGasto(null)}
+        eyebrow="Contabilidad"
+        title={viewGasto?.descripcion ?? 'Detalle de gasto'}
+        size="md"
+        footer={
+          <button className="btn btn-outline btn-sm" onClick={() => setViewGasto(null)}>Cerrar</button>
+        }
+      >
+        {viewGasto ? (
+          <div className="space-y-3 text-sm">
+            <div className="flex gap-2">
+              <Badge className={getEstadoColor(viewGasto.estado)}>{viewGasto.estado}</Badge>
+              <Badge className={getCategoriaColor(viewGasto.categoria)}>{viewGasto.categoria}</Badge>
+            </div>
+            <p><span className="text-muted-foreground">Fecha:</span> {formatDate(viewGasto.fecha)}</p>
+            <p><span className="text-muted-foreground">Monto:</span> {formatCurrency(viewGasto.monto)}</p>
+            <p><span className="text-muted-foreground">Neto / IVA:</span> {formatCurrency(viewGasto.montoNeto)} / {formatCurrency(viewGasto.montoIva)}</p>
+            <p>
+              <span className="text-muted-foreground">Proveedor:</span>{' '}
+              {viewGasto.proveedor ? `${viewGasto.proveedor.nombre} (${viewGasto.proveedor.rut})` : 'Sin proveedor'}
+            </p>
+            <p>
+              <span className="text-muted-foreground">Comprobante:</span>{' '}
+              {viewGasto.tipoComprobante}{viewGasto.numeroComprobante ? ` #${viewGasto.numeroComprobante}` : ''}
+            </p>
+            {viewGasto.periodo?.nombre ? (
+              <p><span className="text-muted-foreground">Periodo:</span> {viewGasto.periodo.nombre}</p>
+            ) : null}
+          </div>
+        ) : null}
+      </ImmersiveModal>
 
       <Card className="bg-background border-border">
         <CardHeader>

@@ -5,6 +5,7 @@ import { useCashSession } from './cash-context';
 import { TierBadge, useTierProgress } from './tier-badge';
 import { useThresholdNotification, ThresholdNotificationBanner } from './threshold-notification';
 import { Wallet, Lock, TrendingUp, ChevronRight, Zap, Crown, Radio, Banknote, CreditCard, Smartphone, Nfc } from 'lucide-react';
+import { ViewLoading } from '@enjambre/ui';
 
 export function CashSessionPanel() {
   const { session, loading, todayCommissions, todaySales, todayRevenue, nextThreshold, lastCommission, openSession, closeSession } = useCashSession();
@@ -20,12 +21,7 @@ export function CashSessionPanel() {
   const [closeResult, setCloseResult] = useState<Record<string, unknown> | null>(null);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12 gap-3">
-        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs text-muted-foreground uppercase tracking-widest">Cargando sesión...</span>
-      </div>
-    );
+    return <ViewLoading variant="view" label="Sesión de caja" hideLabel />;
   }
 
   if (!session) {

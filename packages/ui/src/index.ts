@@ -4,6 +4,15 @@ export { Badge } from './components/badge';
 export { Input, Textarea } from './components/input';
 export { StatCard } from './components/stat-card';
 export { Spinner } from './components/spinner';
+export { HexagonLoader, type HexagonLoaderSize } from './components/hexagon-loader';
+export {
+  ViewLoading,
+  ViewLoadingFallback,
+  LoadingOverlay,
+  viewLoadingFallback,
+  type ViewLoadingVariant,
+} from './components/view-loading';
+export { ImmersiveModal, type ImmersiveModalSize } from './components/immersive-modal';
 export { EmptyState } from './components/empty-state';
 export { SectionHeader } from './components/section-header';
 export { GrainOverlay } from './components/grain-overlay';

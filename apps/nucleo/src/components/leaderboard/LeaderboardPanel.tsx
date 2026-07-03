@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast } from '@enjambre/ui';
-import { Trophy, Medal, Crown, TrendingUp, Loader2 } from 'lucide-react';
+import { friendlyError, toast, ViewLoading } from '@enjambre/ui';
+import { Trophy, Medal, Crown, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
@@ -59,12 +59,7 @@ export function LeaderboardPanel() {
   const weekLabel = `Semana del ${weekStart.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}`;
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-accent" size={32} />
-        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Cargando ranking...</p>
-      </div>
-    );
+    return <ViewLoading variant="view" label="Ranking" hideLabel />;
   }
 
   const top3 = entries.slice(0, 3);

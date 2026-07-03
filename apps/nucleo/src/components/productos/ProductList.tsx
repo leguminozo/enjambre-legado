@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Trash2, Eye, EyeOff, MoreVertical, ExternalLink, Package, PlusSquare } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { Button, toast } from '@enjambre/ui';
+import { Button, toast, ViewLoading } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
 import type { Product } from '@/lib/product-types';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
@@ -171,11 +171,7 @@ console.error('Error deleting product:', error);
   const tiendaUrl = process.env.NEXT_PUBLIC_URL_TIENDA || 'http://localhost:3001';
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-2xl)' }}>
-        <div style={{ color: 'hsl(var(--muted-foreground))' }}>Cargando productos...</div>
-      </div>
-    );
+    return <ViewLoading variant="view" label="Productos" hideLabel />;
   }
 
   return (

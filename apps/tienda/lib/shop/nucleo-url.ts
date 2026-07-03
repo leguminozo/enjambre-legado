@@ -9,7 +9,7 @@ export function getNucleoApiUrl(): string | null {
     Boolean(process.env.CI);
 
   if (isProdBuild) return null;
-  return 'http://localhost:3001';
+  return 'http://localhost:3000';
 }
 
 export function requireNucleoApiUrl(): string {

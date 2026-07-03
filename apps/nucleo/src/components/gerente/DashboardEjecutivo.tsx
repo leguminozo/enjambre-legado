@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { ViewLoading, LoadingOverlay } from '@enjambre/ui'
 import {
   BarChart3, TrendingUp, DollarSign, Target, Leaf, Crown,
   ArrowUpRight, Hexagon, TreePine, Users, Wallet, Percent,
@@ -148,7 +149,7 @@ export function DashboardEjecutivo() {
   const [range, setRange] = useState<TimeRange>('ytd')
   const apiFetch = useApiFetch()
 
-  const { data, isLoading, error } = useQuery<EjecutivoData>({
+  const { data, isLoading, isFetching, error } = useQuery<EjecutivoData>({
     queryKey: ['dashboard-ejecutivo', range],
     queryFn: async () => {
       const res = await apiFetch(`/api/dashboard/ejecutivo?range=${range}`)
@@ -156,17 +157,14 @@ export function DashboardEjecutivo() {
       return res.json()
     },
     staleTime: 60_000,
+    placeholderData: keepPreviousData,
   })
 
-  if (isLoading) {
-    return (
-      <div className="animate-in flex justify-center p-20">
-        <div className="text-muted-foreground text-sm">Cargando panel ejecutivo...</div>
-      </div>
-    )
+  if (isLoading && !data) {
+    return <ViewLoading variant="view" label="Panel ejecutivo" hideLabel />
   }
 
-  if (error || !data) {
+  if ((error || !data) && !data) {
     return (
       <div className="animate-in p-8">
         <div className="card border-destructive/30">
@@ -203,7 +201,8 @@ export function DashboardEjecutivo() {
   }))
 
   return (
-    <div className="space-y-6 animate-in">
+    <div className="space-y-6 animate-in relative">
+      {isFetching && data ? <LoadingOverlay /> : null}
       <ViewShell
         variant="compact"
         eyebrow="Gerencia"

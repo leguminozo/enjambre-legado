@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { Trophy, Medal, Crown, TrendingUp } from 'lucide-react';
 import { TierBadge } from './tier-badge';
+import { ViewLoading } from '@enjambre/ui';
 
 interface LeaderboardEntry {
   rank: number;
@@ -46,12 +47,7 @@ export function LeaderboardPanel() {
   const formatCLP = (n: number) => '$' + Math.abs(n).toLocaleString('es-CL');
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12 gap-3">
-        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs text-muted-foreground uppercase tracking-widest">Cargando ranking...</span>
-      </div>
-    );
+    return <ViewLoading variant="view" label="Ranking" hideLabel />;
   }
 
   if (entries.length === 0) {

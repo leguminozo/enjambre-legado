@@ -3,7 +3,7 @@ import { ShoppingBag, Users, MapPin, CalendarDays, TrendingUp, Star, ArrowUpRigh
 import type { Product } from '@/types/ecosystem';
 import { guardianLevel } from '@/types/ecosystem';
 import { supabase } from '../lib/supabase';
-import { friendlyError, toast, QRCode as QRCodeSvg } from '@enjambre/ui';
+import { friendlyError, toast, QRCode as QRCodeSvg, ImmersiveModal } from '@enjambre/ui';
 import { getUrlTienda } from '@/lib/publicUrls';
 import { useAuthStore } from '@enjambre/auth';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -278,38 +278,42 @@ export function VendedorView() {
 
   return (
     <div>
-      {showQR && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center">
-          <div className="absolute inset-0 bg-foreground/50 backdrop-blur-sm" onClick={() => setShowQR(false)} />
-          <div className="card relative z-[201] w-[90%] max-w-[400px] text-center p-8" style={{ animation: 'fadeInUp 0.3s ease' }}>
-            <button onClick={() => setShowQR(false)} className="btn btn-ghost btn-sm absolute top-3 right-3"><X size={18} /></button>
-            {qrLote ? (
-              <QRCodeSvg value={qrLote.url} size={140} className="mx-auto mb-6 border-none p-2 bg-white rounded-sm" fgColor="#000000" />
-            ) : (
-              <QrCode size={120} className="text-foreground mx-auto mb-6 opacity-40" />
-            )}
-            <h3 className="mb-2">QR de Trazabilidad</h3>
-            <p className="text-[0.85rem] text-muted-foreground leading-relaxed">Escanea este código con tu celular para ver la historia completa del lote: colmena de origen, fecha de cosecha y el impacto regenerativo de la compra.</p>
-            <div className="mt-6 p-4 bg-accent/10 rounded-sm text-[0.82rem] text-accent font-medium">
-              {qrLote ? qrLote.label : 'Sin lote activo — registra un QR en qr_codes o asigna lote_activo a una colmena'}
-            </div>
+      <ImmersiveModal
+        open={showQR}
+        onClose={() => setShowQR(false)}
+        eyebrow="Trazabilidad"
+        title="QR de lote"
+        size="md"
+      >
+        <div className="text-center">
+          {qrLote ? (
+            <QRCodeSvg value={qrLote.url} size={140} className="mx-auto mb-6 border-none p-2 bg-white rounded-sm" fgColor="#000000" />
+          ) : (
+            <QrCode size={120} className="text-foreground mx-auto mb-6 opacity-40" />
+          )}
+          <p className="text-[0.85rem] text-muted-foreground leading-relaxed">
+            Escanea este código para ver la historia del lote: colmena, cosecha e impacto regenerativo.
+          </p>
+          <div className="mt-6 p-4 bg-accent/10 rounded-sm text-[0.82rem] text-accent font-medium">
+            {qrLote ? qrLote.label : 'Sin lote activo — registra un QR o asigna lote_activo a una colmena'}
           </div>
         </div>
-      )}
+      </ImmersiveModal>
 
-      {showPos && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center">
-          <div className="absolute inset-0 bg-foreground/60 backdrop-blur-sm" onClick={() => setShowPos(false)} />
-          <div className="card relative z-[301] w-[95%] max-w-[800px] h-[85vh] flex flex-col p-0 overflow-hidden" style={{ animation: 'fadeInUp 0.3s ease' }}>
-            <div className="px-6 py-4 bg-foreground text-primary-foreground flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <ShoppingBag size={20} />
-                <span className="font-semibold text-[1.1rem]">Modo Feria (POS Offline)</span>
-                <span className="badge badge-success text-[0.65rem] bg-success/20">● Sincronización local</span>
-              </div>
-              <button onClick={() => setShowPos(false)} className="bg-transparent border-none text-primary-foreground cursor-pointer"><X size={20} /></button>
+      <ImmersiveModal
+        open={showPos}
+        onClose={() => setShowPos(false)}
+        eyebrow="Ventas en terreno"
+        title="Modo Feria (POS offline)"
+        size="full"
+        bodyClassName="p-0"
+      >
+            <div className="flex h-full min-h-[60vh] flex-col overflow-hidden">
+            <div className="px-6 py-3 bg-foreground text-primary-foreground flex items-center gap-3 shrink-0">
+              <ShoppingBag size={20} />
+              <span className="badge badge-success text-[0.65rem] bg-success/20">● Sincronización local</span>
             </div>
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1 overflow-hidden min-h-0">
               <div className="flex-[2] border-r border-border overflow-y-auto p-6 bg-muted">
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4">
                   {products.map(p => (
@@ -402,8 +406,7 @@ export function VendedorView() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+      </ImmersiveModal>
 
       <ViewShell
         greeting={greeting}
@@ -463,26 +466,6 @@ export function VendedorView() {
               </div>
             </div>
 
-            {showAddClient && (
-              <div className="p-4 bg-accent/10 rounded-md mb-4 border border-accent/30 relative">
-                <button onClick={() => setShowAddClient(false)} className="absolute top-3 right-3 bg-transparent border-none cursor-pointer text-muted-foreground"><X size={16} /></button>
-                <div className="text-[0.85rem] font-semibold text-foreground mb-2">Registrar Nuevo Guardián</div>
-
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                  <input autoFocus type="text" placeholder="Nombre / Organización" className="input-field" value={newClientForm.name} onChange={e => setNewClientForm({ ...newClientForm, name: e.target.value })} />
-                  <select className="input-field" value={newClientForm.type} onChange={e => setNewClientForm({ ...newClientForm, type: e.target.value })}>
-                    <option value="Particular">Particular</option>
-                    <option value="Chef">Chef / Restorant</option>
-                    <option value="Reseller">Reseller / Tienda</option>
-                    <option value="Deportivo">Centro Deportivo</option>
-                  </select>
-                </div>
-                <div className="flex justify-end">
-                  <button className="btn btn-primary btn-sm" onClick={handleAddClient}>Guardar Cliente</button>
-                </div>
-              </div>
-            )}
-
             <table className="data-table"><thead><tr><th>Cliente</th><th>Tipo</th><th>Compras</th><th>Nivel</th><th>Última orden</th></tr></thead><tbody>{displayedClients.map((c, i) => (<tr key={i}><td className="font-medium text-foreground">{c.name}</td><td><span className="badge badge-gold">{c.type}</span></td><td>{c.purchases}</td><td><span className="flex items-center gap-1"><Star size={12} className="text-accent" />{c.level}</span></td><td className="text-muted-foreground text-[0.82rem]">{c.lastOrder}</td></tr>))}</tbody></table>
             {!crmExpanded && localClients.length > 4 && <div className="text-center mt-4 text-[0.75rem] text-muted-foreground">+{localClients.length - 4} clientes más</div>}
           </div>
@@ -528,6 +511,30 @@ export function VendedorView() {
           </div>
         </div>
       </div>
+
+      <ImmersiveModal
+        open={showAddClient}
+        onClose={() => setShowAddClient(false)}
+        eyebrow="CRM"
+        title="Registrar nuevo guardián"
+        size="md"
+        footer={
+          <>
+            <button className="btn btn-outline btn-sm" onClick={() => setShowAddClient(false)}>Cancelar</button>
+            <button className="btn btn-primary btn-sm" onClick={handleAddClient}>Guardar cliente</button>
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <input autoFocus type="text" placeholder="Nombre / Organización" className="input-field" value={newClientForm.name} onChange={e => setNewClientForm({ ...newClientForm, name: e.target.value })} />
+          <select className="input-field" value={newClientForm.type} onChange={e => setNewClientForm({ ...newClientForm, type: e.target.value })}>
+            <option value="Particular">Particular</option>
+            <option value="Chef">Chef / Restorant</option>
+            <option value="Reseller">Reseller / Tienda</option>
+            <option value="Deportivo">Centro Deportivo</option>
+          </select>
+        </div>
+      </ImmersiveModal>
     </div>
   );
 }

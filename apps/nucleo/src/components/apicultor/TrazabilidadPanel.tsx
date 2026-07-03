@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronRight, ImageOff, Plus, X, AlertTriangle, TrendingDown } from 'lucide-react';
+import { ChevronRight, ImageOff, Plus, AlertTriangle, TrendingDown } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, Badge, Spinner, toast, friendlyError } from '@enjambre/ui';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, Badge, Spinner, toast, friendlyError, ImmersiveModal } from '@enjambre/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
-import { supabase } from '@/lib/supabase';
 
 interface Lote {
   id: string;
@@ -68,21 +67,10 @@ export function TrazabilidadPanel() {
   const { data: localArboles = [], isLoading: loadingArboles } = useQuery<ArbolRow[]>({
     queryKey: ['trazabilidad-arboles'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('arboles_plantados')
-        .select('id, especie, cantidad, sector, fecha, status, co2_ton, lote_id')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return (data ?? []).map((r: Record<string, unknown>) => ({
-        id: String(r.id),
-        especie: String(r.especie ?? ''),
-        cantidad: Number(r.cantidad) || 0,
-        sector: String(r.sector ?? ''),
-        fecha: r.fecha ? String(r.fecha) : '—',
-        status: String(r.status ?? 'joven'),
-        co2_ton: Number(r.co2_ton) || 0,
-        lotesMiel: r.lote_id ? [`Lote ${String(r.lote_id).slice(0, 8)}`] : ['Sin lote'],
-      }));
+      const res = await apiFetch('/api/produccion/arboles');
+      if (!res.ok) throw new Error('Error cargando árboles');
+      const json = await res.json();
+      return json.data ?? [];
     },
     staleTime: 30_000,
   });
@@ -90,22 +78,10 @@ export function TrazabilidadPanel() {
   const { data: localReflexiones = [], isLoading: loadingReflexiones } = useQuery<ReflexionRow[]>({
     queryKey: ['trazabilidad-reflexiones'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('reflexiones')
-        .select('id, content, date_display, created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return (data ?? []).map((r: Record<string, unknown>) => ({
-        id: String(r.id),
-        fecha: r.created_at
-          ? new Date(String(r.created_at)).toLocaleDateString('es-CL')
-          : new Date().toLocaleDateString('es-CL'),
-        colmena: String(r.date_display ?? 'General'),
-        texto: String(r.content ?? ''),
-      }));
+      const res = await apiFetch('/api/produccion/reflexiones');
+      if (!res.ok) throw new Error('Error cargando reflexiones');
+      const json = await res.json();
+      return json.data ?? [];
     },
     staleTime: 30_000,
   });
@@ -122,19 +98,19 @@ export function TrazabilidadPanel() {
     if (!arbolForm.cantidad || !arbolForm.sector) return;
     setSavingArbol(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from('arboles_plantados').insert({
-        especie: arbolForm.especie,
-        cantidad: arbolForm.cantidad,
-        sector: arbolForm.sector,
-        fecha: new Date().toISOString().split('T')[0],
-        status: 'creciendo',
-        co2_ton: parseFloat((arbolForm.cantidad * 0.05).toFixed(2)),
-        lat: -42.6,
-        lng: -73.8,
-        user_id: user?.id ?? null,
+      const res = await apiFetch('/api/produccion/arboles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          especie: arbolForm.especie,
+          cantidad: arbolForm.cantidad,
+          sector: arbolForm.sector,
+        }),
       });
-      if (error) throw error;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? 'No se pudo registrar la plantación');
+      }
       await queryClient.invalidateQueries({ queryKey: ['trazabilidad-arboles'] });
       toast('Plantación registrada', { type: 'success' });
       setShowArbolForm(false);
@@ -150,14 +126,18 @@ export function TrazabilidadPanel() {
     if (!reflexionForm.texto) return;
     setSavingReflexion(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Sesión requerida');
-      const { error } = await supabase.from('reflexiones').insert({
-        user_id: user.id,
-        content: reflexionForm.texto,
-        date_display: reflexionForm.colmena || 'General',
+      const res = await apiFetch('/api/produccion/reflexiones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          colmena: reflexionForm.colmena || undefined,
+          texto: reflexionForm.texto,
+        }),
       });
-      if (error) throw error;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? 'No se pudo guardar la reflexión');
+      }
       await queryClient.invalidateQueries({ queryKey: ['trazabilidad-reflexiones'] });
       toast('Reflexión guardada', { type: 'success' });
       setShowReflexionForm(false);
@@ -233,31 +213,6 @@ export function TrazabilidadPanel() {
                 </Button>
               </CardHeader>
               <CardContent>
-                {showArbolForm && (
-                  <div className="p-5 bg-surface-sunken/50 rounded-lg mb-6 border border-border relative">
-                    <Button variant="ghost" size="sm" onClick={() => setShowArbolForm(false)} className="absolute top-2 right-2 h-8 w-8 p-1">
-                      <X size={14} />
-                    </Button>
-                    <div className="text-sm font-semibold text-foreground mb-4">Registrar Reforestación</div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                      <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" value={arbolForm.especie} onChange={e => setArbolForm({ ...arbolForm, especie: e.target.value })}>
-                        <option value="Ulmo">Ulmo</option>
-                        <option value="Tepú">Tepú</option>
-                        <option value="Tiaca">Tiaca</option>
-                        <option value="Avellano">Avellano</option>
-                      </select>
-                      <input type="number" placeholder="Cantidad" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" value={arbolForm.cantidad || ''} onChange={e => setArbolForm({ ...arbolForm, cantidad: parseInt(e.target.value) || 0 })} />
-                      <input type="text" placeholder="Sector" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" value={arbolForm.sector} onChange={e => setArbolForm({ ...arbolForm, sector: e.target.value })} />
-                    </div>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-[0.7rem] text-muted-foreground">Proyección: ~{(arbolForm.cantidad * 0.05).toFixed(2)} ton CO₂/año</span>
-                      <Button onClick={handleAddArbol} size="sm" disabled={savingArbol}>
-                        {savingArbol ? 'Guardando…' : 'Registrar Vida'}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
                 <div className="flex flex-col gap-3">
                   {loadingArboles && (
                     <div className="flex justify-center py-8"><Spinner size="md" /></div>
@@ -372,34 +327,6 @@ export function TrazabilidadPanel() {
                 <Plus size={16} className="mr-2" /> Agregar Reflexión del Bosque
               </Button>
 
-              <AnimatePresence>
-                {showReflexionForm && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    exit={{ opacity: 0, y: -10 }}
-                  >
-                    <Card className="bg-surface-sunken/40 border-accent/30 relative shadow-sm">
-                      <Button variant="ghost" size="sm" onClick={() => setShowReflexionForm(false)} className="absolute top-2 right-2 h-8 w-8 !p-0 text-muted-foreground hover:text-foreground">
-                        <X size={16} />
-                      </Button>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm">Nueva Reflexión ({new Date().toLocaleDateString('es-CL')})</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <input type="text" placeholder="Colmena (opcional, ej. 'Quilineja Madre')" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" value={reflexionForm.colmena} onChange={e => setReflexionForm({ ...reflexionForm, colmena: e.target.value })} />
-                        <textarea placeholder="Qué observaste en la naturaleza, el comportamiento de las abejas o el clima hoy..." className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y" value={reflexionForm.texto} onChange={e => setReflexionForm({ ...reflexionForm, texto: e.target.value })} />
-                        <div className="flex justify-end pt-2">
-                          <Button onClick={handleAddReflexion} disabled={savingReflexion}>
-                            {savingReflexion ? 'Guardando…' : 'Guardar Legado'}
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
               {loadingReflexiones && (
                 <div className="flex justify-center py-8"><Spinner size="md" /></div>
               )}
@@ -445,6 +372,100 @@ export function TrazabilidadPanel() {
           )}
         </motion.div>
       </AnimatePresence>
+
+      <ImmersiveModal
+        open={showArbolForm}
+        onClose={() => setShowArbolForm(false)}
+        eyebrow="Trazabilidad"
+        title="Registrar reforestación"
+        size="md"
+        footer={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setShowArbolForm(false)}>Cancelar</Button>
+            <Button onClick={handleAddArbol} size="sm" disabled={savingArbol}>
+              {savingArbol ? 'Guardando…' : 'Registrar vida'}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Especie</label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={arbolForm.especie}
+                onChange={(e) => setArbolForm({ ...arbolForm, especie: e.target.value })}
+              >
+                <option value="Ulmo">Ulmo</option>
+                <option value="Tepú">Tepú</option>
+                <option value="Tiaca">Tiaca</option>
+                <option value="Avellano">Avellano</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Cantidad</label>
+              <input
+                type="number"
+                min={1}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={arbolForm.cantidad || ''}
+                onChange={(e) => setArbolForm({ ...arbolForm, cantidad: parseInt(e.target.value, 10) || 0 })}
+              />
+            </div>
+            <div>
+              <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Sector</label>
+              <input
+                type="text"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={arbolForm.sector}
+                onChange={(e) => setArbolForm({ ...arbolForm, sector: e.target.value })}
+              />
+            </div>
+          </div>
+          <p className="text-[0.7rem] text-muted-foreground">
+            Proyección: ~{(arbolForm.cantidad * 0.05).toFixed(2)} ton CO₂/año
+          </p>
+        </div>
+      </ImmersiveModal>
+
+      <ImmersiveModal
+        open={showReflexionForm}
+        onClose={() => setShowReflexionForm(false)}
+        eyebrow="Trazabilidad"
+        title={`Nueva reflexión · ${new Date().toLocaleDateString('es-CL')}`}
+        size="md"
+        footer={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setShowReflexionForm(false)}>Cancelar</Button>
+            <Button onClick={handleAddReflexion} disabled={savingReflexion}>
+              {savingReflexion ? 'Guardando…' : 'Guardar legado'}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Colmena (opcional)</label>
+            <input
+              type="text"
+              placeholder="Ej. Quilineja Madre"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={reflexionForm.colmena}
+              onChange={(e) => setReflexionForm({ ...reflexionForm, colmena: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Observación</label>
+            <textarea
+              placeholder="Qué observaste en la naturaleza, el comportamiento de las abejas o el clima hoy..."
+              className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-y"
+              value={reflexionForm.texto}
+              onChange={(e) => setReflexionForm({ ...reflexionForm, texto: e.target.value })}
+            />
+          </div>
+        </div>
+      </ImmersiveModal>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading } from '@enjambre/ui';
 import {
   Users, AlertCircle, Loader2, Search, Filter,
   Edit3, Trash2, X, ChevronRight
@@ -125,12 +125,7 @@ export function RepsPanel() {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-accent" size={32} />
-        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Cargando representantes...</p>
-      </div>
-    );
+    return <ViewLoading variant="view" label="Representantes" hideLabel />;
   }
 
   return (

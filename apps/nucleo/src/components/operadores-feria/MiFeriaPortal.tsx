@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading } from '@enjambre/ui';
 import { Calendar, Package, ClipboardCheck, Loader2, AlertTriangle } from 'lucide-react';
 
 interface ContratoRow {
@@ -159,11 +159,7 @@ export function MiFeriaPortal() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <Loader2 className="animate-spin text-accent" size={32} />
-      </div>
-    );
+    return <ViewLoading variant="view" label="Mi feria" hideLabel />;
   }
 
   if (!contrato) {

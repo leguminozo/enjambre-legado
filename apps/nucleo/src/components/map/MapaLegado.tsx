@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import type { Map } from 'leaflet';
 import { supabase } from '../../lib/supabase';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 import L from 'leaflet';
 import { BOSQUE_ULMO, ORO_MIEL, ORO_MIEL_DARK, SALUD_OPTIMA } from '@/lib/colors';
 import 'leaflet/dist/leaflet.css';
@@ -120,6 +121,7 @@ interface Evento {
 }
 
 export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
+    const apiFetch = useApiFetch();
     const [liveMarkers, setLiveMarkers] = useState<MapMarker[]>([]);
     const [events, setEvents] = useState<Evento[]>([]);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -144,7 +146,9 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
         async function loadMaps() {
             try {
                 const { data: apiarios } = await supabase.from('apiarios').select('id, name, lat, lng, details');
-                const { data: arboles } = await supabase.from('arboles_plantados').select('id, especie, lat, lng').not('lat', 'is', null);
+                const arbolesRes = await apiFetch('/api/produccion/arboles/map');
+                const arbolesJson = arbolesRes.ok ? await arbolesRes.json() : { data: [] };
+                const arboles = arbolesJson.data ?? [];
                 const { data: evts } = await supabase
                     .from('eventos')
                     .select('id, nombre, fecha_inicio, lat, lng')
@@ -170,7 +174,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                         });
                     }
                 });
-                arboles?.forEach((t: Record<string, unknown>) => {
+                arboles.forEach((t: Record<string, unknown>) => {
                     if (t.lat != null && t.lng != null) {
                         markers.push({
                             id: `tree-${String(t.id)}`,
@@ -216,7 +220,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
             }
         }
         loadMaps();
-    }, []);
+    }, [apiFetch]);
 
     const handleMapClick = (lat: number, lng: number) => {
         if (!isEditMode) return;
@@ -251,15 +255,21 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                     }]);
                 }
             } else if (newMarkerForm.type === 'tree') {
-                const { data: newArbol } = await supabase.from('arboles_plantados').insert({
-                    especie: newMarkerForm.name,
-                    lat: newMarkerCoords.lat,
-                    lng: newMarkerCoords.lng,
-                    user_id: user.id,
-                    fecha: new Date().toISOString().split('T')[0],
-                }).select().single();
-
-                if (newArbol) {
+                const res = await apiFetch('/api/produccion/arboles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        especie: newMarkerForm.name,
+                        cantidad: 1,
+                        sector: 'Mapa legado',
+                        lat: newMarkerCoords.lat,
+                        lng: newMarkerCoords.lng,
+                    }),
+                });
+                if (!res.ok) throw new Error('No se pudo registrar el árbol');
+                const json = await res.json();
+                const newArbol = json.data;
+                if (newArbol?.id) {
                     setLiveMarkers(prev => [...prev, {
                         id: `tree-${String(newArbol.id)}`,
                         lat: newMarkerCoords.lat,
@@ -286,8 +296,12 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                 if (error) throw error;
             } else if (id.startsWith('tree-')) {
                 const treeId = id.substring(5);
-                const { error } = await supabase.from('arboles_plantados').update({ lat, lng }).eq('id', treeId);
-                if (error) throw error;
+                const res = await apiFetch(`/api/produccion/arboles/${treeId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lat, lng }),
+                });
+                if (!res.ok) throw new Error('No se pudo mover el árbol');
             }
             toast('Ubicación del marcador actualizada', { type: 'success' });
             setLiveMarkers(prev => prev.map(m => m.id === id ? { ...m, lat, lng } : m));
@@ -304,8 +318,8 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                 if (error) throw error;
             } else if (id.startsWith('tree-')) {
                 const treeId = id.substring(5);
-                const { error } = await supabase.from('arboles_plantados').delete().eq('id', treeId);
-                if (error) throw error;
+                const res = await apiFetch(`/api/produccion/arboles/${treeId}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('No se pudo eliminar el árbol');
             }
             toast('Marcador eliminado correctamente', { type: 'success' });
             setLiveMarkers(prev => prev.filter(m => m.id !== id));
@@ -329,10 +343,12 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                 if (error) throw error;
             } else if (selectedMarker.id.startsWith('tree-')) {
                 const treeId = selectedMarker.id.substring(5);
-                const { error } = await supabase.from('arboles_plantados').update({
-                    especie: editMarkerForm.name
-                }).eq('id', treeId);
-                if (error) throw error;
+                const res = await apiFetch(`/api/produccion/arboles/${treeId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ especie: editMarkerForm.name }),
+                });
+                if (!res.ok) throw new Error('No se pudo actualizar el árbol');
             }
             toast('Marcador actualizado correctamente', { type: 'success' });
             setLiveMarkers(prev => prev.map(m => m.id === selectedMarker.id ? { 

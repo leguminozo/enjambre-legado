@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createRateLimiter, getClientIdentifier } from '@/lib/ratelimit';
+import { guardMutation } from '@/lib/api-guard';
 
 const PasswordResetSchema = z.object({
   email: z.string().email(),
@@ -11,6 +12,9 @@ const PasswordResetSchema = z.object({
 const resetRateLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 3 });
 
 export async function POST(request: NextRequest) {
+  const csrfBlock = guardMutation(request);
+  if (csrfBlock) return csrfBlock;
+
   const identifier = getClientIdentifier(request);
   const rateLimit = resetRateLimiter(identifier);
 

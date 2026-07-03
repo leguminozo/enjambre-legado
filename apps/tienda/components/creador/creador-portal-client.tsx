@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
-import { friendlyError, friendlySupabaseError, toast } from '@enjambre/ui';
+import { friendlyError, friendlySupabaseError, toast, ViewLoading } from '@enjambre/ui';
 import {
   Sparkles, Copy, Check, DollarSign, Users, Gift, Loader2, AlertCircle,
   BarChart3, Wallet, Eye, FileText,
@@ -207,12 +207,7 @@ export function CreadorPortalClient() {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-accent" size={32} />
-        <p className="text-sm text-muted-foreground uppercase tracking-widest">Cargando portal de embajador...</p>
-      </div>
-    );
+    return <ViewLoading variant="view" label="Portal de embajador" hideLabel />;
   }
 
   if (!profile) {

@@ -1,10 +1,14 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { createRateLimiter, getClientIdentifier } from '@/lib/ratelimit';
+import { guardMutation } from '@/lib/api-guard';
 
 const loginRateLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 10 });
 
 export async function POST(request: NextRequest) {
+  const csrfBlock = guardMutation(request);
+  if (csrfBlock) return csrfBlock;
+
   const identifier = getClientIdentifier(request);
   const rateLimitResult = loginRateLimiter(identifier);
 

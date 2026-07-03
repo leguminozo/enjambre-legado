@@ -1,15 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { ViewLoadingFallback } from '@enjambre/ui';
 
 const CarritoView = dynamic(() => import('./carrito-view'), {
   ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center py-20 gap-3">
-      <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      <span className="text-xs text-muted-foreground uppercase tracking-widest">Cargando carrito…</span>
-    </div>
-  ),
+  loading: () => <ViewLoadingFallback label="Carrito" />,
 });
 
 export default function CarritoPage() {

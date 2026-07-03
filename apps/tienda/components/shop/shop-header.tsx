@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { Menu, ShoppingBag, X, User } from 'lucide-react';
 import { useCartLines } from '@/components/shop/cart-context';
 import { useAuth } from '@/components/providers/auth-context';
 import { LanguageSelector } from '@/components/shop/language-selector';
-import { useI18n } from '@/lib/i18n-context';
+import { useLocale } from 'next-intl';
+import { usePathname, useRouter } from '@/i18n-navigation';
+import type { Locale } from '@/i18n-routing';
 import { NotificationBell } from '@enjambre/ui';
 import { useEffect, useState } from 'react';
 import { useUserNotifications } from '@/lib/hooks/use-user-notifications';
@@ -27,16 +28,16 @@ export function ShopHeader() {
   const { itemCount } = useCartLines();
   const { isAuthenticated, user } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
+  const locale = useLocale() as Locale;
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [realtimeOn, setRealtimeOn] = useState(false);
-
-  const { locale, setLocale } = useI18n();
   const { notifications, markRead, markAllRead, isLoading, error } = useUserNotifications(user?.id, {
     enableRealtime: realtimeOn,
   });
 
-  const normalizedPath = pathname.replace(/^\/(es|en)/, '') || '/';
+  const normalizedPath = pathname || '/';
 
   const isActive = (href: string) => {
     if (href === '/') return normalizedPath === '/';
@@ -174,10 +175,10 @@ export function ShopHeader() {
               </Link>
               <button
                 type="button"
-                className="mt-4 self-start rounded-full border border-border bg-surface-sunken px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-accent sm:hidden"
-                onClick={() => setLocale(locale === 'es' ? 'en' : 'es')}
+                className="mt-4 self-start rounded-full border border-border bg-surface-sunken px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-accent md:hidden"
+                onClick={() => router.replace(pathname, { locale: locale === 'es' ? 'en' : 'es' })}
               >
-                Idioma: {locale === 'es' ? 'English' : 'Español'}
+                {locale === 'es' ? 'English' : 'Español'}
               </button>
             </nav>
           </div>

@@ -1,5 +1,6 @@
 import { ContactForm } from './contact-form';
 import { Suspense } from 'react';
+import { ViewLoading } from '@enjambre/ui';
 import type { Metadata } from 'next';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
@@ -29,7 +30,7 @@ export const revalidate = 3600;
 
 export default function ContactoPage() {
   return (
-    <Suspense fallback={<div>Cargando...</div>}>
+    <Suspense fallback={<ViewLoading variant="view" label="Contacto" hideLabel />}>
       <ContactForm />
     </Suspense>
   );

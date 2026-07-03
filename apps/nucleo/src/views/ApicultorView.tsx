@@ -7,6 +7,7 @@ import { ViewShell } from '@/components/layout/ViewShell';
 import { fetchPronostico } from '@/lib/meteo';
 import { mapInAppNotificationToAlertItem } from '@enjambre/auth';
 import { supabase } from '../lib/supabase';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ColmenaFicha } from '../components/apicultor/ColmenaFicha';
 import { CalendarioCiclico } from '../components/apicultor/CalendarioCiclico';
 import { TrazabilidadPanel } from '../components/apicultor/TrazabilidadPanel';
@@ -35,6 +36,7 @@ interface ReflexionData {
 type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad';
 
 export function ApicultorView() {
+    const apiFetch = useApiFetch();
     const [userProfile, setUserProfile] = useState<{ full_name?: string } | null>(null);
     const [treesCount, setTreesCount] = useState<number>(0);
     const [tempPureo, setTempPureo] = useState<string>('—');
@@ -59,8 +61,11 @@ export function ApicultorView() {
                     const { data: prof } = await supabase.from('profiles').select('*').eq('id', uid).single();
                     setUserProfile(prof);
 
-                    const { count: trees } = await supabase.from('arboles_plantados').select('id', { count: 'exact', head: true });
-                    setTreesCount(trees ?? 0);
+                    const treesRes = await apiFetch('/api/produccion/arboles');
+                    if (treesRes.ok) {
+                        const treesJson = await treesRes.json();
+                        setTreesCount((treesJson.data ?? []).length);
+                    }
                 }
 
                 const { data: apiarios } = await supabase.from('apiarios').select('*');
@@ -145,17 +150,24 @@ export function ApicultorView() {
                             .eq('channel', 'in_app')
                             .order('created_at', { ascending: false })
                             .limit(3),
-                        supabase.from('reflexiones').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(1),
+                        apiFetch('/api/produccion/reflexiones'),
                     ]);
 
                     setAlerts((resA.data ?? []).map(mapInAppNotificationToAlertItem));
-                    const row = resR.data?.[0];
-                    if (row) {
-                        setReflexion({
-                            ...row,
-                            date: row.date_display || row.created_at,
-                            content: row.content,
-                        });
+                    if (resR.ok) {
+                        const reflexJson = await resR.json();
+                        const row = (reflexJson.data ?? [])[0] as
+                          | { fecha?: string; texto?: string; colmena?: string }
+                          | undefined;
+                        if (row) {
+                            setReflexion({
+                                date: row.fecha ?? '',
+                                content: row.texto ?? '',
+                                date_display: row.colmena,
+                            });
+                        } else {
+                            setReflexion(null);
+                        }
                     } else {
                         setReflexion(null);
                     }
@@ -169,7 +181,7 @@ export function ApicultorView() {
             }
         }
         loadData();
-    }, []);
+    }, [apiFetch]);
 
     useEffect(() => {
         fetchPronostico().then((data) => {

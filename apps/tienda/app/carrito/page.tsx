@@ -3,15 +3,12 @@ import dynamic from 'next/dynamic';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { ViewLoadingFallback } from '@enjambre/ui';
 
 const CarritoClient = dynamic(
   () => import('./ui').then((m) => m.CarritoClient),
   {
-    loading: () => (
-      <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground text-sm">
-        Cargando carrito…
-      </div>
-    ),
+    loading: () => <ViewLoadingFallback label="Carrito" />,
   },
 );
 

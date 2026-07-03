@@ -5,17 +5,13 @@ import { ClientLookupPanel } from '@/components/pos/client-lookup-panel';
 import { useCashSession } from '@/components/pos/cash-context';
 import { PackageSearch, TrendingUp, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
+import { ViewLoading } from '@enjambre/ui';
 
 export default function PosIndex() {
   const { session, loading } = useCashSession();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20 gap-3">
-        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs text-muted-foreground uppercase tracking-widest">Cargando...</span>
-      </div>
-    );
+    return <ViewLoading variant="view" label="Terminal POS" hideLabel />;
   }
 
   return (

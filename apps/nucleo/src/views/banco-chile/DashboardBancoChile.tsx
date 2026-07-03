@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { toast } from '@enjambre/ui';
+import { toast, ViewLoading } from '@enjambre/ui';
 
 interface ResumenEjecutivo {
   totalCuentas: number;
@@ -163,7 +163,7 @@ console.error('Error auto-conciliando:', error);
   }
 
   if (loading) {
-    return <div className="p-4">Cargando dashboard...</div>;
+    return <ViewLoading variant="view" label="Dashboard bancario" hideLabel />;
   }
 
   return (

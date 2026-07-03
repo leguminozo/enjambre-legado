@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { friendlyError, friendlySupabaseError, toast } from '@enjambre/ui';
+import { friendlyError, friendlySupabaseError, toast, ViewLoading } from '@enjambre/ui';
 import { Shield, Users, Star, Check, X, Loader2 } from 'lucide-react';
 
 interface Revendedor {
@@ -101,12 +101,7 @@ export function VanguardiaPanel() {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-accent" size={32} />
-        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Sincronizando con la Colmena...</p>
-      </div>
-    );
+    return <ViewLoading variant="view" label="Vanguardia" hideLabel />;
   }
 
   return (

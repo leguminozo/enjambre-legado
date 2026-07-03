@@ -31,7 +31,7 @@ Al acceder o utilizar nuestro sitio web usted acepta las prácticas descritas en
 
 <strong>Automáticamente:</strong> datos de navegación (dirección IP, tipo de dispositivo, navegador, páginas visitadas) mediante cookies y tecnologías similares. Para más detalle, consulta nuestra <a href="/cookies">Política de Cookies</a>.
 
-<strong>De terceros:</strong> Supabase (infraestructura de base de datos y autenticación), Hostinger (hosting), Mercado Pago procesado a través de dLocal (pagos), Blue Express (envíos), y herramientas de analítica o publicidad (Google, Meta, etc.).
+<strong>De terceros:</strong> Supabase (infraestructura de base de datos y autenticación), Hostinger (hosting), Transbank y Flow.cl (pagos), Blue Express (envíos), y herramientas de analítica o publicidad (Google, Meta, etc.).
 
 <strong>2. Bases legales y finalidades</strong>
 
@@ -52,11 +52,11 @@ Compartimos datos con los siguientes encargados de tratamiento:
 
 - <strong>Supabase:</strong> infraestructura de base de datos, autenticación y almacenamiento (servidores en región americana). Cumple con SOC 2 Type II.
 - <strong>Hostinger:</strong> alojamiento del sitio web.
-- <strong>Mercado Pago / dLocal:</strong> procesamiento de pagos. Los datos de tarjeta no pasan por nuestros servidores; se procesan directamente a través de su plataforma PCI DSS certificada.
+- <strong>Transbank / Flow.cl:</strong> procesamiento de pagos. Los datos de tarjeta no pasan por nuestros servidores; se procesan directamente a través de su plataforma PCI DSS certificada.
 - <strong>Blue Express:</strong> logística y envíos (nombre, dirección, teléfono del destinatario).
 - <strong>Herramientas de marketing/analítica:</strong> Google Analytics, Meta Pixel y similares, según tu consentimiento.
 
-Realizamos transferencias internacionales de datos (principalmente a servidores en Europa y América). Supabase, Hostinger y dLocal aplican medidas de seguridad y cláusulas contractuales estándar conforme a la Ley 21.719.
+Realizamos transferencias internacionales de datos (principalmente a servidores en Europa y América). Supabase, Hostinger, Transbank y Flow aplican medidas de seguridad y cláusulas contractuales estándar conforme a la Ley 21.719.
 
 <strong>5. Conservación de los datos</strong>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { friendlyError, friendlySupabaseError, toast } from '@enjambre/ui';
+import { friendlyError, friendlySupabaseError, toast, ViewLoading } from '@enjambre/ui';
 import {
   Sparkles, Users, TrendingUp, DollarSign, Check, X,
   Loader2, Search, Filter, Eye, Edit3, ChevronDown, ExternalLink,
@@ -237,12 +237,7 @@ export function CreadoresAdminPanel() {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-accent" size={32} />
-        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Cargando red de creadores...</p>
-      </div>
-    );
+    return <ViewLoading variant="view" label="Red de creadores" hideLabel />;
   }
 
   return (

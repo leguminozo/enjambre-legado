@@ -115,7 +115,7 @@ export function LoginForm() {
                 Contraseña
               </label>
               <Link
-                href="/contacto"
+                href="/recuperar"
                 className="text-[0.6rem] uppercase tracking-[0.1em] text-muted-foreground hover:text-accent min-h-[44px] flex items-center"
               >
                 ¿Olvidaste?

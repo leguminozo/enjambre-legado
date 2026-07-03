@@ -31,6 +31,21 @@ const UpdateLeadSchema = z.object({
   notas: z.string().optional(),
 });
 
+const MoverLeadSchema = z.object({
+  nueva_etapa: z.enum([
+    "prospecto",
+    "cualificado",
+    "reunion_agendada",
+    "propuesta_enviada",
+    "negociacion",
+    "cerrado",
+  ]),
+});
+
+const UpdateTareaEstadoSchema = z.object({
+  estado: z.enum(["pendiente", "completada", "cancelada"]),
+});
+
 const CreateTareaSchema = z.object({
   lead_id: z.string().uuid().optional(),
   titulo: z.string().min(1).max(200),
@@ -167,11 +182,13 @@ pipelineRoutes.patch("/leads/:id", zValidator("json", UpdateLeadSchema), async (
   const leadId = c.req.param("id");
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
+  const empresaId = c.get("empresaId");
 
   const { data, error } = await supabase
     .from("crm_leads")
     .update(input)
     .eq("id", leadId)
+    .eq("empresa_id", empresaId)
     .select("*")
     .single();
 
@@ -182,10 +199,22 @@ pipelineRoutes.patch("/leads/:id", zValidator("json", UpdateLeadSchema), async (
   return c.json({ data });
 });
 
-pipelineRoutes.post("/leads/:id/mover", async (c) => {
+pipelineRoutes.post("/leads/:id/mover", zValidator("json", MoverLeadSchema), async (c) => {
   const leadId = c.req.param("id");
-  const { nueva_etapa } = await c.req.json();
+  const { nueva_etapa } = c.req.valid("json");
   const supabase = c.get("supabase");
+  const empresaId = c.get("empresaId");
+
+  const { data: lead } = await supabase
+    .from("crm_leads")
+    .select("id")
+    .eq("id", leadId)
+    .eq("empresa_id", empresaId)
+    .maybeSingle();
+
+  if (!lead) {
+    return c.json({ code: "not_found", message: "Lead no encontrado" }, 404);
+  }
 
   const { data, error } = await supabase.rpc("mover_lead_pipeline", {
     p_lead_id: leadId,
@@ -251,15 +280,19 @@ pipelineRoutes.post("/tareas", zValidator("json", CreateTareaSchema), async (c) 
   return c.json({ data: { id: data } }, 201);
 });
 
-pipelineRoutes.patch("/tareas/:id", async (c) => {
+pipelineRoutes.patch("/tareas/:id", zValidator("json", UpdateTareaEstadoSchema), async (c) => {
   const tareaId = c.req.param("id");
-  const { estado } = await c.req.json();
+  const { estado } = c.req.valid("json");
   const supabase = c.get("supabase");
+  const empresaId = c.get("empresaId");
+  const user = c.get("user");
 
   const { data, error } = await supabase
     .from("crm_tareas")
     .update({ estado, updated_at: new Date().toISOString() })
     .eq("id", tareaId)
+    .eq("empresa_id", empresaId)
+    .eq("vendedor_id", user.id)
     .select("*")
     .single();
 
@@ -273,11 +306,15 @@ pipelineRoutes.patch("/tareas/:id", async (c) => {
 pipelineRoutes.delete("/tareas/:id", async (c) => {
   const tareaId = c.req.param("id");
   const supabase = c.get("supabase");
+  const empresaId = c.get("empresaId");
+  const user = c.get("user");
 
   const { error } = await supabase
     .from("crm_tareas")
     .delete()
-    .eq("id", tareaId);
+    .eq("id", tareaId)
+    .eq("empresa_id", empresaId)
+    .eq("vendedor_id", user.id);
 
   if (error) {
     return c.json({ code: "delete_failed", message: error.message }, 400);

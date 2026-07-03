@@ -9,6 +9,7 @@ import { ResumenActividad } from '@/views/eirl/dashboard/ResumenActividad';
 import { ContableView } from '@/views/ContableView';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useAuthStore } from '@enjambre/auth';
+import { ViewLoading } from '@enjambre/ui';
 import { Calculator, FileText, ShoppingCart, BarChart3 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
@@ -98,7 +99,7 @@ export function ContableHubView() {
       {activeTab === 'resumen' && (
         <div className="space-y-6">
           {loading ? (
-            <div className="text-muted-foreground text-sm">Cargando métricas...</div>
+            <ViewLoading variant="view" label="Métricas contables" hideLabel />
           ) : (
             <>
               <MetricasCards

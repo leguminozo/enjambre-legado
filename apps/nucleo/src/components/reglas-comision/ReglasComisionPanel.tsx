@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, ImmersiveModal } from '@enjambre/ui';
 import {
   Percent, Check, Loader2, Plus, Edit3,
-  Trash2, X, ToggleLeft, ToggleRight
+  Trash2, ToggleLeft, ToggleRight
 } from 'lucide-react';
 
 interface CommissionRuleRow {
@@ -166,12 +166,7 @@ export function ReglasComisionPanel() {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-accent" size={32} />
-        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Cargando reglas...</p>
-      </div>
-    );
+    return <ViewLoading variant="view" label="Reglas de comisión" hideLabel />;
   }
 
   return (
@@ -207,13 +202,27 @@ export function ReglasComisionPanel() {
         </button>
       </div>
 
-      {showCreate && (
-        <div className="card p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-display text-lg">{editRule ? 'Editar Regla' : 'Nueva Regla'}</h3>
-            <button onClick={resetForm} className="text-muted-foreground hover:text-primary"><X size={18} /></button>
-          </div>
-
+      <ImmersiveModal
+        open={showCreate}
+        onClose={resetForm}
+        eyebrow="Comisiones"
+        title={editRule ? 'Editar regla' : 'Nueva regla'}
+        size="lg"
+        footer={
+          <>
+            <label className="flex items-center gap-2 cursor-pointer mr-auto">
+              <input type="checkbox" checked={formActive} onChange={(e) => setFormActive(e.target.checked)} className="rounded" />
+              <span className="text-sm">Activa</span>
+            </label>
+            <button onClick={resetForm} className="btn btn-outline text-xs">Cancelar</button>
+            <button disabled={actionLoading === 'saving'} onClick={saveRule} className="btn btn-gold text-xs">
+              {actionLoading === 'saving' ? <Loader2 className="animate-spin" size={14} /> : <Check size={14} />}
+              {editRule ? 'Guardar' : 'Crear'}
+            </button>
+          </>
+        }
+      >
+          <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Tipo</label>
@@ -290,21 +299,8 @@ export function ReglasComisionPanel() {
       )}
     </div>
 
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={formActive} onChange={(e) => setFormActive(e.target.checked)} className="rounded" />
-              <span className="text-sm">Activa</span>
-            </label>
-            <div className="flex gap-3 ml-auto">
-              <button disabled={actionLoading === 'saving'} onClick={saveRule} className="btn btn-gold text-xs">
-                {actionLoading === 'saving' ? <Loader2 className="animate-spin" size={14} /> : <Check size={14} />}
-                {editRule ? 'Guardar' : 'Crear'}
-              </button>
-              <button onClick={resetForm} className="btn btn-outline text-xs">Cancelar</button>
-            </div>
           </div>
-        </div>
-      )}
+      </ImmersiveModal>
 
       <div className="space-y-3">
         {rules.length === 0 ? (

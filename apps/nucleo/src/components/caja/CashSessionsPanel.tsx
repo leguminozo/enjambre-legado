@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, ImmersiveModal } from '@enjambre/ui';
 import {
   Wallet, Check, Loader2, Search, Filter,
   CheckCircle2, Clock, Shield, Eye, Download, AlertTriangle
@@ -143,12 +143,7 @@ export function CashSessionsPanel() {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-accent" size={32} />
-        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Cargando sesiones de caja...</p>
-      </div>
-    );
+    return <ViewLoading variant="view" label="Sesiones de caja" hideLabel />;
   }
 
   return (
@@ -278,10 +273,18 @@ export function CashSessionsPanel() {
         </div>
       </div>
 
-      {selectedSession && (
-        <div className="fixed inset-0 z-50 bg-background/40 flex items-center justify-center p-4" onClick={() => setSelectedSession(null)}>
-          <div className="bg-card rounded-2xl shadow-2xl max-w-lg w-full p-8 space-y-4" onClick={e => e.stopPropagation()}>
-            <h3 className="font-display text-xl text-primary">Detalle de Sesión</h3>
+      <ImmersiveModal
+        open={Boolean(selectedSession)}
+        onClose={() => setSelectedSession(null)}
+        eyebrow="Caja"
+        title="Detalle de sesión"
+        size="md"
+        footer={
+          <button onClick={() => setSelectedSession(null)} className="btn btn-outline btn-sm w-full sm:w-auto">Cerrar</button>
+        }
+      >
+        {selectedSession ? (
+          <>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="text-muted-foreground">Representante:</div>
               <div className="font-medium text-primary">{selectedSession.rep_profiles?.display_name || selectedSession.profiles?.full_name}</div>
@@ -300,11 +303,12 @@ export function CashSessionsPanel() {
                 {selectedSession.cash_difference !== null ? `${Number(selectedSession.cash_difference) >= 0 ? '+' : '-'}${formatCLP(Number(selectedSession.cash_difference))}` : '—'}
               </div>
             </div>
-            {selectedSession.notas && <p className="text-xs text-muted-foreground italic mt-2">Notas: {selectedSession.notas}</p>}
-            <button onClick={() => setSelectedSession(null)} className="w-full py-2 bg-secondary rounded-lg text-sm font-medium hover:bg-secondary transition-colors">Cerrar</button>
-          </div>
-        </div>
-      )}
+            {selectedSession.notas ? (
+              <p className="text-xs text-muted-foreground italic mt-4">Notas: {selectedSession.notas}</p>
+            ) : null}
+          </>
+        ) : null}
+      </ImmersiveModal>
     </div>
   );
 }

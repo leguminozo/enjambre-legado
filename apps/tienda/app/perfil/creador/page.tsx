@@ -1,13 +1,10 @@
 import dynamic from 'next/dynamic';
+import { ViewLoadingFallback } from '@enjambre/ui';
 
 const CreadorPortalClient = dynamic(
   () => import('@/components/creador/creador-portal-client').then((m) => m.CreadorPortalClient),
   {
-    loading: () => (
-      <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground text-sm">
-        Cargando portal creador…
-      </div>
-    ),
+    loading: () => <ViewLoadingFallback label="Portal creador" />,
   },
 );
 

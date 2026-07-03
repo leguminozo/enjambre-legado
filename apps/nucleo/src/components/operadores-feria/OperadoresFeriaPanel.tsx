@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, ImmersiveModal } from '@enjambre/ui';
 import {
   Calendar, Package, ClipboardCheck, FileText, Loader2,
   Plus, Check, X, Users, Wallet, AlertTriangle,
@@ -526,12 +526,7 @@ export function OperadoresFeriaPanel() {
   ];
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-accent" size={32} />
-        <p className="text-sm text-muted-foreground uppercase tracking-widest">Cargando red de feria...</p>
-      </div>
-    );
+    return <ViewLoading variant="view" label="Red de feria" hideLabel />;
   }
 
   return (
@@ -573,7 +568,7 @@ export function OperadoresFeriaPanel() {
                   {repsPendientesFeria.length} rep{repsPendientesFeria.length === 1 ? '' : 's'} sin contrato activo
                 </span>
               )}
-              <button type="button" className="btn btn-primary btn-sm" onClick={() => setShowContratoForm(!showContratoForm)}>
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => setShowContratoForm(true)}>
                 <Plus size={14} /> Nuevo contrato
               </button>
             </div>
@@ -615,52 +610,6 @@ export function OperadoresFeriaPanel() {
                   );
                 })}
               </div>
-            </div>
-          )}
-
-          {showContratoForm && (
-            <div className="p-4 rounded-xl border border-border space-y-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <select
-                className="input-field text-sm"
-                value={contratoForm.user_id}
-                onChange={(e) => setContratoForm({ ...contratoForm, user_id: e.target.value })}
-              >
-                <option value="">Operador (rep_ventas)...</option>
-                {reps.map((r) => {
-                  const estado = feriaContratoEstadoForUser(contratos, r.id);
-                  const suffix = estado === 'activo' ? ' · contrato activo' : estado === 'borrador' ? ' · borrador' : '';
-                  return (
-                    <option key={r.id} value={r.id}>
-                      {r.full_name || r.email}{suffix}
-                    </option>
-                  );
-                })}
-              </select>
-              <select
-                className="input-field text-sm"
-                value={contratoForm.tipo}
-                onChange={(e) => setContratoForm({ ...contratoForm, tipo: e.target.value as 'feria' })}
-              >
-                <option value="feria">Feria</option>
-                <option value="evento">Evento</option>
-                <option value="popup">Pop-up</option>
-              </select>
-              <input type="number" className="input-field text-sm" placeholder="% comisión base"
-                value={contratoForm.comision_base_pct}
-                onChange={(e) => setContratoForm({ ...contratoForm, comision_base_pct: Number(e.target.value) })} />
-              <input type="number" className="input-field text-sm" placeholder="Bono puntualidad CLP"
-                value={contratoForm.bono_puntualidad_clp}
-                onChange={(e) => setContratoForm({ ...contratoForm, bono_puntualidad_clp: Number(e.target.value) })} />
-              <input type="number" className="input-field text-sm" placeholder="Honorario fijo mensual CLP"
-                value={contratoForm.honorario_fijo_mensual}
-                onChange={(e) => setContratoForm({ ...contratoForm, honorario_fijo_mensual: Number(e.target.value) })} />
-              <input type="number" className="input-field text-sm" placeholder="Tope stock consignado"
-                value={contratoForm.tope_stock_consignado}
-                onChange={(e) => setContratoForm({ ...contratoForm, tope_stock_consignado: Number(e.target.value) })} />
-              <button type="button" className="btn btn-gold btn-sm md:col-span-2" onClick={createContrato}
-                disabled={actionLoading === 'new-contrato'}>
-                Crear borrador
-              </button>
             </div>
           )}
 
@@ -711,28 +660,10 @@ export function OperadoresFeriaPanel() {
         <div className="card space-y-4">
           <div className="flex justify-between">
             <h3 className="font-display text-lg">Eventos</h3>
-            <button type="button" className="btn btn-primary btn-sm" onClick={() => setShowEventoForm(!showEventoForm)}>
+            <button type="button" className="btn btn-primary btn-sm" onClick={() => setShowEventoForm(true)}>
               <Plus size={14} /> Programar
             </button>
           </div>
-          {showEventoForm && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border border-border rounded-xl">
-              <select className="input-field text-sm" value={eventoForm.contrato_id}
-                onChange={(e) => setEventoForm({ ...eventoForm, contrato_id: e.target.value })}>
-                <option value="">Contrato activo...</option>
-                {contratos.filter((c) => c.estado === 'activo').map((c) => (
-                  <option key={c.id} value={c.id}>{c.profiles?.full_name} — {c.tipo}</option>
-                ))}
-              </select>
-              <input className="input-field text-sm" placeholder="Nombre evento" value={eventoForm.nombre_evento}
-                onChange={(e) => setEventoForm({ ...eventoForm, nombre_evento: e.target.value })} />
-              <input className="input-field text-sm" placeholder="Ubicación" value={eventoForm.ubicacion}
-                onChange={(e) => setEventoForm({ ...eventoForm, ubicacion: e.target.value })} />
-              <input type="date" className="input-field text-sm" value={eventoForm.fecha_inicio}
-                onChange={(e) => setEventoForm({ ...eventoForm, fecha_inicio: e.target.value })} />
-              <button type="button" className="btn btn-gold btn-sm md:col-span-2" onClick={createEvento}>Guardar evento</button>
-            </div>
-          )}
           <div className="space-y-2">
             {eventos.map((e) => (
               <div key={e.id} className="p-4 rounded-xl border border-border flex justify-between items-center">
@@ -949,61 +880,240 @@ export function OperadoresFeriaPanel() {
             </EnjTableShell>
           </div>
 
-          {honorarioModal && (
-            <div className="p-4 rounded-xl border border-accent/30 bg-muted/20 space-y-3">
-              <p className="text-sm font-medium">
-                Preparar honorario — {honorarioModal.userName} · ${honorarioModal.monto.toLocaleString('es-CL')}
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        </div>
+      )}
+
+      <ImmersiveModal
+        open={showContratoForm}
+        onClose={() => setShowContratoForm(false)}
+        eyebrow="Operadores feria"
+        title="Nuevo contrato"
+        size="lg"
+        footer={
+          <>
+            <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowContratoForm(false)}>
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn btn-gold btn-sm"
+              onClick={createContrato}
+              disabled={actionLoading === 'new-contrato'}
+            >
+              {actionLoading === 'new-contrato' ? <Loader2 className="animate-spin" size={14} /> : 'Crear borrador'}
+            </button>
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Operador</label>
+            <select
+              className="input-field text-sm w-full"
+              value={contratoForm.user_id}
+              onChange={(e) => setContratoForm({ ...contratoForm, user_id: e.target.value })}
+            >
+              <option value="">Operador (rep_ventas)...</option>
+              {reps.map((r) => {
+                const estado = feriaContratoEstadoForUser(contratos, r.id);
+                const suffix = estado === 'activo' ? ' · contrato activo' : estado === 'borrador' ? ' · borrador' : '';
+                return (
+                  <option key={r.id} value={r.id}>
+                    {r.full_name || r.email}{suffix}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Tipo</label>
+            <select
+              className="input-field text-sm w-full"
+              value={contratoForm.tipo}
+              onChange={(e) => setContratoForm({ ...contratoForm, tipo: e.target.value as 'feria' })}
+            >
+              <option value="feria">Feria</option>
+              <option value="evento">Evento</option>
+              <option value="popup">Pop-up</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">% comisión base</label>
+            <input
+              type="number"
+              className="input-field text-sm w-full"
+              value={contratoForm.comision_base_pct}
+              onChange={(e) => setContratoForm({ ...contratoForm, comision_base_pct: Number(e.target.value) })}
+            />
+          </div>
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Bono puntualidad CLP</label>
+            <input
+              type="number"
+              className="input-field text-sm w-full"
+              value={contratoForm.bono_puntualidad_clp}
+              onChange={(e) => setContratoForm({ ...contratoForm, bono_puntualidad_clp: Number(e.target.value) })}
+            />
+          </div>
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Honorario fijo mensual CLP</label>
+            <input
+              type="number"
+              className="input-field text-sm w-full"
+              value={contratoForm.honorario_fijo_mensual}
+              onChange={(e) => setContratoForm({ ...contratoForm, honorario_fijo_mensual: Number(e.target.value) })}
+            />
+          </div>
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Tope stock consignado</label>
+            <input
+              type="number"
+              className="input-field text-sm w-full"
+              value={contratoForm.tope_stock_consignado}
+              onChange={(e) => setContratoForm({ ...contratoForm, tope_stock_consignado: Number(e.target.value) })}
+            />
+          </div>
+        </div>
+      </ImmersiveModal>
+
+      <ImmersiveModal
+        open={showEventoForm}
+        onClose={() => setShowEventoForm(false)}
+        eyebrow="Operadores feria"
+        title="Programar evento"
+        size="lg"
+        footer={
+          <>
+            <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowEventoForm(false)}>
+              Cancelar
+            </button>
+            <button type="button" className="btn btn-gold btn-sm" onClick={createEvento}>
+              Guardar evento
+            </button>
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Contrato activo</label>
+            <select
+              className="input-field text-sm w-full"
+              value={eventoForm.contrato_id}
+              onChange={(e) => setEventoForm({ ...eventoForm, contrato_id: e.target.value })}
+            >
+              <option value="">Contrato activo...</option>
+              {contratos.filter((c) => c.estado === 'activo').map((c) => (
+                <option key={c.id} value={c.id}>{c.profiles?.full_name} — {c.tipo}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Nombre evento</label>
+            <input
+              className="input-field text-sm w-full"
+              value={eventoForm.nombre_evento}
+              onChange={(e) => setEventoForm({ ...eventoForm, nombre_evento: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Ubicación</label>
+            <input
+              className="input-field text-sm w-full"
+              value={eventoForm.ubicacion}
+              onChange={(e) => setEventoForm({ ...eventoForm, ubicacion: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Fecha inicio</label>
+            <input
+              type="date"
+              className="input-field text-sm w-full"
+              value={eventoForm.fecha_inicio}
+              onChange={(e) => setEventoForm({ ...eventoForm, fecha_inicio: e.target.value })}
+            />
+          </div>
+        </div>
+      </ImmersiveModal>
+
+      <ImmersiveModal
+        open={Boolean(honorarioModal)}
+        onClose={() => setHonorarioModal(null)}
+        eyebrow="SII · Honorarios"
+        title={honorarioModal ? `Preparar honorario — ${honorarioModal.userName}` : 'Preparar honorario'}
+        size="md"
+        footer={
+          honorarioModal ? (
+            <>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setHonorarioModal(null)}>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                disabled={actionLoading === `hon-${honorarioModal.ledgerId}`}
+                onClick={prepararHonorarioSii}
+              >
+                {actionLoading === `hon-${honorarioModal.ledgerId}` ? (
+                  <Loader2 className="animate-spin" size={14} />
+                ) : (
+                  'Registrar en SII'
+                )}
+              </button>
+            </>
+          ) : undefined
+        }
+      >
+        {honorarioModal && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Monto: <span className="font-medium text-foreground">${honorarioModal.monto.toLocaleString('es-CL')}</span>
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Fecha</label>
                 <input
                   type="date"
-                  className="input-field text-sm"
+                  className="input-field text-sm w-full"
                   value={honorarioModal.fecha}
                   onChange={(e) => setHonorarioModal({ ...honorarioModal, fecha: e.target.value })}
                 />
+              </div>
+              <div>
+                <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">RUT prestador</label>
                 <input
-                  className="input-field text-sm"
-                  placeholder="RUT prestador (requerido)"
+                  className="input-field text-sm w-full"
+                  placeholder="Requerido"
                   value={honorarioModal.tercero_rut}
                   onChange={(e) => setHonorarioModal({ ...honorarioModal, tercero_rut: e.target.value })}
+                  autoComplete="off"
                 />
+              </div>
+              <div>
+                <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Nombre prestador</label>
                 <input
-                  className="input-field text-sm"
-                  placeholder="Nombre prestador"
+                  className="input-field text-sm w-full"
                   value={honorarioModal.tercero_nombre}
                   onChange={(e) => setHonorarioModal({ ...honorarioModal, tercero_nombre: e.target.value })}
+                  autoComplete="off"
                 />
+              </div>
+              <div>
+                <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">N° boleta honorarios</label>
                 <input
-                  className="input-field text-sm"
-                  placeholder="N° boleta honorarios (opcional)"
+                  className="input-field text-sm w-full"
+                  placeholder="Opcional"
                   value={honorarioModal.numero_bhe}
                   onChange={(e) => setHonorarioModal({ ...honorarioModal, numero_bhe: e.target.value })}
+                  autoComplete="off"
                 />
               </div>
-              <p className="text-[0.65rem] text-muted-foreground">
-                Retención 15,25% por defecto · alimenta línea 61 F29 vía tabla honorarios
-              </p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  disabled={actionLoading === `hon-${honorarioModal.ledgerId}`}
-                  onClick={prepararHonorarioSii}
-                >
-                  {actionLoading === `hon-${honorarioModal.ledgerId}` ? (
-                    <Loader2 className="animate-spin" size={14} />
-                  ) : (
-                    'Registrar en SII'
-                  )}
-                </button>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setHonorarioModal(null)}>
-                  Cancelar
-                </button>
-              </div>
             </div>
-          )}
-        </div>
-      )}
+            <p className="text-[0.65rem] text-muted-foreground">
+              Retención 15,25% por defecto · alimenta línea 61 F29 vía tabla honorarios
+            </p>
+          </div>
+        )}
+      </ImmersiveModal>
     </div>
   );
 }

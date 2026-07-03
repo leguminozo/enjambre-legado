@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { Building2, Settings, RefreshCw, DollarSign, Loader2, Check, X, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
 import { formatCurrency } from '@/lib/format';
+import { ImmersiveModal } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
@@ -291,94 +292,102 @@ export function BancoChileView() {
         </div>
       )}
 
-      {showConfig && (
-        <div className="fixed inset-0 bg-background/50 flex items-center justify-center z-50">
-          <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full mx-4">
-            <h2 className="font-display text-lg mb-4">Configurar Banco Chile</h2>
-            <form onSubmit={handleSubmitConfig} className="space-y-4">
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Client ID</label>
-                <input
-                  type="text"
-                  value={formData.clientId}
-                  onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                  className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Client Secret</label>
-                <input
-                  type="password"
-                  value={formData.clientSecret}
-                  onChange={(e) => setFormData({ ...formData, clientSecret: e.target.value })}
-                  className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Username</label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Password</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Ambiente</label>
-                <select
-                  value={formData.environment}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    environment: e.target.value as 'sandbox' | 'production',
-                  })}
-                  className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
-                >
-                  <option value="sandbox">Sandbox (Pruebas)</option>
-                  <option value="production">Producción</option>
-                </select>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="bc-enabled"
-                  checked={formData.enabled}
-                  onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
-                  className="w-4 h-4"
-                />
-                <label htmlFor="bc-enabled" className="text-sm">Habilitar integración</label>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowConfig(false)}
-                  className="flex-1 px-4 py-2 bg-secondary border border-border rounded-lg text-sm"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-bold"
-                >
-                  Guardar
-                </button>
-              </div>
-            </form>
+      <ImmersiveModal
+        open={showConfig}
+        onClose={() => setShowConfig(false)}
+        eyebrow="Integración bancaria"
+        title="Configurar Banco Chile"
+        size="md"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setShowConfig(false)}
+              className="btn btn-outline btn-sm"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              form="banco-chile-config-form"
+              className="btn btn-primary btn-sm"
+            >
+              Guardar
+            </button>
+          </>
+        }
+      >
+        <form id="banco-chile-config-form" onSubmit={handleSubmitConfig} className="space-y-4">
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Client ID</label>
+            <input
+              type="text"
+              value={formData.clientId}
+              onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
+              className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
+              required
+              autoComplete="off"
+            />
           </div>
-        </div>
-      )}
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Client Secret</label>
+            <input
+              type="password"
+              value={formData.clientSecret}
+              onChange={(e) => setFormData({ ...formData, clientSecret: e.target.value })}
+              className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
+              required
+              autoComplete="new-password"
+            />
+          </div>
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Username</label>
+            <input
+              type="text"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
+              required
+              autoComplete="off"
+            />
+          </div>
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Password</label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
+              required
+              autoComplete="new-password"
+            />
+          </div>
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Ambiente</label>
+            <select
+              value={formData.environment}
+              onChange={(e) => setFormData({
+                ...formData,
+                environment: e.target.value as 'sandbox' | 'production',
+              })}
+              className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
+            >
+              <option value="sandbox">Sandbox (Pruebas)</option>
+              <option value="production">Producción</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="bc-enabled"
+              checked={formData.enabled}
+              onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
+              className="w-4 h-4"
+            />
+            <label htmlFor="bc-enabled" className="text-sm">Habilitar integración</label>
+          </div>
+        </form>
+      </ImmersiveModal>
     </div>
   );
 }

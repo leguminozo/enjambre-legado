@@ -14,6 +14,7 @@ import { TextCarousel } from '@/components/shop/text-carousel';
 import { YoutubeLite } from '@/components/shop/youtube-lite';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
+import { ViewLoading } from '@enjambre/ui';
 
 const BeeCanvas = dynamic(
   () => import('@/components/shop/bee-canvas').then((m) => m.BeeCanvas),
@@ -34,7 +35,7 @@ const MediaCarousel = dynamic(
 );
 const LandingProducts = dynamic(
   () => import('@/components/shop/landing-products').then((m) => m.LandingProducts),
-  { loading: () => <div className="editorial-section"><div className="editorial-container text-center text-muted-foreground italic">Cargando creaciones…</div></div> },
+  { loading: () => <div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label="Creaciones" hideLabel /></div></div> },
 );
 
 interface GSAPInstance {
@@ -382,7 +383,7 @@ export function TiendaLandingView({
 
       {/* ── CREACIONES — Productos directos 2x4 ── */}
       <div id="creaciones">
-        <Suspense fallback={<div className="editorial-section"><div className="editorial-container text-center text-muted-foreground italic">{tCommon('loadingCreations') || 'Cargando creaciones…'}</div></div>}><LandingProducts products={products} pageSize={8} /></Suspense>
+        <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingCreations') || 'Creaciones'} hideLabel /></div></div>}><LandingProducts products={products} pageSize={8} /></Suspense>
       </div>
 
         {/* ── VIDEO CENTRAL YOUTUBE ── */}
@@ -396,7 +397,7 @@ export function TiendaLandingView({
 
       {/* ── NUESTRO LUGAR EN EL MUNDO ── */}
       <div id="world-location">
-        <Suspense fallback={<div className="editorial-section"><div className="editorial-container text-center text-muted-foreground italic">{tCommon('loadingMap') || 'Cargando mapa…'}</div></div>}><WorldMapBlock /></Suspense>
+        <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingMap') || 'Mapa'} hideLabel /></div></div>}><WorldMapBlock /></Suspense>
       </div>
       </main>
 

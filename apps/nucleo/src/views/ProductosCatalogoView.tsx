@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ImmersiveModal } from '@enjambre/ui';
 import { ProductList } from '@/components/productos/ProductList';
 import { ProductForm } from '@/components/productos/ProductForm';
 import type { Product } from '@/lib/product-types';
@@ -50,11 +51,15 @@ export function ProductosCatalogoView() {
 
       {view === 'list' && <ProductList onEdit={handleEdit} onCreateNew={handleCreateNew} />}
 
-      {(view === 'create' || view === 'edit') && (
-        <div
-          className="bg-card p-xl rounded-md border border-border/50"
-          style={{ padding: 'var(--space-xl)', borderRadius: 'var(--radius-md)' }}
-        >
+      <ImmersiveModal
+        open={view === 'create' || view === 'edit'}
+        onClose={handleCancel}
+        eyebrow="Productos"
+        title={view === 'edit' ? 'Editar producto' : 'Nuevo producto'}
+        size="xl"
+        bodyClassName="!p-0"
+      >
+        <div className="p-5 sm:p-6">
           <ProductForm
             initialData={
               selectedProduct
@@ -76,7 +81,7 @@ export function ProductosCatalogoView() {
             onCancel={handleCancel}
           />
         </div>
-      )}
+      </ImmersiveModal>
     </div>
   );
 }

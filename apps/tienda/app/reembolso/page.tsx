@@ -59,7 +59,7 @@ Te informaremos cuando hayamos recibido e inspeccionado tu devolución y te comu
 
 Los reembolsos se procesan a través del mismo método de pago original:
 - Tarjeta de crédito/débito: 5 a 10 días hábiles.
-- Mercado Pago (dLocal): 5 a 10 días hábiles.
+- Transbank / Flow: 5 a 10 días hábiles según tu banco emisor.
 - Transferencia bancaria: 3 a 7 días hábiles.
 
 Recuerda que el banco o la entidad emisora de la tarjeta de crédito pueden tardar algún tiempo en procesar y hacer efectivo el reembolso. Si han transcurrido más de 15 días hábiles desde que aprobamos tu devolución, contáctanos a comunidad@obrerayzangano.com.

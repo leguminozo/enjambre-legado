@@ -4,14 +4,15 @@ import Link from 'next/link';
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { useCartLines } from '@/components/shop/cart-context';
 import { formatCLP } from '@/lib/shop/format';
+import { ViewLoading } from '@enjambre/ui';
 
 export function CarritoClient() {
   const { lines, hydrated, setQty, remove, subtotal, itemCount } = useCartLines();
 
   if (!hydrated) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 text-center text-muted-foreground">
-        Cargando carrito…
+      <div className="mx-auto max-w-2xl px-4 py-16">
+        <ViewLoading variant="view" label="Carrito" hideLabel />
       </div>
     );
   }

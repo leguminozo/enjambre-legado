@@ -1,11 +1,16 @@
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
 import { NextRequest, NextResponse } from 'next/server';
 import { createRateLimiter, getClientIdentifier } from '@/lib/ratelimit';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
+import { guardMutation } from '@/lib/api-guard';
 
 const registerRateLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 5 });
 
 export async function POST(request: NextRequest) {
+  const csrfBlock = guardMutation(request);
+  if (csrfBlock) return csrfBlock;
+
   const identifier = getClientIdentifier(request);
   const rateLimitResult = registerRateLimiter(identifier);
 
@@ -76,11 +81,15 @@ export async function POST(request: NextRequest) {
   }
 
   if (referrerId && referrerId !== authData.user.id) {
-    await fetch(`${new URL(request.url).origin}/api/referrals/complete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ referrerId }),
-    }).catch(() => {});
+    const admin = createAdminClient();
+    if (admin) {
+      await (admin as { rpc: (fn: string, args: Record<string, string>) => Promise<unknown> })
+        .rpc('complete_referral_signup', {
+          p_referrer_id: referrerId,
+          p_new_user_id: authData.user.id,
+        })
+        .catch(() => {});
+    }
   }
 
   return NextResponse.json({ ok: true });

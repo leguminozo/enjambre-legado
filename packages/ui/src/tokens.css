@@ -216,3 +216,69 @@
   --shadow-xl: 0 20px 60px hsl(var(--enj-bosque-ulmo-h) 20% 20% / 0.12);
   --shadow-glow: 0 0 20px var(--bosque-glow);
 }
+
+/* ── Hexagon loader (Grok / SpaceX aesthetic) ── */
+.enj-hex-loader {
+  display: block;
+  overflow: visible;
+}
+
+.enj-hex-loader-stroke {
+  animation: enj-hex-stroke 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.enj-hex-loader-fill {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: enj-hex-fill 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes enj-hex-stroke {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0.45;
+  }
+  42% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  58% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -1;
+    opacity: 0.45;
+  }
+}
+
+@keyframes enj-hex-fill {
+  0% {
+    transform: scaleY(0.06);
+    opacity: 0.1;
+  }
+  44% {
+    transform: scaleY(1);
+    opacity: 0.32;
+  }
+  56% {
+    transform: scaleY(1);
+    opacity: 0.32;
+  }
+  100% {
+    transform: scaleY(0.06);
+    opacity: 0.1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enj-hex-loader-stroke,
+  .enj-hex-loader-fill {
+    animation: none;
+  }
+
+  .enj-hex-loader-fill {
+    transform: scaleY(0.55);
+    opacity: 0.2;
+  }
+}

@@ -1,33 +1,32 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Truck,
   Package,
-  MapPin,
   FileText,
   AlertCircle,
-  ChevronRight,
   Clock,
   CheckCircle2,
-  X,
   Plus,
-  Loader2,
   Navigation,
   Warehouse,
   Users,
-  Filter,
   RefreshCw,
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
-import { toast } from '@enjambre/ui';
+import { toast, ViewLoading } from '@enjambre/ui';
+import {
+  EnvioComposerModal,
+  type EnvioFormState,
+  type ProductoInventario,
+} from '@/components/logistica/EnvioComposerModal';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { BOSQUE_ULMO, ORO_MIEL, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors';
 import {
-  CHILEAN_COURIERS,
   DEFAULT_COURIER,
   getCourierLabel,
   type CourierCode,
@@ -35,9 +34,9 @@ import {
 
 import dynamic from 'next/dynamic';
 
-const MapaLegado = dynamic(
-  () => import('@/components/map/MapaLegado').then((mod) => mod.MapaLegado),
-  { ssr: false, loading: () => <div className="h-80 bg-surface-sunken rounded-xl animate-pulse" /> }
+const MapaEnviosHistorico = dynamic(
+  () => import('@/components/logistica/MapaEnviosHistorico').then((mod) => mod.MapaEnviosHistorico),
+  { ssr: false, loading: () => <ViewLoading variant="view" label="Mapa" hideLabel /> },
 );
 
 type Envio = {
@@ -75,6 +74,7 @@ type LogisticaDashboard = {
   envios: Envio[];
   stockCenters: StockCenter[];
   proveedores: Proveedor[];
+  productos: ProductoInventario[];
   ventasRecientes: Array<{
     id: string;
     total: number;
@@ -117,6 +117,7 @@ const EMPTY_DASHBOARD: LogisticaDashboard = {
   envios: [],
   stockCenters: [],
   proveedores: [],
+  productos: [],
   ventasRecientes: [],
   stats: {
     totalEnvios: 0,
@@ -138,15 +139,13 @@ export function LogisticaView() {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showNewEnvio, setShowNewEnvio] = useState(false);
-  const [selectedVenta, setSelectedVenta] = useState<LogisticaDashboard['ventasRecientes'][0] | null>(null);
-  const [envioForm, setEnvioForm] = useState({
+  const [envioForm, setEnvioForm] = useState<EnvioFormState>({
     tracking_code: `ENV-${Math.floor(Math.random() * 10000)}`,
     destino: '',
     items: '',
     status: 'En tránsito',
     eta: '',
-    courier_code: DEFAULT_COURIER as CourierCode,
-    venta_id: undefined as string | undefined,
+    courier_code: DEFAULT_COURIER,
   });
 
   const { data, isLoading, error, refetch } = useQuery<{ data: LogisticaDashboard }>({
@@ -177,7 +176,13 @@ export function LogisticaView() {
   }, [queryClient]);
 
   const createEnvio = useMutation({
-    mutationFn: async (form: typeof envioForm) => {
+    mutationFn: async ({
+      form,
+      lineItems,
+    }: {
+      form: typeof envioForm;
+      lineItems?: Array<{ producto_id: string; cantidad: number }>;
+    }) => {
       const res = await apiFetch('/api/logistica/envios', {
         method: 'POST',
         body: JSON.stringify({
@@ -188,11 +193,16 @@ export function LogisticaView() {
           eta: form.eta || null,
           courier_code: form.courier_code,
           venta_id: form.venta_id || null,
+          line_items: lineItems?.length ? lineItems : undefined,
         }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ message: 'Create failed' }));
-        throw new Error(err.message ?? 'Create failed');
+        const msg =
+          err.code === 'stock_insufficient'
+            ? 'Stock insuficiente en inventario para uno o más productos'
+            : (err.message ?? 'Create failed');
+        throw new Error(msg);
       }
       return res.json();
     },
@@ -200,7 +210,6 @@ export function LogisticaView() {
       toast('Envío registrado', { type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['logistica'] });
       setShowNewEnvio(false);
-      setSelectedVenta(null);
       setEnvioForm({
         tracking_code: `ENV-${Math.floor(Math.random() * 10000)}`,
         destino: '',
@@ -208,7 +217,6 @@ export function LogisticaView() {
         status: 'En tránsito',
         eta: '',
         courier_code: DEFAULT_COURIER,
-        venta_id: undefined,
       });
     },
     onError: (err) => toast(err.message, { type: 'error' }),
@@ -358,115 +366,8 @@ export function LogisticaView() {
               </div>
             )}
 
-            {showNewEnvio && (
-              <div className="p-4 bg-surface-sunken rounded-xl border border-border mb-4 relative">
-                <button
-                  onClick={() => setShowNewEnvio(false)}
-                  className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X size={16} />
-                </button>
-                <div className="text-sm font-semibold text-foreground mb-1">
-                  Registrar Envío
-                </div>
-                {envioForm.status === 'En tránsito' && (
-                  <div className="text-[10px] text-info bg-info/10 border border-info/20 px-2 py-1 rounded-md mb-3 flex items-center gap-1.5">
-                    <Navigation size={12} />
-                    Al registrar como 'En tránsito', se enviará automáticamente un correo al cliente.
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div>
-                    <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1 block">
-                      Código
-                    </label>
-                    <input
-                      type="text"
-                      value={envioForm.tracking_code}
-                      onChange={(e) =>
-                        setEnvioForm((f) => ({ ...f, tracking_code: e.target.value }))
-                      }
-                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1 block">
-                      Destino
-                    </label>
-                    <input
-                      type="text"
-                      value={envioForm.destino}
-                      onChange={(e) =>
-                        setEnvioForm((f) => ({ ...f, destino: e.target.value }))
-                      }
-                      placeholder="Ciudad / Dirección"
-                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1 block">
-                      Items
-                    </label>
-                    <input
-                      type="text"
-                      value={envioForm.items}
-                      onChange={(e) =>
-                        setEnvioForm((f) => ({ ...f, items: e.target.value }))
-                      }
-                      placeholder="Ej: 20 sachets, 5 frascos"
-                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1 block">
-                      Courier
-                    </label>
-                    <select
-                      value={envioForm.courier_code}
-                      onChange={(e) =>
-                        setEnvioForm((f) => ({
-                          ...f,
-                          courier_code: e.target.value as CourierCode,
-                        }))
-                      }
-                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                    >
-                      {CHILEAN_COURIERS.map((courier) => (
-                        <option key={courier.code} value={courier.code}>
-                          {courier.label}
-                          {courier.code === DEFAULT_COURIER ? ' (predeterminado)' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => setShowNewEnvio(false)}
-                    className="px-3 py-2 rounded-lg text-xs font-medium border border-border hover:border-accent/50 transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={() => createEnvio.mutate(envioForm)}
-                    disabled={createEnvio.isPending || !envioForm.destino || !envioForm.items}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50"
-                  >
-                    {createEnvio.isPending ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Plus size={14} />
-                    )}
-                    Registrar
-                  </button>
-                </div>
-              </div>
-            )}
-
             {isLoading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 size={24} className="animate-spin text-accent" />
-              </div>
+              <ViewLoading variant="view" label="Envíos" hideLabel />
             ) : filteredEnvios.length > 0 ? (
               <div className="space-y-2">
                 {filteredEnvios.map((envio) => {
@@ -586,11 +487,12 @@ export function LogisticaView() {
         <div className="space-y-6">
           <div className="card animate-in delay-3">
             <div className="section-header">
-              <div className="section-title">Mapa de Operaciones</div>
+              <div>
+                <div className="section-title">Historial geográfico</div>
+                <div className="section-subtitle">Todos los envíos registrados</div>
+              </div>
             </div>
-            <div className="rounded-xl overflow-hidden border border-border">
-              <MapaLegado height="320px" />
-            </div>
+            <MapaEnviosHistorico envios={dashboard.envios} height="320px" />
           </div>
 
           <div className="card animate-in delay-4">
@@ -701,6 +603,19 @@ export function LogisticaView() {
           </div>
         </div>
       </div>
+
+      <EnvioComposerModal
+        open={showNewEnvio}
+        onClose={() => setShowNewEnvio(false)}
+        form={envioForm}
+        onFormChange={setEnvioForm}
+        productos={dashboard.productos}
+        productosLoading={isLoading}
+        enviosHistoricos={dashboard.envios}
+        ventasRecientes={dashboard.ventasRecientes}
+        onSubmit={(form, lineItems) => createEnvio.mutate({ form, lineItems })}
+        submitting={createEnvio.isPending}
+      />
     </div>
   );
 }

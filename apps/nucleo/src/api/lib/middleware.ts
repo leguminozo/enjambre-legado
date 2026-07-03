@@ -164,7 +164,9 @@ export const csrfMiddleware = createMiddleware(async (c, next) => {
     [
       process.env.NEXT_PUBLIC_SITE_URL,
       process.env.NEXT_PUBLIC_TIENDA_URL,
+      process.env.NEXT_PUBLIC_URL_TIENDA,
       process.env.NEXT_PUBLIC_CAMPO_URL,
+      process.env.NEXT_PUBLIC_URL_CAMPO,
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3002",

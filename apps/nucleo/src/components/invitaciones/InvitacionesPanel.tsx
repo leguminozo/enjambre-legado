@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, ImmersiveModal } from '@enjambre/ui';
 import {
   Ticket, Loader2, Plus, Copy, Check,
   CheckCircle2, Clock, X, Eye
@@ -134,12 +134,7 @@ export function InvitacionesPanel() {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="animate-spin text-accent" size={32} />
-        <p className="text-sm text-muted-foreground font-datos uppercase tracking-widest">Cargando invitaciones...</p>
-      </div>
-    );
+    return <ViewLoading variant="view" label="Invitaciones" hideLabel />;
   }
 
   return (
@@ -179,35 +174,40 @@ export function InvitacionesPanel() {
           activeId={activeTab}
           onChange={(id) => setActiveTab(id as 'codigos' | 'canjes')}
         />
-        <button onClick={() => setShowCreate(!showCreate)} className="btn btn-gold flex items-center justify-center gap-2 shrink-0">
+        <button onClick={() => setShowCreate(true)} className="btn btn-gold flex items-center justify-center gap-2 shrink-0">
           <Plus size={16} />Nueva Invitación
         </button>
       </div>
 
-      {showCreate && (
-        <div className="card p-6 space-y-4">
-          <h3 className="font-display text-lg">Nueva Invitación</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Límite de usos</label>
-              <input type="number" min={1} value={newCode.maxUses} onChange={e => setNewCode({ ...newCode, maxUses: e.target.value })} className="input-field text-sm" placeholder="Sin límite" />
-              <p className="text-[0.6rem] text-muted-foreground mt-1">Dejar vacío para usos ilimitados</p>
-            </div>
-            <div>
-              <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Vigencia</label>
-              <input type="date" value={newCode.expiresAt} onChange={e => setNewCode({ ...newCode, expiresAt: e.target.value })} className="input-field text-sm" />
-              <p className="text-[0.6rem] text-muted-foreground mt-1">Sin fecha = sin expiración</p>
-            </div>
-          </div>
-          <div className="flex gap-3">
+      <ImmersiveModal
+        open={showCreate}
+        onClose={() => setShowCreate(false)}
+        eyebrow="Comunidad"
+        title="Nueva invitación"
+        size="md"
+        footer={
+          <>
+            <button onClick={() => setShowCreate(false)} className="btn btn-outline text-xs">Cancelar</button>
             <button disabled={actionLoading === 'creating'} onClick={createCode} className="btn btn-gold text-xs">
               {actionLoading === 'creating' ? <Loader2 className="animate-spin" size={14} /> : <Plus size={14} />}
               Generar código
             </button>
-            <button onClick={() => setShowCreate(false)} className="btn btn-outline text-xs">Cancelar</button>
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Límite de usos</label>
+            <input type="number" min={1} value={newCode.maxUses} onChange={e => setNewCode({ ...newCode, maxUses: e.target.value })} className="input-field text-sm w-full" placeholder="Sin límite" />
+            <p className="text-[0.6rem] text-muted-foreground mt-1">Dejar vacío para usos ilimitados</p>
+          </div>
+          <div>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Vigencia</label>
+            <input type="date" value={newCode.expiresAt} onChange={e => setNewCode({ ...newCode, expiresAt: e.target.value })} className="input-field text-sm w-full" />
+            <p className="text-[0.6rem] text-muted-foreground mt-1">Sin fecha = sin expiración</p>
           </div>
         </div>
-      )}
+      </ImmersiveModal>
 
       {activeTab === 'codigos' && (
         <div className="card">

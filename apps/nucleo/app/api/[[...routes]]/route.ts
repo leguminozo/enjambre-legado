@@ -42,12 +42,20 @@ export type { AppVariables };
 
 export const app = new Hono<{ Variables: AppVariables }>().basePath("/api");
 
+function tiendaOrigins(): string[] {
+  return [
+    process.env.NEXT_PUBLIC_TIENDA_URL,
+    process.env.NEXT_PUBLIC_URL_TIENDA,
+    process.env.NEXT_PUBLIC_SITE_URL,
+  ].filter(Boolean) as string[];
+}
+
 app.use("*", cors({
   origin: (origin) => {
     const allowed = [
-      process.env.NEXT_PUBLIC_SITE_URL,
-      process.env.NEXT_PUBLIC_TIENDA_URL,
+      ...tiendaOrigins(),
       process.env.NEXT_PUBLIC_CAMPO_URL,
+      process.env.NEXT_PUBLIC_URL_CAMPO,
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3002",
@@ -56,7 +64,13 @@ app.use("*", cors({
     return allowed.includes(origin) ? origin : null;
   },
   allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowHeaders: ["Content-Type", "Authorization", "x-empresa-id", "x-internal-key"],
+  allowHeaders: [
+    "Content-Type",
+    "Authorization",
+    "x-empresa-id",
+    "x-internal-key",
+    "X-Requested-With",
+  ],
   credentials: true,
 }));
 

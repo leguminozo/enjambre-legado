@@ -1,6 +1,7 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { ViewLoading, LoadingOverlay } from '@enjambre/ui'
 import { BarChart3, TrendingUp, DollarSign, Target, Leaf, Crown, ArrowUpRight, Hexagon, TreePine, Users, Wallet, Percent, Trophy } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors'
@@ -80,7 +81,7 @@ const TIER_COLORS: Record<string, string> = {
 export function DashboardResumen() {
   const apiFetch = useApiFetch()
 
-  const { data, isLoading, error } = useQuery<ResumenData>({
+  const { data, isLoading, isFetching, error } = useQuery<ResumenData>({
     queryKey: ['dashboard-resumen'],
     queryFn: async () => {
       const res = await apiFetch('/api/dashboard/resumen')
@@ -88,17 +89,14 @@ export function DashboardResumen() {
       return res.json()
     },
     staleTime: 60_000,
+    placeholderData: keepPreviousData,
   })
 
-  if (isLoading) {
-    return (
-      <div className="animate-in flex justify-center p-12">
-        <div className="text-muted-foreground text-[0.9rem]">Cargando resumen del enjambre...</div>
-      </div>
-    )
+  if (isLoading && !data) {
+    return <ViewLoading variant="view" label="Resumen del enjambre" hideLabel />
   }
 
-  if (error || !data) {
+  if ((error || !data) && !data) {
     return (
       <div className="animate-in p-8">
         <div className="card border-destructive/30">
@@ -130,7 +128,8 @@ export function DashboardResumen() {
     : undefined;
 
   return (
-    <div className="animate-in">
+    <div className="animate-in relative">
+      {isFetching && data ? <LoadingOverlay /> : null}
       {/* ── KPI Hero Stats ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KpiCard
