@@ -4,7 +4,6 @@ import { AppProviders } from '@/components/providers/app-providers';
 import { RegisterServiceWorker } from '@/components/pwa/register-sw';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import { Cormorant_Garamond, Inter } from 'next/font/google';
 import {
   organizationJsonLd,
   webSiteJsonLd,
@@ -13,21 +12,6 @@ import {
 import { JsonLd } from '@/components/ui/JsonLd';
 import { VercelInsights } from '@/components/VercelInsights';
 import esMessages from '../messages/es.json';
-
-const fontDisplay = Cormorant_Garamond({
-  subsets: ['latin'],
-  weight: ['300', '400', '600'],
-  style: ['normal', 'italic'],
-  variable: '--font-display',
-  display: 'swap',
-});
-
-const fontBody = Inter({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600'],
-  variable: '--font-sans',
-  display: 'swap',
-});
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
 
@@ -44,7 +28,6 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
     languages: {
       es: SITE_URL,
-      en: `${SITE_URL}/en`,
     },
   },
 };
@@ -56,8 +39,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const rootJsonLd = mergeJsonLd([organizationJsonLd(), webSiteJsonLd()]);
 
   return (
-    <html lang="es" className={`${fontDisplay.variable} ${fontBody.variable}`} suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap"
+        />
         {nonce ? <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeScript }} /> : null}
         <JsonLd data={rootJsonLd} />
       </head>

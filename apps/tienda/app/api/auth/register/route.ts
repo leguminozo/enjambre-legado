@@ -83,12 +83,15 @@ export async function POST(request: NextRequest) {
   if (referrerId && referrerId !== authData.user.id) {
     const admin = createAdminClient();
     if (admin) {
-      await (admin as { rpc: (fn: string, args: Record<string, string>) => Promise<unknown> })
-        .rpc('complete_referral_signup', {
-          p_referrer_id: referrerId,
-          p_new_user_id: authData.user.id,
-        })
-        .catch(() => {});
+      try {
+        // RPC no tipado en Database generado
+        await (admin as unknown as { rpc: (n: string, a: object) => PromiseLike<unknown> }).rpc(
+          'complete_referral_signup',
+          { p_referrer_id: referrerId, p_new_user_id: authData.user.id },
+        );
+      } catch {
+        /* referido opcional */
+      }
     }
   }
 
