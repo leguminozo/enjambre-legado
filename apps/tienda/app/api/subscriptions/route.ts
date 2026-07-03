@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { guardMutation } from '@/lib/api-guard';
 
 export async function GET() {
   const supabase = await createClient();
@@ -61,6 +62,9 @@ function isRateLimited(ip: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
+  const csrfBlock = guardMutation(request);
+  if (csrfBlock) return csrfBlock;
+
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
   if (isRateLimited(ip)) {
     return NextResponse.json(

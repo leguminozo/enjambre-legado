@@ -1,13 +1,17 @@
 import { getInternalApiSecret } from '@enjambre/auth/internal-api-secret';
 import { createClient } from '@/utils/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
+import { guardMutation } from '@/lib/api-guard';
 
 const DEFAULT_SUBJECT = 'Bienvenido al Legado';
 const DEFAULT_BODY =
   'Gracias por unirte. Explora tus alertas de floración y el impacto de tu colmena.';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const csrfBlock = guardMutation(request);
+  if (csrfBlock) return csrfBlock;
+
   const supabase = await createClient();
   const {
     data: { user },

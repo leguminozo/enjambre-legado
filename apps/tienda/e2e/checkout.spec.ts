@@ -50,7 +50,7 @@ test.describe('Checkout Flow', () => {
 
 test.describe('Accessibility (WCAG 2.1 AA)', () => {
   test('should have no accessibility violations on homepage', async ({ page }) => {
-    await page.goto('/es');
+    await page.goto('/');
 
     const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
     expect(accessibilityScanResults.violations).toEqual([]);
@@ -71,7 +71,7 @@ test.describe('Accessibility (WCAG 2.1 AA)', () => {
   });
 
   test('should have proper color contrast', async ({ page }) => {
-    await page.goto('/es');
+    await page.goto('/');
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

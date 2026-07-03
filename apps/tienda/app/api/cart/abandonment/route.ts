@@ -1,8 +1,12 @@
 import { createClient } from '@/utils/supabase/server';
 import { CartAbandonmentBodySchema } from '@/lib/cart/schemas';
 import { NextRequest, NextResponse } from 'next/server';
+import { guardMutation } from '@/lib/api-guard';
 
 export async function POST(request: NextRequest) {
+  const csrfBlock = guardMutation(request);
+  if (csrfBlock) return csrfBlock;
+
   const supabase = await createClient();
   const {
     data: { user },

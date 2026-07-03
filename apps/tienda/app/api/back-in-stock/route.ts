@@ -1,12 +1,16 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { guardMutation } from '@/lib/api-guard';
 
 const SubscribeSchema = z.object({
   producto_id: z.string().uuid(),
 });
 
 export async function POST(request: NextRequest) {
+  const csrfBlock = guardMutation(request);
+  if (csrfBlock) return csrfBlock;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -50,6 +54,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const csrfBlock = guardMutation(request);
+  if (csrfBlock) return csrfBlock;
+
   const supabase = await createClient();
   const {
     data: { user },

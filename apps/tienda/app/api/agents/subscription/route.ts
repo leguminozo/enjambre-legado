@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { guardMutation } from '@/lib/api-guard';
 
 export async function GET() {
   const supabase = await createClient();
@@ -26,6 +27,9 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
+  const csrfBlock = guardMutation(request);
+  if (csrfBlock) return csrfBlock;
+
   const supabase = await createClient();
   const {
     data: { user },

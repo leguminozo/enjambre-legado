@@ -5,6 +5,28 @@ import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
+function nucleoConnectOrigin(): string | null {
+  const raw = process.env.NEXT_PUBLIC_NUCLEO_API_URL?.trim();
+  if (!raw) return null;
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return null;
+  }
+}
+
+const connectSrc = [
+  "'self'",
+  'https://*.supabase.co',
+  'wss://*.supabase.co',
+  'https://*.sentry.io',
+  'https://*.vercel.app',
+  'https://maps.googleapis.com',
+  'https://www.flow.cl',
+  'https://sandbox.flow.cl',
+  nucleoConnectOrigin(),
+].filter(Boolean);
+
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
@@ -20,12 +42,11 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://*.supabase.co https://img.youtube.com https://*.tile.openstreetmap.org",
-      "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.vercel.app https://maps.googleapis.com https://www.flow.cl https://sandbox.flow.cl",
+      `connect-src ${connectSrc.join(' ')}`,
       "frame-src 'self' https://www.youtube.com",
       "object-src 'none'",
       "base-uri 'self'",
-      "form-action 'self'",
+      "form-action 'self' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl https://www.flow.cl https://sandbox.flow.cl",
     ].join('; '),
   },
 ];
