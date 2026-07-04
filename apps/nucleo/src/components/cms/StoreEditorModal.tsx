@@ -15,7 +15,7 @@ import {
   EyeOff,
   ExternalLink,
 } from 'lucide-react';
-import { toast, ImmersiveModal } from '@enjambre/ui';
+import { toast, ImmersiveModal, OverlayFullscreen } from '@enjambre/ui';
 import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/use-cms-content';
 import { getUrlTienda } from '@/lib/publicUrls';
 
@@ -294,22 +294,6 @@ export function StoreEditorModal({
   const [showNewForm, setShowNewForm] = useState(false);
   const [newContent, setNewContent] = useState('{\n  "title": "",\n  "desc": ""\n}');
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
   const groupedData = cms.data?.data ?? {};
   const sectionKeys = Object.keys(groupedData).length > 0
     ? Object.keys(groupedData).sort()
@@ -394,15 +378,15 @@ export function StoreEditorModal({
 
   const tiendaUrl = getUrlTienda();
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-[220] flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <div className="absolute inset-0 bg-background/72 backdrop-blur-md" aria-hidden />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Editor de tienda visual"
-        className="relative z-10 flex flex-1 min-h-0 flex-col bg-background border border-border/60 shadow-2xl"
-      >
+    <OverlayFullscreen
+      open
+      onClose={onClose}
+      ariaLabel="Editor de tienda visual"
+      panelClassName="border-0"
+    >
       {/* Top Navigation Bar */}
       <div className="h-14 border-b border-border bg-surface flex items-center justify-between px-4 shrink-0 shadow-sm z-10">
         <div className="flex items-center gap-3">
@@ -570,7 +554,6 @@ export function StoreEditorModal({
         </div>
 
       </div>
-      </div>
 
       <ImmersiveModal
         open={showNewForm}
@@ -609,6 +592,6 @@ export function StoreEditorModal({
           spellCheck={false}
         />
       </ImmersiveModal>
-    </div>
+    </OverlayFullscreen>
   );
 }

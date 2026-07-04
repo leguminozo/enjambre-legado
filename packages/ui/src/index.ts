@@ -13,6 +13,7 @@ export {
   type ViewLoadingVariant,
 } from './components/view-loading';
 export { ImmersiveModal, type ImmersiveModalSize } from './components/immersive-modal';
+export { OverlayFullscreen, type OverlayFullscreenProps } from './components/overlay-fullscreen';
 export { EmptyState } from './components/empty-state';
 export { SectionHeader } from './components/section-header';
 export { GrainOverlay } from './components/grain-overlay';
