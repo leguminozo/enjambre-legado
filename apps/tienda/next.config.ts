@@ -41,7 +41,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://www.googletagmanager.com https://maps.googleapis.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://*.supabase.co https://img.youtube.com https://*.tile.openstreetmap.org",
+      "img-src 'self' data: blob: https://*.supabase.co https://img.youtube.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com",
       `connect-src ${connectSrc.join(' ')}`,
       "frame-src 'self' https://www.youtube.com",
       "object-src 'none'",

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Menu } from 'lucide-react';
-import { TiendaSidebar } from '@/components/shop/tienda-sidebar';
+import { GuardianSidebar } from '@/components/shop/guardian-sidebar';
 import { PerfilMobileNav } from '@/components/shop/perfil-mobile-nav';
 import { BeeCanvas } from '@/components/shop/bee-canvas';
 import type { OyzRole } from '@/lib/shop/role';
@@ -24,7 +24,7 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
       <BeeCanvas />
       <div className="absolute inset-0 bg-radial-gradient from-transparent to-background opacity-90 pointer-events-none z-0" />
 
-      <TiendaSidebar
+      <GuardianSidebar
         user={user}
         participacion={participacion}
         isOpen={sidebarOpen}

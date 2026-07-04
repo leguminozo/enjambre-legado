@@ -45,7 +45,10 @@
     "city": "Ciudad",
     "region": "Región",
     "postalCode": "Código postal",
-    "country": "País"
+    "country": "País",
+    "scrollDown": "Descender",
+    "loadingCreations": "Creaciones",
+    "loadingMap": "Mapa"
   },
   "nav": {
     "home": "Inicio",
@@ -69,7 +72,11 @@
   },
   "hero": {
     "title": "Miel de Bosque Nativo",
-    "subtitle": "Regenerando el ecosistema de Chiloé con cada frasco",
+    "subtitle": "Miel Virgen del Sur del Mundo",
+    "titlePart1": "La Obrera",
+    "titlePart2": "y el Zángano",
+    "description": "Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje",
+    "formula": "Luz solar → Néctar → Miel virgen · Sin atajos industriales",
     "cta": "Explorar productos",
     "scrollDown": "Desplázate hacia abajo"
   },
@@ -320,16 +327,6 @@
     "press": "Prensa",
     "careers": "Trabaja con nosotros"
   },
-  "science": {
-    "title": "Ciencia y bosque",
-    "subtitle": "La ciencia detrás de nuestra miel",
-    "flora": "Flora nativa",
-    "bees": "Abejas nativas",
-    "ecosystem": "Ecosistema",
-    "research": "Investigación",
-    "publications": "Publicaciones",
-    "partnerships": "Alianzas científicas"
-  },
   "experiences": {
     "title": "Experiencias",
     "subtitle": "Vive la apicultura regenerativa",
@@ -500,7 +497,16 @@
     "irrNegative": "Miel de bosque + Reforestación > Huella de producción",
     "yearsOfReforestation": "años de reforestación nativa.",
     "eachOrderFunds": "Cada pedido financia árboles y sostiene apiarios en bosque nativo entre",
-    "viewScience": "Ver la ciencia detrás"
+    "viewScience": "Ver la ciencia detrás",
+    "treesRegistered": "árboles registrados",
+    "withCoordinates": "con coordenadas y especie",
+    "inSectors": "en",
+    "sectorsOf": "sectores de",
+    "hivesMonitored": "colmenas monitoreadas",
+    "inApiaries": "en apiarios",
+    "between": "entre",
+    "calculationInProgress": "cálculo en proceso",
+    "formulaVerifiable": "Fórmula y datos verificables en nuestra página de ciencia."
   },
   "media": {
     "immersionAlt": "Inmersión en el bosque",

@@ -45,7 +45,10 @@
     "city": "City",
     "region": "Region",
     "postalCode": "Postal code",
-    "country": "Country"
+    "country": "Country",
+    "scrollDown": "Scroll down",
+    "loadingCreations": "Creations",
+    "loadingMap": "Map"
   },
   "nav": {
     "home": "Home",
@@ -70,6 +73,10 @@
   "hero": {
     "title": "Native Forest Honey",
     "subtitle": "Regenerating the Chiloé ecosystem with every jar",
+    "titlePart1": "The Worker",
+    "titlePart2": "and the Drone",
+    "description": "From the humid forest of Chiloé, extracts of a wild geography",
+    "formula": "Sunlight → Nectar → Virgin honey · No industrial shortcuts",
     "cta": "Explore products",
     "scrollDown": "Scroll down"
   },
@@ -320,16 +327,6 @@
     "press": "Press",
     "careers": "Careers"
   },
-  "science": {
-    "title": "Science & forest",
-    "subtitle": "The science behind our honey",
-    "flora": "Native flora",
-    "bees": "Native bees",
-    "ecosystem": "Ecosystem",
-    "research": "Research",
-    "publications": "Publications",
-    "partnerships": "Scientific partnerships"
-  },
   "experiences": {
     "title": "Experiences",
     "subtitle": "Live regenerative beekeeping",
@@ -500,7 +497,16 @@
     "irrNegative": "Forest honey + Reforestation > Production footprint",
     "yearsOfReforestation": "years of native reforestation.",
     "eachOrderFunds": "Each order funds trees and sustains apiaries in native forest between",
-    "viewScience": "View the science behind"
+    "viewScience": "View the science behind",
+    "treesRegistered": "trees registered",
+    "withCoordinates": "with coordinates and species",
+    "inSectors": "in",
+    "sectorsOf": "sectors of",
+    "hivesMonitored": "hives monitored",
+    "inApiaries": "in apiaries",
+    "between": "between",
+    "calculationInProgress": "calculation in progress",
+    "formulaVerifiable": "Formula and data verifiable on our science page."
   },
   "media": {
     "immersionAlt": "Forest immersion",

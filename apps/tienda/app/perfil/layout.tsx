@@ -1,7 +1,6 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
-import { GuardianSidebar } from '@/components/shop/guardian-sidebar';
 import { PerfilLayoutClient } from './perfil-layout-client';
 import { CustomCursor } from '@/components/ui/custom-cursor';
 import { getOyzRole } from '@/lib/shop/role';

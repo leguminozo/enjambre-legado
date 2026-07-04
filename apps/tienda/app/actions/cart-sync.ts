@@ -5,6 +5,29 @@ import { mergeCartQuantities, type CartQuantityItem } from '@/lib/cart/merge-lin
 import { CartLineInputSchema } from '@/lib/cart/schemas';
 import { createClient } from '@/utils/supabase/server';
 
+type SupabaseErrorLike = {
+  code?: string | null;
+  message?: string | null;
+};
+
+function isCartTableUnavailable(error: SupabaseErrorLike): boolean {
+  const code = error.code ?? '';
+  const message = (error.message ?? '').toLowerCase();
+
+  return (
+    code === '42P01' ||
+    code === 'PGRST205' ||
+    (message.includes('carrito_items') &&
+      (message.includes('does not exist') || message.includes('not found') || message.includes('schema cache')))
+  );
+}
+
+function logCartSyncWarning(context: string, error: unknown): void {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(`[cart-sync] ${context}`, error);
+  }
+}
+
 function validateCartItems(items: CartQuantityItem[]): CartQuantityItem[] {
   const valid: CartQuantityItem[] = [];
   for (const item of items) {
@@ -17,97 +40,128 @@ function validateCartItems(items: CartQuantityItem[]): CartQuantityItem[] {
 async function enrichCartLines(items: CartQuantityItem[]): Promise<CartLine[]> {
   if (!items.length) return [];
 
-  const supabase = await createClient();
-  const productIds = items.map((item) => item.product_id);
+  try {
+    const supabase = await createClient();
+    const productIds = items.map((item) => item.product_id);
 
-  const { data: products, error } = await supabase
-    .from('productos')
-    .select('id, nombre, slug, precio, visible')
-    .in('id', productIds)
-    .eq('visible', true);
+    const { data: products, error } = await supabase
+      .from('productos')
+      .select('id, nombre, slug, precio, visible')
+      .in('id', productIds)
+      .eq('visible', true);
 
-  if (error) {
-    throw new Error('No se pudieron consultar los productos del carrito');
+    if (error) {
+      logCartSyncWarning('product lookup failed', error);
+      return [];
+    }
+
+    const productMap = new Map((products ?? []).map((product) => [product.id, product]));
+    const lines: CartLine[] = [];
+
+    for (const item of items) {
+      const product = productMap.get(item.product_id);
+      if (!product?.nombre || !product.slug || product.precio == null) continue;
+
+      lines.push({
+        productId: product.id,
+        slug: product.slug,
+        name: product.nombre,
+        unitPrice: product.precio,
+        quantity: item.quantity,
+      });
+    }
+
+    return lines;
+  } catch (error) {
+    logCartSyncWarning('enrichCartLines failed', error);
+    return [];
   }
-
-  const productMap = new Map((products ?? []).map((product) => [product.id, product]));
-  const lines: CartLine[] = [];
-
-  for (const item of items) {
-    const product = productMap.get(item.product_id);
-    if (!product?.nombre || !product.slug || product.precio == null) continue;
-
-    lines.push({
-      productId: product.id,
-      slug: product.slug,
-      name: product.nombre,
-      unitPrice: product.precio,
-      quantity: item.quantity,
-    });
-  }
-
-  return lines;
 }
 
 async function replaceRemoteCartItems(items: CartQuantityItem[]): Promise<CartLine[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return [];
-
   const validItems = validateCartItems(items);
 
-  const { error: deleteError } = await supabase
-    .from('carrito_items')
-    .delete()
-    .eq('user_id', user.id);
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (deleteError) {
-    throw new Error('No se pudo limpiar el carrito remoto');
-  }
+    if (!user) return enrichCartLines(validItems);
 
-  if (validItems.length > 0) {
-    const { error: insertError } = await supabase.from('carrito_items').insert(
-      validItems.map((item) => ({
-        user_id: user.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-      })),
-    );
+    const { error: deleteError } = await supabase
+      .from('carrito_items')
+      .delete()
+      .eq('user_id', user.id);
 
-    if (insertError) {
-      throw new Error('No se pudo guardar el carrito remoto');
+    if (deleteError) {
+      if (isCartTableUnavailable(deleteError)) {
+        logCartSyncWarning('carrito_items table unavailable on delete', deleteError);
+        return enrichCartLines(validItems);
+      }
+      logCartSyncWarning('remote cart delete failed', deleteError);
+      return enrichCartLines(validItems);
     }
-  }
 
-  return enrichCartLines(validItems);
+    if (validItems.length > 0) {
+      const { error: insertError } = await supabase.from('carrito_items').insert(
+        validItems.map((item) => ({
+          user_id: user.id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+        })),
+      );
+
+      if (insertError) {
+        if (isCartTableUnavailable(insertError)) {
+          logCartSyncWarning('carrito_items table unavailable on insert', insertError);
+          return enrichCartLines(validItems);
+        }
+        logCartSyncWarning('remote cart insert failed', insertError);
+        return enrichCartLines(validItems);
+      }
+    }
+
+    return enrichCartLines(validItems);
+  } catch (error) {
+    logCartSyncWarning('replaceRemoteCartItems failed', error);
+    return enrichCartLines(validItems);
+  }
 }
 
 export async function getRemoteCartLines(): Promise<CartLine[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) return [];
+    if (!user) return [];
 
-  const { data, error } = await supabase
-    .from('carrito_items')
-    .select('product_id, quantity')
-    .eq('user_id', user.id);
+    const { data, error } = await supabase
+      .from('carrito_items')
+      .select('product_id, quantity')
+      .eq('user_id', user.id);
 
-  if (error) {
-    throw new Error('No se pudo cargar el carrito remoto');
+    if (error) {
+      if (isCartTableUnavailable(error)) {
+        logCartSyncWarning('carrito_items table unavailable on read', error);
+        return [];
+      }
+      logCartSyncWarning('remote cart read failed', error);
+      return [];
+    }
+
+    const items = (data ?? []).map((row) => ({
+      product_id: row.product_id,
+      quantity: row.quantity,
+    }));
+
+    return enrichCartLines(items);
+  } catch (error) {
+    logCartSyncWarning('getRemoteCartLines failed', error);
+    return [];
   }
-
-  const items = (data ?? []).map((row) => ({
-    product_id: row.product_id,
-    quantity: row.quantity,
-  }));
-
-  return enrichCartLines(items);
 }
 
 export async function syncRemoteCart(items: CartQuantityItem[]): Promise<CartLine[]> {
@@ -115,45 +169,58 @@ export async function syncRemoteCart(items: CartQuantityItem[]): Promise<CartLin
 }
 
 export async function mergeCartOnLogin(localItems: CartQuantityItem[]): Promise<CartLine[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const validatedLocal = validateCartItems(localItems);
 
-  if (!user) return enrichCartLines(validateCartItems(localItems));
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  const { data: remoteRows, error } = await supabase
-    .from('carrito_items')
-    .select('product_id, quantity')
-    .eq('user_id', user.id);
+    if (!user) return enrichCartLines(validatedLocal);
 
-  if (error) {
-    throw new Error('No se pudo cargar el carrito remoto para fusionar');
+    const { data: remoteRows, error } = await supabase
+      .from('carrito_items')
+      .select('product_id, quantity')
+      .eq('user_id', user.id);
+
+    if (error) {
+      if (isCartTableUnavailable(error)) {
+        logCartSyncWarning('carrito_items table unavailable on merge', error);
+        return enrichCartLines(validatedLocal);
+      }
+      logCartSyncWarning('remote cart merge read failed', error);
+      return enrichCartLines(validatedLocal);
+    }
+
+    const remoteItems = (remoteRows ?? []).map((row) => ({
+      product_id: row.product_id,
+      quantity: row.quantity,
+    }));
+
+    const merged = mergeCartQuantities(validatedLocal, remoteItems);
+
+    return replaceRemoteCartItems(merged);
+  } catch (error) {
+    logCartSyncWarning('mergeCartOnLogin failed', error);
+    return enrichCartLines(validatedLocal);
   }
-
-  const remoteItems = (remoteRows ?? []).map((row) => ({
-    product_id: row.product_id,
-    quantity: row.quantity,
-  }));
-
-  const merged = mergeCartQuantities(
-    validateCartItems(localItems),
-    remoteItems,
-  );
-
-  return replaceRemoteCartItems(merged);
 }
 
 export async function clearRemoteCart(): Promise<void> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) return;
+    if (!user) return;
 
-  const { error } = await supabase.from('carrito_items').delete().eq('user_id', user.id);
-  if (error) {
-    throw new Error('No se pudo vaciar el carrito remoto');
+    const { error } = await supabase.from('carrito_items').delete().eq('user_id', user.id);
+    if (error && !isCartTableUnavailable(error)) {
+      logCartSyncWarning('remote cart clear failed', error);
+    }
+  } catch (error) {
+    logCartSyncWarning('clearRemoteCart failed', error);
   }
 }
