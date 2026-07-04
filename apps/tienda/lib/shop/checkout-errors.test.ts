@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { friendlyCheckoutApiMessage } from './checkout-errors';
+import {
+  friendlyCheckoutApiMessage,
+  isCheckoutConfigError,
+  shouldBlockCheckoutPayment,
+} from './checkout-errors';
 
 describe('friendlyCheckoutApiMessage', () => {
   it('maps missing supabase in dev', () => {
@@ -38,5 +42,61 @@ describe('friendlyCheckoutApiMessage', () => {
     expect(
       friendlyCheckoutApiMessage('quote_failed', 'Código de descuento inválido', 'quote'),
     ).toContain('promocional');
+  });
+});
+
+describe('isCheckoutConfigError', () => {
+  it('detects missing supabase credentials', () => {
+    expect(
+      isCheckoutConfigError('quote_failed', 'Missing Supabase credentials for admin client'),
+    ).toBe(true);
+  });
+
+  it('ignores promo validation errors', () => {
+    expect(isCheckoutConfigError('quote_failed', 'Código no válido')).toBe(false);
+  });
+});
+
+describe('shouldBlockCheckoutPayment', () => {
+  const quote = { subtotal: 10000, total: 15900, shippingCost: 5900, discountClp: 0, loyaltyDiscountClp: 0 };
+
+  it('does not block before region is selected', () => {
+    expect(
+      shouldBlockCheckoutPayment('', {
+        quoteLoading: false,
+        quote: null,
+        quoteError: null,
+      }),
+    ).toBe(false);
+  });
+
+  it('blocks while quote is loading', () => {
+    expect(
+      shouldBlockCheckoutPayment('Metropolitana', {
+        quoteLoading: true,
+        quote: null,
+        quoteError: null,
+      }),
+    ).toBe(true);
+  });
+
+  it('blocks when quote failed', () => {
+    expect(
+      shouldBlockCheckoutPayment('Metropolitana', {
+        quoteLoading: false,
+        quote: null,
+        quoteError: 'El código promocional no es válido',
+      }),
+    ).toBe(true);
+  });
+
+  it('allows payment with valid quote', () => {
+    expect(
+      shouldBlockCheckoutPayment('Metropolitana', {
+        quoteLoading: false,
+        quote,
+        quoteError: null,
+      }),
+    ).toBe(false);
   });
 });

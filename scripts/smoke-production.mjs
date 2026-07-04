@@ -44,6 +44,26 @@ if (TIENDA) {
   for (const path of ['/', '/catalogo', '/carrito', '/checkout']) {
     targets.push({ name: `tienda ${path}`, url: `${TIENDA}${path}`, expectStatus: 200 });
   }
+
+  targets.push({
+    name: 'nucleo checkout quote',
+    url: `${NUCLEO}/api/checkout/quote`,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Origin: TIENDA,
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    body: {
+      subtotal: 10000,
+      region: 'Metropolitana',
+      courierCode: 'blueexpress',
+    },
+    expectStatus: 200,
+    expectJsonKeys: ['total', 'shippingCost'],
+    configHint:
+      'Falta SUPABASE_SERVICE_ROLE_KEY en Núcleo prod — pnpm go-live:vercel-env',
+  });
 }
 if (CAMPO) targets.push({ name: 'campo home', url: `${CAMPO}/`, expectStatus: 200 });
 
@@ -56,15 +76,45 @@ console.log('');
 let failed = 0;
 for (const t of targets) {
   try {
-    const res = await fetch(t.url, { signal: AbortSignal.timeout(15000) });
+    const res = await fetch(t.url, {
+      method: t.method ?? 'GET',
+      headers: t.headers,
+      body: t.body ? JSON.stringify(t.body) : undefined,
+      signal: AbortSignal.timeout(15000),
+    });
+
     let ok = res.status === (t.expectStatus ?? 200);
+    let body;
+
+    if (t.expectJson || t.expectJsonKeys) {
+      body = await res.json();
+    }
+
     if (ok && t.expectJson) {
-      const body = await res.json();
       for (const [k, v] of Object.entries(t.expectJson)) {
         if (body[k] !== v) ok = false;
       }
     }
+
+    if (ok && t.expectJsonKeys) {
+      for (const k of t.expectJsonKeys) {
+        if (body[k] === undefined) ok = false;
+      }
+    }
+
+    if (!ok && body?.code === 'quote_failed') {
+      const msg = (body.message ?? '').toLowerCase();
+      if (msg.includes('missing supabase') || msg.includes('service_role')) {
+        console.log(`✗ ${t.name} → ${res.status} (config)`);
+        console.log(`    ${body.message}`);
+        if (t.configHint) console.log(`    → ${t.configHint}`);
+        failed++;
+        continue;
+      }
+    }
+
     console.log(ok ? `✓ ${t.name} → ${res.status}` : `✗ ${t.name} → ${res.status}`);
+    if (!ok && body?.message) console.log(`    ${body.message}`);
     if (!ok) failed++;
   } catch (err) {
     failed++;

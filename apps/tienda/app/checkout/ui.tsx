@@ -16,7 +16,10 @@ import {
   type CourierCode,
 } from '@enjambre/logistica';
 import { friendlyApiError } from '@enjambre/ui';
-import { friendlyCheckoutApiMessage } from '@/lib/shop/checkout-errors';
+import {
+  friendlyCheckoutApiMessage,
+  shouldBlockCheckoutPayment,
+} from '@/lib/shop/checkout-errors';
 import { useAuth } from '@/components/providers/auth-context';
 import { useLoyaltyPoints } from '@/lib/hooks/use-loyalty-points';
 import { useCartAbandonmentTracking } from '@/lib/hooks/use-cart-abandonment';
@@ -83,6 +86,7 @@ export function CheckoutClient() {
   const [codigoAplicado, setCodigoAplicado] = useState<string | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
+
   const [quote, setQuote] = useState<{
     subtotal: number;
     discountClp: number;
@@ -117,6 +121,7 @@ export function CheckoutClient() {
     const region = shipping.region.trim();
     if (region.length < 2) {
       setQuote(null);
+      setQuoteError(null);
       return;
     }
 
@@ -291,6 +296,11 @@ export function CheckoutClient() {
 
   const validationErrors = touched ? fieldError(shipping) : {};
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
+  const paymentBlocked = shouldBlockCheckoutPayment(shipping.region, {
+    quoteLoading,
+    quote,
+    quoteError,
+  });
 
   const startCheckout = async () => {
     setTouched(true);
@@ -925,8 +935,15 @@ export function CheckoutClient() {
                 <button
                 ref={buttonRef}
                 type="button"
-                className="checkout-button w-full rounded-full bg-primary py-4 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
-                disabled={loading || !pricing}
+                className="checkout-button w-full rounded-full bg-primary py-4 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || !pricing || paymentBlocked}
+                title={
+                  paymentBlocked && quoteError
+                    ? quoteError
+                    : paymentBlocked && quoteLoading
+                      ? 'Calculando envío y descuentos…'
+                      : undefined
+                }
                 onClick={() => void startCheckout()}
               >
                 {loading ? (
@@ -936,6 +953,14 @@ export function CheckoutClient() {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                     Conectando con la pasarela…
+                  </span>
+                ) : paymentBlocked && quoteLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Calculando total…
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">

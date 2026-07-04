@@ -56,3 +56,35 @@ export function friendlyCheckoutApiMessage(
 
   return FALLBACK[context];
 }
+
+/** Errores de configuración del servidor — el checkout no puede completarse hasta corregirlos. */
+export function isCheckoutConfigError(
+  code: string | undefined,
+  message: string | undefined,
+): boolean {
+  const msg = (message ?? '').toLowerCase();
+  return (
+    msg.includes('missing supabase') ||
+    msg.includes('service_role') ||
+    msg.includes('flow_api') ||
+    msg.includes('flow_secret') ||
+    msg.includes('transbank') ||
+    msg.includes('falta flow') ||
+    msg.includes('payment_provider') ||
+    code === 'preview_failed'
+  );
+}
+
+/** Bloquea el botón de pago cuando la región ya está lista pero no hay cotización válida. */
+export function shouldBlockCheckoutPayment(
+  region: string,
+  opts: {
+    quoteLoading: boolean;
+    quote: unknown;
+    quoteError: string | null;
+  },
+): boolean {
+  if (region.trim().length < 2) return false;
+  if (opts.quoteLoading) return true;
+  return !opts.quote || Boolean(opts.quoteError);
+}
