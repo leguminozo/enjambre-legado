@@ -439,7 +439,22 @@ Autenticacion y clientes Supabase compartidos para apps Next.js. **5 puntos de e
 
 Design system compartido. 3 subpaths: `@enjambre/ui`, `@enjambre/ui/tokens.css`, `@enjambre/ui/tailwind-preset`.
 
-**Componentes** (15): `Button` (5 variantes, 3 sizes), `Card` (5 variantes + subcomponentes), `Badge` (6 variantes), `Input`, `Textarea`, `StatCard`, `Spinner` (3 sizes), `EmptyState`, `SectionHeader`, `GrainOverlay`, `ModuleHero`, `Dialog` (Radix, 10 subcomponentes), `Sidebar` (4 subcomponentes + registerSidebarIcons), `ThemeProvider` + `useThemeContext`, `ThemeToggle`, `ToastProvider` + `useToast`
+**Componentes** (16+): `Button`, `Card`, `Badge`, `Input`, `Textarea`, `StatCard`, `Spinner`, `EmptyState`, `SectionHeader`, `GrainOverlay`, `ModuleHero`, `ImmersiveModal`, `Dialog` (Radix), `Sidebar`, `ThemeProvider`, `ThemeToggle`, `ToastProvider`, `ViewLoading`, `NotificationBell`, etc.
+
+**Overlays / modales** (`packages/ui/src/lib/overlay-layer.ts`):
+
+| Capa | z-index | Uso |
+|---|---|---|
+| Chrome tienda (nav, sidebars) | 60–82 | No bloquea modales admin |
+| `Dialog` + `ImmersiveModal` backdrop | 220 | `bg-background/72 backdrop-blur-md` |
+| Panel modal | 221 | Contenido interactivo |
+| Toasts | 9999 | Errores/éxito sobre modales abiertos |
+
+- **`Dialog`**: Radix — focus trap nativo, fondo inert. Formularios cortos con trigger (único uso hoy: `QuickActionAddStock`).
+- **`ImmersiveModal`**: layouts admin (aside, footer). Focus trap manual; ~15 vistas en núcleo.
+- **`TiendaModal`**: retail sheet/panel en `apps/tienda` (CSS `globals.css`); paridad visual, API distinta por UX móvil.
+
+Regla: no introducir `fixed inset-0` con z-index propio; reutilizar tokens o componentes anteriores.
 
 **Hooks** (3): `useTheme` (light/dark/system), `toast` (sonner wrapper), `useToast` (context)
 

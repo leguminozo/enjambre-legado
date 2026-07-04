@@ -65,6 +65,16 @@ toast('Error!', { type: 'error' });
 import { Dialog, DialogTrigger, DialogContent } from '@enjambre/ui';
 ```
 
+**Dialog vs ImmersiveModal** (2026-07):
+
+| | `Dialog` | `ImmersiveModal` |
+|---|---|---|
+| Backdrop | `bg-background/72 backdrop-blur-md`, z-220 | Mismo token (`overlay-layer.ts`) |
+| Caso de uso | Confirmaciones / forms con `<DialogTrigger>` | Paneles admin grandes |
+| A11y | Radix (focus trap, inert) | Manual (Escape, tab trap) |
+
+Tienda pública usa `TiendaModal` (`apps/tienda/components/shop/tienda-modal.tsx`), no `Dialog`.
+
 ### ✅ 5. Dropdown Menu
 
 **Antes** (duplicado):

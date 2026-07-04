@@ -30,7 +30,8 @@ pnpm add @enjambre/ui
 | `SectionHeader` | Titulo de seccion |
 | `GrainOverlay` | Overlay de textura granulada |
 | `ModuleHero` | Hero de modulo con titulo + descripcion |
-| `Dialog`, `DialogTrigger`, `DialogPortal`, `DialogClose`, `DialogOverlay`, `DialogContent`, `DialogHeader`, `DialogFooter`, `DialogTitle`, `DialogDescription` | Radix UI Dialog |
+| `Dialog`, `DialogTrigger`, `DialogPortal`, `DialogClose`, `DialogOverlay`, `DialogContent`, `DialogHeader`, `DialogFooter`, `DialogTitle`, `DialogDescription` | Radix UI Dialog — backdrop alineado con `ImmersiveModal` (`z-[220]`, blur 72%) |
+| `ImmersiveModal` | Modal admin grande (aside, footer, focus trap manual) — mismo backdrop que `Dialog` |
 | `SidebarSection`, `SidebarNavItem`, `SidebarBadgeIndicator`, `registerSidebarIcons` | Sidebar con iconos + badge indicators |
 | `ThemeProvider`, `useThemeContext` | light/dark/system |
 | `ThemeToggle` | Toggle de tema |
@@ -73,6 +74,20 @@ module.exports = {
 Colores semanticos: `background`, `foreground`, `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `success`, `warning`, `info`, `border`, `input`, `ring`, `surface`, `chart`, `sidebar`, `bosque`, `miel`, `crema`
 
 Font families: `font-display` (Cormorant Garamond), `font-sans` (Inter), `font-mono` (JetBrains Mono)
+
+## Overlays y modales
+
+Estrategia unificada en `src/lib/overlay-layer.ts` (tokens internos):
+
+| Componente | Cuándo usar | A11y / seguridad |
+|---|---|---|
+| **`Dialog`** (Radix) | Formularios rápidos con trigger (ej. confirmar stock). | Focus trap Radix, fondo inert, `aria-*` automático. |
+| **`ImmersiveModal`** | Módulos admin con aside/footer o layouts complejos. | Focus trap manual, `aria-labelledby`, scroll lock. |
+| **`TiendaModal`** (solo tienda) | Sheet móvil + panel retail (galería, reseñas). | Portal + `useOverlayLock`; ver `apps/tienda/app/globals.css`. |
+
+**Backdrop compartido:** `bg-background/72 backdrop-blur-md` · **z-index modal:** `220` (panel `221`). Toasts en `9999` quedan encima.
+
+No usar `z-50` ni opacidades distintas en modales nuevos — importar tokens o reutilizar estos componentes.
 
 ## Tokens
 

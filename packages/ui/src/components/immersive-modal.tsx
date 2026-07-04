@@ -2,6 +2,8 @@
 
 import React, { useEffect, useId, useRef, useCallback } from 'react';
 import { X } from 'lucide-react';
+import { cn } from '../lib/utils';
+import { overlayBackdropClassName } from '../lib/overlay-layer';
 
 const FOCUSABLE =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -97,7 +99,7 @@ export function ImmersiveModal({
     <div className="fixed inset-0 z-[220] flex items-center justify-center p-3 sm:p-6">
       <button
         type="button"
-        className="absolute inset-0 bg-background/72 backdrop-blur-md"
+        className={cn('absolute inset-0', overlayBackdropClassName)}
         aria-label="Cerrar"
         onClick={onClose}
       />
