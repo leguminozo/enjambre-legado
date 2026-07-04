@@ -7,7 +7,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { SidebarRail } from '@/components/layout/SidebarRail';
 import { LiquidBottomNav } from '@/components/layout/LiquidBottomNav';
 import { MobileNavSheet } from '@/components/layout/MobileNavSheet';
-import { findActiveItem } from '@/config/sidebar-config';
+import { findActiveItem, routeUsesViewShell } from '@/config/sidebar-config';
 import { NotificationBell } from '@enjambre/ui';
 import { createClient, isSupabaseConfigured, useAuthStore, useInAppNotifications } from '@enjambre/auth';
 import { useShellLayout } from '@/hooks/use-shell-layout';
@@ -29,6 +29,7 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
   });
 
   const activeItem = findActiveItem(pathname);
+  const showLayoutModuleHeader = !routeUsesViewShell(pathname);
   const headerTitle = activeItem?.label ?? 'Enjambre Legado';
   const headerMission = activeItem?.mission;
 
@@ -43,12 +44,18 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
       <main className="main-content">
         <header className="main-header">
           <div className="header-left flex items-center gap-3 min-w-0">
-            <div className="header-titles min-w-0">
-              <span className="header-title">{headerTitle}</span>
-              {headerMission && shellMode !== 'mobile' && (
-                <span className="header-mission">{headerMission}</span>
-              )}
-            </div>
+            {showLayoutModuleHeader ? (
+              <div className="header-titles min-w-0">
+                <span className="header-title">{headerTitle}</span>
+                {headerMission && shellMode !== 'mobile' && (
+                  <span className="header-mission">{headerMission}</span>
+                )}
+              </div>
+            ) : (
+              <div className="header-titles min-w-0" aria-hidden>
+                <span className="header-title sr-only">{headerTitle}</span>
+              </div>
+            )}
           </div>
           <div className="header-right relative flex items-center gap-3 shrink-0">
             <button

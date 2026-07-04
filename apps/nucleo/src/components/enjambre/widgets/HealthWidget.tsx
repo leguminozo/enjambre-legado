@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react'
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+import { PieChart, Pie, Cell, Tooltip } from 'recharts'
+import { ChartBox } from '@/components/charts/ChartBox'
 import { Hexagon } from 'lucide-react'
 
 export function HealthWidget({ enjambre }: { enjambre: any }) {
@@ -22,8 +23,8 @@ export function HealthWidget({ enjambre }: { enjambre: any }) {
       
       {healthData.length > 0 ? (
         <div className="flex-1 flex flex-col justify-center gap-6">
-          <div className="h-32 w-full relative">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="w-full relative">
+            <ChartBox height={128}>
               <PieChart>
                 <Pie 
                   data={healthData} 
@@ -50,9 +51,8 @@ export function HealthWidget({ enjambre }: { enjambre: any }) {
                   }}
                 />
               </PieChart>
-            </ResponsiveContainer>
-            
-            {/* Center label */}
+            </ChartBox>
+
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                <span className="text-xl font-bold text-foreground leading-none">{enjambre.colmenas.total}</span>
             </div>

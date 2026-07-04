@@ -11,8 +11,9 @@ import {
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell,
+  BarChart, Bar, PieChart, Pie, Cell,
 } from 'recharts'
+import { ChartBox } from '@/components/charts/ChartBox'
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors'
 import { useApiFetch } from '@/hooks/use-api-fetch'
 import { KpiCard } from '@/components/ui/KpiCard'
@@ -299,23 +300,21 @@ export function DashboardEjecutivo() {
               <div className="section-subtitle">{rangeLabel} · CLP por mes</div>
             </div>
           </div>
-          <div className="chart-shell h-[260px]">
-            {ventas.trend.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={ventas.trend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
-                  <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-                  <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-                  <Tooltip contentStyle={CHART_TOOLTIP} />
-                  <Area type="monotone" dataKey="total" stroke={BOSQUE_ULMO} fill={`hsl(var(--primary) / 0.15)`} strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground text-[0.85rem]">
-                Sin ventas en el período
-              </div>
-            )}
-          </div>
+          {ventas.trend.length > 0 ? (
+            <ChartBox height={260} className="chart-shell">
+              <AreaChart data={ventas.trend}>
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
+                <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
+                <Tooltip contentStyle={CHART_TOOLTIP} />
+                <Area type="monotone" dataKey="total" stroke={BOSQUE_ULMO} fill={`hsl(var(--primary) / 0.15)`} strokeWidth={2} />
+              </AreaChart>
+            </ChartBox>
+          ) : (
+            <div className="chart-shell flex items-center justify-center h-[260px] text-muted-foreground text-[0.85rem]">
+              Sin ventas en el período
+            </div>
+          )}
         </div>
 
         <div className="card animate-in delay-3">
@@ -325,27 +324,25 @@ export function DashboardEjecutivo() {
               <div className="section-subtitle">{rangeLabel} · {ventas.totalVentasRange} ventas</div>
             </div>
           </div>
-          <div className="chart-shell h-[260px]">
-            {channelData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={channelData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                  <YAxis dataKey="channel" type="category" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} width={80} />
-                  <Tooltip contentStyle={CHART_TOOLTIP} />
-                  <Bar dataKey="revenue" radius={[0, 4, 4, 0]}>
-                    {channelData.map((entry, idx) => (
-                      <Cell key={idx} fill={CHANNEL_COLORS[entry.channel] ?? ORO_MIEL} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground text-[0.85rem]">
-                Sin ventas registradas
-              </div>
-            )}
-          </div>
+          {channelData.length > 0 ? (
+            <ChartBox height={260} className="chart-shell">
+              <BarChart data={channelData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
+                <YAxis dataKey="channel" type="category" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} width={80} />
+                <Tooltip contentStyle={CHART_TOOLTIP} />
+                <Bar dataKey="revenue" radius={[0, 4, 4, 0]}>
+                  {channelData.map((entry, idx) => (
+                    <Cell key={idx} fill={CHANNEL_COLORS[entry.channel] ?? ORO_MIEL} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ChartBox>
+          ) : (
+            <div className="chart-shell flex items-center justify-center h-[260px] text-muted-foreground text-[0.85rem]">
+              Sin ventas registradas
+            </div>
+          )}
         </div>
       </div>
 
@@ -357,18 +354,16 @@ export function DashboardEjecutivo() {
               <div className="section-subtitle">Ingresos vs Egresos YTD (CLP)</div>
             </div>
           </div>
-          <div className="chart-shell h-[240px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={finanzas.cashFlow}>
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-                <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-                <Tooltip contentStyle={CHART_TOOLTIP} />
-                <Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill={`hsl(var(--success) / 0.12)`} strokeWidth={2} />
-                <Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill={`hsl(var(--destructive) / 0.08)`} strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <ChartBox height={240} className="chart-shell">
+            <AreaChart data={finanzas.cashFlow}>
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
+              <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
+              <Tooltip contentStyle={CHART_TOOLTIP} />
+              <Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill={`hsl(var(--success) / 0.12)`} strokeWidth={2} />
+              <Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill={`hsl(var(--destructive) / 0.08)`} strokeWidth={2} />
+            </AreaChart>
+          </ChartBox>
         </div>
 
         <div className="flex flex-col gap-6">
@@ -378,17 +373,15 @@ export function DashboardEjecutivo() {
             </div>
             {healthData.length > 0 ? (
               <div className="flex items-center gap-6">
-                <div className="w-[100px] h-[100px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={healthData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={25} outerRadius={45} paddingAngle={2}>
-                        {healthData.map((entry, idx) => (
-                          <Cell key={idx} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                <ChartBox height={100} className="w-[100px]">
+                  <PieChart>
+                    <Pie data={healthData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={25} outerRadius={45} paddingAngle={2}>
+                      {healthData.map((entry, idx) => (
+                        <Cell key={idx} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ChartBox>
                 <div className="flex flex-col gap-1.5">
                   {healthData.map((d, i) => (
                     <div key={i} className="flex items-center gap-2 text-[0.82rem]">
@@ -474,23 +467,21 @@ export function DashboardEjecutivo() {
               <div className="section-subtitle">{rangeLabel} · Top 6</div>
             </div>
           </div>
-          <div className="chart-shell h-[260px]">
-            {gastosCategoryData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={gastosCategoryData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                  <YAxis dataKey="category" type="category" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} width={90} />
-                  <Tooltip contentStyle={CHART_TOOLTIP} />
-                  <Bar dataKey="monto" fill={SALUD_RIESGO} radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground text-[0.85rem]">
-                Sin gastos en el período
-              </div>
-            )}
-          </div>
+          {gastosCategoryData.length > 0 ? (
+            <ChartBox height={260} className="chart-shell">
+              <BarChart data={gastosCategoryData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
+                <YAxis dataKey="category" type="category" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} width={90} />
+                <Tooltip contentStyle={CHART_TOOLTIP} />
+                <Bar dataKey="monto" fill={SALUD_RIESGO} radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ChartBox>
+          ) : (
+            <div className="chart-shell flex items-center justify-center h-[260px] text-muted-foreground text-[0.85rem]">
+              Sin gastos en el período
+            </div>
+          )}
         </div>
       </div>
 
@@ -566,23 +557,21 @@ export function DashboardEjecutivo() {
               <div className="section-subtitle">{rangeLabel} · Distribución por método</div>
             </div>
           </div>
-          <div className="chart-shell h-[200px]">
-            {metodoPagoData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={metodoPagoData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
-                  <XAxis dataKey="metodo" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                  <YAxis tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                  <Tooltip contentStyle={CHART_TOOLTIP} />
-                  <Bar dataKey="count" fill={ORO_MIEL} radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground text-[0.85rem]">
-                Sin datos de método de pago
-              </div>
-            )}
-          </div>
+          {metodoPagoData.length > 0 ? (
+            <ChartBox height={200} className="chart-shell">
+              <BarChart data={metodoPagoData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+                <XAxis dataKey="metodo" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
+                <YAxis tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
+                <Tooltip contentStyle={CHART_TOOLTIP} />
+                <Bar dataKey="count" fill={ORO_MIEL} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartBox>
+          ) : (
+            <div className="chart-shell flex items-center justify-center h-[200px] text-muted-foreground text-[0.85rem]">
+              Sin datos de método de pago
+            </div>
+          )}
 
           {stock.lowStock.length > 0 && (
             <div className="mt-6">

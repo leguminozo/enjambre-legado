@@ -274,6 +274,32 @@ export const ACCOUNT_ITEMS: SidebarItem[] = [
   },
 ]
 
+/** Rutas con ViewShell propio — ocultar título/misión duplicados en el header global */
+export const VIEW_SHELL_PATHS = new Set([
+  '/colmenas',
+  '/regeneracion',
+  '/costeo',
+  '/produccion',
+  '/operaciones',
+  '/comunidad',
+  '/contable',
+  '/sii',
+  '/banco',
+  '/pagos',
+  '/conciliacion',
+  '/crm',
+  '/pipeline',
+  '/perfil',
+  '/configuracion',
+])
+
+export function routeUsesViewShell(pathname: string): boolean {
+  if (VIEW_SHELL_PATHS.has(pathname)) return true
+  return [...VIEW_SHELL_PATHS].some(
+    (path) => path !== '/' && pathname.startsWith(`${path}/`),
+  )
+}
+
 export function findActiveItem(pathname: string): SidebarItem | undefined {
   const allItems = [...SIDEBAR_GROUPS.flatMap(g => g.items), ...ACCOUNT_ITEMS]
   const exactMatch = allItems.find(item => item.href === pathname)

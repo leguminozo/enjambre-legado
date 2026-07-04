@@ -67,6 +67,9 @@ export function RegeneracionView() {
       setLoading(true);
       try {
         const res = await apiFetch('/api/produccion/arboles');
+        if (res.status === 429) {
+          throw new Error('Demasiadas solicitudes. Espera un momento y recarga la página.');
+        }
         if (!res.ok) throw new Error('Error al cargar registros del bosque');
         const json = await res.json();
         setRecords((json.data ?? []).map((r: ArbolApiRow) => mapRowToTreeRecord(r)));

@@ -2413,13 +2413,14 @@ body::after {
 /* Charts responsive */
 .view-deep .chart-shell {
   width: 100%;
+  min-width: 0;
   min-height: 220px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .view-deep .chart-shell > * {
-  min-width: 280px;
+  min-width: 0;
 }
 
 /* Header full-bleed dentro de page-content */

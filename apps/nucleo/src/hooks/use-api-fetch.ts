@@ -1,13 +1,13 @@
 'use client'
 
-import { createClient } from '@enjambre/auth'
+import { useCallback } from 'react'
 import { useAuthStore } from '@enjambre/auth'
 import { supabase } from '@/lib/supabase'
 
 export function useApiFetch() {
   const session = useAuthStore((s) => s.session)
 
-  return async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+  return useCallback(async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
     // getUser() validates JWT with Supabase Auth server
     const { data: { user } } = await supabase.auth.getUser()
     const currentSession = session ?? (await supabase.auth.getSession())?.data?.session ?? null
@@ -22,5 +22,5 @@ export function useApiFetch() {
     }
 
     return fetch(path, { ...init, headers })
-  }
+  }, [session])
 }

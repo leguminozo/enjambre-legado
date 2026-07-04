@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
+import { ChartBox } from '@/components/charts/ChartBox'
 import { TrendingUp, DollarSign } from 'lucide-react'
 
 function fmtCLP(n: number): string {
@@ -32,8 +33,7 @@ export function FinanceWidget({ data }: { data: any }) {
         </div>
       </div>
 
-      <div className="flex-1 min-h-[160px] -mx-2 mt-auto relative z-10">
-        <ResponsiveContainer width="100%" height="100%">
+      <ChartBox height={160} className="-mx-2 mt-auto relative z-10">
           <AreaChart data={data.cashFlow}>
             <defs>
               <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
@@ -62,8 +62,7 @@ export function FinanceWidget({ data }: { data: any }) {
             <Area type="monotone" dataKey="income" name="Ingresos" stroke="hsl(var(--success))" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)" />
             <Area type="monotone" dataKey="expenses" name="Gastos" stroke="hsl(var(--destructive))" strokeWidth={2} fillOpacity={1} fill="url(#colorExpense)" />
           </AreaChart>
-        </ResponsiveContainer>
-      </div>
+      </ChartBox>
     </div>
   )
 }
