@@ -217,68 +217,80 @@
   --shadow-glow: 0 0 20px var(--bosque-glow);
 }
 
-/* ── Hexagon loader (Grok / SpaceX aesthetic) ── */
+/* ── Hexagon loader (loader canónico del ecosistema) ── */
 .enj-hex-loader {
   display: block;
   overflow: visible;
+  margin-inline: auto;
+  color: hsl(var(--accent));
+}
+
+.enj-hex-loader-base {
+  opacity: 0.07;
+}
+
+.enj-hex-loader-track {
+  opacity: 0.22;
 }
 
 .enj-hex-loader-stroke {
-  animation: enj-hex-stroke 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  opacity: 0.92;
+  animation: enj-hex-stroke 2.6s cubic-bezier(0.45, 0.05, 0.2, 1) infinite;
 }
 
-.enj-hex-loader-fill {
+.enj-hex-loader-fill-rect {
   transform-box: fill-box;
   transform-origin: center bottom;
-  animation: enj-hex-fill 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  opacity: 0.34;
+  animation: enj-hex-fill-rise 2.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation-delay: 0.12s;
 }
 
 @keyframes enj-hex-stroke {
   0% {
     stroke-dashoffset: 1;
-    opacity: 0.45;
+    opacity: 0.35;
   }
-  42% {
+  38% {
     stroke-dashoffset: 0;
     opacity: 1;
   }
-  58% {
+  62% {
     stroke-dashoffset: 0;
     opacity: 1;
   }
   100% {
     stroke-dashoffset: -1;
-    opacity: 0.45;
+    opacity: 0.35;
   }
 }
 
-@keyframes enj-hex-fill {
-  0% {
-    transform: scaleY(0.06);
-    opacity: 0.1;
-  }
-  44% {
-    transform: scaleY(1);
-    opacity: 0.32;
-  }
-  56% {
-    transform: scaleY(1);
-    opacity: 0.32;
-  }
+@keyframes enj-hex-fill-rise {
+  0%,
   100% {
-    transform: scaleY(0.06);
-    opacity: 0.1;
+    transform: translateY(92%) scaleY(0.12);
+    opacity: 0.12;
+  }
+  40%,
+  58% {
+    transform: translateY(0) scaleY(1);
+    opacity: 0.42;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .enj-hex-loader-stroke,
-  .enj-hex-loader-fill {
+  .enj-hex-loader-fill-rect {
     animation: none;
   }
 
-  .enj-hex-loader-fill {
-    transform: scaleY(0.55);
-    opacity: 0.2;
+  .enj-hex-loader-fill-rect {
+    transform: translateY(18%) scaleY(0.72);
+    opacity: 0.22;
+  }
+
+  .enj-hex-loader-stroke {
+    stroke-dashoffset: 0;
+    opacity: 0.75;
   }
 }

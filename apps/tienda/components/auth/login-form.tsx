@@ -6,7 +6,7 @@ import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { toast } from '@enjambre/ui';
+import { toast, ViewLoading } from '@enjambre/ui';
 import { safeReturnPath } from '@/lib/auth/safe-return-path';
 
 const TIENDA_ROLE_REDIRECT: Record<string, string> = {
@@ -62,7 +62,7 @@ export function LoginForm() {
   if (authLoading) {
     return (
       <div className="tienda-auth-page flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent" />
+        <ViewLoading variant="inline" hideLabel />
       </div>
     );
   }

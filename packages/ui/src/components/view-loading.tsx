@@ -8,7 +8,7 @@ export type ViewLoadingVariant = 'inline' | 'view' | 'page' | 'fullscreen';
 const VARIANT_CLASS: Record<ViewLoadingVariant, string> = {
   inline: 'inline-flex flex-col items-center justify-center gap-2.5',
   view: 'flex flex-col items-center justify-center gap-4 py-16 min-h-[12rem] w-full',
-  page: 'flex flex-col items-center justify-center gap-4 min-h-[50vh] w-full',
+  page: 'flex flex-col items-center justify-center gap-4 min-h-[50vh] w-full mx-auto',
   fullscreen:
     'fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 bg-background/95 backdrop-blur-sm',
 };
@@ -40,7 +40,9 @@ export function ViewLoading({
       aria-live="polite"
       aria-label={ariaLabel}
     >
-      <HexagonLoader size={SIZE_BY_VARIANT[variant]} aria-hidden />
+      <div className="flex items-center justify-center shrink-0" aria-hidden>
+        <HexagonLoader size={SIZE_BY_VARIANT[variant]} />
+      </div>
       {!hideLabel && label ? (
         <p className="text-[0.62rem] uppercase tracking-[0.32em] text-muted-foreground/75 font-medium text-center max-w-[16rem]">
           {label}
@@ -54,7 +56,7 @@ export function ViewLoading({
 export function LoadingOverlay({ label = 'Actualizando' }: { label?: string }) {
   return (
     <div
-      className="absolute inset-0 z-20 flex items-start justify-center pt-10 bg-background/35 backdrop-blur-[1px] pointer-events-none rounded-[inherit]"
+      className="absolute inset-0 z-20 flex items-center justify-center bg-background/35 backdrop-blur-[1px] pointer-events-none rounded-[inherit]"
       aria-hidden
     >
       <ViewLoading variant="inline" label={label} hideLabel />

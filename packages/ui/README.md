@@ -25,7 +25,9 @@ pnpm add @enjambre/ui
 | `Badge` | default, success, warning, danger, gold, info |
 | `Input`, `Textarea` | - |
 | `StatCard` | Metrica con valor + label |
-| `Spinner` | sm, md, lg |
+| `HexagonLoader` | sm, md, lg · loader canónico (trazo + relleno) |
+| `ViewLoading` | variantes `inline` \| `view` \| `page` \| `fullscreen` |
+| `Spinner` | Delega a `HexagonLoader` (sm/md/lg). `variant="circular"` conservado pero **desactivado** |
 | `EmptyState` | Estado vacio con icono + texto |
 | `SectionHeader` | Titulo de seccion |
 | `GrainOverlay` | Overlay de textura granulada |
@@ -74,6 +76,18 @@ module.exports = {
 Colores semanticos: `background`, `foreground`, `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `success`, `warning`, `info`, `border`, `input`, `ring`, `surface`, `chart`, `sidebar`, `bosque`, `miel`, `crema`
 
 Font families: `font-display` (Cormorant Garamond), `font-sans` (Inter), `font-mono` (JetBrains Mono)
+
+## Loading
+
+| Componente | Cuándo usar |
+|---|---|
+| **`HexagonLoader`** | Inline (botones, celdas, badges). Centrado con `aspect-[48/56]` — no forzar `h-* w-*` cuadrado. |
+| **`ViewLoading`** | Bloques de vista, `loading.tsx`, Suspense, overlays de refetch. |
+| **`Spinner`** | Compat legacy en núcleo; renderiza hexágono por defecto. |
+
+**Spinner circular (`variant="circular"`):** implementación conservada en `spinner.tsx` pero **desactivada temporalmente** — el ecosistema unifica en el hexágono para evitar dos loaders distintos en pantalla. Para rehabilitar el circular, pasar `variant="circular"` explícitamente (solo rollback / A-B).
+
+Animaciones en `tokens.css`: trazo perimetral (`enj-hex-loader-stroke`) + relleno ascendente con clip (`enj-hex-loader-fill-rect`).
 
 ## Overlays y modales
 

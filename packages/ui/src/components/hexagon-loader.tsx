@@ -1,13 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
 
+/** Hexágono regular centrado en viewBox 48×56 */
 const HEX_PATH = 'M24 4 L41.32 14 L41.32 42 L24 52 L6.68 42 L6.68 14 Z';
 
 const SIZE_MAP = {
-  sm: { box: 28, className: 'h-7 w-7' },
-  md: { box: 40, className: 'h-10 w-10' },
-  lg: { box: 56, className: 'h-14 w-14' },
+  sm: 'w-7',
+  md: 'w-10',
+  lg: 'w-[3.25rem]',
 } as const;
 
 export type HexagonLoaderSize = keyof typeof SIZE_MAP;
@@ -21,38 +22,65 @@ export function HexagonLoader({
   className?: string;
   'aria-hidden'?: boolean;
 }) {
-  const { box, className: sizeClass } = SIZE_MAP[size];
+  const rawId = useId().replace(/:/g, '');
+  const clipId = `enj-hex-clip-${rawId}`;
+  const glowId = `enj-hex-glow-${rawId}`;
+  const sizeClass = SIZE_MAP[size];
 
   return (
     <svg
       viewBox="0 0 48 56"
-      width={box}
-      height={box * (56 / 48)}
-      className={`enj-hex-loader text-accent ${sizeClass} ${className}`.trim()}
+      className={`enj-hex-loader shrink-0 aspect-[48/56] ${sizeClass} ${className}`.trim()}
       aria-hidden={ariaHidden}
     >
-      <path
-        d={HEX_PATH}
-        fill="currentColor"
-        className="enj-hex-loader-fill"
-        opacity={0.12}
-      />
+      <defs>
+        <clipPath id={clipId}>
+          <path d={HEX_PATH} />
+        </clipPath>
+        <filter id={glowId} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="0.65" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      {/* Base sutil */}
+      <path d={HEX_PATH} fill="currentColor" className="enj-hex-loader-base" />
+
+      {/* Relleno ascendente (clip dentro del hexágono) */}
+      <g clipPath={`url(#${clipId})`}>
+        <rect
+          x="0"
+          y="0"
+          width="48"
+          height="56"
+          fill="currentColor"
+          className="enj-hex-loader-fill-rect"
+        />
+      </g>
+
+      {/* Contorno guía */}
       <path
         d={HEX_PATH}
         fill="none"
         stroke="currentColor"
         strokeWidth={1}
-        opacity={0.2}
+        className="enj-hex-loader-track"
       />
+
+      {/* Trazo animado */}
       <path
         d={HEX_PATH}
         fill="none"
         stroke="currentColor"
-        strokeWidth={1.75}
+        strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
         pathLength={1}
         strokeDasharray="1"
+        filter={`url(#${glowId})`}
         className="enj-hex-loader-stroke"
       />
     </svg>
