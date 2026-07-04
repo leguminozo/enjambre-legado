@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, ShoppingBag, QrCode, User, Grid3X3 } from 'lucide-react';
 import { useAuth } from '@/components/providers/auth-context';
+import { usePwaStandalone } from '@/lib/hooks/use-pwa-standalone';
 
 const TABS = [
   { href: '/', label: 'Inicio', icon: Home, match: (p: string) => p === '/' },
@@ -16,7 +17,10 @@ const TABS = [
 export function MobileBottomNav() {
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
+  const isPwa = usePwaStandalone();
   const normalized = pathname.replace(/^\/(es|en)/, '') || '/';
+
+  if (!isPwa) return null;
 
   return (
     <nav className="tienda-bottom-nav md:hidden" aria-label="Navegacion principal">

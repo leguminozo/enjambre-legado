@@ -165,13 +165,17 @@ html.tienda-overlay-open .whatsapp-float-mobile {
 }
 
 .tienda-shell-content {
-  padding-bottom: calc(var(--tienda-bottom-nav-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
 }
 
 @media (min-width: 768px) {
   .tienda-shell-content {
     padding-bottom: 0;
   }
+}
+
+html[data-tienda-pwa='standalone'] .tienda-shell-content {
+  padding-bottom: calc(var(--tienda-bottom-nav-h) + var(--safe-bottom));
 }
 
 .tienda-bottom-nav {
@@ -223,7 +227,7 @@ html.tienda-overlay-open .whatsapp-float-mobile {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(var(--tienda-bottom-nav-h) + var(--safe-bottom));
+  bottom: var(--safe-bottom);
   z-index: 54;
   padding: 0.5rem 0.75rem;
   background-color: hsl(var(--card));
@@ -249,10 +253,22 @@ html.tienda-overlay-open .whatsapp-float-mobile {
 }
 
 .tienda-shell:has(.tienda-cart-bar) .tienda-shell-content {
+  padding-bottom: calc(var(--tienda-cart-bar-h) + var(--safe-bottom));
+}
+
+html[data-tienda-pwa='standalone'] .tienda-cart-bar {
+  bottom: calc(var(--tienda-bottom-nav-h) + var(--safe-bottom));
+}
+
+html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-cart-bar) .tienda-shell-content {
   padding-bottom: calc(var(--tienda-bottom-nav-h) + var(--tienda-cart-bar-h) + var(--safe-bottom));
 }
 
 .whatsapp-float-mobile {
+  bottom: calc(var(--safe-bottom) + 1rem) !important;
+}
+
+html[data-tienda-pwa='standalone'] .whatsapp-float-mobile {
   bottom: calc(var(--tienda-bottom-nav-h) + var(--safe-bottom) + 1rem) !important;
 }
 
@@ -461,6 +477,10 @@ html.tienda-overlay-open .whatsapp-float-mobile {
 }
 
 .perfil-shell-content {
+  padding-bottom: var(--safe-bottom);
+}
+
+html[data-tienda-pwa='standalone'] .perfil-shell-content {
   padding-bottom: calc(var(--tienda-bottom-nav-h) + var(--safe-bottom));
 }
 

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Shield, Repeat, ShoppingBag, Bell, Menu } from 'lucide-react';
+import { usePwaStandalone } from '@/lib/hooks/use-pwa-standalone';
 
 type PerfilMobileNavProps = {
   onOpenMenu: () => void;
@@ -17,7 +18,10 @@ const TABS = [
 
 export function PerfilMobileNav({ onOpenMenu }: PerfilMobileNavProps) {
   const pathname = usePathname();
+  const isPwa = usePwaStandalone();
   const normalized = pathname.replace(/^\/(es|en)/, '') || '/';
+
+  if (!isPwa) return null;
 
   return (
     <nav className="tienda-bottom-nav lg:hidden" aria-label="Navegación guardián">
