@@ -43,12 +43,21 @@ export type GastoParseado = {
   detalle: string;
 };
 
+export type ParseConfidenceView = {
+  score: number;
+  parserId: string;
+  requiresReview: boolean;
+  campos: Record<string, "ok" | "inferido" | "faltante">;
+};
+
 export type GastoExtranjeroEstado =
   | "parseado"
+  | "pendiente_revision"
   | "facturado"
   | "enviado_sii"
   | "aceptado_sii"
-  | "rechazado_sii";
+  | "rechazado_sii"
+  | "rechazado_parse";
 
 export type BandejaGastoRow = {
   id: string;
@@ -64,6 +73,9 @@ export type BandejaGastoRow = {
   estado: GastoExtranjeroEstado;
   factura_compra_id: string | null;
   fiscal_document_id: string | null;
+  parser_id: string | null;
+  parse_confidence: number | null;
+  requires_review: boolean;
   created_at: string;
   fiscal_documents: {
     id: string;
@@ -137,6 +149,8 @@ export type RcvRegistroRow = {
 export function gastoEstadoBadge(estado: GastoExtranjeroEstado | string) {
   const map: Record<string, { icon: React.ReactNode; className: string; label: string }> = {
     parseado: { icon: React.createElement(Clock, { size: 14 }), className: "bg-surface-raised text-muted-foreground border-border", label: "Parseado" },
+    pendiente_revision: { icon: React.createElement(AlertCircle, { size: 14 }), className: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20", label: "Revisión" },
+    rechazado_parse: { icon: React.createElement(AlertCircle, { size: 14 }), className: "bg-destructive/10 text-destructive border-destructive/20", label: "Parse fallido" },
     facturado: { icon: React.createElement(FileText, { size: 14 }), className: "bg-primary/10 text-primary border-primary/20", label: "Facturado" },
     enviado_sii: { icon: React.createElement(Send, { size: 14 }), className: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20", label: "Enviado SII" },
     aceptado_sii: { icon: React.createElement(CheckCircle2, { size: 14 }), className: "bg-primary/10 text-primary border-primary/20", label: "Aceptado SII" },
@@ -193,6 +207,9 @@ export function sourceBadge(sourceType: string | null) {
     vercel: "Vercel",
     notion: "Notion",
     canva: "Canva",
+    microsoft: "Microsoft",
+    adobe: "Adobe",
+    generic: "Genérico",
   };
   const icon = icons[sourceType];
   const label = labels[sourceType] ?? sourceType;

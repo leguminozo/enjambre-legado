@@ -1,0 +1,7 @@
+Uber Business
+Trip ABC-12345
+Date: 15/06/2026
+From: Centro Castro
+To: Aeropuerto Mocopulli
+Total $8.900
+Payment: Corporate account

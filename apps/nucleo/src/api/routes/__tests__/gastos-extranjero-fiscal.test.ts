@@ -1,20 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Hono } from 'hono';
-import { parseReceipt } from '@enjambre/contable';
-
-vi.mock('@enjambre/contable', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@enjambre/contable')>();
-  return {
-    ...actual,
-    fetchTasaDolar: vi.fn().mockResolvedValue(950),
-    fetchTasaEuro: vi.fn().mockResolvedValue(1050),
-  };
-});
+import { parseReceiptOrchestrated } from '@enjambre/contable';
 
 const mockProcessGasto = vi.fn();
+const mockParseReceiptForEmpresa = vi.fn();
 
 vi.mock('@/api/lib/fiscal/gasto-pipeline', () => ({
   processGastoExtranjero: (...args: unknown[]) => mockProcessGasto(...args),
+}));
+
+vi.mock('@/api/lib/fiscal/receipt-parse', () => ({
+  isReceiptParseFailure: (result: { ok?: false }) => result?.ok === false,
+  parseReceiptForEmpresa: (...args: unknown[]) => mockParseReceiptForEmpresa(...args),
 }));
 
 vi.mock('@/api/lib/ratelimit', () => ({
@@ -54,6 +51,10 @@ describe('POST /gastos-extranjero/procesar', () => {
   });
 
   it('parses Meta receipt text and delegates to pipeline', async () => {
+    const orchestrated = parseReceiptOrchestrated(META_RECEIPT, { tasaCambio: 950 });
+    expect(orchestrated).not.toBeNull();
+    mockParseReceiptForEmpresa.mockResolvedValue(orchestrated);
+
     const supabase = {} as any;
     const app = new Hono();
     app.use('*', async (c, next) => {
@@ -74,20 +75,25 @@ describe('POST /gastos-extranjero/procesar', () => {
     expect(json.data.facturaCompraId).toBe('fc-46-meta');
     expect(json.data.emission.estadoSii).toBe('aceptado');
 
-    const parsed = parseReceipt(META_RECEIPT, undefined, 950);
-    expect(parsed?.proveedorId).toBe('meta-ads');
-
     expect(mockProcessGasto).toHaveBeenCalledWith(
       supabase,
       'emp-1',
       expect.objectContaining({
         gasto: expect.objectContaining({ proveedorId: 'meta-ads' }),
         receiptRaw: META_RECEIPT,
+        parseConfidence: expect.objectContaining({ parserId: 'meta-ads' }),
       }),
     );
   });
 
   it('returns 422 when receipt cannot be parsed', async () => {
+    mockParseReceiptForEmpresa.mockResolvedValue({
+      ok: false,
+      code: 'receipt_parse_failed',
+      message: 'No se pudieron extraer montos del documento',
+      detectado: null,
+    });
+
     const app = new Hono();
     app.use('*', async (c, next) => {
       c.set('empresaId', 'emp-1');

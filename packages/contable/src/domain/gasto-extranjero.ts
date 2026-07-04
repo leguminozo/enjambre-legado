@@ -146,6 +146,24 @@ export const PROVEEDORES: ProveedorConfig[] = [
     conIva: false,
     keywords: ["canva", "canva pro", "canva pty"],
   },
+  {
+    id: "microsoft",
+    nombre: "MICROSOFT IRELAND OPERATIONS LTD",
+    rut: "76350150-1",
+    giro: "SERVICIOS DE SOFTWARE Y NUBE",
+    moneda: "USD",
+    conIva: false,
+    keywords: ["microsoft", "azure", "office 365", "microsoft 365"],
+  },
+  {
+    id: "adobe",
+    nombre: "ADOBE SYSTEMS SOFTWARE IRELAND LTD",
+    rut: "76350160-9",
+    giro: "SERVICIOS DE SOFTWARE CREATIVO",
+    moneda: "USD",
+    conIva: false,
+    keywords: ["adobe", "creative cloud", "acrobat"],
+  },
 ];
 
 export function getProveedorById(id: string): ProveedorConfig | undefined {

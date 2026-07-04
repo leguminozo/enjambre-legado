@@ -8,6 +8,9 @@ import {
   FileText,
   Inbox,
   ClipboardPaste,
+  AlertTriangle,
+  RotateCcw,
+  Table2,
 } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
@@ -17,6 +20,7 @@ import {
   FiscalUploadResult,
   GastoExtranjeroEstado,
   GastoParseado,
+  ParseConfidenceView,
   ProveedorInfo,
   gastoEstadoBadge,
   sourceBadge,
@@ -34,16 +38,56 @@ type ProcesarResult = {
   warnings?: string[];
 };
 
-type EntradaMode = "pdf" | "texto";
+type EntradaMode = "pdf" | "texto" | "csv";
 
 const ESTADO_FILTERS: { value: GastoExtranjeroEstado | ""; label: string }[] = [
   { value: "", label: "Todos" },
+  { value: "pendiente_revision", label: "Revisión" },
   { value: "parseado", label: "Parseados" },
   { value: "facturado", label: "Facturados" },
   { value: "enviado_sii", label: "Enviados" },
   { value: "aceptado_sii", label: "Aceptados" },
   { value: "rechazado_sii", label: "Rechazados" },
 ];
+
+function ConfidenceBadge({ confidence }: { confidence: ParseConfidenceView }) {
+  const pct = Math.round(confidence.score * 100);
+  const tone =
+    confidence.requiresReview
+      ? "text-amber-700 dark:text-amber-400 bg-amber-500/10 border-amber-500/20"
+      : "text-primary bg-primary/10 border-primary/20";
+
+  return (
+    <div className={`rounded-lg border px-3 py-2 text-xs ${tone}`}>
+      <div className="flex items-center justify-between gap-3">
+        <span className="font-semibold uppercase tracking-wider">
+          Confianza {pct}% · {confidence.parserId}
+        </span>
+        {confidence.requiresReview && (
+          <span className="inline-flex items-center gap-1">
+            <AlertTriangle size={12} /> Revisión requerida
+          </span>
+        )}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {Object.entries(confidence.campos).map(([campo, estado]) => (
+          <span
+            key={campo}
+            className={`px-2 py-0.5 rounded-full border text-[0.65rem] ${
+              estado === "ok"
+                ? "border-primary/30 text-primary"
+                : estado === "inferido"
+                  ? "border-amber-500/30 text-amber-700 dark:text-amber-400"
+                  : "border-destructive/30 text-destructive"
+            }`}
+          >
+            {campo}: {estado}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const ACCEPTED_FILE_TYPES = "application/pdf,image/png,image/jpeg,image/webp";
 
@@ -160,6 +204,10 @@ export function BandejaFiscalTab() {
   const [fiscalDocumentId, setFiscalDocumentId] = useState<string | null>(null);
   const [uploadMeta, setUploadMeta] = useState<FiscalUploadResult | null>(null);
   const [gastoParseado, setGastoParseado] = useState<GastoParseado | null>(null);
+  const [parseConfidence, setParseConfidence] = useState<ParseConfidenceView | null>(null);
+  const [forceConfirm, setForceConfirm] = useState(false);
+  const [csvText, setCsvText] = useState("");
+  const [csvResult, setCsvResult] = useState<{ exitosos: number; fallidos: number } | null>(null);
   const [procesarResult, setProcesarResult] = useState<ProcesarResult | null>(null);
 
   const proveedoresQuery = useQuery({
@@ -200,6 +248,7 @@ export function BandejaFiscalTab() {
         throw new Error(err.message ?? "Error parseando recibo");
       }
       const json = await res.json();
+      if (json.confidence) setParseConfidence(json.confidence as ParseConfidenceView);
       return json.data as GastoParseado;
     },
     [apiFetch, proveedorId],
@@ -257,6 +306,9 @@ export function BandejaFiscalTab() {
         receipt_raw: receiptText || undefined,
       };
 
+      if (parseConfidence) body.parse_confidence = parseConfidence;
+      if (forceConfirm) body.force_confirm = true;
+
       if (gastoParseado) {
         body.gasto = gastoParseado;
       } else if (fiscalDocumentId) {
@@ -282,12 +334,44 @@ export function BandejaFiscalTab() {
     },
   });
 
+  const importCsv = useMutation({
+    mutationFn: async () => {
+      const res = await apiFetch("/api/sii/gastos-extranjero/import-csv", {
+        method: "POST",
+        body: JSON.stringify({ csv_text: csvText, emit_to_sii: true, force_confirm: forceConfirm }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message ?? "Error importando CSV");
+      return json.data as { exitosos: number; fallidos: number; total: number };
+    },
+    onSuccess: (data) => {
+      setCsvResult({ exitosos: data.exitosos, fallidos: data.fallidos });
+      queryClient.invalidateQueries({ queryKey: ["sii"] });
+    },
+  });
+
+  const reintentarGasto = useMutation({
+    mutationFn: async (gastoId: string) => {
+      const res = await apiFetch(`/api/sii/gastos-extranjero/procesar/${gastoId}/reintentar`, {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message ?? "Error reintentando emisión");
+      return json.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sii"] }),
+  });
+
   const resetEntrada = () => {
     setReceiptText("");
     setProveedorId("");
     setFiscalDocumentId(null);
     setUploadMeta(null);
     setGastoParseado(null);
+    setParseConfidence(null);
+    setForceConfirm(false);
+    setCsvText("");
+    setCsvResult(null);
     setProcesarResult(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -337,9 +421,10 @@ export function BandejaFiscalTab() {
             tabs={[
               { id: "pdf", label: "PDF / Imagen", icon: <Upload size={14} />, testId: "bandeja-mode-pdf" },
               { id: "texto", label: "Pegar texto", icon: <ClipboardPaste size={14} />, testId: "bandeja-mode-texto" },
+              { id: "csv", label: "CSV masivo", icon: <Table2 size={14} />, testId: "bandeja-mode-csv" },
             ]}
             activeId={entradaMode}
-            onChange={(id) => setEntradaMode(id as "pdf" | "texto")}
+            onChange={(id) => setEntradaMode(id as EntradaMode)}
           />
 
           <div className="flex flex-wrap gap-2">
@@ -373,12 +458,53 @@ export function BandejaFiscalTab() {
                   {uploadMeta.already_exists ? " (ya existía)" : ""}
                 </div>
               )}
+              {parseConfidence && <ConfidenceBadge confidence={parseConfidence} />}
               <GastoPreviewCard gasto={gastoParseado} />
+              {parseConfidence?.requiresReview && (
+                <label className="flex items-start gap-3 text-sm text-muted-foreground border border-amber-500/20 bg-amber-500/5 rounded-lg p-3">
+                  <input
+                    type="checkbox"
+                    checked={forceConfirm}
+                    onChange={(e) => setForceConfirm(e.target.checked)}
+                    className="mt-1"
+                  />
+                  <span>
+                    Confirmo que revisé montos, fecha y proveedor. Autorizo emitir la Factura de Compra
+                    aunque la confianza automática sea inferior al 85%.
+                  </span>
+                </label>
+              )}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="text-xs uppercase text-muted-foreground">
+                  Nº documento
+                  <input
+                    value={gastoParseado.numeroDocumento}
+                    onChange={(e) =>
+                      setGastoParseado({ ...gastoParseado, numeroDocumento: e.target.value })
+                    }
+                    className="mt-1 w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm font-mono text-foreground"
+                  />
+                </label>
+                <label className="text-xs uppercase text-muted-foreground">
+                  Fecha emisión
+                  <input
+                    type="date"
+                    value={gastoParseado.fechaEmision}
+                    onChange={(e) =>
+                      setGastoParseado({ ...gastoParseado, fechaEmision: e.target.value })
+                    }
+                    className="mt-1 w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm font-mono text-foreground"
+                  />
+                </label>
+              </div>
               <div className="flex flex-wrap gap-3">
                 <Button
                   data-testid="bandeja-procesar-btn"
                   onClick={() => procesarGasto.mutate()}
-                  disabled={procesarGasto.isPending}
+                  disabled={
+                    procesarGasto.isPending ||
+                    (parseConfidence?.requiresReview === true && !forceConfirm)
+                  }
                 >
                   {procesarGasto.isPending ? (
                     <Spinner className="w-4 h-4 mr-2" />
@@ -456,6 +582,43 @@ export function BandejaFiscalTab() {
                     Analizar texto extraído
                   </Button>
                 </div>
+              )}
+            </div>
+          ) : entradaMode === "csv" ? (
+            <div className="grid gap-4" data-testid="bandeja-csv-form">
+              <p className="text-sm text-muted-foreground">
+                Una línea por recibo. Opcional: <code className="font-mono">proveedor_id,</code> al inicio
+                (ej. <code className="font-mono">meta-ads,Meta Ads Invoice…</code>).
+              </p>
+              <textarea
+                value={csvText}
+                onChange={(e) => setCsvText(e.target.value)}
+                rows={10}
+                placeholder={"meta-ads,Meta Ads Invoice #123 Total USD 45.00\nuber,Uber Business Trip X Total $8900"}
+                className="w-full bg-surface-sunken border border-border rounded-lg px-4 py-3 text-sm font-mono resize-y text-foreground"
+              />
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={forceConfirm}
+                  onChange={(e) => setForceConfirm(e.target.checked)}
+                />
+                Forzar confirmación en líneas con baja confianza
+              </label>
+              <Button
+                onClick={() => importCsv.mutate()}
+                disabled={importCsv.isPending || csvText.trim().length < 10}
+              >
+                {importCsv.isPending ? <Spinner className="w-4 h-4 mr-2" /> : <Table2 className="w-4 h-4 mr-2" />}
+                Importar y procesar
+              </Button>
+              {csvResult && (
+                <p className="text-sm text-muted-foreground">
+                  Importación: {csvResult.exitosos} exitosos · {csvResult.fallidos} fallidos
+                </p>
+              )}
+              {importCsv.isError && (
+                <p className="text-sm text-destructive">{importCsv.error.message}</p>
               )}
             </div>
           ) : (
@@ -546,8 +709,25 @@ export function BandejaFiscalTab() {
                         {formatCurrency(row.monto_total)}
                       </div>
                       <div className="mt-1">{gastoEstadoBadge(row.estado)}</div>
+                      {row.parse_confidence != null && (
+                        <div className="text-[0.65rem] text-muted-foreground mt-1">
+                          {Math.round(row.parse_confidence * 100)}% · {row.parser_id ?? "—"}
+                        </div>
+                      )}
                     </div>
                   </div>
+                  {["rechazado_sii", "facturado", "enviado_sii"].includes(row.estado) && row.factura_compra_id && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      disabled={reintentarGasto.isPending}
+                      onClick={() => reintentarGasto.mutate(row.id)}
+                    >
+                      <RotateCcw size={14} className="mr-2" />
+                      Reintentar emisión SII
+                    </Button>
+                  )}
                 </li>
               ))}
             </ul>

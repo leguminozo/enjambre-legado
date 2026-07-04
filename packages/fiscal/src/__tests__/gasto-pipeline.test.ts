@@ -127,6 +127,21 @@ describe('gasto-pipeline', () => {
     expect(mockEnqueue).toHaveBeenCalled();
   });
 
+  it('blocks emit when parse confidence requires review', async () => {
+    const result = await processGastoExtranjero({} as any, 'emp-1', {
+      gasto: metaGasto,
+      parseConfidence: {
+        score: 0.62,
+        parserId: 'generic',
+        requiresReview: true,
+        campos: { montoTotal: 'ok', numeroDocumento: 'faltante' },
+      },
+    }, deps);
+
+    expect(result).toMatchObject({ ok: false, code: 'review_required' });
+    expect(mockCreateFactura).not.toHaveBeenCalled();
+  });
+
   it('fails closed on caf_exhausted', async () => {
     const cafErr = Object.assign(new Error('CAF agotado'), { code: 'caf_exhausted' });
     mockAssertCaf.mockRejectedValue(cafErr);

@@ -1,4 +1,4 @@
-import type { GastoExtranjeroResult } from '@enjambre/contable';
+import type { GastoExtranjeroResult, ParseConfidence } from '@enjambre/contable';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { assertCafAvailable } from './caf-guard';
 import { buildGastoIdempotencyKey, findDuplicateGasto } from './gasto-idempotency';
@@ -39,6 +39,8 @@ export type ProcessGastoInput = {
   fiscalDocumentId?: string;
   emitToSii?: boolean;
   syncRcv?: boolean;
+  forceConfirm?: boolean;
+  parseConfidence?: ParseConfidence;
 };
 
 export type ProcessGastoResult =
@@ -72,9 +74,18 @@ async function persistGasto(
     facturaCompraId?: string;
     fiscalDocumentId?: string;
     idempotencyKey: string;
+    parseConfidence?: ParseConfidence;
+    forceConfirm?: boolean;
   },
 ): Promise<{ id: string }> {
-  const { receiptRaw, facturaCompraId, fiscalDocumentId, idempotencyKey } = options;
+  const { receiptRaw, facturaCompraId, fiscalDocumentId, idempotencyKey, parseConfidence, forceConfirm } = options;
+
+  const requiresReview = parseConfidence?.requiresReview && !forceConfirm;
+  const estado = facturaCompraId
+    ? 'facturado'
+    : requiresReview
+      ? 'pendiente_revision'
+      : 'parseado';
 
   const { data, error } = await supabase
     .from('gastos_extranjeros')
@@ -99,7 +110,11 @@ async function persistGasto(
       concepto: gasto.concepto,
       detalle: gasto.detalle || null,
       receipt_raw: receiptRaw ?? null,
-      estado: facturaCompraId ? 'facturado' : 'parseado',
+      parser_id: parseConfidence?.parserId ?? null,
+      parse_confidence: parseConfidence?.score ?? null,
+      parse_campos: parseConfidence?.campos ?? null,
+      requires_review: requiresReview ?? false,
+      estado,
     })
     .select('id')
     .single();
@@ -151,9 +166,31 @@ export async function processGastoExtranjero(
   input: ProcessGastoInput,
   deps: FiscalPipelineDeps,
 ): Promise<ProcessGastoResult> {
-  const { gasto, receiptRaw, fiscalDocumentId, emitToSii = true, syncRcv = true } = input;
+  const {
+    gasto,
+    receiptRaw,
+    fiscalDocumentId,
+    emitToSii = true,
+    syncRcv = true,
+    forceConfirm = false,
+    parseConfidence,
+  } = input;
   const idempotencyKey = buildGastoIdempotencyKey(empresaId, gasto);
   const warnings: string[] = [];
+
+  if (parseConfidence?.requiresReview && !forceConfirm && emitToSii) {
+    return {
+      ok: false,
+      code: 'review_required',
+      message: 'Confianza de parse insuficiente. Revisa los montos y confirma manualmente.',
+      details: {
+        score: parseConfidence.score,
+        parserId: parseConfidence.parserId,
+        campos: parseConfidence.campos,
+        threshold: 0.85,
+      },
+    };
+  }
 
   const duplicate = await findDuplicateGasto(supabase, empresaId, gasto);
   if (duplicate?.factura_compra_id) {
@@ -195,6 +232,8 @@ export async function processGastoExtranjero(
     facturaCompraId,
     fiscalDocumentId,
     idempotencyKey,
+    parseConfidence,
+    forceConfirm,
   });
 
   if (!emitToSii) {

@@ -6,3 +6,4 @@ export * from './gasto-pipeline';
 export * from './document-ingestion';
 export * from './fiscal-documents';
 export * from './sii-document-jobs';
+export * from './proveedores-resolver';

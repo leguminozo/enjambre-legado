@@ -1,19 +1,19 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import {
-  parseReceipt,
-  fetchTasaDolar,
-  fetchTasaEuro,
-  PROVEEDORES,
-  detectarProveedor,
-} from "@enjambre/contable";
-import type { GastoExtranjeroResult } from "@enjambre/contable";
+import { PROVEEDORES } from "@enjambre/contable";
+import type { GastoExtranjeroResult, ParsedReceipt } from "@enjambre/contable";
 import type { AppVariables } from "@/api/lib/middleware";
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from "@/api/lib/ratelimit";
 import { createAdminClient } from "@enjambre/auth/browser";
-import { enqueueSiiDocumentJob, ingestFiscalDocument, loadFiscalDocumentText } from "@enjambre/fiscal";
+import {
+  enqueueSiiDocumentJob,
+  ingestFiscalDocument,
+  loadFiscalDocumentText,
+  loadProveedorCatalog,
+} from "@enjambre/fiscal";
 import { processGastoExtranjero } from "@/api/lib/fiscal/gasto-pipeline";
+import { isReceiptParseFailure, parseReceiptForEmpresa } from "@/api/lib/fiscal/receipt-parse";
 import { createFacturaCompraFromGasto } from "./helpers";
 
 export const gastosRoutes = new Hono<{ Variables: AppVariables }>();
@@ -46,6 +46,15 @@ const ProcesarGastoBodySchema = z
     receipt_raw: z.string().optional(),
     emit_to_sii: z.boolean().optional(),
     sync_rcv: z.boolean().optional(),
+    force_confirm: z.boolean().optional(),
+    parse_confidence: z
+      .object({
+        score: z.number(),
+        parserId: z.string(),
+        requiresReview: z.boolean(),
+        campos: z.record(z.string(), z.enum(["ok", "inferido", "faltante"])),
+      })
+      .optional(),
   })
   .refine((body) => body.gasto || body.receipt_text || body.fiscal_document_id, {
     message: "gasto, receipt_text o fiscal_document_id es requerido",
@@ -75,6 +84,8 @@ async function rateLimitMiddleware(
 }
 
 gastosRoutes.post("/parse", async (c) => {
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
   const body = await c.req.json<{ receipt_text: string; proveedor_id?: string }>();
   if (!body.receipt_text) {
     return c.json(
@@ -83,38 +94,35 @@ gastosRoutes.post("/parse", async (c) => {
     );
   }
 
-  const proveedorOverride = body.proveedor_id
-    ? PROVEEDORES.find((p) => p.id === body.proveedor_id)
-    : undefined;
-
-  const detectado = detectarProveedor(body.receipt_text);
-
   try {
-    let tasaCambio = 1;
-    if (detectado?.moneda === "USD" || proveedorOverride?.moneda === "USD") {
-      tasaCambio = await fetchTasaDolar();
-    } else if (detectado?.moneda === "EUR" || proveedorOverride?.moneda === "EUR") {
-      tasaCambio = await fetchTasaEuro();
-    }
+    const catalog = await loadProveedorCatalog(supabase, empresaId);
+    const result = await parseReceiptForEmpresa(supabase, empresaId, {
+      receiptText: body.receipt_text,
+      proveedorId: body.proveedor_id,
+      catalog,
+    });
 
-    const parsed = parseReceipt(body.receipt_text, proveedorOverride, tasaCambio);
-
-    if (!parsed) {
+    if (isReceiptParseFailure(result)) {
       return c.json(
         {
-          code: "receipt_parse_failed",
-          message: "No se pudo detectar el proveedor o extraer datos",
-          detectado: detectado?.id ?? null,
-          disponibles: PROVEEDORES.map((p) => ({ id: p.id, nombre: p.nombre, keywords: p.keywords })),
+          code: result.code,
+          message: result.message,
+          detectado: result.detectado,
+          disponibles: catalog.map((p) => ({ id: p.id, nombre: p.nombre, keywords: p.keywords })),
         },
         422,
       );
     }
 
-    return c.json({ data: parsed });
+    const parsed = result;
+    return c.json({
+      data: parsed.gasto,
+      confidence: parsed.confidence,
+      requires_review: parsed.confidence.requiresReview,
+    });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Error obteniendo tasa de cambio";
-    return c.json({ code: "tasa_cambio_failed", message }, 502);
+    const message = err instanceof Error ? err.message : "Error parseando recibo";
+    return c.json({ code: "parse_failed", message }, 502);
   }
 });
 
@@ -206,6 +214,7 @@ gastosRoutes.post(
     let gasto: GastoExtranjeroResult;
     let receiptRaw = body.receipt_raw;
     let fiscalDocumentId = body.fiscal_document_id;
+    let parseConfidence = body.parse_confidence;
 
     let receiptText = body.receipt_text;
 
@@ -228,36 +237,31 @@ gastosRoutes.post(
           400,
         );
       }
-      const proveedorOverride = body.proveedor_id
-        ? PROVEEDORES.find((p) => p.id === body.proveedor_id)
-        : undefined;
-      const detectado = detectarProveedor(receiptText);
 
       try {
-        let tasaCambio = 1;
-        if (detectado?.moneda === "USD" || proveedorOverride?.moneda === "USD") {
-          tasaCambio = await fetchTasaDolar();
-        } else if (detectado?.moneda === "EUR" || proveedorOverride?.moneda === "EUR") {
-          tasaCambio = await fetchTasaEuro();
-        }
+        const parsed = await parseReceiptForEmpresa(supabase, empresaId, {
+          receiptText,
+          proveedorId: body.proveedor_id,
+        });
 
-        const parsed = parseReceipt(receiptText, proveedorOverride, tasaCambio);
-        if (!parsed) {
+        if (isReceiptParseFailure(parsed)) {
           return c.json(
             {
-              code: "receipt_parse_failed",
-              message: "No se pudo detectar el proveedor o extraer datos",
-              detectado: detectado?.id ?? null,
+              code: parsed.code,
+              message: parsed.message,
+              detectado: parsed.detectado,
             },
             422,
           );
         }
 
-        gasto = parsed;
+        const receipt = parsed;
+        gasto = receipt.gasto;
+        parseConfidence = receipt.confidence;
         receiptRaw = receiptRaw ?? receiptText;
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Error obteniendo tasa de cambio";
-        return c.json({ code: "tasa_cambio_failed", message }, 502);
+        const message = err instanceof Error ? err.message : "Error parseando recibo";
+        return c.json({ code: "parse_failed", message }, 502);
       }
     }
 
@@ -267,10 +271,13 @@ gastosRoutes.post(
       fiscalDocumentId,
       emitToSii: body.emit_to_sii ?? true,
       syncRcv: body.sync_rcv ?? true,
+      forceConfirm: body.force_confirm ?? false,
+      parseConfidence,
     });
 
     if (!result.ok) {
       const status =
+        result.code === "review_required" ? 409 :
         result.code === "caf_exhausted" || result.code === "factura_create_failed" ? 400 :
         500;
       return c.json(
@@ -302,23 +309,20 @@ gastosRoutes.post("/ingest-email", async (c) => {
   }
 
   const receiptText = [body.subject, body.body_text].filter(Boolean).join("\n\n");
-  const detectado = detectarProveedor(receiptText);
 
   try {
-    let tasaCambio = 1;
-    if (detectado?.moneda === "USD") tasaCambio = await fetchTasaDolar();
-    else if (detectado?.moneda === "EUR") tasaCambio = await fetchTasaEuro();
-
-    const parsed = parseReceipt(receiptText, undefined, tasaCambio);
-    if (!parsed) {
-      return c.json({ code: "receipt_parse_failed", message: "No se pudo parsear el email" }, 422);
+    const parsed = await parseReceiptForEmpresa(supabase, empresaId, { receiptText });
+    if (isReceiptParseFailure(parsed)) {
+      return c.json({ code: parsed.code, message: parsed.message }, 422);
     }
 
+    const receipt = parsed;
     const result = await processGastoExtranjero(supabase, empresaId, {
-      gasto: parsed,
+      gasto: receipt.gasto,
       receiptRaw: receiptText,
       emitToSii: body.emit_to_sii ?? false,
       syncRcv: false,
+      parseConfidence: receipt.confidence,
     });
 
     if (!result.ok) {
@@ -339,7 +343,7 @@ gastosRoutes.post("/import-csv", async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase");
 
-  const body = await c.req.json<{ csv_text: string; emit_to_sii?: boolean }>();
+  const body = await c.req.json<{ csv_text: string; emit_to_sii?: boolean; force_confirm?: boolean }>();
   if (!body.csv_text?.trim()) {
     return c.json({ code: "missing_csv", message: "csv_text es requerido" }, 400);
   }
@@ -366,29 +370,29 @@ gastosRoutes.post("/import-csv", async (c) => {
     }
 
     try {
-      const proveedorOverride = proveedorId
-        ? PROVEEDORES.find((p) => p.id === proveedorId)
-        : undefined;
-      const detectado = detectarProveedor(receiptText);
+      const parsed = await parseReceiptForEmpresa(supabase, empresaId, {
+        receiptText,
+        proveedorId,
+      });
 
-      let tasaCambio = 1;
-      if (detectado?.moneda === "USD" || proveedorOverride?.moneda === "USD") {
-        tasaCambio = await fetchTasaDolar();
-      } else if (detectado?.moneda === "EUR" || proveedorOverride?.moneda === "EUR") {
-        tasaCambio = await fetchTasaEuro();
+      if (isReceiptParseFailure(parsed)) {
+        results.push({ line: i + 1, ok: false, error: parsed.code });
+        continue;
       }
 
-      const parsed = parseReceipt(receiptText, proveedorOverride, tasaCambio);
-      if (!parsed) {
-        results.push({ line: i + 1, ok: false, error: "parse_failed" });
+      const receipt = parsed;
+      if (receipt.confidence.requiresReview && !body.force_confirm) {
+        results.push({ line: i + 1, ok: false, error: "review_required" });
         continue;
       }
 
       const processed = await processGastoExtranjero(supabase, empresaId, {
-        gasto: parsed,
+        gasto: receipt.gasto,
         receiptRaw: receiptText,
         emitToSii: body.emit_to_sii ?? true,
         syncRcv: false,
+        forceConfirm: body.force_confirm ?? false,
+        parseConfidence: receipt.confidence,
       });
 
       if (!processed.ok) {
@@ -485,8 +489,23 @@ gastosRoutes.post("/facturar", async (c) => {
   }
 });
 
-gastosRoutes.get("/proveedores", (c) => {
-  return c.json({ data: PROVEEDORES });
+gastosRoutes.get("/proveedores", async (c) => {
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+  const catalog = await loadProveedorCatalog(supabase, empresaId);
+  return c.json({
+    data: catalog.map((p) => ({
+      id: p.id,
+      nombre: p.nombre,
+      rut: p.rut,
+      giro: p.giro,
+      moneda: p.moneda,
+      conIva: p.conIva,
+      keywords: p.keywords,
+    })),
+    total: catalog.length,
+    base_count: PROVEEDORES.length,
+  });
 });
 
 gastosRoutes.get("/", async (c) => {

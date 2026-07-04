@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { PROVEEDORES, getProveedorById, detectarProveedor, convertirALCLP } from "../domain/gasto-extranjero";
 
 describe("PROVEEDORES", () => {
-  it("has 12 providers", () => {
-    expect(PROVEEDORES).toHaveLength(12);
+  it("has 14 providers", () => {
+    expect(PROVEEDORES).toHaveLength(14);
   });
 
   it("every provider has required fields", () => {
