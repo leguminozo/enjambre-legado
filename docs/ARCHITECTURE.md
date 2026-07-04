@@ -453,7 +453,7 @@ Design system compartido. 3 subpaths: `@enjambre/ui`, `@enjambre/ui/tokens.css`,
 - **`Dialog`**: Radix — focus trap nativo, fondo inert. Formularios cortos con trigger (único uso hoy: `QuickActionAddStock`).
 - **`ImmersiveModal`**: layouts admin (aside, footer). Focus trap manual; ~15 vistas en núcleo.
 - **`OverlayFullscreen`**: herramientas admin a pantalla completa (`StoreEditorModal`). Backdrop compartido; sin cierre accidental por clic en fondo.
-- **`TiendaModal`**: retail sheet/panel en `apps/tienda` (CSS `globals.css`); paridad visual, API distinta por UX móvil.
+- **`TiendaModal`**: retail sheet/panel en `apps/tienda` (CSS `globals.css`); backdrop 72% alineado a `overlay-layer`; `useModalFocusTrap` compartido con `ImmersiveModal`.
 
 Regla: no introducir `fixed inset-0` con z-index propio; reutilizar tokens o componentes anteriores.
 

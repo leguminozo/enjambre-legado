@@ -29,6 +29,7 @@ export { useTheme, type Theme } from './hooks/useTheme';
 export { tokens, type TokenKey } from './tokens';
 export { createEnjambrePreset, enjambrePreset } from './tailwind-preset';
 export { friendlySupabaseError, friendlyApiError, friendlyError } from './lib/friendly-error';
+export { useModalFocusTrap, getFocusableElements, MODAL_FOCUSABLE_SELECTOR } from './lib/modal-focus';
 export { splitCsvLine } from './lib/csv';
 export { formatDate, formatDateShort, formatCLP, fmtCLP } from './lib/format';
 export { QRCode } from './components/QRCode';

@@ -345,7 +345,7 @@ html.tienda-overlay-open .whatsapp-float-mobile {
   border: none;
   padding: 0;
   cursor: pointer;
-  background: hsl(var(--background) / 0.82);
+  background: hsl(var(--background) / 0.72);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   animation: tienda-fade-in 0.2s ease-out;

@@ -84,7 +84,7 @@ Estrategia unificada en `src/lib/overlay-layer.ts` (tokens internos):
 | **`Dialog`** (Radix) | Formularios rápidos con trigger (ej. confirmar stock). | Focus trap Radix, fondo inert, `aria-*` automático. |
 | **`ImmersiveModal`** | Módulos admin con aside/footer o layouts complejos. | Focus trap manual, `aria-labelledby`, scroll lock. |
 | **`OverlayFullscreen`** | Herramientas admin edge-to-edge (ej. editor CMS + iframe). | Mismo backdrop; **no** cierra con clic en fondo por defecto. |
-| **`TiendaModal`** (solo tienda) | Sheet móvil + panel retail (galería, reseñas). | Portal + `useOverlayLock`; ver `apps/tienda/app/globals.css`. |
+| **`TiendaModal`** (solo tienda) | Sheet móvil + panel retail (galería, reseñas). | Portal + `useOverlayLock` + `useModalFocusTrap`; `aria-labelledby`. |
 
 **Backdrop compartido:** `bg-background/72 backdrop-blur-md` · **z-index modal:** `220` (panel `221`). Toasts en `9999` quedan encima.
 

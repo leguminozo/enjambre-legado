@@ -6,7 +6,7 @@
  * - Stacking correcto sobre chrome de núcleo/tienda (z-50 quedaba bajo sidebars)
  *
  * Escala (documentada; no duplicar z-index ad hoc en modales):
- *   60–82  chrome tienda (header, sidebars, tienda-modal)
+ *   60–82  chrome tienda (header, sidebars, tienda-modal — backdrop 72% paridad)
  *   78–79  notification bell móvil
  *   220    backdrop modal (Dialog + ImmersiveModal)
  *   221    panel modal

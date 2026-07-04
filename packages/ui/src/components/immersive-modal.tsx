@@ -1,18 +1,10 @@
 'use client';
 
-import React, { useEffect, useId, useRef, useCallback } from 'react';
+import React, { useId, useRef } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { overlayBackdropClassName } from '../lib/overlay-layer';
-
-const FOCUSABLE =
-  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-function getFocusableElements(root: HTMLElement): HTMLElement[] {
-  return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-    (el) => !el.hasAttribute('disabled') && el.offsetParent !== null
-  );
-}
+import { useModalFocusTrap } from '../lib/modal-focus';
 
 export type ImmersiveModalSize = 'md' | 'lg' | 'xl' | 'full';
 
@@ -51,45 +43,13 @@ export function ImmersiveModal({
   const autoTitleId = useId();
   const labelledBy = titleId ?? autoTitleId;
   const dialogRef = useRef<HTMLDivElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  const trapFocus = useCallback((e: KeyboardEvent) => {
-    if (e.key !== 'Tab' || !dialogRef.current) return;
-    const focusable = getFocusableElements(dialogRef.current);
-    if (focusable.length === 0) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    previousFocusRef.current = document.activeElement as HTMLElement | null;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      trapFocus(e);
-    };
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', onKey);
-    requestAnimationFrame(() => {
-      const root = dialogRef.current;
-      if (!root) return;
-      const focusable = getFocusableElements(root);
-      (focusable[0] ?? root).focus();
-    });
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener('keydown', onKey);
-      previousFocusRef.current?.focus?.();
-    };
-  }, [open, onClose, trapFocus]);
+  useModalFocusTrap({
+    open,
+    onClose,
+    containerRef: dialogRef,
+    lockBodyScroll: true,
+  });
 
   if (!open) return null;
 

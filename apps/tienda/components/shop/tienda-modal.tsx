@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { useModalFocusTrap } from '@enjambre/ui';
 import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
 
 type TiendaModalProps = {
@@ -10,9 +11,11 @@ type TiendaModalProps = {
   onClose: () => void;
   children: ReactNode;
   title?: ReactNode;
+  titleId?: string;
   kicker?: string;
   subtitle?: string;
   footer?: ReactNode;
+  /** Fallback cuando no hay `title` (galería sin título, etc.) */
   ariaLabel?: string;
   showClose?: boolean;
   size?: 'md' | 'lg';
@@ -24,6 +27,7 @@ export function TiendaModal({
   onClose,
   children,
   title,
+  titleId,
   kicker,
   subtitle,
   footer,
@@ -32,16 +36,12 @@ export function TiendaModal({
   size = 'md',
   headerExtra,
 }: TiendaModalProps) {
-  useOverlayLock(open);
+  const autoTitleId = useId();
+  const labelledBy = title != null && title !== '' ? (titleId ?? autoTitleId) : undefined;
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  useOverlayLock(open);
+  useModalFocusTrap({ open, onClose, containerRef: panelRef });
 
   if (!open || typeof document === 'undefined') return null;
 
@@ -56,16 +56,23 @@ export function TiendaModal({
         onClick={onClose}
       />
       <div
+        ref={panelRef}
         className={`tienda-modal-panel ${size === 'lg' ? 'is-lg' : ''}`}
         role="dialog"
         aria-modal="true"
-        aria-label={ariaLabel}
+        aria-labelledby={labelledBy}
+        aria-label={labelledBy ? undefined : ariaLabel}
+        tabIndex={-1}
       >
         {hasHeader && (
           <div className="tienda-modal-header">
             <div className="min-w-0 flex-1">
               {kicker && <p className="tienda-modal-kicker">{kicker}</p>}
-              {title && <h3 className="font-display text-lg text-foreground">{title}</h3>}
+              {title != null && title !== '' && (
+                <h3 id={labelledBy} className="font-display text-lg text-foreground">
+                  {title}
+                </h3>
+              )}
               {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
               {headerExtra}
             </div>
