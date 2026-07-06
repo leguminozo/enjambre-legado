@@ -244,6 +244,17 @@ Supabase: facturas_emitidas, gastos, impuestos
 
 **Entorno**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (o PUBLISHABLE), `TRANSBANK_*`, `SUPABASE_SERVICE_ROLE_KEY`
 
+**Vercel (monorepo)** — obligatorio por proyecto:
+| Proyecto | Root Directory | Build filter |
+|----------|----------------|--------------|
+| tienda | `apps/tienda` | `@enjambre/tienda` |
+| nucleo | `apps/nucleo` | `@enjambre/nucleo` |
+| campo | `apps/campo` | `@enjambre/campo` |
+
+No usar `vercel.json` en la raíz del repo para build (evita desplegar núcleo en un proyecto tienda). Config por app: `apps/tienda/vercel.json`, etc. Script: `pnpm go-live:vercel-setup`.
+
+Prod verificada: `tienda-three-gamma.vercel.app` (200 en `/`, `/catalogo`). Un preview con **404 en todas las rutas** (`x-matched-path: /_not-found`) indica Root Directory o `outputDirectory` mal configurados — redeploy tras corregir.
+
 ---
 
 ### 3.2 Nucleo (`@enjambre/nucleo`)

@@ -2,7 +2,7 @@
  * PWA mínima: NO interceptar /_next/* (chunks/CSS cambian en cada deploy).
  * HTML: red primero para no servir documentos viejos con hashes rotos.
  */
-const CACHE_NAME = 'oyz-tienda-v2.2';
+const CACHE_NAME = 'oyz-tienda-v2.3';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -48,8 +48,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // RSC y App Router data: siempre red para no atrapar JSON/RSC viejo.
-  if (request.headers.has('RSC') || request.headers.has('Next-Router-Prefetch') || request.headers.has('Next-Router-State-Tree')) {
+  // RSC y App Router data: siempre red (incluye ?_rsc= en Next 15+).
+  const isRscFlight =
+    url.searchParams.has('_rsc') ||
+    request.headers.has('RSC') ||
+    request.headers.has('Next-Router-Prefetch') ||
+    request.headers.has('Next-Router-State-Tree') ||
+    (request.headers.get('accept') || '').includes('text/x-component');
+
+  if (isRscFlight) {
     event.respondWith(fetch(request));
     return;
   }

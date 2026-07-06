@@ -460,6 +460,16 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ## MEDIO — Planificar para el roadmap
 
+### D70. Preview Vercel tienda 404 global (`x-matched-path: /_not-found`)
+
+**Problema**: URLs tipo `tienda-eta-lime.vercel.app` devuelven 404 en `/`, `/catalogo` y peticiones `?_rsc=` aunque el layout cargue. El service worker solo propaga el fallo de red.
+
+**Causa**: Proyecto Vercel sin **Root Directory** `apps/tienda` o con `outputDirectory` heredado del antiguo `vercel.json` raíz (build de núcleo).
+
+**Acción**: Dashboard → proyecto tienda → Root Directory `apps/tienda`; Build Command `turbo run build --filter=@enjambre/tienda`; sin `outputDirectory` manual. O `pnpm go-live:vercel-setup` + redeploy. Prod sana: `tienda-three-gamma.vercel.app`.
+
+---
+
 ### D69. Migraciones reposición 83–84 pendientes en remoto
 
 **Problema**: `83_replenishment_canonical.sql` (`delivery_address` en checkout sessions, nombres de planes) y `84_subscription_renewal_period_roll.sql` (motor renovación v2) no aplicadas si `supabase db push` falla por auth.
