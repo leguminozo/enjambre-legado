@@ -21,7 +21,7 @@ interface InvitationCodeRow {
   expires_at: string | null;
   active: boolean;
   created_at: string;
-  profiles: { full_name: string } | null;
+  creatorName?: string;
 }
 
 interface RedemptionRow {
@@ -31,7 +31,8 @@ interface RedemptionRow {
   redeemed_at: string;
   roles_assigned: string[];
   invitation_codes: { code: string } | null;
-  profiles: { full_name: string; email: string } | null;
+  userName?: string;
+  userEmail?: string;
 }
 
 export function InvitacionesPanel() {
@@ -45,15 +46,79 @@ export function InvitacionesPanel() {
 
   const [newCode, setNewCode] = useState({ maxUses: '', expiresAt: '' });
 
+  const resolveEmpresaId = async () => {
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) throw new Error('No autenticado');
+
+    const { data: ueData, error: ueError } = await supabase
+      .from('usuarios_empresas')
+      .select('empresa_id')
+      .eq('user_id', authUser.id)
+      .limit(1);
+    if (ueError) throw ueError;
+
+    const empresaId = ueData?.[0]?.empresa_id;
+    if (!empresaId) throw new Error('Sin empresa asignada');
+    return empresaId;
+  };
+
+  const fetchProfileNames = async (userIds: string[]) => {
+    const uniqueIds = [...new Set(userIds.filter(Boolean))];
+    if (uniqueIds.length === 0) return {} as Record<string, { full_name: string; email?: string }>;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', uniqueIds);
+    if (error) throw error;
+
+    return Object.fromEntries(
+      (data || []).map((p: { id: string; full_name: string; email?: string }) => [p.id, p]),
+    );
+  };
+
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [codesRes, redemptionsRes] = await Promise.all([
-        supabase.from('invitation_codes').select('*, profiles!invitation_codes_created_by_fkey(full_name)').order('created_at', { ascending: false }).limit(100),
-        supabase.from('invitation_redemptions').select('*, invitation_codes(code), profiles!invitation_redemptions_user_id_fkey(full_name, email)').order('redeemed_at', { ascending: false }).limit(50),
+      const empresaId = await resolveEmpresaId();
+
+      const { data: codesData, error: codesError } = await supabase
+        .from('invitation_codes')
+        .select('*')
+        .eq('empresa_id', empresaId)
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (codesError) throw codesError;
+
+      const codeRows = (codesData as InvitationCodeRow[]) || [];
+      const codeIds = codeRows.map(c => c.id);
+
+      let redemptionRows: RedemptionRow[] = [];
+      if (codeIds.length > 0) {
+        const { data: redemptionsData, error: redemptionsError } = await supabase
+          .from('invitation_redemptions')
+          .select('*, invitation_codes(code)')
+          .in('invitation_id', codeIds)
+          .order('redeemed_at', { ascending: false })
+          .limit(50);
+        if (redemptionsError) throw redemptionsError;
+        redemptionRows = (redemptionsData as RedemptionRow[]) || [];
+      }
+
+      const profileMap = await fetchProfileNames([
+        ...codeRows.map(c => c.created_by),
+        ...redemptionRows.map(r => r.user_id),
       ]);
-      if (codesRes.data) setCodes(codesRes.data as InvitationCodeRow[]);
-      if (redemptionsRes.data) setRedemptions(redemptionsRes.data as RedemptionRow[]);
+
+      setCodes(codeRows.map(c => ({
+        ...c,
+        creatorName: profileMap[c.created_by]?.full_name,
+      })));
+      setRedemptions(redemptionRows.map(r => ({
+        ...r,
+        userName: profileMap[r.user_id]?.full_name,
+        userEmail: profileMap[r.user_id]?.email,
+      })));
     } catch (err) {
       toast(friendlyError(err, 'Error al cargar invitaciones'), { type: 'error' });
     } finally {
@@ -69,12 +134,21 @@ export function InvitacionesPanel() {
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (!authUser) throw new Error('No autenticado');
 
-        const payload: Record<string, unknown> = {
-          code: generateCode(),
-          created_by: authUser.id,
-          roles: ['admin'],
-          active: true,
-        };
+      const empresaId = await resolveEmpresaId();
+      const { data: generatedCode, error: codeError } = await supabase.rpc('generar_codigo_invitacion', {
+        p_empresa_id: empresaId,
+      });
+      if (codeError) throw codeError;
+      if (!generatedCode) throw new Error('No se pudo generar el código');
+
+      const payload: Record<string, unknown> = {
+        empresa_id: empresaId,
+        code: generatedCode,
+        created_by: authUser.id,
+        roles: ['rep_ventas'],
+        tools: {},
+        active: true,
+      };
       if (newCode.maxUses) payload.max_uses = Number(newCode.maxUses);
       if (newCode.expiresAt) payload.expires_at = new Date(newCode.expiresAt).toISOString();
 
@@ -124,13 +198,6 @@ export function InvitacionesPanel() {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
-  };
-
-  const generateCode = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let result = '';
-    for (let i = 0; i < 8; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
-    return result;
   };
 
   if (loading) {
@@ -228,7 +295,7 @@ export function InvitacionesPanel() {
                 <div className="flex items-center gap-4 mt-2 flex-wrap">
                   <span className="text-[0.65rem] text-muted-foreground">Usos: <strong>{c.current_uses}{c.max_uses ? `/${c.max_uses}` : ''}</strong></span>
                       {c.expires_at && <span className="text-[0.65rem] text-muted-foreground">Expira: {new Date(c.expires_at).toLocaleDateString('es-CL')}</span>}
-                      <span className="text-[0.65rem] text-muted-foreground">Creado por: {c.profiles?.full_name || '—'}</span>
+                      <span className="text-[0.65rem] text-muted-foreground">Creado por: {c.creatorName || '—'}</span>
                     </div>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
@@ -265,8 +332,8 @@ export function InvitacionesPanel() {
               <div key={r.id} className="p-4 rounded-xl bg-background/[0.03] border border-foreground/[0.06]">
                 <div className="flex items-center gap-2 mb-1">
                   <CheckCircle2 size={14} className="text-success" />
-                  <p className="font-bold text-sm text-primary">{r.profiles?.full_name || 'Usuario'}</p>
-                  <span className="text-xs text-muted-foreground">{r.profiles?.email}</span>
+                  <p className="font-bold text-sm text-primary">{r.userName || 'Usuario'}</p>
+                  <span className="text-xs text-muted-foreground">{r.userEmail}</span>
                 </div>
               <div className="flex items-center gap-4 mt-1">
                 <span className="text-[0.65rem] text-muted-foreground">Código: <strong className="font-mono text-accent">{r.invitation_codes?.code}</strong></span>

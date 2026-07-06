@@ -3,10 +3,11 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { ViewLoading, LoadingOverlay } from '@enjambre/ui'
 import { BarChart3, TrendingUp, DollarSign, Target, Leaf, Crown, ArrowUpRight, Hexagon, TreePine, Users, Wallet, Percent, Trophy } from 'lucide-react'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors'
 import { useApiFetch } from '@/hooks/use-api-fetch'
 import { KpiCard } from '@/components/ui/KpiCard'
+import { ChartBox } from '@/components/charts/ChartBox'
 
 const CHART_GRID = 'hsl(var(--border) / 0.5)'
 
@@ -172,12 +173,40 @@ export function DashboardResumen() {
               <div className="section-subtitle">kg por mes · Total: {fmtNum(enjambre.cosechas.totalYTD)} kg</div>
             </div>
           </div>
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={enjambre.cosechas.byMonth}>
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-                <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
+          <ChartBox height={260}>
+            <AreaChart data={enjambre.cosechas.byMonth}>
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
+              <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: 8,
+                  border: 'none',
+                  boxShadow: 'var(--shadow-md)',
+                  fontFamily: 'var(--font-inter)',
+                  fontSize: '0.82rem',
+                  background: 'hsl(var(--card))',
+                  color: 'hsl(var(--foreground))',
+                }}
+              />
+              <Area type="monotone" dataKey="cosecha" stroke={BOSQUE_ULMO} fill="hsl(var(--primary) / 0.15)" strokeWidth={2} />
+            </AreaChart>
+          </ChartBox>
+        </div>
+
+        <div className="card animate-in delay-3">
+          <div className="section-header">
+            <div>
+              <div className="section-title">Ingresos por Canal</div>
+              <div className="section-subtitle">CLP YTD · {ventas.totalVentasYTD} ventas</div>
+            </div>
+          </div>
+          {channelData.length > 0 ? (
+            <ChartBox height={260}>
+              <BarChart data={channelData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
+                <YAxis dataKey="channel" type="category" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} width={80} />
                 <Tooltip
                   contentStyle={{
                     borderRadius: 8,
@@ -189,50 +218,18 @@ export function DashboardResumen() {
                     color: 'hsl(var(--foreground))',
                   }}
                 />
-                <Area type="monotone" dataKey="cosecha" stroke={BOSQUE_ULMO} fill="hsl(var(--primary) / 0.15)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="card animate-in delay-3">
-          <div className="section-header">
-            <div>
-              <div className="section-title">Ingresos por Canal</div>
-              <div className="section-subtitle">CLP YTD · {ventas.totalVentasYTD} ventas</div>
+                <Bar dataKey="revenue" radius={[0, 4, 4, 0]}>
+                  {channelData.map((entry, idx) => (
+                    <Cell key={idx} fill={CHANNEL_COLORS[entry.channel] ?? ORO_MIEL} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ChartBox>
+          ) : (
+            <div className="flex items-center justify-center h-[260px] text-muted-foreground text-[0.85rem]">
+              Sin ventas registradas
             </div>
-          </div>
-          <div className="h-[260px]">
-            {channelData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={channelData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                  <YAxis dataKey="channel" type="category" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} width={80} />
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: 8,
-                      border: 'none',
-                      boxShadow: 'var(--shadow-md)',
-                      fontFamily: 'var(--font-inter)',
-                      fontSize: '0.82rem',
-                      background: 'hsl(var(--card))',
-                      color: 'hsl(var(--foreground))',
-                    }}
-                  />
-                  <Bar dataKey="revenue" radius={[0, 4, 4, 0]}>
-                    {channelData.map((entry, idx) => (
-                      <Cell key={idx} fill={CHANNEL_COLORS[entry.channel] ?? ORO_MIEL} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground text-[0.85rem]">
-                Sin ventas registradas
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
@@ -245,28 +242,26 @@ export function DashboardResumen() {
               <div className="section-subtitle">Ingresos vs Egresos YTD (CLP)</div>
             </div>
           </div>
-          <div className="h-[240px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={finanzas.cashFlow}>
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-                <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: 8,
-                    border: 'none',
-                    boxShadow: 'var(--shadow-md)',
-                    fontFamily: 'var(--font-inter)',
-                    fontSize: '0.82rem',
-                    background: 'hsl(var(--card))',
-                    color: 'hsl(var(--foreground))',
-                  }}
-                />
-                <Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill="hsl(var(--success) / 0.12)" strokeWidth={2} />
-                <Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill="hsl(var(--destructive) / 0.08)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <ChartBox height={240}>
+            <AreaChart data={finanzas.cashFlow}>
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
+              <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: 8,
+                  border: 'none',
+                  boxShadow: 'var(--shadow-md)',
+                  fontFamily: 'var(--font-inter)',
+                  fontSize: '0.82rem',
+                  background: 'hsl(var(--card))',
+                  color: 'hsl(var(--foreground))',
+                }}
+              />
+              <Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill="hsl(var(--success) / 0.12)" strokeWidth={2} />
+              <Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill="hsl(var(--destructive) / 0.08)" strokeWidth={2} />
+            </AreaChart>
+          </ChartBox>
         </div>
 
         <div className="flex flex-col gap-6">
@@ -276,17 +271,15 @@ export function DashboardResumen() {
             </div>
             {healthData.length > 0 ? (
               <div className="flex items-center gap-6">
-                <div className="w-[100px] h-[100px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={healthData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={25} outerRadius={45} paddingAngle={2}>
-                        {healthData.map((entry, idx) => (
-                          <Cell key={idx} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                <ChartBox height={100} className="w-[100px]">
+                  <PieChart>
+                    <Pie data={healthData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={25} outerRadius={45} paddingAngle={2}>
+                      {healthData.map((entry, idx) => (
+                        <Cell key={idx} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ChartBox>
                 <div className="flex flex-col gap-4">
                   {healthData.map((d, i) => (
                     <div key={i} className="flex items-center gap-2 text-[0.82rem]">
