@@ -97,6 +97,16 @@ function fmtNum(n: number): string {
   return n.toFixed(0)
 }
 
+function formatRangeSubtitle(from: string, to: string): string {
+  const fmt = (iso: string) =>
+    new Date(`${iso}T12:00:00`).toLocaleDateString('es-CL', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+  return `${fmt(from)} → ${fmt(to)}`
+}
+
 const CHART_GRID = 'hsl(var(--border) / 0.5)'
 const CHART_TOOLTIP: React.CSSProperties = {
   borderRadius: 8,
@@ -178,6 +188,7 @@ export function DashboardEjecutivo() {
 
   const { kpis, enjambre, finanzas, ventas, equipo, stock, alerts } = data
   const rangeLabel = data.range.label
+  const rangeSubtitle = formatRangeSubtitle(data.range.from, data.range.to)
 
   const channelData = Object.entries(ventas.byChannel).map(([channel, revenue]) => ({
     channel,
@@ -208,7 +219,7 @@ export function DashboardEjecutivo() {
         variant="compact"
         eyebrow="Gerencia"
         title="Panel Ejecutivo"
-        subtitle={`${rangeLabel} · ${data.range.from} → ${data.range.to}`}
+        subtitle={rangeSubtitle}
         icon={<BarChart3 size={20} />}
         actions={
           <span className="text-[0.78rem] text-muted-foreground flex items-center gap-1.5">

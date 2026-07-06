@@ -291,6 +291,11 @@ export const VIEW_SHELL_PATHS = new Set([
   '/pipeline',
   '/perfil',
   '/configuracion',
+  '/ejecutivo',
+  '/leaderboard',
+  '/invitaciones',
+  '/operadores-feria',
+  '/creador',
 ])
 
 export function routeUsesViewShell(pathname: string): boolean {

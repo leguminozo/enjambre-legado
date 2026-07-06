@@ -3,7 +3,7 @@
 import { useRef, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useApiFetch } from '@/hooks/use-api-fetch'
-import { BentoGrid, BentoGridItem } from '@enjambre/ui'
+import { BentoGrid, BentoGridItem, ViewLoading } from '@enjambre/ui'
 import { CinematicCard } from '@enjambre/ui'
 import { Leaf, DollarSign, Target, Activity } from 'lucide-react'
 import gsap from 'gsap'
@@ -53,11 +53,7 @@ export function EcosistemaDashboard() {
   }, [isLoading, data])
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center p-12">
-        <div className="text-muted-foreground text-[0.9rem] animate-pulse">Sintonizando el ecosistema...</div>
-      </div>
-    )
+    return <ViewLoading variant="view" label="Cargando resumen" hideLabel />
   }
 
   if (error || !data) {

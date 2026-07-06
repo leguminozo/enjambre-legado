@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity } from 'lucide-react';
 import type { Colmena, InspeccionRecord, VarroaRecord, PesoRecord } from '@/types/ecosystem';
 import { healthFromEstado, estadoFromHealth } from '@/types/ecosystem';
+import { ViewLoading } from '@enjambre/ui';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { fetchPronostico } from '@/lib/meteo';
@@ -219,7 +220,7 @@ export function ApicultorView() {
     const totalProduction = localColmenas.reduce((sum, c) => sum + c.production, 0);
 
     if (loading) {
-        return <div style={{ padding: 'var(--space-2xl)', textAlign: 'center', color: 'hsl(var(--foreground))' }}>Sincronizando con el bosque...</div>;
+        return <ViewLoading variant="view" label="Cargando colmenas" hideLabel />;
     }
 
     return (
