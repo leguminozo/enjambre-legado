@@ -4,6 +4,7 @@ import type { Database } from "@enjambre/database/database.types";
 import { createMiddleware } from "hono/factory";
 import { getEnvOrThrow } from "./env";
 import { getSupabaseAnonKey, getSupabaseUrl } from "./supabase-env";
+import { getAllowedCorsOrigins } from "@/lib/publicUrls";
 
 export type AppVariables = {
   user: {
@@ -161,26 +162,7 @@ export const csrfMiddleware = createMiddleware(async (c, next) => {
   const origin = c.req.header("origin");
   const referer = c.req.header("referer");
 
-  const allowedOrigins = new Set(
-    [
-      process.env.NEXT_PUBLIC_SITE_URL,
-      process.env.NEXT_PUBLIC_TIENDA_URL,
-      process.env.NEXT_PUBLIC_URL_TIENDA,
-      process.env.NEXT_PUBLIC_CAMPO_URL,
-      process.env.NEXT_PUBLIC_URL_CAMPO,
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:3002",
-    ]
-      .filter(Boolean)
-      .map((o) => {
-        try {
-          return new URL(o!).origin;
-        } catch {
-          return o!;
-        }
-      })
-  );
+  const allowedOrigins = getAllowedCorsOrigins();
 
   // 1. Verify Origin header
   if (origin) {

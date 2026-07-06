@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SECRETS="$ROOT/.env.secrets.local"
-PROD_TEAM="${VERCEL_SCOPE:-gabos-projects-e4e7d9ab}"
+PROD_TEAM="${VERCEL_SCOPE:-guillermoc2710-8540s-projects}"
 SCOPE_ARGS=()
 if [[ -n "$PROD_TEAM" ]]; then
   SCOPE_ARGS=(--scope "$PROD_TEAM")
@@ -39,8 +39,8 @@ resolve_url() {
   fi
 }
 
-NUCLEO_URL="${NUCLEO_PRODUCTION_URL:-https://nucleo-theta-gabos-projects-e4e7d9ab.vercel.app}"
-TIENDA_URL="${TIENDA_PRODUCTION_URL:-https://tienda-three-gamma.vercel.app}"
+NUCLEO_URL="${NUCLEO_PRODUCTION_URL:-https://nucleo-theta.vercel.app}"
+TIENDA_URL="${TIENDA_PRODUCTION_URL:-https://tienda-eta-lime.vercel.app}"
 CAMPO_URL="${CAMPO_PRODUCTION_URL:-https://campo-olive.vercel.app}"
 
 CLI_USER="$(vercel whoami 2>/dev/null || true)"

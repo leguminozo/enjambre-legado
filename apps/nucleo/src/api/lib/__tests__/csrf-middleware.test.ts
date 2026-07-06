@@ -91,4 +91,14 @@ describe("CSRF Middleware", () => {
     expect(res.status).toBe(200);
     expect(await res.text()).toBe("Webhook ok");
   });
+
+  it("should allow POST from canonical production tienda origin", async () => {
+    const res = await app.request("/test", {
+      method: "POST",
+      headers: {
+        origin: "https://tienda-eta-lime.vercel.app",
+      },
+    });
+    expect(res.status).toBe(200);
+  });
 });

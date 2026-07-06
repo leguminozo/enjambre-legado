@@ -253,7 +253,7 @@ Supabase: facturas_emitidas, gastos, impuestos
 
 No usar `vercel.json` en la raíz del repo para build (evita desplegar núcleo en un proyecto tienda). Config por app: `apps/tienda/vercel.json`, etc. Script: `pnpm go-live:vercel-setup`.
 
-Prod verificada: `tienda-three-gamma.vercel.app` (200 en `/`, `/catalogo`). Un preview con **404 en todas las rutas** (`x-matched-path: /_not-found`) indica Root Directory o `outputDirectory` mal configurados — redeploy tras corregir.
+Prod verificada: `tienda-eta-lime.vercel.app`, `campo-olive.vercel.app`, `nucleo-theta.vercel.app` (200 en `/`). Un preview con **404 en todas las rutas** (`x-matched-path: /_not-found`) indica Root Directory o `outputDirectory` mal configurados — redeploy tras corregir.
 
 ---
 

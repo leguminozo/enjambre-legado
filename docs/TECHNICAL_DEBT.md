@@ -466,7 +466,7 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 **Causa**: Proyecto Vercel sin **Root Directory** `apps/tienda` o con `outputDirectory` heredado del antiguo `vercel.json` raíz (build de núcleo).
 
-**Acción**: Dashboard → proyecto tienda → Root Directory `apps/tienda`; Build Command `turbo run build --filter=@enjambre/tienda`; sin `outputDirectory` manual. O `pnpm go-live:vercel-setup` + redeploy. Prod sana: `tienda-three-gamma.vercel.app`.
+**Acción**: Dashboard → proyecto tienda → Root Directory `apps/tienda`; Build Command directo `next build` (ver `apps/tienda/vercel.json`); sin `outputDirectory` manual. O `pnpm go-live:vercel-setup` + redeploy. Prod sana: `tienda-eta-lime.vercel.app` (fix middleware next-intl Jun 2026).
 
 ---
 
