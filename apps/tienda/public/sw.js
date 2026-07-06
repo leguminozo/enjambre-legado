@@ -2,22 +2,23 @@
  * PWA mínima: NO interceptar /_next/* (chunks/CSS cambian en cada deploy).
  * HTML: red primero para no servir documentos viejos con hashes rotos.
  */
-const CACHE_NAME = 'oyz-tienda-v2.3';
+const CACHE_NAME = 'oyz-tienda-v2.4';
+
+const PRECACHE_URLS = [
+  '/manifest.webmanifest',
+  '/assets/editorial/immersion.png',
+  '/assets/editorial/honey-jar.png',
+  '/assets/editorial/sachets.png',
+  '/icons/icon-192.svg',
+  '/icons/icon-512.svg',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll([
-        '/',
-        '/manifest.webmanifest',
-        '/assets/editorial/immersion.png',
-        '/assets/editorial/honey-jar.png',
-        '/assets/editorial/sachets.png',
-        '/icons/icon-192.svg',
-        '/icons/icon-512.svg'
-      ]))
-      .then(() => self.skipWaiting()),
+    caches.open(CACHE_NAME).then(async (cache) => {
+      await Promise.allSettled(PRECACHE_URLS.map((url) => cache.add(url)));
+      await self.skipWaiting();
+    }),
   );
 });
 
