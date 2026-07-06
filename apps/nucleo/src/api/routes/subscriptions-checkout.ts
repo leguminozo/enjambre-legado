@@ -1,3 +1,4 @@
+import { SUBSCRIPTION_BLOCKING_STATUSES } from '@enjambre/pricing';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
@@ -35,6 +36,7 @@ async function rateLimitMiddleware(
 const InitBodySchema = z.object({
   planId: z.string().uuid(),
   returnUrl: z.string().url().optional(),
+  deliveryAddress: z.string().min(5).max(500).optional(),
 });
 
 const CommitBodySchema = z.object({
@@ -73,7 +75,7 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
       return c.json({ code: 'unauthorized', message: 'Debes iniciar sesión' }, 401);
     }
 
-    const { planId, returnUrl: rawReturnUrl } = c.req.valid('json');
+    const { planId, returnUrl: rawReturnUrl, deliveryAddress } = c.req.valid('json');
     const admin = createAdminClient();
 
     const { data: plan, error: planError } = await admin
@@ -90,12 +92,12 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
       .from('subscriptions')
       .select('id')
       .eq('user_id', user.id)
-      .in('status', ['active', 'trialing', 'paused'])
+      .in('status', [...SUBSCRIPTION_BLOCKING_STATUSES])
       .limit(1)
       .maybeSingle();
 
     if (activeSub) {
-      return c.json({ code: 'already_subscribed', message: 'Ya tienes un ritual activo' }, 409);
+      return c.json({ code: 'already_subscribed', message: 'Ya tienes una reposición activa' }, 409);
     }
 
     const total = Math.max(1, Math.round(plan.price_clp));
@@ -104,7 +106,7 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
 
     const baseReturnUrl =
       rawReturnUrl ||
-      `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/perfil/ritual/resultado`;
+      `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/perfil/reposicion/resultado`;
     const returnUrl = `${baseReturnUrl}?buyOrder=${encodeURIComponent(buyOrder)}`;
 
     const provider = getPaymentProvider();
@@ -123,6 +125,7 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
       userId: user.id,
       planId: plan.id,
       total,
+      deliveryAddress: deliveryAddress?.trim() || null,
       createdAt: Date.now(),
     });
 
@@ -136,7 +139,7 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
       planName: plan.name,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo iniciar el pago del ritual';
+    const message = error instanceof Error ? error.message : 'No se pudo iniciar el pago de reposición';
     return c.json({ code: 'init_failed', message }, 500);
   }
 });
@@ -183,7 +186,7 @@ subscriptionsCheckoutRoutes.post('/commit', zValidator('json', CommitBodySchema)
       return c.json({
         ok: false,
         authorized: true,
-        error: 'Pago autorizado pero no se pudo activar el ritual. Contacta soporte con orden ' + buyOrder,
+        error: 'Pago autorizado pero no se pudo activar la reposición. Contacta soporte con orden ' + buyOrder,
         buyOrder,
       }, 200);
     }

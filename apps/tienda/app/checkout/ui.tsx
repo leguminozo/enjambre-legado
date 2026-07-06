@@ -15,15 +15,17 @@ import {
   getCourier,
   type CourierCode,
 } from '@enjambre/logistica';
-import { friendlyApiError, HexagonLoader } from '@enjambre/ui';
+import { HexagonLoader } from '@enjambre/ui';
 import {
   friendlyCheckoutApiMessage,
   shouldBlockCheckoutPayment,
 } from '@/lib/shop/checkout-errors';
+import { startCartCheckout } from '@/lib/shop/cart-checkout-client';
+import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { useAuth } from '@/components/providers/auth-context';
 import { useLoyaltyPoints } from '@/lib/hooks/use-loyalty-points';
 import { useCartAbandonmentTracking } from '@/lib/hooks/use-cart-abandonment';
-import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
+import { CHECKOUT_RESULTADO_PATH } from '@/lib/shop/store-routes';
 
 type BuyerMode = 'legado' | 'privada';
 
@@ -314,127 +316,35 @@ export function CheckoutClient() {
     setError(null);
     setPriceConflicts(null);
 
-    if (lines.length === 0) {
-      setError('Tu carrito está vacío.');
-      setLoading(false);
-      return;
-    }
+    const payloadCart =
+      pricing?.line_items.map((l) => ({
+        productId: l.product_id,
+        slug: l.slug,
+        name: l.name,
+        unitPrice: l.unit_price,
+        quantity: l.quantity,
+      })) ?? [];
 
-    const returnUrl = `${window.location.origin}/checkout/resultado`;
+    const result = await startCartCheckout(payloadCart, shipping, {
+      buyerMode,
+      courierCode,
+      puntosACanjear: usarPuntos ? puntosACanjear : 0,
+      codigoDescuento: codigoAplicado ?? undefined,
+      returnUrl: `${window.location.origin}${CHECKOUT_RESULTADO_PATH}`,
+    });
 
-    const NUCLEO_URL = getNucleoApiUrl();
-    if (!NUCLEO_URL) {
-      setError('Checkout no disponible. Configura el servicio de pagos.');
-      setLoading(false);
-      return;
-    }
-
-    let token: string | undefined;
-    try {
-      const { createClient } = await import('@/utils/supabase/client');
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: sessionData } = await supabase.auth.getSession();
-        token = sessionData?.session?.access_token;
+    if (!result.ok) {
+      if (result.priceConflict) {
+        setPriceConflicts(result.priceConflict.details);
       }
-    } catch (e) {
-      // Allow guest checkout if token fetch fails
-    }
-
-    const payloadCart = pricing?.line_items.map(l => ({
-      productId: l.product_id,
-      slug: l.slug,
-      name: l.name,
-      unitPrice: l.unit_price,
-      quantity: l.quantity,
-    })) || [];
-
-    let res: Response;
-    try {
-      res = await fetch(`${NUCLEO_URL}/api/checkout/init`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          cart: payloadCart,
-          shipping,
-          returnUrl,
-          buyerMode,
-          courierCode,
-          puntosACanjear: usarPuntos ? puntosACanjear : 0,
-          codigoDescuento: codigoAplicado ?? undefined,
-        }),
-      });
-    } catch (networkError) {
-      setError('Error de conexión. Verifica tu internet e intenta de nuevo.');
+      setError(result.message);
       setLoading(false);
       return;
     }
-
-    const json = (await res.json()) as {
-      code?: string;
-      url?: string;
-      token?: string;
-      buyOrder?: string;
-      total?: number;
-      provider?: string;
-      error?: string;
-      message?: string;
-      details?: string[];
-      verifiedCart?: { productId: string; name: string; unitPrice: number; quantity: number }[];
-    };
-
-    if (!res.ok) {
-      if (res.status === 409 && json.verifiedCart) {
-        setPriceConflicts(json.details ?? ['Algunos productos cambiaron de precio']);
-        setError('Algunos productos cambiaron de precio. Revisa el carrito.');
-      } else {
-        setError(
-          friendlyCheckoutApiMessage(json.code, json.message ?? json.error, 'init') ||
-            (json.error ? friendlyApiError(undefined, json.error) : 'No se pudo iniciar el pago'),
-        );
-      }
-      setLoading(false);
-      return;
-    }
-
-    if (!json.url || !json.token) {
-      setError('No se pudo iniciar el pago');
-      setLoading(false);
-      return;
-    }
-
-  sessionStorage.setItem(
-    'oyz_pending_checkout',
-    JSON.stringify({
-      buyOrder: json.buyOrder,
-      provider: json.provider,
-    }),
-  );
 
     gsap.to(buttonRef.current, {
       scale: 0.98,
       duration: 0.2,
-      onComplete: () => {
-        if (json.provider === 'flow' && json.url) {
-          window.location.href = `${json.url}?token=${json.token}`;
-        } else if (json.url && json.token) {
-          const form = document.createElement('form');
-          form.method = 'POST';
-          form.action = json.url;
-          const tokenInput = document.createElement('input');
-          tokenInput.type = 'hidden';
-          tokenInput.name = 'token_ws';
-          tokenInput.value = json.token;
-          form.appendChild(tokenInput);
-          document.body.appendChild(form);
-          form.submit();
-        }
-      },
     });
   };
 

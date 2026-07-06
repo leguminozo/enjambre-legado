@@ -10,7 +10,9 @@ import {
   renderJsonLd,
 } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
-import { AddToCartButton, TraceabilitySection } from './ui';
+import { TraceabilitySection } from './ui';
+import { ProductPurchaseActions } from '@/components/shop/product-purchase-actions';
+import { listActiveSubscriptionPlans } from '@/lib/shop/subscription-plans';
 import { ResenasSection } from '@/components/shop/resenas-section';
 import { fetchResenas } from '@/lib/shop/resenas-api';
 import { ProductGallery } from '@/components/shop/product-gallery';
@@ -88,7 +90,10 @@ export default async function ProductoPage({ params }: PageProps) {
   }
 
   const inStock = product.stock == null || product.stock > 0;
-  const resenasData = await fetchResenas(product.id);
+  const [resenasData, replenishmentPlans] = await Promise.all([
+    fetchResenas(product.id),
+    listActiveSubscriptionPlans(),
+  ]);
 
   const productSchema = productJsonLd({
     name: product.name,
@@ -182,16 +187,11 @@ export default async function ProductoPage({ params }: PageProps) {
             )}
           </div>
 
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
-              <AddToCartButton product={product} disabled={!inStock} />
-              <span className="text-sm text-muted-foreground">
-                {product.stock == null
-                  ? 'Stock por confirmar'
-                  : product.stock > 0
-                    ? `${product.stock} disponibles`
-                    : 'Sin stock'}
-              </span>
-            </div>
+            <ProductPurchaseActions
+              product={product}
+              plans={replenishmentPlans}
+              inStock={inStock}
+            />
 
             {/* Trazabilidad QR */}
             <TraceabilitySection

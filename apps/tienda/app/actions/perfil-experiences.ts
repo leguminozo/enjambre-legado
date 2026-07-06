@@ -25,7 +25,16 @@ export type UserSubscription = {
   id: string
   status: string
   current_period_end: string
+  delivery_address: string | null
   subscription_plans: SubscriptionPlan | null
+}
+
+export type SubscriptionDelivery = {
+  id: string
+  period_number: number
+  scheduled_for: string
+  status: string
+  tracking_url: string | null
 }
 
 export type PreOrderRow = {
@@ -119,6 +128,7 @@ export async function redeemLoyaltyReward(rewardId: string): Promise<void> {
 export async function getSubscriptionDashboard(): Promise<{
   subscription: UserSubscription | null
   plans: SubscriptionPlan[]
+  deliveries: SubscriptionDelivery[]
 }> {
   const supabase = await createClient()
   const {
@@ -126,51 +136,11 @@ export async function getSubscriptionDashboard(): Promise<{
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return { subscription: null, plans: [] }
+    return { subscription: null, plans: [], deliveries: [] }
   }
 
-  const [subscriptionResult, plansResult] = await Promise.all([
-    supabase
-      .from('subscriptions')
-      .select('id, status, current_period_end, subscription_plans(id, name, key, price_clp, frequency, description)')
-      .eq('user_id', user.id)
-      .in('status', ['active', 'trialing', 'paused'])
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    supabase
-      .from('subscription_plans')
-      .select('id, name, key, price_clp, frequency, description')
-      .eq('active', true)
-      .order('price_clp'),
-  ])
-
-  const rawSub = subscriptionResult.data as {
-    id: string
-    status: string
-    current_period_end: string
-    subscription_plans: SubscriptionPlan | SubscriptionPlan[] | null
-  } | null
-
-  const planJoin = rawSub?.subscription_plans
-  const normalizedPlan = Array.isArray(planJoin) ? planJoin[0] ?? null : planJoin ?? null
-
-  return {
-    subscription: rawSub
-      ? {
-          id: rawSub.id,
-          status: rawSub.status,
-          current_period_end: rawSub.current_period_end,
-          subscription_plans: normalizedPlan,
-        }
-      : null,
-    plans: (plansResult.data ?? []) as SubscriptionPlan[],
-  }
-}
-
-/** @deprecated Use Flow checkout via RitualMensualClient */
-export async function subscribeToPlan(_planId: string): Promise<void> {
-  throw new Error('El ritual requiere pago. Usa el flujo de checkout en la página del ritual.')
+  const { fetchSubscriptionDashboard } = await import('@/lib/shop/subscription-dashboard')
+  return fetchSubscriptionDashboard(supabase, user.id)
 }
 
 export async function getReservasDashboard(): Promise<{

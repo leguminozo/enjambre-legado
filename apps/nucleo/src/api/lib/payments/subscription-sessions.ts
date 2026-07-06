@@ -8,6 +8,7 @@ export type SubscriptionCheckoutSession = {
   userId: string;
   planId: string;
   total: number;
+  deliveryAddress?: string | null;
   createdAt: number;
 };
 
@@ -18,6 +19,7 @@ const SubscriptionSessionRowSchema = z.object({
   user_id: z.string().uuid(),
   plan_id: z.string().uuid(),
   total: z.number(),
+  delivery_address: z.string().nullable().optional(),
   status: z.enum(['pending', 'completed', 'expired']),
   created_at: z.string(),
 });
@@ -37,6 +39,7 @@ function toSession(row: z.infer<typeof SubscriptionSessionRowSchema>): Subscript
     userId: row.user_id,
     planId: row.plan_id,
     total: row.total,
+    deliveryAddress: row.delivery_address ?? null,
     createdAt: new Date(row.created_at).getTime(),
   };
 }
@@ -52,6 +55,7 @@ export async function saveSubscriptionCheckoutSession(
     user_id: session.userId,
     plan_id: session.planId,
     total: session.total,
+    delivery_address: session.deliveryAddress ?? null,
   });
   if (error) throw new Error(`Failed to save subscription checkout session: ${error.message}`);
 }
@@ -62,7 +66,7 @@ export async function getSubscriptionCheckoutSession(
   const admin = createAdminClient();
   const { data, error } = await admin
     .from('subscription_checkout_sessions')
-    .select('buy_order, session_id, provider, user_id, plan_id, total, status, created_at')
+    .select('buy_order, session_id, provider, user_id, plan_id, total, delivery_address, status, created_at')
     .eq('buy_order', buyOrder)
     .eq('status', 'pending')
     .single();

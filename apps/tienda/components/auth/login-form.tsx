@@ -8,6 +8,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast, ViewLoading } from '@enjambre/ui';
 import { safeReturnPath } from '@/lib/auth/safe-return-path';
+import { getNucleoStaffEntryUrl } from '@/lib/shop/nucleo-app-url';
+import { isNucleoStaffRole } from '@/lib/shop/staff-roles';
 
 const TIENDA_ROLE_REDIRECT: Record<string, string> = {
   cliente: '/perfil',
@@ -15,6 +17,9 @@ const TIENDA_ROLE_REDIRECT: Record<string, string> = {
 };
 
 function getTiendaRedirect(role: string): string {
+  if (isNucleoStaffRole(role)) {
+    return getNucleoStaffEntryUrl() ?? '/perfil';
+  }
   if (TIENDA_ROLE_REDIRECT[role]) return TIENDA_ROLE_REDIRECT[role];
   return '/perfil';
 }

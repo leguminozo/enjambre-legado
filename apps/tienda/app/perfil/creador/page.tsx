@@ -1,5 +1,6 @@
 import dynamic from 'next/dynamic';
 import { ViewLoadingFallback } from '@enjambre/ui';
+import { assertStoreRouteAccess } from '@/lib/shop/assert-route-access';
 
 const CreadorPortalClient = dynamic(
   () => import('@/components/creador/creador-portal-client').then((m) => m.CreadorPortalClient),
@@ -13,6 +14,7 @@ export const metadata = {
   description: 'Portal de comisiones por referido para creadores de contenido.',
 };
 
-export default function CreadorPerfilPage() {
+export default async function CreadorPerfilPage() {
+  await assertStoreRouteAccess('/perfil/creador');
   return <CreadorPortalClient />;
 }

@@ -35,6 +35,7 @@ import { webhooksApp } from "@/api/routes/webhooks";
 import { notificationsRoutes } from "@/api/routes/notifications";
 import { resenasRoutes } from "@/api/routes/resenas";
 import { walletRoutes } from "@/api/routes/wallet";
+import { replenishmentRoutes } from "@/api/routes/replenishment";
 import { ritualRoutes } from "@/api/routes/ritual";
 import { blockchainRoutes } from "@/api/routes/blockchain/anchors";
 
@@ -174,7 +175,11 @@ app.use("*", async (c, next) => {
     return next();
   }
 
-  if (path.startsWith("/api/notifications/internal") || path.startsWith("/api/ritual/cron")) {
+  if (
+    path.startsWith("/api/notifications/internal") ||
+    path.startsWith("/api/replenishment/cron") ||
+    path.startsWith("/api/ritual/cron")
+  ) {
     if (verifyInternalApiKey(c.req.header("x-internal-key"))) {
       return next();
     }
@@ -220,6 +225,7 @@ app.route("/webhooks", webhooksApp);
 app.route("/notifications", notificationsRoutes);
 app.route("/resenas", resenasRoutes);
 app.route("/wallet", walletRoutes);
+app.route("/replenishment", replenishmentRoutes);
 app.route("/ritual", ritualRoutes);
 app.route("/blockchain", blockchainRoutes);
 

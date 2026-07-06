@@ -85,7 +85,7 @@ export default async function PasaportePage() {
               <p className="text-sm text-muted-foreground leading-relaxed italic font-display">
                 "Las abejas de {hive.name ?? ''} han mostrado una actividad excepcional durante la floración del Ulmo.
                 La humedad relativa en el Sector Pureo ha favorecido una néctar de alta densidad que será
-                cosechado en el próximo ciclo ritual."
+                cosechado en la próxima cosecha."
               </p>
             </div>
           </div>

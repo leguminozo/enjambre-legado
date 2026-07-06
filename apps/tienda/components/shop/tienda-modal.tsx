@@ -20,6 +20,7 @@ type TiendaModalProps = {
   showClose?: boolean;
   size?: 'md' | 'lg';
   headerExtra?: ReactNode;
+  testId?: string;
 };
 
 export function TiendaModal({
@@ -35,6 +36,7 @@ export function TiendaModal({
   showClose = true,
   size = 'md',
   headerExtra,
+  testId,
 }: TiendaModalProps) {
   const autoTitleId = useId();
   const labelledBy = title != null && title !== '' ? (titleId ?? autoTitleId) : undefined;
@@ -57,6 +59,7 @@ export function TiendaModal({
       />
       <div
         ref={panelRef}
+        data-testid={testId}
         className={`tienda-modal-panel ${size === 'lg' ? 'is-lg' : ''}`}
         role="dialog"
         aria-modal="true"

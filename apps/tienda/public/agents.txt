@@ -22,10 +22,15 @@ All responses are JSON-LD with Schema.org vocabularies.
 ### Commerce API (requires delegated auth)
 
 ```
-POST /api/agents/order      — Place an order on behalf of a user
-GET  /api/agents/subscription — Check/manage subscription status
-POST /api/agents/subscription — Create or modify a subscription
+POST /api/agents/order           — Place an order on behalf of a user
+GET  /api/agents/subscription    — Check replenishment (reposición) status
+PATCH /api/agents/subscription   — Pause, resume, or cancel replenishment
+POST /api/agents/subscription    — Returns 410; use Núcleo checkout to create (see below)
 ```
+
+Creating replenishment requires delegated payment via Núcleo:
+`POST {NUCLEO_URL}/api/subscriptions/checkout/init` with `planId` and `returnUrl`.
+Same flow as the human UI at `/perfil/reposicion` and PDP "Programar reposición".
 
 Agent commerce endpoints require a delegated OAuth token. See authentication section below.
 

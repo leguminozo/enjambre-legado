@@ -245,11 +245,12 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ### D64. Perfil Guardian — páginas decorativas cableadas (RESUELTO — P2 Jun 2026)
 
-**Problema**: `/perfil/circular`, `/ritual`, `/reservas`, `/canje` tenían datos hardcodeados sin conexión a DB/API.
+**Problema**: `/perfil/circular`, `/perfil/ritual`, `/reservas`, `/canje` tenían datos hardcodeados sin conexión a DB/API.
 
 **Estado**: RESUELTO —
 - `perfil-experiences.ts`: loyalty, subscriptions, pre_orders, referral
-- Componentes cliente con acciones reales (canje, suscripción, reserva, copiar enlace)
+- Reposición canónica: `/perfil/reposicion` + `subscription-dashboard.ts`; legacy `/perfil/ritual` → redirect
+- Componentes cliente con acciones reales (canje, reposición, reserva, copiar enlace)
 - `/api/loyalty` corregido: usa `puntos_fidelizacion` en lugar de columnas inexistentes en `profiles`
 
 ---
@@ -459,6 +460,16 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ## MEDIO — Planificar para el roadmap
 
+### D69. Migraciones reposición 83–84 pendientes en remoto
+
+**Problema**: `83_replenishment_canonical.sql` (`delivery_address` en checkout sessions, nombres de planes) y `84_subscription_renewal_period_roll.sql` (motor renovación v2) no aplicadas si `supabase db push` falla por auth.
+
+**Acción**: Pegar `packages/database/scripts/apply-replenishment-migrations-83-84.sql` en Supabase SQL Editor (script standalone, sin `\ir`).
+
+**Impacto sin migrar**: dirección de entrega no persiste en sesión; cron de renovación sigue en versión anterior.
+
+---
+
 ### D13. Version Mismatch @supabase/ssr en Nucleo (RESUELTO)
 
 **Problema**: Nucleo usaba `@supabase/ssr ^0.6.1` mientras tienda, campo y auth usaban `^0.10.3`. Gap de version mayor podia causar comportamiento inconsistente.
@@ -509,9 +520,9 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ### D19. Date.now() como ID Generator en Checkout (RESUELTO)
 
-**Problema**: `apps/tienda/app/api/checkout/init/route.ts` usaba `Date.now()` para generar `buyOrder` y `sessionId`. Riesgo de colision bajo concurrencia (dos checkouts en el mismo milisegundo generarian IDs identicos).
+**Problema**: El init de checkout (antes en tienda, hoy en Núcleo `apps/nucleo/src/api/routes/checkout.ts`) usaba `Date.now()` para `buyOrder` y `sessionId`. Riesgo de colisión bajo concurrencia.
 
-**Estado**: RESUELTO — Reemplazado con `crypto.randomUUID()`, que genera UUIDs v4 criptograficamente unicos.
+**Estado**: RESUELTO — Reemplazado con `crypto.randomUUID()`. La ruta `apps/tienda/app/api/checkout/*` fue eliminada; tienda delega a `{NUCLEO}/api/checkout/init|commit`.
 
 ---
 

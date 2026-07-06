@@ -1,3 +1,4 @@
+import { SUBSCRIPTION_BLOCKING_STATUSES } from '@enjambre/pricing';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SubscriptionCheckoutSession } from './subscription-sessions';
 import { completeSubscriptionCheckoutSession } from './subscription-sessions';
@@ -40,7 +41,7 @@ export async function fulfillSubscription(
       .from('subscriptions')
       .select('id')
       .eq('user_id', session.userId)
-      .in('status', ['active', 'trialing', 'paused'])
+      .in('status', [...SUBSCRIPTION_BLOCKING_STATUSES])
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -64,9 +65,9 @@ export async function fulfillSubscription(
 
   const { data: activeSub } = await admin
     .from('subscriptions')
-    .select('id')
+    .select('id, status')
     .eq('user_id', session.userId)
-    .in('status', ['active', 'trialing', 'paused'])
+    .in('status', [...SUBSCRIPTION_BLOCKING_STATUSES])
     .limit(1)
     .maybeSingle();
 
@@ -80,6 +81,46 @@ export async function fulfillSubscription(
   const periodEnd = new Date();
   periodEnd.setMonth(periodEnd.getMonth() + periodMonths);
 
+  const metadata = {
+    buy_order: buyOrder,
+    payment_provider: paymentProvider,
+    authorization_code: authorizationCode ?? null,
+    amount_clp: session.total,
+    delivery_address: session.deliveryAddress ?? null,
+  };
+
+  const { data: pastDueSub } = await admin
+    .from('subscriptions')
+    .select('id')
+    .eq('user_id', session.userId)
+    .eq('status', 'past_due')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (pastDueSub) {
+    const { error: renewError } = await admin
+      .from('subscriptions')
+      .update({
+        plan_id: session.planId,
+        status: 'active',
+        current_period_start: periodStart.toISOString(),
+        current_period_end: periodEnd.toISOString(),
+        pause_scheduled_until: null,
+        metadata,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', pastDueSub.id);
+
+    if (renewError) {
+      console.error('[subscription-fulfill] past_due renew failed:', renewError);
+      return { ok: false, error: 'No se pudo reactivar la reposición' };
+    }
+
+    await completeSubscriptionCheckoutSession(buyOrder, authorizationCode);
+    return { ok: true, subscriptionId: pastDueSub.id, alreadyProcessed: false };
+  }
+
   const { data: subscription, error: subError } = await admin
     .from('subscriptions')
     .insert({
@@ -88,12 +129,7 @@ export async function fulfillSubscription(
       status: 'active',
       current_period_start: periodStart.toISOString(),
       current_period_end: periodEnd.toISOString(),
-      metadata: {
-        buy_order: buyOrder,
-        payment_provider: paymentProvider,
-        authorization_code: authorizationCode ?? null,
-        amount_clp: session.total,
-      },
+      metadata,
     })
     .select('id')
     .single();

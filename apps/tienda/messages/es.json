@@ -53,14 +53,26 @@
   "nav": {
     "home": "Inicio",
     "catalog": "Catálogo",
+    "creations": "Creaciones",
+    "experiences": "Experiencias",
+    "gallery": "Galería",
+    "science": "Ciencia",
     "about": "Nosotros",
+    "qrScan": "Escáner QR",
     "contact": "Contacto",
     "profile": "Perfil",
     "cart": "Carrito",
+    "yourCart": "Tu carrito",
     "login": "Iniciar sesión",
     "logout": "Cerrar sesión",
     "register": "Registrarse",
     "myAccount": "Mi cuenta",
+    "access": "Acceso",
+    "controlPanel": "Panel de Control",
+    "legacy": "Legado",
+    "store": "Tienda",
+    "bag": "Bolsa",
+    "scan": "Escanear",
     "orders": "Pedidos",
     "wishlist": "Favoritos",
     "settings": "Ajustes",
@@ -68,7 +80,151 @@
     "faq": "Preguntas frecuentes",
     "terms": "Términos",
     "privacy": "Privacidad",
-    "cookies": "Cookies"
+    "cookies": "Cookies",
+    "main": "Enlaces principales",
+    "switchToEnglish": "English",
+    "switchToSpanish": "Español"
+  },
+  "header": {
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "navTitle": "Menú de navegación",
+    "brandLine1": "La Obrera",
+    "brandLine2": "y el Zángano"
+  },
+  "perfil": {
+    "header": {
+      "title": "Perfil"
+    },
+    "bridge": {
+      "aria": "Atajos entre tienda y perfil",
+      "store": "Tienda",
+      "orders": "Pedidos",
+      "reposicion": "Reposición",
+      "bag": "Bolsa"
+    },
+    "reposicion": {
+      "title": "Reposición",
+      "subtitle": "Entregas programadas según intervalo",
+      "nextDelivery": "Próxima entrega: {date}",
+      "interval": "Intervalo",
+      "intervalEmpty": "Planes en configuración. Vuelve pronto.",
+      "confirm": "Confirmar",
+      "processing": "Procesando…",
+      "billingNote": "Cobro según intervalo. Cancelación en perfil.",
+      "selectPlan": "Selecciona un plan",
+      "selectInterval": "Selecciona un intervalo",
+      "destination": "Destino",
+      "addressPlaceholder": "Calle, número, comuna, región",
+      "addressRequired": "Indica una dirección de entrega",
+      "paused": "Reposición pausada",
+      "resumed": "Reposición reanudada",
+      "canceled": "Reposición cancelada",
+      "cancelConfirm": "¿Cancelar la reposición? No habrá más cobros ni entregas programadas.",
+      "cancelAction": "Cancelar reposición",
+      "pastDueBanner": "Pago pendiente. Regulariza para reanudar entregas.",
+      "regularizePayment": "Regularizar pago",
+      "frequency": {
+        "monthly": "Mensual",
+        "quarterly": "Trimestral",
+        "annual": "Anual",
+        "biweekly": "Quincenal",
+        "weekly": "Semanal"
+      },
+      "countdown": {
+        "today": "Hoy",
+        "tomorrow": "Mañana",
+        "pending": "Pendiente",
+        "inDays": "En {days} días"
+      },
+      "overview": {
+        "active": "Activa",
+        "delivery": "Entrega",
+        "total": "Total",
+        "inProgress": "En curso",
+        "paused": "Pausada",
+        "pastDue": "Pago pendiente",
+        "none": "Ninguna",
+        "perInterval": "Por intervalo",
+        "noDeliveries": "Sin entregas"
+      },
+      "activeCard": {
+        "paused": "Pausada",
+        "pastDue": "Pago pendiente",
+        "inProgress": "En curso",
+        "activeFallback": "Reposición activa",
+        "monthlyFallback": "Intervalo mensual",
+        "nextDelivery": "Próxima entrega",
+        "deliveryAddress": "Dirección de entrega",
+        "viewOrders": "Ver pedidos",
+        "pause": "Pausar",
+        "resume": "Reanudar"
+      },
+      "deliveries": {
+        "title": "Entregas programadas",
+        "cycle": "Ciclo {n}",
+        "tracking": "Seguimiento",
+        "scheduled": "Programada",
+        "shipped": "Enviada",
+        "delivered": "Entregada",
+        "canceled": "Cancelada"
+      },
+      "sheet": {
+        "kicker": "Reposición",
+        "title": "Programar reposición",
+        "unavailable": "Reposición no disponible por ahora.",
+        "product": "Producto",
+        "interval": "Intervalo",
+        "payment": "Pago",
+        "paymentMethods": "Webpay o Flow",
+        "paymentNote": "El cobro recurrente se procesa de forma segura. No almacenamos datos de tarjeta.",
+        "passport": "Ver pase guardián",
+        "summary": "Resumen",
+        "reference": "Referencia",
+        "plan": "Plan",
+        "total": "Total"
+      },
+      "result": {
+        "kicker": "Reposición",
+        "processing": "Procesando…",
+        "successTitle": "¡Listo!",
+        "errorTitle": "Algo salió mal",
+        "confirming": "Confirmando pago…",
+        "paymentFailed": "El pago fue rechazado o cancelado.",
+        "noToken": "No se recibió la confirmación de pago.",
+        "alreadyActive": "Reposición ya activa.",
+        "confirmed": "Reposición confirmada. Próxima entrega según intervalo.",
+        "viewReplenishment": "Ver reposición",
+        "exploreCatalog": "Explorar catálogo"
+      }
+    },
+    "roleEmbajador": "Embajador",
+    "roleProtector": "Protector del Bosque",
+    "nav": {
+      "sections": {
+        "identidad": "Identidad Guardiana",
+        "embajador": "Embajador del Bosque",
+        "aliado": "Aliado Mayorista",
+        "comercio": "Comercio",
+        "red": "Red Biocultural",
+        "ajustes": "Ajustes"
+      },
+      "links": {
+        "legado": "El Legado",
+        "pasaporte": "Pasaporte Colmena",
+        "reposicion": "Reposición",
+        "reservas": "Reserva Cosecha",
+        "pedidos": "Pedidos",
+        "resenas": "Mis Reseñas",
+        "circular": "Circular Colmena",
+        "canje": "Canje Impacto",
+        "alertas": "Alertas Floración",
+        "ajustes": "Ajustes Guardián",
+        "creadorPortal": "Mi Código y Comisiones",
+        "mayoristaPortal": "Portal Mayorista",
+        "catalogoMayorista": "Catálogo Mayorista"
+      }
+    }
   },
   "hero": {
     "title": "Miel de Bosque Nativo",
@@ -82,6 +238,7 @@
   },
   "product": {
     "addToCart": "Agregar al carrito",
+    "scheduleReplenishment": "Programar reposición",
     "addedToCart": "Agregado al carrito",
     "outOfStock": "Agotado",
     "lowStock": "Pocas unidades",
@@ -136,7 +293,29 @@
     "pointsAvailable": "Puntos disponibles",
     "pointsToRedeem": "Puntos a canjear",
     "discountApplied": "Descuento aplicado",
-    "freeShipping": "Envío gratis"
+    "freeShipping": "Envío gratis",
+    "result": {
+      "kicker": "Checkout",
+      "processingTitle": "Procesando tu pago",
+      "successTitle": "¡Pago confirmado!",
+      "failedTitle": "Pago no completado",
+      "confirming": "Confirmando pago…",
+      "paymentFailed": "El pago fue rechazado o cancelado.",
+      "noToken": "No se recibió la confirmación de pago.",
+      "serviceUnavailable": "No se pudo confirmar el pago. Servicio no disponible.",
+      "confirmed": "Pago confirmado. Tu pedido fue registrado.",
+      "preparing": "Tu pedido está siendo preparado con cuidado en Chiloé",
+      "forestImpact": "Esta compra contribuye a regenerar el bosque nativo",
+      "emailNote": "Te hemos enviado un correo con los detalles de tu pedido y el seguimiento del envío.",
+      "thanksLegado": "Gracias por ser parte del Legado del Bosque",
+      "walletHint": "Lleva tu progreso de sellos en el teléfono",
+      "contactSupport": "Si el problema persiste, contáctanos a",
+      "tryOtherPayment": "También puedes intentar con otro método de pago.",
+      "exploreMore": "Seguir explorando",
+      "backToShop": "Volver a la tienda",
+      "viewOrder": "Ver mi pedido",
+      "goHome": "Ir al inicio"
+    }
   },
   "cart": {
     "title": "Tu carrito",

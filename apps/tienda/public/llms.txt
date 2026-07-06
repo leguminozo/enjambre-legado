@@ -20,7 +20,7 @@ OYZ vende miel cruda del bosque nativo en distintos formatos. Cada producto esta
 - **Frascos mayores "Reservas del Bosque"** — Formato premium para ocasiones y reserva.
 - **Miel virgen "Panal de Bosque"** — Miel sin interventions. Pureza del nectar directo del panal.
 - **Cajas de sachets "Cofres del Enjambre"** — 20 sachets. El bosque a tu ritmo de vida.
-- **Suscripciones "Legado del Bosque"** — Entrega mensual de mieles seleccionadas. Ritual mensual.
+- **Suscripciones "Legado del Bosque"** — Entrega mensual de mieles seleccionadas. Reposición programada.
 
 Cada producto tiene:
 - Trazabilidad QR: apiario de origen, colmena, fecha de cosecha, hash de blockchain
@@ -48,9 +48,9 @@ OYZ no es una marca de miel convencional. Opera bajo un modelo donde cada transa
 3. **Economia territorial** — Comercio directo con apicultores locales, sin intermediarios industriales
 4. **Indice IRR** — Indice de Regeneracion y Resiliencia: mide si el impacto positivo de una cosecha supera su huella
 
-## Suscripcion — Ritual Mensual
+## Suscripcion — Reposicion
 
-Los clientes pueden suscribirse a entregas mensuales de mieles seleccionadas. El Ritual Mensual es un acto de fidelidad al territorio: cada mes, una seleccion curada de mieles llega a la puerta del suscriptor. Los planes disponibles son mensual, trimestral y anual.
+Los clientes pueden suscribirse a entregas de mieles seleccionadas segun intervalo (reposicion). Cada ciclo, una seleccion curada llega a la puerta del suscriptor. Los planes disponibles son mensual, trimestral y anual. Gestion en /perfil/reposicion.
 
 ## Canje Impacto — Sistema Silencioso
 
@@ -88,7 +88,7 @@ Las respuestas estan en formato JSON-LD compatible con Schema.org.
 - De donde viene la miel de OYZ?
 - Que significa "miel cruda" vs "miel procesada"?
 - Como funciona la trazabilidad QR de cada frasco?
-- Que es el Ritual Mensual y como se suscribe alguien?
+- Que es la Reposicion y como se suscribe alguien?
 - Que impacto tiene cada compra en el bosque nativo?
 - Cual es la diferencia entre los formatos de producto?
 - OYZ envia fuera de Chile?

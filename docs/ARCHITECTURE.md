@@ -100,7 +100,7 @@ Supabase (Postgres)
 UI (CartProvider)
 |
 v
-localStorage `oyz_tienda_cart_v1` (guest + caché instantánea) ↔ `carrito_items` (usuario autenticado, multi-dispositivo)
+`lib/shop/commerce-storage.ts` → `CART_STORAGE_KEY` (`oyz_tienda_cart_v1`) en localStorage (guest + caché instantánea) ↔ `carrito_items` (usuario autenticado, multi-dispositivo)
 |
 v (debounce 300ms)
 Server Action `calculateCartPricing` (app/actions/cart.ts)
@@ -157,6 +157,36 @@ Dashboard Nucleo (Vista Apicultor)
 
 **Tabla de sesiones**: `checkout_sessions` (Migration 38) — RLS service_role only, auto-expire 30 min, audit trail completo.
 
+**Cliente tienda (consolidado)**: `cart-checkout-client.ts` inicia pago; `payment-redirect.ts` redirige Flow/Transbank; `payment-commit.ts` confirma en `/checkout/resultado`. Storage: `PENDING_CHECKOUT_STORAGE_KEY` en `commerce-storage.ts`.
+
+### 2.3.1 Flujo Reposición (suscripción por intervalo)
+
+```
+PDP / perfil / sheet reposición (tienda)
+|
+v
+startSubscriptionCheckout() → POST {NUCLEO}/api/subscriptions/checkout/init
+|  → delivery_address en subscription_checkout_sessions (mig. 83)
+v
+Flow / Transbank → /perfil/reposicion/resultado
+|
+v
+commitPayment() → POST {NUCLEO}/api/subscriptions/checkout/commit
+|  → fulfillSubscription() (reactiva past_due o crea suscripción)
+v
+Gestión: PATCH /api/subscriptions (pause / resume / cancel)
+|  → subscription-route-handlers.ts + subscription-api.ts
+v
+Cron: POST {NUCLEO}/api/replenishment/cron/process (alias legacy /api/ritual/cron)
+|  → RPC process_ritual_renewals() (mig. 84)
+```
+
+**Fuente única datos perfil**: `subscription-dashboard.ts` (`fetchSubscriptionDashboard`) — usado por SSR `/perfil/reposicion` y `GET /api/subscriptions`.
+
+**Estados compartidos**: `@enjambre/pricing` → `SUBSCRIPTION_VISIBLE_STATUSES`, `SUBSCRIPTION_BLOCKING_STATUSES`.
+
+**Legacy**: `/perfil/ritual` → redirect permanente a `/perfil/reposicion` (`next.config.ts` + páginas App Router).
+
 ### 2.4 Flujo Contable (Nucleo BFF)
 
 ```console
@@ -198,12 +228,16 @@ Supabase: facturas_emitidas, gastos, impuestos
 - `/products`, `/orders`, `/customers`, `/collections` CRUD
 - `/integrations` SII, bancos, notificaciones
 
-**API Routes**:
-- `/api/checkout/init` + `/commit` — Transbank
-- `/api/admin/integrations/*` — SII, bancos, notificaciones (modo stub)
+**API Routes (tienda — BFF ligero)**:
+- `/api/subscriptions` — GET dashboard reposición, PATCH pause/resume/cancel, POST 410 (alta vía Núcleo)
+- `/api/agents/subscription` — mismo contrato PATCH/GET para agentes
+- `/api/cart/abandonment`, `/api/loyalty`, `/api/pre-orders`, `/api/referrals/complete`
+- Pagos carrito y reposición: **no** en tienda; delegados a Núcleo (`NEXT_PUBLIC_NUCLEO_API_URL`)
+
+**Libs comercio** (`apps/tienda/lib/shop/`): `commerce-storage`, `cart-checkout-client`, `subscription-checkout-client`, `payment-commit`, `subscription-dashboard`, `subscription-route-handlers`, `replenishment-address`, `replenishment-i18n`.
 
 **Integraciones**:
-- **Transbank SDK 6.1** — Webpay (pagos Chile)
+- **Núcleo BFF** — checkout, reposición, wallet, reseñas (Flow + Transbank vía Núcleo)
 - **SII** — Sincronizacion tributaria (stub)
 - **Bancos** — Conciliacion bancaria (stub)
 - **Notificaciones** — Eventos de notificacion (stub)

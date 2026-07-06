@@ -78,6 +78,25 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/perfil/ritual',
+        destination: '/perfil/reposicion',
+        permanent: true,
+      },
+      {
+        source: '/perfil/ritual/resultado',
+        destination: '/perfil/reposicion/resultado',
+        permanent: true,
+      },
+      {
+        source: '/perfil/ritual/resultado/:path*',
+        destination: '/perfil/reposicion/resultado/:path*',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(withNextIntl(nextConfig), {

@@ -7,6 +7,7 @@ import {
   mergeCartOnLogin,
   syncRemoteCart,
 } from '@/app/actions/cart-sync';
+import { CART_STORAGE_KEY } from '@/lib/shop/commerce-storage';
 import { createClient } from '@/utils/supabase/client';
 import { useAuthStore } from '@enjambre/auth';
 import React, {
@@ -27,7 +28,7 @@ export type CartLine = {
   quantity: number;
 };
 
-export const CART_STORAGE_KEY = 'oyz_tienda_cart_v1';
+export { CART_STORAGE_KEY };
 const REMOTE_SYNC_DEBOUNCE_MS = 500;
 const REALTIME_RELOAD_DEBOUNCE_MS = 300;
 

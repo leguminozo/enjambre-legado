@@ -1,20 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { ViewLoading } from '@enjambre/ui';
+import { useEffect, useState } from 'react';
 
+/** Splash inicial landing — hexágono canónico, fade-out editorial. */
 export function LandingLoader() {
   const [isVisible, setIsVisible] = useState(true);
   const [isRendered, setIsRendered] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-    }, 100);
-
-    const unmountTimer = setTimeout(() => {
-      setIsRendered(false);
-    }, 900); // 100 + 800 duration
-
+    const timer = setTimeout(() => setIsVisible(false), 100);
+    const unmountTimer = setTimeout(() => setIsRendered(false), 900);
     return () => {
       clearTimeout(timer);
       clearTimeout(unmountTimer);
@@ -24,11 +20,12 @@ export function LandingLoader() {
   if (!isRendered) return null;
 
   return (
-    <div className={`fixed inset-0 bg-background z-[9999] flex flex-col items-center justify-center transition-opacity duration-[800ms] ease-[cubic-bezier(0.76,0,0.24,1)] ${!isVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-      <div className="font-display text-2xl font-light tracking-[0.3em] text-accent overflow-hidden">
-        La Obrera y el Zángano
-      </div>
-      <div className="w-[1px] h-[60px] mt-8 bg-gradient-to-b from-transparent via-accent to-transparent animate-pulse" />
+    <div
+      className={`fixed inset-0 z-[9999] transition-opacity duration-[800ms] ease-[cubic-bezier(0.76,0,0.24,1)] ${
+        isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}
+    >
+      <ViewLoading variant="fullscreen" label="La Obrera y el Zángano" />
     </div>
   );
 }

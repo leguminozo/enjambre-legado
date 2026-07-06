@@ -33,3 +33,13 @@ export {
   type DiscountRow,
   type DiscountTipo,
 } from "./discount-checkout";
+export {
+  SUBSCRIPTION_BLOCKING_STATUSES,
+  SUBSCRIPTION_VISIBLE_STATUSES,
+  canPauseReplenishment,
+  canResumeReplenishment,
+  isPastDue,
+  isReplenishmentLive,
+  type SubscriptionBlockingStatus,
+  type SubscriptionVisibleStatus,
+} from "./subscription-status";

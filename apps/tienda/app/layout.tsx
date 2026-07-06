@@ -1,4 +1,5 @@
 import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 import './globals.css';
 import { AppProviders } from '@/components/providers/app-providers';
 import { RegisterServiceWorker } from '@/components/pwa/register-sw';
@@ -11,7 +12,6 @@ import {
 } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { VercelInsights } from '@/components/VercelInsights';
-import esMessages from '../messages/es.json';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
 
@@ -28,18 +28,21 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
     languages: {
       es: SITE_URL,
+      en: SITE_URL,
     },
   },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
   const headersList = await headers();
   const nonce = headersList.get('x-csp-nonce') ?? '';
   const themeScript = `(function(){try{var t=localStorage.getItem('enjambre-theme');var r=t==='light'?'light':t==='dark'?'dark':window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark';document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(r)}catch(e){}})()`;
   const rootJsonLd = mergeJsonLd([organizationJsonLd(), webSiteJsonLd()]);
 
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -51,7 +54,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <JsonLd data={rootJsonLd} />
       </head>
       <body className="font-sans antialiased bg-background text-foreground">
-        <NextIntlClientProvider locale="es" messages={esMessages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <RegisterServiceWorker />
           <AppProviders>{children}</AppProviders>
         </NextIntlClientProvider>

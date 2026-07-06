@@ -2,38 +2,21 @@ import { createClient } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { guardMutation } from '@/lib/api-guard';
+import { createRouteRateLimiter } from '@/lib/ratelimit-route';
 
 const RedeemSchema = z.object({
   reward_id: z.string().uuid(),
   idempotency_key: z.string().optional(),
 });
 
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 5;
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return false;
-  }
-  entry.count++;
-  return entry.count > RATE_LIMIT_MAX;
-}
+const checkRateLimit = createRouteRateLimiter({ windowMs: 60_000, maxRequests: 5 });
 
 export async function POST(request: NextRequest) {
   const csrfBlock = guardMutation(request);
   if (csrfBlock) return csrfBlock;
 
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-  if (isRateLimited(ip)) {
-    return NextResponse.json(
-      { error: 'Too many requests. Try again later.' },
-      { status: 429 },
-    );
-  }
+  const rateLimited = checkRateLimit(request);
+  if (rateLimited) return rateLimited;
 
   const supabase = await createClient();
   const {

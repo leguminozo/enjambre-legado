@@ -88,6 +88,40 @@ jobs:
       - name: Lint tienda
         run: pnpm --filter @enjambre/tienda lint
 
+  e2e-tienda-smoke:
+    runs-on: ubuntu-latest
+    needs: build-tienda
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_NUCLEO_API_URL: ${{ secrets.NEXT_PUBLIC_NUCLEO_API_URL }}
+      NEXT_PUBLIC_URL_TIENDA: http://localhost:3001
+      NEXT_PUBLIC_SITE_URL: http://localhost:3001
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      CI: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @enjambre/tienda exec playwright install --with-deps chromium
+
+      - name: Smoke E2E tienda (nav + route guards)
+        run: pnpm --filter @enjambre/tienda test:e2e:smoke
+
   build-nucleo:
     runs-on: ubuntu-latest
     needs: test

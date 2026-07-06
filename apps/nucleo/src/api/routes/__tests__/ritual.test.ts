@@ -10,25 +10,27 @@ vi.mock('@supabase/supabase-js', () => ({
   }),
 }));
 
-describe('ritual cron', () => {
+describe('replenishment cron', () => {
   beforeEach(() => {
     vi.stubEnv('INTERNAL_API_SECRET', 'test-internal-secret');
     vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'fallback-not-used');
   });
 
-  it('rechaza sin x-internal-key', async () => {
-    const res = await app.request('/api/ritual/cron/process', { method: 'POST' });
-    expect(res.status).toBe(401);
-  });
-
-  it('procesa renovaciones con clave interna', async () => {
-    const res = await app.request('/api/ritual/cron/process', {
-      method: 'POST',
-      headers: { 'x-internal-key': 'test-internal-secret' },
+  for (const path of ['/api/replenishment/cron/process', '/api/ritual/cron/process']) {
+    it(`rechaza sin x-internal-key (${path})`, async () => {
+      const res = await app.request(path, { method: 'POST' });
+      expect(res.status).toBe(401);
     });
-    expect(res.status).toBe(200);
-    const json = await res.json();
-    expect(json.ok).toBe(true);
-    expect(json.result).toMatchObject({ deliveries_scheduled: 2 });
-  });
+
+    it(`procesa renovaciones con clave interna (${path})`, async () => {
+      const res = await app.request(path, {
+        method: 'POST',
+        headers: { 'x-internal-key': 'test-internal-secret' },
+      });
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.ok).toBe(true);
+      expect(json.result).toMatchObject({ deliveries_scheduled: 2 });
+    });
+  }
 });

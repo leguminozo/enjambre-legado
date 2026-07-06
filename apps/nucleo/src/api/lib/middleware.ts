@@ -137,6 +137,7 @@ export const csrfMiddleware = createMiddleware(async (c, next) => {
     path.startsWith("/api/checkout/webhook") ||
     path.startsWith("/api/banco-chile/webhook") ||
     path === "/api/security-events/internal" ||
+    path.startsWith("/api/replenishment/cron") ||
     path.startsWith("/api/ritual/cron");
 
   if (isWebhook) {

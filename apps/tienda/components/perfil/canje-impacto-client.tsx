@@ -106,7 +106,7 @@ export function CanjeImpactoClient({ balance, tier, tierDisplay, rewards }: Canj
           <ul className="space-y-4 text-xs text-muted-foreground">
             <li>10 pts por cada $1.000 en compras.</li>
             <li>50 pts por cada referido que compra.</li>
-            <li>100 pts al activar el Ritual Mensual.</li>
+            <li>100 pts al activar la Reposición.</li>
           </ul>
         </div>
       </div>

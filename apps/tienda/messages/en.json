@@ -53,14 +53,26 @@
   "nav": {
     "home": "Home",
     "catalog": "Catalog",
+    "creations": "Creations",
+    "experiences": "Experiences",
+    "gallery": "Gallery",
+    "science": "Science",
     "about": "About",
+    "qrScan": "QR Scanner",
     "contact": "Contact",
     "profile": "Profile",
     "cart": "Cart",
+    "yourCart": "Your cart",
     "login": "Sign in",
     "logout": "Sign out",
     "register": "Sign up",
     "myAccount": "My account",
+    "access": "Sign in",
+    "controlPanel": "Control Panel",
+    "legacy": "Legacy",
+    "store": "Shop",
+    "bag": "Bag",
+    "scan": "Scan",
     "orders": "Orders",
     "wishlist": "Wishlist",
     "settings": "Settings",
@@ -68,7 +80,151 @@
     "faq": "FAQ",
     "terms": "Terms",
     "privacy": "Privacy",
-    "cookies": "Cookies"
+    "cookies": "Cookies",
+    "main": "Main links",
+    "switchToEnglish": "English",
+    "switchToSpanish": "Español"
+  },
+  "header": {
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "navTitle": "Navigation menu",
+    "brandLine1": "The Worker",
+    "brandLine2": "and the Drone"
+  },
+  "perfil": {
+    "header": {
+      "title": "Profile"
+    },
+    "bridge": {
+      "aria": "Shortcuts between store and profile",
+      "store": "Store",
+      "orders": "Orders",
+      "reposicion": "Replenishment",
+      "bag": "Bag"
+    },
+    "reposicion": {
+      "title": "Replenishment",
+      "subtitle": "Scheduled deliveries on your interval",
+      "nextDelivery": "Next delivery: {date}",
+      "interval": "Interval",
+      "intervalEmpty": "Plans are being configured. Check back soon.",
+      "confirm": "Confirm",
+      "processing": "Processing…",
+      "billingNote": "Billed per interval. Cancel anytime in profile.",
+      "selectPlan": "Select a plan",
+      "selectInterval": "Select an interval",
+      "destination": "Destination",
+      "addressPlaceholder": "Street, number, commune, region",
+      "addressRequired": "Enter a delivery address",
+      "paused": "Replenishment paused",
+      "resumed": "Replenishment resumed",
+      "canceled": "Replenishment canceled",
+      "cancelConfirm": "Cancel replenishment? No further charges or scheduled deliveries.",
+      "cancelAction": "Cancel replenishment",
+      "pastDueBanner": "Payment overdue. Settle to resume deliveries.",
+      "regularizePayment": "Settle payment",
+      "frequency": {
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "annual": "Annual",
+        "biweekly": "Biweekly",
+        "weekly": "Weekly"
+      },
+      "countdown": {
+        "today": "Today",
+        "tomorrow": "Tomorrow",
+        "pending": "Pending",
+        "inDays": "In {days} days"
+      },
+      "overview": {
+        "active": "Active",
+        "delivery": "Delivery",
+        "total": "Total",
+        "inProgress": "In progress",
+        "paused": "Paused",
+        "pastDue": "Payment overdue",
+        "none": "None",
+        "perInterval": "Per interval",
+        "noDeliveries": "No deliveries"
+      },
+      "activeCard": {
+        "paused": "Paused",
+        "pastDue": "Payment overdue",
+        "inProgress": "In progress",
+        "activeFallback": "Active replenishment",
+        "monthlyFallback": "Monthly interval",
+        "nextDelivery": "Next delivery",
+        "deliveryAddress": "Delivery address",
+        "viewOrders": "View orders",
+        "pause": "Pause",
+        "resume": "Resume"
+      },
+      "deliveries": {
+        "title": "Scheduled deliveries",
+        "cycle": "Cycle {n}",
+        "tracking": "Tracking",
+        "scheduled": "Scheduled",
+        "shipped": "Shipped",
+        "delivered": "Delivered",
+        "canceled": "Canceled"
+      },
+      "sheet": {
+        "kicker": "Replenishment",
+        "title": "Schedule replenishment",
+        "unavailable": "Replenishment is not available right now.",
+        "product": "Product",
+        "interval": "Interval",
+        "payment": "Payment",
+        "paymentMethods": "Webpay or Flow",
+        "paymentNote": "Recurring charges are processed securely. We do not store card details.",
+        "passport": "View guardian pass",
+        "summary": "Summary",
+        "reference": "Reference",
+        "plan": "Plan",
+        "total": "Total"
+      },
+      "result": {
+        "kicker": "Replenishment",
+        "processing": "Processing…",
+        "successTitle": "Done!",
+        "errorTitle": "Something went wrong",
+        "confirming": "Confirming payment…",
+        "paymentFailed": "Payment was declined or canceled.",
+        "noToken": "Payment confirmation was not received.",
+        "alreadyActive": "Replenishment is already active.",
+        "confirmed": "Replenishment confirmed. Next delivery per your interval.",
+        "viewReplenishment": "View replenishment",
+        "exploreCatalog": "Browse catalog"
+      }
+    },
+    "roleEmbajador": "Ambassador",
+    "roleProtector": "Forest Protector",
+    "nav": {
+      "sections": {
+        "identidad": "Guardian Identity",
+        "embajador": "Forest Ambassador",
+        "aliado": "Wholesale Partner",
+        "comercio": "Commerce",
+        "red": "Biocultural Network",
+        "ajustes": "Settings"
+      },
+      "links": {
+        "legado": "The Legacy",
+        "pasaporte": "Hive Passport",
+        "reposicion": "Replenishment",
+        "reservas": "Harvest Reservation",
+        "pedidos": "Order History",
+        "resenas": "My Reviews",
+        "circular": "Hive Circle",
+        "canje": "Impact Exchange",
+        "alertas": "Bloom Alerts",
+        "ajustes": "Guardian Settings",
+        "creadorPortal": "My Code & Commissions",
+        "mayoristaPortal": "Wholesale Portal",
+        "catalogoMayorista": "Wholesale Catalog"
+      }
+    }
   },
   "hero": {
     "title": "Native Forest Honey",
@@ -82,6 +238,7 @@
   },
   "product": {
     "addToCart": "Add to cart",
+    "scheduleReplenishment": "Schedule replenishment",
     "addedToCart": "Added to cart",
     "outOfStock": "Out of stock",
     "lowStock": "Low stock",
@@ -136,7 +293,29 @@
     "pointsAvailable": "Points available",
     "pointsToRedeem": "Points to redeem",
     "discountApplied": "Discount applied",
-    "freeShipping": "Free shipping"
+    "freeShipping": "Free shipping",
+    "result": {
+      "kicker": "Checkout",
+      "processingTitle": "Processing your payment",
+      "successTitle": "Payment confirmed!",
+      "failedTitle": "Payment not completed",
+      "confirming": "Confirming payment…",
+      "paymentFailed": "Payment was declined or canceled.",
+      "noToken": "Payment confirmation was not received.",
+      "serviceUnavailable": "Could not confirm payment. Service unavailable.",
+      "confirmed": "Payment confirmed. Your order was registered.",
+      "preparing": "Your order is being carefully prepared in Chiloé",
+      "forestImpact": "This purchase helps regenerate native forest",
+      "emailNote": "We sent you an email with order details and shipping tracking.",
+      "thanksLegado": "Thank you for being part of Legado del Bosque",
+      "walletHint": "Keep your stamp progress on your phone",
+      "contactSupport": "If the issue persists, contact us at",
+      "tryOtherPayment": "You can also try another payment method.",
+      "exploreMore": "Keep exploring",
+      "backToShop": "Back to shop",
+      "viewOrder": "View my order",
+      "goHome": "Go home"
+    }
   },
   "cart": {
     "title": "Your cart",

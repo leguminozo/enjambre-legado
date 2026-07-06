@@ -5,24 +5,15 @@ import { Menu, ShoppingBag, X, User } from 'lucide-react';
 import { useCartLines } from '@/components/shop/cart-context';
 import { useAuth } from '@/components/providers/auth-context';
 import { LanguageSelector } from '@/components/shop/language-selector';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n-navigation';
 import type { Locale } from '@/i18n-routing';
-import { NotificationBell } from '@enjambre/ui';
-import { useEffect, useState } from 'react';
+import { NotificationBell, useModalFocusTrap } from '@enjambre/ui';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useUserNotifications } from '@/lib/hooks/use-user-notifications';
 import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
-
-const NAV_PUBLIC = [
-  { href: '/', label: 'Inicio' },
-  { href: '/catalogo', label: 'Creaciones' },
-  { href: '/experiencias', label: 'Experiencias' },
-  { href: '/galeria', label: 'Galería' },
-  { href: '/ciencia', label: 'Ciencia' },
-  { href: '/nosotros', label: 'Nosotros' },
-  { href: '/qr-scan', label: 'Escáner QR' },
-  { href: '/contacto', label: 'Contacto' },
-] as const;
+import { isActiveNavHref, PUBLIC_NAV } from '@/lib/shop/store-routes';
 
 export function ShopHeader() {
   const { itemCount } = useCartLines();
@@ -30,8 +21,13 @@ export function ShopHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const locale = useLocale() as Locale;
+  const tNav = useTranslations('nav');
+  const tHeader = useTranslations('header');
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifBellKey, setNotifBellKey] = useState(0);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const closeMenu = () => setOpen(false);
   const [realtimeOn, setRealtimeOn] = useState(false);
   const { notifications, markRead, markAllRead, isLoading, error } = useUserNotifications(user?.id, {
     enableRealtime: realtimeOn,
@@ -39,16 +35,31 @@ export function ShopHeader() {
 
   const normalizedPath = pathname || '/';
 
-  const isActive = (href: string) => {
-    if (href === '/') return normalizedPath === '/';
-    return normalizedPath === href || normalizedPath.startsWith(`${href}/`);
-  };
-
   useOverlayLock(open || notifOpen);
+  useModalFocusTrap({ open, onClose: closeMenu, containerRef: panelRef });
 
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (notifOpen) setOpen(false);
+  }, [notifOpen]);
+
+  const toggleMenu = () => {
+    setOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setNotifOpen(false);
+        setNotifBellKey((k) => k + 1);
+      }
+      return next;
+    });
+  };
+
+  const switchLocale = () => {
+    router.replace(pathname, { locale: locale === 'es' ? 'en' : 'es' });
+  };
 
   return (
     <header
@@ -59,8 +70,9 @@ export function ShopHeader() {
         <button
           type="button"
           className="md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-accent transition-colors"
-          onClick={() => setOpen((prev) => !prev)}
-          aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+          onClick={toggleMenu}
+          aria-controls="tienda-mobile-nav-panel"
+          aria-label={open ? tHeader('closeMenu') : tHeader('openMenu')}
           aria-expanded={open}
         >
           {open ? <X size={24} /> : <Menu size={24} />}
@@ -69,24 +81,24 @@ export function ShopHeader() {
         <Link href="/" className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 group">
           <div className="flex flex-col items-center md:items-start">
             <span className="font-display text-lg tracking-[0.3em] uppercase text-foreground group-hover:text-accent transition-colors">
-              La Obrera
+              {tHeader('brandLine1')}
             </span>
             <span className="text-[0.6rem] tracking-[0.4em] uppercase text-accent -mt-1 font-light">
-              y el Zángano
+              {tHeader('brandLine2')}
             </span>
           </div>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-10">
-          {NAV_PUBLIC.map(({ href, label }) => (
+        <nav className="hidden md:flex items-center gap-10" aria-label={tNav('main')}>
+          {PUBLIC_NAV.map(({ href, labelKey }) => (
             <Link
               key={href}
               href={href}
               className={`text-[0.65rem] uppercase tracking-[0.2em] transition-colors hover:text-accent ${
-                isActive(href) ? 'text-accent' : 'text-muted-foreground'
+                isActiveNavHref(normalizedPath, href) ? 'text-accent' : 'text-muted-foreground'
               }`}
             >
-              {label}
+              {tNav(labelKey)}
             </Link>
           ))}
         </nav>
@@ -98,12 +110,16 @@ export function ShopHeader() {
 
           {isAuthenticated && (
             <NotificationBell
+              key={notifBellKey}
               notifications={notifications}
               onMarkRead={markRead}
               onMarkAllRead={markAllRead}
               onOpenChange={(isOpen) => {
                 setNotifOpen(isOpen);
-                if (isOpen) setRealtimeOn(true);
+                if (isOpen) {
+                  setOpen(false);
+                  setRealtimeOn(true);
+                }
               }}
               isLoading={isLoading}
               error={error}
@@ -116,11 +132,11 @@ export function ShopHeader() {
           >
             <User size={20} strokeWidth={1.5} />
             <span className="hidden lg:inline text-[0.6rem] uppercase tracking-[0.2em]">
-              {isAuthenticated ? 'Mi Cuenta' : 'Acceso'}
+              {isAuthenticated ? tNav('myAccount') : tNav('access')}
             </span>
           </Link>
 
-          <Link href="/carrito" data-testid="cart-link" className="relative group" aria-label="Carrito">
+          <Link href="/carrito" data-testid="cart-link" className="relative group" aria-label={tNav('cart')}>
             <ShoppingBag size={20} strokeWidth={1.5} className="text-muted-foreground group-hover:text-accent transition-colors" />
             {itemCount > 0 && (
               <span className="absolute -top-2 -right-2 w-4 h-4 bg-accent text-accent-foreground text-[0.6rem] font-bold flex items-center justify-center rounded-full">
@@ -131,59 +147,69 @@ export function ShopHeader() {
         </div>
       </div>
 
-      {open && (
-        <>
-          <button
-            type="button"
-            className="tienda-mobile-nav-backdrop md:hidden"
-            aria-label="Cerrar menú"
-            onClick={() => setOpen(false)}
-          />
-          <div
-            className="tienda-mobile-nav-panel md:hidden"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menú de navegación"
-          >
-            <nav className="flex flex-col gap-7">
-              {NAV_PUBLIC.map(({ href, label }) => (
+      {open &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div className="tienda-mobile-nav-root md:hidden">
+            <button
+              type="button"
+              className="tienda-mobile-nav-backdrop"
+              aria-label={tHeader('closeMenu')}
+              onClick={closeMenu}
+            />
+            <div
+              id="tienda-mobile-nav-panel"
+              ref={panelRef}
+              className="tienda-mobile-nav-panel"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="tienda-mobile-nav-title"
+              tabIndex={-1}
+            >
+              <h2 id="tienda-mobile-nav-title" className="sr-only">
+                {tHeader('navTitle')}
+              </h2>
+              <nav className="flex flex-col gap-7" aria-label={tNav('main')}>
+                {PUBLIC_NAV.map(({ href, labelKey }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`font-display text-3xl font-light transition-colors ${
+                      isActiveNavHref(normalizedPath, href) ? 'text-accent' : 'text-foreground hover:text-accent'
+                    }`}
+                    onClick={closeMenu}
+                  >
+                    {tNav(labelKey)}
+                  </Link>
+                ))}
+                <div className="h-px bg-border my-2" />
                 <Link
-                  key={href}
-                  href={href}
-                  className={`font-display text-3xl font-light transition-colors ${
-                    isActive(href) ? 'text-accent' : 'text-foreground hover:text-accent'
-                  }`}
-                  onClick={() => setOpen(false)}
+                  href="/carrito"
+                  className="font-display text-2xl font-light text-foreground hover:text-accent transition-colors"
+                  onClick={closeMenu}
                 >
-                  {label}
+                  {tNav('yourCart')}
+                  {itemCount > 0 ? ` (${itemCount})` : ''}
                 </Link>
-              ))}
-              <div className="h-px bg-border my-2" />
-              <Link
-                href="/carrito"
-                className="font-display text-2xl font-light text-foreground hover:text-accent transition-colors"
-                onClick={() => setOpen(false)}
-              >
-                Tu carrito{itemCount > 0 ? ` (${itemCount})` : ''}
-              </Link>
-              <Link
-                href={isAuthenticated ? '/perfil' : '/login'}
-                className="font-display text-2xl italic text-accent"
-                onClick={() => setOpen(false)}
-              >
-                {isAuthenticated ? 'Panel de Control' : 'Iniciar Sesión'}
-              </Link>
-              <button
-                type="button"
-                className="mt-4 self-start rounded-full border border-border bg-surface-sunken px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-accent md:hidden"
-                onClick={() => router.replace(pathname, { locale: locale === 'es' ? 'en' : 'es' })}
-              >
-                {locale === 'es' ? 'English' : 'Español'}
-              </button>
-            </nav>
-          </div>
-        </>
-      )}
+                <Link
+                  href={isAuthenticated ? '/perfil' : '/login'}
+                  className="font-display text-2xl italic text-accent"
+                  onClick={closeMenu}
+                >
+                  {isAuthenticated ? tNav('controlPanel') : tNav('login')}
+                </Link>
+                <button
+                  type="button"
+                  className="mt-4 self-start rounded-full border border-border bg-surface-sunken px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-accent"
+                  onClick={switchLocale}
+                >
+                  {locale === 'es' ? tNav('switchToEnglish') : tNav('switchToSpanish')}
+                </button>
+              </nav>
+            </div>
+          </div>,
+          document.body,
+        )}
     </header>
   );
 }

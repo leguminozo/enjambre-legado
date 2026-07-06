@@ -21,7 +21,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'GPTBot',
         allow: '/',
-        disallow: ['/api/checkout/', '/api/agents/'],
+        disallow: ['/api/agents/'],
       },
       {
         userAgent: 'Google-Extended',

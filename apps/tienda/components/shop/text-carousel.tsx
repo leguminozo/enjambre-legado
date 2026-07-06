@@ -181,7 +181,7 @@ export function TextCarousel() {
       role="region"
       aria-label="Mensajes del sitio"
       aria-live="polite"
-      className={`sticky top-0 z-[70] bg-bosque transition-all duration-300 ${
+      className={`tienda-text-carousel sticky top-0 z-[70] bg-bosque transition-all duration-300 ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
       }`}
     >
