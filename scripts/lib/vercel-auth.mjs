@@ -52,7 +52,7 @@ export const PRODUCTION_TEAM_SLUG =
 export const PRODUCTION_URLS = {
   nucleo: 'https://nucleo-theta.vercel.app',
   tienda: 'https://tienda-eta-lime.vercel.app',
-  campo: 'https://campo-gilt.vercel.app',
+  campo: 'https://campo-olive.vercel.app',
 };
 
 /** @deprecated gabos-projects — migrado a guillermoc2710-8540 */
