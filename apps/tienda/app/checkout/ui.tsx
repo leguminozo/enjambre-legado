@@ -18,8 +18,10 @@ import {
 import { HexagonLoader } from '@enjambre/ui';
 import {
   friendlyCheckoutApiMessage,
+  isCheckoutShippingReady,
   shouldBlockCheckoutPayment,
 } from '@/lib/shop/checkout-errors';
+import { usePwaStandalone } from '@/lib/hooks/use-pwa-standalone';
 import { startCartCheckout } from '@/lib/shop/cart-checkout-client';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { useAuth } from '@/components/providers/auth-context';
@@ -108,11 +110,14 @@ export function CheckoutClient() {
   const {
     loyaltyData,
     loading: loyaltyLoading,
+    error: loyaltyError,
     puntosACanjear,
     setPuntosACanjear,
     descuentoPorPuntos,
     canMaxPoints,
   } = useLoyaltyPoints(subtotalCompra - promoDiscount);
+  const isPwa = usePwaStandalone();
+  const [redirectStalled, setRedirectStalled] = useState(false);
 
   useEffect(() => {
     if (!pricing || subtotalCompra <= 0) {
@@ -303,6 +308,17 @@ export function CheckoutClient() {
     quote,
     quoteError,
   });
+  const shippingReady = isCheckoutShippingReady(shipping);
+  const payDisabled = loading || !pricing || paymentBlocked || !shippingReady;
+
+  useEffect(() => {
+    if (!loading) {
+      setRedirectStalled(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setRedirectStalled(true), 18000);
+    return () => window.clearTimeout(timer);
+  }, [loading]);
 
   const startCheckout = async () => {
     setTouched(true);
@@ -331,6 +347,7 @@ export function CheckoutClient() {
       puntosACanjear: usarPuntos ? puntosACanjear : 0,
       codigoDescuento: codigoAplicado ?? undefined,
       returnUrl: `${window.location.origin}${CHECKOUT_RESULTADO_PATH}`,
+      puntosGanadosEstimados: loyaltyData?.puntos_ganados_compra,
     });
 
     if (!result.ok) {
@@ -516,7 +533,30 @@ export function CheckoutClient() {
               </section>
 
               {/* Loyalty points section */}
-              {isAuthenticated && loyaltyData && (
+              {!isAuthenticated ? (
+                <section className="checkout-section">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Star className="h-5 w-5 text-accent" />
+                    <h2 className="font-display text-lg text-foreground">Puntos de Fidelización</h2>
+                  </div>
+                  <div className="rounded-xl border border-border bg-card/40 p-6 text-sm text-muted-foreground">
+                    <Link href="/login?returnTo=/checkout" className="text-accent underline underline-offset-2">
+                      Inicia sesión
+                    </Link>
+                    {' '}para canjear puntos y acumular impacto con esta compra.
+                  </div>
+                </section>
+              ) : loyaltyLoading ? (
+                <section className="checkout-section">
+                  <div className="rounded-xl border border-border bg-card/40 p-6 animate-pulse">
+                    <p className="text-sm text-muted-foreground">Cargando puntos de fidelización…</p>
+                  </div>
+                </section>
+              ) : loyaltyError ? (
+                <section className="checkout-section">
+                  <p className="text-sm text-destructive/80">{loyaltyError}</p>
+                </section>
+              ) : loyaltyData ? (
                 <section className="checkout-section">
                   <div className="flex items-center gap-2 mb-4">
                     <Star className="h-5 w-5 text-accent" />
@@ -600,7 +640,7 @@ export function CheckoutClient() {
                     </div>
                   </div>
                 </section>
-              )}
+              ) : null}
 
               {/* Buyer mode */}
               <section className="checkout-section">
@@ -842,17 +882,35 @@ export function CheckoutClient() {
                 </p>
               ) : null}
 
+              {redirectStalled && loading ? (
+                <p className="text-center text-xs text-muted-foreground">
+                  Si no fuiste redirigido,{' '}
+                  <button type="button" className="text-accent underline" onClick={() => setLoading(false)}>
+                    reintenta
+                  </button>
+                  .
+                </p>
+              ) : null}
+
+              {isPwa ? (
+                <p className="text-center text-xs text-muted-foreground">
+                  Completa el pago en la misma ventana para confirmar tu pedido.
+                </p>
+              ) : null}
+
                 <button
                 ref={buttonRef}
                 type="button"
-                className="checkout-button w-full rounded-full bg-primary py-4 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={loading || !pricing || paymentBlocked}
+                className="checkout-button hidden md:flex w-full rounded-full bg-primary py-4 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={payDisabled}
                 title={
-                  paymentBlocked && quoteError
-                    ? quoteError
-                    : paymentBlocked && quoteLoading
-                      ? 'Calculando envío y descuentos…'
-                      : undefined
+                  !shippingReady
+                    ? 'Completa los datos de envío'
+                    : paymentBlocked && quoteError
+                      ? quoteError
+                      : paymentBlocked && quoteLoading
+                        ? 'Calculando envío y descuentos…'
+                        : undefined
                 }
                 onClick={() => void startCheckout()}
               >
@@ -885,6 +943,28 @@ export function CheckoutClient() {
           )}
         </div>
       </main>
+
+      {lines.length > 0 && pricing && !pricingLoading && (
+        <div className="tienda-checkout-sticky-pay md:hidden">
+          <div className="tienda-checkout-sticky-pay-inner">
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Total</p>
+              <p data-testid="checkout-total" className="font-display text-lg font-semibold text-accent tabular-nums">
+                {quoteLoading && !quote ? '…' : `$${totalCompra.toLocaleString('es-CL')}`}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="shrink-0 rounded-full bg-primary px-6 py-3 text-xs font-bold uppercase tracking-wider text-primary-foreground disabled:opacity-50"
+              disabled={payDisabled}
+              onClick={() => void startCheckout()}
+            >
+              {loading ? '…' : 'Pagar'}
+            </button>
+          </div>
+        </div>
+      )}
+
       <ShopFooter />
     </StoreShell>
   );

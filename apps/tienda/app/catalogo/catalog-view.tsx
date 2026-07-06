@@ -2,18 +2,71 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { ShopProduct } from '@/lib/shop/products';
+import type { ProductRatingAggregate } from '@/lib/shop/catalog-ratings';
 import { formatCLP } from '@/lib/shop/format';
-import { Search } from 'lucide-react';
+import { ProductRatingStars } from '@/components/shop/product-rating-stars';
+import { Search, X } from 'lucide-react';
 
 type Props = {
   products: ShopProduct[];
+  ratings?: Record<string, ProductRatingAggregate>;
 };
 
-export function CatalogoView({ products }: Props) {
-  const [q, setQ] = useState('');
-  const [sort, setSort] = useState<'default' | 'price-asc' | 'price-desc' | 'name'>('default');
+type SortKey = 'default' | 'price-asc' | 'price-desc' | 'name';
+
+function productBadges(p: ShopProduct): string[] {
+  const badges: string[] = [];
+  if (p.sustituye_azucar_g && p.sustituye_azucar_g > 0) badges.push('Sustituye azúcar');
+  if (p.co2_evitado_kg && p.co2_evitado_kg > 0) badges.push('Bosque nativo');
+  if (p.irr_referencia && p.irr_referencia > 1) badges.push('Alto impacto');
+  if (p.format?.toLowerCase().includes('sachet')) badges.push('Bajo procesamiento');
+  for (const tag of p.tags.slice(0, 2)) {
+    if (!badges.includes(tag)) badges.push(tag);
+  }
+  return badges.slice(0, 3);
+}
+
+export function CatalogoView({ products, ratings = {} }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const q = searchParams.get('q') ?? '';
+  const formato = searchParams.get('formato') ?? '';
+  const categoria = searchParams.get('categoria') ?? '';
+  const soloStock = searchParams.get('stock') === '1';
+  const altoImpacto = searchParams.get('impacto') === '1';
+  const [sort, setSort] = useState<SortKey>('default');
+  const [draftQ, setDraftQ] = useState(q);
+
+  useEffect(() => {
+    setDraftQ(q);
+  }, [q]);
+
+  const formatos = useMemo(
+    () => [...new Set(products.map((p) => p.format).filter(Boolean))] as string[],
+    [products],
+  );
+  const categorias = useMemo(
+    () => [...new Set(products.map((p) => p.category).filter(Boolean))] as string[],
+    [products],
+  );
+
+  const setParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const next = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(updates)) {
+        if (!value) next.delete(key);
+        else next.set(key, value);
+      }
+      const qs = next.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
 
   const filtered = useMemo(() => {
     let list = products;
@@ -23,45 +76,72 @@ export function CatalogoView({ products }: Props) {
         (p) =>
           p.name.toLowerCase().includes(s) ||
           (p.format?.toLowerCase().includes(s) ?? false) ||
-          (p.description?.toLowerCase().includes(s) ?? false),
+          (p.category?.toLowerCase().includes(s) ?? false) ||
+          (p.description?.toLowerCase().includes(s) ?? false) ||
+          p.tags.some((t) => t.toLowerCase().includes(s)),
       );
     }
+    if (formato) list = list.filter((p) => p.format === formato);
+    if (categoria) list = list.filter((p) => p.category === categoria);
+    if (soloStock) list = list.filter((p) => (p.stock ?? 0) > 0);
+    if (altoImpacto) list = list.filter((p) => (p.irr_referencia ?? 0) > 1);
+
     const next = [...list];
     if (sort === 'price-asc') next.sort((a, b) => a.price - b.price);
     if (sort === 'price-desc') next.sort((a, b) => b.price - a.price);
     if (sort === 'name') next.sort((a, b) => a.name.localeCompare(b.name, 'es'));
     return next;
-  }, [products, q, sort]);
+  }, [products, q, formato, categoria, soloStock, altoImpacto, sort]);
+
+  const hasFilters = Boolean(q || formato || categoria || soloStock || altoImpacto);
+
+  const clearFilters = () => {
+    setDraftQ('');
+    setParams({ q: null, formato: null, categoria: null, stock: null, impacto: null });
+  };
 
   return (
     <>
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-        <h1 className="text-center font-display text-4xl font-semibold text-foreground sm:text-5xl">Creaciones</h1>
+        <h1 className="text-center font-display text-4xl font-semibold text-foreground sm:text-5xl">
+          Creaciones
+        </h1>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-muted-foreground sm:text-base">
-          La materia de nuestra búsqueda Experiencias que se transforman en productos cargados de legado
+          La materia de nuestra búsqueda. Experiencias que se transforman en productos cargados de legado.
         </p>
 
         <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <label className="relative flex-1">
-            <span className="sr-only">Buscar productos</span>
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <form
+            className="relative flex-1"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setParams({ q: draftQ.trim() || null });
+            }}
+          >
+            <label className="sr-only" htmlFor="search-products">
+              Buscar productos
+            </label>
+            <Search
+              className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
             <input
               type="search"
               id="search-products"
               name="search"
               placeholder="Buscar productos"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
+              value={draftQ}
+              onChange={(e) => setDraftQ(e.target.value)}
               className="w-full rounded-full border border-border bg-card py-3 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/40"
             />
-          </label>
+          </form>
           <label className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
             <span className="whitespace-nowrap">Ordenar por:</span>
             <select
               id="sort-products"
               name="sort"
               value={sort}
-              onChange={(e) => setSort(e.target.value as typeof sort)}
+              onChange={(e) => setSort(e.target.value as SortKey)}
               className="rounded-full border border-border bg-card px-4 py-2.5 text-foreground focus:border-accent/50 focus:outline-none"
             >
               <option value="default">Default</option>
@@ -72,21 +152,86 @@ export function CatalogoView({ products }: Props) {
           </label>
         </div>
 
+        <div className="mx-auto mt-6 flex max-w-3xl flex-wrap items-center gap-2">
+          {formatos.map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setParams({ formato: formato === f ? null : f })}
+              className={`rounded-full border px-3 py-1.5 text-xs uppercase tracking-wider transition ${
+                formato === f
+                  ? 'border-accent bg-accent/15 text-accent'
+                  : 'border-border text-muted-foreground hover:border-accent/40'
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+          {categorias.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setParams({ categoria: categoria === c ? null : c })}
+              className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                categoria === c
+                  ? 'border-primary bg-primary/10 text-foreground'
+                  : 'border-border text-muted-foreground hover:border-accent/40'
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setParams({ stock: soloStock ? null : '1' })}
+            className={`rounded-full border px-3 py-1.5 text-xs transition ${
+              soloStock
+                ? 'border-success bg-success/10 text-success'
+                : 'border-border text-muted-foreground hover:border-accent/40'
+            }`}
+          >
+            En stock
+          </button>
+          <button
+            type="button"
+            onClick={() => setParams({ impacto: altoImpacto ? null : '1' })}
+            className={`rounded-full border px-3 py-1.5 text-xs transition ${
+              altoImpacto
+                ? 'border-accent bg-accent/10 text-accent'
+                : 'border-border text-muted-foreground hover:border-accent/40'
+            }`}
+          >
+            Alto impacto
+          </button>
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X size={12} />
+              Limpiar
+            </button>
+          )}
+        </div>
+
         {filtered.length === 0 ? (
           <p className="mt-14 text-center text-muted-foreground">
             No hay resultados.{' '}
             <button
               type="button"
-              onClick={() => setQ('')}
+              onClick={clearFilters}
               className="text-accent underline hover:text-accent/80"
             >
-              Limpiar búsqueda
+              Limpiar filtros
             </button>
           </p>
         ) : (
           <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((p) => {
               const img = p.photos[0];
+              const rating = ratings[p.id];
+              const badges = productBadges(p);
               return (
                 <li key={p.id}>
                   <Link
@@ -108,30 +253,43 @@ export function CatalogoView({ products }: Props) {
                         </div>
                       )}
                     </div>
-                <div className="p-4">
-                  {p.format ? (
-                    <span className="inline-block rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
-                      {p.format}
-                    </span>
-                  ) : null}
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    <span className="inline-block rounded-full border border-accent/30 px-2.5 py-0.5 text-[9px] uppercase tracking-wider text-accent/80">
-                      Sustituye azúcar
-                    </span>
-                    <span className="inline-block rounded-full border border-success/30 px-2.5 py-0.5 text-[9px] uppercase tracking-wider text-success/80">
-                      Bosque nativo
-                    </span>
-                    {p.format && p.format.toLowerCase().includes('sachet') && (
-                      <span className="inline-block rounded-full border border-muted-foreground/20 px-2.5 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground/60">
-                        Bajo procesamiento
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="mt-2 font-display text-lg font-semibold text-foreground group-hover:text-accent">
-                    {p.name}
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{formatCLP(p.price)}</p>
-                </div>
+                    <div className="p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {p.format ? (
+                          <span className="inline-block rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
+                            {p.format}
+                          </span>
+                        ) : null}
+                        {rating && rating.reviewCount > 0 && (
+                          <ProductRatingStars
+                            rating={rating.ratingValue}
+                            reviewCount={rating.reviewCount}
+                            showCount
+                          />
+                        )}
+                      </div>
+                      {badges.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {badges.map((badge) => (
+                            <span
+                              key={badge}
+                              className="inline-block rounded-full border border-accent/30 px-2.5 py-0.5 text-[9px] uppercase tracking-wider text-accent/80"
+                            >
+                              {badge}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <h2 className="mt-2 font-display text-lg font-semibold text-foreground group-hover:text-accent">
+                        {p.name}
+                      </h2>
+                      <p className="mt-1 text-sm text-muted-foreground">{formatCLP(p.price)}</p>
+                      {(p.stock ?? 0) <= 0 && (
+                        <p className="mt-1 text-[10px] uppercase tracking-wider text-destructive/80">
+                          Agotado
+                        </p>
+                      )}
+                    </div>
                   </Link>
                 </li>
               );

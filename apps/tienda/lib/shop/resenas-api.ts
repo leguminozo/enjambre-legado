@@ -1,6 +1,8 @@
 import type { CreateResenaInput } from '@enjambre/resenas';
+import { computeAggregateRating } from '@enjambre/resenas';
 import { createAnonServerClient } from '@/utils/supabase/anon-server';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
+import { RESENA_CLAIM_TOKEN_KEY } from '@/lib/shop/commerce-storage';
 
 export type ResenaPublic = {
   id: string;
@@ -80,14 +82,7 @@ async function fetchResenasFromSupabase(
       .eq('estado', 'aprobada');
 
     const ratings = (ratingsRes.data ?? []).map((r: { rating: number | null }) => Number(r.rating) || 0);
-    const ratingSum = ratings.reduce((acc: number, r: number) => acc + r, 0);
-    const aggregate =
-      ratings.length > 0
-        ? {
-            ratingValue: Math.round((ratingSum / ratings.length) * 10) / 10,
-            reviewCount: ratings.length,
-          }
-        : null;
+    const aggregate = computeAggregateRating(ratings);
 
     return {
       items: (data ?? []) as ResenaPublic[],
@@ -106,8 +101,10 @@ async function fetchResenasFromSupabase(
 export async function fetchResenas(
   productoId: string,
   modo: 'anonima' | 'guardian' | 'all' = 'all',
+  page = 1,
+  limit = 20,
 ): Promise<ResenasListResponse> {
-  return fetchResenasFromSupabase(productoId, modo, 1, 20);
+  return fetchResenasFromSupabase(productoId, modo, page, limit);
 }
 
 export async function getAuthToken(): Promise<string | undefined> {
@@ -173,4 +170,36 @@ export async function checkEligible(productoId: string, token: string) {
     venta_id?: string | null;
     reason?: string;
   }>;
+}
+
+export async function claimResena(token: string, authToken: string): Promise<{ ok: boolean; message?: string }> {
+  const nucleoUrl = getNucleoApiUrl();
+  if (!nucleoUrl) {
+    return { ok: false, message: 'Servicio no disponible' };
+  }
+
+  const res = await fetch(`${nucleoUrl}/api/resenas/claim`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    body: JSON.stringify({ token }),
+  });
+  const json = (await res.json()) as { message?: string };
+  if (!res.ok) {
+    return { ok: false, message: json.message ?? 'No se pudo vincular la reseña' };
+  }
+  return { ok: true, message: json.message ?? 'Reseña vinculada a tu cuenta' };
+}
+
+export function getPendingClaimToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(RESENA_CLAIM_TOKEN_KEY);
+}
+
+export function clearPendingClaimToken(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(RESENA_CLAIM_TOKEN_KEY);
 }

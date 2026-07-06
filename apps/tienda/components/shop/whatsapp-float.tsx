@@ -1,9 +1,20 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
+
 /** Define NEXT_PUBLIC_WHATSAPP_E164=569XXXXXXXX (solo dígitos, con código país). */
 export function WhatsAppFloat() {
+  const pathname = usePathname();
   const phone = process.env.NEXT_PUBLIC_WHATSAPP_E164?.replace(/\D/g, '');
   if (!phone) return null;
+
+  const normalized = (pathname ?? '').replace(/^\/(es|en)/, '') || '/';
+  const hideOn =
+    normalized.startsWith('/checkout') ||
+    normalized.startsWith('/perfil/reposicion/resultado') ||
+    normalized.startsWith('/perfil/ritual/resultado');
+
+  if (hideOn) return null;
 
   return (
     <a

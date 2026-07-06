@@ -1,7 +1,10 @@
 'use client';
 
 import { friendlyApiError } from '@enjambre/ui';
-import { PENDING_CHECKOUT_STORAGE_KEY } from '@/lib/shop/commerce-storage';
+import {
+  CHECKOUT_SUCCESS_META_KEY,
+  PENDING_CHECKOUT_STORAGE_KEY,
+} from '@/lib/shop/commerce-storage';
 import { friendlyCheckoutApiMessage } from '@/lib/shop/checkout-errors';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { redirectToPaymentProvider } from '@/lib/shop/payment-redirect';
@@ -32,6 +35,7 @@ export type CartCheckoutOptions = {
   puntosACanjear?: number;
   codigoDescuento?: string;
   returnUrl: string;
+  puntosGanadosEstimados?: number;
 };
 
 export type CartCheckoutPriceConflict = {
@@ -140,6 +144,16 @@ export async function startCartCheckout(
       provider: json.provider,
     }),
   );
+
+  if (options.puntosGanadosEstimados != null && options.puntosGanadosEstimados > 0) {
+    sessionStorage.setItem(
+      CHECKOUT_SUCCESS_META_KEY,
+      JSON.stringify({
+        puntosGanados: options.puntosGanadosEstimados,
+        buyOrder: json.buyOrder,
+      }),
+    );
+  }
 
   redirectToPaymentProvider({
     url: json.url,

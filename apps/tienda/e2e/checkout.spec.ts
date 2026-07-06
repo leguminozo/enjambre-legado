@@ -24,7 +24,7 @@ test.describe('Checkout Flow', () => {
     await expect(page.locator('input[name="nombre"]')).toBeVisible();
     await expect(page.locator('input[name="email"]')).toBeVisible();
     await expect(page.locator('input[name="telefono"]')).toBeVisible();
-    await expect(page.locator('input[name="region"]')).toBeVisible();
+    await expect(page.locator('select[name="region"]')).toBeVisible();
   });
 
   test('should validate required fields', async ({ page }) => {

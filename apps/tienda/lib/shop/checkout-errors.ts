@@ -84,7 +84,32 @@ export function shouldBlockCheckoutPayment(
     quoteError: string | null;
   },
 ): boolean {
-  if (region.trim().length < 2) return false;
+  if (region.trim().length < 2) return true;
   if (opts.quoteLoading) return true;
   return !opts.quote || Boolean(opts.quoteError);
+}
+
+/** Indica si el formulario de envío tiene los campos mínimos para cotizar/pagar. */
+export function isCheckoutShippingReady(shipping: {
+  nombre: string;
+  email: string;
+  telefono: string;
+  direccion: string;
+  comuna: string;
+  ciudad: string;
+  region: string;
+}): boolean {
+  return Object.keys(
+    (() => {
+      const e: Record<string, string> = {};
+      if (shipping.nombre.trim().length < 2) e.nombre = '1';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shipping.email)) e.email = '1';
+      if (shipping.telefono.trim().length < 8) e.telefono = '1';
+      if (shipping.direccion.trim().length < 5) e.direccion = '1';
+      if (shipping.comuna.trim().length < 2) e.comuna = '1';
+      if (shipping.ciudad.trim().length < 2) e.ciudad = '1';
+      if (shipping.region.trim().length < 2) e.region = '1';
+      return e;
+    })(),
+  ).length === 0;
 }

@@ -14,7 +14,10 @@ import { CheckCircle, XCircle, Clock, Leaf, Trees, Package } from 'lucide-react'
 import { friendlyApiError } from '@enjambre/ui';
 import { ResenaInvite } from '@/components/shop/resena-invite';
 import { WalletButtons } from '@/components/shop/wallet-buttons';
-import { PENDING_CHECKOUT_STORAGE_KEY } from '@/lib/shop/commerce-storage';
+import {
+  CHECKOUT_SUCCESS_META_KEY,
+  PENDING_CHECKOUT_STORAGE_KEY,
+} from '@/lib/shop/commerce-storage';
 import { commitPayment, parsePendingPayment } from '@/lib/shop/payment-commit';
 
 type CommitState = 'loading' | 'success' | 'failed';
@@ -27,6 +30,9 @@ export function CheckoutResultClient() {
   const statusParam = params.get('status');
   const [state, setState] = useState<CommitState>('loading');
   const [message, setMessage] = useState(t('confirming'));
+  const [successMeta, setSuccessMeta] = useState<{ buyOrder?: string; puntosGanados?: number } | null>(
+    null,
+  );
   const { clear } = useCartLines();
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -74,6 +80,20 @@ export function CheckoutResultClient() {
       }
 
       sessionStorage.removeItem(PENDING_CHECKOUT_STORAGE_KEY);
+      try {
+        const raw = sessionStorage.getItem(CHECKOUT_SUCCESS_META_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as { buyOrder?: string; puntosGanados?: number };
+          setSuccessMeta(parsed);
+          sessionStorage.removeItem(CHECKOUT_SUCCESS_META_KEY);
+        } else if (result.data.buyOrder) {
+          setSuccessMeta({ buyOrder: result.data.buyOrder });
+        }
+      } catch {
+        if (result.data.buyOrder) {
+          setSuccessMeta({ buyOrder: result.data.buyOrder });
+        }
+      }
       clear();
       setState('success');
       setMessage(t('confirmed'));
@@ -207,6 +227,16 @@ export function CheckoutResultClient() {
 
               {state === 'success' && (
                 <div className="space-y-6 mb-8">
+                  {successMeta?.buyOrder && (
+                    <p className="text-xs text-muted-foreground">
+                      Pedido <span className="font-mono text-foreground">{successMeta.buyOrder}</span>
+                    </p>
+                  )}
+                  {successMeta?.puntosGanados != null && successMeta.puntosGanados > 0 && (
+                    <p className="text-sm text-accent font-medium">
+                      +{successMeta.puntosGanados} puntos de fidelización
+                    </p>
+                  )}
                   <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
                     <Package className="w-5 h-5 text-accent" />
                     <span>{t('preparing')}</span>

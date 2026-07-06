@@ -115,7 +115,10 @@ export function MobileBottomNav() {
     setDragIndex(null);
   }, []);
 
-  if (!isPwa) return null;
+  const hideOnCheckout =
+    normalized.startsWith('/checkout') || normalized.startsWith('/perfil/reposicion/resultado');
+
+  if (!isPwa || hideOnCheckout) return null;
 
   return (
     <nav

@@ -10,6 +10,9 @@ export type ShopProduct = {
   price: number;
   stock: number | null;
   format: string | null;
+  category: string | null;
+  tags: string[];
+  origenApicola: string | null;
   photos: string[];
   visible: boolean;
   blockchain_hash?: string | null;
@@ -31,6 +34,9 @@ const PRODUCT_SELECT = [
   'precio',
   'stock',
   'formato',
+  'categoria',
+  'tags',
+  'origen_apicola',
   'fotos',
   'visible',
   'sustituye_azucar_g',
@@ -56,6 +62,9 @@ const ProductRowSchema = z.object({
   precio: z.number().nullable(),
   stock: z.number().nullable(),
   formato: z.string().nullable(),
+  categoria: z.string().nullable(),
+  tags: z.array(z.string()).nullable(),
+  origen_apicola: z.string().nullable(),
   fotos: z.array(z.string()).nullable(),
   visible: z.boolean().nullable(),
   sustituye_azucar_g: z.number().nullable(),
@@ -81,6 +90,9 @@ function mapProduct(p: ProductRow): ShopProduct {
     price: p.precio ?? 0,
     stock: p.stock ?? null,
     format: p.formato ?? null,
+    category: p.categoria ?? null,
+    tags: p.tags ?? [],
+    origenApicola: p.origen_apicola ?? null,
     photos: p.fotos ?? [],
     visible: p.visible ?? true,
     blockchain_hash: p.lotes?.blockchain_hash ?? null,

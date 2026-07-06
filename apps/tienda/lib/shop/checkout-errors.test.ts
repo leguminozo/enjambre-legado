@@ -60,14 +60,14 @@ describe('isCheckoutConfigError', () => {
 describe('shouldBlockCheckoutPayment', () => {
   const quote = { subtotal: 10000, total: 15900, shippingCost: 5900, discountClp: 0, loyaltyDiscountClp: 0 };
 
-  it('does not block before region is selected', () => {
+  it('blocks before region is selected', () => {
     expect(
       shouldBlockCheckoutPayment('', {
         quoteLoading: false,
         quote: null,
         quoteError: null,
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it('blocks while quote is loading', () => {

@@ -1,6 +1,8 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { listVisibleProducts } from '@/lib/shop/products';
+import { fetchRatingAggregatesByProduct } from '@/lib/shop/catalog-ratings';
 import { itemListJsonLd } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -37,8 +39,10 @@ export const metadata: Metadata = {
 export default async function CatalogoPage() {
   let products = [] as Awaited<ReturnType<typeof listVisibleProducts>>;
   let loadError: string | null = null;
+  let ratings: Awaited<ReturnType<typeof fetchRatingAggregatesByProduct>> = {};
   try {
     products = await listVisibleProducts();
+    ratings = await fetchRatingAggregatesByProduct(products.map((p) => p.id));
   } catch (e) {
     loadError = e instanceof Error ? e.message : 'Error cargando catálogo';
   }
@@ -69,7 +73,9 @@ export default async function CatalogoPage() {
             </p>
           </div>
         ) : (
-          <CatalogoView products={products} />
+          <Suspense fallback={<p className="py-16 text-center text-muted-foreground">Cargando catálogo…</p>}>
+            <CatalogoView products={products} ratings={ratings} />
+          </Suspense>
         )}
       </main>
       <ShopFooter />

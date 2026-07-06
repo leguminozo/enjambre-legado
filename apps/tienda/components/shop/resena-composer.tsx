@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   CRISTALIZACION_OPCIONES,
   FAMILIAS_AROMATICAS,
@@ -9,7 +9,9 @@ import {
 } from '@enjambre/resenas';
 import { friendlyError, toast } from '@enjambre/ui';
 import { Star, Sparkles, MessageCircle } from 'lucide-react';
-import { createResena, getAuthToken } from '@/lib/shop/resenas-api';
+import { RESENA_CLAIM_TOKEN_KEY } from '@/lib/shop/commerce-storage';
+import { checkEligible, createResena, getAuthToken } from '@/lib/shop/resenas-api';
+import { useAuth } from '@/components/providers/auth-context';
 import { TiendaModal } from '@/components/shop/tienda-modal';
 
 type Modo = 'anonima' | 'guardian';
@@ -62,6 +64,41 @@ export function ResenaComposer({
   const [momento, setMomento] = useState('');
   const [maridaje, setMaridaje] = useState('');
   const [loading, setLoading] = useState(false);
+  const [eligibilityLoading, setEligibilityLoading] = useState(false);
+  const [eligibility, setEligibility] = useState<{
+    eligible: boolean;
+    compraVerificada?: boolean;
+    venta_id?: string | null;
+    reason?: string;
+  } | null>(null);
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!open || modo !== 'guardian' || !isAuthenticated) {
+      setEligibility(null);
+      return;
+    }
+
+    let cancelled = false;
+    setEligibilityLoading(true);
+
+    void (async () => {
+      const token = await getAuthToken();
+      if (!token || cancelled) {
+        setEligibilityLoading(false);
+        return;
+      }
+      const result = await checkEligible(productoId, token);
+      if (!cancelled) {
+        setEligibility(result);
+        setEligibilityLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, modo, isAuthenticated, productoId]);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -94,6 +131,7 @@ export function ResenaComposer({
           modo: 'guardian',
           producto_id: productoId,
           rating,
+          venta_id: eligibility?.venta_id ?? undefined,
           cristalizacion_percibida: cristalizacion as (typeof CRISTALIZACION_OPCIONES)[number],
           familia_aromatica: familia as (typeof FAMILIAS_AROMATICAS)[number],
           intensidad_fondo: intensidad,
@@ -111,7 +149,7 @@ export function ResenaComposer({
       }
 
       if (result.claimToken) {
-        localStorage.setItem('oyz_resena_claim_token', result.claimToken);
+        localStorage.setItem(RESENA_CLAIM_TOKEN_KEY, result.claimToken);
       }
 
       toast(result.message ?? RESENA_COPY.pendingModeration, { type: 'success' });
@@ -194,6 +232,15 @@ export function ResenaComposer({
         ) : (
           <>
             <p className="text-xs text-accent/80">{RESENA_COPY.guardianSubtitle}</p>
+            {eligibilityLoading ? (
+              <p className="text-xs text-muted-foreground italic">Verificando compra…</p>
+            ) : eligibility?.compraVerificada ? (
+              <p className="text-xs text-success/90">Compra verificada — tu huella quedará marcada como Guardian.</p>
+            ) : eligibility?.reason ? (
+              <p className="text-xs text-muted-foreground">{eligibility.reason}</p>
+            ) : !isAuthenticated ? (
+              <p className="text-xs text-muted-foreground">Inicia sesión para dejar huella guardian.</p>
+            ) : null}
             <div className="grid grid-cols-2 gap-3">
               <label className="text-xs space-y-1.5">
                 Cuerpo

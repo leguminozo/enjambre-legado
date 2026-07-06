@@ -90,20 +90,31 @@ export function ResenasSection({
   const [items, setItems] = useState<ResenaPublic[]>([]);
   const [aggregate, setAggregate] = useState(initialAggregate ?? null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [composerOpen, setComposerOpen] = useState(false);
+  const limit = 10;
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const modo = tab === 'destacadas' ? 'guardian' : 'all';
-    const data = await fetchResenas(productoId, modo);
-    setItems(data.items);
-    setAggregate(data.aggregate);
-    setLoading(false);
-  }, [productoId, tab]);
+  const load = useCallback(
+    async (pageNum: number, append = false) => {
+      if (append) setLoadingMore(true);
+      else setLoading(true);
+      const modo = tab === 'destacadas' ? 'guardian' : 'all';
+      const data = await fetchResenas(productoId, modo, pageNum, limit);
+      setItems((prev) => (append ? [...prev, ...data.items] : data.items));
+      setAggregate(data.aggregate);
+      setTotal(data.total);
+      setPage(pageNum);
+      setLoading(false);
+      setLoadingMore(false);
+    },
+    [productoId, tab],
+  );
 
   useEffect(() => {
     if (tab === 'escribir') return;
-    void load();
+    void load(1, false);
   }, [load, tab]);
 
   return (
@@ -153,6 +164,16 @@ export function ResenasSection({
           {items.map((r) => (
             <ResenaCard key={r.id} resena={r} />
           ))}
+          {items.length < total && (
+            <button
+              type="button"
+              disabled={loadingMore}
+              onClick={() => void load(page + 1, true)}
+              className="w-full rounded-full border border-border py-2.5 text-sm text-muted-foreground hover:border-accent/40 hover:text-foreground disabled:opacity-50"
+            >
+              {loadingMore ? 'Cargando…' : 'Cargar más reseñas'}
+            </button>
+          )}
         </div>
       )}
 
@@ -163,7 +184,7 @@ export function ResenasSection({
         onClose={() => setComposerOpen(false)}
         onSubmitted={() => {
           setTab('comunidad');
-          void load();
+          void load(1, false);
         }}
       />
     </section>
