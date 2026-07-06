@@ -8,6 +8,7 @@ const AUTH_PATHS = [
 ];
 
 export function getVercelToken() {
+  if (process.env.VERCEL_TOKEN?.trim()) return process.env.VERCEL_TOKEN.trim();
   for (const path of AUTH_PATHS) {
     if (!existsSync(path)) continue;
     const data = JSON.parse(readFileSync(path, 'utf8'));
