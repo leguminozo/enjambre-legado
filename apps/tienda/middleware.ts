@@ -1,12 +1,8 @@
-import createIntlMiddleware from 'next-intl/middleware';
 import { type NextRequest, NextResponse } from 'next/server';
-import { routing } from '@/i18n-routing';
 import { resolveRouteAccessForMiddleware } from '@/lib/shop/middleware-route-access';
 import { mergeMiddlewareCookies } from '@/lib/shop/merge-middleware-cookies';
 import { normalizeStorePath } from '@/lib/shop/store-routes';
 import { updateSession } from '@/utils/supabase/middleware';
-
-const handleI18nRouting = createIntlMiddleware(routing);
 
 export default async function middleware(request: NextRequest) {
   const { response: sessionResponse, user, supabase } = await updateSession(request);
@@ -33,8 +29,7 @@ export default async function middleware(request: NextRequest) {
     return mergeMiddlewareCookies(sessionResponse, redirect);
   }
 
-  const intlResponse = handleI18nRouting(request);
-  return mergeMiddlewareCookies(sessionResponse, intlResponse);
+  return mergeMiddlewareCookies(sessionResponse, NextResponse.next());
 }
 
 export const config = {
