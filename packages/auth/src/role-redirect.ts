@@ -16,18 +16,21 @@ export const LEGACY_ROLE_MAP: Record<string, RoleKey> = {
 /** Rutas home por rol dentro de la app actual */
 export const ROLE_REDIRECT_MAP: Record<string, string> = {
   admin: '/ejecutivo',
-  creador: '/perfil/creador',
-  rep_ventas: '/caja',
-  cliente: '/catalogo',
-  ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map(k => [k, '/ejecutivo'])),
-}
-
-/** En núcleo, creador vive en tienda */
-export const NUCLEO_ROLE_REDIRECT_MAP: Record<string, string> = {
-  ...ROLE_REDIRECT_MAP,
   creador: process.env.NEXT_PUBLIC_URL_TIENDA
     ? `${process.env.NEXT_PUBLIC_URL_TIENDA.replace(/\/$/, '')}/perfil/creador`
     : '/perfil/creador',
+  rep_ventas: process.env.NEXT_PUBLIC_URL_CAMPO
+    ? `${process.env.NEXT_PUBLIC_URL_CAMPO.replace(/\/$/, '')}/pos`
+    : '/pos',
+  cliente: process.env.NEXT_PUBLIC_URL_TIENDA
+    ? `${process.env.NEXT_PUBLIC_URL_TIENDA.replace(/\/$/, '')}/catalogo`
+    : '/catalogo',
+  ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map(k => [k, '/ejecutivo'])),
+}
+
+/** En núcleo, la redirección es estricta hacia las otras apps para roles no admin */
+export const NUCLEO_ROLE_REDIRECT_MAP: Record<string, string> = {
+  ...ROLE_REDIRECT_MAP,
 }
 
 export function getRoleRedirectPath(role: string, app: 'nucleo' | 'tienda' = 'nucleo'): string {
@@ -57,22 +60,22 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/vanguardia': ['admin'],
   '/creadores': ['admin'],
   '/operadores-feria': ['admin'],
-  '/mi-feria': ['admin', 'rep_ventas'],
+  '/mi-feria': ['admin'],
   '/invitaciones': ['admin'],
   '/reglas-comision': ['admin'],
-  '/comisiones': ['admin', 'rep_ventas'],
+  '/comisiones': ['admin'],
   '/reps': ['admin'],
-  '/caja': ['admin', 'rep_ventas'],
-  '/leaderboard': ['admin', 'rep_ventas'],
+  '/caja': ['admin'],
+  '/leaderboard': ['admin'],
   '/colmenas': ['admin'],
   '/regeneracion': ['admin'],
   '/mapa': ['admin'],
-  '/catalogo': ['admin', 'cliente'],
+  '/catalogo': ['admin'],
   '/operaciones': ['admin'],
   '/comunidad': ['admin'],
   '/creador': ['admin'],
-  '/perfil': ['admin', 'creador', 'rep_ventas', 'cliente'],
-  '/configuracion': ['admin', 'creador', 'rep_ventas', 'cliente'],
+  '/perfil': ['admin'],
+  '/configuracion': ['admin'],
 }
 
 function normalizeRole(role: string): string {
