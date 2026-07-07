@@ -28,6 +28,7 @@ describe("Health API Routes", () => {
     expect(json).toEqual({
       status: "ok",
       service: "enjambre-api",
+      version: "v1",
       timestamp: expect.any(String),
     });
   });

@@ -58,6 +58,16 @@ vi.mock("@/api/lib/payments", () => {
 });
 
 vi.mock("@supabase/supabase-js", () => {
+  const productRows = [
+    {
+      id: "a2b724f8-4e12-40f4-90cc-172bf421e428",
+      precio: 11111, // Base price * 0.9 suscriptor mult = 10000
+      stock: 10,
+      nombre: "Miel Ulmo",
+      visible: true,
+    },
+  ];
+
   return {
     createClient: () => ({
       auth: {
@@ -72,35 +82,54 @@ vi.mock("@supabase/supabase-js", () => {
           error: null,
         }),
       },
-      from: () => ({
-        select: () => ({
-          in: () => ({
-            data: [
-              {
-                id: "a2b724f8-4e12-40f4-90cc-172bf421e428",
-                precio: 11111, // Base price * 0.9 suscriptor mult = 10000
-                stock: 10,
-                nombre: "Miel Ulmo",
-                visible: true,
-              },
-            ],
-            error: null,
+      from: (table: string) => {
+        if (table === "empresas") {
+          return {
+            select: () => ({
+              limit: () => ({
+                maybeSingle: async () => ({ data: { id: "empresa-id" }, error: null }),
+              }),
+            }),
+          };
+        }
+        if (table === "sii_caf") {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    maybeSingle: async () => ({
+                      data: { folio_hasta: 100, folio_actual: 50 },
+                      error: null,
+                    }),
+                  }),
+                }),
+              }),
+            }),
+          };
+        }
+        return {
+          select: () => ({
+            in: () => ({
+              data: productRows,
+              error: null,
+            }),
+            eq: () => ({
+              maybeSingle: async () => ({ data: null, error: null }),
+              data: [],
+            }),
+            limit: () => ({
+              maybeSingle: async () => ({ data: { id: "empresa-id" }, error: null }),
+            }),
           }),
-          eq: () => ({
-            maybeSingle: async () => ({ data: null, error: null }),
-            data: [],
+          insert: async () => ({ error: null }),
+          delete: () => ({
+            eq: async () => ({ error: null }),
           }),
-          limit: () => ({
-            single: async () => ({ data: { id: "empresa-id" }, error: null }),
-          }),
-        }),
-        insert: async () => ({ error: null }),
-        delete: () => ({
-          eq: async () => ({ error: null }),
-        }),
-      }),
+        };
+      },
       rpc: async (fn: string) => ({
-        data: fn === 'reserve_checkout_stock' ? { success: true } : true,
+        data: fn === "reserve_checkout_stock" ? { success: true } : true,
         error: null,
       }),
     }),

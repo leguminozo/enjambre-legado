@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3001';
+const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3000';
 
 export async function POST(request: Request) {
   let body: { token?: string };

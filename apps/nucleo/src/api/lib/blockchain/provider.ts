@@ -1,3 +1,5 @@
+import { createHash } from 'crypto';
+
 export interface BlockchainProvider {
   name: string;
   chainId: number;
@@ -162,6 +164,10 @@ export class PolygonAmoyProvider implements BlockchainProvider {
 }
 
 export function getBlockchainProvider(chain: SupportedChain = 'polygon-amoy'): BlockchainProvider {
+  if (!(chain in CHAIN_CONFIG)) {
+    throw new Error(`Unsupported chain: ${chain}`);
+  }
+
   const contractAddress = process.env[`BLOCKCHAIN_ANCHOR_CONTRACT_${chain.toUpperCase().replace('-', '_')}`];
   if (!contractAddress) {
     throw new Error(`BLOCKCHAIN_ANCHOR_CONTRACT_${chain.toUpperCase().replace('-', '_')} not configured`);
@@ -201,6 +207,6 @@ export function generateMerkleProof(leaves: string[], index: number): string[] {
 }
 
 export function computeDataHash(entityType: string, entityId: string, data: Record<string, unknown>): string {
-  const canonical = JSON.stringify({ entityType, entityId, data, timestamp: Date.now() }, Object.keys(data).sort());
-  return `0x${Buffer.from(canonical).toString('hex').padStart(64, '0')}`;
+  const canonical = JSON.stringify({ entityType, entityId, data });
+  return `0x${createHash('sha256').update(canonical).digest('hex')}`;
 }

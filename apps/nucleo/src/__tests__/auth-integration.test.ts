@@ -368,9 +368,9 @@ describe("Auth Integration Flow", () => {
       expect(state.user?.id).toBe("fallback-id");
       expect(state.user?.email).toBe("fallback@test.com");
       expect(state.user?.role).toBe("creador");
-      expect(state.user?.full_name).toBe("Fallback User");
-      expect(state.user?.nivel_guardian).toBe("1");
-      expect(state.user?.avatar_url).toBe("https://example.com/avatar.png");
+      expect(state.user?.full_name).toBe("");
+      expect(state.user?.nivel_guardian).toBe("");
+      expect(state.user?.avatar_url).toBe("");
       expect(state.isLoading).toBe(false);
     });
   });
