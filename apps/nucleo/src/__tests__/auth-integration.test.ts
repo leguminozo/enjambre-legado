@@ -90,8 +90,8 @@ describe("Auth Integration Flow", () => {
       }
     });
 
-    it("redirects rep_ventas to /caja", () => {
-      expect(getRoleRedirectPath("rep_ventas")).toBe("/caja");
+    it("redirects rep_ventas to /pos (Campo)", () => {
+      expect(getRoleRedirectPath("rep_ventas")).toBe("/pos");
     });
 
     it("redirects cliente to /catalogo", () => {
@@ -119,8 +119,8 @@ describe("Auth Integration Flow", () => {
       expect(isRouteAllowed("/caja", "admin")).toBe(true);
     });
 
-    it("allows rep_ventas to access /caja", () => {
-      expect(isRouteAllowed("/caja", "rep_ventas")).toBe(true);
+    it("denies rep_ventas to access /caja (solo admin)", () => {
+      expect(isRouteAllowed("/caja", "rep_ventas")).toBe(false);
     });
 
     it("denies rep_ventas to access /ejecutivo", () => {
@@ -217,7 +217,7 @@ describe("Auth Integration Flow", () => {
       );
     });
 
-    it("redirects authenticated rep_ventas from /login to /caja", async () => {
+    it("redirects authenticated rep_ventas from /login to /pos", async () => {
       const req = buildRequest("/login", {
         user: {
           id: "u3",
@@ -227,7 +227,7 @@ describe("Auth Integration Flow", () => {
       });
       const res = await middleware(req);
       expect(res.status).toBe(302);
-      expect(res.headers.get("location")).toBe("http://localhost:3000/caja");
+      expect(res.headers.get("location")).toBe("http://localhost:3000/pos");
     });
 
     it("redirects rep_ventas from /ejecutivo to their allowed route", async () => {
@@ -240,7 +240,7 @@ describe("Auth Integration Flow", () => {
       });
       const res = await middleware(req);
       expect(res.status).toBe(302);
-      expect(res.headers.get("location")).toBe("http://localhost:3000/caja");
+      expect(res.headers.get("location")).toBe("http://localhost:3000/pos");
     });
 
     it("redirects creador from /ejecutivo to tienda portal", async () => {
@@ -270,7 +270,7 @@ describe("Auth Integration Flow", () => {
       expect(res.status).toBeUndefined();
     });
 
-    it("allows rep_ventas to access /caja", async () => {
+    it("redirects rep_ventas away from /caja", async () => {
       const req = buildRequest("/caja", {
         user: {
           id: "u3",
@@ -279,7 +279,8 @@ describe("Auth Integration Flow", () => {
         },
       });
       const res = await middleware(req);
-      expect(res.status).toBeUndefined();
+      expect(res.status).toBe(302);
+      expect(res.headers.get("location")).toBe("http://localhost:3000/pos");
     });
 
     it("handles legacy role gerente as admin", async () => {
