@@ -1,12 +1,9 @@
-import createIntlMiddleware from 'next-intl/middleware';
 import { type NextRequest, NextResponse } from 'next/server';
 import { routing } from './i18n-routing';
 import { resolveRouteAccessForMiddleware } from '@/lib/shop/middleware-route-access';
 import { mergeMiddlewareCookies } from '@/lib/shop/merge-middleware-cookies';
 import { normalizeStorePath } from '@/lib/shop/store-routes';
 import { updateSession } from '@/utils/supabase/middleware';
-
-const handleI18nRouting = createIntlMiddleware(routing);
 
 const LOCALE_COOKIE_OPTS = {
   path: '/',
@@ -30,18 +27,29 @@ function redirectLegacyLocalePath(request: NextRequest): NextResponse | null {
   return redirect;
 }
 
+/** Sin app/[locale], createIntlMiddleware reescribe / y /catalogo a /_not-found en Vercel. */
+function detectLocaleFromHeaders(request: NextRequest): (typeof routing.locales)[number] {
+  const cookie = request.cookies.get('NEXT_LOCALE')?.value;
+  if (cookie && routing.locales.includes(cookie as (typeof routing.locales)[number])) {
+    return cookie as (typeof routing.locales)[number];
+  }
+  const accept = request.headers.get('accept-language')?.toLowerCase() ?? '';
+  if (accept.startsWith('en') && !accept.includes('es')) return 'en';
+  return routing.defaultLocale;
+}
+
+function withLocaleCookie(request: NextRequest, response: NextResponse): NextResponse {
+  if (!request.cookies.get('NEXT_LOCALE')) {
+    response.cookies.set('NEXT_LOCALE', detectLocaleFromHeaders(request), LOCALE_COOKIE_OPTS);
+  }
+  return response;
+}
+
 export default async function middleware(request: NextRequest) {
   const legacyRedirect = redirectLegacyLocalePath(request);
   if (legacyRedirect) {
     const { response: sessionResponse } = await updateSession(request);
     return mergeMiddlewareCookies(sessionResponse, legacyRedirect);
-  }
-
-  const intlResponse = handleI18nRouting(request);
-
-  if (intlResponse.headers.get('location')) {
-    const { response: sessionResponse } = await updateSession(request);
-    return mergeMiddlewareCookies(sessionResponse, intlResponse);
   }
 
   const { response: sessionResponse, user, supabase } = await updateSession(request);
@@ -52,7 +60,7 @@ export default async function middleware(request: NextRequest) {
   if (!access.allowed) {
     if (access.external) {
       const redirect = NextResponse.redirect(access.redirectTo);
-      return mergeMiddlewareCookies(mergeMiddlewareCookies(sessionResponse, intlResponse), redirect);
+      return mergeMiddlewareCookies(sessionResponse, redirect);
     }
 
     const target = request.nextUrl.clone();
@@ -64,11 +72,12 @@ export default async function middleware(request: NextRequest) {
       target.searchParams.set('returnTo', pathname);
     }
 
-    const redirect = NextResponse.redirect(target);
-    return mergeMiddlewareCookies(mergeMiddlewareCookies(sessionResponse, intlResponse), redirect);
+    const redirect = withLocaleCookie(request, NextResponse.redirect(target));
+    return mergeMiddlewareCookies(sessionResponse, redirect);
   }
 
-  return mergeMiddlewareCookies(sessionResponse, intlResponse);
+  const passThrough = withLocaleCookie(request, NextResponse.next());
+  return mergeMiddlewareCookies(sessionResponse, passThrough);
 }
 
 export const config = {
