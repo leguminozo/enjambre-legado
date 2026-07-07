@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Calculator, BookOpen, Save, CheckCircle2 } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardHeader, CardTitle, CardContent, Button, Spinner } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay } from "@enjambre/ui";
 import { ResponsiveTabBar } from "@/components/layout/ResponsiveTabBar";
 
 interface ImpuestosTabProps {
@@ -85,7 +85,8 @@ export function ImpuestosTab({ initialType }: ImpuestosTabProps) {
               <Calculator size={18} /> Declaración F29
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="relative">
+            {f29Query.isFetching && f29Query.data ? <LoadingOverlay label="Actualizando F29" /> : null}
             <div className="flex gap-4 mb-6 max-w-sm">
               <div className="flex-1 space-y-1">
                 <label className="text-xs text-muted-foreground font-medium">Año</label>
@@ -115,9 +116,7 @@ export function ImpuestosTab({ initialType }: ImpuestosTabProps) {
             </div>
 
             {f29Query.isLoading ? (
-              <div className="flex justify-center py-8">
-                <Spinner className="w-8 h-8 text-primary" />
-              </div>
+              <ViewLoading variant="view" label="F29" hideLabel />
             ) : f29Query.isError ? (
               <div className="p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 text-sm">
                 {f29Query.error.message}
@@ -210,7 +209,7 @@ export function ImpuestosTab({ initialType }: ImpuestosTabProps) {
                     }}
                     disabled={guardarF29.isPending}
                   >
-                    {guardarF29.isPending ? <Spinner className="w-4 h-4 mr-2" /> : <Save size={16} className="mr-2" />} 
+                    {guardarF29.isPending ? <HexagonLoader size="sm" className="mr-2" /> : <Save size={16} className="mr-2" />}
                     Guardar F29
                   </Button>
                   {guardarF29.isSuccess && (
@@ -233,7 +232,8 @@ export function ImpuestosTab({ initialType }: ImpuestosTabProps) {
               <BookOpen size={18} /> Declaración F22 — Anual
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="relative">
+            {f22Query.isFetching && f22Query.data ? <LoadingOverlay label="Actualizando F22" /> : null}
             <div className="flex gap-4 mb-6 max-w-xs">
               <div className="flex-1 space-y-1">
                 <label className="text-xs text-muted-foreground font-medium">Año comercial</label>
@@ -249,9 +249,7 @@ export function ImpuestosTab({ initialType }: ImpuestosTabProps) {
             </div>
 
             {f22Query.isLoading ? (
-              <div className="flex justify-center py-8">
-                <Spinner className="w-8 h-8 text-primary" />
-              </div>
+              <ViewLoading variant="view" label="F22" hideLabel />
             ) : f22Query.isError ? (
               <div className="p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 text-sm">
                 {f22Query.error.message}

@@ -5,13 +5,7 @@ import React, { useId } from 'react';
 /** Hexágono regular centrado en viewBox 48×56 */
 const HEX_PATH = 'M24 4 L41.32 14 L41.32 42 L24 52 L6.68 42 L6.68 14 Z';
 
-const SIZE_MAP = {
-  sm: 'w-7',
-  md: 'w-10',
-  lg: 'w-[3.25rem]',
-} as const;
-
-export type HexagonLoaderSize = keyof typeof SIZE_MAP;
+export type HexagonLoaderSize = 'sm' | 'md' | 'lg';
 
 export function HexagonLoader({
   size = 'md',
@@ -25,12 +19,12 @@ export function HexagonLoader({
   const rawId = useId().replace(/:/g, '');
   const clipId = `enj-hex-clip-${rawId}`;
   const glowId = `enj-hex-glow-${rawId}`;
-  const sizeClass = SIZE_MAP[size];
 
   return (
     <svg
       viewBox="0 0 48 56"
-      className={`enj-hex-loader shrink-0 aspect-[48/56] ${sizeClass} ${className}`.trim()}
+      data-size={size}
+      className={`enj-hex-loader ${className}`.trim()}
       aria-hidden={ariaHidden}
     >
       <defs>

@@ -72,3 +72,21 @@ export function ViewLoadingFallback({ label = 'Cargando módulo' }: { label?: st
 export function viewLoadingFallback(label = 'Cargando módulo') {
   return <ViewLoadingFallback label={label} />;
 }
+
+/** Reserva altura de `view` sin hexágono — evita doble loader tras `dynamic()` o `loading.tsx`. */
+export function ViewLoadingPlaceholder({
+  label = 'Cargando',
+  className = '',
+}: {
+  label?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`min-h-[12rem] w-full ${className}`.trim()}
+      role="status"
+      aria-busy="true"
+      aria-label={label}
+    />
+  );
+}

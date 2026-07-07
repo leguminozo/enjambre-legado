@@ -102,6 +102,7 @@ const matrix = {
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: publishable,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: publishable,
     NEXT_PUBLIC_NUCLEO_API_URL: urls.nucleo,
+    NEXT_PUBLIC_URL_TIENDA: urls.tienda,
     NEXT_PUBLIC_URL_CAMPO: urls.campo,
   },
 };

@@ -1,6 +1,6 @@
 'use server'
 
-import type { CartLine } from '@/components/shop/cart-lines-context';
+import type { CartLine } from '@/lib/cart/types';
 import { mergeCartQuantities, type CartQuantityItem } from '@/lib/cart/merge-lines';
 import { CartLineInputSchema } from '@/lib/cart/schemas';
 import { createClient } from '@/utils/supabase/server';
@@ -129,7 +129,7 @@ async function replaceRemoteCartItems(items: CartQuantityItem[]): Promise<CartLi
   }
 }
 
-export async function getRemoteCartLines(): Promise<CartLine[]> {
+async function getRemoteCartLinesImpl(): Promise<CartLine[]> {
   try {
     const supabase = await createClient();
     const {
@@ -164,11 +164,11 @@ export async function getRemoteCartLines(): Promise<CartLine[]> {
   }
 }
 
-export async function syncRemoteCart(items: CartQuantityItem[]): Promise<CartLine[]> {
+async function syncRemoteCartImpl(items: CartQuantityItem[]): Promise<CartLine[]> {
   return replaceRemoteCartItems(items);
 }
 
-export async function mergeCartOnLogin(localItems: CartQuantityItem[]): Promise<CartLine[]> {
+async function mergeCartOnLoginImpl(localItems: CartQuantityItem[]): Promise<CartLine[]> {
   const validatedLocal = validateCartItems(localItems);
 
   try {
@@ -207,7 +207,7 @@ export async function mergeCartOnLogin(localItems: CartQuantityItem[]): Promise<
   }
 }
 
-export async function clearRemoteCart(): Promise<void> {
+async function clearRemoteCartImpl(): Promise<void> {
   try {
     const supabase = await createClient();
     const {
@@ -222,5 +222,41 @@ export async function clearRemoteCart(): Promise<void> {
     }
   } catch (error) {
     logCartSyncWarning('clearRemoteCart failed', error);
+  }
+}
+
+/** Nunca lanza — evita errores genéricos de Server Actions en consola post-login. */
+export async function getRemoteCartLines(): Promise<CartLine[]> {
+  try {
+    return await getRemoteCartLinesImpl();
+  } catch (error) {
+    logCartSyncWarning('getRemoteCartLines outer failed', error);
+    return [];
+  }
+}
+
+export async function syncRemoteCart(items: CartQuantityItem[]): Promise<CartLine[]> {
+  try {
+    return await syncRemoteCartImpl(items);
+  } catch (error) {
+    logCartSyncWarning('syncRemoteCart outer failed', error);
+    return [];
+  }
+}
+
+export async function mergeCartOnLogin(localItems: CartQuantityItem[]): Promise<CartLine[]> {
+  try {
+    return await mergeCartOnLoginImpl(localItems);
+  } catch (error) {
+    logCartSyncWarning('mergeCartOnLogin outer failed', error);
+    return [];
+  }
+}
+
+export async function clearRemoteCart(): Promise<void> {
+  try {
+    await clearRemoteCartImpl();
+  } catch (error) {
+    logCartSyncWarning('clearRemoteCart outer failed', error);
   }
 }

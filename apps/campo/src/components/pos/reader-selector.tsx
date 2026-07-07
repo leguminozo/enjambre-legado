@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import { useSumUp } from './sumup-context';
 import type { SumUpReader } from './types';
-import { Wifi, WifiOff, Loader2, AlertCircle, Smartphone } from 'lucide-react';
+import { HexagonLoader, ViewLoading } from '@enjambre/ui';
+import { Wifi, WifiOff, AlertCircle, Smartphone } from 'lucide-react';
 
 interface Props {
   onSelect: (reader: SumUpReader) => void;
@@ -15,7 +16,7 @@ function statusIcon(status: string) {
     case 'online':
       return <Wifi className="w-3.5 h-3.5 text-success" />;
     case 'busy':
-      return <Loader2 className="w-3.5 h-3.5 text-warning animate-spin" />;
+      return <HexagonLoader size="sm" className="text-warning" />;
     case 'offline':
       return <WifiOff className="w-3.5 h-3.5 text-muted-foreground" />;
     case 'error':
@@ -46,10 +47,7 @@ export function ReaderSelector({ onSelect, selectedReaderId }: Props) {
 
   if (readersLoading) {
     return (
-      <div className="flex flex-col items-center gap-3 py-8">
-        <Loader2 className="w-6 h-6 text-primary animate-spin" />
-        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Buscando terminales...</p>
-      </div>
+      <ViewLoading variant="inline" label="Buscando terminales" hideLabel className="py-8" />
     );
   }
 

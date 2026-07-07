@@ -81,13 +81,17 @@ Font families: `font-display` (Cormorant Garamond), `font-sans` (Inter), `font-m
 
 | Componente | Cuándo usar |
 |---|---|
-| **`HexagonLoader`** | Inline (botones, celdas, badges). Centrado con `aspect-[48/56]` — no forzar `h-* w-*` cuadrado. |
-| **`ViewLoading`** | Bloques de vista, `loading.tsx`, Suspense, overlays de refetch. |
+| **`HexagonLoader`** | Inline (botones, celdas, badges). Tamaños vía `data-size` + `tokens.css` (`sm` 1.75rem, `md` 2.5rem, `lg` 3.25rem). No forzar `h-* w-*` cuadrado. |
+| **`ViewLoading`** | Bloques de vista, `loading.tsx`, Suspense, overlays de refetch. Variante `view` incluye `min-h-[12rem]` para evitar CLS. |
+| **`ViewLoadingPlaceholder`** | Reserva altura sin hexágono — tras `dynamic()` o `loading.tsx` (evita doble loader). |
+| **`useClientViewLoading`** | Hook que retrasa loader cliente ~80ms tras cambio de ruta. |
 | **`Spinner`** | Compat legacy en núcleo; renderiza hexágono por defecto. |
 
 **Spinner circular (`variant="circular"`):** implementación conservada en `spinner.tsx` pero **desactivada temporalmente** — el ecosistema unifica en el hexágono para evitar dos loaders distintos en pantalla. Para rehabilitar el circular, pasar `variant="circular"` explícitamente (solo rollback / A-B).
 
 Animaciones en `tokens.css`: trazo perimetral (`enj-hex-loader-stroke`) + relleno ascendente con clip (`enj-hex-loader-fill-rect`).
+
+**Tailwind en apps del monorepo:** cada `tailwind.config` debe incluir `...enjambreUiContent` del preset para generar clases de layout de `ViewLoading` y demás UI compartida. Los tamaños del hexágono viven en CSS y no dependen del purge.
 
 ## Overlays y modales
 

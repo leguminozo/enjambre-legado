@@ -21,7 +21,7 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex w-full min-h-screen overflow-hidden relative">
+    <div className="flex w-full h-full overflow-hidden relative">
       <BeeCanvas />
       <div className="absolute inset-0 bg-radial-gradient from-transparent to-background opacity-90 pointer-events-none z-0" />
 

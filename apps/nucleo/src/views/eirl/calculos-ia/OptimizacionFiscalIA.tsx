@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
+import { Card, CardContent, CardHeader, CardTitle, ViewLoading } from "@enjambre/ui";
 import { Button } from "@enjambre/ui";
 import { Badge } from "@enjambre/ui";
 import { Progress } from "@/components/ui/progress";
@@ -106,14 +106,15 @@ export function OptimizacionFiscalIA({ empresaId }: { empresaId: string }) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-12">
-            <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground mb-4">Optimización fiscal no disponible</p>
-            <Button onClick={cargarOptimizacion} disabled={loading}>
-              {loading ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : null}
-              Ejecutar Optimización
-            </Button>
-          </div>
+          {loading ? (
+            <ViewLoading variant="view" label="Optimización fiscal" hideLabel />
+          ) : (
+            <div className="text-center py-12">
+              <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground mb-4">Optimización fiscal no disponible</p>
+              <Button onClick={cargarOptimizacion}>Ejecutar Optimización</Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     );

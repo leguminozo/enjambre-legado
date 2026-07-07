@@ -192,6 +192,27 @@ describe("Checkout API Routes", () => {
       expect(json.shippingCost).toBe(5900);
       expect(json.total).toBe(15900);
     });
+
+    it('quotes without service role when no discount or loyalty', async () => {
+      const prev = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+      const res = await app.request('/api/checkout/quote', {
+        method: 'POST',
+        headers: checkoutHeaders(),
+        body: JSON.stringify({
+          subtotal: 10000,
+          region: 'Metropolitana',
+          courierCode: 'blueexpress',
+        }),
+      });
+
+      if (prev) process.env.SUPABASE_SERVICE_ROLE_KEY = prev;
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.total).toBe(15900);
+    });
   });
 
   describe("POST /api/checkout/preview", () => {

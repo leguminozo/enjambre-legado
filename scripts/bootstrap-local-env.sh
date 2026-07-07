@@ -71,6 +71,7 @@ CAMPO_ENV="$ROOT/apps/campo/.env.local"
 append_or_replace "$CAMPO_ENV" "NEXT_PUBLIC_SUPABASE_URL" "$SUPABASE_URL"
 append_or_replace "$CAMPO_ENV" "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY" "$PUBLISHABLE"
 append_or_replace "$CAMPO_ENV" "NEXT_PUBLIC_NUCLEO_API_URL" "http://localhost:3000"
+append_or_replace "$CAMPO_ENV" "NEXT_PUBLIC_URL_TIENDA" "http://localhost:3001"
 
 if ! grep -q '^INTERNAL_API_SECRET=' "$SECRETS" 2>/dev/null; then
   echo "INTERNAL_API_SECRET=$INTERNAL_API_SECRET" >> "$SECRETS"

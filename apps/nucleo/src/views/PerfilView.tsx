@@ -18,8 +18,8 @@ import {
   Check,
   X,
   AlertCircle,
-  Loader2,
 } from "lucide-react";
+import { HexagonLoader, ViewLoading } from "@enjambre/ui";
 const roleLabels: Record<string, string> = {
   admin: "Administrador",
   cliente: "Cliente",
@@ -69,11 +69,7 @@ export function PerfilView() {
   const [activeSection, setActiveSection] = useState<Section>("personal");
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <Loader2 size={32} className="animate-spin text-accent" />
-      </div>
-    );
+    return <ViewLoading variant="view" label="Perfil" hideLabel />;
   }
 
   if (!profile) {
@@ -148,7 +144,7 @@ export function PerfilView() {
               )}
               <div className="absolute bottom-1 right-1 w-7 h-7 rounded-full bg-accent border-2 border-background flex items-center justify-center cursor-pointer">
                 {avatarUploading ? (
-                  <Loader2 size={12} className="animate-spin text-accent-foreground" />
+                  <HexagonLoader size="sm" />
                 ) : (
                   <Camera size={12} className="text-accent-foreground" />
                 )}
@@ -292,7 +288,7 @@ export function PerfilView() {
                     onClick={handleSaveProfile}
                     disabled={saving}
                   >
-                    {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                    {saving ? <HexagonLoader size="sm" /> : <Save size={16} />}
                     Guardar Cambios
                   </button>
                 </div>
@@ -365,7 +361,7 @@ export function PerfilView() {
                     onClick={handleChangePassword}
                     disabled={passwordSaving || !newPassword || newPassword !== confirmPassword}
                   >
-                    {passwordSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                    {passwordSaving ? <HexagonLoader size="sm" /> : <Check size={16} />}
                     Actualizar Contraseña
                   </button>
                 </div>

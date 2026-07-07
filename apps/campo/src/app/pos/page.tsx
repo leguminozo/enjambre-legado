@@ -5,12 +5,13 @@ import { ClientLookupPanel } from '@/components/pos/client-lookup-panel';
 import { useCashSession } from '@/components/pos/cash-context';
 import { PackageSearch, TrendingUp, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
-import { ViewLoading } from '@enjambre/ui';
+import { useClientViewLoading, ViewLoading } from '@enjambre/ui';
 
 export default function PosIndex() {
   const { session, loading } = useCashSession();
+  const showLoading = useClientViewLoading(loading);
 
-  if (loading) {
+  if (showLoading) {
     return <ViewLoading variant="view" label="Terminal POS" hideLabel />;
   }
 
@@ -32,6 +33,7 @@ export default function PosIndex() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Link
             href="/pos/catalogo"
+            prefetch
             className="card-glow p-5 flex items-center gap-4 hover:border-primary/40 transition-colors group"
           >
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -44,6 +46,7 @@ export default function PosIndex() {
           </Link>
           <Link
             href="/pos/carrito"
+            prefetch
             className="card-glow p-5 flex items-center gap-4 hover:border-primary/40 transition-colors group"
           >
         <div className="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center group-hover:bg-warning/20 transition-colors">
@@ -56,6 +59,7 @@ export default function PosIndex() {
           </Link>
           <Link
             href="/pos/historial"
+            prefetch
             className="card-glow p-5 flex items-center gap-4 hover:border-primary/40 transition-colors group"
           >
         <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors">

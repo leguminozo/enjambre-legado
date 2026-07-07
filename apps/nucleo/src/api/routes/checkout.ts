@@ -146,7 +146,6 @@ async function resolveDiscountClp(
 checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => {
   try {
     const body = c.req.valid("json");
-    const admin = createAdminClient();
     const courierCode = resolveCourierCode(body.courierCode);
     let shippingCost = computeShippingCost({
       region: body.region,
@@ -154,8 +153,12 @@ checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => 
       subtotalClp: body.subtotal,
     });
 
+    const needsAdmin =
+      Boolean(body.codigoDescuento?.trim()) || (body.puntosACanjear ?? 0) > 0;
+    const admin = needsAdmin ? createAdminClient() : null;
+
     let discountClp = 0;
-    if (body.codigoDescuento) {
+    if (body.codigoDescuento && admin) {
       const d = await resolveDiscountClp(admin, body.codigoDescuento, body.subtotal);
       discountClp = d.discountClp;
       if (d.envioGratis) shippingCost = 0;
@@ -163,7 +166,7 @@ checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => 
 
     const netSubtotal = Math.max(0, body.subtotal - discountClp);
     let loyaltyDiscountClp = 0;
-    if (body.puntosACanjear > 0) {
+    if (body.puntosACanjear > 0 && admin) {
       const token = c.req.header("Authorization")?.replace("Bearer ", "") || null;
       const { userId } = await resolveBuyerPricingContext(admin, token);
       if (userId) {

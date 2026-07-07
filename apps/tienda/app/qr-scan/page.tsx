@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { QrCode, ScanLine, Package, MapPin, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { HexagonLoader } from '@enjambre/ui';
+import { QrCode, ScanLine, Package, MapPin, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -164,11 +165,7 @@ export default function QRScanPage() {
                   disabled={loading || !qrCode.trim()}
                   className="px-6 py-3 rounded-lg bg-accent text-accent-foreground text-sm font-medium hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    'Escanear'
-                  )}
+                  {loading ? <HexagonLoader size="sm" /> : 'Escanear'}
                 </button>
               </div>
             </div>

@@ -42,7 +42,7 @@ export default async function PerfilLayout({
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
+    <div className="h-[100dvh] overflow-hidden bg-background text-foreground flex">
       <CustomCursor />
 
       <PerfilLayoutClient user={tiendaUser} role={role} participacion={participacion}>

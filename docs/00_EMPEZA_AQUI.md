@@ -120,13 +120,19 @@ cd apps/campo && vercel --prod
 
 ### Checklist operativo feria (admin)
 
+```bash
+pnpm feria:check                              # readiness infra + DB
+FERIA_REP_TOKEN=eyJ... pnpm feria:check       # + contexto BFF del rep
+```
+
 1. `/operadores-feria` — contrato activo + evento `en_curso` + consignación  
 2. Campo POS — ventas `channel=feria`  
 3. Devolución stock si aplica  
 4. Rep cierra arqueo en `/mi-feria`  
-5. Ledger → aprobar → **Preparar SII** → F29 en módulo Impuestos  
+5. Cliente reclama en tienda `/claim/{token}`  
+6. Ledger → aprobar → **Preparar SII** → F29 en módulo Impuestos  
 
-Ver `docs/RED_INTERCAMBIO_LEGAL.md` y `docs/VERCEL.md`.
+Ver `docs/RED_INTERCAMBIO_LEGAL.md`, `scripts/feria-readiness.mjs` y `docs/VERCEL.md`.
 
 ---
 

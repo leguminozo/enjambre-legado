@@ -9,6 +9,8 @@ import { getConsignacionIssues, useFeriaContext } from '@/components/pos/feria-c
 import { useSumUp } from '@/components/pos/sumup-context';
 import { SumupTerminalFlow } from '@/components/pos/sumup-terminal-flow';
 import type { VentaChannel, PaymentMethod, TerminalFlowResult } from '@/components/pos/types';
+import { HexagonLoader, ViewLoadingPlaceholder } from '@enjambre/ui';
+import { buildClaimUrl } from '@/lib/public-urls';
 import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft, Banknote, CreditCard, Smartphone, Store, Truck, Building2, Users, Nfc, AlertTriangle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -160,18 +162,11 @@ export default function CarritoView() {
   }, [setTerminalStep]);
 
   if (!ready) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="mt-4 text-muted-foreground font-light tracking-widest uppercase text-xs">Sincronizando carrito...</p>
-      </div>
-    );
+    return <ViewLoadingPlaceholder label="Sincronizando carrito" className="py-20" />;
   }
 
   if (successData) {
-    const claimUrl = successData.claim_token
-      ? `${window.location.origin.replace('campo', 'tienda')}/claim/${successData.claim_token}`
-      : null;
+    const claimUrl = successData.claim_token ? buildClaimUrl(successData.claim_token) : null;
 
     const co2Saved = lines.reduce((acc, l) => acc + (l.cantidad * 0.5 * 2.4), 0);
 
@@ -380,7 +375,7 @@ export default function CarritoView() {
               >
                 {loading ? (
                   <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    <HexagonLoader size="sm" />
                     Registrando...
                   </div>
                 ) : (

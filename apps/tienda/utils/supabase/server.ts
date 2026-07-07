@@ -15,9 +15,9 @@ export async function createClient() {
           cookiesToSet.forEach(({ name, value, options }) =>
             cookieStore.set(name, value, options),
           )
-} catch (error) {
-      console.error('[tienda-supabase-server] cookie set error:', error);
-    }
+        } catch (error) {
+          console.error('[tienda-supabase-server] cookie set error:', error);
+        }
       },
     },
   })

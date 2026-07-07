@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
+import { Card, CardContent, CardHeader, CardTitle, ViewLoading } from "@enjambre/ui";
 import { Button } from "@enjambre/ui";
 import { Badge } from "@enjambre/ui";
 import { Progress } from "@/components/ui/progress";
@@ -98,14 +98,15 @@ export function AnalisisRentabilidadIA({ empresaId }: { empresaId: string }) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-12">
-            <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground mb-4">Análisis de rentabilidad no disponible</p>
-            <Button onClick={cargarAnalisis} disabled={loading}>
-              {loading ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : null}
-              Ejecutar Análisis
-            </Button>
-          </div>
+          {loading ? (
+            <ViewLoading variant="view" label="Análisis de rentabilidad" hideLabel />
+          ) : (
+            <div className="text-center py-12">
+              <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground mb-4">Análisis de rentabilidad no disponible</p>
+              <Button onClick={cargarAnalisis}>Ejecutar Análisis</Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     );

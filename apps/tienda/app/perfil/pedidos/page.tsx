@@ -15,12 +15,33 @@ export default async function PedidosPage() {
 
   let orders: OrderTimelineItem[] = [];
   if (user) {
-    const { data } = await supabase
+    const { data: ventasData } = await supabase
       .from('ventas')
-      .select('id, created_at, total, estado, logistica_envios(tracking_code, status, via, courier_code, eta)')
+      .select('id, buy_order, created_at, total, estado, logistica_envios(tracking_code, status, via, courier_code, eta)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
-    orders = (data ?? []) as OrderTimelineItem[];
+
+    if (ventasData && ventasData.length > 0) {
+      const ventaIds = ventasData.map((v) => `venta:${v.id}`);
+      const { data: dtes } = await supabase
+        .from('facturas_emitidas')
+        .select('id, numero, estado_sii, idempotency_key')
+        .in('idempotency_key', ventaIds);
+
+      orders = ventasData.map((v) => {
+        const dte = dtes?.find((d) => d.idempotency_key === `venta:${v.id}`);
+        return {
+          ...v,
+          dte: dte
+            ? {
+                numero: dte.numero,
+                estado_sii: dte.estado_sii,
+                buyOrder: v.buy_order,
+              }
+            : undefined,
+        } as OrderTimelineItem;
+      });
+    }
   }
 
   return (

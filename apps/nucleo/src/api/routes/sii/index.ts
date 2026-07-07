@@ -13,6 +13,7 @@ import { dteRoutes } from "./dte";
 import { openapiRoutes } from "./openapi";
 import { certificacionRoutes } from "./certificacion";
 import { trazabilidadRoutes } from "./trazabilidad";
+import { boletaDownloadRoutes } from "./boleta-download";
 
 export const siiRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -28,6 +29,7 @@ siiRoutes.route("/dte", dteRoutes);
 siiRoutes.route("/openapi", openapiRoutes);
 siiRoutes.route("/certificacion", certificacionRoutes);
 siiRoutes.route("/trazabilidad", trazabilidadRoutes);
+siiRoutes.route("/boletas", boletaDownloadRoutes);
 
 siiRoutes.get("/tasa-cambio", async (c) => {
   const moneda = c.req.query("moneda") ?? "dolar";

@@ -92,7 +92,7 @@ crmRoutes.get("/dashboard", async (c) => {
       .eq("active", true),
     supabase
       .from("clientes")
-      .select("id, name, type, status, total_spent, last_purchase, fuente, vendedor_id, ultimo_contacto")
+      .select("id, name, type, status, total_spent, last_purchase, fuente, vendedor_id, ultimo_contacto, user_id")
       .order("last_purchase", { ascending: true, nullsFirst: true })
       .limit(200),
     (supabase as any)
@@ -237,7 +237,7 @@ crmRoutes.get("/clientes", async (c) => {
 
   let query = (supabase as any)
     .from("clientes")
-    .select("id, name, type, status, total_spent, last_purchase, fuente, email, telefono, empresa, vendedor_id, ultimo_contacto, notes")
+    .select("id, name, type, status, total_spent, last_purchase, fuente, email, telefono, empresa, vendedor_id, ultimo_contacto, notes, user_id")
     .order("last_purchase", { ascending: true, nullsFirst: true })
     .limit(200);
 
@@ -304,6 +304,33 @@ crmRoutes.patch("/clientes/:id", zValidator("json", UpdateClienteSchema), async 
   }
 
   return c.json({ data });
+});
+
+crmRoutes.get("/clientes/:id/direcciones", async (c) => {
+  const clienteId = c.req.param("id");
+  const supabase = c.get("supabase");
+
+  const { data: cliente, error: clienteError } = await supabase
+    .from("clientes")
+    .select("user_id")
+    .eq("id", clienteId)
+    .single();
+
+  if (clienteError || !cliente?.user_id) {
+    return c.json({ data: [] });
+  }
+
+  const { data, error } = await supabase
+    .from("cliente_direcciones")
+    .select("*")
+    .eq("user_id", cliente.user_id)
+    .order("es_predeterminada", { ascending: false });
+
+  if (error) {
+    return c.json({ code: "fetch_direcciones_failed", message: error.message }, 500);
+  }
+
+  return c.json({ data: data ?? [] });
 });
 
 crmRoutes.get("/interacciones", async (c) => {

@@ -8,10 +8,12 @@ export { HexagonLoader, type HexagonLoaderSize } from './components/hexagon-load
 export {
   ViewLoading,
   ViewLoadingFallback,
+  ViewLoadingPlaceholder,
   LoadingOverlay,
   viewLoadingFallback,
   type ViewLoadingVariant,
 } from './components/view-loading';
+export { useClientViewLoading } from './hooks/use-client-view-loading';
 export { ImmersiveModal, type ImmersiveModalSize } from './components/immersive-modal';
 export { OverlayFullscreen, type OverlayFullscreenProps } from './components/overlay-fullscreen';
 export { EmptyState } from './components/empty-state';

@@ -229,8 +229,8 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
                   {claimPoints.map((point) => (
                     <div key={point.id} className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl">
                       <div>
-                        <div className="text-foreground font-display text-lg">{point.ciclos.tipo}</div>
-                        <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">{point.ciclos.estado}</div>
+                        <div className="text-foreground font-display text-lg">{point.ciclos?.tipo ?? 'Ciclo'}</div>
+                        <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">{point.ciclos?.estado ?? 'activo'}</div>
                       </div>
                       <Clock className="w-5 h-5 text-accent" />
                     </div>

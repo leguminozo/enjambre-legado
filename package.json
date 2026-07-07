@@ -16,6 +16,8 @@
     "verify": "bash scripts/verify-before-vercel.sh",
     "verify:ci": "pnpm turbo build --filter=@enjambre/contable --filter=@enjambre/nucleo --filter=@enjambre/tienda",
     "verify:fast": "pnpm turbo build --filter=@enjambre/contable --filter=@enjambre/nucleo --filter=@enjambre/tienda",
+    "check:loading": "bash scripts/check-loading-legacy.sh",
+    "feria:check": "node scripts/feria-readiness.mjs",
     "go-live:check": "node scripts/go-live-check.mjs",
     "go-live:phase0": "node scripts/go-live-phase0.mjs",
     "go-live:phase0:build": "node scripts/go-live-phase0.mjs --build",

@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { ViewLoading } from '@enjambre/ui';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
 
 type AuthShellProps = {
@@ -66,3 +67,12 @@ export const authFieldClass =
   'tienda-auth-input w-full border-b border-border pl-10 pr-12 py-3.5 text-base sm:text-sm text-foreground focus:outline-none focus:border-accent transition-colors placeholder:text-muted-foreground/50';
 
 export const authLabelClass = 'text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground';
+
+/** Gate de sesión / Suspense unificado para rutas auth (login, registro, claim). */
+export function AuthPageLoading({ label = 'Verificando sesión' }: { label?: string }) {
+  return (
+    <div className="tienda-auth-page flex items-center justify-center" aria-busy="true">
+      <ViewLoading variant="inline" label={label} hideLabel />
+    </div>
+  );
+}

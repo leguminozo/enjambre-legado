@@ -34,7 +34,7 @@ const APPS = [
   {
     name: 'campo',
     path: 'apps/campo/.env.local',
-    required: ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_NUCLEO_API_URL'],
+    required: ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_NUCLEO_API_URL', 'NEXT_PUBLIC_URL_TIENDA'],
     recommended: ['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY'],
   },
 ];
@@ -93,13 +93,24 @@ if (existsSync(secretsFile)) {
 
 const nucleoVars = parseEnvFile('apps/nucleo/.env.local').vars;
 const tiendaVars = parseEnvFile('apps/tienda/.env.local').vars;
+const campoVars = parseEnvFile('apps/campo/.env.local').vars;
 const tiendaSite = tiendaVars.NEXT_PUBLIC_SITE_URL;
 const nucleoTienda = nucleoVars.NEXT_PUBLIC_URL_TIENDA;
+const campoTienda = campoVars.NEXT_PUBLIC_URL_TIENDA ?? campoVars.NEXT_PUBLIC_TIENDA_URL;
+
 if (tiendaSite && nucleoTienda && tiendaSite !== nucleoTienda) {
   console.log('⚠ URL mismatch local:');
   console.log(`  tienda NEXT_PUBLIC_SITE_URL=${tiendaSite}`);
   console.log(`  nucleo NEXT_PUBLIC_URL_TIENDA=${nucleoTienda}`);
   console.log('  CSRF tienda→núcleo fallará hasta alinearlas (pnpm go-live:bootstrap)\n');
+  failed = true;
+}
+
+if (tiendaSite && campoTienda && tiendaSite !== campoTienda) {
+  console.log('⚠ URL mismatch local (claim QR campo→tienda):');
+  console.log(`  tienda NEXT_PUBLIC_SITE_URL=${tiendaSite}`);
+  console.log(`  campo NEXT_PUBLIC_URL_TIENDA=${campoTienda}`);
+  console.log('  QR de reclamo apuntará al dominio incorrecto — pnpm go-live:bootstrap\n');
   failed = true;
 }
 

@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { ViewLoading } from '@enjambre/ui';
+import { AuthPageLoading } from '@/components/auth/auth-shell';
 import { LoginForm } from '@/components/auth/login-form';
 
 export const metadata = {
@@ -8,13 +8,7 @@ export const metadata = {
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="tienda-auth-page flex items-center justify-center">
-          <ViewLoading variant="inline" hideLabel />
-        </div>
-      }
-    >
+    <Suspense fallback={<AuthPageLoading label="Inicio de sesión" />}>
       <LoginForm />
     </Suspense>
   );

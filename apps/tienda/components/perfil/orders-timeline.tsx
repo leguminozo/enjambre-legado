@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { CheckCircle, Clock, Package, Truck, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, Package, Truck, XCircle, FileText } from 'lucide-react';
 import { formatCLP } from '@/lib/shop/format';
 import { getCourierLabel } from '@enjambre/logistica';
 import { formatDate as formatDateBase } from '@enjambre/ui';
@@ -18,6 +18,11 @@ export type OrderTimelineItem = {
     courier_code?: string | null;
     eta?: string;
   }>;
+  dte?: {
+    numero: number;
+    estado_sii: string;
+    buyOrder: string;
+  };
 };
 
 function formatDate(iso: string) {
@@ -109,6 +114,20 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
 
               {envio?.eta ? (
                 <p className="mt-2 text-xs text-muted-foreground">ETA: {envio.eta}</p>
+              ) : null}
+
+              {order.dte ? (
+                <div className="mt-4 pt-4 border-t border-border/50">
+                  <a
+                    href={`${process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3000'}/api/sii/boletas/${order.dte.buyOrder}/xml`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-surface-raised border border-border rounded-xl text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/30 transition-all"
+                  >
+                    <FileText size={14} />
+                    <span>Boleta Electrónica</span>
+                  </a>
+                </div>
               ) : null}
             </div>
           </article>

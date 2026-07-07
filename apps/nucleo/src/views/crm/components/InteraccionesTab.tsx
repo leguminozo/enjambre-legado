@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MessageSquare, Plus, X, Clock, Loader2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { MessageSquare, Plus, X, Clock, Loader2, MapPin } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { toast } from "@enjambre/ui";
 import {
@@ -13,6 +13,19 @@ interface InteraccionesTabProps {
   dashboard: CRMDashboard;
   selectedClienteId?: string | null;
 }
+
+type ClienteDireccion = {
+  id: string;
+  etiqueta: string;
+  nombre: string;
+  direccion: string;
+  comuna: string;
+  region: string;
+  telefono: string;
+  codigo_postal: string | null;
+  instrucciones: string | null;
+  es_predeterminada: boolean;
+};
 
 export function InteraccionesTab({ dashboard, selectedClienteId }: InteraccionesTabProps) {
   const queryClient = useQueryClient();
@@ -61,6 +74,22 @@ export function InteraccionesTab({ dashboard, selectedClienteId }: Interacciones
     },
     onError: (err) => toast(err.message, { type: "error" }),
   });
+
+  const { data: direccionesData, isLoading: isLoadingDirecciones } = useQuery<{ data: ClienteDireccion[] }>({
+    queryKey: ["crm", "direcciones", selectedClienteId],
+    queryFn: async () => {
+      if (!selectedClienteId) return { data: [] };
+      const res = await apiFetch(`/api/crm/clientes/${selectedClienteId}/direcciones`);
+      if (!res.ok) throw new Error("Failed to fetch direcciones");
+      return res.json();
+    },
+    enabled: !!selectedClienteId,
+  });
+
+  const direcciones = direccionesData?.data ?? [];
+  const interaccionesToShow = selectedClienteId 
+    ? dashboard.interacciones.filter(i => i.cliente_id === selectedClienteId)
+    : dashboard.interacciones;
 
   return (
     <div className="space-y-4">
@@ -166,9 +195,43 @@ export function InteraccionesTab({ dashboard, selectedClienteId }: Interacciones
           </div>
         </div>
       )}
+      
+      {selectedClienteId && (isLoadingDirecciones ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground p-4 bg-secondary/50 rounded-xl">
+          <Loader2 size={14} className="animate-spin" /> Cargando direcciones...
+        </div>
+      ) : direcciones.length > 0 ? (
+        <div className="space-y-3 pt-2">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <MapPin size={16} className="text-accent" />
+            Libreta de Direcciones
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {direcciones.map((dir) => (
+              <div key={dir.id} className="p-3 bg-card border border-border rounded-xl space-y-1 relative overflow-hidden">
+                {dir.es_predeterminada && (
+                  <div className="absolute top-0 right-0 bg-accent/10 text-accent px-2 py-0.5 rounded-bl-lg text-[10px] font-bold uppercase tracking-wider">
+                    Predeterminada
+                  </div>
+                )}
+                <div className="font-semibold text-sm text-foreground pr-24">{dir.etiqueta}</div>
+                <div className="text-xs text-muted-foreground">{dir.nombre} • {dir.telefono}</div>
+                <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                  {dir.direccion}, {dir.comuna}, {dir.region}
+                </div>
+                {dir.instrucciones && (
+                  <div className="text-[11px] text-accent/80 mt-1 italic line-clamp-1">
+                    "{dir.instrucciones}"
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null)}
 
-      <div className="space-y-2">
-        {dashboard.interacciones.map((inter) => {
+      <div className="space-y-2 pt-2">
+        {interaccionesToShow.map((inter) => {
           const cliente = dashboard.clientes.find((c) => c.id === inter.cliente_id);
           return (
             <div
@@ -199,10 +262,10 @@ export function InteraccionesTab({ dashboard, selectedClienteId }: Interacciones
             </div>
           );
         })}
-        {dashboard.interacciones.length === 0 && (
+        {interaccionesToShow.length === 0 && (
           <div className="text-center py-12 text-muted-foreground text-sm bg-card border border-border rounded-2xl">
             <MessageSquare size={32} className="mx-auto mb-2 opacity-50 text-muted-foreground" />
-            Sin interacciones registradas
+            Sin interacciones {selectedClienteId ? "para este cliente" : "registradas"}
           </div>
         )}
       </div>

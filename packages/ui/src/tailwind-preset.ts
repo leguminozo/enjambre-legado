@@ -187,3 +187,9 @@ export function createEnjambrePreset(overrides?: Partial<Config['theme']>): Part
 }
 
 export const enjambrePreset = createEnjambrePreset();
+
+/** Rutas de content para que Tailwind genere clases de `@enjambre/ui` en cada app. */
+export const enjambreUiContent = [
+  './node_modules/@enjambre/ui/src/**/*.{js,ts,jsx,tsx,mdx}',
+  '../../packages/ui/src/**/*.{js,ts,jsx,tsx,mdx}',
+];

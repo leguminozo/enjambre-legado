@@ -5,51 +5,65 @@
  *   node scripts/smoke-test.mjs
  *   NUCLEO_URL=https://nucleo-theta.vercel.app node scripts/smoke-test.mjs
  */
+import {
+  nucleoFeriaContextTargets,
+  runSmokeTarget,
+  tiendaCheckoutQuoteTarget,
+  tiendaPerfilGuardTargets,
+} from './lib/ecosystem-smoke.mjs';
+
 const NUCLEO = process.env.NUCLEO_URL ?? 'http://localhost:3000';
 const TIENDA = process.env.TIENDA_URL ?? 'http://localhost:3001';
 const CAMPO = process.env.CAMPO_URL ?? 'http://localhost:3002';
 
-const checks = [];
+const tiendaPageTargets = ['/', '/catalogo', '/carrito', '/checkout'].map((path) => ({
+  name: `tienda ${path}`,
+  url: `${TIENDA}${path}`,
+  expectStatus: 200,
+}));
 
-async function probe(name, url, expectStatus = 200) {
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(30000) });
-    const ok = res.status === expectStatus;
-    checks.push({ name, url, status: res.status, ok, expectStatus });
-    if (ok && res.headers.get('content-type')?.includes('json')) {
-      const body = await res.json();
-      if (name.includes('health/live') && body.status !== 'ok') {
-        checks[checks.length - 1].ok = false;
-        checks[checks.length - 1].detail = 'body.status !== ok';
-      }
-    }
-  } catch (err) {
-    checks.push({ name, url, ok: false, error: err instanceof Error ? err.message : String(err) });
-  }
-}
+const targets = [
+  { name: 'nucleo health/live', url: `${NUCLEO}/api/health/live`, expectJson: { status: 'ok' } },
+  { name: 'nucleo home', url: `${NUCLEO}/`, expectStatus: 200 },
+  ...nucleoFeriaContextTargets(NUCLEO, CAMPO),
+  ...tiendaPageTargets,
+  { name: 'campo home', url: `${CAMPO}/`, expectStatus: 200 },
+  {
+    name: 'tienda claim route (invalid token)',
+    url: `${TIENDA}/claim/__smoke_invalid__`,
+    expectStatus: [200, 404],
+    expectBodyIncludes: '404',
+  },
+  tiendaCheckoutQuoteTarget(NUCLEO, TIENDA),
+  ...tiendaPerfilGuardTargets(TIENDA),
+];
 
-console.log('\n=== Smoke test Enjambre Legado ===\n');
+console.log('\n=== Smoke test Enjambre Legado (E2) ===\n');
 console.log(`Núcleo: ${NUCLEO}`);
 console.log(`Tienda: ${TIENDA}`);
 console.log(`Campo:  ${CAMPO}\n`);
 
-await probe('nucleo health/live', `${NUCLEO}/api/health/live`);
-await probe('nucleo home', `${NUCLEO}/`, 200);
-for (const path of ['/', '/catalogo', '/carrito', '/checkout']) {
-  await probe(`tienda ${path}`, `${TIENDA}${path}`, 200);
-}
-await probe('campo home', `${CAMPO}/`, 200);
-
 let failed = 0;
-for (const c of checks) {
-  if (c.ok) {
-    console.log(`✓ ${c.name} → ${c.status ?? 'ok'}`);
-  } else {
+for (const t of targets) {
+  try {
+    const { ok, res, body, configFailure } = await runSmokeTarget(t);
+
+    if (configFailure) {
+      console.log(`✗ ${t.name} → ${res.status} (config)`);
+      if (body?.message) console.log(`    ${body.message}`);
+      if (t.configHint) console.log(`    → ${t.configHint}`);
+      failed++;
+      continue;
+    }
+
+    console.log(ok ? `✓ ${t.name} → ${res.status}` : `✗ ${t.name} → ${res.status}`);
+    if (!ok && body?.message) console.log(`    ${body.message}`);
+    if (!ok) failed++;
+  } catch (err) {
     failed++;
-    const detail = c.error ?? `expected ${c.expectStatus}, got ${c.status}${c.detail ? ` (${c.detail})` : ''}`;
-    console.log(`✗ ${c.name} — ${detail}`);
+    console.log(`✗ ${t.name} — ${err instanceof Error ? err.message : err}`);
   }
 }
 
-console.log(failed ? `\n${failed} check(s) failed\n` : '\nAll checks passed\n');
+console.log(failed ? `\n${failed} check(s) failed\n` : '\nAll checks passed (E2)\n');
 process.exit(failed ? 1 : 0);

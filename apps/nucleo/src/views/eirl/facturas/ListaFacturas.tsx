@@ -4,7 +4,8 @@ import { useState, useTransition, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
 import { Button } from "@enjambre/ui";
 import { Badge } from "@enjambre/ui";
-import { FileText, Eye, Edit, Trash2, Plus, Loader2 } from "lucide-react";
+import { HexagonLoader, ViewLoading } from '@enjambre/ui';
+import { FileText, Eye, Edit, Trash2, Plus } from "lucide-react";
 import { formatDate, formatCurrency } from '@/lib/format';
 import { deleteFacturaEmitida } from '@/lib/actions/facturas';
 import { NuevaFacturaForm } from './NuevaFacturaForm';
@@ -142,7 +143,7 @@ export function ListaFacturas({ facturasInitiales = [], empresaId }: ListaFactur
             disabled={isPending}
           >
             {isPending ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <HexagonLoader size="sm" className="mr-2" />
             ) : (
               <Plus className="h-4 w-4 mr-2" />
             )}
@@ -152,10 +153,7 @@ export function ListaFacturas({ facturasInitiales = [], empresaId }: ListaFactur
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="text-center py-12 text-muted-foreground text-sm flex items-center justify-center gap-2">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            Cargando facturas...
-          </div>
+          <ViewLoading variant="view" label="Facturas emitidas" hideLabel />
         ) : !empresaId ? (
           <div className="text-center py-12 text-muted-foreground text-sm">
             Vincula una empresa en tu perfil para gestionar facturas emitidas.
@@ -242,7 +240,7 @@ export function ListaFacturas({ facturasInitiales = [], empresaId }: ListaFactur
                         disabled={isPending}
                       >
                         {isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <HexagonLoader size="sm" />
                         ) : (
                           <Trash2 className="h-4 w-4" />
                         )}

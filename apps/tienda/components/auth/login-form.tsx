@@ -1,12 +1,12 @@
 'use client';
 
 import { useAuth } from '@/components/providers/auth-context';
-import { AuthFormPanel, AuthShell, authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
+import { AuthFormPanel, AuthPageLoading, AuthShell, authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { toast, ViewLoading } from '@enjambre/ui';
+import { toast } from '@enjambre/ui';
 import { safeReturnPath } from '@/lib/auth/safe-return-path';
 import { getNucleoStaffEntryUrl } from '@/lib/shop/nucleo-app-url';
 import { isNucleoStaffRole } from '@/lib/shop/staff-roles';
@@ -65,11 +65,7 @@ export function LoginForm() {
   };
 
   if (authLoading) {
-    return (
-      <div className="tienda-auth-page flex items-center justify-center">
-        <ViewLoading variant="inline" hideLabel />
-      </div>
-    );
+    return <AuthPageLoading />;
   }
 
   const registerHref = returnTo ? `/register?returnTo=${encodeURIComponent(returnTo)}` : '/register';

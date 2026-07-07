@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Settings2, CheckCircle2, Save, Trash2, KeyRound } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
-import { Card, CardHeader, CardTitle, CardContent, Button, Spinner } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading } from "@enjambre/ui";
 
 interface EmpresaSettings {
   id: string;
@@ -139,8 +139,8 @@ export function SettingsTab() {
   if (empresaQuery.isLoading) {
     return (
       <Card className="max-w-2xl">
-        <CardContent className="flex justify-center py-12">
-          <Spinner className="w-8 h-8 text-primary" />
+        <CardContent>
+          <ViewLoading variant="view" label="Configuración SII" hideLabel />
         </CardContent>
       </Card>
     );
@@ -247,7 +247,7 @@ export function SettingsTab() {
             onClick={handleSave}
             disabled={updateEmpresa.isPending}
           >
-            {updateEmpresa.isPending ? <Spinner className="w-4 h-4 mr-2" /> : <Save size={16} className="mr-2" />} 
+            {updateEmpresa.isPending ? <HexagonLoader size="sm" className="mr-2" /> : <Save size={16} className="mr-2" />}
             Guardar cambios
           </Button>
           {updateEmpresa.isSuccess && (
@@ -282,7 +282,7 @@ export function SettingsTab() {
                 disabled={deleteSiiClave.isPending}
                 className="text-sm text-destructive hover:text-destructive/80 font-medium disabled:opacity-50 transition-colors flex items-center gap-1"
               >
-                {deleteSiiClave.isPending ? <Spinner className="w-3 h-3 text-destructive" /> : <Trash2 size={14} />} 
+                {deleteSiiClave.isPending ? <HexagonLoader size="sm" /> : <Trash2 size={14} />}
                 Eliminar
               </button>
             </div>
@@ -304,7 +304,7 @@ export function SettingsTab() {
                   disabled={saveSiiClave.isPending || !siiClave || siiClave.length < 4}
                   size="sm"
                 >
-                  {saveSiiClave.isPending ? <Spinner className="w-4 h-4 mr-2" /> : null} 
+                  {saveSiiClave.isPending ? <HexagonLoader size="sm" className="mr-2" /> : null}
                   Guardar clave
                 </Button>
                 {emp.has_clave_sii && (

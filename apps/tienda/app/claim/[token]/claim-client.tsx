@@ -4,8 +4,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { formatCLP } from '@/lib/shop/format';
 import { authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
-import { friendlySupabaseError } from '@enjambre/ui';
-import { Sparkles, Mail, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
+import { friendlySupabaseError, HexagonLoader } from '@enjambre/ui';
+import { Sparkles, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 
@@ -91,7 +91,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
           <h1 className="font-display text-5xl mb-4">¡Legado Reclamado!</h1>
           <p className="text-muted-foreground text-xl font-light mb-8">Has sumado <span className="text-accent font-bold">{points} puntos</span> a tu cuenta.</p>
           <div className="flex items-center justify-center gap-2 text-accent text-sm tracking-widest uppercase font-bold">
-            Redirigiendo a tu bóveda <Loader2 className="w-4 h-4 animate-spin" />
+            Redirigiendo a tu bóveda <HexagonLoader size="sm" />
           </div>
         </div>
       </div>

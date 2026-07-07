@@ -26,6 +26,7 @@ export type Cliente = {
   empresa: string | null;
   vendedor_id: string | null;
   ultimo_contacto: string | null;
+  user_id: string | null;
   notes: string | null;
 };
 

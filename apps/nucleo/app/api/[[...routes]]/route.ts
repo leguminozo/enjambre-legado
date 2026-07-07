@@ -38,31 +38,16 @@ import { walletRoutes } from "@/api/routes/wallet";
 import { replenishmentRoutes } from "@/api/routes/replenishment";
 import { ritualRoutes } from "@/api/routes/ritual";
 import { blockchainRoutes } from "@/api/routes/blockchain/anchors";
+import { getAllowedCorsOrigins } from "@/lib/publicUrls";
 
 export type { AppVariables };
 
 export const app = new Hono<{ Variables: AppVariables }>().basePath("/api");
 
-function tiendaOrigins(): string[] {
-  return [
-    process.env.NEXT_PUBLIC_TIENDA_URL,
-    process.env.NEXT_PUBLIC_URL_TIENDA,
-    process.env.NEXT_PUBLIC_SITE_URL,
-  ].filter(Boolean) as string[];
-}
-
 app.use("*", cors({
   origin: (origin) => {
-    const allowed = [
-      ...tiendaOrigins(),
-      process.env.NEXT_PUBLIC_CAMPO_URL,
-      process.env.NEXT_PUBLIC_URL_CAMPO,
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:3002",
-    ].filter(Boolean) as string[];
-
-    return allowed.includes(origin) ? origin : null;
+    const allowed = getAllowedCorsOrigins();
+    return allowed.has(origin) ? origin : null;
   },
   allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowHeaders: [

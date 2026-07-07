@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useSumUp } from './sumup-context';
 import { ReaderSelector } from './reader-selector';
 import type { SumUpReader, TerminalFlowResult } from './types';
-import { Loader2, CheckCircle2, XCircle, Clock, Smartphone, Wifi } from 'lucide-react';
+import { HexagonLoader } from '@enjambre/ui';
+import { CheckCircle2, XCircle, Clock, Smartphone, Wifi } from 'lucide-react';
 
 interface Props {
   amount: number;
@@ -144,7 +145,7 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
         <p className="text-xs text-muted-foreground">
           {selectedReaderRef.current?.name ?? 'Terminal'} · {fmtCLP(amount)}
         </p>
-        <Loader2 className="w-5 h-5 text-primary animate-spin" />
+        <HexagonLoader size="sm" />
       </div>
     );
   }
@@ -163,7 +164,7 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
         </p>
         <p className="text-2xl font-mono font-bold text-primary">{fmtCLP(amount)}</p>
         <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-          <Loader2 className="w-3 h-3 animate-spin" />
+          <HexagonLoader size="sm" />
           Verificando...
         </div>
         <button

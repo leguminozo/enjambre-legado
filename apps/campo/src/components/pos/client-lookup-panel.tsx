@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useCashSession } from './cash-context';
+import { HexagonLoader } from '@enjambre/ui';
 import { UserPlus, Search, X, Check } from 'lucide-react';
 
 export function ClientLookupPanel() {
@@ -111,7 +112,9 @@ export function ClientLookupPanel() {
           className="w-full bg-background/40 border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition-colors"
         />
         {searching && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <HexagonLoader size="sm" />
+          </div>
         )}
       </div>
 

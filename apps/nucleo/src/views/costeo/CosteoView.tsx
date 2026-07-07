@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { 
   Card, CardHeader, CardTitle, CardDescription, CardContent,
-  Badge, Spinner
+  Badge, ViewLoading, LoadingOverlay,
 } from '@enjambre/ui';
 import { formatCLP } from '@enjambre/ui';
 import { 
@@ -20,7 +20,7 @@ export function CosteoView() {
   const [activeTab, setActiveTab] = useState<'margenes' | 'recetas' | 'insumos'>('margenes');
   const apiFetch = useApiFetch();
 
-  const { data: margenesData, isLoading: isLoadingMargenes } = useQuery({
+  const { data: margenesData, isLoading: isLoadingMargenes, isFetching: isFetchingMargenes } = useQuery({
     queryKey: ['costeo', 'margenes'],
     queryFn: async () => {
       const res = await apiFetch('/api/costeo/margenes');
@@ -30,7 +30,7 @@ export function CosteoView() {
     enabled: activeTab === 'margenes'
   });
 
-  const { data: recetasData, isLoading: isLoadingRecetas } = useQuery({
+  const { data: recetasData, isLoading: isLoadingRecetas, isFetching: isFetchingRecetas } = useQuery({
     queryKey: ['costeo', 'recetas'],
     queryFn: async () => {
       const res = await apiFetch('/api/costeo/recetas');
@@ -40,7 +40,7 @@ export function CosteoView() {
     enabled: activeTab === 'recetas'
   });
 
-  const { data: insumosData, isLoading: isLoadingInsumos } = useQuery({
+  const { data: insumosData, isLoading: isLoadingInsumos, isFetching: isFetchingInsumos } = useQuery({
     queryKey: ['costeo', 'ingredientes'],
     queryFn: async () => {
       const res = await apiFetch('/api/costeo/ingredientes');
@@ -92,9 +92,10 @@ export function CosteoView() {
                 <CardTitle>Márgenes de Comercialización</CardTitle>
                 <CardDescription>Rentabilidad teórica por producto basada en el costo actual de los insumos.</CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 relative">
+                {isFetchingMargenes && margenes.length > 0 ? <LoadingOverlay label="Actualizando márgenes" /> : null}
                 {isLoadingMargenes ? (
-                  <div className="flex justify-center p-8"><Spinner className="w-6 h-6" /></div>
+                  <ViewLoading variant="view" label="Márgenes" hideLabel />
                 ) : margenes.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay datos de rentabilidad calculados.</p>
                 ) : (
@@ -161,9 +162,10 @@ export function CosteoView() {
                 <CardTitle>Recetas Maestras</CardTitle>
                 <CardDescription>Formulaciones base para la producción y cálculo de mermas.</CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 relative">
+                {isFetchingRecetas && recetas.length > 0 ? <LoadingOverlay label="Actualizando recetas" /> : null}
                 {isLoadingRecetas ? (
-                  <div className="flex justify-center p-8"><Spinner className="w-6 h-6" /></div>
+                  <ViewLoading variant="view" label="Recetas" hideLabel />
                 ) : recetas.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay recetas configuradas.</p>
                 ) : (
@@ -222,9 +224,10 @@ export function CosteoView() {
                 <CardTitle>Directorio de Insumos</CardTitle>
                 <CardDescription>Materias primas y empaques utilizados en la regeneración.</CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 relative">
+                {isFetchingInsumos && insumos.length > 0 ? <LoadingOverlay label="Actualizando insumos" /> : null}
                 {isLoadingInsumos ? (
-                  <div className="flex justify-center p-8"><Spinner className="w-6 h-6" /></div>
+                  <ViewLoading variant="view" label="Insumos" hideLabel />
                 ) : insumos.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay insumos registrados.</p>
                 ) : (

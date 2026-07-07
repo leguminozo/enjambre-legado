@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { ViewLoading } from '@enjambre/ui';
+import { AuthPageLoading } from '@/components/auth/auth-shell';
 import { RegisterForm } from '@/components/auth/register-form';
 
 export const metadata = {
@@ -8,13 +8,7 @@ export const metadata = {
 
 export default function RegisterPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="tienda-auth-page flex items-center justify-center">
-          <ViewLoading variant="inline" hideLabel />
-        </div>
-      }
-    >
+    <Suspense fallback={<AuthPageLoading label="Registro" />}>
       <RegisterForm />
     </Suspense>
   );

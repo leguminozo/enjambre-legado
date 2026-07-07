@@ -11,7 +11,7 @@
 |---------|-------|
 | **Componente canónico** | `HexagonLoader` + `ViewLoading` (`@enjambre/ui`) |
 | **Archivos con API canónica** | ~45 |
-| **Archivos con loaders legacy** | ~35 (Loader2, Spinner, `animate-spin` suelto) |
+| **Archivos con loaders legacy** | ~25 residual (Loader2 en botones CRM/panels; guard CI en views) |
 | **`loading.tsx` Next.js** | 3 (tienda, núcleo, campo) |
 | **Estado global** | **Parcialmente unificado** — núcleo EIRL/SII y varios botones aún fuera del contrato |
 
@@ -64,8 +64,10 @@ Fuente: `packages/ui/src/components/view-loading.tsx`, `hexagon-loader.tsx`, `RE
 | `components/auth/login-form.tsx` | `ViewLoading` | `inline` | ✅ |
 | `app/carrito/ui.tsx` | `ViewLoading` | `view` | ✅ |
 | `app/contacto/page.tsx` | Suspense + `ViewLoading` | `inline` | ✅ |
-| `components/shop/qr-camera-scanner.tsx` | `Loader2` | — | ⚠️ → `HexagonLoader sm` |
-| `app/claim/.../claim-client.tsx` | `Loader2` inline | — | ⚠️ → `HexagonLoader sm` |
+| `components/shop/qr-camera-scanner.tsx` | `HexagonLoader` | `sm` | ✅ |
+| `app/claim/.../claim-client.tsx` | `HexagonLoader` | `sm` | ✅ |
+| `app/qr-scan/page.tsx` | `HexagonLoader` | `sm` | ✅ |
+| `components/auth/auth-shell.tsx` | `AuthPageLoading` | `inline` | ✅ Centralizado jul-2026 |
 
 **Fortalezas tienda:** buen uso de `dynamic()` en carrito/checkout/creador; landing con Suspense por sección.
 
@@ -101,10 +103,11 @@ Fuente: `packages/ui/src/components/view-loading.tsx`, `hexagon-loader.tsx`, `RE
 | POS `page`, `catalogo`, `historial` | `ViewLoading view` | ✅ |
 | `pos/carrito/page.tsx` | `dynamic` + `ViewLoadingFallback` | ✅ |
 | `feria-context-banner` | `ViewLoading inline` | ✅ |
-| `reader-selector`, `sumup-terminal-flow` | `Loader2` | ⚠️ |
-| `quick-sale-button`, `carrito-view` | `Loader2` | ⚠️ |
+| `reader-selector`, `sumup-terminal-flow` | `HexagonLoader` / `ViewLoading` | ✅ |
+| `quick-sale-button`, `carrito-view` | `HexagonLoader` / `ViewLoadingPlaceholder` | ✅ |
+| `client-lookup-panel` | `HexagonLoader sm` en búsqueda | ✅ |
 
-**Campo está más unificado que núcleo EIRL** — POS usa bien el hexágono en vistas.
+**Campo POS unificado** — P3 + P4 completos.
 
 ---
 
@@ -162,41 +165,60 @@ Fuente: `packages/ui/src/components/view-loading.tsx`, `hexagon-loader.tsx`, `RE
 ### P0 — Inmediato (sin riesgo, alto impacto visual)
 
 - [x] **Tienda `landing-loader`** → `ViewLoading fullscreen` (jul-2026)
-- [ ] Sustituir `Loader2` en `qr-camera-scanner`, `claim-client` por `HexagonLoader sm`
-- [ ] Documentar árbol de decisión en `packages/ui/README.md` (enlace a este doc)
+- [x] **Hexágono gigante en `/login` (desktop)** — causa: Tailwind de tienda/campo no escaneaba `@enjambre/ui`; tamaños ahora en `tokens.css` (`data-size`) + `enjambreUiContent` en preset (jul-2026)
+- [x] **`AuthPageLoading`** centralizado en `auth-shell.tsx` (login, registro, gate de sesión)
+- [x] Sustituir `Loader2` en `qr-camera-scanner`, `claim-client`, `qr-scan` por `HexagonLoader sm`
+- [x] Documentar Tailwind + tamaños en `packages/ui/README.md`
 
 ### P1 — Núcleo EIRL + Perfil (1–2 PRs)
 
+- [x] **jul-2026** — EIRL + Perfil unificados al hexágono canónico
+
 | Archivo | Cambio |
 |---------|--------|
-| `views/eirl/facturas/ListaFacturas.tsx` | `ViewLoading view` + `HexagonLoader sm` en botones |
-| `views/eirl/gastos/ListaGastos.tsx` | Eliminar `border spin` → `ViewLoading view` |
-| `views/eirl/calculos-ia/*` | `RefreshCw animate-spin` solo en icono; vista → `ViewLoading` |
-| `views/PerfilView.tsx` | Fullscreen → `ViewLoading view` |
+| `views/eirl/facturas/ListaFacturas.tsx` | `ViewLoading view` + `HexagonLoader sm` en botones | ✅ |
+| `views/eirl/facturas/NuevaFacturaForm.tsx` | `HexagonLoader sm` en submit | ✅ |
+| `views/eirl/gastos/ListaGastos.tsx` | Eliminar `border spin` → `ViewLoading view` | ✅ |
+| `views/eirl/calculos-ia/*` | `RefreshCw` en botones refresh; vista inicial → `ViewLoading` | ✅ |
+| `views/PerfilView.tsx` | Fullscreen → `ViewLoading view` + `HexagonLoader sm` inline | ✅ |
 
 ### P2 — Núcleo operaciones (1 PR)
 
+- [x] **jul-2026** — Costeo, producción, banco Chile y SII unificados
+
 | Archivo | Cambio |
 |---------|--------|
-| `views/costeo/CosteoView.tsx` | `Spinner` → `ViewLoading view` |
-| `views/produccion/ProduccionView.tsx` | idem |
-| `views/banco-chile/*` | unificar |
-| `views/sii/components/*` | tabs con `LoadingOverlay` en refetch |
+| `views/costeo/CosteoView.tsx` | `ViewLoading view` + `LoadingOverlay` en refetch por tab | ✅ |
+| `views/produccion/ProduccionView.tsx` | `ViewLoading view` + `LoadingOverlay` en refetch | ✅ |
+| `views/banco-chile/BancoChileView.tsx` | `ViewLoading view` + `HexagonLoader sm` sync | ✅ |
+| `views/banco-chile/ConciliacionAutoView.tsx` | `ViewLoading` + `LoadingOverlay` + hexágono en botones | ✅ |
+| `views/sii/SiiDteView.tsx` | `TabFallback` → `ViewLoading inline` | ✅ |
+| `views/sii/components/*` | `ViewLoading` carga inicial; `LoadingOverlay` refetch; `HexagonLoader sm` en acciones | ✅ |
 
 ### P3 — Campo POS micro-loaders (1 PR)
 
+- [x] **jul-2026** — Terminales SumUp, venta rápida y carrito unificados
+
 | Archivo | Cambio |
 |---------|--------|
-| `reader-selector.tsx`, `sumup-terminal-flow.tsx` | `HexagonLoader sm` |
-| `quick-sale-button.tsx`, `carrito-view.tsx` | idem |
+| `reader-selector.tsx` | `ViewLoading inline` en fetch inicial; `HexagonLoader sm` en estado busy | ✅ |
+| `sumup-terminal-flow.tsx` | `HexagonLoader sm` en envío y polling | ✅ |
+| `quick-sale-button.tsx` | `HexagonLoader sm` en botones de pago | ✅ |
+| `carrito-view.tsx` | `ViewLoading view` en sync; `HexagonLoader sm` en confirmar venta | ✅ |
 
 ### P4 — Performance / percepción
 
-1. **Prefetch** rutas PWA tienda (`MobileBottomNav` ya usa `prefetch`).
-2. **Suspense boundaries** alineados con skeleton height (`min-h-[12rem]` en `view`) para evitar CLS.
-3. **Reducir doble loader**: no montar `ViewLoading` cliente si `loading.tsx` ya activo en la misma navegación.
-4. **Mapas / GSAP**: mantener `dynamic(..., { ssr: false })` — el loader `view` es correcto.
-5. **Métrica CI opcional**: script `rg` que falle si aparece `animate-spin rounded-full` en `views/` (excluir `toast`, botones).
+- [x] **jul-2026** — CLS, prefetch, anti-doble-loader y guard CI
+
+| Item | Cambio |
+|------|--------|
+| Prefetch PWA | `MobileBottomNav` prefetch en `<Link>` + `router.prefetch` de tabs al montar PWA | ✅ |
+| Prefetch POS | Links `/pos/catalogo`, `/pos/carrito`, `/pos/historial` con `prefetch` | ✅ |
+| CLS Suspense | `ViewLoading variant="view"` ya usa `min-h-[12rem]`; catálogo campo sin `py-20` duplicado | ✅ |
+| Anti-doble-loader | `ViewLoadingPlaceholder` (carrito tienda/campo); `useClientViewLoading` (POS, historial) | ✅ |
+| Mapas / GSAP | Sin cambio — `dynamic(..., { ssr: false })` + `ViewLoading view` se mantiene | ✅ |
+| CI | `pnpm check:loading` → `scripts/check-loading-legacy.sh` (border-spin en views) | ✅ |
+| Residual campo | `client-lookup-panel.tsx` → `HexagonLoader sm` en búsqueda | ✅ |
 
 ---
 
@@ -219,7 +241,10 @@ Documentado junto a esta auditoría por coherencia operativa:
 # Inventario rápido loaders canónicos
 rg "ViewLoading|HexagonLoader|ViewLoadingFallback" apps packages --glob "*.tsx" -l
 
-# Deuda legacy
+# Deuda legacy (guard CI)
+pnpm check:loading
+
+# Inventario amplio
 rg "Loader2|animate-spin rounded-full|<Spinner" apps --glob "*.tsx" -l
 
 # Tests tienda (rutas + guards)
@@ -233,11 +258,14 @@ pnpm --filter @enjambre/tienda test:e2e:smoke
 
 ## 9. Definición de éxito
 
-- [ ] **0** loaders de vista completa con `Loader2` / `border-spin` fuera de excepciones documentadas
-- [ ] **100%** `loading.tsx` usando `ViewLoading page hideLabel`
-- [ ] **Dashboards núcleo** con refetch vía `LoadingOverlay` donde hay datos previos
-- [ ] **LCP landing tienda** sin splash duplicado (solo `LandingLoader` fullscreen unificado)
-- [ ] CI smoke E2E verde en nav + route guards
+- [x] **P0–P4** loaders POS / EIRL / operaciones / carrito unificados (jul-2026)
+- [x] **100%** `loading.tsx` usando `ViewLoading page hideLabel` (tienda, núcleo, campo)
+- [x] **Dashboards núcleo** con refetch vía `LoadingOverlay` donde hay datos previos
+- [x] **LCP landing tienda** sin splash duplicado (`LandingLoader` → `ViewLoading fullscreen`)
+- [x] **CI** `pnpm check:loading` para border-spin en views
+- [ ] **0** `Loader2` pantalla completa en núcleo CRM/panels (deuda residual — botones/micro OK)
+- [x] **E2 jul-2026** — smoke cross-app: feria-context, guards perfil, checkout quote, claim
+- [ ] CI smoke E2E Playwright verde (puertos dev vs config)
 
 ---
 

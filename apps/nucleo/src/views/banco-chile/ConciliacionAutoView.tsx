@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { 
   Card, CardHeader, CardTitle, CardDescription, CardContent,
-  Button, Badge, Spinner
+  Button, Badge, HexagonLoader, ViewLoading, LoadingOverlay,
 } from '@enjambre/ui';
 import { toast } from '@enjambre/ui';
 import { formatCLP } from '@enjambre/ui';
@@ -78,7 +78,7 @@ export function ConciliacionAutoView() {
   const queryClient = useQueryClient();
 
   // Queries
-  const { data: propuestasData, isLoading: isLoadingPropuestas, refetch: refetchPropuestas } = useQuery({
+  const { data: propuestasData, isLoading: isLoadingPropuestas, isFetching: isFetchingPropuestas, refetch: refetchPropuestas } = useQuery({
     queryKey: ['conciliacion', 'propuestas'],
     queryFn: async () => {
       const res = await apiFetch('/api/banco-chile/conciliacion-auto/ejecutar', {
@@ -90,7 +90,7 @@ export function ConciliacionAutoView() {
     }
   });
 
-  const { data: historialData, isLoading: isLoadingHistorial } = useQuery({
+  const { data: historialData, isLoading: isLoadingHistorial, isFetching: isFetchingHistorial } = useQuery({
     queryKey: ['conciliacion', 'historial'],
     queryFn: async () => {
       const res = await apiFetch('/api/banco-chile/conciliacion-auto/historial?limite=20');
@@ -100,7 +100,7 @@ export function ConciliacionAutoView() {
     enabled: activeTab === 'historial'
   });
 
-  const { data: reglasData, isLoading: isLoadingReglas } = useQuery({
+  const { data: reglasData, isLoading: isLoadingReglas, isFetching: isFetchingReglas } = useQuery({
     queryKey: ['conciliacion', 'reglas'],
     queryFn: async () => {
       const res = await apiFetch('/api/banco-chile/conciliacion-auto/reglas');
@@ -204,14 +204,14 @@ export function ConciliacionAutoView() {
                   <p className="text-sm text-muted-foreground">Evaluando movimientos pendientes contra facturas y gastos.</p>
                 </div>
               </div>
-              <Button onClick={() => refetchPropuestas()} disabled={isLoadingPropuestas} variant="outline">
-                {isLoadingPropuestas ? <Spinner className="w-4 h-4 mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+              <Button onClick={() => refetchPropuestas()} disabled={isFetchingPropuestas} variant="outline">
+                {isFetchingPropuestas ? <HexagonLoader size="sm" className="mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
                 Re-evaluar
               </Button>
             </div>
 
             {isLoadingPropuestas ? (
-              <div className="flex justify-center p-12"><Spinner className="w-8 h-8 text-primary" /></div>
+              <ViewLoading variant="view" label="Propuestas de conciliación" hideLabel />
             ) : propuestas.length === 0 ? (
               <div className="bg-surface-sunken border border-border rounded-xl p-12 text-center">
                 <CheckCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
@@ -219,7 +219,8 @@ export function ConciliacionAutoView() {
                 <p className="text-muted-foreground">No hay movimientos pendientes que coincidan con las reglas actuales.</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 relative">
+                {isFetchingPropuestas ? <LoadingOverlay label="Re-evaluando propuestas" /> : null}
                 <AnimatePresence>
                   {propuestas.map((propuesta) => (
                     <motion.div 
@@ -342,9 +343,10 @@ export function ConciliacionAutoView() {
                 <CardTitle>Historial de Conciliaciones</CardTitle>
                 <CardDescription>Registro de movimientos bancarios emparejados exitosamente.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="relative">
+                {isFetchingHistorial && historial.length > 0 ? <LoadingOverlay label="Actualizando historial" /> : null}
                 {isLoadingHistorial ? (
-                  <div className="flex justify-center p-8"><Spinner className="w-6 h-6" /></div>
+                  <ViewLoading variant="view" label="Historial" hideLabel />
                 ) : historial.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay registros en el historial.</p>
                 ) : (
@@ -415,9 +417,10 @@ export function ConciliacionAutoView() {
                   + Nueva Regla
                 </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="relative">
+                {isFetchingReglas && reglas.length > 0 ? <LoadingOverlay label="Actualizando reglas" /> : null}
                 {isLoadingReglas ? (
-                  <div className="flex justify-center p-8"><Spinner className="w-6 h-6" /></div>
+                  <ViewLoading variant="view" label="Reglas" hideLabel />
                 ) : reglas.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay reglas configuradas.</p>
                 ) : (

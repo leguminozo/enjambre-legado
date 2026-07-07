@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
 import { friendlyError, friendlySupabaseError, toast, ViewLoading } from '@enjambre/ui';
 import {
-  Sparkles, Copy, Check, DollarSign, Users, Gift, Loader2, AlertCircle,
+  Sparkles, Copy, Check, DollarSign, Users, Gift, AlertCircle,
   BarChart3, Wallet, Eye, FileText,
 } from 'lucide-react';
 import {

@@ -6,7 +6,8 @@ import { useCashSession } from '@/components/pos/cash-context';
 import { useSumUp } from '@/components/pos/sumup-context';
 import { SumupTerminalFlow } from '@/components/pos/sumup-terminal-flow';
 import type { PaymentMethod, TerminalFlowResult } from '@/components/pos/types';
-import { Plus, Zap, Banknote, CreditCard, Smartphone, Loader2, CheckCircle2, Store, Truck, Building2, Users, Crown, Radio, Nfc } from 'lucide-react';
+import { HexagonLoader } from '@enjambre/ui';
+import { Plus, Zap, Banknote, CreditCard, Smartphone, CheckCircle2, Store, Truck, Building2, Users, Crown, Radio, Nfc } from 'lucide-react';
 
 interface Props {
   producto_id: string;
@@ -272,7 +273,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
               onClick={() => void handlePayment(pm.value)}
               className="flex flex-col items-center gap-1.5 rounded-xl min-h-[44px] bg-card border border-border px-3 py-3 text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all disabled:opacity-40"
             >
-              {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : pm.icon}
+              {loading ? <HexagonLoader size="sm" /> : pm.icon}
               {pm.label}
             </button>
           ))}

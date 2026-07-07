@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, toast } from "@enjambre/ui";
+import { Card, CardContent, CardHeader, CardTitle, toast, ViewLoading } from "@enjambre/ui";
 import { Button } from "@enjambre/ui";
 import { Badge } from "@enjambre/ui";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -29,7 +29,7 @@ interface CalculosIAComponentProps {
 
 export function CalculosIAComponent({ empresaId }: CalculosIAComponentProps) {
   const [calculos, setCalculos] = useState<CalculoIA[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [ejecutando, setEjecutando] = useState<string | null>(null);
   const apiFetch = useApiFetch();
 
@@ -211,7 +211,9 @@ const tiposCalculo = [
           </div>
         </CardHeader>
         <CardContent>
-          {calculos.length === 0 ? (
+          {loading && calculos.length === 0 ? (
+            <ViewLoading variant="view" label="Cálculos IA" hideLabel />
+          ) : calculos.length === 0 ? (
             <div className="text-center py-12">
               <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-medium mb-2">No hay cálculos realizados</h3>

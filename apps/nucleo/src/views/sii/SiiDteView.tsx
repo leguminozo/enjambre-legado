@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, Suspense } from "react";
-import { FileText, Plus, Receipt, Settings2, Calculator, Users, RefreshCw, BookOpen, Loader2 } from "lucide-react";
+import { ViewLoading } from "@enjambre/ui";
+import { FileText, Plus, Receipt, Settings2, Calculator, Users, RefreshCw, BookOpen } from "lucide-react";
 import dynamic from "next/dynamic";
 import { viewLoadingFallback } from "@/lib/navigation/lazy-view";
 import { ViewShell } from "@/components/layout/ViewShell";
@@ -34,11 +35,7 @@ const RcvTab = dynamic(() => import("./components/RcvTab").then((m) => ({ defaul
 type SiiMode = "list" | "manual" | "gasto" | "settings" | "f29" | "f22" | "honorarios" | "rcv";
 
 function TabFallback() {
-  return (
-    <div className="flex justify-center py-10">
-      <Loader2 className="animate-spin text-accent" size={22} />
-    </div>
-  );
+  return <ViewLoading variant="inline" label="Módulo fiscal" hideLabel className="py-10" />;
 }
 
 export function SiiDteView() {

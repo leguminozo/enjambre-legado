@@ -219,10 +219,13 @@
         "circular": "Circular Colmena",
         "canje": "Canje Impacto",
         "alertas": "Alertas Floración",
+        "direcciones": "Libreta de Direcciones",
+        "logros": "Mis Logros e Impacto",
         "ajustes": "Ajustes Guardián",
         "creadorPortal": "Mi Código y Comisiones",
         "mayoristaPortal": "Portal Mayorista",
-        "catalogoMayorista": "Catálogo Mayorista"
+        "catalogoMayorista": "Catálogo Mayorista",
+        "trazabilidad": "Trazabilidad Blockchain"
       }
     }
   },

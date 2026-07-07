@@ -1,6 +1,7 @@
 'use client';
 
 import type { ShopProduct } from '@/lib/shop/products';
+import type { CartLine } from '@/lib/cart/types';
 import {
   clearRemoteCart,
   getRemoteCartLines,
@@ -20,13 +21,7 @@ import React, {
   useState,
 } from 'react';
 
-export type CartLine = {
-  productId: string;
-  slug: string;
-  name: string;
-  unitPrice: number;
-  quantity: number;
-};
+export type { CartLine } from '@/lib/cart/types';
 
 export { CART_STORAGE_KEY };
 const REMOTE_SYNC_DEBOUNCE_MS = 500;
@@ -111,9 +106,11 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
         setLines(merged);
         setRemoteReady(true);
       })
-      .catch((error: unknown) => {
+      .catch(() => {
         if (cancelled) return;
-        console.error('[cart] merge on login failed:', error);
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('[cart] merge on login failed — usando carrito local');
+        }
         mergedUserRef.current = userId;
         setRemoteReady(true);
       });
@@ -128,8 +125,10 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
 
     const timer = setTimeout(() => {
       if (applyingRemoteRef.current) return;
-      void syncRemoteCart(toQuantityItems(lines)).catch((error: unknown) => {
-        console.error('[cart] remote sync failed:', error);
+      void syncRemoteCart(toQuantityItems(lines)).catch(() => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('[cart] remote sync failed — reintentará en el próximo cambio');
+        }
       });
     }, REMOTE_SYNC_DEBOUNCE_MS);
 

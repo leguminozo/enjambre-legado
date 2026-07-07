@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Home, ShoppingBag, QrCode, User, Grid3X3 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -117,6 +117,14 @@ export function MobileBottomNav() {
 
   const hideOnCheckout =
     normalized.startsWith('/checkout') || normalized.startsWith('/perfil/reposicion/resultado');
+
+  useEffect(() => {
+    if (!isPwa) return;
+    for (const tab of PWA_BOTTOM_NAV) {
+      const href = tab.href === '/perfil' && !isAuthenticated ? '/login' : tab.href;
+      router.prefetch(href);
+    }
+  }, [isPwa, isAuthenticated, router]);
 
   if (!isPwa || hideOnCheckout) return null;
 

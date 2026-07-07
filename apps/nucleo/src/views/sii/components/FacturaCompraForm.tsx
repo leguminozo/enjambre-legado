@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { calcularIVA, calcularTotal } from "@enjambre/contable";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardHeader, CardTitle, CardContent, Button, Spinner } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader } from "@enjambre/ui";
 
 interface FacturaCompraFormProps {
   onComplete: () => void;
@@ -105,7 +105,7 @@ export function FacturaCompraForm({ onComplete }: FacturaCompraFormProps) {
             </div>
           </div>
           <Button disabled={createManual.isPending} type="submit" className="w-full mt-4">
-            {createManual.isPending ? <Spinner className="w-4 h-4 mr-2" /> : <Plus size={16} className="mr-2" />} 
+            {createManual.isPending ? <HexagonLoader size="sm" className="mr-2" /> : <Plus size={16} className="mr-2" />}
             Crear Factura
           </Button>
         </form>

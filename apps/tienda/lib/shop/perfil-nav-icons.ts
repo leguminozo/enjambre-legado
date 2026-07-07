@@ -12,6 +12,9 @@ import {
   Sparkles,
   Store,
   Star,
+  MapPin,
+  Trophy,
+  Link as LinkIcon,
 } from 'lucide-react';
 import type { PerfilNavLinkKey } from './store-routes';
 
@@ -30,4 +33,7 @@ export const PERFIL_NAV_ICONS: Record<PerfilNavLinkKey, LucideIcon> = {
   creadorPortal: Sparkles,
   mayoristaPortal: Store,
   catalogoMayorista: Store,
+  direcciones: MapPin,
+  logros: Trophy,
+  trazabilidad: LinkIcon,
 };

@@ -222,7 +222,23 @@
   display: block;
   overflow: visible;
   margin-inline: auto;
+  flex-shrink: 0;
   color: hsl(var(--accent));
+  width: var(--enj-hex-w, 2.5rem);
+  height: auto;
+  aspect-ratio: 48 / 56;
+}
+
+.enj-hex-loader[data-size='sm'] {
+  --enj-hex-w: 1.75rem;
+}
+
+.enj-hex-loader[data-size='md'] {
+  --enj-hex-w: 2.5rem;
+}
+
+.enj-hex-loader[data-size='lg'] {
+  --enj-hex-w: 3.25rem;
 }
 
 .enj-hex-loader-base {

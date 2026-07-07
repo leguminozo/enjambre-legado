@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag } from 'lucide-react';
+import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin } from 'lucide-react';
 import {
   DEFAULT_COURIER,
   getCheckoutCourierOptions,
@@ -28,6 +28,8 @@ import { useAuth } from '@/components/providers/auth-context';
 import { useLoyaltyPoints } from '@/lib/hooks/use-loyalty-points';
 import { useCartAbandonmentTracking } from '@/lib/hooks/use-cart-abandonment';
 import { CHECKOUT_RESULTADO_PATH } from '@/lib/shop/store-routes';
+import { getDirecciones } from '@/app/actions/direcciones';
+import type { ClienteDireccion } from '@/lib/shop/direcciones-schema';
 
 type BuyerMode = 'legado' | 'privada';
 
@@ -90,6 +92,8 @@ export function CheckoutClient() {
   const [codigoAplicado, setCodigoAplicado] = useState<string | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [savedAddresses, setSavedAddresses] = useState<ClienteDireccion[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
   const [quote, setQuote] = useState<{
     subtotal: number;
@@ -263,6 +267,25 @@ export function CheckoutClient() {
             .maybeSingle();
           if (profile?.courier_preferido) {
             setCourierCode(profile.courier_preferido as CourierCode);
+          }
+
+          const direcciones = await getDirecciones();
+          setSavedAddresses(direcciones);
+
+          const defaultAddr = direcciones.find(d => d.es_predeterminada) || direcciones[0];
+          if (defaultAddr) {
+            setSelectedAddressId(defaultAddr.id);
+            setShipping((prev) => ({
+              ...prev,
+              nombre: defaultAddr.nombre,
+              telefono: defaultAddr.telefono,
+              direccion: defaultAddr.direccion,
+              comuna: defaultAddr.comuna,
+              ciudad: defaultAddr.ciudad,
+              region: defaultAddr.region,
+              codigoPostal: defaultAddr.codigo_postal ?? '',
+              instrucciones: defaultAddr.instrucciones ?? '',
+            }));
           }
         } catch {
           // Mantener BlueExpress si no se puede leer preferencia
@@ -732,7 +755,75 @@ export function CheckoutClient() {
                       </p>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  
+                  {savedAddresses.length > 0 && buyerMode === 'legado' && (
+                    <div className="form-field space-y-3 pt-4 border-t border-border">
+                      <label className="block text-sm text-foreground font-medium mb-2">Mis Direcciones Guardadas</label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {savedAddresses.map((addr) => (
+                          <button
+                            key={addr.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedAddressId(addr.id);
+                              setShipping((prev) => ({
+                                ...prev,
+                                nombre: addr.nombre,
+                                telefono: addr.telefono,
+                                direccion: addr.direccion,
+                                comuna: addr.comuna,
+                                ciudad: addr.ciudad,
+                                region: addr.region,
+                                codigoPostal: addr.codigo_postal ?? '',
+                                instrucciones: addr.instrucciones ?? '',
+                              }));
+                            }}
+                            className={`text-left p-4 rounded-xl border transition-all flex items-start gap-3 ${
+                              selectedAddressId === addr.id 
+                                ? 'border-accent bg-accent/5' 
+                                : 'border-border bg-card hover:border-accent/40'
+                            }`}
+                          >
+                            <MapPin className={`h-5 w-5 shrink-0 mt-0.5 ${selectedAddressId === addr.id ? 'text-accent' : 'text-muted-foreground'}`} />
+                            <div>
+                              <p className="font-display text-sm text-foreground flex items-center gap-2">
+                                {addr.etiqueta}
+                                {addr.es_predeterminada && (
+                                  <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-semibold">Predeterminada</span>
+                                )}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                {addr.direccion}, {addr.comuna}, {addr.region}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setSelectedAddressId(null);
+                          setShipping({
+                            nombre: user?.name ?? '',
+                            email: user?.email ?? '',
+                            telefono: '',
+                            direccion: '',
+                            comuna: '',
+                            ciudad: '',
+                            region: '',
+                            codigoPostal: '',
+                            instrucciones: '',
+                          });
+                        }}
+                        className="text-xs text-accent underline underline-offset-2 mt-2"
+                      >
+                        + Usar una dirección nueva
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+
                     <div className="sm:col-span-2 form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Nombre completo *</label>
                       <input

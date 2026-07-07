@@ -110,7 +110,10 @@ export type PerfilNavLinkKey =
   | 'ajustes'
   | 'creadorPortal'
   | 'mayoristaPortal'
-  | 'catalogoMayorista';
+  | 'catalogoMayorista'
+  | 'direcciones'
+  | 'logros'
+  | 'trazabilidad';
 
 export type PerfilNavVisibility = 'creador' | 'aliado_activo';
 
@@ -142,6 +145,7 @@ export const PERFIL_SECTION_ORDER: readonly PerfilSectionKey[] = [
 export const PERFIL_NAV: readonly PerfilNavLinkDef[] = [
   { href: '/perfil', labelKey: 'legado', sectionKey: 'identidad' },
   { href: '/perfil/pasaporte', labelKey: 'pasaporte', sectionKey: 'identidad' },
+  { href: '/perfil/logros', labelKey: 'logros', sectionKey: 'identidad' },
   { href: '/perfil/creador', labelKey: 'creadorPortal', sectionKey: 'embajador', visibility: 'creador' },
   { href: '/perfil/mayorista', labelKey: 'mayoristaPortal', sectionKey: 'aliado', visibility: 'aliado_activo' },
   { href: '/perfil/reposicion', labelKey: 'reposicion', sectionKey: 'comercio' },
@@ -151,7 +155,9 @@ export const PERFIL_NAV: readonly PerfilNavLinkDef[] = [
   { href: '/perfil/circular', labelKey: 'circular', sectionKey: 'red' },
   { href: '/perfil/canje', labelKey: 'canje', sectionKey: 'red' },
   { href: '/perfil/alertas', labelKey: 'alertas', sectionKey: 'red' },
+  { href: '/perfil/direcciones', labelKey: 'direcciones', sectionKey: 'ajustes' },
   { href: '/perfil/ajustes', labelKey: 'ajustes', sectionKey: 'ajustes' },
+  { href: '/perfil/trazabilidad', labelKey: 'trazabilidad', sectionKey: 'identidad' },
 ] as const;
 
 export function isPerfilLinkVisible(

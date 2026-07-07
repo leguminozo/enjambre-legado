@@ -5,7 +5,8 @@ import { Button, Input, Textarea, toast } from "@enjambre/ui";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
-import { FileText, Save, X, Loader2 } from "lucide-react";
+import { HexagonLoader } from '@enjambre/ui';
+import { FileText, Save, X } from "lucide-react";
 import { createFacturaEmitida } from "@/lib/actions/facturas";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -191,7 +192,7 @@ className="bg-background border-border"
             >
               {isPending ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <HexagonLoader size="sm" className="mr-2" />
                   Guardando...
                 </>
               ) : (

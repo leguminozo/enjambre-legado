@@ -6,7 +6,7 @@ import { useCashSession } from '@/components/pos/cash-context';
 import { TierBadge, TierProgressBar, useTierProgress } from '@/components/pos/tier-badge';
 import { LeaderboardPanel } from '@/components/pos/leaderboard-panel';
 import { TrendingUp, Calendar, DollarSign, Zap, BarChart3, Clock } from 'lucide-react';
-import { ViewLoading } from '@enjambre/ui';
+import { useClientViewLoading, ViewLoading } from '@enjambre/ui';
 
 type DailyEntry = { date: string; revenue: number; commissions: number; sales: number };
 type SessionEntry = { id: string; opened_at: string; closed_at: string | null; opening_cash: number; session_status: string; cash_difference: number | null };
@@ -56,7 +56,9 @@ export default function HistorialPage() {
 
   const formatCLP = (n: number) => '$' + Math.abs(n).toLocaleString('es-CL');
 
-  if (loading) {
+  const showLoading = useClientViewLoading(loading);
+
+  if (showLoading) {
     return <ViewLoading variant="view" label="Historial" hideLabel />;
   }
 

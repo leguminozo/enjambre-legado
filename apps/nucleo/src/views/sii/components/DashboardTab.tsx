@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileText, Send, RefreshCw, DollarSign } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardContent, CardHeader, CardTitle, Spinner, Button, Badge } from "@enjambre/ui";
+import { Card, CardContent, CardHeader, CardTitle, HexagonLoader, ViewLoading, LoadingOverlay, Button, Badge } from "@enjambre/ui";
 import {
   FacturaCompraRow,
   SiiDashboard,
@@ -73,9 +73,10 @@ export function DashboardTab() {
   return (
     <div className="space-y-6">
       {dashboardQuery.isLoading ? (
-        <div className="flex justify-center py-8"><Spinner className="w-8 h-8 text-primary" /></div>
+        <ViewLoading variant="view" label="Dashboard SII" hideLabel />
       ) : (
-        <div className="stats-grid">
+        <div className="stats-grid relative">
+          {dashboardQuery.isFetching && dashboardQuery.data ? <LoadingOverlay label="Actualizando resumen" /> : null}
           <StatCard label="Total Compras Neto" value={dash?.totalComprasNeto ?? 0} icon={DollarSign} />
           <StatCard label="Total IVA Compras" value={dash?.totalComprasIva ?? 0} icon={DollarSign} />
           <StatCard label="Total Facturado" value={dash?.totalCompras ?? 0} icon={DollarSign} />
@@ -89,7 +90,10 @@ export function DashboardTab() {
             <FileText size={18} /> Facturas de Compra ({dash?.totalFacturasCompra ?? 0})
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 relative">
+          {facturasQuery.isFetching && (facturasQuery.data?.length ?? 0) > 0 ? (
+            <LoadingOverlay label="Actualizando facturas" />
+          ) : null}
           <EnjTableShell caption="Desliza para ver columnas de facturas">
             <table className="w-full text-sm text-left data-table">
               <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
@@ -107,7 +111,7 @@ export function DashboardTab() {
               </thead>
               <tbody>
                 {facturasQuery.isLoading ? (
-                  <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground"><Spinner className="w-6 h-6 mx-auto" /></td></tr>
+                  <tr><td colSpan={9} className="px-4 py-4"><ViewLoading variant="inline" label="Facturas" hideLabel /></td></tr>
                 ) : (facturasQuery.data ?? []).length === 0 ? (
                   <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">Sin facturas de compra</td></tr>
                 ) : (
@@ -131,7 +135,7 @@ export function DashboardTab() {
                               disabled={enviarSiiMutation.isPending}
                               title="Enviar al SII"
                             >
-                              {enviarSiiMutation.isPending ? <Spinner className="w-3 h-3 mr-1" /> : <Send size={12} className="mr-1" />} 
+                              {enviarSiiMutation.isPending ? <HexagonLoader size="sm" className="mr-1" /> : <Send size={12} className="mr-1" />}
                               Enviar
                             </Button>
                           )}
@@ -143,7 +147,7 @@ export function DashboardTab() {
                               disabled={pollSiiMutation.isPending}
                               title="Consultar estado SII"
                             >
-                              {pollSiiMutation.isPending ? <Spinner className="w-3 h-3 mr-1" /> : <RefreshCw size={12} className="mr-1" />} 
+                              {pollSiiMutation.isPending ? <HexagonLoader size="sm" className="mr-1" /> : <RefreshCw size={12} className="mr-1" />}
                               Poll
                             </Button>
                           )}

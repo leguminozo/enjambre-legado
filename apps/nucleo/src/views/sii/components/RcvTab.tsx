@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, CheckCircle2, Clock } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardHeader, CardTitle, CardContent, Button, Spinner } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay } from "@enjambre/ui";
 import { RcvSyncRow, RcvRegistroRow } from "../types";
 import { EnjTableShell } from "@/components/layout/EnjTableShell";
 
@@ -65,7 +65,7 @@ export function RcvTab() {
             onClick={() => rcvSync.mutate()}
             disabled={rcvSync.isPending}
           >
-            {rcvSync.isPending ? <Spinner className="w-4 h-4 mr-2" /> : <RefreshCw size={16} className="mr-2" />} 
+            {rcvSync.isPending ? <HexagonLoader size="sm" className="mr-2" /> : <RefreshCw size={16} className="mr-2" />}
             Sincronizar SII
           </Button>
           {rcvSync.isError && <span className="text-sm text-destructive font-medium">{rcvSync.error.message}</span>}
@@ -76,10 +76,10 @@ export function RcvTab() {
           )}
         </div>
 
+        <div className="relative">
+          {rcvQuery.isFetching && rcvQuery.data ? <LoadingOverlay label="Actualizando RCV" /> : null}
         {rcvQuery.isLoading ? (
-          <div className="flex justify-center py-12">
-            <Spinner className="w-8 h-8 text-primary" />
-          </div>
+          <ViewLoading variant="view" label="RCV" hideLabel />
         ) : rcvQuery.isError ? (
           <div className="p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 text-sm">
             {rcvQuery.error.message}
@@ -177,6 +177,7 @@ export function RcvTab() {
             </div>
           );
         })()}
+        </div>
       </CardContent>
     </Card>
   );

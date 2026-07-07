@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Users, CheckCircle2 } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardHeader, CardTitle, CardContent, Button, Spinner } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay } from "@enjambre/ui";
 import { HonorarioRow } from "../types";
 
 export function HonorariosTab() {
@@ -110,7 +110,7 @@ export function HonorariosTab() {
                 onClick={() => createHonorario.mutate()}
                 disabled={createHonorario.isPending || !honorarioMonto || !honorarioDescripcion}
               >
-                {createHonorario.isPending ? <Spinner className="w-4 h-4 mr-2" /> : null} 
+                {createHonorario.isPending ? <HexagonLoader size="sm" className="mr-2" /> : null}
                 Registrar honorario
               </Button>
               {createHonorario.isError && <p className="text-sm text-destructive">{createHonorario.error.message}</p>}
@@ -123,12 +123,13 @@ export function HonorariosTab() {
           </div>
         </div>
 
-        <div className="border-t border-border pt-6">
+        <div className="border-t border-border pt-6 relative">
           <h4 className="text-sm font-bold text-foreground mb-4 font-display">Historial de Honorarios</h4>
+          {honorariosQuery.isFetching && (honorariosQuery.data?.length ?? 0) > 0 ? (
+            <LoadingOverlay label="Actualizando honorarios" />
+          ) : null}
           {honorariosQuery.isLoading ? (
-            <div className="flex justify-center py-6">
-              <Spinner className="w-6 h-6 text-primary" />
-            </div>
+            <ViewLoading variant="inline" label="Honorarios" hideLabel className="py-6" />
           ) : (honorariosQuery.data ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4 bg-surface-sunken rounded-lg border border-border">Sin honorarios registrados</p>
           ) : (

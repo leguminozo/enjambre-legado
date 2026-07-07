@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardHeader, CardTitle, CardContent, Button, Spinner } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay } from "@enjambre/ui";
 import {
   BandejaGastoRow,
   FiscalUploadResult,
@@ -429,7 +429,7 @@ export function BandejaFiscalTab() {
 
           <div className="flex flex-wrap gap-2">
             {proveedoresQuery.isLoading ? (
-              <Spinner className="w-4 h-4 text-muted-foreground" />
+              <HexagonLoader size="sm" />
             ) : (
               proveedores.map((p) => (
                 <button
@@ -507,7 +507,7 @@ export function BandejaFiscalTab() {
                   }
                 >
                   {procesarGasto.isPending ? (
-                    <Spinner className="w-4 h-4 mr-2" />
+                    <HexagonLoader size="sm" className="mr-2" />
                   ) : (
                     <Send className="w-4 h-4 mr-2" />
                   )}
@@ -546,7 +546,7 @@ export function BandejaFiscalTab() {
                 />
                 {uploadDocument.isPending ? (
                   <div className="flex flex-col items-center gap-3">
-                    <Spinner className="w-8 h-8 text-primary" />
+                    <ViewLoading variant="inline" label="Extrayendo documento" hideLabel />
                     <p className="text-sm text-muted-foreground">Extrayendo texto del documento…</p>
                   </div>
                 ) : (
@@ -578,7 +578,7 @@ export function BandejaFiscalTab() {
                     onClick={() => parseGasto.mutate()}
                     disabled={parseGasto.isPending || receiptText.length < 10}
                   >
-                    {parseGasto.isPending ? <Spinner className="w-4 h-4 mr-2" /> : null}
+                    {parseGasto.isPending ? <HexagonLoader size="sm" className="mr-2" /> : null}
                     Analizar texto extraído
                   </Button>
                 </div>
@@ -609,7 +609,7 @@ export function BandejaFiscalTab() {
                 onClick={() => importCsv.mutate()}
                 disabled={importCsv.isPending || csvText.trim().length < 10}
               >
-                {importCsv.isPending ? <Spinner className="w-4 h-4 mr-2" /> : <Table2 className="w-4 h-4 mr-2" />}
+                {importCsv.isPending ? <HexagonLoader size="sm" className="mr-2" /> : <Table2 className="w-4 h-4 mr-2" />}
                 Importar y procesar
               </Button>
               {csvResult && (
@@ -638,7 +638,7 @@ export function BandejaFiscalTab() {
                 disabled={parseGasto.isPending}
                 className="w-full sm:w-auto"
               >
-                {parseGasto.isPending ? <Spinner className="w-4 h-4 mr-2" /> : null}
+                {parseGasto.isPending ? <HexagonLoader size="sm" className="mr-2" /> : null}
                 Analizar recibo
               </Button>
               {parseGasto.isError && (
@@ -655,7 +655,8 @@ export function BandejaFiscalTab() {
             <Receipt size={18} /> Cola de documentos
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 relative">
+          {bandejaQuery.isFetching && bandeja.length > 0 ? <LoadingOverlay label="Actualizando cola" /> : null}
           <div className="flex flex-wrap gap-2">
             {ESTADO_FILTERS.map((f) => (
               <button
@@ -674,9 +675,7 @@ export function BandejaFiscalTab() {
           </div>
 
           {bandejaQuery.isLoading ? (
-            <div className="flex justify-center py-10">
-              <Spinner className="w-6 h-6 text-primary" />
-            </div>
+            <ViewLoading variant="view" label="Cola fiscal" hideLabel />
           ) : bandeja.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-10">
               No hay documentos en esta cola.

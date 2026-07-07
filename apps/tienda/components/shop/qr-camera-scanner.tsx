@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Camera, CameraOff, Loader2 } from 'lucide-react';
+import { HexagonLoader } from '@enjambre/ui';
+import { Camera, CameraOff } from 'lucide-react';
 
 type QrCameraScannerProps = {
   onScan: (code: string) => void;
@@ -116,7 +117,7 @@ export function QrCameraScanner({ onScan, disabled }: QrCameraScannerProps) {
             disabled={disabled || starting || !hasBarcodeApi}
             className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground disabled:opacity-50"
           >
-            {starting ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
+            {starting ? <HexagonLoader size="sm" /> : <Camera size={16} />}
             Abrir cámara
           </button>
         ) : (

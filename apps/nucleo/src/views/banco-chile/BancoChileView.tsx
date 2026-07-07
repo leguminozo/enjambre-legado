@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Building2, Settings, RefreshCw, DollarSign, Loader2, Check, X, ArrowRight } from 'lucide-react';
+import { HexagonLoader, ViewLoading } from '@enjambre/ui';
+import { Building2, Settings, RefreshCw, DollarSign, Check, X, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
 import { formatCurrency } from '@/lib/format';
 import { ImmersiveModal } from '@enjambre/ui';
@@ -155,11 +156,7 @@ export function BancoChileView() {
   }, [config?.enabled]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="animate-spin text-accent" size={32} />
-      </div>
-    );
+    return <ViewLoading variant="view" label="Banco Chile" hideLabel />;
   }
 
   return (
@@ -207,7 +204,7 @@ export function BancoChileView() {
                 disabled={syncing}
                 className="p-2 hover:bg-secondary rounded-lg disabled:opacity-50"
               >
-                {syncing ? <Loader2 className="animate-spin" size={18} /> : <RefreshCw size={18} />}
+                {syncing ? <HexagonLoader size="sm" /> : <RefreshCw size={18} />}
               </button>
             </div>
           </div>

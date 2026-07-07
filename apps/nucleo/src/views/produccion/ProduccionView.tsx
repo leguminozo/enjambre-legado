@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { 
   Card, CardHeader, CardTitle, CardDescription, CardContent,
-  Badge, Spinner
+  Badge, ViewLoading, LoadingOverlay,
 } from '@enjambre/ui';
 import { formatCLP } from '@enjambre/ui';
 import { 
@@ -20,7 +20,7 @@ export function ProduccionView() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'lotes'>('dashboard');
   const apiFetch = useApiFetch();
 
-  const { data: dashboardData, isLoading } = useQuery({
+  const { data: dashboardData, isLoading, isFetching } = useQuery({
     queryKey: ['produccion', 'dashboard'],
     queryFn: async () => {
       const res = await apiFetch('/api/produccion/dashboard');
@@ -54,8 +54,10 @@ export function ProduccionView() {
       />
 
       {isLoading ? (
-        <div className="flex justify-center p-12"><Spinner className="w-8 h-8 text-primary" /></div>
+        <ViewLoading variant="view" label="Producción" hideLabel />
       ) : (
+        <div className="relative">
+          {isFetching && dashboardData ? <LoadingOverlay label="Actualizando producción" /> : null}
         <AnimatePresence mode="wait">
           {/* PESTAÑA: DASHBOARD & ALERTAS */}
           {activeTab === 'dashboard' && (
@@ -240,6 +242,7 @@ export function ProduccionView() {
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
       )}
     </div>
   );
