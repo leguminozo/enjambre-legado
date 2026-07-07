@@ -1,5 +1,6 @@
 import React from "react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from "recharts";
+import { ChartBox } from "@/components/charts/ChartBox";
 import { MessageSquare } from "lucide-react";
 import { BOSQUE_ULMO, ORO_MIEL } from "@/lib/colors";
 import {
@@ -95,27 +96,25 @@ export function OverviewTab({ dashboard }: OverviewTabProps) {
                 Ventas por Canal
               </h3>
             </div>
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={channelData}>
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                  <YAxis
-                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                      fontSize: "12px",
-                    }}
-                    formatter={(val) => [`$${Number(val).toLocaleString("es-CL")}`, "Ingresos"]}
-                  />
-                  <Bar dataKey="revenue" fill={BOSQUE_ULMO} radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <ChartBox height={224}>
+              <BarChart data={channelData}>
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                  tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                  }}
+                  formatter={(val) => [`$${Number(val).toLocaleString("es-CL")}`, "Ingresos"]}
+                />
+                <Bar dataKey="revenue" fill={BOSQUE_ULMO} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartBox>
           </div>
         )}
       </div>
@@ -129,36 +128,34 @@ export function OverviewTab({ dashboard }: OverviewTabProps) {
                 Clientes por Estado
               </h3>
             </div>
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusPieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={70}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {statusPieData.map((_, idx) => (
-                      <Cell
-                        key={idx}
-                        fill={[BOSQUE_ULMO, ORO_MIEL, "hsl(var(--muted-foreground))", "hsl(var(--destructive))"][idx % 4]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                      fontSize: "12px",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            <ChartBox height={192}>
+              <PieChart>
+                <Pie
+                  data={statusPieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={40}
+                  outerRadius={70}
+                  paddingAngle={3}
+                  dataKey="value"
+                >
+                  {statusPieData.map((_, idx) => (
+                    <Cell
+                      key={idx}
+                      fill={[BOSQUE_ULMO, ORO_MIEL, "hsl(var(--muted-foreground))", "hsl(var(--destructive))"][idx % 4]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                  }}
+                />
+              </PieChart>
+            </ChartBox>
             <div className="flex flex-wrap gap-x-4 gap-y-2 px-2 mt-2">
               {statusPieData.map((s) => (
                 <span key={s.name} className="text-xs text-muted-foreground">

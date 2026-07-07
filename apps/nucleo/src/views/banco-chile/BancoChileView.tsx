@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { HexagonLoader, ViewLoading } from '@enjambre/ui';
 import { Building2, Settings, RefreshCw, DollarSign, Check, X, ArrowRight } from 'lucide-react';
-import { useAuthStore } from '@enjambre/auth';
+
 import { formatCurrency } from '@/lib/format';
 import { ImmersiveModal } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
+import { resolveEmpresaId } from '@/lib/resolve-empresa-id';
 
 interface BancoChileConfig {
   id: string;
@@ -36,6 +37,7 @@ interface MovimientoBancario {
 }
 
 export function BancoChileView() {
+  const [empresaId, setEmpresaId] = useState<string | null>(null);
   const [config, setConfig] = useState<BancoChileConfig | null>(null);
   const [cuentas, setCuentas] = useState<CuentaBancaria[]>([]);
   const [movimientos, setMovimientos] = useState<MovimientoBancario[]>([]);
@@ -51,18 +53,25 @@ export function BancoChileView() {
     enabled: false,
   });
 
-  const fetchConfig = useCallback(async () => {
-    try {
-      const user = useAuthStore.getState().user;
-      if (!user) return;
+  useEffect(() => {
+    resolveEmpresaId()
+      .then(setEmpresaId)
+      .catch((err) => console.error('Error resolviendo empresa:', err));
+  }, []);
 
+  const fetchConfig = useCallback(async () => {
+    if (!empresaId) {
+      setLoading(false);
+      return;
+    }
+    try {
       const { data, error } = await supabase
         .from('banco_chile_config')
         .select('*')
-        .eq('empresa_id', user.id)
-        .single();
+        .eq('empresa_id', empresaId)
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching config:', error.message);
         return;
       }
@@ -72,22 +81,21 @@ export function BancoChileView() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [empresaId]);
 
   useEffect(() => {
-    fetchConfig();
-  }, [fetchConfig]);
+    if (empresaId) fetchConfig();
+  }, [empresaId, fetchConfig]);
 
   const handleSubmitConfig = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const user = useAuthStore.getState().user;
-      if (!user) return;
+      if (!empresaId) return;
 
       const { error } = await supabase
         .from('banco_chile_config')
         .upsert({
-          empresa_id: user.id,
+          empresa_id: empresaId,
           client_id: formData.clientId,
           client_secret: formData.clientSecret,
           username: formData.username,
@@ -108,13 +116,12 @@ export function BancoChileView() {
   const sincronizarCuentas = async () => {
     setSyncing(true);
     try {
-      const user = useAuthStore.getState().user;
-      if (!user) return;
+      if (!empresaId) return;
 
       const { data, error } = await supabase
         .from('banco_chile_cuentas')
         .select('*')
-        .eq('empresa_id', user.id);
+        .eq('empresa_id', empresaId);
 
       if (error) throw error;
       setCuentas(Array.isArray(data) ? (data as CuentaBancaria[]) : []);
@@ -127,13 +134,12 @@ export function BancoChileView() {
 
   const fetchMovimientos = useCallback(async (cuentaId?: string) => {
     try {
-      const user = useAuthStore.getState().user;
-      if (!user) return;
+      if (!empresaId) return;
 
       let query = supabase
         .from('banco_chile_movimientos')
         .select('*')
-        .eq('empresa_id', user.id)
+        .eq('empresa_id', empresaId)
         .order('fecha_contable', { ascending: false })
         .limit(50);
 
@@ -146,14 +152,14 @@ export function BancoChileView() {
     } catch (err) {
       console.error('Error fetching movimientos:', err);
     }
-  }, []);
+  }, [empresaId]);
 
   useEffect(() => {
-    if (config?.enabled) {
+    if (config?.enabled && empresaId) {
       sincronizarCuentas();
       fetchMovimientos();
     }
-  }, [config?.enabled]);
+  }, [config?.enabled, empresaId, fetchMovimientos]);
 
   if (loading) {
     return <ViewLoading variant="view" label="Banco Chile" hideLabel />;

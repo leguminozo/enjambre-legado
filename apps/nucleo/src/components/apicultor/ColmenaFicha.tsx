@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { X, MapPin, Crown, Droplets, Scale, DollarSign, Link, AlertTriangle, CheckCircle2, ChevronRight, Plus } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { BOSQUE_ULMO, BOSQUE_ULMO_LIGHT, ORO_MIEL, TEXT_MUTED } from '@/lib/colors';
-import { useChartDimensions } from '@/hooks/use-chart-dimensions';
+import { ChartBox } from '@/components/charts/ChartBox';
 import type { Colmena, InspeccionRecord } from '@/types/ecosystem';
 import { supabase } from '../../lib/supabase';
 import { toast, friendlyError } from '@enjambre/ui';
@@ -257,17 +257,15 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                 </div>
                             )}
 
-                            <div style={{ height: 200, marginBottom: 'var(--space-lg)' }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={colmena.varroaHistory}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                                        <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                                        <YAxis domain={[0, 6]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                                        <Tooltip contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.8rem' }} />
-                                        <Line type="monotone" dataKey="level" stroke={ORO_MIEL} strokeWidth={2} dot={{ fill: ORO_MIEL, r: 5 }} name="Varroa/10" />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
+                            <ChartBox height={200} className="mb-[var(--space-lg)]">
+                                <LineChart data={colmena.varroaHistory}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                    <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
+                                    <YAxis domain={[0, 6]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
+                                    <Tooltip contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.8rem' }} />
+                                    <Line type="monotone" dataKey="level" stroke={ORO_MIEL} strokeWidth={2} dot={{ fill: ORO_MIEL, r: 5 }} name="Varroa/10" />
+                                </LineChart>
+                            </ChartBox>
                             <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
                                 {[{ label: '< 1.5 ✓ Óptimo', color: 'hsl(var(--success))' }, { label: '1.5–3 ⚠ Atención', color: 'hsl(var(--warning))' }, { label: '> 3 🔴 Riesgo', color: 'hsl(var(--destructive))' }].map((z, i) => (
                                     <div key={i} style={{ padding: '6px 12px', borderRadius: 20, background: `${z.color}18`, fontSize: '0.72rem', fontWeight: 500, color: z.color }}>{z.label}</div>

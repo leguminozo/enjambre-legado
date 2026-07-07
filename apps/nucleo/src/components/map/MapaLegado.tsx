@@ -155,7 +155,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                     .order('fecha_inicio', { ascending: true });
                 const { data: clientesRetail } = await supabase
                     .from('clientes')
-                    .select('id, name, type, status, total_spent, notes, direccion, empresa')
+                    .select('id, name, type, status, total_spent, notes')
                     .in('type', ['B2B', 'Retail', 'Gourmet', 'Exportación'])
                     .in('status', ['activo', 'frecuente']);
 

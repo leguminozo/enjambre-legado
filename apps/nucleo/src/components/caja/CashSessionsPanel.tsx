@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import { friendlyError, toast, ViewLoading, ImmersiveModal } from '@enjambre/ui';
 import {
   Wallet, Check, Loader2, Search, Filter,
@@ -23,7 +22,22 @@ interface CashSessionRow {
   reconciled_by: string | null;
   notas: string | null;
   rep_profiles: { display_name: string } | null;
-  profiles: { full_name: string } | null;
+}
+
+interface HistoryRow {
+  session_id: string;
+  rep_id: string | null;
+  opened_at: string | null;
+  closed_at: string | null;
+  opening_cash: number | null;
+  closing_cash_counted: number | null;
+  closing_cash_expected: number | null;
+  cash_difference: number | null;
+  session_status: string | null;
+  display_name: string | null;
+  total_transactions: number | null;
+  total_revenue: number | null;
+  session_commissions: number | null;
 }
 
 interface SessionDetail extends CashSessionRow {
@@ -46,14 +60,29 @@ export function CashSessionsPanel() {
   const fetchSessions = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('cash_sessions')
-        .select('*, rep_profiles(display_name), profiles!cash_sessions_rep_id_fkey(full_name)')
-        .order('opened_at', { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
-      setSessions(Array.isArray(data) ? (data as CashSessionRow[]) : []);
+      const res = await apiFetch('/api/cash-sessions/history?limit=100');
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { message?: string }).message ?? 'Error al cargar sesiones');
+      }
+      const json = await res.json();
+      const rows = (json.data ?? []) as HistoryRow[];
+      setSessions(
+        rows.map((row) => ({
+          id: row.session_id,
+          rep_id: row.rep_id ?? '',
+          opened_at: row.opened_at ?? '',
+          closed_at: row.closed_at,
+          opening_cash: Number(row.opening_cash ?? 0),
+          closing_cash_counted: row.closing_cash_counted,
+          closing_cash_expected: row.closing_cash_expected,
+          cash_difference: row.cash_difference,
+          session_status: row.session_status ?? 'open',
+          reconciled_by: null,
+          notas: null,
+          rep_profiles: row.display_name ? { display_name: row.display_name } : null,
+        })),
+      );
     } catch (err) {
       toast(friendlyError(err, 'Error al cargar sesiones'), { type: 'error' });
     } finally {
@@ -66,18 +95,15 @@ export function CashSessionsPanel() {
   const reconcileSession = async (sessionId: string) => {
     setActionLoading(sessionId);
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) throw new Error('No autenticado');
-
-      const { error } = await supabase
-        .from('cash_sessions')
-        .update({
-          session_status: 'reconciled',
-          reconciled_by: authUser.id,
-        })
-        .eq('id', sessionId);
-
-      if (error) throw error;
+      const res = await apiFetch(`/api/cash-sessions/${sessionId}/reconcile`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { message?: string }).message ?? 'Error al reconciliar');
+      }
       toast('Sesión reconciliada', { type: 'success' });
       await fetchSessions();
     } catch (err) {
@@ -89,19 +115,32 @@ export function CashSessionsPanel() {
 
   const fetchSessionDetail = async (sessionId: string) => {
     try {
-      const [sessionRes, summaryRes] = await Promise.all([
-        supabase.from('cash_sessions').select('*, rep_profiles(display_name), profiles!cash_sessions_rep_id_fkey(full_name)').eq('id', sessionId).single(),
-        supabase.from('rep_session_summary_view').select('*').eq('session_id', sessionId).single(),
-      ]);
-
-      if (sessionRes.data && summaryRes.data) {
-        setSelectedSession({
-          ...sessionRes.data,
-          ventas_count: (summaryRes.data as Record<string, unknown>).ventas_count as number ?? 0,
-          total_revenue: Number((summaryRes.data as Record<string, unknown>).total_revenue ?? 0),
-          total_commissions: Number((summaryRes.data as Record<string, unknown>).total_commissions ?? 0),
-        } as SessionDetail);
+      const res = await apiFetch(`/api/cash-sessions/${sessionId}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { message?: string }).message ?? 'Error al cargar detalle');
       }
+      const json = await res.json();
+      const payload = json.data as {
+        session: CashSessionRow;
+        rep: { display_name: string } | null;
+        ventas: unknown[];
+        commissions: { total_commission: number }[];
+      };
+      const totalCommissions = (payload.commissions ?? []).reduce(
+        (sum, c) => sum + Number(c.total_commission ?? 0),
+        0,
+      );
+      setSelectedSession({
+        ...payload.session,
+        rep_profiles: payload.rep,
+        ventas_count: payload.ventas?.length ?? 0,
+        total_revenue: (payload.ventas as { total?: number }[]).reduce(
+          (sum, v) => sum + Number(v.total ?? 0),
+          0,
+        ),
+        total_commissions: totalCommissions,
+      } as SessionDetail);
     } catch (err) {
       toast(friendlyError(err, 'Error al cargar detalle'), { type: 'error' });
     }
@@ -109,7 +148,7 @@ export function CashSessionsPanel() {
 
   const filteredSessions = sessions.filter(s => {
     if (filterStatus !== 'todos' && s.session_status !== filterStatus) return false;
-    const name = s.rep_profiles?.display_name || s.profiles?.full_name || '';
+    const name = s.rep_profiles?.display_name || '';
     if (searchQuery && !name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
@@ -214,7 +253,7 @@ export function CashSessionsPanel() {
                     <div className="flex items-center gap-2 mb-1">
                       <StatusIcon size={14} className={s.session_status === 'reconciled' ? 'text-success' : s.session_status === 'closed' ? 'text-accent' : 'text-warning'} />
                       <p className="font-bold text-sm text-primary truncate">
-                        {s.rep_profiles?.display_name || s.profiles?.full_name || 'Representante desconocido'}
+                        {s.rep_profiles?.display_name || 'Representante desconocido'}
                       </p>
                       <span className={`text-[0.6rem] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
                         s.session_status === 'reconciled' ? 'bg-success/10 text-success' :
@@ -287,7 +326,7 @@ export function CashSessionsPanel() {
           <>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="text-muted-foreground">Representante:</div>
-              <div className="font-medium text-primary">{selectedSession.rep_profiles?.display_name || selectedSession.profiles?.full_name}</div>
+              <div className="font-medium text-primary">{selectedSession.rep_profiles?.display_name || '—'}</div>
               <div className="text-muted-foreground">Ventas:</div>
               <div className="font-medium">{selectedSession.ventas_count}</div>
               <div className="text-muted-foreground">Ingresos:</div>

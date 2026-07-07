@@ -26,7 +26,9 @@ export async function fetchPronostico(): Promise<MeteoData | null> {
     const data = await res.json();
     return data.hourly;
   } catch (error) {
-    console.error('Error obteniendo meteo:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Meteo no disponible:', error);
+    }
     return null;
   }
 }
