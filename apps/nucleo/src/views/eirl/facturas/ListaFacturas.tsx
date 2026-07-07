@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
 import { Button } from "@enjambre/ui";
 import { Badge } from "@enjambre/ui";
 import { HexagonLoader, ViewLoading } from '@enjambre/ui';
-import { FileText, Eye, Edit, Trash2, Plus } from "lucide-react";
+import { FileText, Eye, Edit, Trash2, Plus, Send } from "lucide-react";
 import { formatDate, formatCurrency } from '@/lib/format';
 import { deleteFacturaEmitida } from '@/lib/actions/facturas';
 import { NuevaFacturaForm } from './NuevaFacturaForm';
@@ -22,6 +22,8 @@ export interface Factura {
   estado: string;
   descripcion?: string;
   tipoDocumento: string;
+  estadoSii?: string | null;
+  folio?: number | null;
   cliente?: {
     id: string;
     nombre: string;
@@ -51,6 +53,8 @@ function mapFacturaRow(row: Record<string, unknown>): Factura {
     estado: String(row.estado ?? 'Pendiente'),
     descripcion: row.descripcion ? String(row.descripcion) : undefined,
     tipoDocumento: String(row.tipo_documento ?? 'Factura'),
+    estadoSii: row.estado_sii ? String(row.estado_sii) : null,
+    folio: row.folio != null ? Number(row.folio) : null,
     cliente: tercero ? {
       id: String(tercero.id),
       nombre: String(tercero.nombre ?? ''),
@@ -65,6 +69,7 @@ export function ListaFacturas({ facturasInitiales = [], empresaId }: ListaFactur
   const [loading, setLoading] = useState(facturasInitiales.length === 0);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [emittingId, setEmittingId] = useState<string | null>(null);
   const apiFetch = useApiFetch();
 
   const cargarFacturas = useCallback(async () => {
@@ -90,6 +95,45 @@ export function ListaFacturas({ facturasInitiales = [], empresaId }: ListaFactur
   useEffect(() => {
     cargarFacturas();
   }, [cargarFacturas]);
+
+  const canEmitirDte = (factura: Factura) =>
+    factura.tipoDocumento === 'Factura' &&
+    !['aceptado', 'enviado'].includes(factura.estadoSii ?? '');
+
+  const handleEmitirDte = async (id: string) => {
+    setEmittingId(id);
+    try {
+      const res = await apiFetch(`/api/facturas-emitidas/${id}/emitir-dte`, { method: 'POST' });
+      const json = await res.json().catch(() => ({})) as Record<string, unknown>;
+      if (!res.ok) {
+        const reasons = Array.isArray(json.reasons) ? (json.reasons as string[]).join(', ') : '';
+        const msg = typeof json.message === 'string' ? json.message : 'No se pudo emitir el DTE';
+        alert(reasons ? `${msg}: ${reasons}` : msg);
+        return;
+      }
+      await cargarFacturas();
+    } catch (error) {
+      console.error('[facturas] emitir-dte error:', error);
+      alert('Error de red al emitir DTE');
+    } finally {
+      setEmittingId(null);
+    }
+  };
+
+  const getEstadoSiiColor = (estado?: string | null) => {
+    switch (estado) {
+    case 'aceptado':
+      return 'bg-primary/10 text-primary border-primary/30';
+    case 'enviado':
+      return 'bg-primary/20 text-primary border-primary/30';
+    case 'rechazado':
+      return 'bg-destructive/10 text-destructive border-destructive/30';
+    case 'pendiente':
+      return 'bg-muted/20 text-muted-foreground border-muted/30';
+    default:
+      return 'bg-muted/10 text-muted-foreground border-muted/20';
+    }
+  };
 
   const handleDelete = (id: string) => {
     if (confirm('¿Estás seguro de eliminar esta factura?')) {
@@ -185,6 +229,12 @@ export function ListaFacturas({ facturasInitiales = [], empresaId }: ListaFactur
                       <Badge className={getEstadoColor(factura.estado)}>
                         {factura.estado}
                       </Badge>
+                      {factura.estadoSii && (
+                        <Badge className={getEstadoSiiColor(factura.estadoSii)}>
+                          SII: {factura.estadoSii}
+                          {factura.folio ? ` · folio ${factura.folio}` : ''}
+                        </Badge>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
@@ -218,6 +268,22 @@ export function ListaFacturas({ facturasInitiales = [], empresaId }: ListaFactur
                     </div>
 
                     <div className="flex gap-2">
+                      {canEmitirDte(factura) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => void handleEmitirDte(factura.id)}
+                          disabled={emittingId === factura.id || isPending}
+                          className="hover:bg-surface-sunken"
+                          title="Emitir DTE al SII"
+                        >
+                          {emittingId === factura.id ? (
+                            <HexagonLoader size="sm" />
+                          ) : (
+                            <Send className="h-4 w-4" />
+                          )}
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"

@@ -2,6 +2,31 @@ import type { WalletGuardianSnapshot } from '@enjambre/wallet';
 import { getAuthToken } from '@/lib/shop/resenas-api';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 
+export type WalletCapabilities = {
+  apple: { available: boolean; reason: string | null };
+  google: { available: boolean; configured: boolean; reason: string | null };
+  qr: { available: boolean; reason: string | null };
+};
+
+export async function fetchWalletCapabilities(token?: string): Promise<WalletCapabilities | null> {
+  const authToken = token ?? (await getAuthToken());
+  if (!authToken) return null;
+
+  const nucleoUrl = getNucleoApiUrl();
+  if (!nucleoUrl) return null;
+
+  const res = await fetch(`${nucleoUrl}/api/wallet/capabilities`, {
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    next: { revalidate: 300 },
+  });
+
+  if (!res.ok) return null;
+  return (await res.json()) as WalletCapabilities;
+}
+
 export async function fetchWalletSnapshot(token?: string): Promise<WalletGuardianSnapshot | null> {
   const authToken = token ?? (await getAuthToken());
   if (!authToken) return null;
@@ -37,23 +62,9 @@ export async function downloadApplePass(): Promise<{ ok: boolean; message?: stri
 
   const json = (await res.json()) as Record<string, unknown>;
   if (!res.ok) {
-    return { ok: false, message: typeof json.message === 'string' ? json.message : 'Error' };
-  }
-
-  if (json.unsigned) {
-    const blob = new Blob([JSON.stringify(json.pass, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'oyz-guardian-pass.json';
-    a.click();
-    URL.revokeObjectURL(url);
     return {
-      ok: true,
-      message:
-        typeof json.message === 'string'
-          ? json.message
-          : 'Pass generado (unsigned). Configura certs Apple para .pkpass.',
+      ok: false,
+      message: typeof json.message === 'string' ? json.message : 'Apple Wallet no disponible aún',
     };
   }
 
@@ -78,7 +89,10 @@ export async function getGoogleSaveLink(): Promise<{ ok: boolean; saveUrl?: stri
 
   const json = (await res.json()) as Record<string, unknown>;
   if (!res.ok) {
-    return { ok: false, message: typeof json.message === 'string' ? json.message : 'Error' };
+    return {
+      ok: false,
+      message: typeof json.message === 'string' ? json.message : 'Google Wallet no disponible aún',
+    };
   }
 
   if (typeof json.saveUrl === 'string') {
@@ -87,10 +101,7 @@ export async function getGoogleSaveLink(): Promise<{ ok: boolean; saveUrl?: stri
   }
 
   return {
-    ok: true,
-    message:
-      typeof json.message === 'string'
-        ? json.message
-        : 'Google Wallet pendiente de configuración en servidor',
+    ok: false,
+    message: typeof json.message === 'string' ? json.message : 'Google Wallet pendiente de configuración',
   };
 }

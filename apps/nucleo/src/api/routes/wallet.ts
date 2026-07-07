@@ -6,9 +6,9 @@ import { createClient } from '@supabase/supabase-js';
 import {
   buildApplePassJson,
   buildGoogleSavePayload,
-  buildGoogleSaveUrl,
   isAppleSigningConfigured,
   isGoogleWalletConfigured,
+  isGoogleWalletSigningReady,
   signWalletQrToken,
   toStampProgressView,
   verifyWalletQrToken,
@@ -92,6 +92,45 @@ async function loadWalletSnapshot(userId: string): Promise<WalletGuardianSnapsho
 
 export const walletRoutes = new Hono();
 
+function walletCapabilities() {
+  const appleCerts = isAppleSigningConfigured({
+    certBase64: process.env.APPLE_PASS_CERT_P12_BASE64,
+    teamId: process.env.APPLE_TEAM_IDENTIFIER,
+    passTypeId: process.env.APPLE_PASS_TYPE_IDENTIFIER,
+  });
+  const passSecret = Boolean(process.env.WALLET_PASS_SECRET?.trim());
+  const googleEnv = {
+    issuerId: process.env.GOOGLE_WALLET_ISSUER_ID,
+    serviceAccountEmail: process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL,
+    privateKey: process.env.GOOGLE_WALLET_PRIVATE_KEY,
+    serviceAccountJson: process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_JSON,
+  };
+
+  return {
+    apple: {
+      available: appleCerts && passSecret,
+      reason: appleCerts && passSecret
+        ? null
+        : 'Configura APPLE_PASS_CERT_P12_BASE64, APPLE_TEAM_IDENTIFIER y WALLET_PASS_SECRET',
+    },
+    google: {
+      available: isGoogleWalletSigningReady(googleEnv),
+      configured: isGoogleWalletConfigured(googleEnv),
+      reason: isGoogleWalletSigningReady(googleEnv)
+        ? null
+        : 'Configura GOOGLE_WALLET_ISSUER_ID, service account y clave privada para Save to Wallet',
+    },
+    qr: {
+      available: true,
+      reason: null as string | null,
+    },
+  };
+}
+
+walletRoutes.get('/capabilities', async (c) => {
+  return c.json(walletCapabilities());
+});
+
 walletRoutes.get('/stamps', async (c) => {
   const token = c.req.header('Authorization')?.replace('Bearer ', '') ?? null;
   const user = await resolveUserFromToken(token);
@@ -137,23 +176,22 @@ walletRoutes.get('/apple/download', async (c) => {
     authenticationToken: authToken,
   }, qrPayload);
 
-  const signed = isAppleSigningConfigured({
-    certBase64: process.env.APPLE_PASS_CERT_P12_BASE64,
-    teamId: process.env.APPLE_TEAM_IDENTIFIER,
-    passTypeId: process.env.APPLE_PASS_TYPE_IDENTIFIER,
-  });
-
-  if (!signed) {
+  const caps = walletCapabilities();
+  if (!caps.apple.available) {
     return c.json({
-      ok: true,
-      unsigned: true,
-      message: 'Configura certificados Apple para .pkpass firmado',
-      pass: passJson,
-      qrPayload,
-    });
+      ok: false,
+      code: 'wallet_apple_unavailable',
+      message: caps.apple.reason,
+      preview: process.env.NODE_ENV === 'development' ? { pass: passJson, qrPayload } : undefined,
+    }, 503);
   }
 
-  return c.json({ ok: true, unsigned: true, pass: passJson, note: 'Signing pipeline pendiente W3' });
+  return c.json({
+    ok: false,
+    code: 'wallet_apple_signing_pending',
+    message: 'Certificados detectados; pipeline de firma .pkpass en implementación',
+    preview: process.env.NODE_ENV === 'development' ? { pass: passJson, qrPayload } : undefined,
+  }, 503);
 });
 
 walletRoutes.post('/google/save-link', async (c) => {
@@ -164,23 +202,30 @@ walletRoutes.post('/google/save-link', async (c) => {
   const snapshot = await loadWalletSnapshot(user.id);
   if (!snapshot) return c.json({ code: 'not_found' }, 404);
 
-  const issuerId = process.env.GOOGLE_WALLET_ISSUER_ID;
-  const saEmail = process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL;
+  const googleEnv = {
+    issuerId: process.env.GOOGLE_WALLET_ISSUER_ID,
+    serviceAccountEmail: process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL,
+    privateKey: process.env.GOOGLE_WALLET_PRIVATE_KEY,
+    serviceAccountJson: process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_JSON,
+  };
 
-  if (!isGoogleWalletConfigured({ issuerId, serviceAccountEmail: saEmail })) {
-    const payload = buildGoogleSavePayload(snapshot, issuerId ?? 'issuer_stub');
+  if (!isGoogleWalletSigningReady(googleEnv)) {
     return c.json({
-      ok: true,
-      configured: false,
-      payload,
-      message: 'Configura GOOGLE_WALLET_ISSUER_ID y service account para Save to Wallet',
-    });
+      ok: false,
+      code: 'wallet_google_unavailable',
+      configured: isGoogleWalletConfigured(googleEnv),
+      message: walletCapabilities().google.reason,
+      payload: process.env.NODE_ENV === 'development'
+        ? buildGoogleSavePayload(snapshot, googleEnv.issuerId ?? 'issuer_stub')
+        : undefined,
+    }, 503);
   }
 
-  const stubJwt = Buffer.from(JSON.stringify(buildGoogleSavePayload(snapshot, issuerId!))).toString(
-    'base64url',
-  );
-  return c.json({ ok: true, configured: true, saveUrl: buildGoogleSaveUrl(stubJwt) });
+  return c.json({
+    ok: false,
+    code: 'wallet_google_signing_pending',
+    message: 'Service account listo; falta implementar firma JWT de Google Wallet',
+  }, 503);
 });
 
 const QrResolveSchema = z.object({ token: z.string().min(16) });

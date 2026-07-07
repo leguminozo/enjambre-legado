@@ -5,6 +5,7 @@ import { calcularIVA, calcularTotal } from "@enjambre/contable";
 import { TrendingUp, FileText, Plus, Loader2 } from "lucide-react";
 import { useAuthStore } from "@enjambre/auth";
 import { formatCurrency } from "@/lib/format";
+import { resolveEmpresaId } from "@/lib/resolve-empresa-id";
 
 type DashboardMetrics = {
   empresaId: string;
@@ -40,7 +41,8 @@ export function ContableView() {
       const user = useAuthStore.getState().user;
       if (!user) throw new Error("Sin sesión activa");
 
-      const empresaId = user.id;
+      const empresaId = await resolveEmpresaId();
+      if (!empresaId) throw new Error("Sin empresa asignada");
 
       const [facturasRes, gastosRes] = await Promise.all([
         supabase.from("facturas_emitidas").select("monto_neto, monto_iva, monto_total").eq("empresa_id", empresaId),
@@ -75,10 +77,13 @@ export function ContableView() {
       const user = useAuthStore.getState().user;
       if (!user) throw new Error("Sin sesión activa");
 
+      const empresaId = await resolveEmpresaId();
+      if (!empresaId) throw new Error("Sin empresa asignada");
+
       const { data, error } = await supabase
         .from("facturas_emitidas")
         .select("id, empresa_id, numero, monto_neto, monto_iva, monto_total, descripcion, fecha_emision")
-        .eq("empresa_id", user.id)
+        .eq("empresa_id", empresaId)
         .order("fecha_emision", { ascending: false })
         .limit(50);
 
@@ -93,6 +98,9 @@ export function ContableView() {
       const user = useAuthStore.getState().user;
       if (!user) throw new Error("Sin sesión activa");
 
+      const empresaId = await resolveEmpresaId();
+      if (!empresaId) throw new Error("Sin empresa asignada");
+
       const neto = Number(montoNeto);
       const iva = calcularIVA(neto);
       const total = calcularTotal(neto, iva);
@@ -100,7 +108,7 @@ export function ContableView() {
       const { data, error } = await supabase
         .from("facturas_emitidas")
         .insert({
-          empresa_id: user.id,
+          empresa_id: empresaId,
           tercero_id: terceroId,
           numero: Number(numero),
           fecha_emision: new Date().toISOString(),

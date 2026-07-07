@@ -2,6 +2,11 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import {
+  assessFacturaDteReadiness,
+  triggerFacturaDteEmission,
+} from "@/api/lib/fiscal/trigger-factura-dte";
+import { emitFacturaDteFromRow } from "@/api/lib/fiscal/emit-factura-dte-from-row";
 
 const CreateFacturaEmitidaSchema = z.strictObject({
   numero: z.string().min(1),
@@ -118,23 +123,40 @@ facturasEmitidasRoutes.post("/", async (c) => {
     return c.json({ code: "factura_create_failed", message: error.message }, 400);
   }
 
-  // Surgical hook for async DTE emission on factura creation (implements DECISIONS.md "Checkout success → DTE emitted async with retry").
-  // Non-blocking to not affect the creation response. Uses existing dte.ts logic (build/sign/stamp/enviar).
-  // Ramification: ties to notifications (can enqueue "DTE emitido" email), SII compliance (legal requirement in Chile), CAF monitoring.
-  // TODO next: full async retry, CAF check before emission, status update on facturas_emitidas.
   if (['Factura', 'Nota de Crédito', 'Nota de Débito'].includes(body.tipoDocumento)) {
-    // Fire-and-forget DTE (in real, move to queue/worker or background job)
-    (async () => {
-      try {
-        // Minimal example using the row data; in full impl use the dteRoutes or direct functions with proper mapping.
-        console.log(`[SII] Triggering async DTE for factura ${data.numero} tipo ${body.tipoDocumento}`);
-        // Example: could call internal logic or enqueue system notif + DTE
-        // For now, this is the hook point. Full emission code exists in sii/dte.ts and sii-client.ts.
-      } catch (e) {
-        console.error("[SII] Async DTE hook error", e);
-      }
-    })();
+    void triggerFacturaDteEmission(supabase, empresaId, data.id as string);
   }
 
   return c.json(data, 201);
+});
+
+facturasEmitidasRoutes.post("/:id/emitir-dte", async (c) => {
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+  const facturaId = c.req.param("id");
+
+  const readiness = await assessFacturaDteReadiness(supabase, empresaId, facturaId);
+  if (!readiness.tipoDte) {
+    return c.json({ code: "tipo_sin_dte", message: "Este tipo de documento no admite DTE automático" }, 400);
+  }
+  if (!readiness.ready) {
+    return c.json({
+      code: "dte_no_listo",
+      message: "Faltan requisitos SII (CAF, certificado o datos del tercero)",
+      reasons: readiness.reasons,
+    }, 400);
+  }
+
+  const result = await emitFacturaDteFromRow(supabase, empresaId, facturaId, readiness.tipoDte);
+  if (!result.ok) {
+    return c.json({ code: result.code, message: result.message ?? "Error al emitir DTE" }, 500);
+  }
+
+  const { data: updated } = await supabase
+    .from("facturas_emitidas")
+    .select("id, estado_sii, folio, track_id, tipo_dte")
+    .eq("id", facturaId)
+    .single();
+
+  return c.json({ ok: true, data: updated });
 });

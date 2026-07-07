@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import { createClient } from '@/lib/server/supabase';
+import { triggerFacturaDteEmission } from '@/api/lib/fiscal/trigger-factura-dte';
 
 const facturaSchema = z.object({
   empresaId: z.string().min(1),
@@ -75,6 +76,11 @@ export async function createFacturaEmitida(data: FacturaFormData): Promise<Actio
     .single();
 
   if (error) return { success: false, error: error.message };
+
+  if (['Factura', 'Nota de Crédito', 'Nota de Débito'].includes(data.tipoDocumento)) {
+    void triggerFacturaDteEmission(supabase, data.empresaId, factura.id);
+  }
+
   return { success: true, id: factura.id };
 }
 

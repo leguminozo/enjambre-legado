@@ -319,17 +319,15 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                 </div>
                             )}
 
-                            <div style={{ height: 200, marginBottom: 'var(--space-lg)' }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={colmena.pesoHistory}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                                        <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
-                                        <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                                        <Tooltip contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.8rem' }} />
-                                        <Line type="monotone" dataKey="kg" stroke={BOSQUE_ULMO} strokeWidth={2} dot={{ fill: BOSQUE_ULMO, r: 4 }} name="Peso (kg)" />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
+                            <ChartBox height={200} className="mb-6">
+                                <LineChart data={colmena.pesoHistory}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                    <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
+                                    <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
+                                    <Tooltip contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.8rem' }} />
+                                    <Line type="monotone" dataKey="kg" stroke={BOSQUE_ULMO} strokeWidth={2} dot={{ fill: BOSQUE_ULMO, r: 4 }} name="Peso (kg)" />
+                                </LineChart>
+                            </ChartBox>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
                                 {[
                                     { label: 'Peso actual', value: `${colmena.pesoHistory.at(-1)?.kg} kg` },

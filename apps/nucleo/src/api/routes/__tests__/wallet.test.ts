@@ -17,6 +17,17 @@ vi.mock('@supabase/supabase-js', () => ({
   }),
 }));
 
+describe('GET /api/wallet/capabilities', () => {
+  it('returns wallet capability flags without auth', async () => {
+    const res = await app.request('/api/wallet/capabilities');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json).toHaveProperty('apple.available');
+    expect(json).toHaveProperty('google.available');
+    expect(json).toHaveProperty('qr.available', true);
+  });
+});
+
 describe('GET /api/wallet/stamps', () => {
   beforeEach(() => {
     mockFrom.mockReset();
@@ -83,5 +94,68 @@ describe('GET /api/wallet/stamps', () => {
     const json = await res.json();
     expect(json.snapshot.displayName).toBe('María');
     expect(json.snapshot.programs).toEqual([]);
+  });
+});
+
+describe('GET /api/wallet/apple/download', () => {
+  beforeEach(() => {
+    mockFrom.mockReset();
+  });
+
+  it('returns 503 when signing is not configured', async () => {
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: { full_name: 'María', email: 'm@test.com' },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'user_tier_view') {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: { tier: 'OBRERA', ciclos_historicos: 0 },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'puntos_fidelizacion') {
+        return {
+          select: () => ({
+            eq: () => ({
+              order: () => ({
+                limit: () => ({
+                  maybeSingle: async () => ({ data: { puntos: 0 }, error: null }),
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'guardian_stamp_progress') {
+        return {
+          select: () => ({
+            eq: async () => ({ data: [], error: null }),
+          }),
+        };
+      }
+      return { select: () => ({ eq: () => ({}) }) };
+    });
+
+    const res = await app.request('/api/wallet/apple/download', {
+      headers: { Authorization: 'Bearer valid-token' },
+    });
+    expect(res.status).toBe(503);
+    const json = await res.json();
+    expect(json.code).toBe('wallet_apple_unavailable');
   });
 });
