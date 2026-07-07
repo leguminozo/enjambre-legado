@@ -1,18 +1,13 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { usePathname, useRouter } from '@/i18n-navigation';
+import { useSwitchLocale } from '@/lib/shop/switch-locale';
 import type { Locale } from '@/i18n-routing';
 
 export function LanguageSelector({ className = '' }: { className?: string }) {
   const locale = useLocale() as Locale;
-  const pathname = usePathname();
-  const router = useRouter();
+  const switchLocale = useSwitchLocale();
   const tNav = useTranslations('nav');
-
-  const switchLocale = () => {
-    router.replace(pathname, { locale: locale === 'es' ? 'en' : 'es' });
-  };
 
   return (
     <button

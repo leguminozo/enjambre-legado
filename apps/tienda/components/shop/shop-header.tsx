@@ -6,8 +6,9 @@ import { useCartLines } from '@/components/shop/cart-context';
 import { useAuth } from '@/components/providers/auth-context';
 import { LanguageSelector } from '@/components/shop/language-selector';
 import { useLocale, useTranslations } from 'next-intl';
-import { usePathname, useRouter } from '@/i18n-navigation';
+import { usePathname } from '@/i18n-navigation';
 import type { Locale } from '@/i18n-routing';
+import { useSwitchLocale } from '@/lib/shop/switch-locale';
 import { NotificationBell, useModalFocusTrap } from '@enjambre/ui';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -19,7 +20,7 @@ export function ShopHeader() {
   const { itemCount } = useCartLines();
   const { isAuthenticated, user } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
+  const switchLocale = useSwitchLocale();
   const locale = useLocale() as Locale;
   const tNav = useTranslations('nav');
   const tHeader = useTranslations('header');
@@ -55,10 +56,6 @@ export function ShopHeader() {
       }
       return next;
     });
-  };
-
-  const switchLocale = () => {
-    router.replace(pathname, { locale: locale === 'es' ? 'en' : 'es' });
   };
 
   return (
