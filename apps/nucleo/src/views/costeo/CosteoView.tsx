@@ -5,19 +5,23 @@ import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { 
   Card, CardHeader, CardTitle, CardDescription, CardContent,
-  Badge, ViewLoading, LoadingOverlay,
+  Badge, ViewLoading, LoadingOverlay, Button, ImmersiveModal
 } from '@enjambre/ui';
 import { formatCLP } from '@enjambre/ui';
 import { 
-  TrendingUp, BookOpen, Leaf, ArrowRight
+  TrendingUp, BookOpen, Leaf, ArrowRight, Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
+import { InsumoForm } from '@/components/costeo/InsumoForm';
+import { RecetaForm } from '@/components/costeo/RecetaForm';
 
 export function CosteoView() {
   const [activeTab, setActiveTab] = useState<'margenes' | 'recetas' | 'insumos'>('margenes');
+  const [showInsumoModal, setShowInsumoModal] = useState(false);
+  const [showRecetaModal, setShowRecetaModal] = useState(false);
   const apiFetch = useApiFetch();
 
   const { data: margenesData, isLoading: isLoadingMargenes, isFetching: isFetchingMargenes } = useQuery({
@@ -158,9 +162,14 @@ export function CosteoView() {
             transition={{ duration: 0.2 }}
           >
             <Card>
-              <CardHeader>
-                <CardTitle>Recetas Maestras</CardTitle>
-                <CardDescription>Formulaciones base para la producción y cálculo de mermas.</CardDescription>
+              <CardHeader className="flex flex-row items-start justify-between">
+                <div>
+                  <CardTitle>Recetas Maestras</CardTitle>
+                  <CardDescription>Formulaciones base para la producción y cálculo de mermas.</CardDescription>
+                </div>
+                <Button variant="primary" size="sm" onClick={() => setShowRecetaModal(true)}>
+                  <Plus size={16} className="mr-2" /> Nueva Receta
+                </Button>
               </CardHeader>
               <CardContent className="p-0 relative">
                 {isFetchingRecetas && recetas.length > 0 ? <LoadingOverlay label="Actualizando recetas" /> : null}
@@ -220,9 +229,14 @@ export function CosteoView() {
             transition={{ duration: 0.2 }}
           >
             <Card>
-              <CardHeader>
-                <CardTitle>Directorio de Insumos</CardTitle>
-                <CardDescription>Materias primas y empaques utilizados en la regeneración.</CardDescription>
+              <CardHeader className="flex flex-row items-start justify-between">
+                <div>
+                  <CardTitle>Directorio de Insumos</CardTitle>
+                  <CardDescription>Materias primas y empaques utilizados en la regeneración.</CardDescription>
+                </div>
+                <Button variant="primary" size="sm" onClick={() => setShowInsumoModal(true)}>
+                  <Plus size={16} className="mr-2" /> Nuevo Insumo
+                </Button>
               </CardHeader>
               <CardContent className="p-0 relative">
                 {isFetchingInsumos && insumos.length > 0 ? <LoadingOverlay label="Actualizando insumos" /> : null}
@@ -271,6 +285,38 @@ export function CosteoView() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ImmersiveModal
+        open={showInsumoModal}
+        onClose={() => setShowInsumoModal(false)}
+        eyebrow="Costeo"
+        title="Nuevo Insumo"
+        size="lg"
+        bodyClassName="!p-0"
+      >
+        <div className="p-5 sm:p-6">
+          <InsumoForm
+            onSuccess={() => setShowInsumoModal(false)}
+            onCancel={() => setShowInsumoModal(false)}
+          />
+        </div>
+      </ImmersiveModal>
+
+      <ImmersiveModal
+        open={showRecetaModal}
+        onClose={() => setShowRecetaModal(false)}
+        eyebrow="Costeo"
+        title="Nueva Receta Maestra"
+        size="xl"
+        bodyClassName="!p-0"
+      >
+        <div className="p-5 sm:p-6">
+          <RecetaForm
+            onSuccess={() => setShowRecetaModal(false)}
+            onCancel={() => setShowRecetaModal(false)}
+          />
+        </div>
+      </ImmersiveModal>
     </div>
   );
 }

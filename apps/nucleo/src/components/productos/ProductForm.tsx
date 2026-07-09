@@ -3,11 +3,63 @@
 import { useState, useTransition, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/lib/supabase';
 import { Button, toast } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
 import { productFormSchema, type ProductFormData, PRODUCT_FORMATS, PRODUCT_CATEGORIES } from '@/lib/product-types';
+
+const processImage = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      const MAX_SIZE = 1200;
+      if (width > height) {
+        if (width > MAX_SIZE) {
+          height = Math.round(height * (MAX_SIZE / width));
+          width = MAX_SIZE;
+        }
+      } else {
+        if (height > MAX_SIZE) {
+          width = Math.round(width * (MAX_SIZE / height));
+          height = MAX_SIZE;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('Failed to get canvas context'));
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob((blob) => {
+        if (!blob) return reject(new Error('Canvas toBlob failed'));
+        const newFileName = file.name.replace(/\.[^/.]+$/, '') + '.webp';
+        const webpFile = new File([blob], newFileName, {
+          type: 'image/webp',
+          lastModified: Date.now()
+        });
+        resolve(webpFile);
+      }, 'image/webp', 0.8); // 80% quality
+    };
+
+    img.onerror = (err) => {
+      URL.revokeObjectURL(objectUrl);
+      reject(err);
+    };
+
+    img.src = objectUrl;
+  });
+};
 
 interface ProductFormProps {
   initialData?: ProductFormData & { id?: string };
@@ -19,6 +71,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
   const [isPending, startTransition] = useTransition();
   const [imageUploading, setImageUploading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [lotes, setLotes] = useState<{ id: string; codigo_lote: string }[]>([]);
 
   useEffect(() => {
@@ -83,44 +136,66 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const file = files[0];
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     const maxBytes = 5 * 1024 * 1024; // 5MB
 
-    if (!allowedTypes.includes(file.type)) {
-      toast('Solo se permiten imágenes (JPEG, PNG, WEBP, GIF)', { type: 'error' });
-      return;
-    }
-    if (file.size > maxBytes) {
-      toast('El archivo supera el tamaño máximo permitido (5MB)', { type: 'error' });
-      return;
-    }
+    const validFiles = Array.from(files).filter(file => {
+      if (!allowedTypes.includes(file.type)) {
+        toast(`El archivo ${file.name} no es una imagen válida`, { type: 'error' });
+        return false;
+      }
+      if (file.size > maxBytes) {
+        toast(`El archivo ${file.name} supera el tamaño máximo (5MB)`, { type: 'error' });
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
 
     setImageUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from('productos')
-        .upload(fileName, file, { upsert: true });
+      const uploadPromises = validFiles.map(async (originalFile) => {
+        // Optimizar imagen: Resize a max 1200px y convertir a WEBP (calidad 80%)
+        const file = await processImage(originalFile);
 
-      if (uploadError) throw uploadError;
+        const fileExt = 'webp';
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('productos')
+          .upload(fileName, file, { upsert: true, contentType: 'image/webp' });
 
-      const { data } = supabase.storage.from('productos').getPublicUrl(fileName);
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage.from('productos').getPublicUrl(fileName);
+        return data.publicUrl;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
       const currentFotos = getValues('fotos') || [];
-      setValue('fotos', [...currentFotos, data.publicUrl]);
-      toast('Imagen subida correctamente', { type: 'success' });
+      setValue('fotos', [...currentFotos, ...uploadedUrls]);
+      toast(uploadedUrls.length === 1 ? 'Imagen subida correctamente' : `${uploadedUrls.length} imágenes subidas correctamente`, { type: 'success' });
     } catch (error) {
       console.error('Error uploading image:', error);
       toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
     } finally {
       setImageUploading(false);
+      e.target.value = '';
     }
   };
 
   const removeImage = (index: number) => {
     const currentFotos = getValues('fotos') || [];
     setValue('fotos', currentFotos.filter((_, i) => i !== index));
+  };
+
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const currentFotos = getValues('fotos') || [];
+    const newFotos = Array.from(currentFotos);
+    const [reorderedItem] = newFotos.splice(result.source.index, 1);
+    newFotos.splice(result.destination.index, 0, reorderedItem);
+    setValue('fotos', newFotos);
   };
 
   const addTag = (tag: string) => {
@@ -148,8 +223,14 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
         const payload = {
           ...data,
           slug: data.slug ? generateSlug(data.slug) : generateSlug(data.nombre),
+          lote_id: data.lote_id || null,
           updated_at: new Date().toISOString(),
         };
+
+        // Remove derived scientific metrics
+        delete payload.sustituye_azucar_g;
+        delete payload.co2_evitado_kg;
+        delete payload.irr_referencia;
 
         let result;
         if (initialData?.id) {
@@ -282,60 +363,139 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
             <label className="text-sm font-medium text-foreground">
               Imágenes del Producto
             </label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {fotos.map((foto, index) => (
-                <div key={index} className="relative w-[100px] h-[100px] rounded-sm overflow-hidden border border-border">
-                  <img src={foto} alt={`Producto ${index + 1}`} className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-1 right-1 bg-foreground/70 border-none rounded-full w-6 h-6 flex items-center justify-center cursor-pointer text-primary-foreground"
+            <DragDropContext onDragEnd={onDragEnd}>
+              <Droppable droppableId="fotos-droppable" direction="horizontal">
+                {(provided) => (
+                  <div 
+                    {...provided.droppableProps} 
+                    ref={provided.innerRef} 
+                    className="flex flex-wrap gap-2 mb-2"
                   >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-              <label
-                className={`w-[100px] h-[100px] border-2 border-dashed border-input rounded-sm flex flex-col items-center justify-center bg-accent/5 text-muted-foreground gap-1 ${imageUploading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-              >
-                {imageUploading ? (
-                  <span className="text-[0.7rem]">Subiendo...</span>
-                ) : (
-                  <>
-                    <Upload size={20} />
-                    <span className="text-[0.7rem]">Subir</span>
-                  </>
+                    {fotos.map((foto, index) => (
+                      <Draggable key={foto} draggableId={foto} index={index}>
+                        {(provided) => (
+                          <div 
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="relative w-[100px] h-[100px] rounded-sm overflow-hidden border border-border bg-card group"
+                          >
+                            <img src={foto} alt={`Producto ${index + 1}`} className="w-full h-full object-cover pointer-events-none" />
+                            {index === 0 && (
+                              <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wider font-bold shadow-sm pointer-events-none">Principal</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute top-1 right-1 bg-foreground/70 border-none rounded-full w-6 h-6 flex items-center justify-center cursor-pointer text-primary-foreground hover:bg-destructive transition-colors"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                    
+                    <label
+                      className={`w-[100px] h-[100px] border-2 border-dashed border-input rounded-sm flex flex-col items-center justify-center bg-accent/5 text-muted-foreground gap-1 ${imageUploading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      {imageUploading ? (
+                        <span className="text-[0.7rem]">Subiendo...</span>
+                      ) : (
+                        <>
+                          <Upload size={20} />
+                          <span className="text-[0.7rem]">Subir</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageUpload}
+                        disabled={imageUploading}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
                 )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={imageUploading}
-                  className="hidden"
-                />
-              </label>
-            </div>
+              </Droppable>
+            </DragDropContext>
             <span className="text-[0.7rem] text-muted-foreground">
               Primera imagen será la principal. Recomendado: 1200x1200px mínimo
             </span>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-foreground">
-              Video de Trazabilidad (YouTube/Vimeo)
-            </label>
-            <input
-              {...register('video_url')}
-              type="url"
-              placeholder="https://youtube.com/watch?v=..."
-              className="input-field text-[0.9rem] p-4"
-            />
-            {errors.video_url && (
-              <span className="text-xs text-destructive">{errors.video_url.message}</span>
+          <div className="border border-border rounded-md overflow-hidden bg-foreground/[0.01] mt-2">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="w-full flex items-center justify-between p-4 text-sm font-medium text-foreground hover:bg-foreground/[0.02] transition-colors"
+            >
+              Opciones Avanzadas de Producto
+              {showAdvanced ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            
+            {showAdvanced && (
+              <div className="p-4 border-t border-border flex flex-col gap-6">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Video de Trazabilidad (YouTube/Vimeo)
+                  </label>
+                  <input
+                    {...register('video_url')}
+                    type="url"
+                    placeholder="https://youtube.com/watch?v=..."
+                    className="input-field text-[0.9rem] p-4"
+                  />
+                  {errors.video_url && (
+                    <span className="text-xs text-destructive">{errors.video_url.message}</span>
+                  )}
+                  <span className="text-[0.7rem] text-muted-foreground">
+                    Video de Cristina en la colmena o proceso de cosecha
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Ingredientes
+                  </label>
+                  <textarea
+                    {...register('ingredientes')}
+                    placeholder="100% miel de ulmo virgen, sin aditivos"
+                    className="input-field text-[0.85rem] p-4 resize-y"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Origen Apícola
+                  </label>
+                  <input
+                    {...register('origen_apicola')}
+                    type="text"
+                    placeholder="Pureo, Chiloé - Colmena Ulmo Mayor"
+                    className="input-field text-[0.85rem] p-4"
+                  />
+                  <span className="text-[0.7rem] text-muted-foreground">
+                    Lugar específico de cosecha (opcional si ya está en descripción)
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <input
+                    {...register('trazabilidad_qr')}
+                    type="checkbox"
+                    id="trazabilidad_qr"
+                    className="w-4 h-4"
+                  />
+                  <label htmlFor="trazabilidad_qr" className="text-[0.8rem] text-foreground">
+                    Incluir QR de trazabilidad en la vista del producto
+                  </label>
+                </div>
+              </div>
             )}
-            <span className="text-[0.7rem] text-muted-foreground">
-              Video de Cristina en la colmena o proceso de cosecha
-            </span>
           </div>
         </div>
 
@@ -408,7 +568,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
 
           <div className="p-6 bg-foreground/[0.02] rounded-md border border-border/50">
             <h3 className="text-sm font-semibold text-foreground mb-4">
-              Precio
+              Comercial & Operaciones
             </h3>
 
             <div className="mb-4">
@@ -427,7 +587,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
               {errors.precio && <span className="text-xs text-destructive">{errors.precio.message}</span>}
             </div>
 
-            <div>
+            <div className="mb-4">
               <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
                 Stock Disponible *
               </label>
@@ -439,65 +599,23 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
               />
               {errors.stock && <span className="text-xs text-destructive">{errors.stock.message}</span>}
             </div>
-          </div>
-
-          <div className="p-6 bg-foreground/[0.02] rounded-md border border-border/50">
-            <h3 className="text-sm font-semibold text-foreground mb-4">
-              Detalles del Producto
-            </h3>
 
             <div className="mb-4">
-              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
-                Peso Neto (g)
+              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5 flex items-center justify-between">
+                <span>Peso Neto (g)</span>
               </label>
               <input
                 {...register('peso_neto_g')}
                 type="number"
-                placeholder="500"
+                placeholder="Ej: 500"
                 className="input-field text-[0.9rem] p-4"
               />
-            </div>
-
-            <div className="mb-4">
-              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
-                Ingredientes
-              </label>
-              <textarea
-                {...register('ingredientes')}
-                placeholder="100% miel de ulmo virgen, sin aditivos"
-                className="input-field text-[0.85rem] p-4 resize-y"
-                rows={2}
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
-                Origen Apícola
-              </label>
-              <input
-                {...register('origen_apicola')}
-                type="text"
-                placeholder="Pureo, Chiloé - Colmena Ulmo Mayor"
-                className="input-field text-[0.85rem] p-4"
-              />
-              <span className="text-[0.7rem] text-muted-foreground">
-                Lugar específico de cosecha
+              <span className="text-[0.65rem] text-muted-foreground mt-1 block">
+                Requerido para descontar kg del lote al vender.
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                {...register('trazabilidad_qr')}
-                type="checkbox"
-                id="trazabilidad_qr"
-                className="w-4 h-4"
-              />
-              <label htmlFor="trazabilidad_qr" className="text-[0.8rem] text-foreground">
-                Incluir QR de trazabilidad
-              </label>
-            </div>
-
-            <div className="mt-4">
+            <div>
               <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
                 Lote Asignado
               </label>
@@ -507,38 +625,6 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
                   <option key={l.id} value={l.id}>{l.codigo_lote}</option>
                 ))}
               </select>
-            </div>
-          </div>
-
-          <div className="p-6 bg-foreground/[0.02] rounded-md border border-accent/15 mt-6">
-            <h3 className="text-sm font-semibold text-accent mb-4 flex items-center gap-1.5">
-              Métricas Científicas
-            </h3>
-            <p className="text-[0.7rem] text-muted-foreground mb-4">
-              Datos visibles sutilmente en la tienda. El IRR aparece como chip cuando es mayor a 1.
-            </p>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
-                  Sustituye azúcar (g)
-                </label>
-                <input {...register('sustituye_azucar_g')} type="number" placeholder="Ej: 25" className="input-field text-[0.9rem] p-4" />
-                <span className="text-[0.65rem] text-muted-foreground">Gramos de azúcar refinada que este producto reemplaza</span>
-              </div>
-              <div>
-                <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
-                  CO₂ evitado (kg)
-                </label>
-                <input {...register('co2_evitado_kg')} type="number" placeholder="Ej: 2.7" className="input-field text-[0.9rem] p-4" />
-                <span className="text-[0.65rem] text-muted-foreground">kg CO₂ evitados vs azúcar refinada equivalente</span>
-              </div>
-              <div>
-                <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
-                  IRR referencia
-                </label>
-                <input {...register('irr_referencia')} type="number" step="0.01" placeholder="Ej: 3.46" className="input-field text-[0.9rem] p-4" />
-                <span className="text-[0.65rem] text-muted-foreground">IRR = CO₂ capturado / CO₂ emitido. &gt;1 = impacto positivo</span>
-              </div>
             </div>
           </div>
         </div>

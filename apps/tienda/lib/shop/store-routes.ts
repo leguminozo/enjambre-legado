@@ -57,36 +57,6 @@ export const PWA_BOTTOM_NAV: readonly BottomNavItem[] = [
   },
 ] as const;
 
-// ─── Puente tienda ↔ perfil (PWA / Mi Legado) ──────────────────────────────
-
-export type StorePerfilBridgeKey = 'store' | 'orders' | 'reposicion' | 'bag';
-
-export type StorePerfilBridgeItem = {
-  href: `/${string}` | '/';
-  labelKey: StorePerfilBridgeKey;
-  match: (pathname: string) => boolean;
-};
-
-/** Atajos horizontales entre catálogo, pedidos, reposición y bolsa. */
-export const STORE_PERFIL_BRIDGE: readonly StorePerfilBridgeItem[] = [
-  {
-    href: '/catalogo',
-    labelKey: 'store',
-    match: (p) => p.startsWith('/catalogo') || p.startsWith('/producto'),
-  },
-  { href: '/perfil/pedidos', labelKey: 'orders', match: (p) => p.startsWith('/perfil/pedidos') },
-  {
-    href: '/perfil/reposicion',
-    labelKey: 'reposicion',
-    match: (p) => p.startsWith('/perfil/reposicion') || p.startsWith('/perfil/ritual'),
-  },
-  {
-    href: '/carrito',
-    labelKey: 'bag',
-    match: (p) => p.startsWith('/carrito') || p.startsWith('/checkout'),
-  },
-] as const;
-
 // ─── Nav perfil (guardian sidebar) ─────────────────────────────────────────
 
 export type PerfilSectionKey =
@@ -151,13 +121,11 @@ export const PERFIL_NAV: readonly PerfilNavLinkDef[] = [
   { href: '/perfil/reposicion', labelKey: 'reposicion', sectionKey: 'comercio' },
   { href: '/perfil/reservas', labelKey: 'reservas', sectionKey: 'comercio' },
   { href: '/perfil/pedidos', labelKey: 'pedidos', sectionKey: 'comercio' },
-  { href: '/perfil/resenas', labelKey: 'resenas', sectionKey: 'comercio' },
   { href: '/perfil/circular', labelKey: 'circular', sectionKey: 'red' },
   { href: '/perfil/canje', labelKey: 'canje', sectionKey: 'red' },
   { href: '/perfil/alertas', labelKey: 'alertas', sectionKey: 'red' },
   { href: '/perfil/direcciones', labelKey: 'direcciones', sectionKey: 'ajustes' },
   { href: '/perfil/ajustes', labelKey: 'ajustes', sectionKey: 'ajustes' },
-  { href: '/perfil/trazabilidad', labelKey: 'trazabilidad', sectionKey: 'identidad' },
 ] as const;
 
 export function isPerfilLinkVisible(

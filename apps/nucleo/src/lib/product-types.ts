@@ -14,13 +14,13 @@ export const productFormSchema = z.object({
   categoria: z.string().optional().or(z.literal('')),
   tags: z.array(z.string()).optional(),
   descripcion_corta: z.string().optional(),
-  peso_neto_g: z.coerce.number().optional(),
+  peso_neto_g: z.coerce.number().int().min(0).optional(),
   ingredientes: z.string().optional(),
   origen_apicola: z.string().optional(),
   sustituye_azucar_g: z.coerce.number().optional(),
   co2_evitado_kg: z.coerce.number().optional(),
   irr_referencia: z.coerce.number().optional(),
-  lote_id: z.string().uuid().optional(),
+  lote_id: z.string().uuid().optional().or(z.literal('')),
 });
 
 export type ProductFormData = z.infer<typeof productFormSchema>;

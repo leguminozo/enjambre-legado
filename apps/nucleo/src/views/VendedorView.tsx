@@ -97,6 +97,10 @@ export function VendedorView() {
   const [ventasTrend, setVentasTrend] = useState<string | undefined>();
   const [ferias, setFerias] = useState<FeriaItem[]>([]);
   const [qrLote, setQrLote] = useState<{ codigo: string; label: string; url: string } | null>(null);
+  const [showRuta, setShowRuta] = useState(false);
+  const [showReporte, setShowReporte] = useState(false);
+  const [interaccionesRuta, setInteraccionesRuta] = useState<Record<string, unknown>[]>([]);
+  const [ventasList, setVentasList] = useState<Record<string, unknown>[]>([]);
   const apiFetch = useApiFetch();
 
   useEffect(() => {
@@ -107,9 +111,9 @@ export function VendedorView() {
       const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       if (prof) setUserProfile(prof);
 
-      const [clientesRes, ventasRes, crmRes, qrRes, colmenaRes] = await Promise.all([
+      const [clientesRes, ventasRes, crmRes, qrRes, colmenaRes, interaccionesRes] = await Promise.all([
         supabase.from('clientes').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-        supabase.from('ventas').select('total, created_at, crm_cliente_id').eq('vendedor_id', user.id),
+        supabase.from('ventas').select('id, total, created_at, crm_cliente_id, origen, metodo_pago, estado, is_new_client').eq('vendedor_id', user.id).order('created_at', { ascending: false }),
         apiFetch('/api/crm/dashboard'),
         supabase
           .from('qr_codes')
@@ -119,6 +123,12 @@ export function VendedorView() {
           .limit(1)
           .maybeSingle(),
         supabase.from('colmenas').select('name, lote_activo').not('lote_activo', 'is', null).limit(1).maybeSingle(),
+        supabase.from('interacciones')
+          .select('id, tipo, notas, proximo_seguimiento, clientes(name, direccion, telefono, empresa)')
+          .eq('rep_id', user.id)
+          .not('proximo_seguimiento', 'is', null)
+          .gte('proximo_seguimiento', new Date().toISOString().slice(0, 10))
+          .order('proximo_seguimiento', { ascending: true }),
       ]);
 
       const tiendaBase = getUrlTienda().replace(/\/$/, '');
@@ -175,6 +185,9 @@ export function VendedorView() {
       }
 
       const ventasData = ventasRes.data ?? [];
+      setVentasList(ventasData as Record<string, unknown>[]);
+      setInteraccionesRuta((interaccionesRes.data ?? []) as Record<string, unknown>[]);
+      
       const total = ventasData.reduce((sum: number, v: Record<string, unknown>) => sum + (Number(v.total) || 0), 0);
       setVentasTotal(total);
 
@@ -499,9 +512,9 @@ export function VendedorView() {
             <div className="section-title text-base mb-4">Acciones rápidas</div>
             {[
               { label: 'Modo Feria (POS offline)', icon: <ShoppingBag size={16} />, desc: 'Cobro QR sin conexión', action: () => setShowPos(true) },
-              { label: 'Ruta óptima del día', icon: <MapPin size={16} />, desc: 'En desarrollo', action: () => {} },
+              { label: 'Ruta óptima del día', icon: <MapPin size={16} />, desc: `${interaccionesRuta.length} visitas pendientes`, action: () => setShowRuta(true) },
               { label: 'Generar etiquetas QR', icon: <QrCode size={16} />, desc: qrLote ? `Lote: ${qrLote.codigo}` : 'Sin lote activo', action: () => setShowQR(true) },
-              { label: 'Reporte de ventas', icon: <TrendingUp size={16} />, desc: 'En desarrollo', action: () => {} },
+              { label: 'Reporte de ventas', icon: <TrendingUp size={16} />, desc: ventasTotal > 0 ? `Temporada: $${(ventasTotal / 1000).toFixed(0)}K` : 'Ver detalle', action: () => setShowReporte(true) },
             ].map((action, i) => (
               <button key={i} className="btn btn-ghost w-full justify-between p-4 mb-1 text-left" onClick={action.action}>
                 <span className="flex items-center gap-2">{action.icon}<span><span className="block">{action.label}</span><span className="block text-[0.7rem] text-muted-foreground font-normal">{action.desc}</span></span></span>
@@ -533,6 +546,95 @@ export function VendedorView() {
             <option value="Reseller">Reseller / Tienda</option>
             <option value="Deportivo">Centro Deportivo</option>
           </select>
+        </div>
+      </ImmersiveModal>
+
+      <ImmersiveModal
+        open={showRuta}
+        onClose={() => setShowRuta(false)}
+        eyebrow="CRM"
+        title="Ruta Óptima del Día"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-[0.85rem] text-muted-foreground mb-4">
+            Lista priorizada de clientes a contactar según tus seguimientos programados.
+          </p>
+          {interaccionesRuta.length === 0 ? (
+            <div className="text-center p-8 bg-muted/50 rounded-lg">
+              <MapPin className="mx-auto mb-2 text-muted-foreground opacity-50" size={32} />
+              <p className="text-[0.85rem] text-muted-foreground">No tienes seguimientos programados para hoy.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {interaccionesRuta.map((int: any) => {
+                const isToday = int.proximo_seguimiento === new Date().toISOString().slice(0, 10);
+                return (
+                  <div key={int.id} className="p-4 border border-border bg-card rounded-md flex justify-between items-start">
+                    <div>
+                      <div className="font-semibold text-[0.9rem] text-foreground flex items-center gap-2">
+                        {int.clientes?.name || 'Cliente sin nombre'}
+                        {isToday && <span className="badge badge-warning text-[0.6rem]">Hoy</span>}
+                      </div>
+                      <div className="text-[0.8rem] text-muted-foreground mt-1">
+                        📍 {int.clientes?.direccion || 'Sin dirección'}
+                      </div>
+                      <div className="text-[0.8rem] text-accent mt-2 bg-accent/10 px-2 py-1 rounded-sm inline-block">
+                        Objetivo: {int.tipo}
+                      </div>
+                      {int.notas && <div className="text-[0.75rem] text-muted-foreground mt-2 italic">"{int.notas}"</div>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </ImmersiveModal>
+
+      <ImmersiveModal
+        open={showReporte}
+        onClose={() => setShowReporte(false)}
+        eyebrow="Rendimiento"
+        title="Reporte de Ventas"
+        size="md"
+      >
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 bg-surface-sunken border border-border rounded-lg text-center">
+              <div className="text-[0.8rem] text-muted-foreground mb-1">Total Temporada</div>
+              <div className="text-2xl font-bold text-foreground">${ventasTotal.toLocaleString()}</div>
+            </div>
+            <div className="p-4 bg-accent/10 border border-accent/20 rounded-lg text-center">
+              <div className="text-[0.8rem] text-accent mb-1">Volumen</div>
+              <div className="text-2xl font-bold text-accent">{ventasList.length} ventas</div>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="font-medium text-[0.9rem] mb-3">Últimas transacciones</h4>
+            {ventasList.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Aún no hay ventas registradas.</p>
+            ) : (
+              <div className="space-y-2">
+                {ventasList.slice(0, 10).map((v: any) => (
+                  <div key={v.id} className="flex justify-between items-center p-3 border-b border-border/50 text-[0.85rem]">
+                    <div>
+                      <div className="font-medium text-foreground">${Number(v.total).toLocaleString()}</div>
+                      <div className="text-muted-foreground text-[0.75rem]">
+                        {new Date(v.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })} · {v.metodo_pago || 'POS'}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className={`badge ${v.estado === 'completada' ? 'badge-success' : 'badge-gold'} text-[0.65rem]`}>
+                        {v.estado || 'completada'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </ImmersiveModal>
     </div>

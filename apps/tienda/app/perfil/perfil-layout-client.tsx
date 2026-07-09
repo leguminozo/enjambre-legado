@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { GuardianSidebar } from '@/components/shop/guardian-sidebar';
 import { MobileBottomNav } from '@/components/shop/mobile-bottom-nav';
 import { PerfilMobileHeader } from '@/components/shop/perfil-mobile-header';
-import { StorePerfilBridge } from '@/components/shop/store-perfil-bridge';
 import { BeeCanvas } from '@/components/shop/bee-canvas';
 import type { OyzRole } from '@/lib/shop/role';
 import type { ParticipacionActiva } from '@/lib/shop/participacion';
@@ -42,7 +41,6 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
 
         <main className="flex-1 overflow-y-auto custom-scrollbar relative perfil-shell-content">
           <div className="max-w-5xl mx-auto py-6 sm:py-12 lg:py-20 px-4 sm:px-6 lg:px-12 w-full animate-in">
-            <StorePerfilBridge className="lg:hidden mb-6 sm:mb-8" />
             {children}
           </div>
         </main>

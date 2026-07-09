@@ -17,7 +17,7 @@ export default async function PedidosPage() {
   if (user) {
     const { data: ventasData } = await supabase
       .from('ventas')
-      .select('id, buy_order, created_at, total, estado, logistica_envios(tracking_code, status, via, courier_code, eta)')
+      .select('id, buy_order, created_at, total, estado, items, logistica_envios(tracking_code, status, via, courier_code, eta)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -28,8 +28,15 @@ export default async function PedidosPage() {
         .select('id, numero, estado_sii, idempotency_key')
         .in('idempotency_key', ventaIds);
 
+      const { data: resenasData } = await supabase
+        .from('resenas_producto')
+        .select('id, estado, rating, venta_id')
+        .in('venta_id', ventasData.map((v) => v.id))
+        .eq('user_id', user.id);
+
       orders = ventasData.map((v) => {
         const dte = dtes?.find((d) => d.idempotency_key === `venta:${v.id}`);
+        const resena = resenasData?.find((r) => r.venta_id === v.id);
         return {
           ...v,
           dte: dte
@@ -37,6 +44,13 @@ export default async function PedidosPage() {
                 numero: dte.numero,
                 estado_sii: dte.estado_sii,
                 buyOrder: v.buy_order,
+              }
+            : undefined,
+          resena: resena
+            ? {
+                id: resena.id,
+                estado: resena.estado,
+                rating: resena.rating,
               }
             : undefined,
         } as OrderTimelineItem;
