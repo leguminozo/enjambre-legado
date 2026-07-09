@@ -196,36 +196,12 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         mission: 'Quien representa la miel, representa el bosque',
       },
       {
-      key: 'caja',
-      label: 'Cierres de Caja',
-      icon: 'wallet',
-      href: '/caja',
-        greeting: 'Guardián del efectivo',
-        mission: 'Cada cierre es una verdad del día',
-      },
-      {
-      key: 'reps',
-      label: 'Reps de Ventas',
-      icon: 'users',
-      href: '/reps',
-        greeting: 'Capitán de equipo',
-        mission: 'Cada rep es un canal de bosque',
-      },
-      {
         key: 'operadores-feria',
         label: 'Operadores Feria',
         icon: 'calendar',
         href: '/operadores-feria',
         greeting: 'Director de campo',
         mission: 'Contratos, consignación y arqueo sin subordinación',
-      },
-      {
-      key: 'comisiones',
-      label: 'Comisiones',
-      icon: 'percent',
-      href: '/comisiones',
-        greeting: 'Justicia distributiva',
-        mission: 'Cada comisión es semilla de más ventas',
       },
       {
       key: 'reglas-comision',
@@ -242,14 +218,6 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       href: '/invitaciones',
         greeting: 'Reclutador del legado',
         mission: 'Cada invitación es un nuevo guardián',
-      },
-      {
-      key: 'leaderboard',
-      label: 'Leaderboard',
-      icon: 'trophy',
-      href: '/leaderboard',
-        greeting: 'Árbitro de excelencia',
-        mission: 'El ranking revela quien lleva el bosque en el alma',
       },
     ],
   },
@@ -292,7 +260,6 @@ export const VIEW_SHELL_PATHS = new Set([
   '/perfil',
   '/configuracion',
   '/ejecutivo',
-  '/leaderboard',
   '/invitaciones',
   '/operadores-feria',
   '/creador',
@@ -321,56 +288,10 @@ export function getAllItems(): SidebarItem[] {
   return [...SIDEBAR_GROUPS.flatMap(g => g.items), ...ACCOUNT_ITEMS]
 }
 
-/** Claves visibles por rol — creador vive en tienda; rep solo operación de ventas */
-const REP_VENTAS_ITEM_KEYS = new Set([
-  'caja',
-  'comisiones',
-  'leaderboard',
-  'perfil',
-  'sistema',
-])
-
-const CREADOR_ITEM_KEYS = new Set(['perfil', 'sistema'])
-
 export function getSidebarGroupsForRole(role: RoleKey): SidebarGroup[] {
-  if (role === 'admin') return SIDEBAR_GROUPS
-  if (role === 'rep_ventas') {
-    const filtered = SIDEBAR_GROUPS
-      .map((group) => ({
-        ...group,
-        items: group.items.filter((item) => REP_VENTAS_ITEM_KEYS.has(item.key)),
-      }))
-      .filter((group) => group.items.length > 0);
-    const gestion = filtered.find((g) => g.key === 'gestion');
-    if (gestion && !gestion.items.some((i) => i.key === 'mi-feria')) {
-      gestion.items.push(MI_FERIA_ITEM);
-    }
-    return filtered.length > 0 ? filtered : [{ key: 'campo', label: 'CAMPO', items: [MI_FERIA_ITEM] }];
-  }
-  if (role === 'creador') {
-    return []
-  }
   return SIDEBAR_GROUPS
 }
 
-/** Ítem Mi Feria solo para reps (no admin sidebar principal) */
-export const MI_FERIA_ITEM: SidebarItem = {
-  key: 'mi-feria',
-  label: 'Mi Feria',
-  icon: 'calendar',
-  href: '/mi-feria',
-  greeting: 'Operador de campo',
-  mission: 'Tu contrato, stock y arqueo del evento',
-};
-
-export function getRepExtraItems(): SidebarItem[] {
-  return [MI_FERIA_ITEM];
-}
-
 export function getAccountItemsForRole(role: RoleKey): SidebarItem[] {
-  if (role === 'admin' || role === 'rep_ventas') return ACCOUNT_ITEMS
-  if (role === 'creador') {
-    return ACCOUNT_ITEMS.filter((item) => CREADOR_ITEM_KEYS.has(item.key))
-  }
   return ACCOUNT_ITEMS
 }

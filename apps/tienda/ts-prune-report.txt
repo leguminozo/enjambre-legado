@@ -1,0 +1,234 @@
+apps/tienda/i18n-config.ts:1 - locales
+apps/tienda/i18n-config.ts:2 - defaultLocale
+apps/tienda/i18n-navigation.ts:4 - Link
+apps/tienda/i18n-navigation.ts:4 - redirect
+apps/tienda/i18n.ts:5 - Locale (used in module)
+apps/tienda/i18n.ts:14 - default
+apps/tienda/middleware.ts:48 - default
+apps/tienda/middleware.ts:83 - config
+apps/tienda/next.config.ts:102 - default
+apps/tienda/playwright.config.ts:6 - default
+apps/tienda/vitest.config.ts:4 - default
+apps/tienda/app/error.tsx:6 - default
+apps/tienda/app/layout.tsx:36 - default
+apps/tienda/app/layout.tsx:18 - metadata
+apps/tienda/app/loading.tsx:3 - default
+apps/tienda/app/manifest.ts:3 - default
+apps/tienda/app/not-found.tsx:3 - default
+apps/tienda/app/page.tsx:17 - default
+apps/tienda/app/page.tsx:15 - revalidate
+apps/tienda/app/robots.ts:3 - default
+apps/tienda/app/sitemap.ts:4 - default
+apps/tienda/lib/csrf.ts:44 - requireCsrfHeader
+apps/tienda/lib/google-maps.ts:3 - getGoogleMapsScriptUrl (used in module)
+apps/tienda/lib/google-maps.ts:10 - loadGoogleMapsScript
+apps/tienda/lib/integration-config-security.ts:48 - normalizeIntegrationConfigKey (used in module)
+apps/tienda/lib/integration-config-security.ts:56 - isForbiddenConfigKey (used in module)
+apps/tienda/lib/integration-config-security.ts:86 - findForbiddenConfigKeys
+apps/tienda/lib/integration-config-security.ts:94 - redactIntegrationConfig (used in module)
+apps/tienda/lib/integrations-env.ts:58 - getSecretsPresenceForIntegrationKey
+apps/tienda/lib/ratelimit.ts:53 - cleanupRateLimitMap (used in module)
+apps/tienda/.next/types/routes.d.ts:82 - ParamsOf
+apps/tienda/.next/types/routes.d.ts:90 - PageRoutes (used in module)
+apps/tienda/.next/types/routes.d.ts:90 - RedirectRoutes (used in module)
+apps/tienda/.next/types/routes.d.ts:90 - RewriteRoutes (used in module)
+apps/tienda/app/actions/cart.ts:14 - CartItemInput (used in module)
+apps/tienda/app/actions/cart.ts:15 - ComputedLineItem (used in module)
+apps/tienda/app/actions/notification-preferences.ts:14 - NotificationPreferencesPatch (used in module)
+apps/tienda/app/actions/profile.ts:5 - ProfileIdentity (used in module)
+apps/tienda/app/cancelacion/page.tsx:10 - default
+apps/tienda/app/cancelacion/page.tsx:5 - metadata
+apps/tienda/app/carrito/page.tsx:24 - default
+apps/tienda/app/carrito/page.tsx:17 - metadata
+apps/tienda/app/catalogo/page.tsx:39 - default
+apps/tienda/app/catalogo/page.tsx:15 - revalidate
+apps/tienda/app/catalogo/page.tsx:17 - metadata
+apps/tienda/app/checkout/page.tsx:15 - default
+apps/tienda/app/checkout/page.tsx:11 - metadata
+apps/tienda/app/ciencia/page.tsx:32 - default
+apps/tienda/app/ciencia/page.tsx:10 - metadata
+apps/tienda/app/contacto/page.tsx:31 - default
+apps/tienda/app/contacto/page.tsx:8 - metadata
+apps/tienda/app/contacto/page.tsx:29 - revalidate
+apps/tienda/app/cookies/page.tsx:10 - default
+apps/tienda/app/cookies/page.tsx:5 - metadata
+apps/tienda/app/envio/page.tsx:10 - default
+apps/tienda/app/envio/page.tsx:5 - metadata
+apps/tienda/app/experiencias/page.tsx:31 - default
+apps/tienda/app/experiencias/page.tsx:9 - metadata
+apps/tienda/app/galeria/page.tsx:40 - default (used in module)
+apps/tienda/app/galeria/page.tsx:11 - metadata
+apps/tienda/app/garantia/page.tsx:10 - default
+apps/tienda/app/garantia/page.tsx:5 - metadata
+apps/tienda/app/login/page.tsx:9 - default
+apps/tienda/app/login/page.tsx:5 - metadata
+apps/tienda/app/nosotros/page.tsx:152 - default
+apps/tienda/app/nosotros/page.tsx:130 - metadata
+apps/tienda/app/perfil/layout.tsx:10 - default
+apps/tienda/app/perfil/page.tsx:8 - default
+apps/tienda/app/privacidad/page.tsx:10 - default
+apps/tienda/app/privacidad/page.tsx:5 - metadata
+apps/tienda/app/qr-scan/page.tsx:29 - default
+apps/tienda/app/recuperar/page.tsx:7 - default
+apps/tienda/app/recuperar/page.tsx:3 - metadata
+apps/tienda/app/reembolso/page.tsx:10 - default
+apps/tienda/app/reembolso/page.tsx:5 - metadata
+apps/tienda/app/register/page.tsx:9 - default
+apps/tienda/app/register/page.tsx:5 - metadata
+apps/tienda/app/registro/page.tsx:7 - default
+apps/tienda/app/reset-password/page.tsx:7 - default
+apps/tienda/app/reset-password/page.tsx:3 - metadata
+apps/tienda/app/terminos/page.tsx:10 - default
+apps/tienda/app/terminos/page.tsx:5 - metadata
+apps/tienda/components/perfil/subscription-deliveries-preview.tsx:69 - SubscriptionDeliveryRow
+apps/tienda/components/providers/auth-context.tsx:9 - TiendaUser (used in module)
+apps/tienda/components/shop/cart-context.tsx:19 - useCart
+apps/tienda/components/shop/cart-context.tsx:7 - CartLine
+apps/tienda/components/shop/cart-lines-context.tsx:26 - CART_STORAGE_KEY (used in module)
+apps/tienda/components/shop/galeria-grid.tsx:7 - GaleriaImage (used in module)
+apps/tienda/components/shop/image-placeholder.tsx:20 - ImagePlaceholder
+apps/tienda/components/shop/landing-loader.tsx:7 - LandingLoader
+apps/tienda/components/shop/page-transition.tsx:7 - PageTransition
+apps/tienda/components/shop/tienda-sidebar.tsx:8 - TiendaSidebar
+apps/tienda/components/testing/axe-audit.tsx:11 - AxeAudit
+apps/tienda/components/ui/grain-overlay.tsx:3 - GrainOverlay
+apps/tienda/components/ui/JsonLd.tsx:22 - renderJsonLd
+apps/tienda/lib/cart/schemas.ts:12 - CartAbandonmentBody
+apps/tienda/lib/integrations/run-sii-sync.ts:10 - runSiiSyncJob
+apps/tienda/lib/integrations/types.ts:4 - IntegrationSyncMode (used in module)
+apps/tienda/lib/shop/cart-checkout-client.ts:12 - CartCheckoutLine (used in module)
+apps/tienda/lib/shop/cart-checkout-client.ts:20 - CartCheckoutShipping (used in module)
+apps/tienda/lib/shop/cart-checkout-client.ts:32 - CartCheckoutOptions (used in module)
+apps/tienda/lib/shop/cart-checkout-client.ts:41 - CartCheckoutPriceConflict (used in module)
+apps/tienda/lib/shop/cart-checkout-client.ts:46 - CartCheckoutResult (used in module)
+apps/tienda/lib/shop/json-ld.ts:238 - apiaryJsonLd
+apps/tienda/lib/shop/json-ld.ts:263 - harvestEventJsonLd
+apps/tienda/lib/shop/logros-schema.ts:1 - LoyaltyTierKey (used in module)
+apps/tienda/lib/shop/logros-schema.ts:2 - RewardStatus
+apps/tienda/lib/shop/nucleo-app-url.ts:2 - getNucleoAppUrl (used in module)
+apps/tienda/lib/shop/nucleo-app-url.ts:12 - getNucleoStaffEntryPath (used in module)
+apps/tienda/lib/shop/participacion.ts:11 - DEFAULT_CREADOR_CAPABILITIES (used in module)
+apps/tienda/lib/shop/payment-commit.ts:5 - PendingPayment (used in module)
+apps/tienda/lib/shop/payment-commit.ts:10 - PaymentCommitResponse (used in module)
+apps/tienda/lib/shop/payment-commit.ts:46 - CommitPaymentInput (used in module)
+apps/tienda/lib/shop/payment-commit.ts:53 - CommitPaymentResult (used in module)
+apps/tienda/lib/shop/payment-redirect.ts:3 - PaymentRedirectInput (used in module)
+apps/tienda/lib/shop/perfil-dashboard.ts:6 - PerfilOrderItem (used in module)
+apps/tienda/lib/shop/perfil-dashboard.ts:14 - PerfilRecentOrder (used in module)
+apps/tienda/lib/shop/perfil-dashboard.ts:22 - PerfilClaimPoint (used in module)
+apps/tienda/lib/shop/perfil-dashboard.ts:30 - PerfilDashboardData (used in module)
+apps/tienda/lib/shop/resenas-api.ts:23 - ResenasListResponse (used in module)
+apps/tienda/lib/shop/seasonal.ts:58 - getSeasonalContext
+apps/tienda/lib/shop/seasonal.ts:1 - Season (used in module)
+apps/tienda/lib/shop/seasonal.ts:7 - SeasonalContext (used in module)
+apps/tienda/lib/shop/sidebar-nav.ts:10 - SidebarLink (used in module)
+apps/tienda/lib/shop/sidebar-nav.ts:16 - SidebarSectionConfig (used in module)
+apps/tienda/lib/shop/slug.ts:1 - slugify
+apps/tienda/lib/shop/staff-roles.ts:4 - NUCLEO_STAFF_PROFILE_ROLES (used in module)
+apps/tienda/lib/shop/store-routes.ts:261 - isAuthFlowPath (used in module)
+apps/tienda/lib/shop/store-routes.ts:10 - PublicNavKey (used in module)
+apps/tienda/lib/shop/store-routes.ts:22 - StoreNavItem (used in module)
+apps/tienda/lib/shop/store-routes.ts:27 - BottomNavItem (used in module)
+apps/tienda/lib/shop/store-routes.ts:64 - StorePerfilBridgeItem (used in module)
+apps/tienda/lib/shop/store-routes.ts:118 - PerfilNavVisibility (used in module)
+apps/tienda/lib/shop/store-routes.ts:120 - PerfilNavLinkDef (used in module)
+apps/tienda/lib/shop/store-routes.ts:129 - PerfilNavSection (used in module)
+apps/tienda/lib/shop/store-routes.ts:136 - PERFIL_SECTION_ORDER (used in module)
+apps/tienda/lib/shop/store-routes.ts:145 - PERFIL_NAV (used in module)
+apps/tienda/lib/shop/store-routes.ts:204 - AUTH_REQUIRED_PREFIXES (used in module)
+apps/tienda/lib/shop/store-routes.ts:205 - AUTH_ENTRY_PATHS (used in module)
+apps/tienda/lib/shop/store-routes.ts:206 - AUTH_FLOW_PREFIXES (used in module)
+apps/tienda/lib/shop/store-routes.ts:208 - RouteAccessRequirement (used in module)
+apps/tienda/lib/shop/store-routes.ts:210 - PerfilRouteRule (used in module)
+apps/tienda/lib/shop/store-routes.ts:222 - PERFIL_ROUTE_RULES (used in module)
+apps/tienda/lib/shop/store-routes.ts:237 - RouteAccessContext (used in module)
+apps/tienda/lib/shop/store-routes.ts:245 - RouteAccessDenied (used in module)
+apps/tienda/lib/shop/subscription-api.ts:16 - findUserSubscription (used in module)
+apps/tienda/lib/shop/subscription-api.ts:31 - fetchSubscriptionDeliveries (used in module)
+apps/tienda/lib/shop/subscription-api.ts:45 - fetchActiveSubscriptionPlans (used in module)
+apps/tienda/lib/shop/subscription-api.ts:6 - SubscriptionPatchResult (used in module)
+apps/tienda/lib/shop/subscription-checkout-client.ts:8 - SubscriptionCheckoutResult (used in module)
+apps/tienda/lib/shop/subscription-checkout-client.ts:12 - SubscriptionCheckoutOptions (used in module)
+apps/tienda/lib/shop/subscription-manage-client.ts:7 - SubscriptionManageAction (used in module)
+apps/tienda/lib/shop/subscription-manage-client.ts:9 - SubscriptionManageResult (used in module)
+apps/tienda/lib/shop/subscription-route-handlers.ts:11 - SubscriptionPatchSchema (used in module)
+apps/tienda/lib/shop/subscription-status.ts:3 - SUBSCRIPTION_BLOCKING_STATUSES
+apps/tienda/lib/shop/subscription-status.ts:9 - SubscriptionBlockingStatus
+apps/tienda/lib/shop/subscription-status.ts:10 - SubscriptionVisibleStatus
+apps/tienda/lib/shop/switch-locale.ts:11 - setLocaleCookie (used in module)
+apps/tienda/lib/shop/tier-display.ts:3 - computeGuardianTier
+apps/tienda/lib/shop/tier-display.ts:4 - formatLoyaltyNivel
+apps/tienda/lib/shop/tier-display.ts:5 - normalizeLoyaltyNivel
+apps/tienda/lib/shop/tier-display.ts:6 - GuardianTier
+apps/tienda/utils/supabase/env.ts:19 - isSupabaseConfigured
+apps/tienda/utils/supabase/middleware.ts:14 - AuthResult (used in module)
+apps/tienda/.next/dev/types/routes.d.ts:82 - ParamsOf
+apps/tienda/.next/dev/types/routes.d.ts:90 - PageRoutes (used in module)
+apps/tienda/.next/dev/types/routes.d.ts:90 - RedirectRoutes (used in module)
+apps/tienda/.next/dev/types/routes.d.ts:90 - RewriteRoutes (used in module)
+apps/tienda/app/api/back-in-stock/route.ts:10 - POST
+apps/tienda/app/api/back-in-stock/route.ts:56 - DELETE
+apps/tienda/app/api/footprint/route.ts:4 - GET
+apps/tienda/app/api/knowledge/route.ts:6 - GET
+apps/tienda/app/api/knowledge/route.ts:4 - revalidate
+apps/tienda/app/api/loyalty/route.ts:5 - GET
+apps/tienda/app/api/pre-orders/route.ts:15 - POST
+apps/tienda/app/api/subscriptions/route.ts:14 - GET
+apps/tienda/app/api/subscriptions/route.ts:28 - POST
+apps/tienda/app/api/subscriptions/route.ts:59 - PATCH
+apps/tienda/app/auth/callback/route.ts:4 - GET
+apps/tienda/app/checkout/resultado/page.tsx:9 - default
+apps/tienda/app/checkout/resultado/page.tsx:5 - metadata
+apps/tienda/app/claim/[token]/page.tsx:9 - default
+apps/tienda/app/origen/ulmo/page.tsx:57 - default
+apps/tienda/app/origen/ulmo/page.tsx:19 - metadata
+apps/tienda/app/perfil/ajustes/page.tsx:9 - default
+apps/tienda/app/perfil/alertas/page.tsx:8 - default
+apps/tienda/app/perfil/canje/page.tsx:5 - default
+apps/tienda/app/perfil/circular/page.tsx:4 - default
+apps/tienda/app/perfil/creador/page.tsx:17 - default
+apps/tienda/app/perfil/creador/page.tsx:12 - metadata
+apps/tienda/app/perfil/direcciones/page.tsx:11 - default
+apps/tienda/app/perfil/direcciones/page.tsx:7 - metadata
+apps/tienda/app/perfil/logros/page.tsx:15 - default
+apps/tienda/app/perfil/logros/page.tsx:10 - metadata
+apps/tienda/app/perfil/mayorista/page.tsx:12 - default
+apps/tienda/app/perfil/mayorista/page.tsx:7 - metadata
+apps/tienda/app/perfil/pasaporte/page.tsx:12 - default (used in module)
+apps/tienda/app/perfil/pedidos/page.tsx:10 - default
+apps/tienda/app/perfil/reposicion/page.tsx:4 - default
+apps/tienda/app/perfil/resenas/page.tsx:28 - default
+apps/tienda/app/perfil/reservas/page.tsx:4 - default
+apps/tienda/app/perfil/ritual/page.tsx:3 - default
+apps/tienda/app/perfil/trazabilidad/page.tsx:10 - default
+apps/tienda/app/perfil/trazabilidad/page.tsx:6 - metadata
+apps/tienda/app/producto/[slug]/error.tsx:9 - default
+apps/tienda/app/producto/[slug]/not-found.tsx:6 - default
+apps/tienda/app/producto/[slug]/page.tsx:31 - generateStaticParams
+apps/tienda/app/producto/[slug]/page.tsx:38 - generateMetadata
+apps/tienda/app/producto/[slug]/page.tsx:84 - default
+apps/tienda/app/producto/[slug]/page.tsx:35 - revalidate
+apps/tienda/app/producto/[slug]/page.tsx:36 - dynamicParams
+apps/tienda/app/api/agents/order/route.ts:17 - POST
+apps/tienda/app/api/agents/subscription/route.ts:11 - GET
+apps/tienda/app/api/agents/subscription/route.ts:24 - PATCH
+apps/tienda/app/api/agents/subscription/route.ts:48 - POST
+apps/tienda/app/api/auth/login/route.ts:8 - POST
+apps/tienda/app/api/auth/password-reset/route.ts:14 - POST
+apps/tienda/app/api/auth/register/route.ts:10 - POST
+apps/tienda/app/api/cart/abandonment/route.ts:6 - POST
+apps/tienda/app/api/knowledge/harvests/route.ts:6 - GET
+apps/tienda/app/api/knowledge/harvests/route.ts:4 - revalidate
+apps/tienda/app/api/knowledge/origins/route.ts:6 - GET
+apps/tienda/app/api/knowledge/origins/route.ts:4 - revalidate
+apps/tienda/app/api/knowledge/products/route.ts:6 - GET
+apps/tienda/app/api/knowledge/products/route.ts:4 - revalidate
+apps/tienda/app/api/loyalty/redeem/route.ts:14 - POST
+apps/tienda/app/api/notifications/welcome/route.ts:11 - POST
+apps/tienda/app/api/referrals/complete/route.ts:13 - POST
+apps/tienda/app/perfil/reposicion/resultado/page.tsx:7 - default
+apps/tienda/app/perfil/reposicion/resultado/page.tsx:3 - metadata
+apps/tienda/app/perfil/ritual/resultado/page.tsx:7 - default
+apps/tienda/app/producto/[slug]/trazabilidad/page.tsx:28 - generateMetadata
+apps/tienda/app/producto/[slug]/trazabilidad/page.tsx:52 - default
+apps/tienda/app/producto/[slug]/trazabilidad/page.tsx:26 - revalidate

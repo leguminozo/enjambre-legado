@@ -1,0 +1,1281 @@
+{
+  "duplicates": [
+    {
+      "firstFile": {
+        "end": 33,
+        "endLoc": {
+          "column": 12,
+          "line": 33,
+          "position": 1028
+        },
+        "name": "actions/direcciones.ts",
+        "start": 28,
+        "startLoc": {
+          "column": 38,
+          "line": 28,
+          "position": 806
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 6,
+      "secondFile": {
+        "end": 68,
+        "endLoc": {
+          "column": 12,
+          "line": 68,
+          "position": 1976
+        },
+        "name": "actions/direcciones.ts",
+        "start": 63,
+        "startLoc": {
+          "column": 50,
+          "line": 63,
+          "position": 1754
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 92,
+        "endLoc": {
+          "column": 15,
+          "line": 92,
+          "position": 2614
+        },
+        "name": "actions/direcciones.ts",
+        "start": 86,
+        "startLoc": {
+          "column": 37,
+          "line": 86,
+          "position": 2411
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 7,
+      "secondFile": {
+        "end": 111,
+        "endLoc": {
+          "column": 15,
+          "line": 111,
+          "position": 3160
+        },
+        "name": "actions/direcciones.ts",
+        "start": 104,
+        "startLoc": {
+          "column": 41,
+          "line": 104,
+          "position": 2916
+        }
+      },
+      "tokens": 52
+    },
+    {
+      "firstFile": {
+        "end": 21,
+        "endLoc": {
+          "column": 8,
+          "line": 21,
+          "position": 636
+        },
+        "name": "api/agents/subscription/route.ts",
+        "start": 8,
+        "startLoc": {
+          "column": 47,
+          "line": 8,
+          "position": 311
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 14,
+      "secondFile": {
+        "end": 15,
+        "endLoc": {
+          "column": 7,
+          "line": 15,
+          "position": 408
+        },
+        "name": "api/loyalty/route.ts",
+        "start": 3,
+        "startLoc": {
+          "column": 65,
+          "line": 3,
+          "position": 165
+        }
+      },
+      "tokens": 61
+    },
+    {
+      "firstFile": {
+        "end": 21,
+        "endLoc": {
+          "column": 8,
+          "line": 21,
+          "position": 636
+        },
+        "name": "api/agents/subscription/route.ts",
+        "start": 8,
+        "startLoc": {
+          "column": 47,
+          "line": 8,
+          "position": 311
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 14,
+      "secondFile": {
+        "end": 24,
+        "endLoc": {
+          "column": 8,
+          "line": 24,
+          "position": 735
+        },
+        "name": "api/subscriptions/route.ts",
+        "start": 12,
+        "startLoc": {
+          "column": 83,
+          "line": 12,
+          "position": 491
+        }
+      },
+      "tokens": 61
+    },
+    {
+      "firstFile": {
+        "end": 24,
+        "endLoc": {
+          "column": 21,
+          "line": 24,
+          "position": 708
+        },
+        "name": "api/agents/subscription/route.ts",
+        "start": 11,
+        "startLoc": {
+          "column": 26,
+          "line": 11,
+          "position": 421
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 14,
+      "secondFile": {
+        "end": 15,
+        "endLoc": {
+          "column": 7,
+          "line": 15,
+          "position": 423
+        },
+        "name": "api/footprint/route.ts",
+        "start": 4,
+        "startLoc": {
+          "column": 46,
+          "line": 4,
+          "position": 160
+        }
+      },
+      "tokens": 68
+    },
+    {
+      "firstFile": {
+        "end": 19,
+        "endLoc": {
+          "column": 3,
+          "line": 19,
+          "position": 626
+        },
+        "name": "api/agents/subscription/route.ts",
+        "start": 12,
+        "startLoc": {
+          "column": 2,
+          "line": 12,
+          "position": 427
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 8,
+      "secondFile": {
+        "end": 35,
+        "endLoc": {
+          "column": 3,
+          "line": 35,
+          "position": 1020
+        },
+        "name": "api/agents/subscription/route.ts",
+        "start": 28,
+        "startLoc": {
+          "column": 2,
+          "line": 28,
+          "position": 821
+        }
+      },
+      "tokens": 52
+    },
+    {
+      "firstFile": {
+        "end": 45,
+        "endLoc": {
+          "column": 1,
+          "line": 45,
+          "position": 1235
+        },
+        "name": "api/agents/subscription/route.ts",
+        "start": 21,
+        "startLoc": {
+          "column": 53,
+          "line": 21,
+          "position": 681
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 25,
+      "secondFile": {
+        "end": 80,
+        "endLoc": {
+          "column": 1,
+          "line": 80,
+          "position": 2239
+        },
+        "name": "api/subscriptions/route.ts",
+        "start": 56,
+        "startLoc": {
+          "column": 42,
+          "line": 56,
+          "position": 1685
+        }
+      },
+      "tokens": 131
+    },
+    {
+      "firstFile": {
+        "end": 37,
+        "endLoc": {
+          "column": 5,
+          "line": 37,
+          "position": 1027
+        },
+        "name": "api/agents/subscription/route.ts",
+        "start": 24,
+        "startLoc": {
+          "column": 27,
+          "line": 24,
+          "position": 714
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 14,
+      "secondFile": {
+        "end": 61,
+        "endLoc": {
+          "column": 8,
+          "line": 61,
+          "position": 1649
+        },
+        "name": "api/agents/subscription/route.ts",
+        "start": 48,
+        "startLoc": {
+          "column": 26,
+          "line": 48,
+          "position": 1333
+        }
+      },
+      "tokens": 74
+    },
+    {
+      "firstFile": {
+        "end": 35,
+        "endLoc": {
+          "column": 3,
+          "line": 35,
+          "position": 1020
+        },
+        "name": "api/agents/subscription/route.ts",
+        "start": 24,
+        "startLoc": {
+          "column": 27,
+          "line": 24,
+          "position": 714
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 12,
+      "secondFile": {
+        "end": 67,
+        "endLoc": {
+          "column": 3,
+          "line": 67,
+          "position": 1687
+        },
+        "name": "api/back-in-stock/route.ts",
+        "start": 56,
+        "startLoc": {
+          "column": 28,
+          "line": 56,
+          "position": 1381
+        }
+      },
+      "tokens": 73
+    },
+    {
+      "firstFile": {
+        "end": 44,
+        "endLoc": {
+          "column": 33,
+          "line": 44,
+          "position": 1208
+        },
+        "name": "api/agents/subscription/route.ts",
+        "start": 26,
+        "startLoc": {
+          "column": 33,
+          "line": 26,
+          "position": 816
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 19,
+      "secondFile": {
+        "end": 36,
+        "endLoc": {
+          "column": 16,
+          "line": 36,
+          "position": 1038
+        },
+        "name": "api/loyalty/redeem/route.ts",
+        "start": 19,
+        "startLoc": {
+          "column": 37,
+          "line": 19,
+          "position": 664
+        }
+      },
+      "tokens": 94
+    },
+    {
+      "firstFile": {
+        "end": 36,
+        "endLoc": {
+          "column": 30,
+          "line": 36,
+          "position": 1317
+        },
+        "name": "api/auth/auth-ratelimit.test.ts",
+        "start": 17,
+        "startLoc": {
+          "column": 3,
+          "line": 17,
+          "position": 507
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 20,
+      "secondFile": {
+        "end": 20,
+        "endLoc": {
+          "column": 30,
+          "line": 20,
+          "position": 871
+        },
+        "name": "ratelimit.test.ts",
+        "start": 1,
+        "startLoc": {
+          "column": 61,
+          "line": 1,
+          "position": 61
+        }
+      },
+      "tokens": 197
+    },
+    {
+      "firstFile": {
+        "end": 22,
+        "endLoc": {
+          "column": 30,
+          "line": 22,
+          "position": 868
+        },
+        "name": "api/auth/login/route.ts",
+        "start": 13,
+        "startLoc": {
+          "column": 42,
+          "line": 13,
+          "position": 545
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 10,
+      "secondFile": {
+        "end": 24,
+        "endLoc": {
+          "column": 30,
+          "line": 24,
+          "position": 990
+        },
+        "name": "api/auth/register/route.ts",
+        "start": 15,
+        "startLoc": {
+          "column": 45,
+          "line": 15,
+          "position": 667
+        }
+      },
+      "tokens": 57
+    },
+    {
+      "firstFile": {
+        "end": 29,
+        "endLoc": {
+          "column": 16,
+          "line": 29,
+          "position": 764
+        },
+        "name": "api/back-in-stock/route.ts",
+        "start": 8,
+        "startLoc": {
+          "column": 2,
+          "line": 8,
+          "position": 259
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 22,
+      "secondFile": {
+        "end": 26,
+        "endLoc": {
+          "column": 16,
+          "line": 26,
+          "position": 730
+        },
+        "name": "api/cart/abandonment/route.ts",
+        "start": 4,
+        "startLoc": {
+          "column": 47,
+          "line": 4,
+          "position": 224
+        }
+      },
+      "tokens": 119
+    },
+    {
+      "firstFile": {
+        "end": 19,
+        "endLoc": {
+          "column": 11,
+          "line": 19,
+          "position": 513
+        },
+        "name": "api/back-in-stock/route.ts",
+        "start": 8,
+        "startLoc": {
+          "column": 2,
+          "line": 8,
+          "position": 259
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 12,
+      "secondFile": {
+        "end": 20,
+        "endLoc": {
+          "column": 11,
+          "line": 20,
+          "position": 703
+        },
+        "name": "api/notifications/welcome/route.ts",
+        "start": 9,
+        "startLoc": {
+          "column": 85,
+          "line": 9,
+          "position": 449
+        }
+      },
+      "tokens": 57
+    },
+    {
+      "firstFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 10,
+          "line": 12,
+          "position": 345
+        },
+        "name": "api/knowledge/harvests/route.ts",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 12,
+      "secondFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 10,
+          "line": 12,
+          "position": 345
+        },
+        "name": "api/knowledge/products/route.ts",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 39,
+        "endLoc": {
+          "column": 26,
+          "line": 39,
+          "position": 1274
+        },
+        "name": "api/knowledge/products/route.ts",
+        "start": 25,
+        "startLoc": {
+          "column": 20,
+          "line": 25,
+          "position": 762
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 15,
+      "secondFile": {
+        "end": 59,
+        "endLoc": {
+          "column": 30,
+          "line": 59,
+          "position": 1910
+        },
+        "name": "api/knowledge/route.ts",
+        "start": 45,
+        "startLoc": {
+          "column": 19,
+          "line": 45,
+          "position": 1342
+        }
+      },
+      "tokens": 109
+    },
+    {
+      "firstFile": {
+        "end": 24,
+        "endLoc": {
+          "column": 36,
+          "line": 24,
+          "position": 774
+        },
+        "name": "api/loyalty/redeem/route.ts",
+        "start": 9,
+        "startLoc": {
+          "column": 39,
+          "line": 9,
+          "position": 355
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 16,
+      "secondFile": {
+        "end": 25,
+        "endLoc": {
+          "column": 36,
+          "line": 25,
+          "position": 843
+        },
+        "name": "api/pre-orders/route.ts",
+        "start": 10,
+        "startLoc": {
+          "column": 53,
+          "line": 10,
+          "position": 424
+        }
+      },
+      "tokens": 88
+    },
+    {
+      "firstFile": {
+        "end": 36,
+        "endLoc": {
+          "column": 16,
+          "line": 36,
+          "position": 1038
+        },
+        "name": "api/loyalty/redeem/route.ts",
+        "start": 12,
+        "startLoc": {
+          "column": 81,
+          "line": 12,
+          "position": 444
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 25,
+      "secondFile": {
+        "end": 36,
+        "endLoc": {
+          "column": 16,
+          "line": 36,
+          "position": 997
+        },
+        "name": "api/referrals/complete/route.ts",
+        "start": 11,
+        "startLoc": {
+          "column": 82,
+          "line": 11,
+          "position": 402
+        }
+      },
+      "tokens": 136
+    },
+    {
+      "firstFile": {
+        "end": 36,
+        "endLoc": {
+          "column": 16,
+          "line": 36,
+          "position": 1038
+        },
+        "name": "api/loyalty/redeem/route.ts",
+        "start": 14,
+        "startLoc": {
+          "column": 0,
+          "line": 14,
+          "position": 449
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 23,
+      "secondFile": {
+        "end": 51,
+        "endLoc": {
+          "column": 16,
+          "line": 51,
+          "position": 1457
+        },
+        "name": "api/subscriptions/route.ts",
+        "start": 28,
+        "startLoc": {
+          "column": 0,
+          "line": 28,
+          "position": 867
+        }
+      },
+      "tokens": 133
+    },
+    {
+      "firstFile": {
+        "end": 33,
+        "endLoc": {
+          "column": 7,
+          "line": 33,
+          "position": 1402
+        },
+        "name": "checkout/resultado/ui.tsx",
+        "start": 26,
+        "startLoc": {
+          "column": 45,
+          "line": 26,
+          "position": 1080
+        }
+      },
+      "format": "tsx",
+      "fragment": "",
+      "lines": 8,
+      "secondFile": {
+        "end": 25,
+        "endLoc": {
+          "column": 7,
+          "line": 25,
+          "position": 1037
+        },
+        "name": "perfil/reposicion/resultado/ui.tsx",
+        "start": 17,
+        "startLoc": {
+          "column": 54,
+          "line": 17,
+          "position": 714
+        }
+      },
+      "tokens": 77
+    },
+    {
+      "firstFile": {
+        "end": 54,
+        "endLoc": {
+          "column": 63,
+          "line": 54,
+          "position": 1952
+        },
+        "name": "checkout/resultado/ui.tsx",
+        "start": 36,
+        "startLoc": {
+          "column": 33,
+          "line": 36,
+          "position": 1547
+        }
+      },
+      "format": "tsx",
+      "fragment": "",
+      "lines": 19,
+      "secondFile": {
+        "end": 41,
+        "endLoc": {
+          "column": 63,
+          "line": 41,
+          "position": 1431
+        },
+        "name": "perfil/reposicion/resultado/ui.tsx",
+        "start": 23,
+        "startLoc": {
+          "column": 56,
+          "line": 23,
+          "position": 1026
+        }
+      },
+      "tokens": 84
+    },
+    {
+      "firstFile": {
+        "end": 82,
+        "endLoc": {
+          "column": 32,
+          "line": 82,
+          "position": 2730
+        },
+        "name": "checkout/resultado/ui.tsx",
+        "start": 66,
+        "startLoc": {
+          "column": 54,
+          "line": 66,
+          "position": 2346
+        }
+      },
+      "format": "tsx",
+      "fragment": "",
+      "lines": 17,
+      "secondFile": {
+        "end": 69,
+        "endLoc": {
+          "column": 32,
+          "line": 69,
+          "position": 2216
+        },
+        "name": "perfil/reposicion/resultado/ui.tsx",
+        "start": 53,
+        "startLoc": {
+          "column": 68,
+          "line": 53,
+          "position": 1832
+        }
+      },
+      "tokens": 63
+    },
+    {
+      "firstFile": {
+        "end": 395,
+        "endLoc": {
+          "column": 1,
+          "line": 395,
+          "position": 9139
+        },
+        "name": "globals.css",
+        "start": 390,
+        "startLoc": {
+          "column": 13,
+          "line": 390,
+          "position": 8970
+        }
+      },
+      "format": "css",
+      "fragment": "",
+      "lines": 6,
+      "secondFile": {
+        "end": 420,
+        "endLoc": {
+          "column": 1,
+          "line": 420,
+          "position": 9708
+        },
+        "name": "globals.css",
+        "start": 415,
+        "startLoc": {
+          "column": 13,
+          "line": 415,
+          "position": 9539
+        }
+      },
+      "tokens": 62
+    },
+    {
+      "firstFile": {
+        "end": 16,
+        "endLoc": {
+          "column": 8,
+          "line": 16,
+          "position": 539
+        },
+        "name": "perfil/ajustes/ajustes-theme-section.tsx",
+        "start": 10,
+        "startLoc": {
+          "column": 30,
+          "line": 10,
+          "position": 275
+        }
+      },
+      "format": "tsx",
+      "fragment": "",
+      "lines": 7,
+      "secondFile": {
+        "end": 40,
+        "endLoc": {
+          "column": 7,
+          "line": 40,
+          "position": 1614
+        },
+        "name": "shop/guardian-sidebar.tsx",
+        "start": 34,
+        "startLoc": {
+          "column": 52,
+          "line": 34,
+          "position": 1351
+        }
+      },
+      "tokens": 83
+    },
+    {
+      "firstFile": {
+        "end": 84,
+        "endLoc": {
+          "column": 29,
+          "line": 84,
+          "position": 2745
+        },
+        "name": "producto/[slug]/page.tsx",
+        "start": 70,
+        "startLoc": {
+          "column": 4,
+          "line": 70,
+          "position": 2536
+        }
+      },
+      "format": "tsx",
+      "fragment": "",
+      "lines": 15,
+      "secondFile": {
+        "end": 52,
+        "endLoc": {
+          "column": 29,
+          "line": 52,
+          "position": 1437
+        },
+        "name": "producto/[slug]/trazabilidad/page.tsx",
+        "start": 38,
+        "startLoc": {
+          "column": 81,
+          "line": 38,
+          "position": 1228
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 141,
+        "endLoc": {
+          "column": 13,
+          "line": 141,
+          "position": 4773
+        },
+        "name": "producto/[slug]/page.tsx",
+        "start": 132,
+        "startLoc": {
+          "column": 119,
+          "line": 132,
+          "position": 4378
+        }
+      },
+      "format": "tsx",
+      "fragment": "",
+      "lines": 10,
+      "secondFile": {
+        "end": 88,
+        "endLoc": {
+          "column": 13,
+          "line": 88,
+          "position": 2829
+        },
+        "name": "producto/[slug]/trazabilidad/page.tsx",
+        "start": 79,
+        "startLoc": {
+          "column": 119,
+          "line": 79,
+          "position": 2434
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 114,
+        "endLoc": {
+          "column": 13,
+          "line": 114,
+          "position": 4049
+        },
+        "name": "auth/login-form.tsx",
+        "start": 92,
+        "startLoc": {
+          "column": 10,
+          "line": 92,
+          "position": 3220
+        }
+      },
+      "format": "tsx",
+      "fragment": "",
+      "lines": 23,
+      "secondFile": {
+        "end": 114,
+        "endLoc": {
+          "column": 13,
+          "line": 114,
+          "position": 4157
+        },
+        "name": "auth/register-form.tsx",
+        "start": 92,
+        "startLoc": {
+          "column": 10,
+          "line": 92,
+          "position": 3328
+        }
+      },
+      "tokens": 107
+    },
+    {
+      "firstFile": {
+        "end": 161,
+        "endLoc": {
+          "column": 20,
+          "line": 161,
+          "position": 6193
+        },
+        "name": "auth/login-form.tsx",
+        "start": 137,
+        "startLoc": {
+          "column": 14,
+          "line": 137,
+          "position": 5126
+        }
+      },
+      "format": "tsx",
+      "fragment": "",
+      "lines": 25,
+      "secondFile": {
+        "end": 154,
+        "endLoc": {
+          "column": 20,
+          "line": 154,
+          "position": 5967
+        },
+        "name": "auth/register-form.tsx",
+        "start": 130,
+        "startLoc": {
+          "column": 14,
+          "line": 130,
+          "position": 4900
+        }
+      },
+      "tokens": 118
+    },
+    {
+      "firstFile": {
+        "end": 60,
+        "endLoc": {
+          "column": 51,
+          "line": 60,
+          "position": 2462
+        },
+        "name": "perfil/reposicion-client.tsx",
+        "start": 52,
+        "startLoc": {
+          "column": 4,
+          "line": 52,
+          "position": 2213
+        }
+      },
+      "format": "tsx",
+      "fragment": "",
+      "lines": 9,
+      "secondFile": {
+        "end": 62,
+        "endLoc": {
+          "column": 51,
+          "line": 62,
+          "position": 2252
+        },
+        "name": "shop/replenishment-sheet.tsx",
+        "start": 54,
+        "startLoc": {
+          "column": 4,
+          "line": 54,
+          "position": 2003
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 62,
+        "endLoc": {
+          "column": 12,
+          "line": 62,
+          "position": 1652
+        },
+        "name": "shop/bee-canvas.tsx",
+        "start": 57,
+        "startLoc": {
+          "column": 17,
+          "line": 57,
+          "position": 1460
+        }
+      },
+      "format": "tsx",
+      "fragment": "",
+      "lines": 6,
+      "secondFile": {
+        "end": 74,
+        "endLoc": {
+          "column": 7,
+          "line": 74,
+          "position": 2046
+        },
+        "name": "shop/bee-canvas.tsx",
+        "start": 69,
+        "startLoc": {
+          "column": 11,
+          "line": 69,
+          "position": 1859
+        }
+      },
+      "tokens": 59
+    },
+    {
+      "firstFile": {
+        "end": 21,
+        "endLoc": {
+          "column": 15,
+          "line": 21,
+          "position": 818
+        },
+        "name": "integrations/sii-connector.ts",
+        "start": 10,
+        "startLoc": {
+          "column": 45,
+          "line": 10,
+          "position": 366
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 12,
+      "secondFile": {
+        "end": 72,
+        "endLoc": {
+          "column": 15,
+          "line": 72,
+          "position": 2483
+        },
+        "name": "integrations/sii-connector.ts",
+        "start": 62,
+        "startLoc": {
+          "column": 30,
+          "line": 62,
+          "position": 2073
+        }
+      },
+      "tokens": 69
+    },
+    {
+      "firstFile": {
+        "end": 39,
+        "endLoc": {
+          "column": 5,
+          "line": 39,
+          "position": 1095
+        },
+        "name": "shop/ecosystem-metrics.ts",
+        "start": 25,
+        "startLoc": {
+          "column": 11,
+          "line": 25,
+          "position": 747
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 15,
+      "secondFile": {
+        "end": 18,
+        "endLoc": {
+          "column": 3,
+          "line": 18,
+          "position": 463
+        },
+        "name": "shop/perfil-dashboard.test.ts",
+        "start": 4,
+        "startLoc": {
+          "column": 42,
+          "line": 4,
+          "position": 143
+        }
+      },
+      "tokens": 54
+    },
+    {
+      "firstFile": {
+        "end": 56,
+        "endLoc": {
+          "column": 38,
+          "line": 56,
+          "position": 1903
+        },
+        "name": "shop/wallet-api.ts",
+        "start": 50,
+        "startLoc": {
+          "column": 64,
+          "line": 50,
+          "position": 1625
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 7,
+      "secondFile": {
+        "end": 80,
+        "endLoc": {
+          "column": 38,
+          "line": 80,
+          "position": 2655
+        },
+        "name": "shop/wallet-api.ts",
+        "start": 74,
+        "startLoc": {
+          "column": 82,
+          "line": 74,
+          "position": 2377
+        }
+      },
+      "tokens": 63
+    },
+    {
+      "firstFile": {
+        "end": 67,
+        "endLoc": {
+          "column": 64,
+          "line": 67,
+          "position": 2221
+        },
+        "name": "shop/wallet-api.ts",
+        "start": 59,
+        "startLoc": {
+          "column": 42,
+          "line": 59,
+          "position": 2032
+        }
+      },
+      "format": "typescript",
+      "fragment": "",
+      "lines": 9,
+      "secondFile": {
+        "end": 94,
+        "endLoc": {
+          "column": 64,
+          "line": 94,
+          "position": 3119
+        },
+        "name": "shop/wallet-api.ts",
+        "start": 86,
+        "startLoc": {
+          "column": 80,
+          "line": 86,
+          "position": 2930
+        }
+      },
+      "tokens": 52
+    }
+  ],
+  "statistics": {
+    "detectionDate": "2026-07-09T03:27:44.249Z",
+    "formats": {
+      "css": {
+        "clones": 1,
+        "duplicatedLines": 5,
+        "duplicatedTokens": 62,
+        "lines": 883,
+        "newClones": 0,
+        "newDuplicatedLines": 0,
+        "percentage": 0.5662514156285391,
+        "percentageTokens": 0.9462759462759462,
+        "sources": 1,
+        "tokens": 6552
+      },
+      "tsx": {
+        "clones": 10,
+        "duplicatedLines": 129,
+        "duplicatedTokens": 743,
+        "lines": 14608,
+        "newClones": 0,
+        "newDuplicatedLines": 0,
+        "percentage": 0.8830777656078861,
+        "percentageTokens": 0.9183723919707308,
+        "sources": 127,
+        "tokens": 80904
+      },
+      "typescript": {
+        "clones": 23,
+        "duplicatedLines": 308,
+        "duplicatedTokens": 1909,
+        "lines": 7244,
+        "newClones": 0,
+        "newDuplicatedLines": 0,
+        "percentage": 4.251794588625069,
+        "percentageTokens": 4.6704506532269905,
+        "sources": 101,
+        "tokens": 40874
+      }
+    },
+    "total": {
+      "clones": 34,
+      "duplicatedLines": 442,
+      "duplicatedTokens": 2714,
+      "lines": 22735,
+      "newClones": 0,
+      "newDuplicatedLines": 0,
+      "percentage": 1.9441389927424675,
+      "percentageTokens": 2.114860126237045,
+      "sources": 229,
+      "tokens": 128330
+    }
+  }
+}

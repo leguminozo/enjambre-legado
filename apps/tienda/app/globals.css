@@ -110,6 +110,22 @@
   -webkit-backdrop-filter: none;
 }
 
+/* ─── Suprimir ShopHeader global dentro del shell de /perfil ─── */
+/* :has() nativo (Chrome 105+, Safari 15.4+, Firefox 121+, >92% global) */
+body:has(.perfil-shell) .tienda-shop-header {
+  display: none;
+}
+/* Fallback legacy — JS agrega .perfil-shell-active al <body> como respaldo */
+body.perfil-shell-active .tienda-shop-header {
+  display: none;
+}
+
+/* ─── Suprimir burger del ShopHeader en modo PWA (MobileBottomNav es la nav) ─── */
+body.pwa-standalone .tienda-shop-header-burger {
+  display: none;
+}
+
+
 /* Panel menú burger móvil — portal en body (evita recorte por backdrop-filter del header) */
 .tienda-mobile-nav-root {
   position: fixed;

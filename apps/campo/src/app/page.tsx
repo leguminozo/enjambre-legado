@@ -64,6 +64,25 @@ function CampoLanding() {
             </p>
           </div>
         </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-6xl text-center mt-12">
+          <Link href="/caja" className="p-4 bg-card/30 hover:bg-card border border-border/50 rounded-xl transition-all">
+            <h3 className="font-bold text-sm uppercase tracking-wider mb-1">Caja</h3>
+            <p className="text-xs text-muted-foreground">Sesiones de caja</p>
+          </Link>
+          <Link href="/mi-feria" className="p-4 bg-card/30 hover:bg-card border border-border/50 rounded-xl transition-all">
+            <h3 className="font-bold text-sm uppercase tracking-wider mb-1">Mi Feria</h3>
+            <p className="text-xs text-muted-foreground">Contratos y stock</p>
+          </Link>
+          <Link href="/comisiones" className="p-4 bg-card/30 hover:bg-card border border-border/50 rounded-xl transition-all">
+            <h3 className="font-bold text-sm uppercase tracking-wider mb-1">Comisiones</h3>
+            <p className="text-xs text-muted-foreground">Tus ganancias</p>
+          </Link>
+          <Link href="/leaderboard" className="p-4 bg-card/30 hover:bg-card border border-border/50 rounded-xl transition-all">
+            <h3 className="font-bold text-sm uppercase tracking-wider mb-1">Leaderboard</h3>
+            <p className="text-xs text-muted-foreground">Top ventas</p>
+          </Link>
+        </div>
       </section>
     </main>
   );

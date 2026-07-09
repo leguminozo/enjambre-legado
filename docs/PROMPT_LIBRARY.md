@@ -98,7 +98,7 @@ Para CADA tabla:
 1. ¿Tiene RLS habilitado?
 2. ¿Las políticas cubren todos los roles?
 3. ¿Hay posibilidad de fuga de datos entre roles?
-4. ¿Las funciones helper (current_role, is_gerente, 
+4. ¿Las funciones helper (current_role, is_admin, 
    has_empresa_access) son correctas?
 
 Genera un reporte con:
@@ -137,7 +137,7 @@ Sigue ESTE PROCESO EXACTO:
 6. Generar tipos: cd packages/database && pnpm db:typegen
 
 Plantilla RLS:
-- current_role() = 'gerente' → ve/modifica todo
+- current_role() = 'admin' → ve/modifica todo
 - Rol propietario → ve solo sus datos (usando auth.uid())
 - Publico → solo lectura si aplica
 

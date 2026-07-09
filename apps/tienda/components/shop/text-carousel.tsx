@@ -87,6 +87,7 @@ export function TextCarousel() {
     if (dismissed) return;
     const wasDismissed = sessionStorage.getItem(STORAGE_KEY);
     if (wasDismissed === '1') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDismissed(true);
       setCarouselHeightVar(0);
       return;
@@ -113,13 +114,16 @@ export function TextCarousel() {
       stopTimers();
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     startTimers();
     return stopTimers;
   }, [dismissed, paused, startTimers, stopTimers]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setProgress(0);
     if (!prefersReducedMotion) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAnimating(true);
       const fadeTimer = setTimeout(() => setAnimating(false), 500);
       return () => clearTimeout(fadeTimer);

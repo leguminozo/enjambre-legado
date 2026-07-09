@@ -8,6 +8,13 @@ const CHILOE_CITIES: Record<string, { lat: number; lng: number }> = {
   chonchi: { lat: -42.08, lng: -73.78 },
   pureo: { lat: -42.48, lng: -73.72 },
   santiago: { lat: -33.45, lng: -70.65 },
+  'puerto montt': { lat: -41.47, lng: -72.94 },
+  valdivia: { lat: -39.81, lng: -73.24 },
+  concepción: { lat: -36.83, lng: -73.05 },
+  concepcion: { lat: -36.83, lng: -73.05 },
+  'viña del mar': { lat: -33.02, lng: -71.55 },
+  valparaíso: { lat: -33.05, lng: -71.62 },
+  valparaiso: { lat: -33.05, lng: -71.62 },
 };
 
 export function resolveClienteCoords(

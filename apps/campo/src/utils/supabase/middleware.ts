@@ -4,7 +4,7 @@ import { getSupabaseKey, getSupabaseUrl, isSupabaseConfigured } from './env';
 
 export interface AuthResult {
   response: NextResponse;
-  user: { id: string; email: string } | null;
+  user: { id: string; email: string; app_metadata?: Record<string, unknown> } | null;
 }
 
 export async function updateSession(request: NextRequest): Promise<AuthResult> {
@@ -36,7 +36,7 @@ export async function updateSession(request: NextRequest): Promise<AuthResult> {
 
     return {
       response: supabaseResponse,
-      user: user ? { id: user.id, email: user.email ?? '' } : null,
+      user: user ? { id: user.id, email: user.email ?? '', app_metadata: user.app_metadata } : null,
     };
   } catch (error) {
     console.error('[campo-supabase-middleware] error:', error);

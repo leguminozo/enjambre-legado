@@ -87,7 +87,7 @@ Suele ser el middleware de Next que lanza antes (p. ej. variables `NEXT_PUBLIC_S
 - Si faltan esas variables, el middleware **no lanza**: reescribe a [`/setup-error`](../apps/campo/src/app/setup-error/page.tsx) y las rutas `/api/*` responden **503** JSON.
 - Si tras desplegar sigue un 500, revisa **Deployment → Functions / Logs** del middleware y confirma **Root Directory** = `apps/campo`.
 
-**Rutas útiles:** `/` landing, `/login`, `/pos/catalogo`, `/pos/carrito`, `POST /api/pos/venta` (requiere sesión y fila en `profiles` para `vendedor_id`).
+**Rutas útiles:** `/` landing, `/login`, `/pos/catalogo`, `/pos/carrito`, `POST /api/pos/venta` (requiere sesión y fila en `profiles` para `rep_id`).
 
 ## Tras crear tienda y campo
 

@@ -5,6 +5,7 @@ import { ThemeProvider, ToastProvider } from '@enjambre/ui';
 import { CampoAuthProvider } from '@/components/campo-auth-provider';
 import { SyncProvider } from '@/components/sync-provider';
 import { VercelInsights } from '@/components/VercelInsights';
+import { CampoShell } from '@/components/layout/campo-shell';
 import './globals.css';
 
 const inter = Inter({
@@ -36,7 +37,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ToastProvider>
             <CampoAuthProvider>
               <SyncProvider>
-                {children}
+                <CampoShell>
+                  {children}
+                </CampoShell>
               </SyncProvider>
             </CampoAuthProvider>
           </ToastProvider>

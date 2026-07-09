@@ -55,7 +55,6 @@ export function extractSaleItemsFromPayload(payload: Record<string, unknown>): O
       };
     });
   }
-
   return [
     {
       producto_id: String(payload.producto_id ?? ''),
@@ -63,4 +62,19 @@ export function extractSaleItemsFromPayload(payload: Record<string, unknown>): O
       cantidad: Math.max(1, Number(payload.cantidad ?? 1)),
     },
   ];
+}
+export function decrementOfflineFeriaStock(
+  items: OfflineSaleItem[],
+  snapshot: FeriaContextSnapshot,
+): FeriaContextSnapshot {
+  const newSnapshot = { ...snapshot, consignaciones: [...snapshot.consignaciones] };
+  for (const item of items) {
+    const cons = newSnapshot.consignaciones.find(c => c.producto_id === item.producto_id);
+    if (cons) {
+      // In the remote DB, 'pendiente' is calculated as cantidad_entregada - cantidad_vendida - cantidad_devuelta.
+      // For optimistic local update, we can just decrease 'pendiente' directly.
+      cons.pendiente = Math.max(0, cons.pendiente - item.cantidad);
+    }
+  }
+  return newSnapshot;
 }

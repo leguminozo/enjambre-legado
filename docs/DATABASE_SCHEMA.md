@@ -458,7 +458,7 @@ CMS para contenido dinamico de la landing.
 | `created_at` | TIMESTAMPTZ | - |
 
 **Notas de arquitectura**: 
-- Existe tabla separada `notification_queue` para encolado saliente (con attempts, status pending/processing/sent/failed, metadata, RLS solo admin/gerente).
+- Existe tabla separada `notification_queue` para encolado saliente (con attempts, status pending/processing/sent/failed, metadata, RLS solo admin).
 - Existe tabla `alerts` (user_id, title, message, is_read, severity) usada por el BFF de Nucleo para notificaciones in-app de sistema (diferente de events para historial transaccional).
 - Ramificación: Dos fuentes de "in-app" (alerts vs events) + bypass directo desde cliente en tienda pueden afectar consistencia, RLS y mantenimiento a largo plazo. Ver análisis en MASTER_PLAN.
 
@@ -502,10 +502,10 @@ Audit log de ejecuciones de integraciones.
 
 | Bucket | Publico | Acceso |
 |---|---|---|
-| `colmenas` | No | Apicultor propietario + gerente |
-| `productos` | Si | Lectura publica, escritura tienda_admin/gerente |
+| `colmenas` | No | Propietario + admin |
+| `productos` | Si | Lectura publica, escritura admin |
 | `arboles` | Si | Lectura publica |
-| `fuentes` | No | Solo gerente + tienda_admin |
+| `fuentes` | No | Solo admin |
 
 ---
 
@@ -513,19 +513,19 @@ Audit log de ejecuciones de integraciones.
 
 | Tabla | Lectura | Escritura |
 |---|---|---|
-| `profiles` | Propio + gerente | Propio |
-| `apiarios` | Apicultor propietario + gerente | Apicultor propietario + gerente |
-| `colmenas` | Apicultor propietario + gerente | Apicultor propietario + gerente |
-| `productos` | Publico | tienda_admin + gerente |
-| `ventas` | Gerente + vendedor | Gerente + vendedor |
-| `pedidos_cliente` | Cliente propietario + gerente | Sistema |
-| `cashflow` | Gerente | Gerente |
-| `calendario_tasks` | Propietario + gerente | Propietario |
-| `logistica_envios` | Logistica + gerente | Logistica + gerente |
+| `profiles` | Propio + admin | Propio |
+| `apiarios` | Propietario + admin | Propietario + admin |
+| `colmenas` | Propietario + admin | Propietario + admin |
+| `productos` | Publico | admin |
+| `ventas` | admin + rep_ventas | admin + rep_ventas |
+| `pedidos_cliente` | Cliente propietario + admin | Sistema |
+| `cashflow` | admin | admin |
+| `calendario_tasks` | Propietario + admin | Propietario |
+| `logistica_envios` | admin | admin |
 | `facturas_emitidas` | `has_empresa_access()` | `has_empresa_access()` con rol admin |
 | `gastos` | `has_empresa_access()` | `has_empresa_access()` con rol admin |
-| `marketing_*` | Marketing + gerente | Marketing + gerente |
-| `site_content` | Publico | tienda_admin + gerente |
+| `marketing_*` | admin | admin |
+| `site_content` | Publico | admin |
 
 ---
 
@@ -585,7 +585,7 @@ Sesión diaria de caja. Una por rep por día de operación.
 |---|---|---|
 | `id` | UUID PK | |
 | `empresa_id` | UUID FK → empresas | Multi-tenant |
-| `rep_id` | UUID FK → auth.users | Vendedor que opera |
+| `rep_id` | UUID FK → auth.users | Representante de ventas (rep_ventas) que opera |
 | `opened_at` | TIMESTAMPTZ | Timestamp apertura |
 | `closed_at` | TIMESTAMPTZ | Timestamp cierre |
 | `opening_cash` | NUMERIC(19,4) | Efectivo declarado al abrir |
@@ -787,12 +787,12 @@ Retorna JSONB con métricas actuales y umbrales del siguiente tier:
 
 | Tabla | Cambio | Antes | Después |
 |---|---|---|---|
-| `commission_rules` | Split ALL policy | `FOR ALL USING (true)` | INSERT/UPDATE: admin; DELETE: solo gerente |
+| `commission_rules` | Split ALL policy | `FOR ALL USING (true)` | INSERT/UPDATE: admin; DELETE: admin |
 | `commission_records` | INSERT restringido | `auth.uid() = rep_id` | Solo `service_role` o admin |
 | `rep_profiles` | DELETE bloqueado | `USING (auth.uid() = user_id)` | `USING (false)` — soft-delete only |
 | `rep_profiles` | INSERT añadido | — | `auth.uid() = user_id` |
 | `invitation_redemptions` | INSERT restringido | `true` | `service_role` o `auth.uid() = user_id` |
-| `cash_sessions` | UPDATE admin restringido | `is_gerente()` | Solo si `session_status IN ('closed','reconciled')` |
+| `cash_sessions` | UPDATE admin restringido | `is_admin()` | Solo si `session_status IN ('closed','reconciled')` |
 
 ### Migration 33: `weekly_leaderboard`
 
@@ -808,7 +808,7 @@ Retorna JSONB con métricas actuales y umbrales del siguiente tier:
 |---|---|---|---|---|
 | `cash_sessions` | rep propio + admin | rep (abrir) | rep (propios, open) + admin (closed/reconciled) | — |
 | `rep_profiles` | propio + admin | propio (auth.uid() = user_id) | propio (activo) + admin | bloqueado (soft-delete) |
-| `commission_rules` | `has_empresa_access()` | admin (gerente/tienda_admin) | admin | solo gerente |
+| `commission_rules` | `has_empresa_access()` | admin | admin | admin |
 | `commission_records` | rep propio + admin | service_role / admin | admin (paid/paid_at) | bloqueado |
 | `invitation_codes` | admin | admin | admin | admin |
 | `invitation_redemptions` | admin | service_role / auth.uid() = user_id | — | — |

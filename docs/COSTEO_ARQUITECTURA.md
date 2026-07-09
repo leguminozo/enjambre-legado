@@ -294,36 +294,36 @@ ALTER TABLE price_observations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE recipes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE recipe_lines ENABLE ROW LEVEL SECURITY;
 
--- Ingredients: admin por empresa (is_gerente() mapea a role = 'admin' post-consolidacion)
+-- Ingredients: admin por empresa (is_admin() mapea a role = 'admin' post-consolidacion)
 CREATE POLICY ingredients_select ON ingredients FOR SELECT USING (has_empresa_access(empresa_id));
-CREATE POLICY ingredients_insert ON ingredients FOR INSERT WITH CHECK (has_empresa_access(empresa_id) AND is_gerente());
-CREATE POLICY ingredients_update ON ingredients FOR UPDATE USING (has_empresa_access(empresa_id) AND is_gerente());
-CREATE POLICY ingredients_delete ON ingredients FOR DELETE USING (has_empresa_access(empresa_id) AND is_gerente());
+CREATE POLICY ingredients_insert ON ingredients FOR INSERT WITH CHECK (has_empresa_access(empresa_id) AND is_admin());
+CREATE POLICY ingredients_update ON ingredients FOR UPDATE USING (has_empresa_access(empresa_id) AND is_admin());
+CREATE POLICY ingredients_delete ON ingredients FOR DELETE USING (has_empresa_access(empresa_id) AND is_admin());
 
 -- Price observations: admin por empresa
 CREATE POLICY price_obs_select ON price_observations FOR SELECT USING (has_empresa_access(empresa_id));
-CREATE POLICY price_obs_insert ON price_observations FOR INSERT WITH CHECK (has_empresa_access(empresa_id) AND is_gerente());
-CREATE POLICY price_obs_update ON price_observations FOR UPDATE USING (has_empresa_access(empresa_id) AND is_gerente());
-CREATE POLICY price_obs_delete ON price_observations FOR DELETE USING (has_empresa_access(empresa_id) AND is_gerente());
+CREATE POLICY price_obs_insert ON price_observations FOR INSERT WITH CHECK (has_empresa_access(empresa_id) AND is_admin());
+CREATE POLICY price_obs_update ON price_observations FOR UPDATE USING (has_empresa_access(empresa_id) AND is_admin());
+CREATE POLICY price_obs_delete ON price_observations FOR DELETE USING (has_empresa_access(empresa_id) AND is_admin());
 
 -- Recipes: admin por empresa
 CREATE POLICY recipes_select ON recipes FOR SELECT USING (has_empresa_access(empresa_id));
-CREATE POLICY recipes_insert ON recipes FOR INSERT WITH CHECK (has_empresa_access(empresa_id) AND is_gerente());
-CREATE POLICY recipes_update ON recipes FOR UPDATE USING (has_empresa_access(empresa_id) AND is_gerente());
-CREATE POLICY recipes_delete ON recipes FOR DELETE USING (has_empresa_access(empresa_id) AND is_gerente());
+CREATE POLICY recipes_insert ON recipes FOR INSERT WITH CHECK (has_empresa_access(empresa_id) AND is_admin());
+CREATE POLICY recipes_update ON recipes FOR UPDATE USING (has_empresa_access(empresa_id) AND is_admin());
+CREATE POLICY recipes_delete ON recipes FOR DELETE USING (has_empresa_access(empresa_id) AND is_admin());
 
 -- Recipe lines: hereda de recipes
 CREATE POLICY recipe_lines_select ON recipe_lines FOR SELECT USING (
   EXISTS (SELECT 1 FROM recipes r WHERE r.id = recipe_id AND has_empresa_access(r.empresa_id))
 );
 CREATE POLICY recipe_lines_insert ON recipe_lines FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM recipes r WHERE r.id = recipe_id AND has_empresa_access(r.empresa_id) AND is_gerente())
+  EXISTS (SELECT 1 FROM recipes r WHERE r.id = recipe_id AND has_empresa_access(r.empresa_id) AND is_admin())
 );
 CREATE POLICY recipe_lines_update ON recipe_lines FOR UPDATE USING (
-  EXISTS (SELECT 1 FROM recipes r WHERE r.id = recipe_id AND has_empresa_access(r.empresa_id) AND is_gerente())
+  EXISTS (SELECT 1 FROM recipes r WHERE r.id = recipe_id AND has_empresa_access(r.empresa_id) AND is_admin())
 );
 CREATE POLICY recipe_lines_delete ON recipe_lines FOR DELETE USING (
-  EXISTS (SELECT 1 FROM recipes r WHERE r.id = recipe_id AND has_empresa_access(r.empresa_id) AND is_gerente())
+  EXISTS (SELECT 1 FROM recipes r WHERE r.id = recipe_id AND has_empresa_access(r.empresa_id) AND is_admin())
 );
 ```
 
@@ -435,21 +435,21 @@ ALTER TABLE production_batches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE batch_ingredient_usages ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY prod_batch_select ON production_batches FOR SELECT USING (has_empresa_access(empresa_id));
-CREATE POLICY prod_batch_insert ON production_batches FOR INSERT WITH CHECK (has_empresa_access(empresa_id) AND is_gerente());
-CREATE POLICY prod_batch_update ON production_batches FOR UPDATE USING (has_empresa_access(empresa_id) AND is_gerente());
-CREATE POLICY prod_batch_delete ON production_batches FOR DELETE USING (has_empresa_access(empresa_id) AND is_gerente());
+CREATE POLICY prod_batch_insert ON production_batches FOR INSERT WITH CHECK (has_empresa_access(empresa_id) AND is_admin());
+CREATE POLICY prod_batch_update ON production_batches FOR UPDATE USING (has_empresa_access(empresa_id) AND is_admin());
+CREATE POLICY prod_batch_delete ON production_batches FOR DELETE USING (has_empresa_access(empresa_id) AND is_admin());
 
 CREATE POLICY batch_usage_select ON batch_ingredient_usages FOR SELECT USING (
   EXISTS (SELECT 1 FROM production_batches pb WHERE pb.id = batch_id AND has_empresa_access(pb.empresa_id))
 );
 CREATE POLICY batch_usage_insert ON batch_ingredient_usages FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM production_batches pb WHERE pb.id = batch_id AND has_empresa_access(pb.empresa_id) AND is_gerente())
+  EXISTS (SELECT 1 FROM production_batches pb WHERE pb.id = batch_id AND has_empresa_access(pb.empresa_id) AND is_admin())
 );
 CREATE POLICY batch_usage_update ON batch_ingredient_usages FOR UPDATE USING (
-  EXISTS (SELECT 1 FROM production_batches pb WHERE pb.id = batch_id AND has_empresa_access(pb.empresa_id) AND is_gerente())
+  EXISTS (SELECT 1 FROM production_batches pb WHERE pb.id = batch_id AND has_empresa_access(pb.empresa_id) AND is_admin())
 );
 CREATE POLICY batch_usage_delete ON batch_ingredient_usages FOR DELETE USING (
-  EXISTS (SELECT 1 FROM production_batches pb WHERE pb.id = batch_id AND has_empresa_access(pb.empresa_id) AND is_gerente())
+  EXISTS (SELECT 1 FROM production_batches pb WHERE pb.id = batch_id AND has_empresa_access(pb.empresa_id) AND is_admin())
 );
 ```
 

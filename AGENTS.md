@@ -10,7 +10,7 @@ Monorepo managed by Turborepo + pnpm. 3 apps, all on Vercel + Supabase.
 
 ## Read First
 
-1. `docs/00_EMPEZA_AQUI.md`
+1. `README.md`
 2. `docs/CONSTITUTION.md`
 3. `docs/AGENT_INSTRUCTIONS.md`
 4. `docs/ARCHITECTURE.md`

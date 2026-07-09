@@ -83,22 +83,34 @@ async function validateOfflineFeriaBeforeQueue(
   if (channel !== 'feria') return;
 
   const { db } = await import('@/lib/offline/db');
-  const { extractSaleItemsFromPayload, validateOfflineFeriaSale } = await import('@/lib/offline/feria-offline');
+  const { extractSaleItemsFromPayload, validateOfflineFeriaSale, decrementOfflineFeriaStock } = await import('@/lib/offline/feria-offline');
 
   const snapshot = await db.feria_context.get('current');
   if (!snapshot) return;
 
   const items = extractSaleItemsFromPayload(payload);
-  const check = validateOfflineFeriaSale(items, channel, {
+  const snapForValidation = {
     active: snapshot.active,
     evento: snapshot.evento,
     consignaciones: snapshot.consignaciones,
     updated_at: snapshot.updated_at,
-  });
+  };
+
+  const check = validateOfflineFeriaSale(items, channel, snapForValidation);
 
   if (!check.ok) {
     throw new Error(check.message ?? 'Stock consignado insuficiente para venta offline');
   }
+
+  // Optimistic stock deduction in local DB
+  const updatedSnapshot = decrementOfflineFeriaStock(items, snapForValidation);
+  await db.feria_context.put({
+    id: 'current',
+    active: updatedSnapshot.active,
+    evento: updatedSnapshot.evento,
+    consignaciones: updatedSnapshot.consignaciones,
+    updated_at: Date.now(),
+  });
 }
 
 async function apiFetch(path: string, token: string, options?: RequestInit) {

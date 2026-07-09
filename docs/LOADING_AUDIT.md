@@ -81,7 +81,7 @@ Fuente: `packages/ui/src/components/view-loading.tsx`, `hexagon-loader.tsx`, `RE
 |------|-------------------------|--------|--------|
 | Dashboard shell | `app/(dashboard)/loading.tsx` | `ViewLoading page` | ✅ |
 | Paneles admin | `CreadoresAdminPanel`, `OperadoresFeriaPanel`, `TiendaPanel`, … | `ViewLoading view` | ✅ Mayoría |
-| Dashboards gerente | `DashboardEjecutivo`, `DashboardResumen` | `ViewLoading` + `LoadingOverlay` | ✅ Patrón óptimo refetch |
+| Dashboards admin | `DashboardEjecutivo`, `DashboardResumen` | `ViewLoading` + `LoadingOverlay` | ✅ Patrón óptimo refetch |
 | Vistas módulo | `LogisticaView`, `RegeneracionView`, `ContableHubView` | `ViewLoading` | ✅ |
 | SII / fiscal | `BandejaFiscalTab`, `DashboardTab`, … | `ViewLoading` + algunos `Loader2` | ⚠️ |
 | EIRL legacy | `ListaFacturas`, `ListaGastos`, `CalculosIA*` | `Loader2`, `Spinner`, `border spin` | ❌ Prioridad P1 |
@@ -230,7 +230,7 @@ Documentado junto a esta auditoría por coherencia operativa:
 |------|-------|
 | `/perfil/creador` | `creador_required` |
 | `/perfil/mayorista` | `aliado_activo_required` |
-| `/perfil/*` staff admin/gerente | `nucleo_staff_redirect` → `{NUCLEO}/ejecutivo` |
+| `/perfil/*` staff admin | `nucleo_staff_redirect` → `{NUCLEO}/ejecutivo` |
 | Contrato | `apps/tienda/lib/shop/store-routes.ts` |
 
 ---

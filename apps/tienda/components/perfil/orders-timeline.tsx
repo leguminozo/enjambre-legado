@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { CheckCircle, Clock, Package, Truck, XCircle, FileText } from 'lucide-react';
+import { CheckCircle, Clock, Package, Truck, XCircle, FileText, ShieldCheck } from 'lucide-react';
 import { formatCLP } from '@/lib/shop/format';
 import { getCourierLabel } from '@enjambre/logistica';
 import { formatDate as formatDateBase } from '@enjambre/ui';
@@ -23,6 +23,7 @@ export type OrderTimelineItem = {
     estado_sii: string;
     buyOrder: string;
   };
+  lotes?: string[];
 };
 
 function formatDate(iso: string) {
@@ -116,8 +117,8 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
                 <p className="mt-2 text-xs text-muted-foreground">ETA: {envio.eta}</p>
               ) : null}
 
-              {order.dte ? (
-                <div className="mt-4 pt-4 border-t border-border/50">
+              <div className="mt-4 flex flex-wrap gap-3 pt-4 border-t border-border/50">
+                {order.dte ? (
                   <a
                     href={`${process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3000'}/api/sii/boletas/${order.dte.buyOrder}/xml`}
                     target="_blank"
@@ -127,8 +128,18 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
                     <FileText size={14} />
                     <span>Boleta Electrónica</span>
                   </a>
-                </div>
-              ) : null}
+                ) : null}
+
+                {order.lotes && order.lotes.length > 0 ? (
+                  <Link
+                    href={`/perfil/trazabilidad?lote=${encodeURIComponent(order.lotes[0])}`}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-accent/20 border border-accent/30 text-accent rounded-xl hover:bg-accent hover:text-accent-foreground hover:shadow-glow transition-all"
+                  >
+                    <ShieldCheck size={14} />
+                    <span>Trazabilidad de Origen</span>
+                  </Link>
+                ) : null}
+              </div>
             </div>
           </article>
         );

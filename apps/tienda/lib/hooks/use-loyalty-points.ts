@@ -21,6 +21,7 @@ export function useLoyaltyPoints(totalCompra: number) {
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoyaltyData(null);
       return;
     }

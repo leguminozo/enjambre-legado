@@ -156,17 +156,17 @@ Numeracion secuencial. Incluir:
 - Toda tabla con datos de usuario **debe** tener RLS habilitado.
 - Al escribir consultas, considera siempre el rol del usuario (`profiles.role`).
 - La funcion `current_role()` retorna el rol del usuario autenticado.
-- La funcion `is_gerente()` checkea si el usuario es gerente.
+- La funcion `is_admin()` checkea si el usuario es admin.
 - La funcion `has_empresa_access()` checkea acceso multi-tenant.
 
 ```sql
 -- Patron RLS estandar
-CREATE POLICY "Apicultor ve solo sus datos"
+CREATE POLICY "Usuario ve solo sus datos"
   ON colmenas FOR SELECT
   TO authenticated
   USING (
-    current_role() = 'gerente'
-    OR apicultor_id = auth.uid()
+    current_role() = 'admin'
+    OR user_id = auth.uid()
   );
 ```
 
@@ -181,7 +181,7 @@ export function useMisColmenas() {
     queryFn: () => supabase
       .from('colmenas')
       .select('*')
-      .eq('apicultor_id', profile!.id),
+      .eq('user_id', profile!.id),
     enabled: !!profile?.id,
   })
 }
@@ -230,26 +230,7 @@ pnpm --filter @enjambre/campo build
 - Middleware con Supabase session + graceful error handling
 - Optimizado para uso tactil en terreno
 
-### 4.4 API (Hono)
 
-```bash
-pnpm --filter @enjambre/api dev
-pnpm --filter @enjambre/api build
-```
-
-- Middleware: auth → tenant → route
-- Usa `@enjambre/contable` para calculos tributarios
-- Nunca Service Role Key para operaciones de usuario
-
-### 4.5 EIRL (Next.js + Prisma)
-
-```bash
-pnpm --filter @enjambre/eirl dev
-pnpm --filter @enjambre/eirl build
-```
-
-- **Independiente**: SQLite + Prisma + NextAuth
-- No tocar si no es para contabilidad especifica
 
 ---
 

@@ -17,7 +17,7 @@
 
 ### Pendiente
 
-#### [ ] Perfil de Usuario "Guardian"
+#### [x] Perfil de Usuario "Guardian"
 - Pagina donde el cliente ve: historial de pedidos, impacto ambiental (arboles plantados), nivel de fidelizacion
 - Estetica: Tablero minimalista con visualizacion de datos (recharts)
 - Ruta: `/perfil` o `/mi-impacto`
@@ -39,19 +39,19 @@
 - El cliente ve: colmena de origen, fecha de cosecha, certificaciones, arboles financiados
 - Integrar con `blockchain_hash` de la colmena
 
-#### [ ] Reseñas en Tienda (Ola 1 — ver `PLAN_COLOSAL.md` §3)
-- [ ] PDP: sección reseñas con modo anónimo (rápido) vs guardian (huella sensorial)
-- [ ] Incentivo registro: elevar reseña anónima tras crear cuenta
-- [ ] Post-checkout: invitación a reseñar producto comprado
-- [ ] Perfil `/perfil/resenas` + moderación en Núcleo CRM
-- [ ] JSON-LD `aggregateRating` en producto
+#### [x] Reseñas en Tienda (Ola 1 — ver `PLAN_COLOSAL.md` §3)
+- [x] PDP: sección reseñas con modo anónimo (rápido) vs guardian (huella sensorial)
+- [x] Incentivo registro: elevar reseña anónima tras crear cuenta
+- [x] Post-checkout: invitación a reseñar producto comprado
+- [x] Perfil `/perfil/resenas` + moderación en Núcleo CRM
+- [x] JSON-LD `aggregateRating` en producto
 
-#### [ ] Fidelizacion "Guardian del Bosque"
-- Sistema de puntos por compra (cerrar loop checkout → fulfill)
-- Niveles con beneficios (descuentos, acceso a ediciones limitadas)
-- Visualizacion de impacto acumulado
-- **Sellos por producto** (compra X → 1 gratis) — ver `WALLET_GUARDIAN.md`
-- **Tarjeta Apple / Google Wallet** con progreso en tiempo real
+#### [x] Fidelizacion "Guardian del Bosque"
+- [x] Sistema de puntos por compra (cerrar loop checkout → fulfill)
+- [x] Niveles con beneficios (descuentos, acceso a ediciones limitadas)
+- [x] Visualizacion de impacto acumulado
+- [x] **Sellos por producto** (compra X → 1 gratis) — ver `WALLET_GUARDIAN.md`
+- [x] **Tarjeta Apple / Google Wallet** con progreso en tiempo real
 
 ---
 
@@ -65,7 +65,7 @@
 - [x] PWA con service worker y manifest
 - [x] TanStack Query para datos remotos
 - [x] Zustand para estado global
-- [x] Sidebar con 6 entradas nuevas: Caja, Reps, Comisiones, Invitaciones, Reglas Comisión, Leaderboard (roles gerente/tienda_admin)
+- [x] Sidebar con 6 entradas nuevas: Caja, Reps, Comisiones, Invitaciones, Reglas Comisión, Leaderboard (rol admin)
 - [x] `/caja` — CashSessionsPanel con CSV export + alertas Δ ≥$10K CLP
 - [x] `/reps` — RepsPanel con tier override (checkbox admin)
 - [x] `/comisiones` — ComisionesPanel con columnas Tier + Canal
@@ -76,7 +76,7 @@
 
 ### Pendiente
 
-#### [ ] Dashboard Ejecutivo (Gerente)
+#### [ ] Dashboard Ejecutivo (Admin)
 - KPIs en tiempo real: produccion, ventas, impacto ambiental, estado de colmenas
 - Graficos interactivos con recharts
 - Alertas automaticas (colmenas en riesgo, stock bajo)
@@ -100,9 +100,9 @@
 - Integrar Leaflet para capas adicionales
 - Notificaciones push para actualizaciones de envio
 
-#### [ ] CRM de Vendedores
+#### [ ] CRM de Representantes de Ventas (rep_ventas)
 - Historial de interacciones con clientes
-- Metricas de conversion por vendedor
+- Metricas de conversion por rep_ventas
 - Agenda de ferias y eventos
 
 ---

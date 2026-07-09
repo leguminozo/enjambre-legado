@@ -43,6 +43,16 @@ enjambre-legado/ (pnpm workspace + Turborepo)
 | |-- sumup/ SumUp POS integration
 | |
 | |-- banco-chile/ Banco Chile Empresas API client
+| |
+| |-- fiscal/ Soberania fiscal (emision DTE nativa)
+| |
+| |-- logistica/ Gestión de envíos y transportistas
+| |
+| |-- pricing/ Motor de precios (multiplicadores, fidelización)
+| |
+| |-- resenas/ Sistema dual de reseñas (anon/guardian)
+| |
+| |-- wallet/ Integración con Apple/Google Wallet
 |
 |-- apps/tienda/components/shop/ Componentes de tienda (18 archivos activos)
 |-- docs/ Documentacion (estas aqui)
@@ -151,7 +161,7 @@ POST {NUCLEO}/api/checkout/commit (BFF Hono en nucleo)
 |  → Marca sesión como 'completed'
 |  → get_ecosystem_metrics() refleja impacto CO2 real
 v
-Dashboard Nucleo (Vista Apicultor)
+Dashboard Nucleo (Vista Admin/Operaciones)
 |  → Refleja stock real de lotes en tiempo real
 ```
 
@@ -278,7 +288,7 @@ Prod verificada: `tienda-eta-lime.vercel.app`, `campo-olive.vercel.app`, `nucleo
 | `/contable` | admin | ContableView | Integracion contable via BFF |
 | `/eirl` | admin | EIRL views | Contabilidad EIRL (absorbido de apps/eirl) |
 | `/catalogo`, `/catalogo/productos` | admin | — | Catálogo y gestión de productos |
-| `/crm` | admin | CRMView | CRM vendedores |
+| `/crm` | admin | CRMView | CRM de Representantes de Venta (rep_ventas) |
 | `/ejecutivo` | admin | — | Dashboard ejecutivo |
 | `/comunidad` | admin | — | Gestión de comunidad |
 | `/operaciones` | admin | — | Operaciones logísticas |
@@ -302,7 +312,7 @@ Prod verificada: `tienda-eta-lime.vercel.app`, `campo-olive.vercel.app`, `nucleo
 - `/` Landing
 - `/login` Autenticacion
 - `/pos` POS principal (3 links: Venta Rapida, Carrito, Historial)
-- `/pos/catalogo` Catalogo POS (vendedor)
+- `/pos/catalogo` Catalogo POS (rep_ventas / admin)
 - `/pos/carrito` Carrito POS (integrado con cash session, channel + metodo_pago selectors)
 - `/pos/historial` Historial 4 tabs (Curva volumen, Comisiones, Sesiones caja, Ranking leaderboard)
 - `/api/pos/venta` POST (fallback local sin sesion de caja)
@@ -351,7 +361,7 @@ Prod verificada: `tienda-eta-lime.vercel.app`, `campo-olive.vercel.app`, `nucleo
 | `/api/cms` | `cms.ts` | CMS content management |
 | `/api/logistica` | `logistica.ts` | Logística y envíos |
 | `/api/produccion` | `produccion.ts` | Producción y trazabilidad |
-| `/api/crm` | `crm.ts` | CRM vendedores |
+| `/api/crm` | `crm.ts` | CRM de Representantes de Venta (rep_ventas) |
 | `/api/dashboard/ejecutivo` | `dashboard-ejecutivo.ts` | Dashboard ejecutivo |
 | `/api/health/*` | `health.ts` | Liveness, readiness |
 
@@ -370,7 +380,7 @@ Fuente de verdad del esquema. 10 migraciones que cubren:
 | # | Migracion | Dominio |
 |---|---|---|
 | 00 | Schema inicial | 20+ tablas base (identidad, apiarios, colmenas, productos, ventas, etc.) |
-| 01 | RLS policies | Roles, funciones `current_role()`, `is_gerente()` |
+| 01 | RLS policies | Roles, funciones `current_role()`, `is_admin()` |
 | 02 | Storage buckets | colmenas, productos, arboles (public), fuentes (restringido) |
 | 03 | Productos slug | Columna slug con indice unico parcial |
 | 04 | Integrations | Tabla de configuracion de servicios externos |
@@ -408,7 +418,7 @@ Ver [`packages/contable/README.md`](../packages/contable/README.md). **79 tests 
 
 ### 4.2.1 Soberania fiscal (plan `@enjambre/fiscal`)
 
-Estrategia: [`SOBERANIA_FISCAL.md`](./SOBERANIA_FISCAL.md). Pipeline: [`FISCAL_PIPELINE.md`](./FISCAL_PIPELINE.md). Emision e ingestión **nativas** — sin facturadores terceros.
+Estrategia y Pipeline Técnico: [`SOBERANIA_FISCAL.md`](./SOBERANIA_FISCAL.md). Emision e ingestión **nativas** — sin facturadores terceros.
 
 ### 4.3 `@enjambre/auth`
 
@@ -589,7 +599,7 @@ En el proceso de transición de datos mock/estáticos a flujos dinámicos con Su
 
 ### 8.5 Lecciones de Auditoría de la Fase 3
 Durante la preparación de la Fase 3 (Profundidad Funcional), se documentaron las siguientes vulnerabilidades y mejoras de diseño:
-- **Seguridad**: Las mutaciones en `apiarios` y `arboles_plantados` (inserts, updates, deletes) se realizan directamente desde el cliente Supabase utilizando la sesión activa. Se verificó que las políticas RLS restringen estas mutaciones a `user_id = auth.uid()` o a usuarios con rol `admin` (`public.is_gerente()` / `public.is_admin()`).
+- **Seguridad**: Las mutaciones en `apiarios` y `arboles_plantados` (inserts, updates, deletes) se realizan directamente desde el cliente Supabase utilizando la sesión activa. Se verificó que las políticas RLS restringen estas mutaciones a `user_id = auth.uid()` o a usuarios con rol `admin` (`public.is_admin()`).
 - **Funcionalidad (Formato de Fechas)**: Inicializar formularios con `new Date().toLocaleDateString('es-CL')` (formato localized tipo `DD-MM-YYYY`) causa fallos de parsing en columnas SQL de tipo `DATE`. Estandarizar en `new Date().toISOString().split('T')[0]` (formato ISO `YYYY-MM-DD`) garantiza la compatibilidad en base de datos.
 - **Funcionalidad (Consistencia de Íconos)**: La falta de mapeo de llaves de íconos de la barra lateral (como `'contact'` para CRM) en `LUCIDE_MAP` de `Sidebar.tsx` degrada la interfaz al renderizar elementos vacíos.
 - **Eficiencia**: Las mutaciones de coordenadas geográficas en marcadores Leaflet deben realizarse a través de una única llamada `update` acotada en `dragend`, evitando recargas masivas o re-fetching de la base de datos completa.

@@ -15,6 +15,7 @@ import { createPortal } from 'react-dom';
 import { useUserNotifications } from '@/lib/hooks/use-user-notifications';
 import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
 import { isActiveNavHref, PUBLIC_NAV } from '@/lib/shop/store-routes';
+import { usePwaStandalone } from '@/lib/hooks/use-pwa-standalone';
 
 export function ShopHeader() {
   const { itemCount } = useCartLines();
@@ -30,6 +31,7 @@ export function ShopHeader() {
   const panelRef = useRef<HTMLDivElement>(null);
   const closeMenu = () => setOpen(false);
   const [realtimeOn, setRealtimeOn] = useState(false);
+  const isPwa = usePwaStandalone();
   const { notifications, markRead, markAllRead, isLoading, error } = useUserNotifications(user?.id, {
     enableRealtime: realtimeOn,
   });
@@ -46,6 +48,18 @@ export function ShopHeader() {
   useEffect(() => {
     if (notifOpen) setOpen(false);
   }, [notifOpen]);
+
+  // Fallback para browsers sin soporte :has() — marca el <body> para el CSS legacy
+  useEffect(() => {
+    if (isPwa) {
+      document.body.classList.add('pwa-standalone');
+    } else {
+      document.body.classList.remove('pwa-standalone');
+    }
+    return () => {
+      document.body.classList.remove('pwa-standalone');
+    };
+  }, [isPwa]);
 
   const toggleMenu = () => {
     setOpen((prev) => {
@@ -66,11 +80,12 @@ export function ShopHeader() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between">
         <button
           type="button"
-          className="md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-accent transition-colors"
+          className="tienda-shop-header-burger md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-accent transition-colors"
           onClick={toggleMenu}
           aria-controls="tienda-mobile-nav-panel"
           aria-label={open ? tHeader('closeMenu') : tHeader('openMenu')}
           aria-expanded={open}
+          aria-hidden={isPwa}
         >
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>

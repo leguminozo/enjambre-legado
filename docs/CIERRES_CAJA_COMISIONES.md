@@ -6,7 +6,7 @@
 
 ## 0. Resumen Ejecutivo
 
-Este módulo convierte la app Campo en una herramienta completa de venta en terreno donde un **rep de ventas** (contrato de honorarios) opera de forma autónoma: abre caja, registra ventas en 3 toques, ve sus comisiones crecer en tiempo real, y cierra caja con trazabilidad fiscal. El admin (gerente/tienda_admin) gestiona todo desde Nucleo: crea códigos de invitación para onboarding, asigna roles, configura reglas de comisión, reconcilia cajas y paga comisiones.
+Este módulo convierte la app Campo en una herramienta completa de venta en terreno donde un **rep de ventas** (contrato de honorarios) opera de forma autónoma: abre caja, registra ventas en 3 toques, ve sus comisiones crecer en tiempo real, y cierra caja con trazabilidad fiscal. El admin gestiona todo desde Nucleo: crea códigos de invitación para onboarding, asigna roles, configura reglas de comisión, reconcilia cajas y paga comisiones.
 
 ---
 
@@ -15,7 +15,7 @@ Este módulo convierte la app Campo en una herramienta completa de venta en terr
 ```
 auth.users
 ├── profiles (role: 'rep_ventas')
-├── user_roles (apilable: rep_ventas + vendedor + etc.)
+├── user_roles (apilable: rep_ventas + etc.)
 ├── usuarios_empresas (multi-tenant)
 ├── rep_profiles (extensión: tier, stats, streak)
 │   └── cash_sessions (una/día, trazabilidad)
@@ -73,7 +73,7 @@ auth.users
 | `apps/nucleo/src/components/invitaciones/InvitacionesPanel.tsx` | CRUD códigos + historial redenciones |
 | `apps/nucleo/src/components/reglas-comision/ReglasComisionPanel.tsx` | Editor 6 rule_types (editores especiales channel_rate + tier_bonus) |
 | `apps/nucleo/src/components/leaderboard/LeaderboardPanel.tsx` | Admin leaderboard: stat cards + top 3 + tabla completa |
-| `apps/nucleo/src/components/layout/Sidebar.tsx` | 6 entradas nuevas filtradas por rol (gerente/tienda_admin) |
+| `apps/nucleo/src/components/layout/Sidebar.tsx` | 6 entradas nuevas filtradas por rol (admin) |
 | `apps/nucleo/app/(dashboard)/leaderboard/page.tsx` | Ruta leaderboard |
 
 ---
@@ -85,7 +85,7 @@ auth.users
 |---|---|---|
 | `id` | UUID PK | |
 | `empresa_id` | UUID FK → empresas | Multi-tenant |
-| `rep_id` | UUID FK → auth.users | Vendedor |
+| `rep_id` | UUID FK → auth.users | Representante de Ventas (rep_ventas) |
 | `opened_at` | TIMESTAMPTZ | Timestamp apertura |
 | `closed_at` | TIMESTAMPTZ | Timestamp cierre |
 | `opening_cash` | NUMERIC(19,4) | Efectivo declarado al abrir |
@@ -295,7 +295,7 @@ Cada INSERT en `ventas` con `cash_session_id` dispara:
 |---|---|---|---|---|
 | `cash_sessions` | rep propio + admin | rep (abrir) | rep (propios, open) + admin (closed/reconciled) | bloqueado |
 | `commission_records` | rep propio + admin | service_role / admin | admin (paid/paid_at) | bloqueado |
-| `commission_rules` | `has_empresa_access()` | admin (gerente/tienda_admin) | admin | solo gerente |
+| `commission_rules` | `has_empresa_access()` | admin | admin | admin |
 | `invitation_codes` | admin | admin | admin | admin |
 | `invitation_redemptions` | admin | service_role / auth.uid()=user_id | — | — |
 | `rep_profiles` | propio + admin | propio (auth.uid()=user_id) | propio (activo) + admin | bloqueado (soft-delete) |
@@ -320,7 +320,7 @@ Cada INSERT en `ventas` con `cash_session_id` dispara:
 - [x] Página `/invitaciones` en Nucleo: CRUD de códigos + historial de redenciones
 - [x] Página `/comisiones` en Nucleo: tabla de comisiones con pago masivo
 - [x] Página `/reglas-comision` en Nucleo: editor de reglas con preview
-- [x] Sidebar entries nuevas filtradas por rol (gerente/tienda_admin)
+- [x] Sidebar entries nuevas filtradas por rol (admin)
 
 ### Fase 3 — UI Rep en Campo ✅
 - [x] Integrar `CashProvider` en el layout del POS (`apps/campo/src/app/pos/layout.tsx`)

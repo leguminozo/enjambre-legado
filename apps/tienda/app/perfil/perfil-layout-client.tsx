@@ -20,6 +20,11 @@ interface PerfilLayoutClientProps {
 export function PerfilLayoutClient({ children, user, role, participacion }: PerfilLayoutClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  React.useEffect(() => {
+    document.body.classList.add('perfil-shell-active');
+    return () => document.body.classList.remove('perfil-shell-active');
+  }, []);
+
   return (
     <div className="flex w-full h-full overflow-hidden relative">
       <BeeCanvas />

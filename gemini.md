@@ -24,8 +24,8 @@ Este archivo define las reglas arquitectonicas, metodologicas y de codificacion 
 - Lo que se usa en 2+ apps pertenece a un `package`.
 
 ## 4. FLUJO DE DATOS OFFLINE-FIRST (CAMPO)
-- **Offline-first es planificado pero no implementado.** Campo actualmente usa Supabase directamente.
-- Futuro: UI Component → Custom Hook → Dexie DB → Sync Queue → Supabase
+- **Offline-first está implementado y activo.** Campo usa una arquitectura basada en Dexie para persistencia local en zonas sin conectividad.
+- Flujo: UI Component → Custom Hook → Dexie DB (`apps/campo/src/lib/offline/db.ts`) → Sync Queue → Supabase
 
 ## 5. CONVENCIONES DE CODIGO
 - **Componentes**: `PascalCase.tsx`. Named exports (`export function MiComp()`). Prohibido `export default`.
@@ -38,7 +38,7 @@ Este archivo define las reglas arquitectonicas, metodologicas y de codificacion 
 ## 6. DOMINIOS CLAVE
 - **Tienda**: E-commerce premium con Transbank + CMS dinamico
 - **Nucleo**: Dashboard multi-rol con mapas (Leaflet + PostGIS), Hono BFF + contable
-- **Campo**: PWA para campo (apicultor/vendedor/rep_ventas), offline-first planificado
+- **Campo**: PWA para campo (apicultor/vendedor/rep_ventas), offline-first activo (Dexie)
 - **Contable**: IVA 19%, RUT chileno, facturas (Zod schemas)
 
 ## 7. REGLAS DE RESPUESTA

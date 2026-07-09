@@ -111,7 +111,7 @@ Living log of technical decisions. Format: Date | Decision | Rationale | Alterna
 - Adaptador API Wasabil para time-to-market — **rejected** (contradice estrategia de marca y dependencia).
 - Solo facturador manual SII sin software — **rejected** (no escala rentabilidad).
 
-**Implementation path**: Ver [`docs/SOBERANIA_FISCAL.md`](./SOBERANIA_FISCAL.md) y [`docs/FISCAL_PIPELINE.md`](./FISCAL_PIPELINE.md). Ola 1: cablear UI → emisión → poll → RCV. Ola 2: `@enjambre/fiscal` + upload PDF + bandeja.
+**Implementation path**: Ver [`docs/SOBERANIA_FISCAL.md`](./SOBERANIA_FISCAL.md). Ola 1: cablear UI → emisión → poll → RCV. Ola 2: `@enjambre/fiscal` + upload PDF + bandeja.
 
 **Status**: OLA 1 COMPLETE — S1.1–S1.6 (Jun 2026). Ver `TECHNICAL_DEBT.md` D66. Siguiente: Ola 2 documental.
 
@@ -186,7 +186,7 @@ Living log of technical decisions. Format: Date | Decision | Rationale | Alterna
 **Rationale**: CAF exhaustion stops sales in real-time (no DTEs can be emitted). F29 is monthly, can be manual initially. Operational impact of CAF exhaustion > F29 automation.
 **Required**: Cron job checking `caf_folios_disponibles < 50` → alert; checkout pause when folios < 10.
 **Alternatives Considered**: F29 automation first — rejected (lower operational risk).
-**Status**: TODO — Week 2 Days 8-9
+**Status**: COMPLETED — Implementado vía `assertCafAvailable` y alertas en el cron fiscal.
 
 ---
 
@@ -217,7 +217,7 @@ Living log of technical decisions. Format: Date | Decision | Rationale | Alterna
 ## 2026-06-14 | DTE Pipeline: Async Emission with Retry on Payment Confirmed
 **Decision**: Hook `facturas_emitidas` into checkout success → emit DTE asynchronously with retry logic (not blocking checkout response).
 **Rationale**: SII requires DTE on sale. Sync emission blocks user, fails on SII downtime. Async with retry + idempotency = resilient compliance.
-**Status**: TODO — Week 2 Days 6-7
+**Status**: COMPLETED — Ola 1 (Async emit by default via SII_ASYNC_EMIT)
 
 ---
 
@@ -228,7 +228,7 @@ Living log of technical decisions. Format: Date | Decision | Rationale | Alterna
 - CI pipeline: lint → typecheck → test → build
 **Rationale**: 3 API tests in Nucleo = effectively zero coverage. Need confidence for payments + auth.
 **Target**: >60% unit coverage on business logic; 5 critical E2E paths.
-**Status**: TODO — Week 3 Days 11-12
+**Status**: IN_PROGRESS — Vitest completed for @enjambre/contable (79 tests), Playwright E2E pending
 
 ---
 

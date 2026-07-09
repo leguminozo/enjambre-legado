@@ -1,0 +1,5 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "model": "anthropic/claude-sonnet",
+  "default_agent": "general"
+}

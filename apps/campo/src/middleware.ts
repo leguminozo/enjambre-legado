@@ -3,6 +3,8 @@ import { getInternalApiSecret } from '@enjambre/auth/internal-api-secret';
 import { updateSession } from '@/utils/supabase/middleware';
 import { isSupabaseConfigured } from '@/utils/supabase/env';
 
+import { LEGACY_ROLE_MAP, type RoleKey } from '@enjambre/auth/role-redirect';
+
 const PROTECTED_PREFIXES = ['/pos'];
 const PUBLIC_PATHS = ['/', '/login', '/setup-error'];
 
@@ -54,12 +56,24 @@ export async function middleware(request: NextRequest) {
 
     const { response, user } = await updateSession(request);
 
-    if (isProtected(path) && !user) {
-      logAccessDenied(request, '');
+    if (isProtected(path)) {
+      if (!user) {
+        logAccessDenied(request, '');
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('redirect', path);
+        return NextResponse.redirect(loginUrl);
+      }
 
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', path);
-      return NextResponse.redirect(loginUrl);
+      const rawRole = (user.app_metadata?.role as string) ?? 'cliente';
+      const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as RoleKey;
+      
+      const allowedRoles = ['admin', 'rep_ventas'];
+      if (!allowedRoles.includes(role)) {
+        logAccessDenied(request, user.email ?? '');
+        // Redirect unauthorized users (e.g. clientes) out of Campo
+        const redirectUrl = process.env.NEXT_PUBLIC_URL_TIENDA || '/';
+        return NextResponse.redirect(redirectUrl);
+      }
     }
 
     return response;

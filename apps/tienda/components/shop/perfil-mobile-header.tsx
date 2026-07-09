@@ -16,7 +16,7 @@ export function PerfilMobileHeader({ onOpenMenu }: PerfilMobileHeaderProps) {
   const { itemCount } = useCartLines();
 
   return (
-    <header className="tienda-shop-header lg:hidden flex items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-md">
+    <header className="perfil-mobile-header lg:hidden flex items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-md">
       <Link href="/perfil" className="flex flex-col min-w-0 group">
         <span className="font-display text-[0.6rem] tracking-[0.28em] uppercase text-accent leading-none">
           {tNav('legacy')}

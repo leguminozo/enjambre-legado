@@ -175,7 +175,7 @@ created_at        TIMESTAMPTZ DEFAULT now()
 - `INSERT` anónima: vía **BFF** `service_role` tras validación (no insert directo cliente).
 - `INSERT` guardian: `auth.uid() = user_id`.
 - `SELECT` público: solo `estado = 'aprobada'`.
-- Admin: gerente modera en Núcleo.
+- Admin: admin modera en Núcleo.
 
 ### 3.4 API (Núcleo BFF)
 

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi, afterEach } from 'vitest';
 import {
   friendlyCheckoutApiMessage,
   isCheckoutConfigError,
@@ -6,9 +6,12 @@ import {
 } from './checkout-errors';
 
 describe('friendlyCheckoutApiMessage', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('maps missing supabase in dev', () => {
-    const prev = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'development';
+    vi.stubEnv('NODE_ENV', 'development');
     expect(
       friendlyCheckoutApiMessage(
         'quote_failed',
@@ -16,12 +19,10 @@ describe('friendlyCheckoutApiMessage', () => {
         'quote',
       ),
     ).toContain('SUPABASE_SERVICE_ROLE_KEY');
-    process.env.NODE_ENV = prev;
   });
 
   it('hides supabase details in production', () => {
-    const prev = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'production';
+    vi.stubEnv('NODE_ENV', 'production');
     expect(
       friendlyCheckoutApiMessage(
         'quote_failed',
@@ -29,7 +30,6 @@ describe('friendlyCheckoutApiMessage', () => {
         'quote',
       ),
     ).toContain('actualizando');
-    process.env.NODE_ENV = prev;
   });
 
   it('maps csrf forbidden', () => {

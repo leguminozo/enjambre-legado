@@ -12,12 +12,13 @@ import { resolveClienteCoords } from '@/lib/cliente-coords';
 
 export interface MapMarker {
     id: string;
-    type: 'obrera' | 'zangano' | 'nectar' | 'tree' | 'feria';
+    type: 'obrera' | 'zangano' | 'nectar' | 'tree' | 'feria' | 'transito' | 'alta_produccion';
     name: string;
     lat: number;
     lng: number;
     health?: 'optimal' | 'attention' | 'risk';
     details?: string;
+    alzas?: number;
 }
 
 // Fix Leaflet default icon issue
@@ -56,6 +57,18 @@ function createCustomIcon(marker: MapMarker): L.DivIcon {
 <span style="font-size:11px;transform:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)">📍</span>
 </div>`,
     },
+    transito: {
+      className: 'marker-obrera',
+      html: `<div class="marker-nectar-inner" style="background:hsl(var(--info, var(--primary)));border-color:hsl(var(--info-foreground, var(--primary-foreground)));display:flex;align-items:center;justify-content:center;">
+<span style="font-size:12px;transform:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)">📦</span>
+</div>`,
+    },
+    alta_produccion: {
+      className: 'marker-obrera',
+      html: `<div class="marker-obrera-inner health-optimal" style="box-shadow: 0 0 15px 5px hsl(var(--accent) / 0.8); transform: scale(1.2);">
+<span style="rotate:45deg;font-size:14px;">🌟</span>
+</div>`,
+    },
   };
 
   const { className, html } = configs[marker.type] ?? {
@@ -79,6 +92,8 @@ function getMarkerTypeLabel(type: string): string {
         case 'nectar': return '💧 Punto de Venta';
         case 'tree': return '🌳 Bosque Regenerado';
         case 'feria': return '📍 Feria / Evento';
+        case 'transito': return '📦 En Tránsito';
+        case 'alta_produccion': return '🌟 Alta Producción';
         default: return '';
     }
 }
@@ -141,6 +156,8 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
     // Filter toggles
     const [showApiarios, setShowApiarios] = useState(true);
     const [showTrees, setShowTrees] = useState(true);
+    const [showTransito, setShowTransito] = useState(true);
+    const [showAltaProduccion, setShowAltaProduccion] = useState(true);
 
     useEffect(() => {
         async function loadMaps() {
@@ -158,6 +175,14 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                     .select('id, name, type, status, total_spent, notes')
                     .in('type', ['B2B', 'Retail', 'Gourmet', 'Exportación'])
                     .in('status', ['activo', 'frecuente']);
+                const { data: ventasTransito } = await supabase
+                    .from('ventas')
+                    .select('id, direccion_envio, productos')
+                    .in('estado', ['en_transito', 'En tránsito']);
+                const { data: colmenas } = await supabase
+                    .from('colmenas')
+                    .select('id, apiario_id, alzas')
+                    .gte('alzas', 2);
 
                 setEvents(evts ?? []);
 
@@ -214,6 +239,50 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                         details: spent > 0 ? `Cliente activo · $${Math.round(spent).toLocaleString('es-CL')}` : 'Punto de venta',
                     });
                 });
+
+                // 📦 En Tránsito
+                ventasTransito?.forEach((v: Record<string, unknown>) => {
+                    if (v.direccion_envio) {
+                        const dirObj = typeof v.direccion_envio === 'string' ? JSON.parse(v.direccion_envio) : v.direccion_envio;
+                        const region = dirObj?.region || '';
+                        const ciudad = dirObj?.ciudad || dirObj?.comuna || '';
+                        
+                        const coords = resolveClienteCoords(region, ciudad, '');
+                        if (coords) {
+                            // Add a little randomness so they don't stack perfectly
+                            const jitterLat = (Math.random() - 0.5) * 0.02;
+                            const jitterLng = (Math.random() - 0.5) * 0.02;
+                            markers.push({
+                                id: `transito-${String(v.id)}`,
+                                lat: coords.lat + jitterLat,
+                                lng: coords.lng + jitterLng,
+                                type: 'transito',
+                                name: `Pedido en ruta (${ciudad})`,
+                                details: 'En camino al destino',
+                            });
+                        }
+                    }
+                });
+
+                // 🌟 Alta Producción
+                const apiariosAltaProd = new Set<string>();
+                colmenas?.forEach((c: Record<string, unknown>) => {
+                    if (c.apiario_id) {
+                        apiariosAltaProd.add(String(c.apiario_id));
+                    }
+                });
+                
+                // Modificamos los marcadores de apiarios que tienen colmenas de alta producción
+                markers.forEach(m => {
+                    if (m.type === 'obrera' && m.id.startsWith('api-')) {
+                        const originalId = m.id.substring(4);
+                        if (apiariosAltaProd.has(originalId)) {
+                            m.type = 'alta_produccion';
+                            m.details = m.details ? `${m.details} | Contiene Súper-Colmenas (+2 alzas)` : 'Contiene Súper-Colmenas (+2 alzas)';
+                        }
+                    }
+                });
+
                 setLiveMarkers(markers);
             } catch (err) {
                 toast(friendlyError(err, 'Error al cargar datos del mapa'), { type: 'error' });
@@ -398,17 +467,24 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
     };
 
     // Filter markers based on role and user toggles
-    let filteredMarkers = liveMarkers;
+    let filteredMarkers = liveMarkers.map(m => ({...m})); // clone to allow mutation
     if (filterRole === 'apicultor') {
-        filteredMarkers = liveMarkers.filter(m => m.type === 'obrera' || m.type === 'tree' || m.type === 'zangano');
+        filteredMarkers = filteredMarkers.filter(m => m.type === 'obrera' || m.type === 'tree' || m.type === 'zangano' || m.type === 'alta_produccion');
     } else if (filterRole === 'vendedor') {
-        filteredMarkers = liveMarkers.filter(m => m.type === 'nectar' || m.type === 'feria');
+        filteredMarkers = filteredMarkers.filter(m => m.type === 'nectar' || m.type === 'feria' || m.type === 'transito');
     }
     if (!showApiarios) {
-        filteredMarkers = filteredMarkers.filter(m => m.type !== 'obrera');
+        filteredMarkers = filteredMarkers.filter(m => m.type !== 'obrera' && m.type !== 'alta_produccion');
+    } else if (!showAltaProduccion) {
+        filteredMarkers.forEach(m => {
+            if (m.type === 'alta_produccion') m.type = 'obrera';
+        });
     }
     if (!showTrees) {
         filteredMarkers = filteredMarkers.filter(m => m.type !== 'tree');
+    }
+    if (!showTransito) {
+        filteredMarkers = filteredMarkers.filter(m => m.type !== 'transito');
     }
 
     // Chiloé center
@@ -444,6 +520,30 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                             }}
                         >
                             🌳 Árboles
+                        </button>
+                        <button
+                            onClick={() => setShowTransito(!showTransito)}
+                            className={`btn btn-sm ${showTransito ? 'btn-primary' : 'btn-ghost'}`}
+                            style={{ 
+                                padding: '4px 10px', 
+                                fontSize: '0.72rem',
+                                background: showTransito ? 'hsl(var(--info, var(--primary)))' : 'transparent',
+                                color: showTransito ? 'hsl(var(--info-foreground, var(--primary-foreground)))' : 'hsl(var(--foreground))'
+                            }}
+                        >
+                            📦 En Tránsito
+                        </button>
+                        <button
+                            onClick={() => setShowAltaProduccion(!showAltaProduccion)}
+                            className={`btn btn-sm ${showAltaProduccion ? 'btn-primary' : 'btn-ghost'}`}
+                            style={{ 
+                                padding: '4px 10px', 
+                                fontSize: '0.72rem',
+                                background: showAltaProduccion ? 'hsl(var(--accent))' : 'transparent',
+                                color: showAltaProduccion ? 'hsl(var(--accent-foreground, var(--primary-foreground)))' : 'hsl(var(--foreground))'
+                            }}
+                        >
+                            🌟 Alta Producción
                         </button>
                     </div>
 

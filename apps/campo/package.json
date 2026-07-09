@@ -22,6 +22,7 @@
     "@supabase/supabase-js": "^2.106.1",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "clsx": "^2.1.1",
     "dexie": "^4.4.3",
     "dexie-react-hooks": "^4.4.0",
     "lucide-react": "^1.16.0",
@@ -29,7 +30,8 @@
     "qrcode.react": "^4.2.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "serwist": "^9.5.11"
+    "serwist": "^9.5.11",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
