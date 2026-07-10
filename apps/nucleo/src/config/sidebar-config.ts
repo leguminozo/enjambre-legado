@@ -70,6 +70,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Alquimista del panal',
         mission: 'La miel sin historia vale la mitad',
       },
+      {
+        key: 'editor-tienda',
+        label: 'Editor Tienda',
+        icon: 'layout-template',
+        href: '/editor-tienda',
+        greeting: 'Director de marca',
+        mission: 'La estética del panal define su valor',
+      },
         {
           key: 'costeo',
           label: 'Costeo',
@@ -180,6 +188,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
           mission: 'Cada cliente es una historia que se cultiva',
         },
         {
+          key: 'punto-venta',
+          label: 'Punto de Venta',
+          icon: 'store',
+          href: '/punto-venta',
+          greeting: 'Vendedor en terreno',
+          mission: 'Cada sachet entregado planta un bosque',
+        },
+        {
           key: 'pipeline',
           label: 'Pipeline Ventas',
           icon: 'trending-up',
@@ -263,6 +279,8 @@ export const VIEW_SHELL_PATHS = new Set([
   '/invitaciones',
   '/operadores-feria',
   '/creador',
+  '/editor-tienda',
+  '/punto-venta',
 ])
 
 export function routeUsesViewShell(pathname: string): boolean {

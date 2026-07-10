@@ -16,7 +16,7 @@ import {
   EyeOff,
   ExternalLink,
 } from 'lucide-react';
-import { toast, ImmersiveModal, OverlayFullscreen } from '@enjambre/ui';
+import { toast, ImmersiveModal } from '@enjambre/ui';
 import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/use-cms-content';
 import { getUrlTienda } from '@/lib/publicUrls';
 
@@ -433,14 +433,9 @@ function ItemsPanel({
   );
 }
 
-// ── StoreEditorModal (main) ────────────────────────────────────────────────
+// ── EditorTiendaView (main) ────────────────────────────────────────────────
 
-interface StoreEditorModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export function StoreEditorModal({ isOpen, onClose }: StoreEditorModalProps) {
+export function EditorTiendaView() {
   const cms = useCMSContent();
   const [activeSection, setActiveSection] = useState<string>('colecciones');
   const [iframeKey, setIframeKey] = useState(0);
@@ -450,12 +445,12 @@ export function StoreEditorModal({ isOpen, onClose }: StoreEditorModalProps) {
 
   // Derive default JSON from section template
   const defaultTemplate = SECTION_TEMPLATES[activeSection] ?? { title: '', desc: '' };
-  const [newContent, setNewContent] = useState(JSON.stringify(defaultTemplate, null, 2));
+  const [newContent, setNewContent] = useState<Record<string, unknown>>(defaultTemplate);
 
   // Update template when section changes
   useEffect(() => {
     const template = SECTION_TEMPLATES[activeSection] ?? { title: '', desc: '' };
-    setNewContent(JSON.stringify(template, null, 2));
+    setNewContent(template);
   }, [activeSection]);
 
   // Detect mobile
@@ -527,9 +522,8 @@ export function StoreEditorModal({ isOpen, onClose }: StoreEditorModalProps) {
 
   const handleCreateItem = () => {
     try {
-      const parsed = JSON.parse(newContent) as Record<string, unknown>;
       cms.createItem.mutate(
-        { section_key: activeSection as CMSSectionKey, content: parsed },
+        { section_key: activeSection as CMSSectionKey, content: newContent },
         {
           onSuccess: () => {
             toast('Elemento añadido', { type: 'success' });
@@ -540,31 +534,18 @@ export function StoreEditorModal({ isOpen, onClose }: StoreEditorModalProps) {
         },
       );
     } catch {
-      toast('JSON inválido — revisa el formato', { type: 'error' });
+      toast('Error al crear elemento', { type: 'error' });
     }
   };
 
   const tiendaUrl = getUrlTienda();
 
-  if (!isOpen) return null;
-
   return (
-    <OverlayFullscreen
-      open
-      onClose={onClose}
-      ariaLabel="Editor de tienda visual"
-      panelClassName="border-0"
-    >
+    <div className="flex-1 flex flex-col h-[calc(100vh-120px)] -mt-2 mb-4 mx-0 lg:-mx-4 bg-background border border-border rounded-xl overflow-hidden shadow-lg relative z-10 animate-in fade-in zoom-in-95 duration-300">
       {/* ── Top bar ── */}
       <div className="h-14 border-b border-border bg-surface flex items-center justify-between px-4 shrink-0 shadow-sm z-10 gap-3">
         <div className="flex items-center gap-2 min-w-0">
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors shrink-0"
-          >
-            <X size={18} />
-          </button>
-          <span className="font-display font-medium text-base text-foreground truncate hidden sm:block">
+          <span className="font-display font-medium text-base text-foreground truncate">
             Editor de Tienda
           </span>
           {cms.isLoading && <Loader2 size={14} className="animate-spin text-accent shrink-0" />}
@@ -757,16 +738,23 @@ export function StoreEditorModal({ isOpen, onClose }: StoreEditorModalProps) {
         }
       >
         <p className="text-xs text-muted-foreground mb-3">
-          Estructura inicial en JSON. Los campos con <code className="text-accent">image</code> o <code className="text-accent">src</code> permiten subir fotos.
+          Completa los campos a continuación para añadir un nuevo elemento. Los campos con <code className="text-accent">image</code> o <code className="text-accent">src</code> permitirán subir fotos luego.
         </p>
-        <textarea
-          value={newContent}
-          onChange={(e) => setNewContent(e.target.value)}
-          rows={10}
-          className="w-full bg-background border border-border rounded-lg p-3 text-xs text-foreground font-mono resize-y focus:outline-none focus:ring-2 focus:ring-accent"
-          spellCheck={false}
-        />
+        <div className="space-y-4">
+          {Object.entries(newContent).map(([key, val]) => (
+            <div key={key} className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                {key}
+              </label>
+              <ContentFieldEditor
+                fieldKey={key}
+                value={val}
+                onChange={(v) => setNewContent((prev) => ({ ...prev, [key]: v }))}
+              />
+            </div>
+          ))}
+        </div>
       </ImmersiveModal>
-    </OverlayFullscreen>
+    </div>
   );
 }

@@ -14,13 +14,13 @@ function toOrigin(url: string): string | null {
 }
 
 export function getUrlTienda(): string {
-  const v = process.env.NEXT_PUBLIC_URL_TIENDA;
-  return typeof v === 'string' ? v.trim() : '';
+  const v = process.env.NEXT_PUBLIC_URL_TIENDA || process.env.NEXT_PUBLIC_TIENDA_URL;
+  return typeof v === 'string' && v.trim() ? v.trim() : CANONICAL_PRODUCTION_URLS.tienda;
 }
 
 export function getUrlCampo(): string {
-  const v = process.env.NEXT_PUBLIC_URL_CAMPO;
-  return typeof v === 'string' ? v.trim() : '';
+  const v = process.env.NEXT_PUBLIC_URL_CAMPO || process.env.NEXT_PUBLIC_CAMPO_URL;
+  return typeof v === 'string' && v.trim() ? v.trim() : CANONICAL_PRODUCTION_URLS.campo;
 }
 
 /** Orígenes permitidos para CSRF — env + producción canónica */

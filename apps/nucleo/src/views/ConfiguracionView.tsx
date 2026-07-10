@@ -25,7 +25,7 @@ import {
   type NotificationChannel,
   type NotificationPreferences,
 } from '@enjambre/auth/notification-preferences';
-import { StoreEditorModal } from '@/components/cms/StoreEditorModal';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { ViewShell } from '@/components/layout/ViewShell';
 
@@ -46,8 +46,7 @@ interface DataStats {
 export function ConfiguracionView() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   
-  // Modal state for Store Editor
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const router = useRouter();
   
   const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES);
   const [notifLoading, setNotifLoading] = useState(true);
@@ -186,7 +185,7 @@ export function ConfiguracionView() {
             </p>
 
             <button
-              onClick={() => setIsEditorOpen(true)}
+              onClick={() => router.push('/editor-tienda')}
               className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
             >
               <LayoutTemplate size={18} />
@@ -279,10 +278,6 @@ export function ConfiguracionView() {
         </section>
       </div>
 
-      <StoreEditorModal 
-        isOpen={isEditorOpen} 
-        onClose={() => setIsEditorOpen(false)} 
-      />
     </div>
   );
 }

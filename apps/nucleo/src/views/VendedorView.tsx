@@ -20,6 +20,7 @@ import { ViewShell } from '@/components/layout/ViewShell';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { CRMDashboard } from '@/views/crm/types';
+import { useRouter } from 'next/navigation';
 
 function mapProductoRow(p: Record<string, unknown>): Product {
   const precio = Number(p.precio) || 0;
@@ -96,10 +97,7 @@ export function VendedorView() {
   const [selectedPitch, setSelectedPitch] = useState('🏋️ Deportista');
   const [showQR, setShowQR] = useState(false);
   const [crmExpanded, setCrmExpanded] = useState(false);
-  const [showPos, setShowPos] = useState(false);
-  const [loadingPos, setLoadingPos] = useState(false);
-  const [posMetodoPago, setPosMetodoPago] = useState<'efectivo' | 'transferencia' | 'tarjeta' | 'pos_terminal' | 'mixto'>('efectivo');
-  const [posCart, setPosCart] = useState<Record<string, number>>({});
+  
   const [showAddClient, setShowAddClient] = useState(false);
   const [newClientForm, setNewClientForm] = useState({ name: '', type: 'Particular', purchases: 0, level: 'Guardián Bronce', lastOrder: 'Ninguna' });
 
@@ -113,6 +111,7 @@ export function VendedorView() {
   const [interaccionesRuta, setInteraccionesRuta] = useState<Record<string, unknown>[]>([]);
   const [ventasList, setVentasList] = useState<Record<string, unknown>[]>([]);
   const apiFetch = useApiFetch();
+  const router = useRouter();
 
   useEffect(() => {
     async function loadData() {
@@ -276,26 +275,6 @@ export function VendedorView() {
     setNewClientForm({ name: '', type: 'Particular', purchases: 0, level: 'Guardián Bronce', lastOrder: 'Ninguna' });
   };
 
-  const addToCart = (id: string, step: number = 1) => {
-    setPosCart(prev => {
-      const current = prev[id] || 0;
-      const next = current + step;
-      if (next <= 0) {
-        const copy = { ...prev };
-        delete copy[id];
-        return copy;
-      }
-      return { ...prev, [id]: next };
-    });
-  };
-
-  const cartTotal = Object.entries(posCart).reduce((sum, [id, qty]) => {
-    const p = products.find(prod => prod.id === id);
-    return sum + (p?.price || 0) * qty;
-  }, 0);
-
-  const cartItemsCount = Object.values(posCart).reduce((a, b) => a + b, 0);
-
   const displayedClients = crmExpanded ? localClients : localClients.slice(0, 4);
 
   const displayedProducts = showFullCatalog ? products : products.slice(0, 4);
@@ -322,114 +301,6 @@ export function VendedorView() {
             {qrLote ? qrLote.label : 'Sin lote activo — registra un QR o asigna lote_activo a una colmena'}
           </div>
         </div>
-      </ImmersiveModal>
-
-      <ImmersiveModal
-        open={showPos}
-        onClose={() => setShowPos(false)}
-        eyebrow="Ventas en terreno"
-        title="Modo Feria (POS offline)"
-        size="full"
-        bodyClassName="p-0"
-      >
-            <div className="flex h-full min-h-[60vh] flex-col overflow-hidden">
-            <div className="px-6 py-3 bg-foreground text-primary-foreground flex items-center gap-3 shrink-0">
-              <ShoppingBag size={20} />
-              <span className="badge badge-success text-[0.65rem] bg-success/20">● Sincronización local</span>
-            </div>
-            <div className="flex flex-1 overflow-hidden min-h-0">
-              <div className="flex-[2] border-r border-border overflow-y-auto p-6 bg-muted">
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4">
-                  {products.map(p => (
-                    <div key={p.id} className="bg-card p-4 rounded-sm border border-border shadow-sm flex flex-col" style={{ boxShadow: '0 2px 4px hsl(var(--foreground) / 0.02)' }}>
-                      <div className="text-[2rem] text-center mb-2">{p.emoji}</div>
-                      <div className="font-semibold text-[0.85rem] text-foreground leading-tight mb-1">{p.name}</div>
-                      <div className="text-[0.9rem] text-accent font-bold mb-auto">${p.price.toLocaleString()}</div>
-                      <div className="flex items-center justify-between mt-3 bg-muted/50 rounded-sm p-1">
-                        <button onClick={() => addToCart(p.id, -1)} className="w-7 h-7 flex items-center justify-center bg-card rounded border border-border cursor-pointer"><Minus size={14} /></button>
-                        <span className="font-semibold text-[0.9rem]">{posCart[p.id] || 0}</span>
-                        <button onClick={() => addToCart(p.id, 1)} className="w-7 h-7 flex items-center justify-center bg-foreground text-primary-foreground rounded border-none cursor-pointer"><Plus size={14} /></button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex-1 flex flex-col bg-card">
-                <div className="p-4 border-b border-border font-semibold text-[0.95rem] text-foreground flex justify-between">
-                  <span>Venta Actual</span>
-                  <span className="text-muted-foreground">{cartItemsCount} items</span>
-                </div>
-                <div className="flex-1 overflow-y-auto p-4">
-                  {Object.entries(posCart).length === 0 ? (
-                    <div className="text-center text-muted-foreground text-[0.85rem] mt-10">Carrito vacío. Selecciona productos para comenzar.</div>
-                  ) : (
-                    Object.entries(posCart).map(([id, qty]) => {
-                      const p = products.find(prod => prod.id === id);
-                      if (!p) return null;
-                      return (
-                        <div key={id} className="flex justify-between items-center mb-3 text-[0.85rem]">
-                          <div>
-                            <div className="font-medium text-foreground">{p.name}</div>
-                            <div className="text-muted-foreground">{qty} x ${p.price.toLocaleString()}</div>
-                          </div>
-                          <div className="font-semibold">${(p.price * qty).toLocaleString()}</div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-                <div className="p-6 border-t border-border bg-accent/[0.08]">
-                  <div className="flex justify-between mb-2 text-[0.9rem] text-muted-foreground">
-                    <span>Subtotal</span><span>${cartTotal.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between mb-4 text-xl font-bold text-foreground">
-                    <span>Total</span><span>${cartTotal.toLocaleString()}</span>
-                  </div>
-                  <label className="block text-xs text-muted-foreground mb-1">Método de pago</label>
-                  <select
-                    className="w-full mb-4 px-3 py-2 rounded-lg border border-border bg-card text-sm"
-                    value={posMetodoPago}
-                    onChange={(e) => setPosMetodoPago(e.target.value as typeof posMetodoPago)}
-                  >
-                    <option value="efectivo">Efectivo</option>
-                    <option value="transferencia">Transferencia</option>
-                    <option value="tarjeta">Tarjeta</option>
-                    <option value="pos_terminal">POS Terminal</option>
-                    <option value="mixto">Mixto</option>
-                  </select>
-                  <button className="btn btn-primary w-full py-3.5 text-base font-semibold" disabled={cartTotal === 0 || loadingPos} onClick={async () => {
-                    setLoadingPos(true);
-                    try {
-                      const user = useAuthStore.getState().user;
-                      if (user) {
-                        const { error } = await supabase.from('ventas').insert({
-                          vendedor_id: user.id,
-                          total: Math.round(cartTotal),
-                          items: posCart as unknown as Record<string, number>,
-                          origen: 'feria',
-                          metodo_pago: posMetodoPago,
-                          estado: 'completada',
-                          offline_synced: typeof navigator !== 'undefined' ? !navigator.onLine : false,
-                        });
-                        if (error) throw error;
-                      }
-                      toast(typeof navigator !== 'undefined' && !navigator.onLine
-                        ? 'Venta guardada localmente; se sincronizará al recuperar conexión.'
-                        : 'Venta registrada correctamente.', { type: 'success' });
-                      setPosCart({});
-                      setShowPos(false);
-                    } catch (e) {
-                      toast(friendlyError(e, 'No se pudo registrar la venta'), { type: 'error' });
-                    } finally {
-                      setLoadingPos(false);
-                    }
-                  }}>
-                    Cobrar Venta
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
       </ImmersiveModal>
 
       <ViewShell
@@ -524,7 +395,7 @@ export function VendedorView() {
           <div className="card animate-in delay-5">
             <div className="section-title text-base mb-4">Acciones rápidas</div>
             {[
-              { label: 'Modo Feria (POS offline)', icon: <ShoppingBag size={16} />, desc: 'Cobro QR sin conexión', action: () => setShowPos(true) },
+              { label: 'Punto de Venta (POS)', icon: <ShoppingBag size={16} />, desc: 'Ventas en terreno a pantalla completa', action: () => router.push('/punto-venta') },
               { label: 'Ruta óptima del día', icon: <MapPin size={16} />, desc: `${interaccionesRuta.length} visitas pendientes`, action: () => setShowRuta(true) },
               { label: 'Generar etiquetas QR', icon: <QrCode size={16} />, desc: qrLote ? `Lote: ${qrLote.codigo}` : 'Sin lote activo', action: () => setShowQR(true) },
               { label: 'Reporte de ventas', icon: <TrendingUp size={16} />, desc: ventasTotal > 0 ? `Temporada: $${(ventasTotal / 1000).toFixed(0)}K` : 'Ver detalle', action: () => setShowReporte(true) },

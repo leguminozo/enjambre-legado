@@ -77,7 +77,16 @@ export const LazyContableHubView = named(
   'Contable',
 );
 export const LazyMapaView = named(() => import('@/views/MapaView'), 'MapaView', 'Mapa');
-
+export const LazyEditorTiendaView = named(
+  () => import('@/views/EditorTiendaView'),
+  'EditorTiendaView',
+  'Editor Tienda'
+);
+export const LazyPosFeriaView = named(
+  () => import('@/views/PosFeriaView'),
+  'PosFeriaView',
+  'Punto de Venta'
+);
 
 export const LazyCreadoresAdminPanel = named(
   () => import('@/components/creadores/CreadoresAdminPanel'),
