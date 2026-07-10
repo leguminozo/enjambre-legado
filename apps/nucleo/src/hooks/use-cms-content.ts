@@ -29,6 +29,10 @@ const CMS_SECTIONS = [
   'nosotros',
   'galeria',
   'contacto',
+  'menu_settings',
+  'menu_links',
+  'header_settings',
+  'header_nav',
 ] as const
 
 export type CMSSectionKey = (typeof CMS_SECTIONS)[number]
