@@ -1,44 +1,22 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocale } from 'next-intl';
+import { useStoreChrome } from '@/components/shop/store-chrome-context';
+import { resolveLocalized } from '@/lib/shop/store-chrome';
 
-interface SlideData {
-  text: string;
-  href?: string;
-  linkLabel?: string;
-}
-
-const SLIDES: SlideData[] = [
-  { text: 'Bienvenido a la experiencia digital. Te estábamos esperando' },
-  {
-    text: 'La historia del bosque comienza ',
-    href: 'https://www.obrerayzangano.com/nuestra-historia-or-apicultura-regenerativa-en-chiloe/',
-    linkLabel: 'aquí',
-  },
-  { text: 'Directo del bosque a tu hogar' },
-  { text: 'Hecho artesanalmente. Ritmo naturaleza' },
-  { text: 'Consume menos. Consume mejor' },
-  { text: 'Cada gota regenera bosque nativo' },
-  { text: 'Nuestra miel no es producto, es legado' },
-  { text: 'Cada verano, un nuevo comienzo' },
-  { text: 'Envío gratis comprando desde $55.000' },
-  {
-    text: 'Aún nos estamos construyendo. Si ocurre algo, pincha ',
-    href: 'https://api.whatsapp.com/send?phone=56940831358',
-    linkLabel: 'aquí',
-  },
-];
-
-const INTERVAL_MS = 5000;
 const STORAGE_KEY = 'oyz-carousel-dismissed';
-const CAROUSEL_HEIGHT = 36;
-const CAROUSEL_HEIGHT_MD = 42;
 
 function setCarouselHeightVar(height: number) {
   document.documentElement.style.setProperty('--carousel-h', `${height}px`);
 }
 
 export function TextCarousel() {
+  const locale = useLocale();
+  const { announcement, announcementSlides } = useStoreChrome();
+  const slides = announcementSlides;
+  const intervalMs = announcement.interval_ms;
+
   const [index, setIndex] = useState(0);
   const [dismissed, setDismissed] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -46,9 +24,7 @@ export function TextCarousel() {
   const [visible, setVisible] = useState(true);
   const [animating, setAnimating] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const elapsedRef = useRef(0);
 
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === 'undefined') return false;
@@ -56,47 +32,37 @@ export function TextCarousel() {
   }, []);
 
   const getCarouselHeight = useCallback(() => {
-    if (typeof window === 'undefined') return CAROUSEL_HEIGHT;
-    return window.innerWidth >= 768 ? CAROUSEL_HEIGHT_MD : CAROUSEL_HEIGHT;
-  }, []);
+    if (typeof window === 'undefined') return announcement.height_mobile_px;
+    return window.innerWidth >= 768
+      ? announcement.height_desktop_px
+      : announcement.height_mobile_px;
+  }, [announcement.height_desktop_px, announcement.height_mobile_px]);
+
+  const slideCount = Math.max(slides.length, 1);
 
   const stopTimers = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
-    if (progressRef.current) clearInterval(progressRef.current);
     timerRef.current = null;
-    progressRef.current = null;
-    elapsedRef.current = 0;
   }, []);
 
   const startTimers = useCallback(() => {
-    if (prefersReducedMotion || paused) return;
+    if (prefersReducedMotion || paused || slides.length <= 1) return;
     stopTimers();
-
     setProgress(0);
-    // Pequeño delay para asegurar que el 0% se aplique sin transición si veníamos de un valor alto
     setTimeout(() => {
       if (!paused) setProgress(100);
     }, 50);
-
     timerRef.current = setInterval(() => {
-      setIndex((prev) => (prev + 1) % SLIDES.length);
-    }, INTERVAL_MS);
-  }, [paused, prefersReducedMotion, stopTimers]);
+      setIndex((prev) => (prev + 1) % slideCount);
+    }, intervalMs);
+  }, [paused, prefersReducedMotion, stopTimers, slides.length, slideCount, intervalMs]);
 
   useEffect(() => {
-    if (dismissed) return;
+    if (!announcement.enabled || dismissed) return;
     const wasDismissed = sessionStorage.getItem(STORAGE_KEY);
-    if (wasDismissed === '1') {
+    if (wasDismissed === '1' && announcement.dismissible) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDismissed(true);
-      setCarouselHeightVar(0);
-      return;
-    }
-    setCarouselHeightVar(getCarouselHeight());
-  }, [dismissed, getCarouselHeight]);
-
-  useEffect(() => {
-    if (dismissed) {
       setCarouselHeightVar(0);
       return;
     }
@@ -107,7 +73,7 @@ export function TextCarousel() {
     }
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [dismissed, getCarouselHeight]);
+  }, [dismissed, getCarouselHeight, announcement.enabled, announcement.dismissible]);
 
   useEffect(() => {
     if (dismissed || paused) {
@@ -138,24 +104,23 @@ export function TextCarousel() {
 
   useEffect(() => {
     if (dismissed) return;
-
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'ArrowRight') {
-        setIndex((prev) => (prev + 1) % SLIDES.length);
+        setIndex((prev) => (prev + 1) % slideCount);
         stopTimers();
         startTimers();
       } else if (e.key === 'ArrowLeft') {
-        setIndex((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
+        setIndex((prev) => (prev - 1 + slideCount) % slideCount);
         stopTimers();
         startTimers();
       }
     }
-
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [dismissed, startTimers, stopTimers]);
+  }, [dismissed, startTimers, stopTimers, slideCount]);
 
   const handleDismiss = () => {
+    if (!announcement.dismissible) return;
     stopTimers();
     setVisible(false);
     setTimeout(() => {
@@ -166,7 +131,7 @@ export function TextCarousel() {
   };
 
   const goNext = () => {
-    setIndex((prev) => (prev + 1) % SLIDES.length);
+    setIndex((prev) => (prev + 1) % slideCount);
     stopTimers();
     startTimers();
   };
@@ -176,9 +141,15 @@ export function TextCarousel() {
     touchTimeoutRef.current = setTimeout(() => setPaused(false), 3000);
   };
 
-  if (dismissed) return null;
+  if (!announcement.enabled || dismissed || slides.length === 0) return null;
 
-  const slide = SLIDES[index];
+  const slide = slides[index % slides.length];
+  const text = resolveLocalized(slide.text, slide.text_en, locale);
+  const linkLabel = resolveLocalized(
+    slide.link_label ?? '',
+    slide.link_label_en,
+    locale,
+  );
 
   return (
     <div
@@ -206,8 +177,8 @@ export function TextCarousel() {
             animating && !prefersReducedMotion ? 'opacity-0' : 'opacity-100'
           }`}
         >
-          <span>{slide.text}</span>
-          {slide.href && slide.linkLabel && (
+          <span>{text}</span>
+          {slide.href && linkLabel ? (
             <a
               href={slide.href}
               target="_blank"
@@ -215,14 +186,16 @@ export function TextCarousel() {
               className="text-miel underline underline-offset-4 decoration-miel/40 hover:decoration-miel transition-colors duration-300 font-semibold not-italic"
               onClick={(e) => e.stopPropagation()}
             >
-              {slide.linkLabel}
+              {linkLabel}
             </a>
-          )}
+          ) : null}
         </div>
 
-        <span className="absolute right-3 text-[0.5rem] uppercase tracking-[0.2em] text-crema/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          doble clic para cerrar
-        </span>
+        {announcement.dismissible ? (
+          <span className="absolute right-3 text-[0.5rem] uppercase tracking-[0.2em] text-crema/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            doble clic para cerrar
+          </span>
+        ) : null}
       </div>
       <div className="h-[1.5px] w-full bg-bosque-dark/60">
         <div
@@ -230,8 +203,8 @@ export function TextCarousel() {
           style={{
             width: `${progress}%`,
             transitionProperty: 'width',
-            transitionDuration: progress === 0 ? '0s' : `${INTERVAL_MS}ms`,
-            transitionTimingFunction: 'linear'
+            transitionDuration: progress === 0 ? '0s' : `${intervalMs}ms`,
+            transitionTimingFunction: 'linear',
           }}
         />
       </div>

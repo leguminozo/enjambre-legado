@@ -12,6 +12,8 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
 import { TextCarousel } from '@/components/shop/text-carousel';
 import { YoutubeLite } from '@/components/shop/youtube-lite';
+import { useStoreChrome } from '@/components/shop/store-chrome-context';
+import { resolveLocalized } from '@/lib/shop/store-chrome';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { ViewLoading } from '@enjambre/ui';
@@ -110,6 +112,10 @@ export function TiendaLandingView({
   const tCommon = useTranslations('common');
   const tScience = useTranslations('science');
   const currentLocale = useLocale();
+  const { landing } = useStoreChrome();
+  const orderedSections = [...landing.sections]
+    .filter((s) => s.enabled)
+    .sort((a, b) => a.order - b.order);
   
   const gsapRef = useRef<GSAPInstance | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -218,15 +224,17 @@ export function TiendaLandingView({
 
   return (
     <StoreShell>
-    <GrainOverlay />
-    {!isMobile && <CustomCursor />}
+    {landing.show_grain ? <GrainOverlay /> : null}
+    {!isMobile && landing.show_custom_cursor ? <CustomCursor /> : null}
     <TextCarousel />
     <ShopHeader />
 
     <main className="relative overflow-hidden">
-      {/* ── HERO ── */}
-      <section className="relative h-[72vh] md:h-[90vh] flex flex-col items-center justify-center text-center px-4">
-        {!isMobile && <BeeCanvas />}
+      {orderedSections.map((sec) => {
+        if (sec.id === 'hero') {
+          return (
+      <section key="hero" className="relative h-[72vh] md:h-[90vh] flex flex-col items-center justify-center text-center px-4">
+        {!isMobile && landing.show_bee_canvas ? <BeeCanvas /> : null}
         <div
           className="absolute inset-0 pointer-events-none bg-background/40 md:bg-transparent"
           aria-hidden
@@ -258,15 +266,32 @@ export function TiendaLandingView({
             <p className="hero-formula mt-6 font-mono text-[clamp(0.65rem,1.2vw,0.8rem)] tracking-[0.3em] uppercase text-accent/60">
               {tHero('formula') || 'Luz solar → Néctar → Miel virgen · Sin atajos industriales'}
             </p>
+            {landing.show_hero_cta ? (
+              <div className="mt-10">
+                <Link
+                  href={landing.hero_cta_href || '/catalogo'}
+                  className="inline-flex items-center rounded-full border border-accent px-8 py-3 text-[0.65rem] uppercase tracking-[0.25em] text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  {resolveLocalized(
+                    landing.hero_cta_label,
+                    landing.hero_cta_label_en,
+                    currentLocale,
+                  )}
+                </Link>
+              </div>
+            ) : null}
           </div>
           <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4">
             <span className="text-editorial-xs uppercase tracking-widest text-muted-foreground [writing-mode:vertical-rl]">{tCommon('scrollDown') || 'Descender'}</span>
             <div className="w-px h-12 bg-gradient-to-b from-accent to-transparent animate-bounce" />
           </div>
         </section>
+          );
+        }
 
-        {/* ── CONSERVACION DEMOSTRABLE ── */}
-        <section className="editorial-section bg-surface-raised/50 border-y border-border/30">
+        if (sec.id === 'conservation') {
+          return (
+        <section key="conservation" className="editorial-section bg-surface-raised/50 border-y border-border/30">
           <div className="editorial-container">
             <div className="text-center mb-16">
               <span className="editorial-kicker mb-4 block">{tConservation('kicker') || 'Conservación demostrable'}</span>
@@ -347,9 +372,12 @@ export function TiendaLandingView({
             </div>
           </div>
         </section>
+          );
+        }
 
-        {/* ── COLECCIONES — Explora nuestras categorías estacionales ── */}
-        <section id="collections" className="editorial-section">
+        if (sec.id === 'collections') {
+          return (
+        <section key="collections" id="collections" className="editorial-section">
           <div className="editorial-container text-center mb-24">
             <span className="editorial-kicker mb-4 block">{tCollections('kicker') || 'Colecciones'}</span>
             <h2 className="font-display text-4xl md:text-6xl font-light text-foreground mb-4">
@@ -383,30 +411,47 @@ export function TiendaLandingView({
             })}
           </div>
         </section>
+          );
+        }
 
-      {/* ── CARRUSEL DE MEDIAS (imágenes/videos) ── */}
-      <section id="media-carousel">
+        if (sec.id === 'media') {
+          return (
+      <section key="media" id="media-carousel">
         <Suspense fallback={<div className="w-full h-[50vh] md:h-[70vh] bg-surface-raised" />}><MediaCarousel items={mediaItems} /></Suspense>
       </section>
+          );
+        }
 
-      {/* ── CREACIONES — Productos directos 2x4 ── */}
-      <div id="creaciones">
+        if (sec.id === 'products') {
+          return (
+      <div key="products" id="creaciones">
         <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingCreations') || 'Creaciones'} hideLabel /></div></div>}><LandingProducts products={products} pageSize={8} /></Suspense>
       </div>
+          );
+        }
 
-        {/* ── VIDEO CENTRAL YOUTUBE ── */}
-        <section id="central-video" className="editorial-section">
+        if (sec.id === 'video') {
+          return (
+        <section key="video" id="central-video" className="editorial-section">
           <div className="editorial-container">
             <div className="relative w-full aspect-video max-w-5xl mx-auto rounded-lg overflow-hidden border border-border/30 bg-surface-sunken">
               <YoutubeLite videoId={youtubeVideoId} title="La Obrera y el Zángano" />
             </div>
           </div>
         </section>
+          );
+        }
 
-      {/* ── NUESTRO LUGAR EN EL MUNDO ── */}
-      <div id="world-location">
+        if (sec.id === 'map') {
+          return (
+      <div key="map" id="world-location">
         <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingMap') || 'Mapa'} hideLabel /></div></div>}><WorldMapBlock /></Suspense>
       </div>
+          );
+        }
+
+        return null;
+      })}
       </main>
 
       <ShopFooter />

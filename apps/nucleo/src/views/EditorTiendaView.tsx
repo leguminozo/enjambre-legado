@@ -22,28 +22,93 @@ import { toast, ImmersiveModal } from '@enjambre/ui';
 import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/use-cms-content';
 import { getUrlTienda } from '@/lib/publicUrls';
 import { MenuStyleEditor } from '@/components/tienda/MenuStyleEditor';
+import {
+  ChromeSettingsEditor,
+  SETTINGS_SECTION_KEYS,
+} from '@/components/tienda/StoreChromeEditors';
 import { HEADER_NAV_TEMPLATE, HEADER_SETTINGS_TEMPLATE } from '@/lib/header-menu';
+import {
+  ANNOUNCEMENT_SETTINGS_TEMPLATE,
+  ANNOUNCEMENT_SLIDE_TEMPLATE,
+  BRAND_ASSETS_TEMPLATE,
+  FOOTER_SETTINGS_TEMPLATE,
+  FOOTER_SOCIAL_TEMPLATE,
+  PWA_NAV_ITEM_TEMPLATE,
+  PWA_NAV_SETTINGS_TEMPLATE,
+  THEME_SETTINGS_TEMPLATE,
+  LANDING_LAYOUT_TEMPLATE,
+  CATALOG_SETTINGS_TEMPLATE,
+  PDP_SETTINGS_TEMPLATE,
+  SEO_DEFAULTS_TEMPLATE,
+  CONTACT_SETTINGS_TEMPLATE,
+  CAMPAIGN_BANNER_TEMPLATE,
+  LEGAL_DOC_TEMPLATE,
+} from '@/lib/store-chrome';
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const SECTION_LABELS: Record<string, string> = {
+  theme_settings: 'Tema',
+  brand_assets: 'Marca — Logos',
+  seo_defaults: 'SEO global',
+  contact_settings: 'Contacto / WhatsApp',
   menu_settings: 'Menú — Estilo',
   menu_links: 'Menú — Enlaces',
+  announcement_settings: 'Anuncios — Estilo',
+  announcement_slides: 'Anuncios — Slides',
+  landing_layout: 'Landing — Bloques',
+  catalog_settings: 'Catálogo',
+  pdp_settings: 'Ficha producto (PDP)',
+  campaign_banners: 'Banners campaña',
+  footer_settings: 'Footer — Estilo',
+  footer_social: 'Footer — Redes',
+  footer_branding: 'Footer — Marca (legacy)',
+  footer_nav: 'Footer — Nav',
+  footer_legal: 'Footer — Legal links',
+  pwa_nav_settings: 'PWA — Estilo',
+  pwa_nav_items: 'PWA — Pestañas',
+  legal_terminos: 'Legal — Términos',
+  legal_privacidad: 'Legal — Privacidad',
+  legal_cookies: 'Legal — Cookies',
+  legal_envio: 'Legal — Envío',
+  legal_reembolso: 'Legal — Reembolso',
+  legal_cancelacion: 'Legal — Cancelación',
+  legal_garantia: 'Legal — Garantía',
+  hero: 'Hero (contenido CMS)',
+  colecciones: 'Colecciones',
   servicios: 'Servicios',
   talleres: 'Talleres',
-  colecciones: 'Colecciones',
-  footer_branding: 'Footer — Marca',
-  footer_nav: 'Footer — Nav',
-  footer_legal: 'Footer — Legal',
-  hero: 'Hero',
   nosotros: 'Nosotros',
   galeria: 'Galería',
-  contacto: 'Contacto',
+  contacto: 'Contacto (página)',
 };
 
 const SECTION_ORDER = [
+  'theme_settings',
+  'brand_assets',
+  'seo_defaults',
+  'contact_settings',
   'menu_settings',
   'menu_links',
+  'announcement_settings',
+  'announcement_slides',
+  'landing_layout',
+  'catalog_settings',
+  'pdp_settings',
+  'campaign_banners',
+  'footer_settings',
+  'footer_social',
+  'footer_nav',
+  'footer_legal',
+  'pwa_nav_settings',
+  'pwa_nav_items',
+  'legal_terminos',
+  'legal_privacidad',
+  'legal_cookies',
+  'legal_envio',
+  'legal_reembolso',
+  'legal_cancelacion',
+  'legal_garantia',
   'hero',
   'colecciones',
   'servicios',
@@ -52,8 +117,6 @@ const SECTION_ORDER = [
   'galeria',
   'contacto',
   'footer_branding',
-  'footer_nav',
-  'footer_legal',
 ] as const;
 
 /**
@@ -73,15 +136,51 @@ const SECTION_TEMPLATES: Record<string, Record<string, unknown>> = {
   footer_branding: { tagline: '', email: '' },
   menu_settings: { ...HEADER_SETTINGS_TEMPLATE },
   menu_links: { ...HEADER_NAV_TEMPLATE },
+  theme_settings: { ...THEME_SETTINGS_TEMPLATE },
+  announcement_settings: { ...ANNOUNCEMENT_SETTINGS_TEMPLATE },
+  announcement_slides: { ...ANNOUNCEMENT_SLIDE_TEMPLATE },
+  footer_settings: { ...FOOTER_SETTINGS_TEMPLATE },
+  footer_social: { ...FOOTER_SOCIAL_TEMPLATE },
+  pwa_nav_settings: { ...PWA_NAV_SETTINGS_TEMPLATE },
+  pwa_nav_items: { ...PWA_NAV_ITEM_TEMPLATE },
+  brand_assets: { ...BRAND_ASSETS_TEMPLATE },
+  landing_layout: { ...LANDING_LAYOUT_TEMPLATE },
+  catalog_settings: { ...CATALOG_SETTINGS_TEMPLATE },
+  pdp_settings: { ...PDP_SETTINGS_TEMPLATE },
+  seo_defaults: { ...SEO_DEFAULTS_TEMPLATE },
+  contact_settings: { ...CONTACT_SETTINGS_TEMPLATE },
+  campaign_banners: { ...CAMPAIGN_BANNER_TEMPLATE },
+  legal_terminos: { ...LEGAL_DOC_TEMPLATE },
+  legal_privacidad: { ...LEGAL_DOC_TEMPLATE },
+  legal_cookies: { ...LEGAL_DOC_TEMPLATE },
+  legal_envio: { ...LEGAL_DOC_TEMPLATE },
+  legal_reembolso: { ...LEGAL_DOC_TEMPLATE },
+  legal_cancelacion: { ...LEGAL_DOC_TEMPLATE },
+  legal_garantia: { ...LEGAL_DOC_TEMPLATE },
 };
 
 const FIELD_LABELS: Record<string, string> = {
   label: 'Texto (ES)',
   label_en: 'Texto (EN)',
+  text: 'Mensaje (ES)',
+  text_en: 'Mensaje (EN)',
+  link_label: 'Texto del link (ES)',
+  link_label_en: 'Texto del link (EN)',
   href: 'Ruta / enlace',
+  network: 'Red social',
+  icon: 'Icono',
   show_desktop: 'Visible en desktop',
   show_mobile: 'Visible en móvil',
   title: 'Título',
+  title_en: 'Título (EN)',
+  body: 'Cuerpo (HTML/texto)',
+  body_en: 'Cuerpo (EN)',
+  last_updated: 'Última actualización',
+  placement: 'Ubicación (home|catalog|global|cart)',
+  starts_at: 'Inicio (YYYY-MM-DD)',
+  ends_at: 'Fin (YYYY-MM-DD)',
+  cta_label: 'CTA (ES)',
+  cta_label_en: 'CTA (EN)',
   desc: 'Descripción',
   kicker: 'Kicker',
   image: 'Imagen',
@@ -112,13 +211,20 @@ function ContentFieldEditor({
   onChange: (val: unknown) => void;
 }) {
   if (typeof value === 'string') {
-    if (fieldKey.includes('desc') || fieldKey.includes('description') || fieldKey.includes('text')) {
+    if (
+      fieldKey.includes('desc') ||
+      fieldKey.includes('description') ||
+      fieldKey.includes('text') ||
+      fieldKey === 'body' ||
+      fieldKey === 'body_en' ||
+      fieldKey.includes('prefill')
+    ) {
       return (
         <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          rows={3}
-          className="w-full bg-surface-sunken border border-border rounded-lg p-3 text-sm text-foreground resize-y focus:outline-none focus:ring-2 focus:ring-accent"
+          rows={fieldKey === 'body' || fieldKey === 'body_en' ? 12 : 3}
+          className="w-full bg-surface-sunken border border-border rounded-lg p-3 text-sm text-foreground resize-y focus:outline-none focus:ring-2 focus:ring-accent font-mono"
         />
       );
     }
@@ -445,14 +551,16 @@ interface MenuSettingsEditorProps {
   item: CMSContentItem;
   onUpdate: (id: string, content: Record<string, unknown>, isActive: boolean) => void;
   isUpdating: boolean;
+  onImageUpload: (file: File, fieldName: string, itemId: string) => void;
 }
 
-function MenuSettingsEditor({ item, onUpdate, isUpdating }: MenuSettingsEditorProps) {
+function MenuSettingsEditor({ item, onUpdate, isUpdating, onImageUpload }: MenuSettingsEditorProps) {
   return (
     <MenuStyleEditor
       content={item.content}
       isUpdating={isUpdating}
       onSave={(content) => onUpdate(item.id, content, item.is_active)}
+      onImageUpload={(file, fieldName) => onImageUpload(file, fieldName, item.id)}
     />
   );
 }
@@ -500,7 +608,7 @@ function ItemsPanel({
     onReorder(newItems);
   };
 
-  const isMenuSettings = activeSection === 'menu_settings';
+  const isSettingsSection = SETTINGS_SECTION_KEYS.has(activeSection);
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -508,7 +616,7 @@ function ItemsPanel({
         <h3 className="text-sm font-bold text-foreground">
           {SECTION_LABELS[activeSection] ?? activeSection}
         </h3>
-        {!isMenuSettings && (
+        {!isSettingsSection && (
           <button
             onClick={onAddNew}
             className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-xs font-medium min-h-[36px]"
@@ -520,23 +628,33 @@ function ItemsPanel({
       </div>
 
       <div className="space-y-3 pb-8">
-        {isMenuSettings ? (
+        {isSettingsSection ? (
           items.length > 0 ? (
-            <MenuSettingsEditor
-              item={items[0]}
-              onUpdate={onUpdate}
-              isUpdating={isUpdating}
-            />
+            activeSection === 'menu_settings' ? (
+              <MenuSettingsEditor
+                item={items[0]}
+                onUpdate={onUpdate}
+                isUpdating={isUpdating}
+                onImageUpload={onImageUpload}
+              />
+            ) : (
+              <ChromeSettingsEditor
+                sectionKey={activeSection}
+                content={items[0].content}
+                isUpdating={isUpdating}
+                onSave={(content) => onUpdate(items[0].id, content, items[0].is_active)}
+              />
+            )
           ) : (
             <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl">
               <p className="text-sm text-muted-foreground mb-3">
-                No se ha inicializado la configuración del menú.
+                Configuración no inicializada.
               </p>
               <button
                 onClick={onAddNew}
                 className="text-accent text-sm font-medium hover:underline"
               >
-                Inicializar Ajustes de Menú
+                Inicializar sección
               </button>
             </div>
           )
@@ -586,8 +704,9 @@ export function EditorTiendaView() {
   const [activeSection, setActiveSection] = useState<string>('menu_settings');
   const [iframeKey, setIframeKey] = useState(0);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [showNewForm, setShowNewForm] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Derive default JSON from section template
   const defaultTemplate = SECTION_TEMPLATES[activeSection] ?? { title: '', desc: '' };
@@ -598,15 +717,6 @@ export function EditorTiendaView() {
     const template = SECTION_TEMPLATES[activeSection] ?? { title: '', desc: '' };
     setNewContent(template);
   }, [activeSection]);
-
-  // Detect mobile
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)');
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
-  }, []);
 
   const groupedData = cms.data?.data ?? {};
   const sectionKeys = (() => {
@@ -621,7 +731,13 @@ export function EditorTiendaView() {
 
   const currentItems = groupedData[activeSection] ?? [];
 
-  const refreshIframe = () => setIframeKey((prev) => prev + 1);
+  const refreshIframe = () => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({ type: 'CMS_UPDATE' }, '*');
+    } else {
+      setIframeKey((prev) => prev + 1);
+    }
+  };
 
   const handleUpdateItem = (id: string, content: Record<string, unknown>, isActive: boolean) => {
     cms.updateItem.mutate(
@@ -739,18 +855,24 @@ export function EditorTiendaView() {
           </button>
         </div>
 
-        {/* Mobile: link to live site instead of iframe */}
-        <div className="md:hidden">
-          {tiendaUrl && (
-            <a
-              href={tiendaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
-            >
-              Ver tienda <ExternalLink size={12} />
-            </a>
-          )}
+        {/* Mobile: tabs toggle */}
+        <div className="md:hidden flex bg-secondary/50 p-1 rounded-lg border border-border/50">
+          <button
+            onClick={() => setMobileTab('editor')}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              mobileTab === 'editor' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Editor
+          </button>
+          <button
+            onClick={() => setMobileTab('preview')}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              mobileTab === 'preview' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Vista Previa
+          </button>
         </div>
 
         {/* Desktop: live site link */}
@@ -771,111 +893,80 @@ export function EditorTiendaView() {
       {/* ── Body ── */}
       <div className="flex-1 flex overflow-hidden min-h-0">
 
-        {/* ── MOBILE layout: single column ── */}
-        {isMobile && (
-          <div className="flex-1 flex flex-col overflow-hidden bg-surface-sunken">
-            {/* Section nav pills */}
-            <div className="px-4 pt-3 pb-2 bg-surface border-b border-border shrink-0">
-              <SectionNav
-                sectionKeys={sectionKeys}
-                activeSection={activeSection}
-                onSelect={setActiveSection}
-              />
-            </div>
-
-            {/* Items */}
-            <ItemsPanel
-              items={currentItems}
+        {/* Left sidebar / Editor area */}
+        <div className={`${mobileTab === 'editor' ? 'flex' : 'hidden'} md:flex w-full md:w-80 lg:w-96 shrink-0 border-r border-border bg-surface-sunken flex-col overflow-hidden`}>
+          {/* Section selector */}
+          <div className="p-4 border-b border-border bg-surface shrink-0">
+            <SectionNav
+              sectionKeys={sectionKeys}
               activeSection={activeSection}
-              onUpdate={handleUpdateItem}
-              onDelete={handleDeleteItem}
-              onImageUpload={handleImageUpload}
-              onAddNew={() => setShowNewForm(true)}
-              onReorder={handleReorder}
-              isUpdating={cms.updateItem.isPending}
-              isDeleting={cms.deleteItem.isPending}
+              onSelect={setActiveSection}
             />
           </div>
-        )}
 
-        {/* ── DESKTOP layout: sidebar + iframe ── */}
-        {!isMobile && (
-          <>
-            {/* Left sidebar */}
-            <div className="w-[360px] shrink-0 border-r border-border bg-surface-sunken flex flex-col overflow-hidden">
-              {/* Section selector */}
-              <div className="p-4 border-b border-border bg-surface shrink-0">
-                <SectionNav
-                  sectionKeys={sectionKeys}
-                  activeSection={activeSection}
-                  onSelect={setActiveSection}
-                />
-              </div>
+          {/* Items list */}
+          <ItemsPanel
+            items={currentItems}
+            activeSection={activeSection}
+            onUpdate={handleUpdateItem}
+            onDelete={handleDeleteItem}
+            onImageUpload={handleImageUpload}
+            onAddNew={() => setShowNewForm(true)}
+            onReorder={handleReorder}
+            isUpdating={cms.updateItem.isPending}
+            isDeleting={cms.deleteItem.isPending}
+          />
+        </div>
 
-              {/* Items list */}
-              <ItemsPanel
-                items={currentItems}
-                activeSection={activeSection}
-                onUpdate={handleUpdateItem}
-                onDelete={handleDeleteItem}
-                onImageUpload={handleImageUpload}
-                onAddNew={() => setShowNewForm(true)}
-                onReorder={handleReorder}
-                isUpdating={cms.updateItem.isPending}
-                isDeleting={cms.deleteItem.isPending}
-              />
-            </div>
+        {/* Right: iframe preview */}
+        <div className={`${mobileTab === 'preview' ? 'flex' : 'hidden'} md:flex flex-1 bg-secondary/30 relative flex-col items-center overflow-hidden`}>
+          <div
+            className="absolute inset-0 opacity-[0.03] pointer-events-none"
+            style={{
+              backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
+              backgroundSize: '24px 24px',
+            }}
+          />
 
-            {/* Right: iframe preview */}
-            <div className="flex-1 bg-secondary/30 relative flex flex-col items-center overflow-hidden">
-              <div
-                className="absolute inset-0 opacity-[0.03] pointer-events-none"
-                style={{
-                  backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
-                  backgroundSize: '24px 24px',
-                }}
-              />
-
-              <div className="flex-1 w-full flex items-center justify-center p-4 lg:p-8 overflow-hidden">
-                <div
-                  className={`relative bg-background border border-border shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                    viewMode === 'mobile'
-                      ? 'w-[375px] h-[812px] rounded-[3rem] ring-8 ring-surface-raised ring-offset-2 ring-offset-background'
-                      : 'w-full h-full rounded-xl'
-                  }`}
-                >
-                  {viewMode === 'mobile' && (
-                    <div className="absolute top-0 inset-x-0 h-6 bg-surface-raised z-20 flex justify-center items-center rounded-t-[3rem]">
-                      <div className="w-16 h-1.5 bg-border rounded-full" />
-                    </div>
-                  )}
-
-                  {!tiendaUrl ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-surface-sunken">
-                      <div className="text-center space-y-2">
-                        <Monitor size={48} className="mx-auto text-muted-foreground opacity-50" />
-                        <p className="text-sm font-medium text-muted-foreground">
-                          URL de Tienda no configurada
-                        </p>
-                        <p className="text-xs text-muted-foreground/70">
-                          Verifica NEXT_PUBLIC_URL_TIENDA en .env
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <iframe
-                      key={iframeKey}
-                      src={tiendaUrl}
-                      title="Vista Previa de Tienda"
-                      className={`w-full h-full border-none bg-background ${viewMode === 'mobile' ? 'pt-6' : ''}`}
-                      sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                    />
-                  )}
+          <div className="flex-1 w-full flex items-center justify-center p-0 md:p-4 lg:p-8 overflow-hidden">
+            <div
+              className={`relative bg-background border-0 md:border md:border-border shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                viewMode === 'mobile'
+                  ? 'w-full h-full md:w-[375px] md:h-[812px] md:rounded-[3rem] md:ring-8 md:ring-surface-raised md:ring-offset-2 md:ring-offset-background'
+                  : 'w-full h-full md:rounded-xl'
+              }`}
+            >
+              {viewMode === 'mobile' && (
+                <div className="hidden md:flex absolute top-0 inset-x-0 h-6 bg-surface-raised z-20 justify-center items-center rounded-t-[3rem]">
+                  <div className="w-16 h-1.5 bg-border rounded-full" />
                 </div>
-              </div>
+              )}
+
+              {!tiendaUrl ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-surface-sunken">
+                  <div className="text-center space-y-2">
+                    <Monitor size={48} className="mx-auto text-muted-foreground opacity-50" />
+                    <p className="text-sm font-medium text-muted-foreground">
+                      URL de Tienda no configurada
+                    </p>
+                    <p className="text-xs text-muted-foreground/70">
+                      Verifica NEXT_PUBLIC_URL_TIENDA en .env
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <iframe
+                  ref={iframeRef}
+                  key={iframeKey}
+                  src={tiendaUrl}
+                  title="Vista Previa de Tienda"
+                  className={`w-full h-full border-none bg-background ${viewMode === 'mobile' ? 'md:pt-6' : ''}`}
+                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                />
+              )}
             </div>
-          </>
-        )}
+          </div>
+        </div>
       </div>
 
       {/* ── Add new item modal ── */}

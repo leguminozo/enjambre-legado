@@ -5,12 +5,18 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Home, ShoppingBag, QrCode, User, Grid3X3 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { useAuth } from '@/components/providers/auth-context';
 import { usePwaStandalone } from '@/lib/hooks/use-pwa-standalone';
-import { normalizeStorePath, PWA_BOTTOM_NAV, type BottomNavKey } from '@/lib/shop/store-routes';
+import { normalizeStorePath } from '@/lib/shop/store-routes';
+import { useStoreChrome } from '@/components/shop/store-chrome-context';
+import {
+  resolveLocalized,
+  type PwaNavIcon,
+  type PwaNavItem,
+} from '@/lib/shop/store-chrome';
 
-const BOTTOM_NAV_ICONS: Record<BottomNavKey, LucideIcon> = {
+const BOTTOM_NAV_ICONS: Record<PwaNavIcon, LucideIcon> = {
   home: Home,
   store: Grid3X3,
   scan: QrCode,
@@ -18,8 +24,12 @@ const BOTTOM_NAV_ICONS: Record<BottomNavKey, LucideIcon> = {
   bag: ShoppingBag,
 };
 
-const TAB_COUNT = PWA_BOTTOM_NAV.length;
 const DRAG_THRESHOLD_PX = 12;
+
+function matchTab(pathname: string, href: string): boolean {
+  if (href === '/') return pathname === '/';
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 function triggerNavHaptic() {
   if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -30,9 +40,12 @@ function triggerNavHaptic() {
 export function MobileBottomNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const locale = useLocale();
   const { isAuthenticated } = useAuth();
   const isPwa = usePwaStandalone();
-  const tNav = useTranslations('nav');
+  const { pwaNav, pwaNavItems } = useStoreChrome();
+  const tabs = pwaNavItems;
+  const tabCount = Math.max(tabs.length, 1);
   const normalized = normalizeStorePath(pathname || '/');
   const trackRef = useRef<HTMLDivElement>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -43,22 +56,24 @@ export function MobileBottomNav() {
   });
 
   const activeIndex = useMemo(
-    () => PWA_BOTTOM_NAV.findIndex((tab) => tab.match(normalized)),
-    [normalized],
+    () => tabs.findIndex((tab) => matchTab(normalized, tab.href)),
+    [normalized, tabs],
   );
 
   const indicatorIndex = dragIndex ?? (activeIndex === -1 ? null : activeIndex);
 
-  const indexFromClientX = useCallback((clientX: number) => {
-    const track = trackRef.current;
-    if (!track) return 0;
-
-    const rect = track.getBoundingClientRect();
-    const sectionWidth = rect.width / TAB_COUNT;
-    const relativeX = clientX - rect.left;
-    const rawIndex = Math.floor(relativeX / sectionWidth);
-    return Math.max(0, Math.min(TAB_COUNT - 1, rawIndex));
-  }, []);
+  const indexFromClientX = useCallback(
+    (clientX: number) => {
+      const track = trackRef.current;
+      if (!track) return 0;
+      const rect = track.getBoundingClientRect();
+      const sectionWidth = rect.width / tabCount;
+      const relativeX = clientX - rect.left;
+      const rawIndex = Math.floor(relativeX / sectionWidth);
+      return Math.max(0, Math.min(tabCount - 1, rawIndex));
+    },
+    [tabCount],
+  );
 
   const handlePointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
@@ -72,42 +87,42 @@ export function MobileBottomNav() {
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       if (dragState.current.pointerId !== event.pointerId) return;
-
       const delta = Math.abs(event.clientX - dragState.current.startX);
       if (!dragState.current.active && delta < DRAG_THRESHOLD_PX) return;
-
       if (!dragState.current.active) {
         dragState.current.active = true;
         event.currentTarget.setPointerCapture(event.pointerId);
       }
-
       setDragIndex(indexFromClientX(event.clientX));
     },
     [indexFromClientX],
   );
 
+  const resolveHref = useCallback(
+    (tab: PwaNavItem) =>
+      tab.href === '/perfil' && !isAuthenticated ? '/login' : tab.href,
+    [isAuthenticated],
+  );
+
   const finishDrag = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       if (dragState.current.pointerId !== event.pointerId) return;
-
       const wasDragging = dragState.current.active;
       const targetIndex = dragIndex;
       dragState.current = { active: false, startX: 0, pointerId: null };
       setDragIndex(null);
-
       if (wasDragging) {
         event.preventDefault();
         event.currentTarget.releasePointerCapture(event.pointerId);
-
         if (targetIndex !== null && targetIndex !== activeIndex) {
-          const tab = PWA_BOTTOM_NAV[targetIndex];
-          const href = tab.href === '/perfil' && !isAuthenticated ? '/login' : tab.href;
+          const tab = tabs[targetIndex];
+          if (!tab) return;
           triggerNavHaptic();
-          router.push(href);
+          router.push(resolveHref(tab));
         }
       }
     },
-    [activeIndex, dragIndex, isAuthenticated, router],
+    [activeIndex, dragIndex, resolveHref, router, tabs],
   );
 
   const handlePointerCancel = useCallback(() => {
@@ -119,23 +134,22 @@ export function MobileBottomNav() {
     normalized.startsWith('/checkout') || normalized.startsWith('/perfil/reposicion/resultado');
 
   useEffect(() => {
-    if (!isPwa) return;
-    for (const tab of PWA_BOTTOM_NAV) {
-      const href = tab.href === '/perfil' && !isAuthenticated ? '/login' : tab.href;
-      router.prefetch(href);
+    if (!isPwa || !pwaNav.enabled) return;
+    for (const tab of tabs) {
+      router.prefetch(resolveHref(tab));
     }
-  }, [isPwa, isAuthenticated, router]);
+  }, [isPwa, pwaNav.enabled, resolveHref, router, tabs]);
 
-  if (!isPwa || hideOnCheckout) return null;
+  if (!isPwa || !pwaNav.enabled || hideOnCheckout || tabs.length === 0) return null;
 
   return (
     <nav
       className="tienda-bottom-nav lg:hidden"
-      aria-label={tNav('main')}
+      aria-label="Navegación principal"
       style={
         {
           '--liquid-nav-index': indicatorIndex ?? 0,
-          '--liquid-nav-count': TAB_COUNT,
+          '--liquid-nav-count': tabCount,
         } as React.CSSProperties
       }
       data-has-active={indicatorIndex !== null ? 'true' : 'false'}
@@ -154,14 +168,15 @@ export function MobileBottomNav() {
             <div className="tienda-bottom-nav-splotch" />
           </div>
 
-          {PWA_BOTTOM_NAV.map((tab, index) => {
-            const href = tab.href === '/perfil' && !isAuthenticated ? '/login' : tab.href;
+          {tabs.map((tab, index) => {
+            const href = resolveHref(tab);
             const isActive = activeIndex === index;
-            const Icon = BOTTOM_NAV_ICONS[tab.labelKey];
+            const Icon = BOTTOM_NAV_ICONS[tab.icon] ?? Home;
+            const label = resolveLocalized(tab.label, tab.label_en, locale);
 
             return (
               <Link
-                key={tab.href}
+                key={tab.href + tab.label}
                 href={href}
                 prefetch
                 className={`tienda-bottom-nav-item ${isActive ? 'is-active' : ''}`}
@@ -172,7 +187,7 @@ export function MobileBottomNav() {
                   <Icon size={22} strokeWidth={isActive ? 2.5 : 2} aria-hidden />
                   {isActive ? <span className="tienda-bottom-nav-dot" aria-hidden /> : null}
                 </span>
-                <span className="tienda-bottom-nav-label">{tNav(tab.labelKey)}</span>
+                <span className="tienda-bottom-nav-label">{label}</span>
               </Link>
             );
           })}

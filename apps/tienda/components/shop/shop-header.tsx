@@ -17,6 +17,7 @@ import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
 import { isActiveNavHref } from '@/lib/shop/store-routes';
 import { usePwaStandalone } from '@/lib/hooks/use-pwa-standalone';
 import { useHeaderMenu } from '@/components/shop/header-menu-context';
+import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveNavLabel, type HeaderNavItem } from '@/lib/shop/header-menu';
 
 export function ShopHeader() {
@@ -28,6 +29,8 @@ export function ShopHeader() {
   const tNav = useTranslations('nav');
   const tHeader = useTranslations('header');
   const { settings, items } = useHeaderMenu();
+  const { brand } = useStoreChrome();
+  const brandLogo = brand.logo_url || '/icons/icon-192.svg';
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifBellKey, setNotifBellKey] = useState(0);
@@ -100,6 +103,25 @@ export function ShopHeader() {
     </div>
   ) : null;
 
+  const logoContent =
+    settings.show_logo && settings.logo_src ? (
+      <img
+        src={settings.logo_src}
+        alt={settings.brand_line1 || tHeader('brandLine1')}
+        style={{ height: `${settings.logo_height_px || 32}px` }}
+        className="object-contain"
+      />
+    ) : (
+      <>
+        <img
+          src={brandLogo}
+          alt="La Obrera y el Zángano Logo"
+          className="h-8 w-8 md:h-10 md:w-10 rounded-full object-cover"
+        />
+        {brandBlock}
+      </>
+    );
+
   const logoLink = (
     <Link
       href="/"
@@ -111,12 +133,7 @@ export function ShopHeader() {
             : ''
       }`}
     >
-      <img
-        src="/icons/icon-192.svg"
-        alt="La Obrera y el Zángano Logo"
-        className="h-8 w-8 md:h-10 md:w-10 rounded-full"
-      />
-      {brandBlock}
+      {logoContent}
     </Link>
   );
 

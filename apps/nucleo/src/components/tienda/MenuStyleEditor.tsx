@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, Upload } from 'lucide-react';
 import {
   type HeaderMenuSettings,
   HEADER_LAYOUT_OPTIONS,
@@ -13,6 +13,7 @@ interface MenuStyleEditorProps {
   content: Record<string, unknown>;
   isUpdating: boolean;
   onSave: (content: Record<string, unknown>) => void;
+  onImageUpload?: (file: File, fieldName: string) => void;
 }
 
 function SliderField({
@@ -146,13 +147,15 @@ function OptionCards<T extends string>({
  * Editor visual del menú (inspirado en theme customizer Shopify).
  * Controla formato, burger, tipografía, gaps y altura — sin JSON crudo.
  */
-export function MenuStyleEditor({ content, isUpdating, onSave }: MenuStyleEditorProps) {
+export function MenuStyleEditor({ content, isUpdating, onSave, onImageUpload }: MenuStyleEditorProps) {
   const [local, setLocal] = useState<HeaderMenuSettings>(() => mergeHeaderSettings(content));
   const [dirty, setDirty] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   useEffect(() => {
     setLocal(mergeHeaderSettings(content));
     setDirty(false);
+    setIsUploadingLogo(false);
   }, [content]);
 
   const patch = <K extends keyof HeaderMenuSettings>(key: K, value: HeaderMenuSettings[K]) => {
@@ -184,7 +187,11 @@ export function MenuStyleEditor({ content, isUpdating, onSave }: MenuStyleEditor
           <div className="w-6 h-6 rounded border border-border flex items-center justify-center text-[10px] text-muted-foreground">
             ≡
           </div>
-          {local.show_brand_text ? (
+          {local.show_logo && local.logo_src ? (
+            <div className="flex-1 flex justify-center">
+              <img src={local.logo_src} alt="Logo" style={{ height: `${local.logo_height_px || 32}px` }} className="object-contain" />
+            </div>
+          ) : local.show_brand_text ? (
             <div className="text-center flex-1 px-2">
               <p
                 className="font-display text-[11px] uppercase text-foreground leading-tight truncate"
@@ -384,8 +391,51 @@ export function MenuStyleEditor({ content, isUpdating, onSave }: MenuStyleEditor
       </section>
 
       <section className="space-y-4 p-3 rounded-xl border border-border bg-surface">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Marca</h4>
-        <div className="space-y-1.5">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Marca y Logo</h4>
+        <div className="space-y-2">
+            {local.logo_src ? (
+                <img src={local.logo_src} alt="Logo" className="w-auto h-16 object-contain bg-background rounded border border-border p-1" />
+            ) : null}
+            <button
+                type="button"
+                disabled={isUploadingLogo || !onImageUpload}
+                onClick={() => document.getElementById('logo-upload')?.click()}
+                className="flex w-full justify-center items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-background border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50"
+            >
+                {isUploadingLogo ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                {local.logo_src ? 'Cambiar logo' : 'Subir logo'}
+            </button>
+            <input
+                id="logo-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file && onImageUpload) {
+                        setIsUploadingLogo(true);
+                        onImageUpload(file, 'logo_src');
+                    }
+                    e.target.value = '';
+                }}
+            />
+        </div>
+        <ToggleField
+          label="Mostrar logo"
+          desc="Reemplazar el texto de marca por la imagen del logo"
+          value={local.show_logo}
+          onChange={(v) => patch('show_logo', v)}
+        />
+        <SliderField
+          label="Altura del logo"
+          value={local.logo_height_px}
+          min={16}
+          max={64}
+          step={2}
+          unit="px"
+          onChange={(v) => patch('logo_height_px', v)}
+        />
+        <div className="space-y-1.5 mt-4">
           <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Línea 1
           </label>

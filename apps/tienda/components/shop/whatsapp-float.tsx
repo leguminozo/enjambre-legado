@@ -1,12 +1,20 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { useLocale } from 'next-intl';
+import { useStoreChrome } from '@/components/shop/store-chrome-context';
+import { resolveLocalized } from '@/lib/shop/store-chrome';
 
-/** Define NEXT_PUBLIC_WHATSAPP_E164=569XXXXXXXX (solo dígitos, con código país). */
+/** Float WhatsApp — CMS contact_settings, fallback a NEXT_PUBLIC_WHATSAPP_E164. */
 export function WhatsAppFloat() {
   const pathname = usePathname();
-  const phone = process.env.NEXT_PUBLIC_WHATSAPP_E164?.replace(/\D/g, '');
-  if (!phone) return null;
+  const locale = useLocale();
+  const { contact } = useStoreChrome();
+
+  const envPhone = process.env.NEXT_PUBLIC_WHATSAPP_E164?.replace(/\D/g, '') ?? '';
+  const phone = (contact.whatsapp_e164 || envPhone).replace(/\D/g, '');
+
+  if (!contact.show_whatsapp_float || !phone) return null;
 
   const normalized = (pathname ?? '').replace(/^\/(es|en)/, '') || '/';
   const hideOn =
@@ -16,9 +24,16 @@ export function WhatsAppFloat() {
 
   if (hideOn) return null;
 
+  const prefill = resolveLocalized(
+    contact.whatsapp_prefill,
+    contact.whatsapp_prefill_en,
+    locale,
+  );
+  const href = `https://wa.me/${phone}${prefill ? `?text=${encodeURIComponent(prefill)}` : ''}`;
+
   return (
     <a
-      href={`https://wa.me/${phone}`}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className="whatsapp-float-mobile fixed bottom-3 right-3 z-[52] flex h-12 w-12 md:bottom-4 md:right-4 md:h-14 md:w-14 items-center justify-center rounded-full bg-foreground text-background shadow-lg transition hover:scale-105 hover:bg-foreground/90"

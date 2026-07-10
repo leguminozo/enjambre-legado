@@ -4,18 +4,21 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { ProductRatingAggregate } from '@/lib/shop/catalog-ratings';
 import { formatCLP } from '@/lib/shop/format';
 import { ProductRatingStars } from '@/components/shop/product-rating-stars';
 import { Search, X } from 'lucide-react';
+import { useStoreChrome } from '@/components/shop/store-chrome-context';
+import { resolveLocalized, type CatalogSortKey } from '@/lib/shop/store-chrome';
 
 type Props = {
   products: ShopProduct[];
   ratings?: Record<string, ProductRatingAggregate>;
 };
 
-type SortKey = 'default' | 'price-asc' | 'price-desc' | 'name';
+type SortKey = CatalogSortKey;
 
 function productBadges(p: ShopProduct): string[] {
   const badges: string[] = [];
@@ -33,14 +36,20 @@ export function CatalogoView({ products, ratings = {} }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const locale = useLocale();
+  const { catalog } = useStoreChrome();
 
   const q = searchParams.get('q') ?? '';
   const formato = searchParams.get('formato') ?? '';
   const categoria = searchParams.get('categoria') ?? '';
   const soloStock = searchParams.get('stock') === '1';
   const altoImpacto = searchParams.get('impacto') === '1';
-  const [sort, setSort] = useState<SortKey>('default');
+  const [sort, setSort] = useState<SortKey>(catalog.default_sort);
   const [draftQ, setDraftQ] = useState(q);
+
+  useEffect(() => {
+    setSort(catalog.default_sort);
+  }, [catalog.default_sort]);
 
   useEffect(() => {
     setDraftQ(q);
@@ -104,13 +113,14 @@ export function CatalogoView({ products, ratings = {} }: Props) {
     <>
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
         <h1 className="text-center font-display text-4xl font-semibold text-foreground sm:text-5xl">
-          Creaciones
+          {resolveLocalized(catalog.page_title, catalog.page_title_en, locale)}
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-muted-foreground sm:text-base">
-          La materia de nuestra búsqueda. Experiencias que se transforman en productos cargados de legado.
+          {resolveLocalized(catalog.page_subtitle, catalog.page_subtitle_en, locale)}
         </p>
 
         <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          {catalog.show_search ? (
           <form
             className="relative flex-1"
             onSubmit={(e) => {
@@ -135,6 +145,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
               className="w-full rounded-full border border-border bg-card py-3 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/40"
             />
           </form>
+          ) : <div className="flex-1" />}
           <label className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
             <span className="whitespace-nowrap">Ordenar por:</span>
             <select
@@ -152,6 +163,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
           </label>
         </div>
 
+        {catalog.show_filters ? (
         <div className="mx-auto mt-6 flex max-w-3xl flex-wrap items-center gap-2">
           {formatos.map((f) => (
             <button
@@ -214,10 +226,12 @@ export function CatalogoView({ products, ratings = {} }: Props) {
             </button>
           )}
         </div>
+        ) : null}
 
         {filtered.length === 0 ? (
           <p className="mt-14 text-center text-muted-foreground">
-            No hay resultados.{' '}
+            {resolveLocalized(catalog.empty_message, catalog.empty_message_en, locale)}{' '}
+            {hasFilters ? (
             <button
               type="button"
               onClick={clearFilters}
@@ -225,13 +239,24 @@ export function CatalogoView({ products, ratings = {} }: Props) {
             >
               Limpiar filtros
             </button>
+            ) : null}
           </p>
         ) : (
-          <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <ul
+            className={[
+              'mt-12 grid gap-6',
+              catalog.columns_mobile === 1 ? 'grid-cols-1' : 'grid-cols-2',
+              catalog.columns_desktop === 2
+                ? 'sm:grid-cols-2'
+                : catalog.columns_desktop === 4
+                  ? 'sm:grid-cols-2 lg:grid-cols-4'
+                  : 'sm:grid-cols-2 lg:grid-cols-3',
+            ].join(' ')}
+          >
             {filtered.map((p) => {
               const img = p.photos[0];
               const rating = ratings[p.id];
-              const badges = productBadges(p);
+              const badges = catalog.show_badges ? productBadges(p) : [];
               return (
                 <li key={p.id}>
                   <Link
@@ -260,7 +285,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                             {p.format}
                           </span>
                         ) : null}
-                        {rating && rating.reviewCount > 0 && (
+                        {catalog.show_ratings && rating && rating.reviewCount > 0 && (
                           <ProductRatingStars
                             rating={rating.ratingValue}
                             reviewCount={rating.reviewCount}

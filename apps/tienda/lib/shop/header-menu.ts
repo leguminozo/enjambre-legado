@@ -42,6 +42,9 @@ export type HeaderMenuSettings = {
   show_notifications: boolean;
   sticky: boolean;
   backdrop_blur: boolean;
+  logo_src: string;
+  show_logo: boolean;
+  logo_height_px: number;
 };
 
 export type HeaderMenuConfig = {
@@ -74,6 +77,9 @@ export const DEFAULT_HEADER_SETTINGS: HeaderMenuSettings = {
   show_notifications: true,
   sticky: true,
   backdrop_blur: true,
+  logo_src: '',
+  show_logo: false,
+  logo_height_px: 32,
 };
 
 export const DEFAULT_HEADER_NAV: HeaderNavItem[] = [
@@ -187,6 +193,9 @@ export function parseHeaderSettings(raw: Record<string, unknown> | null | undefi
     show_notifications: asBool(raw.show_notifications, d.show_notifications),
     sticky: asBool(raw.sticky, d.sticky),
     backdrop_blur: asBool(raw.backdrop_blur, d.backdrop_blur),
+    show_logo: asBool(raw.show_logo, d.show_logo),
+    logo_src: asString(raw.logo_src, d.logo_src),
+    logo_height_px: asNumber(raw.logo_height_px, d.logo_height_px, 16, 120),
   };
 }
 

@@ -34,6 +34,9 @@ export type HeaderMenuSettings = {
   show_notifications: boolean;
   sticky: boolean;
   backdrop_blur: boolean;
+  logo_src: string;
+  show_logo: boolean;
+  logo_height_px: number;
 };
 
 export const DEFAULT_HEADER_SETTINGS: HeaderMenuSettings = {
@@ -61,6 +64,9 @@ export const DEFAULT_HEADER_SETTINGS: HeaderMenuSettings = {
   show_notifications: true,
   sticky: true,
   backdrop_blur: true,
+  logo_src: '',
+  show_logo: false,
+  logo_height_px: 32,
 };
 
 export const HEADER_NAV_TEMPLATE = {
@@ -104,5 +110,8 @@ export function mergeHeaderSettings(raw: Record<string, unknown> | undefined): H
       typeof raw.force_burger_desktop === 'boolean'
         ? raw.force_burger_desktop
         : forceFromLegacy || d.force_burger_desktop,
+    show_logo: typeof raw.show_logo === 'boolean' ? raw.show_logo : d.show_logo,
+    logo_src: typeof raw.logo_src === 'string' ? raw.logo_src : d.logo_src,
+    logo_height_px: typeof raw.logo_height_px === 'number' ? raw.logo_height_px : d.logo_height_px,
   } as HeaderMenuSettings;
 }
