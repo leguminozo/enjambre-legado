@@ -215,7 +215,7 @@ export function useSidebarBadges() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'facturas_emitidas' }, () => {
         void fetchBadges()
       })
-      .subscribe((status, err) => {
+      .subscribe((status: string, err?: Error) => {
         if (err || status === 'CHANNEL_ERROR') {
           console.error('[useSidebarBadges] realtime error', err)
         }
