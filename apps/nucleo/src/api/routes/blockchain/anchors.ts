@@ -53,7 +53,6 @@ blockchainRoutes.post(
             .from('lotes')
             .select('id, cosecha_ids, kg_total, estado, blockchain_hash')
             .eq('id', entity_id)
-            .eq('empresa_id', empresaId)
             .maybeSingle();
           if (lote) {
             entityExists = true;

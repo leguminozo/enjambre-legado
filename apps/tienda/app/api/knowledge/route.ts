@@ -21,7 +21,7 @@ export async function GET() {
       .limit(50),
     supabase
       .from('lotes')
-      .select('id, nombre, tipo_miel, fecha_cosecha, kilos, origen, apiario_id, co2_kg')
+      .select('id, nombre_lote, descripcion, fecha_envasado, kg_total')
       .limit(50),
   ]);
 
@@ -96,9 +96,9 @@ export async function GET() {
       ...(lotes.data ?? []).map((l) => ({
         '@type': 'ProductBatch',
         '@id': `${siteUrl}/lote/${l.id}#lote`,
-        name: l.nombre ?? '',
-        description: `Lote de miel ${l.tipo_miel ?? ''}. Cosecha: ${l.fecha_cosecha ?? 'fecha por confirmar'}. ${l.kilos ?? 0} kg. Origen: ${l.origen ?? 'sur de Chile'}.`,
-        productionDate: l.fecha_cosecha ?? undefined,
+        name: l.nombre_lote ?? '',
+        description: `Lote de miel. Cosecha/Envasado: ${l.fecha_envasado ?? 'fecha por confirmar'}. ${l.kg_total ?? 0} kg. Detalles: ${l.descripcion ?? ''}.`,
+        productionDate: l.fecha_envasado ?? undefined,
       })),
     ],
   };

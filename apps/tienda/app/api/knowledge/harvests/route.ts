@@ -11,9 +11,9 @@ export async function GET() {
   const { data, error } = await supabase
     .from('lotes')
     .select(
-      'id, nombre, tipo_miel, fecha_cosecha, kilos, origen, apiario_id, co2_kg, apiarios(nombre, sector)',
+      'id, nombre_lote, descripcion, fecha_envasado, kg_total',
     )
-    .order('fecha_cosecha', { ascending: false })
+    .order('fecha_envasado', { ascending: false, nullsFirst: false })
     .limit(50);
 
   if (error) {
@@ -24,24 +24,12 @@ export async function GET() {
   }
 
   const harvests = (data ?? []).map((l) => {
-  const apiario = l.apiarios && l.apiarios.length > 0 ? l.apiarios[0] : null;
   return {
     '@type': 'Event',
     '@id': `${siteUrl}/lote/${l.id}#harvest`,
-    name: `Cosecha ${l.nombre ?? ''} — ${l.fecha_cosecha ?? 'fecha por confirmar'}`,
-    startDate: l.fecha_cosecha ?? undefined,
-    location: apiario
-      ? {
-          '@type': 'Place',
-          name: apiario.nombre ?? '',
-          address: {
-            '@type': 'PostalAddress',
-            addressRegion: apiario.sector ?? 'Los Lagos',
-            addressCountry: 'CL',
-          },
-        }
-      : undefined,
-      description: `${l.kilos ?? 0} kg de miel ${l.tipo_miel ?? ''}. Origen: ${l.origen ?? 'sur de Chile'}. CO2 del lote: ${l.co2_kg ?? 0} kg.`,
+    name: `Cosecha ${l.nombre_lote ?? ''} — ${l.fecha_envasado ?? 'fecha por confirmar'}`,
+    startDate: l.fecha_envasado ?? undefined,
+      description: `${l.kg_total ?? 0} kg. Detalles: ${l.descripcion ?? ''}.`,
       organizer: {
         '@type': 'Organization',
         name: 'La Obrera y el Zángano',
