@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Save, Loader2 } from 'lucide-react';
+import React, { useEffect, useId, useState } from 'react';
+import { Save, Loader2, Upload, Image as ImageIcon } from 'lucide-react';
 import {
   type ThemeSettings,
   type AnnouncementSettings,
@@ -31,6 +31,8 @@ interface SettingsEditorProps {
   content: Record<string, unknown>;
   isUpdating: boolean;
   onSave: (content: Record<string, unknown>) => void;
+  /** Sube a Storage CMS (WEBP optimizado) y devuelve URL pública. */
+  onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
 }
 
 function SliderField({
@@ -394,7 +396,105 @@ export function PwaNavSettingsEditor({ content, isUpdating, onSave }: SettingsEd
 
 // ── Brand ──────────────────────────────────────────────────────────────────
 
-export function BrandAssetsEditor({ content, isUpdating, onSave }: SettingsEditorProps) {
+function BrandAssetUploadField({
+  label,
+  hint,
+  fieldName,
+  value,
+  previewClassName,
+  onUrlChange,
+  onImageUpload,
+}: {
+  label: string;
+  hint?: string;
+  fieldName: keyof BrandAssets;
+  value: string;
+  previewClassName?: string;
+  onUrlChange: (v: string) => void;
+  onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
+}) {
+  const inputId = useId();
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFile = async (file: File | undefined) => {
+    if (!file || !onImageUpload) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const url = await onImageUpload(file, fieldName);
+      if (typeof url === 'string' && url) {
+        onUrlChange(url);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al subir');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2 p-3 rounded-xl border border-border bg-background">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
+          {hint ? <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p> : null}
+        </div>
+        {value ? (
+          <img
+            src={value}
+            alt={label}
+            className={
+              previewClassName ??
+              'h-14 w-14 shrink-0 rounded-lg border border-border object-contain bg-surface-sunken p-1'
+            }
+          />
+        ) : (
+          <div className="h-14 w-14 shrink-0 rounded-lg border border-dashed border-border flex items-center justify-center text-muted-foreground">
+            <ImageIcon size={18} />
+          </div>
+        )}
+      </div>
+
+      <button
+        type="button"
+        disabled={uploading || !onImageUpload}
+        onClick={() => document.getElementById(inputId)?.click()}
+        className="flex w-full justify-center items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium bg-surface-sunken border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50 min-h-[40px]"
+      >
+        {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+        {value ? 'Cambiar imagen' : 'Subir a la nube'}
+      </button>
+      <input
+        id={inputId}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+        className="hidden"
+        onChange={(e) => {
+          void handleFile(e.target.files?.[0]);
+          e.target.value = '';
+        }}
+      />
+
+      <details className="group">
+        <summary className="text-[10px] text-muted-foreground cursor-pointer hover:text-foreground list-none">
+          <span className="underline-offset-2 group-open:no-underline">URL manual (opcional)</span>
+        </summary>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onUrlChange(e.target.value)}
+          placeholder="https://… o /icons/…"
+          className="mt-1.5 w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-accent font-mono"
+        />
+      </details>
+
+      {error ? <p className="text-[11px] text-destructive">{error}</p> : null}
+    </div>
+  );
+}
+
+export function BrandAssetsEditor({ content, isUpdating, onSave, onImageUpload }: SettingsEditorProps) {
   const [local, setLocal] = useState<BrandAssets>(() => parseBrandAssets(content));
   const [dirty, setDirty] = useState(false);
 
@@ -410,28 +510,51 @@ export function BrandAssetsEditor({ content, isUpdating, onSave }: SettingsEdito
 
   return (
     <div className="space-y-4 pb-8">
-      {local.logo_url ? (
-        <img
-          src={local.logo_url}
-          alt="Logo preview"
-          className="h-16 w-16 rounded-full border border-border object-cover bg-background"
-        />
-      ) : null}
-      <TextField label="Logo header (URL)" value={local.logo_url} onChange={(v) => patch('logo_url', v)} />
-      <TextField
-        label="Logo footer (URL, opcional)"
+      <p className="text-xs text-muted-foreground">
+        Sube logo y assets de marca a Supabase Storage (bucket <code className="text-[10px]">cms</code>
+        ). Las imágenes raster se optimizan a WEBP como en productos: más livianas y con CDN cache.
+      </p>
+
+      <BrandAssetUploadField
+        label="Logo header"
+        hint="Header y marca principal · máx. ~800px · WEBP/SVG"
+        fieldName="logo_url"
+        value={local.logo_url}
+        previewClassName="h-16 w-auto max-w-[140px] shrink-0 rounded-lg border border-border object-contain bg-surface-sunken p-1"
+        onUrlChange={(v) => patch('logo_url', v)}
+        onImageUpload={onImageUpload}
+      />
+      <BrandAssetUploadField
+        label="Logo footer"
+        hint="Opcional · si vacío se usa el logo header"
+        fieldName="logo_footer_url"
         value={local.logo_footer_url}
-        onChange={(v) => patch('logo_footer_url', v)}
+        previewClassName="h-14 w-auto max-w-[120px] shrink-0 rounded-lg border border-border object-contain bg-surface-sunken p-1"
+        onUrlChange={(v) => patch('logo_footer_url', v)}
+        onImageUpload={onImageUpload}
       />
-      <TextField label="Favicon (URL)" value={local.favicon_url} onChange={(v) => patch('favicon_url', v)} />
-      <TextField
-        label="OG image (URL)"
+      <BrandAssetUploadField
+        label="Favicon"
+        hint="Pestaña del navegador · se redimensiona a 256px"
+        fieldName="favicon_url"
+        value={local.favicon_url}
+        previewClassName="h-10 w-10 shrink-0 rounded border border-border object-contain bg-surface-sunken p-0.5"
+        onUrlChange={(v) => patch('favicon_url', v)}
+        onImageUpload={onImageUpload}
+      />
+      <BrandAssetUploadField
+        label="Imagen OG / redes"
+        hint="Compartir en redes · ideal 1200×630"
+        fieldName="og_image_url"
         value={local.og_image_url}
-        onChange={(v) => patch('og_image_url', v)}
+        previewClassName="h-16 w-28 shrink-0 rounded-lg border border-border object-cover bg-surface-sunken"
+        onUrlChange={(v) => patch('og_image_url', v)}
+        onImageUpload={onImageUpload}
       />
+
       <p className="text-[11px] text-muted-foreground">
-        Tip: sube imágenes en Colecciones/Galería o Storage CMS y pega la URL pública aquí. Ola 2
-        añadirá uploader dedicado.
+        Solo admins pueden subir (RLS). Tras subir, la URL se guarda en <strong className="text-foreground">Marca</strong> y
+        la tienda la usa en header, footer, favicon y SEO.
       </p>
       <SaveBar dirty={dirty} isUpdating={isUpdating} onSave={() => { onSave({ ...local }); setDirty(false); }} />
     </div>
@@ -899,33 +1022,36 @@ export function ChromeSettingsEditor({
   content,
   isUpdating,
   onSave,
+  onImageUpload,
 }: {
   sectionKey: string;
   content: Record<string, unknown>;
   isUpdating: boolean;
   onSave: (content: Record<string, unknown>) => void;
+  onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
 }) {
+  const props: SettingsEditorProps = { content, isUpdating, onSave, onImageUpload };
   switch (sectionKey) {
     case 'theme_settings':
-      return <ThemeSettingsEditor content={content} isUpdating={isUpdating} onSave={onSave} />;
+      return <ThemeSettingsEditor {...props} />;
     case 'announcement_settings':
-      return <AnnouncementSettingsEditor content={content} isUpdating={isUpdating} onSave={onSave} />;
+      return <AnnouncementSettingsEditor {...props} />;
     case 'footer_settings':
-      return <FooterSettingsEditor content={content} isUpdating={isUpdating} onSave={onSave} />;
+      return <FooterSettingsEditor {...props} />;
     case 'pwa_nav_settings':
-      return <PwaNavSettingsEditor content={content} isUpdating={isUpdating} onSave={onSave} />;
+      return <PwaNavSettingsEditor {...props} />;
     case 'brand_assets':
-      return <BrandAssetsEditor content={content} isUpdating={isUpdating} onSave={onSave} />;
+      return <BrandAssetsEditor {...props} />;
     case 'landing_layout':
-      return <LandingLayoutEditor content={content} isUpdating={isUpdating} onSave={onSave} />;
+      return <LandingLayoutEditor {...props} />;
     case 'catalog_settings':
-      return <CatalogSettingsEditor content={content} isUpdating={isUpdating} onSave={onSave} />;
+      return <CatalogSettingsEditor {...props} />;
     case 'pdp_settings':
-      return <PdpSettingsEditor content={content} isUpdating={isUpdating} onSave={onSave} />;
+      return <PdpSettingsEditor {...props} />;
     case 'seo_defaults':
-      return <SeoDefaultsEditor content={content} isUpdating={isUpdating} onSave={onSave} />;
+      return <SeoDefaultsEditor {...props} />;
     case 'contact_settings':
-      return <ContactSettingsEditor content={content} isUpdating={isUpdating} onSave={onSave} />;
+      return <ContactSettingsEditor {...props} />;
     default:
       return null;
   }

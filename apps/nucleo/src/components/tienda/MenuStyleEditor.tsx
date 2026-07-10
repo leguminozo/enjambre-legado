@@ -13,7 +13,7 @@ interface MenuStyleEditorProps {
   content: Record<string, unknown>;
   isUpdating: boolean;
   onSave: (content: Record<string, unknown>) => void;
-  onImageUpload?: (file: File, fieldName: string) => void;
+  onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
 }
 
 function SliderField({
@@ -408,13 +408,22 @@ export function MenuStyleEditor({ content, isUpdating, onSave, onImageUpload }: 
             <input
                 id="logo-upload"
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
                 className="hidden"
                 onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file && onImageUpload) {
                         setIsUploadingLogo(true);
-                        onImageUpload(file, 'logo_src');
+                        void Promise.resolve(onImageUpload(file, 'logo_src'))
+                          .then((url) => {
+                            if (typeof url === 'string' && url) {
+                              patch('logo_src', url);
+                            }
+                          })
+                          .catch(() => {
+                            /* toast handled by parent */
+                          })
+                          .finally(() => setIsUploadingLogo(false));
                     }
                     e.target.value = '';
                 }}

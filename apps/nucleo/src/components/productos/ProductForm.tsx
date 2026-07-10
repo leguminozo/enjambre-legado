@@ -9,57 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { Button, toast } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
 import { productFormSchema, type ProductFormData, PRODUCT_FORMATS, PRODUCT_CATEGORIES } from '@/lib/product-types';
-
-const processImage = (file: File): Promise<File> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const objectUrl = URL.createObjectURL(file);
-
-    img.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-      const canvas = document.createElement('canvas');
-      let width = img.width;
-      let height = img.height;
-
-      const MAX_SIZE = 1200;
-      if (width > height) {
-        if (width > MAX_SIZE) {
-          height = Math.round(height * (MAX_SIZE / width));
-          width = MAX_SIZE;
-        }
-      } else {
-        if (height > MAX_SIZE) {
-          width = Math.round(width * (MAX_SIZE / height));
-          height = MAX_SIZE;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return reject(new Error('Failed to get canvas context'));
-
-      ctx.drawImage(img, 0, 0, width, height);
-
-      canvas.toBlob((blob) => {
-        if (!blob) return reject(new Error('Canvas toBlob failed'));
-        const newFileName = file.name.replace(/\.[^/.]+$/, '') + '.webp';
-        const webpFile = new File([blob], newFileName, {
-          type: 'image/webp',
-          lastModified: Date.now()
-        });
-        resolve(webpFile);
-      }, 'image/webp', 0.8); // 80% quality
-    };
-
-    img.onerror = (err) => {
-      URL.revokeObjectURL(objectUrl);
-      reject(err);
-    };
-
-    img.src = objectUrl;
-  });
-};
+import { processImage } from '@/lib/process-image';
 
 interface ProductFormProps {
   initialData?: ProductFormData & { id?: string };
@@ -156,14 +106,17 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
     setImageUploading(true);
     try {
       const uploadPromises = validFiles.map(async (originalFile) => {
-        // Optimizar imagen: Resize a max 1200px y convertir a WEBP (calidad 80%)
-        const file = await processImage(originalFile);
+        // Optimizar: max 1200px + WEBP 80% (pipeline compartido con logo/CMS)
+        const file = await processImage(originalFile, { maxSize: 1200, quality: 0.8 });
 
-        const fileExt = 'webp';
-        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const fileName = `${crypto.randomUUID()}.webp`;
         const { error: uploadError } = await supabase.storage
           .from('productos')
-          .upload(fileName, file, { upsert: true, contentType: 'image/webp' });
+          .upload(fileName, file, {
+            upsert: true,
+            contentType: 'image/webp',
+            cacheControl: '31536000',
+          });
 
         if (uploadError) throw uploadError;
 

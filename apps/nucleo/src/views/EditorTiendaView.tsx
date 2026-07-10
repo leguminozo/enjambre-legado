@@ -281,7 +281,7 @@ interface EditableItemCardProps {
   activeSection: string;
   onUpdate: (id: string, content: Record<string, unknown>, isActive: boolean) => void;
   onDelete: (id: string) => void;
-  onImageUpload: (file: File, fieldName: string, itemId: string) => void;
+  onImageUpload: (file: File, fieldName: string, itemId: string) => Promise<string>;
   isUpdating: boolean;
   isDeleting: boolean;
   onMoveUp?: () => void;
@@ -340,8 +340,15 @@ function EditableItemCard({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !uploadTargetField) return;
-    setUploadingField(uploadTargetField);
-    onImageUpload(file, uploadTargetField, item.id);
+    const field = uploadTargetField;
+    setUploadingField(field);
+    void onImageUpload(file, field, item.id)
+      .then((url) => {
+        if (url) {
+          setLocalContent((prev) => ({ ...prev, [field]: url }));
+        }
+      })
+      .finally(() => setUploadingField(null));
     e.target.value = '';
   };
 
@@ -551,7 +558,7 @@ interface MenuSettingsEditorProps {
   item: CMSContentItem;
   onUpdate: (id: string, content: Record<string, unknown>, isActive: boolean) => void;
   isUpdating: boolean;
-  onImageUpload: (file: File, fieldName: string, itemId: string) => void;
+  onImageUpload: (file: File, fieldName: string, itemId: string) => Promise<string>;
 }
 
 function MenuSettingsEditor({ item, onUpdate, isUpdating, onImageUpload }: MenuSettingsEditorProps) {
@@ -572,7 +579,7 @@ interface ItemsPanelProps {
   activeSection: string;
   onUpdate: (id: string, content: Record<string, unknown>, isActive: boolean) => void;
   onDelete: (id: string) => void;
-  onImageUpload: (file: File, fieldName: string, itemId: string) => void;
+  onImageUpload: (file: File, fieldName: string, itemId: string) => Promise<string>;
   onAddNew: () => void;
   onReorder?: (items: CMSContentItem[]) => void;
   isUpdating: boolean;
@@ -643,6 +650,7 @@ function ItemsPanel({
                 content={items[0].content}
                 isUpdating={isUpdating}
                 onSave={(content) => onUpdate(items[0].id, content, items[0].is_active)}
+                onImageUpload={(file, fieldName) => onImageUpload(file, fieldName, items[0].id)}
               />
             )
           ) : (
@@ -762,30 +770,27 @@ export function EditorTiendaView() {
     });
   };
 
-  const handleImageUpload = (file: File, fieldName: string, itemId: string) => {
+  const handleImageUpload = async (
+    file: File,
+    fieldName: string,
+    itemId: string,
+  ): Promise<string> => {
     const sectionKey = activeSection as CMSSectionKey;
-    cms.uploadImage.mutate(
-      { file, sectionKey, fieldName },
-      {
-        onSuccess: (result) => {
-          const currentItem = groupedData[activeSection]?.find((i) => i.id === itemId);
-          if (currentItem) {
-            const updatedContent = { ...currentItem.content, [fieldName]: result.publicUrl };
-            cms.updateItem.mutate(
-              { id: itemId, content: updatedContent },
-              {
-                onSuccess: () => {
-                  toast('Imagen actualizada', { type: 'success' });
-                  refreshIframe();
-                },
-                onError: (err) => toast(err.message, { type: 'error' }),
-              },
-            );
-          }
-        },
-        onError: (err) => toast(err.message, { type: 'error' }),
-      },
-    );
+    try {
+      const result = await cms.uploadImage.mutateAsync({ file, sectionKey, fieldName });
+      const currentItem = groupedData[activeSection]?.find((i) => i.id === itemId);
+      if (currentItem) {
+        const updatedContent = { ...currentItem.content, [fieldName]: result.publicUrl };
+        await cms.updateItem.mutateAsync({ id: itemId, content: updatedContent });
+        toast('Imagen subida y guardada', { type: 'success' });
+        refreshIframe();
+      }
+      return result.publicUrl;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al subir imagen';
+      toast(message, { type: 'error' });
+      throw err instanceof Error ? err : new Error(message);
+    }
   };
 
   const handleCreateItem = () => {

@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useApiFetch } from '@/hooks/use-api-fetch'
+import { prepareImageForUpload } from '@/lib/process-image'
 import { supabase } from '@/lib/supabase'
 
 export interface CMSContentItem {
@@ -176,22 +177,35 @@ export function useCMSContent() {
       sectionKey: CMSSectionKey
       fieldName: string
     }) => {
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf']
-      const maxBytes = 10 * 1024 * 1024 // 10MB
+      const allowedTypes = [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/svg+xml',
+        'application/pdf',
+      ]
+      const maxBytes = 10 * 1024 * 1024 // 10MB pre-process
 
       if (!allowedTypes.includes(file.type)) {
-        throw new Error('Tipo de archivo no permitido (solo JPEG, PNG, GIF, WEBP, PDF)')
+        throw new Error('Tipo de archivo no permitido (JPEG, PNG, GIF, WEBP, SVG o PDF)')
       }
       if (file.size > maxBytes) {
         throw new Error('El archivo supera el tamaño máximo permitido (10MB)')
       }
 
-      const ext = file.name.split('.').pop()
+      // Raster → WEBP resized (mismo pipeline que fotos de producto)
+      const optimized = await prepareImageForUpload(file, { fieldName })
+      const ext = optimized.name.split('.').pop() || 'webp'
       const path = `cms/${sectionKey}/${crypto.randomUUID()}.${ext}`
 
       const { error: uploadErr } = await supabase.storage
         .from('cms')
-        .upload(path, file, { upsert: true })
+        .upload(path, optimized, {
+          upsert: true,
+          contentType: optimized.type || undefined,
+          cacheControl: '31536000',
+        })
 
       if (uploadErr) throw uploadErr
 
