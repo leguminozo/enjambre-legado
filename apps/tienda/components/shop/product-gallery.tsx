@@ -25,27 +25,32 @@ export function ProductGallery({ photos, alt }: Props) {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <button
           type="button"
           onClick={() => setLightboxOpen(true)}
-          className="group relative aspect-square w-full overflow-hidden rounded-2xl border border-border bg-card shadow-xl"
+          className="group relative aspect-square w-full overflow-hidden rounded-none border-y border-border bg-card shadow-none sm:rounded-2xl sm:border sm:shadow-xl"
           aria-label="Ampliar imagen del producto"
         >
           <Image src={main} alt={alt} fill priority className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
-          <span className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-background/90 px-3 py-1.5 text-[0.65rem] uppercase tracking-wider text-muted-foreground opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+          <span className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-background/90 px-3 py-1.5 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
             <ZoomIn size={14} />
             Ampliar
           </span>
+          {photos.length > 1 ? (
+            <span className="absolute bottom-3 left-3 rounded-full bg-background/90 px-2.5 py-1 text-[0.65rem] tabular-nums text-muted-foreground md:hidden">
+              {index + 1}/{photos.length}
+            </span>
+          ) : null}
         </button>
         {photos.length > 1 ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="tienda-filter-scroll gap-2 px-4 sm:flex-wrap sm:px-0 sm:mask-none">
             {photos.map((src, i) => (
               <button
                 key={src}
                 type="button"
                 onClick={() => setIndex(i)}
-                className={`relative h-16 w-16 overflow-hidden rounded-lg border-2 transition ${
+                className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 transition sm:h-16 sm:w-16 ${
                   i === index
                     ? 'border-accent ring-2 ring-accent/30'
                     : 'border-transparent opacity-75 hover:opacity-100'

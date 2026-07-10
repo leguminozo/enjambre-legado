@@ -400,7 +400,7 @@ export function CheckoutClient() {
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="min-h-[60vh] bg-background pb-16 relative overflow-hidden">
+      <main className="min-h-[60vh] bg-background pb-28 md:pb-16 relative overflow-hidden">
         {/* Background decorative elements */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />

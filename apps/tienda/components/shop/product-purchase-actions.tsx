@@ -12,23 +12,30 @@ type ProductPurchaseActionsProps = {
   product: ShopProduct;
   plans: ReplenishmentPlan[];
   inStock: boolean;
+  /** Oculta el botón primario (p.ej. en móvil cuando hay sticky CTA) */
+  hidePrimaryAdd?: boolean;
 };
 
-export function ProductPurchaseActions({ product, plans, inStock }: ProductPurchaseActionsProps) {
+export function ProductPurchaseActions({
+  product,
+  plans,
+  inStock,
+  hidePrimaryAdd = false,
+}: ProductPurchaseActionsProps) {
   const t = useTranslations('product');
   const [sheetOpen, setSheetOpen] = useState(false);
   const canReplenish = inStock && plans.length > 0;
 
   return (
     <>
-      <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <AddToCartButton product={product} disabled={!inStock} />
+      <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center">
+        {!hidePrimaryAdd ? <AddToCartButton product={product} disabled={!inStock} /> : null}
         {canReplenish ? (
           <button
             type="button"
             data-testid="schedule-replenishment"
             onClick={() => setSheetOpen(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-8 py-3.5 text-sm font-semibold text-foreground transition hover:border-accent/40 hover:text-accent"
+            className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-border px-8 py-3.5 text-sm font-semibold text-foreground transition hover:border-accent/40 hover:text-accent"
           >
             <Repeat size={16} strokeWidth={2} />
             {t('scheduleReplenishment')}

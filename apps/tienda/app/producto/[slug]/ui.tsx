@@ -9,9 +9,11 @@ import { QRCode } from '@enjambre/ui';
 export function AddToCartButton({
   product,
   disabled = false,
+  className,
 }: {
   product: ShopProduct;
   disabled?: boolean;
+  className?: string;
 }) {
   const { add } = useCartLines();
   const [added, setAdded] = useState(false);
@@ -21,7 +23,10 @@ export function AddToCartButton({
       type="button"
       data-testid="add-to-cart"
       disabled={disabled}
-      className="rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-45"
+      className={
+        className ??
+        'rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-45 min-h-[48px]'
+      }
       onClick={() => {
         if (disabled) return;
         add(
@@ -37,7 +42,7 @@ export function AddToCartButton({
         window.setTimeout(() => setAdded(false), 1400);
       }}
     >
-      {added ? 'Agregado al carrito' : 'Agregar al carrito'}
+      {added ? 'Agregado' : 'Agregar al carrito'}
     </button>
   );
 }

@@ -111,122 +111,126 @@ export function CatalogoView({ products, ratings = {} }: Props) {
 
   return (
     <>
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-        <h1 className="text-center font-display text-4xl font-semibold text-foreground sm:text-5xl">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-14">
+        <h1 className="text-center font-display text-3xl font-semibold text-foreground sm:text-4xl md:text-5xl">
           {resolveLocalized(catalog.page_title, catalog.page_title_en, locale)}
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-muted-foreground sm:text-base">
+        <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:text-base">
           {resolveLocalized(catalog.page_subtitle, catalog.page_subtitle_en, locale)}
         </p>
 
-        <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {catalog.show_search ? (
-          <form
-            className="relative flex-1"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setParams({ q: draftQ.trim() || null });
-            }}
-          >
-            <label className="sr-only" htmlFor="search-products">
-              Buscar productos
+        <div className="tienda-catalog-sticky mx-auto mt-6 max-w-3xl sm:mt-10">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            {catalog.show_search ? (
+              <form
+                className="relative flex-1"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setParams({ q: draftQ.trim() || null });
+                }}
+              >
+                <label className="sr-only" htmlFor="search-products">
+                  Buscar productos
+                </label>
+                <Search
+                  className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden
+                />
+                <input
+                  type="search"
+                  id="search-products"
+                  name="search"
+                  placeholder="Buscar productos"
+                  value={draftQ}
+                  onChange={(e) => setDraftQ(e.target.value)}
+                  className="w-full min-h-[44px] rounded-full border border-border bg-card py-3 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/40"
+                />
+              </form>
+            ) : (
+              <div className="flex-1" />
+            )}
+            <label className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
+              <span className="whitespace-nowrap">Ordenar</span>
+              <select
+                id="sort-products"
+                name="sort"
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortKey)}
+                className="min-h-[44px] rounded-full border border-border bg-card px-4 py-2.5 text-foreground focus:border-accent/50 focus:outline-none"
+              >
+                <option value="default">Default</option>
+                <option value="name">Nombre</option>
+                <option value="price-asc">Precio ↑</option>
+                <option value="price-desc">Precio ↓</option>
+              </select>
             </label>
-            <Search
-              className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
-            />
-            <input
-              type="search"
-              id="search-products"
-              name="search"
-              placeholder="Buscar productos"
-              value={draftQ}
-              onChange={(e) => setDraftQ(e.target.value)}
-              className="w-full rounded-full border border-border bg-card py-3 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/40"
-            />
-          </form>
-          ) : <div className="flex-1" />}
-          <label className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
-            <span className="whitespace-nowrap">Ordenar por:</span>
-            <select
-              id="sort-products"
-              name="sort"
-              value={sort}
-              onChange={(e) => setSort(e.target.value as SortKey)}
-              className="rounded-full border border-border bg-card px-4 py-2.5 text-foreground focus:border-accent/50 focus:outline-none"
-            >
-              <option value="default">Default</option>
-              <option value="name">Nombre</option>
-              <option value="price-asc">Precio ↑</option>
-              <option value="price-desc">Precio ↓</option>
-            </select>
-          </label>
-        </div>
+          </div>
 
-        {catalog.show_filters ? (
-        <div className="mx-auto mt-6 flex max-w-3xl flex-wrap items-center gap-2">
-          {formatos.map((f) => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => setParams({ formato: formato === f ? null : f })}
-              className={`rounded-full border px-3 py-1.5 text-xs uppercase tracking-wider transition ${
-                formato === f
-                  ? 'border-accent bg-accent/15 text-accent'
-                  : 'border-border text-muted-foreground hover:border-accent/40'
-              }`}
-            >
-              {f}
-            </button>
-          ))}
-          {categorias.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setParams({ categoria: categoria === c ? null : c })}
-              className={`rounded-full border px-3 py-1.5 text-xs transition ${
-                categoria === c
-                  ? 'border-primary bg-primary/10 text-foreground'
-                  : 'border-border text-muted-foreground hover:border-accent/40'
-              }`}
-            >
-              {c}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => setParams({ stock: soloStock ? null : '1' })}
-            className={`rounded-full border px-3 py-1.5 text-xs transition ${
-              soloStock
-                ? 'border-success bg-success/10 text-success'
-                : 'border-border text-muted-foreground hover:border-accent/40'
-            }`}
-          >
-            En stock
-          </button>
-          <button
-            type="button"
-            onClick={() => setParams({ impacto: altoImpacto ? null : '1' })}
-            className={`rounded-full border px-3 py-1.5 text-xs transition ${
-              altoImpacto
-                ? 'border-accent bg-accent/10 text-accent'
-                : 'border-border text-muted-foreground hover:border-accent/40'
-            }`}
-          >
-            Alto impacto
-          </button>
-          {hasFilters && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <X size={12} />
-              Limpiar
-            </button>
-          )}
+          {catalog.show_filters ? (
+            <div className="tienda-filter-scroll mt-3 max-w-3xl">
+              {formatos.map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setParams({ formato: formato === f ? null : f })}
+                  className={`shrink-0 rounded-full border px-3 py-2 text-xs uppercase tracking-wider transition min-h-[40px] ${
+                    formato === f
+                      ? 'border-accent bg-accent/15 text-accent'
+                      : 'border-border text-muted-foreground hover:border-accent/40'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+              {categorias.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setParams({ categoria: categoria === c ? null : c })}
+                  className={`shrink-0 rounded-full border px-3 py-2 text-xs transition min-h-[40px] ${
+                    categoria === c
+                      ? 'border-primary bg-primary/10 text-foreground'
+                      : 'border-border text-muted-foreground hover:border-accent/40'
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setParams({ stock: soloStock ? null : '1' })}
+                className={`shrink-0 rounded-full border px-3 py-2 text-xs transition min-h-[40px] ${
+                  soloStock
+                    ? 'border-success bg-success/10 text-success'
+                    : 'border-border text-muted-foreground hover:border-accent/40'
+                }`}
+              >
+                En stock
+              </button>
+              <button
+                type="button"
+                onClick={() => setParams({ impacto: altoImpacto ? null : '1' })}
+                className={`shrink-0 rounded-full border px-3 py-2 text-xs transition min-h-[40px] ${
+                  altoImpacto
+                    ? 'border-accent bg-accent/10 text-accent'
+                    : 'border-border text-muted-foreground hover:border-accent/40'
+                }`}
+              >
+                Alto impacto
+              </button>
+              {hasFilters ? (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-3 py-2 text-xs text-muted-foreground hover:text-foreground min-h-[40px]"
+                >
+                  <X size={12} />
+                  Limpiar
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
-        ) : null}
 
         {filtered.length === 0 ? (
           <p className="mt-14 text-center text-muted-foreground">

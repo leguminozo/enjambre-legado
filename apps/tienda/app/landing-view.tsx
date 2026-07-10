@@ -233,7 +233,12 @@ export function TiendaLandingView({
       {orderedSections.map((sec) => {
         if (sec.id === 'hero') {
           return (
-      <section key="hero" className="relative h-[72vh] md:h-[90vh] flex flex-col items-center justify-center text-center px-4">
+      <section
+            key="hero"
+            className="relative flex flex-col items-center justify-center text-center px-4"
+            style={{ minHeight: 'min(70dvh, 560px)', height: 'auto' }}
+          >
+            <div className="absolute inset-0 md:min-h-[90vh] pointer-events-none" aria-hidden />
         {!isMobile && landing.show_bee_canvas ? <BeeCanvas /> : null}
         <div
           className="absolute inset-0 pointer-events-none bg-background/40 md:bg-transparent"
@@ -267,10 +272,10 @@ export function TiendaLandingView({
               {tHero('formula') || 'Luz solar → Néctar → Miel virgen · Sin atajos industriales'}
             </p>
             {landing.show_hero_cta ? (
-              <div className="mt-10">
+              <div className="mt-8 md:mt-10">
                 <Link
                   href={landing.hero_cta_href || '/catalogo'}
-                  className="inline-flex items-center rounded-full border border-accent px-8 py-3 text-[0.65rem] uppercase tracking-[0.25em] text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className="inline-flex min-h-[48px] items-center rounded-full border border-accent bg-accent/10 px-8 py-3.5 text-[0.65rem] uppercase tracking-[0.2em] text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   {resolveLocalized(
                     landing.hero_cta_label,
@@ -281,9 +286,9 @@ export function TiendaLandingView({
               </div>
             ) : null}
           </div>
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4">
-            <span className="text-editorial-xs uppercase tracking-widest text-muted-foreground [writing-mode:vertical-rl]">{tCommon('scrollDown') || 'Descender'}</span>
-            <div className="w-px h-12 bg-gradient-to-b from-accent to-transparent animate-bounce" />
+          <div className="absolute bottom-6 md:bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 md:gap-4">
+            <span className="hidden md:block text-editorial-xs uppercase tracking-widest text-muted-foreground [writing-mode:vertical-rl]">{tCommon('scrollDown') || 'Descender'}</span>
+            <div className="w-px h-8 md:h-12 bg-gradient-to-b from-accent to-transparent animate-bounce" />
           </div>
         </section>
           );
@@ -385,12 +390,12 @@ export function TiendaLandingView({
             </h2>
           </div>
 
-          <div className="editorial-container grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+          <div className="editorial-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10 sm:gap-x-8 sm:gap-y-16 px-4 sm:px-0">
             {initialColecciones.map((c, index) => {
               const imageSrc = resolveCollectionImage(c);
               return (
                 <Link key={c.title} href={c.href} prefetch={false} className="group flex flex-col">
-            <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-6 rounded-lg">
+            <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-4 sm:mb-6 rounded-lg">
                   <Image
                     src={imageSrc}
                     alt={c.title}

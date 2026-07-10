@@ -87,9 +87,19 @@
     var(--tienda-liquid-nav-h) + var(--tienda-liquid-nav-float) + var(--safe-bottom)
   );
   --tienda-cart-bar-h: 3.25rem;
+  --tienda-sticky-cta-h: 4.25rem;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --tienda-sticky-top: calc(var(--carousel-h, 0px) + var(--tienda-header-h));
+  /* Stack inferior browser: cart bar o sticky CTA */
+  --tienda-mobile-chrome-stack: calc(var(--tienda-cart-bar-h) + var(--safe-bottom));
+  /* Stack PWA: liquid nav flotante */
+  --tienda-mobile-chrome-stack-pwa: var(--tienda-bottom-nav-stack);
+  --tienda-z-header: 60;
+  --tienda-z-cart-bar: 54;
+  --tienda-z-sticky-cta: 55;
+  --tienda-z-bottom-nav: 55;
+  --tienda-z-wa: 52;
 }
 
 @media (min-width: 768px) {
@@ -286,6 +296,22 @@ html.tienda-overlay-open .tienda-text-carousel {
 
 .tienda-shell-content {
   padding-bottom: var(--safe-bottom);
+  min-width: 0;
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+@media (max-width: 767px) {
+  .tienda-shell-content {
+    padding-bottom: max(var(--safe-bottom), 0.5rem);
+  }
+
+  /* Con cart bar o sticky CTA, reserva espacio */
+  .tienda-shell:has(.tienda-cart-bar) .tienda-shell-content,
+  .tienda-shell:has(.tienda-sticky-cta) .tienda-shell-content,
+  .tienda-shell:has(.tienda-checkout-sticky-pay) .tienda-shell-content {
+    padding-bottom: calc(var(--tienda-sticky-cta-h) + var(--safe-bottom) + 0.5rem);
+  }
 }
 
 @media (min-width: 768px) {
@@ -295,7 +321,19 @@ html.tienda-overlay-open .tienda-text-carousel {
 }
 
 html[data-tienda-pwa='standalone'] .tienda-shell-content {
-  padding-bottom: var(--tienda-bottom-nav-stack);
+  padding-bottom: var(--tienda-mobile-chrome-stack-pwa);
+}
+
+html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-sticky-cta) .tienda-shell-content,
+html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-checkout-sticky-pay) .tienda-shell-content {
+  padding-bottom: calc(
+    var(--tienda-mobile-chrome-stack-pwa) + var(--tienda-sticky-cta-h) + 0.5rem
+  );
+}
+
+/* En PWA la bolsa es tab — no apilar cart bar */
+html[data-tienda-pwa='standalone'] .tienda-cart-bar {
+  display: none !important;
 }
 
 /* Barra inferior flotante estilo Liquid (PWA) */
@@ -461,16 +499,99 @@ html[data-tienda-pwa='standalone'] .tienda-install-prompt {
   bottom: calc(var(--tienda-bottom-nav-stack) + 0.5rem);
 }
 
-.tienda-checkout-sticky-pay {
+.tienda-checkout-sticky-pay,
+.tienda-sticky-cta {
   position: fixed;
   left: 0;
   right: 0;
   bottom: var(--safe-bottom);
-  z-index: 55;
-  padding: 0.5rem 0.75rem;
+  z-index: var(--tienda-z-sticky-cta);
+  padding: 0.5rem 0.75rem calc(0.5rem + var(--safe-bottom));
   background-color: hsl(var(--card));
   border-top: 1px solid hsl(var(--border));
   box-shadow: 0 -4px 24px hsl(var(--background) / 0.35);
+}
+
+html[data-tienda-pwa='standalone'] .tienda-checkout-sticky-pay,
+html[data-tienda-pwa='standalone'] .tienda-sticky-cta {
+  bottom: calc(var(--tienda-mobile-chrome-stack-pwa) + 0.25rem);
+  left: var(--tienda-liquid-nav-inset);
+  right: var(--tienda-liquid-nav-inset);
+  padding-bottom: 0.5rem;
+  border-radius: 1.25rem;
+  border: 1px solid hsl(var(--border) / 0.65);
+}
+
+.tienda-sticky-cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: 42rem;
+  margin: 0 auto;
+  min-height: 3rem;
+}
+
+.tienda-sticky-cta-price {
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: hsl(var(--accent));
+  font-variant-numeric: tabular-nums;
+}
+
+.tienda-sticky-cta-btn {
+  flex: 1;
+  max-width: 14rem;
+  min-height: 48px;
+  border-radius: 9999px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.75rem 1.25rem;
+}
+
+.tienda-sticky-cta-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Filtros catálogo con fade */
+.tienda-filter-scroll {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding-bottom: 0.25rem;
+  mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 1.5rem), transparent 100%);
+}
+
+.tienda-filter-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.tienda-catalog-sticky {
+  position: sticky;
+  top: var(--tienda-sticky-top);
+  z-index: 40;
+  margin-inline: -1rem;
+  padding: 0.75rem 1rem;
+  background: hsl(var(--background) / 0.94);
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@media (min-width: 640px) {
+  .tienda-catalog-sticky {
+    margin-inline: -1.5rem;
+    padding-inline: 1.5rem;
+  }
 }
 
 .tienda-checkout-sticky-pay-inner {
@@ -529,7 +650,46 @@ html[data-tienda-pwa='standalone'] .tienda-cart-bar {
 }
 
 html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-cart-bar) .tienda-shell-content {
-  padding-bottom: calc(var(--tienda-bottom-nav-stack) + var(--tienda-cart-bar-h) + 0.5rem);
+  padding-bottom: var(--tienda-mobile-chrome-stack-pwa);
+}
+
+/* WhatsApp: sobre el stack inferior, no encima del thumb CTA */
+@media (max-width: 767px) {
+  .whatsapp-float-mobile {
+    bottom: calc(var(--tienda-sticky-cta-h, 0px) + var(--safe-bottom) + 0.75rem) !important;
+  }
+
+  html[data-tienda-pwa='standalone'] .whatsapp-float-mobile {
+    bottom: calc(var(--tienda-mobile-chrome-stack-pwa) + 0.75rem) !important;
+  }
+
+  .tienda-shell:has(.tienda-sticky-cta) .whatsapp-float-mobile,
+  .tienda-shell:has(.tienda-checkout-sticky-pay) .whatsapp-float-mobile,
+  .tienda-shell:has(.tienda-cart-bar) .whatsapp-float-mobile {
+    bottom: calc(var(--tienda-sticky-cta-h) + var(--safe-bottom) + 0.75rem) !important;
+  }
+
+  html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-sticky-cta) .whatsapp-float-mobile,
+  html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-checkout-sticky-pay) .whatsapp-float-mobile {
+    bottom: calc(var(--tienda-mobile-chrome-stack-pwa) + var(--tienda-sticky-cta-h) + 0.5rem) !important;
+  }
+
+  /* Header más compacto */
+  .tienda-shop-header .font-display.text-lg {
+    font-size: 0.95rem;
+    letter-spacing: 0.12em !important;
+  }
+
+  .tienda-shop-header img.h-8 {
+    height: 1.75rem;
+    width: 1.75rem;
+  }
+
+  /* Footer: menos aire en móvil */
+  footer.bg-background.border-t {
+    padding-top: 3rem;
+    padding-bottom: 2rem;
+  }
 }
 
 .whatsapp-float-mobile {

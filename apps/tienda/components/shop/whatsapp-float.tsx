@@ -36,7 +36,11 @@ export function WhatsAppFloat() {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="whatsapp-float-mobile fixed bottom-3 right-3 z-[52] flex h-12 w-12 md:bottom-4 md:right-4 md:h-14 md:w-14 items-center justify-center rounded-full bg-foreground text-background shadow-lg transition hover:scale-105 hover:bg-foreground/90"
+      className="whatsapp-float-mobile fixed right-3 z-[var(--tienda-z-wa)] flex h-12 w-12 md:bottom-4 md:right-4 md:h-14 md:w-14 items-center justify-center rounded-full bg-foreground text-background shadow-lg transition hover:scale-105 hover:bg-foreground/90"
+      style={{
+        bottom:
+          'calc(var(--tienda-mobile-chrome-stack, 0px) + 0.75rem)',
+      }}
       aria-label="Contactar por WhatsApp"
     >
       <svg viewBox="0 0 24 24" className="h-8 w-8 fill-current" aria-hidden>
