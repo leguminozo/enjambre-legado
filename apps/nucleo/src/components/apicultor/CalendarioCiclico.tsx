@@ -1,27 +1,27 @@
 import { useState, useEffect } from 'react';
 import { CalendarDays, CheckCircle2, Circle, Filter, Plus, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import type { CalendarioTask } from '@/types/ecosystem';
+import type { CalendarioTaskRow } from '@/lib/apicultor-types';
 
-const categoryColors: Record<CalendarioTask['category'], string> = {
+const categoryColors: Record<CalendarioTaskRow['category'], string> = {
 inspeccion: 'hsl(var(--primary))', cosecha: 'hsl(var(--accent))',
 tratamiento: 'hsl(var(--destructive))', reforestacion: 'hsl(var(--success))',
 transhumancia: 'hsl(var(--info))', cera: 'hsl(var(--muted-foreground))',
 };
-const categoryLabels: Record<CalendarioTask['category'], string> = {
+const categoryLabels: Record<CalendarioTaskRow['category'], string> = {
     inspeccion: '🔍 Inspección', cosecha: '🍯 Cosecha',
     tratamiento: '⚕️ Tratamiento', reforestacion: '🌱 Reforestación',
     transhumancia: '🚛 Transhumancia', cera: '🕯️ Cera',
 };
-const priorityBadge = (p: string) =>
+const priorityBadge = (p: string | null) =>
     p === 'alta' ? 'badge-danger' : p === 'media' ? 'badge-gold' : 'badge-warning';
 
 export function CalendarioCiclico() {
-    const [tasks, setTasks] = useState<CalendarioTask[]>([]);
-    const [filterCat, setFilterCat] = useState<CalendarioTask['category'] | 'all'>('all');
+    const [tasks, setTasks] = useState<CalendarioTaskRow[]>([]);
+    const [filterCat, setFilterCat] = useState<CalendarioTaskRow['category'] | 'all'>('all');
     const [showMonth, setShowMonth] = useState<string>('Marzo');
     const [showNewTaskForm, setShowNewTaskForm] = useState(false);
-    const [newTaskForm, setNewTaskForm] = useState<Partial<CalendarioTask>>({
+    const [newTaskForm, setNewTaskForm] = useState<Partial<CalendarioTaskRow>>({
         title: '', month: 'Marzo', week: 1, category: 'inspeccion', priority: 'media', colmena: ''
     });
     const months = ['Marzo', 'Abril', 'Mayo', 'Agosto', 'Septiembre'];
@@ -124,17 +124,17 @@ export function CalendarioCiclico() {
                         <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-sm)' }}>Programar Nueva Tarea</div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, marginBottom: 8 }}>
-                            <input autoFocus type="text" placeholder="Título de la tarea..." className="input-field" value={newTaskForm.title} onChange={e => setNewTaskForm({ ...newTaskForm, title: e.target.value })} />
+                            <input autoFocus type="text" placeholder="Título de la tarea..." className="input-field" value={newTaskForm.title || ''} onChange={e => setNewTaskForm({ ...newTaskForm, title: e.target.value })} />
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 8 }}>
-                            <select className="input-field" value={newTaskForm.month} onChange={e => setNewTaskForm({ ...newTaskForm, month: e.target.value })}>
+                            <select className="input-field" value={newTaskForm.month || ''} onChange={e => setNewTaskForm({ ...newTaskForm, month: e.target.value })}>
                                 {months.map(m => <option key={m} value={m}>{m}</option>)}
                             </select>
-                            <select className="input-field" value={newTaskForm.week} onChange={e => setNewTaskForm({ ...newTaskForm, week: parseInt(e.target.value) })}>
+                            <select className="input-field" value={newTaskForm.week || ''} onChange={e => setNewTaskForm({ ...newTaskForm, week: parseInt(e.target.value) })}>
                                 {[1, 2, 3, 4].map(w => <option key={w} value={w}>Semana {w}</option>)}
                             </select>
-                            <select className="input-field" value={newTaskForm.category} onChange={e => setNewTaskForm({ ...newTaskForm, category: e.target.value as CalendarioTask['category'] })}>
+                            <select className="input-field" value={newTaskForm.category || ''} onChange={e => setNewTaskForm({ ...newTaskForm, category: e.target.value as CalendarioTaskRow['category'] })}>
                                 <option value="inspeccion">Inspección</option>
                                 <option value="tratamiento">Tratamiento</option>
                                 <option value="cosecha">Cosecha</option>
@@ -144,12 +144,12 @@ export function CalendarioCiclico() {
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-                            <select className="input-field" value={newTaskForm.priority} onChange={e => setNewTaskForm({ ...newTaskForm, priority: e.target.value as CalendarioTask['priority'] })}>
+                            <select className="input-field" value={newTaskForm.priority || ''} onChange={e => setNewTaskForm({ ...newTaskForm, priority: e.target.value as CalendarioTaskRow['priority'] })}>
                                 <option value="baja">Prioridad Baja</option>
                                 <option value="media">Prioridad Media</option>
                                 <option value="alta">Prioridad Alta</option>
                             </select>
-                            <input type="text" placeholder="Apiario/Colmena opcional" className="input-field" value={newTaskForm.colmena} onChange={e => setNewTaskForm({ ...newTaskForm, colmena: e.target.value })} />
+                            <input placeholder="Apiario/Colmena opcional" className="input-field" value={newTaskForm.colmena || ''} onChange={e => setNewTaskForm({ ...newTaskForm, colmena: e.target.value })} />
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -179,7 +179,7 @@ background: filterCat === c ? 'hsl(var(--primary))' : 'hsl(var(--muted) / 0.5)',
 color: filterCat === c ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
                                 transition: 'all 120ms'
                             }}>
-                            {c === 'all' ? 'Todas' : categoryLabels[c as CalendarioTask['category']]}
+                            {c === 'all' ? 'Todas' : categoryLabels[c as CalendarioTaskRow['category']]}
                         </button>
                     ))}
                 </div>
@@ -207,15 +207,15 @@ border: `1px solid ${task.done ? 'hsl(var(--success) / 0.15)' : 'transparent'}`,
                             </div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: categoryColors[task.category as CalendarioTask['category']], flexShrink: 0 }} />
+                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: categoryColors[task.category as CalendarioTaskRow['category']], flexShrink: 0 }} />
                                     <span style={{ fontSize: '0.88rem', fontWeight: 500, color: 'hsl(var(--foreground))', textDecoration: task.done ? 'line-through' : 'none' }}>
                                         {task.title}
                                     </span>
                                 </div>
                                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                                     <span style={{ fontSize: '0.68rem', color: 'hsl(var(--muted-foreground))' }}>Semana {task.week}</span>
-                                    <span style={{ fontSize: '0.68rem', color: categoryColors[task.category as CalendarioTask['category']] }}>
-                                        {categoryLabels[task.category as CalendarioTask['category']]}
+                                    <span style={{ fontSize: '0.68rem', color: categoryColors[task.category as CalendarioTaskRow['category']] }}>
+                                        {categoryLabels[task.category as CalendarioTaskRow['category']]}
                                     </span>
                                     {task.colmena && <span style={{ fontSize: '0.68rem', color: 'hsl(var(--muted-foreground))' }}>· {task.colmena}</span>}
                                 </div>

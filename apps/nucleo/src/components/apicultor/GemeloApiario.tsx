@@ -3,7 +3,7 @@ import { OrbitControls, PerspectiveCamera, Stars, Float, Text } from '@react-thr
 import { useRef, useState, useMemo, useEffect } from 'react';
 import * as THREE from 'three';
 import { BOSQUE_ULMO, ORO_MIEL_ALT, BOSQUE_ULMO_DARK, SCENE_BG } from '@/lib/colors';
-import type { Colmena } from '@/types/ecosystem';
+import type { ColmenaWithRelations } from '@/lib/apicultor-types';
 import { fetchPronostico } from '@/lib/meteo';
 
 interface Colmena3DProps {
@@ -68,7 +68,7 @@ const GRID_POSITIONS: [number, number, number][] = [
 ];
 
 interface GemeloApiarioProps {
-  colmenas?: Colmena[];
+  colmenas?: ColmenaWithRelations[];
   apiarioName?: string;
 }
 
@@ -86,19 +86,19 @@ export function GemeloApiario({ colmenas = [], apiarioName }: GemeloApiarioProps
   const colmenas3d = useMemo(() => {
     if (colmenas.length === 0) return [];
     return colmenas.slice(0, 6).map((c, i) => {
-      const lastPeso = c.pesoHistory?.[c.pesoHistory.length - 1]?.kg;
+      const lastPeso = c.peso_records?.[(c.peso_records?.length || 1) - 1]?.kg;
       const tempOffset = c.health === 'optimal' ? 4 : c.health === 'attention' ? 0 : -3;
       return {
         id: c.id,
         name: c.name,
         pos: GRID_POSITIONS[i % GRID_POSITIONS.length],
         temp: baseTemp + tempOffset,
-        weight: Math.round(lastPeso ?? c.production ?? 0),
+        weight: Math.round(lastPeso ?? c.production_total ?? 0),
       };
     });
   }, [colmenas, baseTemp]);
 
-  const title = apiarioName ?? (colmenas[0]?.location || 'Apiario Pureo');
+  const title = apiarioName ?? (colmenas[0]?.apiario_name || 'Apiario Pureo');
   const sensorCount = colmenas.length;
 
   return (

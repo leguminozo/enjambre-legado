@@ -64,7 +64,12 @@ export function ProductosCatalogoView() {
             initialData={
               selectedProduct
                 ? {
-                    ...selectedProduct,
+
+                    nombre: selectedProduct.nombre ?? '',
+                    descripcion_regenerativa: selectedProduct.descripcion_regenerativa ?? '',
+                    precio: selectedProduct.precio ?? 0,
+                    stock: selectedProduct.stock ?? 0,
+                    formato: selectedProduct.formato ?? '',
                     visible: selectedProduct.visible ?? true,
                     trazabilidad_qr: selectedProduct.trazabilidad_qr ?? true,
                     categoria: selectedProduct.categoria ?? '',
@@ -74,6 +79,12 @@ export function ProductosCatalogoView() {
                     ingredientes: selectedProduct.ingredientes ?? '',
                     origen_apicola: selectedProduct.origen_apicola ?? '',
                     lote_id: selectedProduct.lote_id ?? undefined,
+                    slug: selectedProduct.slug ?? undefined,
+                    video_url: selectedProduct.video_url ?? undefined,
+                    fotos: selectedProduct.fotos ?? undefined,
+                    sustituye_azucar_g: selectedProduct.sustituye_azucar_g ?? undefined,
+                    co2_evitado_kg: selectedProduct.co2_evitado_kg ?? undefined,
+                    irr_referencia: selectedProduct.irr_referencia ?? undefined,
                   }
                 : undefined
             }

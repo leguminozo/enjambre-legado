@@ -2,6 +2,18 @@
   "name": "@enjambre/database",
   "version": "1.0.0",
   "private": true,
+  "main": "database.types.ts",
+  "types": "database.types.ts",
+  "exports": {
+    ".": {
+      "types": "./database.types.ts",
+      "default": "./database.types.ts"
+    },
+    "./database.types": {
+      "types": "./database.types.ts",
+      "default": "./database.types.ts"
+    }
+  },
   "scripts": {
     "db:push": "supabase db push",
     "db:push:all": "supabase db push --include-all --yes",

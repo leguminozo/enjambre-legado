@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
           await supabase
             .from('ventas')
             .select('id')
-            .eq('buyer_id', user.id)
+            .eq('user_id', user.id)
             .limit(20)
         ).data?.map((v) => v.id) ?? [],
       );
@@ -49,11 +49,11 @@ export async function GET(request: NextRequest) {
 
   const { data: venta } = await supabase
     .from('ventas')
-    .select('id, buyer_id')
+    .select('id, user_id')
     .eq('id', ventaId)
     .maybeSingle();
 
-  if (!venta || venta.buyer_id !== user.id) {
+  if (!venta || venta.user_id !== user.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 

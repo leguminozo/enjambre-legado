@@ -1,21 +1,21 @@
 import { useState } from 'react';
 import { MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets } from 'lucide-react';
-import type { Colmena } from '@/types/ecosystem';
+import type { ColmenaWithRelations } from '@/lib/apicultor-types';
 import { estadoFromHealth } from '@/types/ecosystem';
 import { supabase } from '../../lib/supabase';
 
 interface ApiarioManagerProps {
-    colmenas: Colmena[];
-    setColmenas: React.Dispatch<React.SetStateAction<Colmena[]>>;
-    onSelectColmena: (c: Colmena) => void;
+    colmenas: ColmenaWithRelations[];
+    setColmenas: React.Dispatch<React.SetStateAction<ColmenaWithRelations[]>>;
+    onSelectColmena: (c: ColmenaWithRelations) => void;
 }
 
 export function ApiarioManager({ colmenas: localColmenas, setColmenas: setLocalColmenas, onSelectColmena }: ApiarioManagerProps) {
     const [expandedApiarios, setExpandedApiarios] = useState<string[]>([]);
-    const [editingColmena, setEditingColmena] = useState<Colmena | null>(null);
+    const [editingColmena, setEditingColmena] = useState<ColmenaWithRelations | null>(null);
 
     // Group colmenas by location (Apiario)
-    const apiarios = Array.from(new Set(localColmenas.map(c => c.location)));
+    const apiarios = Array.from(new Set(localColmenas.map(c => c.apiario_name).filter(Boolean) as string[]));
 
     const toggleApiario = (apiario: string) => {
         setExpandedApiarios(prev =>
@@ -31,25 +31,25 @@ export function ApiarioManager({ colmenas: localColmenas, setColmenas: setLocalC
         setEditingColmena({
             id: Date.now().toString(), // Mock ID
             name: '',
-            location: apiario,
+            apiario_name: apiario,
             health: 'optimal',
-            production: 0,
+            production_total: 0,
             floracion: '',
-            reinaHistory: [], inspecciones: [], varroaHistory: [], pesoHistory: [],
+            inspecciones: [], varroa_records: [], peso_records: [],
             costos: { horas_anuales: 0, costo_hora: 0, amortizacion_cajon: 12000, insumos_anuales: 0, produccion_kg: 0 },
             alzas: 1
-        } as unknown as Colmena);
+        } as unknown as ColmenaWithRelations);
     };
 
-    const handleSaveColmena = async (c: Colmena) => {
+    const handleSaveColmena = async (c: ColmenaWithRelations) => {
         // Optimistic UI updates
         setLocalColmenas(prev => {
             const exists = prev.find(p => p.id === c.id);
             if (exists) return prev.map(p => p.id === c.id ? c : p);
             return [...prev, c];
         });
-        if (c.location && !expandedApiarios.includes(c.location)) {
-            setExpandedApiarios(prev => [...prev, c.location]);
+        if (c.apiario_name && !expandedApiarios.includes(c.apiario_name)) {
+            setExpandedApiarios(prev => [...prev, c.apiario_name!]);
         }
         setEditingColmena(null);
 
@@ -57,11 +57,11 @@ export function ApiarioManager({ colmenas: localColmenas, setColmenas: setLocalC
         try {
             let apiarioId = null;
             // 1. Resolve or create Apiario by name (location)
-const { data: existingAp } = await supabase.from('apiarios').select('id').eq('name', c.location).single();
+const { data: existingAp } = await supabase.from('apiarios').select('id').eq('name', c.apiario_name || '').single();
       if (existingAp) {
         apiarioId = existingAp.id;
       } else {
-        const { data: newAp } = await supabase.from('apiarios').insert({ name: c.location, lat: 0, lng: 0 }).select().single();
+        const { data: newAp } = await supabase.from('apiarios').insert({ name: c.apiario_name || 'Nuevo Apiario', lat: 0, lng: 0 }).select().single();
                 if (newAp) apiarioId = newAp.id;
             }
 
@@ -70,8 +70,8 @@ const { data: existingAp } = await supabase.from('apiarios').select('id').eq('na
             if (isNew && apiarioId) {
           const { data: newRow } = await supabase.from('colmenas').insert({
             apiario_id: apiarioId, name: c.name, estado: c.health || 'optima',
-            production_total: c.production || 0, floracion: c.floracion,
-            last_inspection: c.lastInspection || null,
+            production_total: c.production_total || 0, floracion: c.floracion,
+            last_inspection: c.last_inspection || null,
             alzas: c.alzas || 1, notes: c.notes || ''
                 }).select('id').single();
 
@@ -82,10 +82,10 @@ const { data: existingAp } = await supabase.from('apiarios').select('id').eq('na
             } else if (!isNew) {
                 await supabase.from('colmenas').update({
                     name: c.name,
-                    estado: estadoFromHealth(c.health),
+                    estado: estadoFromHealth(c.health || 'optimal'),
                     floracion: c.floracion,
-                    last_inspection: c.lastInspection || null,
-                    production_total: c.production || 0,
+                    last_inspection: c.last_inspection || null,
+                    production_total: c.production_total || 0,
                     alzas: c.alzas || 1,
                     notes: c.notes || '',
                 }).eq('id', c.id);
@@ -123,8 +123,8 @@ const { data: existingAp } = await supabase.from('apiarios').select('id').eq('na
                         const newName = prompt('Nombre del nuevo apiario (ej. "Valle Sur"):');
                         if (newName && !apiarios.includes(newName)) {
                             setLocalColmenas(prev => [...prev, {
-                                id: Date.now().toString(), name: 'Nueva Colmena', location: newName, health: 'optimal', production: 0, floracion: 'Nueva', alzas: 1, reinaHistory: [], inspecciones: [], varroaHistory: [], pesoHistory: [], costos: { horas_anuales: 0, costo_hora: 0, amortizacion_cajon: 0, insumos_anuales: 0, produccion_kg: 0 }
-                            } as unknown as Colmena]);
+                                id: Date.now().toString(), name: 'Nueva Colmena', apiario_name: newName, health: 'optimal', production_total: 0, floracion: 'Nueva', alzas: 1, inspecciones: [], varroa_records: [], peso_records: [], costos: { horas_anuales: 0, costo_hora: 0, amortizacion_cajon: 0, insumos_anuales: 0, produccion_kg: 0 }
+                            } as unknown as ColmenaWithRelations]);
                             setExpandedApiarios(p => [...p, newName]);
                         }
                     }}><MapPin size={14} /> Nuevo Apiario</button>
@@ -140,7 +140,7 @@ const { data: existingAp } = await supabase.from('apiarios').select('id').eq('na
                 )}
 
                 {apiarios.map(apiario => {
-                    const apiarioColmenas = localColmenas.filter(c => c.location === apiario);
+                    const apiarioColmenas = localColmenas.filter(c => c.apiario_name === apiario);
                     const isExpanded = expandedApiarios.includes(apiario);
 const apiarioHealth = apiarioColmenas.some(c => c.health === 'risk') ? 'hsl(var(--destructive))'
 : apiarioColmenas.some(c => c.health === 'attention') ? 'hsl(var(--warning))'
@@ -166,7 +166,7 @@ const apiarioHealth = apiarioColmenas.some(c => c.health === 'risk') ? 'hsl(var(
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                     <div style={{ textAlign: 'right', display: 'flex', gap: 12 }}>
-                                        <span style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))' }}><Droplets size={12} style={{ display: 'inline', marginRight: 4, color: 'hsl(var(--accent))' }} />{apiarioColmenas.reduce((s, c) => s + c.production, 0)} kg</span>
+                                        <span style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))' }}><Droplets size={12} style={{ display: 'inline', marginRight: 4, color: 'hsl(var(--accent))' }} />{apiarioColmenas.reduce((s, c) => s + (c.production_total || 0), 0)} kg</span>
                                     </div>
                                     <ChevronRight size={18} style={{ color: 'hsl(var(--muted-foreground))', transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 200ms' }} />
                                 </div>
@@ -185,13 +185,13 @@ const apiarioHealth = apiarioColmenas.some(c => c.health === 'risk') ? 'hsl(var(
                                                     </div>
                                                     <div style={{ fontSize: '0.68rem', marginTop: 2, color: 'hsl(var(--muted-foreground))', display: 'flex', gap: 10 }}>
                                                         <span>{c.floracion || 'Sin floración'}</span>
-                                                        <span>⚖️ {c.pesoHistory?.at(-1)?.kg || 0} kg</span>
-                                                        <span>🔬 V {c.varroaHistory?.at(-1)?.level || 0}/10</span>
+                                                        <span>⚖️ {c.peso_records?.at(-1)?.kg || 0} kg</span>
+                                                        <span>🔬 V {c.varroa_records?.at(-1)?.level || 0}/10</span>
                                                     </div>
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                     <div className="colmena-production" style={{ textAlign: 'right', marginRight: 8 }}>
-                                                        <div className="colmena-production-value" style={{ fontSize: '0.9rem' }}>{c.production}</div>
+                                                        <div className="colmena-production-value" style={{ fontSize: '0.9rem' }}>{c.production_total || 0}</div>
                                                         <div className="colmena-production-label" style={{ fontSize: '0.6rem' }}>kg</div>
                                                     </div>
 
@@ -235,12 +235,12 @@ const apiarioHealth = apiarioColmenas.some(c => c.health === 'risk') ? 'hsl(var(
                             </div>
                             <div>
                                 <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Apiario destino</label>
-                                <input className="input-field" value={editingColmena.location} onChange={e => setEditingColmena({ ...editingColmena, location: e.target.value })} />
+                                <input className="input-field" value={editingColmena.apiario_name || ''} onChange={e => setEditingColmena({ ...editingColmena, apiario_name: e.target.value })} />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                                 <div>
                                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Estado de salud</label>
-                                    <select className="input-field" value={editingColmena.health} onChange={e => setEditingColmena({ ...editingColmena, health: e.target.value as Colmena['health'] })}>
+                                    <select className="input-field" value={editingColmena.health || 'optimal'} onChange={e => setEditingColmena({ ...editingColmena, health: e.target.value as ColmenaWithRelations['health'] })}>
                                         <option value="optimal">Óptima</option>
                                         <option value="attention">Atención</option>
                                         <option value="risk">Riesgo / Critica</option>
@@ -248,7 +248,7 @@ const apiarioHealth = apiarioColmenas.some(c => c.health === 'risk') ? 'hsl(var(
                                 </div>
                                 <div>
                                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Alzas activas</label>
-                                    <input className="input-field" type="number" min={0} max={6} value={editingColmena.alzas} onChange={e => setEditingColmena({ ...editingColmena, alzas: parseInt(e.target.value) || 0 })} />
+                                    <input className="input-field" type="number" min={0} max={6} value={editingColmena.alzas || 0} onChange={e => setEditingColmena({ ...editingColmena, alzas: parseInt(e.target.value) || 0 })} />
                                 </div>
                             </div>
                         </div>

@@ -73,7 +73,7 @@ describe('GET /certificacion/checklist', () => {
       }),
     } as any;
 
-    const app = new Hono();
+    const app = new Hono<{ Variables: { empresaId: string; supabase: any } }>();
     app.use('*', async (c, next) => {
       c.set('empresaId', 'emp-1');
       c.set('supabase', supabase);

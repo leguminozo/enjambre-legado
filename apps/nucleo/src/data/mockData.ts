@@ -1,8 +1,8 @@
-// Types live in @/types/ecosystem — re-exported here for migrate scripts and legacy imports.
-export type {
-  VarroaRecord, PesoRecord, ReinaRecord, InspeccionRecord, CostoColmena,
-  Colmena, Product, CalendarioTask, ArbolPlantado,
-} from '@/types/ecosystem';
+// Legacy mock types
+type Colmena = any;
+type Product = any;
+type CalendarioTask = any;
+type ArbolPlantado = any;
 
 export interface TimelineEvent { year: number; label: string; description: string; active?: boolean; }
 export interface MapMarker {
@@ -15,8 +15,6 @@ export interface FlowPrediction {
     temperatura: number; humedad: number; prediccionKg: number;
     confianza: number;
 }
-
-import type { Colmena, Product, CalendarioTask, ArbolPlantado } from '@/types/ecosystem';
 
 // ─── COLMENAS (completo) ──────────────────────────────────────────────────────
 export const colmenas: Colmena[] = [

@@ -56,7 +56,7 @@ describe('POST /gastos-extranjero/procesar', () => {
     mockParseReceiptForEmpresa.mockResolvedValue(orchestrated);
 
     const supabase = {} as any;
-    const app = new Hono();
+    const app = new Hono<{ Variables: { empresaId: string; supabase: any } }>();
     app.use('*', async (c, next) => {
       c.set('empresaId', 'emp-1');
       c.set('supabase', supabase);
@@ -94,7 +94,7 @@ describe('POST /gastos-extranjero/procesar', () => {
       detectado: null,
     });
 
-    const app = new Hono();
+    const app = new Hono<{ Variables: { empresaId: string; supabase: any } }>();
     app.use('*', async (c, next) => {
       c.set('empresaId', 'emp-1');
       c.set('supabase', {} as any);

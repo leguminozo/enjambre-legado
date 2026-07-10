@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity } from 'lucide-react';
-import type { Colmena, InspeccionRecord, VarroaRecord, PesoRecord } from '@/types/ecosystem';
+import type { ColmenaWithRelations, InspeccionRow, VarroaRow, PesoRow } from '@/lib/apicultor-types';
 import { healthFromEstado, estadoFromHealth } from '@/types/ecosystem';
 import { ViewLoading } from '@enjambre/ui';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
@@ -41,9 +41,9 @@ export function ApicultorView() {
     const [userProfile, setUserProfile] = useState<{ full_name?: string } | null>(null);
     const [treesCount, setTreesCount] = useState<number>(0);
     const [tempPureo, setTempPureo] = useState<string>('—');
-    const [localColmenas, setLocalColmenas] = useState<Colmena[]>([]);
+    const [localColmenas, setLocalColmenas] = useState<ColmenaWithRelations[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedColmena, setSelectedColmena] = useState<Colmena | null>(null);
+    const [selectedColmena, setSelectedColmena] = useState<ColmenaWithRelations | null>(null);
     const [activeView, setActiveView] = useState<ViewTab>('colmenas');
 
     // Phase 4 dynamic data
@@ -70,7 +70,7 @@ export function ApicultorView() {
                 }
 
                 const { data: apiarios } = await supabase.from('apiarios').select('*');
-                const apiarioMap = new Map(apiarios?.map((a: Record<string, unknown>) => [a.id, (a as { name?: string }).name]) || []);
+                const apiarioMap = new Map<string, any>(apiarios?.map((a: any) => [a.id, a]) || []);
 
                 const nested = await supabase.from('colmenas').select(`
                     *,
@@ -85,59 +85,23 @@ export function ApicultorView() {
                 }
 
                 if (colmenasData?.length) {
-                    const mapped = colmenasData.map((c: Record<string, unknown>) => ({
-                        id: String(c.id),
-                        name: (c.name as string) || 'Colmena',
-                        location: c.apiario_id
-                            ? String(apiarioMap.get(c.apiario_id as string) || 'Sin apiario')
-                            : 'Sin apiario',
-                        lat: typeof c.lat === 'number' ? c.lat : 0,
-                        lng: typeof c.lng === 'number' ? c.lng : 0,
-                        health: healthFromEstado(c.estado as string),
-                        queen: (c.queen as string) || '',
-                        reinaHistory: [],
-                        lastInspection: String(c.last_inspection || c.ultima_inspeccion || ''),
-          inspecciones:
-            (c.inspecciones as Record<string, unknown>[])?.map((i: Record<string, unknown>) => ({
-    date: String(i.date ?? ''),
-    inspector: String(i.inspector ?? ''),
-    marcos_cria: Number(i.marcos_cria ?? 0),
-    marcos_miel: Number(i.marcos_miel ?? 0),
-    varroa: Number(i.varroa ?? 0),
-    poblacion: (['alta', 'media', 'baja'].includes(String(i.poblacion)) ? String(i.poblacion) : 'media') as InspeccionRecord['poblacion'],
-    reina: String(i.reina ?? ''),
-    enjambrazon_riesgo: Number(i.enjambrazon_riesgo ?? 0),
-    notes: String(i.notes ?? ''),
-  })) || [],
-                        production: parseFloat(String(c.production_total ?? 0)) || 0,
-          pesoHistory:
-            (c.peso_records as Record<string, unknown>[])?.map((p: Record<string, unknown>) => ({
-                                date: p.date,
-                                kg: parseFloat(String(p.kg)),
-                                note: p.note as string | undefined,
-                            })) || [],
-          varroaHistory:
-            (c.varroa_records as Record<string, unknown>[])?.map((v: Record<string, unknown>) => ({
-                                date: v.date,
-                                level: parseFloat(String(v.level)),
-                                method: v.method as string,
-                            })) || [],
-                        floracion: (c.floracion as string) || '',
-                        treatments: [],
-                        notes: (c.notes as string) || '',
-                        costos: {
-                            horas_anuales: 0,
-                            costo_hora: 0,
-                            amortizacion_cajon: 12000,
-                            insumos_anuales: 0,
-                            produccion_kg: 0,
-                        },
-                        blockchainHash: (c.blockchain_hash as string) || '',
-                        loteActivo: (c.lote_activo as string) || '',
-                        alzas: (c.alzas as number) || 1,
-                        nucleosCandidatos: Boolean(c.nucleos_candidatos),
-  }));
-  setLocalColmenas(mapped as Colmena[]);
+                    const mapped = colmenasData.map((c: any) => {
+                        const apiario = c.apiario_id ? apiarioMap.get(c.apiario_id) : null;
+                        return {
+                            ...c,
+                            apiario_name: apiario?.name || 'Sin apiario',
+                            lat: typeof apiario?.lat === 'number' ? apiario.lat : 0,
+                            lng: typeof apiario?.lng === 'number' ? apiario.lng : 0,
+                            costos: {
+                                horas_anuales: 0,
+                                costo_hora: 0,
+                                amortizacion_cajon: 12000,
+                                insumos_anuales: 0,
+                                produccion_kg: 0,
+                            }
+                        };
+                    });
+                    setLocalColmenas(mapped as ColmenaWithRelations[]);
                 } else {
                     setLocalColmenas([]);
                 }
@@ -193,7 +157,7 @@ export function ApicultorView() {
         });
     }, []);
 
-    const handleUpdateColmena = async (updated: Colmena) => {
+    const handleUpdateColmena = async (updated: ColmenaWithRelations) => {
         setLocalColmenas(prev => prev.map(c => c.id === updated.id ? updated : c));
         if (selectedColmena?.id === updated.id) setSelectedColmena(updated);
 
@@ -201,15 +165,14 @@ export function ApicultorView() {
         try {
             const { error } = await supabase.from('colmenas').update({
                 name: updated.name,
-                estado: estadoFromHealth(updated.health),
+                health: updated.health,
                 floracion: updated.floracion,
-                last_inspection: updated.lastInspection || null,
-                production_total: updated.production,
+                last_inspection: updated.last_inspection || null,
+                production_total: updated.production_total,
                 alzas: updated.alzas,
                 notes: updated.notes || '',
                 queen: updated.queen || null,
-                lote_activo: updated.loteActivo || null,
-                nucleos_candidatos: updated.nucleosCandidatos,
+                nucleos_candidatos: updated.nucleos_candidatos,
             }).eq('id', updated.id);
             if (error) throw error;
         } catch (err) {
@@ -217,7 +180,7 @@ export function ApicultorView() {
         }
     };
 
-    const totalProduction = localColmenas.reduce((sum, c) => sum + c.production, 0);
+    const totalProduction = localColmenas.reduce((sum, c) => sum + (c.production_total || 0), 0);
 
     if (loading) {
         return <ViewLoading variant="view" label="Cargando colmenas" hideLabel />;
@@ -274,7 +237,7 @@ export function ApicultorView() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                     {activeView === 'colmenas' && (
                         <div className="animate-in delay-2" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-                            <GemeloApiario colmenas={localColmenas} apiarioName={localColmenas[0]?.location} />
+                            <GemeloApiario colmenas={localColmenas} apiarioName={localColmenas[0]?.apiario_name} />
                             <ApiarioManager colmenas={localColmenas} setColmenas={setLocalColmenas} onSelectColmena={setSelectedColmena} />
                         </div>
                     )}

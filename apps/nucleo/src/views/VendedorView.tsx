@@ -1,6 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ShoppingBag, Users, MapPin, CalendarDays, TrendingUp, Star, ArrowUpRight, QrCode, Truck, X, ChevronDown, Plus, Minus } from 'lucide-react';
-import type { Product } from '@/types/ecosystem';
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  format: string;
+  impactTrees: number;
+  emoji: string;
+  stock: number;
+  category: string;
+}
 import { guardianLevel } from '@/types/ecosystem';
 import { supabase } from '../lib/supabase';
 import { friendlyError, toast, QRCode as QRCodeSvg, ImmersiveModal } from '@enjambre/ui';
@@ -114,7 +124,7 @@ export function VendedorView() {
 
       const [clientesRes, ventasRes, crmRes, qrRes, colmenaRes, interaccionesRes] = await Promise.all([
         supabase.from('clientes').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-        supabase.from('ventas').select('id, total, created_at, crm_cliente_id, origen, metodo_pago, estado, is_new_client').eq('vendedor_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('ventas').select('id, total, created_at, cliente_id, origen, metodo_pago, estado, is_new_client').eq('vendedor_id', user.id).order('created_at', { ascending: false }),
         apiFetch('/api/crm/dashboard'),
         supabase
           .from('qr_codes')
@@ -161,7 +171,7 @@ export function VendedorView() {
 
       const purchaseCount = new Map<string, number>();
       (ventasRes.data ?? []).forEach((v: Record<string, unknown>) => {
-        const cid = v.crm_cliente_id ? String(v.crm_cliente_id) : null;
+        const cid = v.cliente_id ? String(v.cliente_id) : null;
         if (cid) purchaseCount.set(cid, (purchaseCount.get(cid) ?? 0) + 1);
       });
 

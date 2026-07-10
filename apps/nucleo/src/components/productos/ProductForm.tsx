@@ -72,12 +72,12 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
   const [imageUploading, setImageUploading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [lotes, setLotes] = useState<{ id: string; codigo_lote: string }[]>([]);
+  const [lotes, setLotes] = useState<{ id: string; nombre_lote?: string | null; blockchain_hash?: string | null }[]>([]);
 
   useEffect(() => {
     supabase
       .from('lotes')
-      .select('id, codigo_lote')
+      .select('id, nombre_lote, blockchain_hash')
       .order('created_at', { ascending: false })
       .then(({ data }: { data: any }) => {
         if (data) setLotes(data);
@@ -622,7 +622,9 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
               <select {...register('lote_id')} className="input-field w-full">
                 <option value="">Sin lote asignado</option>
                 {lotes.map(l => (
-                  <option key={l.id} value={l.id}>{l.codigo_lote}</option>
+                  <option key={l.id} value={l.id}>
+                    {l.nombre_lote || (l.blockchain_hash ? `Hash: ${l.blockchain_hash.slice(0, 8)}...` : `Lote: ${l.id.slice(0, 8)}`)}
+                  </option>
                 ))}
               </select>
             </div>

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { Database } from '@enjambre/database/database.types';
 
 export const productFormSchema = z.object({
   nombre: z.string().min(2, 'Nombre debe tener al menos 2 caracteres'),
@@ -25,41 +26,7 @@ export const productFormSchema = z.object({
 
 export type ProductFormData = z.infer<typeof productFormSchema>;
 
-export interface Product {
-  id: string;
-  nombre: string;
-  descripcion_regenerativa: string;
-  precio: number;
-  stock: number;
-  formato: string;
-  visible: boolean;
-  trazabilidad_qr: boolean;
-  slug?: string;
-  video_url?: string;
-  fotos?: string[];
-  created_at: string;
-  updated_at?: string;
-  categoria?: string;
-  tags?: string[];
-  descripcion_corta?: string;
-  peso_neto_g?: number;
-  ingredientes?: string;
-  origen_apicola?: string;
-  sustituye_azucar_g?: number;
-  co2_evitado_kg?: number;
-  irr_referencia?: number;
-  lote_id?: string;
-}
-
-export interface ProductVariant {
-  id: string;
-  producto_id: string;
-  nombre: string;
-  precio: number;
-  stock: number;
-  sku?: string;
-  created_at: string;
-}
+export type Product = Database['public']['Tables']['productos']['Row'];
 
 export const PRODUCT_FORMATS = [
   { value: '500g', label: '500g - Frasco tradicional' },

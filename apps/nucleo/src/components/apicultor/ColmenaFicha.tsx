@@ -3,13 +3,13 @@ import { X, MapPin, Crown, Droplets, Scale, DollarSign, Link, AlertTriangle, Che
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { BOSQUE_ULMO, BOSQUE_ULMO_LIGHT, ORO_MIEL, TEXT_MUTED } from '@/lib/colors';
 import { ChartBox } from '@/components/charts/ChartBox';
-import type { Colmena, InspeccionRecord } from '@/types/ecosystem';
+import type { ColmenaWithRelations, InspeccionRow, VarroaRow, PesoRow } from '@/lib/apicultor-types';
 import { supabase } from '../../lib/supabase';
 import { toast, friendlyError } from '@enjambre/ui';
 
 type Tab = 'resumen' | 'inspecciones' | 'varroa' | 'peso' | 'costos' | 'blockchain';
 
-interface Props { colmena: Colmena; onClose: () => void; onUpdate: (updated: Colmena) => void; }
+interface Props { colmena: ColmenaWithRelations; onClose: () => void; onUpdate: (updated: ColmenaWithRelations) => void; }
 
 const varroaColor = (v: number) => v <= 1.5 ? 'hsl(var(--success))' : v <= 3 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))';
 const healthLabel = (h: string) => h === 'optimal' ? 'Óptima' : h === 'attention' ? 'Atención' : 'Riesgo';
@@ -27,10 +27,10 @@ export function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
     const [showPesoForm, setShowPesoForm] = useState(false);
     const [pesoForm, setPesoForm] = useState({ date: new Date().toISOString().split('T')[0], kg: 0, note: '' });
 
-    const costoProd = colmena.costos.horas_anuales * colmena.costos.costo_hora
-        + colmena.costos.amortizacion_cajon + colmena.costos.insumos_anuales;
-    const costoKg = colmena.costos.produccion_kg > 0
-        ? Math.round(costoProd / colmena.costos.produccion_kg)
+    const costoProd = (colmena.costos?.horas_anuales || 0) * (colmena.costos?.costo_hora || 0)
+        + (colmena.costos?.amortizacion_cajon || 0) + (colmena.costos?.insumos_anuales || 0);
+    const costoKg = (colmena.costos?.produccion_kg || 0) > 0
+        ? Math.round(costoProd / colmena.costos!.produccion_kg)
         : 0;
     const precioVenta = 12000;
     const margenKg = precioVenta - costoKg;
@@ -59,10 +59,10 @@ export function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
                         <div style={{ width: 12, height: 12, borderRadius: '50%', background: colmena.health === 'optimal' ? 'hsl(var(--success))' : colmena.health === 'attention' ? 'hsl(var(--warning))' : 'hsl(var(--destructive))', boxShadow: '0 0 8px currentColor', flexShrink: 0 }} />
                         <div>
                             <h3 style={{ color: 'hsl(var(--primary-foreground))', marginBottom: 2, fontSize: '1.15rem' }}>{colmena.name}</h3>
-                            <div style={{ fontSize: '0.78rem', opacity: 0.7, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} />{colmena.location} · Lote: {colmena.loteActivo}</div>
+                            <div style={{ fontSize: '0.78rem', opacity: 0.7, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} />{colmena.apiario_name || 'Sin apiario'} · Lote: {colmena.lote_activo || 'N/A'}</div>
                         </div>
                         <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-                            <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{colmena.production} kg</div>
+                            <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{colmena.production_total || 0} kg</div>
                             <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>Producción temporada</div>
                         </div>
                     </div>
@@ -88,9 +88,9 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'var(--space-md)' }}>
                                 {[
-                                    { label: 'Estado', value: healthLabel(colmena.health), color: colmena.health === 'optimal' ? 'hsl(var(--success))' : colmena.health === 'attention' ? 'hsl(var(--warning))' : 'hsl(var(--destructive))' },
-                                    { label: 'Alzas activas', value: `${colmena.alzas} alzas`, color: 'hsl(var(--primary))' },
-                                    { label: 'Núcleos', value: colmena.nucleosCandidatos ? 'Candidata ✓' : 'No aplica', color: colmena.nucleosCandidatos ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))' },
+                                    { label: 'Estado', value: healthLabel(colmena.health || 'risk'), color: colmena.health === 'optimal' ? 'hsl(var(--success))' : colmena.health === 'attention' ? 'hsl(var(--warning))' : 'hsl(var(--destructive))' },
+                                    { label: 'Alzas activas', value: `${colmena.alzas || 0} alzas`, color: 'hsl(var(--primary))' },
+                                    { label: 'Núcleos', value: colmena.nucleos_candidatos ? 'Candidata ✓' : 'No aplica', color: colmena.nucleos_candidatos ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))' },
                                 ].map((s, i) => (
                                     <div key={i} style={{ padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
                                         <div style={{ fontSize: '1rem', fontWeight: 700, color: s.color }}>{s.value}</div>
@@ -99,10 +99,10 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                 ))}
                             </div>
                             {[
-                                { icon: <Crown size={14} />, label: 'Reina activa', value: colmena.queen },
-                                { icon: <Droplets size={14} />, label: 'Última inspección', value: colmena.lastInspection },
-                                { icon: <span style={{ fontSize: '0.85rem' }}>🌸</span>, label: 'Floración', value: colmena.floracion },
-                                { icon: <AlertTriangle size={14} />, label: 'Último varroa', value: `${colmena.varroaHistory.at(-1)?.level ?? '–'}/10 (${colmena.varroaHistory.at(-1)?.date ?? '–'})` },
+                                { icon: <Crown size={14} />, label: 'Reina activa', value: colmena.queen || 'N/A' },
+                                { icon: <Droplets size={14} />, label: 'Última inspección', value: colmena.last_inspection || 'Sin inspección' },
+                                { icon: <span style={{ fontSize: '0.85rem' }}>🌸</span>, label: 'Floración', value: colmena.floracion || 'N/A' },
+                                { icon: <AlertTriangle size={14} />, label: 'Último varroa', value: `${colmena.varroa_records?.at(-1)?.level ?? '–'}/10 (${colmena.varroa_records?.at(-1)?.date ?? '–'})` },
                             ].map((r, i) => (
                                 <div key={i} style={{ display: 'flex', gap: 'var(--space-md)', padding: 'var(--space-sm) 0', borderBottom: '1px solid hsl(var(--border) / 0.3)', alignItems: 'center' }}>
                                     <span style={{ color: 'hsl(var(--accent))', width: 20 }}>{r.icon}</span>
@@ -118,16 +118,8 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                             {/* Reina history */}
                             <div>
                                 <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-sm)' }}>Linaje de Reinas</div>
-                                {colmena.reinaHistory.map((r, i) => (
-                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', padding: 'var(--space-sm)', borderRadius: 'var(--radius-sm)', background: r.status === 'activa' ? 'hsl(var(--success) / 0.06)' : 'transparent', marginBottom: 4 }}>
-                                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: r.status === 'activa' ? 'hsl(var(--success))' : r.status === 'ausente' ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))', flexShrink: 0 }} />
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>{r.generation}</div>
-                                            <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))' }}>Desde {r.since} · {r.origin}</div>
-                                        </div>
-                                        <span style={{ fontSize: '0.72rem', fontWeight: 500, color: r.status === 'activa' ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))' }}>{r.status.toUpperCase()}</span>
-                                    </div>
-                                ))}
+                                {/* La historia de la reina será implementada posteriormente a través de tabla reina_history */}
+                                <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))' }}>Sin historial registrado</div>
                             </div>
                         </div>
                     )}
@@ -150,7 +142,7 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                             <option value="Media">Población: Media</option>
                                             <option value="Alta">Población: Alta</option>
                                         </select>
-                                        <select className="input-field" value={inspeccionForm.enjambrazon_riesgo} onChange={e => setInspeccionForm({ ...inspeccionForm, enjambrazon_riesgo: e.target.value as InspeccionRecord['enjambrazon_riesgo'] })}>
+                                        <select className="input-field" value={inspeccionForm.enjambrazon_riesgo} onChange={e => setInspeccionForm({ ...inspeccionForm, enjambrazon_riesgo: e.target.value as 'bajo' | 'medio' | 'alto' })}>
                                             <option value="bajo">Enjambración: Bajo</option>
                                             <option value="medio">Enjambración: Medio</option>
                                             <option value="alto">Enjambración: Alto</option>
@@ -164,14 +156,14 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                     <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
                                         <button className="btn btn-ghost btn-sm" onClick={() => setShowInspeccionForm(false)}>Cancelar</button>
                                         <button className="btn btn-primary btn-sm" onClick={async () => {
-                                            const newInspeccion = { ...inspeccionForm, inspector: 'Apicultor' } as InspeccionRecord;
+                                            const newInspeccion = { ...inspeccionForm, inspector: 'Apicultor' } as InspeccionRow;
 
                                             // Write to Supabase first
                                             if (colmena.id) {
                                                 const { error } = await supabase.from('inspecciones').insert({
                                                     colmena_id: colmena.id, date: newInspeccion.date, inspector: newInspeccion.inspector || 'Apicultor',
                                                     marcos_cria: newInspeccion.marcos_cria, marcos_miel: newInspeccion.marcos_miel, varroa: newInspeccion.varroa,
-                                                    poblacion: newInspeccion.poblacion.toLowerCase(), reina: newInspeccion.reina, enjambrazon_riesgo: newInspeccion.enjambrazon_riesgo, notes: newInspeccion.notes
+                                                    poblacion: newInspeccion.poblacion?.toLowerCase(), reina: newInspeccion.reina, enjambrazon_riesgo: newInspeccion.enjambrazon_riesgo, notes: newInspeccion.notes
                                                 });
                                                 if (error) {
                                                     toast(friendlyError(error, 'Error al guardar la inspección'), { type: 'error' });
@@ -180,14 +172,14 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                                 toast('Inspección guardada exitosamente', { type: 'success' });
                                             }
 
-                                            onUpdate({ ...colmena, inspecciones: [newInspeccion, ...colmena.inspecciones] });
+                                            onUpdate({ ...colmena, inspecciones: [newInspeccion, ...(colmena.inspecciones || [])] });
                                             setShowInspeccionForm(false);
                                         }}>Guardar</button>
                                     </div>
                                 </div>
                             )}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                                {colmena.inspecciones.map((ins, i) => (
+                                {colmena.inspecciones?.map((ins, i) => (
                                     <div key={i} style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)', background: i === 0 ? 'hsl(var(--muted) / 0.5)' : 'transparent' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-sm)' }}>
                                             <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'hsl(var(--foreground))' }}>{ins.date}</span>
@@ -199,7 +191,7 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                             {[
                                                 { label: 'Cría', value: `${ins.marcos_cria} marcos` },
                                                 { label: 'Miel', value: `${ins.marcos_miel} marcos` },
-                                                { label: 'Varroa', value: `${ins.varroa}/10`, color: varroaColor(ins.varroa) },
+                                                { label: 'Varroa', value: `${ins.varroa}/10`, color: varroaColor(ins.varroa ?? 0) },
                                                 { label: 'Población', value: ins.poblacion },
                                             ].map((s, j) => (
                                                 <div key={j} style={{ textAlign: 'center', padding: 6, background: 'hsl(var(--muted) / 0.5)', borderRadius: 6 }}>
@@ -250,7 +242,7 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                                 }
                                                 toast('Registro de varroa guardado exitosamente', { type: 'success' });
                                             }
-                                            onUpdate({ ...colmena, varroaHistory: [...colmena.varroaHistory, varroaForm] });
+                                            onUpdate({ ...colmena, varroa_records: [...(colmena.varroa_records || []), { date: varroaForm.date, level: varroaForm.level, method: varroaForm.method, id: Date.now().toString(), colmena_id: colmena.id } as VarroaRow] });
                                             setShowVarroaForm(false);
                                         }}>Registrar</button>
                                     </div>
@@ -258,7 +250,7 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                             )}
 
                             <ChartBox height={200} className="mb-[var(--space-lg)]">
-                                <LineChart data={colmena.varroaHistory}>
+                                <LineChart data={colmena.varroa_records || []}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                                     <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
                                     <YAxis domain={[0, 6]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
@@ -271,11 +263,11 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                     <div key={i} style={{ padding: '6px 12px', borderRadius: 20, background: `${z.color}18`, fontSize: '0.72rem', fontWeight: 500, color: z.color }}>{z.label}</div>
                                 ))}
                             </div>
-                            {colmena.varroaHistory.map((v, i) => (
+                            {colmena.varroa_records?.map((v, i) => (
                                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', padding: 'var(--space-sm) 0', borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
-                                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: varroaColor(v.level), flexShrink: 0 }} />
+                                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: varroaColor(v.level || 0), flexShrink: 0 }} />
                                     <span style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', width: 100 }}>{v.date}</span>
-                                    <span style={{ fontSize: '1rem', fontWeight: 700, color: varroaColor(v.level), width: 50 }}>{v.level}</span>
+                                    <span style={{ fontSize: '1rem', fontWeight: 700, color: varroaColor(v.level || 0), width: 50 }}>{v.level}</span>
                                     <span style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>{v.method}</span>
                                 </div>
                             ))}
@@ -312,7 +304,7 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                                 }
                                                 toast('Registro de peso guardado exitosamente', { type: 'success' });
                                             }
-                                            onUpdate({ ...colmena, pesoHistory: [...colmena.pesoHistory, pesoForm] });
+                                            onUpdate({ ...colmena, peso_records: [...(colmena.peso_records || []), { date: pesoForm.date, kg: pesoForm.kg, note: pesoForm.note, id: Date.now().toString(), colmena_id: colmena.id } as PesoRow] });
                                             setShowPesoForm(false);
                                         }}>Registrar</button>
                                     </div>
@@ -320,7 +312,7 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                             )}
 
                             <ChartBox height={200} className="mb-6">
-                                <LineChart data={colmena.pesoHistory}>
+                                <LineChart data={colmena.peso_records || []}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                                     <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
                                     <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
@@ -330,8 +322,8 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                             </ChartBox>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
                                 {[
-                                    { label: 'Peso actual', value: `${colmena.pesoHistory.at(-1)?.kg} kg` },
-                                    { label: 'Ganancia total', value: `+${((colmena.pesoHistory.at(-1)?.kg || 0) - (colmena.pesoHistory[0]?.kg || 0)).toFixed(1)} kg` },
+                                    { label: 'Peso actual', value: `${colmena.peso_records?.at(-1)?.kg || 0} kg` },
+                                    { label: 'Ganancia total', value: `+${((colmena.peso_records?.at(-1)?.kg || 0) - (colmena.peso_records?.[0]?.kg || 0)).toFixed(1)} kg` },
                                     { label: 'Flujo diario est.', value: '~0.5 kg/d' },
                                 ].map((s, i) => (
                                     <div key={i} style={{ textAlign: 'center', padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)' }}>
@@ -340,7 +332,7 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                     </div>
                                 ))}
                             </div>
-                            {colmena.pesoHistory.map((p, i) => (
+                            {colmena.peso_records?.map((p, i) => (
                                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', padding: '6px 0', borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
                                     <Scale size={13} style={{ color: 'hsl(var(--muted-foreground))', flexShrink: 0 }} />
                                     <span style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', flex: 1 }}>{p.date}</span>
@@ -356,9 +348,9 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                         <div>
                             <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-md)' }}>Contabilidad por colmena · Temporada 2026</div>
                             {[
-                                { label: 'Horas trabajadas', value: `${colmena.costos.horas_anuales} h × $${colmena.costos.costo_hora.toLocaleString()}/h`, total: colmena.costos.horas_anuales * colmena.costos.costo_hora },
-                                { label: 'Amortización cajón', value: '$12.000/año', total: colmena.costos.amortizacion_cajon },
-                                { label: 'Insumos (timol, ácidos)', value: 'Anuales', total: colmena.costos.insumos_anuales },
+                                { label: 'Horas trabajadas', value: `${colmena.costos?.horas_anuales || 0} h × $${(colmena.costos?.costo_hora || 0).toLocaleString()}/h`, total: (colmena.costos?.horas_anuales || 0) * (colmena.costos?.costo_hora || 0) },
+                                { label: 'Amortización cajón', value: '$12.000/año', total: colmena.costos?.amortizacion_cajon || 0 },
+                                { label: 'Insumos (timol, ácidos)', value: 'Anuales', total: colmena.costos?.insumos_anuales || 0 },
                             ].map((row, i) => (
                                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--space-sm) var(--space-md)', borderBottom: '1px solid hsl(var(--border) / 0.3)', fontSize: '0.85rem' }}>
                                     <div><div style={{ fontWeight: 500, color: 'hsl(var(--foreground))' }}>{row.label}</div><div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))' }}>{row.value}</div></div>
@@ -370,7 +362,7 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'var(--space-md)', marginTop: 'var(--space-lg)' }}>
                                 {[
-{ label: 'Producción', value: `${colmena.costos.produccion_kg} kg`, color: 'hsl(var(--foreground))' },
+{ label: 'Producción', value: `${colmena.costos?.produccion_kg || 0} kg`, color: 'hsl(var(--foreground))' },
       { label: 'Costo/kg real', value: `$${costoKg.toLocaleString()}`, color: 'hsl(var(--warning))' },
       { label: 'Margen/kg', value: `$${margenKg.toLocaleString()}`, color: 'hsl(var(--success))' },
                                 ].map((s, i) => (
@@ -382,7 +374,7 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                             </div>
                             <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'hsl(var(--accent-foreground))' }}>
                                 <DollarSign size={14} style={{ display: 'inline', marginRight: 4 }} />
-                                <strong>Margen bruto colmena:</strong> ${(margenKg * colmena.costos.produccion_kg).toLocaleString()} esta temporada
+                                <strong>Margen bruto colmena:</strong> ${(margenKg * (colmena.costos?.produccion_kg || 0)).toLocaleString()} esta temporada
                             </div>
                         </div>
                     )}
@@ -396,13 +388,13 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                 <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>Verificado</span>
                             </div>
                             {[
-                                { label: 'Hash blockchain', value: colmena.blockchainHash, mono: true },
-                                { label: 'Lote activo', value: colmena.loteActivo },
+                                { label: 'Hash blockchain', value: colmena.blockchain_hash || 'Pendiente', mono: true },
+                                { label: 'Lote activo', value: colmena.lote_activo || 'Sin lote activo' },
                                 { label: 'Colmena origen', value: colmena.name },
-                                { label: 'Apiario', value: colmena.location },
-                                { label: 'Floración', value: colmena.floracion },
-                                { label: 'Última cosecha', value: colmena.lastInspection },
-                                { label: 'Producción lote', value: `${colmena.production} kg miel virgen` },
+                                { label: 'Apiario', value: colmena.apiario_name || 'Desconocido' },
+                                { label: 'Floración', value: colmena.floracion || 'N/A' },
+                                { label: 'Última cosecha', value: colmena.last_inspection || 'N/A' },
+                                { label: 'Producción lote', value: `${colmena.production_total || 0} kg miel virgen` },
                             ].map((r, i) => (
                                 <div key={i} style={{ display: 'flex', gap: 'var(--space-md)', padding: '8px 0', borderBottom: '1px solid hsl(var(--border) / 0.3)', alignItems: 'flex-start' }}>
                                     <span style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', width: 140, flexShrink: 0, paddingTop: 2 }}>{r.label}</span>

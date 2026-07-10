@@ -47,11 +47,15 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
           categoria: String(p.categoria ?? ''),
           tags: Array.isArray(p.tags) ? p.tags : [],
           descripcion_corta: String(p.descripcion_corta ?? ''),
-          peso_neto_g: Number(p.peso_neto_g) || undefined,
+          peso_neto_g: Number(p.peso_neto_g) || null,
           ingredientes: String(p.ingredientes ?? ''),
           origen_apicola: String(p.origen_apicola ?? ''),
-          lote_id: p.lote_id ? String(p.lote_id) : undefined,
-          created_at: String(p.created_at ?? ''),
+          lote_id: p.lote_id ? String(p.lote_id) : null,
+          co2_evitado_kg: p.co2_evitado_kg ? Number(p.co2_evitado_kg) : null,
+          irr_referencia: p.irr_referencia ? Number(p.irr_referencia) : null,
+          sustituye_azucar_g: p.sustituye_azucar_g ? Number(p.sustituye_azucar_g) : null,
+          created_at: p.created_at ? String(p.created_at) : null,
+          updated_at: p.updated_at ? String(p.updated_at) : null,
         };
         return product;
       });
@@ -152,7 +156,7 @@ console.error('Error deleting product:', error);
   };
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = (product.nombre || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.descripcion_regenerativa?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.formato?.toLowerCase().includes(searchQuery.toLowerCase());
     
@@ -256,7 +260,7 @@ console.error('Error deleting product:', error);
                     {product.fotos?.[0] ? (
                       <img
                         src={product.fotos[0]}
-                        alt={product.nombre}
+                        alt={product.nombre || 'Producto'}
                         style={{ width: 48, height: 48, borderRadius: 'var(--radius-sm)', objectFit: 'cover' }}
                       />
                     ) : (
@@ -290,17 +294,17 @@ console.error('Error deleting product:', error);
                       <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-error)' }}>Agotado</span>
                     )}
                   </td>
-                  <td style={{ fontWeight: 600 }}>${product.precio.toLocaleString()}</td>
+                  <td style={{ fontWeight: 600 }}>${(product.precio || 0).toLocaleString()}</td>
                   <td>
                     <span style={{ fontSize: '0.85rem' }}>{product.formato}</span>
                   </td>
                   <td style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))' }}>
-                    {new Date(product.created_at).toLocaleDateString('es-CL')}
+                    {new Date(product.created_at || '').toLocaleDateString('es-CL')}
                   </td>
                   <td>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
                       <button
-                        onClick={() => toggleVisibility(product.id, product.visible)}
+                        onClick={() => toggleVisibility(product.id, Boolean(product.visible))}
                         className="btn btn-ghost btn-sm"
                         title={product.visible ? 'Ocultar' : 'Publicar'}
                         disabled={deletingId === product.id}
