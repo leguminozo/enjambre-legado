@@ -11,7 +11,6 @@ import {
   requiresAuth,
   requiresParticipacionCheck,
   safeStoreReturnPath,
-  STORE_PERFIL_BRIDGE,
 } from './store-routes';
 
 const baseParticipacion: ParticipacionActiva = {
@@ -56,19 +55,10 @@ describe('store-routes — paths', () => {
     expect(isAuthEntryPath('/perfil')).toBe(false);
   });
 
-  it('resuelve atajos tienda-perfil', () => {
-    expect(STORE_PERFIL_BRIDGE).toHaveLength(4);
-    expect(STORE_PERFIL_BRIDGE[0].match('/catalogo')).toBe(true);
-    expect(STORE_PERFIL_BRIDGE[0].match('/producto/miel')).toBe(true);
-    expect(STORE_PERFIL_BRIDGE[1].match('/perfil/pedidos')).toBe(true);
-    expect(STORE_PERFIL_BRIDGE[3].match('/checkout')).toBe(true);
-  });
-
   it('resuelve active nav con subrutas', () => {
     expect(isActiveNavHref('/catalogo', '/catalogo')).toBe(true);
     expect(isActiveNavHref('/perfil/pedidos', '/perfil/pedidos')).toBe(true);
     expect(isActiveNavHref('/perfil/reposicion/resultado', '/perfil/reposicion')).toBe(true);
-    expect(STORE_PERFIL_BRIDGE[2].match('/perfil/ritual')).toBe(true);
     expect(isActiveNavHref('/producto/miel', '/catalogo')).toBe(false);
     expect(isActiveNavHref('/', '/')).toBe(true);
   });

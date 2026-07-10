@@ -11,6 +11,8 @@ export type NavFont = 'sans' | 'display';
 export type HeaderMenuSettings = {
   layout: HeaderLayout;
   mobile_menu: MobileMenuStyle;
+  /** true = burger también en desktop (plan Antigravity menu_format=burger) */
+  force_burger_desktop: boolean;
   height_mobile_px: number;
   height_desktop_px: number;
   nav_letter_spacing_em: number;
@@ -37,6 +39,7 @@ export type HeaderMenuSettings = {
 export const DEFAULT_HEADER_SETTINGS: HeaderMenuSettings = {
   layout: 'classic',
   mobile_menu: 'fullscreen',
+  force_burger_desktop: false,
   height_mobile_px: 64,
   height_desktop_px: 80,
   nav_letter_spacing_em: 0.2,
@@ -85,6 +88,7 @@ export const MOBILE_MENU_OPTIONS: { value: MobileMenuStyle; label: string; desc:
 export function mergeHeaderSettings(raw: Record<string, unknown> | undefined): HeaderMenuSettings {
   const d = DEFAULT_HEADER_SETTINGS;
   if (!raw) return { ...d };
+  const forceFromLegacy = raw.menu_format === 'burger';
   return {
     ...d,
     ...raw,
@@ -96,5 +100,9 @@ export function mergeHeaderSettings(raw: Record<string, unknown> | undefined): H
     )
       ? (raw.mobile_menu as MobileMenuStyle)
       : d.mobile_menu,
+    force_burger_desktop:
+      typeof raw.force_burger_desktop === 'boolean'
+        ? raw.force_burger_desktop
+        : forceFromLegacy || d.force_burger_desktop,
   } as HeaderMenuSettings;
 }

@@ -1,7 +1,6 @@
 /**
- * Contrato del menú / header de tienda (CMS site_content).
- * Fuente de verdad editable en Núcleo → Editor de Tienda.
- * Fallback: defaults editoriales OYZ alineados con el header actual.
+ * Contrato del menú / header de tienda (CMS: menu_settings + menu_links).
+ * Editable en Núcleo → Editor de Tienda. Fallback editorial OYZ.
  */
 
 export type HeaderLayout = 'classic' | 'centered' | 'split';
@@ -20,6 +19,8 @@ export type HeaderNavItem = {
 export type HeaderMenuSettings = {
   layout: HeaderLayout;
   mobile_menu: MobileMenuStyle;
+  /** Burger también en desktop (equivale a menu_format: "burger" del seed Antigravity) */
+  force_burger_desktop: boolean;
   height_mobile_px: number;
   height_desktop_px: number;
   nav_letter_spacing_em: number;
@@ -51,6 +52,7 @@ export type HeaderMenuConfig = {
 export const DEFAULT_HEADER_SETTINGS: HeaderMenuSettings = {
   layout: 'classic',
   mobile_menu: 'fullscreen',
+  force_burger_desktop: false,
   height_mobile_px: 64,
   height_desktop_px: 80,
   nav_letter_spacing_em: 0.2,
@@ -74,7 +76,6 @@ export const DEFAULT_HEADER_SETTINGS: HeaderMenuSettings = {
   backdrop_blur: true,
 };
 
-/** Fallback si CMS vacío — mismo orden que PUBLIC_NAV histórico. */
 export const DEFAULT_HEADER_NAV: HeaderNavItem[] = [
   { label: 'Inicio', label_en: 'Home', href: '/', show_desktop: true, show_mobile: true },
   { label: 'Creaciones', label_en: 'Creations', href: '/catalogo', show_desktop: true, show_mobile: true },
@@ -104,6 +105,27 @@ function asString(value: unknown, fallback: string): string {
   return typeof value === 'string' && value.length > 0 ? value : fallback;
 }
 
+/** Parse "0.2em" | "2.5rem" | number → number in target unit. */
+function parseCssMeasure(value: unknown, unit: 'em' | 'px' | 'rem', fallback: number): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value !== 'string') return fallback;
+  const m = value.trim().match(/^([\d.]+)\s*(em|px|rem)?$/i);
+  if (!m) return fallback;
+  const n = Number(m[1]);
+  if (!Number.isFinite(n)) return fallback;
+  const u = (m[2] ?? unit).toLowerCase();
+  if (unit === 'em') {
+    if (u === 'em') return n;
+    if (u === 'px') return n / 16;
+    if (u === 'rem') return n;
+  }
+  if (unit === 'px') {
+    if (u === 'px') return n;
+    if (u === 'rem' || u === 'em') return n * 16;
+  }
+  return n;
+}
+
 const LAYOUTS: HeaderLayout[] = ['classic', 'centered', 'split'];
 const MOBILE_MENUS: MobileMenuStyle[] = ['fullscreen', 'drawer-left', 'drawer-right'];
 const TRANSFORMS: NavTextTransform[] = ['uppercase', 'none', 'capitalize'];
@@ -115,17 +137,39 @@ function pickEnum<T extends string>(value: unknown, allowed: readonly T[], fallb
     : fallback;
 }
 
+function mapLegacyLayout(raw: Record<string, unknown>): HeaderLayout | null {
+  const fmt = raw.menu_format;
+  if (fmt === 'horizontal' || fmt === 'classic' || fmt === 'burger') return 'classic';
+  if (fmt === 'centered' || fmt === 'center') return 'centered';
+  if (fmt === 'split') return 'split';
+  return null;
+}
+
 export function parseHeaderSettings(raw: Record<string, unknown> | null | undefined): HeaderMenuSettings {
   const d = DEFAULT_HEADER_SETTINGS;
   if (!raw || typeof raw !== 'object') return { ...d };
 
+  const legacyLayout = mapLegacyLayout(raw);
+  const forceBurger =
+    typeof raw.force_burger_desktop === 'boolean'
+      ? raw.force_burger_desktop
+      : raw.menu_format === 'burger';
+  const heightMobile = raw.height_mobile_px ?? raw.height_mobile;
+  const heightDesktop = raw.height_desktop_px ?? raw.height_desktop;
+  const tracking =
+    raw.nav_letter_spacing_em ??
+    parseCssMeasure(raw.letter_spacing, 'em', d.nav_letter_spacing_em);
+  const gap =
+    raw.nav_item_gap_px ?? parseCssMeasure(raw.button_gap, 'px', d.nav_item_gap_px);
+
   return {
-    layout: pickEnum(raw.layout, LAYOUTS, d.layout),
+    layout: pickEnum(raw.layout, LAYOUTS, legacyLayout ?? d.layout),
     mobile_menu: pickEnum(raw.mobile_menu, MOBILE_MENUS, d.mobile_menu),
-    height_mobile_px: asNumber(raw.height_mobile_px, d.height_mobile_px, 48, 120),
-    height_desktop_px: asNumber(raw.height_desktop_px, d.height_desktop_px, 48, 140),
-    nav_letter_spacing_em: asNumber(raw.nav_letter_spacing_em, d.nav_letter_spacing_em, 0, 1),
-    nav_item_gap_px: asNumber(raw.nav_item_gap_px, d.nav_item_gap_px, 4, 80),
+    force_burger_desktop: forceBurger,
+    height_mobile_px: asNumber(heightMobile, d.height_mobile_px, 48, 120),
+    height_desktop_px: asNumber(heightDesktop, d.height_desktop_px, 48, 140),
+    nav_letter_spacing_em: asNumber(tracking, d.nav_letter_spacing_em, 0, 1),
+    nav_item_gap_px: asNumber(gap, d.nav_item_gap_px, 4, 80),
     nav_font_size_px: asNumber(raw.nav_font_size_px, d.nav_font_size_px, 8, 20),
     nav_text_transform: pickEnum(raw.nav_text_transform, TRANSFORMS, d.nav_text_transform),
     nav_font: pickEnum(raw.nav_font, FONTS, d.nav_font),
@@ -166,7 +210,6 @@ export function resolveNavLabel(item: HeaderNavItem, locale: string): string {
   return item.label;
 }
 
-/** CSS custom properties aplicadas al header (preview en vivo + runtime). */
 export function headerSettingsToCssVars(settings: HeaderMenuSettings): Record<string, string> {
   return {
     '--tienda-header-h': `${settings.height_mobile_px}px`,

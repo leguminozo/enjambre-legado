@@ -15,14 +15,20 @@ import {
   Eye,
   EyeOff,
   ExternalLink,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { toast, ImmersiveModal } from '@enjambre/ui';
 import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/use-cms-content';
 import { getUrlTienda } from '@/lib/publicUrls';
+import { MenuStyleEditor } from '@/components/tienda/MenuStyleEditor';
+import { HEADER_NAV_TEMPLATE, HEADER_SETTINGS_TEMPLATE } from '@/lib/header-menu';
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const SECTION_LABELS: Record<string, string> = {
+  menu_settings: 'Menú — Estilo',
+  menu_links: 'Menú — Enlaces',
   servicios: 'Servicios',
   talleres: 'Talleres',
   colecciones: 'Colecciones',
@@ -34,6 +40,21 @@ const SECTION_LABELS: Record<string, string> = {
   galeria: 'Galería',
   contacto: 'Contacto',
 };
+
+const SECTION_ORDER = [
+  'menu_settings',
+  'menu_links',
+  'hero',
+  'colecciones',
+  'servicios',
+  'talleres',
+  'nosotros',
+  'galeria',
+  'contacto',
+  'footer_branding',
+  'footer_nav',
+  'footer_legal',
+] as const;
 
 /**
  * Plantillas JSON iniciales por sección.
@@ -50,7 +71,34 @@ const SECTION_TEMPLATES: Record<string, Record<string, unknown>> = {
   galeria: { src: '', alt: '' },
   contacto: { title: '', desc: '', email: '' },
   footer_branding: { tagline: '', email: '' },
+  menu_settings: { ...HEADER_SETTINGS_TEMPLATE },
+  menu_links: { ...HEADER_NAV_TEMPLATE },
 };
+
+const FIELD_LABELS: Record<string, string> = {
+  label: 'Texto (ES)',
+  label_en: 'Texto (EN)',
+  href: 'Ruta / enlace',
+  show_desktop: 'Visible en desktop',
+  show_mobile: 'Visible en móvil',
+  title: 'Título',
+  desc: 'Descripción',
+  kicker: 'Kicker',
+  image: 'Imagen',
+  src: 'Imagen (URL)',
+  alt: 'Texto alternativo',
+  email: 'Email',
+  tagline: 'Tagline',
+  cta: 'CTA',
+  subtitle: 'Subtítulo',
+  num: 'Número',
+  date: 'Fecha',
+  action: 'Acción',
+};
+
+function fieldLabel(key: string): string {
+  return FIELD_LABELS[key] ?? key;
+}
 
 // ── ContentFieldEditor ─────────────────────────────────────────────────────
 
@@ -130,6 +178,10 @@ interface EditableItemCardProps {
   onImageUpload: (file: File, fieldName: string, itemId: string) => void;
   isUpdating: boolean;
   isDeleting: boolean;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  isFirst?: boolean;
+  isLast?: boolean;
 }
 
 function EditableItemCard({
@@ -140,6 +192,10 @@ function EditableItemCard({
   onImageUpload,
   isUpdating,
   isDeleting,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
 }: EditableItemCardProps) {
   const [expanded, setExpanded] = useState(true);
   const [localContent, setLocalContent] = useState<Record<string, unknown>>(item.content);
@@ -210,6 +266,26 @@ function EditableItemCard({
 
         {/* Controls always visible on mobile */}
         <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+          {onMoveUp && (
+            <button
+              onClick={onMoveUp}
+              disabled={isFirst}
+              className="p-2 rounded-lg text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors disabled:opacity-30 min-w-[36px] min-h-[36px] flex items-center justify-center"
+              title="Mover arriba"
+            >
+              <ArrowUp size={14} />
+            </button>
+          )}
+          {onMoveDown && (
+            <button
+              onClick={onMoveDown}
+              disabled={isLast}
+              className="p-2 rounded-lg text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors disabled:opacity-30 min-w-[36px] min-h-[36px] flex items-center justify-center"
+              title="Mover abajo"
+            >
+              <ArrowDown size={14} />
+            </button>
+          )}
           <button
             onClick={handleToggleActive}
             className={`p-2 rounded-lg transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${
@@ -244,7 +320,7 @@ function EditableItemCard({
           {Object.entries(localContent).map(([key, val]) => (
             <div key={key} className="space-y-1.5">
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                {key}
+                {fieldLabel(key)}
               </label>
               {isImageField(key) ? (
                 <div className="space-y-2">
@@ -363,6 +439,24 @@ function SectionNav({ sectionKeys, activeSection, onSelect }: SectionNavProps) {
   );
 }
 
+// ── MenuSettingsEditor — wrapper del constructor visual profundo ───────────
+
+interface MenuSettingsEditorProps {
+  item: CMSContentItem;
+  onUpdate: (id: string, content: Record<string, unknown>, isActive: boolean) => void;
+  isUpdating: boolean;
+}
+
+function MenuSettingsEditor({ item, onUpdate, isUpdating }: MenuSettingsEditorProps) {
+  return (
+    <MenuStyleEditor
+      content={item.content}
+      isUpdating={isUpdating}
+      onSave={(content) => onUpdate(item.id, content, item.is_active)}
+    />
+  );
+}
+
 // ── ItemsPanel ─────────────────────────────────────────────────────────────
 
 interface ItemsPanelProps {
@@ -372,6 +466,7 @@ interface ItemsPanelProps {
   onDelete: (id: string) => void;
   onImageUpload: (file: File, fieldName: string, itemId: string) => void;
   onAddNew: () => void;
+  onReorder?: (items: CMSContentItem[]) => void;
   isUpdating: boolean;
   isDeleting: boolean;
 }
@@ -383,50 +478,101 @@ function ItemsPanel({
   onDelete,
   onImageUpload,
   onAddNew,
+  onReorder,
   isUpdating,
   isDeleting,
 }: ItemsPanelProps) {
+  const handleMoveUp = (index: number) => {
+    if (index === 0 || !onReorder) return;
+    const newItems = [...items];
+    const temp = newItems[index];
+    newItems[index] = newItems[index - 1];
+    newItems[index - 1] = temp;
+    onReorder(newItems);
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index === items.length - 1 || !onReorder) return;
+    const newItems = [...items];
+    const temp = newItems[index];
+    newItems[index] = newItems[index + 1];
+    newItems[index + 1] = temp;
+    onReorder(newItems);
+  };
+
+  const isMenuSettings = activeSection === 'menu_settings';
+
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold text-foreground">
           {SECTION_LABELS[activeSection] ?? activeSection}
         </h3>
-        <button
-          onClick={onAddNew}
-          className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-xs font-medium min-h-[36px]"
-        >
-          <Plus size={14} />
-          Añadir
-        </button>
+        {!isMenuSettings && (
+          <button
+            onClick={onAddNew}
+            className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-xs font-medium min-h-[36px]"
+          >
+            <Plus size={14} />
+            Añadir
+          </button>
+        )}
       </div>
 
       <div className="space-y-3 pb-8">
-        {items.map((item) => (
-          <EditableItemCard
-            key={item.id}
-            item={item}
-            activeSection={activeSection}
-            onUpdate={onUpdate}
-            onDelete={onDelete}
-            onImageUpload={onImageUpload}
-            isUpdating={isUpdating}
-            isDeleting={isDeleting}
-          />
-        ))}
+        {isMenuSettings ? (
+          items.length > 0 ? (
+            <MenuSettingsEditor
+              item={items[0]}
+              onUpdate={onUpdate}
+              isUpdating={isUpdating}
+            />
+          ) : (
+            <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl">
+              <p className="text-sm text-muted-foreground mb-3">
+                No se ha inicializado la configuración del menú.
+              </p>
+              <button
+                onClick={onAddNew}
+                className="text-accent text-sm font-medium hover:underline"
+              >
+                Inicializar Ajustes de Menú
+              </button>
+            </div>
+          )
+        ) : (
+          <>
+            {items.map((item, index) => (
+              <EditableItemCard
+                key={item.id}
+                item={item}
+                activeSection={activeSection}
+                onUpdate={onUpdate}
+                onDelete={onDelete}
+                onImageUpload={onImageUpload}
+                isUpdating={isUpdating}
+                isDeleting={isDeleting}
+                onMoveUp={onReorder ? () => handleMoveUp(index) : undefined}
+                onMoveDown={onReorder ? () => handleMoveDown(index) : undefined}
+                isFirst={index === 0}
+                isLast={index === items.length - 1}
+              />
+            ))}
 
-        {items.length === 0 && (
-          <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl">
-            <p className="text-sm text-muted-foreground mb-3">
-              Sin elementos en esta sección.
-            </p>
-            <button
-              onClick={onAddNew}
-              className="text-accent text-sm font-medium hover:underline"
-            >
-              Añadir el primero
-            </button>
-          </div>
+            {items.length === 0 && (
+              <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl">
+                <p className="text-sm text-muted-foreground mb-3">
+                  Sin elementos en esta sección.
+                </p>
+                <button
+                  onClick={onAddNew}
+                  className="text-accent text-sm font-medium hover:underline"
+                >
+                  Añadir el primero
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -437,7 +583,7 @@ function ItemsPanel({
 
 export function EditorTiendaView() {
   const cms = useCMSContent();
-  const [activeSection, setActiveSection] = useState<string>('colecciones');
+  const [activeSection, setActiveSection] = useState<string>('menu_settings');
   const [iframeKey, setIframeKey] = useState(0);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [showNewForm, setShowNewForm] = useState(false);
@@ -463,9 +609,15 @@ export function EditorTiendaView() {
   }, []);
 
   const groupedData = cms.data?.data ?? {};
-  const sectionKeys = Object.keys(groupedData).length > 0
-    ? Object.keys(groupedData).sort()
-    : [...cms.sections];
+  const sectionKeys = (() => {
+    const fromApi = new Set<string>([
+      ...cms.sections,
+      ...Object.keys(groupedData),
+    ]);
+    const ordered = SECTION_ORDER.filter((k) => fromApi.has(k));
+    const rest = [...fromApi].filter((k) => !SECTION_ORDER.includes(k as (typeof SECTION_ORDER)[number])).sort();
+    return [...ordered, ...rest];
+  })();
 
   const currentItems = groupedData[activeSection] ?? [];
 
@@ -536,6 +688,20 @@ export function EditorTiendaView() {
     } catch {
       toast('Error al crear elemento', { type: 'error' });
     }
+  };
+
+  const handleReorder = (newItems: typeof currentItems) => {
+    const payload = newItems.map((item, idx) => ({
+      id: item.id,
+      item_order: idx + 1,
+    }));
+    cms.reorderItems.mutate(payload, {
+      onSuccess: () => {
+        toast('Orden actualizado', { type: 'success' });
+        refreshIframe();
+      },
+      onError: (err) => toast(err.message, { type: 'error' }),
+    });
   };
 
   const tiendaUrl = getUrlTienda();
@@ -625,6 +791,7 @@ export function EditorTiendaView() {
               onDelete={handleDeleteItem}
               onImageUpload={handleImageUpload}
               onAddNew={() => setShowNewForm(true)}
+              onReorder={handleReorder}
               isUpdating={cms.updateItem.isPending}
               isDeleting={cms.deleteItem.isPending}
             />
@@ -653,6 +820,7 @@ export function EditorTiendaView() {
                 onDelete={handleDeleteItem}
                 onImageUpload={handleImageUpload}
                 onAddNew={() => setShowNewForm(true)}
+                onReorder={handleReorder}
                 isUpdating={cms.updateItem.isPending}
                 isDeleting={cms.deleteItem.isPending}
               />
@@ -744,7 +912,7 @@ export function EditorTiendaView() {
           {Object.entries(newContent).map(([key, val]) => (
             <div key={key} className="space-y-1.5">
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                {key}
+                {fieldLabel(key)}
               </label>
               <ContentFieldEditor
                 fieldKey={key}

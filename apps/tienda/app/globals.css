@@ -68,6 +68,15 @@
 /* ─── Mobile-first shell (iOS/Android PWA) ─── */
 :root {
   --tienda-header-h: 4rem;
+  --tienda-header-h-md: 5rem;
+  --tienda-nav-tracking: 0.2em;
+  --tienda-nav-gap: 2.5rem;
+  --tienda-nav-size: 0.65rem;
+  --tienda-nav-transform: uppercase;
+  --tienda-mobile-nav-gap: 1.75rem;
+  --tienda-mobile-nav-size: 1.875rem;
+  --tienda-mobile-nav-tracking: 0em;
+  --tienda-brand-tracking: 0.3em;
   --tienda-bottom-nav-h: 4.5rem;
   --tienda-liquid-nav-h: 4.5rem;
   --tienda-liquid-nav-float: 2rem;
@@ -79,6 +88,12 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --tienda-sticky-top: calc(var(--carousel-h, 0px) + var(--tienda-header-h));
+}
+
+@media (min-width: 768px) {
+  :root {
+    --tienda-header-h: var(--tienda-header-h-md, 5rem);
+  }
 }
 
 /* Header tienda — opaco en móvil sobre hero/landing */
@@ -155,6 +170,46 @@ body.pwa-standalone .tienda-shop-header-burger {
   flex-direction: column;
   padding: calc(var(--tienda-sticky-top) + 1.25rem) 2.5rem 0;
   animation: tienda-slide-in 0.28s ease-out;
+}
+
+/* Drawer variants (CMS menu_settings.mobile_menu) */
+.tienda-mobile-nav-panel--drawer-left,
+.tienda-mobile-nav-panel--drawer-right {
+  inset: auto 0 0 0;
+  top: 0;
+  width: min(20rem, 88vw);
+  height: 100%;
+  background-color: hsl(var(--background));
+  pointer-events: auto;
+  padding: calc(var(--tienda-sticky-top) + 1.25rem) 1.5rem 1.5rem;
+  box-shadow: 0 0 40px hsl(var(--foreground) / 0.12);
+}
+
+.tienda-mobile-nav-panel--drawer-left {
+  left: 0;
+  right: auto;
+  animation: tienda-drawer-left 0.28s ease-out;
+}
+
+.tienda-mobile-nav-panel--drawer-right {
+  right: 0;
+  left: auto;
+  animation: tienda-drawer-right 0.28s ease-out;
+}
+
+.tienda-mobile-nav-panel--drawer-left nav,
+.tienda-mobile-nav-panel--drawer-right nav {
+  pointer-events: auto;
+}
+
+@keyframes tienda-drawer-left {
+  from { transform: translateX(-100%); opacity: 0.6; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes tienda-drawer-right {
+  from { transform: translateX(100%); opacity: 0.6; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 .tienda-mobile-nav-panel nav {

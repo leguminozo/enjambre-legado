@@ -204,7 +204,7 @@ export function MenuStyleEditor({ content, isUpdating, onSave }: MenuStyleEditor
           )}
           <div className="flex items-center gap-2 text-muted-foreground text-xs">
             {local.show_account ? <span>○</span> : null}
-            {local.show_cart ? <span>购物袋</span> : null}
+            {local.show_cart ? <span>Bag</span> : null}
           </div>
         </div>
         <div
@@ -244,6 +244,13 @@ export function MenuStyleEditor({ content, isUpdating, onSave }: MenuStyleEditor
         options={MOBILE_MENU_OPTIONS}
         value={local.mobile_menu}
         onChange={(v) => patch('mobile_menu', v)}
+      />
+
+      <ToggleField
+        label="Burger también en desktop"
+        desc="Oculta la barra horizontal en escritorio y usa solo hamburguesa (como Shopify mobile-first)"
+        value={local.force_burger_desktop}
+        onChange={(v) => patch('force_burger_desktop', v)}
       />
 
       <section className="space-y-4 p-3 rounded-xl border border-border bg-surface">

@@ -12,6 +12,7 @@ import {
 } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { VercelInsights } from '@/components/VercelInsights';
+import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
 
@@ -38,6 +39,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages();
   const headersList = await headers();
   const nonce = headersList.get('x-csp-nonce') ?? '';
+  const headerMenu = await loadHeaderMenu();
   const themeScript = `(function(){try{var t=localStorage.getItem('enjambre-theme');var r=t==='light'?'light':t==='dark'?'dark':window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark';document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(r)}catch(e){}})()`;
   const rootJsonLd = mergeJsonLd([organizationJsonLd(), webSiteJsonLd()]);
 
@@ -56,7 +58,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="font-sans antialiased bg-background text-foreground">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <RegisterServiceWorker />
-          <AppProviders>{children}</AppProviders>
+          <AppProviders headerSettings={headerMenu.settings} headerItems={headerMenu.items}>
+            {children}
+          </AppProviders>
         </NextIntlClientProvider>
         <VercelInsights />
       </body>
