@@ -1,7 +1,26 @@
 'use client';
 
-import React, { useEffect, useId, useState } from 'react';
-import { Save, Loader2, Upload, Image as ImageIcon } from 'lucide-react';
+import React, { useEffect, useId, useState, type ComponentType } from 'react';
+import {
+  Save,
+  Loader2,
+  Upload,
+  Image as ImageIcon,
+  Sparkles,
+  Leaf,
+  Layers,
+  GalleryHorizontalEnd,
+  Package,
+  PlayCircle,
+  MapPin,
+  GripVertical,
+  Eye,
+  EyeOff,
+  ChevronUp,
+  ChevronDown,
+  LayoutTemplate,
+  type LucideProps,
+} from 'lucide-react';
 import {
   type ThemeSettings,
   type AnnouncementSettings,
@@ -563,6 +582,26 @@ export function BrandAssetsEditor({ content, isUpdating, onSave, onImageUpload }
 
 // ── Landing layout ─────────────────────────────────────────────────────────
 
+const LANDING_BLOCK_ICONS: Record<LandingSectionId, ComponentType<LucideProps>> = {
+  hero: Sparkles,
+  conservation: Leaf,
+  collections: Layers,
+  media: GalleryHorizontalEnd,
+  products: Package,
+  video: PlayCircle,
+  map: MapPin,
+};
+
+const LANDING_BLOCK_HINTS: Record<LandingSectionId, string> = {
+  hero: 'Portada y CTA principal',
+  conservation: 'Impacto regenerativo',
+  collections: 'Grid de colecciones',
+  media: 'Carrusel de media',
+  products: 'Creaciones destacadas',
+  video: 'Video central',
+  map: 'Mapa / origen',
+};
+
 export function LandingLayoutEditor({ content, isUpdating, onSave }: SettingsEditorProps) {
   const [local, setLocal] = useState<LandingLayoutSettings>(() => parseLandingLayout(content));
   const [dirty, setDirty] = useState(false);
@@ -598,58 +637,86 @@ export function LandingLayoutEditor({ content, isUpdating, onSave }: SettingsEdi
   };
 
   const ordered = [...local.sections].sort((a, b) => a.order - b.order);
+  const enabledCount = ordered.filter((s) => s.enabled).length;
 
   return (
     <div className="space-y-4 pb-8">
-      <p className="text-xs text-muted-foreground">
-        Orden y visibilidad de bloques de la home. Inspirado en constructores de landing, con
-        bloques OYZ fijos (no drag libre genérico).
-      </p>
-      <div className="space-y-2">
-        {ordered.map((sec, index) => (
-          <div
-            key={sec.id}
-            className={`flex items-center gap-2 p-3 rounded-xl border ${
-              sec.enabled ? 'border-border bg-background' : 'border-border/50 bg-surface-sunken opacity-70'
-            }`}
-          >
-            <div className="flex flex-col gap-0.5">
-              <button
-                type="button"
-                disabled={index === 0}
-                onClick={() => moveSection(index, -1)}
-                className="text-[10px] px-1.5 py-0.5 rounded border border-border disabled:opacity-30"
-              >
-                ↑
-              </button>
-              <button
-                type="button"
-                disabled={index === ordered.length - 1}
-                onClick={() => moveSection(index, 1)}
-                className="text-[10px] px-1.5 py-0.5 rounded border border-border disabled:opacity-30"
-              >
-                ↓
-              </button>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">
-                {LANDING_SECTION_LABELS[sec.id] ?? sec.id}
-              </p>
-              <p className="text-[10px] text-muted-foreground font-mono">{sec.id}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => toggleSection(sec.id)}
-              className={`text-xs px-3 py-1.5 rounded-lg border min-h-[36px] ${
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">
+          Bloques del home (estilo theme sections). Ordená y activá sin código.
+        </p>
+        <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">
+          {enabledCount}/{ordered.length} activos
+        </span>
+      </div>
+      <div className="space-y-1.5">
+        {ordered.map((sec, index) => {
+          const Icon = LANDING_BLOCK_ICONS[sec.id] ?? LayoutTemplate;
+          return (
+            <div
+              key={sec.id}
+              className={`flex items-center gap-2 p-2 pl-1.5 rounded-xl border transition-all ${
                 sec.enabled
-                  ? 'border-accent/40 text-accent bg-accent/10'
-                  : 'border-border text-muted-foreground'
+                  ? 'border-border bg-background shadow-sm'
+                  : 'border-border/50 bg-surface-sunken/80 opacity-75'
               }`}
             >
-              {sec.enabled ? 'Visible' : 'Oculto'}
-            </button>
-          </div>
-        ))}
+              <div className="flex flex-col text-muted-foreground/50 px-0.5">
+                <GripVertical size={14} />
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <button
+                  type="button"
+                  disabled={index === 0}
+                  onClick={() => moveSection(index, -1)}
+                  className="p-0.5 rounded border border-border/80 text-muted-foreground hover:text-foreground disabled:opacity-25"
+                  aria-label="Subir bloque"
+                >
+                  <ChevronUp size={12} />
+                </button>
+                <button
+                  type="button"
+                  disabled={index === ordered.length - 1}
+                  onClick={() => moveSection(index, 1)}
+                  className="p-0.5 rounded border border-border/80 text-muted-foreground hover:text-foreground disabled:opacity-25"
+                  aria-label="Bajar bloque"
+                >
+                  <ChevronDown size={12} />
+                </button>
+              </div>
+              <span
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${
+                  sec.enabled
+                    ? 'bg-accent/10 border-accent/25 text-accent'
+                    : 'bg-surface-raised border-border text-muted-foreground'
+                }`}
+              >
+                <Icon size={16} strokeWidth={2} />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground leading-tight">
+                  {LANDING_SECTION_LABELS[sec.id] ?? sec.id}
+                </p>
+                <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                  {LANDING_BLOCK_HINTS[sec.id] ?? sec.id}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => toggleSection(sec.id)}
+                className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border min-h-[36px] transition-colors ${
+                  sec.enabled
+                    ? 'border-accent/40 text-accent bg-accent/10 hover:bg-accent/15'
+                    : 'border-border text-muted-foreground hover:text-foreground'
+                }`}
+                title={sec.enabled ? 'Ocultar bloque' : 'Mostrar bloque'}
+              >
+                {sec.enabled ? <Eye size={14} /> : <EyeOff size={14} />}
+                <span className="hidden sm:inline">{sec.enabled ? 'Visible' : 'Oculto'}</span>
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       <ToggleField

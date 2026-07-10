@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo, type ComponentType } from 'react';
 import {
   X,
   Monitor,
@@ -17,6 +17,39 @@ import {
   ExternalLink,
   ArrowUp,
   ArrowDown,
+  Palette,
+  Image as ImageIcon,
+  Search,
+  MessageCircle,
+  PanelTop,
+  Link2,
+  Megaphone,
+  GalleryHorizontalEnd,
+  LayoutTemplate,
+  LayoutGrid,
+  Package,
+  Flag,
+  PanelBottom,
+  Share2,
+  List,
+  Scale,
+  AppWindow,
+  FileText,
+  Shield,
+  Cookie,
+  Truck,
+  RotateCcw,
+  Ban,
+  BadgeCheck,
+  Sparkles,
+  Layers,
+  Wrench,
+  GraduationCap,
+  Users,
+  Images,
+  Mail,
+  Copyright,
+  type LucideProps,
 } from 'lucide-react';
 import { toast, ImmersiveModal } from '@enjambre/ui';
 import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/use-cms-content';
@@ -47,41 +80,250 @@ import {
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
-const SECTION_LABELS: Record<string, string> = {
-  theme_settings: 'Tema',
-  brand_assets: 'Marca — Logos',
-  seo_defaults: 'SEO global',
-  contact_settings: 'Contacto / WhatsApp',
-  menu_settings: 'Menú — Estilo',
-  menu_links: 'Menú — Enlaces',
-  announcement_settings: 'Anuncios — Estilo',
-  announcement_slides: 'Anuncios — Slides',
-  landing_layout: 'Landing — Bloques',
-  catalog_settings: 'Catálogo',
-  pdp_settings: 'Ficha producto (PDP)',
-  campaign_banners: 'Banners campaña',
-  footer_settings: 'Footer — Estilo',
-  footer_social: 'Footer — Redes',
-  footer_branding: 'Footer — Marca (legacy)',
-  footer_nav: 'Footer — Nav',
-  footer_legal: 'Footer — Legal links',
-  pwa_nav_settings: 'PWA — Estilo',
-  pwa_nav_items: 'PWA — Pestañas',
-  legal_terminos: 'Legal — Términos',
-  legal_privacidad: 'Legal — Privacidad',
-  legal_cookies: 'Legal — Cookies',
-  legal_envio: 'Legal — Envío',
-  legal_reembolso: 'Legal — Reembolso',
-  legal_cancelacion: 'Legal — Cancelación',
-  legal_garantia: 'Legal — Garantía',
-  hero: 'Hero (contenido CMS)',
-  colecciones: 'Colecciones',
-  servicios: 'Servicios',
-  talleres: 'Talleres',
-  nosotros: 'Nosotros',
-  galeria: 'Galería',
-  contacto: 'Contacto (página)',
+type SectionIcon = ComponentType<LucideProps>;
+
+type SectionGroupId =
+  | 'apariencia'
+  | 'cabecera'
+  | 'home'
+  | 'tienda'
+  | 'pie'
+  | 'contenido'
+  | 'legal';
+
+const SECTION_GROUPS: { id: SectionGroupId; label: string }[] = [
+  { id: 'apariencia', label: 'Apariencia' },
+  { id: 'cabecera', label: 'Cabecera' },
+  { id: 'home', label: 'Inicio' },
+  { id: 'tienda', label: 'Tienda' },
+  { id: 'pie', label: 'Pie y app' },
+  { id: 'contenido', label: 'Contenido' },
+  { id: 'legal', label: 'Legal' },
+];
+
+/** Meta estilo theme customizer (Shopify): icono + label + grupo */
+const SECTION_META: Record<
+  string,
+  { label: string; short: string; icon: SectionIcon; group: SectionGroupId; hint?: string }
+> = {
+  theme_settings: {
+    label: 'Tema',
+    short: 'Tema',
+    icon: Palette,
+    group: 'apariencia',
+    hint: 'Colores, radio, grain',
+  },
+  brand_assets: {
+    label: 'Marca y logos',
+    short: 'Marca',
+    icon: ImageIcon,
+    group: 'apariencia',
+    hint: 'Logo, favicon, OG',
+  },
+  seo_defaults: {
+    label: 'SEO global',
+    short: 'SEO',
+    icon: Search,
+    group: 'apariencia',
+    hint: 'Títulos y meta',
+  },
+  contact_settings: {
+    label: 'Contacto / WhatsApp',
+    short: 'Contacto',
+    icon: MessageCircle,
+    group: 'apariencia',
+    hint: 'WhatsApp y contacto',
+  },
+  menu_settings: {
+    label: 'Menú — Estilo',
+    short: 'Menú',
+    icon: PanelTop,
+    group: 'cabecera',
+    hint: 'Header y logo menú',
+  },
+  menu_links: {
+    label: 'Menú — Enlaces',
+    short: 'Enlaces',
+    icon: Link2,
+    group: 'cabecera',
+    hint: 'Items de navegación',
+  },
+  announcement_settings: {
+    label: 'Anuncios — Estilo',
+    short: 'Anuncios',
+    icon: Megaphone,
+    group: 'cabecera',
+    hint: 'Barra superior',
+  },
+  announcement_slides: {
+    label: 'Anuncios — Slides',
+    short: 'Slides',
+    icon: GalleryHorizontalEnd,
+    group: 'cabecera',
+    hint: 'Mensajes rotativos',
+  },
+  landing_layout: {
+    label: 'Bloques del home',
+    short: 'Bloques',
+    icon: LayoutTemplate,
+    group: 'home',
+    hint: 'Orden y visibilidad',
+  },
+  campaign_banners: {
+    label: 'Banners campaña',
+    short: 'Banners',
+    icon: Flag,
+    group: 'home',
+    hint: 'Promos y campañas',
+  },
+  hero: {
+    label: 'Hero (CMS)',
+    short: 'Hero',
+    icon: Sparkles,
+    group: 'home',
+    hint: 'Contenido hero',
+  },
+  catalog_settings: {
+    label: 'Catálogo',
+    short: 'Catálogo',
+    icon: LayoutGrid,
+    group: 'tienda',
+    hint: 'Grilla y filtros',
+  },
+  pdp_settings: {
+    label: 'Ficha producto',
+    short: 'PDP',
+    icon: Package,
+    group: 'tienda',
+    hint: 'Página de producto',
+  },
+  footer_settings: {
+    label: 'Footer — Estilo',
+    short: 'Footer',
+    icon: PanelBottom,
+    group: 'pie',
+    hint: 'Pie de página',
+  },
+  footer_social: {
+    label: 'Footer — Redes',
+    short: 'Redes',
+    icon: Share2,
+    group: 'pie',
+  },
+  footer_nav: {
+    label: 'Footer — Nav',
+    short: 'Nav pie',
+    icon: List,
+    group: 'pie',
+  },
+  footer_legal: {
+    label: 'Footer — Legal links',
+    short: 'Links legal',
+    icon: Scale,
+    group: 'pie',
+  },
+  footer_branding: {
+    label: 'Footer — Marca (legacy)',
+    short: 'Marca pie',
+    icon: Copyright,
+    group: 'pie',
+  },
+  pwa_nav_settings: {
+    label: 'PWA — Estilo',
+    short: 'PWA',
+    icon: Smartphone,
+    group: 'pie',
+    hint: 'Barra inferior móvil',
+  },
+  pwa_nav_items: {
+    label: 'PWA — Pestañas',
+    short: 'Tabs',
+    icon: AppWindow,
+    group: 'pie',
+  },
+  colecciones: {
+    label: 'Colecciones',
+    short: 'Colecciones',
+    icon: Layers,
+    group: 'contenido',
+  },
+  servicios: {
+    label: 'Servicios',
+    short: 'Servicios',
+    icon: Wrench,
+    group: 'contenido',
+  },
+  talleres: {
+    label: 'Talleres',
+    short: 'Talleres',
+    icon: GraduationCap,
+    group: 'contenido',
+  },
+  nosotros: {
+    label: 'Nosotros',
+    short: 'Nosotros',
+    icon: Users,
+    group: 'contenido',
+  },
+  galeria: {
+    label: 'Galería',
+    short: 'Galería',
+    icon: Images,
+    group: 'contenido',
+  },
+  contacto: {
+    label: 'Contacto (página)',
+    short: 'Página',
+    icon: Mail,
+    group: 'contenido',
+  },
+  legal_terminos: {
+    label: 'Términos',
+    short: 'Términos',
+    icon: FileText,
+    group: 'legal',
+  },
+  legal_privacidad: {
+    label: 'Privacidad',
+    short: 'Privacidad',
+    icon: Shield,
+    group: 'legal',
+  },
+  legal_cookies: {
+    label: 'Cookies',
+    short: 'Cookies',
+    icon: Cookie,
+    group: 'legal',
+  },
+  legal_envio: {
+    label: 'Envío',
+    short: 'Envío',
+    icon: Truck,
+    group: 'legal',
+  },
+  legal_reembolso: {
+    label: 'Reembolso',
+    short: 'Reembolso',
+    icon: RotateCcw,
+    group: 'legal',
+  },
+  legal_cancelacion: {
+    label: 'Cancelación',
+    short: 'Cancelación',
+    icon: Ban,
+    group: 'legal',
+  },
+  legal_garantia: {
+    label: 'Garantía',
+    short: 'Garantía',
+    icon: BadgeCheck,
+    group: 'legal',
+  },
 };
+
+const SECTION_LABELS: Record<string, string> = Object.fromEntries(
+  Object.entries(SECTION_META).map(([k, v]) => [k, v.label]),
+);
 
 const SECTION_ORDER = [
   'theme_settings',
@@ -118,6 +360,17 @@ const SECTION_ORDER = [
   'contacto',
   'footer_branding',
 ] as const;
+
+function getSectionMeta(key: string) {
+  return (
+    SECTION_META[key] ?? {
+      label: key,
+      short: key,
+      icon: LayoutTemplate as SectionIcon,
+      group: 'contenido' as SectionGroupId,
+    }
+  );
+}
 
 /**
  * Plantillas JSON iniciales por sección.
@@ -500,55 +753,177 @@ function EditableItemCard({
   );
 }
 
-// ── SectionNav — pills on mobile, select on desktop ────────────────────────
+// ── SectionNav — lista con iconos estilo Shopify theme editor ──────────────
 
 interface SectionNavProps {
   sectionKeys: string[];
   activeSection: string;
   onSelect: (key: string) => void;
+  itemCounts?: Record<string, number>;
 }
 
-function SectionNav({ sectionKeys, activeSection, onSelect }: SectionNavProps) {
+function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: SectionNavProps) {
+  const keySet = useMemo(() => new Set(sectionKeys), [sectionKeys]);
+
+  const grouped = useMemo(() => {
+    return SECTION_GROUPS.map((g) => ({
+      ...g,
+      keys: SECTION_ORDER.filter((k) => keySet.has(k) && getSectionMeta(k).group === g.id),
+    })).filter((g) => g.keys.length > 0);
+  }, [keySet]);
+
+  // Secciones desconocidas (no en meta/order) al final
+  const orphanKeys = useMemo(
+    () => sectionKeys.filter((k) => !SECTION_ORDER.includes(k as (typeof SECTION_ORDER)[number])),
+    [sectionKeys],
+  );
+
   return (
-    <>
-      {/* Mobile: horizontal scrollable pills */}
-      <div className="md:hidden flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-none -mx-4">
-        {sectionKeys.map((key) => (
-          <button
-            key={key}
-            onClick={() => onSelect(key)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
-              activeSection === key
-                ? 'bg-accent text-accent-foreground shadow-sm'
-                : 'bg-surface-raised text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {SECTION_LABELS[key] ?? key}
-          </button>
-        ))}
+    <div className="space-y-3">
+      {/* Mobile: chips con icono (Shopify-like) */}
+      <div className="md:hidden flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
+        {sectionKeys.map((key) => {
+          const meta = getSectionMeta(key);
+          const Icon = meta.icon;
+          const active = activeSection === key;
+          const count = itemCounts[key] ?? 0;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onSelect(key)}
+              className={`shrink-0 flex items-center gap-1.5 pl-2 pr-2.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border ${
+                active
+                  ? 'bg-accent text-accent-foreground border-accent shadow-sm'
+                  : 'bg-background text-muted-foreground border-border hover:text-foreground hover:border-accent/40'
+              }`}
+            >
+              <span
+                className={`flex h-5 w-5 items-center justify-center rounded-md ${
+                  active ? 'bg-accent-foreground/15' : 'bg-surface-raised'
+                }`}
+              >
+                <Icon size={12} strokeWidth={2} />
+              </span>
+              {meta.short}
+              {count > 0 && !SETTINGS_SECTION_KEYS.has(key) ? (
+                <span
+                  className={`text-[10px] tabular-nums ${
+                    active ? 'text-accent-foreground/80' : 'text-muted-foreground'
+                  }`}
+                >
+                  {count}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Desktop: compact select dropdown */}
-      <div className="hidden md:block">
-        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
-          Sección
-        </label>
-        <div className="relative">
-          <select
-            value={activeSection}
-            onChange={(e) => onSelect(e.target.value)}
-            className="w-full appearance-none bg-background border border-border rounded-lg pl-3 pr-10 py-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-          >
-            {sectionKeys.map((key) => (
-              <option key={key} value={key}>
-                {SECTION_LABELS[key] ?? key}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={15} className="absolute right-3 top-3 text-muted-foreground pointer-events-none" />
-        </div>
+      {/* Desktop: lista agrupada con iconos (theme customizer) */}
+      <div className="hidden md:block max-h-[min(42vh,360px)] overflow-y-auto -mx-1 px-1 space-y-3 scrollbar-thin">
+        {grouped.map((group) => (
+          <div key={group.id}>
+            <p className="px-2 mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
+              {group.label}
+            </p>
+            <div className="space-y-0.5">
+              {group.keys.map((key) => {
+                const meta = getSectionMeta(key);
+                const Icon = meta.icon;
+                const active = activeSection === key;
+                const count = itemCounts[key] ?? 0;
+                const inhabited = count > 0;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => onSelect(key)}
+                    className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-left transition-all group ${
+                      active
+                        ? 'bg-accent/15 text-foreground ring-1 ring-accent/30 shadow-sm'
+                        : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                    }`}
+                  >
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors ${
+                        active
+                          ? 'bg-accent text-accent-foreground border-accent shadow-sm'
+                          : inhabited
+                            ? 'bg-background border-border text-foreground group-hover:border-accent/40'
+                            : 'bg-surface-raised border-border/60 text-muted-foreground'
+                      }`}
+                    >
+                      <Icon size={15} strokeWidth={2} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13px] font-medium leading-tight truncate">
+                        {meta.label}
+                      </span>
+                      {meta.hint ? (
+                        <span className="block text-[10px] text-muted-foreground truncate mt-0.5">
+                          {meta.hint}
+                        </span>
+                      ) : null}
+                    </span>
+                    {count > 0 ? (
+                      <span
+                        className={`shrink-0 text-[10px] font-medium tabular-nums px-1.5 py-0.5 rounded-md ${
+                          active
+                            ? 'bg-accent/20 text-accent'
+                            : 'bg-surface-raised text-muted-foreground'
+                        }`}
+                        title={
+                          SETTINGS_SECTION_KEYS.has(key)
+                            ? 'Configurado'
+                            : `${count} elemento${count === 1 ? '' : 's'}`
+                        }
+                      >
+                        {SETTINGS_SECTION_KEYS.has(key) ? '●' : count}
+                      </span>
+                    ) : (
+                      <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-border" title="Vacío" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        {orphanKeys.length > 0 ? (
+          <div>
+            <p className="px-2 mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
+              Otras
+            </p>
+            <div className="space-y-0.5">
+              {orphanKeys.map((key) => {
+                const meta = getSectionMeta(key);
+                const Icon = meta.icon;
+                const active = activeSection === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => onSelect(key)}
+                    className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-left transition-all ${
+                      active
+                        ? 'bg-accent/15 text-foreground ring-1 ring-accent/30'
+                        : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                    }`}
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
+                      <Icon size={15} />
+                    </span>
+                    <span className="text-[13px] font-medium truncate">{meta.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -616,17 +991,29 @@ function ItemsPanel({
   };
 
   const isSettingsSection = SETTINGS_SECTION_KEYS.has(activeSection);
+  const sectionMeta = getSectionMeta(activeSection);
+  const SectionIcon = sectionMeta.icon;
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-foreground">
-          {SECTION_LABELS[activeSection] ?? activeSection}
-        </h3>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start gap-2.5 min-w-0">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-accent shadow-sm">
+            <SectionIcon size={16} strokeWidth={2} />
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-sm font-bold text-foreground leading-tight truncate">
+              {sectionMeta.label}
+            </h3>
+            {sectionMeta.hint ? (
+              <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{sectionMeta.hint}</p>
+            ) : null}
+          </div>
+        </div>
         {!isSettingsSection && (
           <button
             onClick={onAddNew}
-            className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-xs font-medium min-h-[36px]"
+            className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-xs font-medium min-h-[36px] shrink-0"
           >
             <Plus size={14} />
             Añadir
@@ -899,13 +1286,24 @@ export function EditorTiendaView() {
       <div className="flex-1 flex overflow-hidden min-h-0">
 
         {/* Left sidebar / Editor area */}
-        <div className={`${mobileTab === 'editor' ? 'flex' : 'hidden'} md:flex w-full md:w-80 lg:w-96 shrink-0 border-r border-border bg-surface-sunken flex-col overflow-hidden`}>
-          {/* Section selector */}
-          <div className="p-4 border-b border-border bg-surface shrink-0">
+        <div className={`${mobileTab === 'editor' ? 'flex' : 'hidden'} md:flex w-full md:w-80 lg:w-[26rem] shrink-0 border-r border-border bg-surface-sunken flex-col overflow-hidden`}>
+          {/* Section selector — bloques con iconos */}
+          <div className="p-3 md:p-3 border-b border-border bg-surface shrink-0">
+            <div className="hidden md:flex items-center justify-between px-1 mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Bloques de la tienda
+              </p>
+              <span className="text-[10px] tabular-nums text-muted-foreground">
+                {sectionKeys.length}
+              </span>
+            </div>
             <SectionNav
               sectionKeys={sectionKeys}
               activeSection={activeSection}
               onSelect={setActiveSection}
+              itemCounts={Object.fromEntries(
+                sectionKeys.map((k) => [k, (groupedData[k] ?? []).length]),
+              )}
             />
           </div>
 
