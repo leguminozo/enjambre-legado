@@ -15,6 +15,8 @@ const SECTION_KEYS = [
   "nosotros",
   "galeria",
   "contacto",
+  "menu_settings",
+  "menu_links",
 ] as const;
 
 const ContentItemSchema = z.object({
