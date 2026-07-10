@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Cormorant_Garamond } from 'next/font/google';
 import React from 'react';
 import { ThemeProvider, ToastProvider } from '@enjambre/ui';
@@ -27,6 +27,13 @@ export const metadata: Metadata = {
   description: 'Vanguardia en experiencia de marca y fidelización cíclica.',
   robots: { index: false, follow: false },
   manifest: '/manifest.json',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#0A3D2F',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

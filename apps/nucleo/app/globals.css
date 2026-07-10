@@ -2185,10 +2185,13 @@ body::after {
 
 .enj-table-shell-scroll {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   border-radius: var(--radius-md);
   border: 1px solid hsl(var(--border) / 0.5);
+  scrollbar-width: thin;
 }
 
 .enj-table-shell-scroll .data-table {
@@ -2197,6 +2200,23 @@ body::after {
 
 .enj-table-shell-scroll table {
   min-width: 560px;
+}
+
+/* Contenedores densos: no empujar el viewport horizontal */
+.app-layout {
+  overflow-x: clip;
+  max-width: 100vw;
+}
+
+.main-content {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.page-content--shell {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 /* Section headers stack on narrow */
@@ -2307,6 +2327,46 @@ body::after {
 
   .enj-table-shell-caption {
     display: block;
+  }
+
+  /* Tablas sin shell: scroll en el card/section padre */
+  .view-deep .card:has(> table),
+  .view-deep [class*='CardContent']:has(> table),
+  .view-deep section:has(> table) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  .view-deep .card > table,
+  .view-deep section > table {
+    min-width: 520px;
+  }
+
+  /* Grids Tailwind densos en móvil */
+  .view-deep .grid.lg\:grid-cols-\[1fr_minmax\(280px\,400px\)\],
+  .view-deep .grid.lg\:grid-cols-2,
+  .view-deep .grid.lg\:grid-cols-3,
+  .view-deep .grid.md\:grid-cols-2,
+  .view-deep .grid.md\:grid-cols-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .main-header {
+    padding-inline: var(--space-md);
+    gap: var(--space-sm);
+  }
+
+  .header-title {
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+
+  .header-search-panel,
+  #header-search-panel {
+    left: var(--space-md);
+    right: var(--space-md);
+    width: auto !important;
   }
 
   .view-shell--hero .view-shell-hero-inner,

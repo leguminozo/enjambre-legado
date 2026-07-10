@@ -121,15 +121,12 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
         </div>
       </main>
 
-      {shellMode === 'mobile' && (
-        <>
-          <LiquidBottomNav
-            onOpenMenu={() => setNavSheetOpen(true)}
-            menuOpen={navSheetOpen}
-          />
-          <MobileNavSheet open={navSheetOpen} onClose={() => setNavSheetOpen(false)} />
-        </>
-      )}
+      {/* Siempre en DOM: CSS oculta en tablet/desktop; evita flash sin nav en móvil (SSR). */}
+      <LiquidBottomNav
+        onOpenMenu={() => setNavSheetOpen(true)}
+        menuOpen={navSheetOpen}
+      />
+      <MobileNavSheet open={navSheetOpen} onClose={() => setNavSheetOpen(false)} />
     </div>
   );
 }

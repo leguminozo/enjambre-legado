@@ -3,7 +3,7 @@ import { getLocale, getMessages } from 'next-intl/server';
 import './globals.css';
 import { AppProviders } from '@/components/providers/app-providers';
 import { RegisterServiceWorker } from '@/components/pwa/register-sw';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { headers } from 'next/headers';
 import {
   organizationJsonLd,
@@ -16,6 +16,13 @@ import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#0A3D2F',
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const storeChrome = await loadStoreChrome();
