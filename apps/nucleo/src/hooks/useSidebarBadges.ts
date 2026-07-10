@@ -200,29 +200,29 @@ export function useSidebarBadges() {
   useEffect(() => {
     if (!supabase) return
 
-    const channels = [
-      supabase
-        .channel('sidebar-varroa')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'varroa_records' }, () => {
-          void fetchBadges()
-        })
-        .subscribe(),
-      supabase
-        .channel('sidebar-envios')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'logistica_envios' }, () => {
-          void fetchBadges()
-        })
-        .subscribe(),
-      supabase
-        .channel('sidebar-facturas')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'facturas_emitidas' }, () => {
-          void fetchBadges()
-        })
-        .subscribe(),
-    ]
+    // Un solo canal + todos los .on() ANTES de subscribe().
+    // Nombre único: evita reutilizar un canal ya suscrito (Strict Mode / remount
+    // de fetchBadges) que lanza "cannot add postgres_changes callbacks after subscribe()".
+    const channelName = `sidebar-badges-${Math.random().toString(36).slice(2, 10)}`
+    const channel = supabase
+      .channel(channelName)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'varroa_records' }, () => {
+        void fetchBadges()
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'logistica_envios' }, () => {
+        void fetchBadges()
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'facturas_emitidas' }, () => {
+        void fetchBadges()
+      })
+      .subscribe((status, err) => {
+        if (err || status === 'CHANNEL_ERROR') {
+          console.error('[useSidebarBadges] realtime error', err)
+        }
+      })
 
     return () => {
-      channels.forEach((ch) => supabase.removeChannel(ch))
+      void supabase.removeChannel(channel)
     }
   }, [fetchBadges])
 
