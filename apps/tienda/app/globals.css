@@ -149,16 +149,22 @@ body.pwa-standalone .tienda-shop-header-burger {
   position: fixed;
   inset: 0;
   z-index: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
   pointer-events: none;
   background: transparent;
-  padding: calc(var(--tienda-sticky-top) + 1.25rem) 2.5rem calc(var(--safe-bottom) + 1.5rem);
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--tienda-sticky-top) + 1.25rem) 2.5rem 0;
   animation: tienda-slide-in 0.28s ease-out;
 }
 
 .tienda-mobile-nav-panel nav {
   pointer-events: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  min-height: 0;
+  flex: 1;
+  padding-bottom: calc(var(--safe-bottom) + 1.5rem);
 }
 
 @keyframes tienda-fade-in {
