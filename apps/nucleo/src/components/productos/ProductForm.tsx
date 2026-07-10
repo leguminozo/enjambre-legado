@@ -220,9 +220,22 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
           return;
         }
 
+        let finalSlug = data.slug ? generateSlug(data.slug) : generateSlug(data.nombre);
+        
+        // Ensure slug uniqueness
+        const { data: existingProd } = await supabase
+          .from('productos')
+          .select('id')
+          .eq('slug', finalSlug)
+          .maybeSingle();
+
+        if (existingProd && existingProd.id !== initialData?.id) {
+          finalSlug = `${finalSlug}-${Math.random().toString(36).substring(2, 6)}`;
+        }
+
         const payload = {
           ...data,
-          slug: data.slug ? generateSlug(data.slug) : generateSlug(data.nombre),
+          slug: finalSlug,
           lote_id: data.lote_id || null,
           updated_at: new Date().toISOString(),
         };

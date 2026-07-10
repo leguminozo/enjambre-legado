@@ -1,8 +1,8 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '@enjambre/auth';
-import type { SumUpReader, SumUpCheckout, TerminalFlowStep, TerminalFlowResult } from './types';
+import type { SumUpReader, SumUpCheckout, TerminalFlowStep, TerminalFlowResult, SumupMode } from './types';
 
 interface SumUpContextValue {
   readers: SumUpReader[];
@@ -17,6 +17,8 @@ interface SumUpContextValue {
   activeCheckoutId: string | null;
   activeReaderId: string | null;
   terminalResult: TerminalFlowResult | null;
+  sumupMode: SumupMode;
+  setSumupMode: (mode: SumupMode) => void;
 }
 
 const SumUpContext = createContext<SumUpContextValue | null>(null);
@@ -47,6 +49,19 @@ export function SumUpProvider({ children }: { children: React.ReactNode }) {
   const [activeCheckoutId, setActiveCheckoutId] = useState<string | null>(null);
   const [activeReaderId, setActiveReaderId] = useState<string | null>(null);
   const [terminalResult, setTerminalResult] = useState<TerminalFlowResult | null>(null);
+  const [sumupMode, setSumupModeState] = useState<SumupMode>('connected');
+
+  useEffect(() => {
+    const savedMode = localStorage.getItem('sumup_mode') as SumupMode;
+    if (savedMode === 'connected' || savedMode === 'manual') {
+      setSumupModeState(savedMode);
+    }
+  }, []);
+
+  const setSumupMode = useCallback((mode: SumupMode) => {
+    setSumupModeState(mode);
+    localStorage.setItem('sumup_mode', mode);
+  }, []);
 
   const authSession = useAuthStore((s) => s.session);
   const token = authSession?.access_token ?? null;
@@ -136,8 +151,14 @@ export function SumUpProvider({ children }: { children: React.ReactNode }) {
       activeCheckoutId,
       activeReaderId,
       terminalResult,
+      sumupMode,
+      setSumupMode,
     }),
-    [readers, readersLoading, readersError, fetchReaders, startReaderCheckout, pollCheckoutStatus, cancelReaderCheckout, terminalStep, activeCheckoutId, activeReaderId, terminalResult],
+    [
+      readers, readersLoading, readersError, fetchReaders, startReaderCheckout, 
+      pollCheckoutStatus, cancelReaderCheckout, terminalStep, activeCheckoutId, 
+      activeReaderId, terminalResult, sumupMode, setSumupMode
+    ],
   );
 
   return <SumUpContext.Provider value={value}>{children}</SumUpContext.Provider>;

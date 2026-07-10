@@ -35,7 +35,7 @@ const paymentMethods: { value: PaymentMethod; label: string; icon: React.ReactNo
 export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
   const { addLine } = useCart();
   const { session, quickSale } = useCashSession();
-  const { setTerminalStep } = useSumUp();
+  const { setTerminalStep, sumupMode } = useSumUp();
   const [step, setStep] = useState<Step>('idle');
   const [qty, setQty] = useState(1);
   const [channel, setChannel] = useState<string>('feria');
@@ -71,15 +71,17 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
 
   const handlePayment = useCallback(async (pm: PaymentMethod) => {
     if (pm === 'tarjeta_pos') {
-      setTerminalStep('selecting_reader');
-      setStep('terminal');
-      return;
+      if (sumupMode === 'connected') {
+        setTerminalStep('selecting_reader');
+        setStep('terminal');
+        return;
+      }
     }
 
     setLoading(true);
     setSaleError(null);
     try {
-      const metodoPago = pm === 'debito' ? 'tarjeta' : pm;
+      const metodoPago = pm === 'debito' ? 'tarjeta' : pm === 'tarjeta_pos' ? 'pos_terminal' : pm;
       const result = await quickSale(producto_id, qty, metodoPago, channel);
       handleSaleResult(result);
       setStep('done');

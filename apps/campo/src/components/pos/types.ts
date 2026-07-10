@@ -56,3 +56,5 @@ export type TerminalFlowResult = {
   transaction_id?: string;
   status: SumUpCheckoutStatus;
 };
+
+export type SumupMode = 'connected' | 'manual';

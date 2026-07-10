@@ -36,7 +36,7 @@ export default function CarritoView() {
   const { lines, setQty, removeLine, clear, total, ready } = useCart();
   const { session, cartSale } = useCashSession();
   const { active: feriaActiva, consignaciones, refresh: refreshFeria } = useFeriaContext();
-  const { setTerminalStep } = useSumUp();
+  const { setTerminalStep, sumupMode, setSumupMode } = useSumUp();
   const [channel, setChannel] = useState<VentaChannel>('feria');
   const [metodoPago, setMetodoPago] = useState<PaymentMethod>('efectivo');
   const [loading, setLoading] = useState(false);
@@ -62,9 +62,12 @@ export default function CarritoView() {
     }
 
     if (metodoPago === 'tarjeta_pos') {
-      setCheckoutMode('terminal');
-      setTerminalStep('selecting_reader');
-      return;
+      if (sumupMode === 'connected') {
+        setCheckoutMode('terminal');
+        setTerminalStep('selecting_reader');
+        return;
+      }
+      // If manual mode, it falls through to regular immediate checkout.
     }
 
     setLoading(true);
@@ -77,7 +80,7 @@ export default function CarritoView() {
           precio_unitario: l.precio_unitario,
         }));
 
-        const metodoBff = metodoPago === 'debito' ? 'tarjeta' : metodoPago;
+        const metodoBff = metodoPago === 'debito' ? 'tarjeta' : metodoPago === 'tarjeta_pos' ? 'pos_terminal' : metodoPago;
         const result = await cartSale(cartItems, metodoBff, channel);
         if (!result) {
           setError('No se pudo registrar la venta en la sesion de caja');
@@ -100,7 +103,7 @@ export default function CarritoView() {
             origen: channel === 'feria' || channel === 'local' ? channel : 'feria',
             total,
             items,
-            metodo_pago: metodoPago === 'debito' ? 'tarjeta' : metodoPago,
+            metodo_pago: metodoPago === 'debito' ? 'tarjeta' : metodoPago === 'tarjeta_pos' ? 'pos_terminal' : metodoPago,
             estado: 'confirmado',
           }),
         });
@@ -342,6 +345,23 @@ export default function CarritoView() {
                     </button>
                   ))}
                 </div>
+                {metodoPago === 'tarjeta_pos' && (
+                  <div className="mt-4 p-4 rounded-xl border border-primary/20 bg-primary/5 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-foreground uppercase tracking-widest">Modo SumUp</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {sumupMode === 'connected' ? 'La app enviará el monto al lector.' : 'Ingreso manual directo en el POS.'}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSumupMode(sumupMode === 'connected' ? 'manual' : 'connected')}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${sumupMode === 'connected' ? 'bg-primary' : 'bg-muted-foreground/30'}`}
+                    >
+                      <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${sumupMode === 'connected' ? 'translate-x-5' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

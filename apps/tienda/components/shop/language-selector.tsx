@@ -13,10 +13,10 @@ export function LanguageSelector({ className = '' }: { className?: string }) {
     <button
       type="button"
       onClick={switchLocale}
-      className={`rounded-full border border-border bg-surface-sunken px-3 py-1.5 text-[0.6rem] font-medium uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-accent ${className}`}
+      className={`text-[0.6rem] font-medium uppercase tracking-[0.2em] text-muted-foreground/70 transition-colors hover:text-accent ${className}`}
       aria-label={locale === 'es' ? tNav('switchToEnglish') : tNav('switchToSpanish')}
     >
-      {locale === 'es' ? tNav('switchToEnglish') : tNav('switchToSpanish')}
+      {locale === 'es' ? 'EN' : 'ES'}
     </button>
   );
 }

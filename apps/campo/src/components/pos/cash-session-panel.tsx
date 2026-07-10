@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useCashSession } from './cash-context';
 import { TierBadge, useTierProgress } from './tier-badge';
 import { useThresholdNotification, ThresholdNotificationBanner } from './threshold-notification';
-import { Wallet, Lock, TrendingUp, ChevronRight, Zap, Crown, Radio, Banknote, CreditCard, Smartphone, Nfc } from 'lucide-react';
+import { Wallet, Lock, TrendingUp, ChevronRight, Zap, Crown, Radio, Banknote, CreditCard, Smartphone, Nfc, RefreshCcw, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { useAuthStore } from '@enjambre/auth';
 import { ViewLoading } from '@enjambre/ui';
 
 export function CashSessionPanel() {
@@ -19,6 +20,32 @@ export function CashSessionPanel() {
   const [closingNotas, setClosingNotas] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [closeResult, setCloseResult] = useState<Record<string, unknown> | null>(null);
+
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ sincronizadas: number } | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const token = useAuthStore((s) => s.session)?.access_token;
+  const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
+
+  const handleSumupSync = async () => {
+    if (!token) return;
+    setSyncLoading(true);
+    setSyncError(null);
+    setSyncResult(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/sumup/sincronizar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Error sincronizando');
+      setSyncResult(data.data);
+    } catch (err) {
+      setSyncError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setSyncLoading(false);
+    }
+  };
 
   if (loading) {
     return <ViewLoading variant="view" label="Sesión de caja" hideLabel />;
@@ -142,6 +169,42 @@ export function CashSessionPanel() {
               </p>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </div>
+        )}
+      </div>
+
+      <div className="card-glow p-4 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-primary">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <Nfc className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest block">Pagos SumUp</span>
+              <span className="text-[9px] text-muted-foreground uppercase tracking-widest">Sincronización manual</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            disabled={syncLoading}
+            onClick={() => void handleSumupSync()}
+            className="px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all disabled:opacity-50"
+          >
+            <RefreshCcw className={`w-3 h-3 ${syncLoading ? 'animate-spin' : ''}`} />
+            {syncLoading ? 'Sincronizando...' : 'Sincronizar'}
+          </button>
+        </div>
+        
+        {syncResult && (
+          <div className="bg-success/10 border border-success/20 rounded-lg p-2.5 flex items-center gap-2 text-success text-[10px] font-bold uppercase tracking-widest">
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+            <span>Sincronización completa. {syncResult.sincronizadas} registros nuevos.</span>
+          </div>
+        )}
+        {syncError && (
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-2.5 flex items-center gap-2 text-destructive text-[10px] font-bold uppercase tracking-widest">
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+            <span>{syncError}</span>
           </div>
         )}
       </div>

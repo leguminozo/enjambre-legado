@@ -90,7 +90,8 @@ export function ShopHeader() {
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
 
-        <Link href="/" className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 group">
+        <Link href="/" className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 group flex items-center gap-3 md:gap-4">
+          <img src="/icons/icon-192.svg" alt="La Obrera y el Zángano Logo" className="h-8 w-8 md:h-10 md:w-10 rounded-full" />
           <div className="flex flex-col items-center md:items-start">
             <span className="font-display text-lg tracking-[0.3em] uppercase text-foreground group-hover:text-accent transition-colors">
               {tHeader('brandLine1')}
@@ -115,10 +116,7 @@ export function ShopHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-3 sm:gap-6">
-          <div className="hidden sm:block">
-            <LanguageSelector />
-          </div>
+        <div className="flex items-center gap-3 sm:gap-5">
 
           {isAuthenticated && (
             <NotificationBell
@@ -156,6 +154,10 @@ export function ShopHeader() {
               </span>
             )}
           </Link>
+
+          <div className="hidden sm:block">
+            <LanguageSelector />
+          </div>
         </div>
       </div>
 
