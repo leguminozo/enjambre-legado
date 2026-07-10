@@ -417,7 +417,7 @@ export function DashboardEjecutivo() {
             <div className="section-title text-base mb-4 flex items-center gap-2">
               <TreePine size={18} className="text-success" /> Bosque
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="p-4 rounded-sm bg-success/[0.08] text-center">
                 <div className="text-[1.3rem] font-bold text-success">{enjambre.arboles.totalYTD}</div>
                 <div className="text-[0.72rem] text-muted-foreground">Árboles YTD</div>
@@ -442,7 +442,7 @@ export function DashboardEjecutivo() {
               <div className="section-subtitle">Resumen {rangeLabel}</div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-4 rounded-sm bg-success/[0.08]">
               <div className="text-[0.72rem] text-muted-foreground mb-1">Ingresos netos</div>
               <div className="text-xl font-bold text-success">{fmtCLP(finanzas.ingresosNetos)}</div>
@@ -517,7 +517,7 @@ export function DashboardEjecutivo() {
             </div>
           )}
 
-          <div className="grid grid-cols-4 gap-1 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 mb-4">
             {Object.entries(equipo.repTiers).map(([tier, count]) => (
               <div key={tier} className="text-center p-2 rounded-sm bg-muted/30">
                 <div className="text-[1.1rem] font-bold" style={{ color: TIER_COLORS[tier] ?? 'hsl(var(--foreground))' }}>{count}</div>

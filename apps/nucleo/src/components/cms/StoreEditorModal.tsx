@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   X,
@@ -5,7 +7,6 @@ import {
   Smartphone,
   Save,
   Loader2,
-  Image as ImageIcon,
   Upload,
   Plus,
   Trash2,
@@ -19,18 +20,39 @@ import { toast, ImmersiveModal, OverlayFullscreen } from '@enjambre/ui';
 import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/use-cms-content';
 import { getUrlTienda } from '@/lib/publicUrls';
 
+// ── Constants ──────────────────────────────────────────────────────────────
+
 const SECTION_LABELS: Record<string, string> = {
   servicios: 'Servicios',
   talleres: 'Talleres',
   colecciones: 'Colecciones',
   footer_branding: 'Footer — Marca',
-  footer_nav: 'Footer — Navegación',
+  footer_nav: 'Footer — Nav',
   footer_legal: 'Footer — Legal',
   hero: 'Hero',
   nosotros: 'Nosotros',
   galeria: 'Galería',
   contacto: 'Contacto',
 };
+
+/**
+ * Plantillas JSON iniciales por sección.
+ * 'colecciones' incluye 'image' para que EditableItemCard muestre el uploader.
+ */
+const SECTION_TEMPLATES: Record<string, Record<string, unknown>> = {
+  colecciones: { kicker: '', title: '', desc: '', href: '/catalogo', image: '' },
+  servicios: { num: '', title: '', desc: '' },
+  talleres: { date: '', title: '', desc: '', action: '' },
+  footer_nav: { label: '', href: '/' },
+  footer_legal: { label: '', href: '/' },
+  hero: { title: '', subtitle: '', cta: '' },
+  nosotros: { title: '', desc: '', image: '' },
+  galeria: { src: '', alt: '' },
+  contacto: { title: '', desc: '', email: '' },
+  footer_branding: { tagline: '', email: '' },
+};
+
+// ── ContentFieldEditor ─────────────────────────────────────────────────────
 
 function ContentFieldEditor({
   fieldKey,
@@ -98,6 +120,18 @@ function ContentFieldEditor({
   );
 }
 
+// ── EditableItemCard ───────────────────────────────────────────────────────
+
+interface EditableItemCardProps {
+  item: CMSContentItem;
+  activeSection: string;
+  onUpdate: (id: string, content: Record<string, unknown>, isActive: boolean) => void;
+  onDelete: (id: string) => void;
+  onImageUpload: (file: File, fieldName: string, itemId: string) => void;
+  isUpdating: boolean;
+  isDeleting: boolean;
+}
+
 function EditableItemCard({
   item,
   activeSection,
@@ -106,15 +140,7 @@ function EditableItemCard({
   onImageUpload,
   isUpdating,
   isDeleting,
-}: {
-  item: CMSContentItem;
-  activeSection: string;
-  onUpdate: (id: string, content: Record<string, unknown>, isActive: boolean) => void;
-  onDelete: (id: string) => void;
-  onImageUpload: (file: File, fieldName: string, itemId: string) => void;
-  isUpdating: boolean;
-  isDeleting: boolean;
-}) {
+}: EditableItemCardProps) {
   const [expanded, setExpanded] = useState(true);
   const [localContent, setLocalContent] = useState<Record<string, unknown>>(item.content);
   const [localActive, setLocalActive] = useState(item.is_active);
@@ -123,7 +149,6 @@ function EditableItemCard({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTargetField, setUploadTargetField] = useState<string>('');
 
-  // Sync when prop item changes after a save or external update
   useEffect(() => {
     setLocalContent(item.content);
     setLocalActive(item.is_active);
@@ -159,6 +184,7 @@ function EditableItemCard({
   };
 
   const titleField = localContent.title ?? localContent.label ?? localContent.kicker ?? null;
+
   const isImageField = (key: string) =>
     key.toLowerCase().includes('image') ||
     key.toLowerCase().includes('img') ||
@@ -168,32 +194,43 @@ function EditableItemCard({
 
   return (
     <div className={`bg-surface rounded-xl border border-border overflow-hidden transition-all ${!localActive ? 'opacity-60' : ''}`}>
+      {/* Card Header — always visible, touch-friendly */}
       <div
-        className="flex items-center gap-3 p-3 cursor-pointer hover:bg-surface-raised/50 transition-colors"
+        className="flex items-center gap-2 p-3 cursor-pointer hover:bg-surface-raised/50 active:bg-surface-raised transition-colors select-none min-h-[52px]"
         onClick={() => setExpanded(!expanded)}
       >
-        <GripVertical size={16} className="text-muted-foreground shrink-0" />
+        <GripVertical size={15} className="text-muted-foreground shrink-0" />
         <ChevronDown
-          size={16}
+          size={15}
           className={`text-muted-foreground shrink-0 transition-transform ${expanded ? '' : '-rotate-90'}`}
         />
         <span className="text-sm font-medium text-foreground flex-1 truncate">
           {titleField ? String(titleField) : `Item #${item.item_order + 1}`}
         </span>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleToggleActive();
-          }}
-          className={`p-1.5 rounded-lg transition-colors ${
-            localActive ? 'text-accent hover:bg-accent/10' : 'text-muted-foreground hover:bg-surface-raised'
-          }`}
-          title={localActive ? 'Ocultar en tienda' : 'Mostrar en tienda'}
-        >
-          {localActive ? <Eye size={14} /> : <EyeOff size={14} />}
-        </button>
+
+        {/* Controls always visible on mobile */}
+        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={handleToggleActive}
+            className={`p-2 rounded-lg transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${
+              localActive ? 'text-accent hover:bg-accent/10' : 'text-muted-foreground hover:bg-surface-raised'
+            }`}
+            title={localActive ? 'Ocultar en tienda' : 'Mostrar en tienda'}
+          >
+            {localActive ? <Eye size={14} /> : <EyeOff size={14} />}
+          </button>
+          <button
+            onClick={() => onDelete(item.id)}
+            disabled={isDeleting}
+            className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 min-w-[36px] min-h-[36px] flex items-center justify-center"
+            title="Eliminar"
+          >
+            {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+          </button>
+        </div>
       </div>
 
+      {/* Expanded content */}
       {expanded && (
         <div className="px-3 pb-4 space-y-4 border-t border-border pt-3 bg-surface-sunken">
           <input
@@ -221,14 +258,16 @@ function EditableItemCard({
                   <button
                     onClick={() => handleImageClick(key)}
                     disabled={uploadingField === key}
-                    className="flex w-full justify-center items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-background border border-border hover:border-accent/50 transition-colors disabled:opacity-50"
+                    className="flex w-full justify-center items-center gap-2 px-3 py-3 rounded-lg text-xs font-medium bg-background border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50 min-h-[44px]"
                   >
                     {uploadingField === key ? (
                       <Loader2 size={14} className="animate-spin" />
                     ) : (
                       <Upload size={14} />
                     )}
-                    {val ? 'Cambiar imagen' : 'Subir imagen'}
+                    {val && typeof val === 'string' && val.startsWith('http')
+                      ? 'Cambiar imagen'
+                      : 'Subir imagen'}
                   </button>
                 </div>
               ) : key === 'href' || key === 'action' ? (
@@ -241,7 +280,7 @@ function EditableItemCard({
                       href={`${getUrlTienda()}${val}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 rounded-lg border border-border hover:border-accent/50 text-muted-foreground hover:text-accent transition-colors bg-background flex items-center justify-center"
+                      className="p-2 rounded-lg border border-border hover:border-accent/50 text-muted-foreground hover:text-accent transition-colors bg-background flex items-center justify-center min-w-[40px]"
                     >
                       <ExternalLink size={14} />
                     </a>
@@ -253,56 +292,189 @@ function EditableItemCard({
             </div>
           ))}
 
-          <div className="flex items-center justify-between pt-4 border-t border-border">
-            <button
-              onClick={() => onDelete(item.id)}
-              disabled={isDeleting}
-              className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
-              title="Eliminar este elemento"
-            >
-              {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-            </button>
-
-            {dirty && (
+          {/* Save button — sticky feel, always visible if dirty */}
+          {dirty && (
+            <div className="pt-3 border-t border-border">
               <button
                 onClick={handleSave}
                 disabled={isUpdating}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors shadow-md disabled:opacity-50"
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors shadow-md disabled:opacity-50 min-h-[44px]"
               >
                 {isUpdating ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                Guardar Cambios
+                Guardar cambios
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-export function StoreEditorModal({
-  isOpen,
-  onClose,
-}: {
+// ── SectionNav — pills on mobile, select on desktop ────────────────────────
+
+interface SectionNavProps {
+  sectionKeys: string[];
+  activeSection: string;
+  onSelect: (key: string) => void;
+}
+
+function SectionNav({ sectionKeys, activeSection, onSelect }: SectionNavProps) {
+  return (
+    <>
+      {/* Mobile: horizontal scrollable pills */}
+      <div className="md:hidden flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-none -mx-4">
+        {sectionKeys.map((key) => (
+          <button
+            key={key}
+            onClick={() => onSelect(key)}
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+              activeSection === key
+                ? 'bg-accent text-accent-foreground shadow-sm'
+                : 'bg-surface-raised text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {SECTION_LABELS[key] ?? key}
+          </button>
+        ))}
+      </div>
+
+      {/* Desktop: compact select dropdown */}
+      <div className="hidden md:block">
+        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
+          Sección
+        </label>
+        <div className="relative">
+          <select
+            value={activeSection}
+            onChange={(e) => onSelect(e.target.value)}
+            className="w-full appearance-none bg-background border border-border rounded-lg pl-3 pr-10 py-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+          >
+            {sectionKeys.map((key) => (
+              <option key={key} value={key}>
+                {SECTION_LABELS[key] ?? key}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={15} className="absolute right-3 top-3 text-muted-foreground pointer-events-none" />
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── ItemsPanel ─────────────────────────────────────────────────────────────
+
+interface ItemsPanelProps {
+  items: CMSContentItem[];
+  activeSection: string;
+  onUpdate: (id: string, content: Record<string, unknown>, isActive: boolean) => void;
+  onDelete: (id: string) => void;
+  onImageUpload: (file: File, fieldName: string, itemId: string) => void;
+  onAddNew: () => void;
+  isUpdating: boolean;
+  isDeleting: boolean;
+}
+
+function ItemsPanel({
+  items,
+  activeSection,
+  onUpdate,
+  onDelete,
+  onImageUpload,
+  onAddNew,
+  isUpdating,
+  isDeleting,
+}: ItemsPanelProps) {
+  return (
+    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-bold text-foreground">
+          {SECTION_LABELS[activeSection] ?? activeSection}
+        </h3>
+        <button
+          onClick={onAddNew}
+          className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-xs font-medium min-h-[36px]"
+        >
+          <Plus size={14} />
+          Añadir
+        </button>
+      </div>
+
+      <div className="space-y-3 pb-8">
+        {items.map((item) => (
+          <EditableItemCard
+            key={item.id}
+            item={item}
+            activeSection={activeSection}
+            onUpdate={onUpdate}
+            onDelete={onDelete}
+            onImageUpload={onImageUpload}
+            isUpdating={isUpdating}
+            isDeleting={isDeleting}
+          />
+        ))}
+
+        {items.length === 0 && (
+          <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl">
+            <p className="text-sm text-muted-foreground mb-3">
+              Sin elementos en esta sección.
+            </p>
+            <button
+              onClick={onAddNew}
+              className="text-accent text-sm font-medium hover:underline"
+            >
+              Añadir el primero
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── StoreEditorModal (main) ────────────────────────────────────────────────
+
+interface StoreEditorModalProps {
   isOpen: boolean;
   onClose: () => void;
-}) {
+}
+
+export function StoreEditorModal({ isOpen, onClose }: StoreEditorModalProps) {
   const cms = useCMSContent();
-  const [activeSection, setActiveSection] = useState<string>('hero');
+  const [activeSection, setActiveSection] = useState<string>('colecciones');
   const [iframeKey, setIframeKey] = useState(0);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [showNewForm, setShowNewForm] = useState(false);
-  const [newContent, setNewContent] = useState('{\n  "title": "",\n  "desc": ""\n}');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Derive default JSON from section template
+  const defaultTemplate = SECTION_TEMPLATES[activeSection] ?? { title: '', desc: '' };
+  const [newContent, setNewContent] = useState(JSON.stringify(defaultTemplate, null, 2));
+
+  // Update template when section changes
+  useEffect(() => {
+    const template = SECTION_TEMPLATES[activeSection] ?? { title: '', desc: '' };
+    setNewContent(JSON.stringify(template, null, 2));
+  }, [activeSection]);
+
+  // Detect mobile
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   const groupedData = cms.data?.data ?? {};
   const sectionKeys = Object.keys(groupedData).length > 0
     ? Object.keys(groupedData).sort()
-    : cms.sections;
+    : [...cms.sections];
 
-  // Function to refresh iframe
-  const refreshIframe = () => {
-    setIframeKey((prev) => prev + 1);
-  };
+  const currentItems = groupedData[activeSection] ?? [];
+
+  const refreshIframe = () => setIframeKey((prev) => prev + 1);
 
   const handleUpdateItem = (id: string, content: Record<string, unknown>, isActive: boolean) => {
     cms.updateItem.mutate(
@@ -313,7 +485,7 @@ export function StoreEditorModal({
           refreshIframe();
         },
         onError: (err) => toast(err.message, { type: 'error' }),
-      }
+      },
     );
   };
 
@@ -344,35 +516,31 @@ export function StoreEditorModal({
                   refreshIframe();
                 },
                 onError: (err) => toast(err.message, { type: 'error' }),
-              }
+              },
             );
           }
         },
         onError: (err) => toast(err.message, { type: 'error' }),
-      }
+      },
     );
   };
 
   const handleCreateItem = () => {
     try {
-      const parsed = JSON.parse(newContent);
+      const parsed = JSON.parse(newContent) as Record<string, unknown>;
       cms.createItem.mutate(
-        {
-          section_key: activeSection as CMSSectionKey,
-          content: parsed,
-        },
+        { section_key: activeSection as CMSSectionKey, content: parsed },
         {
           onSuccess: () => {
-            toast('Nuevo item añadido', { type: 'success' });
+            toast('Elemento añadido', { type: 'success' });
             setShowNewForm(false);
-            setNewContent('{\n  "title": "",\n  "desc": ""\n}');
             refreshIframe();
           },
           onError: (err) => toast(err.message, { type: 'error' }),
-        }
+        },
       );
     } catch {
-      toast('Formato JSON inválido para la estructura inicial', { type: 'error' });
+      toast('JSON inválido — revisa el formato', { type: 'error' });
     }
   };
 
@@ -387,22 +555,23 @@ export function StoreEditorModal({
       ariaLabel="Editor de tienda visual"
       panelClassName="border-0"
     >
-      {/* Top Navigation Bar */}
-      <div className="h-14 border-b border-border bg-surface flex items-center justify-between px-4 shrink-0 shadow-sm z-10">
-        <div className="flex items-center gap-3">
+      {/* ── Top bar ── */}
+      <div className="h-14 border-b border-border bg-surface flex items-center justify-between px-4 shrink-0 shadow-sm z-10 gap-3">
+        <div className="flex items-center gap-2 min-w-0">
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+            className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors shrink-0"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
-          <div className="font-display font-medium text-lg text-foreground flex items-center gap-2">
-            Editor de Tienda Visual
-            {cms.isLoading && <Loader2 size={16} className="animate-spin text-accent ml-2" />}
-          </div>
+          <span className="font-display font-medium text-base text-foreground truncate hidden sm:block">
+            Editor de Tienda
+          </span>
+          {cms.isLoading && <Loader2 size={14} className="animate-spin text-accent shrink-0" />}
         </div>
 
-        <div className="flex items-center gap-2 bg-secondary/50 p-1 rounded-lg border border-border/50">
+        {/* Desktop: view mode toggle */}
+        <div className="hidden md:flex items-center gap-2 bg-secondary/50 p-1 rounded-lg border border-border/50">
           <button
             onClick={() => setViewMode('desktop')}
             className={`p-1.5 rounded-md transition-colors ${
@@ -410,7 +579,7 @@ export function StoreEditorModal({
             }`}
             title="Vista Escritorio"
           >
-            <Monitor size={16} />
+            <Monitor size={15} />
           </button>
           <button
             onClick={() => setViewMode('mobile')}
@@ -419,146 +588,152 @@ export function StoreEditorModal({
             }`}
             title="Vista Móvil"
           >
-            <Smartphone size={16} />
+            <Smartphone size={15} />
           </button>
         </div>
 
-        <div className="flex items-center gap-3">
-          <a
-            href={tiendaUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
-          >
-            Ver sitio en vivo <ExternalLink size={12} />
-          </a>
-        </div>
-      </div>
-
-      {/* Main Split View */}
-      <div className="flex-1 flex overflow-hidden">
-        
-        {/* Left Sidebar: Form Editor */}
-        <div className="w-[380px] shrink-0 border-r border-border bg-surface-sunken flex flex-col overflow-hidden z-10 relative">
-          
-          {/* Section Selector */}
-          <div className="p-4 border-b border-border bg-surface shrink-0">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
-              Sección a Editar
-            </label>
-            <div className="relative">
-              <select
-                value={activeSection}
-                onChange={(e) => setActiveSection(e.target.value)}
-                className="w-full appearance-none bg-background border border-border rounded-lg pl-3 pr-10 py-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-              >
-                {sectionKeys.map((key) => (
-                  <option key={key} value={key}>
-                    {SECTION_LABELS[key] ?? key}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown size={16} className="absolute right-3 top-3 text-muted-foreground pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Items List */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-foreground">
-                Elementos de {SECTION_LABELS[activeSection] ?? activeSection}
-              </h3>
-              <button
-                onClick={() => setShowNewForm(true)}
-                className="p-1.5 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors"
-                title="Añadir nuevo elemento"
-              >
-                <Plus size={16} />
-              </button>
-            </div>
-
-            <div className="space-y-4 pb-8">
-              {(groupedData[activeSection] ?? []).map((item) => (
-                <EditableItemCard
-                  key={item.id}
-                  item={item}
-                  activeSection={activeSection}
-                  onUpdate={handleUpdateItem}
-                  onDelete={handleDeleteItem}
-                  onImageUpload={handleImageUpload}
-                  isUpdating={cms.updateItem.isPending}
-                  isDeleting={cms.deleteItem.isPending}
-                />
-              ))}
-
-              {(groupedData[activeSection] ?? []).length === 0 && !showNewForm && (
-                <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl">
-                  <p className="text-sm text-muted-foreground mb-2">No hay elementos configurados en esta sección.</p>
-                  <button
-                    onClick={() => setShowNewForm(true)}
-                    className="text-accent text-sm font-medium hover:underline"
-                  >
-                    Haz clic aquí para añadir el primero
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Area: Iframe Preview */}
-        <div className="flex-1 bg-secondary/30 relative flex flex-col items-center overflow-hidden">
-          {/* subtle background pattern */}
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-               style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)', backgroundSize: '24px 24px' }}>
-          </div>
-
-          <div className={`flex-1 w-full flex items-center justify-center p-4 lg:p-8 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden`}>
-            <div 
-              className={`relative bg-background border border-border shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                viewMode === 'mobile' 
-                  ? 'w-[375px] h-[812px] rounded-[3rem] ring-8 ring-surface-raised ring-offset-2 ring-offset-background' 
-                  : 'w-full h-full rounded-xl'
-              }`}
+        {/* Mobile: link to live site instead of iframe */}
+        <div className="md:hidden">
+          {tiendaUrl && (
+            <a
+              href={tiendaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
             >
-              {viewMode === 'mobile' && (
-                <div className="absolute top-0 inset-x-0 h-6 bg-surface-raised z-20 flex justify-center items-center rounded-t-[3rem]">
-                  <div className="w-16 h-1.5 bg-border rounded-full" />
-                </div>
-              )}
-              
-              {!tiendaUrl ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-surface-sunken">
-                  <div className="text-center space-y-2">
-                    <Monitor size={48} className="mx-auto text-muted-foreground opacity-50" />
-                    <p className="text-sm font-medium text-muted-foreground">
-                      URL de Tienda no configurada
-                    </p>
-                    <p className="text-xs text-muted-foreground/70">
-                      Verifica NEXT_PUBLIC_URL_TIENDA en tus variables de entorno.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <iframe
-                  key={iframeKey}
-                  src={tiendaUrl}
-                  title="Vista Previa de Tienda"
-                  className={`w-full h-full border-none bg-background ${viewMode === 'mobile' ? 'pt-6' : ''}`}
-                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                />
-              )}
-            </div>
-          </div>
+              Ver tienda <ExternalLink size={12} />
+            </a>
+          )}
         </div>
 
+        {/* Desktop: live site link */}
+        <div className="hidden md:flex items-center gap-3">
+          {tiendaUrl && (
+            <a
+              href={tiendaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
+            >
+              Ver en vivo <ExternalLink size={12} />
+            </a>
+          )}
+        </div>
       </div>
 
+      {/* ── Body ── */}
+      <div className="flex-1 flex overflow-hidden min-h-0">
+
+        {/* ── MOBILE layout: single column ── */}
+        {isMobile && (
+          <div className="flex-1 flex flex-col overflow-hidden bg-surface-sunken">
+            {/* Section nav pills */}
+            <div className="px-4 pt-3 pb-2 bg-surface border-b border-border shrink-0">
+              <SectionNav
+                sectionKeys={sectionKeys}
+                activeSection={activeSection}
+                onSelect={setActiveSection}
+              />
+            </div>
+
+            {/* Items */}
+            <ItemsPanel
+              items={currentItems}
+              activeSection={activeSection}
+              onUpdate={handleUpdateItem}
+              onDelete={handleDeleteItem}
+              onImageUpload={handleImageUpload}
+              onAddNew={() => setShowNewForm(true)}
+              isUpdating={cms.updateItem.isPending}
+              isDeleting={cms.deleteItem.isPending}
+            />
+          </div>
+        )}
+
+        {/* ── DESKTOP layout: sidebar + iframe ── */}
+        {!isMobile && (
+          <>
+            {/* Left sidebar */}
+            <div className="w-[360px] shrink-0 border-r border-border bg-surface-sunken flex flex-col overflow-hidden">
+              {/* Section selector */}
+              <div className="p-4 border-b border-border bg-surface shrink-0">
+                <SectionNav
+                  sectionKeys={sectionKeys}
+                  activeSection={activeSection}
+                  onSelect={setActiveSection}
+                />
+              </div>
+
+              {/* Items list */}
+              <ItemsPanel
+                items={currentItems}
+                activeSection={activeSection}
+                onUpdate={handleUpdateItem}
+                onDelete={handleDeleteItem}
+                onImageUpload={handleImageUpload}
+                onAddNew={() => setShowNewForm(true)}
+                isUpdating={cms.updateItem.isPending}
+                isDeleting={cms.deleteItem.isPending}
+              />
+            </div>
+
+            {/* Right: iframe preview */}
+            <div className="flex-1 bg-secondary/30 relative flex flex-col items-center overflow-hidden">
+              <div
+                className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                style={{
+                  backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
+                  backgroundSize: '24px 24px',
+                }}
+              />
+
+              <div className="flex-1 w-full flex items-center justify-center p-4 lg:p-8 overflow-hidden">
+                <div
+                  className={`relative bg-background border border-border shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    viewMode === 'mobile'
+                      ? 'w-[375px] h-[812px] rounded-[3rem] ring-8 ring-surface-raised ring-offset-2 ring-offset-background'
+                      : 'w-full h-full rounded-xl'
+                  }`}
+                >
+                  {viewMode === 'mobile' && (
+                    <div className="absolute top-0 inset-x-0 h-6 bg-surface-raised z-20 flex justify-center items-center rounded-t-[3rem]">
+                      <div className="w-16 h-1.5 bg-border rounded-full" />
+                    </div>
+                  )}
+
+                  {!tiendaUrl ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-surface-sunken">
+                      <div className="text-center space-y-2">
+                        <Monitor size={48} className="mx-auto text-muted-foreground opacity-50" />
+                        <p className="text-sm font-medium text-muted-foreground">
+                          URL de Tienda no configurada
+                        </p>
+                        <p className="text-xs text-muted-foreground/70">
+                          Verifica NEXT_PUBLIC_URL_TIENDA en .env
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <iframe
+                      key={iframeKey}
+                      src={tiendaUrl}
+                      title="Vista Previa de Tienda"
+                      className={`w-full h-full border-none bg-background ${viewMode === 'mobile' ? 'pt-6' : ''}`}
+                      sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ── Add new item modal ── */}
       <ImmersiveModal
         open={showNewForm}
         onClose={() => setShowNewForm(false)}
-        eyebrow="CMS"
+        eyebrow={SECTION_LABELS[activeSection] ?? activeSection}
         title="Añadir elemento"
         size="md"
         footer={
@@ -576,18 +751,18 @@ export function StoreEditorModal({
               disabled={cms.createItem.isPending}
               className="btn btn-primary btn-sm"
             >
-              {cms.createItem.isPending ? <Loader2 size={14} className="animate-spin" /> : 'Crear item'}
+              {cms.createItem.isPending ? <Loader2 size={14} className="animate-spin" /> : 'Crear'}
             </button>
           </>
         }
       >
         <p className="text-xs text-muted-foreground mb-3">
-          Define la estructura inicial del elemento en JSON. Una vez creado, podrás editarlo visualmente.
+          Estructura inicial en JSON. Los campos con <code className="text-accent">image</code> o <code className="text-accent">src</code> permiten subir fotos.
         </p>
         <textarea
           value={newContent}
           onChange={(e) => setNewContent(e.target.value)}
-          rows={8}
+          rows={10}
           className="w-full bg-background border border-border rounded-lg p-3 text-xs text-foreground font-mono resize-y focus:outline-none focus:ring-2 focus:ring-accent"
           spellCheck={false}
         />

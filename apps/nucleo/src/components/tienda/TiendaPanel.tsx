@@ -5,6 +5,7 @@ import { Package, ShoppingCart, Users, TrendingUp, Plus, Edit3, Trash2, Eye, Eye
 import { formatCurrency } from '@/lib/format';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 type Product = {
   id: string;
@@ -408,66 +409,68 @@ export function TiendaPanel() {
               </div>
             </div>
 
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="px-4 py-3 text-left text-xs text-muted-foreground">Producto</th>
-                  <th className="px-4 py-3 text-left text-xs text-muted-foreground">Precio</th>
-                  <th className="px-4 py-3 text-left text-xs text-muted-foreground">Stock</th>
-                  <th className="px-4 py-3 text-left text-xs text-muted-foreground">Estado</th>
-                  <th className="px-4 py-3 text-right text-xs text-muted-foreground">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                      <Loader2 className="animate-spin mx-auto" size={24} />
-                    </td>
+            <EnjTableShell caption="Desliza para ver columnas del inventario">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-3 text-left text-xs text-muted-foreground">Producto</th>
+                    <th className="px-4 py-3 text-left text-xs text-muted-foreground">Precio</th>
+                    <th className="px-4 py-3 text-left text-xs text-muted-foreground">Stock</th>
+                    <th className="px-4 py-3 text-left text-xs text-muted-foreground">Estado</th>
+                    <th className="px-4 py-3 text-right text-xs text-muted-foreground">Acciones</th>
                   </tr>
-                ) : filteredProducts.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                      Sin productos
-                    </td>
-                  </tr>
-                ) : (
-                  filteredProducts.map((p) => (
-                    <tr key={p.id} className="border-b border-border/50 hover:bg-secondary/50">
-                      <td className="px-4 py-3">
-                        <div className="font-medium">{p.nombre}</div>
-                        <div className="text-xs text-muted-foreground">{p.formato}</div>
-                      </td>
-                      <td className="px-4 py-3">{formatCLP(p.precio)}</td>
-                      <td className="px-4 py-3">{p.stock || 0}</td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => handleToggleVisible(p)}
-                          className={`text-xs flex items-center gap-1 ${p.visible ? 'text-accent' : 'text-muted-foreground'}`}
-                        >
-                          {p.visible ? <Eye size={14} /> : <EyeOff size={14} />}
-                          {p.visible ? 'Activo' : 'Oculto'}
-                        </button>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => handleEdit(p)}
-                          className="p-2 hover:bg-accent/10 rounded-lg mr-2"
-                        >
-                          <Edit3 size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(p.id)}
-                          className="p-2 hover:bg-destructive/10 rounded-lg text-destructive"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                        <Loader2 className="animate-spin mx-auto" size={24} />
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : filteredProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                        Sin productos
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredProducts.map((p) => (
+                      <tr key={p.id} className="border-b border-border/50 hover:bg-secondary/50">
+                        <td className="px-4 py-3">
+                          <div className="font-medium">{p.nombre}</div>
+                          <div className="text-xs text-muted-foreground">{p.formato}</div>
+                        </td>
+                        <td className="px-4 py-3">{formatCLP(p.precio)}</td>
+                        <td className="px-4 py-3">{p.stock || 0}</td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => handleToggleVisible(p)}
+                            className={`text-xs flex items-center gap-1 ${p.visible ? 'text-accent' : 'text-muted-foreground'}`}
+                          >
+                            {p.visible ? <Eye size={14} /> : <EyeOff size={14} />}
+                            {p.visible ? 'Activo' : 'Oculto'}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => handleEdit(p)}
+                            className="p-2 hover:bg-accent/10 rounded-lg mr-2"
+                          >
+                            <Edit3 size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(p.id)}
+                            className="p-2 hover:bg-destructive/10 rounded-lg text-destructive"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </EnjTableShell>
           </div>
         </div>
       )}
@@ -477,44 +480,46 @@ export function TiendaPanel() {
           <div className="p-4 border-b">
             <h3 className="font-display text-lg">Pedidos Recientes</h3>
           </div>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Pedido</th>
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Fecha</th>
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Total</th>
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                    <Loader2 className="animate-spin mx-auto" size={24} />
-                  </td>
+          <EnjTableShell caption="Desliza para ver columnas de pedidos">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="px-4 py-3 text-left text-xs text-muted-foreground">Pedido</th>
+                  <th className="px-4 py-3 text-left text-xs text-muted-foreground">Fecha</th>
+                  <th className="px-4 py-3 text-left text-xs text-muted-foreground">Total</th>
+                  <th className="px-4 py-3 text-left text-xs text-muted-foreground">Estado</th>
                 </tr>
-              ) : orders.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                    Sin pedidos
-                  </td>
-                </tr>
-              ) : (
-                orders.map((order) => (
-                  <tr key={order.id} className="border-b border-border/50">
-                    <td className="px-4 py-3 font-mono text-xs">{order.id.slice(0, 8)}...</td>
-                    <td className="px-4 py-3 text-sm">
-                      {new Date(order.created_at).toLocaleDateString('es-CL')}
-                    </td>
-                    <td className="px-4 py-3">{formatCLP(order.total)}</td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs capitalize">{order.estado}</span>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                      <Loader2 className="animate-spin mx-auto" size={24} />
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : orders.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                      Sin pedidos
+                    </td>
+                  </tr>
+                ) : (
+                  orders.map((order) => (
+                    <tr key={order.id} className="border-b border-border/50">
+                      <td className="px-4 py-3 font-mono text-xs">{order.id.slice(0, 8)}...</td>
+                      <td className="px-4 py-3 text-sm">
+                        {new Date(order.created_at).toLocaleDateString('es-CL')}
+                      </td>
+                      <td className="px-4 py-3">{formatCLP(order.total)}</td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs capitalize">{order.estado}</span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </EnjTableShell>
         </div>
       )}
 
@@ -523,40 +528,42 @@ export function TiendaPanel() {
           <div className="p-4 border-b">
             <h3 className="font-display text-lg">Base de Clientes</h3>
           </div>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Nombre</th>
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Email</th>
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Pedidos</th>
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                    <Loader2 className="animate-spin mx-auto" size={24} />
-                  </td>
+          <EnjTableShell caption="Desliza para ver columnas de clientes">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="px-4 py-3 text-left text-xs text-muted-foreground">Nombre</th>
+                  <th className="px-4 py-3 text-left text-xs text-muted-foreground">Email</th>
+                  <th className="px-4 py-3 text-left text-xs text-muted-foreground">Pedidos</th>
+                  <th className="px-4 py-3 text-left text-xs text-muted-foreground">Total</th>
                 </tr>
-              ) : customers.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                    Sin compradores web aún
-                  </td>
-                </tr>
-              ) : (
-                customers.map((customer) => (
-                  <tr key={customer.id} className="border-b border-border/50">
-                    <td className="px-4 py-3">{customer.full_name || '—'}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{customer.email || '—'}</td>
-                    <td className="px-4 py-3 text-sm">{customer.pedidos}</td>
-                    <td className="px-4 py-3 text-sm">{formatCLP(customer.totalCompras)}</td>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                      <Loader2 className="animate-spin mx-auto" size={24} />
+                    </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : customers.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                      Sin compradores web aún
+                    </td>
+                  </tr>
+                ) : (
+                  customers.map((customer) => (
+                    <tr key={customer.id} className="border-b border-border/50">
+                      <td className="px-4 py-3">{customer.full_name || '—'}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{customer.email || '—'}</td>
+                      <td className="px-4 py-3 text-sm">{customer.pedidos}</td>
+                      <td className="px-4 py-3 text-sm">{formatCLP(customer.totalCompras)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </EnjTableShell>
         </div>
       )}
     </div>

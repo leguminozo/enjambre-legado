@@ -441,7 +441,7 @@ export function PerfilView() {
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div className="p-4 bg-secondary/30 border border-border/50 rounded-xl text-center">
                   <Star size={20} className="mx-auto text-accent mb-2" />
                   <div className="text-2xl font-bold font-display text-foreground font-mono">
@@ -465,7 +465,7 @@ export function PerfilView() {
               {/* Level Progress */}
               <div className="space-y-3">
                 <h4 className="text-xs font-semibold text-muted-foreground">Progresión de Niveles</h4>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {Object.entries(guardianLevels).map(([key, lvl]) => {
                     const isActive = profile.nivel_guardian === key;
                     const isPassed =

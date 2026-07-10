@@ -181,7 +181,7 @@ export function ReglasComisionPanel() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {ruleTypes.map((type, i) => {
           const count = rules.filter(r => r.rule_type === type).length;
           const activeCount = rules.filter(r => r.rule_type === type && r.active).length;

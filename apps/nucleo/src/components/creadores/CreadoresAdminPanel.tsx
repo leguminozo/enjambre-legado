@@ -252,7 +252,7 @@ export function CreadoresAdminPanel() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { icon: <Users size={18} />, val: creadores.length, label: 'Total Creadores', accent: '' },
           { icon: <CheckCircle2 size={18} />, val: estadoCounts['activo'] || 0, label: 'Activos', accent: 'text-success' },

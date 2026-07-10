@@ -48,6 +48,8 @@ interface ColeccionItem {
   title: string;
   desc: string;
   href: string;
+  /** URL de imagen subida desde el editor CMS de Núcleo. Opcional: si no existe usa el fallback hardcodeado. */
+  image?: string;
 }
 
 interface MediaItem {
@@ -83,6 +85,12 @@ function getCollectionImage(kicker: string): string {
     return COLLECTION_IMAGES.sachets;
   }
   return COLLECTION_IMAGES.default;
+}
+
+/** Prioriza la imagen del CMS; cae al hardcodeado si no hay ninguna. */
+function resolveCollectionImage(c: ColeccionItem): string {
+  if (c.image && c.image.startsWith('http')) return c.image;
+  return getCollectionImage(c.kicker);
 }
 
 export function TiendaLandingView({
@@ -351,7 +359,7 @@ export function TiendaLandingView({
 
           <div className="editorial-container grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
             {initialColecciones.map((c, index) => {
-              const imageSrc = getCollectionImage(c.kicker);
+              const imageSrc = resolveCollectionImage(c);
               return (
                 <Link key={c.title} href={c.href} prefetch={false} className="group flex flex-col">
             <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-6 rounded-lg">

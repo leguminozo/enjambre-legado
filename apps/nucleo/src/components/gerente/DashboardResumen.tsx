@@ -330,9 +330,9 @@ export function DashboardResumen() {
               <div className="section-subtitle">Resumen contable YTD</div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-sm bg-success/8">
-              <div className="text-[0.72rem] text-muted-foreground mb-1">Ingresos netos</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="bg-background rounded-lg p-3 text-center border border-border">
+              <div className="text-xs text-muted-foreground mb-1">Stock Valorizado</div>
               <div className="text-[1.2rem] font-bold text-success">{fmtCLP(finanzas.ingresosNetosYTD)}</div>
             </div>
             <div className="p-4 rounded-sm bg-destructive/8">
@@ -381,7 +381,7 @@ export function DashboardResumen() {
             </div>
           )}
 
-          <div className="grid grid-cols-4 gap-1 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 mb-4">
             {Object.entries(equipo.repTiers).map(([tier, count]) => (
               <div key={tier} className="text-center p-2 rounded-sm bg-muted/30">
                 <div className="text-[1.1rem] font-bold" style={{ color: TIER_COLORS[tier] ?? 'hsl(var(--foreground))' }}>{count}</div>

@@ -7,6 +7,7 @@ import { friendlyError, toast, QRCode as QRCodeSvg, ImmersiveModal } from '@enja
 import { getUrlTienda } from '@/lib/publicUrls';
 import { useAuthStore } from '@enjambre/auth';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { CRMDashboard } from '@/views/crm/types';
 
@@ -479,7 +480,9 @@ export function VendedorView() {
               </div>
             </div>
 
-            <table className="data-table"><thead><tr><th>Cliente</th><th>Tipo</th><th>Compras</th><th>Nivel</th><th>Última orden</th></tr></thead><tbody>{displayedClients.map((c, i) => (<tr key={i}><td className="font-medium text-foreground">{c.name}</td><td><span className="badge badge-gold">{c.type}</span></td><td>{c.purchases}</td><td><span className="flex items-center gap-1"><Star size={12} className="text-accent" />{c.level}</span></td><td className="text-muted-foreground text-[0.82rem]">{c.lastOrder}</td></tr>))}</tbody></table>
+            <EnjTableShell caption="Desliza para ver columnas de CRM">
+              <table className="data-table"><thead><tr><th>Cliente</th><th>Tipo</th><th>Compras</th><th>Nivel</th><th>Última orden</th></tr></thead><tbody>{displayedClients.map((c, i) => (<tr key={i}><td className="font-medium text-foreground">{c.name}</td><td><span className="badge badge-gold">{c.type}</span></td><td>{c.purchases}</td><td><span className="flex items-center gap-1"><Star size={12} className="text-accent" />{c.level}</span></td><td className="text-muted-foreground text-[0.82rem]">{c.lastOrder}</td></tr>))}</tbody></table>
+            </EnjTableShell>
             {!crmExpanded && localClients.length > 4 && <div className="text-center mt-4 text-[0.75rem] text-muted-foreground">+{localClients.length - 4} clientes más</div>}
           </div>
         </div>
@@ -600,7 +603,7 @@ export function VendedorView() {
         size="md"
       >
         <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-4 bg-surface-sunken border border-border rounded-lg text-center">
               <div className="text-[0.8rem] text-muted-foreground mb-1">Total Temporada</div>
               <div className="text-2xl font-bold text-foreground">${ventasTotal.toLocaleString()}</div>

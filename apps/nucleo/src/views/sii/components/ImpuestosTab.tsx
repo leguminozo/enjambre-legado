@@ -5,6 +5,7 @@ import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
 import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay } from "@enjambre/ui";
 import { ResponsiveTabBar } from "@/components/layout/ResponsiveTabBar";
+import { EnjTableShell } from "@/components/layout/EnjTableShell";
 
 interface ImpuestosTabProps {
   initialType: "f29" | "f22";
@@ -163,39 +164,41 @@ export function ImpuestosTab({ initialType }: ImpuestosTabProps) {
                       FC46 aceptadas en el período ({f29Query.data.fc46Aceptadas.length})
                     </h3>
                     <div className="rounded-xl border border-border overflow-hidden">
-                      <table className="w-full text-sm">
-                        <thead className="bg-surface-sunken text-xs text-muted-foreground">
-                          <tr>
-                            <th className="text-left px-3 py-2">Folio</th>
-                            <th className="text-left px-3 py-2">Proveedor</th>
-                            <th className="text-right px-3 py-2">Neto/Exento</th>
-                            <th className="text-right px-3 py-2">IVA</th>
-                            <th className="text-right px-3 py-2">Total</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
-                          {(f29Query.data.fc46Aceptadas as Array<{
-                            folio: number;
-                            proveedor: string;
-                            montoNeto: number;
-                            montoExento: number;
-                            montoIva: number;
-                            montoTotal: number;
-                          }>).map((fc) => (
-                            <tr key={fc.folio} className="text-foreground">
-                              <td className="px-3 py-2 font-mono">{fc.folio}</td>
-                              <td className="px-3 py-2 truncate max-w-[140px]">{fc.proveedor}</td>
-                              <td className="px-3 py-2 text-right font-mono">
-                                {formatCurrency(fc.montoNeto + fc.montoExento)}
-                              </td>
-                              <td className="px-3 py-2 text-right font-mono">{formatCurrency(fc.montoIva)}</td>
-                              <td className="px-3 py-2 text-right font-mono font-medium">
-                                {formatCurrency(fc.montoTotal)}
-                              </td>
+                      <EnjTableShell caption="Desliza para ver columnas de FC46">
+                        <table className="w-full text-sm">
+                          <thead className="bg-surface-sunken text-xs text-muted-foreground">
+                            <tr>
+                              <th className="text-left px-3 py-2">Folio</th>
+                              <th className="text-left px-3 py-2">Proveedor</th>
+                              <th className="text-right px-3 py-2">Neto/Exento</th>
+                              <th className="text-right px-3 py-2">IVA</th>
+                              <th className="text-right px-3 py-2">Total</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-border">
+                            {(f29Query.data.fc46Aceptadas as Array<{
+                              folio: number;
+                              proveedor: string;
+                              montoNeto: number;
+                              montoExento: number;
+                              montoIva: number;
+                              montoTotal: number;
+                            }>).map((fc) => (
+                              <tr key={fc.folio} className="text-foreground">
+                                <td className="px-3 py-2 font-mono">{fc.folio}</td>
+                                <td className="px-3 py-2 truncate max-w-[140px]">{fc.proveedor}</td>
+                                <td className="px-3 py-2 text-right font-mono">
+                                  {formatCurrency(fc.montoNeto + fc.montoExento)}
+                                </td>
+                                <td className="px-3 py-2 text-right font-mono">{formatCurrency(fc.montoIva)}</td>
+                                <td className="px-3 py-2 text-right font-mono font-medium">
+                                  {formatCurrency(fc.montoTotal)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </EnjTableShell>
                     </div>
                   </div>
                 )}

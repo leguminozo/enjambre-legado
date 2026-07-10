@@ -1,3 +1,4 @@
+import { EnjTableShell } from "@/components/layout/EnjTableShell";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
@@ -175,7 +176,7 @@ export function ContableView() {
               className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">N° Factura</label>
               <input
@@ -234,40 +235,42 @@ export function ContableView() {
             <TrendingUp size={18} /> Facturas Recientes ({metricas?.totalFacturas ?? 0})
           </h3>
         </div>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="px-4 py-3 text-left text-xs text-muted-foreground">N°</th>
-              <th className="px-4 py-3 text-left text-xs text-muted-foreground">Fecha</th>
-              <th className="px-4 py-3 text-left text-xs text-muted-foreground">Neto</th>
-              <th className="px-4 py-3 text-left text-xs text-muted-foreground">IVA</th>
-              <th className="px-4 py-3 text-left text-xs text-muted-foreground">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {facturasQuery.isLoading ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                  <Loader2 className="animate-spin mx-auto" size={24} />
-                </td>
+        <EnjTableShell>
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="px-4 py-3 text-left text-xs text-muted-foreground">N°</th>
+                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Fecha</th>
+                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Neto</th>
+                <th className="px-4 py-3 text-left text-xs text-muted-foreground">IVA</th>
+                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Total</th>
               </tr>
-            ) : (facturasQuery.data ?? []).length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Sin facturas</td>
-              </tr>
-            ) : (
-              (facturasQuery.data ?? []).map((f) => (
-                <tr key={f.id} className="border-b border-border/50 hover:bg-secondary/50">
-                  <td className="px-4 py-3 text-sm font-mono">{f.numero}</td>
-                  <td className="px-4 py-3 text-sm">{new Date(f.fecha_emision).toLocaleDateString("es-CL")}</td>
-                  <td className="px-4 py-3 text-sm">{formatCurrency(f.monto_neto)}</td>
-                  <td className="px-4 py-3 text-sm">{formatCurrency(f.monto_iva)}</td>
-                  <td className="px-4 py-3 text-sm font-bold">{formatCurrency(f.monto_total)}</td>
+            </thead>
+            <tbody>
+              {facturasQuery.isLoading ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                    <Loader2 className="animate-spin mx-auto" size={24} />
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (facturasQuery.data ?? []).length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Sin facturas</td>
+                </tr>
+              ) : (
+                (facturasQuery.data ?? []).map((f) => (
+                  <tr key={f.id} className="border-b border-border/50 hover:bg-secondary/50">
+                    <td className="px-4 py-3 text-sm font-mono">{f.numero}</td>
+                    <td className="px-4 py-3 text-sm">{new Date(f.fecha_emision).toLocaleDateString("es-CL")}</td>
+                    <td className="px-4 py-3 text-sm">{formatCurrency(f.monto_neto)}</td>
+                    <td className="px-4 py-3 text-sm">{formatCurrency(f.monto_iva)}</td>
+                    <td className="px-4 py-3 text-sm font-bold">{formatCurrency(f.monto_total)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </EnjTableShell>
       </section>
 
       {dashboardQuery.isError && (
