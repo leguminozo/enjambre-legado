@@ -21,12 +21,20 @@ function placementForPath(pathname: string): CampaignPlacement[] {
 export function CampaignBanners() {
   const locale = useLocale();
   const pathname = usePathname() || '/';
-  const { campaignBanners } = useStoreChrome();
+  const { campaignBanners, announcement } = useStoreChrome();
   const allowed = placementForPath(pathname);
+  const path = (pathname ?? '').replace(/^\/(es|en)/, '') || '/';
+  const isHome = path === '/';
 
-  const active = campaignBanners.filter(
-    (b) => isCampaignBannerActive(b) && allowed.includes(b.placement),
-  );
+  const active = campaignBanners.filter((b) => {
+    if (!isCampaignBannerActive(b) || !allowed.includes(b.placement)) return false;
+    // En home la barra superior (TextCarousel) ya es el canal promo;
+    // no apilar banners home/global encima y duplicar mensajes (p.ej. envío gratis).
+    if (isHome && announcement.enabled && (b.placement === 'home' || b.placement === 'global')) {
+      return false;
+    }
+    return true;
+  });
 
   if (active.length === 0) return null;
 

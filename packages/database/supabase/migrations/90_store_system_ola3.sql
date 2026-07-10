@@ -44,18 +44,5 @@ WHERE NOT EXISTS (
   SELECT 1 FROM site_content sc WHERE sc.section_key = v.section_key
 );
 
--- Ejemplo de banner de campaña (opcional seed)
-INSERT INTO site_content (section_key, item_order, content, is_active)
-SELECT 'campaign_banners', 0, '{
-  "title": "Envío gratis desde $55.000",
-  "title_en": "Free shipping from $55.000",
-  "body": "Directo del bosque a tu hogar.",
-  "body_en": "Straight from the forest to your home.",
-  "href": "/catalogo",
-  "cta_label": "Explorar creaciones",
-  "cta_label_en": "Explore creations",
-  "placement": "home",
-  "starts_at": "",
-  "ends_at": ""
-}'::jsonb, true
-WHERE NOT EXISTS (SELECT 1 FROM site_content WHERE section_key = 'campaign_banners');
+-- Sin seed de campaign_banners: el mensaje "Envío gratis" vive en announcement_slides
+-- (barra superior). Los banners de campaña se crean desde el Editor de Tienda.
