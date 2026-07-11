@@ -13,19 +13,30 @@ export const LEGACY_ROLE_MAP: Record<string, RoleKey> = {
   tienda_admin: 'admin',
 }
 
-/** Rutas home por rol dentro de la app actual */
+function absOrPath(baseEnv: string | undefined, path: string): string {
+  const base = baseEnv?.replace(/\/$/, '')
+  return base ? `${base}${path}` : path
+}
+
+/** Paths relativos dentro de cada app (sin dominio) */
+const RELATIVE_ROLE_HOME: Record<string, string> = {
+  admin: '/ejecutivo',
+  creador: '/perfil/creador',
+  rep_ventas: '/pos',
+  cliente: '/catalogo',
+  ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map((k) => [k, '/ejecutivo'])),
+}
+
+/**
+ * Mapa usado por defecto (contexto núcleo): roles no-admin salen a tienda/campo
+ * con URL absoluta si las env están definidas.
+ */
 export const ROLE_REDIRECT_MAP: Record<string, string> = {
   admin: '/ejecutivo',
-  creador: process.env.NEXT_PUBLIC_URL_TIENDA
-    ? `${process.env.NEXT_PUBLIC_URL_TIENDA.replace(/\/$/, '')}/perfil/creador`
-    : '/perfil/creador',
-  rep_ventas: process.env.NEXT_PUBLIC_URL_CAMPO
-    ? `${process.env.NEXT_PUBLIC_URL_CAMPO.replace(/\/$/, '')}/pos`
-    : '/pos',
-  cliente: process.env.NEXT_PUBLIC_URL_TIENDA
-    ? `${process.env.NEXT_PUBLIC_URL_TIENDA.replace(/\/$/, '')}/catalogo`
-    : '/catalogo',
-  ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map(k => [k, '/ejecutivo'])),
+  creador: absOrPath(process.env.NEXT_PUBLIC_URL_TIENDA, '/perfil/creador'),
+  rep_ventas: absOrPath(process.env.NEXT_PUBLIC_URL_CAMPO, '/pos'),
+  cliente: absOrPath(process.env.NEXT_PUBLIC_URL_TIENDA, '/catalogo'),
+  ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map((k) => [k, '/ejecutivo'])),
 }
 
 /** En núcleo, la redirección es estricta hacia las otras apps para roles no admin */
@@ -33,9 +44,15 @@ export const NUCLEO_ROLE_REDIRECT_MAP: Record<string, string> = {
   ...ROLE_REDIRECT_MAP,
 }
 
+/**
+ * @param app `tienda` → siempre path relativo (misma origin).
+ *            `nucleo` → puede ser URL absoluta a tienda/campo.
+ */
 export function getRoleRedirectPath(role: string, app: 'nucleo' | 'tienda' = 'nucleo'): string {
-  const map = app === 'nucleo' ? NUCLEO_ROLE_REDIRECT_MAP : ROLE_REDIRECT_MAP
-  return map[role] ?? '/perfil'
+  if (app === 'tienda') {
+    return RELATIVE_ROLE_HOME[role] ?? '/perfil'
+  }
+  return NUCLEO_ROLE_REDIRECT_MAP[role] ?? '/perfil'
 }
 
 export function isExternalRedirect(path: string): boolean {
