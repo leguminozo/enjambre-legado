@@ -61,6 +61,11 @@ node scripts/env-matrix-check.mjs
 
 ## Checklist post-deploy
 
+```bash
+pnpm env:check:prod   # HEAD a nucleo-theta + tienda-eta-lime (CSP / frame)
+pnpm env:check        # .env.local local
+```
+
 - [ ] Headers CSP: nucleo `frame-src` incluye tienda; tienda `frame-ancestors` incluye nucleo
 - [ ] Sin `X-Frame-Options: SAMEORIGIN` en tienda (rompe preview CMS)
 - [ ] `INTERNAL_API_SECRET` idéntico nucleo ↔ tienda

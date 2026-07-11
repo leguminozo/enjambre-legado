@@ -13,6 +13,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
+      // Parsers de marca + resolución header + revalidate (nucleo→tienda)
       include: [
         'lib/shop/resolve-header-brand.ts',
         'app/api/cms/revalidate/route.ts',

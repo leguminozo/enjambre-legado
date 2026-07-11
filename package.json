@@ -23,6 +23,7 @@
     "feria:check": "node scripts/feria-readiness.mjs",
     "go-live:check": "node scripts/go-live-check.mjs",
     "env:check": "node scripts/env-matrix-check.mjs",
+    "env:check:prod": "node scripts/prod-secrets-checklist.mjs",
     "go-live:phase0": "node scripts/go-live-phase0.mjs",
     "go-live:phase0:build": "node scripts/go-live-phase0.mjs --build",
     "go-live:phase0:apply": "bash scripts/go-live-phase0-apply.sh",

@@ -73,3 +73,38 @@ describe('parseThemeSettings / announcement (smoke chrome)', () => {
     expect(a.interval_ms).toBe(2000);
   });
 });
+
+describe('parseBrandAssets + resolveHeaderBrand integration', () => {
+  it('brand vacío + menu show_logo usa null logo sin romper', async () => {
+    const { resolveHeaderBrand } = await import('./resolve-header-brand');
+    const { DEFAULT_HEADER_SETTINGS } = await import('./header-menu');
+    const brand = parseBrandAssets({ logo_url: '' });
+    const r = resolveHeaderBrand(brand, {
+      ...DEFAULT_HEADER_SETTINGS,
+      show_logo: true,
+      logo_src: '',
+    });
+    expect(r.logoSrc).toBeNull();
+    expect(r.source).toBe('none');
+  });
+
+  it('brand con URL y show_logo sin override → brand solo imagen', async () => {
+    const { resolveHeaderBrand } = await import('./resolve-header-brand');
+    const { DEFAULT_HEADER_SETTINGS } = await import('./header-menu');
+    const brand = parseBrandAssets({
+      logo_url: 'https://cdn.example/logo.png',
+      logo_height_px: 48,
+      logo_max_width_px: 160,
+    });
+    const r = resolveHeaderBrand(brand, {
+      ...DEFAULT_HEADER_SETTINGS,
+      show_logo: true,
+      logo_src: '',
+    });
+    expect(r.logoSrc).toBe('https://cdn.example/logo.png');
+    expect(r.heightPx).toBe(48);
+    expect(r.maxWidthPx).toBe(160);
+    expect(r.showText).toBe(false);
+    expect(r.source).toBe('brand');
+  });
+});
