@@ -51,6 +51,15 @@ jobs:
       - name: Test pricing
         run: pnpm --filter @enjambre/pricing test
 
+      - name: Test resenas
+        run: pnpm --filter @enjambre/resenas test
+
+      - name: Test wallet
+        run: pnpm --filter @enjambre/wallet test
+
+      - name: Test logistica
+        run: pnpm --filter @enjambre/logistica test
+
       - name: Test auth
         run: pnpm --filter @enjambre/auth test
 

@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "pnpm --filter @enjambre/contable test && pnpm --filter @enjambre/fiscal test && pnpm --filter @enjambre/pricing test && pnpm --filter @enjambre/resenas test && pnpm --filter @enjambre/wallet test && pnpm --filter @enjambre/auth test && pnpm --filter @enjambre/nucleo test && pnpm --filter @enjambre/tienda test && pnpm --filter @enjambre/campo test",
+    "test": "pnpm --filter @enjambre/contable test && pnpm --filter @enjambre/fiscal test && pnpm --filter @enjambre/pricing test && pnpm --filter @enjambre/resenas test && pnpm --filter @enjambre/wallet test && pnpm --filter @enjambre/logistica test && pnpm --filter @enjambre/auth test && pnpm --filter @enjambre/nucleo test && pnpm --filter @enjambre/tienda test && pnpm --filter @enjambre/campo test",
     "test:e2e:nucleo": "pnpm --filter @enjambre/nucleo test:e2e",
     "dev": "turbo run dev",
     "build": "turbo run build",
