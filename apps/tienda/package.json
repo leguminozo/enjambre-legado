@@ -38,6 +38,7 @@
     "@enjambre/logistica": "workspace:*",
     "@enjambre/pricing": "workspace:*",
     "@enjambre/resenas": "workspace:*",
+    "@enjambre/shop-chrome": "workspace:*",
     "@enjambre/ui": "workspace:*",
     "@enjambre/wallet": "workspace:*",
     "@sentry/nextjs": "^10.57.0",

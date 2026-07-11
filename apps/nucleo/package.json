@@ -28,6 +28,8 @@
     "@enjambre/pricing": "workspace:*",
     "@enjambre/resenas": "workspace:*",
     "@enjambre/wallet": "workspace:*",
+    "@enjambre/sale-qr": "workspace:*",
+    "@enjambre/shop-chrome": "workspace:*",
     "@enjambre/sumup": "workspace:*",
     "@enjambre/ui": "workspace:*",
     "@hello-pangea/dnd": "^18.0.1",

@@ -14,7 +14,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
-      include: ["src/lib/sale-qr.ts", "src/lib/revalidate-tienda.ts"],
+      include: ["src/lib/revalidate-tienda.ts"],
       thresholds: {
         lines: 75,
         functions: 75,

@@ -19,7 +19,7 @@ import { usePwaStandalone } from '@/lib/hooks/use-pwa-standalone';
 import { useHeaderMenu } from '@/components/shop/header-menu-context';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveNavLabel, type HeaderNavItem } from '@/lib/shop/header-menu';
-import { resolveHeaderBrand } from '@/lib/shop/resolve-header-brand';
+import { resolveHeaderBrand } from '@enjambre/shop-chrome';
 
 export function ShopHeader() {
   const { itemCount } = useCartLines();

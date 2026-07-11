@@ -1,5 +1,7 @@
 # Checklist de entornos (nucleo · tienda · campo)
 
+> Packages compartidos (anti-drift): `@enjambre/shop-chrome` (brand + header logo), `@enjambre/sale-qr` (POS QR).
+
 Secrets **nunca** se commitean. Usá `.env.local` en local y Vercel Project Settings en preview/prod.
 
 ## Proyectos Vercel canónicos

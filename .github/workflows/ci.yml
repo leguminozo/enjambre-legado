@@ -72,6 +72,12 @@ jobs:
       - name: Test banco-chile
         run: pnpm --filter @enjambre/banco-chile test
 
+      - name: Test sale-qr
+        run: pnpm --filter @enjambre/sale-qr test
+
+      - name: Test shop-chrome
+        run: pnpm --filter @enjambre/shop-chrome test
+
       - name: Test nucleo
         run: pnpm --filter @enjambre/nucleo test
 
@@ -84,8 +90,10 @@ jobs:
       - name: Coverage gates (critical modules)
         run: |
           pnpm --filter @enjambre/campo exec vitest run --coverage
-          pnpm --filter @enjambre/tienda exec vitest run --coverage lib/shop/resolve-header-brand.test.ts lib/shop/store-chrome-brand.test.ts app/api/cms/revalidate/route.test.ts
-          pnpm --filter @enjambre/nucleo exec vitest run --coverage -- src/lib/sale-qr.test.ts src/lib/revalidate-tienda.test.ts
+          pnpm --filter @enjambre/tienda exec vitest run --coverage app/api/cms/revalidate/route.test.ts
+          pnpm --filter @enjambre/nucleo exec vitest run --coverage -- src/lib/revalidate-tienda.test.ts
+          pnpm --filter @enjambre/sale-qr exec vitest run --coverage
+          pnpm --filter @enjambre/shop-chrome exec vitest run --coverage
           pnpm --filter @enjambre/pricing exec vitest run --coverage
           pnpm --filter @enjambre/wallet exec vitest run --coverage
           pnpm --filter @enjambre/resenas exec vitest run --coverage

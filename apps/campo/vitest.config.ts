@@ -13,12 +13,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      include: [
-        'src/lib/sale-qr.ts',
-        'src/components/pos/cart-math.ts',
-        'src/lib/format.ts',
-      ],
-      // Gate en lógica crítica POS/QR (sale-qr + cart-math); feria RPC se mockea aparte
+      include: ['src/components/pos/cart-math.ts', 'src/lib/format.ts'],
+      // sale-qr vive en @enjambre/sale-qr (coverage allí)
       thresholds: {
         lines: 90,
         functions: 90,
