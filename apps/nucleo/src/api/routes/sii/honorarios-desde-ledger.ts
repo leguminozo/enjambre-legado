@@ -27,7 +27,7 @@ export async function postHonorarioDesdeLedger(c: HonorariosDesdeLedgerContext) 
   }
   const body = parsed.data;
 
-  const { data, error } = await (supabase as any).rpc("preparar_honorario_desde_ledger", {
+  const { data, error } = await supabase.rpc("preparar_honorario_desde_ledger", {
     p_ledger_id: body.ledger_id,
     p_empresa_id: empresaId,
     p_fecha: body.fecha,

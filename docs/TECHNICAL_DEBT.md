@@ -23,9 +23,11 @@
 | Campo `E2E_SKIP_AUTH` + POS shell smoke | ✅ middleware + smoke.spec |
 | CRM / dashboard / producción / rep-ventas `as any` | ✅ `fromLoose`/`rpcLoose` + `productos` Json |
 | creadores / blockchain / sumup / banco-chile casts | ✅ Enums/`Json`/fromLoose |
-| Staging Supabase formal | 🔄 Abierto |
-| Typegen CRM (`clientes` stub, `interacciones` vs `crm_interacciones`) | 🔄 Abierto — requiere `db:typegen` + alinear schema |
-| `as any` residual SII routes | 🔄 Abierto |
+| Staging Supabase formal | 🔄 Abierto (manual) |
+| Typegen CRM (`clientes` stub, `interacciones` vs `crm_*`) | 🔄 Abierto — `db:typegen` + alinear schema |
+| `as any` residual SII routes | ✅ Tipado sin casts (dte/certificados/gastos/empresa) |
+| CAF checkout fail-closed + min folios compartido | ✅ `getFoliosRestantes` + flag auto-emit / enforce |
+| DTE boleta post-checkout retry | ✅ enqueue job `venta` → cron fiscal |
 
 ---
 
@@ -185,11 +187,11 @@
 - [x] Rate limiting active on checkout, webhooks — **Upstash Redis sliding window implemented**
 - [x] Rate limiting on security-events (auth telemetry) via `RATE_LIMIT_CONFIGS.auth` — login/register siguen en Supabase Auth (rate limit nativo + captcha)
 - [ ] SumUp webhook verification (currently uses polling sync)
-- [ ] Checkout success → DTE emitted (async, retried, logged) — **partial: facturas_emitidas created on commit, needs retry + CAF**
-- [ ] CAF cron runs daily, alerts on <50 folios
-- [ ] Checkout pauses gracefully when folios <10
-- [ ] Vitest runs in CI (unit coverage >60% on business logic)
-- [ ] Playwright E2E passes: purchase, login, admin CRUD
+- [x] Checkout success → DTE boleta (si `SII_AUTO_EMIT_BOLETA=true`) + reintento via `sii_document_jobs` / cron fiscal
+- [x] CAF cron (`/api/cron/fiscal` daily) alerts on threshold (`SII_CAF_ALERT_THRESHOLD`, default 50)
+- [x] Checkout pauses when folios < min (`SII_CAF_MIN_FOLIOS`, default 10) if auto-emit o `SII_ENFORCE_CAF_ON_CHECKOUT`
+- [x] Vitest en CI (packages + apps; coverage gates en módulos críticos, no 60% global aún)
+- [ ] Playwright E2E full: purchase + login + admin CRUD (smokes editor/campo/checkout en CI)
 - [ ] Sentry captures errors with context
 - [x] Health `/live` + `/ready` + `/deps` (env presence); deep connectivity probes still optional
 - [ ] Staging environment deployed, anonymized data seeded

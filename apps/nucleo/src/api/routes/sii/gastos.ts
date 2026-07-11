@@ -631,14 +631,17 @@ gastosRoutes.patch("/:id/estado", async (c) => {
     return c.json({ code: "missing_estado", message: "estado es requerido" }, 400);
   }
 
-  const update: Record<string, unknown> = { estado: body.estado };
+  const update: {
+    estado: typeof body.estado;
+    factura_compra_id?: string;
+  } = { estado: body.estado };
   if (body.factura_compra_id) {
     update.factura_compra_id = body.factura_compra_id;
   }
 
   const { data, error } = await supabase
     .from("gastos_extranjeros")
-    .update(update as any)
+    .update(update)
     .eq("id", gastoId)
     .eq("empresa_id", empresaId)
     .select("*")

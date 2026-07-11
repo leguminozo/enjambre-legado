@@ -150,7 +150,7 @@ certificadosRoutes.get(
       const empresaId = c.get("empresaId");
       const supabase = c.get("supabase");
 
-      const { data: certs, error } = await (supabase as any)
+      const { data: certs, error } = await supabase
         .from("sii_certificados")
         .select("id, nombre, vigencia_inicio, vigencia_fin, activo, created_at, updated_at")
         .eq("empresa_id", empresaId)
@@ -161,7 +161,7 @@ certificadosRoutes.get(
       }
 
       // Agregar información de vigencia
-      const certsConEstado = certs.map((cert: any) => {
+      const certsConEstado = (certs ?? []).map((cert) => {
         const hoy = new Date();
         const inicio = new Date(cert.vigencia_inicio);
         const fin = new Date(cert.vigencia_fin);
@@ -251,7 +251,7 @@ certificadosRoutes.patch(
 
       // Si se está intentando activar, verificar que no haya otro activo
       if (input.activo === true) {
-        const { data: activoExistente, error: activoError } = await (supabase as any)
+        const { data: activoExistente, error: activoError } = await supabase
           .from("sii_certificados")
           .select("id")
           .eq("empresa_id", empresaId)
@@ -268,12 +268,12 @@ certificadosRoutes.patch(
         }
       }
 
-      const { data: certData, error: updateError } = await (supabase as any)
+      const { data: certData, error: updateError } = await supabase
         .from("sii_certificados")
         .update({
           ...input,
           updated_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", certId)
         .eq("empresa_id", empresaId)
         .select()
@@ -324,7 +324,7 @@ certificadosRoutes.post(
 
       // Si es activar, verificar que no haya otro activo
       if (action === "activar") {
-        const { data: activoExistente, error: activoError } = await (supabase as any)
+        const { data: activoExistente, error: activoError } = await supabase
           .from("sii_certificados")
           .select("id")
           .eq("empresa_id", empresaId)
@@ -341,12 +341,12 @@ certificadosRoutes.post(
         }
       }
 
-      const { data: certData, error } = await (supabase as any)
+      const { data: certData, error } = await supabase
         .from("sii_certificados")
         .update({
           activo: action === "activar",
           updated_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", certId)
         .eq("empresa_id", empresaId)
         .select()

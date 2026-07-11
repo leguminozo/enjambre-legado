@@ -640,7 +640,7 @@ dteRoutes.get(
       let updated = false;
       
       // Primero buscar en facturas_emitidas
-      const { data: facturaData, error: facturaError } = await (supabase as any)
+      const { data: facturaData, error: facturaError } = await supabase
         .from("facturas_emitidas")
         .select("id, tipo_dte, folio, estado_sii")
         .eq("track_id", track_id)
@@ -651,7 +651,7 @@ dteRoutes.get(
         const nuevoEstado = estadoResult.aceptados > 0 ? "aceptado" :
                            estadoResult.rechazados > 0 ? "rechazado" : facturaData.estado_sii;
                            
-        await (supabase as any)
+        await supabase
           .from("facturas_emitidas")
           .update({ 
             estado_sii: nuevoEstado,
@@ -661,8 +661,8 @@ dteRoutes.get(
               aceptados: estadoResult.aceptados,
               rechazados: estadoResult.rechazados,
               reparos: estadoResult.reparos,
-            }
-          } as any)
+            },
+          })
           .eq("id", facturaData.id);
           
         updated = true;
@@ -670,7 +670,7 @@ dteRoutes.get(
 
       // Si no se encontró en facturas_emitidas, buscar en facturas_compra
       if (!updated) {
-        const { data: compraData, error: compraError } = await (supabase as any)
+        const { data: compraData, error: compraError } = await supabase
           .from("facturas_compra")
           .select("id, tipo_dte, folio, estado_sii")
           .eq("track_id", track_id)
@@ -681,7 +681,7 @@ dteRoutes.get(
           const nuevoEstado = estadoResult.aceptados > 0 ? "aceptado" :
                              estadoResult.rechazados > 0 ? "rechazado" : compraData.estado_sii;
                              
-          await (supabase as any)
+          await supabase
             .from("facturas_compra")
             .update({ 
               estado_sii: nuevoEstado,
@@ -691,8 +691,8 @@ dteRoutes.get(
                 aceptados: estadoResult.aceptados,
                 rechazados: estadoResult.rechazados,
                 reparos: estadoResult.reparos,
-              }
-            } as any)
+              },
+            })
             .eq("id", compraData.id);
             
           updated = true;

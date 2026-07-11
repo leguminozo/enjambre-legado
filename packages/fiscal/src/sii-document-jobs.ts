@@ -17,14 +17,27 @@ export type EnqueueSiiJobResult =
   | { ok: true; id: string }
   | { ok: false; error: string };
 
+export type EmitJobResult = {
+  ok: boolean;
+  code?: string;
+  message?: string;
+  trackId?: string;
+  estadoSii?: string;
+  folio?: number;
+};
+
 export type ProcessSiiJobDeps = {
-  emitFacturaCompra: (empresaId: string, facturaId: string) => Promise<{
-    ok: boolean;
-    code?: string;
-    message?: string;
-    trackId?: string;
-    estadoSii?: string;
-  }>;
+  emitFacturaCompra: (empresaId: string, facturaId: string) => Promise<EmitJobResult>;
+  /** Emisión boleta post-venta (checkout). Opcional: si falta, jobs `venta` van a dead_letter. */
+  emitBoletaVenta?: (
+    empresaId: string,
+    input: {
+      facturaEmitidaId: string;
+      ventaId: string;
+      receptorNombre: string;
+      detalleLineas?: Array<{ nombre: string; cantidad: number; precioUnitario: number }>;
+    },
+  ) => Promise<EmitJobResult>;
 };
 
 function gastoEstadoFromEmission(estadoSii: string | undefined): string {
@@ -79,6 +92,14 @@ function nextScheduledAt(attempts: number): string {
   return new Date(Date.now() + delayMinutes * 60_000).toISOString();
 }
 
+async function markJob(
+  supabase: SupabaseClient,
+  jobId: string,
+  patch: Record<string, unknown>,
+): Promise<void> {
+  await supabase.from('sii_document_jobs').update(patch).eq('id', jobId);
+}
+
 export async function processSiiDocumentJobs(
   supabase: SupabaseClient,
   deps: ProcessSiiJobDeps,
@@ -108,40 +129,66 @@ export async function processSiiDocumentJobs(
     const sourceId = job.source_id as string;
     const attempts = Number(job.attempts ?? 0) + 1;
 
-    await supabase
-      .from('sii_document_jobs')
-      .update({ status: 'processing', attempts })
-      .eq('id', jobId);
+    await markJob(supabase, jobId, { status: 'processing', attempts });
 
     const payload = (job.payload ?? {}) as Record<string, unknown>;
-    const facturaId = String(payload.facturaCompraId ?? '');
+    let result: EmitJobResult;
 
-    if (!facturaId) {
-      await supabase
-        .from('sii_document_jobs')
-        .update({
+    if (sourceType === 'venta') {
+      const facturaEmitidaId = String(payload.facturaEmitidaId ?? '');
+      const ventaId = String(payload.ventaId ?? sourceId);
+      const receptorNombre = String(payload.receptorNombre ?? 'Consumidor Final');
+      if (!facturaEmitidaId || !deps.emitBoletaVenta) {
+        await markJob(supabase, jobId, {
+          status: 'dead_letter',
+          last_error: !deps.emitBoletaVenta
+            ? 'emitBoletaVenta no configurado en worker'
+            : 'payload.facturaEmitidaId ausente',
+          completed_at: new Date().toISOString(),
+        });
+        deadLetter += 1;
+        continue;
+      }
+      const detalleLineas = Array.isArray(payload.detalleLineas)
+        ? (payload.detalleLineas as Array<{
+            nombre: string;
+            cantidad: number;
+            precioUnitario: number;
+          }>)
+        : undefined;
+      result = await deps.emitBoletaVenta(empresaId, {
+        facturaEmitidaId,
+        ventaId,
+        receptorNombre,
+        detalleLineas,
+      });
+    } else {
+      const facturaId = String(payload.facturaCompraId ?? '');
+      if (!facturaId) {
+        await markJob(supabase, jobId, {
           status: 'dead_letter',
           last_error: 'payload.facturaCompraId ausente',
           completed_at: new Date().toISOString(),
-        })
-        .eq('id', jobId);
-      await syncGastoEstadoFromJob(supabase, sourceType, sourceId, 'facturado');
-      deadLetter += 1;
-      continue;
+        });
+        await syncGastoEstadoFromJob(supabase, sourceType, sourceId, 'facturado');
+        deadLetter += 1;
+        continue;
+      }
+      result = await deps.emitFacturaCompra(empresaId, facturaId);
     }
 
-    const result = await deps.emitFacturaCompra(empresaId, facturaId);
-
     if (result.ok) {
-      await supabase
-        .from('sii_document_jobs')
-        .update({
-          status: 'completed',
-          last_error: null,
-          completed_at: new Date().toISOString(),
-          payload: { ...payload, trackId: result.trackId, estadoSii: result.estadoSii },
-        })
-        .eq('id', jobId);
+      await markJob(supabase, jobId, {
+        status: 'completed',
+        last_error: null,
+        completed_at: new Date().toISOString(),
+        payload: {
+          ...payload,
+          trackId: result.trackId,
+          estadoSii: result.estadoSii,
+          folio: result.folio,
+        },
+      });
       await syncGastoEstadoFromJob(
         supabase,
         sourceType,
@@ -150,25 +197,19 @@ export async function processSiiDocumentJobs(
       );
       completed += 1;
     } else if (attempts >= MAX_ATTEMPTS) {
-      await supabase
-        .from('sii_document_jobs')
-        .update({
-          status: 'dead_letter',
-          last_error: result.message ?? result.code ?? 'Emisión fallida',
-          completed_at: new Date().toISOString(),
-        })
-        .eq('id', jobId);
+      await markJob(supabase, jobId, {
+        status: 'dead_letter',
+        last_error: result.message ?? result.code ?? 'Emisión fallida',
+        completed_at: new Date().toISOString(),
+      });
       await syncGastoEstadoFromJob(supabase, sourceType, sourceId, 'rechazado_sii');
       deadLetter += 1;
     } else {
-      await supabase
-        .from('sii_document_jobs')
-        .update({
-          status: 'failed',
-          last_error: result.message ?? result.code ?? 'Emisión fallida',
-          scheduled_at: nextScheduledAt(attempts),
-        })
-        .eq('id', jobId);
+      await markJob(supabase, jobId, {
+        status: 'failed',
+        last_error: result.message ?? result.code ?? 'Emisión fallida',
+        scheduled_at: nextScheduledAt(attempts),
+      });
       failed += 1;
     }
   }

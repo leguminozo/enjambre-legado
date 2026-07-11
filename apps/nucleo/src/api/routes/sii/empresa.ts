@@ -45,7 +45,13 @@ empresaRoutes.patch("/", async (c) => {
     return c.json({ code: "invalid_ambiente", message: "sii_ambiente debe ser 'certificacion' o 'produccion'" }, 400);
   }
 
-  const update: Record<string, unknown> = {};
+  const update: {
+    regimen?: string;
+    acteco?: string | null;
+    sii_ambiente?: string;
+    fecha_inicio_actividades?: string | null;
+    ingresos_brutos_anio_anterior?: number;
+  } = {};
   if (body.regimen !== undefined) update.regimen = body.regimen;
   if (body.acteco !== undefined) update.acteco = body.acteco;
   if (body.sii_ambiente !== undefined) update.sii_ambiente = body.sii_ambiente;
@@ -58,7 +64,7 @@ empresaRoutes.patch("/", async (c) => {
 
   const { data, error } = await supabase
     .from("empresas")
-    .update(update as any)
+    .update(update)
     .eq("id", empresaId)
     .select("id, rut, razon_social, giro, regimen, acteco, sii_ambiente, fecha_inicio_actividades, ingresos_brutos_anio_anterior")
     .single();

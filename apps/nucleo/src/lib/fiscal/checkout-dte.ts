@@ -1,4 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { enqueueSiiDocumentJob } from '@enjambre/fiscal';
+import { DTE_TIPO } from '@enjambre/contable';
 import type { CartLineInput } from '@/api/lib/payments/types';
 import { emitBoletaVentaToSii } from '@/api/lib/fiscal/emit-boleta-venta';
 import { periodoFromFecha, syncRcvPeriod } from '@/api/lib/fiscal/rcv-sync';
@@ -19,8 +21,23 @@ export type CheckoutDteInput = {
 
 export type CheckoutDteResult =
   | { skipped: true; reason: string }
-  | { skipped: false; ok: true; folio: number; trackId: string; estadoSii: string; rcv?: { periodo: string } }
-  | { skipped: false; ok: false; code: string; message: string };
+  | {
+      skipped: false;
+      ok: true;
+      folio: number;
+      trackId: string;
+      estadoSii: string;
+      rcv?: { periodo: string };
+      retriedViaJob?: boolean;
+    }
+  | {
+      skipped: false;
+      ok: false;
+      code: string;
+      message: string;
+      /** Job encolado para reintento async (cron fiscal) */
+      jobId?: string;
+    };
 
 export async function maybeEmitBoletaPostCheckout(
   admin: SupabaseClient,
@@ -30,13 +47,13 @@ export async function maybeEmitBoletaPostCheckout(
     return { skipped: true, reason: 'SII_AUTO_EMIT_BOLETA disabled' };
   }
 
-  try {
-    const detalleLineas = input.cart.map((line) => ({
-      nombre: line.name,
-      cantidad: line.quantity,
-      precioUnitario: Math.round(line.unitPrice),
-    }));
+  const detalleLineas = input.cart.map((line) => ({
+    nombre: line.name,
+    cantidad: line.quantity,
+    precioUnitario: Math.round(line.unitPrice),
+  }));
 
+  try {
     const emission = await emitBoletaVentaToSii(admin, input.empresaId, {
       facturaEmitidaId: input.facturaEmitidaId,
       ventaId: input.ventaId,
@@ -49,7 +66,32 @@ export async function maybeEmitBoletaPostCheckout(
         buyOrder: input.buyOrder,
         ventaId: input.ventaId,
       });
-      return { skipped: false, ok: false, code: emission.code, message: emission.message };
+
+      // Reintento async con backoff (cron /api/cron/fiscal)
+      const enqueued = await enqueueSiiDocumentJob(admin, {
+        empresaId: input.empresaId,
+        sourceType: 'venta',
+        sourceId: input.ventaId,
+        tipoDte: DTE_TIPO.BOLETA_ELECTRONICA,
+        idempotencyKey: `boleta_checkout:${input.facturaEmitidaId}`,
+        payload: {
+          facturaEmitidaId: input.facturaEmitidaId,
+          ventaId: input.ventaId,
+          receptorNombre: input.receptorNombre,
+          detalleLineas,
+          buyOrder: input.buyOrder,
+        },
+        // primer reintento a ~2 min
+        scheduledAt: new Date(Date.now() + 2 * 60_000),
+      });
+
+      return {
+        skipped: false,
+        ok: false,
+        code: emission.code,
+        message: emission.message,
+        jobId: enqueued.ok ? enqueued.id : undefined,
+      };
     }
 
     let rcv: { periodo: string } | undefined;
@@ -74,6 +116,29 @@ export async function maybeEmitBoletaPostCheckout(
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error('[checkout-dte] unexpected error:', message, { buyOrder: input.buyOrder });
-    return { skipped: false, ok: false, code: 'checkout_dte_failed', message };
+
+    const enqueued = await enqueueSiiDocumentJob(admin, {
+      empresaId: input.empresaId,
+      sourceType: 'venta',
+      sourceId: input.ventaId,
+      tipoDte: DTE_TIPO.BOLETA_ELECTRONICA,
+      idempotencyKey: `boleta_checkout:${input.facturaEmitidaId}`,
+      payload: {
+        facturaEmitidaId: input.facturaEmitidaId,
+        ventaId: input.ventaId,
+        receptorNombre: input.receptorNombre,
+        detalleLineas,
+        buyOrder: input.buyOrder,
+      },
+      scheduledAt: new Date(Date.now() + 2 * 60_000),
+    }).catch(() => ({ ok: false as const, error: 'enqueue_failed' }));
+
+    return {
+      skipped: false,
+      ok: false,
+      code: 'checkout_dte_failed',
+      message,
+      jobId: enqueued.ok ? enqueued.id : undefined,
+    };
   }
 }

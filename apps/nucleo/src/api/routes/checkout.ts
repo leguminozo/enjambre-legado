@@ -25,6 +25,9 @@ import {
 } from "@enjambre/pricing";
 import { createClient } from "@supabase/supabase-js";
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from "../lib/ratelimit";
+import { getCafMinFolios, getFoliosRestantes } from "@/api/lib/fiscal/caf-guard";
+import { DTE_TIPO } from "@enjambre/contable";
+import { isAutoEmitBoletaEnabled } from "@/lib/fiscal/checkout-dte";
 
 async function rateLimitMiddleware(
   c: { req: { header: (name: string) => string | undefined; ip?: string }; json: (data: unknown, status: number) => Response; header: (name: string, value: string) => void },
@@ -301,26 +304,40 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       return c.json({ code: "empty_cart", message: 'Carrito vacío después de verificación' }, 400);
     }
 
-    // Prevención de Ventas Ilegales: Bloquear si quedan < 10 folios de boleta (tipo 39)
-    const { data: empresa } = await admin.from('empresas').select('id').limit(1).maybeSingle();
-    if (empresa) {
-      const { data: cafData, error: cafError } = await admin
-        .from('sii_caf')
-        .select('folio_hasta, folio_actual')
-        .eq('empresa_id', empresa.id)
-        .eq('tipo_dte', 39) // Boleta Electrónica
-        .eq('activo', true)
-        .maybeSingle();
-
-      if (!cafError && cafData) {
-        const foliosDisponibles = cafData.folio_hasta - cafData.folio_actual;
-        if (foliosDisponibles < 10) {
-          return c.json({ 
-            code: "folios_exhausted", 
-            message: 'El sistema de pagos se encuentra en mantenimiento (código: folios). Por favor intenta más tarde.',
-            error: 'El sistema de pagos se encuentra temporalmente en mantenimiento. Por favor intenta más tarde.'
-          }, 503);
-        }
+    // CAF: fail-closed cuando se emite boleta auto o se fuerza enforcement.
+    // Antes: solo bloqueaba si existía fila CAF y <10; sin CAF dejaba pasar.
+    const enforceCaf =
+      isAutoEmitBoletaEnabled() || process.env.SII_ENFORCE_CAF_ON_CHECKOUT === 'true';
+    if (enforceCaf) {
+      const { data: empresa } = await admin.from('empresas').select('id').limit(1).maybeSingle();
+      if (!empresa?.id) {
+        return c.json(
+          {
+            code: 'empresa_missing',
+            message: 'Configuración de empresa incompleta para fiscalización',
+          },
+          500,
+        );
+      }
+      const minFolios = getCafMinFolios();
+      const restantes = await getFoliosRestantes(
+        admin,
+        empresa.id,
+        DTE_TIPO.BOLETA_ELECTRONICA,
+      );
+      if (restantes < minFolios) {
+        return c.json(
+          {
+            code: 'folios_exhausted',
+            message:
+              'El sistema de pagos se encuentra en mantenimiento (código: folios). Por favor intenta más tarde.',
+            error:
+              'El sistema de pagos se encuentra temporalmente en mantenimiento. Por favor intenta más tarde.',
+            foliosRestantes: restantes,
+            minFolios,
+          },
+          503,
+        );
       }
     }
 
