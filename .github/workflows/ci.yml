@@ -72,6 +72,12 @@ jobs:
       - name: Test campo
         run: pnpm --filter @enjambre/campo test
 
+      - name: Coverage gates (critical modules)
+        run: |
+          pnpm --filter @enjambre/campo exec vitest run --coverage
+          pnpm --filter @enjambre/tienda exec vitest run --coverage lib/shop/resolve-header-brand.test.ts app/api/cms/revalidate/route.test.ts
+          pnpm --filter @enjambre/nucleo exec vitest run --coverage -- src/lib/sale-qr.test.ts src/lib/revalidate-tienda.test.ts
+
   build-tienda:
     runs-on: ubuntu-latest
     needs: test

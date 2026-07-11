@@ -8,6 +8,7 @@ import { useCashSession } from '@/components/pos/cash-context';
 import { getConsignacionIssues, useFeriaContext } from '@/components/pos/feria-context';
 import { useSumUp } from '@/components/pos/sumup-context';
 import { SumupTerminalFlow } from '@/components/pos/sumup-terminal-flow';
+import { QrCameraScanner } from '@/components/pos/qr-camera-scanner';
 import type { VentaChannel, PaymentMethod, TerminalFlowResult } from '@/components/pos/types';
 import { HexagonLoader, ViewLoadingPlaceholder } from '@enjambre/ui';
 import { buildClaimUrl } from '@/lib/public-urls';
@@ -33,7 +34,7 @@ type CheckoutMode = 'standard' | 'terminal';
 
 export default function CarritoView() {
   const router = useRouter();
-  const { lines, setQty, removeLine, clear, total, ready } = useCart();
+  const { lines, setQty, removeLine, addQrCode, removeQrCode, clear, total, ready } = useCart();
   const { session, cartSale } = useCashSession();
   const { active: feriaActiva, consignaciones, refresh: refreshFeria } = useFeriaContext();
   const { setTerminalStep, sumupMode, setSumupMode } = useSumUp();
@@ -44,6 +45,7 @@ export default function CarritoView() {
   const [error, setError] = useState<string | null>(null);
   const [checkoutMode, setCheckoutMode] = useState<CheckoutMode>('standard');
   const [terminalComplete, setTerminalComplete] = useState<TerminalFlowResult | null>(null);
+  const [scanningFor, setScanningFor] = useState<string | null>(null);
 
   const isSessionOpen = session?.session_status === 'open';
 
@@ -78,6 +80,7 @@ export default function CarritoView() {
           nombre: l.nombre,
           cantidad: l.cantidad,
           precio_unitario: l.precio_unitario,
+          qr_codes: l.qr_codes,
         }));
 
         const metodoBff = metodoPago === 'debito' ? 'tarjeta' : metodoPago === 'tarjeta_pos' ? 'pos_terminal' : metodoPago;
@@ -94,6 +97,7 @@ export default function CarritoView() {
           cantidad: l.cantidad,
           precio_unitario: l.precio_unitario,
           subtotal: l.precio_unitario * l.cantidad,
+          qr_codes: l.qr_codes,
         }));
 
         const res = await fetch('/api/pos/venta', {
@@ -136,6 +140,7 @@ export default function CarritoView() {
           nombre: l.nombre,
           cantidad: l.cantidad,
           precio_unitario: l.precio_unitario,
+          qr_codes: l.qr_codes,
         }));
 
         const result = await cartSale(cartItems, 'pos_terminal', channel, {
@@ -239,43 +244,95 @@ export default function CarritoView() {
         ) : (
           <div className="space-y-4">
             {lines.map((l) => (
-              <div
-                key={l.producto_id}
-                className="flex items-center gap-6 bg-card border border-border p-6 rounded-3xl transition-all hover:border-border"
-              >
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium text-foreground mb-1">{l.nombre}</h3>
-                  <p className="text-muted-foreground text-sm font-light">Precio unitario: {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(l.precio_unitario)}</p>
-                </div>
-
-                <div className="flex items-center gap-4 bg-background rounded-full border border-border p-1">
-                  <button
-                    onClick={() => setQty(l.producto_id, Math.max(1, l.cantidad - 1))}
-                    className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-primary transition-colors"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="w-8 text-center font-mono font-bold">{l.cantidad}</span>
-                  <button
-                    onClick={() => setQty(l.producto_id, l.cantidad + 1)}
-                    className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-primary transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="text-right min-w-[100px]">
-                  <p className="font-mono font-bold text-primary">
-                    {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(l.precio_unitario * l.cantidad)}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => removeLine(l.producto_id)}
-                  className="p-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-all"
+              <div key={l.producto_id} className="flex flex-col gap-2">
+                <div
+                  className="flex items-center gap-6 bg-card border border-border p-6 rounded-3xl transition-all hover:border-border"
                 >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium text-foreground mb-1">{l.nombre}</h3>
+                    <p className="text-muted-foreground text-sm font-light">Precio unitario: {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(l.precio_unitario)}</p>
+                  </div>
+
+                  <div className="flex items-center gap-4 bg-background rounded-full border border-border p-1">
+                    <button
+                      onClick={() => setQty(l.producto_id, Math.max(1, l.cantidad - 1))}
+                      className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-primary transition-colors"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span className="w-8 text-center font-mono font-bold">{l.cantidad}</span>
+                    <button
+                      onClick={() => setQty(l.producto_id, l.cantidad + 1)}
+                      className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-primary transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="text-right min-w-[100px]">
+                    <p className="font-mono font-bold text-primary">
+                      {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(l.precio_unitario * l.cantidad)}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setScanningFor(scanningFor === l.producto_id ? null : l.producto_id)}
+                      className={`p-3 rounded-2xl transition-all relative ${scanningFor === l.producto_id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-surface'}`}
+                      title="Asignar QR Trazabilidad"
+                    >
+                      <QrCode className="w-5 h-5" />
+                      {(l.qr_codes?.length || 0) > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                          {l.qr_codes!.length}
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => removeLine(l.producto_id)}
+                      className="p-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-all"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {scanningFor === l.producto_id && (
+                  <div className="bg-card border border-border p-6 rounded-3xl animate-in fade-in slide-in-from-top-2">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-medium text-sm text-foreground">Códigos QR asignados ({l.qr_codes?.length || 0} de {l.cantidad})</h4>
+                    </div>
+                    
+                    {l.qr_codes && l.qr_codes.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {l.qr_codes.map((code) => (
+                          <div key={code} className="flex items-center gap-2 bg-surface-sunken border border-border px-3 py-1.5 rounded-lg text-xs font-mono text-foreground">
+                            {code}
+                            <button onClick={() => removeQrCode(l.producto_id, code)} className="text-muted-foreground hover:text-destructive p-0.5">
+                              &times;
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {(l.qr_codes?.length || 0) < l.cantidad ? (
+                      <QrCameraScanner
+                        onScan={(code) => {
+                          addQrCode(l.producto_id, code);
+                          if ((l.qr_codes?.length || 0) + 1 >= l.cantidad) {
+                            setScanningFor(null);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="text-sm text-success flex items-center gap-2 bg-success/10 p-3 rounded-xl border border-success/20">
+                        <CheckCircle2 size={16} />
+                        Has escaneado la cantidad máxima para este producto.
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

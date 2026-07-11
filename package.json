@@ -7,6 +7,7 @@
   "scripts": {
     "test": "pnpm --filter @enjambre/contable test && pnpm --filter @enjambre/fiscal test && pnpm --filter @enjambre/pricing test && pnpm --filter @enjambre/resenas test && pnpm --filter @enjambre/wallet test && pnpm --filter @enjambre/logistica test && pnpm --filter @enjambre/auth test && pnpm --filter @enjambre/nucleo test && pnpm --filter @enjambre/tienda test && pnpm --filter @enjambre/campo test",
     "test:turbo": "turbo run test --filter=@enjambre/contable --filter=@enjambre/fiscal --filter=@enjambre/pricing --filter=@enjambre/resenas --filter=@enjambre/wallet --filter=@enjambre/logistica --filter=@enjambre/auth --filter=@enjambre/nucleo --filter=@enjambre/tienda --filter=@enjambre/campo",
+    "test:coverage": "pnpm --filter @enjambre/campo exec vitest run --coverage && pnpm --filter @enjambre/tienda exec vitest run --coverage lib/shop/resolve-header-brand.test.ts app/api/cms/revalidate/route.test.ts && pnpm --filter @enjambre/nucleo exec vitest run --coverage -- src/lib/sale-qr.test.ts src/lib/revalidate-tienda.test.ts",
     "test:e2e:nucleo": "pnpm --filter @enjambre/nucleo test:e2e",
     "dev": "turbo run dev",
     "build": "turbo run build",
@@ -49,11 +50,14 @@
   },
   "packageManager": "pnpm@10.32.1",
   "pnpm": {
-    "onlyBuiltDependencies": ["tesseract.js"]
+    "onlyBuiltDependencies": [
+      "tesseract.js"
+    ]
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/leaflet": "^1.9.21",
+    "@vitest/coverage-v8": "4.1.8",
     "eslint": "^10.4.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",

@@ -11,6 +11,16 @@ export default defineConfig({
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "mock-anon-key",
       SUPABASE_SERVICE_ROLE_KEY: "mock-service-role-key",
     },
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov"],
+      include: ["src/lib/sale-qr.ts", "src/lib/revalidate-tienda.ts"],
+      thresholds: {
+        lines: 75,
+        functions: 75,
+        statements: 75,
+      },
+    },
   },
   resolve: {
     alias: {

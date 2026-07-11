@@ -9,6 +9,7 @@ import {
   validateFeriaConsignacion,
   type FeriaSaleItem,
 } from "@/api/lib/feria-pos";
+import { registerDeliveredQrCodes } from "@/lib/sale-qr";
 
 const QuickSaleSchema = z.object({
   cash_session_id: z.string().uuid(),
@@ -18,6 +19,7 @@ const QuickSaleSchema = z.object({
   channel: z.enum(["feria", "delivery", "local", "corporativo", "referido"]).optional(),
   cliente_id: z.string().uuid().optional(),
   is_new_client: z.boolean().default(true),
+  qr_codes: z.array(z.string()).optional(),
   items_override: z
     .array(
       z.object({
@@ -25,6 +27,7 @@ const QuickSaleSchema = z.object({
         nombre: z.string(),
         cantidad: z.number().int().min(1),
         precio_unitario: z.number().min(0),
+        qr_codes: z.array(z.string()).optional(),
       }),
     )
     .optional(),
@@ -79,7 +82,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     return c.json({ code: "no_open_session", message: "No hay sesión de caja abierta" }, 400);
   }
 
-  let items: { producto_id: string; nombre: string; cantidad: number; precio_unitario: number }[];
+  let items: { producto_id: string; nombre: string; cantidad: number; precio_unitario: number; qr_codes?: string[] }[];
   let total: number;
 
   if (input.items_override && input.items_override.length > 0) {
@@ -102,6 +105,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
         nombre: producto.nombre ?? "",
         cantidad: input.cantidad,
         precio_unitario: producto.precio ?? 0,
+        qr_codes: input.qr_codes ?? [],
       },
     ];
     total = (producto.precio ?? 0) * input.cantidad;
@@ -219,6 +223,17 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     }
     return c.json({ code: "venta_create_failed", message: ventaError.message }, 400);
   }
+
+  const ventaId = venta.id;
+  // Audit trail QR (best-effort)
+  await registerDeliveredQrCodes(
+    async (args) => {
+      const { error } = await supabase.rpc("registrar_escaneo_qr", args as any);
+      return { error };
+    },
+    items,
+    ventaId,
+  );
 
   let feriaMeta: Record<string, unknown> | null = null;
   try {

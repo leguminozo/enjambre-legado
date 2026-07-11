@@ -7,6 +7,7 @@ import {
   validateFeriaConsignacion,
   type FeriaSaleItem,
 } from '@/lib/feria-pos';
+import { registerDeliveredQrCodes } from '@/lib/sale-qr';
 
 type ItemRow = {
   producto_id: string;
@@ -14,6 +15,7 @@ type ItemRow = {
   cantidad: number;
   precio_unitario: number;
   subtotal?: number;
+  qr_codes?: string[];
 };
 
 type DecrementedEntry = {
@@ -197,6 +199,18 @@ export async function POST(request: Request) {
     await restoreStock(supabase, decremented);
     return NextResponse.json({ error: friendlySupabaseError(error) }, { status: 400 });
   }
+
+  const ventaId = data.id;
+
+  // Audit trail QR (best-effort; no revierte la venta)
+  await registerDeliveredQrCodes(
+    async (args) => {
+      const { error } = await supabase.rpc('registrar_escaneo_qr', args);
+      return { error };
+    },
+    items,
+    ventaId,
+  );
 
   let feriaMeta: Record<string, unknown> | null = null;
   try {

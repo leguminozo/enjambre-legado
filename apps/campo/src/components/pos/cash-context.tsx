@@ -32,6 +32,7 @@ interface CartItem {
   nombre: string;
   cantidad: number;
   precio_unitario: number;
+  qr_codes?: string[];
 }
 
 interface QuickSaleResult {

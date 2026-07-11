@@ -3,6 +3,7 @@ export type CartLine = {
   nombre: string;
   precio_unitario: number;
   cantidad: number;
+  qr_codes?: string[];
 };
 
 export type VentaOrigen = 'feria' | 'local';
