@@ -71,12 +71,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const headersList = await headers();
   const nonce = headersList.get('x-csp-nonce') ?? '';
   const [headerMenu, storeChrome] = await Promise.all([loadHeaderMenu(), loadStoreChrome()]);
-  const themeScript = `(function(){try{var t=localStorage.getItem('enjambre-theme');var r=t==='light'?'light':t==='dark'?'dark':window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark';document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(r)}catch(e){}})()`;
+  // Align with ThemeProvider storageKey + defaults (evita React #418 class mismatch)
+  const forceDark = storeChrome.theme.force_dark_public;
+  const themeScript = forceDark
+    ? `(function(){try{document.documentElement.classList.remove('light');document.documentElement.classList.add('dark')}catch(e){}})()`
+    : `(function(){try{var t=localStorage.getItem('enjambre-theme');var r=t==='light'?'light':'dark';document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(r)}catch(e){document.documentElement.classList.add('dark')}})()`;
   const rootJsonLd = mergeJsonLd([organizationJsonLd(), webSiteJsonLd()]);
   const favicon = storeChrome.brand.favicon_url || '/icons/icon-192.svg';
+  const htmlClass = forceDark || storeChrome.theme.default_theme !== 'light' ? 'dark' : 'light';
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} className={htmlClass} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -85,10 +90,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap"
         />
         <link rel="icon" href={favicon} />
-        {nonce ? <script nonce={nonce} dangerouslySetInnerHTML={{ __html: themeScript }} /> : null}
+        {/* Always inject — CSP allows unsafe-inline; nonce when middleware provides it */}
+        <script
+          {...(nonce ? { nonce } : {})}
+          dangerouslySetInnerHTML={{ __html: themeScript }}
+        />
         <JsonLd data={rootJsonLd} />
       </head>
-      <body className="font-sans antialiased bg-background text-foreground">
+      <body className="font-sans antialiased bg-background text-foreground" suppressHydrationWarning>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <RegisterServiceWorker />
           <AppProviders

@@ -22,15 +22,17 @@ export function AppProviders({
   headerItems?: HeaderNavItem[] | null;
   storeChrome?: StoreChromeConfig | null;
 }) {
-  const themeDefault =
-    storeChrome?.theme.force_dark_public
-      ? 'dark'
-      : storeChrome?.theme.default_theme === 'system'
-        ? 'dark'
-        : (storeChrome?.theme.default_theme ?? 'system');
+  const forceDark = Boolean(storeChrome?.theme.force_dark_public);
+  const rawDefault = storeChrome?.theme.default_theme ?? 'dark';
+  const themeDefault: 'light' | 'dark' =
+    forceDark || rawDefault === 'dark' || rawDefault === 'system' ? 'dark' : 'light';
 
   return (
-    <ThemeProvider defaultTheme={themeDefault === 'light' ? 'light' : 'dark'}>
+    <ThemeProvider
+      defaultTheme={themeDefault}
+      forcedTheme={forceDark ? 'dark' : undefined}
+      storageKey="enjambre-theme"
+    >
       <ToastProvider>
         <AuthProvider>
           <CartProvider>
