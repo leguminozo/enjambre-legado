@@ -14,9 +14,9 @@
 | Duplicado `sale-qr` campo/nucleo | ✅ Fuente única `@enjambre/sale-qr` |
 | Packages ui/sumup/banco-chile sin tests | ✅ Smoke + CI |
 | Env secrets checklist | ✅ `pnpm env:check` / `env:check:prod` |
-| Header-menu.ts nucleo vs tienda (aún distinto) | 🔄 Abierto (tienda tiene más parsers CSS vars) |
+| Header-menu.ts nucleo vs tienda | ✅ Unificado en `@enjambre/shop-chrome` |
+| Campo e2e smoke en CI | ✅ `e2e/smoke.spec.ts` + job CI |
 | Staging Supabase formal | 🔄 Abierto |
-| Campo e2e en CI | 🔄 Abierto |
 | `as any` en rutas nucleo | 🔄 Abierto (reducir gradualmente) |
 | `packages/database` sin tests | 🔄 Abierto |
 

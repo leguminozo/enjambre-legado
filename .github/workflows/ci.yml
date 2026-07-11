@@ -243,3 +243,36 @@ jobs:
 
       - name: Lint campo
         run: pnpm --filter @enjambre/campo lint
+
+  e2e-campo-smoke:
+    runs-on: ubuntu-latest
+    needs: build-campo
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_NUCLEO_API_URL: ${{ secrets.NEXT_PUBLIC_NUCLEO_API_URL }}
+      NEXT_PUBLIC_URL_TIENDA: http://localhost:3001
+      CI: true
+      E2E_SKIP_AUTH: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @enjambre/campo exec playwright install --with-deps chromium
+
+      - name: Smoke E2E campo (login / pos redirect)
+        run: pnpm --filter @enjambre/campo test:e2e:smoke
