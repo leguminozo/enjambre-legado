@@ -28,14 +28,19 @@ const APPS = [
   {
     name: 'tienda',
     path: 'apps/tienda/.env.local',
-    required: ['NEXT_PUBLIC_SUPABASE_URL'],
-    recommended: ['NEXT_PUBLIC_SITE_URL', 'SUPABASE_SERVICE_ROLE_KEY'],
+    required: ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_NUCLEO_API_URL'],
+    recommended: [
+      'NEXT_PUBLIC_SITE_URL',
+      'SUPABASE_SERVICE_ROLE_KEY',
+      'INTERNAL_API_SECRET',
+      'CMS_REVALIDATE_SECRET',
+    ],
   },
   {
     name: 'campo',
     path: 'apps/campo/.env.local',
     required: ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_NUCLEO_API_URL', 'NEXT_PUBLIC_URL_TIENDA'],
-    recommended: ['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY'],
+    recommended: ['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY', 'INTERNAL_API_SECRET'],
   },
 ];
 

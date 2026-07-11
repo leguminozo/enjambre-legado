@@ -23,8 +23,13 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0"
   },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "devDependencies": {
     "@types/react": "^19.2.15",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.8"
   }
 }

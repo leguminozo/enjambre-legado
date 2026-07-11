@@ -63,6 +63,15 @@ jobs:
       - name: Test auth
         run: pnpm --filter @enjambre/auth test
 
+      - name: Test ui
+        run: pnpm --filter @enjambre/ui test
+
+      - name: Test sumup
+        run: pnpm --filter @enjambre/sumup test
+
+      - name: Test banco-chile
+        run: pnpm --filter @enjambre/banco-chile test
+
       - name: Test nucleo
         run: pnpm --filter @enjambre/nucleo test
 
@@ -82,6 +91,9 @@ jobs:
           pnpm --filter @enjambre/resenas exec vitest run --coverage
           pnpm --filter @enjambre/logistica exec vitest run --coverage
           pnpm --filter @enjambre/auth exec vitest run --coverage
+          pnpm --filter @enjambre/ui exec vitest run --coverage
+          pnpm --filter @enjambre/sumup exec vitest run --coverage
+          pnpm --filter @enjambre/banco-chile exec vitest run --coverage
 
   build-tienda:
     runs-on: ubuntu-latest
