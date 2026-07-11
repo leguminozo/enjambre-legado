@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
+import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import { revalidateTiendaCms } from "@/lib/revalidate-tienda";
@@ -128,9 +129,9 @@ cmsRoutes.post("/items", zValidator("json", ContentItemSchema), async (c) => {
     .insert({
       section_key: input.section_key,
       item_order: input.item_order,
-      content: input.content,
+      content: input.content as Json,
       is_active: input.is_active,
-    } as any)
+    })
     .select("*")
     .single();
 
@@ -149,14 +150,21 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
 
-  const payload: Record<string, unknown> = {
-    ...input,
+  const payload: {
+    item_order?: number;
+    content?: Json;
+    is_active?: boolean;
+    updated_at: string;
+  } = {
     updated_at: new Date().toISOString(),
   };
+  if (input.item_order !== undefined) payload.item_order = input.item_order;
+  if (input.content !== undefined) payload.content = input.content as Json;
+  if (input.is_active !== undefined) payload.is_active = input.is_active;
 
   const { data, error } = await supabase
     .from("site_content")
-    .update(payload as any)
+    .update(payload)
     .eq("id", itemId)
     .select("*")
     .single();

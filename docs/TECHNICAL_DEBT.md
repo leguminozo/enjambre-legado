@@ -19,6 +19,8 @@
 | `packages/database` sin tests | ✅ Vitest: types + migrations integrity |
 | Health deps probe | ✅ `GET /api/health/deps` |
 | Rate limit auth-events | ✅ `RATE_LIMIT_CONFIGS.auth` en security-events |
+| `as any` cash/invites/cms/commission | ✅ `Json` tipado + rows inferidos |
+| Campo `E2E_SKIP_AUTH` + POS shell smoke | ✅ middleware + smoke.spec |
 | Staging Supabase formal | 🔄 Abierto |
 | `as any` residual (SII/CRM/Supabase joins) | 🔄 Abierto (reducir gradualmente) |
 

@@ -104,16 +104,17 @@ cashSessionsRoutes.post("/:id/close", zValidator("json", CloseSessionSchema), as
     .select("total, metodo_pago")
     .eq("cash_session_id", sessionId);
 
-  const cashSales = ((ventas as any[]) ?? []).reduce(
-    (sum: number, v: any) =>
-      v.metodo_pago === "efectivo" ? sum + v.total : sum,
+  const rows = ventas ?? [];
+  const cashSales = rows.reduce(
+    (sum, v) =>
+      v.metodo_pago === "efectivo" ? sum + Number(v.total ?? 0) : sum,
     0,
   );
 
   const breakdown: Record<string, number> = {};
-  for (const v of ((ventas as any[]) ?? [])) {
-    const key = v.metodo_pago;
-    breakdown[key] = (breakdown[key] ?? 0) + v.total;
+  for (const v of rows) {
+    const key = v.metodo_pago ?? "unknown";
+    breakdown[key] = (breakdown[key] ?? 0) + Number(v.total ?? 0);
   }
 
   const { data: openSession } = await supabase

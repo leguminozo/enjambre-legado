@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
+import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 
@@ -53,7 +54,7 @@ commissionRulesRoutes.post("/", zValidator("json", CreateRuleSchema), async (c) 
       empresa_id: empresaId,
       rule_type: input.rule_type,
       name: input.name,
-      parameter: input.parameter as any,
+      parameter: input.parameter as Json,
       active: input.active,
       priority: input.priority,
     })
@@ -73,11 +74,21 @@ commissionRulesRoutes.patch("/:id", zValidator("json", UpdateRuleSchema), async 
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
 
-  const payload: Record<string, unknown> = { ...input, updated_at: new Date().toISOString() };
+  const payload: {
+    name?: string;
+    parameter?: Json;
+    active?: boolean;
+    priority?: number;
+    updated_at: string;
+  } = { updated_at: new Date().toISOString() };
+  if (input.name !== undefined) payload.name = input.name;
+  if (input.parameter !== undefined) payload.parameter = input.parameter as Json;
+  if (input.active !== undefined) payload.active = input.active;
+  if (input.priority !== undefined) payload.priority = input.priority;
 
   const { data, error } = await supabase
     .from("commission_rules")
-    .update(payload as any)
+    .update(payload)
     .eq("id", ruleId)
     .eq("empresa_id", empresaId)
     .select("*")

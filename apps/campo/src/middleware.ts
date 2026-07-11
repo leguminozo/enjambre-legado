@@ -42,6 +42,14 @@ export async function middleware(request: NextRequest) {
   try {
     const path = request.nextUrl.pathname;
 
+    /**
+     * Playwright CI: E2E_SKIP_AUTH=1 abre /pos sin sesión real.
+     * Nunca activar en producción (mismo patrón que nucleo middleware).
+     */
+    if (process.env.E2E_SKIP_AUTH === '1' && isProtected(path)) {
+      return NextResponse.next({ request });
+    }
+
     if (!isSupabaseConfigured()) {
       if (path.startsWith('/api/')) {
         return NextResponse.json(

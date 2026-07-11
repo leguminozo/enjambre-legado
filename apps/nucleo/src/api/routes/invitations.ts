@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
+import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 
@@ -111,8 +112,8 @@ adminRoutes.post("/", zValidator("json", CreateInvitationSchema), async (c) => {
       empresa_id: empresaId,
       code,
       created_by: user.id,
-      roles: input.roles as any,
-      tools: input.tools as any,
+      roles: input.roles,
+      tools: input.tools as Json,
       max_uses: input.max_uses ?? null,
       expires_at: input.expires_at ?? null,
     })
@@ -149,16 +150,22 @@ adminRoutes.patch("/:id", zValidator("json", UpdateInvitationSchema), async (c) 
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
 
-  const payload: Record<string, unknown> = {};
+  const payload: {
+    active?: boolean;
+    max_uses?: number;
+    expires_at?: string | null;
+    roles?: string[];
+    tools?: Json;
+  } = {};
   if (input.active !== undefined) payload.active = input.active;
   if (input.max_uses !== undefined) payload.max_uses = input.max_uses;
   if (input.expires_at !== undefined) payload.expires_at = input.expires_at;
   if (input.roles !== undefined) payload.roles = input.roles;
-  if (input.tools !== undefined) payload.tools = input.tools;
+  if (input.tools !== undefined) payload.tools = input.tools as Json;
 
   const { data, error } = await supabase
     .from("invitation_codes")
-    .update(payload as any)
+    .update(payload)
     .eq("id", invitationId)
     .select("*")
     .single();
@@ -210,7 +217,19 @@ adminRoutes.patch("/reps/:userId", zValidator("json", UpdateRepSchema), async (c
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
 
-  const payload: Record<string, unknown> = { ...input };
+  const payload: {
+    display_name?: string;
+    commission_tier?: string;
+    fixed_monthly?: number;
+    active?: boolean;
+    notas?: string;
+    deactivated_at?: string | null;
+  } = {};
+  if (input.display_name !== undefined) payload.display_name = input.display_name;
+  if (input.commission_tier !== undefined) payload.commission_tier = input.commission_tier;
+  if (input.fixed_monthly !== undefined) payload.fixed_monthly = input.fixed_monthly;
+  if (input.active !== undefined) payload.active = input.active;
+  if (input.notas !== undefined) payload.notas = input.notas;
 
   if (input.active === false) {
     payload.deactivated_at = new Date().toISOString();
@@ -220,7 +239,7 @@ adminRoutes.patch("/reps/:userId", zValidator("json", UpdateRepSchema), async (c
 
   const { data, error } = await supabase
     .from("rep_profiles")
-    .update(payload as any)
+    .update(payload)
     .eq("user_id", targetUserId)
     .select("*")
     .single();
