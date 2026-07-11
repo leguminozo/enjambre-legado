@@ -5,6 +5,7 @@ import type { AppVariables } from '@/api/lib/middleware';
 import { createAdminClient } from '@enjambre/auth/browser';
 import { requireProfileRole } from '@/api/lib/middleware';
 import { getBlockchainProvider, generateMerkleProof, computeDataHash } from '@/api/lib/blockchain/provider';
+import { fromLoose } from '@/api/lib/supabase-loose';
 
 const AnchorEntitySchema = z.object({
   entity_type: z.enum(['colmena', 'lote', 'cosecha', 'apiario']),
@@ -34,48 +35,59 @@ blockchainRoutes.post(
       let entityData: Record<string, unknown> = data ?? {};
       let entityExists = false;
 
+      // selects con columnas/filtros desfasados del typegen (empresa_id, blockchain_hash, etc.)
       switch (entity_type) {
         case 'colmena': {
-          const { data: colmena } = await (supabase as any)
-            .from('colmenas')
+          const { data: colmena } = await fromLoose(supabase, 'colmenas')
             .select('id, name, numero_caja, apiario_id, estado, blockchain_hash')
             .eq('id', entity_id)
             .eq('apiario_id', empresaId)
             .maybeSingle();
           if (colmena) {
             entityExists = true;
-            entityData = { name: colmena.name, numero_caja: colmena.numero_caja, apiario_id: colmena.apiario_id, estado: colmena.estado };
+            entityData = {
+              name: colmena.name,
+              numero_caja: colmena.numero_caja,
+              apiario_id: colmena.apiario_id,
+              estado: colmena.estado,
+            };
           }
           break;
         }
         case 'lote': {
-          const { data: lote } = await (supabase as any)
-            .from('lotes')
+          const { data: lote } = await fromLoose(supabase, 'lotes')
             .select('id, cosecha_ids, kg_total, estado, blockchain_hash')
             .eq('id', entity_id)
             .maybeSingle();
           if (lote) {
             entityExists = true;
-            entityData = { cosecha_ids: lote.cosecha_ids, kg_total: lote.kg_total, estado: lote.estado };
+            entityData = {
+              cosecha_ids: lote.cosecha_ids,
+              kg_total: lote.kg_total,
+              estado: lote.estado,
+            };
           }
           break;
         }
         case 'cosecha': {
-          const { data: cosecha } = await (supabase as any)
-            .from('cosechas')
+          const { data: cosecha } = await fromLoose(supabase, 'cosechas')
             .select('id, lote_id, kg, fecha, estado, blockchain_hash')
             .eq('id', entity_id)
             .eq('empresa_id', empresaId)
             .maybeSingle();
           if (cosecha) {
             entityExists = true;
-            entityData = { lote_id: cosecha.lote_id, kg: cosecha.kg, fecha: cosecha.fecha, estado: cosecha.estado };
+            entityData = {
+              lote_id: cosecha.lote_id,
+              kg: cosecha.kg,
+              fecha: cosecha.fecha,
+              estado: cosecha.estado,
+            };
           }
           break;
         }
         case 'apiario': {
-          const { data: apiario } = await (supabase as any)
-            .from('apiarios')
+          const { data: apiario } = await fromLoose(supabase, 'apiarios')
             .select('id, nombre, ubicacion, blockchain_hash')
             .eq('id', entity_id)
             .eq('empresa_id', empresaId)
@@ -129,10 +141,11 @@ blockchainRoutes.post(
       };
 
       const table = tableMap[entity_type];
-      await (supabase as any)
-        .from(table)
-        .update({ blockchain_hash: result.txHash })
-        .eq('id', entity_id);
+      if (table) {
+        await fromLoose(supabase, table)
+          .update({ blockchain_hash: result.txHash })
+          .eq('id', entity_id);
+      }
 
       return c.json({
         success: true,

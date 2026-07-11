@@ -22,9 +22,10 @@
 | `as any` cash/invites/cms/commission | ✅ `Json` tipado + rows inferidos |
 | Campo `E2E_SKIP_AUTH` + POS shell smoke | ✅ middleware + smoke.spec |
 | CRM / dashboard / producción / rep-ventas `as any` | ✅ `fromLoose`/`rpcLoose` + `productos` Json |
+| creadores / blockchain / sumup / banco-chile casts | ✅ Enums/`Json`/fromLoose |
 | Staging Supabase formal | 🔄 Abierto |
 | Typegen CRM (`clientes` stub, `interacciones` vs `crm_interacciones`) | 🔄 Abierto — requiere `db:typegen` + alinear schema |
-| `as any` residual (SII / creadores / blockchain) | 🔄 Abierto |
+| `as any` residual SII routes | 🔄 Abierto |
 
 ---
 

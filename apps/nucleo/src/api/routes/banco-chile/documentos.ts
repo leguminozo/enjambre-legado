@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { BancoChileClient } from '@enjambre/banco-chile';
+import { fromLoose } from '@/api/lib/supabase-loose';
 
 /**
  * Router para documentos (Factoring / Web Confirming)
@@ -191,23 +192,27 @@ documentosRouter.post(
         .eq('empresa_id', empresaId)
         .single();
 
-      const { error: insertError, data } = await (supabase as any)
-        .from('banco_chile_documentos')
+      // typegen exige config_id: string; runtime permite null si aún no hay config
+      if (!config?.id) {
+        return c.json({ error: 'Config Banco Chile no encontrada para la empresa' }, 400);
+      }
+
+      const { error: insertError, data } = await fromLoose(supabase, 'banco_chile_documentos')
         .insert({
-          config_id: config?.id || null,
+          config_id: config.id,
           empresa_id: empresaId,
           tipo_documento: body.tipoDocumento,
           numero_documento: body.numeroDocumento,
           rut_librador: body.rutLibrador,
           nombre_librador: body.nombreLibrador,
-          rut_libratario: body.rutLibratario,
-          nombre_libratario: body.nombreLibratario,
+          rut_libratario: body.rutLibratario ?? null,
+          nombre_libratario: body.nombreLibratario ?? null,
           monto_nominal: body.montoNominal,
-          monto_pagar: body.montoPagar,
-          fecha_emision: body.fechaEmision,
+          monto_pagar: body.montoPagar ?? null,
+          fecha_emision: body.fechaEmision ?? null,
           fecha_vencimiento: body.fechaVencimiento,
           estado: body.estado,
-          observaciones: body.observaciones,
+          observaciones: body.observaciones ?? null,
         })
         .select()
         .single();

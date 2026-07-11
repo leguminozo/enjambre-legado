@@ -282,13 +282,17 @@ webhookRouter.post('/reprocesar/:id', async (c) => {
     }
 
     // Re-procesar
+    const raw = notificacion.datos_raw;
     await procesarNotificacion(supabase, notificacion.tipo_evento, {
       id: notificacion.id,
-      cuenta_id: notificacion.cuenta_afectada,
-      monto: notificacion.monto,
-      descripcion: notificacion.descripcion,
-      datos: notificacion.datos_raw,
-    } as any);
+      cuenta_id: notificacion.cuenta_afectada ?? undefined,
+      monto: notificacion.monto ?? undefined,
+      descripcion: notificacion.descripcion ?? undefined,
+      datos:
+        raw && typeof raw === 'object' && !Array.isArray(raw)
+          ? (raw as Record<string, unknown>)
+          : undefined,
+    });
 
     return c.json({ success: true, message: 'Notificación reprocesada' });
   } catch (error) {

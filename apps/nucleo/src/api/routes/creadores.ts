@@ -1,9 +1,15 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
+import type { Database, Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware } from "@/api/lib/middleware";
 import { tenantMiddleware } from "@/api/lib/middleware";
+
+type CreadorEstado = Database["public"]["Enums"]["creador_estado"];
+type ComisionEstado = Database["public"]["Enums"]["comision_estado"];
+type CreadorUpdate = Database["public"]["Tables"]["creadores"]["Update"];
+type RetiroUpdate = Database["public"]["Tables"]["creador_retiros"]["Update"];
 
 const SAFE_EDIT_FIELDS = [
   "nombre_publico",
@@ -219,16 +225,17 @@ protectedRoutes.patch("/me", zValidator("json", CreadorSelfEditSchema), async (c
     return c.json({ code: "not_creator", message: "No eres creador registrado" }, 404);
   }
 
-  const safeInput: Record<string, unknown> = {};
+  const safeInput: CreadorUpdate = {};
   for (const key of SAFE_EDIT_FIELDS) {
-    if (key in input) {
-      safeInput[key] = input[key as keyof typeof input];
+    if (key in input && input[key] !== undefined) {
+      // campos SAFE_EDIT_FIELDS ⊆ CreadorUpdate
+      (safeInput as Record<string, unknown>)[key] = input[key];
     }
   }
 
   const { data, error } = await supabase
     .from("creadores")
-    .update(safeInput as any)
+    .update(safeInput)
     .eq("user_id", user.id)
     .select("*")
     .single();
@@ -279,7 +286,9 @@ protectedRoutes.get("/me/comisiones", async (c) => {
     .order("created_at", { ascending: false })
     .limit(100);
 
-  if (estado) query = query.eq("estado", estado as any);
+  if (estado) {
+    query = query.eq("estado", estado as ComisionEstado);
+  }
 
   const { data, error } = await query;
 
@@ -355,7 +364,7 @@ protectedRoutes.post("/me/retiros", zValidator("json", RetiroSchema), async (c) 
     p_user_id: user.id,
     p_monto: input.monto_solicitado,
     p_metodo_pago: input.metodo_pago,
-    p_datos_pago: input.datos_pago as any || null,
+    p_datos_pago: (input.datos_pago as Json | undefined) ?? ({} as Json),
   });
 
   if (error) {
@@ -414,7 +423,9 @@ protectedRoutes.get("/admin/todos", async (c) => {
     .order("created_at", { ascending: false })
     .limit(200);
 
-  if (estado) query = query.eq("estado", estado as any);
+  if (estado) {
+    query = query.eq("estado", estado as CreadorEstado);
+  }
 
   const { data, error } = await query;
 
@@ -443,10 +454,10 @@ protectedRoutes.patch("/admin/:id/estado", async (c) => {
     return c.json({ code: "update_failed", message: error.message }, 400);
   }
 
-  if (body.estado === "activo") {
+  if (body.estado === "activo" && data.user_id) {
     const { error: roleError } = await supabase
       .from("user_roles")
-      .upsert({ user_id: data.user_id as any, role: "creador", is_active: true });
+      .upsert({ user_id: data.user_id, role: "creador", is_active: true });
 
     if (roleError) {
       console.error("Failed to upsert creador role on activation:", roleError.message);
@@ -463,12 +474,16 @@ protectedRoutes.patch("/admin/:id/comision-tasa", async (c) => {
   if (!parsed.success) return c.json({ code: "validation_error", errors: parsed.error.flatten() }, 400);
   const body = parsed.data;
 
-  const updatePayload: Record<string, unknown> = { porcentaje_comision: body.porcentaje_comision };
-  if (body.descuento_cliente !== undefined) updatePayload.descuento_cliente = body.descuento_cliente;
+  const updatePayload: CreadorUpdate = {
+    porcentaje_comision: body.porcentaje_comision,
+  };
+  if (body.descuento_cliente !== undefined) {
+    updatePayload.descuento_cliente = body.descuento_cliente;
+  }
 
   const { data, error } = await supabase
     .from("creadores")
-    .update(updatePayload as any)
+    .update(updatePayload)
     .eq("id", creadorId)
     .select("*")
     .single();
@@ -505,7 +520,7 @@ protectedRoutes.patch("/admin/retiros/:retiroId", zValidator("json", AprobarReti
   const supabase = c.get("supabase");
   const user = c.get("user");
 
-  const updatePayload: Record<string, unknown> = {
+  const updatePayload: RetiroUpdate = {
     estado: input.estado,
     revisado_por: user.id,
     revisado_at: new Date().toISOString(),
@@ -515,7 +530,7 @@ protectedRoutes.patch("/admin/retiros/:retiroId", zValidator("json", AprobarReti
 
   const { data, error } = await supabase
     .from("creador_retiros")
-    .update(updatePayload as any)
+    .update(updatePayload)
     .eq("id", retiroId)
     .select("*")
     .single();

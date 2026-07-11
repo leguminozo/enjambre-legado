@@ -1,3 +1,4 @@
+import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -103,12 +104,12 @@ transactionsRouter.post("/sincronizar", async (c) => {
       producto: item.product_summary ?? null,
       descripcion: null,
       codigo_autorizacion: item.transaction_code,
-      raw: item as unknown as Record<string, unknown>,
+      raw: item as unknown as Json,
     };
 
     const { error } = await supabase
       .from("sumup_transacciones")
-      .upsert(row as any, { onConflict: "empresa_id,sumup_id" });
+      .upsert(row, { onConflict: "empresa_id,sumup_id" });
 
     if (!error) upserted++;
   }
