@@ -82,7 +82,8 @@
 
   }
 
-  :root.light {
+  :root.light,
+  html.light {
     --negro-suave: hsl(0 0% 85%);
     --surface-dark: hsl(var(--primary));
     --surface-dark-elevated: hsl(var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 30%);

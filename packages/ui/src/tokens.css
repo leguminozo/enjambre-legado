@@ -98,6 +98,8 @@
   --sidebar-border: 0 0% 12%;
   --sidebar-ring: var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l);
 
+  color-scheme: dark;
+
   /* ── 3. Componentes ── */
   --gold-glow: hsl(var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l) / 0.15);
   --gold-glow-strong: hsl(var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l) / 0.25);
@@ -178,8 +180,11 @@
   --carousel-h: 0px;
 }
 
-/* ── 2b. Semánticos — Light mode ── */
-:root.light {
+/* ── 2b. Semánticos — Light mode ──
+   next-themes attribute="class" pone `light` en <html> (= :root).
+   También aceptamos html.light por si el atributo se aplica solo al host. */
+:root.light,
+html.light {
   --background: var(--enj-crema-h) var(--enj-crema-s) 97%;
   --foreground: var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) 7%;
 
@@ -215,6 +220,20 @@
   --shadow-lg: 0 8px 30px hsl(var(--enj-bosque-ulmo-h) 20% 20% / 0.1);
   --shadow-xl: 0 20px 60px hsl(var(--enj-bosque-ulmo-h) 20% 20% / 0.12);
   --shadow-glow: 0 0 20px var(--bosque-glow);
+
+  --sidebar: var(--enj-crema-h) var(--enj-crema-s) 96%;
+  --sidebar-foreground: var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) 12%;
+  --sidebar-primary: var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 22%;
+  --sidebar-primary-foreground: var(--enj-crema-h) var(--enj-crema-s) 97%;
+  --sidebar-accent: var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l);
+  --sidebar-accent-foreground: var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 8%;
+  --sidebar-border: var(--enj-crema-h) 20% 88%;
+  --sidebar-ring: var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l);
+
+  --muted: var(--enj-crema-h) 15% 92%;
+  --muted-foreground: var(--enj-negro-tinta-h) 0% 35%;
+
+  color-scheme: light;
 }
 
 /* ── Hexagon loader (loader canónico del ecosistema) ── */

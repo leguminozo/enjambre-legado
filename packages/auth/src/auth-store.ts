@@ -50,12 +50,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, email, full_name, role, theme_preference')
       .eq('id', user.id)
       .single()
 
     if (profile) {
-      set({ user: profile as AuthUser, session, isAuthenticated: true, isLoading: false })
+      const rawTheme = profile.theme_preference
+      const theme_preference: AuthUser['theme_preference'] =
+        rawTheme === 'light' || rawTheme === 'dark' || rawTheme === 'system'
+          ? rawTheme
+          : 'system'
+
+      const authUser: AuthUser = {
+        id: profile.id,
+        email: profile.email ?? user.email ?? '',
+        role: profile.role ?? (user.app_metadata?.role as string) ?? 'cliente',
+        nivel_guardian: '',
+        full_name: profile.full_name ?? '',
+        avatar_url: '',
+        theme_preference,
+      }
+      set({ user: authUser, session, isAuthenticated: true, isLoading: false })
       return
     }
 
