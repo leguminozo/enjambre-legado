@@ -82,7 +82,11 @@ export function QrCameraScanner({ onScan, disabled }: QrCameraScannerProps) {
 
   useEffect(() => () => stopCamera(), [stopCamera]);
 
-  const hasBarcodeApi = typeof window !== 'undefined' && 'BarcodeDetector' in window;
+  // No leer window en render (SSR ≠ client → React #418)
+  const [hasBarcodeApi, setHasBarcodeApi] = useState(false);
+  useEffect(() => {
+    setHasBarcodeApi(typeof window !== 'undefined' && 'BarcodeDetector' in window);
+  }, []);
 
   return (
     <div className="rounded-xl border border-border bg-card/40 overflow-hidden">

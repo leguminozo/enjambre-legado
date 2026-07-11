@@ -90,12 +90,24 @@ describe("Auth Integration Flow", () => {
       }
     });
 
-    it("redirects rep_ventas to /pos (Campo)", () => {
-      expect(getRoleRedirectPath("rep_ventas")).toBe("/pos");
+    it("redirects rep_ventas to /pos (Campo, abs URL si NEXT_PUBLIC_URL_CAMPO)", () => {
+      const path = getRoleRedirectPath("rep_ventas");
+      const campo = process.env.NEXT_PUBLIC_URL_CAMPO?.replace(/\/$/, "");
+      if (campo) {
+        expect(path).toBe(`${campo}/pos`);
+      } else {
+        expect(path).toBe("/pos");
+      }
     });
 
-    it("redirects cliente to /catalogo", () => {
-      expect(getRoleRedirectPath("cliente")).toBe("/catalogo");
+    it("redirects cliente to /catalogo (abs URL si NEXT_PUBLIC_URL_TIENDA)", () => {
+      const path = getRoleRedirectPath("cliente");
+      const tienda = process.env.NEXT_PUBLIC_URL_TIENDA?.replace(/\/$/, "");
+      if (tienda) {
+        expect(path).toBe(`${tienda}/catalogo`);
+      } else {
+        expect(path).toBe("/catalogo");
+      }
     });
 
     it("redirects unknown role to /perfil", () => {
@@ -227,7 +239,9 @@ describe("Auth Integration Flow", () => {
       });
       const res = await middleware(req);
       expect(res.status).toBe(302);
-      expect(res.headers.get("location")).toBe("http://localhost:3000/pos");
+      expect(res.headers.get("location")).toBe(
+        expectedRoleRedirect("http://localhost:3000", "rep_ventas"),
+      );
     });
 
     it("redirects rep_ventas from /ejecutivo to their allowed route", async () => {
@@ -240,7 +254,9 @@ describe("Auth Integration Flow", () => {
       });
       const res = await middleware(req);
       expect(res.status).toBe(302);
-      expect(res.headers.get("location")).toBe("http://localhost:3000/pos");
+      expect(res.headers.get("location")).toBe(
+        expectedRoleRedirect("http://localhost:3000", "rep_ventas"),
+      );
     });
 
     it("redirects creador from /ejecutivo to tienda portal", async () => {
@@ -280,7 +296,9 @@ describe("Auth Integration Flow", () => {
       });
       const res = await middleware(req);
       expect(res.status).toBe(302);
-      expect(res.headers.get("location")).toBe("http://localhost:3000/pos");
+      expect(res.headers.get("location")).toBe(
+        expectedRoleRedirect("http://localhost:3000", "rep_ventas"),
+      );
     });
 
     it("handles legacy role gerente as admin", async () => {

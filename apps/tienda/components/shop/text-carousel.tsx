@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveLocalized } from '@/lib/shop/store-chrome';
@@ -26,16 +26,22 @@ export function TextCarousel() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const prefersReducedMotion = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  }, []);
+  // SSR-stable defaults → set real values after mount (evita React #418)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [carouselHeight, setCarouselHeight] = useState(announcement.height_mobile_px);
 
-  const getCarouselHeight = useCallback(() => {
-    if (typeof window === 'undefined') return announcement.height_mobile_px;
-    return window.innerWidth >= 768
-      ? announcement.height_desktop_px
-      : announcement.height_mobile_px;
+  useEffect(() => {
+    setPrefersReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const updateH = () => {
+      setCarouselHeight(
+        window.innerWidth >= 768
+          ? announcement.height_desktop_px
+          : announcement.height_mobile_px,
+      );
+    };
+    updateH();
+    window.addEventListener('resize', updateH);
+    return () => window.removeEventListener('resize', updateH);
   }, [announcement.height_desktop_px, announcement.height_mobile_px]);
 
   const slideCount = Math.max(slides.length, 1);
@@ -66,14 +72,8 @@ export function TextCarousel() {
       setCarouselHeightVar(0);
       return;
     }
-    setCarouselHeightVar(getCarouselHeight());
-
-    function onResize() {
-      if (!dismissed) setCarouselHeightVar(getCarouselHeight());
-    }
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [dismissed, getCarouselHeight, announcement.enabled, announcement.dismissible]);
+    setCarouselHeightVar(carouselHeight);
+  }, [dismissed, carouselHeight, announcement.enabled, announcement.dismissible]);
 
   useEffect(() => {
     if (dismissed || paused) {
@@ -162,7 +162,7 @@ export function TextCarousel() {
     >
       <div
         className="relative flex items-center justify-center overflow-hidden cursor-pointer select-none group"
-        style={{ height: `${getCarouselHeight()}px` }}
+        style={{ height: `${carouselHeight}px` }}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onTouchStart={() => setPaused(true)}

@@ -7,14 +7,17 @@ describe('routeUsesViewShell', () => {
   });
 
   it('oculta header en módulos gerencia con ViewShell', () => {
-    expect(routeUsesViewShell('/leaderboard')).toBe(true);
     expect(routeUsesViewShell('/invitaciones')).toBe(true);
     expect(routeUsesViewShell('/operadores-feria')).toBe(true);
+    expect(routeUsesViewShell('/editor-tienda')).toBe(true);
+    expect(routeUsesViewShell('/creador')).toBe(true);
   });
 
   it('mantiene header en módulos sin ViewShell propio', () => {
     expect(routeUsesViewShell('/comisiones')).toBe(false);
     expect(routeUsesViewShell('/reps')).toBe(false);
     expect(routeUsesViewShell('/caja')).toBe(false);
+    // /leaderboard no está en VIEW_SHELL_PATHS (usa header global)
+    expect(routeUsesViewShell('/leaderboard')).toBe(false);
   });
 });
