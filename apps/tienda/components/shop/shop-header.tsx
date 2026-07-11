@@ -31,6 +31,8 @@ export function ShopHeader() {
   const { settings, items } = useHeaderMenu();
   const { brand } = useStoreChrome();
   const brandLogo = brand.logo_url || '/icons/icon-192.svg';
+  const brandLogoHeight = brand.logo_height_px || 40;
+  const brandLogoMaxWidth = brand.logo_max_width_px || 180;
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifBellKey, setNotifBellKey] = useState(0);
@@ -103,21 +105,32 @@ export function ShopHeader() {
     </div>
   ) : null;
 
+  const logoImgSrc =
+    settings.show_logo && settings.logo_src ? settings.logo_src : brandLogo;
+  const logoImgHeight =
+    settings.show_logo && settings.logo_src
+      ? settings.logo_height_px || brandLogoHeight
+      : brandLogoHeight;
+  const logoImg = (
+    <img
+      src={logoImgSrc}
+      alt={settings.brand_line1 || tHeader('brandLine1') || 'Logo'}
+      style={{
+        height: `${logoImgHeight}px`,
+        maxWidth: brandLogoMaxWidth > 0 ? `${brandLogoMaxWidth}px` : undefined,
+        width: 'auto',
+      }}
+      className="object-contain shrink-0"
+    />
+  );
+
+  // Menú con logo dedicado → solo imagen. Si no, marca (logo + texto opcional).
   const logoContent =
     settings.show_logo && settings.logo_src ? (
-      <img
-        src={settings.logo_src}
-        alt={settings.brand_line1 || tHeader('brandLine1')}
-        style={{ height: `${settings.logo_height_px || 32}px` }}
-        className="object-contain"
-      />
+      logoImg
     ) : (
       <>
-        <img
-          src={brandLogo}
-          alt="La Obrera y el Zángano Logo"
-          className="h-8 w-8 md:h-10 md:w-10 rounded-full object-cover"
-        />
+        {logoImg}
         {brandBlock}
       </>
     );

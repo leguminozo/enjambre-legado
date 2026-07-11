@@ -415,21 +415,64 @@ export function PwaNavSettingsEditor({ content, isUpdating, onSave }: SettingsEd
 
 // ── Brand ──────────────────────────────────────────────────────────────────
 
+/** Checkerboard so transparent PNG/SVG is visible in editor. */
+function TransparentPreview({
+  src,
+  alt,
+  heightPx,
+  maxWidthPx,
+}: {
+  src: string;
+  alt: string;
+  heightPx: number;
+  maxWidthPx?: number;
+}) {
+  return (
+    <div
+      className="rounded-lg border border-border p-2 flex items-center justify-center min-h-[56px] w-full"
+      style={{
+        backgroundImage:
+          'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
+        backgroundSize: '12px 12px',
+        backgroundPosition: '0 0, 0 6px, 6px -6px, -6px 0',
+        backgroundColor: '#eee',
+      }}
+    >
+      <img
+        src={src}
+        alt={alt}
+        style={{
+          height: `${heightPx}px`,
+          maxWidth: maxWidthPx && maxWidthPx > 0 ? `${maxWidthPx}px` : '100%',
+          width: 'auto',
+        }}
+        className="object-contain"
+      />
+    </div>
+  );
+}
+
 function BrandAssetUploadField({
   label,
   hint,
   fieldName,
   value,
-  previewClassName,
+  previewHeight,
+  previewMaxWidth,
+  acceptTransparent,
   onUrlChange,
+  onClear,
   onImageUpload,
 }: {
   label: string;
   hint?: string;
   fieldName: keyof BrandAssets;
   value: string;
-  previewClassName?: string;
+  previewHeight: number;
+  previewMaxWidth?: number;
+  acceptTransparent?: boolean;
   onUrlChange: (v: string) => void;
+  onClear?: () => void;
   onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
 }) {
   const inputId = useId();
@@ -454,40 +497,53 @@ function BrandAssetUploadField({
 
   return (
     <div className="space-y-2 p-3 rounded-xl border border-border bg-background">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
-          {hint ? <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p> : null}
-        </div>
-        {value ? (
-          <img
-            src={value}
-            alt={label}
-            className={
-              previewClassName ??
-              'h-14 w-14 shrink-0 rounded-lg border border-border object-contain bg-surface-sunken p-1'
-            }
-          />
-        ) : (
-          <div className="h-14 w-14 shrink-0 rounded-lg border border-dashed border-border flex items-center justify-center text-muted-foreground">
-            <ImageIcon size={18} />
-          </div>
-        )}
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
+        {hint ? <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p> : null}
       </div>
 
-      <button
-        type="button"
-        disabled={uploading || !onImageUpload}
-        onClick={() => document.getElementById(inputId)?.click()}
-        className="flex w-full justify-center items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium bg-surface-sunken border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50 min-h-[40px]"
-      >
-        {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-        {value ? 'Cambiar imagen' : 'Subir a la nube'}
-      </button>
+      {value ? (
+        <TransparentPreview
+          src={value}
+          alt={label}
+          heightPx={previewHeight}
+          maxWidthPx={previewMaxWidth}
+        />
+      ) : (
+        <div className="h-14 rounded-lg border border-dashed border-border flex items-center justify-center text-muted-foreground gap-2">
+          <ImageIcon size={18} />
+          <span className="text-xs">Sin imagen</span>
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          disabled={uploading || !onImageUpload}
+          onClick={() => document.getElementById(inputId)?.click()}
+          className="flex flex-1 justify-center items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium bg-surface-sunken border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50 min-h-[40px]"
+        >
+          {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+          {value ? 'Cambiar' : 'Subir a la nube'}
+        </button>
+        {value && onClear ? (
+          <button
+            type="button"
+            onClick={onClear}
+            className="px-3 py-2.5 rounded-lg text-xs font-medium border border-border text-muted-foreground hover:text-destructive hover:border-destructive/40 min-h-[40px]"
+          >
+            Quitar
+          </button>
+        ) : null}
+      </div>
       <input
         id={inputId}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+        accept={
+          acceptTransparent
+            ? 'image/png,image/svg+xml,image/webp,image/jpeg,image/gif,.png,.svg,.webp,.jpg,.jpeg'
+            : 'image/jpeg,image/png,image/webp,image/gif,image/svg+xml'
+        }
         className="hidden"
         onChange={(e) => {
           void handleFile(e.target.files?.[0]);
@@ -516,6 +572,8 @@ function BrandAssetUploadField({
 export function BrandAssetsEditor({ content, isUpdating, onSave, onImageUpload }: SettingsEditorProps) {
   const [local, setLocal] = useState<BrandAssets>(() => parseBrandAssets(content));
   const [dirty, setDirty] = useState(false);
+  const localRef = React.useRef(local);
+  localRef.current = local;
 
   useEffect(() => {
     setLocal(parseBrandAssets(content));
@@ -527,53 +585,118 @@ export function BrandAssetsEditor({ content, isUpdating, onSave, onImageUpload }
     setDirty(true);
   };
 
+  /** Upload URL + re-save full brand (heights) so no se pierden sliders. */
+  const uploadBrandField = async (file: File, fieldName: string): Promise<string> => {
+    if (!onImageUpload) return '';
+    const url = await Promise.resolve(onImageUpload(file, fieldName));
+    if (typeof url !== 'string' || !url) return '';
+    const next = { ...localRef.current, [fieldName]: url } as BrandAssets;
+    setLocal(next);
+    onSave(next);
+    setDirty(false);
+    return url;
+  };
+
   return (
     <div className="space-y-4 pb-8">
       <p className="text-xs text-muted-foreground">
-        Sube logo y assets de marca a Supabase Storage (bucket <code className="text-[10px]">cms</code>
-        ). Las imágenes raster se optimizan a WEBP como en productos: más livianas y con CDN cache.
+        PNG/SVG con transparencia se conservan. Fotos de producto siguen yendo a WEBP; el logo no se aplasta a
+        círculo ni pierde alpha.
       </p>
 
       <BrandAssetUploadField
         label="Logo header"
-        hint="Header y marca principal · máx. ~800px · WEBP/SVG"
+        hint="PNG o SVG transparente recomendado"
         fieldName="logo_url"
         value={local.logo_url}
-        previewClassName="h-16 w-auto max-w-[140px] shrink-0 rounded-lg border border-border object-contain bg-surface-sunken p-1"
+        previewHeight={local.logo_height_px}
+        previewMaxWidth={local.logo_max_width_px}
+        acceptTransparent
         onUrlChange={(v) => patch('logo_url', v)}
-        onImageUpload={onImageUpload}
+        onClear={() => patch('logo_url', '')}
+        onImageUpload={uploadBrandField}
       />
+
+      <div className="space-y-3 p-3 rounded-xl border border-border bg-background">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Tamaño en tienda
+        </p>
+        <SliderField
+          label="Alto logo header"
+          value={local.logo_height_px}
+          min={16}
+          max={96}
+          step={1}
+          unit="px"
+          onChange={(v) => patch('logo_height_px', v)}
+        />
+        <SliderField
+          label="Ancho máximo header"
+          value={local.logo_max_width_px}
+          min={40}
+          max={360}
+          step={4}
+          unit="px"
+          onChange={(v) => patch('logo_max_width_px', v)}
+        />
+        <SliderField
+          label="Alto logo footer"
+          value={local.logo_footer_height_px}
+          min={16}
+          max={120}
+          step={1}
+          unit="px"
+          onChange={(v) => patch('logo_footer_height_px', v)}
+        />
+        <TransparentPreview
+          src={local.logo_url || '/icons/icon-192.svg'}
+          alt="Vista previa tamaño header"
+          heightPx={local.logo_height_px}
+          maxWidthPx={local.logo_max_width_px}
+        />
+        <p className="text-[10px] text-muted-foreground">
+          Vista previa a escala real del header. Guardá para aplicar en la tienda.
+        </p>
+      </div>
+
       <BrandAssetUploadField
         label="Logo footer"
         hint="Opcional · si vacío se usa el logo header"
         fieldName="logo_footer_url"
         value={local.logo_footer_url}
-        previewClassName="h-14 w-auto max-w-[120px] shrink-0 rounded-lg border border-border object-contain bg-surface-sunken p-1"
+        previewHeight={local.logo_footer_height_px}
+        previewMaxWidth={local.logo_max_width_px}
+        acceptTransparent
         onUrlChange={(v) => patch('logo_footer_url', v)}
-        onImageUpload={onImageUpload}
+        onClear={() => patch('logo_footer_url', '')}
+        onImageUpload={uploadBrandField}
       />
       <BrandAssetUploadField
         label="Favicon"
-        hint="Pestaña del navegador · se redimensiona a 256px"
+        hint="PNG 32–512px o SVG · se preserva transparencia"
         fieldName="favicon_url"
         value={local.favicon_url}
-        previewClassName="h-10 w-10 shrink-0 rounded border border-border object-contain bg-surface-sunken p-0.5"
+        previewHeight={32}
+        previewMaxWidth={32}
+        acceptTransparent
         onUrlChange={(v) => patch('favicon_url', v)}
-        onImageUpload={onImageUpload}
+        onImageUpload={uploadBrandField}
       />
       <BrandAssetUploadField
         label="Imagen OG / redes"
-        hint="Compartir en redes · ideal 1200×630"
+        hint="Compartir en redes · ideal 1200×630 (puede ser JPEG)"
         fieldName="og_image_url"
         value={local.og_image_url}
-        previewClassName="h-16 w-28 shrink-0 rounded-lg border border-border object-cover bg-surface-sunken"
+        previewHeight={64}
+        previewMaxWidth={120}
         onUrlChange={(v) => patch('og_image_url', v)}
-        onImageUpload={onImageUpload}
+        onClear={() => patch('og_image_url', '')}
+        onImageUpload={uploadBrandField}
       />
 
       <p className="text-[11px] text-muted-foreground">
-        Solo admins pueden subir (RLS). Tras subir, la URL se guarda en <strong className="text-foreground">Marca</strong> y
-        la tienda la usa en header, footer, favicon y SEO.
+        Tip: para el menú con logo solo (sin texto), activá <strong className="text-foreground">Mostrar logo</strong> en
+        Menú — Estilo y subí el mismo archivo o pegá la URL del logo header.
       </p>
       <SaveBar dirty={dirty} isUpdating={isUpdating} onSave={() => { onSave({ ...local }); setDirty(false); }} />
     </div>

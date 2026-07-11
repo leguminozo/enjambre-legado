@@ -394,7 +394,23 @@ export function MenuStyleEditor({ content, isUpdating, onSave, onImageUpload }: 
         <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Marca y Logo</h4>
         <div className="space-y-2">
             {local.logo_src ? (
-                <img src={local.logo_src} alt="Logo" className="w-auto h-16 object-contain bg-background rounded border border-border p-1" />
+                <div
+                  className="rounded-lg border border-border p-2 flex items-center justify-center"
+                  style={{
+                    backgroundImage:
+                      'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
+                    backgroundSize: '12px 12px',
+                    backgroundPosition: '0 0, 0 6px, 6px -6px, -6px 0',
+                    backgroundColor: '#eee',
+                  }}
+                >
+                  <img
+                    src={local.logo_src}
+                    alt="Logo"
+                    style={{ height: `${local.logo_height_px || 32}px`, width: 'auto', maxWidth: '100%' }}
+                    className="object-contain"
+                  />
+                </div>
             ) : null}
             <button
                 type="button"
@@ -403,12 +419,12 @@ export function MenuStyleEditor({ content, isUpdating, onSave, onImageUpload }: 
                 className="flex w-full justify-center items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-background border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50"
             >
                 {isUploadingLogo ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                {local.logo_src ? 'Cambiar logo' : 'Subir logo'}
+                {local.logo_src ? 'Cambiar logo' : 'Subir logo (PNG/SVG)'}
             </button>
             <input
                 id="logo-upload"
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+                accept="image/png,image/svg+xml,image/webp,image/jpeg,image/gif,.png,.svg"
                 className="hidden"
                 onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -417,7 +433,12 @@ export function MenuStyleEditor({ content, isUpdating, onSave, onImageUpload }: 
                         void Promise.resolve(onImageUpload(file, 'logo_src'))
                           .then((url) => {
                             if (typeof url === 'string' && url) {
-                              patch('logo_src', url);
+                              const next = { ...local, logo_src: url, show_logo: true };
+                              setLocal(next);
+                              setDirty(true);
+                              // Persist height + logo together
+                              onSave(next);
+                              setDirty(false);
                             }
                           })
                           .catch(() => {
@@ -428,10 +449,13 @@ export function MenuStyleEditor({ content, isUpdating, onSave, onImageUpload }: 
                     e.target.value = '';
                 }}
             />
+            <p className="text-[10px] text-muted-foreground">
+              PNG/SVG con transparencia. No se convierte a WEBP lossy.
+            </p>
         </div>
         <ToggleField
           label="Mostrar logo"
-          desc="Reemplazar el texto de marca por la imagen del logo"
+          desc="Usar imagen de logo en el header (object-contain, sin recorte)"
           value={local.show_logo}
           onChange={(v) => patch('show_logo', v)}
         />
@@ -439,8 +463,8 @@ export function MenuStyleEditor({ content, isUpdating, onSave, onImageUpload }: 
           label="Altura del logo"
           value={local.logo_height_px}
           min={16}
-          max={64}
-          step={2}
+          max={96}
+          step={1}
           unit="px"
           onChange={(v) => patch('logo_height_px', v)}
         />

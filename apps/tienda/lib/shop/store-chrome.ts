@@ -153,6 +153,12 @@ export type BrandAssets = {
   logo_footer_url: string;
   favicon_url: string;
   og_image_url: string;
+  /** Display height in header (px). */
+  logo_height_px: number;
+  /** Max width in header (px); 0 = auto. */
+  logo_max_width_px: number;
+  /** Display height in footer (px). */
+  logo_footer_height_px: number;
 };
 
 export const DEFAULT_BRAND_ASSETS: BrandAssets = {
@@ -160,6 +166,9 @@ export const DEFAULT_BRAND_ASSETS: BrandAssets = {
   logo_footer_url: '',
   favicon_url: '/icons/icon-192.svg',
   og_image_url: '',
+  logo_height_px: 40,
+  logo_max_width_px: 180,
+  logo_footer_height_px: 48,
 };
 
 // ── Bundle ─────────────────────────────────────────────────────────────────
@@ -316,6 +325,9 @@ export function parseBrandAssets(raw: Record<string, unknown> | null | undefined
     logo_footer_url: asString(raw.logo_footer_url, d.logo_footer_url),
     favicon_url: asString(raw.favicon_url, d.favicon_url),
     og_image_url: asString(raw.og_image_url, d.og_image_url),
+    logo_height_px: asNumber(raw.logo_height_px, d.logo_height_px, 16, 120),
+    logo_max_width_px: asNumber(raw.logo_max_width_px, d.logo_max_width_px, 0, 480),
+    logo_footer_height_px: asNumber(raw.logo_footer_height_px, d.logo_footer_height_px, 16, 160),
   };
 }
 

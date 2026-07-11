@@ -89,6 +89,7 @@ export function ShopFooter() {
   const locale = useLocale();
   const { footer, footerSocial, brand } = useStoreChrome();
   const logoSrc = brand.logo_footer_url || brand.logo_url || '/icons/icon-192.svg';
+  const logoFooterHeight = brand.logo_footer_height_px || brand.logo_height_px || 48;
 
   return (
     <footer className="bg-background border-t border-border pt-24 pb-12">
@@ -100,7 +101,12 @@ export function ShopFooter() {
                 <img
                   src={logoSrc}
                   alt=""
-                  className="h-12 w-12 rounded-full object-cover"
+                  style={{
+                    height: `${logoFooterHeight}px`,
+                    maxWidth: brand.logo_max_width_px > 0 ? `${brand.logo_max_width_px}px` : '220px',
+                    width: 'auto',
+                  }}
+                  className="object-contain"
                 />
               ) : null}
               <div className="flex flex-col items-center">

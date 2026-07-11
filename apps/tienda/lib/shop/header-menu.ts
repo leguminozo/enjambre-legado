@@ -195,7 +195,7 @@ export function parseHeaderSettings(raw: Record<string, unknown> | null | undefi
     backdrop_blur: asBool(raw.backdrop_blur, d.backdrop_blur),
     show_logo: asBool(raw.show_logo, d.show_logo),
     logo_src: asString(raw.logo_src, d.logo_src),
-    logo_height_px: asNumber(raw.logo_height_px, d.logo_height_px, 16, 120),
+    logo_height_px: asNumber(raw.logo_height_px, d.logo_height_px, 16, 160),
   };
 }
 

@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useApiFetch } from '@/hooks/use-api-fetch'
-import { prepareImageForUpload } from '@/lib/process-image'
+import { prepareImageForUpload, resolveFileMime } from '@/lib/process-image'
 import { supabase } from '@/lib/supabase'
 
 export interface CMSContentItem {
@@ -177,35 +177,43 @@ export function useCMSContent() {
       sectionKey: CMSSectionKey
       fieldName: string
     }) => {
-      const allowedTypes = [
+      const allowedTypes = new Set([
         'image/jpeg',
         'image/png',
         'image/gif',
         'image/webp',
         'image/svg+xml',
         'application/pdf',
-      ]
+      ])
       const maxBytes = 10 * 1024 * 1024 // 10MB pre-process
+      const mime = resolveFileMime(file)
 
-      if (!allowedTypes.includes(file.type)) {
-        throw new Error('Tipo de archivo no permitido (JPEG, PNG, GIF, WEBP, SVG o PDF)')
+      if (!mime || !allowedTypes.has(mime)) {
+        throw new Error('Tipo no permitido. Usá PNG (transparente), SVG, WEBP, JPEG o GIF.')
       }
       if (file.size > maxBytes) {
         throw new Error('El archivo supera el tamaño máximo permitido (10MB)')
       }
 
-      // Raster → WEBP resized (mismo pipeline que fotos de producto)
+      // Logos → PNG con alpha; productos/otros → WEBP optimizado
       const optimized = await prepareImageForUpload(file, { fieldName })
-      const ext = optimized.name.split('.').pop() || 'webp'
+      const contentType = resolveFileMime(optimized) || optimized.type || mime
+      const ext =
+        optimized.name.split('.').pop()?.toLowerCase() ||
+        (contentType === 'image/png'
+          ? 'png'
+          : contentType === 'image/svg+xml'
+            ? 'svg'
+            : contentType === 'image/webp'
+              ? 'webp'
+              : 'bin')
       const path = `cms/${sectionKey}/${crypto.randomUUID()}.${ext}`
 
-      const { error: uploadErr } = await supabase.storage
-        .from('cms')
-        .upload(path, optimized, {
-          upsert: true,
-          contentType: optimized.type || undefined,
-          cacheControl: '31536000',
-        })
+      const { error: uploadErr } = await supabase.storage.from('cms').upload(path, optimized, {
+        upsert: true,
+        contentType,
+        cacheControl: '31536000',
+      })
 
       if (uploadErr) throw uploadErr
 
