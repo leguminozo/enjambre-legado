@@ -33,7 +33,7 @@ export async function postHonorarioDesdeLedger(c: HonorariosDesdeLedgerContext) 
     p_fecha: body.fecha,
     p_tercero_rut: body.tercero_rut,
     p_tercero_nombre: body.tercero_nombre,
-    p_numero_bhe: body.numero_bhe ?? null,
+    p_numero_bhe: body.numero_bhe ?? undefined,
     p_tasa_retencion: body.tasa_retencion ?? 0.1525,
   });
 

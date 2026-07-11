@@ -1296,7 +1296,7 @@ export function EditorTiendaView() {
       <div className="flex-1 flex overflow-hidden min-h-0">
 
         {/* Left sidebar / Editor area */}
-        <div className={`${mobileTab === 'editor' ? 'flex' : 'hidden'} md:flex w-full md:w-80 lg:w-[26rem] shrink-0 border-r border-border bg-surface-sunken flex-col overflow-hidden`}>
+        <div className={`flex-col w-full md:w-80 lg:w-[26rem] shrink-0 border-r border-border bg-surface-sunken overflow-hidden ${mobileTab === 'editor' ? 'flex' : 'flex max-md:hidden'}`}>
           {/* Section selector — bloques con iconos */}
           <div className="p-3 md:p-3 border-b border-border bg-surface shrink-0">
             <div className="hidden md:flex items-center justify-between px-1 mb-2">
@@ -1332,7 +1332,7 @@ export function EditorTiendaView() {
         </div>
 
         {/* Right: iframe preview */}
-        <div className={`${mobileTab === 'preview' ? 'flex' : 'hidden'} md:flex flex-1 bg-secondary/30 relative flex-col items-center overflow-hidden`}>
+        <div className={`flex-col flex-1 bg-secondary/30 relative items-center overflow-hidden ${mobileTab === 'preview' ? 'flex' : 'flex max-md:hidden'}`}>
           <div
             className="absolute inset-0 opacity-[0.03] pointer-events-none"
             style={{

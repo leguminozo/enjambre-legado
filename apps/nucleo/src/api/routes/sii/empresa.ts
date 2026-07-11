@@ -29,7 +29,7 @@ empresaRoutes.patch("/", async (c) => {
 
   const body = await c.req.json<{
     regimen?: string;
-    acteco?: number;
+    acteco?: string;
     sii_ambiente?: string;
     fecha_inicio_actividades?: string;
     ingresos_brutos_anio_anterior?: number;
