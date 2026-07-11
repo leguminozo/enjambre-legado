@@ -585,7 +585,10 @@ export function BrandAssetsEditor({ content, isUpdating, onSave, onImageUpload }
     setDirty(true);
   };
 
-  /** Upload URL + re-save full brand (heights) so no se pierden sliders. */
+  /**
+   * A: upload solo devuelve URL; este editor es dueño del content y hace onSave completo
+   * (heights + demás campos no se pisan).
+   */
   const uploadBrandField = async (file: File, fieldName: string): Promise<string> => {
     if (!onImageUpload) return '';
     const url = await Promise.resolve(onImageUpload(file, fieldName));
@@ -600,8 +603,8 @@ export function BrandAssetsEditor({ content, isUpdating, onSave, onImageUpload }
   return (
     <div className="space-y-4 pb-8">
       <p className="text-xs text-muted-foreground">
-        PNG/SVG con transparencia se conservan. Fotos de producto siguen yendo a WEBP; el logo no se aplasta a
-        círculo ni pierde alpha.
+        PNG/SVG con transparencia se conservan. El header usa <strong className="text-foreground">Marca</strong> por
+        defecto; en Menú, “Mostrar logo” usa este logo (o un override si subís otro ahí).
       </p>
 
       <BrandAssetUploadField
@@ -695,8 +698,9 @@ export function BrandAssetsEditor({ content, isUpdating, onSave, onImageUpload }
       />
 
       <p className="text-[11px] text-muted-foreground">
-        Tip: para el menú con logo solo (sin texto), activá <strong className="text-foreground">Mostrar logo</strong> en
-        Menú — Estilo y subí el mismo archivo o pegá la URL del logo header.
+        <strong className="text-foreground">Solo logo:</strong> Menú → Estilo → “Mostrar logo” (usa el logo de Marca si
+        no hay override). <strong className="text-foreground">Logo + texto:</strong> desactivá “Mostrar logo” y dejá
+        “Mostrar texto de marca”.
       </p>
       <SaveBar dirty={dirty} isUpdating={isUpdating} onSave={() => { onSave({ ...local }); setDirty(false); }} />
     </div>

@@ -320,11 +320,14 @@ export function parsePwaNavItem(raw: Record<string, unknown>): PwaNavItem | null
 export function parseBrandAssets(raw: Record<string, unknown> | null | undefined): BrandAssets {
   const d = DEFAULT_BRAND_ASSETS;
   if (!raw) return { ...d };
+  // logo_url vacío es válido (sin <img> en header); no forzar default
+  const logoUrl =
+    typeof raw.logo_url === 'string' ? raw.logo_url : d.logo_url;
   return {
-    logo_url: asString(raw.logo_url, d.logo_url) || d.logo_url,
-    logo_footer_url: asString(raw.logo_footer_url, d.logo_footer_url),
-    favicon_url: asString(raw.favicon_url, d.favicon_url),
-    og_image_url: asString(raw.og_image_url, d.og_image_url),
+    logo_url: logoUrl,
+    logo_footer_url: typeof raw.logo_footer_url === 'string' ? raw.logo_footer_url : d.logo_footer_url,
+    favicon_url: asString(raw.favicon_url, d.favicon_url) || d.favicon_url,
+    og_image_url: typeof raw.og_image_url === 'string' ? raw.og_image_url : d.og_image_url,
     logo_height_px: asNumber(raw.logo_height_px, d.logo_height_px, 16, 120),
     logo_max_width_px: asNumber(raw.logo_max_width_px, d.logo_max_width_px, 0, 480),
     logo_footer_height_px: asNumber(raw.logo_footer_height_px, d.logo_footer_height_px, 16, 160),

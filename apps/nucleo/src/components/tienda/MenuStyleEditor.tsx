@@ -433,10 +433,9 @@ export function MenuStyleEditor({ content, isUpdating, onSave, onImageUpload }: 
                         void Promise.resolve(onImageUpload(file, 'logo_src'))
                           .then((url) => {
                             if (typeof url === 'string' && url) {
+                              // Upload = URL only; editor guarda content completo
                               const next = { ...local, logo_src: url, show_logo: true };
                               setLocal(next);
-                              setDirty(true);
-                              // Persist height + logo together
                               onSave(next);
                               setDirty(false);
                             }
@@ -454,8 +453,8 @@ export function MenuStyleEditor({ content, isUpdating, onSave, onImageUpload }: 
             </p>
         </div>
         <ToggleField
-          label="Mostrar logo"
-          desc="Usar imagen de logo en el header (object-contain, sin recorte)"
+          label="Mostrar logo (solo imagen)"
+          desc="Oculta el texto de marca. Usa logo de Menú si hay; si no, el de Marca."
           value={local.show_logo}
           onChange={(v) => patch('show_logo', v)}
         />

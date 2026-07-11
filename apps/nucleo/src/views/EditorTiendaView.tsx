@@ -597,9 +597,14 @@ function EditableItemCard({
     setUploadingField(field);
     void onImageUpload(file, field, item.id)
       .then((url) => {
-        if (url) {
-          setLocalContent((prev) => ({ ...prev, [field]: url }));
-        }
+        if (!url) return;
+        // Editor dueño del save: merge snapshot local + persist content completo
+        setLocalContent((prev) => {
+          const next = { ...prev, [field]: url };
+          onUpdate(item.id, next, localActive);
+          return next;
+        });
+        setDirty(false);
       })
       .finally(() => setUploadingField(null));
     e.target.value = '';
@@ -1157,20 +1162,21 @@ export function EditorTiendaView() {
     });
   };
 
+  /**
+   * Opción A: solo sube a Storage y devuelve URL pública.
+   * El editor dueño del content hace onSave/update con el snapshot completo
+   * (evita race que pisa logo_height_px y otros campos dirty).
+   */
   const handleImageUpload = async (
     file: File,
     fieldName: string,
-    itemId: string,
+    _itemId: string,
   ): Promise<string> => {
     const sectionKey = activeSection as CMSSectionKey;
     try {
       const result = await cms.uploadImage.mutateAsync({ file, sectionKey, fieldName });
-      const currentItem = groupedData[activeSection]?.find((i) => i.id === itemId);
-      if (currentItem) {
-        const updatedContent = { ...currentItem.content, [fieldName]: result.publicUrl };
-        await cms.updateItem.mutateAsync({ id: itemId, content: updatedContent });
-        toast('Imagen subida y guardada', { type: 'success' });
-        refreshIframe();
+      if (!result.publicUrl) {
+        throw new Error('No se obtuvo URL pública de la imagen');
       }
       return result.publicUrl;
     } catch (err) {

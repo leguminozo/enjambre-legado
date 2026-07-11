@@ -88,7 +88,7 @@ const LEGAL_LINKS = [
 export function ShopFooter() {
   const locale = useLocale();
   const { footer, footerSocial, brand } = useStoreChrome();
-  const logoSrc = brand.logo_footer_url || brand.logo_url || '/icons/icon-192.svg';
+  const logoSrc = (brand.logo_footer_url || brand.logo_url || '').trim();
   const logoFooterHeight = brand.logo_footer_height_px || brand.logo_height_px || 48;
 
   return (

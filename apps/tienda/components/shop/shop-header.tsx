@@ -19,6 +19,7 @@ import { usePwaStandalone } from '@/lib/hooks/use-pwa-standalone';
 import { useHeaderMenu } from '@/components/shop/header-menu-context';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveNavLabel, type HeaderNavItem } from '@/lib/shop/header-menu';
+import { resolveHeaderBrand } from '@/lib/shop/resolve-header-brand';
 
 export function ShopHeader() {
   const { itemCount } = useCartLines();
@@ -30,9 +31,7 @@ export function ShopHeader() {
   const tHeader = useTranslations('header');
   const { settings, items } = useHeaderMenu();
   const { brand } = useStoreChrome();
-  const brandLogo = brand.logo_url || '/icons/icon-192.svg';
-  const brandLogoHeight = brand.logo_height_px || 40;
-  const brandLogoMaxWidth = brand.logo_max_width_px || 180;
+  const headerBrand = resolveHeaderBrand(brand, settings);
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifBellKey, setNotifBellKey] = useState(0);
@@ -88,7 +87,7 @@ export function ShopHeader() {
     });
   };
 
-  const brandBlock = settings.show_brand_text ? (
+  const brandBlock = headerBrand.showText ? (
     <div className="flex flex-col items-center md:items-start">
       <span
         className="font-display text-lg uppercase text-foreground group-hover:text-accent transition-colors"
@@ -105,34 +104,29 @@ export function ShopHeader() {
     </div>
   ) : null;
 
-  const logoImgSrc =
-    settings.show_logo && settings.logo_src ? settings.logo_src : brandLogo;
-  const logoImgHeight =
-    settings.show_logo && settings.logo_src
-      ? settings.logo_height_px || brandLogoHeight
-      : brandLogoHeight;
-  const logoImg = (
+  const logoImg = headerBrand.logoSrc ? (
     <img
-      src={logoImgSrc}
+      src={headerBrand.logoSrc}
       alt={settings.brand_line1 || tHeader('brandLine1') || 'Logo'}
       style={{
-        height: `${logoImgHeight}px`,
-        maxWidth: brandLogoMaxWidth > 0 ? `${brandLogoMaxWidth}px` : undefined,
+        height: `${headerBrand.heightPx}px`,
+        maxWidth: headerBrand.maxWidthPx > 0 ? `${headerBrand.maxWidthPx}px` : undefined,
         width: 'auto',
       }}
       className="object-contain shrink-0"
     />
-  );
+  ) : null;
 
-  // Menú con logo dedicado → solo imagen. Si no, marca (logo + texto opcional).
   const logoContent =
-    settings.show_logo && settings.logo_src ? (
-      logoImg
-    ) : (
+    logoImg || brandBlock ? (
       <>
         {logoImg}
         {brandBlock}
       </>
+    ) : (
+      <span className="font-display text-lg uppercase text-foreground">
+        {settings.brand_line1 || tHeader('brandLine1')}
+      </span>
     );
 
   const logoLink = (
