@@ -2,6 +2,14 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { CartLine } from './types';
+import {
+  addCartLine,
+  addQrToLine,
+  cartTotal,
+  removeCartLine,
+  removeQrFromLine,
+  setCartQty,
+} from './cart-math';
 
 const STORAGE_KEY = 'enjambre-campo-pos-cart';
 
@@ -10,6 +18,8 @@ type CartContextValue = {
   addLine: (line: Omit<CartLine, 'cantidad'> & { cantidad?: number }) => void;
   setQty: (producto_id: string, cantidad: number) => void;
   removeLine: (producto_id: string) => void;
+  addQrCode: (producto_id: string, code: string) => void;
+  removeQrCode: (producto_id: string, code: string) => void;
   clear: () => void;
   /** Suma en la misma unidad que `precio` en BD (p. ej. CLP). */
   total: number;
@@ -29,9 +39,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const parsed = JSON.parse(raw) as CartLine[];
         if (Array.isArray(parsed)) setLines(parsed);
       }
-} catch (error) {
-    console.error('[cart] localStorage parse error:', error);
-  }
+    } catch (error) {
+      console.error('[cart] localStorage parse error:', error);
+    }
     setReady(true);
   }, []);
 
@@ -41,36 +51,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [lines, ready]);
 
   const addLine = useCallback((line: Omit<CartLine, 'cantidad'> & { cantidad?: number }) => {
-    setLines((prev) => {
-      const qty = Math.max(1, line.cantidad ?? 1);
-      const i = prev.findIndex((p) => p.producto_id === line.producto_id);
-      if (i >= 0) {
-        const next = [...prev];
-        next[i] = { ...next[i], cantidad: next[i].cantidad + qty };
-        return next;
-      }
-      return [...prev, { ...line, cantidad: qty }];
-    });
+    setLines((prev) => addCartLine(prev, line));
   }, []);
 
   const setQty = useCallback((producto_id: string, cantidad: number) => {
-    const q = Math.max(0, Math.floor(cantidad));
-    setLines((prev) => {
-      if (q === 0) return prev.filter((p) => p.producto_id !== producto_id);
-      return prev.map((p) => (p.producto_id === producto_id ? { ...p, cantidad: q } : p));
-    });
+    setLines((prev) => setCartQty(prev, producto_id, cantidad));
   }, []);
 
   const removeLine = useCallback((producto_id: string) => {
-    setLines((prev) => prev.filter((p) => p.producto_id !== producto_id));
+    setLines((prev) => removeCartLine(prev, producto_id));
+  }, []);
+
+  const addQrCode = useCallback((producto_id: string, code: string) => {
+    setLines((prev) => addQrToLine(prev, producto_id, code));
+  }, []);
+
+  const removeQrCode = useCallback((producto_id: string, code: string) => {
+    setLines((prev) => removeQrFromLine(prev, producto_id, code));
   }, []);
 
   const clear = useCallback(() => setLines([]), []);
 
-  const total = useMemo(
-    () => lines.reduce((s, l) => s + l.precio_unitario * l.cantidad, 0),
-    [lines],
-  );
+  const total = useMemo(() => cartTotal(lines), [lines]);
 
   const value = useMemo(
     () => ({
@@ -78,11 +80,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       addLine,
       setQty,
       removeLine,
+      addQrCode,
+      removeQrCode,
       clear,
       total,
       ready,
     }),
-    [lines, addLine, setQty, removeLine, clear, total, ready],
+    [lines, addLine, setQty, removeLine, addQrCode, removeQrCode, clear, total, ready],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
