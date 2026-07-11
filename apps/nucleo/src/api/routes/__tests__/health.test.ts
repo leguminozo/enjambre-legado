@@ -55,4 +55,23 @@ describe("Health API Routes", () => {
       timestamp: expect.any(String),
     });
   });
+
+  it("GET /api/health/deps reports config checks without leaking secrets", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role";
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UPSTASH_REDIS_REST_TOKEN;
+
+    const res = await app.request("/api/health/deps");
+    expect([200, 503]).toContain(res.status);
+    const json = await res.json();
+    expect(json.service).toBe("enjambre-api");
+    expect(json.checks.supabase_url).toBe("ok");
+    expect(json.checks.supabase_anon).toBe("ok");
+    expect(json.checks.service_role).toBe("ok");
+    expect(json.checks.upstash).toBe("missing");
+    expect(json.status).toBe("ok");
+    expect(JSON.stringify(json)).not.toMatch(/service-role|anon-key/i);
+  });
 });

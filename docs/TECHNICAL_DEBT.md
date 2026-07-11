@@ -16,9 +16,11 @@
 | Env secrets checklist | ✅ `pnpm env:check` / `env:check:prod` |
 | Header-menu.ts nucleo vs tienda | ✅ Unificado en `@enjambre/shop-chrome` |
 | Campo e2e smoke en CI | ✅ `e2e/smoke.spec.ts` + job CI |
+| `packages/database` sin tests | ✅ Vitest: types + migrations integrity |
+| Health deps probe | ✅ `GET /api/health/deps` |
+| Rate limit auth-events | ✅ `RATE_LIMIT_CONFIGS.auth` en security-events |
 | Staging Supabase formal | 🔄 Abierto |
-| `as any` en rutas nucleo | 🔄 Abierto (reducir gradualmente) |
-| `packages/database` sin tests | 🔄 Abierto |
+| `as any` residual (SII/CRM/Supabase joins) | 🔄 Abierto (reducir gradualmente) |
 
 ---
 
@@ -176,7 +178,7 @@
 - [x] Banco Chile webhook verifies HMAC-SHA256 — **implemented in banco-chile/webhook.ts**
 - [x] Payment confirmation endpoints use idempotency keys — **checkout_sessions.status prevents double-processing**
 - [x] Rate limiting active on checkout, webhooks — **Upstash Redis sliding window implemented**
-- [ ] Rate limiting active on auth endpoints (login, register, password reset)
+- [x] Rate limiting on security-events (auth telemetry) via `RATE_LIMIT_CONFIGS.auth` — login/register siguen en Supabase Auth (rate limit nativo + captcha)
 - [ ] SumUp webhook verification (currently uses polling sync)
 - [ ] Checkout success → DTE emitted (async, retried, logged) — **partial: facturas_emitidas created on commit, needs retry + CAF**
 - [ ] CAF cron runs daily, alerts on <50 folios
@@ -184,7 +186,7 @@
 - [ ] Vitest runs in CI (unit coverage >60% on business logic)
 - [ ] Playwright E2E passes: purchase, login, admin CRUD
 - [ ] Sentry captures errors with context
-- [ ] Health endpoint checks DB, Supabase Auth, Transbank connectivity
+- [x] Health `/live` + `/ready` + `/deps` (env presence); deep connectivity probes still optional
 - [ ] Staging environment deployed, anonymized data seeded
 - [ ] CI: lint → typecheck → test → build → deploy staging
 

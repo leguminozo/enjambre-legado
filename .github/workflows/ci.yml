@@ -78,6 +78,9 @@ jobs:
       - name: Test shop-chrome
         run: pnpm --filter @enjambre/shop-chrome test
 
+      - name: Test database
+        run: pnpm --filter @enjambre/database test
+
       - name: Test nucleo
         run: pnpm --filter @enjambre/nucleo test
 

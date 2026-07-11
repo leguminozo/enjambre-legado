@@ -303,7 +303,8 @@ notificationsRoutes.post(
  */
 notificationsRoutes.post("/trigger-worker", authMiddleware, async (c) => {
   const user = c.get("user");
-  const role = (user as any)?.app_metadata?.role;
+  const metaRole = user?.app_metadata?.role;
+  const role = typeof metaRole === "string" ? metaRole : undefined;
 
   const isAdmin = role === "admin" || role === "gerente";
   const secret = c.req.header("x-worker-secret");
@@ -316,7 +317,8 @@ notificationsRoutes.post("/trigger-worker", authMiddleware, async (c) => {
   try {
     const result = await processNotificationQueue();
     return c.json({ success: true, ...result });
-  } catch (err: any) {
-    return c.json({ code: "worker_failed", message: err.message }, 500);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Worker failed";
+    return c.json({ code: "worker_failed", message }, 500);
   }
 });
