@@ -2,7 +2,7 @@
  * Single policy for header logo/text from brand_assets + menu_settings.
  */
 
-import type { BrandAssets } from './brand';
+import type { BrandAssets } from './store-chrome';
 
 /** Subconjunto de HeaderMenuSettings necesario para resolver logo. */
 export type HeaderLogoSettings = {

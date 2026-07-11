@@ -223,10 +223,11 @@ const SECTION_META: Record<
     group: 'pie',
   },
   footer_branding: {
-    label: 'Footer — Marca (legacy)',
-    short: 'Marca pie',
+    label: 'Footer — Marca (legacy · no usar)',
+    short: 'Legacy',
     icon: Copyright,
     group: 'pie',
+    hint: 'Usá Marca y logos + Footer estilo',
   },
   pwa_nav_settings: {
     label: 'PWA — Estilo',

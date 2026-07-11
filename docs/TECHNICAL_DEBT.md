@@ -4,6 +4,24 @@
 
 ---
 
+## Update 2026-07-11 (CMS / monorepo hygiene)
+
+| Item | Estado |
+|------|--------|
+| Brand/logo dual source + WEBP alpha | ✅ Resuelto (pipeline + `resolveHeaderBrand`) |
+| CMS revalidate + CSP iframe | ✅ Resuelto |
+| Duplicado `store-chrome` nucleo/tienda | ✅ Fuente única `@enjambre/shop-chrome` |
+| Duplicado `sale-qr` campo/nucleo | ✅ Fuente única `@enjambre/sale-qr` |
+| Packages ui/sumup/banco-chile sin tests | ✅ Smoke + CI |
+| Env secrets checklist | ✅ `pnpm env:check` / `env:check:prod` |
+| Header-menu.ts nucleo vs tienda (aún distinto) | 🔄 Abierto (tienda tiene más parsers CSS vars) |
+| Staging Supabase formal | 🔄 Abierto |
+| Campo e2e en CI | 🔄 Abierto |
+| `as any` en rutas nucleo | 🔄 Abierto (reducir gradualmente) |
+| `packages/database` sin tests | 🔄 Abierto |
+
+---
+
 ## CRITICAL BLOCKERS (Production Readiness)
 
 **Date**: 2026-06-14

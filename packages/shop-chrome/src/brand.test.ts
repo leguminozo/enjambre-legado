@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_BRAND_ASSETS, parseBrandAssets } from './brand';
+import { DEFAULT_BRAND_ASSETS, parseBrandAssets } from './store-chrome';
 import { resolveHeaderBrand } from './resolve-header-brand';
 
 describe('parseBrandAssets', () => {
@@ -45,5 +45,15 @@ describe('resolveHeaderBrand', () => {
     expect(r.source).toBe('menu');
     expect(r.logoSrc).toBe('https://cdn.example/menu.png');
     expect(r.heightPx).toBe(28);
+  });
+});
+
+describe('store-chrome smoke', () => {
+  it('exporta theme defaults y templates editor', async () => {
+    const m = await import('./store-chrome');
+    expect(m.DEFAULT_THEME_SETTINGS.default_theme).toBeDefined();
+    expect(m.DEFAULT_ANNOUNCEMENT_SETTINGS.enabled).toBe(true);
+    expect(m.LANDING_SECTION_LABELS.hero).toBeTruthy();
+    expect(m.BRAND_ASSETS_TEMPLATE.logo_url).toBeDefined();
   });
 });
