@@ -1221,7 +1221,10 @@ export function EditorTiendaView() {
   const tiendaUrl = getUrlTienda();
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-120px)] -mt-2 mb-4 mx-0 lg:-mx-4 bg-background border border-border rounded-xl overflow-hidden shadow-lg relative z-10 animate-in fade-in zoom-in-95 duration-300">
+    <div
+      data-testid="editor-tienda-root"
+      className="flex-1 flex flex-col h-[calc(100vh-120px)] -mt-2 mb-4 mx-0 lg:-mx-4 bg-background border border-border rounded-xl overflow-hidden shadow-lg relative z-10 animate-in fade-in zoom-in-95 duration-300"
+    >
       {/* ── Top bar ── */}
       <div className="h-14 border-b border-border bg-surface flex items-center justify-between px-4 shrink-0 shadow-sm z-10 gap-3">
         <div className="flex items-center gap-2 min-w-0">

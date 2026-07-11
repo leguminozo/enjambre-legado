@@ -77,6 +77,11 @@ jobs:
           pnpm --filter @enjambre/campo exec vitest run --coverage
           pnpm --filter @enjambre/tienda exec vitest run --coverage lib/shop/resolve-header-brand.test.ts app/api/cms/revalidate/route.test.ts
           pnpm --filter @enjambre/nucleo exec vitest run --coverage -- src/lib/sale-qr.test.ts src/lib/revalidate-tienda.test.ts
+          pnpm --filter @enjambre/pricing exec vitest run --coverage
+          pnpm --filter @enjambre/wallet exec vitest run --coverage
+          pnpm --filter @enjambre/resenas exec vitest run --coverage
+          pnpm --filter @enjambre/logistica exec vitest run --coverage
+          pnpm --filter @enjambre/auth exec vitest run --coverage
 
   build-tienda:
     runs-on: ubuntu-latest
@@ -161,6 +166,38 @@ jobs:
 
       - name: Lint nucleo
         run: pnpm --filter @enjambre/nucleo lint
+
+  e2e-nucleo-editor:
+    runs-on: ubuntu-latest
+    needs: build-nucleo
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_URL_TIENDA: http://localhost:3001
+      CI: true
+      E2E_SKIP_AUTH: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @enjambre/nucleo exec playwright install --with-deps chromium
+
+      - name: Smoke E2E Editor de Tienda
+        run: pnpm --filter @enjambre/nucleo exec playwright test e2e/editor-tienda.spec.ts
 
   build-campo:
     runs-on: ubuntu-latest

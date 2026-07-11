@@ -7,8 +7,9 @@
   "scripts": {
     "test": "pnpm --filter @enjambre/contable test && pnpm --filter @enjambre/fiscal test && pnpm --filter @enjambre/pricing test && pnpm --filter @enjambre/resenas test && pnpm --filter @enjambre/wallet test && pnpm --filter @enjambre/logistica test && pnpm --filter @enjambre/auth test && pnpm --filter @enjambre/nucleo test && pnpm --filter @enjambre/tienda test && pnpm --filter @enjambre/campo test",
     "test:turbo": "turbo run test --filter=@enjambre/contable --filter=@enjambre/fiscal --filter=@enjambre/pricing --filter=@enjambre/resenas --filter=@enjambre/wallet --filter=@enjambre/logistica --filter=@enjambre/auth --filter=@enjambre/nucleo --filter=@enjambre/tienda --filter=@enjambre/campo",
-    "test:coverage": "pnpm --filter @enjambre/campo exec vitest run --coverage && pnpm --filter @enjambre/tienda exec vitest run --coverage lib/shop/resolve-header-brand.test.ts app/api/cms/revalidate/route.test.ts && pnpm --filter @enjambre/nucleo exec vitest run --coverage -- src/lib/sale-qr.test.ts src/lib/revalidate-tienda.test.ts",
+    "test:coverage": "pnpm --filter @enjambre/campo exec vitest run --coverage && pnpm --filter @enjambre/tienda exec vitest run --coverage lib/shop/resolve-header-brand.test.ts app/api/cms/revalidate/route.test.ts && pnpm --filter @enjambre/nucleo exec vitest run --coverage -- src/lib/sale-qr.test.ts src/lib/revalidate-tienda.test.ts && pnpm --filter @enjambre/pricing exec vitest run --coverage && pnpm --filter @enjambre/wallet exec vitest run --coverage && pnpm --filter @enjambre/resenas exec vitest run --coverage && pnpm --filter @enjambre/logistica exec vitest run --coverage && pnpm --filter @enjambre/auth exec vitest run --coverage",
     "test:e2e:nucleo": "pnpm --filter @enjambre/nucleo test:e2e",
+    "test:e2e:editor": "pnpm --filter @enjambre/nucleo exec playwright test e2e/editor-tienda.spec.ts",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
