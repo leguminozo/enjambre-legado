@@ -24,15 +24,18 @@ export function ThemeProvider({
   storageKey = 'enjambre-theme',
   enableSystem = true,
 }: ThemeProviderProps) {
+  const systemOn = Boolean(enableSystem) && !forcedTheme;
+
   return (
     <NextThemesProvider
       attribute="class"
       defaultTheme={defaultTheme}
       forcedTheme={forcedTheme}
-      enableSystem={Boolean(enableSystem) && !forcedTheme}
+      enableSystem={systemOn}
       storageKey={storageKey}
       // Avoid flash / #418 class mismatch on <html>
       disableTransitionOnChange
+      enableColorScheme
     >
       {children}
     </NextThemesProvider>

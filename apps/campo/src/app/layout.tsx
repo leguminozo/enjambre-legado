@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Cormorant_Garamond } from 'next/font/google';
 import React from 'react';
-import { ThemeProvider, ToastProvider } from '@enjambre/ui';
+import { ThemeProvider, ThemeInitScript, ToastProvider } from '@enjambre/ui';
 import { CampoAuthProvider } from '@/components/campo-auth-provider';
 import { SyncProvider } from '@/components/sync-provider';
 import { VercelInsights } from '@/components/VercelInsights';
@@ -39,8 +39,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={`${inter.variable} ${cormorant.variable}`} suppressHydrationWarning>
-      <body className={`${inter.className} bg-background antialiased`}>
-        <ThemeProvider defaultTheme="system">
+      <body className={`${inter.className} bg-background antialiased`} suppressHydrationWarning>
+        <ThemeInitScript storageKey="enjambre-theme" defaultTheme="system" enableSystem />
+        <ThemeProvider defaultTheme="system" storageKey="enjambre-theme" enableSystem>
           <ToastProvider>
             <CampoAuthProvider>
               <SyncProvider>

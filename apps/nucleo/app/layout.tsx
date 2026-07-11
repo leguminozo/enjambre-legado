@@ -3,6 +3,7 @@ import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers/Providers";
 import { VercelInsights } from "@/components/VercelInsights";
+import { ThemeInitScript } from "@enjambre/ui";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -17,6 +18,9 @@ const cormorant = Cormorant_Garamond({
   style: ["normal", "italic"],
   display: "swap",
 });
+
+/** Debe coincidir con Providers → ThemeProvider */
+const NUCLEO_THEME_KEY = "enjambre-nucleo-theme";
 
 export const metadata: Metadata = {
   title: "Enjambre Legado · Núcleo",
@@ -42,7 +46,16 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={`${inter.variable} ${cormorant.variable}`} suppressHydrationWarning>
-      <body className={`${inter.className} bg-background text-foreground antialiased`}>
+      <body
+        className={`${inter.className} bg-background text-foreground antialiased`}
+        suppressHydrationWarning
+      >
+        {/* Antes de React: alinea class light/dark y evita #418 */}
+        <ThemeInitScript
+          storageKey={NUCLEO_THEME_KEY}
+          defaultTheme="dark"
+          enableSystem
+        />
         <Providers>
           {children}
         </Providers>
