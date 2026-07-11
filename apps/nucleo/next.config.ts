@@ -66,6 +66,13 @@ const nextConfig: NextConfig = {
     "@enjambre/contable",
     "@enjambre/banco-chile",
     "@enjambre/sumup",
+    "@enjambre/shop-chrome",
+    "@enjambre/sale-qr",
+    "@enjambre/fiscal",
+    "@enjambre/pricing",
+    "@enjambre/logistica",
+    "@enjambre/resenas",
+    "@enjambre/wallet",
   ],
   serverExternalPackages: ["gsap", "meyda", "sharp"],
   images: {
