@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
+import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, requireProfileRole, tenantMiddleware } from "@/api/lib/middleware";
 import {
@@ -9,6 +10,7 @@ import {
   validateFeriaConsignacion,
   type FeriaSaleItem,
 } from "@/api/lib/feria-pos";
+import { fromLoose } from "@/api/lib/supabase-loose";
 import { registerDeliveredQrCodes } from "@/lib/sale-qr";
 
 const QuickSaleSchema = z.object({
@@ -193,15 +195,14 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     });
   }
 
-  // 2. Crear venta con los items enriquecidos con trazabilidad
-  const { data: venta, error: ventaError } = await supabase
-    .from("ventas")
+  // 2. Crear venta — typegen exige `productos` (Json) y a veces `id`; runtime acepta omitir id
+  const { data: venta, error: ventaError } = await fromLoose(supabase, "ventas")
     .insert({
       vendedor_id: user.id,
       empresa_id: empresaId,
       cash_session_id: input.cash_session_id,
       total,
-      items: enrichedItems,
+      productos: enrichedItems as Json,
       metodo_pago: input.metodo_pago,
       channel,
       cliente_id: input.cliente_id ?? null,
@@ -210,7 +211,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
       origen: channel === "feria" || channel === "local" ? channel : "feria",
       sumup_checkout_id: input.sumup_checkout_id ?? null,
       sumup_transaction_id: input.sumup_transaction_id ?? null,
-    } as any)
+    })
     .select("id, total, metodo_pago, channel, created_at, rep_commission_total")
     .single();
 
@@ -224,11 +225,15 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     return c.json({ code: "venta_create_failed", message: ventaError.message }, 400);
   }
 
-  const ventaId = venta.id;
+  const ventaId = venta.id as string;
   // Audit trail QR (best-effort)
   await registerDeliveredQrCodes(
     async (args) => {
-      const { error } = await supabase.rpc("registrar_escaneo_qr", args as any);
+      const { error } = await supabase.rpc("registrar_escaneo_qr", {
+        p_codigo: args.p_codigo,
+        p_evento: args.p_evento,
+        p_metadata: args.p_metadata as Json | undefined,
+      });
       return { error };
     },
     items,

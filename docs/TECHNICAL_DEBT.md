@@ -21,8 +21,10 @@
 | Rate limit auth-events | ✅ `RATE_LIMIT_CONFIGS.auth` en security-events |
 | `as any` cash/invites/cms/commission | ✅ `Json` tipado + rows inferidos |
 | Campo `E2E_SKIP_AUTH` + POS shell smoke | ✅ middleware + smoke.spec |
+| CRM / dashboard / producción / rep-ventas `as any` | ✅ `fromLoose`/`rpcLoose` + `productos` Json |
 | Staging Supabase formal | 🔄 Abierto |
-| `as any` residual (SII/CRM/Supabase joins) | 🔄 Abierto (reducir gradualmente) |
+| Typegen CRM (`clientes` stub, `interacciones` vs `crm_interacciones`) | 🔄 Abierto — requiere `db:typegen` + alinear schema |
+| `as any` residual (SII / creadores / blockchain) | 🔄 Abierto |
 
 ---
 

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import { fromLoose } from "@/api/lib/supabase-loose";
 
 type TimeRange = "month" | "quarter" | "ytd";
 
@@ -78,14 +79,13 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
       .gte("date", yearStart)
       .order("date", { ascending: false })
       .limit(50),
-    (supabase as any)
-      .from("cosechas")
+    // typegen de cosechas sin empresa_id; runtime sí lo tiene
+    fromLoose(supabase, "cosechas")
       .select("id, kg, fecha, floracion")
       .eq("empresa_id", empresaId)
       .gte("fecha", from)
       .lte("fecha", to),
-    (supabase as any)
-      .from("cosechas")
+    fromLoose(supabase, "cosechas")
       .select("id, kg, fecha, floracion")
       .eq("empresa_id", empresaId)
       .gte("fecha", yearStart),
@@ -161,8 +161,8 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
       .eq("empresa_id", empresaId)
       .order("created_at", { ascending: false })
       .limit(10),
-    (supabase as any)
-      .from("productos")
+    // productos typegen sin empresa_id
+    fromLoose(supabase, "productos")
       .select("id, nombre, precio, stock, categoria")
       .eq("empresa_id", empresaId),
   ]);

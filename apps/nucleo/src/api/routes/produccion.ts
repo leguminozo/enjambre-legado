@@ -3,6 +3,8 @@ import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
+import { rpcLoose } from "@/api/lib/supabase-loose";
+import type { Json } from "@enjambre/database/database.types";
 
 export const produccionRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -21,10 +23,11 @@ produccionRoutes.get("/dashboard", async (c) => {
       .from("productos")
       .select("*")
       .eq("visible", true),
-    (supabase as any)
+    // typegen usa columna `productos` (Json) en ventas, no `items`
+    supabase
       .from("ventas")
-      .select("items, created_at")
-      .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      .select("productos, created_at")
+      .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
   ]);
 
   const lotes = lotesRes.data ?? [];
@@ -34,14 +37,15 @@ produccionRoutes.get("/dashboard", async (c) => {
   const itemSchema = z.object({
     producto_id: z.string().optional(),
     id: z.string().optional(),
-    cantidad: z.number().optional()
+    cantidad: z.number().optional(),
   });
 
   // Calcular demanda (unidades vendidas últimos 30 días por producto)
   const demandaMap: Record<string, number> = {};
-  ventas.forEach((v: any) => {
-    if (Array.isArray(v.items)) {
-      v.items.forEach((rawItem: any) => {
+  ventas.forEach((v) => {
+    const lineItems = v.productos;
+    if (Array.isArray(lineItems)) {
+      lineItems.forEach((rawItem: Json) => {
         const parsed = itemSchema.safeParse(rawItem);
         if (parsed.success) {
           const item = parsed.data;
@@ -291,9 +295,9 @@ produccionRoutes.post(
     const supabase = c.get("supabase");
     const { producto_id, cantidad } = c.req.valid("json");
 
-    const { data, error } = await (supabase as any).rpc("add_traceable_stock", {
+    const { data, error } = await rpcLoose(supabase, "add_traceable_stock", {
       p_producto_id: producto_id,
-      p_qty: cantidad
+      p_qty: cantidad,
     });
 
     if (error) {

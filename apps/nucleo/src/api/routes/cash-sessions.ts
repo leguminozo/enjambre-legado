@@ -234,7 +234,7 @@ cashSessionsRoutes.get("/:id", async (c) => {
 
   const { data: ventas } = await supabase
     .from("ventas")
-    .select("id, total, metodo_pago, channel, created_at, items")
+    .select("id, total, metodo_pago, channel, created_at, productos")
     .eq("cash_session_id", sessionId)
     .order("created_at", { ascending: true });
 

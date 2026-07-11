@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import { fromLoose } from "@/api/lib/supabase-loose";
 
 const CreateInteraccionSchema = z.object({
   cliente_id: z.string().uuid(),
@@ -95,8 +96,8 @@ crmRoutes.get("/dashboard", async (c) => {
       .select("id, name, type, status, total_spent, last_purchase, fuente, vendedor_id, ultimo_contacto, user_id")
       .order("last_purchase", { ascending: true, nullsFirst: true })
       .limit(200),
-    (supabase as any)
-      .from("interacciones")
+    // tablas runtime (interacciones / assignments) desfasadas vs typegen
+    fromLoose(supabase, "interacciones")
       .select("id, tipo, resultado, created_at, proximo_seguimiento, rep_id, cliente_id")
       .eq("empresa_id", empresaId)
       .order("created_at", { ascending: false })
@@ -107,8 +108,7 @@ crmRoutes.get("/dashboard", async (c) => {
       .gte("fecha_fin", new Date().toISOString().slice(0, 10))
       .order("fecha_inicio", { ascending: true })
       .limit(20),
-    (supabase as any)
-      .from("evento_rep_assignments")
+    fromLoose(supabase, "evento_rep_assignments")
       .select("id, evento_id, rep_id, rol_evento, meta_ventas")
       .eq("empresa_id", empresaId),
     supabase
@@ -129,34 +129,54 @@ crmRoutes.get("/dashboard", async (c) => {
   const eventos = eventosRes.data ?? [];
   const assignments = assignmentsRes.data ?? [];
 
+  type ClienteDash = {
+    status?: string | null;
+    fuente?: string | null;
+  };
+  type InteraccionDash = {
+    tipo?: string | null;
+    resultado?: string | null;
+    proximo_seguimiento?: string | null;
+  };
+  type RepDash = {
+    user_id: string;
+    display_name?: string | null;
+    clients_captured?: number | null;
+    total_sales_lifetime?: number | null;
+    total_revenue_lifetime?: number | null;
+    balance_pendiente?: number | null;
+    current_streak_days?: number | null;
+    commission_tier?: string | null;
+  };
+
   const totalClientes = clientes.length;
   const clientesByStatus: Record<string, number> = {};
-  clientes.forEach((cl: any) => {
+  (clientes as ClienteDash[]).forEach((cl) => {
     const s = cl.status ?? "sin_status";
     clientesByStatus[s] = (clientesByStatus[s] ?? 0) + 1;
   });
 
   const clientesByFuente: Record<string, number> = {};
-  clientes.forEach((cl: any) => {
+  (clientes as ClienteDash[]).forEach((cl) => {
     const f = cl.fuente ?? "sin_fuente";
     clientesByFuente[f] = (clientesByFuente[f] ?? 0) + 1;
   });
 
   const interaccionesByTipo: Record<string, number> = {};
-  interacciones.forEach((i: any) => {
-    interaccionesByTipo[i.tipo] = (interaccionesByTipo[i.tipo] ?? 0) + 1;
+  (interacciones as InteraccionDash[]).forEach((i) => {
+    const tipo = i.tipo ?? "otro";
+    interaccionesByTipo[tipo] = (interaccionesByTipo[tipo] ?? 0) + 1;
   });
 
   const interaccionesByResultado: Record<string, number> = {};
-  interacciones.forEach((i: any) => {
+  (interacciones as InteraccionDash[]).forEach((i) => {
     const r = i.resultado ?? "sin_resultado";
     interaccionesByResultado[r] = (interaccionesByResultado[r] ?? 0) + 1;
   });
 
-  const proximosSeguimientos = interacciones.filter(
-    (i: any) =>
-      i.proximo_seguimiento != null &&
-      i.proximo_seguimiento >= new Date().toISOString().slice(0, 10)
+  const today = new Date().toISOString().slice(0, 10);
+  const proximosSeguimientos = (interacciones as InteraccionDash[]).filter(
+    (i) => i.proximo_seguimiento != null && i.proximo_seguimiento >= today,
   );
 
   const totalVentas = (ventasByChannelRes.data ?? []).reduce(
@@ -189,18 +209,16 @@ crmRoutes.get("/dashboard", async (c) => {
     commission_balance: number;
     streak: number;
     tier: string;
-  }> = reps.map(
-    (r: any) => ({
-      rep_id: r.user_id,
-      display_name: r.display_name,
-      clients_captured: Number(r.clients_captured ?? 0),
-      total_sales: Number(r.total_sales_lifetime ?? 0),
-      total_revenue: Number(r.total_revenue_lifetime ?? 0),
-      commission_balance: Number(r.balance_pendiente ?? 0),
-      streak: Number(r.current_streak_days ?? 0),
-      tier: r.commission_tier ?? "base",
-    })
-  );
+  }> = (reps as RepDash[]).map((r) => ({
+    rep_id: r.user_id,
+    display_name: r.display_name ?? "",
+    clients_captured: Number(r.clients_captured ?? 0),
+    total_sales: Number(r.total_sales_lifetime ?? 0),
+    total_revenue: Number(r.total_revenue_lifetime ?? 0),
+    commission_balance: Number(r.balance_pendiente ?? 0),
+    streak: Number(r.current_streak_days ?? 0),
+    tier: r.commission_tier ?? "base",
+  }));
 
   return c.json({
     data: {
@@ -235,8 +253,8 @@ crmRoutes.get("/clientes", async (c) => {
   const status = c.req.query("status");
   const search = c.req.query("q");
 
-  let query = (supabase as any)
-    .from("clientes")
+  // clientes en typegen es stub; runtime tiene email/fuente/vendedor_id (mig CRM)
+  let query = fromLoose(supabase, "clientes")
     .select("id, name, type, status, total_spent, last_purchase, fuente, email, telefono, empresa, vendedor_id, ultimo_contacto, notes, user_id")
     .order("last_purchase", { ascending: true, nullsFirst: true })
     .limit(200);
@@ -263,8 +281,7 @@ crmRoutes.post("/clientes", zValidator("json", CreateClienteSchema), async (c) =
   const supabase = c.get("supabase");
   const user = c.get("user");
 
-  const { data, error } = await supabase
-    .from("clientes")
+  const { data, error } = await fromLoose(supabase, "clientes")
     .insert({
       name: input.name,
       type: input.type ?? null,
@@ -276,7 +293,7 @@ crmRoutes.post("/clientes", zValidator("json", CreateClienteSchema), async (c) =
       status: input.status ?? "prospecto",
       vendedor_id: user.id,
       ultimo_contacto: new Date().toISOString(),
-    } as any)
+    })
     .select("*")
     .single();
 
@@ -292,9 +309,8 @@ crmRoutes.patch("/clientes/:id", zValidator("json", UpdateClienteSchema), async 
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
 
-  const { data, error } = await supabase
-    .from("clientes")
-    .update(input as any)
+  const { data, error } = await fromLoose(supabase, "clientes")
+    .update(input)
     .eq("id", clienteId)
     .select("*")
     .single();
@@ -338,8 +354,7 @@ crmRoutes.get("/interacciones", async (c) => {
   const empresaId = c.get("empresaId");
   const clienteId = c.req.query("cliente_id");
 
-  let query = (supabase as any)
-    .from("interacciones")
+  let query = fromLoose(supabase, "interacciones")
     .select("*")
     .eq("empresa_id", empresaId)
     .order("created_at", { ascending: false })
@@ -367,8 +382,7 @@ crmRoutes.post(
     const user = c.get("user");
     const empresaId = c.get("empresaId");
 
-    const { data, error } = await (supabase as any)
-      .from("interacciones")
+    const { data, error } = await fromLoose(supabase, "interacciones")
       .insert({
         cliente_id: input.cliente_id,
         rep_id: user.id,
@@ -377,7 +391,7 @@ crmRoutes.post(
         notas: input.notas ?? null,
         resultado: input.resultado ?? null,
         proximo_seguimiento: input.proximo_seguimiento ?? null,
-      } as any)
+      })
       .select("*")
       .single();
 
@@ -385,9 +399,8 @@ crmRoutes.post(
       return c.json({ code: "interaccion_create_failed", message: error.message }, 400);
     }
 
-    await (supabase as any)
-      .from("clientes")
-      .update({ ultimo_contacto: new Date().toISOString() } as any)
+    await fromLoose(supabase, "clientes")
+      .update({ ultimo_contacto: new Date().toISOString() })
       .eq("id", input.cliente_id);
 
     return c.json({ data }, 201);
@@ -408,18 +421,22 @@ crmRoutes.get("/eventos", async (c) => {
     return c.json({ code: "query_failed", message: error.message }, 500);
   }
 
-  const assignmentsRes = await (supabase as any)
-    .from("evento_rep_assignments")
+  const assignmentsRes = await fromLoose(supabase, "evento_rep_assignments")
     .select("id, evento_id, rep_id, rol_evento, meta_ventas")
     .eq("empresa_id", empresaId);
 
-  const assignments = assignmentsRes.data ?? [];
+  type AssignmentRow = {
+    id: string;
+    evento_id: string;
+    rep_id: string;
+    rol_evento: string;
+    meta_ventas: number;
+  };
+  const assignments = (assignmentsRes.data ?? []) as AssignmentRow[];
 
-  const eventosWithAssignments = (data ?? []).map((e: Record<string, unknown>) => ({
+  const eventosWithAssignments = (data ?? []).map((e) => ({
     ...e,
-    reps: (assignments as any[]).filter(
-      (a) => a.evento_id === e.id
-    ),
+    reps: assignments.filter((a) => a.evento_id === e.id),
   }));
 
   return c.json({ data: eventosWithAssignments });
@@ -430,8 +447,7 @@ crmRoutes.post("/eventos/assign", zValidator("json", AssignRepSchema), async (c)
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
 
-  const { data, error } = await (supabase as any)
-    .from("evento_rep_assignments")
+  const { data, error } = await fromLoose(supabase, "evento_rep_assignments")
     .insert({
       evento_id: input.evento_id,
       rep_id: input.rep_id,
