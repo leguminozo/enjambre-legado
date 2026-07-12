@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 function CampoLanding() {
   return (
-    <main className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground pb-20 font-sans">
+    <main className="min-h-dvh bg-background text-foreground selection:bg-primary selection:text-primary-foreground pb-20 font-sans">
       <section className="relative pt-32 pb-20 px-6 sm:px-12 lg:px-24 flex flex-col items-center text-center overflow-hidden">
         {/* Subtle background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/10 blur-[120px] -z-10" />

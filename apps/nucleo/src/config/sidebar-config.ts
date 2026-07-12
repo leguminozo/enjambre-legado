@@ -172,6 +172,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     label: 'GESTIÓN',
     items: [
         {
+          key: 'calendario',
+          label: 'Calendario',
+          icon: 'calendar-days',
+          href: '/calendario',
+          greeting: 'Guardián del tiempo',
+          mission: 'El ciclo del enjambre no se detiene',
+        },
+        {
           key: 'ejecutivo',
           label: 'Panel Ejecutivo',
           icon: 'bar-chart-3',
@@ -278,6 +286,7 @@ export const VIEW_SHELL_PATHS = new Set([
   '/ejecutivo',
   '/invitaciones',
   '/operadores-feria',
+  '/calendario',
   '/creador',
   '/editor-tienda',
   '/punto-venta',

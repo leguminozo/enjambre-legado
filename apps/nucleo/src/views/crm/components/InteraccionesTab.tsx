@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MessageSquare, Plus, X, Clock, Loader2, MapPin } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
-import { toast } from "@enjambre/ui";
+import { toast, DatePicker } from "@enjambre/ui";
 import {
   CRMDashboard,
   TIPO_ICONS,
@@ -159,11 +159,10 @@ export function InteraccionesTab({ dashboard, selectedClienteId }: Interacciones
               <option value="negativo">Negativo</option>
               <option value="seguimiento">Seguimiento</option>
             </select>
-            <input
-              type="date"
+            <DatePicker
               value={newInteraccionForm.proximo_seguimiento}
-              onChange={(e) => setNewInteraccionForm((f) => ({ ...f, proximo_seguimiento: e.target.value }))}
-              className="bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent font-mono"
+              onChange={(val) => setNewInteraccionForm((f) => ({ ...f, proximo_seguimiento: val }))}
+              className="w-auto min-w-[200px]"
             />
           </div>
           <textarea

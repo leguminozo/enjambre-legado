@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Settings2, CheckCircle2, Save, Trash2, KeyRound } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
-import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, DatePicker } from "@enjambre/ui";
 
 interface EmpresaSettings {
   id: string;
@@ -222,11 +222,10 @@ export function SettingsTab() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground font-medium">Fecha inicio actividades</label>
-              <input
+              <DatePicker
                 value={settingsForm.fecha_inicio_actividades}
-                onChange={(e) => setSettingsForm((prev) => ({ ...prev, fecha_inicio_actividades: e.target.value }))}
-                type="date"
-                className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                onChange={(val) => setSettingsForm((prev) => ({ ...prev, fecha_inicio_actividades: val }))}
+                className="w-full"
               />
             </div>
             <div className="space-y-1">

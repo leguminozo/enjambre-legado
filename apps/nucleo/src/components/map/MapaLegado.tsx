@@ -7,7 +7,7 @@ import L from 'leaflet';
 import { BOSQUE_ULMO, ORO_MIEL, ORO_MIEL_DARK, SALUD_OPTIMA } from '@/lib/colors';
 import 'leaflet/dist/leaflet.css';
 import { Plus, X, MapPin } from 'lucide-react';
-import { toast, friendlyError } from '@enjambre/ui';
+import { toast, friendlyError, DatePicker } from '@enjambre/ui';
 import { resolveClienteCoords } from '@/lib/cliente-coords';
 
 export interface MapMarker {
@@ -838,11 +838,10 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                             </div>
                             <div>
                                 <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Fecha de Inicio</label>
-                                <input 
-                                    type="date"
-                                    className="input-field" 
+                                <DatePicker 
+                                    className="w-full" 
                                     value={newEventForm.fecha_inicio} 
-                                    onChange={e => setNewEventForm({ ...newEventForm, fecha_inicio: e.target.value })} 
+                                    onChange={val => setNewEventForm({ ...newEventForm, fecha_inicio: val })} 
                                 />
                             </div>
                         </div>

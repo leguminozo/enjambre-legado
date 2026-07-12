@@ -1,5 +1,5 @@
 import { ViewLoading } from '@enjambre/ui';
 
 export default function CampoLoading() {
-  return <ViewLoading variant="page" label="Cargando" hideLabel />;
+  return <ViewLoading variant="page" label="Cargando" hideLabel context="campo" />;
 }

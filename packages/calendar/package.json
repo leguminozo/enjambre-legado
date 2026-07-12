@@ -1,0 +1,32 @@
+{
+  "name": "@enjambre/calendar",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc --watch -p tsconfig.json",
+    "lint": "eslint ."
+  },
+  "peerDependencies": {
+    "lucide-react": "^1.16.0",
+    "react": "^19.0.0",
+    "tailwindcss": ">=3.0.0"
+  },
+  "dependencies": {
+    "@enjambre/auth": "workspace:*",
+    "@enjambre/ui": "workspace:*",
+    "@gsap/react": "^2.1.2",
+    "@supabase/supabase-js": "^2.106.1",
+    "date-fns": "^3.6.0",
+    "gsap": "^3.15.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.15",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.2",
+    "typescript": "~5.9.3"
+  }
+}

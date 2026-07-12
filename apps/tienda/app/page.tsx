@@ -43,7 +43,7 @@ export default async function TiendaPage() {
     { type: 'image', src: '/assets/editorial/honey-jar.png', alt: 'Frascos de miel' },
   ];
 
-  const youtubeVideoId = process.env.NEXT_PUBLIC_YOUTUBE_VIDEO_ID || 'dQw4w9WgXcQ';
+  const youtubeVideoId = process.env.NEXT_PUBLIC_YOUTUBE_VIDEO_ID || 'btf0A6zzZtI';
 
   const footerData = {
     branding: (footerBrandingData[0]?.content ?? { tagline: '¡Seamos Legado! Luce saludable. Sé parte del cambio.', email: 'hola@obrerayzangano.com' }) as FooterBranding,

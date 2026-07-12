@@ -14,7 +14,7 @@ const DesdeLedgerSchema = z.object({
 type HonorariosDesdeLedgerContext = Context<{ Variables: AppVariables }>;
 
 /** Handler plano — evita límite de profundidad de tipos al montar sub-router Hono */
-export async function postHonorarioDesdeLedger(c: HonorariosDesdeLedgerContext) {
+export async function postHonorarioDesdeLedger(c: HonorariosDesdeLedgerContext): Promise<Response> {
   if (c.get("profileRole") !== "admin") {
     return c.json({ code: "forbidden", message: "Rol insuficiente para esta operación" }, 403);
   }

@@ -117,7 +117,7 @@ export const DEFAULT_FOOTER_SOCIAL: FooterSocialItem[] = [
   { label: 'Facebook', href: 'https://www.facebook.com/ObreraZangano/', network: 'facebook' },
   { label: 'TikTok', href: 'https://www.tiktok.com/@obrera_y_zangano', network: 'tiktok' },
   { label: 'X', href: 'https://x.com/obrerayzangano', network: 'x' },
-  { label: 'YouTube', href: 'https://www.youtube.com/@obrerayzangano', network: 'youtube' },
+  { label: 'YouTube', href: 'https://www.youtube.com/@obrera_y_zangano', network: 'youtube' },
 ];
 
 // ── PWA bottom nav ─────────────────────────────────────────────────────────

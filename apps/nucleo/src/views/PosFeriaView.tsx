@@ -104,7 +104,7 @@ export function PosFeriaView() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-var(--header-height,64px))]">
+    <div className="flex flex-col h-[calc(100dvh-var(--header-height,64px))]">
       <ViewShell
         eyebrow="Operaciones en Terreno"
         title="Punto de Venta"

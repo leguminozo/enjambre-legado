@@ -14,7 +14,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast, ImmersiveModal } from '@enjambre/ui';
+import { toast, ImmersiveModal, DatePicker } from '@enjambre/ui';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { ViewShell } from '@/components/layout/ViewShell';
 
@@ -640,11 +640,10 @@ export function PipelineView() {
             </div>
             <div>
               <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Vencimiento</label>
-              <input
-                type="date"
-                className="input-field text-sm w-full"
+              <DatePicker
+                className="w-full"
                 value={tareaForm.fecha_vencimiento}
-                onChange={(e) => setTareaForm({ ...tareaForm, fecha_vencimiento: e.target.value })}
+                onChange={(val) => setTareaForm({ ...tareaForm, fecha_vencimiento: val })}
               />
             </div>
             <div>

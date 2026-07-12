@@ -10,7 +10,6 @@ import { mapInAppNotificationToAlertItem } from '@enjambre/auth';
 import { supabase } from '../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ColmenaFicha } from '../components/apicultor/ColmenaFicha';
-import { CalendarioCiclico } from '../components/apicultor/CalendarioCiclico';
 import { TrazabilidadPanel } from '../components/apicultor/TrazabilidadPanel';
 import { ApiarioManager } from '../components/apicultor/ApiarioManager';
 import { HeaderEcosistema } from '../components/apicultor/HeaderEcosistema';
@@ -243,8 +242,15 @@ export function ApicultorView() {
                     )}
 
                     {activeView === 'calendario' && (
-                        <div className="animate-in delay-2">
-                            <CalendarioCiclico />
+                        <div className="animate-in delay-2 flex flex-col items-center justify-center p-12 bg-card border border-border/50 rounded-xl text-center">
+                            <CalendarDays className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
+                            <h3 className="text-xl font-display font-bold mb-2">Calendario Centralizado</h3>
+                            <p className="text-muted-foreground mb-6 max-w-md">
+                                El ciclo del bosque ahora se gestiona desde el nuevo OmniCalendar transversal.
+                            </p>
+                            <a href="/calendario" className="px-6 py-2 bg-primary text-primary-foreground font-medium rounded-full hover:bg-primary/90 transition-colors">
+                                Ir al Calendario
+                            </a>
                         </div>
                     )}
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useTransition, useOptimistic } from 'react';
-import { Button, Input, Textarea, toast } from "@enjambre/ui";
+import { Button, Input, Textarea, toast, DatePicker } from "@enjambre/ui";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
@@ -111,14 +111,12 @@ className="bg-background border-border"
           </div>
           <div>
             <Label htmlFor="fecha">Fecha</Label>
-            <Input
-              id="fecha"
-              type="date"
-              {...register('fecha')}
-              className="bg-background border-border"
-                required
-              />
-            </div>
+            <DatePicker
+              value={watch('fecha')}
+              onChange={(val) => setValue('fecha', val)}
+              className="w-full"
+            />
+          </div>
           </div>
 
           <div>

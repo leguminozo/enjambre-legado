@@ -16,7 +16,7 @@ import {
   DEFAULT_COURIER,
   type CourierCode,
 } from '@enjambre/logistica';
-import { ImmersiveModal, ViewLoading } from '@enjambre/ui';
+import { ImmersiveModal, ViewLoading, DatePicker } from '@enjambre/ui';
 import dynamic from 'next/dynamic';
 import type { EnvioMapPoint } from './MapaEnviosHistorico';
 
@@ -221,11 +221,10 @@ export function EnvioComposerModal({
                 </label>
                 <label className="space-y-1.5 block">
                   <span className="text-[10px] uppercase tracking-wider text-muted-foreground">ETA</span>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={form.eta}
-                    onChange={(e) => patchForm({ eta: e.target.value })}
-                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm"
+                    onChange={(val) => patchForm({ eta: val })}
+                    className="w-full"
                   />
                 </label>
                 <label className="space-y-1.5 block sm:col-span-2">

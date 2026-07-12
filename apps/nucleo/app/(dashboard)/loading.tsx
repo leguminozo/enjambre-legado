@@ -1,5 +1,5 @@
 import { ViewLoading } from '@enjambre/ui';
 
 export default function DashboardLoading() {
-  return <ViewLoading variant="page" label="Cargando módulo" hideLabel />;
+  return <ViewLoading variant="page" label="Cargando módulo" hideLabel context="nucleo" />;
 }

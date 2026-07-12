@@ -5,7 +5,7 @@ export default function NucleoLanding() {
   const urlTienda = process.env.NEXT_PUBLIC_URL_TIENDA?.trim() || '';
 
   return (
-    <main className="min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground pb-20">
+    <main className="min-h-dvh bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground pb-20">
       <section className="relative pt-32 pb-20 px-6 sm:px-12 lg:px-24 flex flex-col items-center text-center overflow-hidden">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[70%] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[60%] bg-accent/10 rounded-full blur-[100px] pointer-events-none" />

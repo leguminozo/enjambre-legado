@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Input, Textarea, toast } from "@enjambre/ui";
+import { Button, Input, Textarea, toast, DatePicker } from "@enjambre/ui";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
@@ -207,14 +207,11 @@ console.error('Error creando gasto:', error);
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="fecha">Fecha</Label>
-              <Input
-                id="fecha"
-                type="date"
+              <DatePicker
                 value={formData.fecha}
-                onChange={(e) => handleInputChange('fecha', e.target.value)}
-className="bg-background border-border"
-                    required
-                  />
+                onChange={(val) => handleInputChange('fecha', val)}
+                className="w-full"
+              />
                 </div>
                 <div>
                   <Label htmlFor="categoria">Categoría</Label>

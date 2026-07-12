@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay, DatePicker } from "@enjambre/ui";
 import {
   BandejaGastoRow,
   FiscalUploadResult,
@@ -487,13 +487,12 @@ export function BandejaFiscalTab() {
                 </label>
                 <label className="text-xs uppercase text-muted-foreground">
                   Fecha emisión
-                  <input
-                    type="date"
+                  <DatePicker
                     value={gastoParseado.fechaEmision}
-                    onChange={(e) =>
-                      setGastoParseado({ ...gastoParseado, fechaEmision: e.target.value })
+                    onChange={(val) =>
+                      setGastoParseado({ ...gastoParseado, fechaEmision: val })
                     }
-                    className="mt-1 w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm font-mono text-foreground"
+                    className="mt-1 w-full"
                   />
                 </label>
               </div>

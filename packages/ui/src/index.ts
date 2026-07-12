@@ -52,4 +52,5 @@ export {
 export { BentoGrid, BentoGridItem } from './components/bento-grid';
 export { CinematicCard } from './components/cinematic-card';
 export { PredictivePill } from './components/predictive-pill';
-
+export { Calendar, type CalendarProps } from './components/calendar';
+export { DatePicker, type DatePickerProps } from './components/date-picker';

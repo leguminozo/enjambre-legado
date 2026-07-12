@@ -6,6 +6,7 @@ const config = {
   content: [
     './src/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    '../../packages/calendar/src/**/*.{js,ts,jsx,tsx,mdx}',
     ...enjambreUiContent,
   ],
   theme: {

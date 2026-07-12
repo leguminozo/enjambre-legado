@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, ImmersiveModal } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker } from '@enjambre/ui';
 import {
   Calendar, Package, ClipboardCheck, FileText, Loader2,
   Plus, Check, X, Users, Wallet, AlertTriangle,
@@ -1025,11 +1025,10 @@ export function OperadoresFeriaPanel() {
           </div>
           <div>
             <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Fecha inicio</label>
-            <input
-              type="date"
-              className="input-field text-sm w-full"
+            <DatePicker
+              className="w-full"
               value={eventoForm.fecha_inicio}
-              onChange={(e) => setEventoForm({ ...eventoForm, fecha_inicio: e.target.value })}
+              onChange={(val) => setEventoForm({ ...eventoForm, fecha_inicio: val })}
             />
           </div>
         </div>
@@ -1071,11 +1070,10 @@ export function OperadoresFeriaPanel() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Fecha</label>
-                <input
-                  type="date"
-                  className="input-field text-sm w-full"
+                <DatePicker
+                  className="w-full"
                   value={honorarioModal.fecha}
-                  onChange={(e) => setHonorarioModal({ ...honorarioModal, fecha: e.target.value })}
+                  onChange={(val) => setHonorarioModal({ ...honorarioModal, fecha: val })}
                 />
               </div>
               <div>

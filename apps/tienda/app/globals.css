@@ -20,7 +20,7 @@
     @apply block text-editorial-xs tracking-widest uppercase text-accent;
   }
   .editorial-section {
-    @apply py-24 md:py-32 px-6;
+    @apply py-16 md:py-24 px-4 sm:px-6;
   }
   .editorial-container {
     @apply max-w-7xl mx-auto;

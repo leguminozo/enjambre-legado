@@ -13,14 +13,14 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
       <CashProvider>
         <FeriaProvider>
           <SumUpProvider>
-            <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground">
+            <div className="min-h-dvh bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground">
               {/* Ambient glow */}
               <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/5 blur-[120px]" />
                 <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-primary/5 blur-[120px]" />
               </div>
 
-              <div className="relative z-10 flex flex-col min-h-screen">
+              <div className="relative z-10 flex flex-col min-h-dvh">
                 <PosHeader />
                 <FeriaContextBanner />
                 <SyncStatusBanner />

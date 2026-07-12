@@ -25,7 +25,7 @@ export function LandingLoader() {
         isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
     >
-      <ViewLoading variant="fullscreen" label="La Obrera y el Zángano" />
+      <ViewLoading variant="fullscreen" label="La Obrera y el Zángano" context="tienda" />
     </div>
   );
 }

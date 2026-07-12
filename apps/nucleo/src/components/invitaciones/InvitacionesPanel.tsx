@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, ImmersiveModal } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker } from '@enjambre/ui';
 import {
   Ticket, Loader2, Plus, Copy, Check,
   CheckCircle2, Clock, X, Eye
@@ -270,7 +270,7 @@ export function InvitacionesPanel() {
           </div>
           <div>
             <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Vigencia</label>
-            <input type="date" value={newCode.expiresAt} onChange={e => setNewCode({ ...newCode, expiresAt: e.target.value })} className="input-field text-sm w-full" />
+            <DatePicker value={newCode.expiresAt} onChange={val => setNewCode({ ...newCode, expiresAt: val })} className="w-full" />
             <p className="text-[0.6rem] text-muted-foreground mt-1">Sin fecha = sin expiración</p>
           </div>
         </div>
