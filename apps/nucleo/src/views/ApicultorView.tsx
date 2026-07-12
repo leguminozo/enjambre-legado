@@ -248,8 +248,8 @@ export function ApicultorView() {
                             <p className="text-muted-foreground mb-6 max-w-md">
                                 El ciclo del bosque ahora se gestiona desde el nuevo OmniCalendar transversal.
                             </p>
-                            <a href="/calendario" className="px-6 py-2 bg-primary text-primary-foreground font-medium rounded-full hover:bg-primary/90 transition-colors">
-                                Ir al Calendario
+                            <a href="/calendario?type=apicultura" className="px-6 py-2 bg-primary text-primary-foreground font-medium rounded-full hover:bg-primary/90 transition-colors">
+                                Abrir mes · Apicultura
                             </a>
                         </div>
                     )}

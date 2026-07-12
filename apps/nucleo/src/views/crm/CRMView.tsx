@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Users, TrendingUp, MessageSquare, Calendar, Target, Loader2, Shield, Star } from "lucide-react";
+import { Users, TrendingUp, MessageSquare, Calendar, Target, Loader2, Shield, Star, ExternalLink } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { OverviewTab } from "./components/OverviewTab";
 import { ClientesTab } from "./components/ClientesTab";
@@ -78,23 +79,37 @@ export function CRMView() {
             label: "Interacciones",
             trend: stats.proximosSeguimientos > 0 ? `${stats.proximosSeguimientos} seg.` : undefined,
           },
-          { icon: <Calendar size={20} />, val: String(stats.upcomingEventos), label: "Próximas Ferias" },
-        ].map((s, i) => (
-          <div key={i} className="stat-card flex flex-col justify-between">
-            <div className="stat-header flex items-center justify-between mb-2">
-              <div className="stat-icon text-accent">{s.icon}</div>
-              {s.trend && (
-                <span className="stat-trend bg-primary/10 text-primary border border-primary/20 text-[10px] px-2 py-0.5 rounded-full font-bold">
-                  {s.trend}
-                </span>
-              )}
+          { icon: <Calendar size={20} />, val: String(stats.upcomingEventos), label: "Próximas Ferias", href: "/calendario?type=feria" as string | undefined },
+        ].map((s, i) => {
+          const body = (
+            <>
+              <div className="stat-header flex items-center justify-between mb-2">
+                <div className="stat-icon text-accent">{s.icon}</div>
+                {s.trend && (
+                  <span className="stat-trend bg-primary/10 text-primary border border-primary/20 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                    {s.trend}
+                  </span>
+                )}
+              </div>
+              <div>
+                <div className="stat-value text-2xl font-display font-semibold text-foreground font-mono">{s.val}</div>
+                <div className="stat-label text-xs text-muted-foreground uppercase tracking-wider mt-1 flex items-center gap-1">
+                  {s.label}
+                  {"href" in s && s.href ? <ExternalLink size={10} className="opacity-50" /> : null}
+                </div>
+              </div>
+            </>
+          );
+          return s.href ? (
+            <Link key={i} href={s.href} className="stat-card flex flex-col justify-between transition hover:border-accent/40">
+              {body}
+            </Link>
+          ) : (
+            <div key={i} className="stat-card flex flex-col justify-between">
+              {body}
             </div>
-            <div>
-              <div className="stat-value text-2xl font-display font-semibold text-foreground font-mono">{s.val}</div>
-              <div className="stat-label text-xs text-muted-foreground uppercase tracking-wider mt-1">{s.label}</div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <ResponsiveTabBar

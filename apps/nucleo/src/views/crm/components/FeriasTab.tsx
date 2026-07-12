@@ -1,5 +1,6 @@
 import React from "react";
-import { Calendar } from "lucide-react";
+import Link from "next/link";
+import { Calendar, ExternalLink } from "lucide-react";
 import { CRMDashboard } from "../types";
 
 interface FeriasTabProps {
@@ -9,8 +10,17 @@ interface FeriasTabProps {
 export function FeriasTab({ dashboard }: FeriasTabProps) {
   return (
     <div className="space-y-4">
-      <div className="text-sm text-muted-foreground font-medium">
-        {dashboard.stats.upcomingEventos} evento(s) programado(s)
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="text-sm text-muted-foreground font-medium">
+          {dashboard.stats.upcomingEventos} evento(s) programado(s)
+        </div>
+        <Link
+          href="/calendario?type=feria"
+          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition hover:border-accent/40 hover:text-accent"
+        >
+          Ver en calendario
+          <ExternalLink size={12} />
+        </Link>
       </div>
 
       <div className="space-y-3">
@@ -28,8 +38,17 @@ export function FeriasTab({ dashboard }: FeriasTabProps) {
                   </h4>
                   <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground font-mono">
                     <Calendar size={12} />
-                    {evento.fecha_inicio && new Date(evento.fecha_inicio).toLocaleDateString("es-CL")}
-                    {evento.fecha_fin && ` — ${new Date(evento.fecha_fin).toLocaleDateString("es-CL")}`}
+                    {evento.fecha_inicio ? (
+                      <Link
+                        href={`/calendario?date=${String(evento.fecha_inicio).slice(0, 10)}&type=feria`}
+                        className="hover:text-accent hover:underline"
+                      >
+                        {new Date(evento.fecha_inicio).toLocaleDateString("es-CL")}
+                        {evento.fecha_fin && ` — ${new Date(evento.fecha_fin).toLocaleDateString("es-CL")}`}
+                      </Link>
+                    ) : (
+                      "Sin fecha"
+                    )}
                   </div>
                 </div>
                 <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-accent/15 text-accent border border-accent/30 uppercase">

@@ -68,6 +68,7 @@ const nextConfig: NextConfig = {
     "@enjambre/sumup",
     "@enjambre/shop-chrome",
     "@enjambre/sale-qr",
+    "@enjambre/calendar",
     "@enjambre/fiscal",
     "@enjambre/pricing",
     "@enjambre/logistica",

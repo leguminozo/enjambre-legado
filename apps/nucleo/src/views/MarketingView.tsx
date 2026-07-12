@@ -162,9 +162,19 @@ export function MarketingView() {
                   <Calendar size={18} />
                   Calendario de Contenido
                 </div>
-                <div className="section-subtitle">Marzo 2026</div>
+                <div className="section-subtitle">
+                  Vista unificada en{' '}
+                  <a href="/calendario?type=marketing" className="text-accent underline-offset-2 hover:underline">
+                    Calendario central
+                  </a>
+                </div>
               </div>
-              <button className="btn btn-primary btn-sm" onClick={() => setShowNewPost(true)}>+ Contenido</button>
+              <div className="flex items-center gap-2">
+                <a href="/calendario?type=marketing" className="btn btn-ghost btn-sm">
+                  Ver mes
+                </a>
+                <button className="btn btn-primary btn-sm" onClick={() => setShowNewPost(true)}>+ Contenido</button>
+              </div>
             </div>
 
             <EnjTableShell caption="Desliza para ver columnas del calendario">
