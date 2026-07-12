@@ -24,55 +24,84 @@ export function HexagonLoader({
   'aria-hidden'?: boolean;
 }) {
   const rawId = useId().replace(/:/g, '');
-  const clipId = `enj-hex-clip-${rawId}`;
   const glowId = `enj-hex-glow-${rawId}`;
-  const fluidId = `enj-hex-fluid-${rawId}`;
 
   const svgRef = useRef<SVGSVGElement>(null);
   const strokeRef = useRef<SVGPathElement>(null);
-  const fillRef = useRef<SVGRectElement>(null);
+  const innerRef = useRef<SVGPathElement>(null);
+  const innerRef2 = useRef<SVGPathElement>(null);
+  const coreRef = useRef<SVGCircleElement>(null);
 
-  useGSAP(() => {
-    // Animación del trazo perimetral (fluida y orgánica)
-    if (strokeRef.current) {
-      gsap.to(strokeRef.current, {
-        keyframes: [
-          { strokeDashoffset: 1, opacity: 0, duration: 0 },
-          { strokeDashoffset: 0, opacity: 1, duration: 1.2, ease: 'power2.inOut' },
-          { strokeDashoffset: 0, opacity: 1, duration: 0.6 },
-          { strokeDashoffset: -1, opacity: 0, duration: 1.2, ease: 'power2.inOut' }
-        ],
-        repeat: -1,
-      });
-    }
-
-    // Animación del fluido ascendente
-    if (fillRef.current) {
-      gsap.to(fillRef.current, {
-        keyframes: [
-          { y: 56, scaleY: 0.1, opacity: 0, duration: 0 },
-          { y: 0, scaleY: 1, opacity: context === 'tienda' ? 0.6 : 0.4, duration: 1.5, ease: 'power2.inOut' },
-          { y: 0, scaleY: 1, opacity: context === 'tienda' ? 0.6 : 0.4, duration: 0.3 },
-          { y: -56, scaleY: 0.1, opacity: 0, duration: 1.2, ease: 'power2.inOut' }
-        ],
-        repeat: -1,
-        transformOrigin: '50% 100%'
-      });
-    }
-    
-    // Pequeño breathing effect general
-    if (svgRef.current) {
-      gsap.fromTo(svgRef.current, 
-        { scale: 0.98 }, 
-        { scale: 1.02, duration: 2, ease: 'sine.inOut', repeat: -1, yoyo: true }
-      );
-    }
-  }, { scope: svgRef, dependencies: [context] });
-
-  // Mutaciones contextuales
   const isTienda = context === 'tienda';
   const isCampo = context === 'campo';
   const isNucleo = context === 'nucleo';
+
+  useGSAP(() => {
+    // 1. Trazado del contorno (Light Trail)
+    if (strokeRef.current) {
+      gsap.fromTo(
+        strokeRef.current,
+        { strokeDashoffset: 1 },
+        {
+          strokeDashoffset: -1,
+          duration: isTienda ? 3.5 : 2.5,
+          ease: 'power1.inOut',
+          repeat: -1,
+        }
+      );
+    }
+
+    // 2. Rotación lenta y elegante del hexágono interno (Geometría Sagrada)
+    if (innerRef.current) {
+      gsap.to(innerRef.current, {
+        rotation: 360,
+        duration: isTienda ? 16 : 12,
+        ease: 'none',
+        repeat: -1,
+      });
+    }
+
+    // Segundo hexágono interno con rotación inversa para Núcleo (Estética Red/Constelación)
+    if (innerRef2.current && isNucleo) {
+      gsap.to(innerRef2.current, {
+        rotation: -360,
+        duration: 20,
+        ease: 'none',
+        repeat: -1,
+      });
+    }
+
+    // 3. Núcleo Existencial ("La Reina/El Origen") - Respiración orgánica
+    if (coreRef.current) {
+      gsap.fromTo(
+        coreRef.current,
+        { scale: 0.8, opacity: 0.2 },
+        {
+          scale: 1.25,
+          opacity: 0.85,
+          duration: 2.5,
+          ease: 'sine.inOut',
+          repeat: -1,
+          yoyo: true,
+        }
+      );
+    }
+
+    // 4. Sutil flotación tridimensional general
+    if (svgRef.current) {
+      gsap.fromTo(
+        svgRef.current,
+        { y: -0.75 },
+        {
+          y: 0.75,
+          duration: 3,
+          ease: 'sine.inOut',
+          repeat: -1,
+          yoyo: true,
+        }
+      );
+    }
+  }, { scope: svgRef, dependencies: [context] });
 
   return (
     <svg
@@ -81,86 +110,85 @@ export function HexagonLoader({
       data-size={size}
       className={`enj-hex-loader ${className}`.trim()}
       aria-hidden={ariaHidden}
+      style={{ overflow: 'visible' }}
     >
       <defs>
-        <clipPath id={clipId}>
-          <path d={HEX_PATH} />
-        </clipPath>
-        
-        {/* Glow estándar (Núcleo / Default) */}
+        {/* Glow ultra-delicado y sofisticado, optimizado para GPU móviles */}
         <filter id={glowId} x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation={isNucleo ? "1.5" : "0.65"} result="blur" />
+          <feGaussianBlur stdDeviation={isTienda ? "0.6" : "1"} result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
-
-        {/* Filtro Orgánico Fluido (Campo / Tienda) */}
-        <filter id={fluidId} x="-50%" y="-50%" width="200%" height="200%">
-          {isCampo && (
-             <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
-          )}
-          {isTienda && (
-             <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" result="noise" />
-          )}
-          {(isCampo || isTienda) && (
-            <>
-              <feDisplacementMap in="SourceGraphic" in2="noise" scale={isCampo ? "4" : "2"} xChannelSelector="R" yChannelSelector="G" result="displaced" />
-              <feGaussianBlur stdDeviation={isTienda ? "1" : "0.5"} result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="displaced" />
-              </feMerge>
-            </>
-          )}
-        </filter>
       </defs>
 
-      {/* Base sutil */}
-      <path 
-        d={HEX_PATH} 
-        fill="currentColor" 
-        className="opacity-5" 
-      />
-
-      {/* Relleno ascendente (clip dentro del hexágono) */}
-      <g clipPath={`url(#${clipId})`}>
-        <rect
-          ref={fillRef}
-          x="0"
-          y="0"
-          width="48"
-          height="56"
-          fill="currentColor"
-          filter={(isCampo || isTienda) ? `url(#${fluidId})` : undefined}
-          style={{ transformBox: 'fill-box' }}
-        />
-      </g>
-
-      {/* Contorno guía topográfico para campo, sólido sutil para el resto */}
+      {/* 1. Hexágono de referencia/guía (Línea de fondo ultra-tenue) */}
       <path
         d={HEX_PATH}
         fill="none"
         stroke="currentColor"
-        strokeWidth={1}
-        className={isCampo ? 'opacity-10 stroke-dashed' : 'opacity-[0.15]'}
-        strokeDasharray={isCampo ? "2 4" : "none"}
+        strokeWidth={0.5}
+        className="opacity-[0.07]"
       />
 
-      {/* Trazo animado principal */}
+      {/* 2. Hexágonos Internos Concéntricos (Rotación e Interconexión) */}
+      <path
+        ref={innerRef}
+        d={HEX_PATH}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={isTienda ? 0.4 : 0.6}
+        // Campo usa líneas punteadas de estilo cartográfico/topográfico
+        strokeDasharray={isCampo ? "2 3" : "none"}
+        className={isTienda ? "opacity-15" : "opacity-20"}
+        style={{
+          transform: 'scale(0.58)',
+          transformOrigin: '24px 28px',
+        }}
+      />
+
+      {isNucleo && (
+        <path
+          ref={innerRef2}
+          d={HEX_PATH}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={0.4}
+          className="opacity-[0.12]"
+          style={{
+            transform: 'scale(0.38)',
+            transformOrigin: '24px 28px',
+          }}
+        />
+      )}
+
+      {/* 3. Núcleo Existencial Central (El origen de la vida/miel) */}
+      <circle
+        ref={coreRef}
+        cx="24"
+        cy="28"
+        r={1.2}
+        fill="currentColor"
+        className={isTienda ? "opacity-80" : "opacity-90"}
+        style={{
+          transformOrigin: '24px 28px',
+        }}
+      />
+
+      {/* 4. Trazo animado principal (Light Trail / Órbita) */}
       <path
         ref={strokeRef}
         d={HEX_PATH}
         fill="none"
         stroke="currentColor"
-        strokeWidth={isTienda ? 1.5 : 2}
+        strokeWidth={isTienda ? 0.75 : 1}
         strokeLinecap="round"
         strokeLinejoin="round"
         pathLength={1}
-        strokeDasharray="1"
-        filter={`url(#${isNucleo ? glowId : (isCampo || isTienda ? fluidId : glowId)})`}
-        className="opacity-90"
+        strokeDasharray="0.3 0.7" // Trazado segmentado de luz flotante
+        filter={`url(#${glowId})`}
+        className={isTienda ? "opacity-75" : "opacity-90"}
       />
     </svg>
   );

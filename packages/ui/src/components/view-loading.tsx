@@ -56,11 +56,11 @@ export function ViewLoading({
   let bgClass = 'bg-background/95 backdrop-blur-sm';
   if (isFullscreen || variant === 'page') {
     if (context === 'tienda') {
-      bgClass = 'bg-surface-sunken/95 backdrop-blur-md bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/5 to-transparent';
+      bgClass = 'bg-surface-sunken/95 backdrop-blur-md bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.05),_transparent)]';
     } else if (context === 'campo') {
       bgClass = 'bg-[#0f1210]/95 backdrop-blur-sm'; 
     } else if (context === 'nucleo') {
-      bgClass = 'bg-background/95 backdrop-blur-sm bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 to-background';
+      bgClass = 'bg-background/95 backdrop-blur-sm bg-[radial-gradient(ellipse_at_center,_hsla(var(--primary),0.08),_transparent)]';
     }
   }
 

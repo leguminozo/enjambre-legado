@@ -1,14 +1,14 @@
-export type OmniEventType = 'feria' | 'apicultura' | 'marketing' | 'historico' | 'inspeccion';
+export type CalendarioEventType = 'feria' | 'apicultura' | 'marketing' | 'historico' | 'inspeccion';
 
-export interface OmniEvent {
+export interface CalendarioEvent {
   id: string;
-  type: OmniEventType;
+  type: CalendarioEventType;
   title: string;
   startDate: Date;
   endDate?: Date;
   allDay?: boolean;
   status?: string;
-  color?: string; // Optional hex or class
+  color?: string;
   source: {
     table: 'eventos' | 'calendario_tasks' | 'marketing_campaigns' | 'marketing_posts' | 'cosechas' | 'lotes' | 'inspecciones';
     originalId: string;

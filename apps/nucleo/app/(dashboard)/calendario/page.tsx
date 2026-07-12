@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { OmniCalendar, useOmniSync } from '@enjambre/calendar';
-import type { OmniEvent } from '@enjambre/calendar';
+import { Calendario, useCalendarioSync } from '@enjambre/calendar';
+import type { CalendarioEvent } from '@enjambre/calendar';
 import { createClient } from '@enjambre/auth/browser';
 import { useAuthStore } from '@enjambre/auth';
 import { 
@@ -18,6 +18,7 @@ import {
   friendlyError
 } from '@enjambre/ui';
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export default function CalendarioPage() {
   const supabase = createClient();
@@ -35,16 +36,15 @@ export default function CalendarioPage() {
     return endOfWeek(endOfMonth(currentDate), { weekStartsOn: 1 });
   }, [currentDate]);
 
-  const { events, isLoading, error, updateEventDate } = useOmniSync(supabase, userRole, viewStart, viewEnd);
+  const { events, isLoading, error, updateEventDate } = useCalendarioSync(supabase, userRole, viewStart, viewEnd);
 
   // Estado del Modal
-  const [selectedEvent, setSelectedEvent] = React.useState<OmniEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = React.useState<CalendarioEvent | null>(null);
   const [editDate, setEditDate] = React.useState('');
   const [isUpdating, setIsUpdating] = React.useState(false);
 
-  const handleEventClick = (evt: OmniEvent) => {
+  const handleEventClick = (evt: CalendarioEvent) => {
     setSelectedEvent(evt);
-    // Inicializar el input date con la fecha del evento (formato yyyy-MM-dd)
     setEditDate(format(evt.startDate, 'yyyy-MM-dd'));
   };
 
@@ -55,13 +55,13 @@ export default function CalendarioPage() {
       const newDate = parseISO(editDate);
       const success = await updateEventDate(selectedEvent, newDate);
       if (success) {
-        toast.success('Fecha actualizada correctamente');
+        toast.success('Reprogramado correctamente');
         setSelectedEvent(null);
       } else {
-        toast.error('No se pudo actualizar la fecha');
+        toast.error('No se pudo modificar la fecha');
       }
     } catch (err) {
-      toast.error(friendlyError(err, 'Error al actualizar'));
+      toast.error(friendlyError(err, 'Error al reprogramar'));
     } finally {
       setIsUpdating(false);
     }
@@ -69,26 +69,28 @@ export default function CalendarioPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full p-8 text-destructive">
-        <p>Error cargando el calendario: {error.message}</p>
+      <div className="flex items-center justify-center h-full p-8 text-destructive bg-background font-sans">
+        <p className="font-medium">Error al sincronizar el calendario: {error.message}</p>
       </div>
     );
   }
 
   return (
-    <div className="h-full max-h-screen flex flex-col p-4 md:p-6 pb-20 md:pb-6 overflow-hidden">
-      <div className="mb-6 flex-shrink-0">
-        <h1 className="text-3xl font-display font-bold mb-2">OmniCalendar</h1>
-        <p className="text-muted-foreground">
-          Visión centralizada del tiempo en el enjambre.
+    <div className="h-full max-h-screen flex flex-col p-6 md:p-8 pb-24 md:pb-8 overflow-hidden bg-background">
+      <div className="mb-8 flex-shrink-0">
+        <h1 className="text-4xl font-display font-bold tracking-wide text-crema mb-2">
+          Calendario
+        </h1>
+        <p className="text-sm font-sans tracking-wide text-crema/60 uppercase">
+          Planificación y registro de ciclos del enjambre
         </p>
       </div>
 
       <div className="flex-1 min-h-[400px] overflow-hidden">
         {isLoading && events.length === 0 ? (
-          <ViewLoading label="Sincronizando cronograma..." />
+          <ViewLoading label="Sincronizando calendario..." />
         ) : (
-          <OmniCalendar 
+          <Calendario 
             events={events}
             currentDate={currentDate}
             onMonthChange={setCurrentDate}
@@ -100,47 +102,61 @@ export default function CalendarioPage() {
 
       {/* Modal de Detalle / Edición */}
       <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && setSelectedEvent(null)}>
-        <DialogContent>
+        <DialogContent className="border border-miel/20 bg-background text-crema shadow-glow max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display text-2xl">Detalle de Evento</DialogTitle>
-            <DialogDescription className="capitalize">
-              {selectedEvent?.type} - {selectedEvent?.source.table}
+            <DialogTitle className="font-display text-2xl text-miel">Detalle del Registro</DialogTitle>
+            <DialogDescription className="text-xs uppercase tracking-widest text-crema/40">
+              Origen: {selectedEvent?.source.table}
             </DialogDescription>
           </DialogHeader>
 
           {selectedEvent && (
-            <div className="py-4 flex flex-col gap-4">
+            <div className="py-4 flex flex-col gap-5 font-sans">
               <div>
-                <span className="text-sm text-muted-foreground block mb-1">Título</span>
-                <p className="font-medium text-lg">{selectedEvent.title}</p>
+                <span className="text-xs text-crema/40 uppercase tracking-wider block mb-1">Actividad / Registro</span>
+                <p className="font-medium text-lg text-crema">{selectedEvent.title}</p>
+              </div>
+
+              <div>
+                <span className="text-xs text-crema/40 uppercase tracking-wider block mb-1">Categoría</span>
+                <p className="capitalize text-sm text-miel font-semibold">{selectedEvent.type}</p>
               </div>
 
               {selectedEvent.editable ? (
                 <div>
-                  <span className="text-sm text-muted-foreground block mb-1">Cambiar Fecha</span>
-                  <div className="flex items-center gap-2">
+                  <span className="text-xs text-crema/40 uppercase tracking-wider block mb-1">Reprogramar Fecha</span>
+                  <div className="flex items-center gap-2 mt-1">
                     <Input 
                       type="date" 
                       value={editDate}
                       onChange={(e) => setEditDate(e.target.value)}
+                      className="border border-miel/20 focus:border-miel focus:ring-1 focus:ring-miel bg-card text-crema rounded-lg"
                     />
                   </div>
                 </div>
               ) : (
                 <div>
-                  <span className="text-sm text-muted-foreground block mb-1">Fecha Programada</span>
-                  <p>{format(selectedEvent.startDate, 'dd/MM/yyyy')}</p>
+                  <span className="text-xs text-crema/40 uppercase tracking-wider block mb-1">Fecha Registrada</span>
+                  <p className="text-sm text-crema/90">{format(selectedEvent.startDate, "d 'de' MMMM, yyyy", { locale: es })}</p>
                 </div>
               )}
             </div>
           )}
 
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setSelectedEvent(null)}>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button 
+              variant="outline" 
+              onClick={() => setSelectedEvent(null)}
+              className="border-miel/20 hover:bg-miel/10 text-crema hover:text-miel transition-all duration-elegant rounded-full"
+            >
               Cerrar
             </Button>
             {selectedEvent?.editable && (
-              <Button onClick={handleSaveDate} disabled={isUpdating || !editDate}>
+              <Button 
+                onClick={handleSaveDate} 
+                disabled={isUpdating || !editDate}
+                className="bg-miel text-background font-bold hover:bg-miel-light transition-all duration-elegant rounded-full shadow-glow"
+              >
                 {isUpdating ? 'Guardando...' : 'Guardar Cambios'}
               </Button>
             )}

@@ -1,3 +1,3 @@
 export * from './types';
-export * from './components/OmniCalendar';
-export * from './hooks/useOmniSync';
+export * from './components/Calendario';
+export * from './hooks/useCalendarioSync';

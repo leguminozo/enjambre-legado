@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { OmniEvent } from '../types';
+import type { CalendarioEvent } from '../types';
 
-export function useOmniSync(
+export function useCalendarioSync(
   supabase: SupabaseClient, 
   userRole: string = 'admin',
   viewStart?: Date,
   viewEnd?: Date
 ) {
-  const [events, setEvents] = useState<OmniEvent[]>([]);
+  const [events, setEvents] = useState<CalendarioEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -29,7 +29,6 @@ export function useOmniSync(
       if (isRep) {
         let q = supabase.from('eventos').select('*');
         if (vsIso && veIso) {
-          // Filtrar si la feria termina después del inicio del mes y empieza antes del fin del mes
           q = q.gte('fecha_fin', vsIso).lte('fecha_inicio', veIso);
         }
         promises.push(
@@ -48,7 +47,7 @@ export function useOmniSync(
         );
       }
 
-      // 2. Apicultura Tasks (apicultor, admin)
+      // 2. Tareas del Calendario Apícola (apicultor, admin)
       if (isApicultor) {
         promises.push(
           supabase.from('calendario_tasks').select('*').then(({ data, error }) => {
@@ -112,7 +111,7 @@ export function useOmniSync(
         );
       }
 
-      // 4. Histórico (Cosechas, Lotes, Inspecciones) (apicultor, admin)
+      // 4. Histórico / Registros (apicultor, admin)
       if (isApicultor) {
         let cosQ = supabase.from('cosechas').select('id, fecha, kg, colmena_id');
         if (vsIso && veIso) cosQ = cosQ.gte('fecha', vsIso).lte('fecha', veIso);
@@ -147,13 +146,13 @@ export function useOmniSync(
       }
 
       const results = await Promise.allSettled(promises);
-      const allEvents: OmniEvent[] = [];
+      const allEvents: CalendarioEvent[] = [];
       
       for (const res of results) {
         if (res.status === 'fulfilled') {
           allEvents.push(...res.value);
         } else {
-          console.error("Error fetching some events for OmniCalendar:", res.reason);
+          console.error("Error fetching some events for Calendario:", res.reason);
         }
       }
 
@@ -170,44 +169,34 @@ export function useOmniSync(
     fetchEvents();
   }, [fetchEvents]);
 
-  // Mutación bidireccional
-  const updateEventDate = async (event: OmniEvent, newStartDate: Date, newEndDate?: Date) => {
+  const updateEventDate = async (event: CalendarioEvent, newDate: Date) => {
     try {
-      const { table, originalId } = event.source;
-      
-      let updatePayload: Record<string, string | number | null> = {};
-      
+      const vsIso = newDate.toISOString();
+      let table: string = event.source.table;
+      let id = event.source.originalId;
+
+      let updatePayload: Record<string, string> = {};
       if (table === 'eventos') {
-        updatePayload = {
-          fecha_inicio: newStartDate.toISOString(),
-          fecha_fin: newEndDate ? newEndDate.toISOString() : null
-        };
-      } else if (table === 'cosechas') {
-        updatePayload = { fecha: newStartDate.toISOString().split('T')[0] as string };
-      } else if (table === 'inspecciones') {
-        updatePayload = { date: newStartDate.toISOString().split('T')[0] as string };
+        updatePayload = { fecha_inicio: vsIso };
+      } else if (table === 'marketing_campaigns') {
+        updatePayload = { created_at: vsIso };
       } else if (table === 'marketing_posts') {
-        updatePayload = { post_date: newStartDate.toISOString() };
-      } else if (table === 'calendario_tasks') {
-        // Reverse map date to week/month
-        const monthMap = [
-          'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-        ];
-        const month = monthMap[newStartDate.getMonth()] as string;
-        const week = Math.ceil(newStartDate.getDate() / 7);
-        updatePayload = { month, week };
+        updatePayload = { post_date: vsIso };
+      } else if (table === 'cosechas') {
+        updatePayload = { fecha: vsIso };
+      } else if (table === 'inspecciones') {
+        updatePayload = { date: vsIso };
       } else {
-        throw new Error(`Edición de fechas no implementada para tabla: ${table}`);
+        return false;
       }
 
-      const { error } = await supabase.from(table).update(updatePayload).eq('id', originalId);
+      const { error } = await supabase.from(table).update(updatePayload).eq('id', id);
       if (error) throw error;
-      
-      await fetchEvents(); // Refresh
+
+      await fetchEvents();
       return true;
     } catch (err) {
-      console.error('Error updating event:', err);
+      console.error("Failed to update event date:", err);
       return false;
     }
   };
@@ -216,7 +205,7 @@ export function useOmniSync(
     events,
     isLoading,
     error,
-    refresh: fetchEvents,
+    refetch: fetchEvents,
     updateEventDate
   };
 }
