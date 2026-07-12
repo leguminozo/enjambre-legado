@@ -1175,6 +1175,63 @@ export type Database = {
         }
         Relationships: []
       }
+      calendario_eventos: {
+        Row: {
+          all_day: boolean
+          category: string
+          color: string | null
+          created_at: string
+          empresa_id: string | null
+          ends_at: string
+          id: string
+          location: string | null
+          notes: string | null
+          starts_at: string
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          all_day?: boolean
+          category?: string
+          color?: string | null
+          created_at?: string
+          empresa_id?: string | null
+          ends_at: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          starts_at: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          all_day?: boolean
+          category?: string
+          color?: string | null
+          created_at?: string
+          empresa_id?: string | null
+          ends_at?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          starts_at?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendario_eventos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+
       canjes_recompensas: {
         Row: {
           codigo_canje: string | null

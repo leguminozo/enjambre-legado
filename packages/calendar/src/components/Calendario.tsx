@@ -26,11 +26,9 @@ import {
   ChevronsRight,
   Calendar as CalendarIcon,
   X,
-  ExternalLink,
-  ArrowUpRight,
+  Plus,
 } from 'lucide-react';
 import type { CalendarioEvent, CalendarioEventType } from '../types';
-import { resolveEventToolLink } from '../types';
 
 export interface CalendarioProps {
   events: CalendarioEvent[];
@@ -43,9 +41,13 @@ export interface CalendarioProps {
   onDateClick?: (date: Date) => void;
   /** Navegar a herramienta origen (bidireccional) */
   onOpenTool?: (href: string, event?: CalendarioEvent) => void;
+  /** Crear evento (día o hora) — estilo Apple */
+  onCreateEvent?: (startsAt: Date) => void;
   isLoading?: boolean;
   /** Filtro de tipo activo (desde URL u otras tools) */
   activeTypeFilter?: CalendarioEventType | null;
+  /** Contenido extra bajo el mes (p.ej. DayTimeline) */
+  dayPanel?: React.ReactNode;
 }
 
 const eventTypeConfig: Record<
@@ -77,6 +79,26 @@ const eventTypeConfig: Record<
     dotClass: 'bg-primary',
     label: 'Inspecciones',
   },
+  personal: {
+    colorClass: 'bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30',
+    dotClass: 'bg-sky-400',
+    label: 'Personal',
+  },
+  reunion: {
+    colorClass: 'bg-orange-500/15 text-orange-600 dark:text-orange-300 border border-orange-500/30',
+    dotClass: 'bg-orange-400',
+    label: 'Reunión',
+  },
+  logistica: {
+    colorClass: 'bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-500/30',
+    dotClass: 'bg-rose-400',
+    label: 'Logística',
+  },
+  otro: {
+    colorClass: 'bg-muted text-muted-foreground border border-border',
+    dotClass: 'bg-muted-foreground',
+    label: 'Otro',
+  },
 };
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as const;
@@ -95,8 +117,10 @@ export function Calendario({
   onEventClick,
   onDateClick,
   onOpenTool,
+  onCreateEvent,
   isLoading,
   activeTypeFilter,
+  dayPanel,
 }: CalendarioProps) {
   const [internalSelected, setInternalSelected] = React.useState<Date | null>(
     new Date(),
@@ -282,6 +306,20 @@ export function Calendario({
               <ChevronsRight className="h-4 w-4" />
             </button>
           </div>
+          {onCreateEvent && (
+            <button
+              type="button"
+              onClick={() => {
+                const base = selectedDate ? new Date(selectedDate) : new Date();
+                base.setHours(9, 0, 0, 0);
+                onCreateEvent(base);
+              }}
+              className="ml-1 inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-[11px] font-bold text-accent-foreground shadow-sm hover:brightness-110"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Evento
+            </button>
+          )}
         </div>
       </header>
 
@@ -395,135 +433,88 @@ export function Calendario({
         })}
       </div>
 
-      {/* ── Day module: se expande desde el mes al hacer click ── */}
-      <div
-        className={[
-          'overflow-hidden border-t border-border bg-card/60 transition-[max-height,opacity] duration-300 ease-out',
-          dayPanelOpen ? 'max-h-[28rem] opacity-100' : 'max-h-0 opacity-0',
-        ].join(' ')}
-        aria-hidden={!dayPanelOpen}
-      >
-        {selectedDate && (
-          <div className="px-4 py-4 sm:px-5">
-            <div className="mb-3 flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-accent">
-                  Día seleccionado
-                </p>
-                <h3 className="font-display text-lg font-bold capitalize text-foreground sm:text-xl">
-                  {format(selectedDate, "eeee d 'de' MMMM yyyy", { locale: es })}
+      {/* ── Day module expand (timeline Apple-style via dayPanel) ── */}
+      {dayPanelOpen && (
+        <div className="border-t border-border bg-card/40 p-3 sm:p-4">
+          {dayPanel ?? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-display text-base font-bold capitalize text-foreground">
+                  {selectedDate &&
+                    format(selectedDate, "eeee d 'de' MMMM", { locale: es })}
                 </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedDate(null)}
-                className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
-                aria-label="Cerrar detalle del día"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="flex max-h-64 flex-col gap-2 overflow-y-auto overscroll-contain pr-0.5">
-              {selectedDayEvents.length === 0 && (
-                <p className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
-                  Sin registros este día. Las ferias, cosechas, posts e inspecciones
-                  aparecen aquí cuando existen en sus herramientas.
-                </p>
-              )}
-
-              {selectedDayEvents.map((evt) => {
-                const conf =
-                  eventTypeConfig[evt.type] ?? {
-                    colorClass: 'bg-muted',
-                    label: evt.type,
-                  };
-                const tool = {
-                  href: evt.toolHref ?? resolveEventToolLink(evt.type).href,
-                  label: evt.toolLabel ?? resolveEventToolLink(evt.type).label,
-                };
-                return (
-                  <div
-                    key={evt.id}
-                    className={`flex flex-col gap-2 rounded-xl p-3 sm:flex-row sm:items-center sm:justify-between ${conf.colorClass}`}
-                  >
+                <div className="flex items-center gap-1">
+                  {onCreateEvent && selectedDate && (
                     <button
                       type="button"
-                      className="min-w-0 flex-1 text-left"
-                      onClick={() => onEventClick?.(evt)}
+                      onClick={() => {
+                        const s = new Date(selectedDate);
+                        s.setHours(9, 0, 0, 0);
+                        onCreateEvent(s);
+                      }}
+                      className="rounded-full bg-accent px-3 py-1 text-[11px] font-bold text-accent-foreground"
                     >
-                      <span className="text-[10px] font-semibold uppercase tracking-wider opacity-70">
-                        {conf.label}
-                      </span>
-                      <p className="truncate text-sm font-medium">{evt.title}</p>
-                      {evt.endDate && (
-                        <p className="text-[10px] opacity-60">
-                          hasta {format(toDate(evt.endDate), 'd MMM', { locale: es })}
-                        </p>
-                      )}
+                      + Nuevo
                     </button>
-                    <div className="flex shrink-0 items-center gap-2">
-                      {evt.editable && (
-                        <button
-                          type="button"
-                          onClick={() => onEventClick?.(evt)}
-                          className="rounded-full border border-current/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide opacity-80 hover:opacity-100"
-                        >
-                          Reprogramar
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => onOpenTool?.(tool.href, evt)}
-                        className="inline-flex items-center gap-1 rounded-full bg-background/40 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide hover:bg-background/70"
-                      >
-                        {tool.label}
-                        <ArrowUpRight className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Atajos a herramientas (bidireccional) */}
-            <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
-              <span className="w-full text-[9px] font-bold uppercase tracking-widest text-muted-foreground sm:w-auto sm:mr-1 sm:self-center">
-                Ir a
-              </span>
-              {(
-                Object.entries(eventTypeConfig) as [
-                  CalendarioEventType,
-                  (typeof eventTypeConfig)[CalendarioEventType],
-                ][]
-              ).map(([key, conf]) => {
-                const link = resolveEventToolLink(key);
-                return (
+                  )}
                   <button
-                    key={key}
                     type="button"
-                    onClick={() => onOpenTool?.(link.href)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground transition hover:border-accent/40 hover:text-accent"
+                    onClick={() => setSelectedDate(null)}
+                    className="rounded-full p-2 text-muted-foreground hover:bg-muted"
+                    aria-label="Cerrar"
                   >
-                    <span className={`h-1.5 w-1.5 rounded-full ${conf.dotClass}`} />
-                    {link.label}
-                    <ExternalLink className="h-2.5 w-2.5 opacity-50" />
+                    <X className="h-4 w-4" />
                   </button>
-                );
-              })}
+                </div>
+              </div>
+              <div className="flex max-h-48 flex-col gap-2 overflow-y-auto">
+                {selectedDayEvents.length === 0 && (
+                  <p className="text-center text-sm text-muted-foreground py-4">
+                    Sin eventos. Crea uno con «Nuevo».
+                  </p>
+                )}
+                {selectedDayEvents.map((evt) => (
+                  <button
+                    key={evt.id}
+                    type="button"
+                    onClick={() => onEventClick?.(evt)}
+                    className="rounded-lg border border-border px-3 py-2 text-left text-sm hover:bg-accent/5"
+                  >
+                    <span className="font-medium">{evt.title}</span>
+                    {!evt.allDay && (
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {format(toDate(evt.startDate), 'HH:mm')}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
-      {/* ── Legend ── */}
-      <footer className="flex shrink-0 flex-wrap items-center justify-center gap-4 border-t border-border bg-muted/20 px-4 py-2.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
-        {Object.entries(eventTypeConfig).map(([key, conf]) => (
-          <div key={key} className="flex items-center gap-1.5">
-            <div className={`h-2 w-2 rounded-full ${conf.dotClass}`} />
-            <span>{conf.label}</span>
-          </div>
-        ))}
+      {/* ── Legend (compact) ── */}
+      <footer className="flex shrink-0 flex-wrap items-center justify-center gap-3 border-t border-border bg-muted/20 px-3 py-2 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
+        {(
+          [
+            'personal',
+            'reunion',
+            'feria',
+            'apicultura',
+            'marketing',
+            'historico',
+            'inspeccion',
+          ] as CalendarioEventType[]
+        ).map((key) => {
+          const conf = eventTypeConfig[key];
+          return (
+            <div key={key} className="flex items-center gap-1.5">
+              <div className={`h-2 w-2 rounded-full ${conf.dotClass}`} />
+              <span>{conf.label}</span>
+            </div>
+          );
+        })}
       </footer>
     </div>
   );

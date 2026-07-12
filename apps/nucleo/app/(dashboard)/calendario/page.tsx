@@ -4,25 +4,17 @@ import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Calendario,
+  DayTimeline,
+  EventEditorSheet,
   useCalendarioSync,
   type CalendarioEvent,
   type CalendarioEventType,
+  type CreateCalendarioEventInput,
   resolveEventToolLink,
 } from '@enjambre/calendar';
 import { createClient } from '@enjambre/auth/browser';
 import { useAuthStore } from '@enjambre/auth';
-import {
-  ViewLoading,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  Button,
-  Input,
-  toast,
-  friendlyError,
-} from '@enjambre/ui';
+import { ViewLoading, toast, friendlyError } from '@enjambre/ui';
 import {
   startOfMonth,
   endOfMonth,
@@ -32,10 +24,10 @@ import {
   parseISO,
   isValid,
 } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { ExternalLink } from 'lucide-react';
 
 const TYPE_FILTERS: CalendarioEventType[] = [
+  'personal',
+  'reunion',
   'feria',
   'apicultura',
   'marketing',
@@ -54,7 +46,8 @@ export default function CalendarioPage() {
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const profileRole = useAuthStore((s) => s.user?.role);
+  const user = useAuthStore((s) => s.user);
+  const profileRole = user?.role;
   const sessionRole = useAuthStore((s) => s.session?.user?.app_metadata?.role);
   const userRole = (profileRole || sessionRole || 'admin') as string;
 
@@ -75,7 +68,6 @@ export default function CalendarioPage() {
   const [currentDate, setCurrentDate] = React.useState(initialDate);
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(initialDate);
 
-  // Sync URL → state when navigating from other tools
   React.useEffect(() => {
     const d = searchParams.get('date');
     if (!d) return;
@@ -94,18 +86,22 @@ export default function CalendarioPage() {
     [currentDate],
   );
 
-  const { events, isLoading, error, updateEventDate } = useCalendarioSync(
-    supabase,
-    userRole,
-    viewStart,
-    viewEnd,
-  );
+  const {
+    events,
+    isLoading,
+    error,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+  } = useCalendarioSync(supabase, userRole, viewStart, viewEnd);
 
-  const [selectedEvent, setSelectedEvent] = React.useState<CalendarioEvent | null>(
+  const [editorOpen, setEditorOpen] = React.useState(false);
+  const [editorMode, setEditorMode] = React.useState<'create' | 'edit'>('create');
+  const [editingEvent, setEditingEvent] = React.useState<CalendarioEvent | null>(
     null,
   );
-  const [editDate, setEditDate] = React.useState('');
-  const [isUpdating, setIsUpdating] = React.useState(false);
+  const [defaultStartsAt, setDefaultStartsAt] = React.useState<Date | undefined>();
+  const [isSaving, setIsSaving] = React.useState(false);
 
   const pushQuery = React.useCallback(
     (patch: { date?: Date | null; type?: CalendarioEventType | null }) => {
@@ -124,108 +120,114 @@ export default function CalendarioPage() {
     [router, searchParams],
   );
 
-  const handleMonthChange = (d: Date) => {
-    setCurrentDate(d);
+  const openCreate = (startsAt: Date) => {
+    setEditorMode('create');
+    setEditingEvent(null);
+    setDefaultStartsAt(startsAt);
+    setEditorOpen(true);
   };
 
-  const handleSelectedDateChange = (d: Date | null) => {
-    setSelectedDate(d);
-    pushQuery({ date: d });
-  };
-
-  const handleEventClick = (evt: CalendarioEvent) => {
-    setSelectedEvent(evt);
-    setEditDate(format(evt.startDate, 'yyyy-MM-dd'));
-  };
-
-  const handleOpenTool = (href: string) => {
-    router.push(href);
-  };
-
-  const handleSaveDate = async () => {
-    if (!selectedEvent || !editDate) return;
-    setIsUpdating(true);
-    try {
-      const newDate = parseISO(editDate);
-      const success = await updateEventDate(selectedEvent, newDate);
-      if (success) {
-        toast.success('Reprogramado correctamente');
-        setSelectedEvent(null);
-        setSelectedDate(newDate);
-        setCurrentDate(newDate);
-        pushQuery({ date: newDate });
-      } else {
-        toast.error('No se pudo modificar la fecha');
-      }
-    } catch (err) {
-      toast.error(friendlyError(err, 'Error al reprogramar'));
-    } finally {
-      setIsUpdating(false);
+  const openEdit = (evt: CalendarioEvent) => {
+    if (evt.source.table === 'calendario_eventos') {
+      setEditorMode('edit');
+      setEditingEvent(evt);
+      setDefaultStartsAt(undefined);
+      setEditorOpen(true);
+      return;
+    }
+    // Domain events → tool or read-only toast
+    const href = evt.toolHref ?? resolveEventToolLink(evt.type).href;
+    if (href && href !== '/calendario') {
+      router.push(href);
+    } else {
+      toast(evt.title, {
+        description: 'Registro de sistema (solo lectura en esta vista)',
+      });
     }
   };
 
-  const setTypeFilter = (t: CalendarioEventType | null) => {
-    pushQuery({ type: t });
+  const handleSave = async (
+    input: CreateCalendarioEventInput & { id?: string },
+  ) => {
+    setIsSaving(true);
+    try {
+      if (input.id) {
+        const res = await updateEvent({ ...input, id: input.id });
+        if (!res.ok) {
+          toast.error(res.error);
+          return;
+        }
+        toast.success('Evento actualizado');
+      } else {
+        const res = await createEvent({
+          ...input,
+          userId: user?.id ?? null,
+        });
+        if (!res.ok) {
+          toast.error(res.error);
+          return;
+        }
+        toast.success('Evento creado');
+      }
+      setEditorOpen(false);
+      if (input.startsAt) {
+        setSelectedDate(input.startsAt);
+        setCurrentDate(input.startsAt);
+        pushQuery({ date: input.startsAt });
+      }
+    } catch (err) {
+      toast.error(friendlyError(err, 'No se pudo guardar'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!editingEvent || editingEvent.source.table !== 'calendario_eventos')
+      return;
+    setIsSaving(true);
+    try {
+      const res = await deleteEvent(editingEvent.source.originalId);
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      toast.success('Evento eliminado');
+      setEditorOpen(false);
+      setEditingEvent(null);
+    } catch (err) {
+      toast.error(friendlyError(err, 'No se pudo eliminar'));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-8 text-destructive">
-        <p className="font-medium">
-          Error al sincronizar el calendario: {error.message}
+      <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
+        <p className="font-medium text-destructive">
+          Error al sincronizar: {error.message}
+        </p>
+        <p className="max-w-md text-sm text-muted-foreground">
+          Si acabas de desplegar, aplica la migración{' '}
+          <code className="text-xs">91_calendario_eventos.sql</code> en Supabase
+          (SQL Editor o <code className="text-xs">pnpm db:push</code>).
         </p>
       </div>
     );
   }
 
   return (
-    // Un solo scroll: el de .main-content. Sin max-h-screen / overflow-hidden anidados.
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-1 pb-10 sm:px-0">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-1 pb-12 sm:px-0">
       <header className="shrink-0">
         <h1 className="font-display text-3xl font-bold tracking-wide text-foreground sm:text-4xl">
           Calendario
         </h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Vista del mes de todo el enjambre: ferias, colmenas, cosechas, marketing e
-          inspecciones. Clic en un día para expandir el detalle y saltar a cada
-          herramienta.
+          Agenda estilo Apple: mes completo, toca un día para la línea de horas,
+          crea eventos con inicio y fin. También ves ferias, cosechas y marketing
+          de las otras herramientas.
         </p>
-
-        {/* Filtros por origen (bidireccional con tools) */}
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setTypeFilter(null)}
-            className={[
-              'rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest transition',
-              !typeFilter
-                ? 'border-accent bg-accent/15 text-accent'
-                : 'border-border text-muted-foreground hover:border-accent/40 hover:text-accent',
-            ].join(' ')}
-          >
-            Todo
-          </button>
-          {TYPE_FILTERS.map((t) => {
-            const link = resolveEventToolLink(t);
-            const active = typeFilter === t;
-            return (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTypeFilter(active ? null : t)}
-                className={[
-                  'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest transition',
-                  active
-                    ? 'border-accent bg-accent/15 text-accent'
-                    : 'border-border text-muted-foreground hover:border-accent/40 hover:text-accent',
-                ].join(' ')}
-                title={`Filtrar · abrir ${link.label}`}
-              >
-                {link.label}
-              </button>
-            );
-          })}
-        </div>
       </header>
 
       <div className="min-w-0">
@@ -236,110 +238,49 @@ export default function CalendarioPage() {
             events={events}
             currentDate={currentDate}
             selectedDate={selectedDate}
-            onMonthChange={handleMonthChange}
-            onSelectedDateChange={handleSelectedDateChange}
+            onMonthChange={setCurrentDate}
+            onSelectedDateChange={(d) => {
+              setSelectedDate(d);
+              pushQuery({ date: d });
+            }}
             isLoading={isLoading}
-            onEventClick={handleEventClick}
-            onOpenTool={handleOpenTool}
+            onEventClick={openEdit}
+            onCreateEvent={openCreate}
+            onOpenTool={(href) => router.push(href)}
             activeTypeFilter={typeFilter}
+            dayPanel={
+              selectedDate ? (
+                <DayTimeline
+                  date={selectedDate}
+                  events={events}
+                  onEventClick={openEdit}
+                  onCreateAt={openCreate}
+                  onClose={() => {
+                    setSelectedDate(null);
+                    pushQuery({ date: null });
+                  }}
+                />
+              ) : null
+            }
           />
         )}
       </div>
 
-      <Dialog
-        open={!!selectedEvent}
-        onOpenChange={(open) => !open && setSelectedEvent(null)}
-      >
-        <DialogContent className="max-w-md border border-border bg-card text-foreground shadow-lg">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-accent">
-              Detalle del registro
-            </DialogTitle>
-            <DialogDescription className="text-xs uppercase tracking-widest text-muted-foreground">
-              Origen: {selectedEvent?.source.table}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedEvent && (
-            <div className="flex flex-col gap-5 py-2">
-              <div>
-                <span className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">
-                  Actividad
-                </span>
-                <p className="text-lg font-medium">{selectedEvent.title}</p>
-              </div>
-
-              <div>
-                <span className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">
-                  Categoría
-                </span>
-                <p className="text-sm font-semibold capitalize text-accent">
-                  {selectedEvent.type}
-                </p>
-              </div>
-
-              {selectedEvent.editable ? (
-                <div>
-                  <span className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">
-                    Reprogramar fecha
-                  </span>
-                  <Input
-                    type="date"
-                    value={editDate}
-                    onChange={(e) => setEditDate(e.target.value)}
-                    className="mt-1 rounded-lg border-border bg-background"
-                  />
-                </div>
-              ) : (
-                <div>
-                  <span className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">
-                    Fecha registrada
-                  </span>
-                  <p className="text-sm">
-                    {format(selectedEvent.startDate, "d 'de' MMMM, yyyy", {
-                      locale: es,
-                    })}
-                  </p>
-                </div>
-              )}
-
-              <Button
-                variant="outline"
-                className="w-full justify-between rounded-full"
-                onClick={() => {
-                  const href =
-                    selectedEvent.toolHref ??
-                    resolveEventToolLink(selectedEvent.type).href;
-                  setSelectedEvent(null);
-                  router.push(href);
-                }}
-              >
-                <span>
-                  Abrir{' '}
-                  {selectedEvent.toolLabel ??
-                    resolveEventToolLink(selectedEvent.type).label}
-                </span>
-                <ExternalLink className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-
-          <div className="mt-2 flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setSelectedEvent(null)}>
-              Cerrar
-            </Button>
-            {selectedEvent?.editable && (
-              <Button
-                onClick={handleSaveDate}
-                disabled={isUpdating || !editDate}
-                className="font-bold"
-              >
-                {isUpdating ? 'Guardando…' : 'Guardar cambios'}
-              </Button>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <EventEditorSheet
+        open={editorOpen}
+        mode={editorMode}
+        event={editingEvent}
+        defaultStartsAt={defaultStartsAt}
+        isSaving={isSaving}
+        onClose={() => setEditorOpen(false)}
+        onSave={handleSave}
+        onDelete={
+          editorMode === 'edit' &&
+          editingEvent?.source.table === 'calendario_eventos'
+            ? handleDelete
+            : undefined
+        }
+      />
     </div>
   );
 }
