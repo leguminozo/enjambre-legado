@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { format, parseISO, setHours, setMinutes, startOfDay } from 'date-fns';
+import { setHours, setMinutes } from 'date-fns';
 import {
   USER_CATEGORIES,
   type CalendarioEvent,
@@ -9,27 +9,38 @@ import {
   type CreateCalendarioEventInput,
 } from '../types';
 import { defaultEndFromStart } from './DayTimeline';
+import {
+  parseLocalDate,
+  parseLocalDateTime,
+  toDateInputValue,
+  toDateTimeLocalValue,
+} from '../lib/dates';
 
 export interface EventEditorSheetProps {
   open: boolean;
   mode: 'create' | 'edit';
-  /** Prefill for create */
   defaultStartsAt?: Date;
   event?: CalendarioEvent | null;
   isSaving?: boolean;
   onClose: () => void;
-  onSave: (input: CreateCalendarioEventInput & { id?: string }) => void | Promise<void>;
+  onSave: (
+    input: CreateCalendarioEventInput & { id?: string },
+  ) => void | Promise<void>;
   onDelete?: () => void | Promise<void>;
 }
 
-function toLocalInput(d: Date): string {
-  // yyyy-MM-ddTHH:mm for datetime-local
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function toDateInput(d: Date): string {
-  return format(d, 'yyyy-MM-dd');
+function asUserCategory(t: string | undefined): CalendarioUserCategory {
+  if (
+    t === 'personal' ||
+    t === 'reunion' ||
+    t === 'feria' ||
+    t === 'apicultura' ||
+    t === 'marketing' ||
+    t === 'logistica' ||
+    t === 'otro'
+  )
+    return t;
+  return 'personal';
 }
 
 export function EventEditorSheet({
@@ -42,78 +53,82 @@ export function EventEditorSheet({
   onSave,
   onDelete,
 }: EventEditorSheetProps) {
-  const initialStart = event?.startDate ?? defaultStartsAt ?? new Date();
-  const initialEnd =
-    event?.endDate ??
-    defaultEndFromStart(event?.startDate ?? defaultStartsAt ?? new Date());
-
-  const [title, setTitle] = React.useState(event?.title ?? '');
-  const [notes, setNotes] = React.useState(event?.notes ?? '');
-  const [location, setLocation] = React.useState(event?.location ?? '');
-  const [allDay, setAllDay] = React.useState(Boolean(event?.allDay));
-  const [category, setCategory] = React.useState<CalendarioUserCategory>(() => {
-    const t = event?.type;
-    if (
-      t === 'personal' ||
-      t === 'reunion' ||
-      t === 'feria' ||
-      t === 'apicultura' ||
-      t === 'marketing' ||
-      t === 'logistica' ||
-      t === 'otro'
-    )
-      return t;
-    return 'personal';
-  });
-  const [startLocal, setStartLocal] = React.useState(toLocalInput(initialStart));
-  const [endLocal, setEndLocal] = React.useState(toLocalInput(initialEnd));
-  const [startDateOnly, setStartDateOnly] = React.useState(
-    toDateInput(initialStart),
-  );
-  const [endDateOnly, setEndDateOnly] = React.useState(toDateInput(initialEnd));
+  const [title, setTitle] = React.useState('');
+  const [notes, setNotes] = React.useState('');
+  const [location, setLocation] = React.useState('');
+  const [allDay, setAllDay] = React.useState(false);
+  const [category, setCategory] =
+    React.useState<CalendarioUserCategory>('personal');
+  const [startLocal, setStartLocal] = React.useState('');
+  const [endLocal, setEndLocal] = React.useState('');
+  const [startDateOnly, setStartDateOnly] = React.useState('');
+  const [endDateOnly, setEndDateOnly] = React.useState('');
+  const [formError, setFormError] = React.useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setConfirmDelete(false);
+      setFormError(null);
+      return;
+    }
     const s = event?.startDate ?? defaultStartsAt ?? new Date();
-    const e =
-      event?.endDate ?? defaultEndFromStart(s);
+    const e = event?.endDate ?? defaultEndFromStart(s);
     setTitle(event?.title ?? '');
     setNotes(event?.notes ?? '');
     setLocation(event?.location ?? '');
     setAllDay(Boolean(event?.allDay));
-    const t = event?.type;
-    setCategory(
-      t === 'personal' ||
-        t === 'reunion' ||
-        t === 'feria' ||
-        t === 'apicultura' ||
-        t === 'marketing' ||
-        t === 'logistica' ||
-        t === 'otro'
-        ? t
-        : 'personal',
-    );
-    setStartLocal(toLocalInput(s));
-    setEndLocal(toLocalInput(e));
-    setStartDateOnly(toDateInput(s));
-    setEndDateOnly(toDateInput(e));
+    setCategory(asUserCategory(event?.type));
+    setStartLocal(toDateTimeLocalValue(s));
+    setEndLocal(toDateTimeLocalValue(e));
+    setStartDateOnly(toDateInputValue(s));
+    setEndDateOnly(toDateInputValue(e));
   }, [open, event, defaultStartsAt]);
+
+  // Lock body scroll while sheet open
+  React.useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
 
   if (!open) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    setFormError(null);
+    if (!title.trim()) {
+      setFormError('El título es obligatorio');
+      return;
+    }
 
     let startsAt: Date;
     let endsAt: Date;
 
     if (allDay) {
-      startsAt = startOfDay(parseISO(startDateOnly));
-      endsAt = setMinutes(setHours(startOfDay(parseISO(endDateOnly)), 23), 59);
+      startsAt = parseLocalDate(startDateOnly);
+      endsAt = setMinutes(setHours(parseLocalDate(endDateOnly), 23), 59);
     } else {
-      startsAt = new Date(startLocal);
-      endsAt = new Date(endLocal);
+      const s = parseLocalDateTime(startLocal);
+      const en = parseLocalDateTime(endLocal);
+      if (!s || !en) {
+        setFormError('Fecha u hora inválida');
+        return;
+      }
+      startsAt = s;
+      endsAt = en;
     }
 
     if (endsAt < startsAt) {
@@ -124,7 +139,10 @@ export function EventEditorSheet({
       USER_CATEGORIES.find((c) => c.value === category)?.color ?? '#5AC8FA';
 
     void onSave({
-      id: event?.source.table === 'calendario_eventos' ? event.source.originalId : undefined,
+      id:
+        event?.source.table === 'calendario_eventos'
+          ? event.source.originalId
+          : undefined,
       title: title.trim(),
       notes: notes.trim() || undefined,
       location: location.trim() || undefined,
@@ -153,7 +171,8 @@ export function EventEditorSheet({
         onSubmit={handleSubmit}
         className="relative z-[1] flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-border bg-card shadow-2xl sm:rounded-3xl"
       >
-        {/* Apple-style grabber + nav */}
+        <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/30 sm:hidden" />
+
         <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
           <button
             type="button"
@@ -178,6 +197,12 @@ export function EventEditorSheet({
         </div>
 
         <div className="flex-1 space-y-0 overflow-y-auto overscroll-contain">
+          {formError && (
+            <p className="bg-destructive/10 px-4 py-2 text-sm text-destructive">
+              {formError}
+            </p>
+          )}
+
           <input
             autoFocus
             value={title}
@@ -206,7 +231,8 @@ export function EventEditorSheet({
                   type="date"
                   value={startDateOnly}
                   onChange={(e) => setStartDateOnly(e.target.value)}
-                  className="rounded-lg border border-border bg-background px-2 py-1 text-sm"
+                  className="rounded-lg border border-border bg-background px-2 py-1 text-sm text-foreground"
+                  required
                 />
               </label>
               <label className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -215,7 +241,8 @@ export function EventEditorSheet({
                   type="date"
                   value={endDateOnly}
                   onChange={(e) => setEndDateOnly(e.target.value)}
-                  className="rounded-lg border border-border bg-background px-2 py-1 text-sm"
+                  className="rounded-lg border border-border bg-background px-2 py-1 text-sm text-foreground"
+                  required
                 />
               </label>
             </>
@@ -228,12 +255,11 @@ export function EventEditorSheet({
                   value={startLocal}
                   onChange={(e) => {
                     setStartLocal(e.target.value);
-                    const s = new Date(e.target.value);
-                    if (!Number.isNaN(s.getTime())) {
-                      setEndLocal(toLocalInput(defaultEndFromStart(s)));
-                    }
+                    const s = parseLocalDateTime(e.target.value);
+                    if (s) setEndLocal(toDateTimeLocalValue(defaultEndFromStart(s)));
                   }}
-                  className="rounded-lg border border-border bg-background px-2 py-1 text-sm"
+                  className="rounded-lg border border-border bg-background px-2 py-1 text-sm text-foreground"
+                  required
                 />
               </label>
               <label className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -242,7 +268,8 @@ export function EventEditorSheet({
                   type="datetime-local"
                   value={endLocal}
                   onChange={(e) => setEndLocal(e.target.value)}
-                  className="rounded-lg border border-border bg-background px-2 py-1 text-sm"
+                  className="rounded-lg border border-border bg-background px-2 py-1 text-sm text-foreground"
+                  required
                 />
               </label>
             </>
@@ -296,14 +323,36 @@ export function EventEditorSheet({
           />
 
           {mode === 'edit' && onDelete && (
-            <button
-              type="button"
-              onClick={() => void onDelete()}
-              disabled={isSaving}
-              className="w-full px-4 py-4 text-center text-sm font-semibold text-destructive hover:bg-destructive/5"
-            >
-              Eliminar evento
-            </button>
+            <div className="px-4 py-3">
+              {!confirmDelete ? (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(true)}
+                  disabled={isSaving}
+                  className="w-full rounded-xl py-3 text-center text-sm font-semibold text-destructive hover:bg-destructive/5"
+                >
+                  Eliminar evento
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(false)}
+                    className="flex-1 rounded-xl border border-border py-3 text-sm font-medium"
+                  >
+                    No, cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void onDelete()}
+                    disabled={isSaving}
+                    className="flex-1 rounded-xl bg-destructive py-3 text-sm font-semibold text-destructive-foreground"
+                  >
+                    Sí, eliminar
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </form>

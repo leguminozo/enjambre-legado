@@ -54,15 +54,20 @@ export function useCalendarioSync(
         : undefined;
       const veDate = viewEnd ? viewEnd.toISOString().slice(0, 10) : undefined;
 
-      // 0. Eventos de agenda propios (siempre, todos los roles autenticados)
+      // 0. Eventos de agenda propios (soft-fail si falta migración)
       {
         let q = supabase.from('calendario_eventos').select('*');
         if (vsIso && veIso) {
+          // Overlap: starts before viewEnd AND ends after viewStart
           q = q.lte('starts_at', veIso).gte('ends_at', vsIso);
         }
         promises.push(
           q.then(({ data, error: err }) => {
-            if (err) throw err;
+            if (err) {
+              // tabla inexistente / RLS: no tumbar todo el calendario
+              console.warn('[Calendario] calendario_eventos:', err.message);
+              return [] as CalendarioEvent[];
+            }
             return (data || []).map((row) =>
               withTool({
                 id: `own-${row.id}`,
@@ -302,6 +307,16 @@ export function useCalendarioSync(
     input: CreateCalendarioEventInput,
   ): Promise<{ ok: true; id: string } | { ok: false; error: string }> => {
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const uid = input.userId ?? user?.id;
+      if (!uid) {
+        return { ok: false, error: 'Debes iniciar sesión para crear eventos' };
+      }
+      if (!(input.endsAt >= input.startsAt)) {
+        return { ok: false, error: 'La hora de fin debe ser ≥ inicio' };
+      }
       const { data, error: err } = await supabase
         .from('calendario_eventos')
         .insert({
@@ -314,7 +329,7 @@ export function useCalendarioSync(
           category: input.category ?? 'personal',
           color: input.color ?? defaultColor(input.category ?? 'personal'),
           empresa_id: input.empresaId ?? null,
-          user_id: input.userId ?? null,
+          user_id: uid,
         })
         .select('id')
         .single();
@@ -324,6 +339,13 @@ export function useCalendarioSync(
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'No se pudo crear el evento';
+      if (/relation .* does not exist|schema cache/i.test(message)) {
+        return {
+          ok: false,
+          error:
+            'Falta migración 91_calendario_eventos.sql en Supabase. Aplícala y reintenta.',
+        };
+      }
       return { ok: false, error: message };
     }
   };

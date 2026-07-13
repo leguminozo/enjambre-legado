@@ -47,21 +47,22 @@ CREATE POLICY calendario_eventos_select ON public.calendario_eventos
   FOR SELECT TO authenticated
   USING (true);
 
+-- Escritura solo del dueño (user_id = auth.uid()). Lectura compartida al equipo.
 DROP POLICY IF EXISTS calendario_eventos_insert ON public.calendario_eventos;
 CREATE POLICY calendario_eventos_insert ON public.calendario_eventos
   FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+  WITH CHECK (auth.uid() IS NOT NULL AND auth.uid() = user_id);
 
 DROP POLICY IF EXISTS calendario_eventos_update ON public.calendario_eventos;
 CREATE POLICY calendario_eventos_update ON public.calendario_eventos
   FOR UPDATE TO authenticated
-  USING (auth.uid() = user_id OR user_id IS NULL)
-  WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS calendario_eventos_delete ON public.calendario_eventos;
 CREATE POLICY calendario_eventos_delete ON public.calendario_eventos
   FOR DELETE TO authenticated
-  USING (auth.uid() = user_id OR user_id IS NULL);
+  USING (auth.uid() = user_id);
 
 -- Service role full access (BFF / admin client)
 DROP POLICY IF EXISTS calendario_eventos_service ON public.calendario_eventos;

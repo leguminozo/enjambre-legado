@@ -43,7 +43,7 @@ function parseType(raw: string | null): CalendarioEventType | null {
 }
 
 export default function CalendarioPage() {
-  const supabase = createClient();
+  const supabase = React.useMemo(() => createClient(), []);
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = useAuthStore((s) => s.user);
@@ -93,7 +93,13 @@ export default function CalendarioPage() {
     createEvent,
     updateEvent,
     deleteEvent,
-  } = useCalendarioSync(supabase, userRole, viewStart, viewEnd);
+  } = useCalendarioSync(
+    // createClient() siempre devuelve cliente en apps configuradas; cast estable para hooks
+    supabase as NonNullable<typeof supabase>,
+    userRole,
+    viewStart,
+    viewEnd,
+  );
 
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [editorMode, setEditorMode] = React.useState<'create' | 'edit'>('create');
@@ -201,6 +207,14 @@ export default function CalendarioPage() {
       setIsSaving(false);
     }
   };
+
+  if (!supabase) {
+    return (
+      <div className="p-8 text-center text-destructive">
+        Supabase no configurado. Revisa las variables de entorno.
+      </div>
+    );
+  }
 
   if (error) {
     return (

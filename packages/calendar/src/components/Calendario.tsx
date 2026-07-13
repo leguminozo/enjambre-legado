@@ -391,6 +391,17 @@ export function Calendario({
                     eventTypeConfig[evt.type] ?? {
                       colorClass: 'bg-muted text-foreground border border-border',
                     };
+                  const timePrefix =
+                    !evt.allDay && evt.startDate
+                      ? `${format(toDate(evt.startDate), 'HH:mm')} `
+                      : '';
+                  const pillStyle = evt.color
+                    ? {
+                        backgroundColor: `${evt.color}22`,
+                        borderColor: `${evt.color}66`,
+                        color: evt.color,
+                      }
+                    : undefined;
                   return (
                     <span
                       key={evt.id}
@@ -399,9 +410,11 @@ export function Calendario({
                         e.stopPropagation();
                         onEventClick?.(evt);
                       }}
-                      className={`${conf.colorClass} block w-full cursor-pointer truncate rounded-sm px-1 py-0.5 text-[9px] leading-tight transition hover:brightness-110`}
-                      title={evt.title}
+                      className={`${evt.color ? 'border' : conf.colorClass} block w-full cursor-pointer truncate rounded-sm px-1 py-0.5 text-[9px] leading-tight transition hover:brightness-110`}
+                      style={pillStyle}
+                      title={`${timePrefix}${evt.title}`}
                     >
+                      {timePrefix}
                       {evt.title}
                     </span>
                   );
