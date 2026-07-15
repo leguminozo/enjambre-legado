@@ -305,10 +305,16 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       return c.json({ code: "empty_cart", message: 'Carrito vacío después de verificación' }, 400);
     }
 
-    // CAF: fail-closed cuando se emite boleta auto o se fuerza enforcement.
-    // Antes: solo bloqueaba si existía fila CAF y <10; sin CAF dejaba pasar.
+    // CAF: fail-closed para ventas legales Chile.
+    // Opt-out explícito: SII_ENFORCE_CAF_ON_CHECKOUT=false
+    // Default enforce: auto-emit boleta, flag true, o Vercel production.
+    const cafEnv = process.env.SII_ENFORCE_CAF_ON_CHECKOUT;
     const enforceCaf =
-      isAutoEmitBoletaEnabled() || process.env.SII_ENFORCE_CAF_ON_CHECKOUT === 'true';
+      cafEnv === 'false'
+        ? false
+        : cafEnv === 'true' ||
+          isAutoEmitBoletaEnabled() ||
+          process.env.VERCEL_ENV === 'production';
     if (enforceCaf) {
       const { data: empresa } = await admin.from('empresas').select('id').limit(1).maybeSingle();
       if (!empresa?.id) {

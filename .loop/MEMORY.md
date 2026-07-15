@@ -16,6 +16,15 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-15 pass 5
+- Señal: sii-clave cifraba con SERVICE_ROLE??"" (key vacía); checkout CAF solo con flag; POS CAF solo si existía fila sii_caf; cron fiscal === no timing-safe
+- Compuesto: colapsar + redirigir + método
+- Regla nueva: cifrado SII fail-closed (SII_CLAVE_ENCRYPTION_KEY|service≥32); CAF enforce en VERCEL production (opt-out false); getFoliosRestantes=0 sin CAF → deny; cron secrets timing-safe
+- Sector boost: —
+- Anti-patrón: `SERVICE_ROLE_KEY ?? ""` como AES key; `if (cafData)` skip when missing; checkout CAF opt-in only
+- Guardriel: intacto
+- Ops: set SII_CLAVE_ENCRYPTION_KEY en Vercel; SII_ENFORCE_CAF_ON_CHECKOUT=false solo en staging sin CAF
+
 ### Evo 2026-07-15 pass 4
 - Señal: offline POS retry sin idempotency → doble venta; items_override confiaba precio_unitario del cliente
 - Compuesto: colapsar + método
@@ -65,8 +74,8 @@
 
 ### Alta (priorizar en deep-followup o boost)
 
-- [alta] **Fiscal cadena**: DTE post-checkout async + CAF monitoring/alert en prod ops (código CAF fail-closed ya seed; verificar enforce end-to-end en init)
-- [alta] **Crons fail-closed**: grepear `if (CRON_SECRET &&` / secrets opcionales en `apps/nucleo/app/api/cron/**` y BFF
+- [media] **Fiscal cadena**: CAF enforce production + POS fail-closed pass5; residual DTE async ops + SII_CLAVE_ENCRYPTION_KEY en Vercel
+- [baja] **Crons**: fiscal timing-safe pass5; residual notifications brother check
 - [alta] **Checkout residual**: alinear pricing/preview/commit + idempotencia bajo reintentos reales Transbank/Flow
 - [media] **Campo/E2E**: `E2E_SKIP_AUTH` bloqueado en `VERCEL_ENV=production` (pass1); residual: documentar en Vercel que no setear el env
 - [baja] **verifyInternalApiKey**: timing-safe cerrado pass3
@@ -122,6 +131,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
+| SII clave AES fail-closed + CAF prod/POS + cron fiscal timing-safe | ✅ pass5 (pendiente hash) |
 | POS client_request_id + server reprice items_override | ✅ pass4 `d681b5b` |
 | timing-safe verifyInternalApiKey | ✅ pass3 `3dabf65` |
 | checkout/subs returnUrl allowlist (open redirect) | ✅ pass2 `ab77d61` |
@@ -185,10 +195,11 @@ Origen (campo/cosecha) → Lotes (núcleo) → Traza (hash) → Producto (tienda
 
 ## Estado del cursor (espejo humano; fuente de verdad = CURSOR.json)
 
-- pass: 4  
-- index: 4  
-- last: `campo-pos-offline`  
-- next sector: `fiscal-sii-contable`  
+- pass: 5  
+- index: 5  
+- last: `fiscal-sii-contable`  
+- next sector: `feria-reps-comisiones`  
 - streak_clean: 0  
+
 
 

@@ -35,7 +35,9 @@ Prompt hermano: `.loop/PROMPT.md` v1.0.
 | Webhook sin verify | orden gratis | POST “paid” sin commit real | Transbank `commit(token_ws)`; Flow/HMAC según provider |
 | Monto body Flow/TBK | fraude | amount del request | amount desde sesión + BD |
 | returnUrl abierto | phishing post-pago | `returnUrl` body → provider.init | `resolveCheckoutReturnUrl` allowlist origin+path |
-| CAF open checkout | venta ilegal sin DTE | folios=0 sigue init | `getFoliosRestantes` + flag enforce fail-closed |
+| CAF open checkout | venta ilegal sin DTE | folios=0 sigue init | enforce en production o auto-emit; opt-out `SII_ENFORCE_CAF_ON_CHECKOUT=false` |
+| SII clave AES vacío | password SII cifrado con key vacía | `SERVICE_ROLE ?? ""` | fail-closed; prefer `SII_CLAVE_ENCRYPTION_KEY` ≥32 |
+| POS CAF if cafData | sin CAF vende igual | only check when row exists | `getFoliosRestantes` (0 si null) + min |
 | DTE desconectado | venta sin boleta | commit sin enqueue fiscal | job `venta` → cron fiscal retry |
 | Abandonment flood | spam email | POST abandonment abierto | auth + rate; precios server-side |
 | Pricing desalineado | preview ≠ charge | tienda action vs nucleo init | único `@enjambre/pricing` |

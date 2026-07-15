@@ -76,6 +76,26 @@ empresaRoutes.patch("/", async (c) => {
   return c.json({ data });
 });
 
+/**
+ * AES-GCM key material for SII portal password at rest.
+ * Fail-closed: never encrypt with empty/short material.
+ * Prefer dedicated SII_CLAVE_ENCRYPTION_KEY (stable across service_role rotation).
+ */
+function resolveSiiClaveKeyBytes(): Uint8Array | null {
+  const candidates = [
+    process.env.SII_CLAVE_ENCRYPTION_KEY,
+    process.env.FISCAL_ENCRYPTION_KEY,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  ];
+  for (const raw of candidates) {
+    const v = raw?.trim();
+    if (v && v.length >= 32) {
+      return new TextEncoder().encode(v.slice(0, 32));
+    }
+  }
+  return null;
+}
+
 empresaRoutes.put("/sii-clave", async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase");
@@ -85,12 +105,32 @@ empresaRoutes.put("/sii-clave", async (c) => {
     return c.json({ code: "invalid_clave", message: "La clave SII debe tener al menos 4 caracteres" }, 400);
   }
 
-  const encoder = new TextEncoder();
-  const secretKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-  const algoKey = await crypto.subtle.importKey("raw", encoder.encode(secretKey.slice(0, 32)), { name: "AES-GCM" }, false, ["encrypt"]);
+  const keyBytes = resolveSiiClaveKeyBytes();
+  if (!keyBytes) {
+    return c.json(
+      {
+        code: "encryption_key_missing",
+        message:
+          "Falta material de cifrado (SII_CLAVE_ENCRYPTION_KEY o SUPABASE_SERVICE_ROLE_KEY ≥32). No se guarda la clave en claro.",
+      },
+      503,
+    );
+  }
+
+  const algoKey = await crypto.subtle.importKey(
+    "raw",
+    keyBytes,
+    { name: "AES-GCM" },
+    false,
+    ["encrypt"],
+  );
 
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, algoKey, encoder.encode(body.clave));
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    algoKey,
+    new TextEncoder().encode(body.clave),
+  );
   const combined = new Uint8Array(iv.length + new Uint8Array(encrypted).length);
   combined.set(iv, 0);
   combined.set(new Uint8Array(encrypted), iv.length);

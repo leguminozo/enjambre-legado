@@ -12,6 +12,7 @@ import {
 } from "@/api/lib/feria-pos";
 import { fromLoose } from "@/api/lib/supabase-loose";
 import { registerDeliveredQrCodes } from "@/lib/sale-qr";
+import { getCafMinFolios, getFoliosRestantes } from "@/api/lib/fiscal/caf-guard";
 
 const QuickSaleSchema = z.object({
   cash_session_id: z.string().uuid(),
@@ -191,24 +192,21 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     return c.json({ code: "feria_validation_failed", message }, 500);
   }
 
-  // 0. Prevención de Ventas Ilegales: Bloquear si quedan < 10 folios de boleta (tipo 39)
+  // 0. CAF fail-closed: sin fila activa o folios < min → 503 (getFoliosRestantes → 0 si no hay CAF).
   if (empresaId) {
-    const { data: cafData, error: cafError } = await supabase
-      .from('sii_caf')
-      .select('folio_hasta, folio_actual')
-      .eq('empresa_id', empresaId)
-      .eq('tipo_dte', 39) // Boleta Electrónica
-      .eq('activo', true)
-      .maybeSingle();
-
-    if (!cafError && cafData) {
-      const foliosDisponibles = cafData.folio_hasta - cafData.folio_actual;
-      if (foliosDisponibles < 10) {
-        return c.json({ 
-          code: "folios_exhausted", 
-          message: 'El sistema de POS se encuentra en mantenimiento (código: folios). Por favor pide más boletas.' 
-        }, 503);
-      }
+    const minFolios = getCafMinFolios();
+    const restantes = await getFoliosRestantes(supabase, empresaId, 39);
+    if (restantes < minFolios) {
+      return c.json(
+        {
+          code: "folios_exhausted",
+          message:
+            "El sistema de POS se encuentra en mantenimiento (código: folios). Por favor pide más boletas.",
+          foliosRestantes: restantes,
+          minFolios,
+        },
+        503,
+      );
     }
   }
 
