@@ -122,7 +122,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
-| POS client_request_id + server reprice items_override | ✅ pass4 (pendiente hash) |
+| POS client_request_id + server reprice items_override | ✅ pass4 `d681b5b` |
 | timing-safe verifyInternalApiKey | ✅ pass3 `3dabf65` |
 | checkout/subs returnUrl allowlist (open redirect) | ✅ pass2 `ab77d61` |
 | auth middleware fail-closed + defaultRole cliente + unlisted deny | ✅ pass1 `d2a6a9f` |
