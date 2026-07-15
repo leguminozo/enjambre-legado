@@ -1,11 +1,9 @@
 {
-  "index": 2,
-  "pass": 2,
-  "last_sector": "tienda-checkout-payments",
-  "last_commit": "ab77d61",
+  "index": 3,
+  "pass": 3,
+  "last_sector": "nucleo-bff-api",
+  "last_commit": null,
   "streak_clean": 0,
-  "boost": {
-    "nucleo-bff-api": 1
-  },
-  "notes": "Pass2: returnUrl allowlist checkout+subs. Siguiente: nucleo-bff-api (#2). Quote subtotal client = solo UI."
+  "boost": {},
+  "notes": "Pass3: timing-safe internal key. Siguiente: campo-pos-offline (#3)."
 }

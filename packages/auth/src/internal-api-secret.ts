@@ -28,8 +28,18 @@ export function getInternalApiSecret(): string | null {
   return null;
 }
 
+/** Constant-time string compare (avoids early-exit length leaks on short secrets). */
+function timingSafeEqualString(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) {
+    out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return out === 0;
+}
+
 export function verifyInternalApiKey(header: string | undefined | null): boolean {
   const expected = getInternalApiSecret();
   if (!expected || !header) return false;
-  return header === expected;
+  return timingSafeEqualString(header, expected);
 }

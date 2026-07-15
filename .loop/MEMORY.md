@@ -16,6 +16,15 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-15 pass 3
+- Señal: verifyInternalApiKey usaba `===` (timing-leaky); backlog de pass1
+- Compuesto: colapsar + acrecer
+- Regla nueva: secretos internal/cron comparar timing-safe; siempre `!expected || !header → false`
+- Sector boost: —
+- Anti-patrón: `header === expected` en x-internal-key / cron secrets
+- Guardriel: intacto
+- Nota BFF: publicPaths checkout/webhooks OK con auth en handlers; creadores/cms con authMiddleware en rutas mutadoras
+
 ### Evo 2026-07-15 pass 2
 - Señal: `POST /checkout/init` y subscriptions init pasaban `returnUrl` del body al provider sin allowlist → open redirect post Webpay/Flow
 - Compuesto: método + colapsar + entrelazados hop1 (subs)
@@ -52,7 +61,7 @@
 - [alta] **Crons fail-closed**: grepear `if (CRON_SECRET &&` / secrets opcionales en `apps/nucleo/app/api/cron/**` y BFF
 - [alta] **Checkout residual**: alinear pricing/preview/commit + idempotencia bajo reintentos reales Transbank/Flow
 - [media] **Campo/E2E**: `E2E_SKIP_AUTH` bloqueado en `VERCEL_ENV=production` (pass1); residual: documentar en Vercel que no setear el env
-- [media] **verifyInternalApiKey**: comparación `===` no timing-safe (hop2 pass1)
+- [baja] **verifyInternalApiKey**: timing-safe cerrado pass3
 
 ### Media
 
@@ -105,7 +114,8 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
-| checkout/subs returnUrl allowlist (open redirect) | ✅ pass2 (pendiente hash) |
+| timing-safe verifyInternalApiKey | ✅ pass3 (pendiente hash) |
+| checkout/subs returnUrl allowlist (open redirect) | ✅ pass2 `ab77d61` |
 | auth middleware fail-closed + defaultRole cliente + unlisted deny | ✅ pass1 `d2a6a9f` |
 | E2E_SKIP_AUTH blocked on Vercel production | ✅ pass1 `d2a6a9f` nucleo+campo |
 | getSession audit server paths | ✅ client-only residual |
@@ -166,9 +176,8 @@ Origen (campo/cosecha) → Lotes (núcleo) → Traza (hash) → Producto (tienda
 
 ## Estado del cursor (espejo humano; fuente de verdad = CURSOR.json)
 
-- pass: 2  
-- index: 2  
-- last: `tienda-checkout-payments`  
-- next sector: `nucleo-bff-api`  
+- pass: 3  
+- index: 3  
+- last: `nucleo-bff-api`  
+- next sector: `campo-pos-offline`  
 - streak_clean: 0  
-
