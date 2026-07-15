@@ -57,8 +57,13 @@ vi.mock("@enjambre/auth/browser", async () => {
   return {
     getSupabaseUrl: () => "https://mock.supabase.co",
     getSupabaseKey: () => "eyJmock-key",
+    isSupabaseConfigured: () => true,
   };
 });
+
+// middleware imports ./supabase — stub env so isSupabaseConfigured() is true
+process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJmock-key-for-tests";
 
 // Need to import AFTER mocks are set up for createAuthMiddleware
 const { createAuthMiddleware } = await import("@enjambre/auth/middleware");
@@ -67,6 +72,8 @@ describe("Auth Integration Flow", () => {
   beforeEach(() => {
     mockSessionUser = null;
     mockProfile = null;
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJmock-key-for-tests";
     vi.clearAllMocks();
   });
 
@@ -152,7 +159,11 @@ describe("Auth Integration Flow", () => {
     });
 
     it("allows any role to unknown routes", () => {
-      expect(isRouteAllowed("/random-route", "cliente")).toBe(true);
+      // Fail-closed: unlisted dashboard routes are admin-only
+      expect(isRouteAllowed("/random-route", "cliente")).toBe(false);
+      expect(isRouteAllowed("/random-route", "admin")).toBe(true);
+      expect(isRouteAllowed("/monitor-feria", "cliente")).toBe(false);
+      expect(isRouteAllowed("/monitor-feria", "admin")).toBe(true);
     });
 
     it("allows legacy gerente role to /ejecutivo via normalization", () => {

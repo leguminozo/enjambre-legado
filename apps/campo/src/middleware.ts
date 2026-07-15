@@ -44,9 +44,12 @@ export async function middleware(request: NextRequest) {
 
     /**
      * Playwright CI: E2E_SKIP_AUTH=1 abre /pos sin sesión real.
-     * Nunca activar en producción (mismo patrón que nucleo middleware).
+     * Nunca en Vercel production aunque el env esté mal seteado.
      */
-    if (process.env.E2E_SKIP_AUTH === '1' && isProtected(path)) {
+    const e2eAuthSkipAllowed =
+      process.env.E2E_SKIP_AUTH === '1' &&
+      process.env.VERCEL_ENV !== 'production';
+    if (e2eAuthSkipAllowed && isProtected(path)) {
       return NextResponse.next({ request });
     }
 

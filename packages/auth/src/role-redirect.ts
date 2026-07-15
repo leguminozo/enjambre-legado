@@ -77,6 +77,7 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/vanguardia': ['admin'],
   '/creadores': ['admin'],
   '/operadores-feria': ['admin'],
+  '/monitor-feria': ['admin'],
   '/mi-feria': ['admin'],
   '/invitaciones': ['admin'],
   '/reglas-comision': ['admin'],
@@ -94,6 +95,8 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/perfil': ['admin'],
   '/configuracion': ['admin'],
   '/editor-tienda': ['admin'],
+  '/calendario': ['admin'],
+  '/pipeline': ['admin'],
 }
 
 function normalizeRole(role: string): string {
@@ -101,13 +104,17 @@ function normalizeRole(role: string): string {
 }
 
 export function isRouteAllowed(pathname: string, role: string): boolean {
+  // API authz is enforced in handlers/BFF — middleware must not block CORS/health preflights.
   if (pathname.startsWith('/api/')) return true
 
   const normalized = normalizeRole(role)
 
+  // Admin (and legacy→admin) may access any núcleo surface.
+  if (normalized === 'admin') return true
+
   const exactMatch = ROUTE_ROLE_GUARDS[pathname]
   if (exactMatch) {
-    return exactMatch.includes(normalized as RoleKey) || normalized === 'admin'
+    return exactMatch.includes(normalized as RoleKey)
   }
 
   const prefixMatch = Object.keys(ROUTE_ROLE_GUARDS)
@@ -116,8 +123,10 @@ export function isRouteAllowed(pathname: string, role: string): boolean {
 
   if (prefixMatch) {
     const allowed = ROUTE_ROLE_GUARDS[prefixMatch]
-    return allowed.includes(normalized as RoleKey) || normalized === 'admin'
+    return allowed.includes(normalized as RoleKey)
   }
 
-  return true
+  // Fail-closed: unlisted dashboard routes are not open to cliente/creador/rep.
+  // New pages must register in ROUTE_ROLE_GUARDS or remain admin-only.
+  return false
 }

@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getSupabaseUrl, getSupabaseKey } from './supabase'
+import { getSupabaseUrl, getSupabaseKey, isSupabaseConfigured } from './supabase'
 import { getInternalApiSecret } from './internal-api-secret'
 import {
   isRouteAllowed,
@@ -19,11 +19,17 @@ function resolveRedirect(target: string, request: NextRequest): NextResponse {
   return NextResponse.redirect(url)
 }
 
+function isPublicPath(pathname: string, publicRoutes: string[]): boolean {
+  if (pathname.startsWith('/api/')) return true
+  return publicRoutes.some((route) => pathname === route)
+}
+
 export interface AuthMiddlewareConfig {
   publicRoutes?: string[]
   authRedirect?: string
   roleRedirectMap?: Record<string, string>
 
+  /** Least privilege: missing app_metadata.role must never elevate (never default to admin). */
   defaultRole?: string
   timeoutMs?: number
 }
@@ -46,14 +52,20 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
 
   return async function middleware(request: NextRequest) {
     let supabaseResponse = NextResponse.next({ request })
+    const { pathname } = request.nextUrl
+
+    // Fail-closed: misconfigured Supabase must not open protected surfaces.
+    if (!isSupabaseConfigured()) {
+      if (isPublicPath(pathname, publicRoutes)) {
+        return supabaseResponse
+      }
+      const url = request.nextUrl.clone()
+      url.pathname = authRedirect
+      return NextResponse.redirect(url)
+    }
 
     const supabaseUrl = getSupabaseUrl()
     const supabaseAnonKey = getSupabaseKey()
-
-    const isValidKey = supabaseAnonKey.startsWith('eyJ') || supabaseAnonKey.startsWith('sb_publishable_')
-    if (!isValidKey) {
-      return supabaseResponse
-    }
 
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
@@ -72,14 +84,8 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
 
     const result = await withTimeout(supabase.auth.getUser(), timeoutMs)
     const user = result?.data?.user ?? null
-    const { pathname } = request.nextUrl
 
-    if (
-      !user &&
-      !publicRoutes.some(
-        (route) => pathname === route || pathname.startsWith('/api/')
-      )
-    ) {
+    if (!user && !isPublicPath(pathname, publicRoutes)) {
       const url = request.nextUrl.clone()
       url.pathname = authRedirect
       return NextResponse.redirect(url)

@@ -1,0 +1,185 @@
+# PLAYBOOK — patrones reales de Oyz App (Enjambre Legado) v1.0
+
+Actualizar solo cuando un fix o audit confirma el patrón en código.  
+Prompt hermano: `.loop/PROMPT.md` v1.0.
+
+---
+
+## Auth / sesión / roles
+
+| Patrón | Síntoma | Detección | Fix canónico |
+|--------|---------|-----------|--------------|
+| getSession en gate server | JWT no revalidado | `getSession()` en middleware/API/server actions de acceso | `getUser()`; session solo client token cache |
+| user_metadata role | cliente se auto-promueve | `user.user_metadata.role` / `oyz_role` client-writable | `profiles.role` o `app_metadata`; trigger/RLS bloquea self-role |
+| Fail-open middleware | dashboard sin sesión | missing/invalid Supabase env → `next()` | `!isSupabaseConfigured()` → redirect login (no public/api); never bare next |
+| defaultRole admin | JWT sin role = admin | `defaultRole: "admin"` en nucleo middleware | `defaultRole: "cliente"`; least privilege |
+| Unlisted route open | cliente entra /monitor-feria etc. | `isRouteAllowed` final `return true` | fail-closed: unlisted → admin only; registrar en ROUTE_ROLE_GUARDS |
+| Role redirect wrong app | cliente cae en núcleo o loop | `getRoleRedirectPath` absolute cross-host | redirects relativos dentro de la app (tienda fix histórico) |
+| LEGACY_ROLE_MAP forget | rol viejo sin path | `apicultor`/`gerente` sin map | consolidar a `admin` vía map + migration 39 |
+| ROUTE_ROLE_GUARDS solo UI | path accesible sin rol | page client check only | middleware + BFF authz |
+| createClient ad-hoc | drift de auth | `createBrowserClient` suelto en component | `@enjambre/auth` / re-export `apps/*/lib` |
+| Barrel auth en server | Turbopack / useEffect crash | import `@enjambre/auth` en RSC | entry `/server-index`, `/middleware`, `/security-events` |
+| E2E_SKIP_AUTH en prod | auth bypass POS/SII | env `=1` en Vercel production | require `E2E_SKIP_AUTH=1` **and** `VERCEL_ENV !== 'production'` |
+| access_denied no logueado | ciego a fuerza bruta path | middleware sin fire-and-forget | `POST …/security-events/internal` + `x-internal-key` |
+
+---
+
+## Checkout / pagos / pricing
+
+| Patrón | Síntoma | Detección | Fix canónico |
+|--------|---------|-----------|--------------|
+| Precio del body | paga $1 producto caro | `unit_price` / `total` del client en init | solo `product_id`+`qty`; precio desde `productos` |
+| Multiplicador solo client | B2B gratis | preview client sin JWT check | `computeCartPricing` server + `app_metadata.oyz_role` |
+| Session en memoria | double charge / lost session | Map en process memory | `checkout_sessions` Postgres; expire 30m |
+| Fulfill no idempotente | doble venta / doble stock− | commit sin `status=pending` | update condicional pending→completed |
+| Webhook sin verify | orden gratis | POST “paid” sin commit real | Transbank `commit(token_ws)`; Flow/HMAC según provider |
+| Monto body Flow/TBK | fraude | amount del request | amount desde sesión + BD |
+| CAF open checkout | venta ilegal sin DTE | folios=0 sigue init | `getFoliosRestantes` + flag enforce fail-closed |
+| DTE desconectado | venta sin boleta | commit sin enqueue fiscal | job `venta` → cron fiscal retry |
+| Abandonment flood | spam email | POST abandonment abierto | auth + rate; precios server-side |
+| Pricing desalineado | preview ≠ charge | tienda action vs nucleo init | único `@enjambre/pricing` |
+
+---
+
+## BFF Hono / internal / crons
+
+| Patrón | Síntoma | Detección | Fix canónico |
+|--------|---------|-----------|--------------|
+| Handler sin authMiddleware | mutación anónima | route registra sin chain | `authMiddleware` → `tenantMiddleware` → Zod |
+| x-internal-key = anon | forge internal | compare con NEXT_PUBLIC | secret server; timing-safe |
+| if (CRON_SECRET && …) | cron abierto sin env | grepear `if (.*SECRET &&` | `if (!secret) return 500`; luego compare |
+| service_role pre-authz | bypass RLS total | admin client al inicio del handler | authz primero; scope mínimo |
+| Zod skip | inject weird types | handler raw body | schema parse fail → 400 |
+| Health leaks secrets | info disclosure | `/api/health` dumps env | deps probe booleans only |
+
+---
+
+## Campo POS / offline / feria
+
+| Patrón | Síntoma | Detección | Fix canónico |
+|--------|---------|-----------|--------------|
+| supabase.insert UI directa | offline pierde venta | insert en component POS | Dexie `sync_queue` + `use-sync-engine` |
+| Double sync sale | stock/caja ×2 | reprocess sin idempotency key | key por venta local UUID; server upsert |
+| Cash session open race | dos cajas abiertas | open sin check active | constraint/RPC una sesión activa por rep |
+| Feria sin contrato | venta canal feria ilegal | channel=feria sin evento | operadores-feria: contrato+en_curso |
+| Claim token forge | cliente reclama ajeno | token predecible / sin bind venta | token crypto + single use + RLS |
+| Leaderboard PII | ranking expone datos | select * profiles | campos mínimos |
+| SW cache auth HTML | shell ajeno device compartido | Serwist cache navigate dashboard | NetworkOnly API + auth paths |
+| SumUp webhook open | POS falso | route sin verify | signature + idempotency transaction_id |
+
+---
+
+## Fiscal / contable / empresa
+
+| Patrón | Síntoma | Detección | Fix canónico |
+|--------|---------|-----------|--------------|
+| Sin has_empresa_access | cross-tenant contable | query empresa_id del body | RLS + helper policy; JWT/profile bind |
+| CAF no monitor | sales stop sorpresa | sin cron alert folios | cron <50 alert; <10 pause emit |
+| as any SII | datos corruptos silent | casts en dte/cert | tipos + fromLoose pattern ya usado |
+| F29 manual only | OK | no auto | no inventar auto-F29 en loop sin pedido |
+| RUT invalid accept | DTE reject SII | skip validator contable | `@enjambre/contable` RUT helpers |
+
+---
+
+## CMS / chrome / público
+
+| Patrón | Síntoma | Detección | Fix canónico |
+|--------|---------|-----------|--------------|
+| CMS HTML raw | XSS tienda | `dangerouslySetInnerHTML` menú/banner | sanitize allowlist; CSP iframe audit |
+| Revalidate abierto | DoS cache / poison | `/api/revalidate` sin secret | secret header fail-closed |
+| shop-chrome fork | drift nucleo/tienda | copy local store-chrome | solo `@enjambre/shop-chrome` |
+| sale-qr fork | QR distinto feria/campo | copy local | `@enjambre/sale-qr` |
+| Reseña sin rate | flood / SEO spam | insert abierto | auth o throttle + RLS |
+| Wallet pass forge | sello falso | endpoint sin authz compra | bind venta/pedido verificado |
+
+---
+
+## Runtime / UI general
+
+| Patrón | Síntoma | Detección | Fix canónico |
+|--------|---------|-----------|--------------|
+| Theme hydration #418 | flash / React error | theme script post-hydrate | blocking script pre-paint (fix histórico) |
+| Spinner eterno | blanco post-login | `loading \|\| !user` sin redirect | `!loading && !user` → `/login` |
+| null.id dashboard | crash home | map rows nullable | guard + optional chain |
+| Setter `_setX` | ReferenceError | rename sin wrapper | restaurar nombre o useCallback |
+| Hook sin import | crash mount | bare `useEffect` | named import react |
+| catch vacío | falla silenciosa feria | `catch {}` / `catch (e) { console }` only | `toast.error` / friendlyError |
+| ChunkLoadError blank | editor-tienda blanco | lazy wrong path | import directo view (fix histórico) |
+
+---
+
+## Design system (Ley III)
+
+| Patrón | Síntoma | Detección | Fix canónico |
+|--------|---------|-----------|--------------|
+| Hex / stone / gray | dark mode roto | `bg-stone-`, `#`, `text-white` en apps | `bg-background` / `text-foreground` / tokens ui |
+| font ad-hoc | no editorial | font-family inline | Cormorant `font-display` + sans tokens |
+| Touch pequeño POS | mis-tap feria | icon btn sin min size | `min-h-11 min-w-11` |
+| Safe-area ausente | notch cubre caja | fixed sin safe | utilidades safe-area |
+| Duplicar componente ui | drift | nuevo Button local | `packages/ui` |
+
+---
+
+## Entrelazados frecuentes
+
+- `@enjambre/auth` → middleware tienda/nucleo/campo + security-events  
+- `@enjambre/pricing` → cart action tienda + checkout/preview núcleo + suscripciones  
+- `fulfillCheckout` → stock → lotes → DTE job → notifications  
+- `x-internal-key` → security-events/internal + notifications/internal  
+- cash-sessions ↔ rep-ventas ↔ campo POS ↔ commission-rules  
+- CAF ↔ checkout commit ↔ cron fiscal  
+- `@enjambre/shop-chrome` ↔ editor-tienda ↔ tienda header  
+- `@enjambre/sale-qr` ↔ campo ↔ feria claim  
+- carrito_items RLS ↔ mergeCartOnLogin ↔ abandonment worker  
+
+---
+
+## Comandos baratos (reactivación)
+
+```bash
+cd "/Users/macbook/Desktop/oyz app"
+
+# auth gates
+rg -n "getSession\(|getUser\(|user_metadata|E2E_SKIP_AUTH|createAdminClient|SERVICE_ROLE" \
+  packages/auth apps --glob '!**/node_modules/**' --glob '!**/.next/**'
+
+# checkout / dinero
+rg -n "fulfillCheckout|checkout_sessions|computeCartPricing|token_ws|CRON_SECRET|x-internal-key" \
+  apps/nucleo apps/tienda packages/pricing --glob '!**/node_modules/**'
+
+# fail-open secrets
+rg -n "if \(.*SECRET &&|if \(.*secret &&" apps packages --glob '!**/node_modules/**'
+
+# campo offline
+rg -n "sync_queue|createAdminClient|service_role|CashProvider" apps/campo --glob '!**/node_modules/**'
+
+# design drift (cono)
+rg -n "text-white|bg-black|bg-stone-|text-stone-|bg-gray-|#\[|#[0-9a-fA-F]{3,8}" \
+  apps packages/ui/src --glob '!**/node_modules/**' --glob '!**/*.css'
+
+# tests mínimos según cono
+pnpm --filter @enjambre/pricing test
+pnpm --filter @enjambre/auth test
+pnpm --filter @enjambre/database test
+pnpm --filter @enjambre/campo exec vitest run
+```
+
+---
+
+## Ya endurecido (no reabrir sin regresión) — seed desde TECHNICAL_DEBT 2026-07
+
+| Área | Nota |
+|------|------|
+| getSession audit server | usos residuales client-only (re-auditar si nuevas server routes) |
+| Transbank commit verify | webhooks route |
+| Banco Chile HMAC | webhooks |
+| CAF fail-closed + min folios | fiscal checkout |
+| DTE boleta retry jobs | cron fiscal |
+| Rate limit auth-events | security-events |
+| shop-chrome / sale-qr packages | fuente única |
+| Campo e2e smoke + E2E_SKIP_AUTH | solo test path |
+| Database package tests | types + migrations integrity |
+| Theme blocking script | hydration #418 |
+| Role redirects relativos tienda | auth fix |
+
+Ops residual frecuente: **staging Supabase**, apply migraciones 93–94+, typegen CRM, secrets Vercel (`pnpm env:check:prod` / `go-live:check`).

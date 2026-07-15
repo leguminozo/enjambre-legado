@@ -16,4 +16,10 @@ describe('ROUTE_ROLE_GUARDS / editor-tienda', () => {
     expect(isRouteAllowed('/editor-tienda', 'rep_ventas')).toBe(false);
     expect(isRouteAllowed('/editor-tienda', 'creador')).toBe(false);
   });
+
+  it('rutas no listadas son fail-closed para no-admin', () => {
+    expect(isRouteAllowed('/ruta-nueva-sin-guard', 'cliente')).toBe(false);
+    expect(isRouteAllowed('/ruta-nueva-sin-guard', 'admin')).toBe(true);
+    expect(isRouteAllowed('/monitor-feria', 'admin')).toBe(true);
+  });
 });

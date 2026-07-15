@@ -1,15 +1,22 @@
 import { createAuthMiddleware } from "@enjambre/auth/middleware";
 
-/** Rutas abiertas solo en Playwright (E2E_SKIP_AUTH=1). Nunca en prod real. */
-const e2ePublicRoutes =
-  process.env.E2E_SKIP_AUTH === "1"
-    ? (["/sii", "/editor-tienda"] as const)
-    : [];
+/**
+ * Playwright CI: E2E_SKIP_AUTH=1 abre rutas sin sesión.
+ * Nunca en Vercel production (aunque el env esté mal seteado).
+ */
+const e2eAuthSkipAllowed =
+  process.env.E2E_SKIP_AUTH === "1" &&
+  process.env.VERCEL_ENV !== "production";
+
+const e2ePublicRoutes = e2eAuthSkipAllowed
+  ? (["/sii", "/editor-tienda"] as const)
+  : [];
 
 export const middleware = createAuthMiddleware({
   publicRoutes: ["/", "/login", ...e2ePublicRoutes],
   authRedirect: "/login",
-  defaultRole: "admin",
+  // Least privilege: missing app_metadata.role must not become admin.
+  defaultRole: "cliente",
 });
 
 export const config = {
