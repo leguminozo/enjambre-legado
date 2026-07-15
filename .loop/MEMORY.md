@@ -16,6 +16,15 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-15 pass 2
+- Señal: `POST /checkout/init` y subscriptions init pasaban `returnUrl` del body al provider sin allowlist → open redirect post Webpay/Flow
+- Compuesto: método + colapsar + entrelazados hop1 (subs)
+- Regla nueva: en checkout/subs, grepear returnUrl; solo orígenes NEXT_PUBLIC_SITE_URL/URL_TIENDA + paths /checkout/resultado|/perfil/reposicion/resultado
+- Sector boost: —
+- Anti-patrón: confiar `z.string().url()` del cliente como return del pago
+- Guardriel: intacto
+- Nota: precios init OK (server product.precio + computeUnitPrice); quote usa subtotal client solo preview; CAF enforce solo con flag/auto-emit
+
 ### Evo 2026-07-15 pass 1
 - Señal: `createAuthMiddleware` devolvía `next()` si anon key inválida (fail-open); nucleo `defaultRole: "admin"` elevaba JWT sin role; `isRouteAllowed` default `true` abría rutas no listadas (monitor-feria/calendario); E2E_SKIP_AUTH sin bloqueo VERCEL production
 - Compuesto: método + colapsar + redirigir
@@ -86,6 +95,7 @@
 - `any` / `catch {}` vacío
 - Copiar sectores o fixes de **Trama** o **Ciclo Vivo** sin mapear al dominio Oyz
 - Mezclar WIP no relacionado (feria/guardian UI) en commits del loop
+- `returnUrl` arbitrario en checkout/subscriptions init (open redirect post-pago)
 
 ---
 
@@ -95,6 +105,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
+| checkout/subs returnUrl allowlist (open redirect) | ✅ pass2 (pendiente hash) |
 | auth middleware fail-closed + defaultRole cliente + unlisted deny | ✅ pass1 `d2a6a9f` |
 | E2E_SKIP_AUTH blocked on Vercel production | ✅ pass1 `d2a6a9f` nucleo+campo |
 | getSession audit server paths | ✅ client-only residual |
@@ -155,9 +166,9 @@ Origen (campo/cosecha) → Lotes (núcleo) → Traza (hash) → Producto (tienda
 
 ## Estado del cursor (espejo humano; fuente de verdad = CURSOR.json)
 
-- pass: 1  
-- index: 1  
-- last: `auth-session`  
-- next sector: `tienda-checkout-payments`  
+- pass: 2  
+- index: 2  
+- last: `tienda-checkout-payments`  
+- next sector: `nucleo-bff-api`  
 - streak_clean: 0  
 

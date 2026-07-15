@@ -1,11 +1,11 @@
 {
-  "index": 1,
-  "pass": 1,
-  "last_sector": "auth-session",
-  "last_commit": "d2a6a9f",
+  "index": 2,
+  "pass": 2,
+  "last_sector": "tienda-checkout-payments",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {
     "nucleo-bff-api": 1
   },
-  "notes": "Pass 1: auth fail-closed + defaultRole cliente + route deny. Siguiente: tienda-checkout-payments (#1)."
+  "notes": "Pass2: returnUrl allowlist checkout+subs. Siguiente: nucleo-bff-api (#2). Quote subtotal client = solo UI."
 }

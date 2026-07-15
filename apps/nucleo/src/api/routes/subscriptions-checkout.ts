@@ -9,6 +9,7 @@ import {
   getSubscriptionCheckoutSession,
 } from '../lib/payments/subscription-sessions';
 import { fulfillSubscription } from '../lib/payments/subscription-fulfill';
+import { resolveCheckoutReturnUrl } from '../lib/payments/safe-return-url';
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from '../lib/ratelimit';
 
 async function rateLimitMiddleware(
@@ -104,10 +105,12 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
     const buyOrder = `SUB-${crypto.randomUUID()}`;
     const sessionId = `sub-sess-${crypto.randomUUID()}`;
 
-    const baseReturnUrl =
-      rawReturnUrl ||
-      `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/perfil/reposicion/resultado`;
-    const returnUrl = `${baseReturnUrl}?buyOrder=${encodeURIComponent(buyOrder)}`;
+    // Same allowlist as one-shot checkout — no open redirect post-pago.
+    const returnUrl = resolveCheckoutReturnUrl(
+      rawReturnUrl,
+      buyOrder,
+      '/perfil/reposicion/resultado',
+    );
 
     const provider = getPaymentProvider();
     const result = await provider.init(

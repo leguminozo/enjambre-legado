@@ -34,6 +34,7 @@ Prompt hermano: `.loop/PROMPT.md` v1.0.
 | Fulfill no idempotente | doble venta / doble stock− | commit sin `status=pending` | update condicional pending→completed |
 | Webhook sin verify | orden gratis | POST “paid” sin commit real | Transbank `commit(token_ws)`; Flow/HMAC según provider |
 | Monto body Flow/TBK | fraude | amount del request | amount desde sesión + BD |
+| returnUrl abierto | phishing post-pago | `returnUrl` body → provider.init | `resolveCheckoutReturnUrl` allowlist origin+path |
 | CAF open checkout | venta ilegal sin DTE | folios=0 sigue init | `getFoliosRestantes` + flag enforce fail-closed |
 | DTE desconectado | venta sin boleta | commit sin enqueue fiscal | job `venta` → cron fiscal retry |
 | Abandonment flood | spam email | POST abandonment abierto | auth + rate; precios server-side |

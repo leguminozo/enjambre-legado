@@ -9,6 +9,7 @@ import {
 } from "../lib/payments";
 import type { CartLineInput } from "../lib/payments";
 import { fulfillCheckout } from "../lib/payments/checkout-fulfill";
+import { resolveCheckoutReturnUrl } from "../lib/payments/safe-return-url";
 import { fulfillSubscriptionFromWebhook } from "./subscriptions-checkout";
 import {
   previewCartPricing,
@@ -425,8 +426,8 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
     const buyOrder = `ORD-${crypto.randomUUID()}`;
     const sessionId = `sess-${crypto.randomUUID()}`;
 
-    const baseReturnUrl = rawReturnUrl || `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/checkout/resultado`;
-    const returnUrl = `${baseReturnUrl}?buyOrder=${encodeURIComponent(buyOrder)}`;
+    // Never trust arbitrary client returnUrl (open redirect post-pago).
+    const returnUrl = resolveCheckoutReturnUrl(rawReturnUrl, buyOrder, '/checkout/resultado');
 
     const provider = getPaymentProvider();
     const result = await provider.init(buyOrder, sessionId, total, returnUrl, shipping.email);
