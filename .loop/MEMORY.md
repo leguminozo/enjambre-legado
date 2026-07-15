@@ -131,7 +131,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
-| SII clave AES fail-closed + CAF prod/POS + cron fiscal timing-safe | ✅ pass5 (pendiente hash) |
+| SII clave AES fail-closed + CAF prod/POS + cron fiscal timing-safe | ✅ pass5 `a438dd8` |
 | POS client_request_id + server reprice items_override | ✅ pass4 `d681b5b` |
 | timing-safe verifyInternalApiKey | ✅ pass3 `3dabf65` |
 | checkout/subs returnUrl allowlist (open redirect) | ✅ pass2 `ab77d61` |

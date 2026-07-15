@@ -2,7 +2,7 @@
   "index": 5,
   "pass": 5,
   "last_sector": "fiscal-sii-contable",
-  "last_commit": null,
+  "last_commit": "a438dd8",
   "streak_clean": 0,
   "boost": {},
   "notes": "Pass5: SII clave + CAF enforce + cron fiscal. Siguiente: feria-reps-comisiones (#5)."
