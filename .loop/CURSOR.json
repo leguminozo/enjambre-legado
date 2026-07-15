@@ -2,7 +2,7 @@
   "index": 6,
   "pass": 6,
   "last_sector": "feria-reps-comisiones",
-  "last_commit": null,
+  "last_commit": "3ff7e2f",
   "streak_clean": 0,
   "boost": {},
   "notes": "Pass6: commission admin + cash close + resenas claim. Siguiente: tienda-cms-chrome (#6)."

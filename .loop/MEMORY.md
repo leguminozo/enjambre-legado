@@ -140,7 +140,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
-| commission-rules admin + cash close race + resenas claim/salt | ✅ pass6 (pendiente hash) |
+| commission-rules admin + cash close race + resenas claim/salt | ✅ pass6 `3ff7e2f` |
 | SII clave AES fail-closed + CAF prod/POS + cron fiscal timing-safe | ✅ pass5 `a438dd8` |
 | POS client_request_id + server reprice items_override | ✅ pass4 `d681b5b` |
 | timing-safe verifyInternalApiKey | ✅ pass3 `3dabf65` |
