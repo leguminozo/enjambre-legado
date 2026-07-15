@@ -195,6 +195,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
 
   const quickSale = useCallback(async (productoId: string, cantidad: number, metodoPago: string, channel?: string, sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => {
     if (!token || !session) throw new Error('Sin sesion abierta');
+    const client_request_id = crypto.randomUUID();
     const payload = {
       cash_session_id: session.id,
       producto_id: productoId,
@@ -203,6 +204,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       channel,
       cliente_id: selectedClient?.id ?? undefined,
       is_new_client: isNewClient,
+      client_request_id,
       sumup_checkout_id: sumupFields?.sumup_checkout_id,
       sumup_transaction_id: sumupFields?.sumup_transaction_id,
     };
@@ -235,6 +237,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
 
   const cartSale = useCallback(async (items: CartItem[], metodoPago: string, channel?: string, sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => {
     if (!token || !session) throw new Error('Sin sesion abierta');
+    const client_request_id = crypto.randomUUID();
     const payload = {
       cash_session_id: session.id,
       producto_id: items[0]?.producto_id ?? '',
@@ -243,6 +246,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       channel,
       cliente_id: selectedClient?.id ?? undefined,
       is_new_client: isNewClient,
+      client_request_id,
       items_override: items,
       sumup_checkout_id: sumupFields?.sumup_checkout_id,
       sumup_transaction_id: sumupFields?.sumup_transaction_id,

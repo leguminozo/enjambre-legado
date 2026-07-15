@@ -1,9 +1,9 @@
 {
-  "index": 3,
-  "pass": 3,
-  "last_sector": "nucleo-bff-api",
-  "last_commit": "3dabf65",
+  "index": 4,
+  "pass": 4,
+  "last_sector": "campo-pos-offline",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
-  "notes": "Pass3: timing-safe internal key. Siguiente: campo-pos-offline (#3)."
+  "notes": "Pass4: POS idempotency + reprice. Siguiente: fiscal-sii-contable (#4)."
 }

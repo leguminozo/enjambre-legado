@@ -85,6 +85,7 @@ export function useSyncEngine() {
             body: JSON.stringify(item.payload),
           });
 
+          // 200 (idempotent replay) or 201 (created) both mean the sale is persisted.
           if (res.ok) {
             await db.sync_queue.delete(item.id!);
             continue;

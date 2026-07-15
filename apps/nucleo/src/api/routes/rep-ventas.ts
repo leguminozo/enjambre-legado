@@ -22,6 +22,8 @@ const QuickSaleSchema = z.object({
   cliente_id: z.string().uuid().optional(),
   is_new_client: z.boolean().default(true),
   qr_codes: z.array(z.string()).optional(),
+  /** Client-generated UUID — idempotency for offline sync retries (stored as ventas.buy_order). */
+  client_request_id: z.string().uuid().optional(),
   items_override: z
     .array(
       z.object({
@@ -72,6 +74,32 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
   const channel = input.channel ?? "feria";
+  const posBuyOrder = input.client_request_id
+    ? `POS-${input.client_request_id}`
+    : null;
+
+  // Idempotency: offline sync may retry after ambiguous network success.
+  if (posBuyOrder) {
+    const { data: existing } = await supabase
+      .from("ventas")
+      .select("id, total, metodo_pago, channel, created_at, rep_commission_total")
+      .eq("buy_order", posBuyOrder)
+      .eq("vendedor_id", user.id)
+      .maybeSingle();
+    if (existing) {
+      return c.json({
+        data: existing,
+        meta: {
+          feria: { applied: true },
+          already_processed: true,
+          accumulated_commission: null,
+          day_total: null,
+          next_threshold: null,
+          commission: null,
+        },
+      }, 200);
+    }
+  }
 
   const { data: session } = await supabase
     .from("cash_sessions")
@@ -88,7 +116,33 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
   let total: number;
 
   if (input.items_override && input.items_override.length > 0) {
-    items = input.items_override;
+    // Never trust client unit prices — reprice from productos.
+    const ids = input.items_override.map((i) => i.producto_id);
+    const { data: products, error: prodErr } = await supabase
+      .from("productos")
+      .select("id, nombre, precio")
+      .in("id", ids);
+    if (prodErr || !products?.length) {
+      return c.json({ code: "product_not_found", message: "Productos no encontrados" }, 404);
+    }
+    const productMap = new Map(products.map((p) => [p.id, p]));
+    items = [];
+    for (const line of input.items_override) {
+      const product = productMap.get(line.producto_id);
+      if (!product) {
+        return c.json({
+          code: "product_not_found",
+          message: `Producto ${line.nombre} no encontrado`,
+        }, 404);
+      }
+      items.push({
+        producto_id: product.id,
+        nombre: product.nombre ?? line.nombre,
+        cantidad: line.cantidad,
+        precio_unitario: product.precio ?? 0,
+        qr_codes: line.qr_codes,
+      });
+    }
     total = items.reduce((s, i) => s + i.precio_unitario * i.cantidad, 0);
   } else {
     const { data: producto } = await supabase
@@ -209,6 +263,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
       is_new_client: input.is_new_client,
       estado: "completada",
       origen: channel === "feria" || channel === "local" ? channel : "feria",
+      buy_order: posBuyOrder,
       sumup_checkout_id: input.sumup_checkout_id ?? null,
       sumup_transaction_id: input.sumup_transaction_id ?? null,
     })

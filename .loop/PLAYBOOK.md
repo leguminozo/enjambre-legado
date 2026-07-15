@@ -60,7 +60,8 @@ Prompt hermano: `.loop/PROMPT.md` v1.0.
 | Patrón | Síntoma | Detección | Fix canónico |
 |--------|---------|-----------|--------------|
 | supabase.insert UI directa | offline pierde venta | insert en component POS | Dexie `sync_queue` + `use-sync-engine` |
-| Double sync sale | stock/caja ×2 | reprocess sin idempotency key | key por venta local UUID; server upsert |
+| Double sync sale | stock/caja ×2 | reprocess sin idempotency key | `client_request_id` → ventas.buy_order `POS-{uuid}`; replay 200 |
+| items_override price | feria paga de menos | precio_unitario del body | reprice desde productos server |
 | Cash session open race | dos cajas abiertas | open sin check active | constraint/RPC una sesión activa por rep |
 | Feria sin contrato | venta canal feria ilegal | channel=feria sin evento | operadores-feria: contrato+en_curso |
 | Claim token forge | cliente reclama ajeno | token predecible / sin bind venta | token crypto + single use + RLS |

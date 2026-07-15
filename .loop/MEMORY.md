@@ -16,6 +16,14 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-15 pass 4
+- Señal: offline POS retry sin idempotency → doble venta; items_override confiaba precio_unitario del cliente
+- Compuesto: colapsar + método
+- Regla nueva: toda venta POS con client_request_id (buy_order POS-uuid); items_override siempre reprice desde productos
+- Sector boost: —
+- Anti-patrón: items_override.precio_unitario del body; sync_queue sin id de request
+- Guardriel: intacto
+
 ### Evo 2026-07-15 pass 3
 - Señal: verifyInternalApiKey usaba `===` (timing-leaky); backlog de pass1
 - Compuesto: colapsar + acrecer
@@ -114,6 +122,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
+| POS client_request_id + server reprice items_override | ✅ pass4 (pendiente hash) |
 | timing-safe verifyInternalApiKey | ✅ pass3 `3dabf65` |
 | checkout/subs returnUrl allowlist (open redirect) | ✅ pass2 `ab77d61` |
 | auth middleware fail-closed + defaultRole cliente + unlisted deny | ✅ pass1 `d2a6a9f` |
@@ -176,8 +185,10 @@ Origen (campo/cosecha) → Lotes (núcleo) → Traza (hash) → Producto (tienda
 
 ## Estado del cursor (espejo humano; fuente de verdad = CURSOR.json)
 
-- pass: 3  
-- index: 3  
-- last: `nucleo-bff-api`  
-- next sector: `campo-pos-offline`  
+- pass: 4  
+- index: 4  
+- last: `campo-pos-offline`  
+- next sector: `fiscal-sii-contable`  
 - streak_clean: 0  
+
+
