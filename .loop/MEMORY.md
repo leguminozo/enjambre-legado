@@ -95,8 +95,8 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
-| auth middleware fail-closed + defaultRole cliente + unlisted deny | ✅ pass1 (pendiente hash commit) |
-| E2E_SKIP_AUTH blocked on Vercel production | ✅ pass1 nucleo+campo |
+| auth middleware fail-closed + defaultRole cliente + unlisted deny | ✅ pass1 `d2a6a9f` |
+| E2E_SKIP_AUTH blocked on Vercel production | ✅ pass1 `d2a6a9f` nucleo+campo |
 | getSession audit server paths | ✅ client-only residual |
 | Transbank verify via commit | ✅ webhooks |
 | Banco Chile HMAC | ✅ |
