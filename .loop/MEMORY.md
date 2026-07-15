@@ -114,7 +114,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
-| timing-safe verifyInternalApiKey | ✅ pass3 (pendiente hash) |
+| timing-safe verifyInternalApiKey | ✅ pass3 `3dabf65` |
 | checkout/subs returnUrl allowlist (open redirect) | ✅ pass2 `ab77d61` |
 | auth middleware fail-closed + defaultRole cliente + unlisted deny | ✅ pass1 `d2a6a9f` |
 | E2E_SKIP_AUTH blocked on Vercel production | ✅ pass1 `d2a6a9f` nucleo+campo |
