@@ -16,6 +16,15 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-15 pass 6
+- Señal: commission-rules sin requireProfileRole(admin) → rep muta multiplicadores; cash close sin eq status=open; resenas claim race; salt claim/anon hardcoded en prod
+- Compuesto: colapsar + método
+- Regla nueva: rutas de dinero (comisiones/reglas) admin-only; cierres/claims condicionales; RESENAS_*_SALT obligatorios en production
+- Sector boost: —
+- Anti-patrón: tenantMiddleware solo en mutators de dinero; update claim/close sin status/claimed_at guard
+- Guardriel: intacto
+- Claim POS venta: UUID gen_random_uuid + RPC SECURITY DEFINER OK (medido limpio)
+
 ### Evo 2026-07-15 pass 5
 - Señal: sii-clave cifraba con SERVICE_ROLE??"" (key vacía); checkout CAF solo con flag; POS CAF solo si existía fila sii_caf; cron fiscal === no timing-safe
 - Compuesto: colapsar + redirigir + método
@@ -131,6 +140,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
+| commission-rules admin + cash close race + resenas claim/salt | ✅ pass6 (pendiente hash) |
 | SII clave AES fail-closed + CAF prod/POS + cron fiscal timing-safe | ✅ pass5 `a438dd8` |
 | POS client_request_id + server reprice items_override | ✅ pass4 `d681b5b` |
 | timing-safe verifyInternalApiKey | ✅ pass3 `3dabf65` |
@@ -195,11 +205,12 @@ Origen (campo/cosecha) → Lotes (núcleo) → Traza (hash) → Producto (tienda
 
 ## Estado del cursor (espejo humano; fuente de verdad = CURSOR.json)
 
-- pass: 5  
-- index: 5  
-- last: `fiscal-sii-contable`  
-- next sector: `feria-reps-comisiones`  
+- pass: 6  
+- index: 6  
+- last: `feria-reps-comisiones`  
+- next sector: `tienda-cms-chrome`  
 - streak_clean: 0  
+
 
 
 

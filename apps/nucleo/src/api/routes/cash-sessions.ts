@@ -136,6 +136,7 @@ cashSessionsRoutes.post("/:id/close", zValidator("json", CloseSessionSchema), as
     0,
   );
 
+  // Conditional update: prevent double-close race (status must still be open + own session).
   const { data, error } = await supabase
     .from("cash_sessions")
     .update({
@@ -145,11 +146,16 @@ cashSessionsRoutes.post("/:id/close", zValidator("json", CloseSessionSchema), as
       notas: input.notas ?? null,
     })
     .eq("id", sessionId)
+    .eq("rep_id", user.id)
+    .eq("session_status", "open")
     .select("*")
-    .single();
+    .maybeSingle();
 
   if (error) {
     return c.json({ code: "close_failed", message: error.message }, 400);
+  }
+  if (!data) {
+    return c.json({ code: "already_closed", message: "La sesión ya está cerrada o no es tuya" }, 409);
   }
 
   return c.json({

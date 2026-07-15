@@ -187,3 +187,14 @@ pnpm --filter @enjambre/campo exec vitest run
 | Role redirects relativos tienda | auth fix |
 
 Ops residual frecuente: **staging Supabase**, apply migraciones 93–94+, typegen CRM, secrets Vercel (`pnpm env:check:prod` / `go-live:check`).
+
+
+## Feria / reps / comisiones (pass6)
+
+| Patrón | Síntoma | Fix canónico |
+|--------|---------|--------------|
+| commission-rules sin role | rep inventa multiplicadores | `requireProfileRole('admin')` en toda la route |
+| cash close race | doble cierre / resumen basura | update `.eq(session_status,'open').eq(rep_id)` + maybeSingle |
+| claim token race | doble vinculo reseña | update `.is(claimed_at,null)` first |
+| salt dev en prod | forge rate-limit/claim hash | RESENAS_*_SALT ≥16 required in production |
+| claim POS | — | UUID + RPC obtener/reclamar (OK medido) |

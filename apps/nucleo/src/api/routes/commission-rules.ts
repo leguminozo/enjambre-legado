@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
-import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import { authMiddleware, requireProfileRole, tenantMiddleware } from "@/api/lib/middleware";
 
 const CreateRuleSchema = z.object({
   rule_type: z.enum(["base", "volume_threshold", "loyalty", "streak"]),
@@ -22,7 +22,13 @@ const UpdateRuleSchema = z.object({
 
 export const commissionRulesRoutes = new Hono<{ Variables: AppVariables }>();
 
-commissionRulesRoutes.use("*", authMiddleware, tenantMiddleware);
+// Money rules + payout dashboard: admin only (reps must not mint commission multipliers).
+commissionRulesRoutes.use(
+  "*",
+  authMiddleware,
+  tenantMiddleware,
+  requireProfileRole("admin"),
+);
 
 commissionRulesRoutes.get("/", async (c) => {
   const supabase = c.get("supabase");
@@ -45,7 +51,6 @@ commissionRulesRoutes.get("/", async (c) => {
 commissionRulesRoutes.post("/", zValidator("json", CreateRuleSchema), async (c) => {
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
-  const user = c.get("user");
   const empresaId = c.get("empresaId");
 
   const { data, error } = await supabase

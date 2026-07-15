@@ -31,13 +31,28 @@ async function resolveUserFromToken(token: string | null) {
   return data.user;
 }
 
+function isProductionRuntime(): boolean {
+  return process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+}
+
+function resolveResenasSalt(envKey: 'RESENAS_ANON_SALT' | 'RESENAS_CLAIM_SALT', devFallback: string): string {
+  const fromEnv = process.env[envKey]?.trim();
+  if (fromEnv && fromEnv.length >= 16) return fromEnv;
+  if (isProductionRuntime()) {
+    throw new Error(
+      `[resenas] ${envKey} is required in production (≥16 chars). Refusing predictable hash salt.`,
+    );
+  }
+  return fromEnv && fromEnv.length > 0 ? fromEnv : devFallback;
+}
+
 function hashAnonFingerprint(ip: string, userAgent: string): string {
-  const salt = process.env.RESENAS_ANON_SALT ?? 'oyz-resenas-dev-salt';
+  const salt = resolveResenasSalt('RESENAS_ANON_SALT', 'oyz-resenas-dev-salt');
   return createHash('sha256').update(`${salt}:${ip}:${userAgent}`).digest('hex');
 }
 
 function hashClaimToken(token: string): string {
-  const salt = process.env.RESENAS_CLAIM_SALT ?? 'oyz-claim-dev-salt';
+  const salt = resolveResenasSalt('RESENAS_CLAIM_SALT', 'oyz-claim-dev-salt');
   return createHash('sha256').update(`${salt}:${token}`).digest('hex');
 }
 
@@ -367,18 +382,30 @@ resenasRoutes.post('/claim', zValidator('json', ClaimResenaSchema), async (c) =>
     return c.json({ code: 'already_owned', message: 'Reseña ya vinculada a otra cuenta' }, 409);
   }
 
-  await admin
-    .from('resenas_producto')
-    .update({ user_id: user.id, updated_at: new Date().toISOString() })
-    .eq('id', resena.id);
-
-  await admin
+  // Atomic claim: only one winner if two clients race the same token.
+  const { data: claimedToken, error: claimUpdateError } = await admin
     .from('resenas_claim_tokens')
     .update({
       claimed_at: new Date().toISOString(),
       claimed_user_id: user.id,
     })
-    .eq('id', claimRow.id);
+    .eq('id', claimRow.id)
+    .is('claimed_at', null)
+    .select('id')
+    .maybeSingle();
+
+  if (claimUpdateError) {
+    return c.json({ code: 'claim_failed', message: claimUpdateError.message }, 500);
+  }
+  if (!claimedToken) {
+    return c.json({ code: 'already_claimed', message: 'Ya vinculada' }, 409);
+  }
+
+  await admin
+    .from('resenas_producto')
+    .update({ user_id: user.id, updated_at: new Date().toISOString() })
+    .eq('id', resena.id)
+    .is('user_id', null);
 
   return c.json({ ok: true, resena_id: resena.id });
 });
