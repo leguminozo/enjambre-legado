@@ -168,7 +168,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
-| creador: share ref→catalogo→checkout + ModuleHero/EmptyState | ✅ pass10 (pendiente hash) |
+| creador: share ref→catalogo→checkout + ModuleHero/EmptyState | ✅ pass10 `1a1b58d` |
 | rep campo: protect full tool graph + nav unificado + shell POS | ✅ pass9 `71fc124` |
 | cliente resenas+trazabilidad nav + legado deep links | ✅ pass8 `e8ac9c6` |
 | calculos-ia nav + Ecosistema crosslinks ModuleHero | ✅ pass7 `63c4669` |
