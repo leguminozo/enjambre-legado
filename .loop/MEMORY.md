@@ -189,7 +189,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
-| ui-canon campo: font-display + ViewShell POS/caja/feria/comisiones | ✅ pass13 (pendiente hash) |
+| ui-canon campo: font-display + ViewShell POS/caja/feria/comisiones | ✅ pass13 `6868f05` |
 | ui-canon tienda: PerfilPageHeader + font-display direcciones/alertas/pasaporte/logros | ✅ pass12 `8e88497` |
 | ui-canon nucleo: ViewShell catalogo/productos/banco + contable nested | ✅ pass11 `e39619e` |
 | creador: share ref→catalogo→checkout + ModuleHero/EmptyState | ✅ pass10 `1a1b58d` |
