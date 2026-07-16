@@ -21,7 +21,7 @@
 - Regla nueva: sectores v1.1 role-*-tool-graph + ui-canon-*; prioridad E→U→R; canónico packages/ui + Ecosistema
 - Anti-patrón: page huérfana sin sidebar; widget sin CTA a herramienta dueña; header h1 ad-hoc si ModuleHero aplica
 - Guardriel: intacto
-- Hallazgo pass7: `/calculos-ia` page+lazy sin sidebar; Ecosistema widgets sin deep links; typo Guadián
+- Hallazgo pass7: `/calculos-ia` page+lazy sin sidebar; Ecosistema widgets sin deep links; typo Guadián → fix `63c4669`
 
 ### Evo 2026-07-15 pass 6
 - Señal: commission-rules sin requireProfileRole(admin) → rep muta multiplicadores; cash close sin eq status=open; resenas claim race; salt claim/anon hardcoded en prod
@@ -147,6 +147,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
+| calculos-ia nav + Ecosistema crosslinks ModuleHero | ✅ pass7 `63c4669` |
 | commission-rules admin + cash close race + resenas claim/salt | ✅ pass6 `3ff7e2f` |
 | SII clave AES fail-closed + CAF prod/POS + cron fiscal timing-safe | ✅ pass5 `a438dd8` |
 | POS client_request_id + server reprice items_override | ✅ pass4 `d681b5b` |
