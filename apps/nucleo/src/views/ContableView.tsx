@@ -141,12 +141,13 @@ export function ContableView() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-3 mb-2">
+      {/* Nested under ContableHubView ViewShell — section title only, no second hero */}
+      <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
           <FileText size={20} />
         </div>
         <div>
-          <h1 className="font-display text-4xl font-light tracking-tight text-foreground">Sistema Contable</h1>
+          <h2 className="font-display text-xl font-light tracking-tight text-foreground">Libro y facturas</h2>
           <p className="text-muted-foreground text-sm tracking-wide">Facturación, gastos y balance chileno (IVA 19%)</p>
         </div>
       </div>

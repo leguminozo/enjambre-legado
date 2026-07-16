@@ -234,3 +234,13 @@ Ops residual frecuente: **staging Supabase**, apply migraciones 93–94+, typege
 | POS sin hermanas | PosHeader toolLinks = NAV sin /pos |
 | Shell oprime POS | full-bleed si `pathname.startsWith('/pos')` |
 | paths en middleware | `paths.ts` sin lucide (Edge-safe) |
+
+
+## UI canónica Núcleo (pass11)
+
+| Patrón | Fix |
+|--------|-----|
+| Header módulo | `ViewShell` compact/hero (no inline style h1) |
+| Tab anidado en hub | h2 de sección, no segundo ViewShell hero |
+| CTA primary | `Button` de `@enjambre/ui` |
+| Referencia | ContableHubView, CosteoView, EcosistemaDashboard |

@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { Package, Plus } from 'lucide-react';
-import { ImmersiveModal } from '@enjambre/ui';
+import { ImmersiveModal, Button } from '@enjambre/ui';
 import { ProductList } from '@/components/productos/ProductList';
 import { ProductForm } from '@/components/productos/ProductForm';
 import type { Product } from '@/lib/product-types';
+import { ViewShell } from '@/components/layout/ViewShell';
 
 export function CatalogoView() {
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
@@ -32,48 +33,23 @@ export function CatalogoView() {
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: 'var(--space-xl)' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            marginBottom: 'var(--space-md)',
-          }}
-        >
-          <div>
-            <h1
-              style={{
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                color: 'var(--bosque-ulmo)',
-                marginBottom: 'var(--space-xs)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--space-md)',
-              }}
-            >
-              <Package size={28} />
-              Catálogo de Productos
-            </h1>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Administrá el catálogo de tu tienda. Creá, editá y organizá tus productos con trazabilidad
-              regenerativa.
-            </p>
-          </div>
-          {view === 'list' && (
-            <button
-              onClick={handleCreateNew}
-              className="btn btn-primary"
-              style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-            >
+    <div className="space-y-6">
+      <ViewShell
+        eyebrow="El Enjambre"
+        title="Catálogo de Productos"
+        subtitle="Administrá el catálogo de tu tienda con trazabilidad regenerativa"
+        greeting="Alquimista del panal"
+        icon={<Package size={20} />}
+        variant="compact"
+        actions={
+          view === 'list' ? (
+            <Button type="button" onClick={handleCreateNew} className="inline-flex items-center gap-2 min-h-11">
               <Plus size={18} />
               Nuevo Producto
-            </button>
-          )}
-        </div>
-      </div>
+            </Button>
+          ) : undefined
+        }
+      />
 
       {view === 'list' && <ProductList onEdit={handleEdit} onCreateNew={handleCreateNew} />}
 

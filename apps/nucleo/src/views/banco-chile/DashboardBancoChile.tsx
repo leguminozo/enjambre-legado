@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { toast, ViewLoading } from '@enjambre/ui';
+import { Building2 } from 'lucide-react';
 import { resolveEmpresaId } from '@/lib/resolve-empresa-id';
+import { ViewShell } from '@/components/layout/ViewShell';
 
 interface ResumenEjecutivo {
   totalCuentas: number;
@@ -168,18 +170,18 @@ console.error('Error auto-conciliando:', error);
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Dashboard Banco Chile
-        </h1>
-        <p className="text-muted-foreground">
-          Vista ejecutiva de tu banca empresarial
-        </p>
-      </div>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <ViewShell
+        eyebrow="Finanzas"
+        title="Dashboard Banco Chile"
+        subtitle="Vista ejecutiva de tu banca empresarial"
+        greeting="Centinela del flujo"
+        icon={<Building2 size={20} />}
+        variant="compact"
+      />
 
       {/* Tarjetas de resumen */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <ResumenCard
           title="Saldo Total"
           value={`$${resumen?.saldoTotal.toLocaleString('es-CL') || '0'}`}

@@ -15,6 +15,13 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-16 pass 11
+- Señal: CatalogoView/ProductosCatalogoView con inline styles --bosque-ulmo; ContableView doble hero bajo hub; BancoChile h1 ad-hoc sin ViewShell
+- Compuesto: unificar UI canónica nucleo
+- Regla nueva: módulos admin usan ViewShell (compact/hero) como ContableHub/Costeo; no h1 inline style con vars legacy; tabs anidados usan h2 sección no segundo hero
+- Anti-patrón: style={{ color: 'var(--bosque-ulmo)' }}; h1 gigante dentro de hub con ViewShell
+- Guardriel: intacto
+
 ### Evo 2026-07-16 pass 10
 - Señal: portal creador sin link de share a catálogo; código no fluía a checkout; header ad-hoc sin ModuleHero; empty states sin EmptyState
 - Compuesto: entrelazado + unificar UI
@@ -168,6 +175,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
+| ui-canon nucleo: ViewShell catalogo/productos/banco + contable nested | ✅ pass11 (pendiente hash) |
 | creador: share ref→catalogo→checkout + ModuleHero/EmptyState | ✅ pass10 `1a1b58d` |
 | rep campo: protect full tool graph + nav unificado + shell POS | ✅ pass9 `71fc124` |
 | cliente resenas+trazabilidad nav + legado deep links | ✅ pass8 `e8ac9c6` |
@@ -238,11 +246,12 @@ Origen (campo/cosecha) → Lotes (núcleo) → Traza (hash) → Producto (tienda
 ## Estado del cursor (espejo humano; fuente de verdad = CURSOR.json)
 
 - phase: v1.1-roles-ui  
-- pass: 10  
-- index: 4  
-- last: `role-creador-tool-graph`  
-- next sector: `ui-canon-nucleo`  
+- pass: 11  
+- index: 5  
+- last: `ui-canon-nucleo`  
+- next sector: `ui-canon-tienda`  
 - streak_clean: 0  
+
 
 
 

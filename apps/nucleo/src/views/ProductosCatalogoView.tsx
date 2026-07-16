@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { Package } from 'lucide-react';
 import { ImmersiveModal } from '@enjambre/ui';
 import { ProductList } from '@/components/productos/ProductList';
 import { ProductForm } from '@/components/productos/ProductForm';
 import type { Product } from '@/lib/product-types';
+import { ViewShell } from '@/components/layout/ViewShell';
 
 export function ProductosCatalogoView() {
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
@@ -31,23 +33,15 @@ export function ProductosCatalogoView() {
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: 'var(--space-xl)' }}>
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: 'var(--bosque-ulmo)',
-            marginBottom: 'var(--space-xs)',
-          }}
-        >
-          Gestión de Productos
-        </h1>
-        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-          Administra el catálogo de tu tienda. Creá, editá y organizá tus productos con trazabilidad
-          regenerativa.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <ViewShell
+        eyebrow="El Enjambre"
+        title="Gestión de Productos"
+        subtitle="Administrá el catálogo con trazabilidad regenerativa"
+        greeting="Alquimista del panal"
+        icon={<Package size={20} />}
+        variant="compact"
+      />
 
       {view === 'list' && <ProductList onEdit={handleEdit} onCreateNew={handleCreateNew} />}
 
