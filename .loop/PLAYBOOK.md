@@ -263,3 +263,12 @@ Ops residual frecuente: **staging Supabase**, apply migraciones 93–94+, typege
 | Headers POS/tools | `ViewShell` compact + CSS en `globals.css` |
 | Toggle knobs | `bg-background` not `bg-white` |
 | Touch | `min-h-11` on range filters / primary actions |
+
+
+## Néctar crosslinks (pass14)
+
+| Patrón | Fix |
+|--------|-----|
+| Módulo silo | `NectarRail` bajo ViewShell en colmenas/producción/catálogo/operaciones/regeneración/contable |
+| Flujo canónico | Colmenas → Lotes → Productos → Despacho → Impacto → Contable → SII |
+| Cliente | Mi Legado chips a pedidos/reposicion/trazabilidad/catalogo/ciencia |

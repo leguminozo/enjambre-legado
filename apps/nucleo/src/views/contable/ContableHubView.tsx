@@ -13,6 +13,7 @@ import { ViewLoading } from '@enjambre/ui';
 import { Calculator, FileText, ShoppingCart, BarChart3 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { NectarRail } from '@/components/layout/NectarRail';
 
 const tabs = [
   { id: 'resumen', label: 'Resumen', icon: BarChart3 },
@@ -84,6 +85,7 @@ export function ContableHubView() {
         icon={<Calculator size={20} />}
         variant="compact"
       />
+      <NectarRail current="/contable" />
 
       <ResponsiveTabBar
         layoutId="contable-tabs"

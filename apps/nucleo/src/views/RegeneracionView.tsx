@@ -4,6 +4,7 @@ import { TreePine, Camera, MapPin, Leaf, Plus, ChevronDown, Edit3, Trash2, X } f
 import { toast, friendlyError, ViewLoading, ImmersiveModal } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { NectarRail } from '@/components/layout/NectarRail';
 
 interface TreeRecord {
   id: string;
@@ -208,6 +209,7 @@ export function RegeneracionView() {
         title="Cada árbol plantado es un legado que el tiempo honra"
         subtitle={`${anosLegado} años de reforestación nativa en Chiloé. Cada lote de miel está vinculado directamente a los árboles que alimentan a las abejas.`}
       />
+      <NectarRail current="/regeneracion" />
 
       <div className="stats-grid">
         {[

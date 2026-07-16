@@ -15,6 +15,13 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-16 pass 14
+- Señal: Produccion/Regeneracion/Logistica/Contable/Colmenas sin CTAs al resto del flujo néctar; silos de herramienta
+- Compuesto: entrelazado + acrecer
+- Regla nueva: módulos del ciclo usan `NectarRail` (colmenas→lotes→productos→despacho→impacto→contable→SII); cliente legado ya enlaza catálogo/ciencia
+- Anti-patrón: ViewShell de producción sin salida a colmenas/catálogo
+- Guardriel: intacto
+
 ### Evo 2026-07-16 pass 13
 - Señal: POS Campo usaba font-serif; headers sueltos; sin ViewShell CSS; toggle bg-white
 - Compuesto: unificar UI campo
@@ -189,6 +196,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
+| nectar-crosslinks: NectarRail en colmenas/lotes/productos/despacho/impacto/contable | ✅ pass14 (pendiente hash) |
 | ui-canon campo: font-display + ViewShell POS/caja/feria/comisiones | ✅ pass13 `6868f05` |
 | ui-canon tienda: PerfilPageHeader + font-display direcciones/alertas/pasaporte/logros | ✅ pass12 `8e88497` |
 | ui-canon nucleo: ViewShell catalogo/productos/banco + contable nested | ✅ pass11 `e39619e` |
@@ -262,11 +270,12 @@ Origen (campo/cosecha) → Lotes (núcleo) → Traza (hash) → Producto (tienda
 ## Estado del cursor (espejo humano; fuente de verdad = CURSOR.json)
 
 - phase: v1.1-roles-ui  
-- pass: 13  
-- index: 7  
-- last: `ui-canon-campo`  
-- next sector: `nectar-crosslinks`  
+- pass: 14  
+- index: 8  
+- last: `nectar-crosslinks`  
+- next sector: `packages-ui-adoption`  
 - streak_clean: 0  
+
 
 
 

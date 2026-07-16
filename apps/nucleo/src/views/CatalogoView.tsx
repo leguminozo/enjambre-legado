@@ -7,6 +7,7 @@ import { ProductList } from '@/components/productos/ProductList';
 import { ProductForm } from '@/components/productos/ProductForm';
 import type { Product } from '@/lib/product-types';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { NectarRail } from '@/components/layout/NectarRail';
 
 export function CatalogoView() {
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
@@ -50,6 +51,7 @@ export function CatalogoView() {
           ) : undefined
         }
       />
+      <NectarRail current="/catalogo" />
 
       {view === 'list' && <ProductList onEdit={handleEdit} onCreateNew={handleCreateNew} />}
 

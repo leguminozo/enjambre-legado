@@ -5,6 +5,7 @@ import { healthFromEstado, estadoFromHealth } from '@/types/ecosystem';
 import { ViewLoading } from '@enjambre/ui';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { NectarRail } from '@/components/layout/NectarRail';
 import { fetchPronostico } from '@/lib/meteo';
 import { mapInAppNotificationToAlertItem } from '@enjambre/auth';
 import { supabase } from '../lib/supabase';
@@ -200,6 +201,7 @@ export function ApicultorView() {
                 title="Estás conectado al Bosque Nativo"
                 subtitle="Monitorea colmenas y analiza flujos de floración"
             />
+            <NectarRail current="/colmenas" />
 
             <div className="stats-grid">
                 {[

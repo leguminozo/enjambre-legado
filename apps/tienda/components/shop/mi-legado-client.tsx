@@ -102,6 +102,8 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
               { href: '/perfil/guardian', label: 'Guardián' },
               { href: '/perfil/logros', label: 'Logros' },
               { href: '/perfil/canje', label: 'Canje' },
+              { href: '/catalogo', label: 'Catálogo' },
+              { href: '/ciencia', label: 'Metodología' },
             ].map((item) => (
               <Link
                 key={item.href}
