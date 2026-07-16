@@ -25,7 +25,7 @@ export function GlassPanel({
   return (
     <div
       className={cn(
-        "rounded-2xl transition-all duration-base",
+        "rounded-2xl transition-all duration-300",
         variantClass,
         glow && "shadow-glow",
         className,
