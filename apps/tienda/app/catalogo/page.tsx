@@ -8,6 +8,7 @@ import { JsonLd } from '@/components/ui/JsonLd';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { CreatorRefCapture } from '@/components/shop/creator-ref-capture';
 import { CatalogoView } from './catalog-view';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
@@ -74,6 +75,7 @@ export default async function CatalogoPage() {
           </div>
         ) : (
           <Suspense fallback={<p className="py-16 text-center text-muted-foreground">Cargando catálogo…</p>}>
+            <CreatorRefCapture />
             <CatalogoView products={products} ratings={ratings} />
           </Suspense>
         )}

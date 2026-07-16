@@ -3,10 +3,17 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
-import { friendlyError, friendlySupabaseError, toast, ViewLoading } from '@enjambre/ui';
+import {
+  friendlyError,
+  friendlySupabaseError,
+  toast,
+  ViewLoading,
+  EmptyState,
+  ModuleHero,
+} from '@enjambre/ui';
 import {
   Sparkles, Copy, Check, DollarSign, Users, Gift, AlertCircle,
-  BarChart3, Wallet, Eye, FileText,
+  Wallet, FileText, ArrowUpRight, ExternalLink, Link2,
 } from 'lucide-react';
 import {
   parseCreadorCapabilities,
@@ -78,6 +85,7 @@ export function CreadorPortalClient() {
   const [retiros, setRetiros] = useState<RetiroRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedShare, setCopiedShare] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'usos' | 'retiros'>('dashboard');
   const [showRetiroForm, setShowRetiroForm] = useState(false);
   const [retiroConsent, setRetiroConsent] = useState(false);
@@ -199,11 +207,26 @@ export function CreadorPortalClient() {
     }
   };
 
+  const sharePath = profile
+    ? `/catalogo?ref=${encodeURIComponent(profile.codigo_ref)}`
+    : '/catalogo';
+
   const copyCode = () => {
     if (!profile) return;
-    navigator.clipboard.writeText(profile.codigo_ref);
+    void navigator.clipboard.writeText(profile.codigo_ref);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2500);
+  };
+
+  const copyShareLink = () => {
+    if (!profile) return;
+    const absolute =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}${sharePath}`
+        : sharePath;
+    void navigator.clipboard.writeText(absolute);
+    setCopiedShare(true);
+    setTimeout(() => setCopiedShare(false), 2500);
   };
 
   if (loading) {
@@ -212,15 +235,27 @@ export function CreadorPortalClient() {
 
   if (!profile) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-        <Sparkles size={48} className="text-accent opacity-30" />
-        <p className="text-lg font-display text-foreground">Aún no eres embajador del bosque</p>
-        <p className="text-sm text-muted-foreground max-w-md">
-          Si te interesa unirte al programa de referidos, contáctanos. Las comisiones se liquidan como
-          referidos comerciales, no como relación laboral.
-        </p>
-        <Link href="/contacto" className="text-accent text-sm hover:underline">Contactar equipo</Link>
-      </div>
+      <EmptyState
+        icon={<Sparkles size={48} className="opacity-40" />}
+        title="Aún no eres embajador del bosque"
+        description="Si te interesa unirte al programa de referidos, contáctanos. Las comisiones se liquidan como referidos comerciales, no como relación laboral."
+        action={
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link
+              href="/contacto"
+              className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent/80 min-h-11"
+            >
+              Contactar equipo <ArrowUpRight size={14} />
+            </Link>
+            <Link
+              href="/perfil"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground min-h-11"
+            >
+              Volver al legado <ArrowUpRight size={14} />
+            </Link>
+          </div>
+        }
+      />
     );
   }
 
@@ -229,6 +264,39 @@ export function CreadorPortalClient() {
 
   return (
     <div className="space-y-8 animate-in">
+      <ModuleHero
+        greeting="Embajador del Bosque"
+        title={profile.nombre_publico}
+        mission={`${PLATAFORMA_LABEL[profile.plataforma] || profile.plataforma} · Código ${profile.codigo_ref} · Comisiones por referido`}
+      />
+
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href="/perfil"
+          className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-[0.65rem] uppercase tracking-wide text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors min-h-11"
+        >
+          Mi legado <ArrowUpRight size={12} />
+        </Link>
+        <Link
+          href="/catalogo"
+          className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-[0.65rem] uppercase tracking-wide text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors min-h-11"
+        >
+          Catálogo <ArrowUpRight size={12} />
+        </Link>
+        <Link
+          href={`/catalogo?ref=${encodeURIComponent(profile.codigo_ref)}`}
+          className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-3 py-1.5 text-[0.65rem] uppercase tracking-wide text-accent hover:bg-accent/15 transition-colors min-h-11"
+        >
+          Link con mi código <ExternalLink size={12} />
+        </Link>
+        <Link
+          href="/perfil/pedidos"
+          className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-[0.65rem] uppercase tracking-wide text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors min-h-11"
+        >
+          Pedidos <ArrowUpRight size={12} />
+        </Link>
+      </div>
+
       <div className="p-4 rounded-xl bg-muted/30 border border-border text-xs text-muted-foreground flex gap-3">
         <FileText size={16} className="shrink-0 mt-0.5" />
         <p>
@@ -248,31 +316,29 @@ export function CreadorPortalClient() {
         </div>
       )}
 
-      <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-2xl bg-accent/15 flex items-center justify-center text-accent">
-          <Sparkles size={28} />
-        </div>
-        <div>
-          <h1 className="text-2xl font-display text-foreground">Embajador del Bosque</h1>
-          <p className="text-sm text-muted-foreground">
-            {profile.nombre_publico} · {PLATAFORMA_LABEL[profile.plataforma] || profile.plataforma}
-          </p>
-        </div>
-      </div>
-
       <div className="p-6 rounded-2xl bg-primary text-primary-foreground relative overflow-hidden">
         <p className="text-[0.7rem] uppercase tracking-widest opacity-60 mb-1">Tu código de referencia</p>
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex flex-wrap items-center gap-3 mb-4">
           <span className="text-3xl font-mono font-bold tracking-wider text-accent">{profile.codigo_ref}</span>
           <button
             type="button"
             onClick={copyCode}
-            className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center hover:bg-accent/30 transition-colors"
+            className="w-11 h-11 rounded-xl bg-accent/20 flex items-center justify-center hover:bg-accent/30 transition-colors min-h-11 min-w-11"
             aria-label="Copiar código"
           >
             {copiedCode ? <Check size={18} /> : <Copy size={18} />}
           </button>
+          <button
+            type="button"
+            onClick={copyShareLink}
+            className="inline-flex items-center gap-2 h-11 px-3 rounded-xl bg-accent/20 text-sm hover:bg-accent/30 transition-colors min-h-11"
+            aria-label="Copiar enlace de catálogo con código"
+          >
+            {copiedShare ? <Check size={16} /> : <Link2 size={16} />}
+            {copiedShare ? 'Link copiado' : 'Copiar link'}
+          </button>
         </div>
+        <p className="text-[0.7rem] opacity-70 mb-4 break-all font-mono">{sharePath}</p>
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
             <p className="text-[0.65rem] uppercase opacity-50">Descuento seguidores</p>
@@ -324,7 +390,15 @@ export function CreadorPortalClient() {
       {activeTab === 'dashboard' && (
         <div className="rounded-xl border border-border overflow-x-auto">
           {metricas.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic py-8 text-center">Sin métricas mensuales aún.</p>
+            <EmptyState
+              title="Sin métricas mensuales aún"
+              description="Cuando tus seguidores usen tu código en el checkout, verás el desglose aquí."
+              action={
+                <Link href={`/catalogo?ref=${encodeURIComponent(profile.codigo_ref)}`} className="text-sm text-accent">
+                  Compartir catálogo con código
+                </Link>
+              }
+            />
           ) : (
             <table className="w-full text-sm">
               <thead className="bg-muted/30">
@@ -355,7 +429,10 @@ export function CreadorPortalClient() {
       {activeTab === 'usos' && (
         <div className="space-y-3">
           {usos.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic py-8 text-center">Sin usos registrados aún.</p>
+            <EmptyState
+              title="Sin usos registrados aún"
+              description="Comparte tu link de catálogo; los usos aparecen cuando se aplica tu código al pagar."
+            />
           ) : (
             usos.map((u) => (
               <div key={u.id} className="p-4 rounded-xl border border-border flex justify-between">

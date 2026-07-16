@@ -15,6 +15,13 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-16 pass 10
+- Señal: portal creador sin link de share a catálogo; código no fluía a checkout; header ad-hoc sin ModuleHero; empty states sin EmptyState
+- Compuesto: entrelazado + unificar UI
+- Regla nueva: embajador → share `/catalogo?ref=CODE` → CreatorRefCapture → CREATOR_REF_CODE_KEY → checkout prefill; portal con ModuleHero + CTAs legado/pedidos
+- Anti-patrón: solo copiar código sin URL; portal desconectado del catálogo
+- Guardriel: intacto
+
 ### Evo 2026-07-16 pass 9
 - Señal: middleware Campo solo protegía /pos; caja/feria/comisiones/ranking abiertos; POS header sin grafo de herramientas; landing duplicaba links; shell doblaba padding en POS
 - Compuesto: entrelazado + redirigir + método
@@ -161,6 +168,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
+| creador: share ref→catalogo→checkout + ModuleHero/EmptyState | ✅ pass10 (pendiente hash) |
 | rep campo: protect full tool graph + nav unificado + shell POS | ✅ pass9 `71fc124` |
 | cliente resenas+trazabilidad nav + legado deep links | ✅ pass8 `e8ac9c6` |
 | calculos-ia nav + Ecosistema crosslinks ModuleHero | ✅ pass7 `63c4669` |
@@ -230,11 +238,12 @@ Origen (campo/cosecha) → Lotes (núcleo) → Traza (hash) → Producto (tienda
 ## Estado del cursor (espejo humano; fuente de verdad = CURSOR.json)
 
 - phase: v1.1-roles-ui  
-- pass: 9  
-- index: 3  
-- last: `role-rep-tool-graph`  
-- next sector: `role-creador-tool-graph`  
+- pass: 10  
+- index: 4  
+- last: `role-creador-tool-graph`  
+- next sector: `ui-canon-nucleo`  
 - streak_clean: 0  
+
 
 
 

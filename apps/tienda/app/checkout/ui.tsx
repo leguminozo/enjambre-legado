@@ -28,6 +28,7 @@ import { useAuth } from '@/components/providers/auth-context';
 import { useLoyaltyPoints } from '@/lib/hooks/use-loyalty-points';
 import { useCartAbandonmentTracking } from '@/lib/hooks/use-cart-abandonment';
 import { CHECKOUT_RESULTADO_PATH } from '@/lib/shop/store-routes';
+import { CREATOR_REF_CODE_KEY } from '@/lib/shop/commerce-storage';
 import { getDirecciones } from '@/app/actions/direcciones';
 import type { ClienteDireccion } from '@/lib/shop/direcciones-schema';
 
@@ -90,6 +91,19 @@ export function CheckoutClient() {
   const [usarPuntos, setUsarPuntos] = useState(false);
   const [codigoDescuento, setCodigoDescuento] = useState('');
   const [codigoAplicado, setCodigoAplicado] = useState<string | null>(null);
+
+  // Prefill embajador ref capturado en catálogo (?ref= / ?codigo=)
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(CREATOR_REF_CODE_KEY)?.trim();
+      if (stored && stored.length >= 2) {
+        setCodigoDescuento(stored);
+        setCodigoAplicado(stored);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [savedAddresses, setSavedAddresses] = useState<ClienteDireccion[]>([]);

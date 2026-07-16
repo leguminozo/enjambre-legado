@@ -6,3 +6,5 @@ export const REPLENISHMENT_ADDRESS_STORAGE_KEY = 'oyz_replenishment_address';
 export const CART_STORAGE_KEY = 'oyz_tienda_cart_v1';
 export const CHECKOUT_SUCCESS_META_KEY = 'oyz_checkout_success_meta';
 export const RESENA_CLAIM_TOKEN_KEY = 'oyz_resena_claim_token';
+/** Código de embajador/creador capturado desde ?ref= o ?codigo= (session). */
+export const CREATOR_REF_CODE_KEY = 'oyz_creator_ref_code';
