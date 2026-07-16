@@ -3,9 +3,10 @@
 import { CashSessionPanel } from '@/components/pos/cash-session-panel';
 import { ClientLookupPanel } from '@/components/pos/client-lookup-panel';
 import { useCashSession } from '@/components/pos/cash-context';
-import { PackageSearch, TrendingUp, ShoppingCart } from 'lucide-react';
+import { PackageSearch, TrendingUp, ShoppingCart, Store } from 'lucide-react';
 import Link from 'next/link';
 import { useClientViewLoading, ViewLoading } from '@enjambre/ui';
+import { ViewShell } from '@/components/layout/ViewShell';
 
 export default function PosIndex() {
   const { session, loading } = useCashSession();
@@ -17,12 +18,13 @@ export default function PosIndex() {
 
   return (
     <div className="space-y-6">
-      <div>
-      <h1 className="font-serif text-2xl text-foreground mb-1">Terminal POS</h1>
-      <p className="text-xs text-muted-foreground uppercase tracking-widest">
-          {session ? 'Sesión activa · Listo para vender' : 'Inicia tu sesión para vender'}
-        </p>
-      </div>
+      <ViewShell
+        variant="compact"
+        eyebrow="Campo · Rep"
+        title="Terminal POS"
+        subtitle={session ? 'Sesión activa · Listo para vender' : 'Inicia tu sesión para vender'}
+        icon={<Store size={20} />}
+      />
 
       <CashSessionPanel />
 

@@ -3,6 +3,89 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ViewShell compact — canon UI Campo (alineado a Núcleo) */
+.view-shell {
+  position: relative;
+}
+
+.view-shell--compact {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg, 0.75rem);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  margin-bottom: 0.5rem;
+}
+
+.view-shell-compact-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.view-shell-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md, 0.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: hsl(var(--accent) / 0.12);
+  color: hsl(var(--accent));
+}
+
+.view-shell-eyebrow {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: hsl(var(--accent));
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.view-shell-greeting {
+  display: block;
+  font-size: 0.78rem;
+  color: hsl(var(--accent));
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.view-shell-title {
+  font-family: var(--font-cormorant), ui-serif, Georgia, serif;
+  font-weight: 600;
+  line-height: 1.15;
+  color: hsl(var(--foreground));
+}
+
+.view-shell-title--compact {
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+}
+
+.view-shell-subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  max-width: 56ch;
+}
+
+.view-shell-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
 @layer components {
   .card-glow {
     background: hsl(var(--card));

@@ -59,7 +59,7 @@ export function CashSessionPanel() {
             <Wallet className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-serif text-lg text-foreground">Abrir Caja</h3>
+            <h3 className="font-display text-lg text-foreground">Abrir Caja</h3>
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Declara tu efectivo inicial</p>
           </div>
         </div>

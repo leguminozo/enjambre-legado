@@ -14,6 +14,7 @@ import { HexagonLoader, ViewLoadingPlaceholder } from '@enjambre/ui';
 import { buildClaimUrl } from '@/lib/public-urls';
 import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft, Banknote, CreditCard, Smartphone, Store, Truck, Building2, Users, Nfc, AlertTriangle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { ViewShell } from '@/components/layout/ViewShell';
 
 const paymentMethods: { value: PaymentMethod; label: string; icon: React.ReactNode }[] = [
   { value: 'efectivo', label: 'Efectivo', icon: <Banknote className="w-4 h-4" /> },
@@ -184,11 +185,11 @@ export default function CarritoView() {
           <CheckCircle2 className="w-10 h-10 text-success" />
         </div>
 
-        <h1 className="text-4xl font-serif mb-4">Venta Exitosa</h1>
+        <h1 className="text-4xl font-display mb-4">Venta Exitosa</h1>
 
         <div className="card-glow p-6 mb-8 text-center space-y-2 border-success/20 bg-success/5 max-w-sm mx-auto">
           <p className="text-xs text-success font-bold uppercase tracking-widest">Impacto Regenerativo</p>
-          <div className="font-serif text-4xl text-foreground">
+          <div className="font-display text-4xl text-foreground">
             ~{co2Saved.toFixed(1)} <span className="text-xl italic">kg CO2</span>
           </div>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Evitado gracias a esta compra</p>
@@ -229,10 +230,20 @@ export default function CarritoView() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
       <div className="lg:col-span-2">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-serif">Carrito</h1>
-          <Link href="/pos/catalogo" className="text-primary flex items-center gap-2 text-sm font-medium hover:underline">
-            <ArrowLeft className="w-4 h-4" /> Volver al catalogo
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+          <ViewShell
+            variant="compact"
+            eyebrow="POS"
+            title="Carrito"
+            subtitle="Confirma canal, pago y stock consignado"
+            icon={<ShoppingBag size={20} />}
+            className="!mb-0"
+          />
+          <Link
+            href="/pos/catalogo"
+            className="text-primary flex items-center gap-2 text-sm font-medium hover:underline min-h-11"
+          >
+            <ArrowLeft className="w-4 h-4" /> Volver al catálogo
           </Link>
         </div>
 
@@ -341,7 +352,7 @@ export default function CarritoView() {
 
       <div className="lg:col-span-1">
         <div className="bg-card border border-border p-8 rounded-3xl sticky top-32">
-          <h2 className="text-xl font-serif mb-6 pb-6 border-b border-border">Resumen de Venta</h2>
+          <h2 className="text-xl font-display mb-6 pb-6 border-b border-border">Resumen de Venta</h2>
 
           <div className="space-y-4 mb-8">
             <div className="flex justify-between items-center text-muted-foreground font-light">
@@ -415,7 +426,7 @@ export default function CarritoView() {
                       onClick={() => setSumupMode(sumupMode === 'connected' ? 'manual' : 'connected')}
                       className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${sumupMode === 'connected' ? 'bg-primary' : 'bg-muted-foreground/30'}`}
                     >
-                      <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${sumupMode === 'connected' ? 'translate-x-5' : 'translate-x-1'}`} />
+                      <span className={`inline-block h-3 w-3 transform rounded-full bg-background transition-transform ${sumupMode === 'connected' ? 'translate-x-5' : 'translate-x-1'}`} />
                     </button>
                   </div>
                 )}
@@ -440,7 +451,7 @@ export default function CarritoView() {
             <>
               <div className="flex justify-between items-end mb-8">
                 <span className="text-sm uppercase tracking-widest text-muted-foreground font-bold">Total</span>
-                <span className="text-4xl font-serif text-primary">
+                <span className="text-4xl font-display text-primary">
                   {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(total)}
                 </span>
               </div>

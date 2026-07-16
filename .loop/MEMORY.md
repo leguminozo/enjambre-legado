@@ -15,6 +15,13 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-16 pass 13
+- Señal: POS Campo usaba font-serif; headers sueltos; sin ViewShell CSS; toggle bg-white
+- Compuesto: unificar UI campo
+- Regla nueva: Campo display = font-display; cabeceras ViewShell compact + CSS en globals; tool panels (caja/comisiones/feria/pos) misma shell
+- Anti-patrón: font-serif en POS; h1 suelto sin shell; bg-white en knobs
+- Guardriel: intacto
+
 ### Evo 2026-07-16 pass 12
 - Señal: perfil tienda con font-serif y h1 ad-hoc por página; direcciones sin EmptyState/Button canónico
 - Compuesto: unificar UI tienda
@@ -182,6 +189,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
+| ui-canon campo: font-display + ViewShell POS/caja/feria/comisiones | ✅ pass13 (pendiente hash) |
 | ui-canon tienda: PerfilPageHeader + font-display direcciones/alertas/pasaporte/logros | ✅ pass12 `8e88497` |
 | ui-canon nucleo: ViewShell catalogo/productos/banco + contable nested | ✅ pass11 `e39619e` |
 | creador: share ref→catalogo→checkout + ModuleHero/EmptyState | ✅ pass10 `1a1b58d` |
@@ -254,11 +262,12 @@ Origen (campo/cosecha) → Lotes (núcleo) → Traza (hash) → Producto (tienda
 ## Estado del cursor (espejo humano; fuente de verdad = CURSOR.json)
 
 - phase: v1.1-roles-ui  
-- pass: 12  
-- index: 6  
-- last: `ui-canon-tienda`  
-- next sector: `ui-canon-campo`  
+- pass: 13  
+- index: 7  
+- last: `ui-canon-campo`  
+- next sector: `nectar-crosslinks`  
 - streak_clean: 0  
+
 
 
 

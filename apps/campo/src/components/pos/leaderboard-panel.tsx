@@ -67,7 +67,7 @@ export function LeaderboardPanel() {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Trophy className="w-5 h-5 text-warning" />
-        <h3 className="font-serif text-lg text-foreground">Leaderboard Semanal</h3>
+        <h3 className="font-display text-lg text-foreground">Leaderboard Semanal</h3>
       </div>
 
       {top3.length > 0 && (

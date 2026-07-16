@@ -253,3 +253,13 @@ Ops residual frecuente: **staging Supabase**, apply migraciones 93–94+, typege
 | Header /perfil/* | `PerfilPageHeader` → ModuleHero |
 | Display type | `font-display` (Cormorant), never `font-serif` |
 | Empty list | `EmptyState` + `Button` from `@enjambre/ui` |
+
+
+## UI canónica Campo (pass13)
+
+| Patrón | Fix |
+|--------|-----|
+| Display type | `font-display` (Cormorant), never `font-serif` |
+| Headers POS/tools | `ViewShell` compact + CSS en `globals.css` |
+| Toggle knobs | `bg-background` not `bg-white` |
+| Touch | `min-h-11` on range filters / primary actions |

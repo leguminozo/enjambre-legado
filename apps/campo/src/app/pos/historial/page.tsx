@@ -7,6 +7,7 @@ import { TierBadge, TierProgressBar, useTierProgress } from '@/components/pos/ti
 import { LeaderboardPanel } from '@/components/pos/leaderboard-panel';
 import { TrendingUp, Calendar, DollarSign, Zap, BarChart3, Clock } from 'lucide-react';
 import { useClientViewLoading, ViewLoading } from '@enjambre/ui';
+import { ViewShell } from '@/components/layout/ViewShell';
 
 type DailyEntry = { date: string; revenue: number; commissions: number; sales: number };
 type SessionEntry = { id: string; opened_at: string; closed_at: string | null; opening_cash: number; session_status: string; cash_difference: number | null };
@@ -74,17 +75,29 @@ export default function HistorialPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-serif text-2xl text-foreground mb-1">Historial</h1>
-          <p className="text-xs text-muted-foreground uppercase tracking-widest">Comisiones, ventas y rendimiento</p>
-        </div>
-        <div className="flex gap-2">
-          {(['week', 'month', 'quarter'] as const).map(r => (
-            <button key={r} onClick={() => { setRange(r); setLoading(true); }}
-          className={`px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
-            range === r ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'
-              }`}>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <ViewShell
+          variant="compact"
+          eyebrow="POS"
+          title="Historial"
+          subtitle="Comisiones, ventas y rendimiento"
+          className="!mb-0"
+        />
+        <div className="flex gap-2 shrink-0">
+          {(['week', 'month', 'quarter'] as const).map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => {
+                setRange(r);
+                setLoading(true);
+              }}
+              className={`min-h-11 px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
+                range === r
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-card text-muted-foreground hover:text-foreground'
+              }`}
+            >
               {r === 'week' ? '7d' : r === 'month' ? '30d' : '90d'}
             </button>
           ))}

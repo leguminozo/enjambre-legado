@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
+import { ViewShell } from '@/components/layout/ViewShell';
 
 interface CommissionRow {
   id: string;
@@ -137,15 +138,13 @@ export function ComisionesPanel() {
 
   return (
   <div className="space-y-8 animate-in relative">
-    <div className="flex items-center gap-4 mb-8">
-    <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center text-accent">
-      <Percent size={24} />
-    </div>
-    <div>
-      <h2 className="text-2xl font-display text-primary">Comisiones</h2>
-      <p className="text-sm text-muted-foreground">Comisiones devengadas · Pago y auditoría</p>
-        </div>
-      </div>
+    <ViewShell
+      variant="compact"
+      eyebrow="Campo"
+      title="Comisiones"
+      subtitle="Devengadas · Pago y auditoría"
+      icon={<Percent size={20} />}
+    />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[

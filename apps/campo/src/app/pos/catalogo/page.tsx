@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/offline/db';
 import { QuickSaleButton } from './quick-sale-button';
-import { Info, WifiOff } from 'lucide-react';
+import { Info, WifiOff, LayoutGrid } from 'lucide-react';
 import { ViewLoading } from '@enjambre/ui';
 import { useEffect, useState } from 'react';
+import { ViewShell } from '@/components/layout/ViewShell';
 
 export default function CatalogoPage() {
   const [isOffline, setIsOffline] = useState(false);
@@ -26,22 +27,27 @@ export default function CatalogoPage() {
   const productos = useLiveQuery(() => db.productos.toArray());
 
   return (
-    <div className="animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-        <div className="max-w-2xl">
-          <div className="flex items-center gap-3 mb-4">
-            <h1 className="text-5xl font-serif">Catálogo</h1>
-            {isOffline && (
-              <span className="bg-destructive/10 text-destructive text-xs font-bold px-2 py-1 rounded-md uppercase tracking-widest flex items-center gap-1">
-                <WifiOff className="w-3 h-3" /> Offline
-              </span>
-            )}
-          </div>
-          <p className="text-muted-foreground font-light leading-relaxed">
-            Venta rápida: selecciona producto → cantidad → método de pago. {isOffline ? 'Las ventas se sincronizarán cuando vuelva la conexión.' : 'Cada venta registra comisión automática.'}
-          </p>
-        </div>
+    <div className="animate-in fade-in duration-700 space-y-8">
+      <ViewShell
+        variant="compact"
+        eyebrow="POS"
+        title="Catálogo"
+        subtitle={
+          isOffline
+            ? 'Venta rápida offline · se sincroniza al recuperar conexión'
+            : 'Venta rápida: producto → cantidad → pago · comisión automática'
+        }
+        icon={<LayoutGrid size={20} />}
+        actions={
+          isOffline ? (
+            <span className="bg-destructive/10 text-destructive text-xs font-bold px-2 py-1 rounded-md uppercase tracking-widest flex items-center gap-1 min-h-11">
+              <WifiOff className="w-3 h-3" /> Offline
+            </span>
+          ) : undefined
+        }
+      />
 
+      <div className="flex flex-col md:flex-row md:items-end justify-end gap-6">
         <Link
           href="/pos/carrito"
           className="text-xs uppercase tracking-widest text-primary hover:underline flex items-center gap-1"
@@ -68,7 +74,7 @@ export default function CatalogoPage() {
             >
               <div className="flex-1">
                 <div className="flex justify-between items-start mb-4">
-                  <h2 className="font-serif text-xl group-hover:text-primary transition-colors">{p.nombre ?? 'Sin nombre'}</h2>
+                  <h2 className="font-display text-xl group-hover:text-primary transition-colors">{p.nombre ?? 'Sin nombre'}</h2>
                   <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-tighter">
                     {p.formato ?? 'Estándar'}
                   </span>

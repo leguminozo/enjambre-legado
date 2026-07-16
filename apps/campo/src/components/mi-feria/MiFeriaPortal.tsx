@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { friendlyError, toast, ViewLoading } from '@enjambre/ui';
-import { Calendar, Package, ClipboardCheck, Loader2, AlertTriangle } from 'lucide-react';
+import { Calendar, Package, ClipboardCheck, Loader2, AlertTriangle, Tent } from 'lucide-react';
+import { ViewShell } from '@/components/layout/ViewShell';
 
 interface ContratoRow {
   id: string;
@@ -181,12 +182,13 @@ export function MiFeriaPortal() {
 
   return (
     <div className="space-y-8 animate-in">
-      <div>
-        <h1 className="text-2xl font-display text-primary">Mi Feria</h1>
-        <p className="text-sm text-muted-foreground">
-          Contrato {contrato.tipo} · {contrato.comision_base_pct}% comisión · Score confianza {contrato.score_confianza}
-        </p>
-      </div>
+      <ViewShell
+        variant="compact"
+        eyebrow="Campo · Feria"
+        title="Mi Feria"
+        subtitle={`Contrato ${contrato.tipo} · ${contrato.comision_base_pct}% comisión · Score ${contrato.score_confianza}`}
+        icon={<Tent size={20} />}
+      />
 
       <div className="p-4 rounded-xl bg-muted/30 border border-border text-xs flex gap-2">
         <AlertTriangle size={14} className="shrink-0" />

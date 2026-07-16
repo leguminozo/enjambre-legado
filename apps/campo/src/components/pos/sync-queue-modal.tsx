@@ -51,7 +51,7 @@ export function SyncQueueModal({ onClose }: SyncQueueModalProps) {
       <div className="relative z-10 w-full max-w-2xl bg-card border border-border shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[85vh]">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface-sunken">
           <div>
-            <h2 className="text-lg font-serif font-bold text-foreground">Cola de Sincronización</h2>
+            <h2 className="text-lg font-display font-bold text-foreground">Cola de Sincronización</h2>
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Gestión Offline-First</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground">

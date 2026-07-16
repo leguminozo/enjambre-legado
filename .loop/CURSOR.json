@@ -1,10 +1,10 @@
 {
-  "index": 6,
-  "pass": 12,
-  "last_sector": "ui-canon-tienda",
-  "last_commit": "8e88497",
+  "index": 7,
+  "pass": 13,
+  "last_sector": "ui-canon-campo",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.1-roles-ui",
-  "notes": "Pass12: PerfilPageHeader ModuleHero. Siguiente: ui-canon-campo (#6)."
+  "notes": "Pass13: campo ViewShell+font-display. Siguiente: nectar-crosslinks (#7)."
 }
