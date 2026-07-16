@@ -154,7 +154,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
-| cliente resenas+trazabilidad nav + legado deep links | ✅ pass8 (pendiente hash) |
+| cliente resenas+trazabilidad nav + legado deep links | ✅ pass8 `e8ac9c6` |
 | calculos-ia nav + Ecosistema crosslinks ModuleHero | ✅ pass7 `63c4669` |
 | commission-rules admin + cash close race + resenas claim/salt | ✅ pass6 `3ff7e2f` |
 | SII clave AES fail-closed + CAF prod/POS + cron fiscal timing-safe | ✅ pass5 `a438dd8` |
