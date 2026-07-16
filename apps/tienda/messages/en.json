@@ -211,6 +211,7 @@
       },
       "links": {
         "legado": "The Legacy",
+        "guardian": "Guardian Panel",
         "pasaporte": "Hive Passport",
         "reposicion": "Replenishment",
         "reservas": "Harvest Reservation",
@@ -219,6 +220,8 @@
         "circular": "Hive Circle",
         "canje": "Impact Exchange",
         "alertas": "Bloom Alerts",
+        "direcciones": "Address Book",
+        "logros": "Achievements & Impact",
         "ajustes": "Guardian Settings",
         "creadorPortal": "My Code & Commissions",
         "mayoristaPortal": "Wholesale Portal",

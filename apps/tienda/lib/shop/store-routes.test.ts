@@ -198,6 +198,9 @@ describe('store-routes — perfil nav', () => {
     expect(hrefs).toContain('/perfil/creador');
     expect(hrefs).toContain('/perfil/mayorista');
     expect(hrefs).toContain('/perfil/reposicion');
-    expect(hrefs.length).toBeGreaterThanOrEqual(10);
+    expect(hrefs).toContain('/perfil/resenas');
+    expect(hrefs).toContain('/perfil/trazabilidad');
+    expect(hrefs).toContain('/perfil/guardian');
+    expect(hrefs.length).toBeGreaterThanOrEqual(12);
   });
 });

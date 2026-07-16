@@ -1,11 +1,15 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import Link from 'next/link';
 import { gsap } from 'gsap';
-import { Package, Clock, Leaf, ChevronRight, TreePine, Droplets, Trees, Bug, ArrowRight } from 'lucide-react';
+import { Package, Clock, Leaf, ChevronRight, TreePine, Droplets, Trees, Bug, ArrowRight, ArrowUpRight } from 'lucide-react';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 import { GuardianStampsSection } from '@/components/shop/guardian-stamps-section';
+import {
+  REPOSICION_PATH,
+} from '@/lib/shop/store-routes';
 
 interface Order {
   id: string;
@@ -88,22 +92,53 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
             </p>
           </div>
 
+          {/* Entrelazado: hub → herramientas del rol cliente */}
+          <div className="vanguard-data flex flex-wrap justify-center gap-2 sm:gap-3 mb-12">
+            {[
+              { href: '/perfil/pedidos', label: 'Pedidos' },
+              { href: REPOSICION_PATH, label: 'Reposición' },
+              { href: '/perfil/resenas', label: 'Reseñas' },
+              { href: '/perfil/trazabilidad', label: 'Trazabilidad' },
+              { href: '/perfil/guardian', label: 'Guardián' },
+              { href: '/perfil/logros', label: 'Logros' },
+              { href: '/perfil/canje', label: 'Canje' },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-[0.6rem] uppercase tracking-[0.15em] text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors"
+              >
+                {item.label}
+                <ArrowUpRight className="w-3 h-3" />
+              </Link>
+            ))}
+          </div>
+
           <div className="grid md:grid-cols-3 gap-6 mb-20">
-            <div className="vanguard-data bg-card border border-border rounded-3xl p-8 text-center">
+            <Link
+              href="/perfil/pedidos"
+              className="vanguard-data bg-card border border-border rounded-3xl p-8 text-center hover:border-accent/40 transition-colors block"
+            >
               <Package className="w-8 h-8 text-accent mx-auto mb-4" />
               <div className="text-4xl font-display text-foreground mb-2">{totalOrders}</div>
               <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">Pedidos</div>
-            </div>
-            <div className="vanguard-data bg-card border border-border rounded-3xl p-8 text-center">
+            </Link>
+            <Link
+              href={REPOSICION_PATH}
+              className="vanguard-data bg-card border border-border rounded-3xl p-8 text-center hover:border-accent/40 transition-colors block"
+            >
               <Leaf className="w-8 h-8 text-accent mx-auto mb-4" />
               <div className="text-4xl font-display text-foreground mb-2">${totalSpent.toLocaleString('es-CL')}</div>
               <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">Legado Acumulado</div>
-            </div>
-            <div className="vanguard-data bg-card border border-border rounded-3xl p-8 text-center">
+            </Link>
+            <Link
+              href="/perfil/guardian"
+              className="vanguard-data bg-card border border-border rounded-3xl p-8 text-center hover:border-accent/40 transition-colors block"
+            >
               <TreePine className="w-8 h-8 text-accent mx-auto mb-4" />
               <div className="text-4xl font-display text-foreground mb-2">{arbolesPersonal}</div>
               <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">m² Regenerados</div>
-            </div>
+            </Link>
           </div>
 
           <div className="space-y-24">
@@ -186,10 +221,13 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
                     <p className="text-[0.55rem] uppercase tracking-[0.2em] text-muted-foreground">Especies nativas</p>
                   </div>
                 </div>
-                <div className="mt-6 pt-6 border-t border-border/20 text-center">
-                  <a href="/ciencia" className="inline-flex items-center gap-2 text-[0.6rem] uppercase tracking-[0.3em] text-accent hover:text-accent/80 transition-colors">
+                <div className="mt-6 pt-6 border-t border-border/20 text-center flex flex-wrap justify-center gap-4">
+                  <Link href="/perfil/guardian" className="inline-flex items-center gap-2 text-[0.6rem] uppercase tracking-[0.3em] text-accent hover:text-accent/80 transition-colors">
+                    Panel guardián <ArrowUpRight size={12} />
+                  </Link>
+                  <Link href="/ciencia" className="inline-flex items-center gap-2 text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground hover:text-accent transition-colors">
                     Ver metodología completa <ArrowRight size={12} />
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -245,11 +283,23 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
 
             {/* ── PEDIDOS ── */}
             <div className="vanguard-data border-t border-border pt-12">
-              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Pedidos Recientes</span>
+              <div className="flex items-center justify-between mb-8 gap-4">
+                <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent">Pedidos Recientes</span>
+                <Link
+                  href="/perfil/pedidos"
+                  className="inline-flex items-center gap-1 text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground hover:text-accent transition-colors"
+                >
+                  Ver todos <ArrowUpRight className="w-3 h-3" />
+                </Link>
+              </div>
               {orders && orders.length > 0 ? (
                 <div className="space-y-4">
                   {orders.slice(0, 5).map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl">
+                    <Link
+                      key={order.id}
+                      href="/perfil/pedidos"
+                      className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl hover:border-accent/40 transition-colors"
+                    >
                       <div>
                         <div className="text-foreground font-display text-lg">{new Date(order.created_at).toLocaleDateString('es-CL')}</div>
                         <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">
@@ -260,7 +310,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
                         <div className="font-display italic text-foreground">${order.total?.toLocaleString('es-CL') || '0'}</div>
                         <div className="text-[0.6rem] uppercase tracking-[0.2em] text-accent">{order.estado}</div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               ) : (

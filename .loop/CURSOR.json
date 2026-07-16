@@ -1,12 +1,10 @@
 {
-  "index": 1,
-  "pass": 7,
-  "last_sector": "role-admin-tool-graph",
-  "last_commit": "63c4669",
+  "index": 2,
+  "pass": 8,
+  "last_sector": "role-cliente-tool-graph",
+  "last_commit": null,
   "streak_clean": 0,
-  "boost": {
-    "role-admin-tool-graph": 1
-  },
+  "boost": {},
   "phase": "v1.1-roles-ui",
-  "notes": "Pass7: calculos-ia nav + Ecosistema ModuleHero/crosslinks. Siguiente: role-cliente-tool-graph (#1)."
+  "notes": "Pass8: cliente nav resenas/trazabilidad + legado CTAs. Siguiente: role-rep-tool-graph (#2)."
 }

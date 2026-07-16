@@ -15,6 +15,13 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-16 pass 8
+- Señal: cliente /perfil/resenas y /perfil/trazabilidad pages sin PERFIL_NAV; i18n guardian ausente; Mi Legado KPIs sin deep links a herramientas
+- Compuesto: entrelazado + unificar
+- Regla nueva: toda page /perfil/* (no resultado/legacy) debe estar en PERFIL_NAV + i18n links; hub Mi Legado CTAs a pedidos/reposicion/guardian/resenas/trazabilidad
+- Anti-patrón: labelKey en icons sin href en PERFIL_NAV; KPI card no-click
+- Guardriel: intacto
+
 ### Evo 2026-07-15 pass 7 (fase v1.1)
 - Señal: operador pide reactivar loop hacia herramientas por rol + entrelazado + UI coherente con SOTA del monorepo
 - Compuesto: dirección + sectores + unificar
@@ -147,6 +154,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
+| cliente resenas+trazabilidad nav + legado deep links | ✅ pass8 (pendiente hash) |
 | calculos-ia nav + Ecosistema crosslinks ModuleHero | ✅ pass7 `63c4669` |
 | commission-rules admin + cash close race + resenas claim/salt | ✅ pass6 `3ff7e2f` |
 | SII clave AES fail-closed + CAF prod/POS + cron fiscal timing-safe | ✅ pass5 `a438dd8` |
@@ -214,11 +222,12 @@ Origen (campo/cosecha) → Lotes (núcleo) → Traza (hash) → Producto (tienda
 ## Estado del cursor (espejo humano; fuente de verdad = CURSOR.json)
 
 - phase: v1.1-roles-ui  
-- pass: 7  
-- index: 1  
-- last:   
-- next sector:   
+- pass: 8  
+- index: 2  
+- last: `role-cliente-tool-graph`  
+- next sector: `role-rep-tool-graph`  
 - streak_clean: 0  
+
 
 
 
