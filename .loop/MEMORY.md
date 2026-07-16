@@ -212,11 +212,13 @@ Origen (campo/cosecha) → Lotes (núcleo) → Traza (hash) → Producto (tienda
 
 ## Estado del cursor (espejo humano; fuente de verdad = CURSOR.json)
 
-- pass: 6  
-- index: 6  
-- last: `feria-reps-comisiones`  
-- next sector: `tienda-cms-chrome`  
+- phase: v1.1-roles-ui  
+- pass: 7  
+- index: 1  
+- last:   
+- next sector:   
 - streak_clean: 0  
+
 
 
 
