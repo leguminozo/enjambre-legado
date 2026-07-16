@@ -175,7 +175,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
-| ui-canon nucleo: ViewShell catalogo/productos/banco + contable nested | ✅ pass11 (pendiente hash) |
+| ui-canon nucleo: ViewShell catalogo/productos/banco + contable nested | ✅ pass11 `e39619e` |
 | creador: share ref→catalogo→checkout + ModuleHero/EmptyState | ✅ pass10 `1a1b58d` |
 | rep campo: protect full tool graph + nav unificado + shell POS | ✅ pass9 `71fc124` |
 | cliente resenas+trazabilidad nav + legado deep links | ✅ pass8 `e8ac9c6` |
