@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, toast, ViewLoading } from "@enjambre/ui";
-import { Button } from "@enjambre/ui";
-import { Badge } from "@enjambre/ui";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, toast, ViewLoading, Button, Badge, GlassPanel } from "@enjambre/ui";
 import { Brain, Calculator, TrendingUp, Shield, Play, RefreshCw, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { formatDate } from '@/lib/format';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -179,19 +176,21 @@ const tiposCalculo = [
                 type="button"
                 onClick={() => ejecutarCalculo(tipo.value)}
                 disabled={isEjecutando}
-                className="group flex min-h-[5.5rem] flex-col items-start justify-between rounded-2xl border border-border bg-card/70 p-4 text-left transition-colors hover:border-accent/40 hover:bg-accent/5 disabled:opacity-60"
+                className="group text-left disabled:opacity-60"
               >
-                <div className="flex w-full items-center justify-between gap-2">
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-accent">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  {isEjecutando ? (
-                    <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
-                  ) : (
-                    <Play className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-accent" />
-                  )}
-                </div>
-                <span className="text-sm font-medium text-foreground">{tipo.label}</span>
+                <GlassPanel className="flex min-h-[5.5rem] flex-col items-start justify-between p-4 transition-colors group-hover:border-accent/40 group-hover:bg-accent/5">
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-accent">
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    {isEjecutando ? (
+                      <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+                    ) : (
+                      <Play className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-accent" />
+                    )}
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{tipo.label}</span>
+                </GlassPanel>
               </button>
             );
           })}

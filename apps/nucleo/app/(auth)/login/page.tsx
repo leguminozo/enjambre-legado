@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Hexagon, Lock, Mail, User, ArrowRight, ArrowLeft } from 'lucide-react';
 import { AuthHero } from '@/components/auth/AuthHero';
-import { friendlyError } from '@enjambre/ui';
+import { friendlyError, GlassPanel } from '@enjambre/ui';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore, logSecurityEvent, getRoleRedirectPath } from '@enjambre/auth';
 
@@ -91,7 +91,7 @@ export default function LoginPage() {
         <AuthHero onStart={() => setShowForm(true)} />
       ) : (
         <div ref={formRef} className="relative z-10 w-full px-6" style={{ maxWidth: '440px' }}>
-          <div className="glass-panel text-center">
+          <GlassPanel variant="strong" className="p-12 text-center">
             <div className="mb-8">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-accent/15 mb-6 border border-accent/30">
                 <Hexagon size={28} className="text-accent" />
@@ -160,7 +160,7 @@ export default function LoginPage() {
               )}
             </form>
 
-            <div className="mt-8 pt-8 border-t text-center" style={{ borderColor: 'hsl(var(--border))' }}>
+            <div className="mt-8 pt-8 border-t border-border text-center">
               <p className="font-datos text-muted-foreground mb-5 m-0" style={{ opacity: 0.5, fontSize: '0.8rem' }}>
                 {isLogin ? '¿Aún no tienes registro?' : '¿Ya eres parte del enjambre?'}
               </p>
@@ -168,7 +168,7 @@ export default function LoginPage() {
                 {isLogin ? 'Crear Legado' : 'Iniciar Sesión'}
               </button>
             </div>
-          </div>
+          </GlassPanel>
         </div>
       )}
     </div>

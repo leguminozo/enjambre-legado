@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { ViewLoading, LoadingOverlay } from '@enjambre/ui'
+import { ViewLoading, LoadingOverlay, GlassPanel } from '@enjambre/ui'
 import {
   BarChart3, TrendingUp, DollarSign, Target, Leaf, Crown,
   ArrowUpRight, Hexagon, TreePine, Users, Wallet, Percent,
@@ -242,19 +242,20 @@ export function DashboardEjecutivo() {
           {alerts.map((alert, i) => {
             const IconComp = ALERT_ICONS[alert.severity]
             return (
-              <div
+              <GlassPanel
                 key={i}
-                className="p-4 rounded-xl flex gap-3 animate-in border border-border/30 glass shadow-glass"
+                className="p-4 flex gap-3 animate-in rounded-xl"
                 style={{
                   borderLeft: `4px solid ${ALERT_COLORS[alert.severity]}`,
                   animationDelay: `${i * 50}ms`,
-                }}>
+                }}
+              >
                 <IconComp size={18} className="shrink-0" style={{ color: ALERT_COLORS[alert.severity] }} />
                 <div className="flex-1">
                   <div className="text-[0.85rem] font-semibold text-foreground">{alert.title}</div>
                   <div className="text-[0.78rem] text-muted-foreground mt-0.5">{alert.detail}</div>
                 </div>
-              </div>
+              </GlassPanel>
             )
           })}
         </div>
