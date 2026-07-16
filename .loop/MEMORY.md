@@ -196,7 +196,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
-| nectar-crosslinks: NectarRail en colmenas/lotes/productos/despacho/impacto/contable | ✅ pass14 (pendiente hash) |
+| nectar-crosslinks: NectarRail en colmenas/lotes/productos/despacho/impacto/contable | ✅ pass14 `3df4b0e` |
 | ui-canon campo: font-display + ViewShell POS/caja/feria/comisiones | ✅ pass13 `6868f05` |
 | ui-canon tienda: PerfilPageHeader + font-display direcciones/alertas/pasaporte/logros | ✅ pass12 `8e88497` |
 | ui-canon nucleo: ViewShell catalogo/productos/banco + contable nested | ✅ pass11 `e39619e` |
