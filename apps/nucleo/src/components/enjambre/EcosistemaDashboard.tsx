@@ -1,11 +1,12 @@
 'use client'
 
 import { useRef, useEffect } from 'react'
+import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { useApiFetch } from '@/hooks/use-api-fetch'
-import { BentoGrid, BentoGridItem, ViewLoading } from '@enjambre/ui'
+import { BentoGrid, BentoGridItem, ViewLoading, ModuleHero } from '@enjambre/ui'
 import { CinematicCard } from '@enjambre/ui'
-import { Leaf, DollarSign, Target, Activity } from 'lucide-react'
+import { Leaf, Target, ArrowUpRight } from 'lucide-react'
 import gsap from 'gsap'
 
 // Sub-widgets
@@ -74,13 +75,26 @@ export function EcosistemaDashboard() {
 
   return (
     <div className="flex flex-col gap-8 pb-12 w-full max-w-full overflow-hidden">
-      {/* Header section - Integrates smoothly with existing sidebar layout */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-display font-semibold text-foreground tracking-tight">El Ecosistema Vivo</h1>
-          <p className="text-sm text-muted-foreground mt-1">Conexión profunda con nuestras colmenas y comunidad.</p>
-        </div>
-        <div className="flex items-center gap-4 flex-wrap">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4">
+        <ModuleHero
+          greeting="Alma del Enjambre"
+          title="El Ecosistema Vivo"
+          mission="Todo está conectado: finanzas, colmenas, feria e impacto en un solo pulso"
+          className="flex-1 min-w-0"
+        />
+        <div className="flex items-center gap-3 flex-wrap shrink-0">
+          <Link
+            href="/ejecutivo"
+            className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Panel ejecutivo <ArrowUpRight size={12} />
+          </Link>
+          <Link
+            href="/monitor-feria"
+            className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Monitor feria <ArrowUpRight size={12} />
+          </Link>
           <QuickActionAddStock />
         </div>
       </div>
@@ -103,20 +117,33 @@ export function EcosistemaDashboard() {
           </BentoGridItem>
 
           <BentoGridItem colSpan={1} rowSpan={1} className="p-0 border-none shadow-none bg-transparent">
-            {/* Tarjeta Cinemática con "Full Chrome" style */}
-            <CinematicCard 
-              variant="chrome"
-              title={topChannel ? `Vía Destacada: ${topChannel[0]}` : "Vías de Distribución"}
-              subtitle={topChannel ? `Aporte YTD: ${fmtCLP(topChannel[1] as number)}` : "Aún sin aportes"}
-              badgeText="Distribución"
-              className="h-full w-full"
-            />
+            <Link href="/pipeline" className="block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-2xl">
+              <CinematicCard
+                variant="chrome"
+                title={topChannel ? `Vía Destacada: ${topChannel[0]}` : 'Vías de Distribución'}
+                subtitle={
+                  topChannel
+                    ? `Aporte YTD: ${fmtCLP(topChannel[1] as number)} · Abrir pipeline`
+                    : 'Aún sin aportes · Abrir pipeline'
+                }
+                badgeText="Distribución"
+                className="h-full w-full"
+              />
+            </Link>
           </BentoGridItem>
 
           <BentoGridItem colSpan={1} rowSpan={1} className="flex flex-col justify-between">
-            <div className="flex items-center gap-2 mb-4 text-accent">
-              <Leaf size={20} />
-              <h3 className="font-semibold text-foreground">Sustentabilidad</h3>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-accent">
+                <Leaf size={20} />
+                <h3 className="font-semibold text-foreground">Sustentabilidad</h3>
+              </div>
+              <Link
+                href="/regeneracion"
+                className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-accent transition-colors"
+              >
+                Bosque <ArrowUpRight size={12} />
+              </Link>
             </div>
             <div>
               <div className="text-4xl font-display font-bold text-success mb-2">{finanzas.margenUtilidad}%</div>
@@ -128,11 +155,21 @@ export function EcosistemaDashboard() {
             </div>
           </BentoGridItem>
           
-          {/* Third block for row 2 to fill remaining space */}
-          <BentoGridItem colSpan={2} rowSpan={1} className="bg-surface-raised border-border flex flex-col sm:flex-row items-start sm:items-center justify-between p-8">
-             <div className="mb-4 sm:mb-0">
+          <BentoGridItem colSpan={2} rowSpan={1} className="bg-surface-raised border-border flex flex-col sm:flex-row items-start sm:items-center justify-between p-8 gap-4">
+             <div className="mb-0 min-w-0">
                <h3 className="text-lg font-bold text-foreground mb-1">Ritmo de Cosecha</h3>
                <p className="text-sm text-muted-foreground">{enjambre.colmenas?.total || 0} colmenas activas entregando {enjambre.cosechas?.totalYTD || 0} kg YTD.</p>
+               <div className="mt-3 flex flex-wrap gap-3">
+                 <Link href="/colmenas" className="text-xs font-medium text-accent hover:text-accent/80 inline-flex items-center gap-1">
+                   Colmenas <ArrowUpRight size={12} />
+                 </Link>
+                 <Link href="/produccion" className="text-xs font-medium text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+                   Producción <ArrowUpRight size={12} />
+                 </Link>
+                 <Link href="/catalogo" className="text-xs font-medium text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+                   Catálogo <ArrowUpRight size={12} />
+                 </Link>
+               </div>
              </div>
              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                 <Target size={24} className="text-primary" />

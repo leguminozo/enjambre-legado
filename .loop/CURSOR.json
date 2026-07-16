@@ -1,9 +1,12 @@
 {
-  "index": 6,
-  "pass": 6,
-  "last_sector": "feria-reps-comisiones",
+  "index": 0,
+  "pass": 7,
+  "last_sector": null,
   "last_commit": "3ff7e2f",
   "streak_clean": 0,
-  "boost": {},
-  "notes": "Pass6: commission admin + cash close + resenas claim. Siguiente: tienda-cms-chrome (#6)."
+  "boost": {
+    "role-admin-tool-graph": 1
+  },
+  "phase": "v1.1-roles-ui",
+  "notes": "Fase v1.1: roles+entrelazado+UI. Siguiente: role-admin-tool-graph (#0)."
 }

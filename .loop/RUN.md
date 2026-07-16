@@ -3,22 +3,22 @@
 Repo: `/Users/macbook/Desktop/oyz app`  
 Identidad: **Enjambre Legado** (oyz) — monorepo `apps/{tienda,nucleo,campo}` + `packages/*`
 
-Ejecuta **ahora** `.loop/PROMPT.md` **v1.0** (producción + loophole + guardrieles + auto-mejora de compuestos + 5 leyes).  
+Ejecuta **ahora** `.loop/PROMPT.md` **v1.1** (roles + entrelazado + UI canónica + guardrieles + 5 leyes).  
 Relee `MEMORY` (Doctrina + Evolución + Backlog) + `CURSOR` + `PLAYBOOK`.  
-Contrasta `AGENTS.md` / `system_invariants.md` / `docs/CONSTITUTION.md` solo si el sector lo exige.
+Contrasta `AGENTS.md` / `CONSTITUTION` / `UI_DESIGN_SYSTEM_AUDIT.md` / `packages/ui` si el sector es UI.
 
 ## Cadencia
 
 - Reactivación ~60s–5m entre fires; **investigación de la pasada = ilimitada** si es productiva.
 - Cono: un sector + grafo del hallazgo. Densidad > alarde. Nuevos hallazgos o medición clara.
 
-## Prioridad
+## Prioridad (fase v1.1)
 
-1. Seguridad explotable en prod (authz, RLS, checkout, webhooks, service_role, x-internal-key, CAF)
-2. Runtime que rompe cadena de valor (pago → stock → DTE → feria POS → sync campo)
-3. Entrelazados hop1 (hop2 si mismo mecanismo; brothers idénticos en apps hermanas)
-4. UX editorial / tokens solo si regresión visible en cono
-5. Perf solo si duele en prod y es local
+1. Entrelazado correcto por rol (nav ↔ page ↔ lazy ↔ guards ↔ CTAs entre herramientas)
+2. UI canónica (`@enjambre/ui` + patrón Ecosistema/tokens; sin hex ad-hoc)
+3. Runtime de herramienta (CTA/tab/redirect/shell)
+4. Seguridad solo si aparece en el cono
+5. Perf solo si duele y es local
 
 ## Guardrieles (rápido)
 

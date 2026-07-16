@@ -165,6 +165,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Archivero del tiempo',
         mission: 'El balance no miente, pero requiere testigo',
       },
+      {
+        key: 'calculos-ia',
+        label: 'Cálculos IA',
+        icon: 'sparkles',
+        href: '/calculos-ia',
+        greeting: 'Oráculo del número',
+        mission: 'Proyecciones que alimentan contable y decisión',
+      },
     ],
   },
   {
@@ -196,12 +204,12 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
           mission: 'Cada cliente es una historia que se cultiva',
         },
         {
-          key: 'punto-venta',
-          label: 'Punto de Venta',
+          key: 'monitor-feria',
+          label: 'Monitor de Feria',
           icon: 'store',
-          href: '/punto-venta',
-          greeting: 'Vendedor en terreno',
-          mission: 'Cada sachet entregado planta un bosque',
+          href: '/monitor-feria',
+          greeting: 'Observador de feria',
+          mission: 'Trazabilidad y observación en vivo de las ventas en feria',
         },
         {
           key: 'pipeline',
@@ -289,7 +297,12 @@ export const VIEW_SHELL_PATHS = new Set([
   '/calendario',
   '/creador',
   '/editor-tienda',
-  '/punto-venta',
+  '/monitor-feria',
+  '/calculos-ia',
+  '/reportes',
+  '/catalogo',
+  '/mapa',
+  '/reglas-comision',
 ])
 
 export function routeUsesViewShell(pathname: string): boolean {

@@ -1,9 +1,10 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import { PieChart, Pie, Cell, Tooltip } from 'recharts'
 import { ChartBox } from '@/components/charts/ChartBox'
-import { Hexagon } from 'lucide-react'
+import { Hexagon, ArrowUpRight } from 'lucide-react'
 
 export function HealthWidget({ enjambre }: { enjambre: any }) {
   const healthData = [
@@ -19,6 +20,12 @@ export function HealthWidget({ enjambre }: { enjambre: any }) {
           <Hexagon size={18} />
           <span className="font-semibold text-sm text-foreground">Salud del Enjambre</span>
         </div>
+        <Link
+          href="/colmenas"
+          className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-accent transition-colors"
+        >
+          Colmenas <ArrowUpRight size={12} />
+        </Link>
       </div>
       
       {healthData.length > 0 ? (

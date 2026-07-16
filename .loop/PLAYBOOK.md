@@ -1,7 +1,32 @@
-# PLAYBOOK — patrones reales de Oyz App (Enjambre Legado) v1.0
+# PLAYBOOK — patrones reales de Oyz App (Enjambre Legado) v1.1
 
 Actualizar solo cuando un fix o audit confirma el patrón en código.  
-Prompt hermano: `.loop/PROMPT.md` v1.0.
+Prompt hermano: `.loop/PROMPT.md` v1.1 (roles + entrelazado + UI canónica).
+
+---
+
+## Entrelazado / herramientas por rol
+
+| Patrón | Síntoma | Detección | Fix canónico |
+|--------|---------|-----------|--------------|
+| Page huérfana | herramienta inaccesible por nav | page en `(dashboard)` sin `sidebar-config` href | añadir item + greeting/mission + VIEW_SHELL si aplica |
+| Widget sin CTA | dato huérfano en Ecosistema | widget sin `Link` a módulo dueño | links tokens: accent/muted + ArrowUpRight |
+| Header duplicado | doble título | h1 local + shell global | ModuleHero **o** VIEW_SHELL_PATHS, no ambos sin criterio |
+| Guard desalineado | 403 o open | ROUTE_ROLE_GUARDS vs sidebar | registrar path en guards (admin) |
+| Deprecado sin rastro | URL muerta en bookmarks | page solo redirect | guards OK; no reintroducir en sidebar (vanguardia→crm) |
+| Role home wrong | post-login mal app | getRoleRedirectPath | admin→ejecutivo; cliente→catalogo; rep→pos; creador→perfil/creador |
+
+## UI canónica
+
+| Patrón | Fix |
+|--------|-----|
+| Header de módulo | `ModuleHero` (greeting/title/mission del sidebar item) |
+| Sección | `SectionHeader` (kicker/title/subtitle) |
+| Glass | `GlassPanel` de `@enjambre/ui`, no `.glass-panel` ad-hoc nuevo |
+| Loading | `ViewLoading` / `HexagonLoader` |
+| Tabla | `DataTable` |
+| Tokens | `bg-background`, `text-foreground`, `text-accent`, `border-border` — never slate/white hex |
+| Referencia | EcosistemaDashboard Bento + GSAP stagger |
 
 ---
 

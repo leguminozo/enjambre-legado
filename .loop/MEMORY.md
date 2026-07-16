@@ -2,19 +2,26 @@
 
 ## Doctrina del loop (actualizar solo si el operador la cambia)
 
-- Foco **producción** y valor real a **largo horizonte**: cobros legítimos, stock atómico, DTE/CAF, feria POS, authz de roles, UX que no abandona cliente ni rep.
-- **Loophole**: absorber → hipótesis → colapsar → redirigir a mejor → acrecer. Cada compuesto es **auto-mejorable** (dirección, sectores, método, greps, playbook, unificar UI).
-- **Guardrieles no negociables**: fail-closed; no quitar authz/RLS/CAF/CSRF; cirugía con evidencia; no spawnear loops; producto estable salvo rotura; no mezclar WIP ajeno.
-- **5 leyes** (`system_invariants.md`): Postgres Zero-Trust · Package-First · Geometry-First Editorial · Cirugía Verificable · Néctar Traceability.
-- Entrelazados hop1–2 en el cono del hallazgo (incl. packages compartidos y apps hermanas); no monorepo-spray.
-- Amenaza: atacantes con LLMs a escala + fraude de pago + rep malicioso + forge internal key + CMS XSS + claim token abuse.
-- Cadencia: 60s–5m = reactivación; tiempo de investigación por pasada = **ilimitado** si es productivo.
-- **Densidad, no alarde**: superioridad por el diff y lo que no se rompe; inevitable por acumulación de estándares.
-- **Identidad producto**: Enjambre Legado — regeneración biocultural Chiloé; comercio soberano multi-app; **no** confundir con Trama (research) ni Ciclo Vivo (orgánicos).
+- **Fase v1.1 (activa):** cada **herramienta de cada rol** con **entrelazado correcto en código** + **UI canónica** alineada al estado del arte ya logrado (`packages/ui`, Ecosistema Bento/GSAP, ModuleHero, tokens, tienda editorial).
+- Prioridad: **E** (entrelazado) → **U** (UI canónica) → **R** (runtime herramienta) → **S** (solo si aparece) → **O**.
+- Referencia visual: `EcosistemaDashboard`, `ModuleHero`/`SectionHeader`/`GlassPanel`/`BentoGrid`/`CinematicCard`, `tokens.css`, CONSTITUTION.
+- Roles: `admin` (núcleo) · `cliente` (tienda) · `rep_ventas` (campo) · `creador` (tienda portal).
+- **Loophole**: absorber → hipótesis → colapsar → redirigir → acrecer. Compuestos auto-mejorables; **guardrieles fijos**.
+- Guardrieles: fail-closed; no quitar authz/RLS/CAF; cirugía; evidencia; no spawnear loops; no mezclar WIP ajeno; no reabrir sec passes 1–6 sin regresión.
+- Cadencia: 60s reactivación; investigación **ilimitada** si productiva.
+- Identidad: Enjambre Legado — néctar trazable multi-app.
 
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-15 pass 7 (fase v1.1)
+- Señal: operador pide reactivar loop hacia herramientas por rol + entrelazado + UI coherente con SOTA del monorepo
+- Compuesto: dirección + sectores + unificar
+- Regla nueva: sectores v1.1 role-*-tool-graph + ui-canon-*; prioridad E→U→R; canónico packages/ui + Ecosistema
+- Anti-patrón: page huérfana sin sidebar; widget sin CTA a herramienta dueña; header h1 ad-hoc si ModuleHero aplica
+- Guardriel: intacto
+- Hallazgo pass7: `/calculos-ia` page+lazy sin sidebar; Ecosistema widgets sin deep links; typo Guadián
 
 ### Evo 2026-07-15 pass 6
 - Señal: commission-rules sin requireProfileRole(admin) → rep muta multiplicadores; cash close sin eq status=open; resenas claim race; salt claim/anon hardcoded en prod

@@ -1,9 +1,10 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 import { ChartBox } from '@/components/charts/ChartBox'
-import { TrendingUp, DollarSign } from 'lucide-react'
+import { TrendingUp, DollarSign, ArrowUpRight } from 'lucide-react'
 
 function fmtCLP(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -25,6 +26,26 @@ export function FinanceWidget({ data }: { data: any }) {
           </div>
           <h2 className="text-3xl font-display font-bold text-foreground">{fmtCLP(data.facturacionYTD)}</h2>
           <p className="text-xs text-muted-foreground mt-1">Facturación YTD • {fmtCLP(data.facturacionMes)} este mes</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              href="/contable"
+              className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:text-accent/80 transition-colors"
+            >
+              Contable <ArrowUpRight size={12} />
+            </Link>
+            <Link
+              href="/reportes"
+              className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Reportes <ArrowUpRight size={12} />
+            </Link>
+            <Link
+              href="/sii"
+              className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              SII <ArrowUpRight size={12} />
+            </Link>
+          </div>
         </div>
         
         <div className="px-3 py-1.5 rounded-full bg-success/10 text-success text-xs font-semibold flex items-center gap-1 border border-success/20">

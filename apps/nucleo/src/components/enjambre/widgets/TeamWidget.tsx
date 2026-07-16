@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Trophy, Users } from 'lucide-react'
+import Link from 'next/link'
+import { Trophy, Users, ArrowUpRight } from 'lucide-react'
 
 function fmtCLP(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -20,6 +21,20 @@ export function TeamWidget({ equipo }: { equipo: any }) {
           </div>
           <h3 className="text-xl font-bold text-foreground">{equipo.activeReps} <span className="text-sm font-normal text-muted-foreground">Embajadores activos</span></h3>
         </div>
+        <div className="flex flex-col items-end gap-1">
+          <Link
+            href="/operadores-feria"
+            className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:text-accent/80 transition-colors"
+          >
+            Feria <ArrowUpRight size={12} />
+          </Link>
+          <Link
+            href="/reglas-comision"
+            className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Comisiones <ArrowUpRight size={12} />
+          </Link>
+        </div>
       </div>
 
       {equipo.topRep && (
@@ -30,7 +45,7 @@ export function TeamWidget({ equipo }: { equipo: any }) {
           </div>
           <div className="relative z-10">
              <div className="text-sm font-bold text-foreground">{equipo.topRep.name}</div>
-             <div className="text-xs text-muted-foreground">Top Guadián • {fmtCLP(equipo.topRep.revenue)}</div>
+             <div className="text-xs text-muted-foreground">Top Guardián • {fmtCLP(equipo.topRep.revenue)}</div>
           </div>
         </div>
       )}
