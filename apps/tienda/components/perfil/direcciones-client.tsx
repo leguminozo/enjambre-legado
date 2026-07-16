@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { toast } from '@enjambre/ui';
+import { toast, EmptyState, Button } from '@enjambre/ui';
 import { MapPin, Star, Edit2, Trash2, Plus } from 'lucide-react';
 import { DireccionForm } from './direccion-form';
 import {
@@ -69,7 +69,7 @@ export function DireccionesClient({ initialData }: { initialData: ClienteDirecci
   if (isCreating) {
     return (
       <div className="bg-surface-raised rounded-2xl border border-border p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <h2 className="text-xl font-serif text-accent mb-6">Añadir Nueva Dirección</h2>
+        <h2 className="text-xl font-display text-accent mb-6">Añadir Nueva Dirección</h2>
         <DireccionForm onSubmit={handleCreate} onCancel={() => setIsCreating(false)} />
       </div>
     );
@@ -80,7 +80,7 @@ export function DireccionesClient({ initialData }: { initialData: ClienteDirecci
   if (isEditing && editData) {
     return (
       <div className="bg-surface-raised rounded-2xl border border-border p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <h2 className="text-xl font-serif text-accent mb-6">Editar Dirección</h2>
+        <h2 className="text-xl font-display text-accent mb-6">Editar Dirección</h2>
         <DireccionForm
           initialData={editData}
           onSubmit={(data) => handleUpdate(editData.id, data)}
@@ -96,25 +96,29 @@ export function DireccionesClient({ initialData }: { initialData: ClienteDirecci
         <p className="text-sm text-muted-foreground">
           Administra tus direcciones de envío para compras más rápidas.
         </p>
-        <button
+        <Button
+          type="button"
+          variant="gold"
           onClick={() => setIsCreating(true)}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-accent-foreground text-xs uppercase tracking-[0.1em] font-semibold hover:opacity-90 transition-all self-start sm:self-auto"
+          className="self-start sm:self-auto min-h-11 text-xs uppercase tracking-[0.1em]"
         >
           <Plus className="w-4 h-4" />
           Añadir Dirección
-        </button>
+        </Button>
       </div>
 
       {direcciones.length === 0 ? (
-        <div className="py-12 px-6 rounded-2xl border border-dashed border-border bg-surface-sunken flex flex-col items-center justify-center text-center gap-4 animate-in fade-in duration-500">
-          <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center">
-            <MapPin className="w-8 h-8 text-muted-foreground opacity-50" />
-          </div>
-          <div>
-            <h3 className="font-serif text-lg text-foreground mb-1">Sin direcciones</h3>
-            <p className="text-sm text-muted-foreground">Aún no tienes direcciones guardadas.</p>
-          </div>
-        </div>
+        <EmptyState
+          icon={<MapPin className="w-8 h-8 opacity-50" />}
+          title="Sin direcciones"
+          description="Aún no tienes direcciones guardadas."
+          action={
+            <Button type="button" variant="outline" onClick={() => setIsCreating(true)} className="min-h-11">
+              Añadir la primera
+            </Button>
+          }
+          className="rounded-2xl border border-dashed border-border bg-surface-sunken"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {direcciones.map((dir) => (

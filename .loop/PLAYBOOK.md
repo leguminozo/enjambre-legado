@@ -244,3 +244,12 @@ Ops residual frecuente: **staging Supabase**, apply migraciones 93–94+, typege
 | Tab anidado en hub | h2 de sección, no segundo ViewShell hero |
 | CTA primary | `Button` de `@enjambre/ui` |
 | Referencia | ContableHubView, CosteoView, EcosistemaDashboard |
+
+
+## UI canónica Tienda perfil (pass12)
+
+| Patrón | Fix |
+|--------|-----|
+| Header /perfil/* | `PerfilPageHeader` → ModuleHero |
+| Display type | `font-display` (Cormorant), never `font-serif` |
+| Empty list | `EmptyState` + `Button` from `@enjambre/ui` |

@@ -1,6 +1,7 @@
 import React from 'react';
 import { getDirecciones } from '@/app/actions/direcciones';
 import { DireccionesClient } from '@/components/perfil/direcciones-client';
+import { PerfilPageHeader } from '@/components/perfil/perfil-page-header';
 import { MapPin } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 
@@ -14,17 +15,12 @@ export default async function DireccionesPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <header className="space-y-2">
-        <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-secondary/50 text-accent mb-4">
-          <MapPin className="w-6 h-6" />
-        </div>
-        <h1 className="text-3xl font-serif tracking-wide text-foreground">
-          {t('direcciones')}
-        </h1>
-        <p className="text-sm text-muted-foreground max-w-2xl">
-          Gestiona las direcciones donde quieres recibir la Miel de Bosque Nativo. Puedes añadir, editar y elegir tu dirección predeterminada.
-        </p>
-      </header>
+      <PerfilPageHeader
+        icon={<MapPin size={20} />}
+        greeting="Ajustes guardián"
+        title={t('direcciones')}
+        mission="Gestiona dónde recibes la miel de bosque nativo — predeterminada, editar y eliminar."
+      />
 
       <section>
         <DireccionesClient initialData={direcciones} />

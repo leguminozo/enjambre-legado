@@ -2,6 +2,7 @@ import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { Compass, MapPin, Zap, Activity } from 'lucide-react';
 import { z } from 'zod';
+import { PerfilPageHeader } from '@/components/perfil/perfil-page-header';
 
 const ColmenaSchema = z.object({
   name: z.string().nullable().default(null),
@@ -25,15 +26,12 @@ export default async function PasaportePage() {
 
   return (
     <div className="space-y-16 animate-in">
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
-            <Compass size={20} />
-          </div>
-          <h1 className="font-display text-4xl font-light text-foreground">Pasaporte de Colmena</h1>
-        </div>
-        <p className="text-muted-foreground text-sm tracking-wide">Trazabilidad profunda de tu vínculo con el ecosistema</p>
-      </div>
+      <PerfilPageHeader
+        icon={<Compass size={20} />}
+        greeting="Identidad guardiana"
+        title="Pasaporte de Colmena"
+        mission="Trazabilidad profunda de tu vínculo con el ecosistema"
+      />
 
       {!hive ? (
         <div className="p-12 rounded-3xl bg-secondary/50 border border-border text-center">

@@ -15,6 +15,13 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-16 pass 12
+- Señal: perfil tienda con font-serif y h1 ad-hoc por página; direcciones sin EmptyState/Button canónico
+- Compuesto: unificar UI tienda
+- Regla nueva: páginas /perfil/* usan PerfilPageHeader (ModuleHero); display = font-display no font-serif; empties EmptyState
+- Anti-patrón: font-serif en tienda; header inventado por page sin shared shell
+- Guardriel: intacto
+
 ### Evo 2026-07-16 pass 11
 - Señal: CatalogoView/ProductosCatalogoView con inline styles --bosque-ulmo; ContableView doble hero bajo hub; BancoChile h1 ad-hoc sin ViewShell
 - Compuesto: unificar UI canónica nucleo
@@ -175,6 +182,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
+| ui-canon tienda: PerfilPageHeader + font-display direcciones/alertas/pasaporte/logros | ✅ pass12 (pendiente hash) |
 | ui-canon nucleo: ViewShell catalogo/productos/banco + contable nested | ✅ pass11 `e39619e` |
 | creador: share ref→catalogo→checkout + ModuleHero/EmptyState | ✅ pass10 `1a1b58d` |
 | rep campo: protect full tool graph + nav unificado + shell POS | ✅ pass9 `71fc124` |
@@ -246,11 +254,12 @@ Origen (campo/cosecha) → Lotes (núcleo) → Traza (hash) → Producto (tienda
 ## Estado del cursor (espejo humano; fuente de verdad = CURSOR.json)
 
 - phase: v1.1-roles-ui  
-- pass: 11  
-- index: 5  
-- last: `ui-canon-nucleo`  
-- next sector: `ui-canon-tienda`  
+- pass: 12  
+- index: 6  
+- last: `ui-canon-tienda`  
+- next sector: `ui-canon-campo`  
 - streak_clean: 0  
+
 
 
 

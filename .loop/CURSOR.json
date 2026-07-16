@@ -1,10 +1,10 @@
 {
-  "index": 5,
-  "pass": 11,
-  "last_sector": "ui-canon-nucleo",
-  "last_commit": "e39619e",
+  "index": 6,
+  "pass": 12,
+  "last_sector": "ui-canon-tienda",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.1-roles-ui",
-  "notes": "Pass11: ViewShell catalogo/productos/banco. Siguiente: ui-canon-tienda (#5)."
+  "notes": "Pass12: PerfilPageHeader ModuleHero. Siguiente: ui-canon-campo (#6)."
 }

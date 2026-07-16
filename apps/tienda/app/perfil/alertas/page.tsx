@@ -4,6 +4,7 @@ import { Bell, Flame, Droplets, Wind, ArrowRight, Leaf } from 'lucide-react';
 
 import { countActiveNotificationCategories } from '@enjambre/auth/notification-preferences';
 import { getNotificationPreferences } from '@/app/actions/notification-preferences';
+import { PerfilPageHeader } from '@/components/perfil/perfil-page-header';
 
 export default async function AlertasFloracionPage() {
   const preferences = await getNotificationPreferences();
@@ -11,25 +12,19 @@ export default async function AlertasFloracionPage() {
 
   return (
     <div className="space-y-16 animate-in">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
-              <Bell size={20} />
-            </div>
-            <h1 className="font-display text-4xl font-light text-foreground">Alertas Floración</h1>
+      <PerfilPageHeader
+        icon={<Bell size={20} />}
+        greeting="Red biocultural"
+        title="Alertas Floración"
+        mission="Entérate primero cuando la naturaleza ofrece lo mejor — y actúa antes que nadie"
+        action={
+          <div className="px-6 py-2 bg-accent/10 border border-accent/20 rounded-full">
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] text-accent font-bold">
+              {activeCategories} {activeCategories === 1 ? 'Categoría Activa' : 'Categorías Activas'}
+            </span>
           </div>
-          <p className="text-muted-foreground text-sm tracking-wide">
-            Entérate primero cuando la naturaleza ofrece lo mejor — y actúa antes que nadie
-          </p>
-        </div>
-
-        <div className="px-6 py-2 bg-accent/10 border border-accent/20 rounded-full">
-          <span className="text-[0.6rem] uppercase tracking-[0.3em] text-accent font-bold">
-            {activeCategories} {activeCategories === 1 ? 'Categoría Activa' : 'Categorías Activas'}
-          </span>
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 p-10 rounded-3xl bg-card border border-border shadow-2xl relative overflow-hidden group">
