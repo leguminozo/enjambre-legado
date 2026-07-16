@@ -15,6 +15,13 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-16 pass 16
+- Señal: GlassPanel exportado solo en WIP; apps usaban `.glass-panel` CSS / `glass` local; SectionHeader 0 usos; Select local muerto en reportes/cálculos
+- Compuesto: unificar + acrecer
+- Regla nueva: superficies glass en apps → `GlassPanel` de `@enjambre/ui` (no clase CSS nueva ni fork); aterrizar export + ≥1 consumidor en el mismo commit
+- Anti-patrón: export en packages/ui sin adopción; `.glass-panel` / `glass shadow-glass` ad-hoc en vistas
+- Guardriel: intacto
+
 ### Evo 2026-07-16 pass 15
 - Señal: herramientas admin (costeo/CRM/pipeline/reportes/cálculos IA/SII/banco/creadores/feria) con ViewShell pero sin CTAs al grafo; reportes/cálculos sin shell
 - Compuesto: entrelazado + unificar UI

@@ -1,10 +1,10 @@
 {
-  "index": 8,
-  "pass": 15,
-  "last_sector": "tool-action-rails",
-  "last_commit": "2988c36",
+  "index": 1,
+  "pass": 16,
+  "last_sector": "packages-ui-adoption",
+  "last_commit": "a6c231b",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.1-roles-ui",
-  "notes": "Pass15: ToolActionRail en costeo/crm/pipeline/reportes/calculosIa/sii/banco/creadores/feriaOps. Siguiente: packages-ui-adoption o deep-followup role-rep/cliente."
+  "notes": "Pass16: GlassPanel landed+adopted (login, ejecutivo, reportes, calculos). Siguiente: role-cliente-tool-graph (#1) deep-followup."
 }
