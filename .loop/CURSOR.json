@@ -1,10 +1,10 @@
 {
-  "index": 2,
-  "pass": 8,
-  "last_sector": "role-cliente-tool-graph",
-  "last_commit": "e8ac9c6",
+  "index": 3,
+  "pass": 9,
+  "last_sector": "role-rep-tool-graph",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.1-roles-ui",
-  "notes": "Pass8: cliente nav resenas/trazabilidad + legado CTAs. Siguiente: role-rep-tool-graph (#2)."
+  "notes": "Pass9: campo protect all tools + CAMPO_NAV single source. Siguiente: role-creador-tool-graph (#3)."
 }

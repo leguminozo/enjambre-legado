@@ -4,13 +4,14 @@ import { updateSession } from '@/utils/supabase/middleware';
 import { isSupabaseConfigured } from '@/utils/supabase/env';
 
 import { LEGACY_ROLE_MAP, type RoleKey } from '@enjambre/auth/role-redirect';
+import { isCampoProtectedPath } from '@/lib/navigation/paths';
 
-const PROTECTED_PREFIXES = ['/pos'];
 const PUBLIC_PATHS = ['/', '/login', '/setup-error'];
 
 function isProtected(path: string): boolean {
   if (PUBLIC_PATHS.some((p) => path === p)) return false;
-  return PROTECTED_PREFIXES.some((prefix) => path.startsWith(prefix));
+  // POS + caja + feria + comisiones + ranking (no solo /pos)
+  return isCampoProtectedPath(path);
 }
 
 function logAccessDenied(request: NextRequest, email: string) {

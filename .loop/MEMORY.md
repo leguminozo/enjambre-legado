@@ -15,6 +15,13 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-16 pass 9
+- Señal: middleware Campo solo protegía /pos; caja/feria/comisiones/ranking abiertos; POS header sin grafo de herramientas; landing duplicaba links; shell doblaba padding en POS
+- Compuesto: entrelazado + redirigir + método
+- Regla nueva: CAMPO_PROTECTED_PREFIXES = grafo completo rep; middleware Edge importa paths sin lucide; landing/sidebar/bottom/pos-header desde CAMPO_NAV_ROUTES; shell full-bleed en /pos
+- Anti-patrón: PROTECTED_PREFIXES=['/pos'] solo; nav ad-hoc en landing
+- Guardriel: intacto (authz expandida fail-closed)
+
 ### Evo 2026-07-16 pass 8
 - Señal: cliente /perfil/resenas y /perfil/trazabilidad pages sin PERFIL_NAV; i18n guardian ausente; Mi Legado KPIs sin deep links a herramientas
 - Compuesto: entrelazado + unificar
@@ -154,6 +161,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
+| rep campo: protect full tool graph + nav unificado + shell POS | ✅ pass9 (pendiente hash) |
 | cliente resenas+trazabilidad nav + legado deep links | ✅ pass8 `e8ac9c6` |
 | calculos-ia nav + Ecosistema crosslinks ModuleHero | ✅ pass7 `63c4669` |
 | commission-rules admin + cash close race + resenas claim/salt | ✅ pass6 `3ff7e2f` |
@@ -222,11 +230,12 @@ Origen (campo/cosecha) → Lotes (núcleo) → Traza (hash) → Producto (tienda
 ## Estado del cursor (espejo humano; fuente de verdad = CURSOR.json)
 
 - phase: v1.1-roles-ui  
-- pass: 8  
-- index: 2  
-- last: `role-cliente-tool-graph`  
-- next sector: `role-rep-tool-graph`  
+- pass: 9  
+- index: 3  
+- last: `role-rep-tool-graph`  
+- next sector: `role-creador-tool-graph`  
 - streak_clean: 0  
+
 
 
 

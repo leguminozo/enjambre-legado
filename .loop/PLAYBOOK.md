@@ -223,3 +223,14 @@ Ops residual frecuente: **staging Supabase**, apply migraciones 93–94+, typege
 | claim token race | doble vinculo reseña | update `.is(claimed_at,null)` first |
 | salt dev en prod | forge rate-limit/claim hash | RESENAS_*_SALT ≥16 required in production |
 | claim POS | — | UUID + RPC obtener/reclamar (OK medido) |
+
+
+## Campo / rep_ventas (pass9)
+
+| Patrón | Fix canónico |
+|--------|--------------|
+| Solo /pos protegido | `CAMPO_PROTECTED_PREFIXES` + `isCampoProtectedPath` en middleware Edge |
+| Nav duplicada landing | grid desde `CAMPO_NAV_ROUTES` |
+| POS sin hermanas | PosHeader toolLinks = NAV sin /pos |
+| Shell oprime POS | full-bleed si `pathname.startsWith('/pos')` |
+| paths en middleware | `paths.ts` sin lucide (Edge-safe) |
