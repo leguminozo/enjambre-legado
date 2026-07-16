@@ -182,7 +182,7 @@ Fuente: `docs/TECHNICAL_DEBT.md` + git log 2026-06/07 + loop passes.
 
 | Tema | Estado / ref |
 |------|----------------|
-| ui-canon tienda: PerfilPageHeader + font-display direcciones/alertas/pasaporte/logros | ✅ pass12 (pendiente hash) |
+| ui-canon tienda: PerfilPageHeader + font-display direcciones/alertas/pasaporte/logros | ✅ pass12 `8e88497` |
 | ui-canon nucleo: ViewShell catalogo/productos/banco + contable nested | ✅ pass11 `e39619e` |
 | creador: share ref→catalogo→checkout + ModuleHero/EmptyState | ✅ pass10 `1a1b58d` |
 | rep campo: protect full tool graph + nav unificado + shell POS | ✅ pass9 `71fc124` |
