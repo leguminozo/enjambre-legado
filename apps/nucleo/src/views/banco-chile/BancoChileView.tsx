@@ -6,6 +6,7 @@ import { Building2, Settings, RefreshCw, DollarSign, Check, X, ArrowRight } from
 import { formatCurrency } from '@/lib/format';
 import { ImmersiveModal } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { ToolActionRail } from '@/components/layout/ToolActionRail';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { resolveEmpresaId } from '@/lib/resolve-empresa-id';
 
@@ -174,6 +175,7 @@ export function BancoChileView() {
         subtitle="Cuentas, movimientos y conciliación bancaria"
         icon={<Building2 size={20} />}
       />
+      <ToolActionRail context="banco" current="/banco" />
 
       {!config ? (
         <div className="bg-card border border-border rounded-2xl p-6">

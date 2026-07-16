@@ -16,6 +16,7 @@ import {
 import { useSearchParams } from 'next/navigation';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { ToolActionRail } from '@/components/layout/ToolActionRail';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
@@ -538,6 +539,7 @@ export function OperadoresFeriaPanel() {
         subtitle="Contratos de prestación independiente, consignación, arqueo e incentivos. Sin órdenes de trabajo."
         icon={<Calendar size={22} />}
       />
+      <ToolActionRail context="feriaOps" current="/operadores-feria" />
 
       <div className="p-4 rounded-xl bg-warning/10 border border-warning/20 text-xs text-muted-foreground flex gap-2">
         <AlertTriangle size={16} className="text-warning shrink-0" />

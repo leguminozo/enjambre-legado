@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { ToolActionRail } from '@/components/layout/ToolActionRail';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { InsumoForm } from '@/components/costeo/InsumoForm';
@@ -67,6 +68,7 @@ export function CosteoView() {
         subtitle="Análisis de márgenes comerciales, gestión de recetas maestras e insumos."
         icon={<TrendingUp size={20} />}
       />
+      <ToolActionRail context="costeo" current="/costeo" />
 
       <ResponsiveTabBar
         variant="pill"

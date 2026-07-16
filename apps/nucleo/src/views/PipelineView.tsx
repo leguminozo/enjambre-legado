@@ -17,6 +17,7 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import { toast, ImmersiveModal, DatePicker } from '@enjambre/ui';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { ToolActionRail } from '@/components/layout/ToolActionRail';
 
 type Lead = {
   id: string;
@@ -245,6 +246,7 @@ export function PipelineView() {
         title="Pipeline de Ventas"
         subtitle="Gestión de leads, oportunidades y tareas de seguimiento"
       />
+      <ToolActionRail context="pipeline" current="/pipeline" />
 
       {stats && (
         <div className="stats-grid">

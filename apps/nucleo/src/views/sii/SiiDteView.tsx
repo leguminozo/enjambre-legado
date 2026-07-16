@@ -6,6 +6,7 @@ import { FileText, Plus, Receipt, Settings2, Calculator, Users, RefreshCw, BookO
 import dynamic from "next/dynamic";
 import { viewLoadingFallback } from "@/lib/navigation/lazy-view";
 import { ViewShell } from "@/components/layout/ViewShell";
+import { ToolActionRail } from "@/components/layout/ToolActionRail";
 import { ResponsiveTabBar } from "@/components/layout/ResponsiveTabBar";
 
 const DashboardTab = dynamic(() => import("./components/DashboardTab").then((m) => ({ default: m.DashboardTab })), {
@@ -61,6 +62,7 @@ export function SiiDteView() {
         subtitle="Gestión integral de DTEs, impuestos (F29/F22) y honorarios"
         icon={<FileText size={20} />}
       />
+      <ToolActionRail context="sii" current="/sii" />
 
       <ResponsiveTabBar
         variant="pill"

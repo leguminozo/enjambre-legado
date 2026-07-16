@@ -12,6 +12,7 @@ import { AliadosB2BTab } from "./components/AliadosB2BTab";
 import { ResenasSensorialesTab } from "./components/ResenasSensorialesTab";
 import { CRMDashboard, EMPTY_DASHBOARD } from "./types";
 import { ViewShell } from "@/components/layout/ViewShell";
+import { ToolActionRail } from "@/components/layout/ToolActionRail";
 import { ResponsiveTabBar } from "@/components/layout/ResponsiveTabBar";
 
 type CrmTab = "overview" | "clientes" | "interacciones" | "ferias" | "aliados" | "resenas";
@@ -68,6 +69,7 @@ export function CRMView() {
         title="CRM de Vendedores"
         subtitle="Historial de interacciones, métricas de conversión y agenda de ferias"
       />
+      <ToolActionRail context="crm" current="/crm" />
 
       <div className="stats-grid">
         {[

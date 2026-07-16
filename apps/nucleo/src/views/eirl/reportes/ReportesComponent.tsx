@@ -185,51 +185,58 @@ const tiposReporte = [
 
   return (
     <div className="space-y-6">
-      {/* Generación de Reportes */}
-<Card className="bg-background border-border">
-      <CardHeader>
-        <CardTitle className="text-xl font-light flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Generador de Reportes
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Generar
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Produce el informe y salta a contable o SII desde el riel de acciones.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {tiposReporte.map((tipo) => {
             const Icon = tipo.icon;
             const isGenerando = generando === tipo.value;
 
             return (
-              <Button
+              <button
                 key={tipo.value}
+                type="button"
                 onClick={() => generarReporte(tipo.value)}
                 disabled={isGenerando}
-                className="h-20 flex-col bg-background border-border hover:bg-surface-sunken"
-                >
-                  <Icon className="h-6 w-6 mb-2" />
+                className="group flex min-h-[5.5rem] flex-col items-start justify-between rounded-2xl border border-border bg-card/70 p-4 text-left transition-colors hover:border-accent/40 hover:bg-accent/5 disabled:opacity-60"
+              >
+                <div className="flex w-full items-center justify-between gap-2">
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-accent">
+                    <Icon className="h-4 w-4" />
+                  </span>
                   {isGenerando ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
                   ) : (
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-accent" />
                   )}
-                  <span className="text-sm">{tipo.label}</span>
-                </Button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                </div>
+                <span className="text-sm font-medium text-foreground">{tipo.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
-      {/* Lista de Reportes */}
-<Card className="bg-background border-border">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-light">Reportes Generados</CardTitle>
-          <Button
-
-            onClick={cargarReportes}
-            disabled={loading}
-            className="border-input"
+      <Card className="bg-card/70 border-border">
+        <CardHeader>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="text-base font-display font-semibold">
+              Reportes generados
+            </CardTitle>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={cargarReportes}
+              disabled={loading}
+              className="min-h-11"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Actualizar
@@ -239,9 +246,11 @@ const tiposReporte = [
         <CardContent>
           {reportes.length === 0 ? (
             <div className="text-center py-12">
-<FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-lg font-medium mb-2">No hay reportes generados</h3>
-        <p className="text-muted-foreground">Genera tu primer reporte financiero</p>
+              <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-medium mb-2">No hay reportes generados</h3>
+              <p className="text-muted-foreground">
+                Genera tu primer reporte financiero desde las tarjetas de arriba
+              </p>
             </div>
           ) : (
             <div className="space-y-4">

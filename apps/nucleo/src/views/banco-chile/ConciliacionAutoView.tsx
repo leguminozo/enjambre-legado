@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { ToolActionRail } from '@/components/layout/ToolActionRail';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
@@ -165,6 +166,7 @@ export function ConciliacionAutoView() {
         subtitle="Emparejamiento inteligente de movimientos del Banco de Chile con facturas y gastos."
         icon={<FileText size={20} />}
       />
+      <ToolActionRail context="banco" current="/conciliacion" />
 
       <ResponsiveTabBar
         variant="pill"

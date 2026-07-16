@@ -15,6 +15,13 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-16 pass 15
+- Señal: herramientas admin (costeo/CRM/pipeline/reportes/cálculos IA/SII/banco/creadores/feria) con ViewShell pero sin CTAs al grafo; reportes/cálculos sin shell
+- Compuesto: entrelazado + unificar UI
+- Regla nueva: módulos no-néctar usan `ToolActionRail` + `TOOL_ACTION_CONTEXTS` (salidas de rol al entorno); reportes/cálculos con ViewShell compact + rail; acciones primarias marcadas `primary`
+- Anti-patrón: herramienta admin solo hero sin riel de entorno; tarjetas generador sin shell de vista
+- Guardriel: intacto
+
 ### Evo 2026-07-16 pass 14
 - Señal: Produccion/Regeneracion/Logistica/Contable/Colmenas sin CTAs al resto del flujo néctar; silos de herramienta
 - Compuesto: entrelazado + acrecer

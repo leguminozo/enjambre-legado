@@ -159,51 +159,58 @@ const tiposCalculo = [
 
   return (
     <div className="space-y-6">
-      {/* Acciones Rápidas */}
-      <Card className="bg-background border-border">
-        <CardHeader>
-          <CardTitle className="text-xl font-light flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            Cálculos Inteligentes
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {tiposCalculo.map((tipo) => {
-              const Icon = tipo.icon;
-              const isEjecutando = ejecutando === tipo.value;
-              
-              return (
-                <Button
-                  key={tipo.value}
-                  onClick={() => ejecutarCalculo(tipo.value)}
-                  disabled={isEjecutando}
-                  className="h-20 flex-col bg-background border-border hover:bg-surface-sunken"
-                >
-                  <Icon className="h-6 w-6 mb-2" />
-                  {isEjecutando ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Play className="h-4 w-4" />
-                  )}
-                  <span className="text-sm">{tipo.label}</span>
-                </Button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Ejecutar
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Corre el cálculo y continúa en contable, SII o reportes desde el riel de entorno.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {tiposCalculo.map((tipo) => {
+            const Icon = tipo.icon;
+            const isEjecutando = ejecutando === tipo.value;
 
-      {/* Historial de Cálculos */}
-      <Card className="bg-background border-border">
+            return (
+              <button
+                key={tipo.value}
+                type="button"
+                onClick={() => ejecutarCalculo(tipo.value)}
+                disabled={isEjecutando}
+                className="group flex min-h-[5.5rem] flex-col items-start justify-between rounded-2xl border border-border bg-card/70 p-4 text-left transition-colors hover:border-accent/40 hover:bg-accent/5 disabled:opacity-60"
+              >
+                <div className="flex w-full items-center justify-between gap-2">
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-accent">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  {isEjecutando ? (
+                    <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+                  ) : (
+                    <Play className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-accent" />
+                  )}
+                </div>
+                <span className="text-sm font-medium text-foreground">{tipo.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <Card className="bg-card/70 border-border">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-light">Historial de Cálculos</CardTitle>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="text-base font-display font-semibold">
+              Historial de cálculos
+            </CardTitle>
             <Button
-              
+              type="button"
+              variant="outline"
+              size="sm"
               onClick={cargarCalculos}
               disabled={loading}
-              className="border-input"
+              className="min-h-11"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Actualizar

@@ -1,10 +1,10 @@
 {
   "index": 8,
-  "pass": 14,
-  "last_sector": "nectar-crosslinks",
-  "last_commit": "3df4b0e",
+  "pass": 15,
+  "last_sector": "tool-action-rails",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.1-roles-ui",
-  "notes": "Pass14: NectarRail. Siguiente: packages-ui-adoption (#8)."
+  "notes": "Pass15: ToolActionRail en costeo/crm/pipeline/reportes/calculosIa/sii/banco/creadores/feriaOps. Siguiente: packages-ui-adoption o deep-followup role-rep/cliente."
 }
