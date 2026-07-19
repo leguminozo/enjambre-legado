@@ -15,6 +15,7 @@ import {
   MapPin,
   Trophy,
   Link as LinkIcon,
+  Crown,
 } from 'lucide-react';
 import type { PerfilNavLinkKey } from './store-routes';
 
@@ -36,4 +37,5 @@ export const PERFIL_NAV_ICONS: Record<PerfilNavLinkKey, LucideIcon> = {
   direcciones: MapPin,
   logros: Trophy,
   trazabilidad: LinkIcon,
+  guardian: Crown,
 };
