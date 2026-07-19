@@ -407,33 +407,37 @@ export function CheckoutClient() {
   };
 
   const inputCls = (key: keyof ShippingForm) =>
-    `w-full rounded-lg border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all ${
+    `w-full min-h-[44px] rounded-lg border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all ${
       validationErrors[key] ? 'border-destructive' : 'border-border'
     }`;
 
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="min-h-[60vh] bg-background pb-28 md:pb-16 relative overflow-hidden">
+      <main className="min-h-[60vh] bg-background pb-32 md:pb-16 relative overflow-hidden">
         {/* Background decorative elements */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
-        <div className="border-b border-border px-4 py-10 sm:px-6 relative z-10">
+        <div className="border-b border-border px-4 py-8 sm:px-6 sm:py-10 relative z-10">
           <div className="mx-auto max-w-3xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-                <Leaf className="h-5 w-5 text-accent" />
+            <div className="flex items-center gap-3 mb-3 sm:mb-4">
+              <div className="w-10 h-10 shrink-0 rounded-full bg-accent/10 flex items-center justify-center">
+                <Leaf className="h-5 w-5 text-accent" aria-hidden />
               </div>
-              <h1 className="font-display text-3xl font-semibold text-foreground sm:text-4xl">Checkout Seguro</h1>
+              <h1 className="font-display text-2xl font-semibold text-foreground text-balance sm:text-3xl md:text-4xl">
+                Checkout Seguro
+              </h1>
             </div>
-            <p className="text-muted-foreground">Tu pedido será procesado de forma segura. Cada compra contribuye a regenerar el bosque nativo de Chiloé.</p>
+            <p className="text-sm sm:text-base text-muted-foreground text-pretty max-w-2xl leading-relaxed">
+              Tu pedido será procesado de forma segura. Cada compra contribuye a regenerar el bosque nativo de Chiloé.
+            </p>
           </div>
         </div>
 
-        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 relative z-10" ref={formRef}>
+        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 relative z-10 space-y-8 sm:space-y-10" ref={formRef}>
           {pricingError && !pricingLoading ? (
             <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-8 text-center">
               <p className="text-destructive mb-4">{pricingError}</p>

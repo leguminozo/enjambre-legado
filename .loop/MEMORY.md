@@ -34,6 +34,7 @@
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | touch ≥44, safe-area, terminal flow copy | ⏳ |
 | Nucleo panels | checklists go-live ritmo/cards consistentes | ⏳ |
+| Tienda shop | catálogo 2-col apretado; chips &lt;44; cart bar CTA | ✅ pass 42 |
 | Tokens | residual hex/emerald en views legacy | ⏳ baja |
 
 ### Backlog go-live ops (v1.2 — congelado; no es cono del tick)
@@ -45,6 +46,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-19 pass 42 (ui-tienda-shop)
+- Señal: catálogo 2-col con tipografía grande; filtros min-h 40; cart bar CTA chico; checkout densidades
+- Compuesto: colapsar + redirigir
+- Regla nueva: cards gap/type scale mobile; chips 44px; image sizes 50vw; cart bar + checkout inputs min-h 44; PDP text-balance
+- Anti-patrón: grid 2-col + text-lg + p-4 sin line-clamp
+- Guardriel: intacto (solo layout shop)
 
 ### Evo 2026-07-19 pass 41 (ui-tienda-chrome)
 - Señal: nav horizontal desde md con muchos items → aplastado; actions sin hit 44px; WA sin safe-area

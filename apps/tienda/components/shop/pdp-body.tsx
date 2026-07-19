@@ -59,10 +59,10 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
               {product.format}
             </span>
           ) : null}
-          <h1 className="mt-3 font-display text-2xl font-semibold leading-tight text-foreground sm:text-3xl lg:text-4xl">
+          <h1 className="mt-3 font-display text-2xl font-semibold leading-tight text-foreground text-balance sm:text-3xl lg:text-4xl">
             {product.name}
           </h1>
-          <p className="mt-3 font-display text-xl text-accent sm:text-2xl md:mt-4">
+          <p className="mt-3 font-display text-xl tabular-nums text-accent sm:text-2xl md:mt-4">
             {formatCLP(product.price)}
           </p>
 
