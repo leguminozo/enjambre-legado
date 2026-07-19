@@ -92,10 +92,10 @@ export function ShopFooter() {
   const logoFooterHeight = brand.logo_footer_height_px || brand.logo_height_px || 48;
 
   return (
-    <footer className="bg-background border-t border-border pt-24 pb-12">
-      <div className="mx-auto max-w-7xl px-6">
-        <div className="flex flex-col items-center text-center mb-20">
-          <Link href="/" className="group mb-12">
+    <footer className="bg-background border-t border-border pt-16 sm:pt-20 md:pt-24 pb-12 pb-[max(3rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center text-center mb-14 md:mb-20">
+          <Link href="/" className="group mb-8 md:mb-12">
             <div className="flex flex-col items-center gap-3">
               {logoSrc ? (
                 <img
@@ -179,12 +179,12 @@ export function ShopFooter() {
         ) : null}
 
         {footer.show_legal ? (
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 pt-8 text-[0.65rem] tracking-[0.1em] text-muted-foreground border-t border-border">
+          <div className="flex flex-wrap justify-center gap-x-4 sm:gap-x-6 gap-y-3 sm:gap-y-4 pt-8 text-[0.6rem] sm:text-[0.65rem] tracking-[0.08em] sm:tracking-[0.1em] text-muted-foreground border-t border-border">
             {LEGAL_LINKS.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="hover:text-accent transition-colors"
+                className="inline-flex min-h-[44px] items-center hover:text-accent transition-colors px-1"
               >
                 {link.label}
               </Link>

@@ -30,7 +30,7 @@
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
 | Tienda hero | cue “Descender” vertical **solapa** subtítulo/fórmula; hero `70dvh` corto | ✅ pass 40 |
-| Tienda header | nav densa en desktop medio; spacing links | ⏳ P1 |
+| Tienda header | nav densa en desktop medio; spacing links | ✅ pass 41 (nav lg+ · touch · safe-area WA) |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | touch ≥44, safe-area, terminal flow copy | ⏳ |
 | Nucleo panels | checklists go-live ritmo/cards consistentes | ⏳ |
@@ -45,6 +45,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-19 pass 41 (ui-tienda-chrome)
+- Señal: nav horizontal desde md con muchos items → aplastado; actions sin hit 44px; WA sin safe-area
+- Compuesto: colapsar + redirigir
+- Regla nueva: nav desktop desde **lg**; burger hasta lg; gap clamp CSS; actions min-h/w 44; footer legal touch; WA safe-area
+- Anti-patrón: `md:flex` para 8+ links uppercase
+- Guardriel: intacto
 
 ### Evo 2026-07-19 pass 40 (ui-tienda-landing)
 - Señal: cue “Descender” absolute center + hero 70dvh → solapa subtítulo/fórmula; metrics 5xl en 2-col

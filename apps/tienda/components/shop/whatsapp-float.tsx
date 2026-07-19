@@ -36,10 +36,11 @@ export function WhatsAppFloat() {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="whatsapp-float-mobile fixed right-3 z-[var(--tienda-z-wa)] flex h-12 w-12 md:bottom-4 md:right-4 md:h-14 md:w-14 items-center justify-center rounded-full bg-foreground text-background shadow-lg transition hover:scale-105 hover:bg-foreground/90"
+      className="whatsapp-float-mobile fixed right-3 z-[var(--tienda-z-wa)] flex h-12 w-12 min-h-[44px] min-w-[44px] md:right-4 md:h-14 md:w-14 items-center justify-center rounded-full bg-foreground text-background shadow-lg transition hover:scale-105 hover:bg-foreground/90"
       style={{
         bottom:
-          'calc(var(--tienda-mobile-chrome-stack, 0px) + 0.75rem)',
+          'max(0.75rem, calc(var(--tienda-mobile-chrome-stack, 0px) + 0.75rem + env(safe-area-inset-bottom, 0px)))',
+        right: 'max(0.75rem, env(safe-area-inset-right, 0px))',
       }}
       aria-label="Contactar por WhatsApp"
     >

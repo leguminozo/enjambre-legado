@@ -69,14 +69,15 @@
 :root {
   --tienda-header-h: 4rem;
   --tienda-header-h-md: 5rem;
-  --tienda-nav-tracking: 0.2em;
-  --tienda-nav-gap: 2.5rem;
-  --tienda-nav-size: 0.65rem;
+  --tienda-nav-tracking: 0.18em;
+  /* Dense mid-desktop: clamp gap so many links don't crush */
+  --tienda-nav-gap: clamp(0.75rem, 1.6vw, 2rem);
+  --tienda-nav-size: 0.625rem;
   --tienda-nav-transform: uppercase;
-  --tienda-mobile-nav-gap: 1.75rem;
-  --tienda-mobile-nav-size: 1.875rem;
+  --tienda-mobile-nav-gap: 1.5rem;
+  --tienda-mobile-nav-size: 1.75rem;
   --tienda-mobile-nav-tracking: 0em;
-  --tienda-brand-tracking: 0.3em;
+  --tienda-brand-tracking: 0.28em;
   --tienda-grain-opacity: 0.35;
   --tienda-radius: 0.75rem;
   --tienda-bottom-nav-h: 4.5rem;
@@ -105,6 +106,21 @@
 @media (min-width: 768px) {
   :root {
     --tienda-header-h: var(--tienda-header-h-md, 5rem);
+  }
+}
+
+/* Full horizontal nav only when there is room (matches lg:flex in header) */
+@media (min-width: 1024px) {
+  :root {
+    --tienda-nav-gap: clamp(1rem, 1.8vw, 2.25rem);
+    --tienda-nav-size: 0.65rem;
+    --tienda-nav-tracking: 0.2em;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --tienda-nav-gap: 2.25rem;
   }
 }
 
