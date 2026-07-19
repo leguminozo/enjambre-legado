@@ -2,48 +2,33 @@ import type { AppVariables } from '@/api/lib/middleware';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { BancoChileClient } from '@enjambre/banco-chile';
+import { resolveBancoChileClient } from '@/api/lib/banco-chile-client';
 
 /**
  * Router para operaciones generales de Banco Chile
  */
 export const bancoChileRouter = new Hono<{ Variables: AppVariables }>();
 
-// Obtener cuentas
+// Obtener cuentas (API + upsert local)
 bancoChileRouter.get('/cuentas', async (c) => {
   try {
     const supabase = c.get('supabase');
     const empresaId = c.get('empresaId');
 
-    // Obtener configuración
-    const { data: config } = await supabase
-      .from('banco_chile_config')
-      .select('*')
-      .eq('empresa_id', empresaId)
-      .single();
-
-    if (!config || !config.enabled) {
-      return c.json({ error: 'Banco Chile no configurado' }, 400);
+    const resolved = await resolveBancoChileClient(supabase, empresaId);
+    if (!resolved.ok) {
+      return c.json({ code: resolved.code, message: resolved.message }, 400);
     }
 
-    const client = new BancoChileClient({
-      clientId: config.client_id,
-      clientSecret: config.client_secret,
-      username: config.username,
-      password: config.password,
-      environment: config.environment as 'sandbox' | 'production',
-    });
-
-    const result = await client.getCuentas();
+    const result = await resolved.client.getCuentas();
 
     if (!result.success) {
-      return c.json({ error: (result as { success: false; error: { message: string } }).error.message }, 500);
+      return c.json({ code: 'cuentas_failed', message: result.error.message }, 502);
     }
 
-    // Guardar en DB
     if (result.data.length > 0) {
       const cuentas = result.data.map((cuenta) => ({
-        config_id: config.id,
+        config_id: resolved.config.id,
         empresa_id: empresaId,
         numero_cuenta: cuenta.numeroCuenta,
         tipo_cuenta: cuenta.tipoCuenta,
@@ -57,10 +42,15 @@ bancoChileRouter.get('/cuentas', async (c) => {
       await supabase.from('banco_chile_cuentas').upsert(cuentas);
     }
 
-    return c.json({ cuentas: result.data });
+    await supabase
+      .from('banco_chile_config')
+      .update({ last_sync: new Date().toISOString() })
+      .eq('id', resolved.config.id);
+
+    return c.json({ data: result.data, cuentas: result.data });
   } catch (error) {
     console.error('Error getting cuentas:', error);
-    return c.json({ error: 'Error al obtener cuentas' }, 500);
+    return c.json({ code: 'cuentas_error', message: 'Error al obtener cuentas' }, 500);
   }
 });
 
@@ -73,7 +63,7 @@ bancoChileRouter.get(
       desde: z.string().optional(),
       hasta: z.string().optional(),
       limite: z.string().transform((v) => (v ? parseInt(v) : undefined)).optional(),
-    })
+    }),
   ),
   async (c) => {
     try {
@@ -82,31 +72,17 @@ bancoChileRouter.get(
       const { cuentaId } = c.req.param();
       const { desde, hasta, limite } = c.req.valid('query');
 
-      const { data: config } = await supabase
-        .from('banco_chile_config')
-        .select('*')
-        .eq('empresa_id', empresaId)
-        .single();
-
-      if (!config || !config.enabled) {
-        return c.json({ error: 'Banco Chile no configurado' }, 400);
+      const resolved = await resolveBancoChileClient(supabase, empresaId);
+      if (!resolved.ok) {
+        return c.json({ code: resolved.code, message: resolved.message }, 400);
       }
 
-      const client = new BancoChileClient({
-        clientId: config.client_id,
-        clientSecret: config.client_secret,
-        username: config.username,
-        password: config.password,
-        environment: config.environment as 'sandbox' | 'production',
-      });
-
-      const result = await client.getMovimientos(cuentaId, { desde, hasta, limite });
+      const result = await resolved.client.getMovimientos(cuentaId, { desde, hasta, limite });
 
       if (!result.success) {
-        return c.json({ error: (result as { success: false; error: { message: string } }).error.message }, 500);
+        return c.json({ code: 'movimientos_failed', message: result.error.message }, 502);
       }
 
-      // Guardar en DB
       if (result.data.length > 0) {
         const movimientos = result.data.map((mov) => ({
           cuenta_id: cuentaId,
@@ -131,10 +107,10 @@ bancoChileRouter.get(
         await supabase.from('banco_chile_movimientos').upsert(movimientos);
       }
 
-      return c.json({ movimientos: result.data });
+      return c.json({ data: result.data, movimientos: result.data });
     } catch (error) {
       console.error('Error getting movimientos:', error);
-      return c.json({ error: 'Error al obtener movimientos' }, 500);
+      return c.json({ code: 'movimientos_error', message: 'Error al obtener movimientos' }, 500);
     }
-  }
+  },
 );

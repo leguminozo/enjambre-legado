@@ -129,7 +129,14 @@ sumupRoutes.post(
     if (existing) {
       const { error } = await supabase
         .from("sumup_config")
-        .update(payload)
+        .update({
+          merchant_code: payload.merchant_code,
+          environment: payload.environment,
+          enabled: payload.enabled,
+          sync_interval_minutes: payload.sync_interval_minutes,
+          updated_at: payload.updated_at,
+          ...(payload.api_key ? { api_key: payload.api_key } : {}),
+        })
         .eq("empresa_id", empresaId);
       if (error) {
         return c.json({ code: "config_update_failed", message: error.message }, 500);
@@ -138,7 +145,15 @@ sumupRoutes.post(
       if (!payload.api_key) {
         return c.json({ code: "api_key_required", message: "API key requerida" }, 400);
       }
-      const { error } = await supabase.from("sumup_config").insert(payload);
+      const { error } = await supabase.from("sumup_config").insert({
+        empresa_id: payload.empresa_id,
+        merchant_code: payload.merchant_code,
+        environment: payload.environment,
+        enabled: payload.enabled,
+        sync_interval_minutes: payload.sync_interval_minutes,
+        api_key: payload.api_key,
+        updated_at: payload.updated_at,
+      });
       if (error) {
         return c.json({ code: "config_insert_failed", message: error.message }, 500);
       }

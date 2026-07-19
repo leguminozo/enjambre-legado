@@ -22,6 +22,8 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 | SumUp client duplicado | plaintext key / drift | new SumUpClient en cada route | `resolveSumUpClient` + decrypt legacy |
 | SumUp sin checklist | “casi listo” ciego | no probe merchant/readers | `GET /sumup/checklist` + test-connection |
 | Banco sandbox hardcode | creds prod golpean sandbox | `environment: sandbox\|production` en config | URL host según environment (client ya soporta) |
+| Banco secrets en client | password en RLS browser | `supabase.from(config).upsert` con secret | solo `POST /api/banco-chile/config` + seal AES |
+| Banco sin checklist | go-live ciego | no token/cuentas probe | `GET /checklist` + Probar auth + sync cuentas |
 | Webhook sin verify | abono/tx forjada | route webhook sin secret/firma | secret server + idempotency key |
 | Cron fiscal muerto | jobs stuck | `CRON_SECRET` empty en Vercel | require secret; schedule vercel.json |
 | Env matrix incompleta | works local fails prod | `docs/ENV-CHECKLIST.md` | `pnpm go-live:check` / matrix por app |

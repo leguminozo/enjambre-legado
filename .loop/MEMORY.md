@@ -24,13 +24,20 @@
 |-------------|------------|---------------------|
 | SII | pipeline DTE, CAF guard, checklist v2, **Settings UI completa** (identidad+CAF XML+P12 cifrado) | ⏳ ops: aplicar mig 95; cargar P12/CAF reales en UI; 1ª boleta/FC Maullín → Palena |
 | SumUp | client + BFF + **config UI** (merchant/API key cifrada, checklist, test-connection, readers) | ⏳ ops: keys en UI + enable; smoke venta POS→tx; webhook opcional |
-| Banco Chile | client sandbox/prod + conciliación auto | credenciales API store, token refresh, 1 sync movimientos, webhook |
+| Banco Chile | client + **config BFF cifrado** + checklist + auth/sync UI (ya no secretos vía supabase client) | ⏳ ops: creds API store en UI; token OAuth; 1 sync cuentas; webhook |
 | Pagos web | TBK/Flow + checkout_sessions | returnUrl allowlist, fulfill pending→completed, CAF en checkout |
 | Crons | fiscal poll + CAF alert | `CRON_SECRET` en Vercel + job ejecuta |
 
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-16 pass 20 (val-banco-chile + config-en-UI)
+- Señal: BancoChileView escribía client_secret/password directo a Supabase desde el browser; secrets plaintext; sync solo leía cache local; sin checklist
+- Compuesto: colapsar + redirigir + S
+- Regla nueva: secretos de integración **solo BFF** + cifrado AES; UI usa `useApiFetch`; `resolveBancoChileClient`; checklist + POST /auth; sync cuentas vía GET /cuentas API
+- Anti-patrón: `supabase.from('*_config').upsert({ password })` desde cliente; secretos en claro en prod sin encryption key
+- Guardriel: intacto
 
 ### Evo 2026-07-16 pass 19 (val-sumup-pos + config-en-UI)
 - Señal: SumUp API config existía sin pestaña UI; api_key en claro; client duplicado en readers/tx/payouts; sin checklist ni smoke

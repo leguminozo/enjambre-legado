@@ -1,13 +1,13 @@
 {
-  "index": 3,
-  "pass": 20,
-  "last_sector": "val-sumup-pos",
-  "last_commit": "c8f9055",
+  "index": 4,
+  "pass": 21,
+  "last_sector": "val-banco-chile",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {
-    "val-banco-chile": 2,
-    "val-pagos-web": 1
+    "val-pagos-web": 1,
+    "val-env-secrets": 1
   },
   "phase": "v1.2-golive",
-  "notes": "Pass 19: SumUp config-en-UI + checklist + client unificado. Siguiente: val-banco-chile (#3)."
+  "notes": "Pass 20: Banco Chile config-en-UI BFF + cifrado + checklist. Siguiente: val-pagos-web (#4) o val-env-secrets."
 }

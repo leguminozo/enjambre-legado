@@ -1,22 +1,9 @@
 import type { AppVariables } from '@/api/lib/middleware';
 import { Hono } from 'hono';
 import { z } from 'zod';
-
-interface BancoChileConfigRow {
-  id: string;
-  empresa_id: string;
-  client_id: string;
-  client_secret: string;
-  username: string;
-  password: string;
-  environment: string;
-  enabled: boolean;
-  [key: string]: unknown;
-}
 import { zValidator } from '@hono/zod-validator';
 import { authMiddleware } from '@/api/lib/middleware';
 import { tenantMiddleware } from '@/api/lib/middleware';
-import { BancoChileClient } from '@enjambre/banco-chile';
 import { bancoChileRouter } from './routes';
 import { conciliacionRouter } from './conciliacion';
 import { conciliacionAutoRoutes } from './conciliacion-auto';
@@ -28,20 +15,15 @@ import { documentosRouter } from './documentos';
 import { cotizacionesRouter } from './cotizaciones';
 import { rentasRouter } from './rentas';
 import { montosRouter } from './montos';
+import {
+  resolveBancoChileClient,
+  sealBancoSecrets,
+  type BancoChileConfigRow,
+} from '@/api/lib/banco-chile-client';
+import { resolveSiiEncryptionKeyBytes } from '@/api/lib/sii-crypto';
 
 /**
- * Router principal para Banco Chile APIs
- *
- * Endpoints:
- * - GET /api/banco-chile/config - Obtener configuración
- * - POST /api/banco-chile/config - Crear/actualizar configuración
- * - POST /api/banco-chile/auth - Autenticar con Banco Chile
- * - GET /api/banco-chile/cuentas - Listar cuentas
- * - GET /api/banco-chile/movimientos - Listar movimientos
- * - POST /api/banco-chile/transferencias - Crear transferencia
- * - GET /api/banco-chile/conciliacion - Conciliación bancaria
- * - POST /api/banco-chile/conciliacion - Conciliar movimiento
- * - ... y más por cada API
+ * Router principal Banco Chile — config-en-UI via BFF (nunca secretos desde client supabase).
  */
 export const bancoChileRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -50,129 +32,273 @@ bancoChileRoutes.route('/webhook', webhookRouter);
 
 bancoChileRoutes.use('*', authMiddleware, tenantMiddleware);
 
-// Rutas de configuración
 bancoChileRoutes.get('/config', async (c) => {
   const supabase = c.get('supabase');
   const empresaId = c.get('empresaId');
 
   const { data, error } = await supabase
     .from('banco_chile_config')
-    .select('*')
+    .select(
+      'id, empresa_id, environment, enabled, last_sync, created_at, updated_at, client_id, client_secret, username, password',
+    )
     .eq('empresa_id', empresaId)
-    .single();
+    .maybeSingle();
 
   if (error || !data) {
-    return c.json({ config: null });
+    return c.json({
+      data: {
+        config: null,
+        hasCredentials: false,
+        encryptionReady: Boolean(resolveSiiEncryptionKeyBytes()),
+      },
+    });
   }
 
-  // No devolver credenciales sensibles
-  const { client_id, client_secret, username, password, ...safeConfig } = data as BancoChileConfigRow;
+  const row = data as BancoChileConfigRow;
+  const { client_id, client_secret, username, password, ...safe } = row;
   return c.json({
-    config: {
-      ...safeConfig,
-      hasCredentials: !!(client_id && client_secret),
+    data: {
+      config: {
+        ...safe,
+        hasCredentials: !!(client_id && client_secret && username && password),
+      },
+      hasCredentials: !!(client_id && client_secret && username && password),
+      encryptionReady: Boolean(resolveSiiEncryptionKeyBytes()),
     },
   });
 });
 
 bancoChileRoutes.post(
   '/config',
-  zValidator('json', z.object({
-    clientId: z.string(),
-    clientSecret: z.string(),
-    username: z.string(),
-    password: z.string(),
-    environment: z.enum(['sandbox', 'production']).default('sandbox'),
-    enabled: z.boolean().default(false),
-  })),
+  zValidator(
+    'json',
+    z.object({
+      clientId: z.string().optional(),
+      clientSecret: z.string().optional(),
+      username: z.string().optional(),
+      password: z.string().optional(),
+      environment: z.enum(['sandbox', 'production']).default('sandbox'),
+      enabled: z.boolean().default(false),
+    }),
+  ),
   async (c) => {
     const supabase = c.get('supabase');
     const empresaId = c.get('empresaId');
-    const { clientId, clientSecret, username, password, environment, enabled } = c.req.valid('json');
+    const body = c.req.valid('json');
 
-    // Verificar si ya existe configuración
     const { data: existing } = await supabase
       .from('banco_chile_config')
-      .select('id')
+      .select('id, client_id, client_secret, username, password')
       .eq('empresa_id', empresaId)
-      .single();
+      .maybeSingle();
 
-    if (existing) {
-      // Actualizar
+    const sealed = await sealBancoSecrets({
+      clientId: body.clientId,
+      clientSecret: body.clientSecret,
+      username: body.username,
+      password: body.password,
+    });
+    if (!sealed.ok) {
+      return c.json(
+        {
+          code: 'encryption_key_missing',
+          message:
+            'Falta SII_CLAVE_ENCRYPTION_KEY (≥32). No se guardan secretos Banco Chile en claro en producción.',
+        },
+        503,
+      );
+    }
+
+    const payload: Record<string, unknown> = {
+      empresa_id: empresaId,
+      environment: body.environment,
+      enabled: body.enabled,
+      updated_at: new Date().toISOString(),
+      ...sealed.sealed,
+    };
+
+    if (!existing) {
+      // First save requires all four fields
+      const hasAll =
+        sealed.sealed.client_id &&
+        sealed.sealed.client_secret &&
+        sealed.sealed.username &&
+        sealed.sealed.password;
+      if (!hasAll) {
+        return c.json(
+          {
+            code: 'credentials_required',
+            message: 'Primera configuración: clientId, clientSecret, username y password son requeridos',
+          },
+          400,
+        );
+      }
       const { error } = await supabase
         .from('banco_chile_config')
-        .update({
-          client_id: clientId,
-          client_secret: clientSecret,
-          username,
-          password,
-          environment,
-          enabled,
-        })
-        .eq('empresa_id', empresaId);
-
+        .insert(payload as {
+          empresa_id: string;
+          client_id: string;
+          client_secret: string;
+          username: string;
+          password: string;
+          environment: string;
+          enabled: boolean;
+        });
       if (error) {
-        return c.json({ error: error.message }, 500);
+        return c.json({ code: 'config_insert_failed', message: error.message }, 500);
       }
     } else {
-      // Crear nueva
       const { error } = await supabase
         .from('banco_chile_config')
-        .insert({
-          empresa_id: empresaId,
-          client_id: clientId,
-          client_secret: clientSecret,
-          username,
-          password,
-          environment,
-          enabled,
-        });
-
+        .update(payload as {
+          environment?: string;
+          enabled?: boolean;
+          client_id?: string;
+          client_secret?: string;
+          username?: string;
+          password?: string;
+          updated_at?: string;
+        })
+        .eq('empresa_id', empresaId);
       if (error) {
-        return c.json({ error: error.message }, 500);
+        return c.json({ code: 'config_update_failed', message: error.message }, 500);
       }
     }
 
-    return c.json({ success: true });
-  }
+    return c.json({ data: { success: true } });
+  },
 );
 
-// Rutas de autenticación
+bancoChileRoutes.get('/checklist', async (c) => {
+  const supabase = c.get('supabase');
+  const empresaId = c.get('empresaId');
+
+  const { data: cfg } = await supabase
+    .from('banco_chile_config')
+    .select('id, client_id, client_secret, username, password, environment, enabled, last_sync')
+    .eq('empresa_id', empresaId)
+    .maybeSingle();
+
+  const hasCreds = Boolean(
+    cfg?.client_id && cfg?.client_secret && cfg?.username && cfg?.password,
+  );
+  const enabled = Boolean(cfg?.enabled);
+  const isProd = cfg?.environment === 'production';
+  const encryptionReady = Boolean(resolveSiiEncryptionKeyBytes());
+
+  let tokenOk = false;
+  if (cfg?.id) {
+    const { data: tok } = await supabase
+      .from('banco_chile_tokens')
+      .select('id, expires_at')
+      .eq('config_id', cfg.id)
+      .maybeSingle();
+    if (tok?.expires_at) {
+      tokenOk = new Date(tok.expires_at) > new Date();
+    }
+  }
+
+  const { count: cuentasCount } = await supabase
+    .from('banco_chile_cuentas')
+    .select('id', { count: 'exact', head: true })
+    .eq('empresa_id', empresaId);
+
+  type Item = {
+    id: string;
+    titulo: string;
+    cumplido: boolean;
+    critico: boolean;
+    detalle?: string;
+  };
+
+  const items: Item[] = [
+    {
+      id: 'credentials',
+      titulo: 'Credenciales OAuth / API store guardadas',
+      cumplido: hasCreds,
+      critico: true,
+      detalle: hasCreds ? 'client + secret + user + pass' : 'Completá el formulario de configuración',
+    },
+    {
+      id: 'encryption',
+      titulo: 'Material de cifrado en runtime',
+      cumplido: encryptionReady,
+      critico: process.env.VERCEL_ENV === 'production',
+      detalle: encryptionReady ? 'OK' : 'Set SII_CLAVE_ENCRYPTION_KEY',
+    },
+    {
+      id: 'enabled',
+      titulo: 'Integración habilitada',
+      cumplido: enabled,
+      critico: true,
+    },
+    {
+      id: 'token',
+      titulo: 'Token OAuth vigente',
+      cumplido: tokenOk,
+      critico: true,
+      detalle: tokenOk ? 'Token activo' : 'Ejecutá «Probar auth»',
+    },
+    {
+      id: 'cuentas',
+      titulo: 'Al menos una cuenta sincronizada',
+      cumplido: (cuentasCount ?? 0) > 0,
+      critico: false,
+      detalle: `${cuentasCount ?? 0} cuenta(s)`,
+    },
+    {
+      id: 'sync',
+      titulo: 'Último sync registrado',
+      cumplido: Boolean(cfg?.last_sync),
+      critico: false,
+      detalle: cfg?.last_sync ? String(cfg.last_sync) : 'Sin sync',
+    },
+    {
+      id: 'production',
+      titulo: 'Ambiente production (API store prod)',
+      cumplido: isProd,
+      critico: false,
+      detalle: `Ambiente: ${cfg?.environment ?? '—'}`,
+    },
+  ];
+
+  const criticosPendientes = items.filter((i) => i.critico && !i.cumplido).length;
+
+  return c.json({
+    data: {
+      listoOperacion: criticosPendientes === 0,
+      listoProduccion: criticosPendientes === 0 && isProd,
+      criticosPendientes,
+      items,
+      environment: cfg?.environment ?? null,
+      enabled,
+    },
+  });
+});
+
 bancoChileRoutes.post('/auth', async (c) => {
   const supabase = c.get('supabase');
   const empresaId = c.get('empresaId');
 
-  // Obtener credenciales de la DB
-  const { data: config } = await supabase
-    .from('banco_chile_config')
-    .select('*')
-    .eq('empresa_id', empresaId)
-    .single();
-
-  if (!config || !(config as BancoChileConfigRow).client_id) {
-    return c.json({ error: 'Configuración no encontrada' }, 404);
+  const resolved = await resolveBancoChileClient(supabase, empresaId, {
+    requireEnabled: false,
+  });
+  if (!resolved.ok) {
+    return c.json({ code: resolved.code, message: resolved.message }, 400);
   }
 
-  const row = config as BancoChileConfigRow;
-  const client = new BancoChileClient({
-    clientId: row.client_id,
-    clientSecret: row.client_secret,
-    username: row.username,
-    password: row.password,
-    environment: row.environment === 'production' ? 'production' : 'sandbox',
-  });
-
-  const result = await client.authenticate();
+  const result = await resolved.client.authenticate();
   if (!result.success) {
     return c.json(
       {
-        error: result.error.message,
         code: result.error.code,
+        message: result.error.message,
       },
       502,
     );
   }
 
+  const row = resolved.config;
   const expiresAt = new Date(Date.now() + result.data.expires_in * 1000).toISOString();
   const tokenPayload = {
     config_id: row.id,
@@ -194,7 +320,10 @@ bancoChileRoutes.post('/auth', async (c) => {
 
   if (tokenError) {
     console.error('[banco-chile/auth] token persist failed:', tokenError.message);
-    return c.json({ error: 'Autenticación OK pero falló guardar token' }, 500);
+    return c.json(
+      { code: 'token_persist_failed', message: 'Autenticación OK pero falló guardar token' },
+      500,
+    );
   }
 
   await supabase
@@ -203,9 +332,11 @@ bancoChileRoutes.post('/auth', async (c) => {
     .eq('id', row.id);
 
   return c.json({
-    success: true,
-    expires_at: expiresAt,
-    token_type: result.data.token_type,
+    data: {
+      success: true,
+      expires_at: expiresAt,
+      token_type: result.data.token_type,
+    },
   });
 });
 
