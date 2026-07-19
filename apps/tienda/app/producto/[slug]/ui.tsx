@@ -142,7 +142,7 @@ export function TraceabilitySection({
           {/* QR */}
           {showQR && (
             <div className="flex flex-col items-center justify-center p-4 bg-secondary/50 rounded-lg border border-border">
-              <QRCode value={qrUrl} size={120} className="mb-3 border-none p-1 bg-white" fgColor="#000000" />
+              <QRCode value={qrUrl} size={120} className="mb-3 border-none p-1" bgColor="var(--qr-bg)" fgColor="var(--qr-fg)" />
               <p className="text-xs text-muted-foreground text-center">
                 Escanea para verificar el origen y trazabilidad de este producto
               </p>

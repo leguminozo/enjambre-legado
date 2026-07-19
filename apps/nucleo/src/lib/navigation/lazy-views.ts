@@ -82,10 +82,10 @@ export const LazyEditorTiendaView = named(
   'EditorTiendaView',
   'Editor Tienda'
 );
-export const LazyPosFeriaView = named(
-  () => import('@/views/PosFeriaView'),
-  'PosFeriaView',
-  'Punto de Venta'
+export const LazyFeriaMonitorView = named(
+  () => import('@/views/FeriaMonitorView'),
+  'FeriaMonitorView',
+  'Monitor de Feria'
 );
 
 export const LazyCreadoresAdminPanel = named(

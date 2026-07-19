@@ -62,7 +62,7 @@ export function useCalendarioSync(
           q = q.lte('starts_at', veIso).gte('ends_at', vsIso);
         }
         promises.push(
-          q.then(({ data, error: err }) => {
+          Promise.resolve(q).then(({ data, error: err }) => {
             if (err) {
               // tabla inexistente / RLS: no tumbar todo el calendario
               console.warn('[Calendario] calendario_eventos:', err.message);
@@ -97,7 +97,7 @@ export function useCalendarioSync(
           q = q.lte('fecha_inicio', veDate).gte('fecha_fin', vsDate);
         }
         promises.push(
-          q.then(({ data, error: err }) => {
+          Promise.resolve(q).then(({ data, error: err }) => {
             if (err) throw err;
             return (data || []).map((row) =>
               withTool({
@@ -123,11 +123,12 @@ export function useCalendarioSync(
 
       if (isApicultor) {
         promises.push(
-          supabase
-            .from('calendario_tasks')
-            .select('*')
-            .then(({ data, error: err }) => {
-              if (err) throw err;
+          Promise.resolve(
+            supabase
+              .from('calendario_tasks')
+              .select('*')
+          ).then(({ data, error: err }) => {
+            if (err) throw err;
               const year = viewStart
                 ? viewStart.getFullYear()
                 : new Date().getFullYear();
@@ -182,7 +183,7 @@ export function useCalendarioSync(
           pstQ = pstQ.gte('post_date', vsDate).lte('post_date', veDate);
 
         promises.push(
-          cmpQ.then(({ data, error: err }) => {
+          Promise.resolve(cmpQ).then(({ data, error: err }) => {
             if (err) throw err;
             return (data || []).map((row) =>
               withTool({
@@ -200,7 +201,7 @@ export function useCalendarioSync(
               }),
             );
           }),
-          pstQ.then(({ data, error: err }) => {
+          Promise.resolve(pstQ).then(({ data, error: err }) => {
             if (err) throw err;
             return (data || []).map((row) =>
               withTool({
@@ -235,7 +236,7 @@ export function useCalendarioSync(
           insQ = insQ.gte('date', vsDate).lte('date', veDate);
 
         promises.push(
-          cosQ.then(({ data, error: err }) => {
+          Promise.resolve(cosQ).then(({ data, error: err }) => {
             if (err) throw err;
             return (data || []).map((row) =>
               withTool({
@@ -253,7 +254,7 @@ export function useCalendarioSync(
               }),
             );
           }),
-          insQ.then(({ data, error: err }) => {
+          Promise.resolve(insQ).then(({ data, error: err }) => {
             if (err) throw err;
             return (data || []).map((row) =>
               withTool({

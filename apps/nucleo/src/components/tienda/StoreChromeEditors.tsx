@@ -432,10 +432,10 @@ function TransparentPreview({
       className="rounded-lg border border-border p-2 flex items-center justify-center min-h-[56px] w-full"
       style={{
         backgroundImage:
-          'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
+          'linear-gradient(45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(-45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, hsl(var(--muted)) 75%), linear-gradient(-45deg, transparent 75%, hsl(var(--muted)) 75%)',
         backgroundSize: '12px 12px',
         backgroundPosition: '0 0, 0 6px, 6px -6px, -6px 0',
-        backgroundColor: '#eee',
+        backgroundColor: 'hsl(var(--muted) / 0.5)',
       }}
     >
       <img

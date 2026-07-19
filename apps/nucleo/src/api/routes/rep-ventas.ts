@@ -187,6 +187,24 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
         409,
       );
     }
+
+    // Kill-switch: bloquear ventas si la feria está pausada por admin (WIP feria)
+    if (feriaValidation.required && feriaValidation.evento_id) {
+      const { data: paused, error: pauseErr } = await supabase.rpc("es_feria_pausada", {
+        p_evento_id: feriaValidation.evento_id,
+      });
+      if (pauseErr) {
+        console.warn("[rep-ventas] Error checking feria pause:", pauseErr.message);
+      } else if (paused) {
+        return c.json(
+          {
+            code: "feria_pausada",
+            message: "Esta feria ha sido pausada por administración. No se pueden registrar ventas.",
+          },
+          403,
+        );
+      }
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error validando consignación feria";
     return c.json({ code: "feria_validation_failed", message }, 500);
@@ -630,3 +648,71 @@ repVentasRoutes.get("/leaderboard", async (c) => {
 
   return c.json({ data: data ?? [] });
 });
+
+// Admin: pausar/reanudar feria
+repVentasRoutes.post(
+  "/admin/feria/:eventoId/pause",
+  requireProfileRole("admin"),
+  zValidator(
+    "json",
+    z.object({
+      pausar_hasta: z.string().datetime().optional(), // si no se envía, pausa indefinida
+    }),
+  ),
+  async (c) => {
+    const eventoId = c.req.param("eventoId");
+    const { pausar_hasta } = c.req.valid("json");
+    const supabase = c.get("supabase");
+
+    const { error } = await supabase.from("eventos").update({ pausada_hasta: pausar_hasta ?? null }).eq("id", eventoId);
+
+    if (error) {
+      return c.json({ code: "pause_failed", message: error.message }, 500);
+    }
+    return c.json({ ok: true, pausada_hasta: pausar_hasta ?? null });
+  },
+);
+
+repVentasRoutes.post(
+  "/admin/feria/:eventoId/resume",
+  requireProfileRole("admin"),
+  async (c) => {
+    const eventoId = c.req.param("eventoId");
+    const supabase = c.get("supabase");
+
+    const { error } = await supabase.from("eventos").update({ pausada_hasta: null }).eq("id", eventoId);
+
+    if (error) {
+      return c.json({ code: "resume_failed", message: error.message }, 500);
+    }
+    return c.json({ ok: true });
+  },
+);
+
+// Admin: actualizar meta de feria
+repVentasRoutes.patch(
+  "/admin/feria/:eventoId/meta",
+  requireProfileRole("admin"),
+  zValidator(
+    "json",
+    z.object({
+      meta_ventas: z.number().int().min(0).optional(),
+      meta_ingresos: z.number().int().min(0).optional(),
+    }),
+  ),
+  async (c) => {
+    const eventoId = c.req.param("eventoId");
+    const { meta_ventas, meta_ingresos } = c.req.valid("json");
+    const supabase = c.get("supabase");
+
+    const { error } = await supabase
+      .from("eventos")
+      .update({ meta: { meta_ventas, meta_ingresos } })
+      .eq("id", eventoId);
+
+    if (error) {
+      return c.json({ code: "meta_update_failed", message: error.message }, 500);
+    }
+    return c.json({ ok: true });
+  },
+);

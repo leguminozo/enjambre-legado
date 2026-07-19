@@ -21,8 +21,8 @@ interface LeaderboardEntry {
 const rankIcons = [Trophy, Medal, Crown];
 const rankColors = [
   'bg-primary/10 border-primary/20 text-primary',
-  'bg-slate-500/10 border-slate-500/20 text-slate-400',
-  'bg-amber-700/10 border-amber-700/20 text-amber-600',
+  'bg-muted/10 border-border/20 text-muted-foreground',
+  'bg-warning/10 border-warning/20 text-warning',
 ];
 const rankIconColors = ['text-accent', 'text-muted-foreground', 'text-warning'];
 

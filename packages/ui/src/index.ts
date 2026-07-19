@@ -33,9 +33,13 @@ export { tokens, type TokenKey } from './tokens';
 export { createEnjambrePreset, enjambrePreset } from './tailwind-preset';
 export { friendlySupabaseError, friendlyApiError, friendlyError } from './lib/friendly-error';
 export { useModalFocusTrap, getFocusableElements, MODAL_FOCUSABLE_SELECTOR } from './lib/modal-focus';
-export { splitCsvLine } from './lib/csv';
+export { splitCsvLine, generateCsvBlob, downloadCsv } from './lib/csv';
 export { formatDate, formatDateShort, formatCLP, fmtCLP } from './lib/format';
 export { QRCode } from './components/QRCode';
+export { TierBadge, type TierBadgeProps } from './components/tier-badge';
+export { ProgressRing, type ProgressRingProps } from './components/progress-ring';
+export { AchievementCard, type AchievementCardProps } from './components/achievement-card';
+export { ImpactStatCard, ImpactStatGrid, type ImpactStatCardProps } from './components/impact-stat-card';
 export * from './icons';
 export {
   Dialog,
@@ -54,5 +58,13 @@ export { CinematicCard } from './components/cinematic-card';
 export { PredictivePill } from './components/predictive-pill';
 export { Calendar, type CalendarProps } from './components/calendar';
 export { DatePicker, type DatePickerProps } from './components/date-picker';
-
+export { Tooltip } from './components/tooltip';
+export { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from './components/dropdown-menu';
+export { Tabs, TabPanel } from './components/tabs';
+export { Select, SelectItem } from './components/select';
+export { Label } from './components/label';
+export { Progress } from './components/progress';
+export { Skeleton, SkeletonGroup } from './components/skeleton';
+export { Switch } from './components/switch';
+export { DataTable, type ColumnDef } from './components/data-table';
 export { GlassPanel } from './components/glass-panel';

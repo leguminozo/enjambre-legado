@@ -290,7 +290,7 @@ export function VendedorView() {
       >
         <div className="text-center">
           {qrLote ? (
-            <QRCodeSvg value={qrLote.url} size={140} className="mx-auto mb-6 border-none p-2 bg-white rounded-sm" fgColor="#000000" />
+            <QRCodeSvg value={qrLote.url} size={140} className="mx-auto mb-6 border-none p-2 rounded-sm" bgColor="var(--qr-bg)" fgColor="var(--qr-fg)" />
           ) : (
             <QrCode size={120} className="text-foreground mx-auto mb-6 opacity-40" />
           )}
@@ -395,7 +395,7 @@ export function VendedorView() {
           <div className="card animate-in delay-5">
             <div className="section-title text-base mb-4">Acciones rápidas</div>
             {[
-              { label: 'Punto de Venta (POS)', icon: <ShoppingBag size={16} />, desc: 'Ventas en terreno a pantalla completa', action: () => router.push('/punto-venta') },
+              { label: 'Monitor de Feria', icon: <ShoppingBag size={16} />, desc: 'Observación en vivo de ventas en feria', action: () => router.push('/monitor-feria') },
               { label: 'Ruta óptima del día', icon: <MapPin size={16} />, desc: `${interaccionesRuta.length} visitas pendientes`, action: () => setShowRuta(true) },
               { label: 'Generar etiquetas QR', icon: <QrCode size={16} />, desc: qrLote ? `Lote: ${qrLote.codigo}` : 'Sin lote activo', action: () => setShowQR(true) },
               { label: 'Reporte de ventas', icon: <TrendingUp size={16} />, desc: ventasTotal > 0 ? `Temporada: $${(ventasTotal / 1000).toFixed(0)}K` : 'Ver detalle', action: () => setShowReporte(true) },

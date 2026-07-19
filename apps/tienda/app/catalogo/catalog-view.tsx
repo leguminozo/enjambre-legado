@@ -251,7 +251,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
         ) : (
           <ul
             className={[
-              'mt-12 grid gap-6',
+              'mt-8 sm:mt-12 grid gap-3 sm:gap-5 lg:gap-6',
               catalog.columns_mobile === 1 ? 'grid-cols-1' : 'grid-cols-2',
               catalog.columns_desktop === 2
                 ? 'sm:grid-cols-2'
@@ -264,11 +264,12 @@ export function CatalogoView({ products, ratings = {} }: Props) {
               const img = p.photos[0];
               const rating = ratings[p.id];
               const badges = catalog.show_badges ? productBadges(p) : [];
+              const twoColMobile = catalog.columns_mobile !== 1;
               return (
-                <li key={p.id}>
+                <li key={p.id} className="min-w-0">
                   <Link
                     href={`/producto/${encodeURIComponent(p.slug)}`}
-                    className="product-card group block overflow-hidden rounded-xl border border-border bg-card/40 transition hover:border-accent/35"
+                    className="product-card group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card/40 transition hover:border-accent/35"
                   >
                     <div className="relative aspect-square bg-card overflow-hidden">
                       {img ? (
@@ -276,7 +277,11 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                           src={img}
                           alt={p.name}
                           fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          sizes={
+                            twoColMobile
+                              ? '(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw'
+                              : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'
+                          }
                           className="object-cover transition duration-500 group-hover:scale-[1.03]"
                         />
                       ) : (
@@ -285,10 +290,10 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                         </div>
                       )}
                     </div>
-                    <div className="p-4">
-                      <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-1 flex-col p-3 sm:p-4">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                         {p.format ? (
-                          <span className="inline-block rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
+                          <span className="inline-block rounded bg-primary px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
                             {p.format}
                           </span>
                         ) : null}
@@ -301,21 +306,23 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                         )}
                       </div>
                       {badges.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
+                        <div className="mt-1.5 sm:mt-2 flex flex-wrap gap-1 sm:gap-1.5">
                           {badges.map((badge) => (
                             <span
                               key={badge}
-                              className="inline-block rounded-full border border-accent/30 px-2.5 py-0.5 text-[9px] uppercase tracking-wider text-accent/80"
+                              className="inline-block rounded-full border border-accent/30 px-1.5 sm:px-2.5 py-0.5 text-[8px] sm:text-[9px] uppercase tracking-wider text-accent/80"
                             >
                               {badge}
                             </span>
                           ))}
                         </div>
                       )}
-                      <h2 className="mt-2 font-display text-lg font-semibold text-foreground group-hover:text-accent">
+                      <h2 className="mt-1.5 sm:mt-2 font-display text-base sm:text-lg font-semibold leading-snug text-foreground group-hover:text-accent line-clamp-2 text-balance">
                         {p.name}
                       </h2>
-                      <p className="mt-1 text-sm text-muted-foreground">{formatCLP(p.price)}</p>
+                      <p className="mt-auto pt-1 text-sm tabular-nums text-muted-foreground sm:text-base">
+                        {formatCLP(p.price)}
+                      </p>
                       {(p.stock ?? 0) <= 0 && (
                         <p className="mt-1 text-[10px] uppercase tracking-wider text-destructive/80">
                           Agotado

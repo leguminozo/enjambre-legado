@@ -23,18 +23,18 @@ L.Icon.Default.mergeOptions({
 });
 
 const STATUS_COLOR: Record<string, string> = {
-  Entregado: '#22c55e',
-  entregado: '#22c55e',
-  'En tránsito': '#3b82f6',
-  en_transito: '#3b82f6',
-  Empacando: '#f59e0b',
-  empacando: '#f59e0b',
-  Programado: '#a855f7',
-  pendiente: '#a855f7',
+  Entregado: 'hsl(var(--success))',
+  entregado: 'hsl(var(--success))',
+  'En tránsito': 'hsl(var(--info))',
+  en_transito: 'hsl(var(--info))',
+  Empacando: 'hsl(var(--warning))',
+  empacando: 'hsl(var(--warning))',
+  Programado: 'hsl(var(--chart-4))',
+  pendiente: 'hsl(var(--chart-4))',
 };
 
 function markerIcon(status: string) {
-  const color = STATUS_COLOR[status] ?? '#94a3b8';
+  const color = STATUS_COLOR[status] ?? 'hsl(var(--muted-foreground))';
   return L.divIcon({
     className: '',
     html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.35)"></div>`,

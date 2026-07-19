@@ -107,6 +107,10 @@
   --glass-bg: hsl(var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 14% / 0.4);
   --glass-border: hsl(var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l) / 0.2);
 
+  /* QR codes require invariant high contrast regardless of theme */
+  --qr-bg: #ffffff;
+  --qr-fg: #000000;
+
   /* ── 4. Tipografía ── */
   --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -275,4 +279,160 @@ html.light {
     --enj-hex-w: 3.75rem;
   }
 }
+
+/* ── Shared glassmorphism surfaces (canonical for @enjambre/ui GlassPanel) ── */
+.enj-glass {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: hsl(var(--card) / 0.6);
+  border: 1px solid hsl(var(--border) / 0.5);
+}
+
+.enj-glass-strong {
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  background: hsl(var(--card) / 0.7);
+  border: 1px solid hsl(var(--border) / 0.6);
+}
+
+.enj-glass-raised {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: hsl(var(--surface-raised) / 0.7);
+  border: 1px solid hsl(var(--border) / 0.5);
+  box-shadow: var(--shadow-lg);
+}
+
+.enj-shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+/* ── Canonical data table styles (for @enjambre/ui DataTable) ── */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.data-table th {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--muted-foreground));
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.data-table td {
+  padding: var(--space-3);
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+  font-size: 0.88rem;
+}
+
+.enj-table-shell {
+  width: 100%;
+}
+
+.enj-table-shell-caption {
+  font-size: 0.72rem;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: var(--space-2);
+  display: none;
+}
+
+.enj-table-shell-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  border-radius: var(--radius-md);
+  border: 1px solid hsl(var(--border) / 0.5);
+  scrollbar-width: thin;
+}
+
+.enj-table-shell-scroll .data-table {
+  min-width: 560px;
+}
+
+.enj-table-shell-scroll table {
+  min-width: 560px;
+}
+
+/* ── Radix-compatible keyframes (for Tooltip, DropdownMenu, Select, Dialog, etc.) ── */
+@keyframes enj-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes enj-fade-out {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes enj-zoom-in {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes enj-zoom-out {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.95); }
+}
+
+@keyframes enj-slide-in-from-top {
+  0% { transform: translateY(-8px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes enj-slide-in-from-bottom {
+  0% { transform: translateY(8px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes enj-slide-in-from-left {
+  0% { transform: translateX(-8px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes enj-slide-in-from-right {
+  0% { transform: translateX(8px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes enj-slide-out-to-top {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-8px); }
+}
+
+@keyframes enj-slide-out-to-bottom {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(8px); }
+}
+
+@keyframes enj-slide-out-to-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-8px); }
+}
+
+@keyframes enj-slide-out-to-right {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(8px); }
+}
+
+/* Animation utilities */
+.enj-animate-fade-in { animation: enj-fade-in 0.3s ease-in-out; }
+.enj-animate-fade-out { animation: enj-fade-out 0.3s ease-in-out; }
+.enj-animate-zoom-in { animation: enj-zoom-in 0.2s ease-out; }
+.enj-animate-zoom-out { animation: enj-zoom-out 0.2s ease-in; }
+.enj-animate-slide-in-from-top { animation: enj-slide-in-from-top 0.2s ease-out; }
+.enj-animate-slide-in-from-bottom { animation: enj-slide-in-from-bottom 0.2s ease-out; }
+.enj-animate-slide-in-from-left { animation: enj-slide-in-from-left 0.2s ease-out; }
+.enj-animate-slide-in-from-right { animation: enj-slide-in-from-right 0.2s ease-out; }
+.enj-animate-slide-out-to-top { animation: enj-slide-out-to-top 0.2s ease-in; }
+.enj-animate-slide-out-to-bottom { animation: enj-slide-out-to-bottom 0.2s ease-in; }
+.enj-animate-slide-out-to-left { animation: enj-slide-out-to-left 0.2s ease-in; }
+.enj-animate-slide-out-to-right { animation: enj-slide-out-to-right 0.2s ease-in; }
 

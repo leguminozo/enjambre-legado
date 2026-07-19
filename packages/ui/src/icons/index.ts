@@ -20,6 +20,7 @@ export {
   ExternalLinkIcon,
   LinkIcon,
   CopyIcon,
+  DownloadIcon,
   
   // UI Elements
   PanelLeftIcon,

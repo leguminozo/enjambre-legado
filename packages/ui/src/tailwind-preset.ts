@@ -94,7 +94,7 @@ export function createEnjambrePreset(overrides?: Partial<Config['theme']>): Part
           'editorial-base': ['var(--text-base)', { lineHeight: 'var(--leading-normal)' }],
           'editorial-lg': ['var(--text-lg)', { lineHeight: 'var(--leading-snug)' }],
           'editorial-xl': ['var(--text-xl)', { lineHeight: 'var(--leading-snug)' }],
-          'editorial-2xl': ['var(--text-2xl)', { lineHeight: 'var(--leading-snug)' }],
+          'editorial-2xl': ['var(--text-2xl)', { lineHeight: 'var(--leading-tight)' }],
           'editorial-3xl': ['var(--text-3xl)', { lineHeight: 'var(--leading-tight)' }],
           'editorial-4xl': ['var(--text-4xl)', { lineHeight: 'var(--leading-tight)', letterSpacing: 'var(--tracking-tight)' }],
           'editorial-5xl': ['var(--text-5xl)', { lineHeight: '1', letterSpacing: 'var(--tracking-tight)' }],
@@ -152,6 +152,50 @@ export function createEnjambrePreset(overrides?: Partial<Config['theme']>): Part
             '0%': { opacity: '0' },
             '100%': { opacity: '1' },
           },
+          'fade-out': {
+            '0%': { opacity: '1' },
+            '100%': { opacity: '0' },
+          },
+          'zoom-in': {
+            '0%': { opacity: '0', transform: 'scale(0.95)' },
+            '100%': { opacity: '1', transform: 'scale(1)' },
+          },
+          'zoom-out': {
+            '0%': { opacity: '1', transform: 'scale(1)' },
+            '100%': { opacity: '0', transform: 'scale(0.95)' },
+          },
+          'slide-in-from-top': {
+            '0%': { transform: 'translateY(-8px)' },
+            '100%': { transform: 'translateY(0)' },
+          },
+          'slide-in-from-bottom': {
+            '0%': { transform: 'translateY(8px)' },
+            '100%': { transform: 'translateY(0)' },
+          },
+          'slide-in-from-left': {
+            '0%': { transform: 'translateX(-8px)' },
+            '100%': { transform: 'translateX(0)' },
+          },
+          'slide-in-from-right': {
+            '0%': { transform: 'translateX(8px)' },
+            '100%': { transform: 'translateX(0)' },
+          },
+          'slide-out-to-top': {
+            '0%': { transform: 'translateY(0)' },
+            '100%': { transform: 'translateY(-8px)' },
+          },
+          'slide-out-to-bottom': {
+            '0%': { transform: 'translateY(0)' },
+            '100%': { transform: 'translateY(8px)' },
+          },
+          'slide-out-to-left': {
+            '0%': { transform: 'translateX(0)' },
+            '100%': { transform: 'translateX(-8px)' },
+          },
+          'slide-out-to-right': {
+            '0%': { transform: 'translateX(0)' },
+            '100%': { transform: 'translateX(8px)' },
+          },
           shimmer: {
             '0%': { backgroundPosition: '-200% 0' },
             '100%': { backgroundPosition: '200% 0' },
@@ -175,6 +219,17 @@ export function createEnjambrePreset(overrides?: Partial<Config['theme']>): Part
         animation: {
           'fade-in-up': 'fadeInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both',
           'fade-in': 'fadeIn 0.3s ease-in-out',
+          'fade-out': 'fadeOut 0.3s ease-in-out',
+          'zoom-in': 'zoomIn 0.2s ease-out',
+          'zoom-out': 'zoomOut 0.2s ease-in',
+          'slide-in-from-top': 'slideInFromTop 0.2s ease-out',
+          'slide-in-from-bottom': 'slideInFromBottom 0.2s ease-out',
+          'slide-in-from-left': 'slideInFromLeft 0.2s ease-out',
+          'slide-in-from-right': 'slideInFromRight 0.2s ease-out',
+          'slide-out-to-top': 'slideOutToTop 0.2s ease-in',
+          'slide-out-to-bottom': 'slideOutToBottom 0.2s ease-in',
+          'slide-out-to-left': 'slideOutToLeft 0.2s ease-in',
+          'slide-out-to-right': 'slideOutToRight 0.2s ease-in',
           shimmer: 'shimmer 2s linear infinite',
           float: 'float 3s ease-in-out infinite',
           'pulse-gold': 'pulse-gold 2s ease-in-out infinite',
