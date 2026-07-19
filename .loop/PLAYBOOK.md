@@ -40,6 +40,9 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 | Env matrix incompleta | works local fails prod | `docs/ENV-CHECKLIST.md` | `pnpm env:check` + def en `scripts/lib/env-matrix-def.mjs` |
 | Runtime env ciego | no se sabe qué falta en deploy | solo CLI local | `GET /api/health/env-status` + Configuración → Entorno |
 | Encryption gap | no se pueden guardar secrets negocio | sin SII_CLAVE_ENCRYPTION_KEY | key ≥32 en Vercel nucleo; health checks encryption |
+| Encryption falso OK | UI verde con key corta | `present(KEY)` sin length | misma regla crypto: candidate **≥32** chars |
+| Auto-emit invisible | boletas no salen post-venta | flag no en Entorno / valor ≠ `true` | item `SII_AUTO_EMIT_BOLETA=true` en env-status fiscal |
+| Matrix vs runtime drift | CLI OK, UI no (o al revés) | grupos distintos en def vs TS | sync `NUCLEO_RUNTIME_GROUPS` ↔ `buildNucleoEnvRuntimeStatus` |
 | Mock en production | cobro/fiscal falso | `if (process.env.NODE_ENV !==` skip real API | production siempre path real o deny |
 | Pagos web ciego | no se sabe si puede cobrar | sin checklist runtime | `GET /api/checkout/admin/checklist` + UI `/pagos` tab web |
 | Sesiones pending huérfanas | pago OK sin venta | no listado admin | `GET /checkout/admin/sessions` + fulfill path |

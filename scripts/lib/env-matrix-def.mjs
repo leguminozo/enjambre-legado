@@ -66,7 +66,11 @@ export const ENV_MATRIX = [
   },
 ];
 
-/** Runtime groups for nucleo API (presence-only). */
+/**
+ * Runtime groups for nucleo API (presence-only).
+ * Keep in sync with apps/nucleo/src/api/lib/env-runtime-status.ts
+ * Encryption: first candidate with length ≥32 (same as resolveSiiEncryptionKeyBytes).
+ */
 export const NUCLEO_RUNTIME_GROUPS = [
   {
     id: 'core',
@@ -101,9 +105,31 @@ export const NUCLEO_RUNTIME_GROUPS = [
           'FISCAL_ENCRYPTION_KEY',
           'SUPABASE_SERVICE_ROLE_KEY',
         ],
-        note: 'SII_CLAVE_ENCRYPTION_KEY preferido (≥32); SERVICE_ROLE fallback',
+        minLength: 32,
+        note: 'Preferí SII_CLAVE_ENCRYPTION_KEY dedicado (≥32); no basta presencia corta',
       },
-      { id: 'cron', anyOf: ['CRON_SECRET'], recommended: true },
+      {
+        id: 'cron',
+        anyOf: [
+          'CRON_SECRET',
+          'FISCAL_WORKER_SECRET',
+          'INTEGRATIONS_CRON_SECRET',
+        ],
+        recommended: true,
+      },
+      {
+        id: 'auto_emit',
+        anyOf: ['SII_AUTO_EMIT_BOLETA'],
+        equals: 'true',
+        recommended: true,
+        note: 'Debe ser exactamente "true" para boleta 39 post-checkout',
+      },
+      {
+        id: 'banco_webhook',
+        anyOf: ['BANCO_CHILE_WEBHOOK_SECRET'],
+        recommended: true,
+        note: 'HMAC webhooks banco; fail-closed 503 si ausente',
+      },
     ],
   },
   {

@@ -27,12 +27,14 @@ No uses proyectos viejos (`gaboxxc/*`) para prod.
 | `NEXT_PUBLIC_URL_TIENDA` / `NEXT_PUBLIC_TIENDA_URL` | ✅ | — | ✅ | CORS, claim QR, revalidate |
 | `NEXT_PUBLIC_URL_CAMPO` | ✅ | — | — | Redirects rep_ventas |
 | `NEXT_PUBLIC_SITE_URL` | — | ✅ | — | SEO / metadata tienda |
-| `SII_CLAVE_ENCRYPTION_KEY` | ✅ (≥32) | — | — | Cifra clave SII, P12, SumUp API key, Banco secrets |
-| `CRON_SECRET` | ✅ | — | — | Crons fiscales / poll |
+| `SII_CLAVE_ENCRYPTION_KEY` | ✅ (**≥32**) | — | — | Cifra SII/P12/SumUp/Banco; **presencia corta = inválido** |
+| `CRON_SECRET` | ✅ | — | — | Crons fiscales/poll; alt: `FISCAL_WORKER_SECRET` / `INTEGRATIONS_CRON_SECRET` |
+| `SII_AUTO_EMIT_BOLETA` | go-live | — | — | Exactamente `true` → boleta 39 en fulfill checkout |
+| `BANCO_CHILE_WEBHOOK_SECRET` | go-live | — | — | HMAC webhooks banco; sin secret → 503 fail-closed |
 | `PAYMENT_PROVIDER` | recomendado | — | — | `flow` \| `transbank` |
 | Flow (`FLOW_API_KEY/SECRET/URL`) | si Flow | — | — | Solo nucleo |
 | Transbank (`TRANSBANK_*`) | si TBK | — | — | Solo nucleo |
-| SumUp / Banco Chile | UI + DB | — | via nucleo BFF | Credenciales de negocio en app (cifradas); no solo env |
+| SumUp / Banco Chile negocio | UI + DB | — | via nucleo BFF | Credenciales en app (cifradas); no solo env |
 | Upstash Redis | recomendado | — | — | Rate limit multi-instancia |
 
 ### Config-en-UI vs env plataforma
@@ -40,12 +42,12 @@ No uses proyectos viejos (`gaboxxc/*`) para prod.
 | En **Vercel / env** (plataforma) | En **UI Nucleo** (negocio) |
 |----------------------------------|----------------------------|
 | Supabase, INTERNAL_API_SECRET, URLs públicas | SII: RUT, CAF, P12, clave portal |
-| SII_CLAVE_ENCRYPTION_KEY, CRON_SECRET | SumUp: merchant + API key |
-| Flow / Transbank keys | Banco Chile: OAuth client + user |
-| PAYMENT_PROVIDER | — |
+| `SII_CLAVE_ENCRYPTION_KEY` (≥32), `CRON_SECRET` | SumUp: merchant + API key |
+| `SII_AUTO_EMIT_BOLETA=true` | Banco Chile: OAuth client + user |
+| `BANCO_CHILE_WEBHOOK_SECRET` | Ambiente SII Maullín/Palena |
+| Flow / Transbank keys, `PAYMENT_PROVIDER` | — |
 
-Estado runtime (admin): **Configuración → Entorno** o `GET /api/health/env-status`.
-
+Estado runtime (admin): **Configuración → Entorno** o `GET /api/health/env-status` (solo presencia, nunca valores).
 ## Supabase (por environment)
 
 - [ ] Migraciones aplicadas (`pnpm go-live:verify-db` / `db-push`)

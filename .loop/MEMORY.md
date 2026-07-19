@@ -27,11 +27,19 @@
 | Banco Chile | config BFF + webhook S + **token frescor fix** + **POST /sync** cuentas+movs | ⏳ ops: creds; webhook secret; 1 sync real |
 | Conciliación | motor RPC + UI propuestas + métricas/checklist | ⏳ datos reales banco; reglas seed si vacío |
 | Pagos web | checklist + sesiones + **expire-stale + retry-fulfill** ops | ⏳ ops: keys Flow/TBK; smoke real; 0 stale pending |
+| Env matrix | runtime Entorno + matriz + docs alineados (≥32, auto-emit, webhook) | ⏳ ops: set keys en Vercel 3 apps; checklist verde en UI |
 | Crons | fiscal poll + CAF alert | `CRON_SECRET` en Vercel + job ejecuta |
 
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-19 pass 30 (val-env-secrets residual)
+- Señal: runtime marcaba encryption OK con key corta (crypto exige ≥32); sin `SII_AUTO_EMIT_BOLETA` en Entorno; NUCLEO_RUNTIME_GROUPS drift vs runtime; docs/.env.example desfasados
+- Compuesto: colapsar + redirigir
+- Regla nueva: encryption presence = first candidate **length ≥32** (igual `resolveSiiEncryptionKeyBytes`); auto_emit solo `=== "true"`; cron acepta CRON|FISCAL_WORKER|INTEGRATIONS; matriz/docs/.env.example sincronizados
+- Anti-patrón: `present(SII_CLAVE_*)` sin minLength; documentar client_secret banco en env cuando es config-en-UI
+- Guardriel: intacto (nunca valores en payload)
 
 ### Evo 2026-07-16 pass 29 (val-pagos-web)
 - Señal: pending abandonados bloquean stock; no ops para liberar holds ni re-fulfill post-pago fallido

@@ -1,6 +1,6 @@
 /**
  * Runtime env presence matrix for nucleo (no secret values).
- * Aligns with scripts/lib/env-matrix-def.mjs go-live groups.
+ * Aligns with scripts/lib/env-matrix-def.mjs go-live groups + resolveSiiEncryptionKeyBytes.
  */
 
 export type EnvPresence = "ok" | "missing";
@@ -38,6 +38,19 @@ function presentAll(...keys: string[]): boolean {
   return keys.every((k) => Boolean(process.env[k]?.trim()));
 }
 
+/** Same rule as resolveSiiEncryptionKeyBytes (≥32 on first usable candidate). */
+function hasEncryptionMaterial(): boolean {
+  for (const key of [
+    "SII_CLAVE_ENCRYPTION_KEY",
+    "FISCAL_ENCRYPTION_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+  ] as const) {
+    const v = process.env[key]?.trim();
+    if (v && v.length >= 32) return true;
+  }
+  return false;
+}
+
 function item(
   id: string,
   label: string,
@@ -55,11 +68,12 @@ function item(
 }
 
 export function buildNucleoEnvRuntimeStatus(): EnvRuntimeStatus {
-  const encryptionOk =
-    present("SII_CLAVE_ENCRYPTION_KEY") ||
-    present("FISCAL_ENCRYPTION_KEY") ||
-    (present("SUPABASE_SERVICE_ROLE_KEY") &&
-      (process.env.SUPABASE_SERVICE_ROLE_KEY?.length ?? 0) >= 32);
+  const encryptionOk = hasEncryptionMaterial();
+  const autoEmitOn = process.env.SII_AUTO_EMIT_BOLETA === "true";
+  const cronOk =
+    present("CRON_SECRET") ||
+    present("FISCAL_WORKER_SECRET") ||
+    present("INTEGRATIONS_CRON_SECRET");
 
   const groups: EnvGroupStatus[] = [
     {
@@ -110,15 +124,37 @@ export function buildNucleoEnvRuntimeStatus(): EnvRuntimeStatus {
           "Material cifrado SII/SumUp/Banco (≥32)",
           encryptionOk,
           true,
-          "Preferí SII_CLAVE_ENCRYPTION_KEY dedicado",
+          encryptionOk
+            ? present("SII_CLAVE_ENCRYPTION_KEY") &&
+              (process.env.SII_CLAVE_ENCRYPTION_KEY?.trim().length ?? 0) >= 32
+              ? "SII_CLAVE_ENCRYPTION_KEY dedicado"
+              : "Fallback FISCAL_ENCRYPTION_KEY o SERVICE_ROLE ≥32"
+            : "Falta key ≥32 (preferí SII_CLAVE_ENCRYPTION_KEY)",
         ),
-        item("cron", "CRON_SECRET (fiscal/jobs)", present("CRON_SECRET"), false),
+        item(
+          "cron",
+          "CRON_SECRET (fiscal/jobs)",
+          cronOk,
+          false,
+          cronOk
+            ? "presente (CRON_SECRET | FISCAL_WORKER | INTEGRATIONS_CRON)"
+            : "Crons fiscales / poll fallan sin secret",
+        ),
+        item(
+          "auto_emit",
+          "SII_AUTO_EMIT_BOLETA=true",
+          autoEmitOn,
+          false,
+          autoEmitOn
+            ? "Boleta 39 post-checkout activa"
+            : 'Set "true" en Vercel para emitir boleta al fulfill',
+        ),
         item(
           "banco_webhook",
           "BANCO_CHILE_WEBHOOK_SECRET",
           present("BANCO_CHILE_WEBHOOK_SECRET"),
           false,
-          "HMAC de webhooks bancarios (fail-closed si ausente)",
+          "HMAC de webhooks bancarios (fail-closed 503 si ausente)",
         ),
       ],
     },
@@ -186,7 +222,7 @@ export function buildNucleoEnvRuntimeStatus(): EnvRuntimeStatus {
   const criticalItems = groups.flatMap((g) => g.items.filter((i) => i.critical));
   const criticosPendientes = criticalItems.filter((i) => i.status !== "ok").length;
   const listoCore = criticosPendientes === 0;
-  // soft: at least one payment path ready
+  // soft: at least one payment path ready + cron + encryption already in listoCore
   const pagos = groups.find((g) => g.id === "pagos_web");
   const paymentSoft =
     pagos?.items.some(
@@ -195,7 +231,7 @@ export function buildNucleoEnvRuntimeStatus(): EnvRuntimeStatus {
 
   return {
     listoCore,
-    listoGoLiveSoft: listoCore && paymentSoft && present("CRON_SECRET"),
+    listoGoLiveSoft: listoCore && paymentSoft && cronOk,
     criticosPendientes,
     groups,
     vercelEnv: process.env.VERCEL_ENV ?? null,
