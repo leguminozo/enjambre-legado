@@ -254,6 +254,15 @@ bancoChileRoutes.get('/checklist', async (c) => {
       detalle: cfg?.last_sync ? String(cfg.last_sync) : 'Sin sync',
     },
     {
+      id: 'webhook-secret',
+      titulo: 'BANCO_CHILE_WEBHOOK_SECRET en runtime',
+      cumplido: Boolean(process.env.BANCO_CHILE_WEBHOOK_SECRET?.trim()),
+      critico: false,
+      detalle: process.env.BANCO_CHILE_WEBHOOK_SECRET?.trim()
+        ? 'HMAC configurado'
+        : 'Set en Vercel para notificaciones push',
+    },
+    {
       id: 'production',
       titulo: 'Ambiente production (API store prod)',
       cumplido: isProd,
