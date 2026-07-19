@@ -1,10 +1,12 @@
 {
-  "index": 6,
-  "pass": 39,
-  "last_sector": "val-pagos-web",
-  "last_commit": "e7261ce",
+  "index": 0,
+  "pass": 40,
+  "last_sector": "redef-v1.3-ui",
+  "last_commit": "pending",
   "streak_clean": 0,
-  "boost": {},
-  "phase": "v1.2-golive",
-  "notes": "Pass 38: expire-stale no toca paid (e7261ce). Siguiente: val-env-secrets (#6)."
+  "boost": {
+    "ui-tienda-landing": 2
+  },
+  "phase": "v1.3-ui",
+  "notes": "Fase v1.3 UI activa. Siguiente tick: ui-tienda-landing (#0) — hero overlap Descender + spacing/responsive."
 }

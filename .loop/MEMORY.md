@@ -2,37 +2,57 @@
 
 ## Doctrina del loop (actualizar solo si el operador la cambia)
 
-- **Fase v1.2 (activa — go-live / validación real):** llevar a **uso real** las integraciones **casi listas**: **SII**, **SumUp**, **Banco de Chile**, y adyacentes (pagos web TBK/Flow, conciliación, CAF/crons). Código y UI de v1.1 se asumen base; el valor es **cerrar el gap sandbox → producción**.
-- **Config-en-UI (regla general del operador):** todo lo **esencial y de valor real** que un humano debe poder cambiar sin deploy (RUT, giro, domicilio, CAF, P12+clave, ambiente Maullín/Palena, readers, cuentas, etc.) se configura en la **interfaz gráfica** de la app dueña + API BFF. Env/Vercel solo secretos de plataforma (AES, CRON, OAuth client secret).
-- Prioridad: **V** (validación go-live: env, credenciales, ambiente, smoke path) → **R** (runtime integración: emit/webhook/sync/idempotencia) → **S** (fail-closed secrets/CAF/webhooks en el cono) → **E** (entrelazado venta↔fiscal↔banco solo si bloquea go-live) → **U** (UI de config/operación — config-en-UI) → **O**.
-- Conos canónicos:
-  1. **SII** — `packages/fiscal` + `packages/contable` + `apps/nucleo` routes/sii + checklist `/certificacion` + CAF + cert P12 + jobs
-  2. **SumUp** — `packages/sumup` + nucleo BFF sumup + campo POS terminal
-  3. **Banco Chile** — `packages/banco-chile` + routes banco-chile + conciliación + env sandbox|production
-  4. **Pagos web** — Transbank/Flow checkout_sessions (si toca go-live dinero)
-  5. **Env matrix** — `docs/ENV-CHECKLIST.md`, secrets Vercel, no mock en production
-- Criterio de “validado”: checklist crítico en verde **o** traza de smoke documentada (request→API externa→persistencia→UI) con fail-closed demostrado.
-- Roles / UI canónica de v1.1: **no deshacer**; solo tocar si bloquean validación.
-- **Loophole**: absorber → hipótesis → colapsar → redirigir → acrecer. Compuestos auto-mejorables; **guardrieles fijos**.
-- Guardrieles: fail-closed; no quitar authz/RLS/CAF; no mock de pago/fiscal en production; cirugía; evidencia; no spawnear loops; no mezclar WIP ajeno; no reabrir sec passes 1–6 sin regresión.
+- **Fase v1.3 (activa — interfaz gráfica / pulido visual):** valor = **experiencia de producto visible**: espaciado, ritmo editorial, responsive, overlap/z-index, touch targets, tokens semánticos, shells multi-app. Integraciones go-live v1.2 se asumen **base código lista**; residual ops (secrets, migs, smoke real) queda en backlog ops, **no** es el cono del tick salvo regresión dura de pago/auth.
+- **Prioridad de valor (orden fijo — fase v1.3):**
+  1. **U — UI / layout** — overlap, spacing scale, hierarchy, empty states, loading, motion no-invasivo
+  2. **R — Responsive** — 375 / 768 / 1024 / 1440; safe-area; nav colapsable; grids que no aplastan tipografía
+  3. **A — Accesibilidad táctil** — hit ≥44px; contraste tokens; focus visible; no solo hover
+  4. **T — Tokens / Ley III** — `bg-background`, `text-foreground`, `text-accent`, `border-border`; sin hex/stone/gray crudos
+  5. **S — Seguridad** solo si el cono UI toca forms de dinero/auth (fail-closed; no reabrir sec 1–6)
+  6. **O — Perf percibida** — LCP del hero, lazy canvas, no bloquear scroll
+- **Config-en-UI (sigue vigente):** negocio en interfaz + BFF; env = secretos plataforma.
+- Conos canónicos v1.3 (UI):
+  1. **tienda-landing** — `apps/tienda/app/landing-view.tsx`, header, chrome, hero/overlap
+  2. **tienda-shop** — catálogo, PDP, carrito, checkout UI (no re-lógica de pagos)
+  3. **nucleo-shell** — dashboard shell, ModuleHero, tables, panels go-live
+  4. **campo-pos** — POS/PWA, readers, touch, safe-area
+  5. **shared-ui** — `@enjambre/ui` tokens, componentes, preset Tailwind
+  6. **deep-followup-ui** — MEMORY backlog visual + regresión de go-live solo si bloquea uso
+- Criterio de “validado” UI: screenshot o traza en código del defecto + fix en breakpoints clave; no commit cosmético sin solapar/espacio roto demostrado.
+- **v1.2 go-live:** congelada como base; no reabrir pasadas de integración sin regresión de dinero/stock/auth.
+- **Loophole**: absorber → hipótesis → colapsar → redirigir → acrecer. Guardrieles fijos.
+- Guardrieles: fail-closed auth/pago; no quitar RLS/CAF; cirugía; evidencia; no spawnear loops; no mezclar WIP ajeno; no monorepo-spray; **no** mega-refactor de design system en un tick.
 - Cadencia: 60s reactivación; investigación **ilimitada** si productiva.
-- Identidad: Enjambre Legado — néctar trazable multi-app.
+- Identidad: Enjambre Legado — néctar trazable multi-app, **editorial dark luxury**.
 
-### Backlog go-live (v1.2 — actualizar al validar)
+### Backlog UI (v1.3 — actualizar al pulir)
 
-| Integración | Casi listo | Gap típico a cerrar |
-|-------------|------------|---------------------|
-| SII | checklist emisor+P12 + **emit idempotente** + enqueue resolve + process-now UI | ⏳ ops: mig 95; P12/CAF; SII_AUTO_EMIT; 1ª boleta Maullín |
-| SumUp | readers status normalize + **stale pending revalidate** + already_paid POS + mig96 probe | ⏳ ops: mig 96; keys live; smoke POS→tx |
-| Banco Chile | sync dedupe + webhook **event_id reprocess** + mig 99 unique event | ⏳ ops: mig 98/99; webhook secret; 1 evento real |
-| Conciliación | motor **facturas→ventas paid→gastos** + seed-defaults UI + aceptar→confianza/regla | ⏳ ops: mig 97; sync banco; 1 match real |
-| Pagos web | expire-stale **no toca paid** + alreadyProcessed heal session + cron item | ⏳ ops: keys Flow/TBK; smoke real |
-| Env matrix | runtime Entorno + matriz + docs alineados (≥32, auto-emit, webhook) | ⏳ ops: set keys en Vercel 3 apps; checklist verde en UI |
-| Crons | notifications 1m + **fiscal 15m** + **checkout expire 10m**; auth compartido timing-safe | ⏳ ops: `CRON_SECRET` Vercel; verificar logs cron tras deploy |
+| Superficie | Hallazgo / gap | Estado |
+|------------|----------------|--------|
+| Tienda hero | cue “Descender” vertical **solapa** subtítulo/fórmula; hero `70dvh` corto | ⏳ P0 |
+| Tienda header | nav densa en desktop medio; spacing links | ⏳ P1 |
+| Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ⏳ P1 |
+| Campo POS | touch ≥44, safe-area, terminal flow copy | ⏳ |
+| Nucleo panels | checklists go-live ritmo/cards consistentes | ⏳ |
+| Tokens | residual hex/emerald en views legacy | ⏳ baja |
+
+### Backlog go-live ops (v1.2 — congelado; no es cono del tick)
+
+| Integración | Código | Ops pendiente |
+|-------------|--------|---------------|
+| SII / SumUp / Banco / Pagos / Env / Crons | ✅ stack go-live en main | ⏳ migs 95–99; secrets Vercel; smokes reales |
 
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-19 redefinición → v1.3 UI
+- Señal: operador reorienta el loop de go-live integración a **pulido de interfaces gráficas** (spacing, responsive, overlap)
+- Compuesto: dirección + sectores
+- Regla nueva: fase **v1.3-ui**; prioridad U→R→A→T→S→O; sectores `ui-tienda-*` / `ui-nucleo` / `ui-campo` / `ui-shared`; go-live v1.2 congelado como ops
+- Sector boost: `ui-tienda-landing` (hero overlap demostrado en prod screenshot)
+- Anti-patrón: tick de SII/banco mientras el valor pedido es layout
+- Guardriel: intacto (no tocar pago/auth sin regresión)
 
 ### Evo 2026-07-19 pass 38 (val-pagos-web residual)
 - Señal: expire-stale podía marcar expired órdenes con venta; alreadyProcessed no cerraba sesión/holds; Flow webhook 404 si sesión ya completed

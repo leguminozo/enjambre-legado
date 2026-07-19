@@ -1,11 +1,28 @@
-# PLAYBOOK — patrones reales de Oyz App (Enjambre Legado) v1.2
+# PLAYBOOK — patrones reales de Oyz App (Enjambre Legado) v1.3
 
 Actualizar solo cuando un fix o audit confirma el patrón en código.  
-Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
+Prompt hermano: `.loop/PROMPT.md` **v1.3** (interfaz gráfica · spacing · responsive).  
+Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 
 ---
 
-## Go-live / validación de integraciones (fase v1.2)
+## UI / interfaz gráfica (fase v1.3 — activa)
+
+| Patrón | Síntoma | Detección | Fix canónico |
+|--------|---------|-----------|--------------|
+| Hero cue overlap | texto “Descender” / línea corta copy | absolute center + hero bajo | `min-h-[100svh]`; cue a un lado o `pb-*` en stack; hide vertical label hasta `lg` |
+| Hero stack denso | CTA cortado / formula corta | `min(70dvh)` + clamp grande | bajar clamp H1; `max-w` subtitle; `mt` CTA |
+| Nav densa | links apretados 1200px | header una sola fila | collapse / drawer desde `lg`; gap tokens |
+| Metrics 2-col crush | números gigantes en mobile | `grid-cols-2` + `text-5xl` | `text-3xl sm:text-5xl`; gap |
+| Science 3-col tablet | párrafos aplastados | `md:grid-cols-3` | `lg:grid-cols-3` |
+| Hex / emerald drift | rompe dark luxury | className raw | tokens `text-primary` / Badge variant |
+| Touch <44 | botones finos en campo/tienda | py-1 sin min-h | `min-h-[44px] min-w-[44px]` |
+| Safe-area | FAB/WhatsApp tapa home bar | fixed bottom | `bottom-[max(1rem,env(safe-area-inset-bottom))]` |
+| Canvas/cursor noise | círculo vacío / cursor custom | BeeCanvas on desktop | gate `show_*` chrome o no render mobile |
+
+---
+
+## Go-live / validación de integraciones (fase v1.2 — referencia / ops)
 
 | Patrón | Síntoma | Detección | Fix canónico |
 |--------|---------|-----------|--------------|
