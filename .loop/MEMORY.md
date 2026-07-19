@@ -25,12 +25,19 @@
 | SII | pipeline DTE, CAF guard, checklist v2, **Settings UI completa** (identidad+CAF XML+P12 cifrado) | ⏳ ops: aplicar mig 95; cargar P12/CAF reales en UI; 1ª boleta/FC Maullín → Palena |
 | SumUp | client + BFF + **config UI** (merchant/API key cifrada, checklist, test-connection, readers) | ⏳ ops: keys en UI + enable; smoke venta POS→tx; webhook opcional |
 | Banco Chile | client + **config BFF cifrado** + checklist + auth/sync UI (ya no secretos vía supabase client) | ⏳ ops: creds API store en UI; token OAuth; 1 sync cuentas; webhook |
-| Pagos web | TBK/Flow + checkout_sessions | returnUrl allowlist, fulfill pending→completed, CAF en checkout |
+| Pagos web | TBK/Flow + fulfill + **admin checklist UI** (`/pagos` → Checkout web) + sesiones | ⏳ ops: keys Flow/TBK en Vercel; smoke pago real; 0 pending stuck |
 | Crons | fiscal poll + CAF alert | `CRON_SECRET` en Vercel + job ejecuta |
 
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-16 pass 21 (val-pagos-web)
+- Señal: checkout Flow/TBK sin panel go-live; operador no veía env readiness ni sesiones pending; keys deben quedarse en Vercel
+- Compuesto: método + redirigir + config-en-UI (estado, no secretos)
+- Regla nueva: `buildPagosGoLiveChecklist` + `GET /checkout/admin/checklist|sessions` admin-only; hub `/pagos` tab Checkout web; secretos pasarela = env plataforma (no form)
+- Anti-patrón: exponer FLOW_SECRET en UI; mock pago en production sin checklist
+- Guardriel: intacto (returnUrl allowlist, fulfill idempotente)
 
 ### Evo 2026-07-16 pass 20 (val-banco-chile + config-en-UI)
 - Señal: BancoChileView escribía client_secret/password directo a Supabase desde el browser; secrets plaintext; sync solo leía cache local; sin checklist

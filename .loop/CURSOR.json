@@ -1,13 +1,13 @@
 {
-  "index": 4,
-  "pass": 21,
-  "last_sector": "val-banco-chile",
-  "last_commit": "c314dc7",
+  "index": 5,
+  "pass": 22,
+  "last_sector": "val-pagos-web",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {
-    "val-pagos-web": 1,
-    "val-env-secrets": 1
+    "val-env-secrets": 2,
+    "val-conciliacion-e2e": 1
   },
   "phase": "v1.2-golive",
-  "notes": "Pass 20: Banco Chile config-en-UI BFF + cifrado + checklist. Siguiente: val-pagos-web (#4) o val-env-secrets."
+  "notes": "Pass 21: checkout web checklist + sessions admin UI. Siguiente: val-env-secrets (#5) o val-conciliacion-e2e."
 }

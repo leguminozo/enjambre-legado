@@ -10,6 +10,7 @@ import {
 import type { CartLineInput } from "../lib/payments";
 import { fulfillCheckout } from "../lib/payments/checkout-fulfill";
 import { resolveCheckoutReturnUrl } from "../lib/payments/safe-return-url";
+import { buildPagosGoLiveChecklist } from "../lib/payments/go-live-checklist";
 import { fulfillSubscriptionFromWebhook } from "./subscriptions-checkout";
 import {
   previewCartPricing,
@@ -29,6 +30,12 @@ import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from "../lib/
 import { getCafMinFolios, getFoliosRestantes } from "@/api/lib/fiscal/caf-guard";
 import { DTE_TIPO } from "@enjambre/contable";
 import { isAutoEmitBoletaEnabled } from "@/lib/fiscal/checkout-dte";
+import {
+  authMiddleware,
+  requireProfileRole,
+  tenantMiddleware,
+  type AppVariables,
+} from "@/api/lib/middleware";
 
 async function rateLimitMiddleware(
   c: { req: { header: (name: string) => string | undefined; ip?: string }; json: (data: unknown, status: number) => Response; header: (name: string, value: string) => void },
@@ -639,3 +646,61 @@ checkoutRoutes.post("/webhook/flow", async (c) => {
     return c.json({ error: message }, 500);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Admin go-live (config-en-UI: estado visible; secretos permanecen en Vercel)
+// ---------------------------------------------------------------------------
+
+const adminCheckout = new Hono<{ Variables: AppVariables }>();
+adminCheckout.use("*", authMiddleware, tenantMiddleware, requireProfileRole("admin"));
+
+adminCheckout.get("/checklist", async (c) => {
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+  const minFolios = getCafMinFolios();
+
+  let cafFoliosRestantes: number | null = null;
+  try {
+    cafFoliosRestantes = await getFoliosRestantes(
+      supabase,
+      empresaId,
+      DTE_TIPO.BOLETA_ELECTRONICA,
+    );
+  } catch {
+    cafFoliosRestantes = null;
+  }
+
+  const status = buildPagosGoLiveChecklist({
+    cafFoliosRestantes,
+    cafMinFolios: minFolios,
+  });
+
+  return c.json({ data: status });
+});
+
+adminCheckout.get("/sessions", async (c) => {
+  const admin = createAdminClient();
+  const limit = Math.min(Number(c.req.query("limit") ?? 30), 100);
+
+  const { data, error } = await admin
+    .from("checkout_sessions")
+    .select("id, buy_order, provider, status, total, created_at, completed_at, buyer_mode")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    return c.json({ code: "sessions_query_failed", message: error.message }, 500);
+  }
+
+  const pending = (data ?? []).filter((s) => s.status === "pending").length;
+  const completed = (data ?? []).filter((s) => s.status === "completed").length;
+
+  return c.json({
+    data: {
+      sessions: data ?? [],
+      counts: { pending, completed, total: data?.length ?? 0 },
+    },
+  });
+});
+
+checkoutRoutes.route("/admin", adminCheckout);
