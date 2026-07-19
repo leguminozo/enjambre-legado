@@ -32,6 +32,8 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 | Conciliación 400 UI | motor no corre | body sin empresa_id + schema required | tenant `empresaId` en BFF; body opcional |
 | Stats tabla wrong | tasa match 0 falsa | query `conciliaciones` genérica | `banco_chile_movimientos` + `banco_chile_conciliaciones` |
 | Webhook sin verify | abono/tx forjada | route webhook sin secret/firma | secret server + HMAC + idempotency |
+| Webhook reprocess dup | doble update de estado | no early-return si event id existe | dedupe `event:{id}` → 200 sin side-effects |
+| Firma solo hex | 401 con base64 real | compare solo hex | aceptar hex, `sha256=`, base64 |
 | Webhook secret open | 500 o accept vacío | throw si falta secret / `===` HMAC | 503 fail-closed; timing-safe equal |
 | Webhook admin open | listar notifs sin JWT | GET pendientes en router pre-auth | authMiddleware + tenant + admin en esas rutas |
 | Cron fiscal muerto | jobs stuck | `CRON_SECRET` empty en Vercel | require secret; schedule vercel.json |

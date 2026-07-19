@@ -28,7 +28,7 @@ describe('banco-chile webhook crypto', () => {
     expect(getBancoChileWebhookSecret()).toBeNull();
   });
 
-  it('verifyBancoChileSignature accepts valid HMAC hex', async () => {
+  it('verifyBancoChileSignature accepts hex, sha256= prefix, and base64', async () => {
     const payload = JSON.stringify({ id: 'evt-1', tipo: 'saldo_disponible', fecha: '2026-01-01' });
     const secret = 'test-webhook-secret-value';
     const encoder = new TextEncoder();
@@ -43,8 +43,11 @@ describe('banco-chile webhook crypto', () => {
     const hex = Array.from(new Uint8Array(sig))
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
+    const b64 = btoa(String.fromCharCode(...new Uint8Array(sig)));
 
     expect(await verifyBancoChileSignature(payload, hex, secret)).toBe(true);
+    expect(await verifyBancoChileSignature(payload, `sha256=${hex}`, secret)).toBe(true);
+    expect(await verifyBancoChileSignature(payload, b64, secret)).toBe(true);
     expect(await verifyBancoChileSignature(payload, 'deadbeef', secret)).toBe(false);
     expect(await verifyBancoChileSignature(payload, undefined, secret)).toBe(false);
     expect(await verifyBancoChileSignature(payload, hex, null)).toBe(false);

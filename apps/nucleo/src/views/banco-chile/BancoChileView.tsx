@@ -72,6 +72,20 @@ export function BancoChileView() {
   const [saving, setSaving] = useState(false);
   const [testingAuth, setTestingAuth] = useState(false);
   const [configError, setConfigError] = useState<string | null>(null);
+  const [webhookStatus, setWebhookStatus] = useState<{
+    status: string;
+    webhookSecret: string;
+  } | null>(null);
+  const [notificaciones, setNotificaciones] = useState<
+    Array<{
+      id: string;
+      tipo_evento: string;
+      monto: number | null;
+      descripcion: string | null;
+      procesado: boolean;
+      created_at: string;
+    }>
+  >([]);
   const [formData, setFormData] = useState({
     clientId: '',
     clientSecret: '',
@@ -119,10 +133,31 @@ export function BancoChileView() {
     }
   }, [apiFetch]);
 
+  const fetchWebhookOps = useCallback(async () => {
+    try {
+      const [st, pend] = await Promise.all([
+        apiFetch('/api/banco-chile/webhook/status'),
+        apiFetch('/api/banco-chile/webhook/pendientes'),
+      ]);
+      if (st.ok) {
+        const j = await st.json();
+        setWebhookStatus(j.data ?? null);
+      }
+      if (pend.ok) {
+        const j = await pend.json();
+        const list = j.data?.notificaciones ?? j.notificaciones ?? [];
+        setNotificaciones(Array.isArray(list) ? list : []);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [apiFetch]);
+
   useEffect(() => {
     fetchConfig();
     fetchChecklist();
-  }, [fetchConfig, fetchChecklist]);
+    fetchWebhookOps();
+  }, [fetchConfig, fetchChecklist, fetchWebhookOps]);
 
   const handleSubmitConfig = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -292,6 +327,76 @@ export function BancoChileView() {
         icon={<Building2 size={20} />}
       />
       <ToolActionRail context="banco" current="/banco" />
+
+      {/* Webhooks ops */}
+      <div className="bg-card border border-border rounded-2xl p-5 space-y-3 max-w-3xl">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-display text-base flex items-center gap-2">
+            <ShieldCheck size={18} className="text-primary" /> Webhooks / notificaciones
+          </h2>
+          <button
+            type="button"
+            onClick={() => fetchWebhookOps()}
+            className="text-xs text-primary font-medium hover:underline"
+          >
+            Actualizar
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Endpoint público: <code className="text-[11px]">POST /api/banco-chile/webhook</code> · header{' '}
+          <code className="text-[11px]">x-banco-chile-signature</code> (HMAC-SHA256 hex o base64). Secret en
+          Vercel: <code className="text-[11px]">BANCO_CHILE_WEBHOOK_SECRET</code>.
+        </p>
+        <div className="flex flex-wrap gap-2 text-xs">
+          <Badge
+            variant={
+              webhookStatus?.webhookSecret === 'present' ? 'success' : 'warning'
+            }
+          >
+            secret: {webhookStatus?.webhookSecret ?? '—'}
+          </Badge>
+          <Badge variant="default">status: {webhookStatus?.status ?? '—'}</Badge>
+          <Badge variant={notificaciones.length > 0 ? 'warning' : 'default'}>
+            pendientes: {notificaciones.length}
+          </Badge>
+        </div>
+        {notificaciones.length > 0 && (
+          <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden text-sm">
+            {notificaciones.slice(0, 8).map((n) => (
+              <li
+                key={n.id}
+                className="flex flex-wrap items-center gap-2 px-3 py-2 bg-surface-sunken/40"
+              >
+                <span className="font-mono text-xs">{n.tipo_evento}</span>
+                <span className="text-muted-foreground text-xs flex-1 truncate">
+                  {n.descripcion}
+                </span>
+                {n.monto != null && (
+                  <span className="font-medium">{formatCurrency(Number(n.monto))}</span>
+                )}
+                <button
+                  type="button"
+                  className="text-xs text-primary hover:underline"
+                  onClick={async () => {
+                    const res = await apiFetch(
+                      `/api/banco-chile/webhook/reprocesar/${n.id}`,
+                      { method: 'POST' },
+                    );
+                    if (!res.ok) {
+                      const err = await res.json().catch(() => ({}));
+                      setConfigError(err.message ?? 'Reproceso falló');
+                    } else {
+                      await fetchWebhookOps();
+                    }
+                  }}
+                >
+                  Reprocesar
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       {checklist && (
         <div className="bg-card border border-border rounded-2xl p-5 space-y-3 max-w-3xl">

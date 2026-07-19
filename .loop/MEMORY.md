@@ -33,6 +33,13 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-16 pass 28 (val-banco-webhooks)
+- Señal: webhook re-procesaba eventos duplicados; firma solo hex; docs decían ⏳; sin UI de pendientes
+- Compuesto: colapsar + redirigir + U
+- Regla nueva: dedupe early-return; HMAC hex|base64|sha256=; panel ops en BancoChileView; docs BANCO_CHILE §8 actualizado
+- Anti-patrón: procesar de nuevo si ya existe event id; docs desfasados de implementación
+- Guardriel: intacto
+
 ### Evo 2026-07-16 pass 27 (val-banco-chile)
 - Señal: `expires_in` OAuth usado como epoch → re-auth en cada request; tokens DB no hidratados; sync UI solo cuentas no movimientos
 - Compuesto: colapsar + redirigir

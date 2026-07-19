@@ -44,8 +44,11 @@ Implementación completa de las APIs de **Banco Chile Empresas** para el ecosist
 - ✅ Condiciones y tasas
 
 ### 8. Notificaciones (Webhooks)
-- ⏳ Implementación pendiente
-- 📋 Event-driven architecture
+- ✅ `POST /api/banco-chile/webhook` — HMAC-SHA256 (`x-banco-chile-signature`, hex o base64)
+- ✅ Fail-closed si falta `BANCO_CHILE_WEBHOOK_SECRET` (503)
+- ✅ Idempotencia por `event:{id}` en `banco_chile_notificaciones`
+- ✅ Admin: `GET …/webhook/pendientes`, `POST …/webhook/reprocesar/:id` (JWT + tenant)
+- ✅ UI Nucleo → Banco Chile: panel secret/status + pendientes
 
 ## Estructura del Proyecto
 

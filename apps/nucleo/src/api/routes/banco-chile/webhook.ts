@@ -63,6 +63,26 @@ export function timingSafeEqualString(a: string, b: string): boolean {
   return out === 0;
 }
 
+function bytesToHex(buf: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function bytesToBase64(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]!);
+  return btoa(s);
+}
+
+/** Normalize header variants: `sha256=…`, hex, or base64. */
+function normalizeSignatureHeader(signature: string): string {
+  const s = signature.trim();
+  if (s.toLowerCase().startsWith('sha256=')) return s.slice(7).trim();
+  return s;
+}
+
 export async function verifyBancoChileSignature(
   payload: string,
   signature: string | undefined,
@@ -70,6 +90,7 @@ export async function verifyBancoChileSignature(
 ): Promise<boolean> {
   if (!signature || !secret) return false;
 
+  const provided = normalizeSignatureHeader(signature);
   const encoder = new TextEncoder();
   const cryptoKey = await crypto.subtle.importKey(
     'raw',
@@ -79,11 +100,13 @@ export async function verifyBancoChileSignature(
     ['sign'],
   );
   const sig = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(payload));
-  const computed = Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+  const hex = bytesToHex(sig);
+  const b64 = bytesToBase64(sig);
 
-  return timingSafeEqualString(computed, signature.toLowerCase());
+  // Accept hex (case-insensitive) or standard base64
+  if (timingSafeEqualString(hex, provided.toLowerCase())) return true;
+  if (provided.length === b64.length && timingSafeEqualString(b64, provided)) return true;
+  return false;
 }
 
 // POST / — público, firma HMAC obligatoria
@@ -106,7 +129,12 @@ webhookRouter.post('/', async (c) => {
   try {
     const supabase = createAdminClient();
     const rawBody = await c.req.text();
-    const signature = c.req.header('x-banco-chile-signature') ?? undefined;
+    // Accept common header names used by API store / reverse proxies
+    const signature =
+      c.req.header('x-banco-chile-signature') ??
+      c.req.header('x-signature') ??
+      c.req.header('x-hub-signature-256') ??
+      undefined;
 
     const isValid = await verifyBancoChileSignature(rawBody, signature, secret);
     if (!isValid) {
@@ -127,13 +155,21 @@ webhookRouter.post('/', async (c) => {
     }
 
     const { id, tipo, cuenta_id, monto, descripcion, fecha, datos } = parsed.data;
+    const eventKey = `event:${id}`;
 
-    // Idempotency: skip if already stored with same event id in datos_raw or tipo+id
+    // Idempotency: never re-process the same event id
     const { data: existing } = await supabase
       .from('banco_chile_notificaciones')
-      .select('id')
-      .eq('descripcion', `event:${id}`)
+      .select('id, procesado')
+      .eq('descripcion', eventKey)
       .maybeSingle();
+
+    if (existing) {
+      return c.json({
+        data: { success: true, deduped: true, procesado: existing.procesado },
+        message: 'Evento ya recibido',
+      });
+    }
 
     let empresaId: string | undefined;
     if (cuenta_id) {
@@ -145,39 +181,34 @@ webhookRouter.post('/', async (c) => {
       empresaId = data?.empresa_id;
     }
 
-    if (!existing && empresaId) {
-      await supabase.from('banco_chile_notificaciones').insert({
-        empresa_id: empresaId,
-        tipo_evento: tipo,
-        cuenta_afectada: cuenta_id,
-        monto: monto,
-        descripcion: `event:${id}`,
-        datos_raw: (datos ?? { event_id: id }) as Json,
-        procesado: false,
-        created_at: new Date(fecha).toISOString(),
-      });
-    } else if (!existing && !empresaId) {
-      // Persist orphan for ops with empresa fallback from first config if single-tenant
+    if (!empresaId) {
       const { data: cfg } = await supabase
         .from('banco_chile_config')
         .select('empresa_id')
         .eq('enabled', true)
         .limit(1)
         .maybeSingle();
-      if (cfg?.empresa_id) {
-        await supabase.from('banco_chile_notificaciones').insert({
-          empresa_id: cfg.empresa_id,
-          tipo_evento: tipo,
-          cuenta_afectada: cuenta_id,
-          monto: monto,
-          descripcion: `event:${id}`,
-          datos_raw: (datos ?? { event_id: id }) as Json,
-          procesado: false,
-          created_at: new Date(fecha).toISOString(),
-        });
-        empresaId = cfg.empresa_id;
-      }
+      empresaId = cfg?.empresa_id;
     }
+
+    if (!empresaId) {
+      console.error('[banco-chile webhook] no empresa_id for event', id);
+      return c.json(
+        { code: 'empresa_unresolved', message: 'No se pudo resolver empresa del evento' },
+        422,
+      );
+    }
+
+    await supabase.from('banco_chile_notificaciones').insert({
+      empresa_id: empresaId,
+      tipo_evento: tipo,
+      cuenta_afectada: cuenta_id,
+      monto: monto,
+      descripcion: eventKey,
+      datos_raw: { ...(datos ?? {}), event_id: id, human: descripcion } as Json,
+      procesado: false,
+      created_at: new Date(fecha).toISOString(),
+    });
 
     await procesarNotificacion(supabase, tipo, {
       id,
@@ -188,7 +219,7 @@ webhookRouter.post('/', async (c) => {
     });
 
     return c.json({
-      data: { success: true, deduped: Boolean(existing) },
+      data: { success: true, deduped: false },
       message: 'Notificación recibida',
     });
   } catch (error) {

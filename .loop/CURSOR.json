@@ -1,10 +1,10 @@
 {
-  "index": 4,
-  "pass": 28,
-  "last_sector": "val-banco-chile",
-  "last_commit": "466a23c",
+  "index": 5,
+  "pass": 29,
+  "last_sector": "val-banco-webhooks",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.2-golive",
-  "notes": "Pass 27: banco token expiry fix + POST /sync. Siguiente: val-banco-webhooks (#4) o val-pagos-web."
+  "notes": "Pass 28: webhook dedupe + signature variants + UI. Siguiente: val-pagos-web (#5)."
 }
