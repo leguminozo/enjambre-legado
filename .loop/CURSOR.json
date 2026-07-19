@@ -2,9 +2,9 @@
   "index": 1,
   "pass": 34,
   "last_sector": "val-sii-certificacion",
-  "last_commit": "pending",
+  "last_commit": "4f1add5",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.2-golive",
-  "notes": "Pass 33: emisor+P12 creds en checklist. Siguiente: val-sii-emision (#1)."
+  "notes": "Pass 33: emisor+P12 creds checklist (4f1add5). Siguiente: val-sii-emision (#1)."
 }
