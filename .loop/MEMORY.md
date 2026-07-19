@@ -2,18 +2,41 @@
 
 ## Doctrina del loop (actualizar solo si el operador la cambia)
 
-- **Fase v1.1 (activa):** cada **herramienta de cada rol** con **entrelazado correcto en código** + **UI canónica** alineada al estado del arte ya logrado (`packages/ui`, Ecosistema Bento/GSAP, ModuleHero, tokens, tienda editorial).
-- Prioridad: **E** (entrelazado) → **U** (UI canónica) → **R** (runtime herramienta) → **S** (solo si aparece) → **O**.
-- Referencia visual: `EcosistemaDashboard`, `ModuleHero`/`SectionHeader`/`GlassPanel`/`BentoGrid`/`CinematicCard`, `tokens.css`, CONSTITUTION.
-- Roles: `admin` (núcleo) · `cliente` (tienda) · `rep_ventas` (campo) · `creador` (tienda portal).
+- **Fase v1.2 (activa — go-live / validación real):** llevar a **uso real** las integraciones **casi listas**: **SII**, **SumUp**, **Banco de Chile**, y adyacentes (pagos web TBK/Flow, conciliación, CAF/crons). Código y UI de v1.1 se asumen base; el valor es **cerrar el gap sandbox → producción**.
+- Prioridad: **V** (validación go-live: env, credenciales, ambiente, smoke path) → **R** (runtime integración: emit/webhook/sync/idempotencia) → **S** (fail-closed secrets/CAF/webhooks en el cono) → **E** (entrelazado venta↔fiscal↔banco solo si bloquea go-live) → **U** (UI solo si impide operar la validación) → **O**.
+- Conos canónicos:
+  1. **SII** — `packages/fiscal` + `packages/contable` + `apps/nucleo` routes/sii + checklist `/certificacion` + CAF + cert P12 + jobs
+  2. **SumUp** — `packages/sumup` + nucleo BFF sumup + campo POS terminal
+  3. **Banco Chile** — `packages/banco-chile` + routes banco-chile + conciliación + env sandbox|production
+  4. **Pagos web** — Transbank/Flow checkout_sessions (si toca go-live dinero)
+  5. **Env matrix** — `docs/ENV-CHECKLIST.md`, secrets Vercel, no mock en production
+- Criterio de “validado”: checklist crítico en verde **o** traza de smoke documentada (request→API externa→persistencia→UI) con fail-closed demostrado.
+- Roles / UI canónica de v1.1: **no deshacer**; solo tocar si bloquean validación.
 - **Loophole**: absorber → hipótesis → colapsar → redirigir → acrecer. Compuestos auto-mejorables; **guardrieles fijos**.
-- Guardrieles: fail-closed; no quitar authz/RLS/CAF; cirugía; evidencia; no spawnear loops; no mezclar WIP ajeno; no reabrir sec passes 1–6 sin regresión.
+- Guardrieles: fail-closed; no quitar authz/RLS/CAF; no mock de pago/fiscal en production; cirugía; evidencia; no spawnear loops; no mezclar WIP ajeno; no reabrir sec passes 1–6 sin regresión.
 - Cadencia: 60s reactivación; investigación **ilimitada** si productiva.
 - Identidad: Enjambre Legado — néctar trazable multi-app.
+
+### Backlog go-live (v1.2 — actualizar al validar)
+
+| Integración | Casi listo | Gap típico a cerrar |
+|-------------|------------|---------------------|
+| SII | pipeline DTE, CAF guard, checklist certificacion, jobs | cert P12 real, CAF 33/39/41/46, `sii_ambiente=produccion`, 1ª boleta/FC aceptada |
+| SumUp | client + BFF readers/tx/payouts | keys prod, reader en campo, webhook/idempotencia, smoke venta POS→tx |
+| Banco Chile | client sandbox/prod + conciliación auto | credenciales API store, token refresh, 1 sync movimientos, webhook |
+| Pagos web | TBK/Flow + checkout_sessions | returnUrl allowlist, fulfill pending→completed, CAF en checkout |
+| Crons | fiscal poll + CAF alert | `CRON_SECRET` en Vercel + job ejecuta |
 
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-16 reorientación v1.2
+- Señal: operador pide enfocar loop a validar SII, SumUp, Banco Chile y funciones casi listas para uso real
+- Compuesto: dirección + sectores
+- Regla nueva: fase v1.2 prioridad V→R→S; sectores val-sii / val-sumup / val-banco-chile / val-pagos / val-env; no reabrir UI-canon salvo bloqueo de go-live
+- Anti-patrón: tick de tokens visuales cuando hay gap de credenciales/ambiente/smoke de dinero o fiscal
+- Guardriel: intacto
 
 ### Evo 2026-07-16 pass 16
 - Señal: GlassPanel exportado solo en WIP; apps usaban `.glass-panel` CSS / `glass` local; SectionHeader 0 usos; Select local muerto en reportes/cálculos

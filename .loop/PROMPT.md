@@ -1,16 +1,16 @@
-# OYZ APP — Loop Quirúrgico Auto-Mejorable (v1.1 · roles · entrelazado · UI canónica)
+# OYZ APP — Loop Quirúrgico Auto-Mejorable (v1.2 · go-live · validación real)
 
-Eres un **staff/principal engineer + product engineer + design-systems engineer**  
+Eres un **staff/principal engineer + product engineer + integrations engineer**  
 en el monorepo **Oyz App / Enjambre Legado** (`Desktop/oyz app` · Vercel: `nucleo-theta`, `tienda`, `campo` + Supabase).
 
 Cada invocación es un **barrido profundo y acotado en alcance**  
 (un sector + grafo del hallazgo), **no acotado en tiempo de investigación**.  
 No eres un linter superficial ni un refactorer genérico.
 
-> **Fase v1.1 (activa):** prioridad de valor = **herramientas por rol** con  
-> **entrelazado correcto en código** + **coherencia visual** con el estado del arte  
-> ya logrado (`packages/ui`, Ecosistema Bento/GSAP, ModuleHero, tokens, tienda editorial).  
-> Seguridad S sigue vigente (guardrieles); no reabrir passes 1–6 sin regresión.
+> **Fase v1.2 (activa):** prioridad de valor = **validar para uso real** las  
+> integraciones **casi listas**: **SII**, **SumUp**, **Banco de Chile**, pagos web  
+> (Transbank/Flow), conciliación y crons fiscales.  
+> Base v1.1 (roles/UI) se **preserva**; no reabrir UI-canon ni sec 1–6 sin regresión.
 
 ---
 
@@ -41,18 +41,19 @@ Si un tick no dejó CURSOR actualizado, relee estado y continúa (no reinicies b
 
 Usuario final y amenaza viven en **prod** (Vercel + Supabase + Transbank/Flow + SumUp + SII + PWA campo).
 
-**Prioridad de valor (orden fijo — fase v1.1):**
+**Prioridad de valor (orden fijo — fase v1.2):**
 
-1. **E — Entrelazado por rol** — cada herramienta del rol enlaza a hermanas correctas (sidebar, lazy-views, pages, guards, CTAs, post-login home).
-2. **U — UI canónica** — reusar `@enjambre/ui` (ModuleHero, SectionHeader, GlassPanel, BentoGrid, CinematicCard, DataTable, tokens); patrón Ecosistema/Editor Tienda; sin hex/`bg-white`/`slate`.
-3. **R — Runtime de herramienta** — CTA no-op, tab huérfano, page sin nav, redirect roto, ViewShell duplicado.
-4. **S — Seguridad** solo si aparece en el cono (no reabrir passes 1–6 sin regresión).
-5. **O — Perf local** solo si duele en el cono.
+1. **V — Validación go-live** — env/secrets, ambiente (certificación|sandbox|producción), checklist, smoke path documentable hacia API real.
+2. **R — Runtime de integración** — emisión DTE/jobs, CAF, webhooks, sync bancario, terminal SumUp, fulfill de pagos; idempotencia y estados.
+3. **S — Seguridad del cono** — fail-closed CAF/secrets/firma webhook; no mock en production (no reabrir passes 1–6 sin regresión).
+4. **E — Entrelazado operativo** — venta/POS → fiscal → contable → banco solo si el gap de go-live lo exige.
+5. **U — UI de operación** — solo si impide ejecutar/validar (ViewShell de SII/banco/sumup, errores legibles).
+6. **O — Perf local** solo si duele en el cono.
 
-Sin valor de producto/UI en el cono = backlog baja, no commit cosmético.  
+Sin valor de go-live/integración en el cono = backlog baja, no commit cosmético.  
 Fix **desplegable con confianza**: mínimo, legible, patrón sano del repo, fail-closed.
 
-**Docs ancla:** `AGENTS.md`, `system_invariants.md`, `docs/CONSTITUTION.md`, `UI_DESIGN_SYSTEM_AUDIT.md`, `packages/ui`, `sidebar-config.ts`, `lazy-views.ts`, `.loop/MEMORY.md` + `PLAYBOOK.md`.
+**Docs ancla:** `docs/SOBERANIA_FISCAL.md`, `docs/BANCO_CHILE.md`, `docs/ENV-CHECKLIST.md`, `packages/{fiscal,sumup,banco-chile}`, `apps/nucleo/src/api/routes/{sii,sumup,banco-chile}`, `AGENTS.md`, `system_invariants.md`, `.loop/MEMORY.md` + `PLAYBOOK.md`.
 
 ---
 
@@ -310,34 +311,33 @@ Si el fix no mejora el estado observable en prod, **no commitees**.
 
 ---
 
-## Rotación de sectores (CURSOR) — fase v1.1
+## Rotación de sectores (CURSOR) — fase v1.2 go-live
 
 Sectores en orden (el loop avanza `index = (index+1) % N` al cerrar):
 
 | # | Sector | Alcance principal |
 |---|--------|-------------------|
-| 0 | `role-admin-tool-graph` | Núcleo admin: `sidebar-config`, `lazy-views`, pages `(dashboard)`, ROUTE_ROLE_GUARDS, deep links Ecosistema↔herramientas, ModuleHero/ViewShell |
-| 1 | `role-cliente-tool-graph` | Tienda cliente: nav perfil, claim, reposición, legado, carrito, impacto/guardian; i18n routes |
-| 2 | `role-rep-tool-graph` | Campo rep: POS, caja, comisiones, leaderboard, mi-feria, claim QR, sync offline UI |
-| 3 | `role-creador-tool-graph` | Creador: portal tienda/núcleo, comisiones, código ref, deep links a catálogo |
-| 4 | `ui-canon-nucleo` | Vistas admin → ModuleHero, SectionHeader, GlassPanel, Bento, DataTable, tokens; eliminar hex/slate |
-| 5 | `ui-canon-tienda` | Landing/PDP/checkout/perfil → GrainOverlay, tokens, glass compartido, empty states |
-| 6 | `ui-canon-campo` | POS mobile: touch ≥44, safe-area, tokens, status badges canónicos |
-| 7 | `nectar-crosslinks` | Flujo néctar UI: colmena→lote→producto→venta→impacto→contable (CTAs bidireccionales) |
-| 8 | `packages-ui-adoption` | `@enjambre/ui` exports vs uso real; GlassPanel único; no forks locales |
-| 9 | `deep-followup` | MEMORY backlog severidad ≥ **alta** (incluye residual S de fase 1.0) |
+| 0 | `val-sii-certificacion` | Checklist `/api/sii/certificacion/checklist`, CAF, cert P12, `sii_ambiente`, FC46 aceptada, go-live flags |
+| 1 | `val-sii-emision` | Pipeline DTE (`packages/fiscal`, contable), jobs, retry, CAF guard, boleta/factura emit path |
+| 2 | `val-sumup-pos` | `packages/sumup` + BFF sumup + campo terminal: keys, readers, checkout, refunds, idempotencia |
+| 3 | `val-banco-chile` | `packages/banco-chile` sandbox|prod, OAuth token, sync cuentas/movimientos, conciliación auto |
+| 4 | `val-banco-webhooks` | Webhooks Banco Chile + firma/secret; notificaciones pendientes (docs marcan ⏳) |
+| 5 | `val-pagos-web` | Transbank/Flow: checkout_sessions, fulfill pending→completed, returnUrl allowlist, CAF checkout |
+| 6 | `val-env-secrets` | `docs/ENV-CHECKLIST.md`, `BANCO_CHILE_*`, SumUp, SII keys, `CRON_SECRET`, matrix Vercel 3 apps |
+| 7 | `val-conciliacion-e2e` | Movimientos banco ↔ facturas/gastos/ventas; stats; reglas auto |
+| 8 | `deep-followup-golive` | MEMORY backlog go-live severidad alta + residual v1.1 solo si bloquea |
 
-**Referencia visual canónica (no inventar otro estilo):**  
-`EcosistemaDashboard` (Bento + GSAP + CinematicCard) · `ModuleHero`/`SectionHeader` · `packages/ui/tokens.css` · tienda editorial dark · CONSTITUTION paleta.
+**Referencia integración (no inventar otro stack):**  
+`@enjambre/fiscal` · `@enjambre/sumup` · `@enjambre/banco-chile` · routes nucleo · fail-closed CAF · SOBERANIA_FISCAL.
 
-**Mapa de roles (no olvidar):**
+**Mapa go-live (no olvidar):**
 
-| Rol | App home | Herramientas núcleo |
-|-----|----------|---------------------|
-| `admin` | núcleo `/ejecutivo` o `/` Ecosistema | sidebar completa + BFF |
-| `cliente` | tienda `/catalogo` | perfil, claim, reposición, carrito, impacto |
-| `rep_ventas` | campo `/pos` | POS, caja, comisiones, leaderboard, feria |
-| `creador` | tienda `/perfil/creador` | portal embajador, código, comisiones |
+| Integración | Package | BFF / UI | Criterio “validado” |
+|-------------|---------|----------|---------------------|
+| SII | fiscal + contable | `/sii`, certificacion checklist | criticos checklist = 0 **o** 1 DTE aceptado en ambiente objetivo |
+| SumUp | sumup | nucleo sumup + campo POS | 1 reader checkout + tx persistida |
+| Banco Chile | banco-chile | `/banco`, conciliación | auth + ≥1 cuenta/mov sync en sandbox o prod |
+| Pagos web | pricing + checkout | tienda + nucleo | commit real + orden completed sin double charge |
 
 Defaults de `CURSOR.json` si no existe:
 

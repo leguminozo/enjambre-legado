@@ -1,7 +1,23 @@
-# PLAYBOOK — patrones reales de Oyz App (Enjambre Legado) v1.1
+# PLAYBOOK — patrones reales de Oyz App (Enjambre Legado) v1.2
 
 Actualizar solo cuando un fix o audit confirma el patrón en código.  
-Prompt hermano: `.loop/PROMPT.md` v1.1 (roles + entrelazado + UI canónica).
+Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
+
+---
+
+## Go-live / validación de integraciones (fase v1.2)
+
+| Patrón | Síntoma | Detección | Fix canónico |
+|--------|---------|-----------|--------------|
+| Checklist SII rojo | “casi listo” sin go-live | `GET /api/sii/certificacion/checklist` criticosPendientes > 0 | CAF tipo, cert P12 vigencia, FC46 aceptada, `sii_ambiente` |
+| Ambiente cert en prod UI | emite a Maullín sin querer | `empresas.sii_ambiente` + UI settings | gate explícito; no default produccion sin checklist |
+| CAF exhausto open | vende sin folio | `getFoliosRestantes` / caf-guard | fail-closed min folios; alert threshold |
+| SumUp sin key | terminal muerto | env SumUp ausente en nucleo | fail-closed 503; no mock en production |
+| Banco sandbox hardcode | creds prod golpean sandbox | `environment: sandbox\|production` en config | URL host según environment (client ya soporta) |
+| Webhook sin verify | abono/tx forjada | route webhook sin secret/firma | secret server + idempotency key |
+| Cron fiscal muerto | jobs stuck | `CRON_SECRET` empty en Vercel | require secret; schedule vercel.json |
+| Env matrix incompleta | works local fails prod | `docs/ENV-CHECKLIST.md` | `pnpm go-live:check` / matrix por app |
+| Mock en production | cobro/fiscal falso | `if (process.env.NODE_ENV !==` skip real API | production siempre path real o deny |
 
 ---
 
