@@ -46,6 +46,13 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-19 pass 40 (ui-tienda-landing)
+- Señal: cue “Descender” absolute center + hero 70dvh → solapa subtítulo/fórmula; metrics 5xl en 2-col
+- Compuesto: colapsar + redirigir
+- Regla nueva: hero `min-h-[100svh]` + stack z-20 + cue lateral; formula tracking mobile; science `lg:grid-cols-3`
+- Anti-patrón: scroll cue centrado sobre el copy del hero
+- Guardriel: intacto (solo UI)
+
 ### Evo 2026-07-19 redefinición → v1.3 UI
 - Señal: operador reorienta el loop de go-live integración a **pulido de interfaces gráficas** (spacing, responsive, overlap)
 - Compuesto: dirección + sectores

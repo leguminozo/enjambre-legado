@@ -235,10 +235,9 @@ export function TiendaLandingView({
           return (
       <section
             key="hero"
-            className="relative flex flex-col items-center justify-center text-center px-4"
-            style={{ minHeight: 'min(70dvh, 560px)', height: 'auto' }}
+            className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-20 pb-28 md:pb-32 min-h-[100svh] md:min-h-[100dvh]"
           >
-            <div className="absolute inset-0 md:min-h-[90vh] pointer-events-none" aria-hidden />
+            <div className="absolute inset-0 pointer-events-none" aria-hidden />
         {!isMobile && landing.show_bee_canvas ? <BeeCanvas /> : null}
         <div
           className="absolute inset-0 pointer-events-none bg-background/40 md:bg-transparent"
@@ -253,11 +252,12 @@ export function TiendaLandingView({
           }}
         />
 
-          <div className="relative z-10 max-w-4xl">
-            <span className="hero-eyebrow editorial-kicker mb-8 block">
+          {/* z-20 above scroll cue; pb reserved so absolute cue never crosses copy */}
+          <div className="relative z-20 mx-auto w-full max-w-4xl px-1">
+            <span className="hero-eyebrow editorial-kicker mb-6 md:mb-8 block">
               {tHero('subtitle') || 'Miel Virgen del Sur del Mundo'}
             </span>
-            <h1 className="hero-title font-display text-[clamp(3rem,8vw,7rem)] font-light leading-tight mb-6 overflow-hidden">
+            <h1 className="hero-title font-display text-[clamp(2.75rem,7vw,5.75rem)] font-light leading-[1.05] mb-5 md:mb-6 overflow-hidden text-balance">
               <span className="block overflow-hidden">
                 <span className="line-inner block">{tHero('titlePart1') || 'La Obrera'}</span>
               </span>
@@ -265,17 +265,17 @@ export function TiendaLandingView({
                 <span className="line-inner block">{tHero('titlePart2') || 'y el Zángano'}</span>
               </span>
             </h1>
-            <p className="hero-subtitle font-display italic text-[clamp(1.1rem,2.5vw,1.5rem)] text-muted-foreground tracking-wide">
+            <p className="hero-subtitle font-display italic text-[clamp(1.05rem,2.2vw,1.4rem)] text-muted-foreground tracking-wide max-w-2xl mx-auto text-pretty leading-relaxed">
               {tHero('description') || 'Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje'}
             </p>
-            <p className="hero-formula mt-6 font-mono text-[clamp(0.65rem,1.2vw,0.8rem)] tracking-[0.3em] uppercase text-accent/60">
+            <p className="hero-formula mt-5 md:mt-6 font-mono text-[clamp(0.6rem,1.1vw,0.75rem)] tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.28em] uppercase text-accent/60 max-w-xl mx-auto leading-relaxed">
               {tHero('formula') || 'Luz solar → Néctar → Miel virgen · Sin atajos industriales'}
             </p>
             {landing.show_hero_cta ? (
-              <div className="mt-8 md:mt-10">
+              <div className="mt-10 md:mt-12">
                 <Link
                   href={landing.hero_cta_href || '/catalogo'}
-                  className="inline-flex min-h-[48px] items-center rounded-full border border-accent bg-accent/10 px-8 py-3.5 text-[0.65rem] uppercase tracking-[0.2em] text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className="inline-flex min-h-[48px] min-w-[44px] items-center justify-center rounded-full border border-accent bg-accent/10 px-8 py-3.5 text-[0.65rem] uppercase tracking-[0.2em] text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   {resolveLocalized(
                     landing.hero_cta_label,
@@ -286,9 +286,15 @@ export function TiendaLandingView({
               </div>
             ) : null}
           </div>
-          <div className="absolute bottom-6 md:bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 md:gap-4">
-            <span className="hidden md:block text-editorial-xs uppercase tracking-widest text-muted-foreground [writing-mode:vertical-rl]">{tCommon('scrollDown') || 'Descender'}</span>
-            <div className="w-px h-8 md:h-12 bg-gradient-to-b from-accent to-transparent animate-bounce" />
+          {/* Scroll cue: side rail on md+, never center-stacked over subtitle/formula */}
+          <div
+            className="pointer-events-none absolute bottom-6 right-4 sm:right-6 md:bottom-10 md:right-8 z-10 flex flex-col items-center gap-2 md:gap-3"
+            aria-hidden
+          >
+            <span className="hidden lg:block text-editorial-xs uppercase tracking-widest text-muted-foreground/80 [writing-mode:vertical-rl] rotate-180">
+              {tCommon('scrollDown') || 'Descender'}
+            </span>
+            <div className="w-px h-10 md:h-14 bg-gradient-to-b from-accent/80 to-transparent" />
           </div>
         </section>
           );
@@ -308,25 +314,25 @@ export function TiendaLandingView({
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center mb-16">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center mb-12 md:mb-16">
               {[
                 { value: ecosystemMetrics.arboles_total, label: tConservation('treesPlanted') || 'Árboles plantados', suffix: '+' },
                 { value: ecosystemMetrics.co2_evitado_total_kg, label: tConservation('co2Avoided') || 'CO₂ evitado (kg)', suffix: '', prefix: '~' },
                 { value: ecosystemMetrics.colmenas_total, label: tConservation('hivesCustodied') || 'Colmenas custodiadas', suffix: '' },
                 { value: ecosystemMetrics.especies_nativas, label: tConservation('nativeSpecies') || 'Especies nativas', suffix: '' },
               ].map((stat) => (
-                <div key={stat.label} className="py-4">
-                  <p className="counter-value font-display text-5xl md:text-6xl font-light text-accent" data-target={stat.value} data-prefix={stat.prefix || ''} data-suffix={stat.suffix}>
+                <div key={stat.label} className="py-3 sm:py-4 px-1">
+                  <p className="counter-value font-display text-3xl sm:text-5xl md:text-6xl font-light text-accent" data-target={stat.value} data-prefix={stat.prefix || ''} data-suffix={stat.suffix}>
                     0
                   </p>
-                  <p className="text-editorial-xs uppercase tracking-widest text-muted-foreground mt-3">{stat.label}</p>
+                  <p className="text-editorial-xs uppercase tracking-widest text-muted-foreground mt-2 sm:mt-3 leading-snug">{stat.label}</p>
                 </div>
               ))}
             </div>
 
-            <div className="max-w-3xl mx-auto border-t border-border/20 pt-10 mb-16">
+            <div className="max-w-3xl mx-auto border-t border-border/20 pt-10 mb-12 md:mb-16">
               <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-6 text-center">{tScience('triangulation') || 'Triangulación de fuentes'}</p>
-              <div className="grid md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="text-center">
                   <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">{tScience('peerReviewed') || 'Papers revisados por pares'}</p>
                   <p className="text-sm text-muted-foreground leading-relaxed">
