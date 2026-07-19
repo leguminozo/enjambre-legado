@@ -13,9 +13,15 @@ import {
   EyeOff,
   Loader2,
   LayoutTemplate,
+  Server,
+  CheckCircle,
+  Circle,
+  AlertTriangle,
 } from 'lucide-react';
 import { useTheme, type Theme } from '@enjambre/ui';
-import { toast } from '@enjambre/ui';
+import { toast, Badge } from '@enjambre/ui';
+import { useQuery } from '@tanstack/react-query';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   DEFAULT_NOTIFICATION_PREFERENCES,
   mergeNotificationPreferences,
@@ -45,7 +51,7 @@ interface DataStats {
 
 export function ConfiguracionView() {
   const { theme, setTheme, resolvedTheme } = useTheme();
-  
+  const apiFetch = useApiFetch();
   const router = useRouter();
   
   const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES);
@@ -54,6 +60,42 @@ export function ConfiguracionView() {
   
   const [dataStats, setDataStats] = useState<DataStats | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
+
+  const envStatusQuery = useQuery({
+    queryKey: ['health', 'env-status'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/health/env-status');
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? 'Error cargando estado de entorno');
+      }
+      return res.json();
+    },
+    retry: false,
+  });
+  const envData = envStatusQuery.data?.data as
+    | {
+        listoCore: boolean;
+        listoGoLiveSoft: boolean;
+        criticosPendientes: number;
+        vercelEnv: string | null;
+        tip?: string;
+        docs?: Record<string, string>;
+        groups: Array<{
+          id: string;
+          label: string;
+          critical: boolean;
+          ok: boolean;
+          items: Array<{
+            id: string;
+            label: string;
+            status: string;
+            critical: boolean;
+            detail?: string;
+          }>;
+        }>;
+      }
+    | undefined;
 
   useEffect(() => {
     async function loadPrefs() {
@@ -231,6 +273,87 @@ export function ConfiguracionView() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
+          <div className="flex items-center gap-3 text-accent">
+            <Server size={18} />
+            <h3 className="text-sm font-bold uppercase tracking-widest">Entorno / secrets (runtime)</h3>
+          </div>
+          <p className="text-xs text-muted-foreground max-w-2xl">
+            Solo presencia de variables en este deploy de Núcleo. Los valores no se muestran. Editá keys de
+            plataforma en Vercel; negocio (SII/SumUp/Banco) en sus pantallas.
+          </p>
+          {envStatusQuery.isLoading && (
+            <div className="text-sm text-muted-foreground flex items-center gap-2">
+              <Loader2 size={14} className="animate-spin" /> Consultando runtime…
+            </div>
+          )}
+          {envStatusQuery.isError && (
+            <p className="text-sm text-destructive">{(envStatusQuery.error as Error).message}</p>
+          )}
+          {envData && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                    envData.listoCore
+                      ? 'bg-primary/10 text-primary border-primary/20'
+                      : 'bg-warning/10 text-warning border-warning/20'
+                  }`}
+                >
+                  {envData.listoCore ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
+                  Core:{' '}
+                  {envData.listoCore ? 'listo' : `${envData.criticosPendientes} crítico(s)`}
+                </span>
+                <Badge variant="default">{envData.vercelEnv ?? 'local'}</Badge>
+                {envData.listoGoLiveSoft && (
+                  <Badge variant="success">go-live soft OK</Badge>
+                )}
+              </div>
+              {envData.groups.map((g) => (
+                <div key={g.id} className="rounded-xl border border-border overflow-hidden">
+                  <div className="px-3 py-2 bg-secondary/40 flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider">{g.label}</span>
+                    <Badge variant={g.ok ? 'success' : g.critical ? 'warning' : 'default'}>
+                      {g.ok ? 'ok' : 'gaps'}
+                    </Badge>
+                  </div>
+                  <ul className="divide-y divide-border">
+                    {g.items.map((it) => (
+                      <li
+                        key={it.id}
+                        className="flex items-start gap-2 px-3 py-2 text-sm bg-surface-sunken/30"
+                      >
+                        {it.status === 'ok' ? (
+                          <CheckCircle size={14} className="mt-0.5 shrink-0 text-primary" />
+                        ) : (
+                          <Circle
+                            size={14}
+                            className={`mt-0.5 shrink-0 ${
+                              it.critical ? 'text-warning' : 'text-muted-foreground'
+                            }`}
+                          />
+                        )}
+                        <div className="min-w-0">
+                          <span className="font-medium">{it.label}</span>
+                          {it.detail && (
+                            <p className="text-[11px] text-muted-foreground mt-0.5">{it.detail}</p>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              {envData.tip && (
+                <p className="text-xs text-muted-foreground">{envData.tip}</p>
+              )}
+              <p className="text-[11px] text-muted-foreground font-mono">
+                CLI: pnpm env:check · pnpm go-live:check · pnpm env:check:prod
+              </p>
             </div>
           )}
         </section>

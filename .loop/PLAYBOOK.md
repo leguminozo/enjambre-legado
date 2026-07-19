@@ -26,7 +26,9 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 | Banco sin checklist | go-live ciego | no token/cuentas probe | `GET /checklist` + Probar auth + sync cuentas |
 | Webhook sin verify | abono/tx forjada | route webhook sin secret/firma | secret server + idempotency key |
 | Cron fiscal muerto | jobs stuck | `CRON_SECRET` empty en Vercel | require secret; schedule vercel.json |
-| Env matrix incompleta | works local fails prod | `docs/ENV-CHECKLIST.md` | `pnpm go-live:check` / matrix por app |
+| Env matrix incompleta | works local fails prod | `docs/ENV-CHECKLIST.md` | `pnpm env:check` + def en `scripts/lib/env-matrix-def.mjs` |
+| Runtime env ciego | no se sabe qué falta en deploy | solo CLI local | `GET /api/health/env-status` + Configuración → Entorno |
+| Encryption gap | no se pueden guardar secrets negocio | sin SII_CLAVE_ENCRYPTION_KEY | key ≥32 en Vercel nucleo; health checks encryption |
 | Mock en production | cobro/fiscal falso | `if (process.env.NODE_ENV !==` skip real API | production siempre path real o deny |
 | Pagos web ciego | no se sabe si puede cobrar | sin checklist runtime | `GET /api/checkout/admin/checklist` + UI `/pagos` tab web |
 | Sesiones pending huérfanas | pago OK sin venta | no listado admin | `GET /checkout/admin/sessions` + fulfill path |

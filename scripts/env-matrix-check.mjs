@@ -6,6 +6,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ENV_MATRIX } from './lib/env-matrix-def.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -31,53 +32,12 @@ function loadEnv(relPath) {
   return out;
 }
 
-const MATRIX = [
-  {
-    name: 'nucleo',
-    path: 'apps/nucleo/.env.local',
-    required: [
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-      'INTERNAL_API_SECRET',
-      'NEXT_PUBLIC_URL_TIENDA',
-    ],
-    recommended: [
-      'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY',
-      'NEXT_PUBLIC_NUCLEO_API_URL',
-      'NEXT_PUBLIC_URL_CAMPO',
-      'CMS_REVALIDATE_SECRET',
-      'PAYMENT_PROVIDER',
-    ],
-  },
-  {
-    name: 'tienda',
-    path: 'apps/tienda/.env.local',
-    required: ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_NUCLEO_API_URL'],
-    recommended: [
-      'NEXT_PUBLIC_SITE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-      'INTERNAL_API_SECRET',
-      'CMS_REVALIDATE_SECRET',
-    ],
-  },
-  {
-    name: 'campo',
-    path: 'apps/campo/.env.local',
-    required: [
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'NEXT_PUBLIC_NUCLEO_API_URL',
-      'NEXT_PUBLIC_URL_TIENDA',
-    ],
-    recommended: ['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY', 'INTERNAL_API_SECRET'],
-  },
-];
-
 let failed = false;
 const envs = {};
 
 console.log('=== Env matrix check (presence only) ===\n');
 
-for (const app of MATRIX) {
+for (const app of ENV_MATRIX) {
   const env = loadEnv(app.path);
   envs[app.name] = env;
   if (!env) {
@@ -91,9 +51,27 @@ for (const app of MATRIX) {
     console.log(`  ${ok ? '✅' : '❌'} required  ${k}`);
     if (!ok) failed = true;
   }
+  // anon OR publishable counts as one recommended family
+  const hasAnon =
+    Boolean(env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY?.trim()) ||
+    Boolean(env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim());
   for (const k of app.recommended) {
+    if (
+      k === 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY' ||
+      k === 'NEXT_PUBLIC_SUPABASE_ANON_KEY'
+    ) {
+      continue;
+    }
     const ok = Boolean(env[k]?.trim());
     console.log(`  ${ok ? '✅' : '⚠️ '} recommended ${k}`);
+  }
+  if (
+    app.recommended.includes('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY') ||
+    app.recommended.includes('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  ) {
+    console.log(
+      `  ${hasAnon ? '✅' : '⚠️ '} recommended NEXT_PUBLIC_SUPABASE_ANON|PUBLISHABLE`,
+    );
   }
   console.log('');
 }
@@ -120,7 +98,9 @@ if (n && t) {
     const ns = n.CMS_REVALIDATE_SECRET || n.INTERNAL_API_SECRET;
     const ts = t.CMS_REVALIDATE_SECRET || t.INTERNAL_API_SECRET;
     const ok = Boolean(ns && ts && ns === ts);
-    console.log(`  ${ok ? '✅' : '❌'} revalidate secret effective match (CMS or INTERNAL)`);
+    console.log(
+      `  ${ok ? '✅' : '❌'} revalidate secret effective match (CMS or INTERNAL)`,
+    );
     if (!ok) failed = true;
   }
   if (n.NEXT_PUBLIC_URL_TIENDA && t.NEXT_PUBLIC_SITE_URL) {
@@ -128,17 +108,34 @@ if (n && t) {
       const o1 = new URL(n.NEXT_PUBLIC_URL_TIENDA).origin;
       const o2 = new URL(t.NEXT_PUBLIC_SITE_URL).origin;
       const ok = o1 === o2;
-      console.log(`  ${ok ? '✅' : '⚠️ '} tienda origin nucleo URL_TIENDA vs tienda SITE_URL (${o1} vs ${o2})`);
+      console.log(
+        `  ${ok ? '✅' : '⚠️ '} tienda origin nucleo URL_TIENDA vs tienda SITE_URL (${o1} vs ${o2})`,
+      );
     } catch {
       console.log('  ⚠️  invalid URL for tienda origin check');
     }
+  }
+  if (n.NEXT_PUBLIC_SUPABASE_URL && t.NEXT_PUBLIC_SUPABASE_URL) {
+    const ok = n.NEXT_PUBLIC_SUPABASE_URL === t.NEXT_PUBLIC_SUPABASE_URL;
+    console.log(`  ${ok ? '✅' : '❌'} SUPABASE_URL nucleo↔tienda`);
+    if (!ok) failed = true;
   }
 }
 
 if (n && c) {
   if (n.NEXT_PUBLIC_NUCLEO_API_URL && c.NEXT_PUBLIC_NUCLEO_API_URL) {
-    const ok = n.NEXT_PUBLIC_NUCLEO_API_URL.replace(/\/$/, '') === c.NEXT_PUBLIC_NUCLEO_API_URL.replace(/\/$/, '');
+    const ok =
+      n.NEXT_PUBLIC_NUCLEO_API_URL.replace(/\/$/, '') ===
+      c.NEXT_PUBLIC_NUCLEO_API_URL.replace(/\/$/, '');
     console.log(`  ${ok ? '✅' : '⚠️ '} NUCLEO_API_URL nucleo self vs campo`);
+  }
+  if (n.INTERNAL_API_SECRET && c.INTERNAL_API_SECRET) {
+    sameSecret(n, c, 'INTERNAL_API_SECRET', 'INTERNAL_API_SECRET nucleo↔campo');
+  }
+  if (n.NEXT_PUBLIC_SUPABASE_URL && c.NEXT_PUBLIC_SUPABASE_URL) {
+    const ok = n.NEXT_PUBLIC_SUPABASE_URL === c.NEXT_PUBLIC_SUPABASE_URL;
+    console.log(`  ${ok ? '✅' : '❌'} SUPABASE_URL nucleo↔campo`);
+    if (!ok) failed = true;
   }
 }
 

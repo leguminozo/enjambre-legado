@@ -1,13 +1,13 @@
 {
-  "index": 5,
-  "pass": 22,
-  "last_sector": "val-pagos-web",
-  "last_commit": "a0a9bd8",
+  "index": 6,
+  "pass": 23,
+  "last_sector": "val-env-secrets",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {
-    "val-env-secrets": 2,
-    "val-conciliacion-e2e": 1
+    "val-conciliacion-e2e": 2,
+    "deep-followup-golive": 1
   },
   "phase": "v1.2-golive",
-  "notes": "Pass 21: checkout web checklist + sessions admin UI. Siguiente: val-env-secrets (#5) o val-conciliacion-e2e."
+  "notes": "Pass 22: env matrix v2 + health env-status UI. Siguiente: val-conciliacion-e2e (#6)."
 }

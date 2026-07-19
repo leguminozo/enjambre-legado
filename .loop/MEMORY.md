@@ -32,6 +32,13 @@
 
 ## Evolución del prompt
 
+### Evo 2026-07-16 pass 22 (val-env-secrets)
+- Señal: matriz env desactualizada (sin SII_CLAVE_ENCRYPTION_KEY/CRON/pagos); /health/deps sin tienda/encryption; sin UI runtime
+- Compuesto: redirigir + config-en-UI (presencia, no valores)
+- Regla nueva: `scripts/lib/env-matrix-def.mjs` SoT local; nucleo `buildNucleoEnvRuntimeStatus` + `GET /health/env-status` admin; Configuración → Entorno; deps endurece tienda_url+encryption en prod
+- Anti-patrón: documentar keys en MEMORY sin matriz ejecutable; mostrar valores de secrets en API
+- Guardriel: intacto
+
 ### Evo 2026-07-16 pass 21 (val-pagos-web)
 - Señal: checkout Flow/TBK sin panel go-live; operador no veía env readiness ni sesiones pending; keys deben quedarse en Vercel
 - Compuesto: método + redirigir + config-en-UI (estado, no secretos)

@@ -6,43 +6,10 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ENV_MATRIX } from './lib/env-matrix-def.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-
-const APPS = [
-  {
-    name: 'nucleo',
-    path: 'apps/nucleo/.env.local',
-    required: [
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-      'INTERNAL_API_SECRET',
-    ],
-    recommended: [
-      'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY',
-      'NEXT_PUBLIC_NUCLEO_API_URL',
-      'NEXT_PUBLIC_URL_TIENDA',
-      'NEXT_PUBLIC_URL_CAMPO',
-    ],
-  },
-  {
-    name: 'tienda',
-    path: 'apps/tienda/.env.local',
-    required: ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_NUCLEO_API_URL'],
-    recommended: [
-      'NEXT_PUBLIC_SITE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-      'INTERNAL_API_SECRET',
-      'CMS_REVALIDATE_SECRET',
-    ],
-  },
-  {
-    name: 'campo',
-    path: 'apps/campo/.env.local',
-    required: ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_NUCLEO_API_URL', 'NEXT_PUBLIC_URL_TIENDA'],
-    recommended: ['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY', 'INTERNAL_API_SECRET'],
-  },
-];
+const APPS = ENV_MATRIX;
 
 function parseEnvFile(relPath) {
   const full = resolve(root, relPath);

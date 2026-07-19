@@ -1,7 +1,13 @@
 import { Hono } from "hono";
-import { authMiddleware } from "@/api/lib/middleware";
+import {
+  authMiddleware,
+  requireProfileRole,
+  tenantMiddleware,
+  type AppVariables,
+} from "@/api/lib/middleware";
+import { buildNucleoEnvRuntimeStatus } from "@/api/lib/env-runtime-status";
 
-export const healthRoutes = new Hono();
+export const healthRoutes = new Hono<{ Variables: AppVariables }>();
 
 type DepStatus = "ok" | "missing";
 
@@ -31,6 +37,8 @@ healthRoutes.get("/deps", (c) => {
   const isProdLike =
     process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
 
+  const runtime = buildNucleoEnvRuntimeStatus();
+
   const checks: Record<string, DepStatus> = {
     supabase_url: envPresent("NEXT_PUBLIC_SUPABASE_URL") ? "ok" : "missing",
     supabase_anon: hasAnon ? "ok" : "missing",
@@ -40,6 +48,15 @@ healthRoutes.get("/deps", (c) => {
         ? "ok"
         : "missing"
       : envPresent("INTERNAL_API_SECRET") || envPresent("SUPABASE_SERVICE_ROLE_KEY")
+        ? "ok"
+        : "missing",
+    encryption: runtime.groups
+      .find((g) => g.id === "fiscal")
+      ?.items.find((i) => i.id === "encryption")?.status === "ok"
+      ? "ok"
+      : "missing",
+    tienda_url:
+      envPresent("NEXT_PUBLIC_URL_TIENDA") || envPresent("NEXT_PUBLIC_TIENDA_URL")
         ? "ok"
         : "missing",
     upstash:
@@ -52,7 +69,11 @@ healthRoutes.get("/deps", (c) => {
     "supabase_url",
     "supabase_anon",
     "service_role",
+    "tienda_url",
   ];
+  if (isProdLike) {
+    critical.push("internal_api_secret", "encryption");
+  }
   const degraded = critical.some((k) => checks[k] !== "ok");
 
   return c.json(
@@ -76,3 +97,29 @@ healthRoutes.get("/ready", authMiddleware, (c) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+/**
+ * Matriz env go-live (admin): grupos core/fiscal/pagos/ops.
+ * Solo presencia — nunca valores. UI: Configuración → Entorno.
+ */
+healthRoutes.get(
+  "/env-status",
+  authMiddleware,
+  tenantMiddleware,
+  requireProfileRole("admin"),
+  (c) => {
+    const data = buildNucleoEnvRuntimeStatus();
+    return c.json({
+      data: {
+        ...data,
+        docs: {
+          checklist: "docs/ENV-CHECKLIST.md",
+          local: "pnpm env:check",
+          goLive: "pnpm go-live:check",
+          prodHeaders: "pnpm env:check:prod",
+        },
+        tip: "Keys de plataforma se editan en Vercel (3 proyectos). SumUp/Banco/SII de negocio se configuran en UI de cada módulo.",
+      },
+    });
+  },
+);

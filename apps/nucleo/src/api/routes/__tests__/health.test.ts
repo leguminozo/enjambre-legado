@@ -59,7 +59,9 @@ describe("Health API Routes", () => {
   it("GET /api/health/deps reports config checks without leaking secrets", async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key";
-    process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key-at-least-32chars!!";
+    process.env.NEXT_PUBLIC_URL_TIENDA = "https://tienda.example";
+    process.env.INTERNAL_API_SECRET = "internal-test";
     delete process.env.UPSTASH_REDIS_REST_URL;
     delete process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -70,8 +72,9 @@ describe("Health API Routes", () => {
     expect(json.checks.supabase_url).toBe("ok");
     expect(json.checks.supabase_anon).toBe("ok");
     expect(json.checks.service_role).toBe("ok");
+    expect(json.checks.tienda_url).toBe("ok");
     expect(json.checks.upstash).toBe("missing");
     expect(json.status).toBe("ok");
-    expect(JSON.stringify(json)).not.toMatch(/service-role|anon-key/i);
+    expect(JSON.stringify(json)).not.toMatch(/service-role-key|anon-key|internal-test/i);
   });
 });
