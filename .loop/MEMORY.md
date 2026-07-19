@@ -29,9 +29,9 @@
 
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
-| Tienda hero | cue “Descender” vertical **solapa** subtítulo/fórmula; hero `70dvh` corto | ⏳ P0 |
+| Tienda hero | cue “Descender” vertical **solapa** subtítulo/fórmula; hero `70dvh` corto | ✅ pass 40 |
 | Tienda header | nav densa en desktop medio; spacing links | ⏳ P1 |
-| Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ⏳ P1 |
+| Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | touch ≥44, safe-area, terminal flow copy | ⏳ |
 | Nucleo panels | checklists go-live ritmo/cards consistentes | ⏳ |
 | Tokens | residual hex/emerald en views legacy | ⏳ baja |
