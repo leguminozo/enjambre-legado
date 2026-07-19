@@ -118,6 +118,28 @@ jobsRoutes.get("/", async (c) => {
   });
 });
 
+/**
+ * Dispara el worker de jobs de inmediato (admin ops).
+ * Complementa cron fiscal cada 15m; emit paths son idempotentes (no re-envían aceptados).
+ */
+jobsRoutes.post("/process-now", async (c) => {
+  try {
+    const { processFiscalDocumentJobs } = await import(
+      "@/lib/fiscal/document-jobs-worker"
+    );
+    const result = await processFiscalDocumentJobs();
+    return c.json({
+      success: true,
+      data: result,
+      message: "Worker de jobs ejecutado",
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[sii/jobs process-now]", message);
+    return c.json({ code: "process_failed", message }, 500);
+  }
+});
+
 /** Reschedule job for immediate retry via cron worker */
 jobsRoutes.post("/:id/retry", async (c) => {
   const empresaId = c.get("empresaId");
@@ -135,7 +157,7 @@ jobsRoutes.post("/:id/retry", async (c) => {
     return c.json({ code: "not_found", message: "Job no encontrado" }, 404);
   }
 
-  if (!["failed", "dead_letter", "pending"].includes(String(job.status))) {
+  if (!["failed", "dead_letter", "pending", "processing"].includes(String(job.status))) {
     return c.json(
       {
         code: "invalid_state",
@@ -152,7 +174,7 @@ jobsRoutes.post("/:id/retry", async (c) => {
       scheduled_at: new Date().toISOString(),
       last_error: null,
       // keep attempts so we don't infinite-loop dead letters forever without ops notice
-      attempts: job.status === "dead_letter" ? 0 : job.attempts,
+      attempts: job.status === "dead_letter" || job.status === "processing" ? 0 : job.attempts,
       completed_at: null,
       updated_at: new Date().toISOString(),
     })
@@ -167,7 +189,7 @@ jobsRoutes.post("/:id/retry", async (c) => {
 
   return c.json({
     data,
-    message: "Job reprogramado — el cron fiscal lo tomará en el próximo tick",
+    message: "Job reprogramado — usá Reintentar cola o esperá el cron fiscal (*/15)",
   });
 });
 

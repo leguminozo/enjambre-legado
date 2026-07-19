@@ -61,6 +61,23 @@ export function DashboardTab() {
     },
   });
 
+  const processNowMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiFetch("/api/sii/jobs/process-now", { method: "POST" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? "Error al procesar cola");
+      }
+      return res.json() as Promise<{
+        data?: { processed?: number; completed?: number; failed?: number; deadLetter?: number };
+        message?: string;
+      }>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sii"] });
+    },
+  });
+
   const facturasQuery = useQuery({
     queryKey: ["sii", "facturas-compra"],
     queryFn: async (): Promise<FacturaCompraRow[]> => {
@@ -139,7 +156,7 @@ export function DashboardTab() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex flex-wrap gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
             <Badge variant={emission?.autoEmitBoleta ? "success" : "warning"}>
               auto-boleta: {emission?.autoEmitBoleta ? "ON" : "OFF"}
             </Badge>
@@ -162,7 +179,34 @@ export function DashboardTab() {
               jobs: {jobsData?.open.pending ?? 0}p / {jobsData?.open.failed ?? 0}f /{" "}
               {jobsData?.open.deadLetter ?? 0}dl
             </Badge>
+            <Button
+              size="sm"
+              variant="outline"
+              className="ml-auto"
+              disabled={processNowMutation.isPending}
+              onClick={() => processNowMutation.mutate()}
+            >
+              {processNowMutation.isPending ? (
+                <HexagonLoader size="sm" className="mr-1" />
+              ) : (
+                <RefreshCw size={14} className="mr-1" />
+              )}
+              Procesar cola ahora
+            </Button>
           </div>
+          {processNowMutation.isSuccess && processNowMutation.data?.data && (
+            <p className="text-xs text-muted-foreground">
+              Último worker: {processNowMutation.data.data.processed ?? 0} proc ·{" "}
+              {processNowMutation.data.data.completed ?? 0} ok ·{" "}
+              {processNowMutation.data.data.failed ?? 0} fail ·{" "}
+              {processNowMutation.data.data.deadLetter ?? 0} dead
+            </p>
+          )}
+          {processNowMutation.isError && (
+            <p className="text-xs text-destructive">
+              {(processNowMutation.error as Error).message}
+            </p>
+          )}
           {jobsQuery.isLoading && <ViewLoading variant="inline" label="Jobs" hideLabel />}
           {jobsQuery.isError && (
             <p className="text-sm text-destructive">{(jobsQuery.error as Error).message}</p>
@@ -206,7 +250,9 @@ export function DashboardTab() {
                         {j.last_error ?? "—"}
                       </td>
                       <td className="px-2 py-1.5">
-                        {["failed", "dead_letter", "pending"].includes(j.status) && (
+                        {["failed", "dead_letter", "pending", "processing"].includes(
+                          j.status,
+                        ) && (
                           <Button
                             size="sm"
                             variant="outline"

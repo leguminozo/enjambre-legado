@@ -66,9 +66,22 @@ export async function emitFacturaCompraToSii(
     return { ok: false, code: 'not_found', message: 'Factura de compra no encontrada' };
   }
 
-  const row = factura as FacturaCompraRow;
+  const row = factura as FacturaCompraRow & { track_id?: string | null };
+  // Idempotent retry after successful envío (job/cron must complete, not dead_letter)
+  if (row.estado_sii === 'aceptado' || row.estado_sii === 'enviado') {
+    return {
+      ok: true,
+      trackId: String(row.track_id ?? ''),
+      estado: row.estado_sii,
+      estadoSii: row.estado_sii as 'aceptado' | 'enviado',
+    };
+  }
   if (row.estado_sii !== 'pendiente') {
-    return { ok: false, code: 'invalid_state', message: 'La factura ya fue enviada al SII' };
+    return {
+      ok: false,
+      code: 'invalid_state',
+      message: `La factura está en estado ${row.estado_sii} y no se re-emite automáticamente`,
+    };
   }
 
   try {

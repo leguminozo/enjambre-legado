@@ -52,7 +52,9 @@ export async function emitBoletaVentaToSii(
 ): Promise<EmitBoletaVentaResult> {
   const { data: factura, error: facturaError } = await supabase
     .from('facturas_emitidas')
-    .select('id, estado_sii, monto_neto, monto_iva, monto_total, monto_exento, fecha_emision, descripcion')
+    .select(
+      'id, estado_sii, monto_neto, monto_iva, monto_total, monto_exento, fecha_emision, descripcion, folio, track_id',
+    )
     .eq('id', input.facturaEmitidaId)
     .eq('empresa_id', empresaId)
     .single();
@@ -69,10 +71,26 @@ export async function emitBoletaVentaToSii(
     monto_exento: number;
     fecha_emision: string;
     descripcion: string | null;
+    folio: number | null;
+    track_id: string | null;
   };
 
-  if (row.estado_sii && row.estado_sii !== 'pendiente') {
-    return { ok: false, code: 'invalid_state', message: 'La boleta ya fue enviada al SII' };
+  // Idempotent: job/cron retry after successful envío must complete job, not dead_letter
+  const estadoExistente = row.estado_sii ?? '';
+  if (estadoExistente === 'aceptado' || estadoExistente === 'enviado') {
+    return {
+      ok: true,
+      folio: Number(row.folio ?? 0),
+      trackId: String(row.track_id ?? ''),
+      estadoSii: estadoExistente as 'aceptado' | 'enviado',
+    };
+  }
+  if (estadoExistente && estadoExistente !== 'pendiente') {
+    return {
+      ok: false,
+      code: 'invalid_state',
+      message: `La boleta está en estado ${estadoExistente} y no se re-emite automáticamente`,
+    };
   }
 
   try {

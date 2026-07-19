@@ -24,6 +24,43 @@ describe('sii-document-jobs', () => {
       expect(result).toEqual({ ok: true, id: 'job-1' });
     });
 
+    it('resolves existing id when ignoreDuplicates returns no row', async () => {
+      let call = 0;
+      const supabase = {
+        from: vi.fn(() => {
+          call += 1;
+          if (call === 1) {
+            return {
+              upsert: vi.fn().mockReturnThis(),
+              select: vi.fn().mockReturnThis(),
+              single: vi.fn().mockResolvedValue({
+                data: null,
+                error: { message: 'duplicate key', code: '23505' },
+              }),
+            };
+          }
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { id: 'job-existing' },
+              error: null,
+            }),
+          };
+        }),
+      } as any;
+
+      const result = await enqueueSiiDocumentJob(supabase, {
+        empresaId: 'emp-1',
+        sourceType: 'venta',
+        sourceId: 'venta-1',
+        tipoDte: 39,
+        idempotencyKey: 'boleta_checkout:fac-1',
+      });
+
+      expect(result).toEqual({ ok: true, id: 'job-existing' });
+    });
+
     it('returns error message on failure', async () => {
       const supabase = {
         from: vi.fn(() => ({
@@ -33,6 +70,8 @@ describe('sii-document-jobs', () => {
             data: null,
             error: { message: 'new row violates row-level security policy' },
           }),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
         })),
       } as any;
 
@@ -65,17 +104,27 @@ describe('sii-document-jobs', () => {
       });
     });
 
-    function makeSupabase(jobs: Record<string, unknown>[]) {
+    function makeSupabase(jobs: Record<string, unknown>[], stale: Record<string, unknown>[] = []) {
+      let jobsSelectCalls = 0;
       return {
         from: vi.fn((table: string) => {
           if (table === 'sii_document_jobs') {
             return {
               select: vi.fn().mockReturnThis(),
               in: vi.fn().mockReturnThis(),
+              eq: vi.fn().mockReturnThis(),
               lte: vi.fn().mockReturnThis(),
               lt: vi.fn().mockReturnThis(),
               order: vi.fn().mockReturnThis(),
-              limit: vi.fn().mockResolvedValue({ data: jobs, error: null }),
+              limit: vi.fn().mockImplementation(() => {
+                jobsSelectCalls += 1;
+                // first Promise.all branch is due, second is stale — order is parallel
+                // both resolve; we return due for odd and stale for even by call order
+                if (jobsSelectCalls === 1) {
+                  return Promise.resolve({ data: jobs, error: null });
+                }
+                return Promise.resolve({ data: stale, error: null });
+              }),
               update: vi.fn().mockReturnValue({
                 eq: vi.fn().mockResolvedValue({ error: null }),
               }),

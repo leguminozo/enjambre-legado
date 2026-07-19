@@ -22,7 +22,7 @@
 
 | Integración | Casi listo | Gap típico a cerrar |
 |-------------|------------|---------------------|
-| SII | checklist **emisor+P12 creds** + pipeline + jobs + auto-emit | ⏳ ops: mig 95; P12/CAF reales; SII_AUTO_EMIT; 1ª boleta Maullín |
+| SII | checklist emisor+P12 + **emit idempotente** + enqueue resolve + process-now UI | ⏳ ops: mig 95; P12/CAF; SII_AUTO_EMIT; 1ª boleta Maullín |
 | SumUp | config UI + checklist + **terminal checkout idempotente** (mig 96) + readers normalizados | ⏳ ops: mig 96; keys live; smoke POS→tx |
 | Banco Chile | config BFF + webhook S + **token frescor fix** + **POST /sync** cuentas+movs | ⏳ ops: creds; webhook secret; 1 sync real |
 | Conciliación | motor **facturas→ventas paid→gastos** + seed-defaults UI + aceptar→confianza/regla | ⏳ ops: mig 97; sync banco; 1 match real |
@@ -33,6 +33,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-19 pass 34 (val-sii-emision residual)
+- Señal: reintento job sobre boleta/FC ya enviada → invalid_state → dead_letter; enqueue ignoreDuplicates sin id; processing stuck sin reclaim
+- Compuesto: colapsar + redirigir + U
+- Regla nueva: emit boleta/FC idempotente en enviado|aceptado; enqueue resuelve id por idempotency_key; worker reclama processing >15m; POST /jobs/process-now + UI
+- Anti-patrón: tratar re-envío como error fatal cuando el DTE ya está en SII
+- Guardriel: intacto
 
 ### Evo 2026-07-19 pass 33 (val-sii-certificacion residual)
 - Señal: checklist verde sin RUT/giro/domicilio/acteco; cert “activo” sin password/storage → resolveSiiCredentials falla al emitir

@@ -81,10 +81,26 @@ export async function enqueueSiiDocumentJob(
     .select('id')
     .single();
 
-  if (error || !data) {
-    return { ok: false, error: error?.message ?? 'No se pudo encolar el job' };
+  if (data?.id) {
+    return { ok: true, id: data.id as string };
   }
-  return { ok: true, id: data.id as string };
+
+  // ignoreDuplicates: existing row may not be returned — resolve by idempotency key
+  const { data: existing, error: findErr } = await supabase
+    .from('sii_document_jobs')
+    .select('id')
+    .eq('empresa_id', input.empresaId)
+    .eq('idempotency_key', input.idempotencyKey)
+    .maybeSingle();
+
+  if (existing?.id) {
+    return { ok: true, id: existing.id as string };
+  }
+
+  return {
+    ok: false,
+    error: error?.message ?? findErr?.message ?? 'No se pudo encolar el job',
+  };
 }
 
 function nextScheduledAt(attempts: number): string {
@@ -100,21 +116,50 @@ async function markJob(
   await supabase.from('sii_document_jobs').update(patch).eq('id', jobId);
 }
 
+const STALE_PROCESSING_MS = 15 * 60_000;
+
 export async function processSiiDocumentJobs(
   supabase: SupabaseClient,
   deps: ProcessSiiJobDeps,
   limit = 10,
 ): Promise<{ processed: number; completed: number; failed: number; deadLetter: number }> {
-  const { data: jobs, error } = await supabase
-    .from('sii_document_jobs')
-    .select('*')
-    .in('status', ['pending', 'failed'])
-    .lte('scheduled_at', new Date().toISOString())
-    .lt('attempts', MAX_ATTEMPTS)
-    .order('scheduled_at', { ascending: true })
-    .limit(limit);
+  const nowIso = new Date().toISOString();
+  const staleIso = new Date(Date.now() - STALE_PROCESSING_MS).toISOString();
 
-  if (error || !jobs?.length) {
+  const [dueRes, staleRes] = await Promise.all([
+    supabase
+      .from('sii_document_jobs')
+      .select('*')
+      .in('status', ['pending', 'failed'])
+      .lte('scheduled_at', nowIso)
+      .lt('attempts', MAX_ATTEMPTS)
+      .order('scheduled_at', { ascending: true })
+      .limit(limit),
+    // Reclaim workers that died mid-flight (status stuck on processing)
+    supabase
+      .from('sii_document_jobs')
+      .select('*')
+      .eq('status', 'processing')
+      .lt('updated_at', staleIso)
+      .lt('attempts', MAX_ATTEMPTS)
+      .order('updated_at', { ascending: true })
+      .limit(Math.min(5, limit)),
+  ]);
+
+  const seen = new Set<string>();
+  const jobs: Record<string, unknown>[] = [];
+  for (const row of [...(staleRes.data ?? []), ...(dueRes.data ?? [])]) {
+    const id = String((row as { id: string }).id);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    jobs.push(row as Record<string, unknown>);
+    if (jobs.length >= limit) break;
+  }
+
+  if (dueRes.error && !jobs.length) {
+    return { processed: 0, completed: 0, failed: 0, deadLetter: 0 };
+  }
+  if (!jobs.length) {
     return { processed: 0, completed: 0, failed: 0, deadLetter: 0 };
   }
 
