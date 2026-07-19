@@ -2,9 +2,9 @@
   "index": 2,
   "pass": 42,
   "last_sector": "ui-tienda-chrome",
-  "last_commit": "pending",
+  "last_commit": "12f5b59",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 41: header nav lg + touch. Siguiente: ui-tienda-shop (#2)."
+  "notes": "Pass 41: chrome nav lg (12f5b59). Siguiente: ui-tienda-shop (#2)."
 }
