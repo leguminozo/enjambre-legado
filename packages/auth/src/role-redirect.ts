@@ -97,8 +97,7 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/editor-tienda': ['admin'],
   '/calendario': ['admin'],
   '/pipeline': ['admin'],
-  '/calculos-ia': ['admin'],
-  '/vanguardia': ['admin'], // redirect → /crm?tab=aliados
+  // '/calculos-ia' y '/vanguardia' ya arriba (vanguardia redirect → /crm?tab=aliados)
 }
 
 function normalizeRole(role: string): string {
