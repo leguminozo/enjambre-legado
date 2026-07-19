@@ -95,7 +95,7 @@ La auto-mejora **no** mueve los guardrieles; solo afina dónde y cómo mirar.
 | Compuesto | Qué hace | Cómo se auto-mejora (fin de pasada) |
 |-----------|----------|-------------------------------------|
 | **Absorber** | Señal del sector, git, MEMORY, debt, trust boundaries, 5 leyes | Nuevas fuentes (routes BFF, crons, e2e, migs) si aportaron |
-| **Dirección** | Prioridad S → R → U → O; boost de sector | `CURSOR.boost`, reordenar si un P0 se repite |
+| **Dirección** | Prioridad V → R → S → E → U → O; boost de sector | `CURSOR.boost`, reordenar si un P0 se repite |
 | **Sectores** | Rotación CURSOR + deep-followup | Split/subsector si un área creció (anotar MEMORY; no inventar 20) |
 | **Método científico** | Hipótesis falsable, greps dirigidos, hop0–2 | Nuevas reglas de grep / anti-patrones en PLAYBOOK |
 | **Colapsar** | Fix mínimo o limpieza demostrada | Patrones canónicos de fix (hermano sano del repo) |
@@ -214,7 +214,7 @@ Formula **1 hipótesis**:
 ### B. Micro (quirúrgico, con evidencia — profundiza sin reloj artificial)
 
 Busca en el sector activo con greps/lecturas **dirigidas**.  
-Sigue una pista hasta refutarla o confirmarla. Prioridad fase v1.1: **E → U → R → S → O**.
+Sigue una pista hasta refutarla o confirmarla. Prioridad fase v1.2: **V → R → S → E → U → O**.
 
 **Clase E — Entrelazado por rol**
 
