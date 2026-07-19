@@ -21,7 +21,7 @@
 
 | Integración | Casi listo | Gap típico a cerrar |
 |-------------|------------|---------------------|
-| SII | pipeline DTE, CAF guard, checklist certificacion, jobs | cert P12 real, CAF 33/39/41/46, `sii_ambiente=produccion`, 1ª boleta/FC aceptada |
+| SII | pipeline DTE, CAF guard, **checklist v2** (CAF 33/39/46 + DTE/FC + clave + UI Settings), jobs | ⏳ ops: cert P12 real, CAF reales, 1ª boleta/FC aceptada en Maullín, luego Palena |
 | SumUp | client + BFF readers/tx/payouts | keys prod, reader en campo, webhook/idempotencia, smoke venta POS→tx |
 | Banco Chile | client sandbox/prod + conciliación auto | credenciales API store, token refresh, 1 sync movimientos, webhook |
 | Pagos web | TBK/Flow + checkout_sessions | returnUrl allowlist, fulfill pending→completed, CAF en checkout |
@@ -30,6 +30,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-16 pass 17 (val-sii-certificacion)
+- Señal: checklist solo CAF 46 + FC; `listoProduccion` exigía Palena junto a pruebas Maullín; sin UI; no medía clave/encryption/DTE venta 33/39
+- Compuesto: método + colapsar + unificar (UI operación)
+- Regla nueva: checklist SII con fases `certificacion` | `go-live`; críticos 33/39/46 + P12 + clave + encryption + DTE venta + FC; `listoCertificacion` independiente de `listoProduccion`; SettingsTab muestra badges
+- Anti-patrón: checklist que solo mira FC46; `storage-docs` hardcoded true; go-live flag sin panel operador
+- Guardriel: intacto
 
 ### Evo 2026-07-16 reorientación v1.2
 - Señal: operador pide enfocar loop a validar SII, SumUp, Banco Chile y funciones casi listas para uso real

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Settings2, CheckCircle2, Save, Trash2, KeyRound } from "lucide-react";
+import { Settings2, CheckCircle2, Save, Trash2, KeyRound, Circle, ShieldCheck, AlertTriangle } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, DatePicker } from "@enjambre/ui";
 
@@ -16,6 +16,26 @@ interface EmpresaSettings {
   has_clave_sii: boolean;
 }
 
+interface ChecklistItem {
+  id: string;
+  categoria: string;
+  titulo: string;
+  cumplido: boolean;
+  critico: boolean;
+  fase: string;
+  detalle?: string;
+}
+
+interface CertificacionChecklist {
+  listoCertificacion: boolean;
+  listoProduccion: boolean;
+  certCriticosPendientes: number;
+  criticosPendientes: number;
+  minFolios: number;
+  items: ChecklistItem[];
+  ambiente: string;
+}
+
 export function SettingsTab() {
   const queryClient = useQueryClient();
   const apiFetch = useApiFetch();
@@ -25,6 +45,17 @@ export function SettingsTab() {
     queryFn: async (): Promise<EmpresaSettings> => {
       const res = await apiFetch("/api/sii/empresa");
       if (!res.ok) throw new Error("Error cargando datos empresa");
+      const json = await res.json();
+      return json.data;
+    },
+    retry: false,
+  });
+
+  const checklistQuery = useQuery({
+    queryKey: ["sii", "certificacion", "checklist"],
+    queryFn: async (): Promise<CertificacionChecklist> => {
+      const res = await apiFetch("/api/sii/certificacion/checklist");
+      if (!res.ok) throw new Error("Error cargando checklist de certificación");
       const json = await res.json();
       return json.data;
     },
@@ -159,8 +190,119 @@ export function SettingsTab() {
   const emp = empresaQuery.data;
   if (!emp) return null;
 
+  const checklist = checklistQuery.data;
+
   return (
-    <Card className="max-w-2xl">
+    <div className="max-w-2xl space-y-6">
+      {/* Checklist go-live — validación real Maullín → Palena */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck size={18} /> Checklist certificación / go-live SII
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {checklistQuery.isLoading && (
+            <ViewLoading variant="view" label="Checklist SII" hideLabel />
+          )}
+          {checklistQuery.isError && (
+            <p className="text-sm text-destructive font-medium">
+              {(checklistQuery.error as Error).message}
+            </p>
+          )}
+          {checklist && (
+            <>
+              <div className="flex flex-wrap gap-2">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                    checklist.listoCertificacion
+                      ? "bg-primary/10 text-primary border-primary/20"
+                      : "bg-warning/10 text-warning border-warning/20"
+                  }`}
+                >
+                  {checklist.listoCertificacion ? (
+                    <CheckCircle2 size={14} />
+                  ) : (
+                    <AlertTriangle size={14} />
+                  )}
+                  Certificación Maullín:{" "}
+                  {checklist.listoCertificacion
+                    ? "lista"
+                    : `${checklist.certCriticosPendientes} crítico(s)`}
+                </span>
+                <span
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                    checklist.listoProduccion
+                      ? "bg-primary/10 text-primary border-primary/20"
+                      : "bg-muted text-muted-foreground border-border"
+                  }`}
+                >
+                  {checklist.listoProduccion ? (
+                    <CheckCircle2 size={14} />
+                  ) : (
+                    <Circle size={14} />
+                  )}
+                  Producción Palena:{" "}
+                  {checklist.listoProduccion
+                    ? "lista"
+                    : `${checklist.criticosPendientes} pendiente(s)`}
+                </span>
+                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-surface-sunken text-muted-foreground">
+                  Ambiente: {checklist.ambiente} · min folios {checklist.minFolios}
+                </span>
+              </div>
+              <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden">
+                {checklist.items.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex items-start gap-3 px-3 py-2.5 bg-surface-sunken/40 text-sm"
+                  >
+                    {item.cumplido ? (
+                      <CheckCircle2
+                        size={16}
+                        className="mt-0.5 shrink-0 text-primary"
+                        aria-hidden
+                      />
+                    ) : (
+                      <Circle
+                        size={16}
+                        className={`mt-0.5 shrink-0 ${
+                          item.critico ? "text-warning" : "text-muted-foreground"
+                        }`}
+                        aria-hidden
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium text-foreground">{item.titulo}</span>
+                        {item.critico && (
+                          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                            crítico · {item.fase}
+                          </span>
+                        )}
+                        {!item.critico && (
+                          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                            opcional · {item.fase}
+                          </span>
+                        )}
+                      </div>
+                      {item.detalle && (
+                        <p className="text-xs text-muted-foreground mt-0.5">{item.detalle}</p>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-muted-foreground">
+                Completá CAF 33/39/46, P12, clave SII y una emisión aceptada en Maullín antes de
+                pasar a producción. No cambies a Palena con checklist de certificación en rojo.
+              </p>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Settings2 size={18} /> Configuración SII Empresa
@@ -329,5 +471,6 @@ export function SettingsTab() {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }
