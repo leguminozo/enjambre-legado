@@ -1,7 +1,16 @@
 import { Hono } from "hono";
 import type { AppVariables } from "@/api/lib/middleware";
+import {
+  encryptSiiSecret,
+  isValidChileanRut,
+  normalizeRut,
+  resolveSiiEncryptionKeyBytes,
+} from "@/api/lib/sii-crypto";
 
 export const empresaRoutes = new Hono<{ Variables: AppVariables }>();
+
+const EMPRESA_SELECT =
+  "id, rut, razon_social, giro, direccion, comuna, ciudad, region, email, telefono, regimen, acteco, sii_ambiente, fecha_inicio_actividades, ingresos_brutos_anio_anterior, sii_clave_encriptada";
 
 empresaRoutes.get("/", async (c) => {
   const empresaId = c.get("empresaId");
@@ -9,7 +18,7 @@ empresaRoutes.get("/", async (c) => {
 
   const { data, error } = await supabase
     .from("empresas")
-    .select("id, rut, razon_social, giro, direccion, comuna, ciudad, regimen, acteco, sii_ambiente, fecha_inicio_actividades, ingresos_brutos_anio_anterior, sii_clave_encriptada")
+    .select(EMPRESA_SELECT)
     .eq("id", empresaId)
     .single();
 
@@ -28,10 +37,19 @@ empresaRoutes.patch("/", async (c) => {
   const supabase = c.get("supabase");
 
   const body = await c.req.json<{
+    rut?: string;
+    razon_social?: string;
+    giro?: string | null;
+    direccion?: string | null;
+    comuna?: string | null;
+    ciudad?: string | null;
+    region?: string | null;
+    email?: string | null;
+    telefono?: string | null;
     regimen?: string;
-    acteco?: string;
+    acteco?: string | number | null;
     sii_ambiente?: string;
-    fecha_inicio_actividades?: string;
+    fecha_inicio_actividades?: string | null;
     ingresos_brutos_anio_anterior?: number;
   }>();
 
@@ -45,18 +63,50 @@ empresaRoutes.patch("/", async (c) => {
     return c.json({ code: "invalid_ambiente", message: "sii_ambiente debe ser 'certificacion' o 'produccion'" }, 400);
   }
 
+  if (body.rut !== undefined) {
+    if (!isValidChileanRut(body.rut)) {
+      return c.json({ code: "invalid_rut", message: "RUT emisor inválido (dígito verificador)" }, 400);
+    }
+  }
+
+  if (body.razon_social !== undefined && !String(body.razon_social).trim()) {
+    return c.json({ code: "invalid_razon_social", message: "Razón social no puede estar vacía" }, 400);
+  }
+
   const update: {
+    rut?: string;
+    razon_social?: string;
+    giro?: string | null;
+    direccion?: string | null;
+    comuna?: string | null;
+    ciudad?: string | null;
+    region?: string | null;
+    email?: string | null;
+    telefono?: string | null;
     regimen?: string;
     acteco?: string | null;
     sii_ambiente?: string;
     fecha_inicio_actividades?: string | null;
     ingresos_brutos_anio_anterior?: number;
   } = {};
+  if (body.rut !== undefined) update.rut = normalizeRut(body.rut);
+  if (body.razon_social !== undefined) update.razon_social = String(body.razon_social).trim();
+  if (body.giro !== undefined) update.giro = body.giro ? String(body.giro).trim() : null;
+  if (body.direccion !== undefined) update.direccion = body.direccion ? String(body.direccion).trim() : null;
+  if (body.comuna !== undefined) update.comuna = body.comuna ? String(body.comuna).trim() : null;
+  if (body.ciudad !== undefined) update.ciudad = body.ciudad ? String(body.ciudad).trim() : null;
+  if (body.region !== undefined) update.region = body.region ? String(body.region).trim() : null;
+  if (body.email !== undefined) update.email = body.email ? String(body.email).trim() : null;
+  if (body.telefono !== undefined) update.telefono = body.telefono ? String(body.telefono).trim() : null;
   if (body.regimen !== undefined) update.regimen = body.regimen;
-  if (body.acteco !== undefined) update.acteco = body.acteco;
+  if (body.acteco !== undefined) {
+    update.acteco = body.acteco === null || body.acteco === "" ? null : String(body.acteco);
+  }
   if (body.sii_ambiente !== undefined) update.sii_ambiente = body.sii_ambiente;
   if (body.fecha_inicio_actividades !== undefined) update.fecha_inicio_actividades = body.fecha_inicio_actividades;
-  if (body.ingresos_brutos_anio_anterior !== undefined) update.ingresos_brutos_anio_anterior = body.ingresos_brutos_anio_anterior;
+  if (body.ingresos_brutos_anio_anterior !== undefined) {
+    update.ingresos_brutos_anio_anterior = body.ingresos_brutos_anio_anterior;
+  }
 
   if (Object.keys(update).length === 0) {
     return c.json({ code: "no_fields", message: "No se enviaron campos para actualizar" }, 400);
@@ -66,7 +116,9 @@ empresaRoutes.patch("/", async (c) => {
     .from("empresas")
     .update(update)
     .eq("id", empresaId)
-    .select("id, rut, razon_social, giro, regimen, acteco, sii_ambiente, fecha_inicio_actividades, ingresos_brutos_anio_anterior")
+    .select(
+      "id, rut, razon_social, giro, direccion, comuna, ciudad, region, email, telefono, regimen, acteco, sii_ambiente, fecha_inicio_actividades, ingresos_brutos_anio_anterior",
+    )
     .single();
 
   if (error) {
@@ -75,26 +127,6 @@ empresaRoutes.patch("/", async (c) => {
 
   return c.json({ data });
 });
-
-/**
- * AES-GCM key material for SII portal password at rest.
- * Fail-closed: never encrypt with empty/short material.
- * Prefer dedicated SII_CLAVE_ENCRYPTION_KEY (stable across service_role rotation).
- */
-function resolveSiiClaveKeyBytes(): Uint8Array | null {
-  const candidates = [
-    process.env.SII_CLAVE_ENCRYPTION_KEY,
-    process.env.FISCAL_ENCRYPTION_KEY,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-  ];
-  for (const raw of candidates) {
-    const v = raw?.trim();
-    if (v && v.length >= 32) {
-      return new TextEncoder().encode(v.slice(0, 32));
-    }
-  }
-  return null;
-}
 
 empresaRoutes.put("/sii-clave", async (c) => {
   const empresaId = c.get("empresaId");
@@ -105,8 +137,7 @@ empresaRoutes.put("/sii-clave", async (c) => {
     return c.json({ code: "invalid_clave", message: "La clave SII debe tener al menos 4 caracteres" }, 400);
   }
 
-  const keyBytes = resolveSiiClaveKeyBytes();
-  if (!keyBytes) {
+  if (!resolveSiiEncryptionKeyBytes()) {
     return c.json(
       {
         code: "encryption_key_missing",
@@ -117,24 +148,10 @@ empresaRoutes.put("/sii-clave", async (c) => {
     );
   }
 
-  const algoKey = await crypto.subtle.importKey(
-    "raw",
-    keyBytes,
-    { name: "AES-GCM" },
-    false,
-    ["encrypt"],
-  );
-
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    algoKey,
-    new TextEncoder().encode(body.clave),
-  );
-  const combined = new Uint8Array(iv.length + new Uint8Array(encrypted).length);
-  combined.set(iv, 0);
-  combined.set(new Uint8Array(encrypted), iv.length);
-  const encryptedBase64 = btoa(String.fromCharCode(...combined));
+  const encryptedBase64 = await encryptSiiSecret(body.clave);
+  if (!encryptedBase64) {
+    return c.json({ code: "encryption_failed", message: "No se pudo cifrar la clave SII" }, 503);
+  }
 
   const { error } = await supabase
     .from("empresas")

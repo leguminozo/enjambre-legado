@@ -14,6 +14,8 @@ import { openapiRoutes } from "./openapi";
 import { certificacionRoutes } from "./certificacion";
 import { trazabilidadRoutes } from "./trazabilidad";
 import { boletaDownloadRoutes } from "./boleta-download";
+import { certificadosRoutes } from "./certificados";
+import { cafRoutes } from "./caf";
 
 export const siiRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -30,6 +32,8 @@ siiRoutes.route("/openapi", openapiRoutes);
 siiRoutes.route("/certificacion", certificacionRoutes);
 siiRoutes.route("/trazabilidad", trazabilidadRoutes);
 siiRoutes.route("/boletas", boletaDownloadRoutes);
+siiRoutes.route("/certificados", certificadosRoutes);
+siiRoutes.route("/caf", cafRoutes);
 
 siiRoutes.get("/tasa-cambio", async (c) => {
   const moneda = c.req.query("moneda") ?? "dolar";
@@ -54,25 +58,7 @@ siiRoutes.get("/tasa-cambio", async (c) => {
   }
 });
 
-siiRoutes.get("/caf", async (c) => {
-  const empresaId = c.get("empresaId");
-  const supabase = c.get("supabase");
-
-  const { data, error } = await supabase
-    .from("sii_caf")
-    .select("id, tipo_dte, folio_desde, folio_hasta, folio_actual, activo, fecha_autorizacion, nro_resol, fch_resol")
-    .eq("empresa_id", empresaId)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    return c.json(
-      { code: "caf_query_failed", message: error.message },
-      500,
-    );
-  }
-
-  return c.json({ data: data ?? [] });
-});
+// GET/POST /caf* → cafRoutes (list, import-xml, activate)
 
 siiRoutes.get("/dashboard", async (c) => {
   const empresaId = c.get("empresaId");

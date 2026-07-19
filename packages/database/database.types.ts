@@ -3049,7 +3049,9 @@ export type Database = {
           id: string
           lat: number | null
           lng: number | null
+          meta: Json
           nombre: string | null
+          pausada_hasta: string | null
           stock_asignado: Json | null
           ubicacion: unknown
         }
@@ -3060,7 +3062,9 @@ export type Database = {
           id?: string
           lat?: number | null
           lng?: number | null
+          meta?: Json
           nombre?: string | null
+          pausada_hasta?: string | null
           stock_asignado?: Json | null
           ubicacion?: unknown
         }
@@ -3071,7 +3075,9 @@ export type Database = {
           id?: string
           lat?: number | null
           lng?: number | null
+          meta?: Json
           nombre?: string | null
+          pausada_hasta?: string | null
           stock_asignado?: Json | null
           ubicacion?: unknown
         }
@@ -6637,6 +6643,7 @@ export type Database = {
           empresa_id: string
           id: string
           nombre: string
+          p12_password_encriptada: string | null
           storage_path: string
           updated_at: string
           vigencia_fin: string
@@ -6648,6 +6655,7 @@ export type Database = {
           empresa_id: string
           id?: string
           nombre: string
+          p12_password_encriptada?: string | null
           storage_path: string
           updated_at?: string
           vigencia_fin: string
@@ -6659,6 +6667,7 @@ export type Database = {
           empresa_id?: string
           id?: string
           nombre?: string
+          p12_password_encriptada?: string | null
           storage_path?: string
           updated_at?: string
           vigencia_fin?: string
@@ -8271,6 +8280,10 @@ export type Database = {
           p_venta_id: string
         }
         Returns: Json
+      }
+      es_feria_pausada: {
+        Args: { p_evento_id: string }
+        Returns: boolean
       }
       buscar_factura_por_regla: {
         Args: {

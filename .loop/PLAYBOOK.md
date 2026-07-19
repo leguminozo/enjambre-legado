@@ -11,6 +11,11 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 |--------|---------|-----------|--------------|
 | Checklist SII rojo | “casi listo” sin go-live | `GET /api/sii/certificacion/checklist` | CAF **33/39/46**, P12, clave SII, encryption key, DTE venta + FC aceptados; `listoCertificacion` ≠ `listoProduccion` (Palena solo si cert OK) |
 | Checklist SII sin UI | API existe, operador ciego | Settings SII sin panel | Card checklist en `SettingsTab` + badges Maullín/Palena |
+| Config solo env/SQL | no se puede operar sin deploy | valor de negocio solo en `.env` o SQL | **config-en-UI**: form + PATCH/POST BFF; env = secretos plataforma |
+| Emisor incompleto en UI | DTE con RUT/giro vacíos | Settings solo regimen/acteco | PATCH empresa: rut, razon_social, giro, dir, comuna, ciudad, region, email, tel |
+| CAF sin import UI | folios solo por SQL | GET /caf sin POST | `POST /caf/import-xml` + parse AUTORIZACION; activar por tipo |
+| P12 password env-only | no se emite sin Vercel | `resolveSiiCredentials` solo `SII_P12_PASSWORD` | upload UI cifra `p12_password_encriptada`; resolve DB→env fallback |
+| Route huérfana | API existe sin mount | archivo routes sin `siiRoutes.route` | montar en `sii/index` al crear |
 | Ambiente cert en prod UI | emite a Maullín sin querer | `empresas.sii_ambiente` + UI settings | gate explícito; no default produccion sin checklist |
 | CAF exhausto open | vende sin folio | `getFoliosRestantes` / caf-guard | fail-closed min folios; alert threshold |
 | SumUp sin key | terminal muerto | env SumUp ausente en nucleo | fail-closed 503; no mock en production |

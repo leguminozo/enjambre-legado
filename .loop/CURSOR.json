@@ -1,14 +1,14 @@
 {
-  "index": 1,
-  "pass": 18,
-  "last_sector": "val-sii-certificacion",
-  "last_commit": "c3d9667",
+  "index": 2,
+  "pass": 19,
+  "last_sector": "val-sii-emision",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {
-    "val-sii-emision": 2,
-    "val-sumup-pos": 1,
-    "val-banco-chile": 1
+    "val-sumup-pos": 2,
+    "val-banco-chile": 1,
+    "val-sii-certificacion": 0
   },
   "phase": "v1.2-golive",
-  "notes": "Pass 17: checklist SII v2 + UI Settings. Siguiente: val-sii-emision (#1) — pipeline DTE/jobs/CAF en emisión real. Ops pendiente: P12+CAF+Maullín."
+  "notes": "Pass 18: config-en-UI SII (identidad+CAF XML+P12). Siguiente val-sumup-pos (#2) con misma regla: configurar en UI lo esencial."
 }

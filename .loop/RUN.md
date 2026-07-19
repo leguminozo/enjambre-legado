@@ -18,7 +18,7 @@ Contrasta: `docs/SOBERANIA_FISCAL.md`, `docs/BANCO_CHILE.md`, `docs/ENV-CHECKLIS
 2. **R** — Runtime de integración (emit DTE, webhook, sync movimientos, terminal SumUp, idempotencia)
 3. **S** — Fail-closed en el cono (CAF, secrets, firma webhook, no mock en production)
 4. **E** — Entrelazado venta↔fiscal↔banco solo si bloquea go-live
-5. **U** — UI solo si impide operar la validación
+5. **U** — UI de config/operación (**config-en-UI**: lo esencial se configura en la app, no solo env)
 6. **O** — Perf solo si duele en el cono
 
 ## Guardrieles (rápido)

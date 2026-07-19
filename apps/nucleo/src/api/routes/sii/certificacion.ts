@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { getCafMinFolios } from "@enjambre/fiscal";
 import type { AppVariables } from "@/api/lib/middleware";
+import { hasSiiEncryptionMaterial } from "@/api/lib/sii-crypto";
 
 export const certificacionRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -34,19 +35,6 @@ function foliosDeCaf(
   const match = rows.find((r) => Number(r.tipo_dte) === tipo);
   if (!match) return 0;
   return Math.max(0, Number(match.folio_hasta) - Number(match.folio_actual));
-}
-
-/** Same material resolution as empresa sii-clave (fail-closed ≥32). */
-function hasSiiEncryptionMaterial(): boolean {
-  const candidates = [
-    process.env.SII_CLAVE_ENCRYPTION_KEY,
-    process.env.FISCAL_ENCRYPTION_KEY,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-  ];
-  return candidates.some((raw) => {
-    const v = raw?.trim();
-    return Boolean(v && v.length >= 32);
-  });
 }
 
 certificacionRoutes.get("/checklist", async (c) => {

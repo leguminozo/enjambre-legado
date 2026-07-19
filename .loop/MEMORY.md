@@ -3,7 +3,8 @@
 ## Doctrina del loop (actualizar solo si el operador la cambia)
 
 - **Fase v1.2 (activa — go-live / validación real):** llevar a **uso real** las integraciones **casi listas**: **SII**, **SumUp**, **Banco de Chile**, y adyacentes (pagos web TBK/Flow, conciliación, CAF/crons). Código y UI de v1.1 se asumen base; el valor es **cerrar el gap sandbox → producción**.
-- Prioridad: **V** (validación go-live: env, credenciales, ambiente, smoke path) → **R** (runtime integración: emit/webhook/sync/idempotencia) → **S** (fail-closed secrets/CAF/webhooks en el cono) → **E** (entrelazado venta↔fiscal↔banco solo si bloquea go-live) → **U** (UI solo si impide operar la validación) → **O**.
+- **Config-en-UI (regla general del operador):** todo lo **esencial y de valor real** que un humano debe poder cambiar sin deploy (RUT, giro, domicilio, CAF, P12+clave, ambiente Maullín/Palena, readers, cuentas, etc.) se configura en la **interfaz gráfica** de la app dueña + API BFF. Env/Vercel solo secretos de plataforma (AES, CRON, OAuth client secret).
+- Prioridad: **V** (validación go-live: env, credenciales, ambiente, smoke path) → **R** (runtime integración: emit/webhook/sync/idempotencia) → **S** (fail-closed secrets/CAF/webhooks en el cono) → **E** (entrelazado venta↔fiscal↔banco solo si bloquea go-live) → **U** (UI de config/operación — config-en-UI) → **O**.
 - Conos canónicos:
   1. **SII** — `packages/fiscal` + `packages/contable` + `apps/nucleo` routes/sii + checklist `/certificacion` + CAF + cert P12 + jobs
   2. **SumUp** — `packages/sumup` + nucleo BFF sumup + campo POS terminal
@@ -21,7 +22,7 @@
 
 | Integración | Casi listo | Gap típico a cerrar |
 |-------------|------------|---------------------|
-| SII | pipeline DTE, CAF guard, **checklist v2** (CAF 33/39/46 + DTE/FC + clave + UI Settings), jobs | ⏳ ops: cert P12 real, CAF reales, 1ª boleta/FC aceptada en Maullín, luego Palena |
+| SII | pipeline DTE, CAF guard, checklist v2, **Settings UI completa** (identidad+CAF XML+P12 cifrado) | ⏳ ops: aplicar mig 95; cargar P12/CAF reales en UI; 1ª boleta/FC Maullín → Palena |
 | SumUp | client + BFF readers/tx/payouts | keys prod, reader en campo, webhook/idempotencia, smoke venta POS→tx |
 | Banco Chile | client sandbox/prod + conciliación auto | credenciales API store, token refresh, 1 sync movimientos, webhook |
 | Pagos web | TBK/Flow + checkout_sessions | returnUrl allowlist, fulfill pending→completed, CAF en checkout |
@@ -30,6 +31,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-16 pass 18 (val-sii-emision + config-en-UI)
+- Señal: operador pide configurar ecosistema desde la app; empresa PATCH no editaba RUT/giro/domicilio; CAF solo GET; certificados routes sin montar; P12 password solo env
+- Compuesto: colapsar + unificar + dirección (regla general)
+- Regla nueva: **config-en-UI** — valor de negocio/integración → form+BFF; env = plataforma. SII: identidad completa, import CAF XML, upload P12+clave cifrada, resolveSiiCredentials lee DB
+- Anti-patrón: “configurá el RUT en SQL”; certificados API huérfana sin route; password P12 solo en Vercel cuando se puede cifrar en DB
+- Guardriel: intacto (AES fail-closed; no secretos en cliente)
 
 ### Evo 2026-07-16 pass 17 (val-sii-certificacion)
 - Señal: checklist solo CAF 46 + FC; `listoProduccion` exigía Palena junto a pruebas Maullín; sin UI; no medía clave/encryption/DTE venta 33/39

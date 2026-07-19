@@ -47,8 +47,10 @@ Usuario final y amenaza viven en **prod** (Vercel + Supabase + Transbank/Flow + 
 2. **R — Runtime de integración** — emisión DTE/jobs, CAF, webhooks, sync bancario, terminal SumUp, fulfill de pagos; idempotencia y estados.
 3. **S — Seguridad del cono** — fail-closed CAF/secrets/firma webhook; no mock en production (no reabrir passes 1–6 sin regresión).
 4. **E — Entrelazado operativo** — venta/POS → fiscal → contable → banco solo si el gap de go-live lo exige.
-5. **U — UI de operación** — solo si impide ejecutar/validar (ViewShell de SII/banco/sumup, errores legibles).
+5. **U — UI de configuración y operación** — lo **esencial y de valor real** (RUT, giro, domicilio, CAF, P12, ambiente, claves de negocio, readers SumUp, etc.) se configura en **interfaz gráfica**, no solo env/SQL. Env queda para secretos de plataforma (AES key, CRON_SECRET, OAuth client secrets).
 6. **O — Perf local** solo si duele en el cono.
+
+**Regla general (config-en-UI):** si un operador debe poder cambiar un valor de negocio/integración sin deploy, expone form + API autenticada en la app dueña. Fail-closed server-side; nunca secretos de plataforma en el cliente.
 
 Sin valor de go-live/integración en el cono = backlog baja, no commit cosmético.  
 Fix **desplegable con confianza**: mínimo, legible, patrón sano del repo, fail-closed.
