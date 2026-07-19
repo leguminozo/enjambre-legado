@@ -1,10 +1,10 @@
 {
-  "index": 4,
-  "pass": 37,
-  "last_sector": "val-banco-chile",
-  "last_commit": "1417b60",
+  "index": 5,
+  "pass": 38,
+  "last_sector": "val-banco-webhooks",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.2-golive",
-  "notes": "Pass 36: mov dedupe external_key (1417b60). Siguiente: val-banco-webhooks (#4)."
+  "notes": "Pass 37: webhook event_id reprocess + mig 99. Siguiente: val-pagos-web (#5)."
 }

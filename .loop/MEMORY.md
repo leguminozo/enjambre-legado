@@ -24,7 +24,7 @@
 |-------------|------------|---------------------|
 | SII | checklist emisor+P12 + **emit idempotente** + enqueue resolve + process-now UI | ⏳ ops: mig 95; P12/CAF; SII_AUTO_EMIT; 1ª boleta Maullín |
 | SumUp | readers status normalize + **stale pending revalidate** + already_paid POS + mig96 probe | ⏳ ops: mig 96; keys live; smoke POS→tx |
-| Banco Chile | config BFF + webhook + sync **dedupe external_key** (mig 98) + checklist movs | ⏳ ops: mig 98; creds; 1 sync real sin duplicados |
+| Banco Chile | sync dedupe + webhook **event_id reprocess** + mig 99 unique event | ⏳ ops: mig 98/99; webhook secret; 1 evento real |
 | Conciliación | motor **facturas→ventas paid→gastos** + seed-defaults UI + aceptar→confianza/regla | ⏳ ops: mig 97; sync banco; 1 match real |
 | Pagos web | checklist + sesiones + **expire-stale + retry-fulfill** ops | ⏳ ops: keys Flow/TBK; smoke real; 0 stale pending |
 | Env matrix | runtime Entorno + matriz + docs alineados (≥32, auto-emit, webhook) | ⏳ ops: set keys en Vercel 3 apps; checklist verde en UI |
@@ -33,6 +33,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-19 pass 37 (val-banco-webhooks residual)
+- Señal: reprocesar usaba UUID de fila como event id → no mark/side-effects; race sin unique; process fail 500 tras insert
+- Compuesto: colapsar + redirigir
+- Regla nueva: resolveWebhookEventId/BusinessId; mig 99 unique event key; process fail → 202 + reprocess; business id desde datos
+- Anti-patrón: `procesarNotificacion({ id: notificacion.id })` para event:{…}
+- Guardriel: intacto (HMAC timing-safe)
 
 ### Evo 2026-07-19 pass 36 (val-banco-chile residual)
 - Señal: sync upsert sin unique → movimientos duplicados cada corrida; fecha_valor null vs NOT NULL; cuenta_id a veces no UUID local; auth marcaba last_sync

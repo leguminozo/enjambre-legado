@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   getBancoChileWebhookSecret,
+  resolveWebhookBusinessId,
+  resolveWebhookEventId,
   timingSafeEqualString,
   verifyBancoChileSignature,
 } from './webhook';
@@ -51,5 +53,32 @@ describe('banco-chile webhook crypto', () => {
     expect(await verifyBancoChileSignature(payload, 'deadbeef', secret)).toBe(false);
     expect(await verifyBancoChileSignature(payload, undefined, secret)).toBe(false);
     expect(await verifyBancoChileSignature(payload, hex, null)).toBe(false);
+  });
+
+  it('resolveWebhookEventId prefers datos_raw.event_id over row uuid', () => {
+    expect(
+      resolveWebhookEventId({
+        id: '11111111-1111-1111-1111-111111111111',
+        descripcion: 'event:evt-bank-9',
+        datos_raw: { event_id: 'evt-bank-9', human: 'pago' },
+      }),
+    ).toBe('evt-bank-9');
+    expect(
+      resolveWebhookEventId({
+        id: '11111111-1111-1111-1111-111111111111',
+        descripcion: 'event:evt-from-desc',
+        datos_raw: null,
+      }),
+    ).toBe('evt-from-desc');
+  });
+
+  it('resolveWebhookBusinessId uses numero_operacion from datos', () => {
+    expect(
+      resolveWebhookBusinessId({
+        id: 'evt-1',
+        datos: { numero_operacion: 'OP-99' },
+      }),
+    ).toBe('OP-99');
+    expect(resolveWebhookBusinessId({ id: 'evt-only' })).toBe('evt-only');
   });
 });

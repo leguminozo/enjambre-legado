@@ -45,6 +45,8 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 | Aceptar pierde metadata | stats auto/manual rotas; venta no flag | insert sin confianza/regla/ventas.conciliado | aceptar persiste + update ventas |
 | Webhook sin verify | abono/tx forjada | route webhook sin secret/firma | secret server + HMAC + idempotency |
 | Webhook reprocess dup | doble update de estado | no early-return si event id existe | dedupe `event:{id}` → 200 sin side-effects |
+| Reprocess no-op | admin reintentar no marca procesado | id = UUID fila no event | resolveWebhookEventId + mark by row id |
+| Webhook race insert | dos 200 con doble insert | sin unique | mig 99 UNIQUE (empresa, event:*) |
 | Firma solo hex | 401 con base64 real | compare solo hex | aceptar hex, `sha256=`, base64 |
 | Webhook secret open | 500 o accept vacío | throw si falta secret / `===` HMAC | 503 fail-closed; timing-safe equal |
 | Webhook admin open | listar notifs sin JWT | GET pendientes en router pre-auth | authMiddleware + tenant + admin en esas rutas |

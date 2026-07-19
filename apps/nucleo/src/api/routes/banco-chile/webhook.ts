@@ -109,6 +109,52 @@ export async function verifyBancoChileSignature(
   return false;
 }
 
+/**
+ * Event id for side-effects / mark procesado.
+ * Prefer datos_raw.event_id or descripcion `event:{id}` — never the row UUID alone.
+ */
+export function resolveWebhookEventId(notif: {
+  id: string;
+  descripcion?: string | null;
+  datos_raw?: unknown;
+}): string {
+  const raw = notif.datos_raw;
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    const eventId = (raw as Record<string, unknown>).event_id;
+    if (eventId != null && String(eventId).trim()) return String(eventId).trim();
+  }
+  const d = notif.descripcion?.trim() ?? '';
+  if (d.startsWith('event:')) {
+    const id = d.slice('event:'.length).trim();
+    if (id) return id;
+  }
+  return notif.id;
+}
+
+/** Bank operation id for transferencia/nomina/documento updates (from payload datos). */
+export function resolveWebhookBusinessId(data: {
+  id: string;
+  descripcion?: string;
+  datos?: Record<string, unknown>;
+}): string {
+  const d = data.datos ?? {};
+  const candidates = [
+    d.numero_operacion,
+    d.numeroOperacion,
+    d.numero_nomina,
+    d.numeroNomina,
+    d.numero_documento,
+    d.numeroDocumento,
+    d.operation_id,
+    d.operationId,
+  ];
+  for (const c of candidates) {
+    if (c != null && String(c).trim()) return String(c).trim();
+  }
+  // human description is not a business id; fall back to event id
+  return data.id;
+}
+
 // POST / — público, firma HMAC obligatoria
 webhookRouter.post('/', async (c) => {
   const rateLimitResult = await webhookRateLimit(c);
@@ -199,7 +245,7 @@ webhookRouter.post('/', async (c) => {
       );
     }
 
-    await supabase.from('banco_chile_notificaciones').insert({
+    const { error: insertErr } = await supabase.from('banco_chile_notificaciones').insert({
       empresa_id: empresaId,
       tipo_evento: tipo,
       cuenta_afectada: cuenta_id,
@@ -210,16 +256,41 @@ webhookRouter.post('/', async (c) => {
       created_at: new Date(fecha).toISOString(),
     });
 
-    await procesarNotificacion(supabase, tipo, {
-      id,
-      cuenta_id,
-      monto,
-      descripcion,
-      datos,
-    });
+    // Race: concurrent delivery of same event (unique index mig 99)
+    if (insertErr) {
+      const msg = insertErr.message?.toLowerCase() ?? '';
+      if (msg.includes('duplicate') || msg.includes('unique') || insertErr.code === '23505') {
+        return c.json({
+          data: { success: true, deduped: true },
+          message: 'Evento ya recibido (race)',
+        });
+      }
+      console.error('[banco-chile webhook] insert failed', insertErr.message);
+      return c.json({ code: 'persist_failed', message: insertErr.message }, 500);
+    }
+
+    try {
+      await procesarNotificacion(supabase, tipo, {
+        id,
+        cuenta_id,
+        monto,
+        descripcion,
+        datos,
+      });
+    } catch (procErr) {
+      // Keep row unprocessed for admin reprocesar
+      console.error('[banco-chile webhook] process failed (queued for reprocess)', procErr);
+      return c.json(
+        {
+          data: { success: true, deduped: false, procesado: false },
+          message: 'Notificación guardada; procesamiento diferido (reprocesar en UI)',
+        },
+        202,
+      );
+    }
 
     return c.json({
-      data: { success: true, deduped: false },
+      data: { success: true, deduped: false, procesado: true },
       message: 'Notificación recibida',
     });
   } catch (error) {
@@ -252,6 +323,8 @@ async function procesarNotificacion(
   },
 ) {
   try {
+    const businessId = resolveWebhookBusinessId(data);
+
     switch (tipo) {
       case 'transferencia_recibida':
         await supabase
@@ -260,7 +333,7 @@ async function procesarNotificacion(
             estado: 'procesada',
             updated_at: new Date().toISOString(),
           })
-          .eq('numero_operacion', data.id);
+          .eq('numero_operacion', businessId);
         break;
 
       case 'transferencia_rechazada':
@@ -270,7 +343,7 @@ async function procesarNotificacion(
             estado: 'rechazada',
             updated_at: new Date().toISOString(),
           })
-          .eq('numero_operacion', data.id);
+          .eq('numero_operacion', businessId);
         break;
 
       case 'pago_nomina':
@@ -280,7 +353,7 @@ async function procesarNotificacion(
             estado: 'procesada',
             updated_at: new Date().toISOString(),
           })
-          .eq('numero_nomina', data.id || '');
+          .eq('numero_nomina', businessId);
         break;
 
       case 'documento_aceptado':
@@ -290,7 +363,7 @@ async function procesarNotificacion(
             estado: 'aceptado',
             updated_at: new Date().toISOString(),
           })
-          .eq('numero_documento', data.id || '');
+          .eq('numero_documento', businessId);
         break;
 
       case 'documento_rechazado':
@@ -300,7 +373,7 @@ async function procesarNotificacion(
             estado: 'rechazado',
             updated_at: new Date().toISOString(),
           })
-          .eq('numero_documento', data.id || '');
+          .eq('numero_documento', businessId);
         break;
 
       case 'saldo_disponible':
@@ -384,20 +457,41 @@ webhookRouter.post(
       }
 
       const raw = notificacion.datos_raw;
+      const datos =
+        raw && typeof raw === 'object' && !Array.isArray(raw)
+          ? (raw as Record<string, unknown>)
+          : undefined;
+      const eventId = resolveWebhookEventId({
+        id: notificacion.id,
+        descripcion: notificacion.descripcion,
+        datos_raw: raw,
+      });
+      const human =
+        datos && typeof datos.human === 'string'
+          ? datos.human
+          : (notificacion.descripcion ?? undefined);
+
       // Use service role for side-effect updates across related tables
       const admin = createAdminClient();
       await procesarNotificacion(admin, notificacion.tipo_evento, {
-        id: notificacion.id,
+        id: eventId,
         cuenta_id: notificacion.cuenta_afectada ?? undefined,
         monto: notificacion.monto ?? undefined,
-        descripcion: notificacion.descripcion ?? undefined,
-        datos:
-          raw && typeof raw === 'object' && !Array.isArray(raw)
-            ? (raw as Record<string, unknown>)
-            : undefined,
+        descripcion: human,
+        datos,
       });
 
-      return c.json({ data: { success: true }, message: 'Notificación reprocesada' });
+      // Ensure row marked even if descripcion was malformed pre-fix
+      await admin
+        .from('banco_chile_notificaciones')
+        .update({ procesado: true })
+        .eq('id', notificacion.id)
+        .eq('empresa_id', empresaId);
+
+      return c.json({
+        data: { success: true, event_id: eventId },
+        message: 'Notificación reprocesada',
+      });
     } catch (error) {
       console.error('Error reprocesando:', error);
       return c.json({ code: 'reprocess_error', message: 'Error al reprocesar' }, 500);

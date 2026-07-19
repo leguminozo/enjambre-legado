@@ -46,7 +46,8 @@ Implementación completa de las APIs de **Banco Chile Empresas** para el ecosist
 ### 8. Notificaciones (Webhooks)
 - ✅ `POST /api/banco-chile/webhook` — HMAC-SHA256 (`x-banco-chile-signature`, hex o base64)
 - ✅ Fail-closed si falta `BANCO_CHILE_WEBHOOK_SECRET` (503)
-- ✅ Idempotencia por `event:{id}` en `banco_chile_notificaciones`
+- ✅ Idempotencia por `event:{id}` + unique index mig 99
+- ✅ Reprocesar usa `event_id` real (no UUID de fila); side-effects por `numero_operacion` en datos
 - ✅ Admin: `GET …/webhook/pendientes`, `POST …/webhook/reprocesar/:id` (JWT + tenant)
 - ✅ UI Nucleo → Banco Chile: panel secret/status + pendientes
 
@@ -941,7 +942,7 @@ curl -X POST http://localhost:3000/api/banco-chile/transferencias \
 - [ ] Exporte a PDF/Excel
 
 ### Notificaciones
-- [ ] Endpoint webhook real (validar firma Banco Chile)
+- [x] Endpoint webhook real (HMAC + fail-closed + dedupe)
 - [ ] Notificaciones push en Nucleo
 - [ ] Email de conciliaciones pendientes
 - [ ] Alertas de saldo bajo
