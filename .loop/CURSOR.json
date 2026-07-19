@@ -1,10 +1,10 @@
 {
-  "index": 3,
-  "pass": 27,
-  "last_sector": "val-sumup-pos",
-  "last_commit": "48d6cdd",
+  "index": 4,
+  "pass": 28,
+  "last_sector": "val-banco-chile",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.2-golive",
-  "notes": "Pass 26: SumUp readers normalize + terminal idempotency. Siguiente: val-banco-chile (#3)."
+  "notes": "Pass 27: banco token expiry fix + POST /sync. Siguiente: val-banco-webhooks (#4) o val-pagos-web."
 }

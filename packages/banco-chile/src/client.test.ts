@@ -72,4 +72,46 @@ describe('BancoChileClient', () => {
     expect(res.success).toBe(false);
     if (!res.success) expect(res.error.code).toBe('NETWORK_ERROR');
   });
+
+  it('no re-autentica en cada request si token aún es fresco', async () => {
+    let authCalls = 0;
+    globalThis.fetch = vi.fn().mockImplementation(async (url: string) => {
+      if (String(url).includes('/oauth/token')) {
+        authCalls += 1;
+        return {
+          ok: true,
+          json: async () => ({
+            access_token: 'tok',
+            expires_in: 3600,
+            token_type: 'Bearer',
+          }),
+        };
+      }
+      return {
+        ok: true,
+        json: async () => ({ accounts: [{ numeroCuenta: '123', tipoCuenta: 'corriente', moneda: 'CLP', saldoDisponible: 1, saldoContable: 1, fechaActualizacion: '2026-01-01', activa: true, id: '1' }] }),
+      };
+    });
+
+    const client = new BancoChileClient({ ...baseConfig, environment: 'sandbox' });
+    await client.getCuentas();
+    await client.getCuentas();
+    // First getCuentas: 1 auth + 1 accounts. Second: only accounts (token fresh).
+    expect(authCalls).toBe(1);
+  });
+
+  it('isAccessTokenFresh false when expires_in was misused as epoch (legacy bug guard)', async () => {
+    const client = new BancoChileClient({ ...baseConfig, environment: 'sandbox' });
+    // Simulate old bug: treating expires_in seconds as absolute
+    client.setStoredToken(
+      {
+        access_token: 'x',
+        expires_in: 3600,
+        token_type: 'Bearer',
+        scope: '',
+      },
+      new Date(Date.now() - 1000).toISOString(), // already expired
+    );
+    expect(client.isAccessTokenFresh()).toBe(false);
+  });
 });

@@ -25,6 +25,8 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 | SumUp client duplicado | plaintext key / drift | new SumUpClient en cada route | `resolveSumUpClient` + decrypt legacy |
 | SumUp sin checklist | “casi listo” ciego | no probe merchant/readers | `GET /sumup/checklist` + test-connection |
 | Banco sandbox hardcode | creds prod golpean sandbox | `environment: sandbox\|production` en config | URL host según environment (client ya soporta) |
+| Banco token churn | password-grant cada request | expires_in como epoch | tokenExpiresAtMs = now + expires_in*1000; hydrate DB |
+| Banco sync incompleto | solo saldos, 0 movs | UI solo GET cuentas | POST /sync cuentas+movimientos |
 | Banco secrets en client | password en RLS browser | `supabase.from(config).upsert` con secret | solo `POST /api/banco-chile/config` + seal AES |
 | Banco sin checklist | go-live ciego | no token/cuentas probe | `GET /checklist` + Probar auth + sync cuentas |
 | Conciliación 400 UI | motor no corre | body sin empresa_id + schema required | tenant `empresaId` en BFF; body opcional |

@@ -83,7 +83,75 @@ export async function resolveBancoChileClient(
     environment: row.environment === "production" ? "production" : "sandbox",
   });
 
+  // Hydrate non-expired token from DB (avoids password-grant on every request)
+  const { data: tokRows } = await supabase
+    .from("banco_chile_tokens")
+    .select("access_token, refresh_token, expires_at, token_type")
+    .eq("config_id", row.id)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  const tok = Array.isArray(tokRows) ? tokRows[0] : tokRows;
+
+  if (tok?.access_token && tok.expires_at && new Date(tok.expires_at) > new Date()) {
+    client.setStoredToken(
+      {
+        access_token: tok.access_token,
+        refresh_token: tok.refresh_token ?? undefined,
+        expires_in: Math.max(
+          0,
+          Math.floor((new Date(tok.expires_at).getTime() - Date.now()) / 1000),
+        ),
+        token_type: "Bearer",
+        scope: "",
+      },
+      tok.expires_at,
+    );
+  }
+
   return { ok: true, client, config: row };
+}
+
+/** Authenticate if needed and persist token to banco_chile_tokens. */
+export async function ensureBancoChileAuth(
+  supabase: SupabaseClient<Database>,
+  resolved: { client: BancoChileClient; config: BancoChileConfigRow },
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  if (resolved.client.isAccessTokenFresh()) {
+    return { ok: true };
+  }
+
+  const auth = await resolved.client.authenticate();
+  if (!auth.success) {
+    return { ok: false, message: auth.error.message };
+  }
+
+  const { token, expiresAtMs } = resolved.client.getStoredTokenMeta();
+  if (!token) return { ok: false, message: "Token vacío tras autenticar" };
+
+  const expiresAt = new Date(expiresAtMs || Date.now() + 3600_000).toISOString();
+  const payload = {
+    config_id: resolved.config.id,
+    access_token: token.access_token,
+    refresh_token: token.refresh_token ?? null,
+    expires_at: expiresAt,
+    token_type: token.token_type || "Bearer",
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data: existing } = await supabase
+    .from("banco_chile_tokens")
+    .select("id")
+    .eq("config_id", resolved.config.id)
+    .maybeSingle();
+
+  if (existing?.id) {
+    await supabase.from("banco_chile_tokens").update(payload).eq("id", existing.id);
+  } else {
+    await supabase.from("banco_chile_tokens").insert(payload);
+  }
+
+  return { ok: true };
 }
 
 /** Encrypt secret fields for storage. Returns null if encryption material missing. */

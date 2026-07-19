@@ -177,40 +177,57 @@ export function BancoChileView() {
 
   const sincronizarCuentas = async () => {
     setSyncing(true);
+    setConfigError(null);
     try {
-      // Pull from Banco Chile API via BFF (upserts local rows)
-      const res = await apiFetch('/api/banco-chile/cuentas');
+      // Full sync: auth token persist + cuentas + movimientos (go-live path)
+      const res = await apiFetch('/api/banco-chile/sync', {
+        method: 'POST',
+        body: JSON.stringify({ dias: 30, limite: 100 }),
+      });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.message ?? 'Error sync cuentas');
+        throw new Error(err.message ?? 'Error sync bancario');
       }
-      const json = await res.json();
-      const list = json.data ?? json.cuentas ?? [];
-      // Map API shape → UI; prefer local list via second path if needed
-      setCuentas(
-        (Array.isArray(list) ? list : []).map(
-          (c: {
-            id?: string;
-            numeroCuenta?: string;
-            numero_cuenta?: string;
-            tipoCuenta?: string;
-            tipo_cuenta?: string;
-            saldoDisponible?: number;
-            saldo_disponible?: number;
-            saldoContable?: number;
-            saldo_contable?: number;
-            activa?: boolean;
-          }, i: number) => ({
-            id: c.id ?? String(i),
-            numero_cuenta: c.numero_cuenta ?? c.numeroCuenta ?? '—',
-            tipo_cuenta: c.tipo_cuenta ?? c.tipoCuenta ?? '—',
-            saldo_disponible: Number(c.saldo_disponible ?? c.saldoDisponible ?? 0),
-            saldo_contable: Number(c.saldo_contable ?? c.saldoContable ?? 0),
-            activa: c.activa !== false,
-          }),
-        ),
-      );
+      const syncJson = await res.json();
+      // Refresh cuentas list for UI
+      const resC = await apiFetch('/api/banco-chile/cuentas');
+      if (resC.ok) {
+        const json = await resC.json();
+        const list = json.data ?? json.cuentas ?? [];
+        setCuentas(
+          (Array.isArray(list) ? list : []).map(
+            (
+              c: {
+                id?: string;
+                numeroCuenta?: string;
+                numero_cuenta?: string;
+                tipoCuenta?: string;
+                tipo_cuenta?: string;
+                saldoDisponible?: number;
+                saldo_disponible?: number;
+                saldoContable?: number;
+                saldo_contable?: number;
+                activa?: boolean;
+              },
+              i: number,
+            ) => ({
+              id: c.id ?? String(i),
+              numero_cuenta: c.numero_cuenta ?? c.numeroCuenta ?? '—',
+              tipo_cuenta: c.tipo_cuenta ?? c.tipoCuenta ?? '—',
+              saldo_disponible: Number(c.saldo_disponible ?? c.saldoDisponible ?? 0),
+              saldo_contable: Number(c.saldo_contable ?? c.saldoContable ?? 0),
+              activa: c.activa !== false,
+            }),
+          ),
+        );
+      }
       await fetchChecklist();
+      const d = syncJson.data;
+      if (d) {
+        setConfigError(null);
+        // soft success via configError clear; could toast
+        console.info('[banco-chile] sync', d);
+      }
     } catch (err) {
       console.error('Error sincronizando cuentas:', err);
       setConfigError(err instanceof Error ? err.message : 'Sync falló');

@@ -24,7 +24,7 @@
 |-------------|------------|---------------------|
 | SII | pipeline + config UI + **cola jobs emisión** (list/retry + auto-emit en checklist) | ⏳ ops: mig 95; P12/CAF; SII_AUTO_EMIT_BOLETA=true; CRON; 1ª boleta Maullín |
 | SumUp | config UI + checklist + **terminal checkout idempotente** (mig 96) + readers normalizados | ⏳ ops: mig 96; keys live; smoke POS→tx |
-| Banco Chile | client + config BFF + conciliación + **webhook HMAC fail-closed** | ⏳ ops: set BANCO_CHILE_WEBHOOK_SECRET; sync movs; 1 match |
+| Banco Chile | config BFF + webhook S + **token frescor fix** + **POST /sync** cuentas+movs | ⏳ ops: creds; webhook secret; 1 sync real |
 | Conciliación | motor RPC + UI propuestas + métricas/checklist | ⏳ datos reales banco; reglas seed si vacío |
 | Pagos web | TBK/Flow + fulfill + **admin checklist UI** (`/pagos` → Checkout web) + sesiones | ⏳ ops: keys Flow/TBK en Vercel; smoke pago real; 0 pending stuck |
 | Crons | fiscal poll + CAF alert | `CRON_SECRET` en Vercel + job ejecuta |
@@ -32,6 +32,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-16 pass 27 (val-banco-chile)
+- Señal: `expires_in` OAuth usado como epoch → re-auth en cada request; tokens DB no hidratados; sync UI solo cuentas no movimientos
+- Compuesto: colapsar + redirigir
+- Regla nueva: tokenExpiresAtMs absoluto; hydrate from banco_chile_tokens; ensureBancoChileAuth; POST /banco-chile/sync; normalizar listas API
+- Anti-patrón: `Date.now() >= expires_in * 1000`; client sin token persistido
+- Guardriel: intacto
 
 ### Evo 2026-07-16 pass 26 (val-sumup-pos)
 - Señal: listReaders puede devolver `{items}` (campo ve 0 terminales); reintento POS re-dispara cobro al terminal; sin preferencia de lector

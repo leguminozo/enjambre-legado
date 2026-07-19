@@ -32,6 +32,8 @@ import type {
 export class BancoChileClient {
   private baseUrl: string;
   private token: AuthToken | null = null;
+  /** Absolute epoch ms when access_token expires (NOT OAuth expires_in seconds). */
+  private tokenExpiresAtMs = 0;
   private config: AuthConfig;
 
   constructor(config: AuthConfig) {
@@ -39,6 +41,21 @@ export class BancoChileClient {
     this.baseUrl = config.environment === 'production'
       ? 'https://api.bancochile.cl'
       : 'https://apistore.bancochile.cl/banco-chile/sandbox';
+  }
+
+  /** Hydrate from DB-persisted token (expires_at ISO). */
+  setStoredToken(token: AuthToken, expiresAtIso: string): void {
+    this.token = token;
+    const ms = Date.parse(expiresAtIso);
+    this.tokenExpiresAtMs = Number.isFinite(ms) ? ms : 0;
+  }
+
+  getStoredTokenMeta(): { token: AuthToken | null; expiresAtMs: number } {
+    return { token: this.token, expiresAtMs: this.tokenExpiresAtMs };
+  }
+
+  isAccessTokenFresh(skewMs = 60_000): boolean {
+    return Boolean(this.token?.access_token) && Date.now() < this.tokenExpiresAtMs - skewMs;
   }
 
   // ===========================================================================
@@ -72,13 +89,16 @@ export class BancoChileClient {
       }
 
       const data = await response.json();
+      const expiresInSec = Number(data.expires_in) || 3600;
       this.token = {
         access_token: data.access_token,
         refresh_token: data.refresh_token,
-        expires_in: data.expires_in,
+        expires_in: expiresInSec,
         token_type: data.token_type || 'Bearer',
         scope: data.scope || '',
       };
+      // OAuth expires_in is relative seconds from now
+      this.tokenExpiresAtMs = Date.now() + expiresInSec * 1000;
 
       return { success: true, data: this.token };
     } catch (error) {
@@ -93,13 +113,11 @@ export class BancoChileClient {
   }
 
   private async getAuthHeaders(): Promise<HeadersInit> {
-    if (!this.token) {
-      await this.authenticate();
-    }
-
-    // Refresh token if expired
-    if (this.token && Date.now() >= (this.token.expires_in || 0) * 1000 - 60000) {
-      await this.authenticate();
+    if (!this.isAccessTokenFresh()) {
+      const auth = await this.authenticate();
+      if (!auth.success) {
+        throw new Error(auth.error.message || 'No se pudo autenticar con Banco Chile');
+      }
     }
 
     return {
@@ -112,6 +130,17 @@ export class BancoChileClient {
   // ===========================================================================
   // Movimientos y Saldos
   // ===========================================================================
+  private normalizeList<T>(data: unknown): T[] {
+    if (Array.isArray(data)) return data as T[];
+    if (data && typeof data === 'object') {
+      const o = data as Record<string, unknown>;
+      for (const k of ['items', 'accounts', 'cuentas', 'transactions', 'movimientos', 'data']) {
+        if (Array.isArray(o[k])) return o[k] as T[];
+      }
+    }
+    return [];
+  }
+
   async getCuentas(): Promise<BancoChileResult<CuentaBancaria[]>> {
     try {
       const headers = await this.getAuthHeaders();
@@ -122,7 +151,7 @@ export class BancoChileClient {
       }
 
       const data = await response.json();
-      return { success: true, data: data as CuentaBancaria[] };
+      return { success: true, data: this.normalizeList<CuentaBancaria>(data) };
     } catch (error) {
       return {
         success: false,
@@ -152,7 +181,7 @@ export class BancoChileClient {
       }
 
       const data = await response.json();
-      return { success: true, data: data as MovimientoBancario[] };
+      return { success: true, data: this.normalizeList<MovimientoBancario>(data) };
     } catch (error) {
       return {
         success: false,
