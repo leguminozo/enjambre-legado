@@ -1,13 +1,13 @@
 {
-  "index": 6,
-  "pass": 23,
-  "last_sector": "val-env-secrets",
-  "last_commit": "4ada403",
+  "index": 7,
+  "pass": 24,
+  "last_sector": "val-conciliacion-e2e",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {
-    "val-conciliacion-e2e": 2,
-    "deep-followup-golive": 1
+    "deep-followup-golive": 1,
+    "val-sii-emision": 1
   },
   "phase": "v1.2-golive",
-  "notes": "Pass 22: env matrix v2 + health env-status UI. Siguiente: val-conciliacion-e2e (#6)."
+  "notes": "Pass 23: conciliación tenant+stats+checklist. Siguiente: deep-followup-golive (#7) o val-sii-emision."
 }

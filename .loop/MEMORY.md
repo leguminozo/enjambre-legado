@@ -24,13 +24,21 @@
 |-------------|------------|---------------------|
 | SII | pipeline DTE, CAF guard, checklist v2, **Settings UI completa** (identidad+CAF XML+P12 cifrado) | ⏳ ops: aplicar mig 95; cargar P12/CAF reales en UI; 1ª boleta/FC Maullín → Palena |
 | SumUp | client + BFF + **config UI** (merchant/API key cifrada, checklist, test-connection, readers) | ⏳ ops: keys en UI + enable; smoke venta POS→tx; webhook opcional |
-| Banco Chile | client + **config BFF cifrado** + checklist + auth/sync UI (ya no secretos vía supabase client) | ⏳ ops: creds API store en UI; token OAuth; 1 sync cuentas; webhook |
+| Banco Chile | client + config BFF + **conciliación e2e** (ejecutar sin empresa_id, stats correctas, checklist) | ⏳ ops: sync movs + 1 match real; meta 90% |
+| Conciliación | motor RPC + UI propuestas + métricas/checklist | ⏳ datos reales banco; reglas seed si vacío |
 | Pagos web | TBK/Flow + fulfill + **admin checklist UI** (`/pagos` → Checkout web) + sesiones | ⏳ ops: keys Flow/TBK en Vercel; smoke pago real; 0 pending stuck |
 | Crons | fiscal poll + CAF alert | `CRON_SECRET` en Vercel + job ejecuta |
 
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-16 pass 23 (val-conciliacion-e2e)
+- Señal: POST ejecutar exigía empresa_id en body (UI no lo enviaba → 400); stats leían tabla `conciliaciones` wrong; sin checklist/métricas go-live
+- Compuesto: colapsar + método + redirigir
+- Regla nueva: conciliación-auto usa **tenant empresaId** (body opcional, mismatch = 403); stats = `banco_chile_*`; checklist en `/conciliacion-stats`; enrich venta fallback `ventas`
+- Anti-patrón: schema body con empresa_id required cuando UI usa solo tenant; métricas sobre tabla genérica ajena
+- Guardriel: intacto
 
 ### Evo 2026-07-16 pass 22 (val-env-secrets)
 - Señal: matriz env desactualizada (sin SII_CLAVE_ENCRYPTION_KEY/CRON/pagos); /health/deps sin tienda/encryption; sin UI runtime

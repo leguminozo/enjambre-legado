@@ -78,7 +78,25 @@ export function ConciliacionAutoView() {
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
 
-  // Queries
+  const metricasQuery = useQuery({
+    queryKey: ['conciliacion', 'metricas'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/banco-chile/conciliacion-stats/metricas');
+      if (!res.ok) throw new Error('Error al cargar métricas');
+      return res.json();
+    },
+  });
+
+  const checklistQuery = useQuery({
+    queryKey: ['conciliacion', 'checklist'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/banco-chile/conciliacion-stats/checklist');
+      if (!res.ok) throw new Error('Error al cargar checklist');
+      return res.json();
+    },
+  });
+
+  // Queries — tenant resuelto en BFF (no enviar empresa_id)
   const { data: propuestasData, isLoading: isLoadingPropuestas, isFetching: isFetchingPropuestas, refetch: refetchPropuestas } = useQuery({
     queryKey: ['conciliacion', 'propuestas'],
     queryFn: async () => {
@@ -86,7 +104,10 @@ export function ConciliacionAutoView() {
         method: 'POST',
         body: JSON.stringify({ limite: 50 })
       });
-      if (!res.ok) throw new Error('Error al ejecutar propuestas');
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Error al ejecutar propuestas');
+      }
       return res.json() as Promise<{ propuestas: Propuesta[], total_propuestas: number }>;
     }
   });
@@ -156,6 +177,24 @@ export function ConciliacionAutoView() {
   const propuestas = propuestasData?.propuestas || [];
   const historial = historialData?.data || [];
   const reglas = reglasData?.data || [];
+  const metricas = metricasQuery.data?.data as
+    | {
+        tasaMatchPct: number;
+        movimientosTotal: number;
+        movimientosConciliados: number;
+        movimientosPendientes: number;
+        objetivo90: boolean;
+        reglasActivas: number;
+        bancoEnabled: boolean;
+      }
+    | undefined;
+  const checklist = checklistQuery.data?.data as
+    | {
+        listoOperacion: boolean;
+        criticosPendientes: number;
+        items: Array<{ id: string; titulo: string; cumplido: boolean; critico: boolean; detalle?: string }>;
+      }
+    | undefined;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -163,10 +202,53 @@ export function ConciliacionAutoView() {
         variant="compact"
         eyebrow="Banco Chile"
         title="Conciliación Automática"
-        subtitle="Emparejamiento inteligente de movimientos del Banco de Chile con facturas y gastos."
+        subtitle="Emparejamiento banco ↔ facturas/ventas/gastos. Tenant del BFF; sin empresa_id en el client."
         icon={<FileText size={20} />}
       />
       <ToolActionRail context="banco" current="/conciliacion" />
+
+      {metricas && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'Tasa match', val: `${metricas.tasaMatchPct}%`, ok: metricas.objetivo90 },
+            { label: 'Conciliados', val: String(metricas.movimientosConciliados) },
+            { label: 'Pendientes', val: String(metricas.movimientosPendientes) },
+            { label: 'Reglas activas', val: String(metricas.reglasActivas) },
+          ].map((k) => (
+            <div key={k.label} className="rounded-xl border border-border bg-card p-3 text-center">
+              <div className={`text-lg font-semibold ${k.ok ? 'text-primary' : ''}`}>{k.val}</div>
+              <div className="text-[11px] text-muted-foreground uppercase tracking-wider">{k.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {checklist && (
+        <div className="rounded-xl border border-border bg-card p-4 space-y-2 max-w-3xl">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="font-semibold">Go-live conciliación</span>
+            <Badge variant={checklist.listoOperacion ? 'success' : 'warning'}>
+              {checklist.listoOperacion
+                ? 'listo'
+                : `${checklist.criticosPendientes} crítico(s)`}
+            </Badge>
+            {!metricas?.bancoEnabled && (
+              <Badge variant="danger">banco deshabilitado</Badge>
+            )}
+          </div>
+          <ul className="text-xs text-muted-foreground space-y-1">
+            {checklist.items.map((it) => (
+              <li key={it.id} className="flex gap-2">
+                <span>{it.cumplido ? '✓' : '○'}</span>
+                <span>
+                  {it.titulo}
+                  {it.detalle ? ` — ${it.detalle}` : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <ResponsiveTabBar
         variant="pill"

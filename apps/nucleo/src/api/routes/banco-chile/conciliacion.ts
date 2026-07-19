@@ -4,12 +4,12 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 
 /**
- * Router para conciliación bancaria
- * Permite conciliar movimientos bancarios con ventas/gastos
+ * Router para conciliación bancaria manual
+ * Movimientos banco ↔ ventas / gastos
  */
 export const conciliacionRouter = new Hono<{ Variables: AppVariables }>();
 
-// Listar movimientos para conciliar
+// Listar movimientos pendientes
 conciliacionRouter.get('/', async (c) => {
   try {
     const supabase = c.get('supabase');
@@ -25,21 +25,21 @@ conciliacionRouter.get('/', async (c) => {
         )
       `)
       .eq('empresa_id', empresaId)
-      .is('conciliado', false)
+      .eq('conciliado', false)
       .order('fecha_contable', { ascending: false });
 
     if (error) {
-      return c.json({ error: error.message }, 500);
+      return c.json({ code: 'list_failed', message: error.message }, 500);
     }
 
-    return c.json({ movimientos: data || [] });
+    return c.json({ data: data || [], movimientos: data || [] });
   } catch (error) {
     console.error('Error listing movimientos:', error);
-    return c.json({ error: 'Error al listar movimientos' }, 500);
+    return c.json({ code: 'list_error', message: 'Error al listar movimientos' }, 500);
   }
 });
 
-// Conciliar movimiento con venta
+// Conciliar movimiento con venta o gasto
 conciliacionRouter.post(
   '/conciliar',
   zValidator(
@@ -50,69 +50,96 @@ conciliacionRouter.post(
       gastoId: z.string().uuid().optional(),
       monto: z.number(),
       concepto: z.string().optional(),
-    })
+    }),
   ),
   async (c) => {
     try {
       const supabase = c.get('supabase');
+      const empresaId = c.get('empresaId');
       const { movimientoId, ventaId, gastoId, monto, concepto } = c.req.valid('json');
 
-      // Verificar que el movimiento existe
+      if (!ventaId && !gastoId) {
+        return c.json(
+          { code: 'entity_required', message: 'Indicá ventaId o gastoId' },
+          400,
+        );
+      }
+
       const { data: movimiento, error: moveError } = await supabase
         .from('banco_chile_movimientos')
-        .select('*')
+        .select('id, empresa_id, conciliado, monto')
         .eq('id', movimientoId)
-        .single();
+        .eq('empresa_id', empresaId)
+        .maybeSingle();
 
       if (moveError || !movimiento) {
-        return c.json({ error: 'Movimiento no encontrado' }, 404);
+        return c.json({ code: 'not_found', message: 'Movimiento no encontrado' }, 404);
       }
 
-      // Crear registro de conciliación
-      const { error: concilError } = await supabase
-        .from('banco_chile_conciliaciones')
-        .insert({
-          movimiento_id: movimientoId,
-          venta_id: ventaId,
-          gasto_id: gastoId,
-          monto: monto,
-          concepto: concepto,
-          fecha_conciliacion: new Date().toISOString(),
-        });
+      if (movimiento.conciliado) {
+        return c.json(
+          { code: 'already_conciliated', message: 'El movimiento ya está conciliado' },
+          409,
+        );
+      }
+
+      const { error: concilError } = await supabase.from('banco_chile_conciliaciones').insert({
+        movimiento_id: movimientoId,
+        venta_id: ventaId ?? null,
+        gasto_id: gastoId ?? null,
+        monto: monto,
+        concepto: concepto ?? 'Conciliación manual',
+        fecha_conciliacion: new Date().toISOString(),
+        tipo_conciliacion: 'manual',
+      });
 
       if (concilError) {
-        return c.json({ error: concilError.message }, 500);
+        return c.json({ code: 'conciliar_failed', message: concilError.message }, 500);
       }
 
-      // Marcar movimiento como conciliado
       await supabase
         .from('banco_chile_movimientos')
         .update({ conciliado: true })
-        .eq('id', movimientoId);
+        .eq('id', movimientoId)
+        .eq('empresa_id', empresaId);
 
-      return c.json({ success: true, message: 'Movimiento conciliado' });
+      return c.json({ data: { success: true }, message: 'Movimiento conciliado' });
     } catch (error) {
       console.error('Error conciliando:', error);
-      return c.json({ error: 'Error al conciliar' }, 500);
+      return c.json({ code: 'conciliar_error', message: 'Error al conciliar' }, 500);
     }
-  }
+  },
 );
 
 // Desconciliar movimiento
 conciliacionRouter.post('/desconciliar/:id', async (c) => {
   try {
     const supabase = c.get('supabase');
+    const empresaId = c.get('empresaId');
     const { id } = c.req.param();
 
-    // Eliminar conciliación
+    const { data: mov } = await supabase
+      .from('banco_chile_movimientos')
+      .select('id')
+      .eq('id', id)
+      .eq('empresa_id', empresaId)
+      .maybeSingle();
+
+    if (!mov) {
+      return c.json({ code: 'not_found', message: 'Movimiento no encontrado' }, 404);
+    }
+
     await supabase.from('banco_chile_conciliaciones').delete().eq('movimiento_id', id);
 
-    // Marcar como no conciliado
-    await supabase.from('banco_chile_movimientos').update({ conciliado: false }).eq('id', id);
+    await supabase
+      .from('banco_chile_movimientos')
+      .update({ conciliado: false })
+      .eq('id', id)
+      .eq('empresa_id', empresaId);
 
-    return c.json({ success: true, message: 'Desconciliado' });
+    return c.json({ data: { success: true }, message: 'Desconciliado' });
   } catch (error) {
     console.error('Error desconciliando:', error);
-    return c.json({ error: 'Error al desconciliar' }, 500);
+    return c.json({ code: 'desconciliar_error', message: 'Error al desconciliar' }, 500);
   }
 });

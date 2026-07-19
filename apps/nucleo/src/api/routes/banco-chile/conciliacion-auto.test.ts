@@ -1,73 +1,99 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { Hono } from 'hono';
 
-const mockSupabase = {
-  from: vi.fn(() => ({
-    select: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    single: vi.fn().mockResolvedValue({ data: null, error: null }),
-    order: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-    range: vi.fn().mockReturnThis(),
-    rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
-  })),
-  rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
-};
+function makeSupabase(rpcData: unknown[] = []) {
+  const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+  const single = vi.fn().mockResolvedValue({ data: null, error: null });
+  const chain: Record<string, unknown> = {};
+  const self = () => chain;
+  chain.select = vi.fn(self);
+  chain.insert = vi.fn(self);
+  chain.update = vi.fn(self);
+  chain.eq = vi.fn(self);
+  chain.order = vi.fn(self);
+  chain.limit = vi.fn(self);
+  chain.maybeSingle = maybeSingle;
+  chain.single = single;
+  const limitRpc = vi.fn().mockResolvedValue({ data: rpcData, error: null });
+  return {
+    from: vi.fn(() => chain),
+    rpc: vi.fn(() => ({ limit: limitRpc })),
+    _limitRpc: limitRpc,
+  };
+}
 
-vi.mock('@/api/lib/middleware', () => ({
-  authMiddleware: vi.fn().mockImplementation(async (c, next) => {
-    c.set('user', { id: 'user-1', email: 'test@test.com', app_metadata: { role: 'admin' } });
-    c.set('supabase', mockSupabase);
-    await next();
-  }),
-  tenantMiddleware: vi.fn().mockImplementation(async (c, next) => {
-    c.set('empresaId', 'empresa-1');
-    await next();
-  }),
-  requireProfileRole: vi.fn(() => vi.fn().mockImplementation(async (c, next) => await next())),
-}));
-
-describe('Conciliación Automática', () => {
+describe('conciliacion-auto ejecutar', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetModules();
   });
 
-  describe('Ejecutar conciliación', () => {
-    it('requires empresa access', async () => {
-      // Test would verify that user must have access to empresa
-      expect(true).toBe(true);
+  it('acepta body solo con limite (tenant = empresaId)', async () => {
+    const supabase = makeSupabase([]);
+    const { conciliacionAutoRoutes } = await import('./conciliacion-auto');
+
+    const app = new Hono<{
+      Variables: {
+        empresaId: string;
+        supabase: typeof supabase;
+        user: { id: string };
+      };
+    }>();
+    app.use('*', async (c, next) => {
+      c.set('empresaId', '11111111-1111-1111-1111-111111111111');
+      c.set('supabase', supabase as any);
+      c.set('user', { id: 'user-1' });
+      await next();
+    });
+    app.route('/', conciliacionAutoRoutes);
+
+    const res = await app.request('/ejecutar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ limite: 10 }),
     });
 
-    it('calls aplicar_reglas_conciliacion RPC', async () => {
-      const { conciliacionAutoRoutes } = await import('@/api/routes/banco-chile/conciliacion-auto');
-      // Verify the route exists and has the correct structure
-      expect(conciliacionAutoRoutes).toBeDefined();
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.success).toBe(true);
+    expect(json.empresa_id).toBe('11111111-1111-1111-1111-111111111111');
+    expect(supabase.rpc).toHaveBeenCalledWith('aplicar_reglas_conciliacion', {
+      p_empresa_id: '11111111-1111-1111-1111-111111111111',
     });
   });
 
-  describe('Confidence scoring', () => {
-    it('calculates confidence based on matched conditions', () => {
-      // Monto exacto + misma fecha = 100% (2/2 condiciones)
-      // Monto exacto + fecha distinta = 50% (1/2 condiciones)
-      // Solo RUT match = 50% (1/2 condiciones)
-      expect(true).toBe(true);
-    });
-  });
+  it('rechaza empresa_id distinto al tenant', async () => {
+    const supabase = makeSupabase([]);
+    const { conciliacionAutoRoutes } = await import('./conciliacion-auto');
 
-  describe('Aceptar propuesta', () => {
-    it('creates conciliación record with confianza', async () => {
-      expect(true).toBe(true);
+    const app = new Hono<{
+      Variables: {
+        empresaId: string;
+        supabase: typeof supabase;
+        user: { id: string };
+      };
+    }>();
+    app.use('*', async (c, next) => {
+      c.set('empresaId', '11111111-1111-1111-1111-111111111111');
+      c.set('supabase', supabase as any);
+      c.set('user', { id: 'user-1' });
+      await next();
+    });
+    app.route('/', conciliacionAutoRoutes);
+
+    const res = await app.request('/ejecutar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        empresa_id: 'a0a0a0a0-b1b1-41c1-81d1-e2e2e2e2e2e2',
+        limite: 5,
+      }),
     });
 
-    it('marks movimiento as conciliado', async () => {
-      expect(true).toBe(true);
-    });
-
-    it('rejects already conciliated movements', async () => {
-      expect(true).toBe(true);
-    });
+    // 403 mismatch preferred; 400 only if validator rejects UUID shape
+    expect([403, 400]).toContain(res.status);
+    const json = await res.json();
+    if (res.status === 403) {
+      expect(json.code).toBe('empresa_mismatch');
+    }
   });
 });

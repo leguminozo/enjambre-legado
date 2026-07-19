@@ -5,26 +5,28 @@ import type { AppVariables } from "@/api/lib/middleware";
 import { createClient } from "@supabase/supabase-js";
 
 // Esquemas de validación
+// empresa_id optional: always resolve from tenant (config-en-UI / POS never send it)
 const EjecutarConciliacionSchema = z.object({
-  empresa_id: z.string().uuid(),
+  empresa_id: z.string().uuid().optional(),
   limite: z.number().int().positive().max(100).optional().default(50),
 });
 
 const AceptarPropuestaSchema = z.object({
-  propuesta_id: z.string().uuid(),
+  propuesta_id: z.string().uuid().optional(),
   tipo_entidad: z.enum(['venta', 'gasto']),
   entidad_id: z.string().uuid(),
   movimiento_id: z.string().uuid(),
   concepto: z.string().optional(),
+  confianza: z.number().min(0).max(100).optional(),
 });
 
 const RechazarPropuestaSchema = z.object({
-  propuesta_id: z.string().uuid(),
+  propuesta_id: z.string().uuid().optional(),
   motivo: z.string().optional(),
 });
 
 const AutoAceptarSchema = z.object({
-  empresa_id: z.string().uuid(),
+  empresa_id: z.string().uuid().optional(),
   umbral_confianza: z.number().min(80).max(100).optional().default(90),
   limite: z.number().int().positive().max(100).optional().default(50),
 });
@@ -45,6 +47,18 @@ const ReglaConciliacionSchema = z.object({
 
 export const conciliacionAutoRoutes = new Hono<{ Variables: AppVariables }>();
 
+/** Tenant-bound empresa: never trust body override to another tenant. */
+function resolveTenantEmpresaId(
+  c: { get: (k: "empresaId") => string },
+  bodyEmpresaId?: string,
+): { ok: true; empresaId: string } | { ok: false; message: string } {
+  const tenantId = c.get("empresaId");
+  if (bodyEmpresaId && bodyEmpresaId !== tenantId) {
+    return { ok: false, message: "empresa_id no coincide con el tenant de sesión" };
+  }
+  return { ok: true, empresaId: tenantId };
+}
+
 /**
  * Ejecutar conciliación automática para una empresa
  */
@@ -54,21 +68,13 @@ conciliacionAutoRoutes.post(
   async (c) => {
     try {
       const input = c.req.valid("json");
-      const empresaId = input.empresa_id ?? c.get("empresaId"); // Permitir override para testing
+      const resolved = resolveTenantEmpresaId(c, input.empresa_id);
+      if (!resolved.ok) {
+        return c.json({ code: "empresa_mismatch", message: resolved.message }, 403);
+      }
+      const empresaId = resolved.empresaId;
       const supabase = c.get("supabase");
       const limite = input.limite ?? 50;
-
-      // Verificar que el usuario tenga acceso a la empresa
-      const { data: accesoData, error: accesoError } = await supabase
-        .from("usuarios_empresas")
-        .select("user_id")
-        .eq("empresa_id", empresaId)
-        .eq("user_id", c.get("user").id)
-        .single();
-
-      if (accesoError || !accesoData) {
-        return c.json({ code: "acceso_denegado", message: "No tiene acceso a esta empresa" }, 403);
-      }
 
       // Ejecutar la función de conciliación automática
       const { data: propuestas, error } = await supabase
@@ -79,25 +85,45 @@ conciliacionAutoRoutes.post(
         return c.json({ code: "ejecucion_fallida", message: error.message }, 500);
       }
 
+      const list = Array.isArray(propuestas) ? propuestas.slice(0, limite) : [];
+
       // Enriquecer las propuestas con información de la entidad
       const propuestasEnriquecidas = [];
-      for (const propuesta of propuestas) {
+      for (const propuesta of list) {
         let entidadInfo = null;
         let tipoEntidad = propuesta.tipo_entidad;
 
         if (tipoEntidad === 'venta' && propuesta.entidad_id) {
-          const { data: ventaData } = await supabase
+          // Prefer facturas_emitidas; fallback ventas (checkout web / POS)
+          const { data: facturaData } = await supabase
             .from("facturas_emitidas")
             .select("id, numero, fecha_emision, monto_total, estado")
             .eq("id", propuesta.entidad_id)
-            .single();
-          entidadInfo = ventaData;
+            .maybeSingle();
+          if (facturaData) {
+            entidadInfo = facturaData;
+          } else {
+            const { data: ventaData } = await supabase
+              .from("ventas")
+              .select("id, total, estado, created_at, buy_order")
+              .eq("id", propuesta.entidad_id)
+              .maybeSingle();
+            if (ventaData) {
+              entidadInfo = {
+                id: ventaData.id,
+                numero: ventaData.buy_order ?? ventaData.id.slice(0, 8),
+                fecha_emision: ventaData.created_at,
+                monto_total: ventaData.total,
+                estado: ventaData.estado,
+              };
+            }
+          }
         } else if (tipoEntidad === 'gasto' && propuesta.entidad_id) {
           const { data: gastoData } = await supabase
             .from("gastos")
             .select("id, fecha, monto_total, estado, categoria")
             .eq("id", propuesta.entidad_id)
-            .single();
+            .maybeSingle();
           entidadInfo = gastoData;
         }
 
@@ -272,22 +298,14 @@ conciliacionAutoRoutes.post(
   async (c) => {
     try {
       const input = c.req.valid("json");
-      const empresaId = input.empresa_id ?? c.get("empresaId");
+      const resolved = resolveTenantEmpresaId(c, input.empresa_id);
+      if (!resolved.ok) {
+        return c.json({ code: "empresa_mismatch", message: resolved.message }, 403);
+      }
+      const empresaId = resolved.empresaId;
       const supabase = c.get("supabase");
       const umbralConfianza = input.umbral_confianza ?? 90;
       const limite = input.limite ?? 50;
-
-      // Verificar acceso
-      const { data: accesoData, error: accesoError } = await supabase
-        .from("usuarios_empresas")
-        .select("user_id")
-        .eq("empresa_id", empresaId)
-        .eq("user_id", c.get("user").id)
-        .single();
-
-      if (accesoError || !accesoData) {
-        return c.json({ code: "acceso_denegado", message: "No tiene acceso a esta empresa" }, 403);
-      }
 
       // Ejecutar la función de conciliación automática
       const { data: propuestas, error } = await supabase
