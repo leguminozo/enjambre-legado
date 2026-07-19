@@ -22,7 +22,7 @@
 
 | Integración | Casi listo | Gap típico a cerrar |
 |-------------|------------|---------------------|
-| SII | pipeline DTE, CAF guard, checklist v2, **Settings UI completa** (identidad+CAF XML+P12 cifrado) | ⏳ ops: aplicar mig 95; cargar P12/CAF reales en UI; 1ª boleta/FC Maullín → Palena |
+| SII | pipeline + config UI + **cola jobs emisión** (list/retry + auto-emit en checklist) | ⏳ ops: mig 95; P12/CAF; SII_AUTO_EMIT_BOLETA=true; CRON; 1ª boleta Maullín |
 | SumUp | client + BFF + **config UI** (merchant/API key cifrada, checklist, test-connection, readers) | ⏳ ops: keys en UI + enable; smoke venta POS→tx; webhook opcional |
 | Banco Chile | client + config BFF + conciliación + **webhook HMAC fail-closed** | ⏳ ops: set BANCO_CHILE_WEBHOOK_SECRET; sync movs; 1 match |
 | Conciliación | motor RPC + UI propuestas + métricas/checklist | ⏳ datos reales banco; reglas seed si vacío |
@@ -32,6 +32,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-16 pass 25 (val-sii-emision)
+- Señal: cola `sii_document_jobs` sin UI ni retry; checklist sin auto-emit/cola; operador ciego a DTE pendientes
+- Compuesto: colapsar + redirigir + U
+- Regla nueva: `GET/POST /api/sii/jobs` (+ emission-summary, retry); Dashboard SII muestra cola; checklist items auto-emit + jobs abiertos; SII_AUTO_EMIT_BOLETA en env matrix
+- Anti-patrón: jobs solo vía cron sin superficie ops; dead_letter invisible
+- Guardriel: intacto
 
 ### Evo 2026-07-16 pass 24 (deep-followup-golive / val-banco-webhooks)
 - Señal: webhook HMAC con `===` timing-leaky; secret missing → throw 500; GET pendientes/reprocesar en router público sin JWT (service role)

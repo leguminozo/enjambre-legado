@@ -1,12 +1,10 @@
 {
-  "index": 1,
-  "pass": 25,
-  "last_sector": "deep-followup-golive",
-  "last_commit": "71a908b",
+  "index": 2,
+  "pass": 26,
+  "last_sector": "val-sii-emision",
+  "last_commit": "pending",
   "streak_clean": 0,
-  "boost": {
-    "val-sii-emision": 1
-  },
+  "boost": {},
   "phase": "v1.2-golive",
-  "notes": "Pass 24: banco webhook S harden. Siguiente ciclo: val-sii-emision (#1)."
+  "notes": "Pass 25: SII jobs queue UI + checklist auto-emit. Siguiente: val-sumup-pos (#2) o residual ops."
 }

@@ -42,7 +42,8 @@ certificacionRoutes.get("/checklist", async (c) => {
   const supabase = c.get("supabase");
   const minFolios = getCafMinFolios();
 
-  const [cafRes, certRes, fcRes, dteVentaRes, empresaRes] = await Promise.all([
+  const [cafRes, certRes, fcRes, dteVentaRes, empresaRes, jobsOpenRes, dtePendRes] =
+    await Promise.all([
     supabase
       .from("sii_caf")
       .select("id, tipo_dte, folio_actual, folio_hasta, activo")
@@ -70,6 +71,17 @@ certificacionRoutes.get("/checklist", async (c) => {
       .select("sii_ambiente, sii_clave_encriptada")
       .eq("id", empresaId)
       .single(),
+    supabase
+      .from("sii_document_jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("empresa_id", empresaId)
+      .in("status", ["pending", "failed", "dead_letter", "processing"]),
+    supabase
+      .from("facturas_emitidas")
+      .select("id", { count: "exact", head: true })
+      .eq("empresa_id", empresaId)
+      .eq("estado_sii", "pendiente")
+      .in("tipo_dte", [33, 39, 41]),
   ]);
 
   const cafRows = (cafRes.data ?? []) as Array<{
@@ -184,12 +196,40 @@ certificacionRoutes.get("/checklist", async (c) => {
       id: "cron-fiscal",
       categoria: "operacion",
       titulo: "Cron fiscal activo (poll + jobs + alerta CAF)",
-      cumplido: Boolean(process.env.CRON_SECRET),
+      cumplido: Boolean(
+        process.env.CRON_SECRET ||
+          process.env.FISCAL_WORKER_SECRET ||
+          process.env.INTEGRATIONS_CRON_SECRET,
+      ),
       critico: false,
       fase: "operacion",
-      detalle: process.env.CRON_SECRET
-        ? "CRON_SECRET presente"
-        : "Set CRON_SECRET en Vercel + schedule /api/cron/fiscal",
+      detalle:
+        process.env.CRON_SECRET ||
+        process.env.FISCAL_WORKER_SECRET ||
+        process.env.INTEGRATIONS_CRON_SECRET
+          ? "Secret de cron presente"
+          : "Set CRON_SECRET en Vercel + schedule /api/cron/fiscal",
+    },
+    {
+      id: "auto-emit-boleta",
+      categoria: "operacion",
+      titulo: "Auto-emisión boleta post-checkout (SII_AUTO_EMIT_BOLETA)",
+      cumplido: process.env.SII_AUTO_EMIT_BOLETA === "true",
+      critico: false,
+      fase: "operacion",
+      detalle:
+        process.env.SII_AUTO_EMIT_BOLETA === "true"
+          ? "Activo — ventas web emiten DTE 39"
+          : "Desactivado — set SII_AUTO_EMIT_BOLETA=true en Vercel para go-live D2C",
+    },
+    {
+      id: "jobs-cola",
+      categoria: "operacion",
+      titulo: "Cola de jobs de emisión sin dead_letter masivo",
+      cumplido: (jobsOpenRes.count ?? 0) < 50,
+      critico: false,
+      fase: "operacion",
+      detalle: `${jobsOpenRes.count ?? 0} abiertos (pending/failed/dead) · ${dtePendRes.count ?? 0} DTE pendientes de envío`,
     },
   ];
 

@@ -27,6 +27,40 @@ export function DashboardTab() {
     retry: false,
   });
 
+  const jobsQuery = useQuery({
+    queryKey: ["sii", "jobs"],
+    queryFn: async () => {
+      const res = await apiFetch("/api/sii/jobs?limit=15");
+      if (!res.ok) throw new Error("Error cargando cola de emisión");
+      return res.json();
+    },
+    retry: false,
+  });
+
+  const emissionSummaryQuery = useQuery({
+    queryKey: ["sii", "jobs", "emission-summary"],
+    queryFn: async () => {
+      const res = await apiFetch("/api/sii/jobs/emission-summary");
+      if (!res.ok) throw new Error("Error cargando resumen emisión");
+      return res.json();
+    },
+    retry: false,
+  });
+
+  const retryJobMutation = useMutation({
+    mutationFn: async (jobId: string) => {
+      const res = await apiFetch(`/api/sii/jobs/${jobId}/retry`, { method: "POST" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? "Error al reintentar job");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sii", "jobs"] });
+    },
+  });
+
   const facturasQuery = useQuery({
     queryKey: ["sii", "facturas-compra"],
     queryFn: async (): Promise<FacturaCompraRow[]> => {
@@ -69,9 +103,133 @@ export function DashboardTab() {
   });
 
   const dash = dashboardQuery.data;
+  const jobsData = jobsQuery.data?.data as
+    | {
+        jobs: Array<{
+          id: string;
+          source_type: string;
+          tipo_dte: number;
+          status: string;
+          attempts: number;
+          last_error: string | null;
+          scheduled_at: string;
+        }>;
+        open: { pending: number; failed: number; deadLetter: number };
+        autoEmitBoleta: boolean;
+        cronConfigured: boolean;
+      }
+    | undefined;
+  const emission = emissionSummaryQuery.data?.data as
+    | {
+        dtePendientes: number;
+        dteEnviadosSinAceptacion: number;
+        jobsAbiertos: number;
+        autoEmitBoleta: boolean;
+        cronConfigured: boolean;
+      }
+    | undefined;
 
   return (
     <div className="space-y-6">
+      {/* Emisión / cola DTE — go-live */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Send size={16} /> Emisión DTE · cola de jobs
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-2 text-xs">
+            <Badge variant={emission?.autoEmitBoleta ? "success" : "warning"}>
+              auto-boleta: {emission?.autoEmitBoleta ? "ON" : "OFF"}
+            </Badge>
+            <Badge variant={emission?.cronConfigured ? "success" : "warning"}>
+              cron: {emission?.cronConfigured ? "OK" : "sin secret"}
+            </Badge>
+            <Badge variant="default">
+              DTE pendientes: {emission?.dtePendientes ?? "—"}
+            </Badge>
+            <Badge variant="default">
+              enviados sin aceptación: {emission?.dteEnviadosSinAceptacion ?? "—"}
+            </Badge>
+            <Badge
+              variant={
+                (jobsData?.open.failed ?? 0) + (jobsData?.open.deadLetter ?? 0) > 0
+                  ? "warning"
+                  : "default"
+              }
+            >
+              jobs: {jobsData?.open.pending ?? 0}p / {jobsData?.open.failed ?? 0}f /{" "}
+              {jobsData?.open.deadLetter ?? 0}dl
+            </Badge>
+          </div>
+          {jobsQuery.isLoading && <ViewLoading variant="inline" label="Jobs" hideLabel />}
+          {jobsQuery.isError && (
+            <p className="text-sm text-destructive">{(jobsQuery.error as Error).message}</p>
+          )}
+          {(jobsData?.jobs?.length ?? 0) === 0 && !jobsQuery.isLoading && (
+            <p className="text-sm text-muted-foreground">Sin jobs recientes en la cola.</p>
+          )}
+          {(jobsData?.jobs?.length ?? 0) > 0 && (
+            <EnjTableShell>
+              <table className="w-full data-table text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                    <th className="px-2 py-1.5">Tipo</th>
+                    <th className="px-2 py-1.5">DTE</th>
+                    <th className="px-2 py-1.5">Estado</th>
+                    <th className="px-2 py-1.5">Intentos</th>
+                    <th className="px-2 py-1.5">Error</th>
+                    <th className="px-2 py-1.5" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {jobsData!.jobs.map((j) => (
+                    <tr key={j.id} className="border-b border-border/50">
+                      <td className="px-2 py-1.5 font-mono text-xs">{j.source_type}</td>
+                      <td className="px-2 py-1.5">{j.tipo_dte}</td>
+                      <td className="px-2 py-1.5">
+                        <Badge
+                          variant={
+                            j.status === "completed"
+                              ? "success"
+                              : j.status === "dead_letter" || j.status === "failed"
+                                ? "warning"
+                                : "default"
+                          }
+                        >
+                          {j.status}
+                        </Badge>
+                      </td>
+                      <td className="px-2 py-1.5">{j.attempts}</td>
+                      <td className="px-2 py-1.5 text-xs text-muted-foreground max-w-[12rem] truncate">
+                        {j.last_error ?? "—"}
+                      </td>
+                      <td className="px-2 py-1.5">
+                        {["failed", "dead_letter", "pending"].includes(j.status) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={retryJobMutation.isPending}
+                            onClick={() => retryJobMutation.mutate(j.id)}
+                          >
+                            Retry
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </EnjTableShell>
+          )}
+          <p className="text-[11px] text-muted-foreground">
+            Auto-boleta y cron se configuran en Vercel (plataforma). CAF/cert en Configuración SII.
+            Retry reprograma el job para el próximo tick de <code>/api/cron/fiscal</code>.
+          </p>
+        </CardContent>
+      </Card>
+
       {dashboardQuery.isLoading ? (
         <ViewLoading variant="view" label="Dashboard SII" hideLabel />
       ) : (

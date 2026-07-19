@@ -19,6 +19,14 @@ function makeFacturasEmitidasChain(result: unknown) {
   };
 }
 
+function makeJobsOpenChain(result: unknown) {
+  const inFn = vi.fn().mockResolvedValue(result);
+  const eqEmpresa = vi.fn().mockReturnValue({ in: inFn });
+  return {
+    select: vi.fn().mockReturnValue({ eq: eqEmpresa }),
+  };
+}
+
 describe('GET /certificacion/checklist', () => {
   const originalCronSecret = process.env.CRON_SECRET;
   const originalSiiKey = process.env.SII_CLAVE_ENCRYPTION_KEY;
@@ -70,6 +78,9 @@ describe('GET /certificacion/checklist', () => {
         }
         if (table === 'facturas_emitidas') {
           return makeFacturasEmitidasChain({ count: 1 });
+        }
+        if (table === 'sii_document_jobs') {
+          return makeJobsOpenChain({ count: 0 });
         }
         if (table === 'empresas') {
           return {
@@ -142,6 +153,7 @@ describe('GET /certificacion/checklist', () => {
         }
         if (table === 'facturas_compra') return makeEqEqChain({ count: 1 });
         if (table === 'facturas_emitidas') return makeFacturasEmitidasChain({ count: 1 });
+        if (table === 'sii_document_jobs') return makeJobsOpenChain({ count: 0 });
         if (table === 'empresas') {
           return {
             select: vi.fn().mockReturnValue({
