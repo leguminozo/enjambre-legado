@@ -43,7 +43,7 @@ interface Propuesta {
     monto_total: number;
     estado: string;
     categoria?: string;
-  };
+  } | null;
 }
 
 interface HistorialItem {
@@ -142,6 +142,7 @@ export function ConciliacionAutoView() {
           tipo_entidad: propuesta.tipo_entidad,
           entidad_id: propuesta.entidad_id,
           movimiento_id: propuesta.movimiento_id,
+          confianza: propuesta.confianza,
         })
       });
       if (!res.ok) {
@@ -172,6 +173,27 @@ export function ConciliacionAutoView() {
       toast('Propuesta rechazada', { type: 'info' });
       queryClient.invalidateQueries({ queryKey: ['conciliacion', 'propuestas'] });
     }
+  });
+
+  const seedReglasMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiFetch('/api/banco-chile/conciliacion-auto/reglas/seed-defaults', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Error al sembrar reglas');
+      }
+      return res.json() as Promise<{ message: string; inserted: number }>;
+    },
+    onSuccess: (data) => {
+      toast(data.message || 'Reglas sembradas', { type: 'success' });
+      queryClient.invalidateQueries({ queryKey: ['conciliacion'] });
+    },
+    onError: (err: Error) => {
+      toast(err.message, { type: 'error' });
+    },
   });
 
   const propuestas = propuestasData?.propuestas || [];
@@ -379,21 +401,40 @@ export function ConciliacionAutoView() {
                                 Registro ERP ({propuesta.tipo_entidad})
                               </span>
                             </div>
-                            <p className="text-lg font-medium text-foreground leading-tight">
-                              {propuesta.entidad.numero ? `Folio #${propuesta.entidad.numero}` : propuesta.entidad.categoria || 'Registro Interno'}
-                            </p>
-                            <p className="text-2xl font-display text-foreground">
-                              {formatCLP(propuesta.entidad.monto_total)}
-                            </p>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Badge variant="default" className="text-[10px] py-0">{propuesta.entidad.estado}</Badge>
-                              <span>•</span>
-                              <span>{new Date(propuesta.entidad.fecha_emision || propuesta.entidad.fecha || '').toLocaleDateString('es-CL')}</span>
-                            </div>
+                            {propuesta.entidad ? (
+                              <>
+                                <p className="text-lg font-medium text-foreground leading-tight">
+                                  {propuesta.entidad.numero
+                                    ? `Folio #${propuesta.entidad.numero}`
+                                    : propuesta.entidad.categoria || 'Registro Interno'}
+                                </p>
+                                <p className="text-2xl font-display text-foreground">
+                                  {formatCLP(propuesta.entidad.monto_total)}
+                                </p>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <Badge variant="default" className="text-[10px] py-0">
+                                    {propuesta.entidad.estado}
+                                  </Badge>
+                                  <span>•</span>
+                                  <span>
+                                    {new Date(
+                                      propuesta.entidad.fecha_emision ||
+                                        propuesta.entidad.fecha ||
+                                        '',
+                                    ).toLocaleDateString('es-CL')}
+                                  </span>
+                                </div>
+                              </>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                Entidad {propuesta.entidad_id?.slice(0, 8) ?? '—'} (detalle no
+                                resuelto)
+                              </p>
+                            )}
                           </div>
 
                         </div>
-                        {propuesta.detalles.length > 0 && (
+                        {Array.isArray(propuesta.detalles) && propuesta.detalles.length > 0 && (
                           <div className="px-4 pb-4">
                             <div className="flex gap-2 flex-wrap">
                               {propuesta.detalles.map((d, i) => (
@@ -492,13 +533,24 @@ export function ConciliacionAutoView() {
             transition={{ duration: 0.2 }}
           >
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-row items-center justify-between gap-3 flex-wrap">
                 <div>
                   <CardTitle>Reglas de Automatización</CardTitle>
-                  <CardDescription>Criterios lógicos para emparejar automáticamente transacciones.</CardDescription>
+                  <CardDescription>
+                    Criterios lógicos banco ↔ facturas/ventas/gastos. Semilla: monto+día y RUT+monto.
+                  </CardDescription>
                 </div>
-                <Button variant="outline" disabled>
-                  + Nueva Regla
+                <Button
+                  variant="outline"
+                  onClick={() => seedReglasMutation.mutate()}
+                  disabled={seedReglasMutation.isPending}
+                >
+                  {seedReglasMutation.isPending ? (
+                    <HexagonLoader size="sm" className="mr-2" />
+                  ) : (
+                    <Settings className="w-4 h-4 mr-2" />
+                  )}
+                  Sembrar defaults
                 </Button>
               </CardHeader>
               <CardContent className="relative">
@@ -506,7 +558,15 @@ export function ConciliacionAutoView() {
                 {isLoadingReglas ? (
                   <ViewLoading variant="view" label="Reglas" hideLabel />
                 ) : reglas.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No hay reglas configuradas.</p>
+                  <div className="text-center text-muted-foreground py-8 space-y-3">
+                    <p>No hay reglas configuradas (empresa nueva o sin seed).</p>
+                    <Button
+                      onClick={() => seedReglasMutation.mutate()}
+                      disabled={seedReglasMutation.isPending}
+                    >
+                      Sembrar reglas por defecto
+                    </Button>
+                  </div>
                 ) : (
                   <div className="grid gap-4">
                     {reglas.map((regla) => (
@@ -515,7 +575,7 @@ export function ConciliacionAutoView() {
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-medium text-foreground">{regla.nombre}</h4>
                             {regla.activo ? (
-                              <Badge variant="default" className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">Activa</Badge>
+                              <Badge variant="success">Activa</Badge>
                             ) : (
                               <Badge variant="default">Inactiva</Badge>
                             )}

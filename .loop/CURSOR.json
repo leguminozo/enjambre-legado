@@ -1,10 +1,10 @@
 {
-  "index": 7,
-  "pass": 31,
-  "last_sector": "val-env-secrets",
-  "last_commit": "dae3e6a",
+  "index": 8,
+  "pass": 32,
+  "last_sector": "val-conciliacion-e2e",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.2-golive",
-  "notes": "Pass 30: encryption \u226532 + auto_emit + matrix sync (dae3e6a). Siguiente: val-conciliacion (#7) residual o crons go-live."
+  "notes": "Pass 31: ventas match + seed-defaults. Siguiente: deep-followup-golive (#8) residual ops/crons."
 }

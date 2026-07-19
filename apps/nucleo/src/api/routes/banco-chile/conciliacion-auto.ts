@@ -2,7 +2,6 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
-import { createClient } from "@supabase/supabase-js";
 
 // Esquemas de validación
 // empresa_id optional: always resolve from tenant (config-en-UI / POS never send it)
@@ -12,6 +11,7 @@ const EjecutarConciliacionSchema = z.object({
 });
 
 const AceptarPropuestaSchema = z.object({
+  /** regla_id / propuesta del motor */
   propuesta_id: z.string().uuid().optional(),
   tipo_entidad: z.enum(['venta', 'gasto']),
   entidad_id: z.string().uuid(),
@@ -34,7 +34,8 @@ const AutoAceptarSchema = z.object({
 const ReglaConciliacionSchema = z.object({
   nombre: z.string().min(1, "El nombre es requerido"),
   tipo: z.enum(['venta', 'gasto', 'ambos']),
-  campo_primario: z.enum(['monto', 'rut', 'concepto', 'referencia']),
+  // Align with DB check on reconciliation_rules.campo_primario
+  campo_primario: z.enum(['monto', 'rut', 'rut_contraparte', 'concepto', 'referencia']),
   operador: z.enum(['igual', 'mayor_que', 'menor_que', 'entre', 'contiene', 'regex']),
   valor_primario: z.string().optional(),
   campo_secundario: z.enum(['fecha', 'monto', 'rut', 'concepto', 'referencia']).optional(),
@@ -44,6 +45,36 @@ const ReglaConciliacionSchema = z.object({
   activo: z.boolean().optional().default(true),
   prioridad: z.number().int().min(0).max(100).optional().default(0),
 });
+
+/** Default rules (same seed as mig 53) for empresas creadas después del seed. */
+const DEFAULT_RECONCILIATION_RULES = [
+  {
+    nombre: 'Monto exacto + fecha mismo día',
+    tipo: 'ambos' as const,
+    campo_primario: 'monto' as const,
+    operador: 'igual' as const,
+    valor_primario: null as string | null,
+    campo_secundario: 'fecha' as const,
+    operador_secundario: 'igual' as const,
+    valor_secundario: 'mismo_dia',
+    valor_secundario_2: null as string | null,
+    activo: true,
+    prioridad: 0,
+  },
+  {
+    nombre: 'RUT contraparte + monto',
+    tipo: 'ambos' as const,
+    campo_primario: 'rut_contraparte' as const,
+    operador: 'igual' as const,
+    valor_primario: null as string | null,
+    campo_secundario: 'monto' as const,
+    operador_secundario: 'igual' as const,
+    valor_secundario: null as string | null,
+    valor_secundario_2: null as string | null,
+    activo: true,
+    prioridad: 1,
+  },
+];
 
 export const conciliacionAutoRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -189,7 +220,7 @@ conciliacionAutoRoutes.post(
         return c.json({ code: "movimiento_ya_conciliado", message: "El movimiento ya está conciliado" }, 409);
       }
 
-      // Crear la conciliación
+      // Crear la conciliación (aprobación humana = manual + metadata de propuesta)
       let entidadId: string | null = null;
       let entidadTipo: 'venta_id' | 'gasto_id' | null = null;
 
@@ -201,26 +232,29 @@ conciliacionAutoRoutes.post(
         entidadId = input.entidad_id;
       }
 
-      const conciliacionData: Record<string, any> = {
-        movimiento_id: input.movimiento_id,
-        monto: 0, // Se obtendrá del movimiento
-        concepto: input.concepto ?? `Conciliación automática vía propuesta ${input.propuesta_id}`,
-        fecha_conciliacion: new Date().toISOString(),
-      };
-
-      if (entidadTipo) {
-        conciliacionData[entidadTipo] = entidadId;
-      }
-
-      // Obtener el monto del movimiento
       const { data: movimientoMonto } = await supabase
         .from("banco_chile_movimientos")
         .select("monto")
         .eq("id", input.movimiento_id)
         .single();
 
-      if (movimientoMonto) {
-        conciliacionData.monto = movimientoMonto.monto;
+      const conciliacionData: Record<string, unknown> = {
+        movimiento_id: input.movimiento_id,
+        monto: movimientoMonto?.monto ?? 0,
+        concepto:
+          input.concepto ??
+          `Conciliación aprobada vía propuesta ${input.propuesta_id ?? "manual"}`,
+        fecha_conciliacion: new Date().toISOString(),
+        tipo_conciliacion: "manual",
+        confianza: input.confianza ?? 0,
+      };
+
+      if (input.propuesta_id) {
+        conciliacionData.regla_id = input.propuesta_id;
+      }
+
+      if (entidadTipo) {
+        conciliacionData[entidadTipo] = entidadId;
       }
 
       const { data: conciliacionDataResult, error: conciliacionError } = await supabase
@@ -238,6 +272,15 @@ conciliacionAutoRoutes.post(
         .from("banco_chile_movimientos")
         .update({ conciliado: true })
         .eq("id", input.movimiento_id);
+
+      // Mirror on ventas when matching checkout/POS sale
+      if (input.tipo_entidad === "venta" && entidadId) {
+        await supabase
+          .from("ventas")
+          .update({ conciliado: true })
+          .eq("id", entidadId)
+          .eq("empresa_id", empresaId);
+      }
 
       return c.json({
         success: true,
@@ -383,6 +426,14 @@ conciliacionAutoRoutes.post(
               .from("banco_chile_movimientos")
               .update({ conciliado: true })
               .eq("id", propuesta.movimiento_id);
+
+            if (propuesta.tipo_entidad === "venta" && propuesta.entidad_id) {
+              await supabase
+                .from("ventas")
+                .update({ conciliado: true })
+                .eq("id", propuesta.entidad_id)
+                .eq("empresa_id", empresaId);
+            }
 
             aceptadas.push({ ...propuesta, conciliacion_id: conciliacionDataResult.id });
 
@@ -607,6 +658,71 @@ conciliacionAutoRoutes.delete(
     }
   }
 );
+
+/**
+ * Sembrar reglas por defecto si la empresa no tiene ninguna (empresas post-mig 53).
+ * Idempotente: no duplica por nombre.
+ */
+conciliacionAutoRoutes.post("/reglas/seed-defaults", async (c) => {
+  try {
+    const empresaId = c.get("empresaId");
+    const supabase = c.get("supabase");
+
+    const { data: existing, error: listErr } = await supabase
+      .from("reconciliation_rules")
+      .select("id, nombre")
+      .eq("empresa_id", empresaId);
+
+    if (listErr) {
+      return c.json({ code: "seed_list_fallida", message: listErr.message }, 500);
+    }
+
+    const names = new Set((existing ?? []).map((r) => r.nombre));
+    const toInsert = DEFAULT_RECONCILIATION_RULES.filter((r) => !names.has(r.nombre)).map(
+      (r) => ({
+        empresa_id: empresaId,
+        ...r,
+        creado_en: new Date().toISOString(),
+        actualizado_en: new Date().toISOString(),
+      }),
+    );
+
+    if (toInsert.length === 0) {
+      return c.json({
+        success: true,
+        message: "Reglas por defecto ya presentes",
+        inserted: 0,
+        total: existing?.length ?? 0,
+      });
+    }
+
+    const { data: created, error: insErr } = await supabase
+      .from("reconciliation_rules")
+      .insert(toInsert)
+      .select("id, nombre");
+
+    if (insErr) {
+      return c.json({ code: "seed_insert_fallida", message: insErr.message }, 500);
+    }
+
+    return c.json({
+      success: true,
+      message: `Sembradas ${created?.length ?? 0} regla(s) por defecto`,
+      inserted: created?.length ?? 0,
+      data: created,
+    });
+  } catch (error) {
+    console.error("[Conciliación Auto Seed Reglas] Error:", error);
+    return c.json(
+      {
+        code: "seed_error",
+        message:
+          error instanceof Error ? error.message : "Error inesperado al sembrar reglas",
+      },
+      500,
+    );
+  }
+});
 
 /**
  * Obtener historial de conciliaciones

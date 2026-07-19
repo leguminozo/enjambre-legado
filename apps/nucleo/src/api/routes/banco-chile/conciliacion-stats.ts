@@ -145,17 +145,21 @@ conciliacionStatsRoutes.get("/checklist", async (c) => {
     },
     {
       id: "reglas",
-      titulo: "Reglas de conciliación activas (opcional al inicio)",
+      titulo: "Reglas de conciliación activas",
       cumplido: hasReglas,
       critico: false,
-      detalle: `${reglasRes.data?.length ?? 0} regla(s)`,
+      detalle: hasReglas
+        ? `${reglasRes.data?.length ?? 0} regla(s)`
+        : "Sembrar defaults en tab Reglas (POST …/reglas/seed-defaults)",
     },
     {
       id: "match",
-      titulo: "Al menos un match banco↔venta/gasto",
+      titulo: "Al menos un match banco↔factura/venta/gasto",
       cumplido: hasMatch,
       critico: true,
-      detalle: hasMatch ? `${conc} conciliado(s)` : "Ejecutá motor o conciliá manual",
+      detalle: hasMatch
+        ? `${conc} conciliado(s)`
+        : "Motor: facturas_emitidas → ventas paid → gastos; re-evaluá o sync banco",
     },
     {
       id: "tasa-90",

@@ -31,6 +31,9 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 | Banco sin checklist | go-live ciego | no token/cuentas probe | `GET /checklist` + Probar auth + sync cuentas |
 | Conciliación 400 UI | motor no corre | body sin empresa_id + schema required | tenant `empresaId` en BFF; body opcional |
 | Stats tabla wrong | tasa match 0 falsa | query `conciliaciones` genérica | `banco_chile_movimientos` + `banco_chile_conciliaciones` |
+| Motor sin ventas | abono web/POS sin propuesta | RPC solo `facturas_emitidas` | `buscar_venta_por_regla` + fallback en `aplicar_reglas` (mig 97) |
+| Reglas vacías post-seed | motor 0 propuestas | empresa creada después de mig 53 | `POST …/reglas/seed-defaults` + botón UI |
+| Aceptar pierde metadata | stats auto/manual rotas; venta no flag | insert sin confianza/regla/ventas.conciliado | aceptar persiste + update ventas |
 | Webhook sin verify | abono/tx forjada | route webhook sin secret/firma | secret server + HMAC + idempotency |
 | Webhook reprocess dup | doble update de estado | no early-return si event id existe | dedupe `event:{id}` → 200 sin side-effects |
 | Firma solo hex | 401 con base64 real | compare solo hex | aceptar hex, `sha256=`, base64 |

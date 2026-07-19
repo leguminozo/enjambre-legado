@@ -25,7 +25,7 @@
 | SII | pipeline + config UI + **cola jobs emisión** (list/retry + auto-emit en checklist) | ⏳ ops: mig 95; P12/CAF; SII_AUTO_EMIT_BOLETA=true; CRON; 1ª boleta Maullín |
 | SumUp | config UI + checklist + **terminal checkout idempotente** (mig 96) + readers normalizados | ⏳ ops: mig 96; keys live; smoke POS→tx |
 | Banco Chile | config BFF + webhook S + **token frescor fix** + **POST /sync** cuentas+movs | ⏳ ops: creds; webhook secret; 1 sync real |
-| Conciliación | motor RPC + UI propuestas + métricas/checklist | ⏳ datos reales banco; reglas seed si vacío |
+| Conciliación | motor **facturas→ventas paid→gastos** + seed-defaults UI + aceptar→confianza/regla | ⏳ ops: mig 97; sync banco; 1 match real |
 | Pagos web | checklist + sesiones + **expire-stale + retry-fulfill** ops | ⏳ ops: keys Flow/TBK; smoke real; 0 stale pending |
 | Env matrix | runtime Entorno + matriz + docs alineados (≥32, auto-emit, webhook) | ⏳ ops: set keys en Vercel 3 apps; checklist verde en UI |
 | Crons | fiscal poll + CAF alert | `CRON_SECRET` en Vercel + job ejecuta |
@@ -33,6 +33,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-19 pass 31 (val-conciliacion-e2e residual)
+- Señal: RPC solo matcheaba `facturas_emitidas` (checkout/POS = `ventas` paid invisibles); aceptar no guardaba confianza/regla ni `ventas.conciliado`; empresas nuevas sin seed de reglas; UI crash si entidad null
+- Compuesto: colapsar + redirigir + U
+- Regla nueva: mig 97 `buscar_venta_por_regla` en `aplicar_reglas` (factura primero, luego venta paid); aceptar/auto marcan ventas; `POST …/reglas/seed-defaults`; null-safe propuesta.entidad
+- Anti-patrón: asumir DTE existe antes del abono bancario; seed solo en mig one-shot
+- Guardriel: intacto (tenant empresaId)
 
 ### Evo 2026-07-19 pass 30 (val-env-secrets residual)
 - Señal: runtime marcaba encryption OK con key corta (crypto exige ≥32); sin `SII_AUTO_EMIT_BOLETA` en Entorno; NUCLEO_RUNTIME_GROUPS drift vs runtime; docs/.env.example desfasados
