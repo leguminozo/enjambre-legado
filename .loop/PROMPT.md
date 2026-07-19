@@ -313,33 +313,31 @@ Si el fix no mejora el estado observable en prod, **no commitees**.
 
 ---
 
-## Rotación de sectores (CURSOR) — fase v1.2 go-live
+## Rotación de sectores (CURSOR) — fase v1.3 interfaz
 
 Sectores en orden (el loop avanza `index = (index+1) % N` al cerrar):
 
 | # | Sector | Alcance principal |
 |---|--------|-------------------|
-| 0 | `val-sii-certificacion` | Checklist `/api/sii/certificacion/checklist`, CAF, cert P12, `sii_ambiente`, FC46 aceptada, go-live flags |
-| 1 | `val-sii-emision` | Pipeline DTE (`packages/fiscal`, contable), jobs, retry, CAF guard, boleta/factura emit path |
-| 2 | `val-sumup-pos` | `packages/sumup` + BFF sumup + campo terminal: keys, readers, checkout, refunds, idempotencia |
-| 3 | `val-banco-chile` | `packages/banco-chile` sandbox|prod, OAuth token, sync cuentas/movimientos, conciliación auto |
-| 4 | `val-banco-webhooks` | Webhooks Banco Chile + firma/secret; notificaciones pendientes (docs marcan ⏳) |
-| 5 | `val-pagos-web` | Transbank/Flow: checkout_sessions, fulfill pending→completed, returnUrl allowlist, CAF checkout |
-| 6 | `val-env-secrets` | `docs/ENV-CHECKLIST.md`, `BANCO_CHILE_*`, SumUp, SII keys, `CRON_SECRET`, matrix Vercel 3 apps |
-| 7 | `val-conciliacion-e2e` | Movimientos banco ↔ facturas/gastos/ventas; stats; reglas auto |
-| 8 | `deep-followup-golive` | MEMORY backlog go-live severidad alta + residual v1.1 solo si bloquea |
+| 0 | `ui-tienda-landing` | Hero, spacing, scroll cue, grain/canvas, first fold (`landing-view.tsx`) |
+| 1 | `ui-tienda-chrome` | `ShopHeader`, nav responsive, footer, TextCarousel, shell |
+| 2 | `ui-tienda-shop` | Catálogo, PDP, carrito UI, checkout layout (no re-lógica pagos) |
+| 3 | `ui-nucleo-shell` | Dashboard shell, ModuleHero, tables, glass panels, checklists |
+| 4 | `ui-campo-pos` | POS/PWA, terminal flow, touch, safe-area, readers UI |
+| 5 | `ui-shared-tokens` | `@enjambre/ui` tokens, preset, componentes reutilizables |
+| 6 | `deep-followup-ui` | MEMORY backlog UI + regresión go-live solo si bloquea uso |
 
-**Referencia integración (no inventar otro stack):**  
-`@enjambre/fiscal` · `@enjambre/sumup` · `@enjambre/banco-chile` · routes nucleo · fail-closed CAF · SOBERANIA_FISCAL.
+**Referencia visual (no inventar otro lenguaje):**  
+dark luxury · tokens semánticos · `ModuleHero` / `editorial-*` · GlassPanel de `@enjambre/ui` · touch ≥44px.
 
-**Mapa go-live (no olvidar):**
+**Mapa UI (no olvidar):**
 
-| Integración | Package | BFF / UI | Criterio “validado” |
-|-------------|---------|----------|---------------------|
-| SII | fiscal + contable | `/sii`, certificacion checklist | criticos checklist = 0 **o** 1 DTE aceptado en ambiente objetivo |
-| SumUp | sumup | nucleo sumup + campo POS | 1 reader checkout + tx persistida |
-| Banco Chile | banco-chile | `/banco`, conciliación | auth + ≥1 cuenta/mov sync en sandbox o prod |
-| Pagos web | pricing + checkout | tienda + nucleo | commit real + orden completed sin double charge |
+| App | Paths ancla | Criterio “pulido” |
+|-----|-------------|-------------------|
+| Tienda | `landing-view`, `shop-header`, catálogo/PDP | sin overlap; ritmo en 375–1440 |
+| Nucleo | views shell, tables, go-live panels | densidad usable; no hex crudo |
+| Campo | POS components | thumb zone; safe-area; loaders claros |
+| Shared | `packages/ui` | tokens + componentes sin drift |
 
 Defaults de `CURSOR.json` si no existe:
 
@@ -351,6 +349,7 @@ Defaults de `CURSOR.json` si no existe:
   "last_commit": null,
   "streak_clean": 0,
   "boost": {},
+  "phase": "v1.3-ui",
   "notes": ""
 }
 ```
