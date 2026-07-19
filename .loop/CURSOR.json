@@ -1,13 +1,12 @@
 {
-  "index": 7,
-  "pass": 24,
-  "last_sector": "val-conciliacion-e2e",
-  "last_commit": "df1d4ed",
+  "index": 1,
+  "pass": 25,
+  "last_sector": "deep-followup-golive",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {
-    "deep-followup-golive": 1,
     "val-sii-emision": 1
   },
   "phase": "v1.2-golive",
-  "notes": "Pass 23: conciliación tenant+stats+checklist. Siguiente: deep-followup-golive (#7) o val-sii-emision."
+  "notes": "Pass 24: banco webhook S harden. Siguiente ciclo: val-sii-emision (#1)."
 }

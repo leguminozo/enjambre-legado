@@ -24,7 +24,7 @@
 |-------------|------------|---------------------|
 | SII | pipeline DTE, CAF guard, checklist v2, **Settings UI completa** (identidad+CAF XML+P12 cifrado) | ⏳ ops: aplicar mig 95; cargar P12/CAF reales en UI; 1ª boleta/FC Maullín → Palena |
 | SumUp | client + BFF + **config UI** (merchant/API key cifrada, checklist, test-connection, readers) | ⏳ ops: keys en UI + enable; smoke venta POS→tx; webhook opcional |
-| Banco Chile | client + config BFF + **conciliación e2e** (ejecutar sin empresa_id, stats correctas, checklist) | ⏳ ops: sync movs + 1 match real; meta 90% |
+| Banco Chile | client + config BFF + conciliación + **webhook HMAC fail-closed** | ⏳ ops: set BANCO_CHILE_WEBHOOK_SECRET; sync movs; 1 match |
 | Conciliación | motor RPC + UI propuestas + métricas/checklist | ⏳ datos reales banco; reglas seed si vacío |
 | Pagos web | TBK/Flow + fulfill + **admin checklist UI** (`/pagos` → Checkout web) + sesiones | ⏳ ops: keys Flow/TBK en Vercel; smoke pago real; 0 pending stuck |
 | Crons | fiscal poll + CAF alert | `CRON_SECRET` en Vercel + job ejecuta |
@@ -32,6 +32,14 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-16 pass 24 (deep-followup-golive / val-banco-webhooks)
+- Señal: webhook HMAC con `===` timing-leaky; secret missing → throw 500; GET pendientes/reprocesar en router público sin JWT (service role)
+- Compuesto: colapsar + redirigir + S
+- Regla nueva: webhooks banco fail-closed (503 sin secret); firma timing-safe; rutas admin en webhook con auth+tenant; BANCO_CHILE_WEBHOOK_SECRET en matriz env
+- Anti-patrón: endpoints admin montados antes de auth global; `computed === signature` en HMAC
+- Guardriel: intacto
+- Cristalizado: ver PLAYBOOK webhook sin verify / timing-safe
 
 ### Evo 2026-07-16 pass 23 (val-conciliacion-e2e)
 - Señal: POST ejecutar exigía empresa_id en body (UI no lo enviaba → 400); stats leían tabla `conciliaciones` wrong; sin checklist/métricas go-live

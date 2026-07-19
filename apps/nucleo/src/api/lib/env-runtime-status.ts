@@ -113,6 +113,13 @@ export function buildNucleoEnvRuntimeStatus(): EnvRuntimeStatus {
           "Preferí SII_CLAVE_ENCRYPTION_KEY dedicado",
         ),
         item("cron", "CRON_SECRET (fiscal/jobs)", present("CRON_SECRET"), false),
+        item(
+          "banco_webhook",
+          "BANCO_CHILE_WEBHOOK_SECRET",
+          present("BANCO_CHILE_WEBHOOK_SECRET"),
+          false,
+          "HMAC de webhooks bancarios (fail-closed si ausente)",
+        ),
       ],
     },
     {
