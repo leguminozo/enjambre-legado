@@ -36,6 +36,8 @@ function statusLabel(status: string) {
   }
 }
 
+const PREFERRED_READER_KEY = 'sumup_preferred_reader_id';
+
 export function ReaderSelector({ onSelect, selectedReaderId }: Props) {
   const { readers, readersLoading, readersError, fetchReaders } = useSumUp();
 
@@ -43,7 +45,37 @@ export function ReaderSelector({ onSelect, selectedReaderId }: Props) {
     fetchReaders();
   }, [fetchReaders]);
 
-  const onlineReaders = readers.filter((r) => r.status === 'online');
+  // Prefer last-used reader when online (config-en-UI local, no deploy)
+  useEffect(() => {
+    if (readersLoading || readers.length === 0) return;
+    try {
+      const preferred = localStorage.getItem(PREFERRED_READER_KEY);
+      if (!preferred) return;
+      const match = readers.find(
+        (r) => r.id === preferred && (r.status === 'online' || r.status === 'busy'),
+      );
+      if (match && !selectedReaderId) {
+        // surface preferred first — do not auto-start checkout
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [readers, readersLoading, selectedReaderId]);
+
+  const onlineReaders = (() => {
+    const online = readers.filter((r) => r.status === 'online');
+    try {
+      const preferred = localStorage.getItem(PREFERRED_READER_KEY);
+      if (!preferred) return online;
+      return [...online].sort((a, b) => {
+        if (a.id === preferred) return -1;
+        if (b.id === preferred) return 1;
+        return 0;
+      });
+    } catch {
+      return online;
+    }
+  })();
 
   if (readersLoading) {
     return (

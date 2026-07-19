@@ -23,7 +23,7 @@
 | Integración | Casi listo | Gap típico a cerrar |
 |-------------|------------|---------------------|
 | SII | pipeline + config UI + **cola jobs emisión** (list/retry + auto-emit en checklist) | ⏳ ops: mig 95; P12/CAF; SII_AUTO_EMIT_BOLETA=true; CRON; 1ª boleta Maullín |
-| SumUp | client + BFF + **config UI** (merchant/API key cifrada, checklist, test-connection, readers) | ⏳ ops: keys en UI + enable; smoke venta POS→tx; webhook opcional |
+| SumUp | config UI + checklist + **terminal checkout idempotente** (mig 96) + readers normalizados | ⏳ ops: mig 96; keys live; smoke POS→tx |
 | Banco Chile | client + config BFF + conciliación + **webhook HMAC fail-closed** | ⏳ ops: set BANCO_CHILE_WEBHOOK_SECRET; sync movs; 1 match |
 | Conciliación | motor RPC + UI propuestas + métricas/checklist | ⏳ datos reales banco; reglas seed si vacío |
 | Pagos web | TBK/Flow + fulfill + **admin checklist UI** (`/pagos` → Checkout web) + sesiones | ⏳ ops: keys Flow/TBK en Vercel; smoke pago real; 0 pending stuck |
@@ -32,6 +32,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-16 pass 26 (val-sumup-pos)
+- Señal: listReaders puede devolver `{items}` (campo ve 0 terminales); reintento POS re-dispara cobro al terminal; sin preferencia de lector
+- Compuesto: colapsar + redirigir
+- Regla nueva: normalizar readers a array; `sumup_terminal_checkouts` idempotencia por checkout_reference; preferred reader en localStorage campo
+- Anti-patrón: asumir `data` es array; createReaderCheckout sin dedupe de referencia
+- Guardriel: intacto
 
 ### Evo 2026-07-16 pass 25 (val-sii-emision)
 - Señal: cola `sii_document_jobs` sin UI ni retry; checklist sin auto-emit/cola; operador ciego a DTE pendientes

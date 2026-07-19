@@ -36,6 +36,11 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
 
   const handleSelectReader = useCallback(async (reader: SumUpReader) => {
     selectedReaderRef.current = reader;
+    try {
+      localStorage.setItem('sumup_preferred_reader_id', reader.id);
+    } catch {
+      /* ignore */
+    }
     setTerminalStep('sending_to_terminal');
 
     const checkoutId = await startReaderCheckout(

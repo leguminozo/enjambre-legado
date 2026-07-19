@@ -1,10 +1,10 @@
 {
-  "index": 2,
-  "pass": 26,
-  "last_sector": "val-sii-emision",
-  "last_commit": "667dd92",
+  "index": 3,
+  "pass": 27,
+  "last_sector": "val-sumup-pos",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.2-golive",
-  "notes": "Pass 25: SII jobs queue UI + checklist auto-emit. Siguiente: val-sumup-pos (#2) o residual ops."
+  "notes": "Pass 26: SumUp readers normalize + terminal idempotency. Siguiente: val-banco-chile (#3)."
 }

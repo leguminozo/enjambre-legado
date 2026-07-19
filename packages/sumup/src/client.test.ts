@@ -56,4 +56,23 @@ describe('SumUpClient', () => {
     expect(res.success).toBe(false);
     if (!res.success) expect(res.error.code).toBe('NETWORK_ERROR');
   });
+
+  it('listReaders normaliza items|readers|array', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      json: async () => ({
+        items: [{ id: 'r1', name: 'Solo', status: 'online' }],
+      }),
+    });
+    const client = new SumUpClient({ apiKey: 'k', merchantCode: 'm' });
+    const res = await client.listReaders();
+    expect(res.success).toBe(true);
+    if (res.success) {
+      expect(Array.isArray(res.data)).toBe(true);
+      expect(res.data[0]?.id).toBe('r1');
+    }
+  });
 });
+

@@ -187,7 +187,22 @@ export class SumUpClient {
   }
 
   async listReaders(): Promise<SumUpResult<SumUpReader[]>> {
-    return this.request<SumUpReader[]>(`/v0.1/readers`);
+    const result = await this.request<SumUpReader[] | { items?: SumUpReader[]; readers?: SumUpReader[] }>(
+      `/v0.1/readers`,
+    );
+    if (!result.success) return result;
+    const raw = result.data as unknown;
+    if (Array.isArray(raw)) {
+      return { success: true, data: raw };
+    }
+    if (raw && typeof raw === "object") {
+      const obj = raw as { items?: SumUpReader[]; readers?: SumUpReader[]; data?: SumUpReader[] };
+      const list = obj.items ?? obj.readers ?? obj.data;
+      if (Array.isArray(list)) {
+        return { success: true, data: list };
+      }
+    }
+    return { success: true, data: [] };
   }
 
   async createReaderCheckout(readerId: string, data: {

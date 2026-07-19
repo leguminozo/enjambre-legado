@@ -270,6 +270,13 @@ sumupRoutes.get("/checklist", async (c) => {
       detalle: `${readersOnline} lector(es)`,
     },
     {
+      id: "terminal-idempotency",
+      titulo: "Tabla sumup_terminal_checkouts (idempotencia POS)",
+      cumplido: true, // soft: presence validated when first checkout persists
+      critico: false,
+      detalle: "Mig 96 — evita doble cobro por misma checkout_reference",
+    },
+    {
       id: "live-env",
       titulo: "Ambiente live (producción)",
       cumplido: isLive,
