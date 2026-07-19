@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
-import { processCartAbandonmentEmails } from "@/lib/notifications/cart-abandonment-worker";
-import { processNotificationQueue } from "@/lib/notifications/worker";
+import { expireStaleCheckoutSessions } from "@/api/lib/payments";
 import { isCronAuthorized } from "@/lib/cron-auth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /**
- * Vercel Cron (GET + Authorization: Bearer CRON_SECRET) o x-worker-secret.
- * Procesa notification_queue + carritos abandonados.
+ * Vercel Cron: expire pending checkout sessions + release stock holds.
+ * Complements admin expire-stale; TTL default 30m (reserve_checkout_stock).
  */
 export async function GET(request: Request) {
   if (!isCronAuthorized(request)) {
@@ -19,18 +18,18 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [queueResult, abandonmentResult] = await Promise.all([
-      processNotificationQueue(),
-      processCartAbandonmentEmails(),
-    ]);
+    const result = await expireStaleCheckoutSessions({
+      olderThanMinutes: 30,
+      limit: 100,
+    });
     return NextResponse.json({
       success: true,
-      ...queueResult,
-      abandonment: abandonmentResult,
+      expired: result.expired,
+      buyOrders: result.buyOrders,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error("[cron/notifications] worker failed:", message);
+    console.error("[cron/checkout] expire-stale failed:", message);
     return NextResponse.json({ code: "worker_failed", message }, { status: 500 });
   }
 }

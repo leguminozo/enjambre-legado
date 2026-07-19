@@ -40,6 +40,9 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 | Webhook secret open | 500 o accept vacío | throw si falta secret / `===` HMAC | 503 fail-closed; timing-safe equal |
 | Webhook admin open | listar notifs sin JWT | GET pendientes en router pre-auth | authMiddleware + tenant + admin en esas rutas |
 | Cron fiscal muerto | jobs stuck | `CRON_SECRET` empty en Vercel | require secret; schedule vercel.json |
+| Cron auth `===` | timing leak / brother drift | notifications vs fiscal distintos | `isCronAuthorized` en `@/lib/cron-auth` |
+| Fiscal 1×/día | DTE jobs tardan 24h | schedule `0 13 * * *` | `*/15 * * * *` + processFiscalDocumentJobs |
+| Stock hold eterno | pending sin ops | expire-stale solo admin | cron `/api/cron/checkout` cada 10m |
 | Env matrix incompleta | works local fails prod | `docs/ENV-CHECKLIST.md` | `pnpm env:check` + def en `scripts/lib/env-matrix-def.mjs` |
 | Runtime env ciego | no se sabe qué falta en deploy | solo CLI local | `GET /api/health/env-status` + Configuración → Entorno |
 | Encryption gap | no se pueden guardar secrets negocio | sin SII_CLAVE_ENCRYPTION_KEY | key ≥32 en Vercel nucleo; health checks encryption |

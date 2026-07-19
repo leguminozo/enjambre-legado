@@ -28,11 +28,18 @@
 | Conciliación | motor **facturas→ventas paid→gastos** + seed-defaults UI + aceptar→confianza/regla | ⏳ ops: mig 97; sync banco; 1 match real |
 | Pagos web | checklist + sesiones + **expire-stale + retry-fulfill** ops | ⏳ ops: keys Flow/TBK; smoke real; 0 stale pending |
 | Env matrix | runtime Entorno + matriz + docs alineados (≥32, auto-emit, webhook) | ⏳ ops: set keys en Vercel 3 apps; checklist verde en UI |
-| Crons | fiscal poll + CAF alert | `CRON_SECRET` en Vercel + job ejecuta |
+| Crons | notifications 1m + **fiscal 15m** + **checkout expire 10m**; auth compartido timing-safe | ⏳ ops: `CRON_SECRET` Vercel; verificar logs cron tras deploy |
 
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-19 pass 32 (deep-followup-golive · crons)
+- Señal: notifications cron usaba `===` (timing-leaky); fiscal 1×/día (jobs DTE 24h delay); expire-stale checkout solo admin manual
+- Compuesto: colapsar + unificar + redirigir
+- Regla nueva: `@/lib/cron-auth` fail-closed multi-secret timing-safe; fiscal `*/15`; checkout cron `*/10` → expireStaleCheckoutSessions; vercel.json 3 crons
+- Anti-patrón: auth cron ad-hoc por route con `===`; schedule fiscal diario para cola jobs
+- Guardriel: intacto
 
 ### Evo 2026-07-19 pass 31 (val-conciliacion-e2e residual)
 - Señal: RPC solo matcheaba `facturas_emitidas` (checkout/POS = `ventas` paid invisibles); aceptar no guardaba confianza/regla ni `ventas.conciliado`; empresas nuevas sin seed de reglas; UI crash si entidad null
@@ -286,7 +293,7 @@
 ### Alta (priorizar en deep-followup o boost)
 
 - [media] **Fiscal cadena**: CAF enforce production + POS fail-closed pass5; residual DTE async ops + SII_CLAVE_ENCRYPTION_KEY en Vercel
-- [baja] **Crons**: fiscal timing-safe pass5; residual notifications brother check
+- [x] **Crons**: timing-safe unificado + checkout expire + fiscal 15m (pass32)
 - [alta] **Checkout residual**: alinear pricing/preview/commit + idempotencia bajo reintentos reales Transbank/Flow
 - [media] **Campo/E2E**: `E2E_SKIP_AUTH` bloqueado en `VERCEL_ENV=production` (pass1); residual: documentar en Vercel que no setear el env
 - [baja] **verifyInternalApiKey**: timing-safe cerrado pass3
