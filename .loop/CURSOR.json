@@ -2,9 +2,9 @@
   "index": 3,
   "pass": 36,
   "last_sector": "val-sumup-pos",
-  "last_commit": "pending",
+  "last_commit": "632721a",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.2-golive",
-  "notes": "Pass 35: SumUp stale pending + reader status. Siguiente: val-banco-chile (#3)."
+  "notes": "Pass 35: SumUp stale pending + readers (632721a). Siguiente: val-banco-chile (#3)."
 }
