@@ -198,3 +198,43 @@ export async function completeCheckoutSession(buyOrder: string): Promise<void> {
     .eq('status', 'pending');
   if (error) throw new Error(`Failed to complete checkout session: ${error.message}`);
 }
+
+/**
+ * Expire abandoned pending sessions and release stock holds.
+ * TTL should match reserve_checkout_stock (default 30m).
+ */
+export async function expireStaleCheckoutSessions(opts?: {
+  olderThanMinutes?: number;
+  limit?: number;
+}): Promise<{ expired: number; buyOrders: string[] }> {
+  const admin = createAdminClient();
+  const minutes = opts?.olderThanMinutes ?? 30;
+  const limit = opts?.limit ?? 100;
+  const cutoff = new Date(Date.now() - minutes * 60_000).toISOString();
+
+  // Always release holds past SQL TTL first
+  await admin.rpc('release_expired_stock_holds');
+
+  const { data: stale, error } = await admin
+    .from('checkout_sessions')
+    .select('buy_order')
+    .eq('status', 'pending')
+    .lt('created_at', cutoff)
+    .order('created_at', { ascending: true })
+    .limit(limit);
+
+  if (error) throw new Error(`Failed to list stale sessions: ${error.message}`);
+  const buyOrders = (stale ?? []).map((r) => r.buy_order as string);
+  if (buyOrders.length === 0) return { expired: 0, buyOrders: [] };
+
+  for (const buyOrder of buyOrders) {
+    await admin.rpc('release_checkout_stock', { p_buy_order: buyOrder });
+    await admin
+      .from('checkout_sessions')
+      .update({ status: 'expired', completed_at: new Date().toISOString() })
+      .eq('buy_order', buyOrder)
+      .eq('status', 'pending');
+  }
+
+  return { expired: buyOrders.length, buyOrders };
+}

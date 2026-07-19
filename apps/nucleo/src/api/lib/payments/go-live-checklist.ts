@@ -23,6 +23,11 @@ export type PagosGoLiveStatus = {
   isProduction: boolean;
 };
 
+export type PagosChecklistRuntimeExtras = {
+  /** Pending sessions older than stock hold TTL (30m) */
+  stalePendingSessions?: number | null;
+};
+
 function hasEnv(key: string): boolean {
   const v = process.env[key]?.trim();
   return Boolean(v && v.length > 0);
@@ -41,7 +46,11 @@ export function resolveActivePaymentProvider(): PaymentProviderName {
 }
 
 export function buildPagosGoLiveChecklist(
-  opts?: { cafFoliosRestantes?: number | null; cafMinFolios?: number },
+  opts?: {
+    cafFoliosRestantes?: number | null;
+    cafMinFolios?: number;
+    stalePendingSessions?: number | null;
+  },
 ): PagosGoLiveStatus {
   const provider = resolveActivePaymentProvider();
   const isProduction = isProductionRuntime();
@@ -150,6 +159,21 @@ export function buildPagosGoLiveChecklist(
       detalle: hasEnv("SUPABASE_SERVICE_ROLE_KEY")
         ? "Service role presente"
         : "Falta SUPABASE_SERVICE_ROLE_KEY en nucleo",
+    },
+    {
+      id: "stale-pending",
+      titulo: "Sin sesiones pending abandonadas (>30m)",
+      cumplido:
+        opts?.stalePendingSessions == null
+          ? true
+          : opts.stalePendingSessions === 0,
+      critico: false,
+      detalle:
+        opts?.stalePendingSessions == null
+          ? "No medido"
+          : opts.stalePendingSessions === 0
+            ? "0 stale"
+            : `${opts.stalePendingSessions} stale — usar Expirar abandonadas en UI`,
     },
   ];
 

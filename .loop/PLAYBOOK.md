@@ -43,6 +43,8 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 | Mock en production | cobro/fiscal falso | `if (process.env.NODE_ENV !==` skip real API | production siempre path real o deny |
 | Pagos web ciego | no se sabe si puede cobrar | sin checklist runtime | `GET /api/checkout/admin/checklist` + UI `/pagos` tab web |
 | Sesiones pending huérfanas | pago OK sin venta | no listado admin | `GET /checkout/admin/sessions` + fulfill path |
+| Pending stale stock | hold 30m nunca liberado en session | solo RPC TTL holds | expire-stale marca expired + release_checkout_stock |
+| Fulfill post-pago fallido | paid sin venta | session pending sin ops | `POST …/retry-fulfill` (no re-cobra provider) |
 
 ---
 

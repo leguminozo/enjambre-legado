@@ -1,10 +1,10 @@
 {
-  "index": 5,
-  "pass": 29,
-  "last_sector": "val-banco-webhooks",
-  "last_commit": "e2fe4b0",
+  "index": 6,
+  "pass": 30,
+  "last_sector": "val-pagos-web",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.2-golive",
-  "notes": "Pass 28: webhook dedupe + signature variants + UI. Siguiente: val-pagos-web (#5)."
+  "notes": "Pass 29: expire-stale + retry-fulfill. Siguiente: val-env-secrets (#6) residual o val-conciliacion."
 }

@@ -26,12 +26,19 @@
 | SumUp | config UI + checklist + **terminal checkout idempotente** (mig 96) + readers normalizados | ⏳ ops: mig 96; keys live; smoke POS→tx |
 | Banco Chile | config BFF + webhook S + **token frescor fix** + **POST /sync** cuentas+movs | ⏳ ops: creds; webhook secret; 1 sync real |
 | Conciliación | motor RPC + UI propuestas + métricas/checklist | ⏳ datos reales banco; reglas seed si vacío |
-| Pagos web | TBK/Flow + fulfill + **admin checklist UI** (`/pagos` → Checkout web) + sesiones | ⏳ ops: keys Flow/TBK en Vercel; smoke pago real; 0 pending stuck |
+| Pagos web | checklist + sesiones + **expire-stale + retry-fulfill** ops | ⏳ ops: keys Flow/TBK; smoke real; 0 stale pending |
 | Crons | fiscal poll + CAF alert | `CRON_SECRET` en Vercel + job ejecuta |
 
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-16 pass 29 (val-pagos-web)
+- Señal: pending abandonados bloquean stock; no ops para liberar holds ni re-fulfill post-pago fallido
+- Compuesto: colapsar + redirigir + U
+- Regla nueva: `expireStaleCheckoutSessions` + admin expire-stale/retry-fulfill; checklist stale pending; UI botones
+- Anti-patrón: pending eternos sin release_checkout_stock; inventar cobro en retry (solo fulfill sesión)
+- Guardriel: intacto
 
 ### Evo 2026-07-16 pass 28 (val-banco-webhooks)
 - Señal: webhook re-procesaba eventos duplicados; firma solo hex; docs decían ⏳; sin UI de pendientes

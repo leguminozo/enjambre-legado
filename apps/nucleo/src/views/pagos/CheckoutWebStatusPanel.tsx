@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Card,
   CardHeader,
@@ -9,6 +9,7 @@ import {
   CardContent,
   Badge,
   Spinner,
+  Button,
 } from '@enjambre/ui';
 import {
   CheckCircle,
@@ -17,10 +18,12 @@ import {
   ShieldCheck,
   Globe,
   ExternalLink,
+  RefreshCw,
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { formatCurrency } from '@/lib/format';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
+import { toast } from '@enjambre/ui';
 
 type ChecklistItem = {
   id: string;
@@ -57,6 +60,7 @@ type SessionRow = {
  */
 export function CheckoutWebStatusPanel() {
   const apiFetch = useApiFetch();
+  const queryClient = useQueryClient();
 
   const checklistQuery = useQuery({
     queryKey: ['checkout', 'admin', 'checklist'],
@@ -74,7 +78,7 @@ export function CheckoutWebStatusPanel() {
   const sessionsQuery = useQuery({
     queryKey: ['checkout', 'admin', 'sessions'],
     queryFn: async () => {
-      const res = await apiFetch('/api/checkout/admin/sessions?limit=25');
+      const res = await apiFetch('/api/checkout/admin/sessions?limit=40');
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message ?? 'Error cargando sesiones');
@@ -83,9 +87,65 @@ export function CheckoutWebStatusPanel() {
     },
   });
 
+  const expireStaleMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiFetch('/api/checkout/admin/sessions/expire-stale', {
+        method: 'POST',
+        body: JSON.stringify({ olderThanMinutes: 30, limit: 100 }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? 'Error expirando sesiones');
+      }
+      return res.json();
+    },
+    onSuccess: (json) => {
+      toast(json.message ?? `Expiradas: ${json.data?.expired ?? 0}`, { type: 'success' });
+      queryClient.invalidateQueries({ queryKey: ['checkout', 'admin'] });
+    },
+    onError: (err: Error) => toast(err.message, { type: 'error' }),
+  });
+
+  const retryFulfillMutation = useMutation({
+    mutationFn: async (buyOrder: string) => {
+      const res = await apiFetch(
+        `/api/checkout/admin/sessions/${encodeURIComponent(buyOrder)}/retry-fulfill`,
+        {
+          method: 'POST',
+          body: JSON.stringify({}),
+        },
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? 'Retry fulfill falló');
+      }
+      return res.json();
+    },
+    onSuccess: (json) => {
+      toast(
+        json.data?.alreadyProcessed
+          ? 'Venta ya existía (idempotente)'
+          : `Venta ${json.data?.ventaId ?? 'OK'}`,
+        { type: 'success' },
+      );
+      queryClient.invalidateQueries({ queryKey: ['checkout', 'admin'] });
+    },
+    onError: (err: Error) => toast(err.message, { type: 'error' }),
+  });
+
   const checklist = checklistQuery.data;
   const sessions: SessionRow[] = sessionsQuery.data?.data?.sessions ?? [];
-  const counts = sessionsQuery.data?.data?.counts;
+  const counts = sessionsQuery.data?.data?.counts as
+    | {
+        pending: number;
+        completed: number;
+        expired?: number;
+        stalePending?: number;
+        total: number;
+        pendingGlobal?: number;
+        staleGlobal?: number;
+      }
+    | undefined;
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -176,13 +236,28 @@ export function CheckoutWebStatusPanel() {
             <ExternalLink size={18} /> Sesiones de checkout recientes
           </CardTitle>
           <CardDescription>
-            Pending = pago iniciado sin fulfill. Completed = venta registrada.
+            Pending = pago iniciado sin fulfill. Completed = venta registrada. Stale (&gt;30m) = abandonadas
+            (liberar stock).
             {counts
-              ? ` · ${counts.pending} pending · ${counts.completed} completed (muestra)`
+              ? ` · ${counts.pendingGlobal ?? counts.pending} pending · ${counts.staleGlobal ?? 0} stale · ${counts.completed} completed (muestra)`
               : null}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={expireStaleMutation.isPending || (counts?.staleGlobal ?? 0) === 0}
+              onClick={() => expireStaleMutation.mutate()}
+            >
+              <RefreshCw size={14} className="mr-1" />
+              Expirar abandonadas (&gt;30m)
+            </Button>
+            <p className="text-[11px] text-muted-foreground self-center">
+              Retry fulfill solo si el pago ya se autorizó y la sesión sigue pending (no re-cobra).
+            </p>
+          </div>
           {sessionsQuery.isLoading && <Spinner />}
           {sessionsQuery.isError && (
             <p className="text-sm text-destructive">
@@ -202,34 +277,53 @@ export function CheckoutWebStatusPanel() {
                     <th className="px-3 py-2">Estado</th>
                     <th className="px-3 py-2 text-right">Total</th>
                     <th className="px-3 py-2">Creada</th>
+                    <th className="px-3 py-2" />
                   </tr>
                 </thead>
                 <tbody>
-                  {sessions.map((s) => (
-                    <tr key={s.id} className="border-b border-border/50">
-                      <td className="px-3 py-2 font-mono text-xs">{s.buy_order}</td>
-                      <td className="px-3 py-2">{s.provider}</td>
-                      <td className="px-3 py-2">
-                        <Badge
-                          variant={
-                            s.status === 'completed'
-                              ? 'success'
-                              : s.status === 'pending'
-                                ? 'warning'
-                                : 'default'
-                          }
-                        >
-                          {s.status}
-                        </Badge>
-                      </td>
-                      <td className="px-3 py-2 text-right font-medium">
-                        {formatCurrency(Number(s.total))}
-                      </td>
-                      <td className="px-3 py-2 text-xs text-muted-foreground">
-                        {new Date(s.created_at).toLocaleString('es-CL')}
-                      </td>
-                    </tr>
-                  ))}
+                  {sessions.map((s) => {
+                    const isStale =
+                      s.status === 'pending' &&
+                      Date.now() - new Date(s.created_at).getTime() > 30 * 60_000;
+                    return (
+                      <tr key={s.id} className="border-b border-border/50">
+                        <td className="px-3 py-2 font-mono text-xs">{s.buy_order}</td>
+                        <td className="px-3 py-2">{s.provider}</td>
+                        <td className="px-3 py-2">
+                          <Badge
+                            variant={
+                              s.status === 'completed'
+                                ? 'success'
+                                : s.status === 'pending'
+                                  ? 'warning'
+                                  : 'default'
+                            }
+                          >
+                            {s.status}
+                            {isStale ? ' · stale' : ''}
+                          </Badge>
+                        </td>
+                        <td className="px-3 py-2 text-right font-medium">
+                          {formatCurrency(Number(s.total))}
+                        </td>
+                        <td className="px-3 py-2 text-xs text-muted-foreground">
+                          {new Date(s.created_at).toLocaleString('es-CL')}
+                        </td>
+                        <td className="px-3 py-2">
+                          {s.status === 'pending' && !isStale && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={retryFulfillMutation.isPending}
+                              onClick={() => retryFulfillMutation.mutate(s.buy_order)}
+                            >
+                              Retry fulfill
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </EnjTableShell>

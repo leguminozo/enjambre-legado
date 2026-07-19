@@ -6,6 +6,7 @@ import {
   getPaymentProviderByName,
   saveCheckoutSession,
   getCheckoutSession,
+  expireStaleCheckoutSessions,
 } from "../lib/payments";
 import type { CartLineInput } from "../lib/payments";
 import { fulfillCheckout } from "../lib/payments/checkout-fulfill";
@@ -670,9 +671,24 @@ adminCheckout.get("/checklist", async (c) => {
     cafFoliosRestantes = null;
   }
 
+  let stalePendingSessions: number | null = null;
+  try {
+    const admin = createAdminClient();
+    const cutoff = new Date(Date.now() - 30 * 60_000).toISOString();
+    const { count } = await admin
+      .from("checkout_sessions")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending")
+      .lt("created_at", cutoff);
+    stalePendingSessions = count ?? 0;
+  } catch {
+    stalePendingSessions = null;
+  }
+
   const status = buildPagosGoLiveChecklist({
     cafFoliosRestantes,
     cafMinFolios: minFolios,
+    stalePendingSessions,
   });
 
   return c.json({ data: status });
@@ -681,26 +697,138 @@ adminCheckout.get("/checklist", async (c) => {
 adminCheckout.get("/sessions", async (c) => {
   const admin = createAdminClient();
   const limit = Math.min(Number(c.req.query("limit") ?? 30), 100);
+  const statusFilter = c.req.query("status"); // pending | completed | expired
 
-  const { data, error } = await admin
+  let q = admin
     .from("checkout_sessions")
     .select("id, buy_order, provider, status, total, created_at, completed_at, buyer_mode")
     .order("created_at", { ascending: false })
     .limit(limit);
 
+  if (statusFilter) {
+    q = q.eq("status", statusFilter);
+  }
+
+  const { data, error } = await q;
+
   if (error) {
     return c.json({ code: "sessions_query_failed", message: error.message }, 500);
   }
 
+  const cutoff = new Date(Date.now() - 30 * 60_000).toISOString();
   const pending = (data ?? []).filter((s) => s.status === "pending").length;
   const completed = (data ?? []).filter((s) => s.status === "completed").length;
+  const expired = (data ?? []).filter((s) => s.status === "expired").length;
+  const stalePending = (data ?? []).filter(
+    (s) => s.status === "pending" && s.created_at < cutoff,
+  ).length;
+
+  // Global pending count (not limited to page)
+  const { count: pendingGlobal } = await admin
+    .from("checkout_sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending");
+
+  const { count: staleGlobal } = await admin
+    .from("checkout_sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending")
+    .lt("created_at", cutoff);
 
   return c.json({
     data: {
       sessions: data ?? [],
-      counts: { pending, completed, total: data?.length ?? 0 },
+      counts: {
+        pending,
+        completed,
+        expired,
+        stalePending,
+        total: data?.length ?? 0,
+        pendingGlobal: pendingGlobal ?? 0,
+        staleGlobal: staleGlobal ?? 0,
+      },
     },
   });
+});
+
+/**
+ * Expire abandoned pending sessions (>30m) and release stock holds.
+ * Safe ops action for go-live: does not invent payments.
+ */
+adminCheckout.post("/sessions/expire-stale", async (c) => {
+  try {
+    const body = await c.req.json().catch(() => ({})) as {
+      olderThanMinutes?: number;
+      limit?: number;
+    };
+    const result = await expireStaleCheckoutSessions({
+      olderThanMinutes: body.olderThanMinutes,
+      limit: body.limit,
+    });
+    return c.json({
+      data: result,
+      message: `${result.expired} sesión(es) expirada(s); stock liberado`,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "expire failed";
+    return c.json({ code: "expire_failed", message }, 500);
+  }
+});
+
+/**
+ * Ops: if payment authorized but fulfill never ran, session still pending —
+ * re-run fulfill from stored session. Does NOT call payment provider again.
+ * Requires venta not already present (fulfillCheckout is idempotent on buy_order).
+ */
+adminCheckout.post("/sessions/:buyOrder/retry-fulfill", async (c) => {
+  try {
+    const buyOrder = c.req.param("buyOrder");
+    const body = await c.req.json().catch(() => ({})) as {
+      authorizationCode?: string;
+    };
+    const authCode = body.authorizationCode?.trim() || "ADMIN_RETRY";
+
+    const session = await getCheckoutSession(buyOrder);
+    if (!session) {
+      return c.json(
+        {
+          code: "session_not_found",
+          message:
+            "No hay sesión pending para esa orden (ya completed/expired o buy_order inválido)",
+        },
+        404,
+      );
+    }
+
+    const admin = createAdminClient();
+    const fulfilled = await fulfillCheckout(admin, {
+      buyOrder,
+      session,
+      authorizationCode: authCode,
+      paymentProvider: session.provider,
+    });
+
+    if (!fulfilled.ok) {
+      return c.json(
+        {
+          code: "fulfill_failed",
+          message: "Fulfill falló",
+          stockErrors: fulfilled.stockErrors,
+        },
+        409,
+      );
+    }
+
+    return c.json({
+      data: {
+        ventaId: fulfilled.ventaId,
+        alreadyProcessed: fulfilled.alreadyProcessed ?? false,
+      },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "retry fulfill failed";
+    return c.json({ code: "retry_failed", message }, 500);
+  }
 });
 
 checkoutRoutes.route("/admin", adminCheckout);
