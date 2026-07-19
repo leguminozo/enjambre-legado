@@ -23,7 +23,7 @@
 | Integración | Casi listo | Gap típico a cerrar |
 |-------------|------------|---------------------|
 | SII | checklist emisor+P12 + **emit idempotente** + enqueue resolve + process-now UI | ⏳ ops: mig 95; P12/CAF; SII_AUTO_EMIT; 1ª boleta Maullín |
-| SumUp | config UI + checklist + **terminal checkout idempotente** (mig 96) + readers normalizados | ⏳ ops: mig 96; keys live; smoke POS→tx |
+| SumUp | readers status normalize + **stale pending revalidate** + already_paid POS + mig96 probe | ⏳ ops: mig 96; keys live; smoke POS→tx |
 | Banco Chile | config BFF + webhook S + **token frescor fix** + **POST /sync** cuentas+movs | ⏳ ops: creds; webhook secret; 1 sync real |
 | Conciliación | motor **facturas→ventas paid→gastos** + seed-defaults UI + aceptar→confianza/regla | ⏳ ops: mig 97; sync banco; 1 match real |
 | Pagos web | checklist + sesiones + **expire-stale + retry-fulfill** ops | ⏳ ops: keys Flow/TBK; smoke real; 0 stale pending |
@@ -33,6 +33,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-19 pass 35 (val-sumup-pos residual)
+- Señal: pending DB reusado aunque SumUp EXPIRADO; already_paid 409 → fail en campo; readers paired/ready invisibles en POS; checklist mig96 siempre verde
+- Compuesto: colapsar + redirigir + U
+- Regla nueva: revalidate getCheckout en idempotency pending; normalizeReaderStatus paired→online; campo alreadyPaid; checklist probe tabla
+- Anti-patrón: confiar status DB sin consultar SumUp; filtrar solo status==='online' literal
+- Guardriel: intacto
 
 ### Evo 2026-07-19 pass 34 (val-sii-emision residual)
 - Señal: reintento job sobre boleta/FC ya enviada → invalid_state → dead_letter; enqueue ignoreDuplicates sin id; processing stuck sin reclaim

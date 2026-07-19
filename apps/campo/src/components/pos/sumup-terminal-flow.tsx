@@ -28,6 +28,7 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
     pollCheckoutStatus,
     cancelReaderCheckout,
     terminalResult,
+    lastCheckoutError,
   } = useSumUp();
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -43,20 +44,29 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
     }
     setTerminalStep('sending_to_terminal');
 
-    const checkoutId = await startReaderCheckout(
+    const result = await startReaderCheckout(
       reader.id,
       amount,
       checkoutReference,
       description,
     );
 
-    if (!checkoutId) {
+    if (result.alreadyPaid && result.checkoutId) {
+      setTerminalStep('paid');
+      onComplete({
+        checkout_id: result.checkoutId,
+        status: 'PAID',
+      });
+      return;
+    }
+
+    if (!result.checkoutId) {
       setTerminalStep('failed');
       return;
     }
 
     setTerminalStep('waiting_payment');
-  }, [amount, checkoutReference, description, startReaderCheckout, setTerminalStep]);
+  }, [amount, checkoutReference, description, startReaderCheckout, setTerminalStep, onComplete]);
 
   const cleanupPolling = useCallback(() => {
     if (pollRef.current) {
@@ -207,10 +217,11 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
           <XCircle className="w-8 h-8 text-destructive" />
         </div>
         <p className="text-sm font-bold text-destructive uppercase tracking-widest">
-          Pago Rechazado
+          Pago fallido
         </p>
-        <p className="text-xs text-muted-foreground text-center">
-          La tarjeta fue rechazada o el cobro fallo. Intenta de nuevo.
+        <p className="text-xs text-muted-foreground text-center px-4">
+          {lastCheckoutError ||
+            'La tarjeta fue rechazada o el cobro falló. Intentá de nuevo.'}
         </p>
         <button
           onClick={() => setTerminalStep('selecting_reader')}

@@ -1,10 +1,10 @@
 {
-  "index": 2,
-  "pass": 35,
-  "last_sector": "val-sii-emision",
-  "last_commit": "c32a576",
+  "index": 3,
+  "pass": 36,
+  "last_sector": "val-sumup-pos",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.2-golive",
-  "notes": "Pass 34: emit idempotente + process-now (c32a576). Siguiente: val-sumup-pos (#2)."
+  "notes": "Pass 35: SumUp stale pending + reader status. Siguiente: val-banco-chile (#3)."
 }

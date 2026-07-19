@@ -62,8 +62,12 @@ export function ReaderSelector({ onSelect, selectedReaderId }: Props) {
     }
   }, [readers, readersLoading, selectedReaderId]);
 
+  const selectable = (status: string) =>
+    status === 'online' || status === 'busy' || status === 'paired' || status === 'ready';
+
   const onlineReaders = (() => {
-    const online = readers.filter((r) => r.status === 'online');
+    // BFF normalizes paired/ready → online; still accept busy for retry mid-checkout
+    const online = readers.filter((r) => selectable(r.status));
     try {
       const preferred = localStorage.getItem(PREFERRED_READER_KEY);
       if (!preferred) return online;
@@ -133,14 +137,14 @@ export function ReaderSelector({ onSelect, selectedReaderId }: Props) {
         Selecciona el terminal
       </p>
       {readers.map((r) => {
-        const isOnline = r.status === 'online';
+        const isOnline = selectable(r.status);
         const isSelected = r.id === selectedReaderId;
         return (
           <button
             key={r.id}
             disabled={!isOnline}
             onClick={() => onSelect(r)}
-            className={`w-full flex items-center gap-3 rounded-xl border px-4 py-3 transition-all text-left ${
+            className={`w-full flex items-center gap-3 rounded-xl border px-4 py-3 transition-all text-left min-h-[44px] ${
               isSelected
                 ? 'bg-primary text-primary-foreground border-primary'
                 : isOnline

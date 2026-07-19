@@ -9,7 +9,12 @@ interface SumUpContextValue {
   readersLoading: boolean;
   readersError: string | null;
   fetchReaders: () => Promise<void>;
-  startReaderCheckout: (readerId: string, amount: number, checkoutReference: string, description?: string) => Promise<string | null>;
+  startReaderCheckout: (
+    readerId: string,
+    amount: number,
+    checkoutReference: string,
+    description?: string,
+  ) => Promise<{ checkoutId: string | null; alreadyPaid?: boolean; error?: string }>;
   pollCheckoutStatus: (checkoutId: string) => Promise<SumUpCheckout | null>;
   cancelReaderCheckout: (readerId: string) => Promise<boolean>;
   terminalStep: TerminalFlowStep;
@@ -17,6 +22,7 @@ interface SumUpContextValue {
   activeCheckoutId: string | null;
   activeReaderId: string | null;
   terminalResult: TerminalFlowResult | null;
+  lastCheckoutError: string | null;
   sumupMode: SumupMode;
   setSumupMode: (mode: SumupMode) => void;
 }
@@ -24,6 +30,12 @@ interface SumUpContextValue {
 const SumUpContext = createContext<SumUpContextValue | null>(null);
 
 const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
+
+type SumupApiError = Error & {
+  status?: number;
+  code?: string;
+  data?: Record<string, unknown>;
+};
 
 async function sumupFetch(path: string, token: string, options?: RequestInit) {
   const res = await fetch(`${API_BASE}/api/sumup${path}`, {
@@ -34,11 +46,17 @@ async function sumupFetch(path: string, token: string, options?: RequestInit) {
       ...(options?.headers ?? {}),
     },
   });
+  const body = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.message || `SumUp API error ${res.status}`);
+    const err = new Error(
+      (body as { message?: string }).message || `SumUp API error ${res.status}`,
+    ) as SumupApiError;
+    err.status = res.status;
+    err.code = (body as { code?: string }).code;
+    err.data = (body as { data?: Record<string, unknown> }).data;
+    throw err;
   }
-  return res.json();
+  return body;
 }
 
 export function SumUpProvider({ children }: { children: React.ReactNode }) {
@@ -49,6 +67,7 @@ export function SumUpProvider({ children }: { children: React.ReactNode }) {
   const [activeCheckoutId, setActiveCheckoutId] = useState<string | null>(null);
   const [activeReaderId, setActiveReaderId] = useState<string | null>(null);
   const [terminalResult, setTerminalResult] = useState<TerminalFlowResult | null>(null);
+  const [lastCheckoutError, setLastCheckoutError] = useState<string | null>(null);
   const [sumupMode, setSumupModeState] = useState<SumupMode>('connected');
 
   useEffect(() => {
@@ -87,8 +106,9 @@ export function SumUpProvider({ children }: { children: React.ReactNode }) {
     amount: number,
     checkoutReference: string,
     description?: string,
-  ): Promise<string | null> => {
-    if (!token) return null;
+  ): Promise<{ checkoutId: string | null; alreadyPaid?: boolean; error?: string }> => {
+    if (!token) return { checkoutId: null, error: 'Sin sesión' };
+    setLastCheckoutError(null);
     try {
       setActiveReaderId(readerId);
       const res = await sumupFetch('/readers/checkout', token, {
@@ -105,10 +125,23 @@ export function SumUpProvider({ children }: { children: React.ReactNode }) {
       if (checkoutId) {
         setActiveCheckoutId(checkoutId);
       }
-      return checkoutId;
+      return { checkoutId };
     } catch (err) {
-      console.error('[SumUpProvider] startReaderCheckout failed:', err);
-      return null;
+      const e = err as SumupApiError;
+      // Idempotent paid: complete sale without re-pushing terminal
+      if (e.code === 'already_paid' && e.data?.checkout_id) {
+        const checkoutId = String(e.data.checkout_id);
+        setActiveCheckoutId(checkoutId);
+        setTerminalResult({
+          checkout_id: checkoutId,
+          status: 'PAID',
+        });
+        return { checkoutId, alreadyPaid: true };
+      }
+      const message = e.message || 'Error al enviar cobro al terminal';
+      console.error('[SumUpProvider] startReaderCheckout failed:', message);
+      setLastCheckoutError(message);
+      return { checkoutId: null, error: message };
     }
   }, [token]);
 
@@ -151,13 +184,25 @@ export function SumUpProvider({ children }: { children: React.ReactNode }) {
       activeCheckoutId,
       activeReaderId,
       terminalResult,
+      lastCheckoutError,
       sumupMode,
       setSumupMode,
     }),
     [
-      readers, readersLoading, readersError, fetchReaders, startReaderCheckout, 
-      pollCheckoutStatus, cancelReaderCheckout, terminalStep, activeCheckoutId, 
-      activeReaderId, terminalResult, sumupMode, setSumupMode
+      readers,
+      readersLoading,
+      readersError,
+      fetchReaders,
+      startReaderCheckout,
+      pollCheckoutStatus,
+      cancelReaderCheckout,
+      terminalStep,
+      activeCheckoutId,
+      activeReaderId,
+      terminalResult,
+      lastCheckoutError,
+      sumupMode,
+      setSumupMode,
     ],
   );
 

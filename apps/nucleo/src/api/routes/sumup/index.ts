@@ -184,6 +184,18 @@ sumupRoutes.get("/checklist", async (c) => {
   let merchantOk = false;
   let apiReachable = false;
   let apiMessage = "";
+  let terminalTableOk = false;
+
+  // Probe mig 96 table (idempotency POS)
+  {
+    const { error: tableErr } = await supabase
+      .from("sumup_terminal_checkouts")
+      .select("id")
+      .eq("empresa_id", empresaId)
+      .limit(1);
+    // relation missing → PostgREST error (42P01 / PGRST205)
+    terminalTableOk = !tableErr;
+  }
 
   if (hasKey && hasMerchant) {
     const resolved = await resolveSumUpClient(supabase, empresaId, { requireEnabled: false });
@@ -202,10 +214,15 @@ sumupRoutes.get("/checklist", async (c) => {
         const list = Array.isArray(readers.data) ? readers.data : [];
         readersOnline = list.filter((r) => {
           const status = String((r as { status?: string }).status ?? "").toLowerCase();
-          return status === "online" || status === "paired" || status === "ready";
+          return (
+            !status ||
+            status === "online" ||
+            status === "paired" ||
+            status === "ready" ||
+            status === "busy"
+          );
         }).length;
         if (list.length > 0 && readersOnline === 0) {
-          // count all known readers if status field absent
           readersOnline = list.length;
         }
       } else if (!apiMessage) {
@@ -272,9 +289,11 @@ sumupRoutes.get("/checklist", async (c) => {
     {
       id: "terminal-idempotency",
       titulo: "Tabla sumup_terminal_checkouts (idempotencia POS)",
-      cumplido: true, // soft: presence validated when first checkout persists
-      critico: false,
-      detalle: "Mig 96 — evita doble cobro por misma checkout_reference",
+      cumplido: terminalTableOk,
+      critico: true,
+      detalle: terminalTableOk
+        ? "Mig 96 aplicada — evita doble cobro por checkout_reference"
+        : "Aplicá migración 96 (sumup_terminal_checkouts)",
     },
     {
       id: "live-env",

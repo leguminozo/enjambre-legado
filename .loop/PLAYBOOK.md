@@ -26,6 +26,9 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 | SumUp sin key | terminal muerto | `sumup_config` vacío o disabled | config-en-UI tab Config + enable; API key cifrada; no mock en production |
 | SumUp readers vacíos | API OK pero UI 0 | response `{items:[]}` no array | normalizar items/readers/data en client + BFF |
 | SumUp doble cobro POS | retry re-envía al terminal | mismo checkout_reference | tabla `sumup_terminal_checkouts` + return existing |
+| SumUp pending stale | reintento no cobra (checkout muerto) | DB pending sin poll SumUp | getCheckout antes de reusar; EXPIRED → new create |
+| SumUp already_paid fail | 409 rompe POS | throw genérico en fetch | treat already_paid → complete sale |
+| Readers paired invisible | Solo status online | SumUp returns paired/ready | normalizeReaderStatus → online |
 | SumUp client duplicado | plaintext key / drift | new SumUpClient en cada route | `resolveSumUpClient` + decrypt legacy |
 | SumUp sin checklist | “casi listo” ciego | no probe merchant/readers | `GET /sumup/checklist` + test-connection |
 | Banco sandbox hardcode | creds prod golpean sandbox | `environment: sandbox\|production` en config | URL host según environment (client ya soporta) |
