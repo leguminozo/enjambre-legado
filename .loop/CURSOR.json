@@ -2,7 +2,7 @@
   "index": 0,
   "pass": 17,
   "last_sector": "reorient-v1.2-golive",
-  "last_commit": null,
+  "last_commit": "0e1a114",
   "streak_clean": 0,
   "boost": {
     "val-sii-certificacion": 2,
@@ -10,5 +10,5 @@
     "val-banco-chile": 1
   },
   "phase": "v1.2-golive",
-  "notes": "Fase v1.2: validar SII / SumUp / Banco Chile / pagos. Siguiente tick: val-sii-certificacion (#0) — checklist CAF/cert/ambiente."
+  "notes": "Fase v1.2: validar SII / SumUp / Banco Chile / pagos. Siguiente tick: val-sii-certificacion (#0) \u2014 checklist CAF/cert/ambiente."
 }
