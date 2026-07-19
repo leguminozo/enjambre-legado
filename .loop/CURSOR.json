@@ -1,14 +1,13 @@
 {
-  "index": 2,
-  "pass": 19,
-  "last_sector": "val-sii-emision",
-  "last_commit": "91517d2",
+  "index": 3,
+  "pass": 20,
+  "last_sector": "val-sumup-pos",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {
-    "val-sumup-pos": 2,
-    "val-banco-chile": 1,
-    "val-sii-certificacion": 0
+    "val-banco-chile": 2,
+    "val-pagos-web": 1
   },
   "phase": "v1.2-golive",
-  "notes": "Pass 18: config-en-UI SII (identidad+CAF XML+P12). Siguiente val-sumup-pos (#2) con misma regla: configurar en UI lo esencial."
+  "notes": "Pass 19: SumUp config-en-UI + checklist + client unificado. Siguiente: val-banco-chile (#3)."
 }

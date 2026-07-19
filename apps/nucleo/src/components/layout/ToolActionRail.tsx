@@ -55,6 +55,12 @@ export const TOOL_ACTION_CONTEXTS = {
     { href: '/sii', label: 'SII' },
     { href: '/conciliacion', label: 'Conciliación', primary: true },
   ],
+  sumup: [
+    { href: '/banco', label: 'Banco Chile' },
+    { href: '/conciliacion', label: 'Conciliación', primary: true },
+    { href: '/contable', label: 'Contable' },
+    { href: '/caja', label: 'Caja / POS campo' },
+  ],
   creadores: [
     { href: '/crm?tab=aliados', label: 'Aliados B2B' },
     { href: '/catalogo', label: 'Catálogo' },

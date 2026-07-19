@@ -18,7 +18,9 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 | Route huérfana | API existe sin mount | archivo routes sin `siiRoutes.route` | montar en `sii/index` al crear |
 | Ambiente cert en prod UI | emite a Maullín sin querer | `empresas.sii_ambiente` + UI settings | gate explícito; no default produccion sin checklist |
 | CAF exhausto open | vende sin folio | `getFoliosRestantes` / caf-guard | fail-closed min folios; alert threshold |
-| SumUp sin key | terminal muerto | env SumUp ausente en nucleo | fail-closed 503; no mock en production |
+| SumUp sin key | terminal muerto | `sumup_config` vacío o disabled | config-en-UI tab Config + enable; API key cifrada; no mock en production |
+| SumUp client duplicado | plaintext key / drift | new SumUpClient en cada route | `resolveSumUpClient` + decrypt legacy |
+| SumUp sin checklist | “casi listo” ciego | no probe merchant/readers | `GET /sumup/checklist` + test-connection |
 | Banco sandbox hardcode | creds prod golpean sandbox | `environment: sandbox\|production` en config | URL host según environment (client ya soporta) |
 | Webhook sin verify | abono/tx forjada | route webhook sin secret/firma | secret server + idempotency key |
 | Cron fiscal muerto | jobs stuck | `CRON_SECRET` empty en Vercel | require secret; schedule vercel.json |

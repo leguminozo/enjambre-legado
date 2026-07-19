@@ -3,7 +3,7 @@ import type { AppVariables } from "@/api/lib/middleware";
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { SumUpClient } from "@enjambre/sumup";
+import { resolveSumUpClient } from "@/api/lib/sumup-client";
 
 export const transactionsRouter = new Hono<{ Variables: AppVariables }>();
 
@@ -52,23 +52,11 @@ transactionsRouter.post("/sincronizar", async (c) => {
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
 
-  const { data: config } = await supabase
-    .from("sumup_config")
-    .select("api_key, merchant_code, environment")
-    .eq("empresa_id", empresaId)
-    .eq("enabled", true)
-    .single();
-
-  if (!config) {
-    return c.json({ code: "no_config", message: "SumUp no configurado o deshabilitado" }, 400);
+  const resolved = await resolveSumUpClient(supabase, empresaId);
+  if (!resolved.ok) {
+    return c.json({ code: resolved.code, message: resolved.message }, 400);
   }
-
-  const cfg = config as Record<string, unknown>;
-  const client = new SumUpClient({
-    apiKey: cfg.api_key as string,
-    merchantCode: cfg.merchant_code as string,
-    environment: (cfg.environment as string) === "live" ? "live" : "test",
-  });
+  const client = resolved.client;
 
   const oldestTime = c.req.query("from")
     ? new Date(c.req.query("from")!).toISOString()

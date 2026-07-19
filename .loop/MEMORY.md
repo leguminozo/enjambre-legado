@@ -23,7 +23,7 @@
 | Integración | Casi listo | Gap típico a cerrar |
 |-------------|------------|---------------------|
 | SII | pipeline DTE, CAF guard, checklist v2, **Settings UI completa** (identidad+CAF XML+P12 cifrado) | ⏳ ops: aplicar mig 95; cargar P12/CAF reales en UI; 1ª boleta/FC Maullín → Palena |
-| SumUp | client + BFF readers/tx/payouts | keys prod, reader en campo, webhook/idempotencia, smoke venta POS→tx |
+| SumUp | client + BFF + **config UI** (merchant/API key cifrada, checklist, test-connection, readers) | ⏳ ops: keys en UI + enable; smoke venta POS→tx; webhook opcional |
 | Banco Chile | client sandbox/prod + conciliación auto | credenciales API store, token refresh, 1 sync movimientos, webhook |
 | Pagos web | TBK/Flow + checkout_sessions | returnUrl allowlist, fulfill pending→completed, CAF en checkout |
 | Crons | fiscal poll + CAF alert | `CRON_SECRET` en Vercel + job ejecuta |
@@ -31,6 +31,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-16 pass 19 (val-sumup-pos + config-en-UI)
+- Señal: SumUp API config existía sin pestaña UI; api_key en claro; client duplicado en readers/tx/payouts; sin checklist ni smoke
+- Compuesto: colapsar + unificar + redirigir
+- Regla nueva: SumUp config-en-UI en `SumUpView` tab Config; `resolveSumUpClient` único; API key cifrada (AES, legacy plaintext OK); `GET /checklist` + `POST /test-connection`
+- Anti-patrón: sumup_config solo por SQL/env; plaintext key en prod sin material cifrado; getClient copiado por route
+- Guardriel: intacto (fail-closed encrypt en production)
 
 ### Evo 2026-07-16 pass 18 (val-sii-emision + config-en-UI)
 - Señal: operador pide configurar ecosistema desde la app; empresa PATCH no editaba RUT/giro/domicilio; CAF solo GET; certificados routes sin montar; P12 password solo env

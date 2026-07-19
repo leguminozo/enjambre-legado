@@ -2,48 +2,25 @@ import type { AppVariables } from "@/api/lib/middleware";
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { SumUpClient } from "@enjambre/sumup";
+import { resolveSumUpClient } from "@/api/lib/sumup-client";
 
 export const readersRouter = new Hono<{ Variables: AppVariables }>();
 
-type ClientResult = { client: SumUpClient } | Response;
+readersRouter.get("/", async (c) => {
+  const supabase = c.get("supabase");
+  const empresaId = c.get("empresaId");
+  const resolved = await resolveSumUpClient(supabase, empresaId);
 
-function isClientResult(result: ClientResult): result is { client: SumUpClient } {
-  return result instanceof Response === false && "client" in result;
-}
-
-async function getClient(c: { get: (key: "supabase" | "empresaId") => unknown }): Promise<ClientResult> {
-  const supabase = c.get("supabase") as import("@supabase/supabase-js").SupabaseClient;
-  const empresaId = c.get("empresaId") as string;
-
-  const { data: config } = await supabase
-    .from("sumup_config")
-    .select("api_key, merchant_code, environment")
-    .eq("empresa_id", empresaId)
-    .eq("enabled", true)
-    .single();
-
-  if (!config) {
-    return new Response(JSON.stringify({ error: "no_config" }), { status: 400, headers: { "Content-Type": "application/json" } });
+  if (!resolved.ok) {
+    return c.json({ code: resolved.code, message: resolved.message }, 400);
   }
 
-  const cfg = config as unknown as Record<string, unknown>;
-  const client = new SumUpClient({
-    apiKey: cfg.api_key as string,
-    merchantCode: cfg.merchant_code as string,
-    environment: (cfg.environment as string) === "live" ? "live" : "test",
-  });
-
-  return { client };
-}
-
-readersRouter.get("/", async (c) => {
-  const result = await getClient(c);
-  if (!isClientResult(result)) return result;
-
-  const readersResult = await result.client.listReaders();
+  const readersResult = await resolved.client.listReaders();
   if (!readersResult.success) {
-    return c.json({ code: "readers_failed", message: (readersResult as { success: false; error: { message: string } }).error.message }, 502);
+    return c.json(
+      { code: "readers_failed", message: readersResult.error.message },
+      502,
+    );
   }
 
   return c.json({ data: readersResult.data });
@@ -51,19 +28,47 @@ readersRouter.get("/", async (c) => {
 
 readersRouter.post(
   "/checkout",
-  zValidator("json", z.object({
-    reader_id: z.string().min(1),
-    amount: z.number().positive(),
-    currency: z.enum(["CLP", "USD", "EUR", "GBP", "BRL", "CHF", "COP", "CZK", "DKK", "BGN", "HRK", "HUF", "NOK", "PLN", "RON", "SEK"]).default("CLP"),
-    checkout_reference: z.string().min(1),
-    description: z.string().optional(),
-  })),
+  zValidator(
+    "json",
+    z.object({
+      reader_id: z.string().min(1),
+      amount: z.number().positive(),
+      currency: z
+        .enum([
+          "CLP",
+          "USD",
+          "EUR",
+          "GBP",
+          "BRL",
+          "CHF",
+          "COP",
+          "CZK",
+          "DKK",
+          "BGN",
+          "HRK",
+          "HUF",
+          "NOK",
+          "PLN",
+          "RON",
+          "SEK",
+        ])
+        .default("CLP"),
+      checkout_reference: z.string().min(1),
+      description: z.string().optional(),
+    }),
+  ),
   async (c) => {
-    const result = await getClient(c);
-    if (!isClientResult(result)) return result;
+    const supabase = c.get("supabase");
+    const empresaId = c.get("empresaId");
+    const resolved = await resolveSumUpClient(supabase, empresaId);
 
-    const { reader_id, amount, currency, checkout_reference, description } = c.req.valid("json");
-    const checkoutResult = await result.client.createReaderCheckout(reader_id, {
+    if (!resolved.ok) {
+      return c.json({ code: resolved.code, message: resolved.message }, 400);
+    }
+
+    const { reader_id, amount, currency, checkout_reference, description } =
+      c.req.valid("json");
+    const checkoutResult = await resolved.client.createReaderCheckout(reader_id, {
       amount,
       currency,
       checkout_reference,
@@ -71,36 +76,55 @@ readersRouter.post(
     });
 
     if (!checkoutResult.success) {
-      return c.json({ code: "reader_checkout_failed", message: (checkoutResult as { success: false; error: { message: string } }).error.message }, 502);
+      return c.json(
+        { code: "reader_checkout_failed", message: checkoutResult.error.message },
+        502,
+      );
     }
 
     return c.json({ data: checkoutResult.data }, 201);
-  }
+  },
 );
 
 readersRouter.get("/checkout/:checkoutId", async (c) => {
-  const result = await getClient(c);
-  if (!isClientResult(result)) return result;
+  const supabase = c.get("supabase");
+  const empresaId = c.get("empresaId");
+  const resolved = await resolveSumUpClient(supabase, empresaId);
+
+  if (!resolved.ok) {
+    return c.json({ code: resolved.code, message: resolved.message }, 400);
+  }
 
   const checkoutId = c.req.param("checkoutId");
-  const checkoutResult = await result.client.getCheckout(checkoutId);
+  const checkoutResult = await resolved.client.getCheckout(checkoutId);
 
   if (!checkoutResult.success) {
-    return c.json({ code: "checkout_status_failed", message: (checkoutResult as { success: false; error: { message: string } }).error.message }, 502);
+    return c.json(
+      { code: "checkout_status_failed", message: checkoutResult.error.message },
+      502,
+    );
   }
 
   return c.json({ data: checkoutResult.data });
 });
 
 readersRouter.delete("/checkout/:readerId", async (c) => {
-  const result = await getClient(c);
-  if (!isClientResult(result)) return result;
+  const supabase = c.get("supabase");
+  const empresaId = c.get("empresaId");
+  const resolved = await resolveSumUpClient(supabase, empresaId);
+
+  if (!resolved.ok) {
+    return c.json({ code: resolved.code, message: resolved.message }, 400);
+  }
 
   const readerId = c.req.param("readerId");
-  const terminateResult = await result.client.terminateReaderCheckout(readerId);
+  const terminateResult = await resolved.client.terminateReaderCheckout(readerId);
 
   if (!terminateResult.success) {
-    return c.json({ code: "terminate_failed", message: (terminateResult as { success: false; error: { message: string } }).error.message }, 502);
+    return c.json(
+      { code: "terminate_failed", message: terminateResult.error.message },
+      502,
+    );
   }
 
   return c.json({ success: true });

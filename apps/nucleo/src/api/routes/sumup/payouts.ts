@@ -2,7 +2,7 @@ import type { AppVariables } from "@/api/lib/middleware";
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { SumUpClient } from "@enjambre/sumup";
+import { resolveSumUpClient } from "@/api/lib/sumup-client";
 
 export const payoutsRouter = new Hono<{ Variables: AppVariables }>();
 
@@ -15,21 +15,16 @@ payoutsRouter.get(
       end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       limit: z.coerce.number().int().min(1).max(9999).default(100),
       order: z.enum(["asc", "desc"]).default("desc"),
-    })
+    }),
   ),
   async (c) => {
     const supabase = c.get("supabase");
     const empresaId = c.get("empresaId");
     const { start_date, end_date, limit, order } = c.req.valid("query");
 
-    const { data: config } = await supabase
-      .from("sumup_config")
-      .select("api_key, merchant_code, environment")
-      .eq("empresa_id", empresaId)
-      .eq("enabled", true)
-      .single();
+    const resolved = await resolveSumUpClient(supabase, empresaId);
 
-    if (!config) {
+    if (!resolved.ok) {
       const { data: cached, error } = await supabase
         .from("sumup_payouts")
         .select("*")
@@ -45,14 +40,7 @@ payoutsRouter.get(
       return c.json({ data: cached ?? [], source: "cache" });
     }
 
-    const cfg = config as Record<string, unknown>;
-    const client = new SumUpClient({
-      apiKey: cfg.api_key as string,
-      merchantCode: cfg.merchant_code as string,
-      environment: (cfg.environment as string) === "live" ? "live" : "test",
-    });
-
-    const result = await client.listPayouts({
+    const result = await resolved.client.listPayouts({
       start_date,
       end_date,
       limit,
@@ -60,13 +48,12 @@ payoutsRouter.get(
     });
 
     if (!result.success) {
-      return c.json({ code: "payouts_api_failed", message: (result as { success: false; error: { message: string } }).error.message }, 502);
+      return c.json({ code: "payouts_api_failed", message: result.error.message }, 502);
     }
 
     for (const payout of result.data) {
-      await supabase
-        .from("sumup_payouts")
-        .upsert({
+      await supabase.from("sumup_payouts").upsert(
+        {
           empresa_id: empresaId,
           sumup_id: payout.id,
           type: payout.type,
@@ -77,9 +64,11 @@ payoutsRouter.get(
           status: payout.status,
           reference: payout.reference,
           transaction_code: payout.transaction_code,
-        }, { onConflict: "empresa_id,sumup_id" });
+        },
+        { onConflict: "empresa_id,sumup_id" },
+      );
     }
 
     return c.json({ data: result.data, source: "api" });
-  }
+  },
 );

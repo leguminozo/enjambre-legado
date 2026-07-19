@@ -1,26 +1,38 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { 
   Card, CardHeader, CardTitle, CardDescription, CardContent,
-  Button, Badge, Spinner
+  Button, Badge, Spinner, HexagonLoader
 } from '@enjambre/ui';
 import { toast } from '@enjambre/ui';
 import { formatCLP } from '@enjambre/ui';
 import { 
-  CreditCard, RefreshCw, CheckCircle, Wallet, ArrowRight, FileText
+  CreditCard, RefreshCw, CheckCircle, Wallet, ArrowRight, FileText,
+  Settings2, Circle, AlertTriangle, ShieldCheck, Plug
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { ToolActionRail } from '@/components/layout/ToolActionRail';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
+type SumUpTab = 'transacciones' | 'payouts' | 'conciliacion' | 'config';
+
 export function SumUpView() {
-  const [activeTab, setActiveTab] = useState<'transacciones' | 'payouts' | 'conciliacion'>('transacciones');
+  const [activeTab, setActiveTab] = useState<SumUpTab>('transacciones');
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
+
+  const [configForm, setConfigForm] = useState({
+    merchantCode: '',
+    apiKey: '',
+    environment: 'test' as 'test' | 'live',
+    enabled: false,
+    syncIntervalMinutes: 30,
+  });
 
   // Queries
   const { data: transaccionesData, isLoading: isLoadingTxns } = useQuery({
@@ -99,9 +111,107 @@ export function SumUpView() {
     onError: (err: any) => toast(err.message, { type: 'error' })
   });
 
+  const configQuery = useQuery({
+    queryKey: ['sumup', 'config'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/sumup/config');
+      if (!res.ok) throw new Error('Error cargando config SumUp');
+      return res.json();
+    },
+    enabled: activeTab === 'config',
+  });
+
+  const checklistQuery = useQuery({
+    queryKey: ['sumup', 'checklist'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/sumup/checklist');
+      if (!res.ok) throw new Error('Error cargando checklist SumUp');
+      return res.json();
+    },
+    enabled: activeTab === 'config',
+  });
+
+  const readersQuery = useQuery({
+    queryKey: ['sumup', 'readers'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/sumup/readers');
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? 'Error listando lectores');
+      }
+      return res.json();
+    },
+    enabled: activeTab === 'config' && Boolean(configQuery.data?.data?.config?.enabled),
+    retry: false,
+  });
+
+  useEffect(() => {
+    const cfg = configQuery.data?.data?.config;
+    if (!cfg) return;
+    setConfigForm((prev) => ({
+      ...prev,
+      merchantCode: cfg.merchant_code ?? '',
+      environment: cfg.environment === 'live' ? 'live' : 'test',
+      enabled: Boolean(cfg.enabled),
+      syncIntervalMinutes: Number(cfg.sync_interval_minutes ?? 30),
+      apiKey: '',
+    }));
+  }, [configQuery.data]);
+
+  const saveConfigMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiFetch('/api/sumup/config', {
+        method: 'POST',
+        body: JSON.stringify({
+          merchantCode: configForm.merchantCode,
+          apiKey: configForm.apiKey || undefined,
+          environment: configForm.environment,
+          enabled: configForm.enabled,
+          syncIntervalMinutes: configForm.syncIntervalMinutes,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? 'Error guardando config');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast('Configuración SumUp guardada', { type: 'success' });
+      setConfigForm((p) => ({ ...p, apiKey: '' }));
+      queryClient.invalidateQueries({ queryKey: ['sumup'] });
+    },
+    onError: (err: Error) => toast(err.message, { type: 'error' }),
+  });
+
+  const testConnMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiFetch('/api/sumup/test-connection', { method: 'POST' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? 'Fallo prueba de conexión');
+      }
+      return res.json();
+    },
+    onSuccess: (json) => {
+      const d = json.data;
+      toast(
+        d.merchantOk || d.readersOk
+          ? `Conexión OK · ${d.readersCount ?? 0} lector(es)`
+          : `API respondió con errores: ${d.merchantError || d.readersError || 'revisá keys'}`,
+        { type: d.merchantOk || d.readersOk ? 'success' : 'error' },
+      );
+      queryClient.invalidateQueries({ queryKey: ['sumup', 'checklist'] });
+      queryClient.invalidateQueries({ queryKey: ['sumup', 'readers'] });
+    },
+    onError: (err: Error) => toast(err.message, { type: 'error' }),
+  });
+
   const txns = transaccionesData?.data || [];
   const payouts = payoutsData?.data || [];
   const sugerencias = conciliacionData?.data || [];
+  const checklist = checklistQuery.data?.data;
+  const cfgMeta = configQuery.data?.data;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -109,9 +219,10 @@ export function SumUpView() {
         variant="compact"
         eyebrow="Pagos"
         title="Pagos SumUp"
-        subtitle="Gestión y conciliación de pagos con tarjeta y enlaces de pago."
+        subtitle="Terminal POS, sync y conciliación — configurá merchant y API key en la app."
         icon={<CreditCard size={20} />}
       />
+      <ToolActionRail context="sumup" current="/sumup" />
 
       <ResponsiveTabBar
         variant="pill"
@@ -125,9 +236,10 @@ export function SumUpView() {
             icon: <CheckCircle size={16} />,
             badge: sugerencias.length > 0 ? sugerencias.length : undefined,
           },
+          { id: 'config', label: 'Configuración', icon: <Settings2 size={16} /> },
         ]}
         activeId={activeTab}
-        onChange={(id) => setActiveTab(id as 'transacciones' | 'payouts' | 'conciliacion')}
+        onChange={(id) => setActiveTab(id as SumUpTab)}
       />
 
       <AnimatePresence mode="wait">
@@ -408,6 +520,222 @@ export function SumUpView() {
                 </AnimatePresence>
               </div>
             )}
+          </motion.div>
+        )}
+
+        {/* PESTAÑA: CONFIGURACIÓN (config-en-UI) */}
+        {activeTab === 'config' && (
+          <motion.div
+            key="config"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4 max-w-3xl"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShieldCheck size={18} /> Checklist go-live POS SumUp
+                </CardTitle>
+                <CardDescription>
+                  Credenciales y lectores se configuran aquí — sin SQL ni redeploy.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {checklistQuery.isLoading && <Spinner />}
+                {checklist && (
+                  <>
+                    <div className="flex flex-wrap gap-2">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                          checklist.listoPos
+                            ? 'bg-primary/10 text-primary border-primary/20'
+                            : 'bg-warning/10 text-warning border-warning/20'
+                        }`}
+                      >
+                        {checklist.listoPos ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
+                        POS: {checklist.listoPos ? 'listo' : `${checklist.criticosPendientes} crítico(s)`}
+                      </span>
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs border border-border bg-surface-sunken text-muted-foreground">
+                        Env: {checklist.environment ?? '—'} · {checklist.enabled ? 'habilitado' : 'apagado'}
+                      </span>
+                    </div>
+                    <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden">
+                      {(checklist.items as Array<{
+                        id: string;
+                        titulo: string;
+                        cumplido: boolean;
+                        critico: boolean;
+                        detalle?: string;
+                      }>).map((item) => (
+                        <li key={item.id} className="flex items-start gap-3 px-3 py-2.5 bg-surface-sunken/40 text-sm">
+                          {item.cumplido ? (
+                            <CheckCircle size={16} className="mt-0.5 shrink-0 text-primary" />
+                          ) : (
+                            <Circle
+                              size={16}
+                              className={`mt-0.5 shrink-0 ${item.critico ? 'text-warning' : 'text-muted-foreground'}`}
+                            />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <span className="font-medium text-foreground">{item.titulo}</span>
+                            {item.detalle && (
+                              <p className="text-xs text-muted-foreground mt-0.5">{item.detalle}</p>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings2 size={18} /> Merchant & API key
+                </CardTitle>
+                <CardDescription>
+                  API key se cifra en servidor. Dejá el campo vacío al guardar para conservar la clave actual.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {configQuery.isLoading && <Spinner />}
+                {cfgMeta && (
+                  <p className="text-xs text-muted-foreground">
+                    {cfgMeta.hasCredentials ? 'API key configurada' : 'Sin API key'} · cifrado runtime:{' '}
+                    {cfgMeta.encryptionReady ? 'OK' : 'faltante (SII_CLAVE_ENCRYPTION_KEY)'}
+                  </p>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground font-medium">Merchant code</label>
+                    <input
+                      value={configForm.merchantCode}
+                      onChange={(e) => setConfigForm((p) => ({ ...p, merchantCode: e.target.value }))}
+                      className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm font-mono"
+                      placeholder="MCXXXXXX"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground font-medium">Ambiente</label>
+                    <select
+                      value={configForm.environment}
+                      onChange={(e) =>
+                        setConfigForm((p) => ({
+                          ...p,
+                          environment: e.target.value as 'test' | 'live',
+                        }))
+                      }
+                      className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm"
+                    >
+                      <option value="test">Test / sandbox</option>
+                      <option value="live">Live (producción)</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">
+                    API key {cfgMeta?.hasCredentials ? '(dejar vacío para no cambiar)' : ''}
+                  </label>
+                  <input
+                    type="password"
+                    value={configForm.apiKey}
+                    onChange={(e) => setConfigForm((p) => ({ ...p, apiKey: e.target.value }))}
+                    className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm font-mono"
+                    placeholder="sup_sk_…"
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground font-medium">
+                      Sync interval (minutos)
+                    </label>
+                    <input
+                      type="number"
+                      min={5}
+                      max={1440}
+                      value={configForm.syncIntervalMinutes}
+                      onChange={(e) =>
+                        setConfigForm((p) => ({
+                          ...p,
+                          syncIntervalMinutes: Number(e.target.value) || 30,
+                        }))
+                      }
+                      className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <label className="flex items-center gap-3 cursor-pointer pb-2">
+                    <input
+                      type="checkbox"
+                      checked={configForm.enabled}
+                      onChange={(e) => setConfigForm((p) => ({ ...p, enabled: e.target.checked }))}
+                      className="h-4 w-4 rounded border-border"
+                    />
+                    <span className="text-sm font-medium">Integración habilitada (POS + sync)</span>
+                  </label>
+                </div>
+                <div className="flex flex-wrap gap-3 pt-1">
+                  <Button
+                    onClick={() => saveConfigMutation.mutate()}
+                    disabled={saveConfigMutation.isPending || !configForm.merchantCode}
+                  >
+                    {saveConfigMutation.isPending ? (
+                      <HexagonLoader size="sm" className="mr-2" />
+                    ) : null}
+                    Guardar configuración
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => testConnMutation.mutate()}
+                    disabled={testConnMutation.isPending}
+                  >
+                    {testConnMutation.isPending ? (
+                      <HexagonLoader size="sm" className="mr-2" />
+                    ) : (
+                      <Plug size={16} className="mr-2" />
+                    )}
+                    Probar conexión
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Lectores / terminales</CardTitle>
+                <CardDescription>
+                  Lista desde SumUp API (requiere integración habilitada y credenciales válidas).
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {readersQuery.isLoading && <Spinner />}
+                {readersQuery.isError && (
+                  <p className="text-sm text-muted-foreground">
+                    {(readersQuery.error as Error).message}
+                  </p>
+                )}
+                {Array.isArray(readersQuery.data?.data) && readersQuery.data.data.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Sin lectores registrados en el merchant.</p>
+                )}
+                {Array.isArray(readersQuery.data?.data) && readersQuery.data.data.length > 0 && (
+                  <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden">
+                    {readersQuery.data.data.map((r: { id?: string; name?: string; status?: string; device?: { name?: string } }) => (
+                      <li key={r.id ?? r.name} className="flex items-center gap-3 px-3 py-2.5 text-sm bg-surface-sunken/40">
+                        <span className="font-medium flex-1">{r.name || r.device?.name || r.id}</span>
+                        <Badge variant={String(r.status).toLowerCase() === 'online' ? 'success' : 'default'}>
+                          {r.status ?? '—'}
+                        </Badge>
+                        <span className="text-xs font-mono text-muted-foreground">{r.id}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
           </motion.div>
         )}
       </AnimatePresence>
