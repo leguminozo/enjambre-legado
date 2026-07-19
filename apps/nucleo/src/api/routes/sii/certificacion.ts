@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { getCafMinFolios } from "@enjambre/fiscal";
 import type { AppVariables } from "@/api/lib/middleware";
-import { hasSiiEncryptionMaterial } from "@/api/lib/sii-crypto";
+import { hasSiiEncryptionMaterial, isValidChileanRut } from "@/api/lib/sii-crypto";
 
 export const certificacionRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -37,52 +37,83 @@ function foliosDeCaf(
   return Math.max(0, Number(match.folio_hasta) - Number(match.folio_actual));
 }
 
+function emisorIdentityDetail(emp: {
+  rut?: string | null;
+  razon_social?: string | null;
+  giro?: string | null;
+  direccion?: string | null;
+  comuna?: string | null;
+  acteco?: string | number | null;
+}): { ok: boolean; detalle: string } {
+  const missing: string[] = [];
+  const rut = emp.rut?.trim() ?? "";
+  if (!rut || !isValidChileanRut(rut)) missing.push("RUT válido");
+  if (!emp.razon_social?.trim()) missing.push("razón social");
+  if (!emp.giro?.trim()) missing.push("giro");
+  if (!emp.direccion?.trim()) missing.push("dirección");
+  if (!emp.comuna?.trim()) missing.push("comuna");
+  if (emp.acteco === null || emp.acteco === undefined || String(emp.acteco).trim() === "") {
+    missing.push("acteco");
+  }
+  if (missing.length === 0) {
+    return { ok: true, detalle: `${rut} · ${String(emp.razon_social).trim().slice(0, 40)}` };
+  }
+  return { ok: false, detalle: `Falta: ${missing.join(", ")} (Settings SII → Emisor)` };
+}
+
 certificacionRoutes.get("/checklist", async (c) => {
   const empresaId = c.get("empresaId");
   const supabase = c.get("supabase");
   const minFolios = getCafMinFolios();
 
-  const [cafRes, certRes, fcRes, dteVentaRes, empresaRes, jobsOpenRes, dtePendRes] =
+  const [cafRes, certRes, fcRes, dteVentaRes, empresaRes, jobsOpenRes, dtePendRes, deadLetterRes] =
     await Promise.all([
-    supabase
-      .from("sii_caf")
-      .select("id, tipo_dte, folio_actual, folio_hasta, activo")
-      .eq("empresa_id", empresaId)
-      .eq("activo", true),
-    supabase
-      .from("sii_certificados")
-      .select("id, vigencia_fin, activo")
-      .eq("empresa_id", empresaId)
-      .eq("activo", true)
-      .maybeSingle(),
-    supabase
-      .from("facturas_compra")
-      .select("id", { count: "exact", head: true })
-      .eq("empresa_id", empresaId)
-      .eq("estado_sii", "aceptado"),
-    supabase
-      .from("facturas_emitidas")
-      .select("id", { count: "exact", head: true })
-      .eq("empresa_id", empresaId)
-      .eq("estado_sii", "aceptado")
-      .in("tipo_dte", [33, 39, 41]),
-    supabase
-      .from("empresas")
-      .select("sii_ambiente, sii_clave_encriptada")
-      .eq("id", empresaId)
-      .single(),
-    supabase
-      .from("sii_document_jobs")
-      .select("id", { count: "exact", head: true })
-      .eq("empresa_id", empresaId)
-      .in("status", ["pending", "failed", "dead_letter", "processing"]),
-    supabase
-      .from("facturas_emitidas")
-      .select("id", { count: "exact", head: true })
-      .eq("empresa_id", empresaId)
-      .eq("estado_sii", "pendiente")
-      .in("tipo_dte", [33, 39, 41]),
-  ]);
+      supabase
+        .from("sii_caf")
+        .select("id, tipo_dte, folio_actual, folio_hasta, activo")
+        .eq("empresa_id", empresaId)
+        .eq("activo", true),
+      supabase
+        .from("sii_certificados")
+        .select("id, vigencia_fin, activo, p12_password_encriptada, storage_path")
+        .eq("empresa_id", empresaId)
+        .eq("activo", true)
+        .maybeSingle(),
+      supabase
+        .from("facturas_compra")
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", empresaId)
+        .eq("estado_sii", "aceptado"),
+      supabase
+        .from("facturas_emitidas")
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", empresaId)
+        .eq("estado_sii", "aceptado")
+        .in("tipo_dte", [33, 39, 41]),
+      supabase
+        .from("empresas")
+        .select(
+          "sii_ambiente, sii_clave_encriptada, rut, razon_social, giro, direccion, comuna, acteco",
+        )
+        .eq("id", empresaId)
+        .single(),
+      supabase
+        .from("sii_document_jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", empresaId)
+        .in("status", ["pending", "failed", "dead_letter", "processing"]),
+      supabase
+        .from("facturas_emitidas")
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", empresaId)
+        .eq("estado_sii", "pendiente")
+        .in("tipo_dte", [33, 39, 41]),
+      supabase
+        .from("sii_document_jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("empresa_id", empresaId)
+        .eq("status", "dead_letter"),
+    ]);
 
   const cafRows = (cafRes.data ?? []) as Array<{
     tipo_dte: number | string;
@@ -90,14 +121,40 @@ certificacionRoutes.get("/checklist", async (c) => {
     folio_hasta: number | string;
   }>;
 
-  const certVigente =
-    certRes.data &&
-    new Date(String(certRes.data.vigencia_fin)) >= new Date();
-  const ambiente = String(empresaRes.data?.sii_ambiente ?? "certificacion");
-  const hasClave = Boolean(empresaRes.data?.sii_clave_encriptada);
+  const cert = certRes.data as {
+    id: string;
+    vigencia_fin: string;
+    activo: boolean;
+    p12_password_encriptada?: string | null;
+    storage_path?: string | null;
+  } | null;
+
+  const certVigente = cert && new Date(String(cert.vigencia_fin)) >= new Date();
+  const hasP12Password =
+    Boolean(cert?.p12_password_encriptada?.trim()) ||
+    Boolean(process.env.SII_P12_PASSWORD?.trim());
+  const hasP12Material =
+    Boolean(cert?.storage_path?.trim()) || Boolean(process.env.SII_P12_BASE64?.trim());
+
+  const empresa = (empresaRes.data ?? {}) as {
+    sii_ambiente?: string | null;
+    sii_clave_encriptada?: string | null;
+    rut?: string | null;
+    razon_social?: string | null;
+    giro?: string | null;
+    direccion?: string | null;
+    comuna?: string | null;
+    acteco?: string | number | null;
+  };
+
+  const ambiente = String(empresa.sii_ambiente ?? "certificacion");
+  const hasClave = Boolean(empresa.sii_clave_encriptada);
   const hasEncryption = hasSiiEncryptionMaterial();
+  const identity = emisorIdentityDetail(empresa);
   const fcAceptadas = fcRes.count ?? 0;
   const dteVentaAceptadas = dteVentaRes.count ?? 0;
+  const deadLetter = deadLetterRes.count ?? 0;
+  const jobsOpen = jobsOpenRes.count ?? 0;
 
   const cafItems: ChecklistItem[] = [
     ...CAF_TIPOS_CRITICOS.map(({ tipo, id, titulo }) => {
@@ -133,6 +190,15 @@ certificacionRoutes.get("/checklist", async (c) => {
   ];
 
   const items: ChecklistItem[] = [
+    {
+      id: "emisor-identidad",
+      categoria: "emisor",
+      titulo: "Identidad emisor completa (RUT, razón social, giro, domicilio, acteco)",
+      cumplido: identity.ok,
+      critico: true,
+      fase: "certificacion",
+      detalle: identity.detalle,
+    },
     ...cafItems,
     {
       id: "cert-p12",
@@ -141,9 +207,28 @@ certificacionRoutes.get("/checklist", async (c) => {
       cumplido: Boolean(certVigente),
       critico: true,
       fase: "certificacion",
-      detalle: certRes.data
-        ? `Vigencia hasta ${String(certRes.data.vigencia_fin).slice(0, 10)}`
+      detalle: cert
+        ? `Vigencia hasta ${String(cert.vigencia_fin).slice(0, 10)}`
         : "Sin certificado activo",
+    },
+    {
+      id: "cert-credenciales",
+      categoria: "certificado",
+      titulo: "Material P12 + contraseña resolvibles (DB cifrada o env)",
+      cumplido: hasP12Material && hasP12Password,
+      critico: true,
+      fase: "certificacion",
+      detalle:
+        hasP12Material && hasP12Password
+          ? hasP12Password && cert?.p12_password_encriptada
+            ? "P12 en storage + clave cifrada"
+            : "Credenciales vía env (SII_P12_*) o storage"
+          : [
+              !hasP12Material ? "falta archivo P12 (upload o SII_P12_BASE64)" : null,
+              !hasP12Password ? "falta contraseña (upload o SII_P12_PASSWORD)" : null,
+            ]
+              .filter(Boolean)
+              .join("; "),
     },
     {
       id: "clave-sii",
@@ -207,7 +292,7 @@ certificacionRoutes.get("/checklist", async (c) => {
         process.env.CRON_SECRET ||
         process.env.FISCAL_WORKER_SECRET ||
         process.env.INTEGRATIONS_CRON_SECRET
-          ? "Secret de cron presente"
+          ? "Secret de cron presente · schedule /api/cron/fiscal */15"
           : "Set CRON_SECRET en Vercel + schedule /api/cron/fiscal",
     },
     {
@@ -225,23 +310,22 @@ certificacionRoutes.get("/checklist", async (c) => {
     {
       id: "jobs-cola",
       categoria: "operacion",
-      titulo: "Cola de jobs de emisión sin dead_letter masivo",
-      cumplido: (jobsOpenRes.count ?? 0) < 50,
+      titulo: "Cola de jobs de emisión saludable",
+      cumplido: jobsOpen < 50 && deadLetter === 0,
       critico: false,
       fase: "operacion",
-      detalle: `${jobsOpenRes.count ?? 0} abiertos (pending/failed/dead) · ${dtePendRes.count ?? 0} DTE pendientes de envío`,
+      detalle: `${jobsOpen} abiertos · ${deadLetter} dead_letter · ${dtePendRes.count ?? 0} DTE pendientes de envío`,
     },
   ];
 
   const certCriticosPendientes = items.filter(
     (i) => i.critico && i.fase === "certificacion" && !i.cumplido,
   ).length;
-  const prodCriticosPendientes = items.filter(
-    (i) => i.critico && !i.cumplido,
-  ).length;
+  const prodCriticosPendientes = items.filter((i) => i.critico && !i.cumplido).length;
 
   const listoCertificacion = certCriticosPendientes === 0;
-  const listoProduccion = listoCertificacion && ambiente === "produccion" && prodCriticosPendientes === 0;
+  const listoProduccion =
+    listoCertificacion && ambiente === "produccion" && prodCriticosPendientes === 0;
 
   return c.json({
     data: {

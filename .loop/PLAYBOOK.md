@@ -10,6 +10,7 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 | Patrón | Síntoma | Detección | Fix canónico |
 |--------|---------|-----------|--------------|
 | Checklist SII rojo | “casi listo” sin go-live | `GET /api/sii/certificacion/checklist` | CAF **33/39/46**, P12, clave SII, encryption key, DTE venta + FC aceptados; `listoCertificacion` ≠ `listoProduccion` (Palena solo si cert OK) |
+| Checklist falso verde | cert OK pero DTE no emite | sin identidad emisor / P12 password | items `emisor-identidad` + `cert-credenciales` críticos |
 | Jobs DTE huérfanos | emisión falla y nadie ve | dead_letter en DB sin UI | `GET /api/sii/jobs` + Retry; cron `/api/cron/fiscal` |
 | Checklist SII sin UI | API existe, operador ciego | Settings SII sin panel | Card checklist en `SettingsTab` + badges Maullín/Palena |
 | Config solo env/SQL | no se puede operar sin deploy | valor de negocio solo en `.env` o SQL | **config-en-UI**: form + PATCH/POST BFF; env = secretos plataforma |

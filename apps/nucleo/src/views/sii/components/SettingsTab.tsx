@@ -486,7 +486,12 @@ export function SettingsTab() {
                       />
                     )}
                     <div className="min-w-0 flex-1">
-                      <span className="font-medium text-foreground">{item.titulo}</span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium text-foreground">{item.titulo}</span>
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground border border-border rounded px-1.5 py-0.5">
+                          {item.fase}
+                        </span>
+                      </div>
                       {item.detalle && (
                         <p className="text-xs text-muted-foreground mt-0.5">{item.detalle}</p>
                       )}
