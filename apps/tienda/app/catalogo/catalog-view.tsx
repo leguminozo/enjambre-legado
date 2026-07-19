@@ -109,13 +109,16 @@ export function CatalogoView({ products, ratings = {} }: Props) {
     setParams({ q: null, formato: null, categoria: null, stock: null, impacto: null });
   };
 
+  const chipBase =
+    'shrink-0 rounded-full border px-3.5 py-2 text-xs uppercase tracking-wider transition min-h-[44px] inline-flex items-center';
+
   return (
     <>
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-14">
-        <h1 className="text-center font-display text-3xl font-semibold text-foreground sm:text-4xl md:text-5xl">
+      <div className="mx-auto max-w-6xl px-4 py-8 pb-24 sm:px-6 sm:py-14 md:pb-14">
+        <h1 className="text-center font-display text-3xl font-semibold text-foreground text-balance sm:text-4xl md:text-5xl">
           {resolveLocalized(catalog.page_title, catalog.page_title_en, locale)}
         </h1>
-        <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:text-base">
+        <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-muted-foreground text-pretty sm:mt-4 sm:text-base">
           {resolveLocalized(catalog.page_subtitle, catalog.page_subtitle_en, locale)}
         </p>
 
@@ -123,7 +126,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             {catalog.show_search ? (
               <form
-                className="relative flex-1"
+                className="relative flex-1 min-w-0"
                 onSubmit={(e) => {
                   e.preventDefault();
                   setParams({ q: draftQ.trim() || null });
@@ -167,13 +170,13 @@ export function CatalogoView({ products, ratings = {} }: Props) {
           </div>
 
           {catalog.show_filters ? (
-            <div className="tienda-filter-scroll mt-3 max-w-3xl">
+            <div className="tienda-filter-scroll mt-3 max-w-3xl gap-2">
               {formatos.map((f) => (
                 <button
                   key={f}
                   type="button"
                   onClick={() => setParams({ formato: formato === f ? null : f })}
-                  className={`shrink-0 rounded-full border px-3 py-2 text-xs uppercase tracking-wider transition min-h-[40px] ${
+                  className={`${chipBase} ${
                     formato === f
                       ? 'border-accent bg-accent/15 text-accent'
                       : 'border-border text-muted-foreground hover:border-accent/40'
@@ -187,7 +190,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                   key={c}
                   type="button"
                   onClick={() => setParams({ categoria: categoria === c ? null : c })}
-                  className={`shrink-0 rounded-full border px-3 py-2 text-xs transition min-h-[40px] ${
+                  className={`${chipBase} normal-case tracking-normal ${
                     categoria === c
                       ? 'border-primary bg-primary/10 text-foreground'
                       : 'border-border text-muted-foreground hover:border-accent/40'
@@ -199,7 +202,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
               <button
                 type="button"
                 onClick={() => setParams({ stock: soloStock ? null : '1' })}
-                className={`shrink-0 rounded-full border px-3 py-2 text-xs transition min-h-[40px] ${
+                className={`${chipBase} ${
                   soloStock
                     ? 'border-success bg-success/10 text-success'
                     : 'border-border text-muted-foreground hover:border-accent/40'
@@ -210,7 +213,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
               <button
                 type="button"
                 onClick={() => setParams({ impacto: altoImpacto ? null : '1' })}
-                className={`shrink-0 rounded-full border px-3 py-2 text-xs transition min-h-[40px] ${
+                className={`${chipBase} ${
                   altoImpacto
                     ? 'border-accent bg-accent/10 text-accent'
                     : 'border-border text-muted-foreground hover:border-accent/40'
@@ -222,9 +225,9 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-3 py-2 text-xs text-muted-foreground hover:text-foreground min-h-[40px]"
+                  className={`${chipBase} gap-1 border-border text-muted-foreground hover:text-foreground`}
                 >
-                  <X size={12} />
+                  <X size={12} aria-hidden />
                   Limpiar
                 </button>
               ) : null}

@@ -26,15 +26,17 @@ export function MobileCartBar() {
     <div className="tienda-cart-bar md:hidden">
       <div className="tienda-cart-bar-inner">
         <div className="flex items-center gap-2 min-w-0">
-          <ShoppingBag size={18} className="text-accent shrink-0" />
+          <ShoppingBag size={18} className="text-accent shrink-0" aria-hidden />
           <span className="text-sm text-foreground truncate">
             {itemCount} {itemCount === 1 ? 'producto' : 'productos'}
           </span>
-          <span className="text-sm font-semibold text-accent">{formatCLP(subtotal)}</span>
+          <span className="text-sm font-semibold tabular-nums text-accent shrink-0">
+            {formatCLP(subtotal)}
+          </span>
         </div>
         <Link
           href="/carrito"
-          className="shrink-0 rounded-full bg-accent px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-accent-foreground"
+          className="shrink-0 inline-flex min-h-[44px] items-center justify-center rounded-full bg-accent px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-accent-foreground"
         >
           Ver carrito
         </Link>
