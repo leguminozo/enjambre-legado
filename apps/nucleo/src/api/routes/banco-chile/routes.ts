@@ -12,6 +12,14 @@ import {
  */
 export const bancoChileRouter = new Hono<{ Variables: AppVariables }>();
 
+const TIPOS_MOV = new Set([
+  'abono',
+  'cargo',
+  'traspaso',
+  'nota_debito',
+  'nota_credito',
+]);
+
 function mapCuentaRow(
   cuenta: {
     id?: string;
@@ -44,6 +52,89 @@ function mapCuentaRow(
   };
 }
 
+function normalizeTipo(raw: unknown): string {
+  const t = String(raw ?? 'abono')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '_');
+  if (TIPOS_MOV.has(t)) return t;
+  // API variants
+  if (t.includes('cargo') || t === 'debit' || t === 'd') return 'cargo';
+  if (t.includes('abono') || t === 'credit' || t === 'c') return 'abono';
+  if (t.includes('traspaso') || t.includes('transfer')) return 'traspaso';
+  return 'abono';
+}
+
+/** Stable idempotency key for upsert (mig 98 external_key). */
+export function buildMovimientoExternalKey(m: {
+  numero_operacion?: string | null;
+  fecha_contable: string;
+  monto: number;
+  tipo: string;
+  descripcion: string;
+}): string {
+  const op = m.numero_operacion?.trim();
+  if (op) return op;
+  // Fallback when bank omits operation number
+  const desc = m.descripcion.slice(0, 120);
+  return `h:${m.fecha_contable}|${m.monto}|${m.tipo}|${desc}`;
+}
+
+export function mapMovimientoRow(
+  mov: Record<string, unknown>,
+  localCuentaId: string,
+  empresaId: string,
+  fallbackFecha: string,
+) {
+  const fechaContable = String(
+    mov.fechaContable ?? mov.fecha_contable ?? fallbackFecha,
+  ).slice(0, 10);
+  const fechaValor = String(
+    mov.fechaValor ?? mov.fecha_valor ?? fechaContable,
+  ).slice(0, 10);
+  const monto = Number(mov.monto ?? 0);
+  const tipo = normalizeTipo(mov.tipo);
+  const descripcion = String(mov.descripcion ?? '');
+  const numeroOperacion = (mov.numeroOperacion ?? mov.numero_operacion ?? null) as
+    | string
+    | null;
+
+  const external_key = buildMovimientoExternalKey({
+    numero_operacion: numeroOperacion,
+    fecha_contable: fechaContable,
+    monto,
+    tipo,
+    descripcion,
+  });
+
+  return {
+    cuenta_id: localCuentaId,
+    empresa_id: empresaId,
+    fecha_contable: fechaContable,
+    fecha_valor: fechaValor,
+    descripcion: descripcion || 'Movimiento bancario',
+    descripcion_detallada: (mov.descripcionDetallada ??
+      mov.descripcion_detallada ??
+      null) as string | null,
+    monto,
+    moneda: String(mov.moneda ?? 'CLP'),
+    tipo,
+    categoria: (mov.categoria ?? null) as string | null,
+    subcategoria: (mov.subcategoria ?? null) as string | null,
+    referencia: (mov.referencia ?? null) as string | null,
+    rut_contraparte: (mov.rutContraparte ?? mov.rut_contraparte ?? null) as string | null,
+    nombre_contraparte: (mov.nombreContraparte ?? mov.nombre_contraparte ?? null) as
+      | string
+      | null,
+    banco_contraparte: (mov.bancoContraparte ?? mov.banco_contraparte ?? null) as
+      | string
+      | null,
+    numero_operacion: numeroOperacion,
+    saldo_posterior: (mov.saldoPosterior ?? mov.saldo_posterior ?? null) as number | null,
+    external_key,
+  };
+}
+
 // Obtener cuentas (API + upsert local)
 bancoChileRouter.get('/cuentas', async (c) => {
   try {
@@ -67,9 +158,9 @@ bancoChileRouter.get('/cuentas', async (c) => {
     }
 
     if (result.data.length > 0) {
-      const cuentas = result.data.map((cuenta) =>
-        mapCuentaRow(cuenta as never, resolved.config.id, empresaId),
-      ).filter((r) => r.numero_cuenta);
+      const cuentas = result.data
+        .map((cuenta) => mapCuentaRow(cuenta as never, resolved.config.id, empresaId))
+        .filter((r) => r.numero_cuenta);
 
       await supabase.from('banco_chile_cuentas').upsert(cuentas, {
         onConflict: 'config_id,numero_cuenta',
@@ -96,7 +187,7 @@ bancoChileRouter.post('/sync', async (c) => {
   try {
     const supabase = c.get('supabase');
     const empresaId = c.get('empresaId');
-    const body = await c.req.json().catch(() => ({})) as { dias?: number; limite?: number };
+    const body = (await c.req.json().catch(() => ({}))) as { dias?: number; limite?: number };
     const dias = Math.min(Math.max(Number(body.dias) || 30, 1), 90);
     const limite = Math.min(Math.max(Number(body.limite) || 100, 1), 500);
 
@@ -115,9 +206,9 @@ bancoChileRouter.post('/sync', async (c) => {
       return c.json({ code: 'cuentas_failed', message: cuentasRes.error.message }, 502);
     }
 
-    const cuentas = cuentasRes.data.map((cuenta) =>
-      mapCuentaRow(cuenta as never, resolved.config.id, empresaId),
-    ).filter((r) => r.numero_cuenta);
+    const cuentas = cuentasRes.data
+      .map((cuenta) => mapCuentaRow(cuenta as never, resolved.config.id, empresaId))
+      .filter((r) => r.numero_cuenta);
 
     if (cuentas.length > 0) {
       await supabase.from('banco_chile_cuentas').upsert(cuentas, {
@@ -132,13 +223,12 @@ bancoChileRouter.post('/sync', async (c) => {
       .select('id, numero_cuenta')
       .eq('empresa_id', empresaId);
 
-    const byNumero = new Map(
-      (localCuentas ?? []).map((r) => [r.numero_cuenta, r.id]),
-    );
+    const byNumero = new Map((localCuentas ?? []).map((r) => [r.numero_cuenta, r.id]));
 
     const desde = new Date(Date.now() - dias * 86400_000).toISOString().slice(0, 10);
     const hasta = new Date().toISOString().slice(0, 10);
     let movimientosUpserted = 0;
+    let movimientosErrors = 0;
 
     for (const cta of cuentas) {
       const localId = byNumero.get(cta.numero_cuenta);
@@ -151,36 +241,36 @@ bancoChileRouter.post('/sync', async (c) => {
       });
       if (!movRes.success || !movRes.data.length) continue;
 
-      const rows = movRes.data.map((mov) => {
-        const m = mov as Record<string, unknown>;
-        return {
-          cuenta_id: localId,
-          empresa_id: empresaId,
-          fecha_contable: String(m.fechaContable ?? m.fecha_contable ?? hasta),
-          fecha_valor: (m.fechaValor ?? m.fecha_valor ?? null) as string | null,
-          descripcion: String(m.descripcion ?? ''),
-          descripcion_detallada: (m.descripcionDetallada ?? m.descripcion_detallada ?? null) as
-            | string
-            | null,
-          monto: Number(m.monto ?? 0),
-          moneda: String(m.moneda ?? 'CLP'),
-          tipo: String(m.tipo ?? 'abono'),
-          categoria: (m.categoria ?? null) as string | null,
-          subcategoria: (m.subcategoria ?? null) as string | null,
-          referencia: (m.referencia ?? null) as string | null,
-          rut_contraparte: (m.rutContraparte ?? m.rut_contraparte ?? null) as string | null,
-          nombre_contraparte: (m.nombreContraparte ?? m.nombre_contraparte ?? null) as
-            | string
-            | null,
-          banco_contraparte: (m.bancoContraparte ?? m.banco_contraparte ?? null) as string | null,
-          numero_operacion: (m.numeroOperacion ?? m.numero_operacion ?? null) as string | null,
-          saldo_posterior: (m.saldoPosterior ?? m.saldo_posterior ?? null) as number | null,
-        };
-      });
+      const rows = movRes.data.map((mov) =>
+        mapMovimientoRow(mov as Record<string, unknown>, localId, empresaId, hasta),
+      );
 
-      const { error } = await supabase.from('banco_chile_movimientos').upsert(rows);
-      if (!error) movimientosUpserted += rows.length;
-      else console.warn('[banco-chile/sync] mov upsert:', error.message);
+      // Dedupe within batch by external_key
+      const byKey = new Map<string, (typeof rows)[0]>();
+      for (const row of rows) {
+        byKey.set(row.external_key, row);
+      }
+      const uniqueRows = Array.from(byKey.values());
+
+      const { error, count } = await supabase
+        .from('banco_chile_movimientos')
+        .upsert(uniqueRows, {
+          onConflict: 'cuenta_id,external_key',
+          ignoreDuplicates: false,
+          count: 'exact',
+        });
+      if (!error) movimientosUpserted += count ?? uniqueRows.length;
+      else {
+        movimientosErrors += 1;
+        console.warn('[banco-chile/sync] mov upsert:', error.message);
+        // Fallback without unique (pre-mig 98): still try insert-ignore style batch
+        if (error.message.includes('external_key') || error.code === '42P10') {
+          for (const row of uniqueRows) {
+            const { error: insErr } = await supabase.from('banco_chile_movimientos').insert(row);
+            if (!insErr) movimientosUpserted += 1;
+          }
+        }
+      }
     }
 
     await supabase
@@ -192,6 +282,7 @@ bancoChileRouter.post('/sync', async (c) => {
       data: {
         cuentas: cuentas.length,
         movimientosUpserted,
+        movimientosErrors,
         desde,
         hasta,
       },
@@ -210,7 +301,9 @@ bancoChileRouter.get(
     z.object({
       desde: z.string().optional(),
       hasta: z.string().optional(),
-      limite: z.string().transform((v) => (v ? parseInt(v) : undefined)).optional(),
+      limite: z.string()
+        .transform((v) => (v ? parseInt(v) : undefined))
+        .optional(),
     }),
   ),
   async (c) => {
@@ -232,6 +325,7 @@ bancoChileRouter.get(
 
       // Allow local UUID or bank account number
       let apiCuentaId = cuentaId;
+      let localCuentaUuid: string | null = null;
       const { data: localCta } = await supabase
         .from('banco_chile_cuentas')
         .select('id, numero_cuenta')
@@ -240,6 +334,7 @@ bancoChileRouter.get(
         .maybeSingle();
       if (localCta?.numero_cuenta) {
         apiCuentaId = localCta.numero_cuenta;
+        localCuentaUuid = localCta.id;
       }
 
       const result = await resolved.client.getMovimientos(apiCuentaId, { desde, hasta, limite });
@@ -248,28 +343,26 @@ bancoChileRouter.get(
         return c.json({ code: 'movimientos_failed', message: result.error.message }, 502);
       }
 
-      if (result.data.length > 0) {
-        const movimientos = result.data.map((mov) => ({
-          cuenta_id: cuentaId,
-          empresa_id: empresaId,
-          fecha_contable: mov.fechaContable,
-          fecha_valor: mov.fechaValor,
-          descripcion: mov.descripcion,
-          descripcion_detallada: mov.descripcionDetallada,
-          monto: mov.monto,
-          moneda: mov.moneda,
-          tipo: mov.tipo,
-          categoria: mov.categoria,
-          subcategoria: mov.subcategoria,
-          referencia: mov.referencia,
-          rut_contraparte: mov.rutContraparte,
-          nombre_contraparte: mov.nombreContraparte,
-          banco_contraparte: mov.bancoContraparte,
-          numero_operacion: mov.numeroOperacion,
-          saldo_posterior: mov.saldoPosterior,
-        }));
-
-        await supabase.from('banco_chile_movimientos').upsert(movimientos);
+      if (result.data.length > 0 && localCuentaUuid) {
+        const fallbackFecha = new Date().toISOString().slice(0, 10);
+        const movimientos = result.data.map((mov) =>
+          mapMovimientoRow(
+            mov as unknown as Record<string, unknown>,
+            localCuentaUuid!,
+            empresaId,
+            fallbackFecha,
+          ),
+        );
+        const byKey = new Map(movimientos.map((r) => [r.external_key, r]));
+        const { error } = await supabase
+          .from('banco_chile_movimientos')
+          .upsert(Array.from(byKey.values()), {
+            onConflict: 'cuenta_id,external_key',
+            ignoreDuplicates: false,
+          });
+        if (error) {
+          console.warn('[banco-chile/movimientos] upsert:', error.message);
+        }
       }
 
       return c.json({ data: result.data, movimientos: result.data });

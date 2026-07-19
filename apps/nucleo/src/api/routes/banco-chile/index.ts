@@ -198,10 +198,16 @@ bancoChileRoutes.get('/checklist', async (c) => {
     }
   }
 
-  const { count: cuentasCount } = await supabase
-    .from('banco_chile_cuentas')
-    .select('id', { count: 'exact', head: true })
-    .eq('empresa_id', empresaId);
+  const [{ count: cuentasCount }, { count: movCount }] = await Promise.all([
+    supabase
+      .from('banco_chile_cuentas')
+      .select('id', { count: 'exact', head: true })
+      .eq('empresa_id', empresaId),
+    supabase
+      .from('banco_chile_movimientos')
+      .select('id', { count: 'exact', head: true })
+      .eq('empresa_id', empresaId),
+  ]);
 
   type Item = {
     id: string;
@@ -243,15 +249,22 @@ bancoChileRoutes.get('/checklist', async (c) => {
       id: 'cuentas',
       titulo: 'Al menos una cuenta sincronizada',
       cumplido: (cuentasCount ?? 0) > 0,
-      critico: false,
+      critico: true,
       detalle: `${cuentasCount ?? 0} cuenta(s)`,
     },
     {
+      id: 'movimientos',
+      titulo: 'Al menos un movimiento sincronizado',
+      cumplido: (movCount ?? 0) > 0,
+      critico: false,
+      detalle: `${movCount ?? 0} movimiento(s) — POST /sync o Sincronizar en UI`,
+    },
+    {
       id: 'sync',
-      titulo: 'Último sync registrado',
+      titulo: 'Último sync registrado (cuentas/movimientos)',
       cumplido: Boolean(cfg?.last_sync),
       critico: false,
-      detalle: cfg?.last_sync ? String(cfg.last_sync) : 'Sin sync',
+      detalle: cfg?.last_sync ? String(cfg.last_sync) : 'Sin sync real (auth no cuenta)',
     },
     {
       id: 'webhook-secret',
@@ -335,10 +348,7 @@ bancoChileRoutes.post('/auth', async (c) => {
     );
   }
 
-  await supabase
-    .from('banco_chile_config')
-    .update({ last_sync: new Date().toISOString() })
-    .eq('id', row.id);
+  // Do not stamp last_sync here — only real cuenta/mov sync updates it
 
   return c.json({
     data: {
