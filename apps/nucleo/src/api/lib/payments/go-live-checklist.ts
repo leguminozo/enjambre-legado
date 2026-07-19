@@ -173,7 +173,20 @@ export function buildPagosGoLiveChecklist(
           ? "No medido"
           : opts.stalePendingSessions === 0
             ? "0 stale"
-            : `${opts.stalePendingSessions} stale — usar Expirar abandonadas en UI`,
+            : `${opts.stalePendingSessions} stale — Expirar abandonadas (no toca órdenes con venta)`,
+    },
+    {
+      id: "cron-checkout",
+      titulo: "Cron expire-stale checkout (stock holds)",
+      cumplido: Boolean(
+        process.env.CRON_SECRET?.trim() ||
+          process.env.INTEGRATIONS_CRON_SECRET?.trim(),
+      ),
+      critico: false,
+      detalle:
+        process.env.CRON_SECRET?.trim() || process.env.INTEGRATIONS_CRON_SECRET?.trim()
+          ? "Secret presente · schedule /api/cron/checkout"
+          : "Set CRON_SECRET + vercel cron /api/cron/checkout",
     },
   ];
 

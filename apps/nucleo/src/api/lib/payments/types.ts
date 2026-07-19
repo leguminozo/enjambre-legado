@@ -202,11 +202,12 @@ export async function completeCheckoutSession(buyOrder: string): Promise<void> {
 /**
  * Expire abandoned pending sessions and release stock holds.
  * TTL should match reserve_checkout_stock (default 30m).
+ * Never expires a buy_order that already has a venta (paid / fulfill lag).
  */
 export async function expireStaleCheckoutSessions(opts?: {
   olderThanMinutes?: number;
   limit?: number;
-}): Promise<{ expired: number; buyOrders: string[] }> {
+}): Promise<{ expired: number; buyOrders: string[]; skippedPaid: string[] }> {
   const admin = createAdminClient();
   const minutes = opts?.olderThanMinutes ?? 30;
   const limit = opts?.limit ?? 100;
@@ -224,17 +225,47 @@ export async function expireStaleCheckoutSessions(opts?: {
     .limit(limit);
 
   if (error) throw new Error(`Failed to list stale sessions: ${error.message}`);
-  const buyOrders = (stale ?? []).map((r) => r.buy_order as string);
-  if (buyOrders.length === 0) return { expired: 0, buyOrders: [] };
+  const candidates = (stale ?? []).map((r) => r.buy_order as string);
+  if (candidates.length === 0) {
+    return { expired: 0, buyOrders: [], skippedPaid: [] };
+  }
 
-  for (const buyOrder of buyOrders) {
+  // Protect paid orders: pending session + venta means fulfill incomplete, not abandon
+  const { data: ventas } = await admin
+    .from('ventas')
+    .select('buy_order')
+    .in('buy_order', candidates);
+
+  const paidOrders = new Set(
+    (ventas ?? [])
+      .map((v) => v.buy_order as string | null)
+      .filter((b): b is string => Boolean(b)),
+  );
+
+  const skippedPaid: string[] = [];
+  const expired: string[] = [];
+
+  for (const buyOrder of candidates) {
+    if (paidOrders.has(buyOrder)) {
+      skippedPaid.push(buyOrder);
+      // Heal: complete session so ops list stays clean (venta already exists)
+      await admin.rpc('release_checkout_stock', { p_buy_order: buyOrder });
+      await admin
+        .from('checkout_sessions')
+        .update({ status: 'completed', completed_at: new Date().toISOString() })
+        .eq('buy_order', buyOrder)
+        .eq('status', 'pending');
+      continue;
+    }
+
     await admin.rpc('release_checkout_stock', { p_buy_order: buyOrder });
     await admin
       .from('checkout_sessions')
       .update({ status: 'expired', completed_at: new Date().toISOString() })
       .eq('buy_order', buyOrder)
       .eq('status', 'pending');
+    expired.push(buyOrder);
   }
 
-  return { expired: buyOrders.length, buyOrders };
+  return { expired: expired.length, buyOrders: expired, skippedPaid };
 }

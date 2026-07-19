@@ -1,10 +1,10 @@
 {
-  "index": 5,
-  "pass": 38,
-  "last_sector": "val-banco-webhooks",
-  "last_commit": "fd8b65c",
+  "index": 6,
+  "pass": 39,
+  "last_sector": "val-pagos-web",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.2-golive",
-  "notes": "Pass 37: webhook event_id reprocess (fd8b65c). Siguiente: val-pagos-web (#5)."
+  "notes": "Pass 38: expire-stale no toca paid. Siguiente: val-env-secrets (#6)."
 }

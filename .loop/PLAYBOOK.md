@@ -65,6 +65,8 @@ Prompt hermano: `.loop/PROMPT.md` v1.2 (go-live · SII · SumUp · Banco Chile).
 | Sesiones pending huérfanas | pago OK sin venta | no listado admin | `GET /checkout/admin/sessions` + fulfill path |
 | Pending stale stock | hold 30m nunca liberado en session | solo RPC TTL holds | expire-stale marca expired + release_checkout_stock |
 | Fulfill post-pago fallido | paid sin venta | session pending sin ops | `POST …/retry-fulfill` (no re-cobra provider) |
+| Expire mata paid | venta OK + session expired | expire sin lookup ventas | skip paid → complete; only abandon → expired |
+| alreadyProcessed huerfano | venta sí, session pending | early return sin complete | completeCheckoutSession + release holds |
 
 ---
 

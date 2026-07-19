@@ -72,6 +72,17 @@ export async function fulfillCheckout(
     .maybeSingle();
 
   if (existingVenta) {
+    // Heal lag: venta exists but session may still be pending / holds open
+    try {
+      await admin.rpc('release_checkout_stock', { p_buy_order: buyOrder });
+    } catch (err) {
+      console.warn('[checkout-fulfill] release holds on alreadyProcessed:', err);
+    }
+    try {
+      await completeCheckoutSession(buyOrder);
+    } catch (err) {
+      console.warn('[checkout-fulfill] complete session on alreadyProcessed:', err);
+    }
     return { ok: true, alreadyProcessed: true, ventaId: existingVenta.id as string };
   }
 

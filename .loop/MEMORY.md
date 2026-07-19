@@ -26,13 +26,20 @@
 | SumUp | readers status normalize + **stale pending revalidate** + already_paid POS + mig96 probe | ⏳ ops: mig 96; keys live; smoke POS→tx |
 | Banco Chile | sync dedupe + webhook **event_id reprocess** + mig 99 unique event | ⏳ ops: mig 98/99; webhook secret; 1 evento real |
 | Conciliación | motor **facturas→ventas paid→gastos** + seed-defaults UI + aceptar→confianza/regla | ⏳ ops: mig 97; sync banco; 1 match real |
-| Pagos web | checklist + sesiones + **expire-stale + retry-fulfill** ops | ⏳ ops: keys Flow/TBK; smoke real; 0 stale pending |
+| Pagos web | expire-stale **no toca paid** + alreadyProcessed heal session + cron item | ⏳ ops: keys Flow/TBK; smoke real |
 | Env matrix | runtime Entorno + matriz + docs alineados (≥32, auto-emit, webhook) | ⏳ ops: set keys en Vercel 3 apps; checklist verde en UI |
 | Crons | notifications 1m + **fiscal 15m** + **checkout expire 10m**; auth compartido timing-safe | ⏳ ops: `CRON_SECRET` Vercel; verificar logs cron tras deploy |
 
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-19 pass 38 (val-pagos-web residual)
+- Señal: expire-stale podía marcar expired órdenes con venta; alreadyProcessed no cerraba sesión/holds; Flow webhook 404 si sesión ya completed
+- Compuesto: colapsar + redirigir
+- Regla nueva: skip/heal paid en expire; complete+release en alreadyProcessed; webhook already_processed si venta existe; checklist cron checkout
+- Anti-patrón: expirar pending ciego sin lookup ventas
+- Guardriel: intacto (no re-cobra provider en retry)
 
 ### Evo 2026-07-19 pass 37 (val-banco-webhooks residual)
 - Señal: reprocesar usaba UUID de fila como event id → no mark/side-effects; race sin unique; process fail 500 tras insert

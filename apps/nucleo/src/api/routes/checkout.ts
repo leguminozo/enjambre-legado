@@ -622,13 +622,22 @@ checkoutRoutes.post("/webhook/flow", async (c) => {
       return c.json({ ok: true, status: subResult.status }, 200);
     }
 
+    const admin = createAdminClient();
     const session = await getCheckoutSession(buyOrder);
     if (!session) {
+      // Race: session already completed after prior fulfill
+      const { data: venta } = await admin
+        .from("ventas")
+        .select("id")
+        .eq("buy_order", buyOrder)
+        .maybeSingle();
+      if (venta) {
+        return c.json({ ok: true, status: "already_processed", ventaId: venta.id }, 200);
+      }
       console.error(`Flow webhook: session not found for buyOrder ${buyOrder}`);
       return c.json({ error: 'Sesión no encontrada' }, 404);
     }
 
-    const admin = createAdminClient();
     const fulfilled = await fulfillCheckout(admin, {
       buyOrder,
       session,
@@ -765,9 +774,13 @@ adminCheckout.post("/sessions/expire-stale", async (c) => {
       olderThanMinutes: body.olderThanMinutes,
       limit: body.limit,
     });
+    const healed = result.skippedPaid?.length ?? 0;
     return c.json({
       data: result,
-      message: `${result.expired} sesión(es) expirada(s); stock liberado`,
+      message:
+        healed > 0
+          ? `${result.expired} expirada(s); ${healed} pagada(s) cerrada(s) a completed; stock liberado`
+          : `${result.expired} sesión(es) expirada(s); stock liberado`,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "expire failed";
