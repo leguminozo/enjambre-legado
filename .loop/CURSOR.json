@@ -1,10 +1,10 @@
 {
-  "index": 2,
-  "pass": 69,
-  "last_sector": "ui-tienda-chrome",
-  "last_commit": "b70e535",
+  "index": 3,
+  "pass": 70,
+  "last_sector": "ui-tienda-shop",
+  "last_commit": "0173bf8",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 69: announcement \u226544 + /nosotros, legal/claim type, footer PWA. Siguiente: ui-tienda-shop (#2)."
+  "notes": "Pass 70: shop not-found/checkout dir/QR form/traza+PDP breadcrumb 44. Siguiente: ui-nucleo-shell (#3)."
 }
