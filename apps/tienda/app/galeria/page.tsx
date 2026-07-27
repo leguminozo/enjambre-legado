@@ -89,16 +89,16 @@ export default async function GaleriaPage() {
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="mx-auto max-w-7xl px-6 py-16 sm:px-8">
-        <div className="text-center mb-16">
+      <main className="mx-auto max-w-7xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 md:py-16">
+        <div className="text-center mb-12 md:mb-16">
           <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent mb-6">
             Galería
           </span>
-          <h1 className="font-display text-5xl md:text-7xl font-light text-foreground mb-6">
+          <h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
             Un recorrido visual de nuestras huellas
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Un recorrido visual de nuestras huellas
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
+            Imágenes del bosque, las colmenas y el proceso regenerativo en Chiloé.
           </p>
         </div>
 

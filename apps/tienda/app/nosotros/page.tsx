@@ -168,16 +168,16 @@ export default function NosotrosPage() {
     <StoreShell>
       <ShopHeader />
       <JsonLd data={nosotrosJsonLd} />
-      <main className="mx-auto max-w-5xl px-6 py-16 sm:px-8 lg:py-24">
+      <main className="mx-auto max-w-5xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 lg:py-24">
 {/* Hero */}
-<div className="text-center mb-20">
+<div className="text-center mb-16 md:mb-20">
 <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent mb-6">
 Nuestra Historia
 </span>
-<h1 className="font-display text-5xl md:text-7xl font-light text-foreground mb-8">
+<h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 md:mb-8 text-balance">
 Renacer de las Cenizas en Chiloé
 </h1>
-<p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+<p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
 Regeneración, Legado y Miel Artesanal del Bosque Patagónico de Chiloé
 </p>
 </div>

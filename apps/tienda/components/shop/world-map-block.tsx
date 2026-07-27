@@ -90,7 +90,7 @@ export function WorldMapBlock() {
           En el silencio del bosque, árboles nativos se regeneran y se transforman en el legado de nuestra existencia.
         </p>
         <Link
-          href="/nuestra-historia"
+          href="/nosotros"
           className="inline-flex min-h-12 items-center gap-3 border border-accent text-accent px-8 py-4 text-editorial-xs uppercase tracking-widest hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-md font-medium"
         >
           Nuestra Historia

@@ -306,7 +306,7 @@ export function TiendaLandingView({
           <div className="editorial-container">
             <div className="text-center mb-10 md:mb-16">
               <span className="editorial-kicker mb-4 block">{tConservation('kicker') || 'Conservación demostrable'}</span>
-              <h2 className="font-display text-3xl md:text-5xl font-light text-foreground mb-4 md:mb-6 text-balance">
+              <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground mb-4 md:mb-6 text-balance">
                 {tConservation('title') || 'Impacto sin atajos'}
               </h2>
               <p className="text-sm text-muted-foreground italic max-w-2xl mx-auto leading-relaxed">

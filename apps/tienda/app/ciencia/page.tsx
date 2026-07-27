@@ -41,13 +41,13 @@ export default async function CienciaPage() {
       <ShopHeader />
       <main className="min-h-screen bg-background">
         {/* ── Hero ── */}
-        <section className="relative py-32 px-4 text-center">
+        <section className="relative px-4 text-center pt-[max(7rem,calc(env(safe-area-inset-top)+5.5rem))] pb-16 md:py-32">
           <div className="max-w-3xl mx-auto">
             <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent mb-8">Ciencia</span>
-            <h1 className="font-display text-5xl md:text-7xl font-light text-foreground mb-6">
+            <h1 className="font-display text-[clamp(2.25rem,8vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
               La ciencia<br />del bosque
             </h1>
-            <p className="font-display italic text-xl text-muted-foreground max-w-lg mx-auto">
+            <p className="font-display italic text-lg sm:text-xl text-muted-foreground max-w-lg mx-auto text-pretty">
               Cada frasco condensa un proceso biofísico observable. Estas son las ecuaciones que lo demuestran.
             </p>
           </div>
@@ -73,8 +73,8 @@ export default async function CienciaPage() {
               <p className="font-mono text-lg md:text-xl text-foreground leading-loose tracking-wide">
                 E<sub>sol</sub> → C<sub>n</sub>H<sub>2n</sub>O<sub>n</sub> → fructosa + glucosa → miel virgen
               </p>
-              <div className="mt-8 pt-6 border-t border-border/20">
-                <table className="w-full text-left text-xs">
+              <div className="mt-8 pt-6 border-t border-border/20 overflow-x-auto -mx-2 px-2">
+                <table className="w-full min-w-[18rem] text-left text-xs">
                   <thead>
                     <tr className="text-muted-foreground uppercase tracking-wider">
                       <th className="pb-3 font-medium" />
@@ -215,7 +215,7 @@ export default async function CienciaPage() {
             <p className="text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto mb-8">
               El néctar de Ulmo, Tepú y Olivillo del bosque húmedo patagónico produce un perfil organoléptico imposible de replicar fuera de Chiloé. No es marketing: es biogeografía.
             </p>
-            <Link href="/catalogo" className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-accent hover:text-accent/80 transition-colors">
+            <Link href="/catalogo" className="inline-flex min-h-11 items-center gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-accent hover:text-accent/80 transition-colors">
               Explorar creaciones →
             </Link>
           </div>

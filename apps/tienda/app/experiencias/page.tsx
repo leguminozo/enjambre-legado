@@ -32,12 +32,17 @@ export default function ExperienciasPage() {
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="mx-auto max-w-2xl px-4 py-20 sm:px-6">
-        <h1 className="font-display text-3xl font-semibold text-foreground">Experiencias</h1>
-        <p className="mt-4 leading-relaxed text-muted-foreground">
-Experiencias del bosque inmersivas ligadas a toda nuestra actividad.
+      <main className="mx-auto max-w-2xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-20">
+        <h1 className="font-display text-[clamp(1.75rem,6vw,2.25rem)] font-semibold text-foreground text-balance">
+          Experiencias
+        </h1>
+        <p className="mt-4 leading-relaxed text-muted-foreground text-pretty">
+          Experiencias del bosque inmersivas ligadas a toda nuestra actividad.
         </p>
-        <Link href="/" className="mt-8 inline-block text-sm text-accent underline underline-offset-2">
+        <Link
+          href="/"
+          className="mt-8 inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-2"
+        >
           ← Inicio
         </Link>
       </main>
