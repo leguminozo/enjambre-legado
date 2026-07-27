@@ -35,7 +35,7 @@ export function PlanIntervalPicker({
             onClick={() => onSelect(plan.id)}
             className={
               isProfile
-                ? `p-6 rounded-2xl border text-left transition-colors ${
+                ? `min-h-11 p-6 rounded-2xl border text-left transition-colors ${
                     active
                       ? 'bg-accent/5 border-accent/30 ring-1 ring-accent/20'
                       : 'bg-secondary/50 border-border hover:border-accent/30'

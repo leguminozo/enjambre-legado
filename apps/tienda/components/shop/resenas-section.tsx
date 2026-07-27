@@ -131,7 +131,7 @@ export function ResenasSection({
         <button
           type="button"
           onClick={() => setComposerOpen(true)}
-          className="inline-flex items-center gap-2 rounded-full border border-accent/40 px-4 py-2 text-sm text-accent hover:bg-accent/10"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-accent/40 px-4 py-2 text-sm text-accent hover:bg-accent/10"
         >
           <PenLine size={16} />
           Escribir reseña
@@ -144,7 +144,7 @@ export function ResenasSection({
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`rounded-full px-4 py-1.5 text-xs uppercase tracking-wider transition ${
+            className={`inline-flex min-h-11 items-center rounded-full px-4 py-1.5 text-xs uppercase tracking-wider transition ${
               tab === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -169,7 +169,7 @@ export function ResenasSection({
               type="button"
               disabled={loadingMore}
               onClick={() => void load(page + 1, true)}
-              className="w-full rounded-full border border-border py-2.5 text-sm text-muted-foreground hover:border-accent/40 hover:text-foreground disabled:opacity-50"
+              className="w-full min-h-11 rounded-full border border-border py-2.5 text-sm text-muted-foreground hover:border-accent/40 hover:text-foreground disabled:opacity-50"
             >
               {loadingMore ? 'Cargando…' : 'Cargar más reseñas'}
             </button>

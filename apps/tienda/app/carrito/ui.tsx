@@ -19,9 +19,9 @@ export function CarritoClient() {
 
   if (lines.length === 0) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:py-20 text-center">
+      <div className="mx-auto max-w-2xl px-4 pt-[max(4rem,calc(var(--safe-top)+3rem))] pb-16 sm:py-20 text-center">
         <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
-        <h1 className="font-display text-2xl font-semibold text-foreground">Tu carrito está vacío</h1>
+        <h1 className="font-display text-2xl font-semibold text-foreground text-balance">Tu carrito está vacío</h1>
         <p className="mt-2 text-sm text-muted-foreground">Agrega productos para comenzar</p>
         <Link
           href="/catalogo"
@@ -34,8 +34,8 @@ export function CarritoClient() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 pb-32 sm:px-6 sm:py-14 md:pb-14">
-      <h1 className="font-display text-2xl font-semibold text-foreground sm:text-3xl">Tu carrito</h1>
+    <div className="mx-auto max-w-2xl px-4 pt-[max(2rem,calc(var(--safe-top)+0.5rem))] pb-32 sm:px-6 sm:py-14 md:pb-14">
+      <h1 className="font-display text-2xl font-semibold text-foreground sm:text-3xl text-balance">Tu carrito</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         {itemCount} {itemCount === 1 ? 'producto' : 'productos'}
       </p>
@@ -50,7 +50,7 @@ export function CarritoClient() {
             <div className="min-w-0 flex-1">
               <Link
                 href={`/producto/${encodeURIComponent(line.slug)}`}
-                className="font-medium text-foreground hover:text-accent transition-colors"
+                className="inline-flex min-h-11 items-center font-medium text-foreground hover:text-accent transition-colors"
               >
                 {line.name}
               </Link>

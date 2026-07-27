@@ -580,7 +580,10 @@ export function CheckoutClient() {
                     <h2 className="font-display text-lg text-foreground">Puntos de Fidelización</h2>
                   </div>
                   <div className="rounded-xl border border-border bg-card/40 p-6 text-sm text-muted-foreground">
-                    <Link href="/login?returnTo=/checkout" className="text-accent underline underline-offset-2">
+                    <Link
+                      href="/login?returnTo=/checkout"
+                      className="inline-flex min-h-11 items-center text-accent underline underline-offset-2"
+                    >
                       Inicia sesión
                     </Link>
                     {' '}para canjear puntos y acumular impacto con esta compra.
@@ -692,7 +695,7 @@ export function CheckoutClient() {
                   <button
                     type="button"
                     onClick={() => setBuyerMode('legado')}
-                    className={`rounded-xl border p-5 text-left transition-all ${
+                    className={`min-h-11 rounded-xl border p-5 text-left transition-all ${
                       buyerMode === 'legado'
                         ? 'border-accent bg-accent/5'
                         : 'border-border bg-card/40 hover:border-accent/40'
@@ -704,11 +707,17 @@ export function CheckoutClient() {
                     </p>
                     {!isAuthenticated && buyerMode === 'legado' && (
                       <p className="mt-3 text-xs text-accent">
-                        <Link href="/login?returnTo=/checkout" className="underline underline-offset-2">
+                        <Link
+                          href="/login?returnTo=/checkout"
+                          className="inline-flex min-h-11 items-center underline underline-offset-2"
+                        >
                           Inicia sesión
                         </Link>
                         {' '}o{' '}
-                        <Link href="/register?returnTo=/checkout" className="underline underline-offset-2">
+                        <Link
+                          href="/register?returnTo=/checkout"
+                          className="inline-flex min-h-11 items-center underline underline-offset-2"
+                        >
                           crea tu cuenta
                         </Link>
                       </p>
@@ -717,7 +726,7 @@ export function CheckoutClient() {
                   <button
                     type="button"
                     onClick={() => setBuyerMode('privada')}
-                    className={`rounded-xl border p-5 text-left transition-all ${
+                    className={`min-h-11 rounded-xl border p-5 text-left transition-all ${
                       buyerMode === 'privada'
                         ? 'border-accent bg-accent/5'
                         : 'border-border bg-card/40 hover:border-accent/40'
@@ -746,7 +755,7 @@ export function CheckoutClient() {
                     <select
                       id="courier"
                       name="courier"
-                      className="w-full rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all"
+                      className="w-full min-h-11 rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all"
                       value={courierCode}
                       onChange={(e) => setCourierCode(e.target.value as CourierCode)}
                     >

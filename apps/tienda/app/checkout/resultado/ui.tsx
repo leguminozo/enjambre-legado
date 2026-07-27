@@ -267,7 +267,7 @@ export function CheckoutResultClient() {
                     {t('contactSupport')}{' '}
                     <a
                       href="mailto:comunidad@obrerayzangano.com"
-                      className="text-accent underline hover:text-accent/80"
+                      className="inline-flex min-h-11 items-center text-accent underline hover:text-accent/80"
                     >
                       comunidad@obrerayzangano.com
                     </a>
@@ -276,24 +276,24 @@ export function CheckoutResultClient() {
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Link
                   href="/catalogo"
-                  className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/80 transition-colors"
+                  className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/80 transition-colors"
                 >
                   {state === 'success' ? t('exploreMore') : t('backToShop')}
                 </Link>
                 {state === 'success' && (
                   <Link
                     href="/perfil/pedidos"
-                    className="inline-flex items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-card/50 transition-colors"
+                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-card/50 transition-colors"
                   >
                     {t('viewOrder')}
                   </Link>
                 )}
                 <Link
                   href="/"
-                  className="inline-flex items-center justify-center text-sm font-semibold text-accent underline hover:text-accent/80 transition-colors"
+                  className="inline-flex min-h-11 items-center justify-center text-sm font-semibold text-accent underline hover:text-accent/80 transition-colors"
                 >
                   {t('goHome')}
                 </Link>
