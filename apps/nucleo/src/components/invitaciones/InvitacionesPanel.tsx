@@ -302,7 +302,7 @@ export function InvitacionesPanel() {
                     <button
                       disabled={actionLoading === c.id}
                       onClick={() => toggleCodeActive(c.id, c.active)}
-                      className={`w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:opacity-50 ${c.active ? 'bg-warning/10 text-warning hover:bg-warning hover:text-foreground' : 'bg-success/10 text-success hover:bg-success hover:text-foreground'}`}
+                      className={`min-h-11 min-w-11 h-11 w-11 rounded-full flex items-center justify-center transition-all disabled:opacity-50 ${c.active ? 'bg-warning/10 text-warning hover:bg-warning hover:text-foreground' : 'bg-success/10 text-success hover:bg-success hover:text-foreground'}`}
                       title={c.active ? 'Desactivar' : 'Activar'}
                     >
                       {actionLoading === c.id ? <Loader2 className="animate-spin" size={16} /> : c.active ? <Clock size={16} /> : <Check size={16} />}
@@ -310,7 +310,7 @@ export function InvitacionesPanel() {
                     <button
                       disabled={actionLoading === c.id}
                       onClick={() => deleteCode(c.id)}
-                      className="w-9 h-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
+                      className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
                       title="Eliminar"
                     >
                       <X size={16} />

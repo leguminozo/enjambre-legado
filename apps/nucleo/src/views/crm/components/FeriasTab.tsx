@@ -41,7 +41,7 @@ export function FeriasTab({ dashboard }: FeriasTabProps) {
                     {evento.fecha_inicio ? (
                       <Link
                         href={`/calendario?date=${String(evento.fecha_inicio).slice(0, 10)}&type=feria`}
-                        className="hover:text-accent hover:underline"
+                        className="inline-flex min-h-11 items-center hover:text-accent hover:underline"
                       >
                         {new Date(evento.fecha_inicio).toLocaleDateString("es-CL")}
                         {evento.fecha_fin && ` — ${new Date(evento.fecha_fin).toLocaleDateString("es-CL")}`}

@@ -353,7 +353,7 @@ export function ReglasComisionPanel() {
                 <button
                   disabled={actionLoading === rule.id}
                   onClick={() => toggleActive(rule.id, rule.active)}
-                  className="w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:opacity-50"
+                  className="min-h-11 min-w-11 h-11 w-11 rounded-full flex items-center justify-center transition-all disabled:opacity-50"
                   title={rule.active ? 'Desactivar' : 'Activar'}
                 >
                   {rule.active
@@ -361,13 +361,13 @@ export function ReglasComisionPanel() {
                     : <ToggleLeft size={20} className="text-muted-foreground" />
                   }
                 </button>
-                <button onClick={() => startEdit(rule)} className="w-9 h-9 rounded-full bg-surface-raised text-foreground flex items-center justify-center hover:bg-card transition-all" title="Editar">
+                <button onClick={() => startEdit(rule)} className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-surface-raised text-foreground flex items-center justify-center hover:bg-card transition-all" title="Editar">
                   <Edit3 size={16} />
                 </button>
                 <button
                   disabled={actionLoading === rule.id}
                   onClick={() => deleteRule(rule.id)}
-                  className="w-9 h-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
+                  className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
                   title="Eliminar"
                 >
                   <Trash2 size={16} />

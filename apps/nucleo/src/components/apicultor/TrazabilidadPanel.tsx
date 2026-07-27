@@ -393,7 +393,7 @@ export function TrazabilidadPanel() {
             <div>
               <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Especie</label>
               <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={arbolForm.especie}
                 onChange={(e) => setArbolForm({ ...arbolForm, especie: e.target.value })}
               >
@@ -408,7 +408,7 @@ export function TrazabilidadPanel() {
               <input
                 type="number"
                 min={1}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={arbolForm.cantidad || ''}
                 onChange={(e) => setArbolForm({ ...arbolForm, cantidad: parseInt(e.target.value, 10) || 0 })}
               />
@@ -417,7 +417,7 @@ export function TrazabilidadPanel() {
               <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Sector</label>
               <input
                 type="text"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={arbolForm.sector}
                 onChange={(e) => setArbolForm({ ...arbolForm, sector: e.target.value })}
               />
@@ -450,7 +450,7 @@ export function TrazabilidadPanel() {
             <input
               type="text"
               placeholder="Ej. Quilineja Madre"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               value={reflexionForm.colmena}
               onChange={(e) => setReflexionForm({ ...reflexionForm, colmena: e.target.value })}
             />

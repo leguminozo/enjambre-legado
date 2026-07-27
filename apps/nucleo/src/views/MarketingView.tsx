@@ -164,7 +164,7 @@ export function MarketingView() {
                 </div>
                 <div className="section-subtitle">
                   Vista unificada en{' '}
-                  <a href="/calendario?type=marketing" className="text-accent underline-offset-2 hover:underline">
+                  <a href="/calendario?type=marketing" className="inline-flex min-h-11 items-center text-accent underline-offset-2 hover:underline">
                     Calendario central
                   </a>
                 </div>

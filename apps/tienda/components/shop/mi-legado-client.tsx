@@ -224,10 +224,10 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
                   </div>
                 </div>
                 <div className="mt-6 pt-6 border-t border-border/20 text-center flex flex-wrap justify-center gap-4">
-                  <Link href="/perfil/guardian" className="inline-flex items-center gap-2 text-[0.6rem] uppercase tracking-[0.3em] text-accent hover:text-accent/80 transition-colors">
+                  <Link href="/perfil/guardian" className="inline-flex min-h-11 items-center gap-2 text-[0.6rem] uppercase tracking-[0.3em] text-accent hover:text-accent/80 transition-colors">
                     Panel guardián <ArrowUpRight size={12} />
                   </Link>
-                  <Link href="/ciencia" className="inline-flex items-center gap-2 text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground hover:text-accent transition-colors">
+                  <Link href="/ciencia" className="inline-flex min-h-11 items-center gap-2 text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground hover:text-accent transition-colors">
                     Ver metodología completa <ArrowRight size={12} />
                   </Link>
                 </div>
@@ -254,7 +254,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
                   <p className="text-sm text-muted-foreground italic mb-6">
                     Aún no has vinculado tu legado a una colmena específica.
                   </p>
-                  <a href="/catalogo" className="inline-flex items-center gap-2 text-accent text-[0.65rem] uppercase tracking-[0.2em] hover:gap-4 transition-all">
+                  <a href="/catalogo" className="inline-flex min-h-11 items-center gap-2 text-accent text-[0.65rem] uppercase tracking-[0.2em] hover:gap-4 transition-all">
                     Explorar Suscripciones <ChevronRight size={16} />
                   </a>
                 </div>

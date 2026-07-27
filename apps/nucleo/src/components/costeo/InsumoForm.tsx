@@ -65,7 +65,7 @@ export function InsumoForm({ onSuccess, onCancel }: InsumoFormProps) {
           <input
             {...register('nombre')}
             placeholder="Ej. Frasco vidrio 500g, Miel Cruda Ulmo"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
           {errors.nombre && <p className="text-sm text-destructive mt-1">{errors.nombre.message}</p>}
         </div>
@@ -76,7 +76,7 @@ export function InsumoForm({ onSuccess, onCancel }: InsumoFormProps) {
             <label className="block text-sm font-medium mb-1">Unidad base *</label>
             <select
               {...register('unidad')}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <option value="kg">Kilogramos (kg)</option>
               <option value="g">Gramos (g)</option>
@@ -90,7 +90,7 @@ export function InsumoForm({ onSuccess, onCancel }: InsumoFormProps) {
             <label className="block text-sm font-medium mb-1">Estado Físico *</label>
             <select
               {...register('estado_default')}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <option value="crudo">Crudo / A granel</option>
               <option value="procesado">Procesado</option>
@@ -111,7 +111,7 @@ export function InsumoForm({ onSuccess, onCancel }: InsumoFormProps) {
             <input
               {...register('categoria')}
               placeholder="Ej. Empaque, Miel, Hierba..."
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             {errors.categoria && <p className="text-sm text-destructive mt-1">{errors.categoria.message}</p>}
           </div>
@@ -123,7 +123,7 @@ export function InsumoForm({ onSuccess, onCancel }: InsumoFormProps) {
                 type="number"
                 {...register('precio_ref')}
                 placeholder="0"
-                className="flex h-10 w-full rounded-md border border-input bg-background pl-8 pr-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex min-h-11 w-full rounded-md border border-input bg-background pl-8 pr-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </div>
             <p className="text-xs text-muted-foreground mt-1">Este precio se usará para costear recetas hasta que haya una observación de precio actualizada.</p>

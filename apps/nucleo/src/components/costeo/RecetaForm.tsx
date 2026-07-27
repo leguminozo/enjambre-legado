@@ -108,7 +108,7 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
           <label className="block text-sm font-medium mb-1">Producto Final (Catálogo) *</label>
           <select
             {...register('producto_id')}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <option value="">Selecciona un producto...</option>
             {productos.map(p => (
@@ -124,7 +124,7 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
             <input
               type="number"
               {...register('rendimiento_frascos')}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             {errors.rendimiento_frascos && <p className="text-sm text-destructive mt-1">{errors.rendimiento_frascos.message}</p>}
           </div>
@@ -133,7 +133,7 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
             <input
               {...register('formato_frasco')}
               placeholder="Ej. 500g"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             {errors.formato_frasco && <p className="text-sm text-destructive mt-1">{errors.formato_frasco.message}</p>}
           </div>
@@ -146,7 +146,7 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
               type="number"
               step="0.1"
               {...register('merma_pct')}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             {errors.merma_pct && <p className="text-sm text-destructive mt-1">{errors.merma_pct.message}</p>}
           </div>
@@ -155,7 +155,7 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
             <input
               type="number"
               {...register('costo_empaque')}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             <p className="text-xs text-muted-foreground mt-1">Costo total de empaque por lote</p>
             {errors.costo_empaque && <p className="text-sm text-destructive mt-1">{errors.costo_empaque.message}</p>}
@@ -189,7 +189,7 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Insumo</label>
                 <select
                   {...register(`lines.${index}.ingredient_id`)}
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <option value="">Seleccionar...</option>
                   {insumos.map(i => (
@@ -205,7 +205,7 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
                   type="number"
                   step="0.01"
                   {...register(`lines.${index}.cantidad`)}
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
 
@@ -213,7 +213,7 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Estado</label>
                 <select
                   {...register(`lines.${index}.estado`)}
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <option value="crudo">Crudo</option>
                   <option value="procesado">Procesado</option>
@@ -226,7 +226,7 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
                 <Button 
                   type="button" 
                   variant="ghost" 
-                  className="h-9 w-9 p-0 text-destructive hover:bg-destructive/10"
+                  className="min-h-11 min-w-11 h-11 w-11 p-0 text-destructive hover:bg-destructive/10"
                   onClick={() => remove(index)}
                   disabled={fields.length === 1}
                 >

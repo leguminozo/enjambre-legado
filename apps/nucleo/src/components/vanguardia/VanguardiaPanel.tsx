@@ -144,14 +144,14 @@ export function VanguardiaPanel() {
                         <button 
                           disabled={actionLoading === rev.user_id}
                           onClick={() => updateRevendedorStatus(rev.user_id, 'activo')}
-                          className="w-9 h-9 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
+                          className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
                         >
                           {actionLoading === rev.user_id ? <Loader2 className="animate-spin" size={16} /> : <Check size={18} />}
                         </button>
                         <button 
                           disabled={actionLoading === rev.user_id}
                           onClick={() => updateRevendedorStatus(rev.user_id, 'suspendido')}
-                          className="w-9 h-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
+                          className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
                         >
                           <X size={18} />
                         </button>

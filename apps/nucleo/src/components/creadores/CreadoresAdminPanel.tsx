@@ -375,7 +375,7 @@ export function CreadoresAdminPanel() {
                           <button
                             disabled={actionLoading === creador.id}
                             onClick={() => updateCreadorEstado(creador.id, creador.user_id, 'activo')}
-                            className="w-9 h-9 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
+                            className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
                             title="Activar"
                           >
                             {actionLoading === creador.id ? <Loader2 className="animate-spin" size={16} /> : <Check size={18} />}
@@ -383,7 +383,7 @@ export function CreadoresAdminPanel() {
                           <button
                             disabled={actionLoading === creador.id}
                             onClick={() => updateCreadorEstado(creador.id, creador.user_id, 'suspendido')}
-                            className="w-9 h-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
+                            className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
                             title="Rechazar"
                           >
                             <X size={18} />
@@ -394,14 +394,14 @@ export function CreadoresAdminPanel() {
                         <>
                           <button
                             onClick={() => setSelectedCreador(selectedCreador?.id === creador.id ? null : creador)}
-                            className="w-9 h-9 rounded-full bg-accent/15/30 text-accent flex items-center justify-center hover:bg-accent/15/50 transition-all"
+                            className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-accent/15/30 text-accent flex items-center justify-center hover:bg-accent/15/50 transition-all"
                             title="Ver detalles"
                           >
                             <Eye size={16} />
                           </button>
                           <button
                             onClick={() => setEditComision(editComision?.id === creador.id ? null : { id: creador.id, porcentaje: creador.porcentaje_comision, descuento: creador.descuento_cliente })}
-                            className="w-9 h-9 rounded-full bg-surface-raised text-foreground flex items-center justify-center hover:bg-card transition-all"
+                            className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-surface-raised text-foreground flex items-center justify-center hover:bg-card transition-all"
                             title="Editar tasas"
                           >
                             <Edit3 size={16} />
@@ -409,7 +409,7 @@ export function CreadoresAdminPanel() {
                           <button
                             disabled={actionLoading === creador.id}
                             onClick={() => updateCreadorEstado(creador.id, creador.user_id, 'suspendido')}
-                            className="w-9 h-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
+                            className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
                             title="Suspender"
                           >
                             <X size={16} />
@@ -420,7 +420,7 @@ export function CreadoresAdminPanel() {
                         <button
                           disabled={actionLoading === creador.id}
                           onClick={() => updateCreadorEstado(creador.id, creador.user_id, 'activo')}
-                          className="w-9 h-9 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
+                          className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
                           title="Reactivar"
                         >
                           {actionLoading === creador.id ? <Loader2 className="animate-spin" size={16} /> : <Check size={18} />}
@@ -537,7 +537,7 @@ export function CreadoresAdminPanel() {
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${
+                    <div className={`min-h-11 min-w-11 h-11 w-11 rounded-full flex items-center justify-center text-sm font-bold ${
                       r.ranking === 1 ? 'bg-accent text-foreground' :
                       r.ranking === 2 ? 'bg-secondary text-foreground' :
                       r.ranking === 3 ? 'bg-card text-foreground' :
