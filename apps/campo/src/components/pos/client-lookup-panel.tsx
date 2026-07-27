@@ -35,16 +35,18 @@ export function ClientLookupPanel() {
           <UserPlus className="w-4 h-4 text-muted-foreground" />
           <span className="text-xs text-muted-foreground uppercase tracking-widest">Cliente</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           <button
+            type="button"
             onClick={() => { setIsNewClient(true); setExpanded(false); }}
-            className="text-[10px] uppercase tracking-widest text-primary hover:underline"
+            className="inline-flex min-h-11 items-center px-2 text-[10px] uppercase tracking-widest text-primary hover:underline"
           >
             Nuevo
           </button>
           <button
+            type="button"
             onClick={() => setExpanded(true)}
-            className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground"
+            className="inline-flex min-h-11 items-center px-2 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground"
           >
             Buscar
           </button>
@@ -66,7 +68,12 @@ export function ClientLookupPanel() {
           </div>
           <span className="text-[9px] uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full">Recurrente</span>
         </div>
-        <button onClick={() => setSelectedClient(null)} className="text-muted-foreground hover:text-foreground">
+        <button
+          type="button"
+          onClick={() => setSelectedClient(null)}
+          className="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground"
+          aria-label="Quitar cliente"
+        >
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -86,7 +93,12 @@ export function ClientLookupPanel() {
           </div>
           <span className="text-[9px] uppercase tracking-widest text-warning bg-warning/10 px-2 py-0.5 rounded-full">Nuevo</span>
         </div>
-        <button onClick={() => setIsNewClient(false)} className="text-muted-foreground hover:text-foreground">
+        <button
+          type="button"
+          onClick={() => setIsNewClient(false)}
+          className="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground"
+          aria-label="Cancelar cliente nuevo"
+        >
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -97,7 +109,12 @@ export function ClientLookupPanel() {
     <div className="card-glow p-4 space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground uppercase tracking-widest">Buscar cliente</span>
-        <button onClick={() => { setExpanded(false); setQuery(''); }} className="text-muted-foreground hover:text-foreground">
+        <button
+          type="button"
+          onClick={() => { setExpanded(false); setQuery(''); }}
+          className="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground"
+          aria-label="Cerrar búsqueda"
+        >
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -109,7 +126,7 @@ export function ClientLookupPanel() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Nombre o email..."
           autoFocus
-          className="w-full bg-background/40 border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition-colors"
+          className="w-full min-h-11 bg-background/40 border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition-colors"
         />
         {searching && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">

@@ -32,7 +32,7 @@
 | Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y | ✅ pass 40+47+54 |
 | Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom | ✅ pass 41+48+55 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
-| Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan | ✅ pass 44+51 |
+| Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos | ✅ pass 44+51+58 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos | ✅ pass 43+50+57 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual | ✅ pass 42+49+56 |
@@ -50,6 +50,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 58 (ui-campo-pos)
+- Señal: historial tabs py-1.5 sin min-h; caja CSV/eye/reconcile w-9; cash close densos; client-lookup text-only; feria btn-sm; comisiones btn-gold sin CSS hit; sync banner py-2
+- Compuesto: colapsar + redirigir
+- Regla nueva: tabs/ops Campo min-h-11; icon actions caja 44; client-lookup Nuevo/Buscar/X 44; feria/comisiones CTAs min-h-11/12
+- Anti-patrón: w-9 h-9 en ops caja; text-[10px] hover:underline en POS cliente
+- Guardriel: intacto (solo UI)
 
 ### Evo 2026-07-27 pass 57 (ui-nucleo-shell)
 - Señal: `.btn`/`.btn-sm`/`.input-field` sin min-h; override `.nav-item` pad !important sin min-h; filter chips 40; login forgot p-0 + toggle densos; SegmentControl py-2; select local h-10

@@ -164,11 +164,22 @@ export function ComisionesPanel() {
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-4 p-4 rounded-xl bg-accent/10 border border-accent/20">
         <span className="text-sm text-primary font-medium">{selectedIds.size} seleccionadas · Total: {formatCLP(selectedTotal)}</span>
-        <button disabled={actionLoading} onClick={payCommissions} className="btn btn-gold text-xs ml-auto">
+        <button
+          type="button"
+          disabled={actionLoading}
+          onClick={payCommissions}
+          className="ml-auto inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent px-4 text-xs font-bold uppercase tracking-widest text-accent-foreground hover:opacity-90 disabled:opacity-50"
+        >
           {actionLoading ? <Loader2 className="animate-spin" size={14} /> : <DollarSign size={14} />}
           Marcar como pagadas
         </button>
-        <button onClick={() => setSelectedIds(new Set())} className="btn btn-outline text-xs">Descartar</button>
+        <button
+          type="button"
+          onClick={() => setSelectedIds(new Set())}
+          className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground"
+        >
+          Descartar
+        </button>
         </div>
       )}
 

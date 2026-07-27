@@ -38,8 +38,9 @@ export function SyncStatusBanner() {
     <>
       {(pendingCount > 0 || errorCount > 0) && (
         <button 
+          type="button"
           onClick={() => setIsModalOpen(true)}
-          className="w-full text-left border-b border-border bg-card/40 hover:bg-card/60 transition-colors px-6 py-2 cursor-pointer focus:outline-none"
+          className="w-full min-h-11 text-left border-b border-border bg-card/40 hover:bg-card/60 transition-colors px-6 py-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <div className="max-w-5xl mx-auto flex flex-wrap items-center gap-3 text-xs">
             {pendingCount > 0 && (

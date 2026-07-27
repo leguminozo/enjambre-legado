@@ -230,9 +230,10 @@ export function CashSessionsPanel() {
           </select>
         </div>
         <button
+          type="button"
           onClick={() => void exportCSV()}
           disabled={exportLoading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent/15 text-accent text-xs font-bold uppercase tracking-widest hover:bg-accent/25 transition-all disabled:opacity-50"
+          className="inline-flex min-h-11 items-center gap-2 px-4 py-2 rounded-lg bg-accent/15 text-accent text-xs font-bold uppercase tracking-widest hover:bg-accent/25 transition-all disabled:opacity-50"
         >
           {exportLoading ? <Loader2 className="animate-spin" size={14} /> : <Download size={14} />}
           CSV
@@ -287,18 +288,22 @@ export function CashSessionsPanel() {
 
                   <div className="flex gap-2 flex-shrink-0">
                     <button
+                      type="button"
                       onClick={() => fetchSessionDetail(s.id)}
-                      className="w-9 h-9 rounded-full bg-accent/15 text-accent flex items-center justify-center hover:bg-accent/25 transition-all"
+                      className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-accent/15 text-accent flex items-center justify-center hover:bg-accent/25 transition-all"
                       title="Ver detalle"
+                      aria-label="Ver detalle de sesión"
                     >
                       <Eye size={16} />
                     </button>
                     {s.session_status === 'closed' && (
                       <button
+                        type="button"
                         disabled={actionLoading === s.id}
                         onClick={() => reconcileSession(s.id)}
-                        className="w-9 h-9 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
+                        className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
                         title="Reconciliar"
+                        aria-label="Reconciliar sesión"
                       >
                         {actionLoading === s.id ? <Loader2 className="animate-spin" size={16} /> : <Check size={18} />}
                       </button>

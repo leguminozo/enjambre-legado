@@ -249,7 +249,7 @@ export function MiFeriaPortal() {
                   />
                   <button
                     type="button"
-                    className="btn btn-outline btn-sm"
+                    className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-4 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent/40 hover:text-accent transition-colors disabled:opacity-50"
                     disabled={devolucionLoading === c.id}
                     onClick={() => registerDevolucion(c.id, pendiente)}
                   >
@@ -288,7 +288,12 @@ export function MiFeriaPortal() {
           <textarea className="input-field text-sm md:col-span-2" placeholder="Notas del cierre"
             value={arqueoForm.notas} onChange={(e) => setArqueoForm({ ...arqueoForm, notas: e.target.value })} />
         </div>
-        <button type="button" className="btn btn-primary btn-sm mt-4" onClick={submitArqueo} disabled={submitting}>
+        <button
+          type="button"
+          className="mt-4 inline-flex min-h-12 items-center justify-center rounded-lg bg-primary px-6 text-xs font-bold uppercase tracking-widest text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+          onClick={submitArqueo}
+          disabled={submitting}
+        >
           {submitting ? <Loader2 className="animate-spin" size={14} /> : 'Registrar arqueo'}
         </button>
       </div>

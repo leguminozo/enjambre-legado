@@ -1,10 +1,10 @@
 {
-  "index": 4,
-  "pass": 57,
-  "last_sector": "ui-nucleo-shell",
-  "last_commit": "80a4633",
+  "index": 5,
+  "pass": 58,
+  "last_sector": "ui-campo-pos",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 57: .btn/.input min-h 44, nav-item !important, filter chips 44, login touch, Segment/Select. Siguiente: ui-campo-pos (#4)."
+  "notes": "Pass 58: historial tabs, caja 44, client-lookup, feria/comisiones CTAs, sync banner. Siguiente: ui-shared-tokens (#5)."
 }

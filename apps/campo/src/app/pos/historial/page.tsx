@@ -132,10 +132,13 @@ export default function HistorialPage() {
   </>
 )}
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
     {(['overview', 'commissions', 'sessions', 'leaderboard'] as const).map(t => (
-      <button key={t} onClick={() => setTab(t)}
-          className={`px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
+      <button
+        key={t}
+        type="button"
+        onClick={() => setTab(t)}
+          className={`min-h-11 px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
             tab === t ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'
         }`}
       >

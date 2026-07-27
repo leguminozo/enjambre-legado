@@ -189,7 +189,7 @@ export function CashSessionPanel() {
             type="button"
             disabled={syncLoading}
             onClick={() => void handleSumupSync()}
-            className="px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-2 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all disabled:opacity-50"
           >
             <RefreshCcw className={`w-3 h-3 ${syncLoading ? 'animate-spin' : ''}`} />
             {syncLoading ? 'Sincronizando...' : 'Sincronizar'}
@@ -259,8 +259,9 @@ export function CashSessionPanel() {
     })()}
 
     <button
+      type="button"
       onClick={() => setCloseResult(null)}
-      className="w-full py-2 bg-card text-muted-foreground text-xs uppercase tracking-widest rounded-lg"
+      className="w-full min-h-11 py-2 bg-card text-muted-foreground text-xs uppercase tracking-widest rounded-lg"
     >
       Entendido
     </button>
@@ -279,7 +280,7 @@ export function CashSessionPanel() {
               value={closingCash}
               onChange={(e) => setClosingCash(e.target.value)}
               placeholder="0"
-              className="w-full bg-background/40 border border-border rounded-lg px-4 py-3 text-foreground text-lg font-medium focus:border-primary focus:outline-none transition-colors"
+              className="w-full min-h-11 bg-background/40 border border-border rounded-lg px-4 py-3 text-foreground text-lg font-medium focus:border-primary focus:outline-none transition-colors"
             />
           </div>
           <div>
@@ -289,10 +290,11 @@ export function CashSessionPanel() {
               value={closingNotas}
               onChange={(e) => setClosingNotas(e.target.value)}
               placeholder="Observaciones..."
-              className="w-full bg-background/40 border border-border rounded-lg px-4 py-2 text-foreground text-sm focus:border-primary focus:outline-none transition-colors"
+              className="w-full min-h-11 bg-background/40 border border-border rounded-lg px-4 py-2 text-foreground text-sm focus:border-primary focus:outline-none transition-colors"
             />
           </div>
           <button
+            type="button"
             disabled={actionLoading || !closingCash}
             onClick={async () => {
               setActionLoading(true);
@@ -307,7 +309,7 @@ export function CashSessionPanel() {
                 setActionLoading(false);
               }
             }}
-            className="w-full py-3 bg-destructive/80 text-foreground font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-destructive transition-all disabled:opacity-40"
+            className="w-full min-h-12 py-3 bg-destructive/80 text-foreground font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-destructive transition-all disabled:opacity-40"
           >
             {actionLoading ? 'Cerrando...' : 'Cerrar Caja'}
           </button>

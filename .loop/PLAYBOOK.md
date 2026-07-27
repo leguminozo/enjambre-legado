@@ -48,6 +48,8 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Quick-sale step back | mis-tap cancelar/cambiar canal|qty | `text-[10px]` sin min-h | `min-h-11` full-width step backs |
 | Campo sidebar logout | mis-tap cerrar sesión desktop shell | `p-2` + icon 16 | `min-h-11 min-w-11`; nav items `min-h-11` |
 | Campo login densos | teclado/dedo falla en feria | inputs `py-2` submit sin min-h | inputs `min-h-11`; submit `min-h-12` |
+| Caja icon ops &lt;44 | mis-tap detalle/reconciliar | `w-9 h-9` | `min-h-11 min-w-11` |
+| POS client text-only | Nuevo/Buscar sin hit | `text-[10px] hover:underline` | `min-h-11` inline-flex |
 | POS cart row crush | qty/precio/QR salen del card en 375 | `flex items-center gap-6` single row | `flex-col sm:flex-row` + icon btns 44 |
 | Shop text-only recovery | error PDP / traza / volver catálogo | `hover:underline` sin min-h | `min-h-11` + border hit en recovery |
 | Wallet py densos | Apple/Google wallet &lt;44 | `py-2.5` only | `min-h-11` on wallet buttons |
