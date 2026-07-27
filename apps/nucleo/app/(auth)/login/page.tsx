@@ -91,7 +91,7 @@ export default function LoginPage() {
         <AuthHero onStart={() => setShowForm(true)} />
       ) : (
         <div ref={formRef} className="relative z-10 w-full px-6" style={{ maxWidth: '440px' }}>
-          <GlassPanel variant="strong" className="p-12 text-center">
+          <GlassPanel variant="strong" className="p-6 sm:p-10 md:p-12 text-center">
             <div className="mb-8">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-accent/15 mb-6 border border-accent/30">
                 <Hexagon size={28} className="text-accent" />
@@ -135,7 +135,15 @@ export default function LoginPage() {
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center mb-1 text-left">
                     <label className="uppercase tracking-widest font-semibold text-muted-foreground m-0" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Contraseña</label>
-                    {isLogin && <button type="button" onClick={() => setIsForgotPassword(true)} className="m-0 p-0 bg-transparent border-none text-accent transition-opacity cursor-pointer" style={{ fontSize: '0.65rem', opacity: 0.8 }}>¿Olvidaste tu clave?</button>}
+                    {isLogin && (
+                      <button
+                        type="button"
+                        onClick={() => setIsForgotPassword(true)}
+                        className="inline-flex min-h-11 items-center m-0 px-1 bg-transparent border-none text-accent transition-opacity cursor-pointer text-[0.65rem]"
+                      >
+                        ¿Olvidaste tu clave?
+                      </button>
+                    )}
                   </div>
                   <div className="relative text-left">
                     <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ opacity: 0.5 }} />
@@ -144,7 +152,7 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <button type="submit" disabled={loading} className="btn btn-gold w-full py-4 mt-4">
+              <button type="submit" disabled={loading} className="btn btn-gold w-full min-h-12 py-4 mt-4">
                 {loading ? 'Procesando...' : (
                   <div className="flex items-center justify-center gap-2">
                     <span>{isForgotPassword ? 'Enviar Enlace' : isLogin ? 'Entrar al Enjambre' : 'Crear Cuenta'}</span>
@@ -154,7 +162,7 @@ export default function LoginPage() {
               </button>
 
               {isForgotPassword && (
-                <button type="button" onClick={() => setIsForgotPassword(false)} className="btn btn-ghost text-center text-muted-foreground opacity-70" style={{ fontSize: '0.75rem' }}>
+                <button type="button" onClick={() => setIsForgotPassword(false)} className="btn btn-ghost min-h-11 w-full text-center text-muted-foreground text-xs">
                   <ArrowLeft size={14} className="mr-2" />Volver al login
                 </button>
               )}
@@ -164,7 +172,11 @@ export default function LoginPage() {
               <p className="font-datos text-muted-foreground mb-5 m-0" style={{ opacity: 0.5, fontSize: '0.8rem' }}>
                 {isLogin ? '¿Aún no tienes registro?' : '¿Ya eres parte del enjambre?'}
               </p>
-              <button onClick={() => { setIsLogin(!isLogin); }} className="btn btn-outline rounded-full" style={{ fontSize: '0.75rem', letterSpacing: '0.08em', padding: '0.6rem 2rem' }}>
+              <button
+                type="button"
+                onClick={() => { setIsLogin(!isLogin); }}
+                className="btn btn-outline rounded-full min-h-11 px-8 text-xs tracking-wider"
+              >
                 {isLogin ? 'Crear Legado' : 'Iniciar Sesión'}
               </button>
             </div>

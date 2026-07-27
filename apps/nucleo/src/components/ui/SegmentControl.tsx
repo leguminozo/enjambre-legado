@@ -25,8 +25,9 @@ export function SegmentControl({ options, selectedValue, onChange, className }: 
           <button
             key={opt.value}
             onClick={() => onChange(opt.value)}
+            type="button"
             className={cn(
-              "flex items-center justify-center gap-2 flex-1 px-4 py-2 text-xs font-semibold rounded-lg relative transition-colors duration-200 z-10 btn-press",
+              "flex min-h-11 items-center justify-center gap-2 flex-1 px-4 py-2.5 text-xs font-semibold rounded-lg relative transition-colors duration-200 z-10 btn-press",
               isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
             )}
           >

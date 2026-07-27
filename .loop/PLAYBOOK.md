@@ -37,6 +37,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Touch <44 | botones finos en campo/tienda/nucleo shell | py-1 / w-h 38 sin min-h | `min-h-[44px] min-w-[44px]`; header-btn/sheet close/bell 44 |
 | ViewShell hero cascade | título del hero con color foreground (no primary-fg) | `.view-shell-title` después de `.hero-title` | `.view-shell--hero .view-shell-title { color: primary-foreground }` |
 | SidebarNavItem crush | items menú ~28px touch | inline `padding: space-xs` pisa `.nav-item` | `minHeight: 44` + pad `0.625rem`; CSS `.nav-item` min-height 44 |
+| Nucleo .btn densos | CTAs shell &lt;44 en desktop/tablet | `.btn` solo py space-sm | `.btn`/`.btn-sm`/`.input-field` `min-height: 44` |
+| Filter chips 40 | mis-tap filtros view-deep | `min-height: 40px` | `min-height: 44px` |
+| Login nucleo densos | forgot/toggle sin hit | text p-0 / pad 0.6rem | min-h-11 CTAs; submit min-h-12 |
 | Shell footer logout | mis-tap cerrar sesión | `btn-ghost p-1.5` + icon 16 | `min-h-11 min-w-11`; avatar perfil 44 |
 | Safe-area | FAB/WhatsApp tapa home bar | fixed bottom | `bottom-[max(1rem,env(safe-area-inset-bottom))]` |
 | Sticky double safe | cart/checkout bar flota demasiado | `bottom: safe` + `padding-bottom: safe` | `bottom: 0; padding-bottom: calc(0.5rem + var(--safe-bottom))` |
