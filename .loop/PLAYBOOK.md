@@ -47,6 +47,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Nucleo .btn densos | CTAs shell &lt;44 en desktop/tablet | `.btn` solo py space-sm | `.btn`/`.btn-sm`/`.input-field` `min-height: 44` |
 | Filter chips 40 | mis-tap filtros view-deep | `min-height: 40px` | `min-height: 44px` |
 | Login nucleo densos | forgot/toggle sin hit | text p-0 / pad 0.6rem | min-h-11 CTAs; submit min-h-12 |
+| Nucleo landing densa | H1 5xl + links text-only | page.tsx entry | clamp H1; Link min-h-12 primary; card CTAs min-h-11 |
+| Sidebar rail notch | brand bajo status bar tablet | rail pad sin safe-top | `padding-top: space + env(safe-area-inset-top)` |
+| CMS chrome 36/p-0.5 | mis-tap reorder/visibility | StoreChromeEditors | reorder min-h/w-11; toggle min-h-11 |
 | Shell footer logout | mis-tap cerrar sesión | `btn-ghost p-1.5` + icon 16 | `min-h-11 min-w-11`; avatar perfil 44 |
 | Safe-area | FAB/WhatsApp tapa home bar | fixed bottom | `bottom-[max(1rem,env(safe-area-inset-bottom))]` |
 | Sticky double safe | cart/checkout bar flota demasiado | `bottom: safe` + `padding-bottom: safe` | `bottom: 0; padding-bottom: calc(0.5rem + var(--safe-bottom))` |

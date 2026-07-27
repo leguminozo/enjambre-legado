@@ -33,7 +33,7 @@
 | Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom; auth btn fantasma + perfil safe-top | ✅ pass 41+48+55+62 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos | ✅ pass 44+51+58 |
-| Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos | ✅ pass 43+50+57 |
+| Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos; landing H1/CTAs + rail safe-top + CMS chrome 36 | ✅ pass 43+50+57+64 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual; reseñas/QR/checkout resultado | ✅ pass 42+49+56+63 |
 | Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close; residual toast/DataTable checkbox/pill | ✅ pass 45+52+59 |
@@ -51,6 +51,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 64 (ui-nucleo-shell)
+- Señal: landing nucleo H1 text-5xl + CTAs text-only; login button nested sin min-h; sidebar-rail sin safe-top; StoreChromeEditors reorder p-0.5 + toggle 36; Perfil nav sin min-h explícito
+- Compuesto: colapsar + redirigir
+- Regla nueva: entry landing multi-app = clamp H1 + min-h-11/12 CTAs + safe-top; rail shell pad safe-top; CMS section toggle/reorder ≥44
+- Anti-patrón: nested `<button>` en `<Link>` landing; `min-h-[36px]` residual en StoreChrome
+- Guardriel: intacto (solo shell UI; WIP banco no tocado)
 
 ### Evo 2026-07-27 pass 63 (ui-tienda-shop)
 - Señal: reseñas tabs/CTA/load py densos; QR cámara sin min-h; checkout login/courier/buyer links; resultado post-pago CTAs py-3 sin min-h; carrito title link sin hit
