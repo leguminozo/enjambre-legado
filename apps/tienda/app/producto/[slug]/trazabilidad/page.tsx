@@ -73,34 +73,39 @@ export default async function TrazabilidadPage({ params }: PageProps) {
 
   return (
     <Shell>
-      <main className="bg-background pb-20 pt-6">
+      <main className="bg-background pb-20 pt-[max(0.5rem,var(--safe-top))]">
         {/* Breadcrumb */}
-        <div className="border-b border-border px-4 py-4 sm:px-6">
+        <div className="border-b border-border px-4 py-3 sm:px-6 sm:py-4">
           <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
-            <Link href="/" className="hover:text-accent">
+            <Link href="/" className="inline-flex min-h-11 items-center hover:text-accent">
               Inicio
             </Link>
             <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-            <Link href="/catalogo" className="hover:text-accent">
+            <Link href="/catalogo" className="inline-flex min-h-11 items-center hover:text-accent">
               Creaciones
             </Link>
             <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-            <Link href={`/producto/${product.slug}`} className="hover:text-accent">
+            <Link
+              href={`/producto/${product.slug}`}
+              className="inline-flex min-h-11 max-w-[12rem] items-center truncate hover:text-accent sm:max-w-none"
+            >
               {product.name}
             </Link>
             <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-            <span className="font-medium text-foreground/70">Trazabilidad</span>
+            <span className="inline-flex min-h-11 items-center font-medium text-foreground/70">
+              Trazabilidad
+            </span>
           </div>
         </div>
 
         {/* Hero Section */}
-        <div className="mx-auto max-w-4xl px-4 pt-12 sm:px-6 text-center">
+        <div className="mx-auto max-w-4xl px-4 pt-10 sm:px-6 sm:pt-12 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-success/30 bg-success/5 text-[10px] font-semibold text-success uppercase tracking-wider mb-6">
             <CheckCircle2 className="h-3.5 w-3.5 text-success animate-pulse" />
             Integridad Certificada en Postgres
           </div>
           
-          <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight text-foreground">
+          <h1 className="font-display text-[clamp(1.75rem,7vw,3rem)] sm:text-5xl font-semibold tracking-tight text-foreground text-balance">
             Auditoría Criptográfica de Origen
           </h1>
           <p className="mt-4 text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">

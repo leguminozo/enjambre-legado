@@ -825,7 +825,7 @@ export function CheckoutClient() {
                           </button>
                         ))}
                       </div>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => {
                           setSelectedAddressId(null);
@@ -841,7 +841,7 @@ export function CheckoutClient() {
                             instrucciones: '',
                           });
                         }}
-                        className="text-xs text-accent underline underline-offset-2 mt-2"
+                        className="inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-2 mt-1"
                       >
                         + Usar una dirección nueva
                       </button>
@@ -1002,7 +1002,11 @@ export function CheckoutClient() {
               {redirectStalled && loading ? (
                 <p className="text-center text-xs text-muted-foreground">
                   Si no fuiste redirigido,{' '}
-                  <button type="button" className="text-accent underline" onClick={() => setLoading(false)}>
+                  <button
+                    type="button"
+                    className="inline-flex min-h-11 items-center text-accent underline underline-offset-2 px-1"
+                    onClick={() => setLoading(false)}
+                  >
                     reintenta
                   </button>
                   .

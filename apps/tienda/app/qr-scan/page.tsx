@@ -130,15 +130,19 @@ export default function QRScanPage() {
     <StoreShell>
       <ShopHeader />
       <main className="min-h-[60vh] bg-background pb-16">
-        <div className="border-b border-border px-4 py-10 sm:px-6">
+        <div className="border-b border-border px-4 pt-[max(2.5rem,calc(var(--safe-top)+1.25rem))] pb-10 sm:px-6">
           <div className="mx-auto max-w-3xl">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+              <div className="w-10 h-10 shrink-0 rounded-full bg-accent/10 flex items-center justify-center">
                 <QrCode className="h-5 w-5 text-accent" />
               </div>
-              <h1 className="font-display text-3xl font-semibold text-foreground sm:text-4xl">Escáner QR</h1>
+              <h1 className="font-display text-[clamp(1.75rem,6vw,2.25rem)] sm:text-4xl font-semibold text-foreground text-balance">
+                Escáner QR
+              </h1>
             </div>
-            <p className="text-muted-foreground">Escanea el código QR de tu producto para ver su trazabilidad completa desde el apiario hasta tu mesa.</p>
+            <p className="text-muted-foreground text-pretty">
+              Escanea el código QR de tu producto para ver su trazabilidad completa desde el apiario hasta tu mesa.
+            </p>
           </div>
         </div>
 
@@ -147,23 +151,25 @@ export default function QRScanPage() {
             <QrCameraScanner onScan={handleScan} disabled={loading} />
 
             <div className="rounded-xl border border-border bg-card/40 p-6">
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2" htmlFor="qr-manual-code">
                 Ingresa o escanea el código QR
               </label>
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
                 <input
                   ref={inputRef}
+                  id="qr-manual-code"
                   type="text"
                   value={qrCode}
                   onChange={(e) => setQrCode(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Ej: ABC123XYZ"
-                  className="flex-1 rounded-lg border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all"
+                  className="flex-1 min-h-11 rounded-lg border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all"
                 />
                 <button
+                  type="button"
                   onClick={() => handleScan(qrCode)}
                   disabled={loading || !qrCode.trim()}
-                  className="px-6 py-3 rounded-lg bg-accent text-accent-foreground text-sm font-medium hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-6 py-3 text-sm font-medium text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? <HexagonLoader size="sm" /> : 'Escanear'}
                 </button>

@@ -11,7 +11,10 @@ export default function ProductoNotFound() {
         <div className="mx-auto max-w-2xl">
           <h1 className="font-display text-2xl font-semibold text-foreground">Producto no encontrado</h1>
           <p className="mt-2 text-muted-foreground">Revisa el enlace o vuelve al catálogo.</p>
-          <Link href="/catalogo" className="mt-6 inline-block text-sm text-accent underline">
+          <Link
+            href="/catalogo"
+            className="mt-6 inline-flex min-h-11 items-center text-sm font-medium text-accent underline underline-offset-2"
+          >
             Ir a creaciones
           </Link>
         </div>

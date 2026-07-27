@@ -28,21 +28,26 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
   return (
     <main className="bg-background pb-28 md:pb-16">
       {pdp.show_breadcrumb ? (
-        <div className="border-b border-border px-4 py-3 sm:px-6 md:py-4">
+        <div className="border-b border-border px-4 py-2 sm:px-6 sm:py-3 md:py-4">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
-            <Link href="/catalogo" className="md:hidden hover:text-accent font-medium text-accent">
+            <Link
+              href="/catalogo"
+              className="inline-flex min-h-11 items-center font-medium text-accent hover:text-accent/80 md:hidden"
+            >
               ← Catálogo
             </Link>
             <span className="hidden md:contents">
-              <Link href="/" className="hover:text-accent">
+              <Link href="/" className="inline-flex min-h-11 items-center hover:text-accent">
                 Inicio
               </Link>
               <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-              <Link href="/catalogo" className="hover:text-accent">
+              <Link href="/catalogo" className="inline-flex min-h-11 items-center hover:text-accent">
                 Creaciones
               </Link>
               <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-              <span className="font-medium text-foreground/70">{product.name}</span>
+              <span className="inline-flex min-h-11 items-center font-medium text-foreground/70">
+                {product.name}
+              </span>
             </span>
           </div>
         </div>
