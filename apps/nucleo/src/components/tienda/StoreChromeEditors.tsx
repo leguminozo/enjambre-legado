@@ -796,19 +796,19 @@ export function LandingLayoutEditor({ content, isUpdating, onSave }: SettingsEdi
                   type="button"
                   disabled={index === 0}
                   onClick={() => moveSection(index, -1)}
-                  className="p-0.5 rounded border border-border/80 text-muted-foreground hover:text-foreground disabled:opacity-25"
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-border/80 text-muted-foreground hover:text-foreground disabled:opacity-25"
                   aria-label="Subir bloque"
                 >
-                  <ChevronUp size={12} />
+                  <ChevronUp size={14} />
                 </button>
                 <button
                   type="button"
                   disabled={index === ordered.length - 1}
                   onClick={() => moveSection(index, 1)}
-                  className="p-0.5 rounded border border-border/80 text-muted-foreground hover:text-foreground disabled:opacity-25"
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-border/80 text-muted-foreground hover:text-foreground disabled:opacity-25"
                   aria-label="Bajar bloque"
                 >
-                  <ChevronDown size={12} />
+                  <ChevronDown size={14} />
                 </button>
               </div>
               <span
@@ -831,7 +831,7 @@ export function LandingLayoutEditor({ content, isUpdating, onSave }: SettingsEdi
               <button
                 type="button"
                 onClick={() => toggleSection(sec.id)}
-                className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border min-h-[36px] transition-colors ${
+                className={`inline-flex min-h-11 items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
                   sec.enabled
                     ? 'border-accent/40 text-accent bg-accent/10 hover:bg-accent/15'
                     : 'border-border text-muted-foreground hover:text-foreground'

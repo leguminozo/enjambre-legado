@@ -173,7 +173,7 @@ export function PerfilView() {
               <button
                 key={s.key}
                 onClick={() => setActiveSection(s.key)}
-                className={`flex items-center gap-3 w-full px-5 py-3.5 text-sm transition-all border-b border-border/40 last:border-none text-left ${
+                className={`flex items-center gap-3 w-full min-h-11 px-5 py-3.5 text-sm transition-all border-b border-border/40 last:border-none text-left ${
                   activeSection === s.key
                     ? "bg-secondary text-foreground font-semibold"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary/20"
@@ -204,7 +204,7 @@ export function PerfilView() {
                   </h3>
                 </div>
                 <button
-                  className="btn btn-ghost btn-sm flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs"
+                  className="btn btn-ghost btn-sm flex items-center gap-1.5 px-3 rounded-lg text-xs"
                   onClick={() => {
                     if (editMode) {
                       cancelEdit();
@@ -237,7 +237,7 @@ export function PerfilView() {
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        className="w-full bg-secondary border border-border rounded-lg pl-10 pr-4 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                        className="w-full min-h-11 bg-secondary border border-border rounded-lg pl-10 pr-4 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
                       />
                     </div>
                   ) : (
@@ -317,12 +317,13 @@ export function PerfilView() {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Mínimo 6 caracteres"
-                      className="w-full bg-secondary border border-border rounded-lg pl-10 pr-10 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                      className="w-full min-h-11 bg-secondary border border-border rounded-lg pl-10 pr-12 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
                     />
                     <button
                       type="button"
                       onClick={() => setShowNew(!showNew)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 transition-colors"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label={showNew ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                     >
                       {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -340,12 +341,13 @@ export function PerfilView() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Repetir contraseña"
-                      className="w-full bg-secondary border border-border rounded-lg pl-10 pr-10 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                      className="w-full min-h-11 bg-secondary border border-border rounded-lg pl-10 pr-12 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
                     />
                     <button
                       type="button"
                       onClick={() => setShowCurrent(!showCurrent)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 transition-colors"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label={showCurrent ? 'Ocultar confirmación' : 'Mostrar confirmación'}
                     >
                       {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
