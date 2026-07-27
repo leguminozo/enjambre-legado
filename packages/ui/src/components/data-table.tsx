@@ -287,24 +287,31 @@ export function DataTable<T>({
               <tr>
                 {/* Select-all checkbox column */}
                 {selectable && (
-                  <th style={{ width: 40 }} className="px-2">
+                  <th style={{ width: 48 }} className="px-1">
                     <button
+                      type="button"
                       onClick={handleSelectAll}
                       className={cn(
-                        "flex items-center justify-center w-5 h-5 rounded border transition-colors",
-                        isAllSelected
-                          ? "bg-primary border-primary text-primary-foreground"
-                          : isSomeSelected
-                            ? "bg-primary/50 border-primary text-primary-foreground"
-                            : "border-border hover:border-foreground/40",
+                        "inline-flex min-h-11 min-w-11 items-center justify-center rounded-md transition-colors",
                       )}
                       aria-label={isAllSelected ? "Deseleccionar todo" : "Seleccionar todo"}
                     >
-                      {isAllSelected ? (
-                        <CheckIcon className="h-3 w-3" />
-                      ) : isSomeSelected ? (
-                        <MinusIcon className="h-3 w-3" />
-                      ) : null}
+                      <span
+                        className={cn(
+                          "flex h-5 w-5 items-center justify-center rounded border transition-colors",
+                          isAllSelected
+                            ? "bg-primary border-primary text-primary-foreground"
+                            : isSomeSelected
+                              ? "bg-primary/50 border-primary text-primary-foreground"
+                              : "border-border hover:border-foreground/40",
+                        )}
+                      >
+                        {isAllSelected ? (
+                          <CheckIcon className="h-3 w-3" />
+                        ) : isSomeSelected ? (
+                          <MinusIcon className="h-3 w-3" />
+                        ) : null}
+                      </span>
                     </button>
                   </th>
                 )}
@@ -368,22 +375,27 @@ export function DataTable<T>({
                     >
                       {selectable && (
                         <td
-                          className="px-2 cursor-pointer"
+                          className="px-1 cursor-pointer"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleRowClick(id, e);
                           }}
                         >
                           <button
-                            className={cn(
-                              "flex items-center justify-center w-5 h-5 rounded border transition-colors",
-                              isSelected
-                                ? "bg-primary border-primary text-primary-foreground"
-                                : "border-border hover:border-foreground/40",
-                            )}
+                            type="button"
+                            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md"
                             aria-label={isSelected ? "Deseleccionar" : "Seleccionar"}
                           >
-                            {isSelected && <CheckIcon className="h-3 w-3" />}
+                            <span
+                              className={cn(
+                                "flex h-5 w-5 items-center justify-center rounded border transition-colors",
+                                isSelected
+                                  ? "bg-primary border-primary text-primary-foreground"
+                                  : "border-border hover:border-foreground/40",
+                              )}
+                            >
+                              {isSelected && <CheckIcon className="h-3 w-3" />}
+                            </span>
                           </button>
                         </td>
                       )}
@@ -436,7 +448,7 @@ export function DataTable<T>({
                   variant={p === pagination.currentPage ? "primary" : "ghost"}
                   size="sm"
                   onClick={() => pagination.onPageChange(p)}
-                  className="min-w-[36px]"
+                  className="min-w-11"
                 >
                   {p}
                 </Button>

@@ -280,12 +280,13 @@ function ToastItem({
         )}
         {toast.action && (
           <button
+            type="button"
             onClick={() => {
               toast.action?.onClick();
               if (!toast.persistent) onDismiss(toast.id);
             }}
             className={`
-              mt-2.5 text-xs font-medium transition-colors
+              mt-2.5 inline-flex min-h-11 items-center text-xs font-medium transition-colors
               ${toast.action.variant === 'primary'
                 ? 'text-primary hover:underline'
                 : toast.action.variant === 'secondary'
@@ -299,8 +300,9 @@ function ToastItem({
       </div>
       {!toast.persistent && !isPromisePending && (
         <button
+          type="button"
           onClick={handleDismiss}
-          className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors p-0.5"
+          className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-md"
           aria-label="Cerrar notificación"
         >
           <X className="h-4 w-4" />

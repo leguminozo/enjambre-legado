@@ -36,7 +36,7 @@
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos | ✅ pass 43+50+57 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual | ✅ pass 42+49+56 |
-| Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close | ✅ pass 45+52 |
+| Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close; residual toast/DataTable checkbox/pill | ✅ pass 45+52+59 |
 | Tokens apps | Logistica emerald → success; residual canvas/PWA hex OK | ✅ pass 46 (logistica); ⏳ baja canvas/manifest |
 | SII bandeja amber | confidence/estado badges amber raw | ✅ pass 53 |
 | Tienda perfil residual | direcciones hover-only p-2; reposición/pedidos py-2; notif switch 20px | ✅ pass 53 |
@@ -50,6 +50,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 59 (ui-shared-tokens)
+- Señal: toast close p-0.5 + action text-only; DataTable checkbox 20px + page min-w 36; PredictivePill action sin hit; notif footer py-2; SectionHeader text-4xl denso 375
+- Compuesto: unificar + colapsar
+- Regla nueva: toast dismiss/action min-h-11; DataTable select hit-box 44 (visual 20); pagination min-w-11; pill actions 44
+- Anti-patrón: checkbox `w-5 h-5` como único hit; toast close p-0.5
+- Guardriel: intacto
 
 ### Evo 2026-07-27 pass 58 (ui-campo-pos)
 - Señal: historial tabs py-1.5 sin min-h; caja CSV/eye/reconcile w-9; cash close densos; client-lookup text-only; feria btn-sm; comisiones btn-gold sin CSS hit; sync banner py-2

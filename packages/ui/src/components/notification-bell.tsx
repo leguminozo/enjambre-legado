@@ -141,7 +141,7 @@ function NotificationPanel({
         <a
           href="/perfil/alertas"
           onClick={onClose}
-          className="inline-block w-full py-2 text-[0.65rem] uppercase tracking-[0.25em] text-accent transition-colors hover:text-foreground"
+          className="inline-flex min-h-11 w-full items-center justify-center py-2 text-[0.65rem] uppercase tracking-[0.25em] text-accent transition-colors hover:text-foreground"
         >
           Ver todas las alertas y preferencias →
         </a>

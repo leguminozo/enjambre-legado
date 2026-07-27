@@ -13,7 +13,7 @@ export function PredictivePill({ message, icon, actionLabel, onAction, confidenc
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-3 px-4 py-2 rounded-full border border-border bg-surface-raised shadow-md backdrop-blur-md",
+        "inline-flex min-h-11 items-center gap-3 px-4 py-2 rounded-full border border-border bg-surface-raised shadow-md backdrop-blur-md",
         className
       )}
       {...props}
@@ -23,8 +23,9 @@ export function PredictivePill({ message, icon, actionLabel, onAction, confidenc
       
       {actionLabel && (
         <button
+          type="button"
           onClick={onAction}
-          className="ml-2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+          className="ml-1 inline-flex min-h-11 items-center px-2 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
         >
           {actionLabel}
         </button>
