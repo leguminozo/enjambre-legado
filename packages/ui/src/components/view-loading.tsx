@@ -52,15 +52,17 @@ export function ViewLoading({
     }
   }, { scope: containerRef, dependencies: [variant] });
 
-  // Determinamos el fondo según el contexto (solo aplicable cuando es un loader grande)
+  // Fondos solo con tokens semánticos (Ley III — sin hex / white crudo)
   let bgClass = 'bg-background/95 backdrop-blur-sm';
   if (isFullscreen || variant === 'page') {
     if (context === 'tienda') {
-      bgClass = 'bg-surface-sunken/95 backdrop-blur-md bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.05),_transparent)]';
+      bgClass =
+        'bg-surface-sunken/95 backdrop-blur-md bg-[radial-gradient(ellipse_at_top,_hsla(var(--foreground)/0.05),_transparent)]';
     } else if (context === 'campo') {
-      bgClass = 'bg-[#0f1210]/95 backdrop-blur-sm'; 
+      bgClass = 'bg-background/95 backdrop-blur-sm';
     } else if (context === 'nucleo') {
-      bgClass = 'bg-background/95 backdrop-blur-sm bg-[radial-gradient(ellipse_at_center,_hsla(var(--primary),0.08),_transparent)]';
+      bgClass =
+        'bg-background/95 backdrop-blur-sm bg-[radial-gradient(ellipse_at_center,_hsla(var(--primary)/0.08),_transparent)]';
     }
   }
 
