@@ -34,10 +34,10 @@
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375 | ✅ pass 44 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade | ✅ pass 43 |
-| Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ⏳ baja |
+| Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | catálogo 2-col apretado; chips &lt;44; cart bar CTA | ✅ pass 42 |
 | Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10 | ✅ pass 45 |
-| Tokens apps | residual hex/emerald en views legacy (fuera package) | ⏳ baja |
+| Tokens apps | Logistica emerald → success; residual canvas/PWA hex OK | ✅ pass 46 (logistica); ⏳ baja canvas/manifest |
 
 ### Backlog go-live ops (v1.2 — congelado; no es cono del tick)
 
@@ -48,6 +48,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 46 (deep-followup-ui)
+- Señal: backlog panels Banco/conciliación div ad-hoc vs Card de checkout/SII/SumUp; CTAs text-only; Logistica `emerald-500` fuera tokens
+- Compuesto: unificar + acrecer
+- Regla nueva: go-live checklist = `Card`+lista divide-y+badge+icons; acciones min-h-11; status positivo = `text-success` no emerald
+- Anti-patrón: `bg-card rounded-2xl` paralelo al Card package; `emerald-*` en JSX de producto
+- Guardriel: intacto (solo UI; sin WIP routes banco)
 
 ### Evo 2026-07-27 pass 45 (ui-shared-tokens)
 - Señal: Calendar en package con bg-[#4a4a4a]/text-white/hex grises; Button sm py-1.5 y md sin min-h; ThemeToggle sin hit box; Select/DatePicker h-10; Switch 24px alto

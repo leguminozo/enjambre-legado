@@ -1,10 +1,10 @@
 {
-  "index": 6,
-  "pass": 45,
-  "last_sector": "ui-shared-tokens",
-  "last_commit": "19b877d",
+  "index": 0,
+  "pass": 46,
+  "last_sector": "deep-followup-ui",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 45: shared tokens (+view-loading). Siguiente: deep-followup-ui (#6)."
+  "notes": "Pass 46: deep-followup Banco Card checklists + Logistica success tokens. Siguiente: ui-tienda-landing (#0)."
 }

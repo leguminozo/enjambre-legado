@@ -246,30 +246,44 @@ export function ConciliacionAutoView() {
       )}
 
       {checklist && (
-        <div className="rounded-xl border border-border bg-card p-4 space-y-2 max-w-3xl">
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-semibold">Go-live conciliación</span>
-            <Badge variant={checklist.listoOperacion ? 'success' : 'warning'}>
-              {checklist.listoOperacion
-                ? 'listo'
-                : `${checklist.criticosPendientes} crítico(s)`}
-            </Badge>
-            {!metricas?.bancoEnabled && (
-              <Badge variant="danger">banco deshabilitado</Badge>
-            )}
-          </div>
-          <ul className="text-xs text-muted-foreground space-y-1">
-            {checklist.items.map((it) => (
-              <li key={it.id} className="flex gap-2">
-                <span>{it.cumplido ? '✓' : '○'}</span>
-                <span>
-                  {it.titulo}
-                  {it.detalle ? ` — ${it.detalle}` : ''}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <Card className="max-w-3xl" hover={false}>
+          <CardHeader>
+            <CardTitle className="text-base">Go-live conciliación</CardTitle>
+            <CardDescription>
+              Motor de match y reglas; banco debe estar habilitado para operación real.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={checklist.listoOperacion ? 'success' : 'warning'}>
+                {checklist.listoOperacion
+                  ? 'listo'
+                  : `${checklist.criticosPendientes} crítico(s)`}
+              </Badge>
+              {!metricas?.bancoEnabled && (
+                <Badge variant="danger">banco deshabilitado</Badge>
+              )}
+            </div>
+            <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden">
+              {checklist.items.map((it) => (
+                <li
+                  key={it.id}
+                  className="flex items-start gap-3 px-3 py-2.5 text-sm bg-surface-sunken/40"
+                >
+                  <span className="mt-0.5 shrink-0 text-primary" aria-hidden>
+                    {it.cumplido ? '✓' : '○'}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <span className="font-medium text-foreground">{it.titulo}</span>
+                    {it.detalle ? (
+                      <p className="text-xs text-muted-foreground mt-0.5">{it.detalle}</p>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
 
       <ResponsiveTabBar

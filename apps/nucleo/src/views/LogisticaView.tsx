@@ -460,7 +460,7 @@ export function LogisticaView() {
                           <span
                             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border ${
                               sc.ok
-                                ? 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30'
+                                ? 'bg-success/15 text-success border-success/30'
                                 : 'bg-destructive/15 text-destructive border-destructive/30'
                             }`}
                           >
@@ -512,7 +512,7 @@ export function LogisticaView() {
                       className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                         p.urgent
                           ? 'bg-destructive/15 text-destructive border border-destructive/30'
-                          : 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
+                          : 'bg-success/15 text-success border border-success/30'
                       }`}
                     >
                       {p.urgent ? (
@@ -569,7 +569,7 @@ export function LogisticaView() {
                       </div>
                       <div className="flex items-center gap-2">
                         {hasEnvio ? (
-                          <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                          <span className="text-[10px] bg-success/10 text-success px-1.5 py-0.5 rounded border border-success/20">
                             Enviado
                           </span>
                         ) : (

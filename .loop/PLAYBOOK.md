@@ -15,7 +15,8 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Nav densa | links apretados 1200px | header una sola fila | collapse / drawer desde `lg`; gap tokens |
 | Metrics 2-col crush | números gigantes en mobile | `grid-cols-2` + `text-5xl` | `text-3xl sm:text-5xl`; gap |
 | Science 3-col tablet | párrafos aplastados | `md:grid-cols-3` | `lg:grid-cols-3` |
-| Hex / emerald drift | rompe dark luxury | className raw | tokens `text-primary` / Badge variant |
+| Hex / emerald drift | rompe dark luxury | className raw | tokens `text-primary` / `text-success` / Badge variant |
+| Go-live checklist div | ritmo distinto SII/checkout vs Banco | `bg-card rounded-2xl` ad-hoc | `Card`+`CardHeader`+lista `divide-y`+badge pill + CTAs min-h-11 |
 | Package Calendar hex | date picker gris iOS hardcode | `#4a4a4a` / `text-white` / `#a3a3a3` | `bg-card text-foreground border-border`; days `hover:bg-muted` |
 | Button sin min-h | sm/md &lt;44 en ops táctil | solo py-1.5/2.5 | `min-h-11` (sm/md) · `min-h-12` (lg) en sizeClasses |
 | Touch <44 | botones finos en campo/tienda/nucleo shell | py-1 / w-h 38 sin min-h | `min-h-[44px] min-w-[44px]`; header-btn/sheet close/bell 44 |

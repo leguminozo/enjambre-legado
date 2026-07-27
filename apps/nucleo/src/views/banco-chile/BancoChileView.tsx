@@ -1,5 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
-import { HexagonLoader, ViewLoading, Badge } from '@enjambre/ui';
+import {
+  HexagonLoader,
+  ViewLoading,
+  Badge,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  ImmersiveModal,
+} from '@enjambre/ui';
 import {
   Building2,
   Settings,
@@ -12,7 +22,6 @@ import {
 } from 'lucide-react';
 
 import { formatCurrency } from '@/lib/format';
-import { ImmersiveModal } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ToolActionRail } from '@/components/layout/ToolActionRail';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
@@ -328,116 +337,137 @@ export function BancoChileView() {
       />
       <ToolActionRail context="banco" current="/banco" />
 
-      {/* Webhooks ops */}
-      <div className="bg-card border border-border rounded-2xl p-5 space-y-3 max-w-3xl">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-display text-base flex items-center gap-2">
-            <ShieldCheck size={18} className="text-primary" /> Webhooks / notificaciones
-          </h2>
-          <button
-            type="button"
-            onClick={() => fetchWebhookOps()}
-            className="text-xs text-primary font-medium hover:underline"
-          >
-            Actualizar
-          </button>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Endpoint público: <code className="text-[11px]">POST /api/banco-chile/webhook</code> · header{' '}
-          <code className="text-[11px]">x-banco-chile-signature</code> (HMAC-SHA256 hex o base64). Secret en
-          Vercel: <code className="text-[11px]">BANCO_CHILE_WEBHOOK_SECRET</code>.
-        </p>
-        <div className="flex flex-wrap gap-2 text-xs">
-          <Badge
-            variant={
-              webhookStatus?.webhookSecret === 'present' ? 'success' : 'warning'
-            }
-          >
-            secret: {webhookStatus?.webhookSecret ?? '—'}
-          </Badge>
-          <Badge variant="default">status: {webhookStatus?.status ?? '—'}</Badge>
-          <Badge variant={notificaciones.length > 0 ? 'warning' : 'default'}>
-            pendientes: {notificaciones.length}
-          </Badge>
-        </div>
-        {notificaciones.length > 0 && (
-          <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden text-sm">
-            {notificaciones.slice(0, 8).map((n) => (
-              <li
-                key={n.id}
-                className="flex flex-wrap items-center gap-2 px-3 py-2 bg-surface-sunken/40"
-              >
-                <span className="font-mono text-xs">{n.tipo_evento}</span>
-                <span className="text-muted-foreground text-xs flex-1 truncate">
-                  {n.descripcion}
-                </span>
-                {n.monto != null && (
-                  <span className="font-medium">{formatCurrency(Number(n.monto))}</span>
-                )}
-                <button
-                  type="button"
-                  className="text-xs text-primary hover:underline"
-                  onClick={async () => {
-                    const res = await apiFetch(
-                      `/api/banco-chile/webhook/reprocesar/${n.id}`,
-                      { method: 'POST' },
-                    );
-                    if (!res.ok) {
-                      const err = await res.json().catch(() => ({}));
-                      setConfigError(err.message ?? 'Reproceso falló');
-                    } else {
-                      await fetchWebhookOps();
-                    }
-                  }}
+      {/* Webhooks ops — mismo ritmo Card que checkout/SII/SumUp */}
+      <Card className="max-w-3xl" hover={false}>
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck size={18} /> Webhooks / notificaciones
+            </CardTitle>
+            <button
+              type="button"
+              onClick={() => fetchWebhookOps()}
+              className="min-h-11 min-w-11 inline-flex items-center justify-center px-3 text-xs font-medium text-primary rounded-lg border border-primary/20 hover:bg-primary/10"
+            >
+              Actualizar
+            </button>
+          </div>
+          <CardDescription>
+            Endpoint público: <code className="text-[11px]">POST /api/banco-chile/webhook</code> · header{' '}
+            <code className="text-[11px]">x-banco-chile-signature</code> (HMAC-SHA256 hex o base64). Secret en
+            Vercel: <code className="text-[11px]">BANCO_CHILE_WEBHOOK_SECRET</code>.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-2 text-xs">
+            <Badge
+              variant={
+                webhookStatus?.webhookSecret === 'present' ? 'success' : 'warning'
+              }
+            >
+              secret: {webhookStatus?.webhookSecret ?? '—'}
+            </Badge>
+            <Badge variant="default">status: {webhookStatus?.status ?? '—'}</Badge>
+            <Badge variant={notificaciones.length > 0 ? 'warning' : 'default'}>
+              pendientes: {notificaciones.length}
+            </Badge>
+          </div>
+          {notificaciones.length > 0 && (
+            <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden text-sm">
+              {notificaciones.slice(0, 8).map((n) => (
+                <li
+                  key={n.id}
+                  className="flex flex-wrap items-center gap-2 px-3 py-2.5 bg-surface-sunken/40"
                 >
-                  Reprocesar
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+                  <span className="font-mono text-xs">{n.tipo_evento}</span>
+                  <span className="text-muted-foreground text-xs flex-1 truncate min-w-0">
+                    {n.descripcion}
+                  </span>
+                  {n.monto != null && (
+                    <span className="font-medium">{formatCurrency(Number(n.monto))}</span>
+                  )}
+                  <button
+                    type="button"
+                    className="min-h-11 px-3 inline-flex items-center text-xs font-medium text-primary rounded-lg border border-primary/20 hover:bg-primary/10"
+                    onClick={async () => {
+                      const res = await apiFetch(
+                        `/api/banco-chile/webhook/reprocesar/${n.id}`,
+                        { method: 'POST' },
+                      );
+                      if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        setConfigError(
+                          (err as { message?: string }).message ?? 'Reproceso falló',
+                        );
+                      } else {
+                        await fetchWebhookOps();
+                      }
+                    }}
+                  >
+                    Reprocesar
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       {checklist && (
-        <div className="bg-card border border-border rounded-2xl p-5 space-y-3 max-w-3xl">
-          <div className="flex flex-wrap items-center gap-2">
-            <ShieldCheck size={18} className="text-primary" />
-            <h2 className="font-display text-base">Checklist go-live Banco Chile</h2>
-            <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
-                checklist.listoOperacion
-                  ? 'bg-primary/10 text-primary border-primary/20'
-                  : 'bg-warning/10 text-warning border-warning/20'
-              }`}
-            >
-              {checklist.listoOperacion ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
-              {checklist.listoOperacion
-                ? 'listo operación'
-                : `${checklist.criticosPendientes} crítico(s)`}
-            </span>
-            <Badge variant="default">{checklist.environment ?? 'sin env'}</Badge>
-          </div>
-          <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden">
-            {checklist.items.map((item) => (
-              <li key={item.id} className="flex items-start gap-3 px-3 py-2 text-sm bg-surface-sunken/40">
-                {item.cumplido ? (
-                  <CheckCircle size={16} className="mt-0.5 shrink-0 text-primary" />
+        <Card className="max-w-3xl" hover={false}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck size={18} /> Checklist go-live Banco Chile
+            </CardTitle>
+            <CardDescription>
+              Credenciales y sync en app (BFF cifrado). Secret de webhook = plataforma (Vercel).
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                  checklist.listoOperacion
+                    ? 'bg-primary/10 text-primary border-primary/20'
+                    : 'bg-warning/10 text-warning border-warning/20'
+                }`}
+              >
+                {checklist.listoOperacion ? (
+                  <CheckCircle size={14} />
                 ) : (
-                  <Circle
-                    size={16}
-                    className={`mt-0.5 shrink-0 ${item.critico ? 'text-warning' : 'text-muted-foreground'}`}
-                  />
+                  <AlertTriangle size={14} />
                 )}
-                <div>
-                  <span className="font-medium">{item.titulo}</span>
-                  {item.detalle && (
-                    <p className="text-xs text-muted-foreground mt-0.5">{item.detalle}</p>
+                {checklist.listoOperacion
+                  ? 'listo operación'
+                  : `${checklist.criticosPendientes} crítico(s)`}
+              </span>
+              <Badge variant="default">{checklist.environment ?? 'sin env'}</Badge>
+            </div>
+            <ul className="divide-y divide-border rounded-xl border border-border overflow-hidden">
+              {checklist.items.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex items-start gap-3 px-3 py-2.5 text-sm bg-surface-sunken/40"
+                >
+                  {item.cumplido ? (
+                    <CheckCircle size={16} className="mt-0.5 shrink-0 text-primary" />
+                  ) : (
+                    <Circle
+                      size={16}
+                      className={`mt-0.5 shrink-0 ${item.critico ? 'text-warning' : 'text-muted-foreground'}`}
+                    />
                   )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="font-medium text-foreground">{item.titulo}</span>
+                    {item.detalle && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{item.detalle}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
 
       {configError && (
@@ -445,63 +475,74 @@ export function BancoChileView() {
       )}
 
       {!config ? (
-        <div className="bg-card border border-border rounded-2xl p-6 max-w-3xl">
-          <h2 className="font-display text-lg mb-3">Configurar Banco Chile</h2>
-          <p className="text-muted-foreground text-sm mb-4">
-            Credenciales API Store (client id/secret + usuario/clave). Se guardan cifradas vía BFF —
-            no se escriben desde el browser a Supabase.
-          </p>
-          <button
-            type="button"
-            onClick={() => setShowConfig(true)}
-            className="px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-bold"
-          >
-            Configurar ahora
-          </button>
-        </div>
+        <Card className="max-w-3xl" hover={false}>
+          <CardHeader>
+            <CardTitle>Configurar Banco Chile</CardTitle>
+            <CardDescription>
+              Credenciales API Store (client id/secret + usuario/clave). Se guardan cifradas vía BFF —
+              no se escriben desde el browser a Supabase.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <button
+              type="button"
+              onClick={() => setShowConfig(true)}
+              className="min-h-11 px-5 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-bold"
+            >
+              Configurar ahora
+            </button>
+          </CardContent>
+        </Card>
       ) : (
         <div className="space-y-6">
-          <div className="bg-card border border-border rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 rounded-full ${config.enabled ? 'bg-primary' : 'bg-muted'}`} />
-              <div>
-                <p className="font-medium text-sm">
-                  {config.enabled ? 'Habilitado' : 'Deshabilitado'}
-                  {hasCredentials ? ' · credenciales OK' : ' · sin credenciales'}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Ambiente: {config.environment}
-                  {encryptionReady ? ' · cifrado runtime OK' : ' · falta SII_CLAVE_ENCRYPTION_KEY'}
-                </p>
+          <Card className="max-w-3xl" hover={false}>
+            <CardContent className="pt-6 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className={`w-3 h-3 rounded-full shrink-0 ${config.enabled ? 'bg-primary' : 'bg-muted'}`}
+                />
+                <div className="min-w-0">
+                  <p className="font-medium text-sm">
+                    {config.enabled ? 'Habilitado' : 'Deshabilitado'}
+                    {hasCredentials ? ' · credenciales OK' : ' · sin credenciales'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Ambiente: {config.environment}
+                    {encryptionReady ? ' · cifrado runtime OK' : ' · falta SII_CLAVE_ENCRYPTION_KEY'}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => testAuth()}
-                disabled={testingAuth}
-                className="p-2 hover:bg-secondary rounded-lg disabled:opacity-50"
-                title="Probar OAuth"
-              >
-                {testingAuth ? <HexagonLoader size="sm" /> : <Plug size={18} />}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowConfig(true)}
-                className="p-2 hover:bg-secondary rounded-lg"
-              >
-                <Settings size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={sincronizarCuentas}
-                disabled={syncing}
-                className="p-2 hover:bg-secondary rounded-lg disabled:opacity-50"
-              >
-                {syncing ? <HexagonLoader size="sm" /> : <RefreshCw size={18} />}
-              </button>
-            </div>
-          </div>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => testAuth()}
+                  disabled={testingAuth}
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center hover:bg-secondary rounded-lg disabled:opacity-50"
+                  title="Probar OAuth"
+                  aria-label="Probar OAuth"
+                >
+                  {testingAuth ? <HexagonLoader size="sm" /> : <Plug size={18} />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowConfig(true)}
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center hover:bg-secondary rounded-lg"
+                  aria-label="Configuración"
+                >
+                  <Settings size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={sincronizarCuentas}
+                  disabled={syncing}
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center hover:bg-secondary rounded-lg disabled:opacity-50"
+                  aria-label="Sincronizar cuentas"
+                >
+                  {syncing ? <HexagonLoader size="sm" /> : <RefreshCw size={18} />}
+                </button>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="bg-card border border-border rounded-2xl p-6">
             <h2 className="font-display text-lg mb-4">Cuentas Bancarias</h2>
