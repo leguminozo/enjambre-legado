@@ -56,6 +56,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Filter chips 40 | mis-tap filtros view-deep | `min-height: 40px` | `min-height: 44px` |
 | Login nucleo densos | forgot/toggle sin hit | text p-0 / pad 0.6rem | min-h-11 CTAs; submit min-h-12 |
 | Nucleo landing densa | H1 5xl + links text-only | page.tsx entry | clamp H1; Link min-h-12 primary; card CTAs min-h-11 |
+| Nucleo recovery densos | 404/error CTA &lt;44 | `px-4 py-2` only | min-h-12 + px-6 py-3 |
+| AuthHero H1 denso | login hero aplastado 375 | `fontSize: 4.5rem` fixed | clamp(2.25rem,10vw,4.5rem) + safe-top |
+| Header search sin close | mis-tap cerrar buscador | solo toggle icono | botón X min-h/w-11 en panel |
 | Sidebar rail notch | brand bajo status bar tablet | rail pad sin safe-top | `padding-top: space + env(safe-area-inset-top)` |
 | CMS chrome 36/p-0.5 | mis-tap reorder/visibility | StoreChromeEditors | reorder min-h/w-11; toggle min-h-11 |
 | Shell footer logout | mis-tap cerrar sesión | `btn-ghost p-1.5` + icon 16 | `min-h-11 min-w-11`; avatar perfil 44 |

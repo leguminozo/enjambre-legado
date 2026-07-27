@@ -33,7 +33,7 @@
 | Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom; auth btn fantasma + perfil safe-top; announcement h36 + legal H1 + footer PWA | ✅ pass 41+48+55+62+69 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos; btn fantasma + card/input CSS | ✅ pass 44+51+58+65 |
-| Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos; landing H1/CTAs + rail safe-top + CMS chrome 36 | ✅ pass 43+50+57+64 |
+| Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos; landing H1/CTAs + rail safe-top + CMS chrome 36; residual dashboard 404/error py-2 + AuthHero 4.5rem + search close | ✅ pass 43+50+57+64+71 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual; reseñas/QR/checkout resultado; residual not-found text-only + checkout dir nueva + QR manual densos + traza H1/breadcrumb | ✅ pass 42+49+56+63+70 |
 | Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close; residual toast/DataTable checkbox/pill; toast safe-area + notif row a11y | ✅ pass 45+52+59+66 |
@@ -52,6 +52,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 71 (ui-nucleo-shell)
+- Señal: dashboard not-found/error CTA solo py-2; AuthHero H1 fontSize 4.5rem fijo aplasta 375; header search sin dismiss explícito
+- Compuesto: colapsar + redirigir
+- Regla nueva: recovery shell nucleo = min-h-12 CTAs; AuthHero clamp H1 + safe-top; panel búsqueda header siempre tiene close 44
+- Anti-patrón: recovery `px-4 py-2` sin min-h; AuthHero `style={{ fontSize: '4.5rem' }}` fijo
+- Guardriel: intacto (solo shell UI; WIP banco no tocado)
 
 ### Evo 2026-07-27 pass 70 (ui-tienda-shop)
 - Señal: producto not-found link sin min-h; checkout «dirección nueva»/reintenta text-only; qr-scan input/CTA sin min-h ni safe-top; trazabilidad H1 text-4xl/5xl + breadcrumb sin hit; PDP breadcrumb densos
