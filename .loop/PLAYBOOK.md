@@ -60,6 +60,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Campo login densos | teclado/dedo falla en feria | inputs `py-2` submit sin min-h | inputs `min-h-11`; submit `min-h-12` |
 | Caja icon ops &lt;44 | mis-tap detalle/reconciliar | `w-9 h-9` | `min-h-11 min-w-11` |
 | POS client text-only | Nuevo/Buscar sin hit | `text-[10px] hover:underline` | `min-h-11` inline-flex |
+| Campo btn fantasma | CTAs sync/caja sin estilo | `btn btn-primary` (nucleo-only) | Tailwind min-h-11 border/primary explícito |
+| Campo card/input fantasma | caja/comisiones/feria planos | `.card` `.input-field` sin CSS | definir en campo globals o className full |
+| Campo landing H1 | title aplastado 375 | `text-5xl` fijo | clamp + safe-top como tienda/nucleo |
 | POS cart row crush | qty/precio/QR salen del card en 375 | `flex items-center gap-6` single row | `flex-col sm:flex-row` + icon btns 44 |
 | Shop text-only recovery | error PDP / traza / volver catálogo | `hover:underline` sin min-h | `min-h-11` + border hit en recovery |
 | Editor CMS 36px ops | mis-tap reorder/eye/delete / Añadir | `min-h-[36px]` + empty text-only | item ops + chrome toggles `min-h-11 min-w-11`; empty CTA min-h-11 |

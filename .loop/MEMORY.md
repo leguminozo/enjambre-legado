@@ -32,7 +32,7 @@
 | Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y; mapa href + editorial pages 375 | ✅ pass 40+47+54+61 |
 | Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom; auth btn fantasma + perfil safe-top | ✅ pass 41+48+55+62 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
-| Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos | ✅ pass 44+51+58 |
+| Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos; btn fantasma + card/input CSS | ✅ pass 44+51+58+65 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos; landing H1/CTAs + rail safe-top + CMS chrome 36 | ✅ pass 43+50+57+64 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual; reseñas/QR/checkout resultado | ✅ pass 42+49+56+63 |
@@ -51,6 +51,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 65 (ui-campo-pos)
+- Señal: sync-queue + caja modal usan `btn btn-*` sin CSS en campo; comisiones/caja/feria `.card`/`.input-field`/`.stat-card` fantasma; QR POS sin min-h; login back text-only; landing H1 text-5xl
+- Compuesto: unificar + colapsar
+- Regla nueva: nunca clases nucleo `.btn` en campo; definir `.card`/`.input-field`/`.stat-card` locales o Tailwind; grepear `btn btn-` en apps/campo
+- Anti-patrón: `btn btn-ghost` / `btn btn-primary` en POS sync; inputs feria sin min-height token
+- Guardriel: intacto (solo UI POS; sin lógica pago)
 
 ### Evo 2026-07-27 pass 64 (ui-nucleo-shell)
 - Señal: landing nucleo H1 text-5xl + CTAs text-only; login button nested sin min-h; sidebar-rail sin safe-top; StoreChromeEditors reorder p-0.5 + toggle 36; Perfil nav sin min-h explícito
