@@ -36,7 +36,8 @@
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade | ✅ pass 43 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ⏳ baja |
 | Tienda shop | catálogo 2-col apretado; chips &lt;44; cart bar CTA | ✅ pass 42 |
-| Tokens | residual hex/emerald en views legacy | ⏳ baja |
+| Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10 | ✅ pass 45 |
+| Tokens apps | residual hex/emerald en views legacy (fuera package) | ⏳ baja |
 
 ### Backlog go-live ops (v1.2 — congelado; no es cono del tick)
 
@@ -47,6 +48,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 45 (ui-shared-tokens)
+- Señal: Calendar en package con bg-[#4a4a4a]/text-white/hex grises; Button sm py-1.5 y md sin min-h; ThemeToggle sin hit box; Select/DatePicker h-10; Switch 24px alto
+- Compuesto: unificar + colapsar
+- Regla nueva: controles canónicos `@enjambre/ui` min-h-11; Calendar solo tokens card/muted/accent; cero hex en packages/ui components
+- Anti-patrón: Calendar “iOS gray” con hex; Button size sin min-h touch
+- Guardriel: intacto
 
 ### Evo 2026-07-27 pass 44 (ui-campo-pos)
 - Señal: `pb-safe` referenciado sin CSS; bottom shell `pb-16` sin safe-area; SumUp cancel/retry text-only; logout p-2; carrito fila no-wrap aplastada en 375; toggle SumUp 20×36

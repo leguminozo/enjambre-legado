@@ -16,6 +16,8 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Metrics 2-col crush | números gigantes en mobile | `grid-cols-2` + `text-5xl` | `text-3xl sm:text-5xl`; gap |
 | Science 3-col tablet | párrafos aplastados | `md:grid-cols-3` | `lg:grid-cols-3` |
 | Hex / emerald drift | rompe dark luxury | className raw | tokens `text-primary` / Badge variant |
+| Package Calendar hex | date picker gris iOS hardcode | `#4a4a4a` / `text-white` / `#a3a3a3` | `bg-card text-foreground border-border`; days `hover:bg-muted` |
+| Button sin min-h | sm/md &lt;44 en ops táctil | solo py-1.5/2.5 | `min-h-11` (sm/md) · `min-h-12` (lg) en sizeClasses |
 | Touch <44 | botones finos en campo/tienda/nucleo shell | py-1 / w-h 38 sin min-h | `min-h-[44px] min-w-[44px]`; header-btn/sheet close/bell 44 |
 | ViewShell hero cascade | título del hero con color foreground (no primary-fg) | `.view-shell-title` después de `.hero-title` | `.view-shell--hero .view-shell-title { color: primary-foreground }` |
 | Safe-area | FAB/WhatsApp tapa home bar | fixed bottom | `bottom-[max(1rem,env(safe-area-inset-bottom))]` |

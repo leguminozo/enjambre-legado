@@ -83,7 +83,7 @@ export function ImmersiveModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-border p-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             aria-label="Cerrar módulo"
           >
             <X size={18} />

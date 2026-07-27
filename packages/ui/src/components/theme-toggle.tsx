@@ -39,7 +39,7 @@ export function ThemeToggle({ size = 18, className }: ThemeToggleProps) {
       onClick={() => setTheme(next)}
       aria-label={`Tema: ${mounted ? LABELS[theme] : LABELS.system}. Cambiar a ${mounted ? LABELS[next] : LABELS.light}`}
       title={`${mounted ? LABELS[theme] : LABELS.system} — clic para ${mounted ? LABELS[next] : LABELS.light}`}
-      className={`text-muted-foreground hover:text-accent transition-colors ${className ?? ''}`}
+      className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:text-accent hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${className ?? ''}`}
       suppressHydrationWarning
     >
       {icon}

@@ -29,7 +29,7 @@ export function Input({
       <input
         id={inputId}
         className={`
-          w-full
+          w-full min-h-11
           bg-surface-sunken/50
           border border-border
           rounded-md
@@ -37,7 +37,7 @@ export function Input({
           text-foreground text-base
           placeholder:text-muted-foreground/50
           transition-all duration-base
-          focus:outline-none focus:border-accent focus:ring-2 focus:ring-miel-glow
+          focus:outline-none focus:border-accent focus:ring-2 focus:ring-ring focus:ring-miel-glow
           disabled:opacity-50 disabled:cursor-not-allowed
           ${error ? 'border-destructive focus:ring-destructive/30' : ''}
           ${className}
@@ -89,7 +89,7 @@ export function Textarea({
           text-foreground text-base
           placeholder:text-muted-foreground/50
           transition-all duration-base
-          focus:outline-none focus:border-accent focus:ring-2 focus:ring-miel-glow
+          focus:outline-none focus:border-accent focus:ring-2 focus:ring-ring focus:ring-miel-glow
           disabled:opacity-50 disabled:cursor-not-allowed
           min-h-[120px] resize-y
           ${error ? 'border-destructive focus:ring-destructive/30' : ''}

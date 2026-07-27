@@ -30,9 +30,10 @@ export function Tabs({
             key={tab.id}
             value={tab.id}
             className={cn(
-              "flex items-center justify-center gap-2 flex-1 px-4 py-2 text-xs font-semibold rounded-lg relative transition-colors duration-200",
+              "flex items-center justify-center gap-2 flex-1 min-h-11 px-4 py-2.5 text-xs font-semibold rounded-lg relative transition-colors duration-200",
               "data-[state=inactive]:text-muted-foreground hover:text-foreground",
               "data-[state=active]:text-foreground data-[state=active]:bg-card/85 data-[state=active]:border data-[state=active]:border-border/40 data-[state=active]:shadow-sm",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             )}
           >
             {tab.icon && <span className="shrink-0">{tab.icon}</span>}

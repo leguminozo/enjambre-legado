@@ -1,10 +1,10 @@
 {
-  "index": 5,
-  "pass": 44,
-  "last_sector": "ui-campo-pos",
-  "last_commit": "d84511e",
+  "index": 6,
+  "pass": 45,
+  "last_sector": "ui-shared-tokens",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 44: campo POS touch/safe-area/terminal CTAs. Siguiente: ui-shared-tokens (#5)."
+  "notes": "Pass 45: packages/ui Calendar tokens + Button/controls min-h 44. Siguiente: deep-followup-ui (#6)."
 }

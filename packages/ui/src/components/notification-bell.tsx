@@ -64,13 +64,19 @@ function NotificationPanel({
         </div>
         {unread > 0 && onMarkAllRead && (
           <button
+            type="button"
             onClick={onMarkAllRead}
-            className="text-[0.6rem] uppercase tracking-widest text-accent hover:underline"
+            className="min-h-11 px-2 text-[0.6rem] uppercase tracking-widest text-accent hover:underline"
           >
             Marcar todas leídas
           </button>
         )}
-        <button onClick={onClose} aria-label="Cerrar" className="text-muted-foreground hover:text-foreground">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar"
+          className="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground"
+        >
           <X size={16} />
         </button>
       </div>
