@@ -58,7 +58,7 @@ export function CampaignBanners() {
           {banner.href ? (
             <Link
               href={banner.href}
-              className="shrink-0 self-start rounded-full bg-accent px-4 py-2 text-[0.65rem] font-semibold uppercase tracking-wider text-accent-foreground hover:opacity-90 sm:self-center"
+              className="inline-flex min-h-11 shrink-0 items-center self-start rounded-full bg-accent px-5 py-2 text-[0.65rem] font-semibold uppercase tracking-wider text-accent-foreground hover:opacity-90 sm:self-center"
             >
               {resolveLocalized(banner.cta_label, banner.cta_label_en, locale)}
             </Link>

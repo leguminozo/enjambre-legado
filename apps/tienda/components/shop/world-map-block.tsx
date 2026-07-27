@@ -69,9 +69,9 @@ export function WorldMapBlock() {
 
   return (
     <section className="editorial-section">
-      <div className="editorial-container text-center mb-16">
+      <div className="editorial-container text-center mb-10 md:mb-16 px-4 sm:px-0">
         <span className="editorial-kicker mb-4 block">Ubicación</span>
-        <h2 className="font-display text-4xl md:text-6xl font-light text-foreground">
+        <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-light text-foreground text-balance">
           Nuestro lugar en el mundo
         </h2>
       </div>
@@ -91,7 +91,7 @@ export function WorldMapBlock() {
         </p>
         <Link
           href="/nuestra-historia"
-          className="inline-flex items-center gap-3 border border-accent text-accent px-8 py-4 text-editorial-xs uppercase tracking-widest hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-md font-medium"
+          className="inline-flex min-h-12 items-center gap-3 border border-accent text-accent px-8 py-4 text-editorial-xs uppercase tracking-widest hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-md font-medium"
         >
           Nuestra Historia
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>

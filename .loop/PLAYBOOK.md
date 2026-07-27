@@ -12,6 +12,8 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 |--------|---------|-----------|--------------|
 | Hero cue overlap | texto “Descender” / línea corta copy | absolute center + hero bajo | `min-h-[100svh]`; cue a un lado o `pb-*` en stack; hide vertical label hasta `lg` |
 | Hero cue vs home bar | línea “Descender” tapa safe area iPhone | `bottom-6` fijo | `bottom-[max(1.5rem,env(safe-area-inset-bottom))]` + hero pt/pb max(safe) |
+| Landing media arrows | flechas 40px + dots 8px | `w-10 h-10` / `w-2 h-2` | arrows `min-h-11`; dots wrap `min-h-11 min-w-11`; bottom safe-area |
+| Campaign banner CTA | CTA promo &lt;44 | `py-2` only | `min-h-11` + px-5 |
 | Hero stack denso | CTA cortado / formula corta | `min(70dvh)` + clamp grande | bajar clamp H1; `max-w` subtitle; `mt` CTA |
 | Nav densa | links apretados 1200px | header una sola fila | collapse / drawer desde `lg`; gap tokens |
 | Announcement dismiss | usuario no puede cerrar en touch | solo doble-clic / hint hover | botón × min-h-11 con aria-label en carousel |

@@ -33,12 +33,12 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
 
   return (
     <section className="editorial-section">
-      <div className="editorial-container text-center mb-16">
+      <div className="editorial-container text-center mb-10 md:mb-16 px-4 sm:px-0">
         <span className="editorial-kicker mb-4 block">Creaciones</span>
-        <h2 className="font-display text-4xl md:text-6xl font-light text-foreground mb-4">
+        <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-light text-foreground mb-4 text-balance">
           La materia de nuestras búsquedas
         </h2>
-        <p className="text-muted-foreground italic font-display text-lg max-w-2xl mx-auto">
+        <p className="text-muted-foreground italic font-display text-base sm:text-lg max-w-2xl mx-auto text-pretty">
           Creaciones cargadas de experiencias y legado.
         </p>
       </div>

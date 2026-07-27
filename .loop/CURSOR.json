@@ -1,10 +1,10 @@
 {
-  "index": 0,
-  "pass": 53,
-  "last_sector": "deep-followup-ui",
-  "last_commit": "5eb43b2",
+  "index": 1,
+  "pass": 54,
+  "last_sector": "ui-tienda-landing",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 53: SII amber→warning; perfil direcciones always-visible 44; replenish/orders/notif switch. Siguiente: ui-tienda-landing (#0)."
+  "notes": "Pass 54: media carousel 44+safe dots, campaign CTA, youtube button, map/products type. Siguiente: ui-tienda-chrome (#1)."
 }

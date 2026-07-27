@@ -29,7 +29,7 @@
 
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
-| Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm | ✅ pass 40+47 |
+| Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y | ✅ pass 40+47+54 |
 | Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch | ✅ pass 41+48 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan | ✅ pass 44+51 |
@@ -50,6 +50,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 54 (ui-tienda-landing)
+- Señal: MediaCarousel flechas w-10 + dots 8px; campaign CTA py-2; YoutubeLite div no button; creaciones/mapa H2 text-4xl denso en 375
+- Compuesto: colapsar + redirigir
+- Regla nueva: carrusel landing arrows/dots min-h-11 + dots safe-bottom; promo CTA min-h-11; lite video = button con aria-label
+- Anti-patrón: dots `w-2 h-2` sin hit box; flechas carousel 40px
+- Guardriel: intacto
 
 ### Evo 2026-07-27 pass 53 (deep-followup-ui)
 - Señal: BandejaFiscal/gasto badges `amber-*`; direcciones edit/delete solo hover + p-2; reposición/pedidos py-2; notif switch 20px alto
