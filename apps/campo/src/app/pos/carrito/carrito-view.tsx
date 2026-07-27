@@ -257,54 +257,64 @@ export default function CarritoView() {
             {lines.map((l) => (
               <div key={l.producto_id} className="flex flex-col gap-2">
                 <div
-                  className="flex items-center gap-6 bg-card border border-border p-6 rounded-3xl transition-all hover:border-border"
+                  className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 bg-card border border-border p-4 sm:p-6 rounded-3xl transition-all hover:border-border"
                 >
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium text-foreground mb-1">{l.nombre}</h3>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base sm:text-lg font-medium text-foreground mb-1 text-balance">{l.nombre}</h3>
                     <p className="text-muted-foreground text-sm font-light">Precio unitario: {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(l.precio_unitario)}</p>
                   </div>
 
-                  <div className="flex items-center gap-4 bg-background rounded-full border border-border p-1">
-                    <button
-                      onClick={() => setQty(l.producto_id, Math.max(1, l.cantidad - 1))}
-                      className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-primary transition-colors"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </button>
-                    <span className="w-8 text-center font-mono font-bold">{l.cantidad}</span>
-                    <button
-                      onClick={() => setQty(l.producto_id, l.cantidad + 1)}
-                      className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-primary transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
+                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 flex-wrap">
+                    <div className="flex items-center gap-2 sm:gap-4 bg-background rounded-full border border-border p-1">
+                      <button
+                        type="button"
+                        onClick={() => setQty(l.producto_id, Math.max(1, l.cantidad - 1))}
+                        className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-primary transition-colors"
+                        aria-label="Restar unidad"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="w-8 text-center font-mono font-bold">{l.cantidad}</span>
+                      <button
+                        type="button"
+                        onClick={() => setQty(l.producto_id, l.cantidad + 1)}
+                        className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-primary transition-colors"
+                        aria-label="Sumar unidad"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
 
-                  <div className="text-right min-w-[100px]">
-                    <p className="font-mono font-bold text-primary">
-                      {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(l.precio_unitario * l.cantidad)}
-                    </p>
-                  </div>
+                    <div className="text-right min-w-[5.5rem]">
+                      <p className="font-mono font-bold text-primary">
+                        {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(l.precio_unitario * l.cantidad)}
+                      </p>
+                    </div>
 
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setScanningFor(scanningFor === l.producto_id ? null : l.producto_id)}
-                      className={`p-3 rounded-2xl transition-all relative ${scanningFor === l.producto_id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-surface'}`}
-                      title="Asignar QR Trazabilidad"
-                    >
-                      <QrCode className="w-5 h-5" />
-                      {(l.qr_codes?.length || 0) > 0 && (
-                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                          {l.qr_codes!.length}
-                        </span>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => removeLine(l.producto_id)}
-                      className="p-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-all"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setScanningFor(scanningFor === l.producto_id ? null : l.producto_id)}
+                        className={`min-h-11 min-w-11 inline-flex items-center justify-center rounded-2xl transition-all relative ${scanningFor === l.producto_id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-surface'}`}
+                        title="Asignar QR Trazabilidad"
+                        aria-label="Asignar QR trazabilidad"
+                      >
+                        <QrCode className="w-5 h-5" />
+                        {(l.qr_codes?.length || 0) > 0 && (
+                          <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                            {l.qr_codes!.length}
+                          </span>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeLine(l.producto_id)}
+                        className="min-h-11 min-w-11 inline-flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-all"
+                        aria-label="Quitar del carrito"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -317,9 +327,14 @@ export default function CarritoView() {
                     {l.qr_codes && l.qr_codes.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-4">
                         {l.qr_codes.map((code) => (
-                          <div key={code} className="flex items-center gap-2 bg-surface-sunken border border-border px-3 py-1.5 rounded-lg text-xs font-mono text-foreground">
+                          <div key={code} className="flex items-center gap-1 bg-surface-sunken border border-border pl-3 pr-1 py-1 rounded-lg text-xs font-mono text-foreground">
                             {code}
-                            <button onClick={() => removeQrCode(l.producto_id, code)} className="text-muted-foreground hover:text-destructive p-0.5">
+                            <button
+                              type="button"
+                              onClick={() => removeQrCode(l.producto_id, code)}
+                              className="min-h-11 min-w-11 inline-flex items-center justify-center text-muted-foreground hover:text-destructive"
+                              aria-label={`Quitar QR ${code}`}
+                            >
                               &times;
                             </button>
                           </div>
@@ -423,10 +438,13 @@ export default function CarritoView() {
                     </div>
                     <button
                       type="button"
+                      role="switch"
+                      aria-checked={sumupMode === 'connected'}
+                      aria-label={sumupMode === 'connected' ? 'SumUp conectado' : 'SumUp manual'}
                       onClick={() => setSumupMode(sumupMode === 'connected' ? 'manual' : 'connected')}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${sumupMode === 'connected' ? 'bg-primary' : 'bg-muted-foreground/30'}`}
+                      className={`relative inline-flex h-11 min-w-[3.25rem] w-14 items-center rounded-full px-1 transition-colors ${sumupMode === 'connected' ? 'bg-primary' : 'bg-muted-foreground/30'}`}
                     >
-                      <span className={`inline-block h-3 w-3 transform rounded-full bg-background transition-transform ${sumupMode === 'connected' ? 'translate-x-5' : 'translate-x-1'}`} />
+                      <span className={`inline-block h-7 w-7 transform rounded-full bg-background shadow transition-transform ${sumupMode === 'connected' ? 'translate-x-5' : 'translate-x-0'}`} />
                     </button>
                   </div>
                 )}
@@ -457,9 +475,10 @@ export default function CarritoView() {
               </div>
 
               <button
+                type="button"
                 onClick={() => void confirmarVenta()}
                 disabled={loading || lines.length === 0 || hasConsignacionBlock}
-                className="w-full py-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full font-bold shadow-2xl shadow-primary/10 transition-all transform active:scale-95 disabled:opacity-30 disabled:grayscale"
+                className="w-full min-h-12 py-5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full font-bold shadow-2xl shadow-primary/10 transition-all transform active:scale-95 disabled:opacity-30 disabled:grayscale"
               >
                 {loading ? (
                   <div className="flex items-center justify-center gap-2">

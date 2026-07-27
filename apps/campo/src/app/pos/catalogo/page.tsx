@@ -50,7 +50,7 @@ export default function CatalogoPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-end gap-6">
         <Link
           href="/pos/carrito"
-          className="text-xs uppercase tracking-widest text-primary hover:underline flex items-center gap-1"
+          className="min-h-11 inline-flex items-center text-xs uppercase tracking-widest text-primary hover:underline gap-1"
         >
           Carrito tradicional →
         </Link>

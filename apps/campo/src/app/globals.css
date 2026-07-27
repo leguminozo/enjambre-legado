@@ -86,6 +86,19 @@
   flex-shrink: 0;
 }
 
+/* Safe-area (PWA / notch) — pb-safe was referenced but undefined */
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .mb-safe {
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
 @layer components {
   .card-glow {
     background: hsl(var(--card));

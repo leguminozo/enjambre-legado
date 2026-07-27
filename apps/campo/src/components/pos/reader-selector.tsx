@@ -92,7 +92,11 @@ export function ReaderSelector({ onSelect, selectedReaderId }: Props) {
       <div className="flex flex-col items-center gap-3 py-8">
         <AlertCircle className="w-6 h-6 text-destructive" />
         <p className="text-xs text-destructive text-center">{readersError}</p>
-        <button onClick={fetchReaders} className="text-[10px] text-primary uppercase tracking-widest hover:underline">
+        <button
+          type="button"
+          onClick={fetchReaders}
+          className="min-h-11 min-w-[44px] px-4 inline-flex items-center justify-center text-xs text-primary uppercase tracking-widest rounded-xl border border-primary/30 hover:bg-primary/10"
+        >
           Reintentar
         </button>
       </div>
@@ -124,7 +128,11 @@ export function ReaderSelector({ onSelect, selectedReaderId }: Props) {
             </div>
           ))}
         </div>
-        <button onClick={fetchReaders} className="w-full text-[10px] text-primary uppercase tracking-widest hover:underline text-center">
+        <button
+          type="button"
+          onClick={fetchReaders}
+          className="w-full min-h-11 inline-flex items-center justify-center text-xs text-primary uppercase tracking-widest rounded-xl border border-primary/30 hover:bg-primary/10 text-center"
+        >
           Actualizar
         </button>
       </div>
@@ -162,7 +170,11 @@ export function ReaderSelector({ onSelect, selectedReaderId }: Props) {
           </button>
         );
       })}
-      <button onClick={fetchReaders} className="w-full text-[10px] text-muted-foreground uppercase tracking-widest hover:text-primary text-center">
+      <button
+        type="button"
+        onClick={fetchReaders}
+        className="w-full min-h-11 inline-flex items-center justify-center text-xs text-muted-foreground uppercase tracking-widest hover:text-primary rounded-xl text-center"
+      >
         Actualizar terminales
       </button>
     </div>

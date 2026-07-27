@@ -138,8 +138,9 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
         </p>
         <ReaderSelector onSelect={handleSelectReader} selectedReaderId={activeReaderId} />
         <button
+          type="button"
           onClick={handleCancel}
-          className="w-full text-[10px] text-muted-foreground uppercase tracking-widest hover:text-foreground text-center"
+          className="w-full min-h-11 inline-flex items-center justify-center text-xs text-muted-foreground uppercase tracking-widest hover:text-foreground text-center rounded-xl border border-border/60 bg-background/40"
         >
           Cancelar
         </button>
@@ -183,8 +184,9 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
           Verificando...
         </div>
         <button
+          type="button"
           onClick={handleCancel}
-          className="mt-4 text-xs text-destructive uppercase tracking-widest hover:underline"
+          className="mt-2 min-h-11 min-w-[44px] px-4 inline-flex items-center justify-center text-xs text-destructive uppercase tracking-widest rounded-xl border border-destructive/30 hover:bg-destructive/10"
         >
           Cancelar cobro
         </button>
@@ -224,14 +226,16 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
             'La tarjeta fue rechazada o el cobro falló. Intentá de nuevo.'}
         </p>
         <button
+          type="button"
           onClick={() => setTerminalStep('selecting_reader')}
-          className="text-xs text-primary uppercase tracking-widest hover:underline"
+          className="min-h-11 min-w-[44px] px-5 inline-flex items-center justify-center text-xs font-bold text-primary uppercase tracking-widest rounded-xl border border-primary/30 hover:bg-primary/10"
         >
           Reintentar
         </button>
         <button
+          type="button"
           onClick={handleCancel}
-          className="text-[10px] text-muted-foreground uppercase tracking-widest hover:text-foreground"
+          className="min-h-11 min-w-[44px] px-5 inline-flex items-center justify-center text-xs text-muted-foreground uppercase tracking-widest hover:text-foreground"
         >
           Cancelar
         </button>
@@ -254,14 +258,16 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
             : 'El cobro fue cancelado manualmente.'}
         </p>
         <button
+          type="button"
           onClick={() => setTerminalStep('selecting_reader')}
-          className="text-xs text-primary uppercase tracking-widest hover:underline"
+          className="min-h-11 min-w-[44px] px-5 inline-flex items-center justify-center text-xs font-bold text-primary uppercase tracking-widest rounded-xl border border-primary/30 hover:bg-primary/10"
         >
           Reintentar
         </button>
         <button
+          type="button"
           onClick={handleCancel}
-          className="text-[10px] text-muted-foreground uppercase tracking-widest hover:text-foreground"
+          className="min-h-11 min-w-[44px] px-5 inline-flex items-center justify-center text-xs text-muted-foreground uppercase tracking-widest hover:text-foreground"
         >
           Cerrar
         </button>

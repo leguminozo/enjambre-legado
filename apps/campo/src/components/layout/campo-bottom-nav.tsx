@@ -9,8 +9,11 @@ export function CampoBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface-sunken/80 backdrop-blur-md border-t border-border z-50 pb-safe">
-      <div className="flex items-center justify-around px-2 h-16">
+    <nav
+      className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface-sunken/80 backdrop-blur-md border-t border-border z-50 pb-safe"
+      aria-label="Navegación principal Campo"
+    >
+      <div className="flex items-stretch justify-around px-1 min-h-16">
         {CAMPO_NAV_ROUTES.map((route) => {
           const isActive = pathname === route.href || pathname.startsWith(`${route.href}/`);
           const Icon = route.icon;
@@ -19,12 +22,13 @@ export function CampoBottomNav() {
             <Link
               key={route.href}
               href={route.href}
-              className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors ${
+              aria-current={isActive ? 'page' : undefined}
+              className={`flex flex-col items-center justify-center flex-1 min-h-11 min-w-11 gap-0.5 py-2 transition-colors ${
                 isActive ? 'text-accent' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <div
-                className={`flex items-center justify-center p-1 rounded-full transition-colors ${
+                className={`flex items-center justify-center min-h-9 min-w-9 rounded-full transition-colors ${
                   isActive ? 'bg-accent/15' : 'bg-transparent'
                 }`}
               >

@@ -28,10 +28,10 @@ export function PosHeader() {
   const toolLinks = CAMPO_NAV_ROUTES.filter((r) => r.href !== '/pos');
 
   return (
-    <header className="border-b border-border bg-background md:bg-background/80 md:backdrop-blur-md px-4 md:px-8 py-5 flex items-center justify-between sticky top-0 z-50">
-      <div className="flex items-center gap-8 min-w-0">
-        <Link href="/pos" className="group flex items-center gap-3 shrink-0">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center font-display text-primary-foreground font-bold">
+    <header className="border-b border-border bg-background md:bg-background/80 md:backdrop-blur-md px-4 md:px-8 pt-[max(0.75rem,env(safe-area-inset-top))] pb-4 flex items-center justify-between sticky top-0 z-50 gap-3">
+      <div className="flex items-center gap-4 md:gap-8 min-w-0">
+        <Link href="/pos" className="group flex items-center gap-3 shrink-0 min-h-11">
+          <div className="w-9 h-9 min-w-9 bg-primary rounded-full flex items-center justify-center font-display text-primary-foreground font-bold">
             O
           </div>
           <span className="font-display text-xl tracking-tight text-foreground group-hover:text-primary transition-colors">
@@ -93,18 +93,19 @@ export function PosHeader() {
         </nav>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         {isAuthenticated && user ? (
-          <div className="flex items-center gap-4 pl-6 border-l border-border">
-            <div className="flex flex-col items-end">
+          <div className="flex items-center gap-2 sm:gap-3 sm:pl-4 sm:border-l border-border">
+            <div className="hidden sm:flex flex-col items-end min-w-0">
               <span className="text-[10px] uppercase tracking-tighter text-muted-foreground font-bold">Vendedor</span>
-              <span className="text-xs text-foreground font-medium">{user.email}</span>
+              <span className="text-xs text-foreground font-medium truncate max-w-[12rem]">{user.email}</span>
             </div>
             <button
               type="button"
               onClick={() => void handleSignOut()}
-              className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all"
               title="Cerrar sesión"
+              aria-label="Cerrar sesión"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -112,7 +113,7 @@ export function PosHeader() {
         ) : (
           <Link
             href="/login"
-            className="px-6 py-2 bg-card text-foreground text-sm font-medium rounded-full border border-border hover:border-primary/30 transition-all"
+            className="inline-flex min-h-11 items-center px-5 py-2 bg-card text-foreground text-sm font-medium rounded-full border border-border hover:border-primary/30 transition-all"
           >
             Entrar
           </Link>

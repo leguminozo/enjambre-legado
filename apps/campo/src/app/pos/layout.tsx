@@ -24,11 +24,11 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
                 <PosHeader />
                 <FeriaContextBanner />
                 <SyncStatusBanner />
-                <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-12">
+                <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 pb-[max(2rem,env(safe-area-inset-bottom))]">
                   {children}
                 </main>
 
-              <footer className="py-8 text-center text-muted-foreground text-xs tracking-widest uppercase">
+              <footer className="py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-center text-muted-foreground text-xs tracking-widest uppercase">
                 Enjambre Legado — Experiential POS v2.0
               </footer>
               </div>

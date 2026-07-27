@@ -32,7 +32,7 @@
 | Tienda hero | cue “Descender” vertical **solapa** subtítulo/fórmula; hero `70dvh` corto | ✅ pass 40 |
 | Tienda header | nav densa en desktop medio; spacing links | ✅ pass 41 (nav lg+ · touch · safe-area WA) |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
-| Campo POS | touch ≥44, safe-area, terminal flow copy | ⏳ |
+| Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375 | ✅ pass 44 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade | ✅ pass 43 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ⏳ baja |
 | Tienda shop | catálogo 2-col apretado; chips &lt;44; cart bar CTA | ✅ pass 42 |
@@ -47,6 +47,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 44 (ui-campo-pos)
+- Señal: `pb-safe` referenciado sin CSS; bottom shell `pb-16` sin safe-area; SumUp cancel/retry text-only; logout p-2; carrito fila no-wrap aplastada en 375; toggle SumUp 20×36
+- Compuesto: colapsar + redirigir
+- Regla nueva: definir utilities safe-area en globals campo; CTAs terminal min-h-11; cart line `flex-col sm:flex-row`; header POS pt-safe
+- Anti-patrón: clase `pb-safe` sin util; botones de cobro solo underline text-xs
+- Guardriel: intacto (solo UI POS; sin lógica pago)
 
 ### Evo 2026-07-27 pass 43 (ui-nucleo-shell)
 - Señal: header-btn 38×38; sheet close 40; NotificationBell `p-1`; ViewShell hero reusa hero-banner pero `.view-shell-title` pisa color del gradient
