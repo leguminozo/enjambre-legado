@@ -1,10 +1,10 @@
 {
-  "index": 0,
-  "pass": 46,
-  "last_sector": "deep-followup-ui",
-  "last_commit": "6cce66c",
+  "index": 1,
+  "pass": 47,
+  "last_sector": "ui-tienda-landing",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 46: deep-followup Banco Card checklists + Logistica success tokens. Siguiente: ui-tienda-landing (#0)."
+  "notes": "Pass 47: landing safe-area hero + metrics clamp + creaciones 44. Siguiente: ui-tienda-chrome (#1)."
 }

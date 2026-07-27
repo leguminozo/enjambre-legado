@@ -11,6 +11,7 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Patrón | Síntoma | Detección | Fix canónico |
 |--------|---------|-----------|--------------|
 | Hero cue overlap | texto “Descender” / línea corta copy | absolute center + hero bajo | `min-h-[100svh]`; cue a un lado o `pb-*` en stack; hide vertical label hasta `lg` |
+| Hero cue vs home bar | línea “Descender” tapa safe area iPhone | `bottom-6` fijo | `bottom-[max(1.5rem,env(safe-area-inset-bottom))]` + hero pt/pb max(safe) |
 | Hero stack denso | CTA cortado / formula corta | `min(70dvh)` + clamp grande | bajar clamp H1; `max-w` subtitle; `mt` CTA |
 | Nav densa | links apretados 1200px | header una sola fila | collapse / drawer desde `lg`; gap tokens |
 | Metrics 2-col crush | números gigantes en mobile | `grid-cols-2` + `text-5xl` | `text-3xl sm:text-5xl`; gap |

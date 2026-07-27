@@ -43,16 +43,16 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
         </p>
       </div>
 
-      <div className="editorial-container grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="editorial-container grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 px-4 sm:px-0">
         {pageProducts.map((p) => {
           const img = p.photos[0];
           return (
             <div
               key={p.id}
-              className="group relative bg-card border border-border rounded-lg overflow-hidden hover:border-accent/35 transition-all duration-base"
+              className="group relative bg-card border border-border rounded-lg overflow-hidden hover:border-accent/35 transition-all duration-base flex flex-col"
             >
               <Link href={`/producto/${encodeURIComponent(p.slug)}`} className="block">
-        <div className="relative aspect-square bg-card overflow-hidden">
+                <div className="relative aspect-square bg-card overflow-hidden">
                   {img ? (
                     <Image
                       src={img}
@@ -68,24 +68,25 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
                   )}
                 </div>
               </Link>
-              <div className="p-3 md:p-4">
+              <div className="p-3 md:p-4 flex flex-col flex-1 min-w-0">
                 {p.format && (
-                  <span className="inline-block rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground mb-2">
+                  <span className="inline-block rounded bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground mb-2 w-fit">
                     {p.format}
                   </span>
                 )}
-                <Link href={`/producto/${encodeURIComponent(p.slug)}`}>
-                  <h3 className="font-display text-base md:text-lg font-semibold text-foreground group-hover:text-accent transition-colors duration-base leading-tight">
+                <Link href={`/producto/${encodeURIComponent(p.slug)}`} className="min-w-0">
+                  <h3 className="font-display text-sm sm:text-base md:text-lg font-semibold text-foreground group-hover:text-accent transition-colors duration-base leading-snug line-clamp-2 text-balance">
                     {p.name}
                   </h3>
                 </Link>
-                <p className="mt-1 text-sm text-muted-foreground">{formatCLP(p.price)}</p>
+                <p className="mt-1 text-sm text-muted-foreground tabular-nums">{formatCLP(p.price)}</p>
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.preventDefault();
                     add(p);
                   }}
-                  className="mt-3 w-full min-h-[44px] py-3 border border-accent text-accent text-xs uppercase tracking-widest hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-md flex items-center justify-center gap-2 font-medium"
+                  className="mt-auto pt-3 w-full min-h-[44px] py-3 border border-accent text-accent text-xs uppercase tracking-widest hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-md flex items-center justify-center gap-2 font-medium"
                 >
                   <ShoppingBag size={14} />
                   Agregar
@@ -97,34 +98,39 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4 mt-12">
+        <div className="flex items-center justify-center gap-2 sm:gap-4 mt-12 px-4">
           <button
+            type="button"
             onClick={() => setPage(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:bg-accent hover:text-accent-foreground hover:border-accent transition-all duration-base"
+            className="min-h-11 min-w-11 h-11 w-11 rounded-full border border-border flex items-center justify-center text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:bg-accent hover:text-accent-foreground hover:border-accent transition-all duration-base"
             aria-label="Página anterior"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-center">
             {Array.from({ length: totalPages }, (_, i) => (
               <button
+                type="button"
                 key={i}
                 onClick={() => setPage(i + 1)}
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-xs tracking-wider transition-all duration-base ${
+                className={`min-h-11 min-w-11 h-11 w-11 rounded-full flex items-center justify-center text-xs tracking-wider transition-all duration-base ${
                   page === i + 1
                     ? 'bg-accent text-accent-foreground font-semibold'
                     : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
                 }`}
+                aria-label={`Página ${i + 1}`}
+                aria-current={page === i + 1 ? 'page' : undefined}
               >
                 {i + 1}
               </button>
             ))}
           </div>
           <button
+            type="button"
             onClick={() => setPage(Math.min(totalPages, page + 1))}
             disabled={page === totalPages}
-            className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:bg-accent hover:text-accent-foreground hover:border-accent transition-all duration-base"
+            className="min-h-11 min-w-11 h-11 w-11 rounded-full border border-border flex items-center justify-center text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:bg-accent hover:text-accent-foreground hover:border-accent transition-all duration-base"
             aria-label="Página siguiente"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
@@ -132,10 +138,10 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
         </div>
       )}
 
-      <div className="text-center mt-8">
+      <div className="text-center mt-8 px-4">
         <Link
           href="/catalogo"
-          className="inline-flex items-center gap-3 text-editorial-xs uppercase tracking-widest text-accent hover:text-accent/80 transition-colors duration-base"
+          className="inline-flex min-h-11 items-center gap-3 text-editorial-xs uppercase tracking-widest text-accent hover:text-accent/80 transition-colors duration-base"
         >
           Ver todas las creaciones <ArrowRight size={14} />
         </Link>

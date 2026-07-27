@@ -235,7 +235,7 @@ export function TiendaLandingView({
           return (
       <section
             key="hero"
-            className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-20 pb-28 md:pb-32 min-h-[100svh] md:min-h-[100dvh]"
+            className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] pb-[max(7rem,calc(env(safe-area-inset-bottom)+5.5rem))] md:pb-32 min-h-[100svh] md:min-h-[100dvh]"
           >
             <div className="absolute inset-0 pointer-events-none" aria-hidden />
         {!isMobile && landing.show_bee_canvas ? <BeeCanvas /> : null}
@@ -288,7 +288,7 @@ export function TiendaLandingView({
           </div>
           {/* Scroll cue: side rail on md+, never center-stacked over subtitle/formula */}
           <div
-            className="pointer-events-none absolute bottom-6 right-4 sm:right-6 md:bottom-10 md:right-8 z-10 flex flex-col items-center gap-2 md:gap-3"
+            className="pointer-events-none absolute right-4 sm:right-6 md:right-8 z-10 flex flex-col items-center gap-2 md:gap-3 bottom-[max(1.5rem,env(safe-area-inset-bottom))] md:bottom-10"
             aria-hidden
           >
             <span className="hidden lg:block text-editorial-xs uppercase tracking-widest text-muted-foreground/80 [writing-mode:vertical-rl] rotate-180">
@@ -304,9 +304,9 @@ export function TiendaLandingView({
           return (
         <section key="conservation" className="editorial-section bg-surface-raised/50 border-y border-border/30">
           <div className="editorial-container">
-            <div className="text-center mb-16">
+            <div className="text-center mb-10 md:mb-16">
               <span className="editorial-kicker mb-4 block">{tConservation('kicker') || 'Conservación demostrable'}</span>
-              <h2 className="font-display text-3xl md:text-5xl font-light text-foreground mb-6">
+              <h2 className="font-display text-3xl md:text-5xl font-light text-foreground mb-4 md:mb-6 text-balance">
                 {tConservation('title') || 'Impacto sin atajos'}
               </h2>
               <p className="text-sm text-muted-foreground italic max-w-2xl mx-auto leading-relaxed">
@@ -314,18 +314,18 @@ export function TiendaLandingView({
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center mb-12 md:mb-16">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-8 sm:gap-8 text-center mb-12 md:mb-16">
               {[
                 { value: ecosystemMetrics.arboles_total, label: tConservation('treesPlanted') || 'Árboles plantados', suffix: '+' },
                 { value: ecosystemMetrics.co2_evitado_total_kg, label: tConservation('co2Avoided') || 'CO₂ evitado (kg)', suffix: '', prefix: '~' },
                 { value: ecosystemMetrics.colmenas_total, label: tConservation('hivesCustodied') || 'Colmenas custodiadas', suffix: '' },
                 { value: ecosystemMetrics.especies_nativas, label: tConservation('nativeSpecies') || 'Especies nativas', suffix: '' },
               ].map((stat) => (
-                <div key={stat.label} className="py-3 sm:py-4 px-1">
-                  <p className="counter-value font-display text-3xl sm:text-5xl md:text-6xl font-light text-accent" data-target={stat.value} data-prefix={stat.prefix || ''} data-suffix={stat.suffix}>
+                <div key={stat.label} className="py-2 sm:py-4 px-1 min-w-0">
+                  <p className="counter-value font-display text-[clamp(1.65rem,6vw,3.75rem)] sm:text-5xl md:text-6xl font-light text-accent tabular-nums tracking-tight" data-target={stat.value} data-prefix={stat.prefix || ''} data-suffix={stat.suffix}>
                     0
                   </p>
-                  <p className="text-editorial-xs uppercase tracking-widest text-muted-foreground mt-2 sm:mt-3 leading-snug">{stat.label}</p>
+                  <p className="text-editorial-xs uppercase tracking-widest text-muted-foreground mt-2 sm:mt-3 leading-snug text-balance">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -376,7 +376,10 @@ export function TiendaLandingView({
                 </>
               )}
               <div className="flex items-center justify-center gap-6 mt-6">
-                <Link href="/ciencia" className="text-editorial-xs uppercase tracking-widest text-accent hover:text-accent/80 transition-colors">
+                <Link
+                  href="/ciencia"
+                  className="inline-flex min-h-11 items-center text-editorial-xs uppercase tracking-widest text-accent hover:text-accent/80 transition-colors"
+                >
                   {tScience('viewScience') || 'Ver la ciencia detrás'} →
                 </Link>
               </div>
@@ -389,9 +392,9 @@ export function TiendaLandingView({
         if (sec.id === 'collections') {
           return (
         <section key="collections" id="collections" className="editorial-section">
-          <div className="editorial-container text-center mb-24">
+          <div className="editorial-container text-center mb-12 md:mb-20 px-4 sm:px-0">
             <span className="editorial-kicker mb-4 block">{tCollections('kicker') || 'Colecciones'}</span>
-            <h2 className="font-display text-4xl md:text-6xl font-light text-foreground mb-4">
+            <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-light text-foreground mb-4 text-balance">
               {tCollections('subtitle') || 'Explora nuestras categorías estacionales'}
             </h2>
           </div>
@@ -400,22 +403,31 @@ export function TiendaLandingView({
             {initialColecciones.map((c, index) => {
               const imageSrc = resolveCollectionImage(c);
               return (
-                <Link key={c.title} href={c.href} prefetch={false} className="group flex flex-col">
-            <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-4 sm:mb-6 rounded-lg">
-                  <Image
-                    src={imageSrc}
-                    alt={c.title}
-                    fill
-                    priority={index < 3}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-elegant"
-                  />
+                <Link
+                  key={c.title}
+                  href={c.href}
+                  prefetch={false}
+                  className="group flex flex-col rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
+                  <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-4 sm:mb-6 rounded-lg">
+                    <Image
+                      src={imageSrc}
+                      alt={c.title}
+                      fill
+                      priority={index < 3}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-elegant"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-base" />
                   </div>
                   <div className="text-center px-2">
                     <p className="editorial-kicker mb-2">{c.kicker}</p>
-                    <h3 className="font-display text-2xl md:text-3xl font-light mb-2 group-hover:text-accent transition-colors duration-base">{c.title}</h3>
-                    <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">{c.desc}</p>
+                    <h3 className="font-display text-xl sm:text-2xl md:text-3xl font-light mb-2 group-hover:text-accent transition-colors duration-base text-balance">
+                      {c.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed text-pretty">
+                      {c.desc}
+                    </p>
                   </div>
                 </Link>
               );
