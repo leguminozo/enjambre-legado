@@ -33,7 +33,7 @@
 | Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch | ✅ pass 41+48 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375 | ✅ pass 44 |
-| Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade | ✅ pass 43 |
+| Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36 | ✅ pass 43+50 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale | ✅ pass 42+49 |
 | Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10 | ✅ pass 45 |
@@ -48,6 +48,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 50 (ui-nucleo-shell)
+- Señal: `SidebarNavItem` padding inline `space-xs` pisa CSS y deja ~28px; logout sidebar `p-1.5`; avatar perfil 36; sheet search/result sin min-h explícito
+- Compuesto: colapsar + redirigir + unificar
+- Regla nueva: nav shell (SidebarSection/MobileNavSheet) min-h 44; footer logout/avatar = mismo hit ThemeToggle; no pad-xs en items de menú
+- Anti-patrón: inline `padding: var(--space-xs)` en nav-item; logout `btn-ghost p-1.5` sin min box
+- Guardriel: intacto (solo shell UI; sin WIP banco/migs)
 
 ### Evo 2026-07-27 pass 49 (ui-tienda-shop)
 - Señal: sticky cart/checkout `bottom: safe` + padding-bottom safe → doble inset; promo Aplicar/input sin min-h; pay móvil py-3; empty filter link sin hit; catalog title base en 2-col

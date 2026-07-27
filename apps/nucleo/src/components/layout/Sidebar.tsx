@@ -155,13 +155,13 @@ export function Sidebar({ onToggle, isOpen, variant = 'full' }: SidebarProps) {
         {(urlTienda || urlCampo) && (
           <div className="px-6 pb-4 text-[0.7rem] text-muted-foreground border-b border-border">
             <div className="font-semibold tracking-wider mb-2 text-[0.65rem] text-foreground">ECOSISTEMA</div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
               {urlTienda && (
                 <a
                   href={urlTienda}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-accent font-medium"
+                  className="inline-flex items-center min-h-11 text-accent font-medium"
                   onClick={() => onToggle()}
                   aria-label="Tienda web (abre en una nueva pestaña)"
                 >
@@ -173,7 +173,7 @@ export function Sidebar({ onToggle, isOpen, variant = 'full' }: SidebarProps) {
                   href={urlCampo}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-accent font-medium"
+                  className="inline-flex items-center min-h-11 text-accent font-medium"
                   onClick={() => onToggle()}
                   aria-label="Terminal Campo (POS) (abre en una nueva pestaña)"
                 >
@@ -197,15 +197,16 @@ export function Sidebar({ onToggle, isOpen, variant = 'full' }: SidebarProps) {
             <div className="sidebar-user-name">{userName}</div>
             <div className="sidebar-user-role">{userRole}</div>
           </div>
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-1 ml-auto shrink-0">
             <ThemeToggle size={20} className="text-muted-foreground hover:text-accent" />
             <button
+              type="button"
               onClick={handleLogout}
-              className="btn btn-ghost p-1.5 text-muted-foreground"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:text-accent hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               title="Cerrar sesión"
               aria-label="Cerrar sesión"
             >
-              <LogOut size={16} />
+              <LogOut size={18} />
             </button>
           </div>
         </div>

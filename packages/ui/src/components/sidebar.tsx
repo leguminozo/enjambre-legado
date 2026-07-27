@@ -109,7 +109,9 @@ export function SidebarNavItem({ item, active, onClick, linkComponent }: Sidebar
         display: 'flex',
         alignItems: 'center',
         gap: 'var(--space-sm)',
-        padding: 'var(--space-xs) var(--space-md)',
+        // Touch ≥44: inline padding was space-xs (4px) and crushed hit area under CSS .nav-item
+        minHeight: 44,
+        padding: '0.625rem var(--space-md)',
         borderRadius: 'var(--radius-sm)',
         fontSize: '0.85rem',
         fontWeight: active ? 500 : 400,
@@ -119,6 +121,7 @@ export function SidebarNavItem({ item, active, onClick, linkComponent }: Sidebar
         transition: 'all 150ms ease',
         textDecoration: 'none',
         cursor: 'pointer',
+        WebkitTapHighlightColor: 'transparent',
       }}
     >
       <span className="nav-item-icon" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>

@@ -1,10 +1,10 @@
 {
-  "index": 3,
-  "pass": 49,
-  "last_sector": "ui-tienda-shop",
-  "last_commit": "0917749",
+  "index": 4,
+  "pass": 50,
+  "last_sector": "ui-nucleo-shell",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 49: shop sticky safe-area fix, promo/pay 44, catalog type. Siguiente: ui-nucleo-shell (#3)."
+  "notes": "Pass 50: nav-item min-h 44 (SidebarNavItem inline pad), logout/avatar shell, sheet search/result. Siguiente: ui-campo-pos (#4)."
 }
