@@ -2,9 +2,9 @@
   "index": 6,
   "pass": 45,
   "last_sector": "ui-shared-tokens",
-  "last_commit": "3a33180",
+  "last_commit": "19b877d",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 45: packages/ui Calendar tokens + Button/controls min-h 44. Siguiente: deep-followup-ui (#6)."
+  "notes": "Pass 45: shared tokens (+view-loading). Siguiente: deep-followup-ui (#6)."
 }
