@@ -118,16 +118,21 @@ export function SyncQueueModal({ onClose }: SyncQueueModalProps) {
           <div className="text-xs text-muted-foreground">
             Total en cola: {items.length}
           </div>
-          <div className="flex gap-3">
-            <button className="btn btn-ghost" onClick={onClose}>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+              onClick={onClose}
+            >
               Cerrar
             </button>
-            <button 
-              className="btn btn-primary" 
+            <button
+              type="button"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
               onClick={handleRetryAll}
               disabled={isSyncing || items.length === 0}
             >
-              <RefreshCw size={14} className={`mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+              <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
               {isSyncing ? 'Sincronizando...' : 'Reintentar Todo'}
             </button>
           </div>

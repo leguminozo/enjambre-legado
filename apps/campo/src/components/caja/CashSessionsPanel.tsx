@@ -323,7 +323,13 @@ export function CashSessionsPanel() {
         title="Detalle de sesión"
         size="md"
         footer={
-          <button onClick={() => setSelectedSession(null)} className="btn btn-outline btn-sm w-full sm:w-auto">Cerrar</button>
+          <button
+            type="button"
+            onClick={() => setSelectedSession(null)}
+            className="inline-flex min-h-11 w-full sm:w-auto items-center justify-center rounded-lg border border-border px-5 text-sm font-medium text-foreground hover:bg-muted/40 transition-colors"
+          >
+            Cerrar
+          </button>
         }
       >
         {selectedSession ? (

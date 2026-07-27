@@ -7,20 +7,20 @@ import { CAMPO_NAV_ROUTES } from '@/lib/navigation/routes';
 
 function CampoLanding() {
   return (
-    <main className="min-h-dvh bg-background text-foreground selection:bg-primary selection:text-primary-foreground pb-24 font-sans">
-      <section className="relative pt-24 sm:pt-32 pb-20 px-6 sm:px-12 lg:px-24 flex flex-col items-center text-center overflow-hidden">
+    <main className="min-h-dvh bg-background text-foreground selection:bg-primary selection:text-primary-foreground pb-24 pb-[max(6rem,env(safe-area-inset-bottom))] font-sans">
+      <section className="relative pt-[max(5rem,calc(env(safe-area-inset-top)+3.5rem))] sm:pt-32 pb-16 sm:pb-20 px-6 sm:px-12 lg:px-24 flex flex-col items-center text-center overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/10 blur-[120px] -z-10" />
 
         <p className="text-xs uppercase tracking-[0.4em] text-primary font-bold mb-6">
           Enjambre Legado · Terminal de Activación
         </p>
 
-        <h1 className="text-5xl sm:text-6xl md:text-8xl font-display mb-8 max-w-5xl leading-[1.05] tracking-tight">
+        <h1 className="font-display mb-8 max-w-5xl leading-[1.05] tracking-tight text-balance text-[clamp(2.25rem,8vw,5rem)] md:text-8xl">
           Vanguardia en <br />
           <span className="italic text-primary">experiencia de marca</span>
         </h1>
 
-        <p className="text-xl sm:text-2xl text-muted-foreground mb-12 max-w-3xl font-light leading-relaxed">
+        <p className="text-base sm:text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl font-light leading-relaxed text-pretty">
           Transforma cada transacción en una conexión profunda. POS diseñado para ferias,
           pop-ups y eventos de lujo. Fidelización sin fricción mediante QR dinámico.
         </p>
@@ -28,14 +28,14 @@ function CampoLanding() {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full justify-center max-w-lg mb-16">
           <Link
             href="/pos"
-            className="inline-flex justify-center items-center gap-3 w-full sm:w-auto px-10 py-5 min-h-11 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full font-bold shadow-2xl shadow-primary/20 transition-all"
+            className="inline-flex justify-center items-center gap-3 w-full sm:w-auto px-10 py-5 min-h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full font-bold shadow-2xl shadow-primary/20 transition-all"
           >
             Abrir POS
             <Zap className="w-5 h-5 fill-current" aria-hidden />
           </Link>
           <Link
             href="/pos/catalogo"
-            className="inline-flex justify-center items-center w-full sm:w-auto px-8 py-5 min-h-11 rounded-full border border-border bg-card/50 text-muted-foreground font-medium hover:bg-card transition-all"
+            className="inline-flex justify-center items-center w-full sm:w-auto px-8 py-5 min-h-12 rounded-full border border-border bg-card/50 text-muted-foreground font-medium hover:bg-card transition-all"
           >
             Ver Catálogo
           </Link>

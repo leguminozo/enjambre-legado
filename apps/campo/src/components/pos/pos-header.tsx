@@ -31,7 +31,7 @@ export function PosHeader() {
     <header className="border-b border-border bg-background md:bg-background/80 md:backdrop-blur-md px-4 md:px-8 pt-[max(0.75rem,env(safe-area-inset-top))] pb-4 flex items-center justify-between sticky top-0 z-50 gap-3">
       <div className="flex items-center gap-4 md:gap-8 min-w-0">
         <Link href="/pos" className="group flex items-center gap-3 shrink-0 min-h-11">
-          <div className="w-9 h-9 min-w-9 bg-primary rounded-full flex items-center justify-center font-display text-primary-foreground font-bold">
+          <div className="w-11 h-11 min-w-11 bg-primary rounded-full flex items-center justify-center font-display text-primary-foreground font-bold">
             O
           </div>
           <span className="font-display text-xl tracking-tight text-foreground group-hover:text-primary transition-colors">

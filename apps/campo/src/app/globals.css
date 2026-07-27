@@ -106,6 +106,68 @@
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
   }
+  /* Panels caja/comisiones/feria — sin clases fantasma de núcleo */
+  .card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+  }
+  .input-field {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .input-field:focus {
+    border-color: hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2);
+  }
+  .stat-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+  }
+  .stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+  .stat-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+  }
+  .stat-value {
+    font-family: var(--font-cormorant), ui-serif, Georgia, serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.1;
+    color: hsl(var(--foreground));
+  }
+  .stat-label {
+    margin-top: 0.25rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: hsl(var(--muted-foreground));
+  }
+  .data-table th,
+  .data-table td {
+    padding-inline: 0.5rem;
+  }
   .salud-optima {
     color: hsl(var(--success));
   }
