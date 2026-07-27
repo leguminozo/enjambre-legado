@@ -12,25 +12,25 @@ const tierConfig: Record<GuardianTier, {
   OBRERA: {
     label: 'Obrera',
     icon: <span className="text-[0.7rem]">🐝</span>,
-    className: 'bg-stone-600/20 text-stone-300 border-stone-500/30',
+    className: 'bg-muted text-muted-foreground border-border',
     description: 'Comienzas tu camino. Cada compra genera impacto.',
   },
   'ZÁNGANO': {
     label: 'Zángano',
     icon: <span className="text-[0.7rem]">🍯</span>,
-    className: 'bg-amber-600/20 text-amber-300 border-amber-500/30',
+    className: 'bg-warning/15 text-warning border-warning/30',
     description: 'Conexión profunda con el territorio. Acceso a cosechas anticipadas.',
   },
   REINA: {
     label: 'Reina',
     icon: <span className="text-[0.7rem]">👑</span>,
-    className: 'bg-rose-600/20 text-rose-300 border-rose-500/30',
+    className: 'bg-accent/15 text-accent border-accent/30',
     description: 'Impacto regenerativo consolidado. Reservas exclusivas y contenido territorial.',
   },
   COLMENA: {
     label: 'Colmena',
     icon: <span className="text-[0.7rem]">🏛️</span>,
-    className: 'bg-violet-600/20 text-violet-300 border-violet-500/30',
+    className: 'bg-info/15 text-info border-info/30',
     description: 'Guardiana del legado. Acceso completo a la red de regeneración biocultural.',
   },
 };

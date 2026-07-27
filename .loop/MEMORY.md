@@ -36,7 +36,7 @@
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36 | ✅ pass 43+50 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale | ✅ pass 42+49 |
-| Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10 | ✅ pass 45 |
+| Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close | ✅ pass 45+52 |
 | Tokens apps | Logistica emerald → success; residual canvas/PWA hex OK | ✅ pass 46 (logistica); ⏳ baja canvas/manifest |
 
 ### Backlog go-live ops (v1.2 — congelado; no es cono del tick)
@@ -48,6 +48,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 52 (ui-shared-tokens)
+- Señal: TierBadge/Achievement stone-amber-rose-violet; ImpactStat emerald/green/amber; SelectItem py-1.5; Dialog close sin min-h; Cinematic zinc/white; DatePicker bg-black
+- Compuesto: unificar + colapsar
+- Regla nueva: badges/stats package solo muted|warning|accent|info|success|primary; menús Select/Dropdown item min-h-11; Dialog close 44
+- Anti-patrón: fork TierBadgeCompact con stone en Achievement; emerald en ImpactStat variant
+- Guardriel: intacto
 
 ### Evo 2026-07-27 pass 51 (ui-campo-pos)
 - Señal: sidebar logout `p-2` + nav sin min-h; login inputs py-2; quick-sale “Cambiar/Cancelar” text-only 10px; sync modal close p-2 / discard h-8; amber/cyan en carrito/feria

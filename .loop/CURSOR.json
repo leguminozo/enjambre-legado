@@ -1,10 +1,10 @@
 {
-  "index": 5,
-  "pass": 51,
-  "last_sector": "ui-campo-pos",
-  "last_commit": "b466f2e",
+  "index": 6,
+  "pass": 52,
+  "last_sector": "ui-shared-tokens",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 51: sidebar logout/nav 44, login min-h, quick-sale back CTAs, sync close, warning/info tokens. Siguiente: ui-shared-tokens (#5)."
+  "notes": "Pass 52: tier/impact stone→semantic; SelectItem/Dialog close 44; cinematic/date-picker tokens. Siguiente: deep-followup-ui (#6)."
 }

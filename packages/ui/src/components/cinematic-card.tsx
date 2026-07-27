@@ -22,10 +22,10 @@ export function CinematicCard({ imageUrl, title, subtitle, badgeText, variant = 
     >
       {/* Background layer */}
       {isChrome ? (
-        <div className="absolute inset-0 bg-gradient-to-br from-zinc-800 via-zinc-950 to-black transition-transform duration-700 ease-out group-hover:scale-105">
-           {/* Chrome metallic effect overlay */}
-           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent mix-blend-overlay" />
-           <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.05)_50%,transparent_75%,transparent_100%)] bg-[length:250%_250%,100%_100%] transition-[background-position] duration-700 group-hover:bg-[position:200%_0,0_0]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-card via-background to-background transition-transform duration-700 ease-out group-hover:scale-105">
+           {/* Chrome metallic effect overlay — tokens only */}
+           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-foreground/10 via-transparent to-transparent mix-blend-overlay" />
+           <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.06] via-transparent to-transparent opacity-80 transition-opacity duration-700 group-hover:opacity-100" />
         </div>
       ) : (
         <div 
@@ -39,7 +39,7 @@ export function CinematicCard({ imageUrl, title, subtitle, badgeText, variant = 
       
       <div className="relative z-10 p-6 flex flex-col gap-2">
         {badgeText && (
-          <div className="self-start px-2.5 py-1 rounded-md bg-background/30 backdrop-blur-md border border-white/10 text-xs font-semibold text-foreground mb-2 shadow-sm">
+          <div className="self-start px-2.5 py-1 rounded-md bg-background/30 backdrop-blur-md border border-border/50 text-xs font-semibold text-foreground mb-2 shadow-sm">
             {badgeText}
           </div>
         )}

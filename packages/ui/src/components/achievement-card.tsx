@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../lib/utils';
 import { ProgressRing } from './progress-ring';
-import { TierBadge } from './tier-badge';
+import { TierBadgeCompact } from './tier-badge';
 
 export interface AchievementCardProps {
   title: string;
@@ -127,17 +127,3 @@ export function AchievementCardCompact({
   );
 }
 
-function TierBadgeCompact({ tier, className = '' }: { tier: 'OBRERA' | 'ZÁNGANO' | 'REINA' | 'COLMENA'; className?: string }) {
-  const config = {
-    OBRERA: { label: 'Obrera', className: 'bg-stone-600/20 text-stone-300 border-stone-500/30' },
-    ZÁNGANO: { label: 'Zángano', className: 'bg-amber-600/20 text-amber-300 border-amber-500/30' },
-    REINA: { label: 'Reina', className: 'bg-rose-600/20 text-rose-300 border-rose-500/30' },
-    COLMENA: { label: 'Colmena', className: 'bg-violet-600/20 text-violet-300 border-violet-500/30' },
-  }[tier];
-
-  return (
-    <span className={cn('inline-flex px-1.5 py-0.5 rounded text-[0.55rem] font-semibold uppercase tracking-wider border', config.className, className)}>
-      {config.label}
-    </span>
-  );
-}

@@ -21,6 +21,10 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Hex / emerald drift | rompe dark luxury | className raw | tokens `text-primary` / `text-success` / Badge variant |
 | Go-live checklist div | ritmo distinto SII/checkout vs Banco | `bg-card rounded-2xl` ad-hoc | `Card`+`CardHeader`+lista `divide-y`+badge pill + CTAs min-h-11 |
 | Package Calendar hex | date picker gris iOS hardcode | `#4a4a4a` / `text-white` / `#a3a3a3` | `bg-card text-foreground border-border`; days `hover:bg-muted` |
+| Tier stone/amber raw | dark mode / Ley III | `bg-stone-*` `text-amber-*` en TierBadge | muted/warning/accent/info semánticos; un solo tierConfig |
+| Impact emerald drift | hex-like en package stats | `emerald-500` `green-600` variants | success/primary/warning/info/accent |
+| SelectItem densos | mis-tap opciones en móvil | `py-1.5` sin min-h | `min-h-11 py-2.5`; search input min-h-11 |
+| Dialog close &lt;44 | mis-tap cerrar modal | close icon absolute sin hit box | `min-h-11 min-w-11` absolute close |
 | Button sin min-h | sm/md &lt;44 en ops táctil | solo py-1.5/2.5 | `min-h-11` (sm/md) · `min-h-12` (lg) en sizeClasses |
 | Touch <44 | botones finos en campo/tienda/nucleo shell | py-1 / w-h 38 sin min-h | `min-h-[44px] min-w-[44px]`; header-btn/sheet close/bell 44 |
 | ViewShell hero cascade | título del hero con color foreground (no primary-fg) | `.view-shell-title` después de `.hero-title` | `.view-shell--hero .view-shell-title { color: primary-foreground }` |

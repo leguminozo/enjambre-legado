@@ -100,7 +100,11 @@ export function DatePicker({
       {open && (
         <>
           {/* Mobile Overlay (visible only on small screens) */}
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm sm:hidden" onClick={() => setOpen(false)} />
+          <div
+            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm sm:hidden"
+            onClick={() => setOpen(false)}
+            aria-hidden
+          />
           
           <div className={cn(
             "absolute z-50 mt-2", 
@@ -114,7 +118,7 @@ export function DatePicker({
               onChange={setTempDate}
               onConfirm={handleConfirm}
               onReset={handleReset}
-              className="shadow-2xl sm:shadow-lg border border-border sm:border-white/10"
+              className="shadow-2xl sm:shadow-lg border border-border"
             />
           </div>
         </>

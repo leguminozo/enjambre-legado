@@ -36,7 +36,7 @@ export { useModalFocusTrap, getFocusableElements, MODAL_FOCUSABLE_SELECTOR } fro
 export { splitCsvLine, generateCsvBlob, downloadCsv } from './lib/csv';
 export { formatDate, formatDateShort, formatCLP, fmtCLP } from './lib/format';
 export { QRCode } from './components/QRCode';
-export { TierBadge, type TierBadgeProps } from './components/tier-badge';
+export { TierBadge, TierBadgeCompact, tierConfig, type TierBadgeProps, type TierBadgeCompactProps } from './components/tier-badge';
 export { ProgressRing, type ProgressRingProps } from './components/progress-ring';
 export { AchievementCard, type AchievementCardProps } from './components/achievement-card';
 export { ImpactStatCard, ImpactStatGrid, type ImpactStatCardProps } from './components/impact-stat-card';

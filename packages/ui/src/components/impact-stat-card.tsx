@@ -21,12 +21,12 @@ type VariantKey = NonNullable<ImpactStatCardProps['variant']>;
 
 const variantConfig: Record<VariantKey, { iconBg: string; border: string }> = {
   default: { iconBg: 'bg-primary/10 text-primary', border: 'border-border' },
-  co2: { iconBg: 'bg-emerald-600/10 text-emerald-500', border: 'border-emerald-500/20' },
-  bosque: { iconBg: 'bg-green-600/10 text-green-500', border: 'border-green-500/20' },
-  azucar: { iconBg: 'bg-amber-600/10 text-amber-500', border: 'border-amber-500/20' },
-  irr: { iconBg: 'bg-violet-600/10 text-violet-500', border: 'border-violet-500/20' },
-  arboles: { iconBg: 'bg-brown-600/10 text-brown-500', border: 'border-brown-500/20' },
-  ciclos: { iconBg: 'bg-rose-600/10 text-rose-500', border: 'border-rose-500/20' },
+  co2: { iconBg: 'bg-success/10 text-success', border: 'border-success/20' },
+  bosque: { iconBg: 'bg-primary/10 text-primary', border: 'border-primary/20' },
+  azucar: { iconBg: 'bg-warning/10 text-warning', border: 'border-warning/20' },
+  irr: { iconBg: 'bg-info/10 text-info', border: 'border-info/20' },
+  arboles: { iconBg: 'bg-success/10 text-success', border: 'border-success/20' },
+  ciclos: { iconBg: 'bg-accent/10 text-accent', border: 'border-accent/20' },
 };
 
 const defaultIcons: Record<VariantKey, React.ReactNode> = {

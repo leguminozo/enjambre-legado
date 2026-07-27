@@ -97,13 +97,13 @@ function SelectSearchInput({
 }) {
   return (
     <div className="sticky top-0 z-10 bg-popover px-2 py-1.5 border-b border-border">
-      <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-surface-sunken">
-        <SearchIcon className="h-3.5 w-3.5 text-muted-foreground" />
+      <div className="flex min-h-11 items-center gap-2 px-2 py-1 rounded-md bg-surface-sunken">
+        <SearchIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
         <input
           value={query}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Buscar…"
-          className="flex-1 bg-transparent text-xs text-foreground placeholder:text-muted-foreground outline-none border-none"
+          className="flex-1 min-h-11 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none border-none"
           onClick={(e) => e.stopPropagation()}
         />
       </div>
@@ -129,7 +129,7 @@ export function SelectItem({
       value={value}
       disabled={disabled}
       className={cn(
-        "relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none",
+        "relative flex w-full min-h-11 cursor-default select-none items-center rounded-md py-2.5 pl-8 pr-2 text-sm outline-none",
         "focus:bg-accent focus:text-accent-foreground",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className,

@@ -61,7 +61,7 @@ export function DropdownMenuItem({
       onSelect={onSelect}
       disabled={disabled}
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-md px-3 py-2 text-sm outline-none transition-colors",
+        "relative flex min-h-11 cursor-default select-none items-center rounded-md px-3 py-2.5 text-sm outline-none transition-colors",
         "focus:bg-accent focus:text-accent-foreground",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         destructive && "focus:bg-destructive/10 text-destructive",
