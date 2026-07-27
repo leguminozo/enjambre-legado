@@ -470,8 +470,10 @@
 }
 
 .header-btn {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -482,6 +484,7 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   position: relative;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .header-btn:hover {
@@ -1572,8 +1575,10 @@
 }
 
 .mobile-nav-sheet-close {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: var(--radius-full);
   border: 1px solid hsl(var(--border));
   background: hsl(var(--background));
@@ -1583,6 +1588,7 @@
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mobile-nav-sheet-search {
@@ -1955,6 +1961,24 @@ body::after {
   justify-content: space-between;
   gap: var(--space-lg);
   flex-wrap: wrap;
+}
+
+/* ViewShell reusa .hero-banner; gana a .view-shell-title genérico (cascade posterior) */
+.view-shell--hero .view-shell-title,
+.view-shell--hero .hero-title {
+  color: hsl(var(--primary-foreground));
+  margin-bottom: 0;
+}
+
+.view-shell--hero .view-shell-subtitle,
+.view-shell--hero .hero-subtitle {
+  color: hsl(var(--primary-foreground) / 0.65);
+  max-width: 56ch;
+}
+
+.view-shell--hero .view-shell-actions {
+  position: relative;
+  z-index: 1;
 }
 
 .view-shell--compact {

@@ -87,23 +87,24 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
                 className="absolute top-[calc(100%+12px)] right-0 w-[min(340px,calc(100vw-2rem))] bg-card border border-border rounded-lg shadow-xl z-60 overflow-hidden animate-in"
               >
                 <div className="p-4 border-b border-border">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-background rounded-sm border border-border">
-                    <Search size={16} className="text-muted-foreground" />
+                  <div className="flex items-center gap-2 min-h-11 px-3 bg-background rounded-sm border border-border">
+                    <Search size={16} className="text-muted-foreground shrink-0" />
                     <input
                       type="text"
                       placeholder="Buscar en Enjambre Legado..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       aria-label="Buscar en Enjambre Legado"
-                      className="border-none bg-transparent outline-none flex-1 font-datos text-[0.85rem] text-foreground"
+                      className="border-none bg-transparent outline-none flex-1 min-h-11 font-datos text-[0.85rem] text-foreground"
                     />
                     {searchQuery && (
                       <button
+                        type="button"
                         onClick={() => setSearchQuery('')}
                         aria-label="Limpiar búsqueda"
-                        className="bg-muted/50 border-none cursor-pointer text-muted-foreground p-1 rounded-full flex items-center justify-center"
+                        className="bg-muted/50 border-none cursor-pointer text-muted-foreground min-h-11 min-w-11 rounded-full flex items-center justify-center shrink-0"
                       >
-                        <X size={12} />
+                        <X size={14} />
                       </button>
                     )}
                   </div>

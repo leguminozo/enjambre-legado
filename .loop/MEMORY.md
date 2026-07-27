@@ -33,7 +33,8 @@
 | Tienda header | nav densa en desktop medio; spacing links | ✅ pass 41 (nav lg+ · touch · safe-area WA) |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | touch ≥44, safe-area, terminal flow copy | ⏳ |
-| Nucleo panels | checklists go-live ritmo/cards consistentes | ⏳ |
+| Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade | ✅ pass 43 |
+| Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ⏳ baja |
 | Tienda shop | catálogo 2-col apretado; chips &lt;44; cart bar CTA | ✅ pass 42 |
 | Tokens | residual hex/emerald en views legacy | ⏳ baja |
 
@@ -46,6 +47,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 43 (ui-nucleo-shell)
+- Señal: header-btn 38×38; sheet close 40; NotificationBell `p-1`; ViewShell hero reusa hero-banner pero `.view-shell-title` pisa color del gradient
+- Compuesto: colapsar + redirigir + unificar
+- Regla nueva: chrome shell min 44×44 (header-btn, sheet close, bell); `.view-shell--hero .view-shell-title` fuerza primary-foreground
+- Anti-patrón: icon btn shell &lt;44; ViewShell hero sin override de color post-cascade
+- Guardriel: intacto (solo shell UI; sin WIP banco/migs)
 
 ### Evo 2026-07-19 pass 42 (ui-tienda-shop)
 - Señal: catálogo 2-col con tipografía grande; filtros min-h 40; cart bar CTA chico; checkout densidades

@@ -190,14 +190,15 @@ export function NotificationBell({
   return (
     <div className={`relative ${className ?? ''}`}>
       <button
+        type="button"
         onClick={handleToggle}
         aria-label="Notificaciones"
         aria-expanded={open}
-        className="relative p-1 text-muted-foreground transition-colors hover:text-accent"
+        className="relative inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/50 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Bell size={20} strokeWidth={1.6} />
         {unread > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold tabular-nums text-accent-foreground">
+          <span className="absolute top-1 right-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold tabular-nums text-accent-foreground">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
