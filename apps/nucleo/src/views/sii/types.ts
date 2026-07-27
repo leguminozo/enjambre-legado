@@ -149,10 +149,10 @@ export type RcvRegistroRow = {
 export function gastoEstadoBadge(estado: GastoExtranjeroEstado | string) {
   const map: Record<string, { icon: React.ReactNode; className: string; label: string }> = {
     parseado: { icon: React.createElement(Clock, { size: 14 }), className: "bg-surface-raised text-muted-foreground border-border", label: "Parseado" },
-    pendiente_revision: { icon: React.createElement(AlertCircle, { size: 14 }), className: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20", label: "Revisión" },
+    pendiente_revision: { icon: React.createElement(AlertCircle, { size: 14 }), className: "bg-warning/10 text-warning border-warning/20", label: "Revisión" },
     rechazado_parse: { icon: React.createElement(AlertCircle, { size: 14 }), className: "bg-destructive/10 text-destructive border-destructive/20", label: "Parse fallido" },
     facturado: { icon: React.createElement(FileText, { size: 14 }), className: "bg-primary/10 text-primary border-primary/20", label: "Facturado" },
-    enviado_sii: { icon: React.createElement(Send, { size: 14 }), className: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20", label: "Enviado SII" },
+    enviado_sii: { icon: React.createElement(Send, { size: 14 }), className: "bg-warning/10 text-warning border-warning/20", label: "Enviado SII" },
     aceptado_sii: { icon: React.createElement(CheckCircle2, { size: 14 }), className: "bg-primary/10 text-primary border-primary/20", label: "Aceptado SII" },
     rechazado_sii: { icon: React.createElement(AlertCircle, { size: 14 }), className: "bg-destructive/10 text-destructive border-destructive/20", label: "Rechazado SII" },
   };

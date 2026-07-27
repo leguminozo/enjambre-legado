@@ -145,18 +145,22 @@ export function DireccionesClient({ initialData }: { initialData: ClienteDirecci
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 shrink-0">
                   <button
+                    type="button"
                     onClick={() => setIsEditing(dir.id)}
-                    className="p-2 text-muted-foreground hover:text-accent hover:bg-accent/10 rounded-lg transition-colors"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-accent hover:bg-accent/10 rounded-lg transition-colors"
                     title="Editar"
+                    aria-label={`Editar dirección ${dir.etiqueta}`}
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleDelete(dir.id)}
-                    className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                     title="Eliminar"
+                    aria-label={`Eliminar dirección ${dir.etiqueta}`}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

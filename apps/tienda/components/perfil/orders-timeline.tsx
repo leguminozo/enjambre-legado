@@ -129,7 +129,7 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
                     href={`${process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3000'}/api/sii/boletas/${order.dte.buyOrder}/xml`}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-surface-raised border border-border rounded-xl text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/30 transition-all"
+                    className="inline-flex min-h-11 items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-surface-raised border border-border rounded-xl text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/30 transition-all"
                   >
                     <FileText size={14} />
                     <span>Boleta Electrónica</span>
@@ -139,7 +139,7 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
                 {order.lotes && order.lotes.length > 0 ? (
                   <Link
                     href={`/perfil/trazabilidad?lote=${encodeURIComponent(order.lotes[0])}`}
-                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-accent/20 border border-accent/30 text-accent rounded-xl hover:bg-accent hover:text-accent-foreground hover:shadow-glow transition-all"
+                    className="inline-flex min-h-11 items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-accent/20 border border-accent/30 text-accent rounded-xl hover:bg-accent hover:text-accent-foreground hover:shadow-glow transition-all"
                   >
                     <ShieldCheck size={14} />
                     <span>Trazabilidad</span>
@@ -148,14 +148,14 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
 
                 {status.tone === 'success' ? (
                   order.resena ? (
-                    <span className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-success/10 border border-success/20 text-success rounded-xl">
+                    <span className="inline-flex min-h-11 items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-success/10 border border-success/20 text-success rounded-xl">
                       <Star size={14} className="fill-success" />
                       <span>{order.resena.estado === 'aprobada' ? 'Reseña publicada' : 'Reseña en moderación'}</span>
                     </span>
                   ) : order.items && order.items.length > 0 && order.items[0]?.slug ? (
                     <Link
                       href={`/producto/${order.items[0].slug}#resenas`}
-                      className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-surface-raised border border-border rounded-xl text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/30 transition-all"
+                      className="inline-flex min-h-11 items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-surface-raised border border-border rounded-xl text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/30 transition-all"
                     >
                       <MessageCircle size={14} />
                       <span>Escribir reseña</span>

@@ -38,6 +38,8 @@
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale | ✅ pass 42+49 |
 | Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close | ✅ pass 45+52 |
 | Tokens apps | Logistica emerald → success; residual canvas/PWA hex OK | ✅ pass 46 (logistica); ⏳ baja canvas/manifest |
+| SII bandeja amber | confidence/estado badges amber raw | ✅ pass 53 |
+| Tienda perfil residual | direcciones hover-only p-2; reposición/pedidos py-2; notif switch 20px | ✅ pass 53 |
 
 ### Backlog go-live ops (v1.2 — congelado; no es cono del tick)
 
@@ -48,6 +50,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 53 (deep-followup-ui)
+- Señal: BandejaFiscal/gasto badges `amber-*`; direcciones edit/delete solo hover + p-2; reposición/pedidos py-2; notif switch 20px alto
+- Compuesto: acrecer + unificar + colapsar
+- Regla nueva: estados go-live warning = `text-warning`/`bg-warning/*`; acciones perfil siempre visibles min-h-11 (no hover-only)
+- Anti-patrón: `group-hover:opacity-0` en CTAs táctiles de direcciones; switch custom h-5
+- Guardriel: intacto (solo UI; no WIP banco)
 
 ### Evo 2026-07-27 pass 52 (ui-shared-tokens)
 - Señal: TierBadge/Achievement stone-amber-rose-violet; ImpactStat emerald/green/amber; SelectItem py-1.5; Dialog close sin min-h; Cinematic zinc/white; DatePicker bg-black

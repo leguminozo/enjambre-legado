@@ -54,7 +54,7 @@ function ConfidenceBadge({ confidence }: { confidence: ParseConfidenceView }) {
   const pct = Math.round(confidence.score * 100);
   const tone =
     confidence.requiresReview
-      ? "text-amber-700 dark:text-amber-400 bg-amber-500/10 border-amber-500/20"
+      ? "text-warning bg-warning/10 border-warning/20"
       : "text-primary bg-primary/10 border-primary/20";
 
   return (
@@ -77,7 +77,7 @@ function ConfidenceBadge({ confidence }: { confidence: ParseConfidenceView }) {
               estado === "ok"
                 ? "border-primary/30 text-primary"
                 : estado === "inferido"
-                  ? "border-amber-500/30 text-amber-700 dark:text-amber-400"
+                  ? "border-warning/30 text-warning"
                   : "border-destructive/30 text-destructive"
             }`}
           >
@@ -178,7 +178,7 @@ function ProcesarResultCard({
           )}
         </div>
         {result.warnings?.map((w) => (
-          <p key={w} className="text-xs text-amber-600 dark:text-amber-400">
+          <p key={w} className="text-xs text-warning">
             {w}
           </p>
         ))}
@@ -461,7 +461,7 @@ export function BandejaFiscalTab() {
               {parseConfidence && <ConfidenceBadge confidence={parseConfidence} />}
               <GastoPreviewCard gasto={gastoParseado} />
               {parseConfidence?.requiresReview && (
-                <label className="flex items-start gap-3 text-sm text-muted-foreground border border-amber-500/20 bg-amber-500/5 rounded-lg p-3">
+                <label className="flex items-start gap-3 text-sm text-muted-foreground border border-warning/20 bg-warning/5 rounded-lg p-3">
                   <input
                     type="checkbox"
                     checked={forceConfirm}
@@ -563,7 +563,7 @@ export function BandejaFiscalTab() {
               )}
               {uploadMeta && !gastoParseado && (
                 <div className="space-y-3">
-                  <p className="text-sm text-amber-600 dark:text-amber-400">
+                  <p className="text-sm text-warning">
                     No se pudo parsear automáticamente. Pega o edita el texto extraído y analiza de
                     nuevo.
                   </p>

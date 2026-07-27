@@ -92,7 +92,7 @@ export function ReplenishmentActiveCard({
               type="button"
               disabled={loading}
               onClick={onResume}
-              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-foreground transition hover:border-accent/40 hover:text-accent disabled:opacity-50"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 py-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-foreground transition hover:border-accent/40 hover:text-accent disabled:opacity-50"
             >
               <Play size={14} />
               {t('resume')}
@@ -103,7 +103,7 @@ export function ReplenishmentActiveCard({
               type="button"
               disabled={loading}
               onClick={onPause}
-              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-foreground transition hover:border-accent/40 hover:text-accent disabled:opacity-50"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 py-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-foreground transition hover:border-accent/40 hover:text-accent disabled:opacity-50"
             >
               <Pause size={14} />
               {t('pause')}
@@ -113,7 +113,7 @@ export function ReplenishmentActiveCard({
             type="button"
             disabled={loading}
             onClick={onCancel}
-            className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-muted-foreground transition hover:border-destructive/40 hover:text-destructive disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 py-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-muted-foreground transition hover:border-destructive/40 hover:text-destructive disabled:opacity-50"
           >
             <XCircle size={14} />
             {tRoot('cancelAction')}

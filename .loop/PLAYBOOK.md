@@ -20,6 +20,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Science 3-col tablet | párrafos aplastados | `md:grid-cols-3` | `lg:grid-cols-3` |
 | Hex / emerald drift | rompe dark luxury | className raw | tokens `text-primary` / `text-success` / Badge variant |
 | Go-live checklist div | ritmo distinto SII/checkout vs Banco | `bg-card rounded-2xl` ad-hoc | `Card`+`CardHeader`+lista `divide-y`+badge pill + CTAs min-h-11 |
+| SII amber badges | dark mode roto en bandeja fiscal | `text-amber-*` estados revisión | `text-warning bg-warning/10 border-warning/*` |
+| Perfil hover-only actions | edit/delete direcciones invisibles en touch | `opacity-0 group-hover` + p-2 | siempre visibles `min-h-11 min-w-11` |
+| Custom notif switch | hit 40×20 | track h-5 w-10 | track min-h-11 w-[52px] knob h-5 (como Switch package) |
 | Package Calendar hex | date picker gris iOS hardcode | `#4a4a4a` / `text-white` / `#a3a3a3` | `bg-card text-foreground border-border`; days `hover:bg-muted` |
 | Tier stone/amber raw | dark mode / Ley III | `bg-stone-*` `text-amber-*` en TierBadge | muted/warning/accent/info semánticos; un solo tierConfig |
 | Impact emerald drift | hex-like en package stats | `emerald-500` `green-600` variants | success/primary/warning/info/accent |

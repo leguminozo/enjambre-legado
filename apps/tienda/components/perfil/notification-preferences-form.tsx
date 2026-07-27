@@ -53,13 +53,13 @@ function PreferenceToggle({
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!enabled)}
-      className={`w-10 h-5 rounded-full relative transition-colors ${
+      className={`relative inline-flex h-11 min-h-[44px] w-[52px] shrink-0 items-center rounded-full px-1 transition-colors ${
         enabled ? 'bg-accent' : 'bg-muted'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
     >
-      <div
-        className={`absolute top-1 w-3 h-3 bg-foreground rounded-full transition-all ${
-          enabled ? 'right-1' : 'left-1'
+      <span
+        className={`block h-5 w-5 rounded-full bg-background shadow-sm transition-transform ${
+          enabled ? 'translate-x-[1.125rem]' : 'translate-x-0'
         }`}
       />
     </button>
