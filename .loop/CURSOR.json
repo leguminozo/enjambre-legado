@@ -1,10 +1,10 @@
 {
-  "index": 2,
-  "pass": 62,
-  "last_sector": "ui-tienda-chrome",
-  "last_commit": "62d48db",
+  "index": 3,
+  "pass": 63,
+  "last_sector": "ui-tienda-shop",
+  "last_commit": "23f2251",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 62: auth CTAs tienda, perfil safe-top, install/cart stack. Siguiente: ui-tienda-shop (#2)."
+  "notes": "Pass 63: rese\u00f1as/QR/checkout auth+courier+resultado + carrito. Siguiente: ui-nucleo-shell (#3)."
 }

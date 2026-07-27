@@ -62,6 +62,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Editor CMS 36px ops | mis-tap reorder/eye/delete / Añadir | `min-h-[36px]` + empty text-only | item ops + chrome toggles `min-h-11 min-w-11`; empty CTA min-h-11 |
 | Perfil text-only residual | reposición pedidos / tracking / reseña | `hover:underline` sin min-h | links min-h-11; chips legado como creador-portal |
 | Wallet py densos | Apple/Google wallet &lt;44 | `py-2.5` only | `min-h-11` on wallet buttons |
+| Reseñas PDP densas | tabs/escribir/cargar &lt;44 | py-1.5 / py-2 | chips y CTAs min-h-11 |
+| Checkout post-pago | CTAs resultado finos | py-3 sin min-h | primary min-h-12; secondary min-h-11 |
+| Checkout auth links | login puntos/legado text-only | underline solo | `inline-flex min-h-11` |
 | Canvas/cursor noise | círculo vacío / cursor custom | BeeCanvas on desktop | gate `show_*` chrome o no render mobile |
 
 ---

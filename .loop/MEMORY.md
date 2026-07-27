@@ -35,7 +35,7 @@
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos | ✅ pass 44+51+58 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos | ✅ pass 43+50+57 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
-| Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual | ✅ pass 42+49+56 |
+| Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual; reseñas/QR/checkout resultado | ✅ pass 42+49+56+63 |
 | Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close; residual toast/DataTable checkbox/pill | ✅ pass 45+52+59 |
 | Tokens apps | Logistica emerald → success; residual canvas/PWA hex OK | ✅ pass 46 (logistica); ⏳ baja canvas/manifest |
 | SII bandeja amber | confidence/estado badges amber raw | ✅ pass 53 |
@@ -51,6 +51,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 63 (ui-tienda-shop)
+- Señal: reseñas tabs/CTA/load py densos; QR cámara sin min-h; checkout login/courier/buyer links; resultado post-pago CTAs py-3 sin min-h; carrito title link sin hit
+- Compuesto: colapsar + redirigir
+- Regla nueva: funnel post-pago (resultado) min-h-11/12; reseñas PDP chips+CTA 44; courier select min-h-11
+- Anti-patrón: tabs reseña `py-1.5` sin min-h; resultado solo `py-3` en primary CTA
+- Guardriel: intacto (solo UI; no lógica pagos)
 
 ### Evo 2026-07-27 pass 62 (ui-tienda-chrome)
 - Señal: recuperar/reset `btn btn-primary` no existe en tienda; login/register cross-links sin min-h; perfil-mobile-header sticky sin safe-top; sidebar guardián sin pad notch; install overlap cart-bar
