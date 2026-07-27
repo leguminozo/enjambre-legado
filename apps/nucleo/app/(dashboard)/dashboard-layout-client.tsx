@@ -86,18 +86,19 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
                 aria-label="Buscador"
                 className="absolute top-[calc(100%+12px)] right-0 w-[min(340px,calc(100vw-2rem))] bg-card border border-border rounded-lg shadow-xl z-60 overflow-hidden animate-in"
               >
-                <div className="p-4 border-b border-border">
+                <div className="p-3 sm:p-4 border-b border-border">
                   <div className="flex items-center gap-2 min-h-11 px-3 bg-background rounded-sm border border-border">
-                    <Search size={16} className="text-muted-foreground shrink-0" />
+                    <Search size={16} className="text-muted-foreground shrink-0" aria-hidden />
                     <input
-                      type="text"
+                      type="search"
                       placeholder="Buscar en Enjambre Legado..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       aria-label="Buscar en Enjambre Legado"
+                      autoFocus
                       className="border-none bg-transparent outline-none flex-1 min-h-11 font-datos text-[0.85rem] text-foreground"
                     />
-                    {searchQuery && (
+                    {searchQuery ? (
                       <button
                         type="button"
                         onClick={() => setSearchQuery('')}
@@ -105,6 +106,15 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
                         className="bg-muted/50 border-none cursor-pointer text-muted-foreground min-h-11 min-w-11 rounded-full flex items-center justify-center shrink-0"
                       >
                         <X size={14} />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setSearchOpen(false)}
+                        aria-label="Cerrar buscador"
+                        className="bg-transparent border-none cursor-pointer text-muted-foreground min-h-11 min-w-11 rounded-full flex items-center justify-center shrink-0 hover:text-foreground"
+                      >
+                        <X size={16} />
                       </button>
                     )}
                   </div>

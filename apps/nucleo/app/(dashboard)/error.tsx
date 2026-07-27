@@ -28,8 +28,9 @@ export default function DashboardError({
           </p>
         </div>
         <button
+          type="button"
           onClick={reset}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+          className="inline-flex min-h-12 items-center justify-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
         >
           <RotateCcw size={16} />
           Reintentar

@@ -36,33 +36,32 @@ export function AuthHero({ onStart }: AuthHeroProps) {
   }, []);
 
   return (
-    <div 
+    <div
       ref={containerRef}
-      className="flex flex-col items-center justify-center text-center p-8 z-10 max-w-2xl"
+      className="flex flex-col items-center justify-center text-center px-6 py-10 sm:p-8 z-10 max-w-2xl pt-[max(2.5rem,env(safe-area-inset-top))]"
     >
-      <h1 
+      <h1
         ref={titleRef}
-        className="text-7xl font-existencial text-primary-foreground mb-6 italic m-0"
-        style={{ textShadow: '0 4px 30px hsl(var(--background) / 0.6)', lineHeight: 1, fontSize: '4.5rem' }}
+        className="font-existencial text-primary-foreground mb-6 italic m-0 text-balance text-[clamp(2.25rem,10vw,4.5rem)] leading-[1.05]"
+        style={{ textShadow: '0 4px 30px hsl(var(--background) / 0.6)' }}
       >
-        El Bosque <br /> 
+        El Bosque <br />
         <span className="text-accent">te reconoce.</span>
       </h1>
-      
-      <p 
+
+      <p
         ref={textRef}
-        className="text-xl font-datos text-primary-foreground mb-10 max-w-lg m-0"
-        style={{ opacity: 0.7, lineHeight: 1.6 }}
+        className="text-base sm:text-xl font-datos text-primary-foreground mb-10 max-w-lg m-0 text-pretty leading-relaxed opacity-70"
       >
-        Bienvenido al núcleo digital de la regeneración biocultural. 
+        Bienvenido al núcleo digital de la regeneración biocultural.
         Donde cada rastro cuenta, y cada abeja es un legado.
       </p>
 
       <button
         ref={buttonRef}
+        type="button"
         onClick={onStart}
-        className="btn btn-gold px-12 py-4 rounded-full"
-        style={{ fontSize: '1.1rem', fontWeight: 700 }}
+        className="btn btn-gold min-h-12 px-10 sm:px-12 py-4 rounded-full text-base font-bold"
       >
         Iniciar Sincronización
       </button>
