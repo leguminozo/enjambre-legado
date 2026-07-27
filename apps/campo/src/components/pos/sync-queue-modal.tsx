@@ -54,7 +54,12 @@ export function SyncQueueModal({ onClose }: SyncQueueModalProps) {
             <h2 className="text-lg font-display font-bold text-foreground">Cola de Sincronización</h2>
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Gestión Offline-First</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground">
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex min-h-11 min-w-11 items-center justify-center hover:bg-muted rounded-full transition-colors text-muted-foreground"
+            aria-label="Cerrar cola de sincronización"
+          >
             <X size={18} />
           </button>
         </div>
@@ -95,8 +100,9 @@ export function SyncQueueModal({ onClose }: SyncQueueModalProps) {
                   </div>
                   {item.status === 'error' && (
                     <button
+                      type="button"
                       onClick={() => item.id && handleDiscard(item.id)}
-                      className="shrink-0 btn btn-ghost text-destructive hover:bg-destructive/10 hover:text-destructive h-8 px-3 text-xs"
+                      className="shrink-0 inline-flex min-h-11 items-center px-3 text-xs font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                     >
                       <Trash2 size={14} className="mr-1.5" />
                       Descartar

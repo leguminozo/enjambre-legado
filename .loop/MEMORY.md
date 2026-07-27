@@ -32,7 +32,7 @@
 | Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm | ✅ pass 40+47 |
 | Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch | ✅ pass 41+48 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
-| Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375 | ✅ pass 44 |
+| Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan | ✅ pass 44+51 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36 | ✅ pass 43+50 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale | ✅ pass 42+49 |
@@ -48,6 +48,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 51 (ui-campo-pos)
+- Señal: sidebar logout `p-2` + nav sin min-h; login inputs py-2; quick-sale “Cambiar/Cancelar” text-only 10px; sync modal close p-2 / discard h-8; amber/cyan en carrito/feria
+- Compuesto: colapsar + redirigir + unificar
+- Regla nueva: Campo chrome (sidebar/login/quick-sale steps) min-h-11; warnings POS = `text-warning` / `text-info` no amber/cyan
+- Anti-patrón: step back del POS como `text-[10px]` sin hit; logout shell p-2 residual tras pass44
+- Guardriel: intacto (solo UI; sin lógica pago)
 
 ### Evo 2026-07-27 pass 50 (ui-nucleo-shell)
 - Señal: `SidebarNavItem` padding inline `space-xs` pisa CSS y deja ~28px; logout sidebar `p-1.5`; avatar perfil 36; sheet search/result sin min-h explícito

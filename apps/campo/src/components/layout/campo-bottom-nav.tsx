@@ -28,7 +28,7 @@ export function CampoBottomNav() {
               }`}
             >
               <div
-                className={`flex items-center justify-center min-h-9 min-w-9 rounded-full transition-colors ${
+                className={`flex items-center justify-center min-h-11 min-w-11 rounded-full transition-colors ${
                   isActive ? 'bg-accent/15' : 'bg-transparent'
                 }`}
               >

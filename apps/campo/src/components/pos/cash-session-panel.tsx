@@ -72,11 +72,12 @@ export function CashSessionPanel() {
             value={openingCash}
             onChange={(e) => setOpeningCash(e.target.value)}
             placeholder="0"
-            className="w-full bg-background/40 border border-border rounded-lg px-4 py-3 text-foreground text-lg font-medium focus:border-primary focus:outline-none transition-colors"
+            className="w-full min-h-11 bg-background/40 border border-border rounded-lg px-4 py-3 text-foreground text-lg font-medium focus:border-primary focus:outline-none transition-colors"
           />
         </div>
 
         <button
+          type="button"
           disabled={actionLoading || !openingCash}
           onClick={async () => {
             setActionLoading(true);
@@ -89,7 +90,7 @@ export function CashSessionPanel() {
               setActionLoading(false);
             }
           }}
-          className="w-full py-3 bg-primary text-primary-foreground font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-primary/90 transition-all disabled:opacity-40"
+          className="w-full min-h-12 py-3 bg-primary text-primary-foreground font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-primary/90 transition-all disabled:opacity-40"
         >
           {actionLoading ? 'Abriendo...' : 'Abrir Caja'}
         </button>
@@ -143,8 +144,8 @@ export function CashSessionPanel() {
           )}
           {lastCommission.channel_rate !== null && (
             <div className="flex items-center gap-1.5">
-              <Radio className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="text-[10px] text-cyan-400 font-bold">{(lastCommission.channel_rate * 100).toFixed(0)}%</span>
+              <Radio className="w-3.5 h-3.5 text-info" />
+              <span className="text-[10px] text-info font-bold">{(lastCommission.channel_rate * 100).toFixed(0)}%</span>
             </div>
           )}
           <span className="text-[9px] text-muted-foreground uppercase tracking-wider ml-auto">Última venta</span>

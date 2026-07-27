@@ -30,6 +30,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Sticky double safe | cart/checkout bar flota demasiado | `bottom: safe` + `padding-bottom: safe` | `bottom: 0; padding-bottom: calc(0.5rem + var(--safe-bottom))` |
 | pb-safe fantasma | bottom nav sin padding iPhone | clase `pb-safe` sin util CSS | `@layer utilities { .pb-safe { padding-bottom: env(...) } }` + shell `pb-[calc(4rem+env(...))]` |
 | Terminal CTA text-only | mis-tap cancelar/reintentar SumUp | `text-xs hover:underline` sin min-h | `min-h-11` + border hit area en flow terminal |
+| Quick-sale step back | mis-tap cancelar/cambiar canal|qty | `text-[10px]` sin min-h | `min-h-11` full-width step backs |
+| Campo sidebar logout | mis-tap cerrar sesión desktop shell | `p-2` + icon 16 | `min-h-11 min-w-11`; nav items `min-h-11` |
+| Campo login densos | teclado/dedo falla en feria | inputs `py-2` submit sin min-h | inputs `min-h-11`; submit `min-h-12` |
 | POS cart row crush | qty/precio/QR salen del card en 375 | `flex items-center gap-6` single row | `flex-col sm:flex-row` + icon btns 44 |
 | Canvas/cursor noise | círculo vacío / cursor custom | BeeCanvas on desktop | gate `show_*` chrome o no render mobile |
 

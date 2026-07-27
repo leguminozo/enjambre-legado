@@ -376,8 +376,8 @@ export default function CarritoView() {
             </div>
 
             {channel === 'feria' && feriaActiva && consignacionIssues.length > 0 && (
-              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-2">
-                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-widest">
+              <div className="rounded-xl border border-warning/30 bg-warning/10 p-4 space-y-2">
+                <div className="flex items-center gap-2 text-warning text-xs font-bold uppercase tracking-widest">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
                   Consignación insuficiente
                 </div>

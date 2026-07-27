@@ -55,7 +55,7 @@ export function FeriaContextBanner() {
       </div>
 
       {consignaciones.length === 0 && (
-        <div className="max-w-5xl mx-auto mt-2 flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
+        <div className="max-w-5xl mx-auto mt-2 flex items-center gap-2 text-xs text-warning">
           <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
           No hay productos consignados para este evento. Las ventas feria serán bloqueadas.
         </div>

@@ -80,7 +80,7 @@ export function LoginForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors"
+          className="w-full min-h-11 rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors"
         />
       </div>
       <div>
@@ -94,14 +94,14 @@ export function LoginForm() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors"
+          className="w-full min-h-11 rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors"
         />
       </div>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-primary py-3 text-sm font-medium text-primary-foreground disabled:opacity-50"
+        className="w-full min-h-12 rounded-xl bg-primary py-3 text-sm font-medium text-primary-foreground disabled:opacity-50"
       >
         {loading ? 'Entrando…' : 'Entrar'}
       </button>

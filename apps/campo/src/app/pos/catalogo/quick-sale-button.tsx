@@ -185,7 +185,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
             )}
             {lastCommissionDetail.channel_rate !== null && (
               <div className="flex items-center justify-between text-[10px]">
-                <span className="flex items-center gap-1.5 text-cyan-400">
+                <span className="flex items-center gap-1.5 text-info">
                   <Radio className="w-3 h-3" />
                   Canal {channel}
                 </span>
@@ -254,7 +254,11 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
             </button>
           ))}
         </div>
-        <button onClick={() => setStep('qty')} className="w-full text-center text-[10px] text-muted-foreground uppercase tracking-widest hover:text-muted-foreground transition-colors">
+        <button
+          type="button"
+          onClick={() => setStep('qty')}
+          className="w-full min-h-11 inline-flex items-center justify-center text-center text-[10px] text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors"
+        >
           Cambiar cantidad
         </button>
       </div>
@@ -271,6 +275,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
           {paymentMethods.map((pm) => (
             <button
               key={pm.value}
+              type="button"
               disabled={loading}
               onClick={() => void handlePayment(pm.value)}
               className="flex flex-col items-center gap-1.5 rounded-xl min-h-[44px] bg-card border border-border px-3 py-3 text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all disabled:opacity-40"
@@ -285,7 +290,11 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
             {saleError}
           </p>
         )}
-        <button onClick={() => setStep('channel')} className="w-full text-center text-[10px] text-muted-foreground uppercase tracking-widest hover:text-muted-foreground transition-colors">
+        <button
+          type="button"
+          onClick={() => setStep('channel')}
+          className="w-full min-h-11 inline-flex items-center justify-center text-center text-[10px] text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors"
+        >
           Cambiar canal
         </button>
       </div>
@@ -296,11 +305,21 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     return (
       <div className="mt-4 space-y-3">
         <div className="flex items-center justify-center gap-4">
-          <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-11 h-11 rounded-full bg-card border border-border text-primary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all text-lg font-bold">
+          <button
+            type="button"
+            onClick={() => setQty(Math.max(1, qty - 1))}
+            className="min-h-11 min-w-11 w-11 h-11 rounded-full bg-card border border-border text-primary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all text-lg font-bold"
+            aria-label="Restar unidad"
+          >
             -
           </button>
           <span className="text-2xl font-mono font-bold text-foreground w-10 text-center">{qty}</span>
-          <button onClick={() => setQty(qty + 1)} className="w-11 h-11 rounded-full bg-card border border-border text-primary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all text-lg font-bold">
+          <button
+            type="button"
+            onClick={() => setQty(qty + 1)}
+            className="min-h-11 min-w-11 w-11 h-11 rounded-full bg-card border border-border text-primary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-all text-lg font-bold"
+            aria-label="Sumar unidad"
+          >
             +
           </button>
         </div>
@@ -308,13 +327,18 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
           Total: <strong className="text-foreground">${(precio * qty).toLocaleString('es-CL')}</strong>
         </p>
         <button
+          type="button"
           onClick={() => setStep('channel')}
-          className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 py-3 text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all"
+          className="w-full min-h-11 flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 py-3 text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all"
         >
           <Zap className="w-3 h-3" />
           Canal de venta
         </button>
-        <button onClick={() => { setStep('idle'); setQty(1); setChannel('feria'); }} className="w-full text-center text-[10px] text-muted-foreground uppercase tracking-widest hover:text-muted-foreground transition-colors">
+        <button
+          type="button"
+          onClick={() => { setStep('idle'); setQty(1); setChannel('feria'); }}
+          className="w-full min-h-11 inline-flex items-center justify-center text-center text-[10px] text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors"
+        >
           Cancelar
         </button>
       </div>

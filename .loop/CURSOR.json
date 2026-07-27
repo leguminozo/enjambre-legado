@@ -1,10 +1,10 @@
 {
-  "index": 4,
-  "pass": 50,
-  "last_sector": "ui-nucleo-shell",
-  "last_commit": "6dba9d6",
+  "index": 5,
+  "pass": 51,
+  "last_sector": "ui-campo-pos",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 50: nav-item min-h 44 (SidebarNavItem inline pad), logout/avatar shell, sheet search/result. Siguiente: ui-campo-pos (#4)."
+  "notes": "Pass 51: sidebar logout/nav 44, login min-h, quick-sale back CTAs, sync close, warning/info tokens. Siguiente: ui-shared-tokens (#5)."
 }
