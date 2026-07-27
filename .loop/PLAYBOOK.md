@@ -17,6 +17,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Hero stack denso | CTA cortado / formula corta | `min(70dvh)` + clamp grande | bajar clamp H1; `max-w` subtitle; `mt` CTA |
 | Nav densa | links apretados 1200px | header una sola fila | collapse / drawer desde `lg`; gap tokens |
 | Announcement dismiss | usuario no puede cerrar en touch | solo doble-clic / hint hover | botón × min-h-11 con aria-label en carousel |
+| PWA install prompt | Instalar/cerrar &lt;44 en móvil | py-2 / p-2 | install `min-h-11`; dismiss min-h/w-11 |
+| Lang solo desktop | no se cambia idioma en 375 sin menú | `hidden sm:block` | LanguageSelector siempre en actions header |
+| Mobile drawer home bar | últimos links bajo safe | pad-bottom fijo | `calc(... + var(--safe-bottom))` en panel/drawer |
 | Header notch | brand/actions bajo status bar | sticky sin pad safe | `.tienda-shop-header { padding-top: var(--safe-top) }`; sticky-top + safe-top |
 | Metrics 2-col crush | números gigantes en mobile | `grid-cols-2` + `text-5xl` | `text-3xl sm:text-5xl`; gap |
 | Science 3-col tablet | párrafos aplastados | `md:grid-cols-3` | `lg:grid-cols-3` |

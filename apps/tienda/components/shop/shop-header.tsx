@@ -132,13 +132,14 @@ export function ShopHeader() {
   const logoLink = (
     <Link
       href="/"
-      className={`group flex items-center gap-3 md:gap-4 ${
+      className={`group flex min-h-11 items-center gap-3 md:gap-4 ${
         settings.layout === 'centered'
           ? 'absolute left-1/2 -translate-x-1/2'
           : settings.layout === 'classic'
             ? 'absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0'
             : ''
       }`}
+      aria-label={settings.brand_line1 || tHeader('brandLine1') || 'Inicio'}
     >
       {logoContent}
     </Link>
@@ -188,6 +189,7 @@ export function ShopHeader() {
         <Link
           href={isAuthenticated ? '/perfil' : '/login'}
           className="min-h-[44px] min-w-[44px] px-1.5 text-muted-foreground hover:text-accent transition-colors inline-flex items-center justify-center gap-2"
+          aria-label={isAuthenticated ? tNav('myAccount') : tNav('access')}
         >
           <User size={20} strokeWidth={1.5} aria-hidden />
           <span className="hidden xl:inline text-[0.6rem] uppercase tracking-[0.2em]">
@@ -217,7 +219,7 @@ export function ShopHeader() {
       )}
 
       {settings.show_lang_selector && (
-        <div className="hidden sm:block pl-1">
+        <div className="pl-0.5 sm:pl-1">
           <LanguageSelector />
         </div>
       )}

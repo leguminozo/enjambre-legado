@@ -58,14 +58,14 @@ export function InstallPrompt() {
         <button
           type="button"
           onClick={() => void install()}
-          className="shrink-0 rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground"
         >
           Instalar
         </button>
         <button
           type="button"
           onClick={dismiss}
-          className="shrink-0 p-2 text-muted-foreground"
+          className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
           aria-label="Cerrar"
         >
           <X size={16} />

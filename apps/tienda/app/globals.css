@@ -198,7 +198,7 @@ body.pwa-standalone .tienda-shop-header-burger {
   background: transparent;
   display: flex;
   flex-direction: column;
-  padding: calc(var(--tienda-sticky-top) + 1.25rem) 2.5rem 0;
+  padding: calc(var(--tienda-sticky-top) + 1.25rem) 2.5rem calc(1.25rem + var(--safe-bottom));
   animation: tienda-slide-in 0.28s ease-out;
 }
 
@@ -211,7 +211,7 @@ body.pwa-standalone .tienda-shop-header-burger {
   height: 100%;
   background-color: hsl(var(--background));
   pointer-events: auto;
-  padding: calc(var(--tienda-sticky-top) + 1.25rem) 1.5rem 1.5rem;
+  padding: calc(var(--tienda-sticky-top) + 1.25rem) 1.5rem calc(1.5rem + var(--safe-bottom));
   box-shadow: 0 0 40px hsl(var(--foreground) / 0.12);
 }
 

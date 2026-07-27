@@ -30,7 +30,7 @@
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
 | Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y | ✅ pass 40+47+54 |
-| Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch | ✅ pass 41+48 |
+| Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom | ✅ pass 41+48+55 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan | ✅ pass 44+51 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36 | ✅ pass 43+50 |
@@ -50,6 +50,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 55 (ui-tienda-chrome)
+- Señal: InstallPrompt Instalar py-2 + dismiss p-2; LanguageSelector `hidden sm:block`; logo/account sin aria; drawer mobile sin pad safe-bottom; carousel bosque/crema/miel ad-hoc
+- Compuesto: colapsar + unificar
+- Regla nueva: chrome PWA prompt min-h-11; lang siempre en actions; drawer pad `safe-bottom`; announcement usa primary/accent no brand utility sueltas
+- Anti-patrón: lang solo desktop; install dismiss sin hit box
+- Guardriel: intacto
 
 ### Evo 2026-07-27 pass 54 (ui-tienda-landing)
 - Señal: MediaCarousel flechas w-10 + dots 8px; campaign CTA py-2; YoutubeLite div no button; creaciones/mapa H2 text-4xl denso en 375
