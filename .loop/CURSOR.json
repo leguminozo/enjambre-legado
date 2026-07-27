@@ -1,10 +1,10 @@
 {
-  "index": 1,
-  "pass": 61,
-  "last_sector": "ui-tienda-landing",
-  "last_commit": "93ce0b3",
+  "index": 2,
+  "pass": 62,
+  "last_sector": "ui-tienda-chrome",
+  "last_commit": "62d48db",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 61: mapa /nosotros + editorial H1/safe-top ciencia/galeria/nosotros/experiencias. Siguiente: ui-tienda-chrome (#1)."
+  "notes": "Pass 62: auth CTAs tienda, perfil safe-top, install/cart stack. Siguiente: ui-tienda-shop (#2)."
 }

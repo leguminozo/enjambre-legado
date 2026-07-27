@@ -20,6 +20,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Nav densa | links apretados 1200px | header una sola fila | collapse / drawer desde `lg`; gap tokens |
 | Announcement dismiss | usuario no puede cerrar en touch | solo doble-clic / hint hover | botón × min-h-11 con aria-label en carousel |
 | PWA install prompt | Instalar/cerrar &lt;44 en móvil | py-2 / p-2 | install `min-h-11`; dismiss min-h/w-11 |
+| Auth CTA fantasma | submit recuperar/reset sin estilo | `btn btn-primary` (nucleo-only) | mismo CTA que login: min-h-12 border-accent |
+| Perfil chrome notch | brand/actions bajo status bar | ShopHeader hidden + sticky sin safe | `pt-[max(...,var(--safe-top))]` en perfil-mobile-header / sidebar |
+| Install vs cart bar | prompt tapa Ver carrito | ambos fixed bottom | `:has(.tienda-cart-bar)` eleva install |
 | Lang solo desktop | no se cambia idioma en 375 sin menú | `hidden sm:block` | LanguageSelector siempre en actions header |
 | Mobile drawer home bar | últimos links bajo safe | pad-bottom fijo | `calc(... + var(--safe-bottom))` en panel/drawer |
 | Header notch | brand/actions bajo status bar | sticky sin pad safe | `.tienda-shop-header { padding-top: var(--safe-top) }`; sticky-top + safe-top |

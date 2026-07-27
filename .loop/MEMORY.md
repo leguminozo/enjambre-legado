@@ -30,7 +30,7 @@
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
 | Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y; mapa href + editorial pages 375 | ✅ pass 40+47+54+61 |
-| Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom | ✅ pass 41+48+55 |
+| Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom; auth btn fantasma + perfil safe-top | ✅ pass 41+48+55+62 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos | ✅ pass 44+51+58 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos | ✅ pass 43+50+57 |
@@ -51,6 +51,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 62 (ui-tienda-chrome)
+- Señal: recuperar/reset `btn btn-primary` no existe en tienda; login/register cross-links sin min-h; perfil-mobile-header sticky sin safe-top; sidebar guardián sin pad notch; install overlap cart-bar
+- Compuesto: colapsar + unificar
+- Regla nueva: CTAs auth tienda copian login min-h-12 border-accent (nunca clases nucleo `.btn`); chrome perfil usa safe-top al ocultar ShopHeader
+- Anti-patrón: `btn btn-primary` en apps/tienda; sticky chrome sin `var(--safe-top)`
+- Guardriel: intacto
 
 ### Evo 2026-07-27 pass 61 (ui-tienda-landing)
 - Señal: WorldMap CTA `/nuestra-historia` 404 (ruta real `/nosotros`); ciencia/galeria/nosotros H1 `text-5xl` denso 375 sin safe-top; ciencia CTA sin min-h; experiencias back text-only
