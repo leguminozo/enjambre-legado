@@ -39,7 +39,8 @@
 | Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close; residual toast/DataTable checkbox/pill | ✅ pass 45+52+59 |
 | Tokens apps | Logistica emerald → success; residual canvas/PWA hex OK | ✅ pass 46 (logistica); ⏳ baja canvas/manifest |
 | SII bandeja amber | confidence/estado badges amber raw | ✅ pass 53 |
-| Tienda perfil residual | direcciones hover-only p-2; reposición/pedidos py-2; notif switch 20px | ✅ pass 53 |
+| Tienda perfil residual | direcciones hover-only p-2; reposición/pedidos py-2; notif switch 20px; mi-legado chips + reposición/tracking/reseña links | ✅ pass 53+60 |
+| Editor CMS nucleo | item ops 36; Añadir 36; empty text-only; chrome toggle p-1.5; section chips densos | ✅ pass 60 |
 
 ### Backlog go-live ops (v1.2 — congelado; no es cono del tick)
 
@@ -50,6 +51,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 60 (deep-followup-ui)
+- Señal: EditorTienda item/Añadir min 36 + empty hover:underline; perfil reposición/tracking/reseña text-only; mi-legado chips sin min-h; POS «Registrar como nuevo» text-only residual
+- Compuesto: acrecer + colapsar + unificar
+- Regla nueva: deep-follow residual = grepear `min-h-[36` + text-only CTAs en CMS/perfil/POS; hermano sano = min-h-11 (creador-portal chips)
+- Anti-patrón: `min-w-[36px] min-h-[36px]` en icon ops editor; chips legado sin min-h-11
+- Guardriel: intacto (solo UI; WIP banco/migs no tocado)
 
 ### Evo 2026-07-27 pass 59 (ui-shared-tokens)
 - Señal: toast close p-0.5 + action text-only; DataTable checkbox 20px + page min-w 36; PredictivePill action sin hit; notif footer py-2; SectionHeader text-4xl denso 375
