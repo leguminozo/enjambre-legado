@@ -51,7 +51,7 @@ export function SubscriptionDeliveriesPreview({ deliveries }: SubscriptionDelive
                   href={delivery.tracking_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-accent hover:underline"
+                  className="inline-flex min-h-11 items-center gap-1.5 text-xs text-accent hover:underline"
                 >
                   <Truck size={12} />
                   {t('tracking')}

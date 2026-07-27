@@ -108,7 +108,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
               <Link
                 key={item.href}
                 href={item.href}
-                className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-[0.6rem] uppercase tracking-[0.15em] text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors"
+                className="inline-flex min-h-11 items-center gap-1 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 text-[0.6rem] uppercase tracking-[0.15em] text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors"
               >
                 {item.label}
                 <ArrowUpRight className="w-3 h-3" />

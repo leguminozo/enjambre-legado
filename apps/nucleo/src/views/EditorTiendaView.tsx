@@ -642,7 +642,7 @@ function EditableItemCard({
             <button
               onClick={onMoveUp}
               disabled={isFirst}
-              className="p-2 rounded-lg text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors disabled:opacity-30 min-w-[36px] min-h-[36px] flex items-center justify-center"
+              className="p-2 rounded-lg text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors disabled:opacity-30 min-w-11 min-h-11 flex items-center justify-center"
               title="Mover arriba"
             >
               <ArrowUp size={14} />
@@ -652,7 +652,7 @@ function EditableItemCard({
             <button
               onClick={onMoveDown}
               disabled={isLast}
-              className="p-2 rounded-lg text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors disabled:opacity-30 min-w-[36px] min-h-[36px] flex items-center justify-center"
+              className="p-2 rounded-lg text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors disabled:opacity-30 min-w-11 min-h-11 flex items-center justify-center"
               title="Mover abajo"
             >
               <ArrowDown size={14} />
@@ -660,7 +660,7 @@ function EditableItemCard({
           )}
           <button
             onClick={handleToggleActive}
-            className={`p-2 rounded-lg transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${
+            className={`p-2 rounded-lg transition-colors min-w-11 min-h-11 flex items-center justify-center ${
               localActive ? 'text-accent hover:bg-accent/10' : 'text-muted-foreground hover:bg-surface-raised'
             }`}
             title={localActive ? 'Ocultar en tienda' : 'Mostrar en tienda'}
@@ -670,7 +670,7 @@ function EditableItemCard({
           <button
             onClick={() => onDelete(item.id)}
             disabled={isDeleting}
-            className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 min-w-[36px] min-h-[36px] flex items-center justify-center"
+            className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 min-w-11 min-h-11 flex items-center justify-center"
             title="Eliminar"
           >
             {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
@@ -798,7 +798,7 @@ function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: S
               key={key}
               type="button"
               onClick={() => onSelect(key)}
-              className={`shrink-0 flex items-center gap-1.5 pl-2 pr-2.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border ${
+              className={`shrink-0 flex items-center gap-1.5 pl-2 pr-2.5 py-1.5 min-h-11 rounded-full text-xs font-medium transition-all whitespace-nowrap border ${
                 active
                   ? 'bg-accent text-accent-foreground border-accent shadow-sm'
                   : 'bg-background text-muted-foreground border-border hover:text-foreground hover:border-accent/40'
@@ -1019,7 +1019,7 @@ function ItemsPanel({
         {!isSettingsSection && (
           <button
             onClick={onAddNew}
-            className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-xs font-medium min-h-[36px] shrink-0"
+            className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-xs font-medium min-h-11 shrink-0"
           >
             <Plus size={14} />
             Añadir
@@ -1053,7 +1053,7 @@ function ItemsPanel({
               </p>
               <button
                 onClick={onAddNew}
-                className="text-accent text-sm font-medium hover:underline"
+                className="inline-flex min-h-11 items-center px-3 text-accent text-sm font-medium hover:underline"
               >
                 Inicializar sección
               </button>
@@ -1085,7 +1085,7 @@ function ItemsPanel({
                 </p>
                 <button
                   onClick={onAddNew}
-                  className="text-accent text-sm font-medium hover:underline"
+                  className="inline-flex min-h-11 items-center px-3 text-accent text-sm font-medium hover:underline"
                 >
                   Añadir el primero
                 </button>
@@ -1239,7 +1239,7 @@ export function EditorTiendaView() {
         <div className="hidden md:flex items-center gap-2 bg-secondary/50 p-1 rounded-lg border border-border/50">
           <button
             onClick={() => setViewMode('desktop')}
-            className={`p-1.5 rounded-md transition-colors ${
+            className={`min-h-11 min-w-11 inline-flex items-center justify-center rounded-md transition-colors ${
               viewMode === 'desktop' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
             }`}
             title="Vista Escritorio"
@@ -1248,7 +1248,7 @@ export function EditorTiendaView() {
           </button>
           <button
             onClick={() => setViewMode('mobile')}
-            className={`p-1.5 rounded-md transition-colors ${
+            className={`min-h-11 min-w-11 inline-flex items-center justify-center rounded-md transition-colors ${
               viewMode === 'mobile' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
             }`}
             title="Vista Móvil"
@@ -1261,7 +1261,7 @@ export function EditorTiendaView() {
         <div className="md:hidden flex bg-secondary/50 p-1 rounded-lg border border-border/50">
           <button
             onClick={() => setMobileTab('editor')}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            className={`min-h-11 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               mobileTab === 'editor' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -1269,7 +1269,7 @@ export function EditorTiendaView() {
           </button>
           <button
             onClick={() => setMobileTab('preview')}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            className={`min-h-11 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               mobileTab === 'preview' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -1284,7 +1284,7 @@ export function EditorTiendaView() {
               href={tiendaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
+              className="inline-flex min-h-11 items-center text-xs font-medium text-muted-foreground hover:text-foreground gap-1.5 transition-colors"
             >
               Ver en vivo <ExternalLink size={12} />
             </a>

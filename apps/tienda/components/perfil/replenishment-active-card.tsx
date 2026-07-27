@@ -142,7 +142,7 @@ export function ReplenishmentActiveCard({
           <div className="rounded-xl border border-border/80 bg-secondary/20 px-4 py-3 flex flex-col justify-center">
             <Link
               href="/perfil/pedidos"
-              className="text-xs uppercase tracking-[0.2em] text-accent hover:underline"
+              className="inline-flex min-h-11 items-center text-xs uppercase tracking-[0.2em] text-accent hover:underline"
             >
               {t('viewOrders')}
             </Link>
@@ -153,7 +153,7 @@ export function ReplenishmentActiveCard({
         <div className="mt-3">
           <Link
             href="/perfil/pedidos"
-            className="text-xs uppercase tracking-[0.2em] text-accent hover:underline"
+            className="inline-flex min-h-11 items-center text-xs uppercase tracking-[0.2em] text-accent hover:underline"
           >
             {t('viewOrders')}
           </Link>

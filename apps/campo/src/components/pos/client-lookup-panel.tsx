@@ -158,7 +158,7 @@ export function ClientLookupPanel() {
           <p className="text-xs text-muted-foreground">Sin resultados</p>
           <button
             onClick={() => { setIsNewClient(true); setExpanded(false); setQuery(''); }}
-            className="text-xs text-primary hover:underline"
+            className="inline-flex min-h-11 items-center px-2 text-xs text-primary hover:underline"
           >
             Registrar como nuevo
           </button>

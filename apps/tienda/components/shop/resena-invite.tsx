@@ -17,7 +17,7 @@ export function ResenaInvite() {
           <p className="text-xs text-muted-foreground/80 mt-2">{RESENA_COPY.claimInvite}</p>
           <Link
             href="/catalogo"
-            className="inline-block mt-3 text-sm font-medium text-accent hover:underline"
+            className="inline-flex min-h-11 items-center mt-3 text-sm font-medium text-accent hover:underline"
           >
             Ir a mis creaciones →
           </Link>
