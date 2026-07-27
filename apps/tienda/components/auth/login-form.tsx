@@ -166,7 +166,7 @@ export function LoginForm() {
             ¿No tienes cuenta?{' '}
             <Link
               href={registerHref}
-              className="text-foreground hover:text-accent underline underline-offset-4 decoration-border"
+              className="inline-flex min-h-11 items-center text-foreground hover:text-accent underline underline-offset-4 decoration-border"
             >
               Únete al Legado del Bosque
             </Link>

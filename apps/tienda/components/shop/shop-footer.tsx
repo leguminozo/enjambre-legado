@@ -95,7 +95,7 @@ export function ShopFooter() {
     <footer className="bg-background border-t border-border pt-16 sm:pt-20 md:pt-24 pb-12 pb-[max(3rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center text-center mb-14 md:mb-20">
-          <Link href="/" className="group mb-8 md:mb-12">
+          <Link href="/" className="group mb-8 md:mb-12 inline-flex min-h-11 flex-col items-center">
             <div className="flex flex-col items-center gap-3">
               {logoSrc ? (
                 <img

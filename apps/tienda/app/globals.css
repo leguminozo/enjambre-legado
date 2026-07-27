@@ -518,6 +518,15 @@ html[data-tienda-pwa='standalone'] .tienda-install-prompt {
   bottom: calc(var(--tienda-bottom-nav-stack) + 0.5rem);
 }
 
+/* Install no tapa la cart bar móvil */
+.tienda-shell:has(.tienda-cart-bar) .tienda-install-prompt {
+  bottom: calc(var(--tienda-cart-bar-h) + var(--safe-bottom) + 0.5rem);
+}
+
+html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-cart-bar) .tienda-install-prompt {
+  bottom: calc(var(--tienda-bottom-nav-stack) + var(--tienda-cart-bar-h) + 0.5rem);
+}
+
 .tienda-checkout-sticky-pay,
 .tienda-sticky-cta {
   position: fixed;

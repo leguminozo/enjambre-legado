@@ -62,8 +62,8 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
         aria-label="Menú de navegación lateral"
       >
         <div className="flex flex-col h-full">
-          <div className="p-6 lg:p-8 border-b border-border flex items-center justify-between shrink-0">
-            <Link href="/" className="group flex flex-col gap-0.5" onClick={onClose}>
+          <div className="p-6 lg:p-8 border-b border-border flex items-center justify-between shrink-0 pt-[max(1.5rem,calc(var(--safe-top)+0.75rem))] lg:pt-8">
+            <Link href="/" className="group flex flex-col gap-0.5 min-h-11 justify-center" onClick={onClose}>
               <span className="font-display text-base lg:text-lg tracking-[0.28em] uppercase text-foreground group-hover:text-accent transition-colors leading-none">
                 {tHeader('brandLine1')}
               </span>
@@ -147,7 +147,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
             ))}
           </nav>
 
-          <div className="p-4 lg:p-6 border-t border-border bg-secondary/20 shrink-0 space-y-4">
+          <div className="p-4 lg:p-6 border-t border-border bg-secondary/20 shrink-0 space-y-4 pb-[max(1rem,var(--safe-bottom))] lg:pb-6">
             <div className="flex items-center gap-4 p-4 bg-background/50 rounded-2xl border border-border">
               <div className="w-10 h-10 rounded-full bg-accent/15 border border-accent/25 flex items-center justify-center shrink-0">
                 <User size={18} strokeWidth={1.5} className="text-accent" />

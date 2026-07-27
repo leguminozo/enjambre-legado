@@ -78,7 +78,11 @@ export function ResetPasswordForm() {
             </div>
           </div>
         </div>
-        <button type="submit" disabled={loading} className="w-full btn btn-primary mt-6 disabled:opacity-50">
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full min-h-12 mt-6 py-4 rounded-lg border border-accent text-accent text-[0.7rem] uppercase tracking-[0.3em] hover:bg-accent hover:text-accent-foreground transition-all duration-300 disabled:opacity-50"
+        >
           {loading ? 'Guardando…' : 'Guardar contraseña'}
         </button>
       </AuthFormPanel>
