@@ -236,7 +236,10 @@ export default async function TrazabilidadPage({ params }: PageProps) {
 
         {/* Back Link */}
         <div className="text-center mt-6">
-          <Link href={`/producto/${product.slug}`} className="text-sm font-medium text-accent hover:underline">
+          <Link
+            href={`/producto/${product.slug}`}
+            className="inline-flex min-h-11 items-center text-sm font-medium text-accent hover:underline"
+          >
             ← Volver al producto
           </Link>
         </div>

@@ -131,8 +131,9 @@ export function TraceabilitySection({
             )}
 
             <button
+              type="button"
               onClick={() => setShowQR(!showQR)}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-accent hover:text-accent/80 transition-colors"
+              className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-accent hover:text-accent/80 transition-colors"
             >
               <QrCode className="h-4 w-4" />
               {showQR ? 'Ocultar QR' : 'Ver código QR'}

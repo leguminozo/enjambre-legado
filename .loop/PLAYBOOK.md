@@ -46,6 +46,8 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Campo sidebar logout | mis-tap cerrar sesión desktop shell | `p-2` + icon 16 | `min-h-11 min-w-11`; nav items `min-h-11` |
 | Campo login densos | teclado/dedo falla en feria | inputs `py-2` submit sin min-h | inputs `min-h-11`; submit `min-h-12` |
 | POS cart row crush | qty/precio/QR salen del card en 375 | `flex items-center gap-6` single row | `flex-col sm:flex-row` + icon btns 44 |
+| Shop text-only recovery | error PDP / traza / volver catálogo | `hover:underline` sin min-h | `min-h-11` + border hit en recovery |
+| Wallet py densos | Apple/Google wallet &lt;44 | `py-2.5` only | `min-h-11` on wallet buttons |
 | Canvas/cursor noise | círculo vacío / cursor custom | BeeCanvas on desktop | gate `show_*` chrome o no render mobile |
 
 ---

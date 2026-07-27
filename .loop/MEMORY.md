@@ -35,7 +35,7 @@
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan | ✅ pass 44+51 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36 | ✅ pass 43+50 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
-| Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale | ✅ pass 42+49 |
+| Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual | ✅ pass 42+49+56 |
 | Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close | ✅ pass 45+52 |
 | Tokens apps | Logistica emerald → success; residual canvas/PWA hex OK | ✅ pass 46 (logistica); ⏳ baja canvas/manifest |
 | SII bandeja amber | confidence/estado badges amber raw | ✅ pass 53 |
@@ -50,6 +50,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 56 (ui-tienda-shop)
+- Señal: WalletButtons py-2.5; PDP back/QR/traza hover:underline sin min-h; product error text-only; plan picker compact sin min-h; replenish confirm sin min-h-12
+- Compuesto: colapsar + redirigir
+- Regla nueva: CTAs shop (wallet, error, traza, replenish) min-h-11/12; links «volver» always min-h-11
+- Anti-patrón: recovery/error PDP solo `hover:underline`; wallet py-2.5 sin hit
+- Guardriel: intacto (solo UI shop)
 
 ### Evo 2026-07-27 pass 55 (ui-tienda-chrome)
 - Señal: InstallPrompt Instalar py-2 + dismiss p-2; LanguageSelector `hidden sm:block`; logo/account sin aria; drawer mobile sin pad safe-bottom; carousel bosque/crema/miel ad-hoc

@@ -64,7 +64,7 @@ export function WalletButtons({ compact = false }: { compact?: boolean }) {
         disabled={loading !== null || appleDisabled}
         onClick={() => void handleApple()}
         title={caps?.apple.reason ?? undefined}
-        className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-4 py-2.5 text-sm font-medium hover:bg-card/60 disabled:opacity-50"
+        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border px-4 py-2.5 text-sm font-medium hover:bg-card/60 disabled:opacity-50"
       >
         <Smartphone size={16} />
         {loading === 'apple' ? 'Generando...' : appleDisabled ? 'Apple Wallet (próx.)' : 'Apple Wallet'}
@@ -74,7 +74,7 @@ export function WalletButtons({ compact = false }: { compact?: boolean }) {
         disabled={loading !== null || googleDisabled}
         onClick={() => void handleGoogle()}
         title={caps?.google.reason ?? undefined}
-        className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-4 py-2.5 text-sm font-medium hover:bg-card/60 disabled:opacity-50"
+        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border px-4 py-2.5 text-sm font-medium hover:bg-card/60 disabled:opacity-50"
       >
         <Wallet size={16} />
         {loading === 'google' ? 'Abriendo...' : googleDisabled ? 'Google Wallet (próx.)' : 'Google Wallet'}

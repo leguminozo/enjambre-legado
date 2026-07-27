@@ -40,7 +40,7 @@ export function PlanIntervalPicker({
                       ? 'bg-accent/5 border-accent/30 ring-1 ring-accent/20'
                       : 'bg-secondary/50 border-border hover:border-accent/30'
                   }`
-                : `rounded-xl border p-4 text-left transition-colors ${
+                : `min-h-11 rounded-xl border p-4 text-left transition-colors ${
                     active
                       ? 'border-accent/40 bg-accent/5 ring-1 ring-accent/20'
                       : 'border-border bg-card hover:border-accent/25'

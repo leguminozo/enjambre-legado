@@ -136,7 +136,7 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
 
           <Link
             href="/catalogo"
-            className="mt-8 inline-flex text-sm font-medium text-accent hover:underline md:mt-10"
+            className="mt-8 inline-flex min-h-11 items-center text-sm font-medium text-accent hover:underline md:mt-10"
           >
             ← {continueLabel}
           </Link>

@@ -1,10 +1,10 @@
 {
-  "index": 2,
-  "pass": 55,
-  "last_sector": "ui-tienda-chrome",
-  "last_commit": "1a8b634",
+  "index": 3,
+  "pass": 56,
+  "last_sector": "ui-tienda-shop",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 55: install-prompt 44, lang mobile, logo/account a11y, drawer safe-bottom, carousel tokens. Siguiente: ui-tienda-shop (#2)."
+  "notes": "Pass 56: wallet 44, PDP/error/trazabilidad links, plan picker, replenish confirm. Siguiente: ui-nucleo-shell (#3)."
 }

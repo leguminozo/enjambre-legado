@@ -24,11 +24,18 @@ export default function ProductoError({
         <div className="mx-auto max-w-2xl">
           <h1 className="font-display text-2xl font-semibold text-foreground">No se pudo cargar</h1>
           <p className="mt-2 text-muted-foreground">{error.message || 'Error inesperado cargando el producto'}</p>
-          <div className="mt-6 flex items-center gap-4">
-            <button onClick={reset} className="text-sm font-medium hover:underline text-foreground">
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={reset}
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-border px-5 text-sm font-medium text-foreground hover:border-accent/40 hover:text-accent transition-colors"
+            >
               Reintentar
             </button>
-            <Link href="/catalogo" className="text-sm text-accent underline">
+            <Link
+              href="/catalogo"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-accent underline underline-offset-2"
+            >
               Volver a creaciones
             </Link>
           </div>

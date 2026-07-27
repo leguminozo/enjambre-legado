@@ -78,7 +78,7 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
         type="button"
         disabled={loading || plans.length === 0}
         onClick={() => void handleConfirm()}
-        className="w-full rounded-xl bg-accent px-6 py-3.5 text-[0.65rem] font-bold uppercase tracking-[0.3em] text-accent-foreground transition hover:shadow-glow disabled:opacity-50"
+        className="w-full min-h-12 rounded-xl bg-accent px-6 py-3.5 text-[0.65rem] font-bold uppercase tracking-[0.3em] text-accent-foreground transition hover:shadow-glow disabled:opacity-50"
       >
         {loading ? t('processing') : t('confirm')}
       </button>
@@ -138,7 +138,7 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
               <p className="text-xs text-muted-foreground">{tSheet('paymentNote')}</p>
               <Link
                 href="/perfil/pasaporte"
-                className="inline-flex items-center gap-1.5 text-xs text-accent hover:underline"
+                className="inline-flex min-h-11 items-center gap-1.5 text-xs text-accent hover:underline"
                 onClick={onClose}
               >
                 <Repeat size={12} />
