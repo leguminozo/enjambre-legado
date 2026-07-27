@@ -436,6 +436,8 @@ export function DataTable<T>({
               size="sm"
               disabled={pagination.currentPage <= 1}
               onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
+              className="min-w-11"
+              aria-label="Página anterior"
             >
               <ChevronLeftIcon className="h-4 w-4" />
               <span className="sr-only">Anterior</span>
@@ -461,6 +463,8 @@ export function DataTable<T>({
                 Math.ceil(pagination.total / pagination.pageSize)
               }
               onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
+              className="min-w-11"
+              aria-label="Página siguiente"
             >
               <ChevronRightIcon className="h-4 w-4" />
               <span className="sr-only">Siguiente</span>

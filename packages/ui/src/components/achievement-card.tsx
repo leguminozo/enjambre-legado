@@ -40,10 +40,11 @@ export function AchievementCard({
         'relative rounded-xl p-5 transition-all duration-300',
         'border',
         statusStyles[status],
-        isInteractive && 'cursor-pointer hover:border-primary/50 hover:bg-surface-raised/50',
+        isInteractive && 'cursor-pointer hover:border-primary/50 hover:bg-surface-raised/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-11',
         className,
       )}
       onClick={onClick}
+      role={isInteractive ? 'button' : undefined}
       tabIndex={isInteractive ? 0 : undefined}
       onKeyDown={isInteractive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }} : undefined}
     >

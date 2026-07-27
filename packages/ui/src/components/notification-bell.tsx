@@ -58,27 +58,29 @@ function NotificationPanel({
           : 'w-80 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl sm:w-96'
       }
     >
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <div className="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-muted-foreground">
+      <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
+        <div className="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-muted-foreground min-w-0">
           Notificaciones
         </div>
-        {unread > 0 && onMarkAllRead && (
+        <div className="flex items-center gap-1 shrink-0">
+          {unread > 0 && onMarkAllRead && (
+            <button
+              type="button"
+              onClick={onMarkAllRead}
+              className="inline-flex min-h-11 items-center px-2 text-[0.6rem] uppercase tracking-widest text-accent hover:underline"
+            >
+              Marcar todas leídas
+            </button>
+          )}
           <button
             type="button"
-            onClick={onMarkAllRead}
-            className="min-h-11 px-2 text-[0.6rem] uppercase tracking-widest text-accent hover:underline"
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground"
           >
-            Marcar todas leídas
+            <X size={16} />
           </button>
-        )}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Cerrar"
-          className="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground"
-        >
-          <X size={16} />
-        </button>
+        </div>
       </div>
 
       <div className={`divide-y divide-border overflow-auto text-sm ${mobile ? 'flex-1' : 'max-h-[320px]'}`}>
@@ -115,14 +117,22 @@ function NotificationPanel({
             return (
               <div
                 key={n.id}
-                className={`group flex gap-3 px-4 py-3.5 transition-colors hover:bg-surface-raised/60 ${!n.read ? 'bg-accent/[0.03]' : ''} border-l-2 ${typeAccent[n.type || 'default']}`}
+                role="button"
+                tabIndex={0}
+                className={`group flex min-h-11 gap-3 px-4 py-3.5 transition-colors hover:bg-surface-raised/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset cursor-pointer ${!n.read ? 'bg-accent/[0.03]' : ''} border-l-2 ${typeAccent[n.type || 'default']}`}
                 onClick={() => onMark(n.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onMark(n.id);
+                  }
+                }}
               >
                 <div className="min-w-0 flex-1">
                   {n.href ? (
-                    <a href={n.href} className="block" onClick={onClose}>
+                    <a href={n.href} className="block min-h-11" onClick={onClose}>
                       {content}
-                      <span className="mt-1 inline-flex items-center gap-1 text-[10px] text-accent group-hover:underline">
+                      <span className="mt-1 inline-flex min-h-11 items-center gap-1 text-[10px] text-accent group-hover:underline">
                         Ver detalle <ArrowRight size={11} />
                       </span>
                     </a>

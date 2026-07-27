@@ -23,10 +23,10 @@ const variantClasses: Record<Variant, string> = {
 };
 
 const sizeClasses: Record<Size, string> = {
-  // min-h 44 for touch (sm stays denser in type but hit ≥44)
-  sm: 'min-h-11 px-3 py-2 text-editorial-xs tracking-wider uppercase',
-  md: 'min-h-11 px-5 py-2.5 text-sm',
-  lg: 'min-h-12 px-8 py-4 text-base tracking-wide',
+  // min-h/w 44 for touch (icon-only pages need min-w too)
+  sm: 'min-h-11 min-w-11 px-3 py-2 text-editorial-xs tracking-wider uppercase',
+  md: 'min-h-11 min-w-11 px-5 py-2.5 text-sm',
+  lg: 'min-h-12 min-w-12 px-8 py-4 text-base tracking-wide',
 };
 
 export function Button({

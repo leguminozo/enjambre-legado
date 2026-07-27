@@ -193,7 +193,7 @@ function ToastContainer({
   return (
     <div
       ref={containerRef}
-      className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm sm:max-w-md pointer-events-none"
+      className="fixed bottom-[max(1rem,env(safe-area-inset-bottom,0px))] right-[max(1rem,env(safe-area-inset-right,0px))] z-[9999] flex flex-col gap-2 max-w-sm sm:max-w-md pointer-events-none"
       role="region"
       aria-label="Notificaciones"
       aria-live="polite"
