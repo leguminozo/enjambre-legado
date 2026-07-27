@@ -30,7 +30,7 @@
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
 | Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm | ✅ pass 40+47 |
-| Tienda header | nav densa en desktop medio; spacing links | ✅ pass 41 (nav lg+ · touch · safe-area WA) |
+| Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch | ✅ pass 41+48 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375 | ✅ pass 44 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade | ✅ pass 43 |
@@ -48,6 +48,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 48 (ui-tienda-chrome)
+- Señal: LanguageSelector sin hit box; footer social w-10; carousel dismiss solo doble-clic/hover; drawer links sin min-h; header sin pad notch; sticky-top sin safe-top
+- Compuesto: colapsar + redirigir
+- Regla nueva: chrome actions min-h-11; carousel dismiss button visible; header `padding-top: var(--safe-top)`; sticky-top incluye safe-top; bottom-nav-item min-height 44
+- Anti-patrón: dismiss anuncio solo hover desktop; iconos social 40px
+- Guardriel: intacto
 
 ### Evo 2026-07-27 pass 47 (ui-tienda-landing)
 - Señal: hero/cue sin safe-area home bar; metrics 2-col aún anchos en 375; creaciones pager 40px; collection header mb-24 mobile; ciencia link sin min-h

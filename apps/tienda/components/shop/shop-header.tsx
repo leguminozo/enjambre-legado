@@ -239,7 +239,9 @@ export function ShopHeader() {
       className={`tienda-shop-header z-[60] border-b border-border ${headerPosition} ${blurClass} ${
         open ? 'is-menu-open' : ''
       } ${settings.layout === 'centered' ? 'tienda-shop-header--centered' : ''}`}
-      style={{ top: settings.sticky ? 'var(--carousel-h, 0px)' : undefined }}
+      style={{
+        top: settings.sticky ? 'var(--carousel-h, 0px)' : undefined,
+      }}
     >
       <div
         className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 ${
@@ -321,7 +323,7 @@ export function ShopHeader() {
                   <Link
                     key={item.href + item.label}
                     href={item.href}
-                    className={`font-light transition-colors ${
+                    className={`inline-flex min-h-11 items-center font-light transition-colors ${
                       settings.mobile_font === 'display' ? 'font-display' : 'font-sans'
                     } ${
                       isActiveNavHref(normalizedPath, item.href)
@@ -341,7 +343,7 @@ export function ShopHeader() {
                 {settings.show_cart && (
                   <Link
                     href="/carrito"
-                    className="font-display text-2xl font-light text-foreground hover:text-accent transition-colors"
+                    className="inline-flex min-h-11 items-center font-display text-2xl font-light text-foreground hover:text-accent transition-colors"
                     onClick={closeMenu}
                   >
                     {tNav('yourCart')}
@@ -351,7 +353,7 @@ export function ShopHeader() {
                 {settings.show_account && (
                   <Link
                     href={isAuthenticated ? '/perfil' : '/login'}
-                    className="font-display text-2xl italic text-accent"
+                    className="inline-flex min-h-11 items-center font-display text-2xl italic text-accent"
                     onClick={closeMenu}
                   >
                     {isAuthenticated ? tNav('controlPanel') : tNav('login')}
@@ -360,7 +362,7 @@ export function ShopHeader() {
                 {settings.show_lang_selector && (
                   <button
                     type="button"
-                    className="mt-4 self-start rounded-full border border-border bg-surface-sunken px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-accent"
+                    className="mt-4 self-start min-h-11 rounded-full border border-border bg-surface-sunken px-5 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-accent"
                     onClick={switchLocale}
                   >
                     {locale === 'es' ? tNav('switchToEnglish') : tNav('switchToSpanish')}

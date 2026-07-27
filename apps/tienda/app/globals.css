@@ -91,7 +91,8 @@
   --tienda-sticky-cta-h: 4.25rem;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --tienda-sticky-top: calc(var(--carousel-h, 0px) + var(--tienda-header-h));
+  /* sticky stack: announcement + header content + notch pad on header */
+  --tienda-sticky-top: calc(var(--carousel-h, 0px) + var(--safe-top) + var(--tienda-header-h));
   /* Stack inferior browser: cart bar o sticky CTA */
   --tienda-mobile-chrome-stack: calc(var(--tienda-cart-bar-h) + var(--safe-bottom));
   /* Stack PWA: liquid nav flotante */
@@ -124,10 +125,11 @@
   }
 }
 
-/* Header tienda — opaco en móvil sobre hero/landing */
+/* Header tienda — opaco en móvil sobre hero/landing; notch via safe-top */
 .tienda-shop-header {
   background-color: hsl(var(--background));
   box-shadow: 0 1px 0 hsl(var(--border));
+  padding-top: var(--safe-top);
 }
 
 @supports (backdrop-filter: blur(1px)) {
@@ -438,6 +440,7 @@ html[data-tienda-pwa='standalone'] .tienda-cart-bar {
   justify-content: center;
   gap: 0.15rem;
   min-width: 0;
+  min-height: 44px;
   padding: 0.4rem 0.2rem 0.35rem;
   font-size: 0.58rem;
   font-weight: 600;

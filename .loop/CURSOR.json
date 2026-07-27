@@ -1,10 +1,10 @@
 {
-  "index": 1,
-  "pass": 47,
-  "last_sector": "ui-tienda-landing",
-  "last_commit": "f50aa81",
+  "index": 2,
+  "pass": 48,
+  "last_sector": "ui-tienda-chrome",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 47: landing safe-area hero + metrics clamp + creaciones 44. Siguiente: ui-tienda-chrome (#1)."
+  "notes": "Pass 48: chrome safe-top header, footer social 44, carousel dismiss, lang hit. Siguiente: ui-tienda-shop (#2)."
 }

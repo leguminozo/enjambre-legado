@@ -167,13 +167,10 @@ export function TextCarousel() {
         onMouseLeave={() => setPaused(false)}
         onTouchStart={() => setPaused(true)}
         onTouchEnd={handleTouchEnd}
-        onClick={(e) => {
-          if (e.detail === 2) handleDismiss();
-          else goNext();
-        }}
+        onClick={() => goNext()}
       >
         <div
-          className={`text-center font-display italic text-crema tracking-wide px-10 transition-opacity duration-500 ease-in-out text-xs md:text-sm ${
+          className={`text-center font-display italic text-crema tracking-wide px-12 sm:px-14 transition-opacity duration-500 ease-in-out text-xs md:text-sm ${
             animating && !prefersReducedMotion ? 'opacity-0' : 'opacity-100'
           }`}
         >
@@ -183,7 +180,7 @@ export function TextCarousel() {
               href={slide.href}
               target="_blank"
               rel="noopener noreferrer nofollow"
-              className="text-miel underline underline-offset-4 decoration-miel/40 hover:decoration-miel transition-colors duration-300 font-semibold not-italic"
+              className="inline-flex min-h-11 items-center ml-1 text-miel underline underline-offset-4 decoration-miel/40 hover:decoration-miel transition-colors duration-300 font-semibold not-italic"
               onClick={(e) => e.stopPropagation()}
             >
               {linkLabel}
@@ -192,9 +189,19 @@ export function TextCarousel() {
         </div>
 
         {announcement.dismissible ? (
-          <span className="absolute right-3 text-[0.5rem] uppercase tracking-[0.2em] text-crema/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-            doble clic para cerrar
-          </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDismiss();
+            }}
+            className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-crema/70 hover:text-crema hover:bg-foreground/10 transition-colors z-10"
+            aria-label="Cerrar anuncio"
+          >
+            <span className="text-lg leading-none" aria-hidden>
+              ×
+            </span>
+          </button>
         ) : null}
       </div>
       <div className="h-[1.5px] w-full bg-bosque-dark/60">

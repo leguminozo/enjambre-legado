@@ -127,12 +127,12 @@ export function ShopFooter() {
           </Link>
 
           {footer.show_social && footerSocial.length > 0 ? (
-            <div className="flex gap-6 mb-12 flex-wrap justify-center">
+            <div className="flex gap-3 sm:gap-4 mb-12 flex-wrap justify-center">
               {footerSocial.map((social) => (
                 <Link
                   key={social.label + social.href}
                   href={social.href}
-                  className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent transition-all"
+                  className="min-h-11 min-w-11 h-11 w-11 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent transition-all"
                   aria-label={social.label}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -166,11 +166,11 @@ export function ShopFooter() {
                   footer.newsletter_placeholder_en,
                   locale,
                 )}
-                className="w-full bg-transparent border border-border rounded-lg py-4 px-6 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent transition-colors text-sm"
+                className="w-full min-h-11 bg-transparent border border-border rounded-lg py-4 px-6 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent transition-colors text-sm"
               />
               <button
                 type="submit"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground py-4 px-8 rounded-full text-[0.7rem] uppercase tracking-[0.3em] font-medium transition-all flex items-center justify-center gap-3 self-center"
+                className="min-h-11 bg-primary hover:bg-primary/90 text-primary-foreground py-4 px-8 rounded-full text-[0.7rem] uppercase tracking-[0.3em] font-medium transition-all flex items-center justify-center gap-3 self-center"
               >
                 Enviar información <Send size={14} />
               </button>
