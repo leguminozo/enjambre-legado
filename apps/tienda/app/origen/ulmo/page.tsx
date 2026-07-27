@@ -58,11 +58,11 @@ export default function UlmoPage() {
   return (
     <Shell>
       <JsonLd data={faqSchema} />
-      <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+      <article className="mx-auto max-w-3xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16">
         <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
           Origen · Monografía
         </span>
-        <h1 className="mt-4 font-display text-4xl font-semibold leading-tight text-foreground sm:text-5xl">
+        <h1 className="mt-4 font-display text-[clamp(2rem,7vw,3rem)] sm:text-5xl font-semibold leading-tight text-foreground text-balance">
           Ulmo
         </h1>
         <p className="mt-2 font-display text-xl italic text-accent">
@@ -139,7 +139,12 @@ export default function UlmoPage() {
         </section>
 
         <div className="mt-16 border-t border-border pt-8">
-        <Link href="/catalogo">&larr; Explorar creaciones</Link>
+          <Link
+            href="/catalogo"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-accent hover:text-accent/80 transition-colors"
+          >
+            ← Explorar creaciones
+          </Link>
         </div>
       </article>
     </Shell>

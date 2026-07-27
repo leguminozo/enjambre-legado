@@ -21,10 +21,17 @@ export default function GlobalError({
         Puedes reintentar o volver al inicio. Si el problema persiste, escríbenos desde contacto.
       </p>
       <div className="flex flex-wrap gap-3 justify-center">
-        <button type="button" onClick={reset} className="btn btn-primary btn-sm">
+        <button
+          type="button"
+          onClick={reset}
+          className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
           Reintentar
         </button>
-        <Link href="/" className="btn btn-outline btn-sm">
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-card/50 transition-colors"
+        >
           Ir al inicio
         </Link>
       </div>

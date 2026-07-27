@@ -74,7 +74,10 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
                     {p.format}
                   </span>
                 )}
-                <Link href={`/producto/${encodeURIComponent(p.slug)}`} className="min-w-0">
+                <Link
+                  href={`/producto/${encodeURIComponent(p.slug)}`}
+                  className="min-w-0 min-h-11 inline-flex items-start"
+                >
                   <h3 className="font-display text-sm sm:text-base md:text-lg font-semibold text-foreground group-hover:text-accent transition-colors duration-base leading-snug line-clamp-2 text-balance">
                     {p.name}
                   </h3>

@@ -9,10 +9,16 @@ export default function NotFound() {
         El camino que buscas no existe o fue movido. Explora el catálogo o vuelve al inicio.
       </p>
       <div className="flex flex-wrap gap-3 justify-center">
-        <Link href="/catalogo" className="btn btn-primary btn-sm">
+        <Link
+          href="/catalogo"
+          className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
           Ver catálogo
         </Link>
-        <Link href="/" className="btn btn-outline btn-sm">
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-card/50 transition-colors"
+        >
           Inicio
         </Link>
       </div>

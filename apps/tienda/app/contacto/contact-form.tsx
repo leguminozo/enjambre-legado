@@ -63,13 +63,15 @@ export function ContactForm() {
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+      <main className="mx-auto max-w-4xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-12">
         <div className="text-center">
-          <h1 className="font-display text-4xl font-semibold text-foreground">Contáctenos</h1>
-          <p className="mt-4 text-lg text-muted-foreground">
+          <h1 className="font-display text-[clamp(2rem,7vw,2.75rem)] sm:text-4xl font-semibold text-foreground text-balance">
+            Contáctenos
+          </h1>
+          <p className="mt-4 text-base sm:text-lg text-muted-foreground text-pretty">
             No dudes en contactarnos si tienes alguna pregunta o inquietud.
           </p>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-base sm:text-lg text-muted-foreground text-pretty">
             Agradecemos su interés y esperamos tener noticias suyas.
           </p>
         </div>
@@ -83,7 +85,7 @@ export function ContactForm() {
               type="text"
               id="nombre"
               name="nombre"
-              className="mt-1 w-full rounded-full border border-foreground/30 bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              className="mt-1 w-full min-h-11 rounded-full border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="Tu nombre"
             />
           </div>
@@ -95,7 +97,7 @@ export function ContactForm() {
               type="text"
               id="apellido"
               name="apellido"
-              className="mt-1 w-full rounded-full border border-foreground/30 bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              className="mt-1 w-full min-h-11 rounded-full border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="Tu apellido"
             />
           </div>
@@ -108,7 +110,7 @@ export function ContactForm() {
               id="email"
               name="email"
               required
-              className="mt-1 w-full rounded-full border border-foreground/30 bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              className="mt-1 w-full min-h-11 rounded-full border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="Tu dirección de correo electrónico"
             />
           </div>
@@ -121,14 +123,14 @@ export function ContactForm() {
               name="mensaje"
               required
               rows={4}
-              className="mt-1 w-full rounded-2xl border border-foreground/30 bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              className="mt-1 w-full min-h-[7.5rem] rounded-2xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="Déjanos tu mensaje"
             />
           </div>
           <div className="text-center">
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-full border border-foreground bg-background px-8 py-3 text-foreground transition-colors hover:bg-foreground hover:text-background"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-border bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Enviar
             </button>
@@ -141,8 +143,18 @@ export function ContactForm() {
           <div className="grid gap-8 md:grid-cols-3">
             <div className="text-center">
               <h2 className="font-display text-xl font-semibold text-foreground">Contactos</h2>
-              <p className="mt-3 text-foreground">obrerayzangano@gmail.com</p>
-              <p className="mt-2 text-foreground">+56 9 4083 1358</p>
+              <a
+                href="mailto:obrerayzangano@gmail.com"
+                className="mt-3 inline-flex min-h-11 items-center text-foreground hover:text-accent transition-colors"
+              >
+                obrerayzangano@gmail.com
+              </a>
+              <a
+                href="tel:+56940831358"
+                className="mt-1 inline-flex min-h-11 items-center text-foreground hover:text-accent transition-colors"
+              >
+                +56 9 4083 1358
+              </a>
             </div>
             <div className="text-center">
               <h2 className="font-display text-xl font-semibold text-foreground">Dirección</h2>
@@ -166,8 +178,9 @@ export function ContactForm() {
             <div className="relative h-96 w-full max-w-lg rounded-lg border border-foreground/20 overflow-hidden">
               <div ref={mapRef} className="h-full w-full" />
               <button
+                type="button"
                 onClick={handleOpenInMaps}
-                className="absolute left-4 top-4 inline-flex items-center gap-1 rounded bg-card px-3 py-1.5 text-sm font-medium text-info shadow hover:bg-surface-raised"
+                className="absolute left-4 top-4 inline-flex min-h-11 items-center gap-1 rounded-lg bg-card px-3 py-2 text-sm font-medium text-info shadow hover:bg-surface-raised"
               >
                 Abrir en Maps
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
