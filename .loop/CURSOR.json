@@ -2,9 +2,9 @@
   "index": 6,
   "pass": 52,
   "last_sector": "ui-shared-tokens",
-  "last_commit": null,
+  "last_commit": "daaa167",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 52: tier/impact stone→semantic; SelectItem/Dialog close 44; cinematic/date-picker tokens. Siguiente: deep-followup-ui (#6)."
+  "notes": "Pass 52: tier/impact stone\u2192semantic; SelectItem/Dialog close 44; cinematic/date-picker tokens. Siguiente: deep-followup-ui (#6)."
 }
