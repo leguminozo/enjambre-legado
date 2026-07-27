@@ -29,7 +29,7 @@
 
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
-| Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y; mapa href + editorial pages 375 | ✅ pass 40+47+54+61 |
+| Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y; mapa href + editorial pages 375; 404/error btn fantasma + contacto/ulmo | ✅ pass 40+47+54+61+68 |
 | Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom; auth btn fantasma + perfil safe-top | ✅ pass 41+48+55+62 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos; btn fantasma + card/input CSS | ✅ pass 44+51+58+65 |
@@ -52,6 +52,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 68 (ui-tienda-landing)
+- Señal: not-found/error usan `btn btn-*` (sin CSS en tienda); contacto inputs/submit/maps densos + H1 fijo; ulmo back link desnudo sin min-h; product title sin hit
+- Compuesto: colapsar + unificar + redirigir
+- Regla nueva: recovery pages (404/error) = CTAs Tailwind min-h-11/12 (nunca `.btn` nucleo); monografías/contacto = safe-top + min-h form
+- Anti-patrón: `btn btn-primary` en apps/tienda; link monografía sin className
+- Guardriel: intacto
 
 ### Evo 2026-07-27 pass 67 (deep-followup-ui)
 - Señal: paneles admin nucleo (creadores/invitaciones/reglas/vanguardia) w-9 icon ops; costeo/trazabilidad h-9/h-10 inputs; mi-legado CTAs sin min-h; Marketing/FeriasTab text-only

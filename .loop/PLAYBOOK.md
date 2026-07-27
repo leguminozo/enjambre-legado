@@ -21,6 +21,8 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Announcement dismiss | usuario no puede cerrar en touch | solo doble-clic / hint hover | botón × min-h-11 con aria-label en carousel |
 | PWA install prompt | Instalar/cerrar &lt;44 en móvil | py-2 / p-2 | install `min-h-11`; dismiss min-h/w-11 |
 | Auth CTA fantasma | submit recuperar/reset sin estilo | `btn btn-primary` (nucleo-only) | mismo CTA que login: min-h-12 border-accent |
+| Tienda 404/error fantasma | recovery sin botón visible | `btn btn-*` en not-found/error | primary/outline Tailwind min-h-11/12 |
+| Contacto densos | form/maps &lt;44 | py-3 sin min-h; maps py-1.5 | inputs/submit min-h-11/12; maps CTA min-h-11 |
 | Perfil chrome notch | brand/actions bajo status bar | ShopHeader hidden + sticky sin safe | `pt-[max(...,var(--safe-top))]` en perfil-mobile-header / sidebar |
 | Install vs cart bar | prompt tapa Ver carrito | ambos fixed bottom | `:has(.tienda-cart-bar)` eleva install |
 | Lang solo desktop | no se cambia idioma en 375 sin menú | `hidden sm:block` | LanguageSelector siempre en actions header |
