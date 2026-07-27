@@ -69,6 +69,8 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | POS cart row crush | qty/precio/QR salen del card en 375 | `flex items-center gap-6` single row | `flex-col sm:flex-row` + icon btns 44 |
 | Shop text-only recovery | error PDP / traza / volver catálogo | `hover:underline` sin min-h | `min-h-11` + border hit en recovery |
 | Editor CMS 36px ops | mis-tap reorder/eye/delete / Añadir | `min-h-[36px]` + empty text-only | item ops + chrome toggles `min-h-11 min-w-11`; empty CTA min-h-11 |
+| Admin row icon 36 | mis-tap activar/suspender/editar | `w-9 h-9` en paneles | `min-h-11 min-w-11 h-11 w-11` |
+| Form h-9/h-10 densos | inputs costeo/ops &lt;44 | `flex h-9/h-10 w-full` | `min-h-11 w-full` |
 | Perfil text-only residual | reposición pedidos / tracking / reseña | `hover:underline` sin min-h | links min-h-11; chips legado como creador-portal |
 | Wallet py densos | Apple/Google wallet &lt;44 | `py-2.5` only | `min-h-11` on wallet buttons |
 | Reseñas PDP densas | tabs/escribir/cargar &lt;44 | py-1.5 / py-2 | chips y CTAs min-h-11 |

@@ -39,8 +39,9 @@
 | Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close; residual toast/DataTable checkbox/pill; toast safe-area + notif row a11y | ✅ pass 45+52+59+66 |
 | Tokens apps | Logistica emerald → success; residual canvas/PWA hex OK | ✅ pass 46 (logistica); ⏳ baja canvas/manifest |
 | SII bandeja amber | confidence/estado badges amber raw | ✅ pass 53 |
-| Tienda perfil residual | direcciones hover-only p-2; reposición/pedidos py-2; notif switch 20px; mi-legado chips + reposición/tracking/reseña links | ✅ pass 53+60 |
+| Tienda perfil residual | direcciones hover-only p-2; reposición/pedidos py-2; notif switch 20px; mi-legado chips + reposición/tracking/reseña links + guardián/ciencia/colmena CTAs | ✅ pass 53+60+67 |
 | Editor CMS nucleo | item ops 36; Añadir 36; empty text-only; chrome toggle p-1.5; section chips densos | ✅ pass 60 |
+| Nucleo admin icon ops | creadores/invitaciones/reglas/vanguardia w-9; costeo inputs h-9/10 | ✅ pass 67 |
 
 ### Backlog go-live ops (v1.2 — congelado; no es cono del tick)
 
@@ -51,6 +52,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 67 (deep-followup-ui)
+- Señal: paneles admin nucleo (creadores/invitaciones/reglas/vanguardia) w-9 icon ops; costeo/trazabilidad h-9/h-10 inputs; mi-legado CTAs sin min-h; Marketing/FeriasTab text-only
+- Compuesto: acrecer + unificar + colapsar
+- Regla nueva: deep-follow grepear `w-9 h-9` en panels nucleo + `flex h-9/h-10 w-full` en forms; icon ops = min-h/w-11
+- Anti-patrón: acciones fila admin a 36px; inputs shadcn default h-10 en ops táctil
+- Guardriel: intacto (solo UI; WIP banco/migs no tocado)
 
 ### Evo 2026-07-27 pass 66 (ui-shared-tokens)
 - Señal: toast fixed bottom-4 sin safe-area; notif rows div sin role/teclado + header 3-col justificado; paginación icon-only sin min-w; EmptyState action sin min-h; Button size sin min-w

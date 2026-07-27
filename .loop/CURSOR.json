@@ -1,10 +1,10 @@
 {
-  "index": 6,
-  "pass": 66,
-  "last_sector": "ui-shared-tokens",
-  "last_commit": "0a2a9d9",
+  "index": 0,
+  "pass": 67,
+  "last_sector": "deep-followup-ui",
+  "last_commit": "0a14847",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 66: toast safe-area, notif row a11y, Button min-w, DataTable pag. Siguiente: deep-followup-ui (#6)."
+  "notes": "Pass 67: admin icon ops 44 + costeo inputs + mi-legado/marketing CTAs. Siguiente: ui-tienda-landing (#0)."
 }
