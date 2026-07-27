@@ -1,10 +1,10 @@
 {
-  "index": 5,
-  "pass": 65,
-  "last_sector": "ui-campo-pos",
-  "last_commit": "a9e7856",
+  "index": 6,
+  "pass": 66,
+  "last_sector": "ui-shared-tokens",
+  "last_commit": "0a2a9d9",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 65: btn fantasma sync/caja, card/input CSS, QR/login/landing. Siguiente: ui-shared-tokens (#5)."
+  "notes": "Pass 66: toast safe-area, notif row a11y, Button min-w, DataTable pag. Siguiente: deep-followup-ui (#6)."
 }

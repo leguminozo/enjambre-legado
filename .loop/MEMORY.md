@@ -36,7 +36,7 @@
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos; landing H1/CTAs + rail safe-top + CMS chrome 36 | ✅ pass 43+50+57+64 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual; reseñas/QR/checkout resultado | ✅ pass 42+49+56+63 |
-| Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close; residual toast/DataTable checkbox/pill | ✅ pass 45+52+59 |
+| Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close; residual toast/DataTable checkbox/pill; toast safe-area + notif row a11y | ✅ pass 45+52+59+66 |
 | Tokens apps | Logistica emerald → success; residual canvas/PWA hex OK | ✅ pass 46 (logistica); ⏳ baja canvas/manifest |
 | SII bandeja amber | confidence/estado badges amber raw | ✅ pass 53 |
 | Tienda perfil residual | direcciones hover-only p-2; reposición/pedidos py-2; notif switch 20px; mi-legado chips + reposición/tracking/reseña links | ✅ pass 53+60 |
@@ -51,6 +51,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 66 (ui-shared-tokens)
+- Señal: toast fixed bottom-4 sin safe-area; notif rows div sin role/teclado + header 3-col justificado; paginación icon-only sin min-w; EmptyState action sin min-h; Button size sin min-w
+- Compuesto: unificar + colapsar
+- Regla nueva: toasts multi-app `bottom/right max(1rem, safe-area)`; filas notif role=button min-h-11; Button sizes min-w-11/12
+- Anti-patrón: toast `bottom-4 right-4` fijo; notif row solo div onClick
+- Guardriel: intacto
 
 ### Evo 2026-07-27 pass 65 (ui-campo-pos)
 - Señal: sync-queue + caja modal usan `btn btn-*` sin CSS en campo; comisiones/caja/feria `.card`/`.input-field`/`.stat-card` fantasma; QR POS sin min-h; login back text-only; landing H1 text-5xl
