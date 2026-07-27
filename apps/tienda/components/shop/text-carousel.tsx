@@ -162,7 +162,7 @@ export function TextCarousel() {
     >
       <div
         className="relative flex items-center justify-center overflow-hidden cursor-pointer select-none group"
-        style={{ height: `${carouselHeight}px` }}
+        style={{ height: `${Math.max(carouselHeight, 44)}px` }}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onTouchStart={() => setPaused(true)}

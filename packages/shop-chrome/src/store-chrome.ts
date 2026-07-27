@@ -43,8 +43,9 @@ export type AnnouncementSlide = {
 export const DEFAULT_ANNOUNCEMENT_SETTINGS: AnnouncementSettings = {
   enabled: true,
   interval_ms: 5000,
-  height_mobile_px: 36,
-  height_desktop_px: 42,
+  /** ≥44 so dismiss/link hits fit without clipping (touch) */
+  height_mobile_px: 48,
+  height_desktop_px: 52,
   dismissible: true,
 };
 
@@ -52,7 +53,7 @@ export const DEFAULT_ANNOUNCEMENT_SLIDES: AnnouncementSlide[] = [
   { text: 'Bienvenido a la experiencia digital. Te estábamos esperando' },
   {
     text: 'La historia del bosque comienza ',
-    href: 'https://www.obrerayzangano.com/nuestra-historia-or-apicultura-regenerativa-en-chiloe/',
+    href: '/nosotros',
     link_label: 'aquí',
     link_label_en: 'here',
     text_en: 'The forest story begins ',
@@ -258,8 +259,8 @@ export function parseAnnouncementSettings(
   return {
     enabled: asBool(raw.enabled, d.enabled),
     interval_ms: asNumber(raw.interval_ms, d.interval_ms, 2000, 20000),
-    height_mobile_px: asNumber(raw.height_mobile_px, d.height_mobile_px, 28, 64),
-    height_desktop_px: asNumber(raw.height_desktop_px, d.height_desktop_px, 28, 72),
+    height_mobile_px: asNumber(raw.height_mobile_px, d.height_mobile_px, 44, 72),
+    height_desktop_px: asNumber(raw.height_desktop_px, d.height_desktop_px, 44, 80),
     dismissible: asBool(raw.dismissible, d.dismissible),
   };
 }

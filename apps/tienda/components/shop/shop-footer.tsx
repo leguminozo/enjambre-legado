@@ -92,7 +92,7 @@ export function ShopFooter() {
   const logoFooterHeight = brand.logo_footer_height_px || brand.logo_height_px || 48;
 
   return (
-    <footer className="bg-background border-t border-border pt-16 sm:pt-20 md:pt-24 pb-12 pb-[max(3rem,env(safe-area-inset-bottom))]">
+    <footer className="tienda-shop-footer bg-background border-t border-border pt-16 sm:pt-20 md:pt-24 pb-[max(3rem,calc(var(--safe-bottom)+1rem))]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center text-center mb-14 md:mb-20">
           <Link href="/" className="group mb-8 md:mb-12 inline-flex min-h-11 flex-col items-center">

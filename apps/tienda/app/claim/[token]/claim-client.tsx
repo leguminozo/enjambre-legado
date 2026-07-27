@@ -88,8 +88,10 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
           <div className="inline-flex items-center justify-center w-24 h-24 bg-accent/10 rounded-full mb-8">
             <Sparkles className="w-12 h-12 text-accent" />
           </div>
-          <h1 className="font-display text-5xl mb-4">¡Legado Reclamado!</h1>
-          <p className="text-muted-foreground text-xl font-light mb-8">Has sumado <span className="text-accent font-bold">{points} puntos</span> a tu cuenta.</p>
+          <h1 className="font-display text-[clamp(2rem,8vw,3rem)] mb-4 text-balance">¡Legado Reclamado!</h1>
+          <p className="text-muted-foreground text-base sm:text-xl font-light mb-8 text-pretty">
+            Has sumado <span className="text-accent font-bold">{points} puntos</span> a tu cuenta.
+          </p>
           <div className="flex items-center justify-center gap-2 text-accent text-sm tracking-widest uppercase font-bold">
             Redirigiendo a tu bóveda <HexagonLoader size="sm" />
           </div>
@@ -105,7 +107,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
       <div className="tienda-auth-inner max-w-md w-full space-y-10 sm:space-y-12">
         <div className="text-center">
           <p className="text-[0.6rem] uppercase tracking-[0.4em] text-accent font-bold mb-6">Fidelización Cíclica</p>
-          <h1 className="font-display text-4xl md:text-5xl font-light tracking-tight mb-4">
+          <h1 className="font-display text-[clamp(1.75rem,7vw,3rem)] md:text-5xl font-light tracking-tight mb-4 text-balance">
             Reclama tu <span className="italic text-accent">impacto</span>
           </h1>
           <p className="text-muted-foreground font-light leading-relaxed">
