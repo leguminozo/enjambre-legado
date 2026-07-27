@@ -1,10 +1,10 @@
 {
-  "index": 2,
-  "pass": 48,
-  "last_sector": "ui-tienda-chrome",
-  "last_commit": "628feab",
+  "index": 3,
+  "pass": 49,
+  "last_sector": "ui-tienda-shop",
+  "last_commit": null,
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 48: chrome safe-top header, footer social 44, carousel dismiss, lang hit. Siguiente: ui-tienda-shop (#2)."
+  "notes": "Pass 49: shop sticky safe-area fix, promo/pay 44, catalog type. Siguiente: ui-nucleo-shell (#3)."
 }

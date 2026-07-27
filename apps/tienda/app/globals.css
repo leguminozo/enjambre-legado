@@ -523,7 +523,8 @@ html[data-tienda-pwa='standalone'] .tienda-install-prompt {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: var(--safe-bottom);
+  /* bottom: 0 + padding-bottom safe — no double-count env(safe-area) */
+  bottom: 0;
   z-index: var(--tienda-z-sticky-cta);
   padding: 0.5rem 0.75rem calc(0.5rem + var(--safe-bottom));
   background-color: hsl(var(--card));
@@ -632,9 +633,9 @@ html[data-tienda-pwa='standalone'] .tienda-sticky-cta {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: var(--safe-bottom);
+  bottom: 0;
   z-index: 54;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.75rem calc(0.5rem + var(--safe-bottom));
   background-color: hsl(var(--card));
   border-top: 1px solid hsl(var(--border));
   box-shadow: 0 -4px 24px hsl(var(--background) / 0.35);

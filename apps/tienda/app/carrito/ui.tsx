@@ -110,7 +110,7 @@ export function CarritoClient() {
       <div className="mt-8 hidden flex-col gap-3 sm:flex-row sm:items-center sm:justify-between md:flex">
         <Link
           href="/catalogo"
-          className="text-center text-sm text-accent underline underline-offset-2 hover:text-accent/80"
+          className="inline-flex min-h-11 items-center justify-center text-center text-sm text-accent underline underline-offset-2 hover:text-accent/80"
         >
           Seguir comprando
         </Link>

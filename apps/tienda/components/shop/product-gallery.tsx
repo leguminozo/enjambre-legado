@@ -50,7 +50,7 @@ export function ProductGallery({ photos, alt }: Props) {
                 key={src}
                 type="button"
                 onClick={() => setIndex(i)}
-                className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 transition sm:h-16 sm:w-16 ${
+                className={`relative h-14 w-14 min-h-11 min-w-11 shrink-0 overflow-hidden rounded-lg border-2 transition sm:h-16 sm:w-16 ${
                   i === index
                     ? 'border-accent ring-2 ring-accent/30'
                     : 'border-transparent opacity-75 hover:opacity-100'
@@ -83,9 +83,10 @@ export function ProductGallery({ photos, alt }: Props) {
                 key={src}
                 type="button"
                 onClick={() => setIndex(i)}
-                className={`relative h-14 w-14 overflow-hidden rounded-lg border-2 transition ${
+                className={`relative h-14 w-14 min-h-11 min-w-11 overflow-hidden rounded-lg border-2 transition ${
                   i === index ? 'border-accent' : 'border-border opacity-70 hover:opacity-100'
                 }`}
+                aria-label={`Vista ${i + 1}`}
               >
                 <Image src={src} alt={`Vista ${i + 1}`} fill className="object-cover" sizes="56px" />
               </button>

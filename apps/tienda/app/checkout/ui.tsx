@@ -441,7 +441,7 @@ export function CheckoutClient() {
           {pricingError && !pricingLoading ? (
             <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-8 text-center">
               <p className="text-destructive mb-4">{pricingError}</p>
-              <Link href="/catalogo" className="inline-block text-sm font-semibold text-accent underline hover:text-accent/80 transition-colors">
+              <Link href="/catalogo" className="inline-flex min-h-11 items-center text-sm font-semibold text-accent underline hover:text-accent/80 transition-colors">
                 Volver al catálogo
               </Link>
             </div>
@@ -454,7 +454,7 @@ export function CheckoutClient() {
             <div className="rounded-xl border border-border bg-card/50 p-8 text-center">
               <Trees className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-4">Tu carrito está vacío.</p>
-              <Link href="/catalogo" className="inline-block text-sm font-semibold text-accent underline hover:text-accent/80 transition-colors">
+              <Link href="/catalogo" className="inline-flex min-h-11 items-center text-sm font-semibold text-accent underline hover:text-accent/80 transition-colors">
                 Explorar creaciones
               </Link>
             </div>
@@ -539,29 +539,28 @@ export function CheckoutClient() {
                   <Tag className="h-5 w-5 text-accent" />
                   <h2 className="font-display text-lg text-foreground">Código promocional</h2>
                 </div>
-                <div className="rounded-xl border border-border bg-card/40 p-6 flex flex-col sm:flex-row gap-3">
+                <div className="rounded-xl border border-border bg-card/40 p-4 sm:p-6 flex flex-col sm:flex-row gap-3">
                   <input
                     type="text"
                     value={codigoDescuento}
                     onChange={(e) => setCodigoDescuento(e.target.value.toUpperCase())}
                     placeholder="Ej: BIENVENIDA10"
-                    className="flex-1 rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground uppercase tracking-wider focus:outline-none focus:border-accent/50"
+                    className="flex-1 min-h-11 rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground uppercase tracking-wider focus:outline-none focus:border-accent/50"
                   />
                   <button
                     type="button"
                     onClick={applyPromoCode}
-                    className="rounded-full border border-accent/40 px-6 py-3 text-sm font-semibold text-accent hover:bg-accent/10 transition-colors"
+                    className="min-h-11 inline-flex items-center justify-center rounded-full border border-accent/40 px-6 py-3 text-sm font-semibold text-accent hover:bg-accent/10 transition-colors"
                   >
                     Aplicar
                   </button>
                 </div>
                 {codigoAplicado && (
-                  <p className="text-xs text-accent mt-2">
-                    Código aplicado: {codigoAplicado}
-                    {' '}
+                  <p className="text-xs text-accent mt-2 flex flex-wrap items-center gap-2">
+                    <span>Código aplicado: {codigoAplicado}</span>
                     <button
                       type="button"
-                      className="underline"
+                      className="inline-flex min-h-11 items-center underline px-1"
                       onClick={() => {
                         setCodigoAplicado(null);
                         setCodigoDescuento('');
@@ -634,7 +633,7 @@ export function CheckoutClient() {
                     </div>
 
                     <div className="pt-4 border-t border-border">
-                      <label className="flex items-center gap-3 cursor-pointer">
+                      <label className="flex items-center gap-3 min-h-11 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={usarPuntos}
@@ -646,7 +645,7 @@ export function CheckoutClient() {
                               setPuntosACanjear(0);
                             }
                           }}
-                          className="w-5 h-5 rounded border-border bg-surface text-accent focus:ring-accent"
+                          className="h-5 w-5 shrink-0 rounded border-border bg-surface text-accent focus:ring-accent"
                         />
                         <span className="text-sm text-foreground">
                           Usar puntos para descuento
@@ -796,7 +795,7 @@ export function CheckoutClient() {
                                 instrucciones: addr.instrucciones ?? '',
                               }));
                             }}
-                            className={`text-left p-4 rounded-xl border transition-all flex items-start gap-3 ${
+                            className={`text-left min-h-11 p-4 rounded-xl border transition-all flex items-start gap-3 ${
                               selectedAddressId === addr.id 
                                 ? 'border-accent bg-accent/5' 
                                 : 'border-border bg-card hover:border-accent/40'
@@ -1010,7 +1009,7 @@ export function CheckoutClient() {
                 <button
                 ref={buttonRef}
                 type="button"
-                className="checkout-button hidden md:flex w-full rounded-full bg-primary py-4 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="checkout-button hidden md:flex w-full min-h-12 items-center justify-center rounded-full bg-primary py-4 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={payDisabled}
                 title={
                   !shippingReady
@@ -1064,7 +1063,7 @@ export function CheckoutClient() {
             </div>
             <button
               type="button"
-              className="shrink-0 rounded-full bg-primary px-6 py-3 text-xs font-bold uppercase tracking-wider text-primary-foreground disabled:opacity-50"
+              className="shrink-0 min-h-12 inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-xs font-bold uppercase tracking-wider text-primary-foreground disabled:opacity-50"
               disabled={payDisabled}
               onClick={() => void startCheckout()}
             >

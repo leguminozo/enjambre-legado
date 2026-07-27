@@ -25,6 +25,7 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Touch <44 | botones finos en campo/tienda/nucleo shell | py-1 / w-h 38 sin min-h | `min-h-[44px] min-w-[44px]`; header-btn/sheet close/bell 44 |
 | ViewShell hero cascade | título del hero con color foreground (no primary-fg) | `.view-shell-title` después de `.hero-title` | `.view-shell--hero .view-shell-title { color: primary-foreground }` |
 | Safe-area | FAB/WhatsApp tapa home bar | fixed bottom | `bottom-[max(1rem,env(safe-area-inset-bottom))]` |
+| Sticky double safe | cart/checkout bar flota demasiado | `bottom: safe` + `padding-bottom: safe` | `bottom: 0; padding-bottom: calc(0.5rem + var(--safe-bottom))` |
 | pb-safe fantasma | bottom nav sin padding iPhone | clase `pb-safe` sin util CSS | `@layer utilities { .pb-safe { padding-bottom: env(...) } }` + shell `pb-[calc(4rem+env(...))]` |
 | Terminal CTA text-only | mis-tap cancelar/reintentar SumUp | `text-xs hover:underline` sin min-h | `min-h-11` + border hit area en flow terminal |
 | POS cart row crush | qty/precio/QR salen del card en 375 | `flex items-center gap-6` single row | `flex-col sm:flex-row` + icon btns 44 |

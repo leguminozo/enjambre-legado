@@ -242,7 +242,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
             <button
               type="button"
               onClick={clearFilters}
-              className="text-accent underline hover:text-accent/80"
+              className="inline-flex min-h-11 items-center text-accent underline hover:text-accent/80"
             >
               Limpiar filtros
             </button>
@@ -317,10 +317,10 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                           ))}
                         </div>
                       )}
-                      <h2 className="mt-1.5 sm:mt-2 font-display text-base sm:text-lg font-semibold leading-snug text-foreground group-hover:text-accent line-clamp-2 text-balance">
+                      <h2 className="mt-1.5 sm:mt-2 font-display text-sm sm:text-base md:text-lg font-semibold leading-snug text-foreground group-hover:text-accent line-clamp-2 text-balance">
                         {p.name}
                       </h2>
-                      <p className="mt-auto pt-1 text-sm tabular-nums text-muted-foreground sm:text-base">
+                      <p className="mt-auto pt-1.5 text-sm tabular-nums text-muted-foreground sm:text-base">
                         {formatCLP(p.price)}
                       </p>
                       {(p.stock ?? 0) <= 0 && (
