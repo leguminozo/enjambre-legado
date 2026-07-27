@@ -29,7 +29,7 @@
 
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
-| Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y | ✅ pass 40+47+54 |
+| Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y; mapa href + editorial pages 375 | ✅ pass 40+47+54+61 |
 | Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom | ✅ pass 41+48+55 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos | ✅ pass 44+51+58 |
@@ -51,6 +51,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 61 (ui-tienda-landing)
+- Señal: WorldMap CTA `/nuestra-historia` 404 (ruta real `/nosotros`); ciencia/galeria/nosotros H1 `text-5xl` denso 375 sin safe-top; ciencia CTA sin min-h; experiencias back text-only
+- Compuesto: colapsar + redirigir
+- Regla nueva: CTAs del mapa/landing deben usar rutas de `store-routes`; editorial H1 = clamp + pad safe-top bajo header sticky
+- Anti-patrón: href legacy WordPress en bloque landing; H1 `text-5xl` fijo en 375
+- Guardriel: intacto
 
 ### Evo 2026-07-27 pass 60 (deep-followup-ui)
 - Señal: EditorTienda item/Añadir min 36 + empty hover:underline; perfil reposición/tracking/reseña text-only; mi-legado chips sin min-h; POS «Registrar como nuevo» text-only residual
