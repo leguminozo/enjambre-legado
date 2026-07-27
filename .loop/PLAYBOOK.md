@@ -19,6 +19,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Hero stack denso | CTA cortado / formula corta | `min(70dvh)` + clamp grande | bajar clamp H1; `max-w` subtitle; `mt` CTA |
 | Nav densa | links apretados 1200px | header una sola fila | collapse / drawer desde `lg`; gap tokens |
 | Announcement dismiss | usuario no puede cerrar en touch | solo doble-clic / hint hover | botón × min-h-11 con aria-label en carousel |
+| Announcement altura &lt;44 | dismiss/link recortados | default 36 / min 28 | height_mobile ≥44; default 48; render max(h,44) |
+| Legal H1 densos | términos/privacidad aplastados 375 | `text-4xl` + `py-32` | clamp + safe-top bajo header sticky |
+| Footer PWA legal | últimos links bajo bottom-nav | solo safe-bottom | pad-bottom `bottom-nav-stack` en standalone |
 | PWA install prompt | Instalar/cerrar &lt;44 en móvil | py-2 / p-2 | install `min-h-11`; dismiss min-h/w-11 |
 | Auth CTA fantasma | submit recuperar/reset sin estilo | `btn btn-primary` (nucleo-only) | mismo CTA que login: min-h-12 border-accent |
 | Tienda 404/error fantasma | recovery sin botón visible | `btn btn-*` en not-found/error | primary/outline Tailwind min-h-11/12 |

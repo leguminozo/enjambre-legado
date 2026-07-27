@@ -1,10 +1,10 @@
 {
-  "index": 1,
-  "pass": 68,
-  "last_sector": "ui-tienda-landing",
-  "last_commit": "92cd1b3",
+  "index": 2,
+  "pass": 69,
+  "last_sector": "ui-tienda-chrome",
+  "last_commit": "b70e535",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 68: 404/error CTAs, contacto form/maps, ulmo back, product titles. Siguiente: ui-tienda-chrome (#1)."
+  "notes": "Pass 69: announcement \u226544 + /nosotros, legal/claim type, footer PWA. Siguiente: ui-tienda-shop (#2)."
 }
