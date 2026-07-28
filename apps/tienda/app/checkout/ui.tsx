@@ -421,13 +421,13 @@ export function CheckoutClient() {
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
-        <div className="border-b border-border px-4 py-8 sm:px-6 sm:py-10 relative z-10">
+        <div className="border-b border-border px-4 pt-[max(2rem,calc(var(--safe-top)+0.75rem))] pb-8 sm:px-6 sm:py-10 relative z-10">
           <div className="mx-auto max-w-3xl">
             <div className="flex items-center gap-3 mb-3 sm:mb-4">
               <div className="w-10 h-10 shrink-0 rounded-full bg-accent/10 flex items-center justify-center">
                 <Leaf className="h-5 w-5 text-accent" aria-hidden />
               </div>
-              <h1 className="font-display text-2xl font-semibold text-foreground text-balance sm:text-3xl md:text-4xl">
+              <h1 className="font-display text-[clamp(1.5rem,5vw,2.25rem)] font-semibold text-foreground text-balance sm:text-3xl md:text-4xl leading-tight">
                 Checkout Seguro
               </h1>
             </div>
@@ -1055,7 +1055,10 @@ export function CheckoutClient() {
 
               <p className="text-center text-xs text-muted-foreground mt-4">
                 Al completar tu compra, aceptas nuestros{' '}
-                <Link href="/terminos" className="text-accent underline hover:text-accent/80">
+                <Link
+                  href="/terminos"
+                  className="inline-flex min-h-11 items-center text-accent underline underline-offset-2 hover:text-accent/80"
+                >
                   Términos del Servicio
                 </Link>
                 . Tu pago está protegido con encriptación de grado bancario.

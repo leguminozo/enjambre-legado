@@ -29,7 +29,7 @@ export function ReplenishmentAddressField({
         onChange={(e) => onChange(e.target.value)}
         rows={3}
         placeholder={t('addressPlaceholder')}
-        className="mt-3 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
+        className="mt-3 w-full min-h-11 rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/30"
       />
     </section>
   );

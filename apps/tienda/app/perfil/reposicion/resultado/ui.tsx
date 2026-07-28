@@ -101,23 +101,23 @@ export function ReplenishmentResultClient() {
             <Repeat size={16} className="text-accent" />
             <span className="text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground">{t('kicker')}</span>
           </div>
-          <h1 className="font-display text-3xl text-foreground mb-4">
+          <h1 className="font-display text-[clamp(1.5rem,6vw,1.875rem)] text-foreground mb-4 text-balance">
             {state === 'loading' ? t('processing') : state === 'success' ? t('successTitle') : t('errorTitle')}
           </h1>
-          <p className="text-sm text-muted-foreground">{message}</p>
+          <p className="text-sm text-muted-foreground text-pretty">{message}</p>
         </div>
 
         {state !== 'loading' ? (
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
             <Link
               href={REPOSICION_PATH}
-              className="px-8 py-3 bg-accent text-accent-foreground text-[0.65rem] uppercase tracking-[0.25em] font-bold rounded-xl hover:shadow-glow transition-all"
+              className="inline-flex min-h-12 items-center justify-center px-8 py-3 bg-accent text-accent-foreground text-[0.65rem] uppercase tracking-[0.25em] font-bold rounded-xl hover:shadow-glow transition-all"
             >
               {t('viewReplenishment')}
             </Link>
             <Link
               href="/catalogo"
-              className="px-8 py-3 border border-border text-foreground text-[0.65rem] uppercase tracking-[0.25em] rounded-xl hover:border-accent/30 transition-all"
+              className="inline-flex min-h-11 items-center justify-center px-8 py-3 border border-border text-foreground text-[0.65rem] uppercase tracking-[0.25em] rounded-xl hover:border-accent/30 transition-all"
             >
               {t('exploreCatalog')}
             </Link>

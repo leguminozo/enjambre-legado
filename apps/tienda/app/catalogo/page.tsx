@@ -58,20 +58,27 @@ export default async function CatalogoPage() {
       {listSchema && <JsonLd data={listSchema} />}
       <main className="min-h-[50vh] bg-background">
         {loadError ? (
-          <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+          <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 text-center">
             <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-6 text-destructive/80">
               <p className="font-semibold">No se pudo cargar el catálogo.</p>
               <p className="mt-2 text-sm opacity-90">{loadError}</p>
             </div>
+            <Link
+              href="/"
+              className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full border border-border px-6 text-sm font-medium text-foreground hover:border-accent/40 hover:text-accent transition-colors"
+            >
+              Volver al inicio
+            </Link>
           </div>
         ) : products.length === 0 ? (
           <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
-            <p className="text-muted-foreground">
-              Aún no hay productos publicados.{' '}
-        <Link href="/perfil" className="text-accent underline">
-          Panel de control
-        </Link>
-            </p>
+            <p className="text-muted-foreground mb-6">Aún no hay productos publicados.</p>
+            <Link
+              href="/"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-accent/40 px-6 text-sm font-medium text-accent hover:bg-accent/10 transition-colors"
+            >
+              Volver al inicio
+            </Link>
           </div>
         ) : (
           <Suspense fallback={<p className="py-16 text-center text-muted-foreground">Cargando catálogo…</p>}>

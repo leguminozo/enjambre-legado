@@ -166,7 +166,7 @@ export function CheckoutResultClient() {
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="min-h-[60vh] bg-background px-4 py-12 sm:px-6 relative overflow-hidden">
+      <main className="min-h-[60vh] bg-background px-4 pt-[max(3rem,calc(var(--safe-top)+1.5rem))] pb-12 sm:px-6 sm:py-12 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl" />
           {state === 'success' && (
