@@ -266,10 +266,46 @@ export function RegeneracionView() {
                   <div style={{ fontSize: '0.72rem', color: 'hsl(var(--success))', marginTop: 4 }}>🌿 {r.co2} ton CO₂</div>
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <button onClick={() => handleEditClick(r)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))', padding: 4 }} title="Editar">
+                  <button
+                    type="button"
+                    onClick={() => handleEditClick(r)}
+                    aria-label="Editar plantación"
+                    title="Editar"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'hsl(var(--muted-foreground))',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: 44,
+                      minHeight: 44,
+                      padding: 0,
+                      borderRadius: 'var(--radius-sm)',
+                    }}
+                  >
                     <Edit3 size={15} />
                   </button>
-                  <button onClick={() => handleDelete(r.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(var(--destructive))', padding: 4 }} title="Eliminar">
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(r.id)}
+                    aria-label="Eliminar plantación"
+                    title="Eliminar"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'hsl(var(--destructive))',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: 44,
+                      minHeight: 44,
+                      padding: 0,
+                      borderRadius: 'var(--radius-sm)',
+                    }}
+                  >
                     <Trash2 size={15} />
                   </button>
                 </div>

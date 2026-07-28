@@ -496,12 +496,14 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
             <div className="map-container" style={{ height }}>
                 <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 1000, display: 'flex', gap: 8, alignItems: 'center' }}>
                     {/* Layer Toggles */}
-                    <div style={{ display: 'flex', gap: 4, background: 'hsl(var(--card) / 0.8)', border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-md)', padding: 4, backdropFilter: 'blur(8px)' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, background: 'hsl(var(--card) / 0.8)', border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-md)', padding: 6, backdropFilter: 'blur(8px)' }}>
                         <button
+                            type="button"
                             onClick={() => setShowApiarios(!showApiarios)}
                             className={`btn btn-sm ${showApiarios ? 'btn-primary' : 'btn-ghost'}`}
                             style={{ 
-                                padding: '4px 10px', 
+                                minHeight: 44,
+                                padding: '0.5rem 0.75rem', 
                                 fontSize: '0.72rem',
                                 background: showApiarios ? 'hsl(var(--primary))' : 'transparent',
                                 color: showApiarios ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
@@ -510,10 +512,12 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                             🐝 Apiarios
                         </button>
                         <button
+                            type="button"
                             onClick={() => setShowTrees(!showTrees)}
                             className={`btn btn-sm ${showTrees ? 'btn-primary' : 'btn-ghost'}`}
                             style={{ 
-                                padding: '4px 10px', 
+                                minHeight: 44,
+                                padding: '0.5rem 0.75rem', 
                                 fontSize: '0.72rem',
                                 background: showTrees ? 'hsl(var(--primary))' : 'transparent',
                                 color: showTrees ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
@@ -522,10 +526,12 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                             🌳 Árboles
                         </button>
                         <button
+                            type="button"
                             onClick={() => setShowTransito(!showTransito)}
                             className={`btn btn-sm ${showTransito ? 'btn-primary' : 'btn-ghost'}`}
                             style={{ 
-                                padding: '4px 10px', 
+                                minHeight: 44,
+                                padding: '0.5rem 0.75rem', 
                                 fontSize: '0.72rem',
                                 background: showTransito ? 'hsl(var(--info, var(--primary)))' : 'transparent',
                                 color: showTransito ? 'hsl(var(--info-foreground, var(--primary-foreground)))' : 'hsl(var(--foreground))'
@@ -534,10 +540,12 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                             📦 En Tránsito
                         </button>
                         <button
+                            type="button"
                             onClick={() => setShowAltaProduccion(!showAltaProduccion)}
                             className={`btn btn-sm ${showAltaProduccion ? 'btn-primary' : 'btn-ghost'}`}
                             style={{ 
-                                padding: '4px 10px', 
+                                minHeight: 44,
+                                padding: '0.5rem 0.75rem', 
                                 fontSize: '0.72rem',
                                 background: showAltaProduccion ? 'hsl(var(--accent))' : 'transparent',
                                 color: showAltaProduccion ? 'hsl(var(--accent-foreground, var(--primary-foreground)))' : 'hsl(var(--foreground))'

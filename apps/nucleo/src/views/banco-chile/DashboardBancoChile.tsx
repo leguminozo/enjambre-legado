@@ -376,7 +376,7 @@ function ResumenCard({
         {action && (
           <button
             onClick={action}
-            className="mt-2 text-xs bg-primary text-primary-foreground px-3 py-1 rounded hover:opacity-90"
+            className="mt-2 inline-flex min-h-11 items-center text-xs bg-primary text-primary-foreground px-4 py-2 rounded hover:opacity-90"
           >
             Auto-conciliar
           </button>

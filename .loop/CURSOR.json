@@ -1,10 +1,10 @@
 {
-  "index": 6,
-  "pass": 80,
-  "last_sector": "ui-shared-tokens",
-  "last_commit": "f80686d",
+  "index": 0,
+  "pass": 81,
+  "last_sector": "deep-followup-ui",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 80: Dialog/Card footer min-h, DataTable sort hit, OverlayFullscreen safe-area, SectionHeader action, notif footer. Siguiente: deep-followup-ui (#6)."
+  "notes": "Pass 81: regeneracion ops, envio qty, mapa layers, product remove img, banco auto-conciliar, copy codes. Siguiente: ui-tienda-landing (#0)."
 }

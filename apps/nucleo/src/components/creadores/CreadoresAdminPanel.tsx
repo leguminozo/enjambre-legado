@@ -347,8 +347,10 @@ export function CreadoresAdminPanel() {
                       <p className="text-xs text-muted-foreground">{creador.profiles?.full_name || 'Sin nombre'} · {creador.profiles?.email || ''}</p>
                       <div className="flex items-center gap-4 mt-2 flex-wrap">
                         <button
+                          type="button"
                           onClick={() => copyCode(creador.codigo_ref)}
-                          className="flex items-center gap-1 text-xs font-mono bg-accent/15/30 border border-accent/10 px-2 py-1 rounded-md hover:bg-accent/15/50 transition-colors"
+                          aria-label={`Copiar código ${creador.codigo_ref}`}
+                          className="inline-flex min-h-11 items-center gap-1 text-xs font-mono bg-accent/15/30 border border-accent/10 px-3 py-2 rounded-md hover:bg-accent/15/50 transition-colors"
                         >
                           {copiedCode === creador.codigo_ref ? <Check size={12} className="text-success" /> : <Copy size={12} className="text-accent" />}
                           <span className="text-accent font-bold">{creador.codigo_ref}</span>

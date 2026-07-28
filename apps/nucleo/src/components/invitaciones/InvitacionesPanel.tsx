@@ -286,7 +286,12 @@ export function InvitacionesPanel() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <button onClick={() => copyCode(c.code)} className="flex items-center gap-1 text-xs font-mono bg-accent/15 border border-accent/10 px-2 py-1 rounded-md hover:bg-accent/25 transition-colors">
+                      <button
+                        type="button"
+                        onClick={() => copyCode(c.code)}
+                        aria-label={`Copiar código ${c.code}`}
+                        className="inline-flex min-h-11 items-center gap-1 text-xs font-mono bg-accent/15 border border-accent/10 px-3 py-2 rounded-md hover:bg-accent/25 transition-colors"
+                      >
                         {copiedCode === c.code ? <Check size={12} className="text-success" /> : <Copy size={12} className="text-accent" />}
                         <span className="text-accent font-bold">{c.code}</span>
                       </button>

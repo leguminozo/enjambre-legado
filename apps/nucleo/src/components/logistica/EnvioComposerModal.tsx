@@ -283,7 +283,7 @@ export function EnvioComposerModal({
                       type="button"
                       onClick={() => addProduct(p)}
                       disabled={p.stock <= 0}
-                      className="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-sunken px-3 py-2 text-left text-sm hover:border-accent/40 disabled:opacity-40 transition-colors"
+                      className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-border bg-surface-sunken px-3 py-2 text-left text-sm hover:border-accent/40 disabled:opacity-40 transition-colors"
                     >
                       <span className="truncate">{p.nombre}</span>
                       <span className="text-[10px] text-muted-foreground shrink-0">stk {p.stock}</span>
@@ -299,7 +299,8 @@ export function EnvioComposerModal({
                       <span className="flex-1 text-sm truncate">{line.nombre}</span>
                       <button
                         type="button"
-                        className="p-1 rounded border border-border"
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-border"
+                        aria-label="Disminuir cantidad"
                         onClick={() =>
                           syncItems(
                             lineItems
@@ -312,12 +313,13 @@ export function EnvioComposerModal({
                           )
                         }
                       >
-                        <Minus size={12} />
+                        <Minus size={14} />
                       </button>
-                      <span className="w-6 text-center text-sm font-mono">{line.cantidad}</span>
+                      <span className="w-8 text-center text-sm font-mono tabular-nums">{line.cantidad}</span>
                       <button
                         type="button"
-                        className="p-1 rounded border border-border"
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-border disabled:opacity-40"
+                        aria-label="Aumentar cantidad"
                         disabled={line.cantidad >= line.stock}
                         onClick={() =>
                           syncItems(
@@ -329,7 +331,7 @@ export function EnvioComposerModal({
                           )
                         }
                       >
-                        <Plus size={12} />
+                        <Plus size={14} />
                       </button>
                     </div>
                   ))}

@@ -353,7 +353,8 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
                             <button
                               type="button"
                               onClick={() => removeImage(index)}
-                              className="absolute top-1 right-1 bg-foreground/70 border-none rounded-full w-6 h-6 flex items-center justify-center cursor-pointer text-primary-foreground hover:bg-destructive transition-colors"
+                              aria-label="Quitar imagen"
+                              className="absolute top-0.5 right-0.5 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-foreground/70 border-none cursor-pointer text-primary-foreground hover:bg-destructive transition-colors"
                             >
                               <X size={14} />
                             </button>

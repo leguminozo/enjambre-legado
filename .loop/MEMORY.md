@@ -41,7 +41,7 @@
 | SII bandeja amber | confidence/estado badges amber raw | ✅ pass 53 |
 | Tienda perfil residual | direcciones hover-only p-2; reposición/pedidos py-2; notif switch 20px; mi-legado chips + reposición/tracking/reseña links + guardián/ciencia/colmena CTAs | ✅ pass 53+60+67 |
 | Editor CMS nucleo | item ops 36; Añadir 36; empty text-only; chrome toggle p-1.5; section chips densos | ✅ pass 60 |
-| Nucleo admin icon ops | creadores/invitaciones/reglas/vanguardia w-9; costeo inputs h-9/10; residual CRM aliados w-9 + reseñas mod py-1.5 + pipeline/bandeja chips + banco Actualizar | ✅ pass 67+74 |
+| Nucleo admin icon ops | creadores/invitaciones/reglas/vanguardia w-9; costeo inputs h-9/10; residual CRM aliados w-9 + reseñas mod py-1.5 + pipeline/bandeja chips + banco Actualizar; residual regeneracion pad4 + envio qty p-1 + mapa layers 4px + product img × + copy codes py-1 + banco auto-conciliar | ✅ pass 67+74+81 |
 
 ### Backlog go-live ops (v1.2 — congelado; no es cono del tick)
 
@@ -52,6 +52,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 81 (deep-followup-ui)
+- Señal: RegeneracionView edit/delete padding:4; EnvioComposer qty p-1; MapaLegado layers padding 4px; ProductForm remove img 24px; DashboardBancoChile Auto-conciliar py-1; copy codes invitaciones/creadores py-1
+- Compuesto: acrecer + colapsar + unificar
+- Regla nueva: deep-follow grepear `padding: 4` en style inline + `p-1 rounded border` qty + copy-code `py-1` mono buttons
+- Anti-patrón: style padding:4 en icon ops lista; qty stepper sin min-h/w-11
+- Guardriel: intacto (solo UI; WIP banco API no tocado)
 
 ### Evo 2026-07-27 pass 80 (ui-shared-tokens)
 - Señal: DialogFooter/CardFooter sin [&>*]:min-h; DataTable th sort solo py-2; OverlayFullscreen sin safe-area; SectionHeader action sin hit floor; notif panel footer bajo home bar

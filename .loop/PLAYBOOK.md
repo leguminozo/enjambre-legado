@@ -74,6 +74,10 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | AuthHero H1 denso | login hero aplastado 375 | `fontSize: 4.5rem` fixed | clamp(2.25rem,10vw,4.5rem) + safe-top |
 | Login form H2 denso | título form aplastado | `fontSize: 2.4rem` | clamp + safe-area panel |
 | Colmena ops &lt;44 | edit/delete pad 4 | style padding 4 on btn-sm | min 44×44; colmena-item min-h 44 |
+| Regeneracion ops pad4 | mis-tap editar/borrar plantación | style padding:4 | minWidth/Height 44 + aria-label |
+| Qty stepper p-1 | mis-tap ± envío/logística | `p-1 rounded border` | min-h/w-11 + aria-label |
+| Map layer chips densos | mis-tap filtros mapa | padding 4px 10px inline | minHeight 44; no override crush |
+| Copy-code mono densos | mis-tap copiar ref | py-1 mono chip | min-h-11 px-3 py-2 |
 | Header search sin close | mis-tap cerrar buscador | solo toggle icono | botón X min-h/w-11 en panel |
 | Sidebar rail notch | brand bajo status bar tablet | rail pad sin safe-top | `padding-top: space + env(safe-area-inset-top)` |
 | CMS chrome 36/p-0.5 | mis-tap reorder/visibility | StoreChromeEditors | reorder min-h/w-11; toggle min-h-11 |
