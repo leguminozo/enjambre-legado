@@ -16,6 +16,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Landing CTA ruta muerta | 404 desde mapa/historia | href legacy WP `/nuestra-historia` | usar `/nosotros` (store-routes) |
 | Editorial H1 denso 375 | título corta/solapa header | `text-5xl` + `py-16` sin safe | clamp H1 + `pt-[max(...,safe-top+header)]` |
 | Landing H2 densos | collections/products/map aplastados | `text-3xl` fijo | clamp(1.75rem,6vw,3.75rem) |
+| Editorial ciencia/nosotros H2 | secciones aplastadas 375 | `text-3xl md:text-4xl` | clamp(1.5rem,5.5vw,2.25rem) + text-balance |
+| Empty creaciones landing | sin camino a catálogo | solo italic | CTA min-h-12 → /catalogo |
+| Claim claimed sin escape | ticket ya usado callejón | H1 4xl + copy only | clamp H1 + CTAs catálogo/inicio |
 | Contacto CTA mislabel | copy catálogo → `/` | href home | `/catalogo` + min-h-12 |
 | Leaflet zoom &lt;44 | mis-tap zoom mapa | control default ~30px | `.leaflet-control-zoom a` min 44 |
 | Legal prose links densos | anchors CMS sin hit | prose a inline | `.prose a { min-height: 44px }` |

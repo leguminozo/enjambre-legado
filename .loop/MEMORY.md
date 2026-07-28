@@ -29,7 +29,7 @@
 
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
-| Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y; mapa href + editorial pages 375; 404/error btn fantasma + contacto/ulmo; residual contacto catálogo CTA + nosotros evidencia + landing H2 clamp + leaflet 44 | ✅ pass 40+47+54+61+68+75 |
+| Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y; mapa href + editorial pages 375; 404/error btn fantasma + contacto/ulmo; residual contacto catálogo CTA + nosotros evidencia + landing H2 clamp + leaflet 44; residual empty creaciones CTA + ciencia/nosotros H2 densos + claim claimed + youtube focus | ✅ pass 40+47+54+61+68+75+82 |
 | Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom; auth btn fantasma + perfil safe-top; announcement h36 + legal H1 + footer PWA; residual annou internal blank + auth H1 clamp + recuperar/reset login CTAs | ✅ pass 41+48+55+62+69+76 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos; btn fantasma + card/input CSS; residual setup-error + siguiente venta + threshold dismiss/safe + empty cart CTA; residual post-venta Nueva Venta + client Nuevo/Buscar + comisiones checkbox | ✅ pass 44+51+58+65+72+79 |
@@ -52,6 +52,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 82 (ui-tienda-landing)
+- Señal: landing-products empty sin CTA; ciencia/nosotros H2 text-3xl fijo; claim claimed sin escape + H1 4xl; science/catalog CTAs text-only residual; youtube sin focus ring
+- Compuesto: colapsar + redirigir + unificar
+- Regla nueva: empty creaciones landing = CTA min-h-12 catálogo; editorial H2 = clamp; claim terminal states always CTAs recovery
+- Anti-patrón: empty products solo italic; claim claimed sin camino a tienda
+- Guardriel: intacto (solo UI tienda; claim no toca lógica token)
 
 ### Evo 2026-07-27 pass 81 (deep-followup-ui)
 - Señal: RegeneracionView edit/delete padding:4; EnvioComposer qty p-1; MapaLegado layers padding 4px; ProductForm remove img 24px; DashboardBancoChile Auto-conciliar py-1; copy codes invitaciones/creadores py-1

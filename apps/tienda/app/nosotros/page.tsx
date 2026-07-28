@@ -191,21 +191,21 @@ En términos generales, hacemos que la miel de Chiloé sea un puente entre la re
 En "La Obrera y el Zángano", hacemos que este puente invite a un consumo consciente, sencillo y lujoso, que fusiona ciencia con existencia.
 </p>
 
-<h2 className="font-display text-3xl md:text-4xl font-light text-foreground mt-12 mb-6">Renacer de las Cenizas en Chiloé</h2>
+<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Renacer de las Cenizas en Chiloé</h2>
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
 Hace 22 años comenzamos un proceso piloto de reforestación en un terreno de baja densidad boscosa y alta erosión derivada del impacto de un incencio varios años antes de nuestra llegada. Con paciencia, reconstruimos este paisaje con especies nativas como ulmo, tepú, tiaca, avellanos, entre otros. Tejiendo al final de años, un ecosistema que respira como pulmón vivo para nuestras colmenas y los demás seres que han llegado a habitar el entorno. Las abejas, en su existencia polinizadora, recolectan néctar de flores bañadas por la luz de bosques regenerados, directo desde el frío sur del planeta, creando una miel ámbar extra claro cremosa. Nuestra apicultura rompe con lo convencional: no solo produce, sino que restaura y preserva, la llamamos apicultura regenerativa, reflejando transmitir confianza en que todo se puede regenerar y convertir hacia algo mas profundo y capaz de crear un legado que trasciende la existencia humana. Ese legado emerge del bosque y de nuestra interdependencia tejida con los ritmos naturales.
 
 Nuestro proceso —de la reforestación en Pureo a los batidos precisos de miel ulmo-tepú— eleva lo artesanal a lo existencial. Rechaza el azúcar refinado, ligado al síndrome metabólico en el 36% de adultos chilenos. La textura cremosa, rica en triptófano, libera serotonina gradualmente, reduciendo fluctuaciones glucémicas en un 15-20% respecto al azúcar industrial, según estudios de respuesta glicémica.
 </p>
 
-<h2 className="font-display text-3xl md:text-4xl font-light text-foreground mt-12 mb-6">Apicultura como Conexión Cósmica</h2>
+<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Apicultura como Conexión Cósmica</h2>
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
 En Chiloé, trabajamos colaborativamente con nuestras colmenas, son sociedades complejas y sincronizadas al ritmo de las estaciones, al ritmo del sol. Cada verano es un nuevo comienzo en la recolección de miel.
 
 Luego, Innovamos con formatos minimalistas: sachets de 15 g como dosis exactas contra desbalances glucémicos, frascos de 150 g o 900 g para rituales profundos. Cada producto invita a un acto matutino: una cucharada que calma el ruido mental del azúcar simple, promoviendo claridad metabólica con efectos ansiolíticos mediados por precursores de serotonina.
 </p>
 
-<h2 className="font-display text-3xl md:text-4xl font-light text-foreground mt-12 mb-6">Elixires del Vacío: Nuestros Productos</h2>
+<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Elixires del Vacío: Nuestros Productos</h2>
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
 En obrerayzangano.com, nuestra gama surge de procesos regenerativos: sachets, frascos de 150 g y 900 g, con avellanas, polen o cacao nibs que potencian nutrientes. Cada elixir es un antídoto al exceso calórico del azúcar, con un consumo promedio de 99 g diarios per cápita en Chile.
 
@@ -222,12 +222,12 @@ En obrerayzangano.com, nuestra gama surge de procesos regenerativos: sachets, fr
 Cada creación es un poema sensorial: ámbar viscoso que danza en la lengua, aromas boscosos de tepú, un lujo tierno que nutre el ser con simplicidad espacial.
 </p>
 
-<h2 className="font-display text-3xl md:text-4xl font-light text-foreground mt-12 mb-6">Compromiso con la Regeneración</h2>
+<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Compromiso con la Regeneración</h2>
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
 Desde el sur del planeta, promovemos agroecología en ferias locales, educando sobre polinizadores como arquitectos cósmicos. Nuestra miel restaura la conexión con la naturaleza, combatiendo la desconexión metabólica del azúcar, prevalente en poblaciones con alta resistencia insulínica.
 </p>
 
-<h2 className="font-display text-3xl md:text-4xl font-light text-foreground mt-12 mb-6">Invitación al Equilibrio Chileno</h2>
+<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Invitación al Equilibrio Chileno</h2>
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
 En La Obrera y el Zángano, cada frasco es un monumento al equilibrio cósmico: calidad que redefine el consumo como acto sagrado, rompiendo adicciones con miel que nutre la esencia. Nuestros sachets son ideales como amenities exclusivos en habitaciones de hoteles de lujo. Cada sachet cuenta la historia del bosque patagónico, diferenciando tu experiencia de hospedaje.
 
@@ -235,7 +235,7 @@ En La Obrera y el Zángano, cada frasco es un monumento al equilibrio cósmico: 
 </p>
 
 {/* Fuentes Section */}
-<h2 className="font-display text-3xl md:text-4xl font-light text-foreground mt-12 mb-6">Fuentes</h2>
+<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Fuentes</h2>
 <p className="text-lg leading-relaxed text-muted-foreground">
 Las afirmaciones científicas se fundamentan en estudios que destacan las propiedades de la miel ulmo-tepú de Chiloé, contextualizadas a las ubicaciones de Pureo, Yerba Loza, y otras ubicaciones de nuestros respectivos apiarios:
 </p>
@@ -252,7 +252,7 @@ Ver Evidencia Científica
 
 {/* Mission */}
 <div className="border-t border-border pt-16 mb-24">
-<h2 className="font-display text-3xl md:text-4xl font-light text-foreground mb-8 text-center">
+<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
 Nuestra Misión
 </h2>
 <p className="text-lg text-muted-foreground text-center max-w-3xl mx-auto mb-12">
@@ -262,7 +262,7 @@ En La Obrera y el Zángano, buscamos fomentar y transformar el consumo de Miel e
 
 {/* Vision */}
 <div className="border-t border-border pt-16 mb-24">
-<h2 className="font-display text-3xl md:text-4xl font-light text-foreground mb-8 text-center">
+<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
 Nuestra Visión
 </h2>
 <p className="text-lg text-muted-foreground text-center max-w-3xl mx-auto">

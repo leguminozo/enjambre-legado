@@ -58,7 +58,7 @@ export default async function CienciaPage() {
           <div className="max-w-4xl mx-auto grid md:grid-cols-[1fr_1fr] gap-16 items-center">
             <div>
               <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent mb-6">Fórmula 01</span>
-              <h2 className="font-display text-3xl md:text-4xl font-light text-foreground mb-6">
+              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
                 Energía solar → Miel
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed mb-4">
@@ -115,7 +115,7 @@ export default async function CienciaPage() {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent mb-6">Fórmula 02</span>
-              <h2 className="font-display text-3xl md:text-4xl font-light text-foreground mb-6">
+              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
                 Índice de Regeneración Relativa
               </h2>
             </div>
@@ -174,7 +174,7 @@ export default async function CienciaPage() {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent mb-6">Fórmula 03</span>
-              <h2 className="font-display text-3xl md:text-4xl font-light text-foreground mb-6">
+              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
                 Propiedades que no se fabrican
               </h2>
               <p className="text-sm text-muted-foreground italic max-w-lg mx-auto">
@@ -209,13 +209,16 @@ export default async function CienciaPage() {
         <section className="py-24 px-4 border-t border-border/20 bg-surface-raised/30">
           <div className="max-w-3xl mx-auto text-center">
             <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent mb-6">Denominación de origen</span>
-            <h2 className="font-display text-3xl md:text-4xl font-light text-foreground mb-6">
+            <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
               Un perfil que no se repite
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto mb-8">
               El néctar de Ulmo, Tepú y Olivillo del bosque húmedo patagónico produce un perfil organoléptico imposible de replicar fuera de Chiloé. No es marketing: es biogeografía.
             </p>
-            <Link href="/catalogo" className="inline-flex min-h-11 items-center gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-accent hover:text-accent/80 transition-colors">
+            <Link
+              href="/catalogo"
+              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-accent px-6 py-3 text-[0.65rem] uppercase tracking-[0.3em] text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
               Explorar creaciones →
             </Link>
           </div>

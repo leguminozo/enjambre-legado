@@ -30,7 +30,7 @@ export function YoutubeLite({ videoId, title = 'Video' }: YoutubeLiteProps) {
   return (
     <button
       type="button"
-      className="absolute inset-0 w-full h-full cursor-pointer group text-left border-0 bg-transparent p-0"
+      className="absolute inset-0 w-full h-full cursor-pointer group text-left border-0 bg-transparent p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
       onClick={() => setIsLoaded(true)}
       aria-label={`Reproducir video: ${title}`}
     >

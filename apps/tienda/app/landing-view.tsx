@@ -378,7 +378,7 @@ export function TiendaLandingView({
               <div className="flex items-center justify-center gap-6 mt-6">
                 <Link
                   href="/ciencia"
-                  className="inline-flex min-h-11 items-center text-editorial-xs uppercase tracking-widest text-accent hover:text-accent/80 transition-colors"
+                  className="inline-flex min-h-11 items-center rounded-md border border-accent/40 px-4 py-2 text-editorial-xs uppercase tracking-widest text-accent hover:bg-accent/10 hover:text-accent/90 transition-colors"
                 >
                   {tScience('viewScience') || 'Ver la ciencia detrás'} →
                 </Link>

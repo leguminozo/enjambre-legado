@@ -24,8 +24,16 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
   if (products.length === 0) {
     return (
       <section className="editorial-section">
-        <div className="editorial-container text-center">
-          <p className="text-muted-foreground italic">Próximamente nuestras creaciones estarán disponibles.</p>
+        <div className="editorial-container text-center px-4">
+          <p className="text-muted-foreground italic mb-6">
+            Próximamente nuestras creaciones estarán disponibles.
+          </p>
+          <Link
+            href="/catalogo"
+            className="inline-flex min-h-12 items-center justify-center rounded-full border border-accent bg-accent/10 px-8 py-3 text-editorial-xs uppercase tracking-widest text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            Ir al catálogo
+          </Link>
         </div>
       </section>
     );
@@ -51,7 +59,10 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
               key={p.id}
               className="group relative bg-card border border-border rounded-lg overflow-hidden hover:border-accent/35 transition-all duration-base flex flex-col"
             >
-              <Link href={`/producto/${encodeURIComponent(p.slug)}`} className="block">
+              <Link
+                href={`/producto/${encodeURIComponent(p.slug)}`}
+                className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
                 <div className="relative aspect-square bg-card overflow-hidden">
                   {img ? (
                     <Image
