@@ -89,6 +89,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Traza H1/breadcrumb | título denso 375; links sin hit | `text-4xl`/`text-5xl`; bare Link | clamp H1; breadcrumb min-h-11 |
 | Editor CMS 36px ops | mis-tap reorder/eye/delete / Añadir | `min-h-[36px]` + empty text-only | item ops + chrome toggles `min-h-11 min-w-11`; empty CTA min-h-11 |
 | Admin row icon 36 | mis-tap activar/suspender/editar | `w-9 h-9` en paneles | `min-h-11 min-w-11 h-11 w-11` |
+| CRM aliados 36 | aprobar/suspender mis-tap | `w-9 h-9` rounded-full | min-h/w-11 + aria-label |
+| Reseñas mod densas | Aprobar/Rechazar/Ocultar &lt;44 | py-1.5 only | min-h-11 + py-2 |
+| Chips fuera scroll CSS | proveedor/pipeline sin min-h | py-1.5 suelto | min-h-11 explícito (no confiar solo en filter-chips-scroll) |
 | Form h-9/h-10 densos | inputs costeo/ops &lt;44 | `flex h-9/h-10 w-full` | `min-h-11 w-full` |
 | Perfil text-only residual | reposición pedidos / tracking / reseña | `hover:underline` sin min-h | links min-h-11; chips legado como creador-portal |
 | Wallet py densos | Apple/Google wallet &lt;44 | `py-2.5` only | `min-h-11` on wallet buttons |

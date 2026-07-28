@@ -41,7 +41,7 @@
 | SII bandeja amber | confidence/estado badges amber raw | ✅ pass 53 |
 | Tienda perfil residual | direcciones hover-only p-2; reposición/pedidos py-2; notif switch 20px; mi-legado chips + reposición/tracking/reseña links + guardián/ciencia/colmena CTAs | ✅ pass 53+60+67 |
 | Editor CMS nucleo | item ops 36; Añadir 36; empty text-only; chrome toggle p-1.5; section chips densos | ✅ pass 60 |
-| Nucleo admin icon ops | creadores/invitaciones/reglas/vanguardia w-9; costeo inputs h-9/10 | ✅ pass 67 |
+| Nucleo admin icon ops | creadores/invitaciones/reglas/vanguardia w-9; costeo inputs h-9/10; residual CRM aliados w-9 + reseñas mod py-1.5 + pipeline/bandeja chips + banco Actualizar | ✅ pass 67+74 |
 
 ### Backlog go-live ops (v1.2 — congelado; no es cono del tick)
 
@@ -52,6 +52,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 74 (deep-followup-ui)
+- Señal: AliadosB2B w-9 approve/reject; ResenasSensoriales mod py-1.5; Pipeline/Bandeja chips densos; banco «Actualizar» text-only; creador términos sin hit
+- Compuesto: acrecer + colapsar + unificar
+- Regla nueva: deep-follow grepear w-9 en CRM + py-1.5 en botones moderación; chips proveedor/pipeline min-h-11 explícito
+- Anti-patrón: icon ops CRM 36px; chips solo py-1.5 fuera de .filter-chips-scroll
+- Guardriel: intacto (solo UI; WIP banco API no tocado)
 
 ### Evo 2026-07-27 pass 73 (ui-shared-tokens)
 - Señal: toast persistent (promise error) sin botón cerrar; SectionHeader text-3xl denso 375; ImmersiveModal footer sin min-h + sin safe-bottom; DatePicker border-input/bg-transparent
