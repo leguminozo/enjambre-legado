@@ -44,6 +44,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | SelectItem densos | mis-tap opciones en móvil | `py-1.5` sin min-h | `min-h-11 py-2.5`; search input min-h-11 |
 | Toast close &lt;44 | mis-tap cerrar toast | `p-0.5` icon only | close `min-h-11 min-w-11`; action min-h-11 |
 | Toast under home bar | toast tapa safe iPhone | `bottom-4 right-4` | `bottom/right: max(1rem, env(safe-area-inset-*))` |
+| Toast persistent trap | error/promise sin cerrar | dismiss solo si !persistent | dismiss always except promise pending |
+| SectionHeader denso | título aplastado 375 | `text-3xl` fijo | clamp(1.5rem,6vw,3rem) |
+| ImmersiveModal footer densos | CTAs &lt;44; bajo home bar | footer sin min-h | `[&>*]:min-h-11` + safe-bottom pad |
 | Notif row a11y | filas no teclado / hit denso | div onClick | role=button tabIndex min-h-11 + key Enter/Space |
 | Button icon-only | chevron paginación &lt;44 ancho | solo min-h | sizeClasses + `min-w-11` |
 | DataTable checkbox 20 | select row mis-tap | visual = hit `w-5 h-5` | outer button min-h/w-11, inner visual 20 |

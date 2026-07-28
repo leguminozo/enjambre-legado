@@ -1,10 +1,10 @@
 {
-  "index": 5,
-  "pass": 72,
-  "last_sector": "ui-campo-pos",
-  "last_commit": "30b0a7f",
+  "index": 6,
+  "pass": 73,
+  "last_sector": "ui-shared-tokens",
+  "last_commit": "bb5b0bc",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 72: setup-error, quick-sale next, threshold safe/dismiss, empty cart CTA. Siguiente: ui-shared-tokens (#5)."
+  "notes": "Pass 73: toast dismiss trap, SectionHeader clamp, ImmersiveModal footer/safe, DatePicker tokens. Siguiente: deep-followup-ui (#6)."
 }

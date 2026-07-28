@@ -36,7 +36,7 @@
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos; landing H1/CTAs + rail safe-top + CMS chrome 36; residual dashboard 404/error py-2 + AuthHero 4.5rem + search close | ✅ pass 43+50+57+64+71 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual; reseñas/QR/checkout resultado; residual not-found text-only + checkout dir nueva + QR manual densos + traza H1/breadcrumb | ✅ pass 42+49+56+63+70 |
-| Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close; residual toast/DataTable checkbox/pill; toast safe-area + notif row a11y | ✅ pass 45+52+59+66 |
+| Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close; residual toast/DataTable checkbox/pill; toast safe-area + notif row a11y; residual toast persistent trap + SectionHeader clamp + ImmersiveModal footer/safe | ✅ pass 45+52+59+66+73 |
 | Tokens apps | Logistica emerald → success; residual canvas/PWA hex OK | ✅ pass 46 (logistica); ⏳ baja canvas/manifest |
 | SII bandeja amber | confidence/estado badges amber raw | ✅ pass 53 |
 | Tienda perfil residual | direcciones hover-only p-2; reposición/pedidos py-2; notif switch 20px; mi-legado chips + reposición/tracking/reseña links + guardián/ciencia/colmena CTAs | ✅ pass 53+60+67 |
@@ -52,6 +52,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 73 (ui-shared-tokens)
+- Señal: toast persistent (promise error) sin botón cerrar; SectionHeader text-3xl denso 375; ImmersiveModal footer sin min-h + sin safe-bottom; DatePicker border-input/bg-transparent
+- Compuesto: unificar + colapsar
+- Regla nueva: toast dismiss siempre excepto promise pending; SectionHeader clamp H2; ImmersiveModal footer [&>*]:min-h-11 + safe-area pad
+- Anti-patrón: `!persistent &&` dismiss gate atrapa errores; modal footer CTAs sin min-h
+- Guardriel: intacto
 
 ### Evo 2026-07-27 pass 72 (ui-campo-pos)
 - Señal: setup-error link text-only; quick-sale «Siguiente venta» text-[10px]; threshold dismiss × sin hit + bottom-4 sin safe; client rows sin min-h; empty cart sin CTA
