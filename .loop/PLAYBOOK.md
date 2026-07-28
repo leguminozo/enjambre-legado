@@ -68,6 +68,8 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Nucleo landing densa | H1 5xl + links text-only | page.tsx entry | clamp H1; Link min-h-12 primary; card CTAs min-h-11 |
 | Nucleo recovery densos | 404/error CTA &lt;44 | `px-4 py-2` only | min-h-12 + px-6 py-3 |
 | AuthHero H1 denso | login hero aplastado 375 | `fontSize: 4.5rem` fixed | clamp(2.25rem,10vw,4.5rem) + safe-top |
+| Login form H2 denso | título form aplastado | `fontSize: 2.4rem` | clamp + safe-area panel |
+| Colmena ops &lt;44 | edit/delete pad 4 | style padding 4 on btn-sm | min 44×44; colmena-item min-h 44 |
 | Header search sin close | mis-tap cerrar buscador | solo toggle icono | botón X min-h/w-11 en panel |
 | Sidebar rail notch | brand bajo status bar tablet | rail pad sin safe-top | `padding-top: space + env(safe-area-inset-top)` |
 | CMS chrome 36/p-0.5 | mis-tap reorder/visibility | StoreChromeEditors | reorder min-h/w-11; toggle min-h-11 |
