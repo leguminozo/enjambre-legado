@@ -10,7 +10,7 @@ import { copyFileSync, existsSync, mkdirSync, rmSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
-import { PROJECTS } from './lib/vercel-auth.mjs';
+import { PROJECTS, vercelFetch } from './lib/vercel-auth.mjs';
 
 const app = process.argv[2];
 if (!app || !PROJECTS[app]) {
@@ -38,27 +38,27 @@ copyFileSync(linkSrc, linkDst);
 
 execSync('vercel build --prod --yes', { cwd: root, stdio: 'inherit' });
 
-// Hobby team: autor del commit = email verificado en la cuenta Vercel (guillermc).
-const vercelEmail = process.env.VERCEL_DEPLOY_AUTHOR_EMAIL ?? 'guillermoc2710@gmail.com';
-const vercelName = process.env.VERCEL_DEPLOY_AUTHOR_NAME ?? 'guillermc';
-
-let cliUser = '';
-try {
-  cliUser = execSync('vercel whoami 2>/dev/null', { encoding: 'utf8' }).trim();
-} catch {
-  /* ignore */
-}
-if (cliUser && cliUser !== vercelName && cliUser !== 'guillermc') {
-  console.warn(
-    `\n⚠ CLI logueado como "${cliUser}" pero deploy author es "${vercelName}".`,
-    'Si ves BLOCKED, ejecuta: vercel login (cuenta guillermc)\n',
-  );
+// Hobby team: autor del commit = email verificado en la cuenta Vercel activa
+let vercelEmail = process.env.VERCEL_DEPLOY_AUTHOR_EMAIL;
+let vercelName = process.env.VERCEL_DEPLOY_AUTHOR_NAME;
+if (!vercelEmail || !vercelName) {
+  try {
+    const res = await vercelFetch('/v2/user');
+    vercelEmail = vercelEmail ?? res?.user?.email ?? 'guillermoc2710@gmail.com';
+    vercelName = vercelName ?? res?.user?.username ?? res?.user?.name ?? 'guillermc';
+  } catch {
+    vercelEmail = vercelEmail ?? 'guillermoc2710@gmail.com';
+    vercelName = vercelName ?? 'guillermc';
+  }
 }
 const deployCmd = [
-  'vercel deploy --prebuilt --prod --yes --archive=tgz --no-wait',
+  'vercel deploy --prebuilt --prod --yes --no-wait',
   `-m githubCommitAuthorEmail=${vercelEmail}`,
   `-m githubCommitAuthorName=${vercelName}`,
+  `-m gitAuthorEmail=${vercelEmail}`,
+  `-m gitAuthorName=${vercelName}`,
 ].join(' ');
+console.log('=> Executing deploy command:', deployCmd);
 execSync(deployCmd, { cwd: root, stdio: 'inherit', shell: true });
 
 console.log('\n✓ Deploy enviado (async). Revisa estado: vercel ls (en apps/<app>).');
