@@ -25,13 +25,13 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
   const [lotes, setLotes] = useState<{ id: string; nombre_lote?: string | null; blockchain_hash?: string | null }[]>([]);
 
   useEffect(() => {
-    supabase
-      .from('lotes')
-      .select('id, nombre_lote, blockchain_hash')
-      .order('created_at', { ascending: false })
-      .then(({ data }: { data: any }) => {
-        if (data) setLotes(data);
-      });
+    void (async () => {
+      const { data } = await supabase
+        .from('lotes')
+        .select('id, nombre_lote, blockchain_hash')
+        .order('created_at', { ascending: false });
+      if (data) setLotes(data);
+    })();
   }, []);
 
   const form = useForm<ProductFormData>({

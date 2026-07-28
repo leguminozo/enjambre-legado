@@ -147,9 +147,9 @@ console.error('Error deleting product:', error);
       
       setRefillProduct(null);
       setRefillAmount(0);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error refilling stock:', error);
-      toast(error.message, { type: 'error' });
+      toast(error instanceof Error ? error.message : 'Error al reponer stock', { type: 'error' });
     } finally {
       setIsRefilling(false);
     }

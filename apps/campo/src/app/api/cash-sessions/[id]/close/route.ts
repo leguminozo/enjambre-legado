@@ -25,12 +25,12 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     .select("total, metodo_pago")
     .eq("cash_session_id", sessionId);
 
-  const cashSales = ((ventas as any[]) ?? []).reduce(
-    (sum: number, v: any) => v.metodo_pago === "efectivo" ? sum + v.total : sum, 0
+  const cashSales = (ventas ?? []).reduce(
+    (sum, v) => v.metodo_pago === "efectivo" ? sum + v.total : sum, 0
   );
 
   const breakdown: Record<string, number> = {};
-  for (const v of ((ventas as any[]) ?? [])) {
+  for (const v of (ventas ?? [])) {
     breakdown[v.metodo_pago] = (breakdown[v.metodo_pago] ?? 0) + v.total;
   }
 

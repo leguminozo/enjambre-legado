@@ -123,15 +123,30 @@ async function fetchStampProgress(supabase: SupabaseClient, userId: string): Pro
       return [];
     }
 
-    return (data ?? []).map((row: any) => ({
-      program_id: row.guardian_stamp_programs.id,
-      nombre: row.guardian_stamp_programs.nombre,
-      unidades_requeridas: row.guardian_stamp_programs.unidades_requeridas,
-      unidades_acumuladas: row.unidades_acumuladas,
-      unidades_canjeadas: row.unidades_canjeadas,
-      producto_id: row.guardian_stamp_programs.producto_id,
-      producto_nombre: row.guardian_stamp_programs.productos?.nombre ?? null,
-    }));
+    type StampProgressRow = {
+      unidades_acumuladas: number;
+      unidades_canjeadas: number;
+      guardian_stamp_programs: Array<{
+        id: string;
+        nombre: string;
+        unidades_requeridas: number;
+        producto_id: string | null;
+        productos: Array<{ nombre: string }>;
+      }>;
+    };
+
+    return ((data ?? []) as StampProgressRow[]).map((row) => {
+      const program = row.guardian_stamp_programs[0];
+      return {
+        program_id: program.id,
+        nombre: program.nombre,
+        unidades_requeridas: program.unidades_requeridas,
+        unidades_acumuladas: row.unidades_acumuladas,
+        unidades_canjeadas: row.unidades_canjeadas,
+        producto_id: program.producto_id,
+        producto_nombre: program.productos[0]?.nombre ?? null,
+      };
+    });
   } catch (e) {
     console.error('[guardian-dashboard] fetchStampProgress error:', e);
     return [];
@@ -184,7 +199,7 @@ async function fetchRecentOrders(supabase: SupabaseClient, userId: string) {
     total: row.total,
     estado: row.estado,
     productos: Array.isArray(row.productos)
-      ? row.productos.map((p: any) => ({
+      ? (row.productos as Array<{ nombre?: string; name?: string; cantidad?: number; quantity?: number; precio?: number; price?: number }>).map((p) => ({
           nombre: p.nombre ?? p.name ?? 'Producto',
           cantidad: p.cantidad ?? p.quantity ?? 1,
           precio: p.precio ?? p.price ?? 0,

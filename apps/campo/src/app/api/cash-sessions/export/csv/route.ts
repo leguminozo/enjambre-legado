@@ -28,7 +28,7 @@ export async function GET(request: Request) {
   }
 
   const { data: sessions } = await query;
-  const sessionIds = (sessions ?? []).map((s: any) => s.id);
+  const sessionIds = (sessions ?? []).map((s) => s.id);
 
   const { data: commissions } = await supabase
     .from("commission_records")
@@ -40,20 +40,20 @@ export async function GET(request: Request) {
     .from("rep_profiles")
     .select("user_id, display_name, commission_tier");
 
-  const repMap = new Map((reps ?? []).map((r: any) => [r.user_id, r]));
+  const repMap = new Map((reps ?? []).map((r) => [r.user_id, r]));
 
   const header = "fecha,rep,tier,efectivo_inicial,efectivo_contado,diferencia,estado,comision_base,multiplicador,loyalty,streak,comision_total,pagada\n";
   const rows = [];
 
   for (const s of sessions ?? []) {
     const rep = repMap.get(s.rep_id);
-    const sessionComms = (commissions ?? []).filter((c: any) => c.session_id === s.id);
-    const totalBase = sessionComms.reduce((sum: number, c: any) => sum + Number(c.base_commission), 0);
-    const totalMultiplier = sessionComms.length > 0 ? sessionComms.reduce((sum: number, c: any) => sum + Number(c.volume_multiplier), 0) / sessionComms.length : 0;
-    const totalLoyalty = sessionComms.reduce((sum: number, c: any) => sum + Number(c.loyalty_bonus), 0);
-    const totalStreak = sessionComms.reduce((sum: number, c: any) => sum + Number(c.streak_bonus), 0);
-    const totalComm = sessionComms.reduce((sum: number, c: any) => sum + Number(c.total_commission), 0);
-    const allPaid = sessionComms.length > 0 && sessionComms.every((c: any) => c.paid);
+    const sessionComms = (commissions ?? []).filter((c) => c.session_id === s.id);
+    const totalBase = sessionComms.reduce((sum, c) => sum + Number(c.base_commission), 0);
+    const totalMultiplier = sessionComms.length > 0 ? sessionComms.reduce((sum, c) => sum + Number(c.volume_multiplier), 0) / sessionComms.length : 0;
+    const totalLoyalty = sessionComms.reduce((sum, c) => sum + Number(c.loyalty_bonus), 0);
+    const totalStreak = sessionComms.reduce((sum, c) => sum + Number(c.streak_bonus), 0);
+    const totalComm = sessionComms.reduce((sum, c) => sum + Number(c.total_commission), 0);
+    const allPaid = sessionComms.length > 0 && sessionComms.every((c) => c.paid);
 
     rows.push([
       s.opened_at.slice(0, 10),

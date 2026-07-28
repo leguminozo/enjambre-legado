@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 import { ChartBox } from '@/components/charts/ChartBox'
 import { TrendingUp, DollarSign, ArrowUpRight } from 'lucide-react'
+import type { FinanzasData } from '../EcosistemaDashboard'
 
 function fmtCLP(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -12,7 +13,7 @@ function fmtCLP(n: number): string {
   return `$${n.toFixed(0)}`
 }
 
-export function FinanceWidget({ data }: { data: any }) {
+export function FinanceWidget({ data }: { data: FinanzasData }) {
   return (
     <div className="flex flex-col h-full rounded-2xl border border-border bg-card p-6 overflow-hidden relative">
       {/* Background soft gradient */}
@@ -78,7 +79,7 @@ export function FinanceWidget({ data }: { data: any }) {
                 fontSize: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)'
               }}
-              formatter={(value: any) => fmtCLP(Number(value || 0))}
+              formatter={(value) => fmtCLP(Number(value || 0))}
             />
             <Area type="monotone" dataKey="income" name="Ingresos" stroke="hsl(var(--success))" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)" />
             <Area type="monotone" dataKey="expenses" name="Gastos" stroke="hsl(var(--destructive))" strokeWidth={2} fillOpacity={1} fill="url(#colorExpense)" />

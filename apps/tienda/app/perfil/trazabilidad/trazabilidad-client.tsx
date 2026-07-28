@@ -4,10 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Loader2 } from 'lucide-react';
 import { BlockchainCard } from '@/components/perfil/blockchain-card';
+import type { BlockchainAnchor } from '@/components/perfil/blockchain-card';
 
 interface TrazabilidadClientProps {
   initialLote?: string;
-  anchor: any;
+  anchor: BlockchainAnchor | null;
   error: string | null;
 }
 

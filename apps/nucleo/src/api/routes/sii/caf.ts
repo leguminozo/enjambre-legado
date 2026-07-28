@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@enjambre/database";
 import type { AppVariables } from "@/api/lib/middleware";
 import { parseCafXml } from "@/api/lib/sii-caf-xml";
 
@@ -54,8 +56,7 @@ const CafManualSchema = z.object({
 });
 
 async function deactivateOtherCaf(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
+  supabase: SupabaseClient<Database>,
   empresaId: string,
   tipoDte: number,
   exceptId?: string,

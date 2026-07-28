@@ -155,8 +155,8 @@ export function ConciliacionAutoView() {
       toast('Propuesta aceptada y conciliada', { type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['conciliacion'] });
     },
-    onError: (err: any) => {
-      toast(err.message, { type: 'error' });
+    onError: (err: unknown) => {
+      toast(err instanceof Error ? err.message : 'Error al conciliar', { type: 'error' });
     }
   });
 

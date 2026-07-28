@@ -50,8 +50,8 @@ export function InsumoForm({ onSuccess, onCancel }: InsumoFormProps) {
         toast.success('Insumo creado correctamente');
         queryClient.invalidateQueries({ queryKey: ['costeo', 'ingredientes'] });
         onSuccess?.();
-      } catch (err: any) {
-        toast.error(err.message || 'Error desconocido al guardar');
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Error al guardar insumo');
       }
     });
   };

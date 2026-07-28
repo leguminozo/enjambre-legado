@@ -370,7 +370,7 @@ export function DashboardTab() {
   );
 }
 
-function StatCard({ label, value, accent, isCount, icon: Icon }: { label: string; value: number; accent?: boolean; isCount?: boolean; icon?: any }) {
+function StatCard({ label, value, accent, isCount, icon: Icon }: { label: string; value: number; accent?: boolean; isCount?: boolean; icon?: React.ComponentType<{ size?: number; className?: string }> }) {
   const isNegative = value < 0;
   return (
     <Card className="bg-surface-sunken border-border">

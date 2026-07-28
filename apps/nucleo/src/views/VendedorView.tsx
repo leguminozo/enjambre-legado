@@ -44,6 +44,30 @@ function mapClientType(t: string): string {
   return 'D2C';
 }
 
+interface InteraccionRuta {
+  id: string;
+  tipo: string;
+  notas?: string | null;
+  proximo_seguimiento?: string | null;
+  clientes?: {
+    name?: string | null;
+    direccion?: string | null;
+    telefono?: string | null;
+    empresa?: string | null;
+  } | null;
+}
+
+interface VentaItem {
+  id: string;
+  total: number;
+  created_at: string;
+  cliente_id?: string | null;
+  origen?: string | null;
+  metodo_pago?: string | null;
+  estado?: string | null;
+  is_new_client?: boolean | null;
+}
+
 interface FeriaItem {
   id: string;
   name: string;
@@ -108,8 +132,8 @@ export function VendedorView() {
   const [qrLote, setQrLote] = useState<{ codigo: string; label: string; url: string } | null>(null);
   const [showRuta, setShowRuta] = useState(false);
   const [showReporte, setShowReporte] = useState(false);
-  const [interaccionesRuta, setInteraccionesRuta] = useState<Record<string, unknown>[]>([]);
-  const [ventasList, setVentasList] = useState<Record<string, unknown>[]>([]);
+  const [interaccionesRuta, setInteraccionesRuta] = useState<InteraccionRuta[]>([]);
+  const [ventasList, setVentasList] = useState<VentaItem[]>([]);
   const apiFetch = useApiFetch();
   const router = useRouter();
 
@@ -194,11 +218,11 @@ export function VendedorView() {
         setLocalClients([]);
       }
 
-      const ventasData = ventasRes.data ?? [];
-      setVentasList(ventasData as Record<string, unknown>[]);
-      setInteraccionesRuta((interaccionesRes.data ?? []) as Record<string, unknown>[]);
+      const ventasData = (ventasRes.data ?? []) as unknown as VentaItem[];
+      setVentasList(ventasData);
+      setInteraccionesRuta((interaccionesRes.data ?? []) as unknown as InteraccionRuta[]);
       
-      const total = ventasData.reduce((sum: number, v: Record<string, unknown>) => sum + (Number(v.total) || 0), 0);
+      const total = ventasData.reduce((sum: number, v: VentaItem) => sum + (Number(v.total) || 0), 0);
       setVentasTotal(total);
 
       const now = new Date();
@@ -209,11 +233,11 @@ export function VendedorView() {
 
       const monthTotal = (month: number, year: number) =>
         ventasData
-          .filter((v: Record<string, unknown>) => {
+          .filter((v: VentaItem) => {
             const d = new Date(String(v.created_at));
             return d.getMonth() === month && d.getFullYear() === year;
           })
-          .reduce((s: number, v: Record<string, unknown>) => s + (Number(v.total) || 0), 0);
+          .reduce((s: number, v: VentaItem) => s + (Number(v.total) || 0), 0);
 
       const current = monthTotal(thisMonth, thisYear);
       const previous = monthTotal(prevMonth, prevYear);
@@ -451,7 +475,7 @@ export function VendedorView() {
             </div>
           ) : (
             <div className="space-y-3">
-              {interaccionesRuta.map((int: any) => {
+              {interaccionesRuta.map((int) => {
                 const isToday = int.proximo_seguimiento === new Date().toISOString().slice(0, 10);
                 return (
                   <div key={int.id} className="p-4 border border-border bg-card rounded-md flex justify-between items-start">
@@ -501,7 +525,7 @@ export function VendedorView() {
               <p className="text-sm text-muted-foreground">Aún no hay ventas registradas.</p>
             ) : (
               <div className="space-y-2">
-                {ventasList.slice(0, 10).map((v: any) => (
+                {ventasList.slice(0, 10).map((v) => (
                   <div key={v.id} className="flex justify-between items-center p-3 border-b border-border/50 text-[0.85rem]">
                     <div>
                       <div className="font-medium text-foreground">${Number(v.total).toLocaleString()}</div>

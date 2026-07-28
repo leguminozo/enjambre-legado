@@ -17,16 +17,48 @@ import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { NectarRail } from '@/components/layout/NectarRail';
 
+interface LoteProduccionRow {
+  id: string;
+  codigo?: string;
+  kg_total?: number;
+  created_at: string;
+  productos?: {
+    nombre?: string;
+    peso_neto_g?: number;
+  } | null;
+}
+
+interface ProductoProduccionRow {
+  id: string;
+  nombre: string;
+  formato?: string;
+  stock?: number;
+  demanda_30d?: number;
+  dias_stock_estimado: number;
+}
+
+interface ProduccionDashboardData {
+  data: {
+    lotes: LoteProduccionRow[];
+    productos: ProductoProduccionRow[];
+    stats: {
+      total_kg_lotes?: number;
+      lotes_criticos?: number;
+      productos_quiebre?: number;
+    };
+  };
+}
+
 export function ProduccionView() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'lotes'>('dashboard');
   const apiFetch = useApiFetch();
 
-  const { data: dashboardData, isLoading, isFetching } = useQuery({
+  const { data: dashboardData, isLoading, isFetching } = useQuery<ProduccionDashboardData>({
     queryKey: ['produccion', 'dashboard'],
     queryFn: async () => {
       const res = await apiFetch('/api/produccion/dashboard');
       if (!res.ok) throw new Error('Error al obtener datos de producción');
-      return res.json();
+      return res.json() as Promise<ProduccionDashboardData>;
     },
   });
 
@@ -129,7 +161,7 @@ export function ProduccionView() {
                         </tr>
                       </thead>
                       <tbody>
-                        {[...productos].sort((a,b) => a.dias_stock_estimado - b.dias_stock_estimado).map((p: any) => {
+                        {[...productos].sort((a,b) => a.dias_stock_estimado - b.dias_stock_estimado).map((p) => {
                           const stock = Number(p.stock || 0);
                           const demanda = Number(p.demanda_30d || 0);
                           const dias = p.dias_stock_estimado;
@@ -209,7 +241,7 @@ export function ProduccionView() {
                           </tr>
                         </thead>
                         <tbody>
-                          {lotes.map((l: any) => {
+                          {lotes.map((l) => {
                             const kg = Number(l.kg_total || 0);
                             const productoKg = l.productos ? (Number(l.productos.peso_neto_g || 1000) / 1000) : null;
                             const rendimiento = productoKg ? Math.floor(kg / productoKg) : null;

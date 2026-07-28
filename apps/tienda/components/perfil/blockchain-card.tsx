@@ -2,7 +2,9 @@ import React from 'react';
 import { ExternalLink, ShieldCheck, Database, Clock, Fingerprint } from 'lucide-react';
 import { formatDate } from '@enjambre/ui';
 
-interface BlockchainAnchor {
+type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
+
+export interface BlockchainAnchor {
   id: string;
   empresa_id: string;
   entity_type: string;
@@ -12,7 +14,7 @@ interface BlockchainAnchor {
   block_number: number | null;
   timestamp: string;
   data_hash: string;
-  merkle_proof: any | null;
+  merkle_proof: Json | null;
 }
 
 interface BlockchainCardProps {

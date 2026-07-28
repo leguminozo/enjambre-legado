@@ -24,12 +24,15 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
   const [insumos, setInsumos] = useState<{ id: string; nombre: string; unidad: string }[]>([]);
 
   useEffect(() => {
-    supabase.from('productos').select('id, nombre, formato').eq('visible', true).then(({ data }: { data: any }) => {
-      if (data) setProductos(data);
-    });
-    supabase.from('ingredients').select('id, nombre, unidad').then(({ data }: { data: any }) => {
-      if (data) setInsumos(data);
-    });
+    void (async () => {
+      const { data: productosData } = await supabase
+        .from('productos').select('id, nombre, formato').eq('visible', true);
+      if (productosData) setProductos(productosData);
+
+      const { data: insumosData } = await supabase
+        .from('ingredients').select('id, nombre, unidad');
+      if (insumosData) setInsumos(insumosData);
+    })();
   }, []);
 
   const {
@@ -91,8 +94,8 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
         queryClient.invalidateQueries({ queryKey: ['costeo', 'recetas'] });
         queryClient.invalidateQueries({ queryKey: ['costeo', 'margenes'] }); // Auto-update margin table
         onSuccess?.();
-      } catch (err: any) {
-        toast.error(err.message || 'Error al guardar la receta');
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Error al guardar la receta');
       }
     });
   };

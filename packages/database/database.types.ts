@@ -71,6 +71,7 @@ export type Database = {
       }
       apiarios: {
         Row: {
+          blockchain_hash: string | null
           created_at: string | null
           details: string | null
           health: string | null
@@ -81,6 +82,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          blockchain_hash?: string | null
           created_at?: string | null
           details?: string | null
           health?: string | null
@@ -91,6 +93,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          blockchain_hash?: string | null
           created_at?: string | null
           details?: string | null
           health?: string | null
@@ -983,6 +986,7 @@ export type Database = {
           block_timestamp: string | null
           chain: string
           created_at: string
+          data_hash: string
           empresa_id: string | null
           entity_id: string
           entity_type: string
@@ -996,6 +1000,7 @@ export type Database = {
           block_timestamp?: string | null
           chain?: string
           created_at?: string
+          data_hash?: string
           empresa_id?: string | null
           entity_id: string
           entity_type: string
@@ -1009,6 +1014,7 @@ export type Database = {
           block_timestamp?: string | null
           chain?: string
           created_at?: string
+          data_hash?: string
           empresa_id?: string | null
           entity_id?: string
           entity_type?: string
@@ -2126,6 +2132,7 @@ export type Database = {
       }
       cosechas: {
         Row: {
+          blockchain_hash: string | null
           colmena_id: string | null
           created_at: string | null
           fecha: string | null
@@ -2135,6 +2142,7 @@ export type Database = {
           lote_id: string | null
         }
         Insert: {
+          blockchain_hash?: string | null
           colmena_id?: string | null
           created_at?: string | null
           fecha?: string | null
@@ -2144,6 +2152,7 @@ export type Database = {
           lote_id?: string | null
         }
         Update: {
+          blockchain_hash?: string | null
           colmena_id?: string | null
           created_at?: string | null
           fecha?: string | null

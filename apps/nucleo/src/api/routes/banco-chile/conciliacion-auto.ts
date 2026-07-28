@@ -4,6 +4,21 @@ import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
 import type { TablesInsert } from "@enjambre/database";
 
+interface ConciliacionPropuesta {
+  propuesta_id: string;
+  movimiento_id: string;
+  entidad_id: string | null;
+  tipo_entidad: 'venta' | 'gasto';
+  confianza: number;
+  motivo?: string;
+  conciliacion_id?: string;
+}
+
+interface ConciliacionErrorItem {
+  propuesta_id: string;
+  error: string;
+}
+
 // Esquemas de validación
 // empresa_id optional: always resolve from tenant (config-en-UI / POS never send it)
 const EjecutarConciliacionSchema = z.object({
@@ -352,7 +367,7 @@ conciliacionAutoRoutes.post(
       const limite = input.limite ?? 50;
 
       // Ejecutar la función de conciliación automática
-      const { data: propuestas, error } = await supabase
+      const { data: propuestasRaw, error } = await supabase
         .rpc('aplicar_reglas_conciliacion', { p_empresa_id: empresaId })
         .limit(limite);
 
@@ -360,9 +375,11 @@ conciliacionAutoRoutes.post(
         return c.json({ code: "ejecucion_fallida", message: error.message }, 500);
       }
 
-      const aceptadas: any[] = [];
-      const pendientes: any[] = [];
-      const errores: any[] = [];
+      const propuestas = (propuestasRaw ?? []) as ConciliacionPropuesta[];
+
+      const aceptadas: ConciliacionPropuesta[] = [];
+      const pendientes: ConciliacionPropuesta[] = [];
+      const errores: ConciliacionErrorItem[] = [];
 
       for (const propuesta of propuestas ?? []) {
         const confianza = Number(propuesta.confianza ?? 0);

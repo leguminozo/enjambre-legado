@@ -71,9 +71,9 @@ export default function QRScanPage() {
 
       setQrData({
         codigo: qrData.codigo,
-        producto: (qrData.producto as any)?.nombre || 'Producto desconocido',
+        producto: (qrData.producto as { nombre?: string } | null)?.nombre || 'Producto desconocido',
         lote: qrData.lote_id,
-        apiario: (qrData.apiario as any)?.nombre || null,
+        apiario: (qrData.apiario as { nombre?: string } | null)?.nombre || null,
         cosecha: qrData.cosecha_id || null,
         fecha_produccion: qrData.fecha_produccion,
         audit_trail: auditTrail ?? [],

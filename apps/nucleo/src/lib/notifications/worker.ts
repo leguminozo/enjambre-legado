@@ -10,7 +10,7 @@ interface QueueItem {
   body: string;
   attempts: number;
   max_attempts: number;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 async function sendEmail(recipient: string, subject: string, body: string) {
@@ -25,7 +25,7 @@ async function sendEmail(recipient: string, subject: string, body: string) {
 /**
  * Enviar un mensaje de WhatsApp utilizando la API de Twilio
  */
-async function sendWhatsApp(recipient: string, body: string): Promise<{ success: boolean; response: any }> {
+async function sendWhatsApp(recipient: string, body: string): Promise<{ success: boolean; response: unknown }> {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   const fromNumber = process.env.TWILIO_WHATSAPP_FROM; // ej. "whatsapp:+14155238886"
@@ -149,7 +149,7 @@ export async function processNotificationQueue(): Promise<{ processedCount: numb
       .eq("id", item.id);
 
     try {
-      let sendResult: { success: boolean; response: any };
+      let sendResult: { success: boolean; response: unknown };
 
       switch (item.channel) {
         case "email":
@@ -202,8 +202,8 @@ export async function processNotificationQueue(): Promise<{ processedCount: numb
           });
         }
       }
-    } catch (error: any) {
-      console.error(`[Notification Worker] Error enviando item ${item.id}:`, error.message);
+    } catch (error: unknown) {
+      console.error(`[Notification Worker] Error enviando item ${item.id}:`, error instanceof Error ? error.message : error);
 
       const isFinalFailure = attempts >= item.max_attempts;
 
@@ -212,7 +212,7 @@ export async function processNotificationQueue(): Promise<{ processedCount: numb
         .from("notification_queue")
         .update({
           status: isFinalFailure ? "failed" : "pending",
-          error_message: error.message || String(error),
+          error_message: error instanceof Error ? error.message : String(error),
           last_attempt_at: new Date().toISOString(),
         })
         .eq("id", item.id);
@@ -225,7 +225,7 @@ export async function processNotificationQueue(): Promise<{ processedCount: numb
           subject: item.subject,
           body: item.body,
           status: "error",
-          provider_response: { error: error.message || String(error) },
+          provider_response: { error: error instanceof Error ? error.message : String(error) },
         });
       }
     }

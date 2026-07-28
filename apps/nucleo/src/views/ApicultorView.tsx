@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity } from 'lucide-react';
 import type { ColmenaWithRelations, InspeccionRow, VarroaRow, PesoRow } from '@/lib/apicultor-types';
+import type { Tables } from '@enjambre/database';
 import { healthFromEstado, estadoFromHealth } from '@/types/ecosystem';
 import { ViewLoading } from '@enjambre/ui';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
@@ -70,7 +71,7 @@ export function ApicultorView() {
                 }
 
                 const { data: apiarios } = await supabase.from('apiarios').select('*');
-                const apiarioMap = new Map<string, any>(apiarios?.map((a: any) => [a.id, a]) || []);
+                const apiarioMap = new Map((apiarios as Tables<'apiarios'>[] | null)?.map((a) => [a.id, a]) || []);
 
                 const nested = await supabase.from('colmenas').select(`
                     *,
@@ -85,7 +86,7 @@ export function ApicultorView() {
                 }
 
                 if (colmenasData?.length) {
-                    const mapped = colmenasData.map((c: any) => {
+                    const mapped = (colmenasData as Tables<'colmenas'>[]).map((c) => {
                         const apiario = c.apiario_id ? apiarioMap.get(c.apiario_id) : null;
                         return {
                             ...c,

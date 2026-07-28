@@ -5,12 +5,14 @@ import Link from 'next/link'
 import { PieChart, Pie, Cell, Tooltip } from 'recharts'
 import { ChartBox } from '@/components/charts/ChartBox'
 import { Hexagon, ArrowUpRight } from 'lucide-react'
+import type { EnjambreData } from '../EcosistemaDashboard'
 
-export function HealthWidget({ enjambre }: { enjambre: any }) {
+export function HealthWidget({ enjambre }: { enjambre: EnjambreData }) {
+  const byHealth = enjambre.colmenas?.byHealth
   const healthData = [
-    { name: 'Óptima', value: enjambre.colmenas.byHealth.optima, color: 'hsl(var(--success))' },
-    { name: 'Atención', value: enjambre.colmenas.byHealth.atencion, color: 'hsl(var(--warning))' },
-    { name: 'Riesgo', value: enjambre.colmenas.byHealth.riesgo, color: 'hsl(var(--destructive))' },
+    { name: 'Óptima', value: byHealth?.optima ?? 0, color: 'hsl(var(--success))' },
+    { name: 'Atención', value: byHealth?.atencion ?? 0, color: 'hsl(var(--warning))' },
+    { name: 'Riesgo', value: byHealth?.riesgo ?? 0, color: 'hsl(var(--destructive))' },
   ].filter(d => d.value > 0)
 
   return (
@@ -61,7 +63,7 @@ export function HealthWidget({ enjambre }: { enjambre: any }) {
             </ChartBox>
 
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-               <span className="text-xl font-bold text-foreground leading-none">{enjambre.colmenas.total}</span>
+               <span className="text-xl font-bold text-foreground leading-none">{enjambre.colmenas?.total ?? 0}</span>
             </div>
           </div>
 

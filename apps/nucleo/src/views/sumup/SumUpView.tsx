@@ -21,6 +21,45 @@ import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 type SumUpTab = 'transacciones' | 'payouts' | 'conciliacion' | 'config';
 
+interface SumUpTransaccion {
+  id: string;
+  sumup_id?: string;
+  fecha: string;
+  monto: number;
+  estado: string;
+  tipo: string;
+  descripcion?: string;
+  conciliado?: boolean;
+  venta_id?: string | null;
+  [key: string]: unknown;
+}
+
+interface SumUpPayout {
+  id: string;
+  sumup_id?: string;
+  date: string;
+  amount: number;
+  fee?: number;
+  status: string;
+  reference?: string;
+  [key: string]: unknown;
+}
+
+interface SumUpSugerencia {
+  transaccion: SumUpTransaccion;
+  venta: {
+    id: string;
+    total: number;
+    created_at?: string;
+    estado?: string;
+    fecha?: string;
+    [key: string]: unknown;
+  };
+  score: number;
+  detalles?: string[];
+  [key: string]: unknown;
+}
+
 export function SumUpView() {
   const [activeTab, setActiveTab] = useState<SumUpTab>('transacciones');
   const apiFetch = useApiFetch();
@@ -35,17 +74,17 @@ export function SumUpView() {
   });
 
   // Queries
-  const { data: transaccionesData, isLoading: isLoadingTxns } = useQuery({
+  const { data: transaccionesData, isLoading: isLoadingTxns } = useQuery<{ data: SumUpTransaccion[] }>({
     queryKey: ['sumup', 'transactions'],
     queryFn: async () => {
       const res = await apiFetch('/api/sumup/transactions?limit=50');
       if (!res.ok) throw new Error('Error al obtener transacciones');
-      return res.json();
+      return res.json() as Promise<{ data: SumUpTransaccion[] }>;
     },
     enabled: activeTab === 'transacciones'
   });
 
-  const { data: payoutsData, isLoading: isLoadingPayouts } = useQuery({
+  const { data: payoutsData, isLoading: isLoadingPayouts } = useQuery<{ data: SumUpPayout[] }>({
     queryKey: ['sumup', 'payouts'],
     queryFn: async () => {
       const end = new Date();
@@ -53,17 +92,17 @@ export function SumUpView() {
       start.setDate(end.getDate() - 30);
       const res = await apiFetch(`/api/sumup/payouts?start_date=${start.toISOString().split('T')[0]}&end_date=${end.toISOString().split('T')[0]}`);
       if (!res.ok) throw new Error('Error al obtener payouts');
-      return res.json();
+      return res.json() as Promise<{ data: SumUpPayout[] }>;
     },
     enabled: activeTab === 'payouts'
   });
 
-  const { data: conciliacionData, isLoading: isLoadingConciliacion } = useQuery({
+  const { data: conciliacionData, isLoading: isLoadingConciliacion } = useQuery<{ data: SumUpSugerencia[] }>({
     queryKey: ['sumup', 'conciliacion', 'pendientes'],
     queryFn: async () => {
       const res = await apiFetch('/api/sumup/conciliacion/pendientes');
       if (!res.ok) throw new Error('Error al obtener pendientes de conciliación');
-      return res.json();
+      return res.json() as Promise<{ data: SumUpSugerencia[] }>;
     },
     enabled: activeTab === 'conciliacion'
   });
@@ -79,7 +118,7 @@ export function SumUpView() {
       toast(`Sincronización exitosa: ${data.data.sincronizadas} nuevas de ${data.data.total}`, { type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['sumup', 'transactions'] });
     },
-    onError: (err: any) => toast(err.message, { type: 'error' })
+    onError: (err: unknown) => toast(err instanceof Error ? err.message : 'Error', { type: 'error' })
   });
 
   const autoConciliarMutation = useMutation({
@@ -92,7 +131,7 @@ export function SumUpView() {
       toast(`Conciliadas automáticamente: ${data.data.conciliadas}`, { type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['sumup'] });
     },
-    onError: (err: any) => toast(err.message, { type: 'error' })
+    onError: (err: unknown) => toast(err instanceof Error ? err.message : 'Error', { type: 'error' })
   });
 
   const conciliarManualMutation = useMutation({
@@ -108,7 +147,7 @@ export function SumUpView() {
       toast('Transacción conciliada exitosamente', { type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['sumup', 'conciliacion', 'pendientes'] });
     },
-    onError: (err: any) => toast(err.message, { type: 'error' })
+    onError: (err: unknown) => toast(err instanceof Error ? err.message : 'Error', { type: 'error' })
   });
 
   const configQuery = useQuery({
@@ -292,7 +331,7 @@ export function SumUpView() {
                         </tr>
                       </thead>
                       <tbody>
-                        {txns.map((txn: any) => (
+                        {txns.map((txn) => (
                           <tr key={txn.id} className="border-b border-border last:border-0 hover:bg-surface-sunken/50">
                             <td className="px-4 py-3 font-medium">
                               {new Date(txn.fecha).toLocaleString('es-CL')}
@@ -361,7 +400,7 @@ export function SumUpView() {
                         </tr>
                       </thead>
                       <tbody>
-                        {payouts.map((payout: any) => (
+                        {payouts.map((payout) => (
                           <tr key={payout.id} className="border-b border-border last:border-0 hover:bg-surface-sunken/50">
                             <td className="px-4 py-3 font-medium">
                               {new Date(payout.date).toLocaleDateString('es-CL')}
@@ -431,7 +470,7 @@ export function SumUpView() {
             ) : (
               <div className="space-y-4">
                 <AnimatePresence>
-                  {sugerencias.map((sug: any) => (
+                  {sugerencias.map((sug) => (
                     <motion.div 
                       key={`${sug.transaccion.id}-${sug.venta.id}`}
                       layout
@@ -498,7 +537,7 @@ export function SumUpView() {
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <Badge variant="default" className="text-[10px] py-0">{sug.venta.estado}</Badge>
                               <span>•</span>
-                              <span>{new Date(sug.venta.fecha).toLocaleString('es-CL')}</span>
+                              <span>{sug.venta.fecha || sug.venta.created_at ? new Date(sug.venta.fecha || sug.venta.created_at!).toLocaleString('es-CL') : '-'}</span>
                             </div>
                           </div>
 

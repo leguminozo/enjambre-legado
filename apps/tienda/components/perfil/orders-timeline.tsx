@@ -24,7 +24,13 @@ export type OrderTimelineItem = {
     buyOrder: string;
   };
   lotes?: string[];
-  items?: any[];
+  items?: Array<{
+    nombre?: string;
+    cantidad?: number;
+    precio_unitario?: number;
+    producto_id?: string;
+    slug?: string;
+  }>;
   resena?: {
     id: string;
     estado: string;

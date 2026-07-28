@@ -19,38 +19,72 @@ import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { InsumoForm } from '@/components/costeo/InsumoForm';
 import { RecetaForm } from '@/components/costeo/RecetaForm';
 
+interface MargenRow {
+  nombre_producto?: string;
+  producto_nombre?: string;
+  costo_total?: number;
+  costo?: number;
+  precio_venta?: number;
+  precio?: number;
+  margen_bruto?: number;
+  margen_clp?: number;
+  margen_pct?: number;
+}
+
+interface RecetaRow {
+  id: string;
+  version: number;
+  rendimiento_frascos: number;
+  merma_pct: number;
+  costo_empaque: number;
+  productos?: { nombre?: string; formato?: string };
+}
+
+interface InsumoRow {
+  id: string;
+  nombre: string;
+  unidad: string;
+  estado_default: string;
+  categoria?: string;
+  precio_ref?: number;
+  precio_referencia?: number;
+  proveedor?: string;
+  proveedor_ref?: string;
+  proveedor_ref_terceros?: { nombre?: string } | null;
+}
+
 export function CosteoView() {
   const [activeTab, setActiveTab] = useState<'margenes' | 'recetas' | 'insumos'>('margenes');
   const [showInsumoModal, setShowInsumoModal] = useState(false);
   const [showRecetaModal, setShowRecetaModal] = useState(false);
   const apiFetch = useApiFetch();
 
-  const { data: margenesData, isLoading: isLoadingMargenes, isFetching: isFetchingMargenes } = useQuery({
+  const { data: margenesData, isLoading: isLoadingMargenes, isFetching: isFetchingMargenes } = useQuery<{ data: MargenRow[] }>({
     queryKey: ['costeo', 'margenes'],
     queryFn: async () => {
       const res = await apiFetch('/api/costeo/margenes');
       if (!res.ok) throw new Error('Error al obtener márgenes');
-      return res.json();
+      return res.json() as Promise<{ data: MargenRow[] }>;
     },
     enabled: activeTab === 'margenes'
   });
 
-  const { data: recetasData, isLoading: isLoadingRecetas, isFetching: isFetchingRecetas } = useQuery({
+  const { data: recetasData, isLoading: isLoadingRecetas, isFetching: isFetchingRecetas } = useQuery<{ data: RecetaRow[] }>({
     queryKey: ['costeo', 'recetas'],
     queryFn: async () => {
       const res = await apiFetch('/api/costeo/recetas');
       if (!res.ok) throw new Error('Error al obtener recetas');
-      return res.json();
+      return res.json() as Promise<{ data: RecetaRow[] }>;
     },
     enabled: activeTab === 'recetas'
   });
 
-  const { data: insumosData, isLoading: isLoadingInsumos, isFetching: isFetchingInsumos } = useQuery({
+  const { data: insumosData, isLoading: isLoadingInsumos, isFetching: isFetchingInsumos } = useQuery<{ data: InsumoRow[] }>({
     queryKey: ['costeo', 'ingredientes'],
     queryFn: async () => {
       const res = await apiFetch('/api/costeo/ingredientes');
       if (!res.ok) throw new Error('Error al obtener insumos');
-      return res.json();
+      return res.json() as Promise<{ data: InsumoRow[] }>;
     },
     enabled: activeTab === 'insumos'
   });
@@ -117,7 +151,7 @@ export function CosteoView() {
                         </tr>
                       </thead>
                       <tbody>
-                        {margenes.map((m: any, idx: number) => {
+                        {margenes.map((m, idx) => {
                           const costo = Number(m.costo_total || m.costo || 0);
                           const precio = Number(m.precio_venta || m.precio || 0);
                           const margenBruto = Number(m.margen_bruto || m.margen_clp || (precio - costo));
@@ -192,7 +226,7 @@ export function CosteoView() {
                         </tr>
                       </thead>
                       <tbody>
-                        {recetas.map((r: any) => (
+                        {recetas.map((r) => (
                           <tr key={r.id} className="border-b border-border last:border-0 hover:bg-surface-sunken/50">
                             <td className="px-4 py-3 font-medium">
                               {r.productos?.nombre || 'Desconocido'} 
@@ -259,7 +293,7 @@ export function CosteoView() {
                         </tr>
                       </thead>
                       <tbody>
-                        {insumos.map((i: any) => (
+                        {insumos.map((i) => (
                           <tr key={i.id} className="border-b border-border last:border-0 hover:bg-surface-sunken/50">
                             <td className="px-4 py-3 font-medium">
                               {i.nombre} <span className="text-xs text-muted-foreground ml-1">({i.unidad})</span>

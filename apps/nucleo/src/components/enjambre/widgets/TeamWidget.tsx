@@ -3,6 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Trophy, Users, ArrowUpRight } from 'lucide-react'
+import type { EquipoData } from '../EcosistemaDashboard'
 
 function fmtCLP(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -10,7 +11,7 @@ function fmtCLP(n: number): string {
   return `$${n.toFixed(0)}`
 }
 
-export function TeamWidget({ equipo }: { equipo: any }) {
+export function TeamWidget({ equipo }: { equipo: EquipoData }) {
   return (
     <div className="flex flex-col h-full bg-card p-6">
       <div className="flex items-center justify-between mb-6">
@@ -50,11 +51,11 @@ export function TeamWidget({ equipo }: { equipo: any }) {
         </div>
       )}
 
-      {equipo.leaderboard?.length > 0 && (
+      {(equipo.leaderboard?.length ?? 0) > 0 && (
         <div className="flex-1 flex flex-col justify-between">
           <div className="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-wider mb-3">Voces del Legado</div>
           <div className="flex flex-col gap-3">
-            {equipo.leaderboard.slice(0, 3).map((entry: any, i: number) => (
+            {(equipo.leaderboard ?? []).slice(0, 3).map((entry, i) => (
               <div key={entry.rep_id} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className={`w-4 text-xs font-bold text-right ${i === 0 ? 'text-accent' : 'text-muted-foreground'}`}>{i + 1}.</span>

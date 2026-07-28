@@ -1,8 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@enjambre/database';
 import { getBlockchainProvider, computeDataHash } from '@/api/lib/blockchain/provider';
 
 export async function anchorEntity(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient<Database>,
   empresaId: string,
   entityType: 'colmena' | 'lote' | 'cosecha' | 'apiario',
   entityId: string,
@@ -18,18 +19,16 @@ export async function anchorEntity(
       return { success: false, error: result.error };
     }
 
-    const admin = supabase as any;
-
-    const { error: insertError } = await admin
+    const { error: insertError } = await supabase
       .from('blockchain_anchors')
       .insert({
         empresa_id: empresaId,
         entity_type: entityType,
         entity_id: entityId,
-        tx_hash: result.txHash,
+        tx_hash: result.txHash!,
         chain: provider.name.toLowerCase().replace(' ', '-'),
         block_number: result.blockNumber,
-        timestamp: result.blockTimestamp?.toISOString() ?? new Date().toISOString(),
+        block_timestamp: result.blockTimestamp?.toISOString() ?? new Date().toISOString(),
         data_hash: dataHash,
       });
 
@@ -37,20 +36,22 @@ export async function anchorEntity(
       return { success: false, error: `DB insert failed: ${insertError.message}` };
     }
 
-    const tableMap: Record<string, string> = {
-      colmena: 'colmenas',
-      lote: 'lotes',
-      cosecha: 'cosechas',
-      apiario: 'apiarios',
-    };
+    switch (entityType) {
+      case 'colmena':
+        await supabase.from('colmenas').update({ blockchain_hash: result.txHash! }).eq('id', entityId);
+        break;
+      case 'lote':
+        await supabase.from('lotes').update({ blockchain_hash: result.txHash! }).eq('id', entityId);
+        break;
+      case 'cosecha':
+        await supabase.from('cosechas').update({ blockchain_hash: result.txHash! }).eq('id', entityId);
+        break;
+      case 'apiario':
+        await supabase.from('apiarios').update({ blockchain_hash: result.txHash! }).eq('id', entityId);
+        break;
+    }
 
-    const table = tableMap[entityType];
-    await (supabase as any)
-      .from(table)
-      .update({ blockchain_hash: result.txHash })
-      .eq('id', entityId);
-
-    return { success: true, txHash: result.txHash };
+    return { success: true, txHash: result.txHash! };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }

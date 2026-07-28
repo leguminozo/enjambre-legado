@@ -10,7 +10,8 @@ import {
   formatDateSii,
   formatRutSii,
   escapeXml,
-  type DteTipo
+  type DteTipo,
+  type DteDocumento
 } from "@enjambre/contable";
 import {
   signDteXml,
@@ -21,7 +22,7 @@ import {
 } from "@/api/lib/sii-client";
 import { resolveSiiAmbiente, resolveSiiCredentials } from "@/api/lib/sii-credentials";
 import type { AppVariables } from "@/api/lib/middleware";
-import { createClient } from "@supabase/supabase-js";
+import type { TablesInsert } from "@enjambre/database";
 
 const DteDetalleSchema = z.object({
   nombre: z.string(),
@@ -185,7 +186,7 @@ dteRoutes.post(
       const { p12Base64, p12Password } = credsResult.credentials;
 
       // 5. Construir el documento DTE según el tipo
-      let dteDoc: any;
+      let dteDoc: DteDocumento;
       let montoIva: number = 0;
       let montoTotal: number = 0;
 
@@ -330,10 +331,7 @@ dteRoutes.post(
               detalles: input.detalles.map((det, index) => ({
                 nombre: det.nombre,
                 cantidad: det.cantidad,
-                codigo: det.codigo ?? "",
-                unidadMedida: det.unidad_medida ?? "UNIT",
-                dimenciones: det.dimenciones ?? "",
-                valorUnitario: det.precio_unitario,
+                precioUnitario: det.precio_unitario,
                 montoItem: Math.round(det.cantidad * det.precio_unitario),
               })),
             };
@@ -376,186 +374,181 @@ dteRoutes.post(
       // 12. Enviar DTE al SII
       const envioResult = await enviarDte(ambiente, token.token, envioXml, formatRutSii(empresa.rut));
 
-      // 13. Preparar datos para actualización según tipo de documento
-      let updateData: any = {
-        estado_sii: envioResult.estado === "aceptado" ? "aceptado" : 
-                   envioResult.estado === "rechazado" ? "rechazado" : "enviado",
-        track_id: envioResult.trackId,
-        sii_response: {
-          estado: envioResult.estado,
-          glosa: envioResult.glosa,
-        },
-        sii_xml: stampedXml,
-        folio: caf.folio_actual, // Guardar el folio usado
-        fecha_emision: input.fecha_emision, // Aseguramos que esté guardada
-      };
+      // 13. Campos base comunes a todos los DTE emitidos
+      const estadoSii = envioResult.estado === "aceptado" ? "aceptado"
+        : envioResult.estado === "rechazado" ? "rechazado" : "enviado";
+      const siiResponseJson = { estado: envioResult.estado, glosa: envioResult.glosa };
 
-      // 14. Actualizar el registro correspondiente según el tipo de DTE
-      let updatedRecord: any = null;
+      // 14. Insertar en tabla correspondiente con tipo estricto por case
+      let updatedRecord: Record<string, unknown> | null = null;
       let tableName = "";
-      
+
       switch (input.tipo_dte) {
         case 33: // Factura electrónica
-        case 34: // Factura exenta
+        case 34: { // Factura exenta
           tableName = "facturas_emitidas";
-          updateData = {
-            ...updateData,
+          const payload33: TablesInsert<'facturas_emitidas'> = {
+            empresa_id: empresaId,
             tipo_dte: input.tipo_dte,
+            tipo_documento: input.tipo_dte === 33 ? 'factura' : 'factura_exenta',
+            fecha_emision: input.fecha_emision,
+            folio: caf.folio_actual,
+            folio_caf: caf.folio_actual,
+            caf_id: caf.id,
             monto_neto: input.monto_neto,
             monto_exento: input.monto_exento ?? 0,
             monto_iva: montoIva,
             monto_total: montoTotal,
-            descripcion: input.descripcion,
-            tercero_id: input.tercero_id, // Asumiendo que viene en el input
-            cafe_id: caf.id,
-            folio_caf: caf.folio_actual,
+            descripcion: input.descripcion ?? null,
+            tercero_id: input.tercero_id ?? null,
+            estado_sii: estadoSii,
+            track_id: envioResult.trackId ?? null,
+            sii_response: siiResponseJson,
+            sii_xml: stampedXml,
           };
-          
           const { data: facturaData, error: facturaError } = await supabase
-            .from("facturas_emitidas")
-            .insert(updateData)
-            .select()
-            .single();
-            
+            .from("facturas_emitidas").insert(payload33).select().single();
           if (facturaError) throw facturaError;
           updatedRecord = facturaData;
           break;
-          
+        }
         case 39: // Boleta electrónica
-        case 41: // Boleta exenta
-          // Similar to facturas but for boletas
-          tableName = "facturas_emitidas"; // Las boletas también se almacenan aquí por ahora
-          updateData = {
-            ...updateData,
+        case 41: { // Boleta exenta
+          tableName = "facturas_emitidas";
+          const payload39: TablesInsert<'facturas_emitidas'> = {
+            empresa_id: empresaId,
             tipo_dte: input.tipo_dte,
+            tipo_documento: input.tipo_dte === 39 ? 'boleta' : 'boleta_exenta',
+            fecha_emision: input.fecha_emision,
+            folio: caf.folio_actual,
+            folio_caf: caf.folio_actual,
+            caf_id: caf.id,
             monto_neto: input.monto_neto,
             monto_exento: input.monto_exento ?? 0,
             monto_iva: montoIva,
             monto_total: montoTotal,
-            descripcion: input.descripcion,
-            tercero_id: input.tercero_id,
-            cafe_id: caf.id,
-            folio_caf: caf.folio_actual,
+            descripcion: input.descripcion ?? null,
+            tercero_id: input.tercero_id ?? null,
+            estado_sii: estadoSii,
+            track_id: envioResult.trackId ?? null,
+            sii_response: siiResponseJson,
+            sii_xml: stampedXml,
           };
-          
           const { data: boletaData, error: boletaError } = await supabase
-            .from("facturas_emitidas")
-            .insert(updateData)
-            .select()
-            .single();
-            
+            .from("facturas_emitidas").insert(payload39).select().single();
           if (boletaError) throw boletaError;
           updatedRecord = boletaData;
           break;
-          
-        case 46: // Factura de compra
+        }
+        case 46: { // Factura de compra
           tableName = "facturas_compra";
-          updateData = {
-            ...updateData,
+          const payload46: TablesInsert<'facturas_compra'> = {
+            empresa_id: empresaId,
             tipo_dte: input.tipo_dte,
+            fecha_emision: input.fecha_emision,
             folio: caf.folio_actual,
             monto_neto: input.monto_neto,
             monto_exento: input.monto_exento ?? 0,
             monto_iva: montoIva,
             monto_total: montoTotal,
-            descripcion: input.descripcion,
+            descripcion: input.descripcion ?? null,
             receptor_rut: input.receptor_rut,
             receptor_razon_social: input.receptor_razon_social,
-            receptor_giro: input.receptor_giro,
+            receptor_giro: input.receptor_giro ?? null,
+            tercero_id: input.tercero_id ?? null,
+            estado_sii: estadoSii,
+            track_id: envioResult.trackId ?? null,
+            sii_response: siiResponseJson,
+            sii_xml: stampedXml,
           };
-          
           const { data: compraData, error: compraError } = await supabase
-            .from("facturas_compra")
-            .insert(updateData)
-            .select()
-            .single();
-            
+            .from("facturas_compra").insert(payload46).select().single();
           if (compraError) throw compraError;
           updatedRecord = compraData;
           break;
-          
-        case 52: // Guía de despacho
-          // Las guías podrían estar en una tabla específica o en facturas_emitidas
-          // Por ahora, las ponemos en facturas_emitidas con tipo 52
+        }
+        case 52: { // Guía de despacho
           tableName = "facturas_emitidas";
-          updateData = {
-            ...updateData,
+          const payload52: TablesInsert<'facturas_emitidas'> = {
+            empresa_id: empresaId,
             tipo_dte: input.tipo_dte,
+            tipo_documento: 'guia_despacho',
+            fecha_emision: input.fecha_emision,
             folio: caf.folio_actual,
+            folio_caf: caf.folio_actual,
+            caf_id: caf.id,
             monto_neto: input.monto_neto,
             monto_exento: input.monto_exento ?? 0,
-            monto_iva: 0, // Guías no tienen IVA
+            monto_iva: 0,
             monto_total: montoTotal,
-            descripcion: input.descripcion,
-            tercero_id: input.tercero_id,
-            cafe_id: caf.id,
-            folio_caf: caf.folio_actual,
+            descripcion: input.descripcion ?? null,
+            tercero_id: input.tercero_id ?? null,
+            estado_sii: estadoSii,
+            track_id: envioResult.trackId ?? null,
+            sii_response: siiResponseJson,
+            sii_xml: stampedXml,
           };
-          
           const { data: guiaData, error: guiaError } = await supabase
-            .from("facturas_emitidas")
-            .insert(updateData)
-            .select()
-            .single();
-            
+            .from("facturas_emitidas").insert(payload52).select().single();
           if (guiaError) throw guiaError;
           updatedRecord = guiaData;
           break;
-          
+        }
         case 56: // Nota de débito
-        case 61: // Nota de crédito
-          tableName = "facturas_emitidas"; // Las notas también van aquí por ahora
-          updateData = {
-            ...updateData,
+        case 61: { // Nota de crédito
+          tableName = "facturas_emitidas";
+          const payload61: TablesInsert<'facturas_emitidas'> = {
+            empresa_id: empresaId,
             tipo_dte: input.tipo_dte,
+            tipo_documento: input.tipo_dte === 61 ? 'nota_credito' : 'nota_debito',
+            fecha_emision: input.fecha_emision,
             folio: caf.folio_actual,
+            folio_caf: caf.folio_actual,
+            caf_id: caf.id,
             monto_neto: input.monto_neto,
             monto_exento: input.monto_exento ?? 0,
             monto_iva: montoIva,
             monto_total: montoTotal,
-            descripcion: input.descripcion,
-            tercero_id: input.tercero_id,
-            cafe_id: caf.id,
-            folio_caf: caf.folio_actual,
-            // Para notas, también guardar referencia al documento original
-            // Esto requeriría columnas adicionales en facturas_emitidas
+            descripcion: input.descripcion ?? null,
+            tercero_id: input.tercero_id ?? null,
+            estado_sii: estadoSii,
+            track_id: envioResult.trackId ?? null,
+            sii_response: siiResponseJson,
+            sii_xml: stampedXml,
           };
-          
           const { data: notaData, error: notaError } = await supabase
-            .from("facturas_emitidas")
-            .insert(updateData)
-            .select()
-            .single();
-            
+            .from("facturas_emitidas").insert(payload61).select().single();
           if (notaError) throw notaError;
           updatedRecord = notaData;
           break;
-          
-        case 66: // Boleta de honorarios
+        }
+        case 66: { // Boleta de honorarios
           tableName = "facturas_emitidas";
-          updateData = {
-            ...updateData,
+          const payload66: TablesInsert<'facturas_emitidas'> = {
+            empresa_id: empresaId,
             tipo_dte: input.tipo_dte,
+            tipo_documento: 'honorarios',
+            fecha_emision: input.fecha_emision,
             folio: caf.folio_actual,
+            folio_caf: caf.folio_actual,
+            caf_id: caf.id,
             monto_neto: input.monto_neto,
             monto_exento: input.monto_exento ?? 0,
             monto_iva: montoIva,
             monto_total: montoTotal,
-            descripcion: input.descripcion,
-            tercero_id: input.tercero_id,
-            cafe_id: caf.id,
-            folio_caf: caf.folio_actual,
+            descripcion: input.descripcion ?? null,
+            tercero_id: input.tercero_id ?? null,
+            estado_sii: estadoSii,
+            track_id: envioResult.trackId ?? null,
+            sii_response: siiResponseJson,
+            sii_xml: stampedXml,
           };
-          
           const { data: honorarioData, error: honorarioError } = await supabase
-            .from("facturas_emitidas")
-            .insert(updateData)
-            .select()
-            .single();
-            
+            .from("facturas_emitidas").insert(payload66).select().single();
           if (honorarioError) throw honorarioError;
           updatedRecord = honorarioData;
           break;
+        }
       }
 
       // 15. Incrementar el folio actual del CAF para el próximo uso
@@ -576,8 +569,8 @@ dteRoutes.post(
           stamped_xml: stampedXml,
           envio_xml: envioXml,
           track_id: envioResult.trackId,
-          estado_sii: updateData.estado_sii,
-          sii_response: updateData.sii_response,
+          estado_sii: estadoSii,
+          sii_response: siiResponseJson,
           registro_id: updatedRecord?.id,
           tabla: tableName,
         }
