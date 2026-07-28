@@ -30,7 +30,7 @@
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
 | Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y; mapa href + editorial pages 375; 404/error btn fantasma + contacto/ulmo; residual contacto catálogo CTA + nosotros evidencia + landing H2 clamp + leaflet 44 | ✅ pass 40+47+54+61+68+75 |
-| Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom; auth btn fantasma + perfil safe-top; announcement h36 + legal H1 + footer PWA | ✅ pass 41+48+55+62+69 |
+| Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom; auth btn fantasma + perfil safe-top; announcement h36 + legal H1 + footer PWA; residual annou internal blank + auth H1 clamp + recuperar/reset login CTAs | ✅ pass 41+48+55+62+69+76 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos; btn fantasma + card/input CSS; residual setup-error + siguiente venta + threshold dismiss/safe + empty cart CTA | ✅ pass 44+51+58+65+72 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos; landing H1/CTAs + rail safe-top + CMS chrome 36; residual dashboard 404/error py-2 + AuthHero 4.5rem + search close | ✅ pass 43+50+57+64+71 |
@@ -52,6 +52,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 76 (ui-tienda-chrome)
+- Señal: announcement link interno `/nosotros` abría `_blank`; AuthShell H1 text-3xl denso 375; recuperar/reset sin camino claro a login tras envío
+- Compuesto: colapsar + redirigir
+- Regla nueva: announcement href interno = Next Link (sin blank); auth H1 clamp; recovery auth siempre CTA min-h-11/12 → /login
+- Anti-patrón: `target=_blank` en slides announcement store-routes; recovery sin escape a login
+- Guardriel: intacto
 
 ### Evo 2026-07-27 pass 75 (ui-tienda-landing)
 - Señal: contacto «Volver al Catálogo» sin min-h y href=/ (404 de catálogo); nosotros evidencia inline-block; H2 collections/products/map text-3xl denso; leaflet zoom ~30px; prose legal links sin hit

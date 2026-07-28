@@ -1,10 +1,10 @@
 {
-  "index": 1,
-  "pass": 75,
-  "last_sector": "ui-tienda-landing",
-  "last_commit": "d249514",
+  "index": 2,
+  "pass": 76,
+  "last_sector": "ui-tienda-chrome",
+  "last_commit": "7c5d09c",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 75: contacto catalogo CTA, nosotros evidencia 44, landing H2 clamp, leaflet/prose. Siguiente: ui-tienda-chrome (#1)."
+  "notes": "Pass 76: announcement internal Link, auth H1 clamp, recuperar/reset login CTAs. Siguiente: ui-tienda-shop (#2)."
 }

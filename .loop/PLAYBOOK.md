@@ -28,6 +28,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Footer PWA legal | últimos links bajo bottom-nav | solo safe-bottom | pad-bottom `bottom-nav-stack` en standalone |
 | PWA install prompt | Instalar/cerrar &lt;44 en móvil | py-2 / p-2 | install `min-h-11`; dismiss min-h/w-11 |
 | Auth CTA fantasma | submit recuperar/reset sin estilo | `btn btn-primary` (nucleo-only) | mismo CTA que login: min-h-12 border-accent |
+| Announcement blank interno | slide historia abre pestaña | `target=_blank` siempre | Link interno; blank solo http(s) |
+| Auth recovery sin escape | post-envío sin login | solo copy | CTA min-h-12 → /login |
+| Auth H1 denso 375 | título aplastado | `text-3xl` fijo | clamp(1.75rem,7vw,2.5rem) |
 | Tienda 404/error fantasma | recovery sin botón visible | `btn btn-*` en not-found/error | primary/outline Tailwind min-h-11/12 |
 | Contacto densos | form/maps &lt;44 | py-3 sin min-h; maps py-1.5 | inputs/submit min-h-11/12; maps CTA min-h-11 |
 | Perfil chrome notch | brand/actions bajo status bar | ShopHeader hidden + sticky sin safe | `pt-[max(...,var(--safe-top))]` en perfil-mobile-header / sidebar |
