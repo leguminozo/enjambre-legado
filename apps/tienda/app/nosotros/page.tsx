@@ -243,7 +243,7 @@ Las afirmaciones científicas se fundamentan en estudios que destacan las propie
 <div className="mt-12 flex justify-center">
 <a
 href="#evidencia"
-className="group relative px-8 py-4 border border-accent text-accent uppercase tracking-[0.2em] text-xs hover:bg-accent hover:text-accent-foreground transition-all duration-500 inline-block"
+className="group relative inline-flex min-h-12 items-center justify-center px-8 py-4 border border-accent text-accent uppercase tracking-[0.2em] text-xs hover:bg-accent hover:text-accent-foreground transition-all duration-500"
 >
 Ver Evidencia Científica
 </a>

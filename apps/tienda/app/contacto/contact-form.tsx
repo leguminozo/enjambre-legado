@@ -194,10 +194,10 @@ export function ContactForm() {
 
       <div className="py-8 text-center">
         <Link
-          href="/"
-          className="inline-flex items-center justify-center rounded-full border border-foreground bg-background px-8 py-3 text-foreground transition-colors hover:bg-foreground hover:text-background"
+          href="/catalogo"
+          className="inline-flex min-h-12 items-center justify-center rounded-full border border-border bg-background px-8 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-foreground hover:text-background"
         >
-          Volver al Catálogo
+          Ver catálogo
         </Link>
       </div>
 

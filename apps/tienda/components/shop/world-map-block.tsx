@@ -71,7 +71,7 @@ export function WorldMapBlock() {
     <section className="editorial-section">
       <div className="editorial-container text-center mb-10 md:mb-16 px-4 sm:px-0">
         <span className="editorial-kicker mb-4 block">Ubicación</span>
-        <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-light text-foreground text-balance">
+        <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground text-balance leading-tight">
           Nuestro lugar en el mundo
         </h2>
       </div>

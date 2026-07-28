@@ -306,7 +306,7 @@ export function TiendaLandingView({
           <div className="editorial-container">
             <div className="text-center mb-10 md:mb-16">
               <span className="editorial-kicker mb-4 block">{tConservation('kicker') || 'Conservación demostrable'}</span>
-              <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground mb-4 md:mb-6 text-balance">
+              <h2 className="font-display text-[clamp(1.75rem,6vw,3rem)] sm:text-4xl md:text-5xl font-light text-foreground mb-4 md:mb-6 text-balance leading-tight">
                 {tConservation('title') || 'Impacto sin atajos'}
               </h2>
               <p className="text-sm text-muted-foreground italic max-w-2xl mx-auto leading-relaxed">
@@ -394,7 +394,7 @@ export function TiendaLandingView({
         <section key="collections" id="collections" className="editorial-section">
           <div className="editorial-container text-center mb-12 md:mb-20 px-4 sm:px-0">
             <span className="editorial-kicker mb-4 block">{tCollections('kicker') || 'Colecciones'}</span>
-            <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-light text-foreground mb-4 text-balance">
+            <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground mb-4 text-balance leading-tight">
               {tCollections('subtitle') || 'Explora nuestras categorías estacionales'}
             </h2>
           </div>
@@ -407,7 +407,7 @@ export function TiendaLandingView({
                   key={c.title}
                   href={c.href}
                   prefetch={false}
-                  className="group flex flex-col rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="group flex min-h-11 flex-col rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-4 sm:mb-6 rounded-lg">
                     <Image

@@ -37,6 +37,30 @@
       @apply bg-card/60 backdrop-blur-2xl;
     }
   }
+
+  /* Legal CMS HTML: anchors need touch ≥44 */
+  .prose a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-underline-offset: 0.15em;
+  }
+
+  /* Leaflet zoom/attribution controls — default ~30px on map (landing + contacto) */
+  .leaflet-control-zoom a {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    line-height: 44px !important;
+    font-size: 18px !important;
+  }
+  .leaflet-bar a:first-child {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+  .leaflet-bar a:last-child {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
 }
 
 ::-webkit-scrollbar {
