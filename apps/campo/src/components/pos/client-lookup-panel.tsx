@@ -35,18 +35,18 @@ export function ClientLookupPanel() {
           <UserPlus className="w-4 h-4 text-muted-foreground" />
           <span className="text-xs text-muted-foreground uppercase tracking-widest">Cliente</span>
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={() => { setIsNewClient(true); setExpanded(false); }}
-            className="inline-flex min-h-11 items-center px-2 text-[10px] uppercase tracking-widest text-primary hover:underline"
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-primary/30 px-3 text-[10px] uppercase tracking-widest text-primary hover:bg-primary/10 transition-colors"
           >
             Nuevo
           </button>
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="inline-flex min-h-11 items-center px-2 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground"
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-3 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
           >
             Buscar
           </button>

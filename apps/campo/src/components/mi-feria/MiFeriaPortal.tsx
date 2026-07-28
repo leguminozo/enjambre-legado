@@ -238,7 +238,7 @@ export function MiFeriaPortal() {
                     type="number"
                     min={1}
                     max={pendiente}
-                    className="input-field text-xs w-20"
+                    className="input-field text-xs w-24 min-h-11"
                     value={devolucionQty[c.id] ?? 1}
                     onChange={(e) =>
                       setDevolucionQty((prev) => ({

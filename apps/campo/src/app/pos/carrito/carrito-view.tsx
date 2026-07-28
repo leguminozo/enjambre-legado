@@ -180,16 +180,16 @@ export default function CarritoView() {
     const co2Saved = lines.reduce((acc, l) => acc + (l.cantidad * 0.5 * 2.4), 0);
 
     return (
-      <div className="max-w-2xl mx-auto text-center py-12 animate-in fade-in zoom-in duration-500">
+      <div className="max-w-2xl mx-auto text-center py-12 px-4 animate-in fade-in zoom-in duration-500">
         <div className="inline-flex items-center justify-center w-20 h-20 bg-success/10 rounded-full mb-8">
           <CheckCircle2 className="w-10 h-10 text-success" />
         </div>
 
-        <h1 className="text-4xl font-display mb-4">Venta Exitosa</h1>
+        <h1 className="font-display text-[clamp(1.75rem,7vw,2.5rem)] mb-4 text-balance">Venta Exitosa</h1>
 
         <div className="card-glow p-6 mb-8 text-center space-y-2 border-success/20 bg-success/5 max-w-sm mx-auto">
           <p className="text-xs text-success font-bold uppercase tracking-widest">Impacto Regenerativo</p>
-          <div className="font-display text-4xl text-foreground">
+          <div className="font-display text-[clamp(1.75rem,6vw,2.25rem)] text-foreground">
             ~{co2Saved.toFixed(1)} <span className="text-xl italic">kg CO2</span>
           </div>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Evitado gracias a esta compra</p>
@@ -200,7 +200,7 @@ export default function CarritoView() {
             +${successData.commission.toLocaleString('es-CL')} comision
           </p>
         )}
-        <p className="text-muted-foreground mb-12 font-light">
+        <p className="text-muted-foreground mb-12 font-light text-pretty">
           {claimUrl
             ? 'La transaccion ha sido registrada. Pide al cliente que escanee el codigo para reclamar su impacto y puntos.'
             : 'La transaccion ha sido registrada en la sesion de caja.'}
@@ -217,11 +217,18 @@ export default function CarritoView() {
 
         <div className="flex flex-col gap-4 max-w-xs mx-auto">
           <button
+            type="button"
             onClick={() => { setSuccessData(null); setCheckoutMode('standard'); router.push('/pos/catalogo'); }}
-            className="w-full py-4 bg-card hover:bg-card text-foreground rounded-full font-medium transition-all"
+            className="w-full min-h-12 py-4 bg-primary text-primary-foreground rounded-full font-bold uppercase tracking-widest text-sm hover:bg-primary/90 transition-all"
           >
             Nueva Venta
           </button>
+          <Link
+            href="/pos"
+            className="w-full inline-flex min-h-11 items-center justify-center rounded-full border border-border text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Volver al terminal
+          </Link>
         </div>
       </div>
     );
@@ -473,9 +480,9 @@ export default function CarritoView() {
 
           {checkoutMode === 'standard' && (
             <>
-              <div className="flex justify-between items-end mb-8">
+              <div className="flex justify-between items-end mb-8 gap-4">
                 <span className="text-sm uppercase tracking-widest text-muted-foreground font-bold">Total</span>
-                <span className="text-4xl font-display text-primary">
+                <span className="font-display text-[clamp(1.75rem,6vw,2.25rem)] text-primary tabular-nums">
                   {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(total)}
                 </span>
               </div>

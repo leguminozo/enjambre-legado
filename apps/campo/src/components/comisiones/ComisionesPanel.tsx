@@ -227,7 +227,15 @@ export function ComisionesPanel() {
                   {!filterPaid?.startsWith('pag') && (
                     <td className="py-3">
                       {!c.paid && (
-                        <input type="checkbox" checked={selectedIds.has(c.id)} onChange={() => toggleSelect(c.id)} className="rounded border-border" />
+                        <label className="inline-flex min-h-11 min-w-11 items-center justify-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(c.id)}
+                            onChange={() => toggleSelect(c.id)}
+                            className="h-5 w-5 rounded border-border"
+                            aria-label={`Seleccionar comisión de ${repNames[c.rep_id] || 'representante'}`}
+                          />
+                        </label>
                       )}
                     </td>
                   )}
