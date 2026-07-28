@@ -281,8 +281,9 @@ export function PipelineView() {
 
         <div className="filter-chips-scroll mb-6">
           <button
+            type="button"
             onClick={() => setSelectedEtapa('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`min-h-11 px-3.5 py-2 rounded-lg text-xs font-medium transition-all ${
               selectedEtapa === 'all'
                 ? 'bg-accent text-accent-foreground'
                 : 'bg-surface-sunken border border-border text-muted-foreground hover:border-accent/50'
@@ -292,9 +293,10 @@ export function PipelineView() {
           </button>
           {ETAPAS_PIPELINE.map((etapa) => (
             <button
+              type="button"
               key={etapa.key}
               onClick={() => setSelectedEtapa(etapa.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+              className={`min-h-11 px-3.5 py-2 rounded-lg text-xs font-medium border transition-all ${
                 selectedEtapa === etapa.key
                   ? 'border-accent bg-accent/10 text-accent'
                   : 'bg-surface-sunken border-border text-muted-foreground hover:border-accent/50'

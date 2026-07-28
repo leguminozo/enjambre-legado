@@ -302,7 +302,7 @@ export function CreadorPortalClient() {
         <p>
           Programa de comisiones por referido. No constituye relación laboral. Pagos sujetos a revisión
           administrativa y documentación tributaria según corresponda. Ver{' '}
-          <Link href="/terminos" className="text-accent hover:underline">términos</Link>.
+          <Link href="/terminos" className="inline-flex min-h-11 items-center text-accent underline underline-offset-2">términos</Link>.
         </p>
       </div>
 

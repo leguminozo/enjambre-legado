@@ -436,7 +436,7 @@ export function BandejaFiscalTab() {
                   key={p.id}
                   type="button"
                   onClick={() => setProveedorId(proveedorId === p.id ? "" : p.id)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
+                  className={`inline-flex min-h-11 items-center px-3.5 py-2 text-xs font-medium rounded-full border transition-colors ${
                     proveedorId === p.id
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border bg-surface-sunken text-muted-foreground hover:border-primary/50"

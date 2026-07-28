@@ -185,7 +185,7 @@ export function ResenasSensorialesTab() {
                     type="button"
                     disabled={moderating === res.id}
                     onClick={() => void moderar(res.id, 'aprobada')}
-                    className="inline-flex items-center gap-1 rounded-lg bg-success/20 px-3 py-1.5 text-xs text-success"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-success/20 px-3.5 py-2 text-xs font-medium text-success disabled:opacity-50"
                   >
                     <Check size={14} /> Aprobar
                   </button>
@@ -193,7 +193,7 @@ export function ResenasSensorialesTab() {
                     type="button"
                     disabled={moderating === res.id}
                     onClick={() => void moderar(res.id, 'rechazada')}
-                    className="inline-flex items-center gap-1 rounded-lg bg-destructive/20 px-3 py-1.5 text-xs text-destructive"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-destructive/20 px-3.5 py-2 text-xs font-medium text-destructive disabled:opacity-50"
                   >
                     <X size={14} /> Rechazar
                   </button>
@@ -201,7 +201,7 @@ export function ResenasSensorialesTab() {
                     type="button"
                     disabled={moderating === res.id}
                     onClick={() => void moderar(res.id, 'oculta')}
-                    className="inline-flex items-center gap-1 rounded-lg bg-muted px-3 py-1.5 text-xs text-muted-foreground"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-muted px-3.5 py-2 text-xs font-medium text-muted-foreground disabled:opacity-50"
                   >
                     <EyeOff size={14} /> Ocultar
                   </button>

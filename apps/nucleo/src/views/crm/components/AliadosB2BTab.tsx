@@ -117,7 +117,8 @@ export function AliadosB2BTab() {
                       type="button"
                       disabled={actionLoading === rev.user_id}
                       onClick={() => updateStatus(rev.user_id, 'activo')}
-                      className="w-9 h-9 rounded-full bg-success/10 text-success flex items-center justify-center hover:bg-success hover:text-foreground disabled:opacity-50"
+                      aria-label="Aprobar aliado"
+                      className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-success/10 text-success inline-flex items-center justify-center hover:bg-success hover:text-foreground disabled:opacity-50 transition-colors"
                     >
                       {actionLoading === rev.user_id ? <Loader2 className="animate-spin" size={16} /> : <Check size={18} />}
                     </button>
@@ -125,7 +126,8 @@ export function AliadosB2BTab() {
                       type="button"
                       disabled={actionLoading === rev.user_id}
                       onClick={() => updateStatus(rev.user_id, 'suspendido')}
-                      className="w-9 h-9 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive hover:text-foreground disabled:opacity-50"
+                      aria-label="Suspender aliado"
+                      className="min-h-11 min-w-11 h-11 w-11 rounded-full bg-destructive/10 text-destructive inline-flex items-center justify-center hover:bg-destructive hover:text-foreground disabled:opacity-50 transition-colors"
                     >
                       <X size={18} />
                     </button>

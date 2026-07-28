@@ -219,8 +219,9 @@ console.error('Error auto-conciliando:', error);
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">Cuentas Bancarias</h2>
             <button
+              type="button"
               onClick={fetchDashboard}
-              className="text-sm text-primary hover:underline"
+              className="inline-flex min-h-11 items-center rounded-lg border border-primary/30 px-3 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
             >
               Actualizar
             </button>
