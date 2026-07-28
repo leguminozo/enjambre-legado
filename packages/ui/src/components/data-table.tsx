@@ -317,7 +317,9 @@ export function DataTable<T>({
                 )}
 
                 {/* Column headers */}
-                {columns.map((col) => (
+                {columns.map((col) => {
+                  const canSort = sortable && col.sortable !== false;
+                  return (
                   <th
                     key={col.key}
                     style={{
@@ -326,17 +328,24 @@ export function DataTable<T>({
                       textAlign: col.align ?? "left",
                     }}
                     className={cn(
-                      "py-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border",
-                      sortable && col.sortable !== false && "cursor-pointer select-none hover:text-foreground transition-colors",
+                      "px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border",
+                      canSort && "cursor-pointer select-none hover:text-foreground transition-colors",
                     )}
                     onClick={() => {
-                      if (sortable && col.sortable !== false) handleSort(col.key);
+                      if (canSort) handleSort(col.key);
                     }}
+                    aria-sort={
+                      canSort && sort.column === col.key
+                        ? sort.direction === "asc"
+                          ? "ascending"
+                          : "descending"
+                        : undefined
+                    }
                   >
-                    <span className="inline-flex items-center gap-1">
+                    <span className="inline-flex min-h-11 items-center gap-1 py-2">
                       {col.header}
-                      {sortable && col.sortable !== false && sort.column === col.key && (
-                        <span className="text-accent">
+                      {canSort && sort.column === col.key && (
+                        <span className="text-accent" aria-hidden>
                           {sort.direction === "asc" ? (
                             <ChevronUpIcon className="h-3.5 w-3.5" />
                           ) : (
@@ -346,7 +355,8 @@ export function DataTable<T>({
                       )}
                     </span>
                   </th>
-                ))}
+                  );
+                })}
               </tr>
             </thead>
             <tbody>

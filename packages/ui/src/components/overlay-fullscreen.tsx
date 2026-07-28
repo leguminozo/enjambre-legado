@@ -55,6 +55,7 @@ export function OverlayFullscreen({
     <div
       className={cn(
         'fixed inset-0 z-[220] flex flex-col animate-in fade-in duration-300 motion-reduce:animate-none',
+        'pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]',
         className,
       )}
     >

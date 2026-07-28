@@ -32,7 +32,11 @@ export function SectionHeader({
           </p>
         )}
       </div>
-      {action && <div className="flex-shrink-0 mt-2">{action}</div>}
+      {action && (
+        <div className="flex-shrink-0 mt-2 flex flex-wrap items-center gap-2 [&>*]:min-h-11">
+          {action}
+        </div>
+      )}
     </div>
   );
 }

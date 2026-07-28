@@ -147,7 +147,7 @@ function NotificationPanel({
         )}
       </div>
 
-      <div className="border-t border-border p-2 text-center">
+      <div className="border-t border-border p-2 text-center pb-[max(0.5rem,env(safe-area-inset-bottom,0px))]">
         <a
           href="/perfil/alertas"
           onClick={onClose}

@@ -99,7 +99,10 @@ interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function CardFooter({ className = '', children, ...props }: CardFooterProps) {
   return (
-    <div className={`flex items-center pt-4 border-t border-border/30 ${className}`} {...props}>
+    <div
+      className={`flex flex-wrap items-center gap-2 pt-4 border-t border-border/30 [&>*]:min-h-11 ${className}`}
+      {...props}
+    >
       {children}
     </div>
   );

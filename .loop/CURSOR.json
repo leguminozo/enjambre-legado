@@ -1,10 +1,10 @@
 {
-  "index": 5,
-  "pass": 79,
-  "last_sector": "ui-campo-pos",
-  "last_commit": "d0d61b7",
+  "index": 6,
+  "pass": 80,
+  "last_sector": "ui-shared-tokens",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 79: post-venta CTA/H1, client chrome, comisiones checkbox, cart total. Siguiente: ui-shared-tokens (#5)."
+  "notes": "Pass 80: Dialog/Card footer min-h, DataTable sort hit, OverlayFullscreen safe-area, SectionHeader action, notif footer. Siguiente: deep-followup-ui (#6)."
 }

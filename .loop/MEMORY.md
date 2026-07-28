@@ -36,7 +36,7 @@
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos; landing H1/CTAs + rail safe-top + CMS chrome 36; residual dashboard 404/error py-2 + AuthHero 4.5rem + search close; residual login H2 2.4rem + colmena ops pad4 + perfil save py-2 + search Esc | ✅ pass 43+50+57+64+71+78 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual; reseñas/QR/checkout resultado; residual not-found text-only + checkout dir nueva + QR manual densos + traza H1/breadcrumb; residual catálogo empty/H1 + términos + reposicion result + address field | ✅ pass 42+49+56+63+70+77 |
-| Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close; residual toast/DataTable checkbox/pill; toast safe-area + notif row a11y; residual toast persistent trap + SectionHeader clamp + ImmersiveModal footer/safe | ✅ pass 45+52+59+66+73 |
+| Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close; residual toast/DataTable checkbox/pill; toast safe-area + notif row a11y; residual toast persistent trap + SectionHeader clamp + ImmersiveModal footer/safe; residual Dialog/Card footer densos + DataTable sort th + OverlayFullscreen safe + SectionHeader action + notif footer | ✅ pass 45+52+59+66+73+80 |
 | Tokens apps | Logistica emerald → success; residual canvas/PWA hex OK | ✅ pass 46 (logistica); ⏳ baja canvas/manifest |
 | SII bandeja amber | confidence/estado badges amber raw | ✅ pass 53 |
 | Tienda perfil residual | direcciones hover-only p-2; reposición/pedidos py-2; notif switch 20px; mi-legado chips + reposición/tracking/reseña links + guardián/ciencia/colmena CTAs | ✅ pass 53+60+67 |
@@ -52,6 +52,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 80 (ui-shared-tokens)
+- Señal: DialogFooter/CardFooter sin [&>*]:min-h; DataTable th sort solo py-2; OverlayFullscreen sin safe-area; SectionHeader action sin hit floor; notif panel footer bajo home bar
+- Compuesto: unificar + colapsar
+- Regla nueva: footers package (Dialog/Card/Immersive) siempre [&>*]:min-h-11; sort headers DataTable min-h-11 inner; OverlayFullscreen pad safe-area
+- Anti-patrón: footer package sin floor touch; th sortable solo text height
+- Guardriel: intacto (solo packages/ui)
 
 ### Evo 2026-07-27 pass 79 (ui-campo-pos)
 - Señal: post-venta «Nueva Venta» py-4 sin min-h + H1 text-4xl; client Nuevo/Buscar text-only residual; comisiones checkbox 20px; total carrito text-4xl; feria devolucion input w-20

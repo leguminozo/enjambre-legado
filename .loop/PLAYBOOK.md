@@ -57,6 +57,10 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Notif row a11y | filas no teclado / hit denso | div onClick | role=button tabIndex min-h-11 + key Enter/Space |
 | Button icon-only | chevron paginación &lt;44 ancho | solo min-h | sizeClasses + `min-w-11` |
 | DataTable checkbox 20 | select row mis-tap | visual = hit `w-5 h-5` | outer button min-h/w-11, inner visual 20 |
+| DataTable sort densos | mis-tap ordenar columna | th `py-2` only | inner span `min-h-11` + aria-sort |
+| Dialog/Card footer densos | CTAs &lt;44 en modales/cards | footer sin floor | `[&>*]:min-h-11` (como ImmersiveModal) |
+| OverlayFullscreen notch | chrome bajo status/home bar | inset-0 sin safe | pt/pb `env(safe-area-inset-*)` |
+| SectionHeader action densos | CTA título &lt;44 | action slot desnudo | wrap `[&>*]:min-h-11` |
 | Dialog close &lt;44 | mis-tap cerrar modal | close icon absolute sin hit box | `min-h-11 min-w-11` absolute close |
 | Button sin min-h | sm/md &lt;44 en ops táctil | solo py-1.5/2.5 | `min-h-11` (sm/md) · `min-h-12` (lg) en sizeClasses |
 | Touch <44 | botones finos en campo/tienda/nucleo shell | py-1 / w-h 38 sin min-h | `min-h-[44px] min-w-[44px]`; header-btn/sheet close/bell 44 |
