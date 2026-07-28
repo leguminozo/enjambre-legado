@@ -1040,12 +1040,14 @@
   display: flex;
   align-items: center;
   gap: var(--space-lg);
+  min-height: 44px;
   padding: var(--space-md) var(--space-lg);
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .colmena-item:hover {

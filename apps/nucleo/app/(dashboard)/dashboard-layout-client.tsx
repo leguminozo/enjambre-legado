@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Search, X } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -32,6 +32,18 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
   const showLayoutModuleHeader = !routeUsesViewShell(pathname);
   const headerTitle = activeItem?.label ?? 'Enjambre Legado';
   const headerMission = activeItem?.mission;
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSearchOpen(false);
+        setSearchQuery('');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [searchOpen]);
 
   return (
     <div className={`app-layout app-layout--${shellMode}`}>

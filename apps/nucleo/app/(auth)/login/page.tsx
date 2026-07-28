@@ -90,16 +90,19 @@ export default function LoginPage() {
       {!showForm ? (
         <AuthHero onStart={() => setShowForm(true)} />
       ) : (
-        <div ref={formRef} className="relative z-10 w-full px-6" style={{ maxWidth: '440px' }}>
+        <div
+          ref={formRef}
+          className="relative z-10 w-full max-w-[440px] px-4 sm:px-6 py-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]"
+        >
           <GlassPanel variant="strong" className="p-6 sm:p-10 md:p-12 text-center">
             <div className="mb-8">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-accent/15 mb-6 border border-accent/30">
                 <Hexagon size={28} className="text-accent" />
               </div>
-              <h2 className="font-existencial text-primary-foreground mb-2 italic m-0" style={{ fontSize: '2.4rem', lineHeight: 1.1 }}>
+              <h2 className="font-existencial text-primary-foreground mb-2 italic m-0 text-balance text-[clamp(1.75rem,7vw,2.4rem)] leading-tight">
                 {isForgotPassword ? 'Recuperar Rastro' : isLogin ? 'Acceso al Núcleo' : 'Iniciar Legado'}
               </h2>
-              <p className="font-datos text-muted-foreground m-0" style={{ opacity: 0.6, fontSize: '0.9rem', letterSpacing: '0.02em', marginTop: '0.5rem' }}>
+              <p className="font-datos text-muted-foreground m-0 mt-2 text-sm sm:text-[0.9rem] tracking-wide opacity-60 text-pretty">
                 {isForgotPassword ? 'Reestablece tu conexión.' : isLogin ? 'Identifícate para sincronizar.' : 'Crea tu perfil regenerativo.'}
               </p>
             </div>

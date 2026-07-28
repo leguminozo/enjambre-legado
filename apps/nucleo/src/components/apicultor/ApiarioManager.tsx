@@ -177,13 +177,13 @@ const apiarioHealth = apiarioColmenas.some(c => c.health === 'risk') ? 'hsl(var(
                                 <div style={{ borderTop: '1px solid hsl(var(--border) / 0.3)', background: 'hsl(var(--muted) / 0.5)', padding: 'var(--space-sm)' }}>
                                     <div className="colmena-list" style={{ gap: 4 }}>
                                         {apiarioColmenas.map(c => (
-                                            <div key={c.id} className="colmena-item" style={{ padding: '8px 12px', background: 'hsl(var(--card))', position: 'relative' }}>
+                                            <div key={c.id} className="colmena-item" style={{ background: 'hsl(var(--card))', position: 'relative' }}>
                                                 <div className={`colmena-status ${c.health}`} />
-                                                <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => onSelectColmena(c)}>
+                                                <div style={{ flex: 1, cursor: 'pointer', minHeight: 44, display: 'flex', flexDirection: 'column', justifyContent: 'center' }} onClick={() => onSelectColmena(c)}>
                                                     <div className="colmena-name" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                                                         {c.name}
                                                     </div>
-                                                    <div style={{ fontSize: '0.68rem', marginTop: 2, color: 'hsl(var(--muted-foreground))', display: 'flex', gap: 10 }}>
+                                                    <div style={{ fontSize: '0.68rem', marginTop: 2, color: 'hsl(var(--muted-foreground))', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                                                         <span>{c.floracion || 'Sin floración'}</span>
                                                         <span>⚖️ {c.peso_records?.at(-1)?.kg || 0} kg</span>
                                                         <span>🔬 V {c.varroa_records?.at(-1)?.level || 0}/10</span>
@@ -196,13 +196,23 @@ const apiarioHealth = apiarioColmenas.some(c => c.health === 'risk') ? 'hsl(var(
                                                     </div>
 
                                                     {/* Context Menu Actions */}
-                                                    <div style={{ display: 'flex', gap: 2 }}>
-                                                        <button className="btn btn-ghost btn-sm" style={{ padding: 4, color: 'hsl(var(--foreground))' }}
-                                                            onClick={(e) => { e.stopPropagation(); setEditingColmena({ ...c }); }}>
+                                                    <div style={{ display: 'flex', gap: 4 }}>
+                                                        <button
+                                                          type="button"
+                                                          className="btn btn-ghost btn-sm"
+                                                          style={{ minWidth: 44, minHeight: 44, padding: 0, color: 'hsl(var(--foreground))' }}
+                                                          aria-label={`Editar ${c.name}`}
+                                                          onClick={(e) => { e.stopPropagation(); setEditingColmena({ ...c }); }}
+                                                        >
                                                             <Edit2 size={14} />
                                                         </button>
-                                                        <button className="btn btn-ghost btn-sm" style={{ padding: 4, color: 'hsl(var(--destructive))' }}
-                                                            onClick={(e) => handleDelete(c.id, e)}>
+                                                        <button
+                                                          type="button"
+                                                          className="btn btn-ghost btn-sm"
+                                                          style={{ minWidth: 44, minHeight: 44, padding: 0, color: 'hsl(var(--destructive))' }}
+                                                          aria-label={`Eliminar ${c.name}`}
+                                                          onClick={(e) => handleDelete(c.id, e)}
+                                                        >
                                                             <Trash2 size={14} />
                                                         </button>
                                                     </div>

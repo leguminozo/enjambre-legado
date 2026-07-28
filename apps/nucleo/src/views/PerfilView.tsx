@@ -284,7 +284,8 @@ export function PerfilView() {
               {editMode && (
                 <div className="mt-6 flex justify-end">
                   <button
-                    className="btn btn-gold flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50"
+                    type="button"
+                    className="btn btn-gold min-h-12 flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-bold disabled:opacity-50"
                     onClick={handleSaveProfile}
                     disabled={saving}
                   >
@@ -359,7 +360,8 @@ export function PerfilView() {
 
                 <div className="flex justify-end">
                   <button
-                    className="btn btn-gold flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50"
+                    type="button"
+                    className="btn btn-gold min-h-12 flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-bold disabled:opacity-50"
                     onClick={handleChangePassword}
                     disabled={passwordSaving || !newPassword || newPassword !== confirmPassword}
                   >
