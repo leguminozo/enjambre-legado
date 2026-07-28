@@ -32,7 +32,7 @@
 | Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y; mapa href + editorial pages 375; 404/error btn fantasma + contacto/ulmo | ✅ pass 40+47+54+61+68 |
 | Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom; auth btn fantasma + perfil safe-top; announcement h36 + legal H1 + footer PWA | ✅ pass 41+48+55+62+69 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
-| Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos; btn fantasma + card/input CSS | ✅ pass 44+51+58+65 |
+| Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos; btn fantasma + card/input CSS; residual setup-error + siguiente venta + threshold dismiss/safe + empty cart CTA | ✅ pass 44+51+58+65+72 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos; landing H1/CTAs + rail safe-top + CMS chrome 36; residual dashboard 404/error py-2 + AuthHero 4.5rem + search close | ✅ pass 43+50+57+64+71 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual; reseñas/QR/checkout resultado; residual not-found text-only + checkout dir nueva + QR manual densos + traza H1/breadcrumb | ✅ pass 42+49+56+63+70 |
@@ -52,6 +52,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 72 (ui-campo-pos)
+- Señal: setup-error link text-only; quick-sale «Siguiente venta» text-[10px]; threshold dismiss × sin hit + bottom-4 sin safe; client rows sin min-h; empty cart sin CTA
+- Compuesto: colapsar + redirigir
+- Regla nueva: post-venta POS CTAs min-h-11; toasts umbral max(1rem,safe-bottom) + dismiss 44; recovery setup-error min-h-11; empty cart CTA catalogo
+- Anti-patrón: post-success text-[10px] sin hit; threshold `bottom-4` + dismiss solo glyph
+- Guardriel: intacto (solo UI POS; sin lógica pago)
 
 ### Evo 2026-07-27 pass 71 (ui-nucleo-shell)
 - Señal: dashboard not-found/error CTA solo py-2; AuthHero H1 fontSize 4.5rem fijo aplasta 375; header search sin dismiss explícito

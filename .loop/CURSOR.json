@@ -1,10 +1,10 @@
 {
-  "index": 4,
-  "pass": 71,
-  "last_sector": "ui-nucleo-shell",
-  "last_commit": "093ed68",
+  "index": 5,
+  "pass": 72,
+  "last_sector": "ui-campo-pos",
+  "last_commit": "30b0a7f",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 71: nucleo recovery CTAs, AuthHero clamp, header search close. Siguiente: ui-campo-pos (#4)."
+  "notes": "Pass 72: setup-error, quick-sale next, threshold safe/dismiss, empty cart CTA. Siguiente: ui-shared-tokens (#5)."
 }

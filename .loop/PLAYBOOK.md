@@ -74,6 +74,10 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Campo btn fantasma | CTAs sync/caja sin estilo | `btn btn-primary` (nucleo-only) | Tailwind min-h-11 border/primary explícito |
 | Campo card/input fantasma | caja/comisiones/feria planos | `.card` `.input-field` sin CSS | definir en campo globals o className full |
 | Campo landing H1 | title aplastado 375 | `text-5xl` fijo | clamp + safe-top como tienda/nucleo |
+| Campo setup-error densos | recovery sin hit | Link underline solo | min-h-11 border CTA |
+| Quick-sale post-venta | «Siguiente venta» mis-tap | text-[10px] sin min-h | min-h-11 full-width bordered |
+| Threshold toast PWA | dismiss &lt;44; bajo home bar | × text-lg + bottom-4 | dismiss min-h/w-11; bottom max(1rem,safe) |
+| Empty cart POS | sin camino a catálogo | solo copy | CTA min-h-12 → /pos/catalogo |
 | POS cart row crush | qty/precio/QR salen del card en 375 | `flex items-center gap-6` single row | `flex-col sm:flex-row` + icon btns 44 |
 | Shop text-only recovery | error PDP / traza / volver catálogo | `hover:underline` sin min-h | `min-h-11` + border hit en recovery |
 | Shop not-found densos | producto 404 link fino | `inline-block underline` | `inline-flex min-h-11` |
