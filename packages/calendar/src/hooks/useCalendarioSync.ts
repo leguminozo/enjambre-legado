@@ -62,7 +62,8 @@ export function useCalendarioSync(
           q = q.lte('starts_at', veIso).gte('ends_at', vsIso);
         }
         promises.push(
-          Promise.resolve(q).then(({ data, error: err }) => {
+          (async (): Promise<CalendarioEvent[]> => {
+            const { data, error: err } = await q;
             if (err) {
               // tabla inexistente / RLS: no tumbar todo el calendario
               console.warn('[Calendario] calendario_eventos:', err.message);
@@ -87,7 +88,7 @@ export function useCalendarioSync(
                 },
               }),
             );
-          }),
+          })(),
         );
       }
 
@@ -97,7 +98,8 @@ export function useCalendarioSync(
           q = q.lte('fecha_inicio', veDate).gte('fecha_fin', vsDate);
         }
         promises.push(
-          Promise.resolve(q).then(({ data, error: err }) => {
+          (async (): Promise<CalendarioEvent[]> => {
+            const { data, error: err } = await q;
             if (err) throw err;
             return (data || []).map((row) =>
               withTool({
@@ -117,59 +119,58 @@ export function useCalendarioSync(
                 },
               }),
             );
-          }),
+          })(),
         );
       }
 
       if (isApicultor) {
         promises.push(
-          Promise.resolve(
-            supabase
+          (async (): Promise<CalendarioEvent[]> => {
+            const { data, error: err } = await supabase
               .from('calendario_tasks')
-              .select('*')
-          ).then(({ data, error: err }) => {
+              .select('*');
             if (err) throw err;
-              const year = viewStart
-                ? viewStart.getFullYear()
-                : new Date().getFullYear();
-              const monthMap: Record<string, number> = {
-                Enero: 0,
-                Febrero: 1,
-                Marzo: 2,
-                Abril: 3,
-                Mayo: 4,
-                Junio: 5,
-                Julio: 6,
-                Agosto: 7,
-                Septiembre: 8,
-                Octubre: 9,
-                Noviembre: 10,
-                Diciembre: 11,
-              };
-              return (data || [])
-                .map((row) => {
-                  const mIndex = monthMap[row.month as string] ?? 0;
-                  const week = Number(row.week) || 1;
-                  const d = new Date(year, mIndex, 1 + (week - 1) * 7);
-                  return withTool({
-                    id: `task-${row.id}`,
-                    type: 'apicultura',
-                    title: row.title || 'Tarea apícola',
-                    startDate: d,
-                    allDay: true,
-                    editable: false,
-                    source: {
-                      table: 'calendario_tasks',
-                      originalId: row.id,
-                      rawData: row as Record<string, unknown>,
-                    },
-                  });
-                })
-                .filter((e) => {
-                  if (!viewStart || !viewEnd) return true;
-                  return e.startDate >= viewStart && e.startDate <= viewEnd;
+            const year = viewStart
+              ? viewStart.getFullYear()
+              : new Date().getFullYear();
+            const monthMap: Record<string, number> = {
+              Enero: 0,
+              Febrero: 1,
+              Marzo: 2,
+              Abril: 3,
+              Mayo: 4,
+              Junio: 5,
+              Julio: 6,
+              Agosto: 7,
+              Septiembre: 8,
+              Octubre: 9,
+              Noviembre: 10,
+              Diciembre: 11,
+            };
+            return (data || [])
+              .map((row) => {
+                const mIndex = monthMap[row.month as string] ?? 0;
+                const week = Number(row.week) || 1;
+                const d = new Date(year, mIndex, 1 + (week - 1) * 7);
+                return withTool({
+                  id: `task-${row.id}`,
+                  type: 'apicultura',
+                  title: row.title || 'Tarea apícola',
+                  startDate: d,
+                  allDay: true,
+                  editable: false,
+                  source: {
+                    table: 'calendario_tasks',
+                    originalId: row.id,
+                    rawData: row as Record<string, unknown>,
+                  },
                 });
-            }),
+              })
+              .filter((e) => {
+                if (!viewStart || !viewEnd) return true;
+                return e.startDate >= viewStart && e.startDate <= viewEnd;
+              });
+          })(),
         );
       }
 
@@ -183,7 +184,8 @@ export function useCalendarioSync(
           pstQ = pstQ.gte('post_date', vsDate).lte('post_date', veDate);
 
         promises.push(
-          Promise.resolve(cmpQ).then(({ data, error: err }) => {
+          (async (): Promise<CalendarioEvent[]> => {
+            const { data, error: err } = await cmpQ;
             if (err) throw err;
             return (data || []).map((row) =>
               withTool({
@@ -200,8 +202,9 @@ export function useCalendarioSync(
                 },
               }),
             );
-          }),
-          Promise.resolve(pstQ).then(({ data, error: err }) => {
+          })(),
+          (async (): Promise<CalendarioEvent[]> => {
+            const { data, error: err } = await pstQ;
             if (err) throw err;
             return (data || []).map((row) =>
               withTool({
@@ -218,7 +221,7 @@ export function useCalendarioSync(
                 },
               }),
             );
-          }),
+          })(),
         );
       }
 
@@ -236,7 +239,8 @@ export function useCalendarioSync(
           insQ = insQ.gte('date', vsDate).lte('date', veDate);
 
         promises.push(
-          Promise.resolve(cosQ).then(({ data, error: err }) => {
+          (async (): Promise<CalendarioEvent[]> => {
+            const { data, error: err } = await cosQ;
             if (err) throw err;
             return (data || []).map((row) =>
               withTool({
@@ -253,8 +257,9 @@ export function useCalendarioSync(
                 },
               }),
             );
-          }),
-          Promise.resolve(insQ).then(({ data, error: err }) => {
+          })(),
+          (async (): Promise<CalendarioEvent[]> => {
+            const { data, error: err } = await insQ;
             if (err) throw err;
             return (data || []).map((row) =>
               withTool({
@@ -271,7 +276,7 @@ export function useCalendarioSync(
                 },
               }),
             );
-          }),
+          })(),
         );
       }
 
