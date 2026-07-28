@@ -35,7 +35,7 @@
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos; btn fantasma + card/input CSS; residual setup-error + siguiente venta + threshold dismiss/safe + empty cart CTA | ✅ pass 44+51+58+65+72 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos; landing H1/CTAs + rail safe-top + CMS chrome 36; residual dashboard 404/error py-2 + AuthHero 4.5rem + search close | ✅ pass 43+50+57+64+71 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
-| Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual; reseñas/QR/checkout resultado; residual not-found text-only + checkout dir nueva + QR manual densos + traza H1/breadcrumb | ✅ pass 42+49+56+63+70 |
+| Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual; reseñas/QR/checkout resultado; residual not-found text-only + checkout dir nueva + QR manual densos + traza H1/breadcrumb; residual catálogo empty/H1 + términos + reposicion result + address field | ✅ pass 42+49+56+63+70+77 |
 | Tokens shared | Calendar hex/#4a4a4a/white; Button sm/md &lt;44; ThemeToggle/Switch/Select h-10; residual stone/amber/emerald tiers+impact, SelectItem py-1.5, Dialog close; residual toast/DataTable checkbox/pill; toast safe-area + notif row a11y; residual toast persistent trap + SectionHeader clamp + ImmersiveModal footer/safe | ✅ pass 45+52+59+66+73 |
 | Tokens apps | Logistica emerald → success; residual canvas/PWA hex OK | ✅ pass 46 (logistica); ⏳ baja canvas/manifest |
 | SII bandeja amber | confidence/estado badges amber raw | ✅ pass 53 |
@@ -52,6 +52,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 77 (ui-tienda-shop)
+- Señal: catálogo empty link sin min-h; error load sin recovery CTA; H1 catálogo text-3xl; checkout términos densos; replenish address sin min-h; resultado reposición py-3 sin min-h
+- Compuesto: colapsar + redirigir
+- Regla nueva: empty/error catálogo = min-h-11 CTA; catalog/checkout H1 clamp + safe-top; post-funnel reposición min-h-11/12; address field min-h-11
+- Anti-patrón: empty catálogo `underline` desnudo; resultado reposición solo `py-3`
+- Guardriel: intacto (solo UI shop)
 
 ### Evo 2026-07-27 pass 76 (ui-tienda-chrome)
 - Señal: announcement link interno `/nosotros` abría `_blank`; AuthShell H1 text-3xl denso 375; recuperar/reset sin camino claro a login tras envío

@@ -91,6 +91,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | POS cart row crush | qty/precio/QR salen del card en 375 | `flex items-center gap-6` single row | `flex-col sm:flex-row` + icon btns 44 |
 | Shop text-only recovery | error PDP / traza / volver catálogo | `hover:underline` sin min-h | `min-h-11` + border hit en recovery |
 | Shop not-found densos | producto 404 link fino | `inline-block underline` | `inline-flex min-h-11` |
+| Catálogo empty densos | empty/error sin hit | Link underline desnudo | min-h-11 CTA + clamp H1 + safe-top |
+| Checkout legal densos | términos &lt;44 en copy | underline inline | `inline-flex min-h-11` |
+| Reposición resultado densos | CTAs post-pago finos | py-3 only | primary min-h-12; secondary min-h-11 |
 | Checkout dir nueva | mis-tap dirección alternativa | `text-xs underline` | `inline-flex min-h-11 text-sm` |
 | QR manual densos | input/Escanear &lt;44; H1 notch | py-3 sin min-h; py-10 fixed | min-h-11 form; clamp H1 + safe-top |
 | Traza H1/breadcrumb | título denso 375; links sin hit | `text-4xl`/`text-5xl`; bare Link | clamp H1; breadcrumb min-h-11 |
