@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Mail } from 'lucide-react';
 import { toast } from '@enjambre/ui';
 import { AuthFormPanel, AuthShell, authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
@@ -44,9 +45,17 @@ export function RecuperarForm() {
       footer="Acceso Restringido · Tienda Enjambre"
     >
       {sent ? (
-        <p className="text-sm text-muted-foreground text-center leading-relaxed">
-          Revisa tu correo (y spam). El enlace expira en unos minutos.
-        </p>
+        <div className="space-y-6 text-center">
+          <p className="text-sm text-muted-foreground leading-relaxed text-pretty">
+            Revisa tu correo (y spam). El enlace expira en unos minutos.
+          </p>
+          <Link
+            href="/login"
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-accent px-6 py-3 text-[0.7rem] uppercase tracking-[0.3em] text-accent hover:bg-accent hover:text-accent-foreground transition-all"
+          >
+            Volver a iniciar sesión
+          </Link>
+        </div>
       ) : (
         <AuthFormPanel onSubmit={handleSubmit}>
           <div className="space-y-2">
@@ -72,6 +81,14 @@ export function RecuperarForm() {
           >
             {loading ? 'Enviando…' : 'Enviar enlace'}
           </button>
+          <p className="pt-2 text-center text-[0.7rem] text-muted-foreground">
+            <Link
+              href="/login"
+              className="inline-flex min-h-11 items-center text-foreground underline underline-offset-4 decoration-border hover:text-accent"
+            >
+              Volver al login
+            </Link>
+          </p>
         </AuthFormPanel>
       )}
     </AuthShell>

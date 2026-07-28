@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useLocale } from 'next-intl';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveLocalized } from '@/lib/shop/store-chrome';
@@ -176,15 +177,34 @@ export function TextCarousel() {
         >
           <span>{text}</span>
           {slide.href && linkLabel ? (
-            <a
-              href={slide.href}
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              className="inline-flex min-h-11 items-center ml-1 text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent transition-colors duration-300 font-semibold not-italic"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {linkLabel}
-            </a>
+            (() => {
+              const href = slide.href;
+              const isExternal = /^https?:\/\//i.test(href) || href.startsWith('//');
+              const linkClass =
+                'inline-flex min-h-11 items-center ml-1 text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent transition-colors duration-300 font-semibold not-italic';
+              if (isExternal) {
+                return (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className={linkClass}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {linkLabel}
+                  </a>
+                );
+              }
+              return (
+                <Link
+                  href={href}
+                  className={linkClass}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {linkLabel}
+                </Link>
+              );
+            })()
           ) : null}
         </div>
 

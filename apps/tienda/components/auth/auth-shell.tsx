@@ -38,7 +38,9 @@ export function AuthShell({
           >
             <ArrowLeft size={14} /> Volver a la tienda
           </Link>
-          <h1 className="font-display text-3xl sm:text-4xl font-light tracking-tight text-foreground">{title}</h1>
+          <h1 className="font-display text-[clamp(1.75rem,7vw,2.5rem)] sm:text-4xl font-light tracking-tight text-foreground text-balance">
+            {title}
+          </h1>
           <p className="mt-3 sm:mt-4 text-sm text-muted-foreground font-light tracking-wide">{subtitle}</p>
           {intro}
         </div>

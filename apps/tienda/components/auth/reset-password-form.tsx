@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@enjambre/ui';
@@ -85,6 +86,14 @@ export function ResetPasswordForm() {
         >
           {loading ? 'Guardando…' : 'Guardar contraseña'}
         </button>
+        <p className="pt-2 text-center text-[0.7rem] text-muted-foreground">
+          <Link
+            href="/login"
+            className="inline-flex min-h-11 items-center text-foreground underline underline-offset-4 decoration-border hover:text-accent"
+          >
+            Volver al login
+          </Link>
+        </p>
       </AuthFormPanel>
     </AuthShell>
   );
