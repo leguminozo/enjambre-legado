@@ -286,19 +286,20 @@ function ToastItem({
               if (!toast.persistent) onDismiss(toast.id);
             }}
             className={`
-              mt-2.5 inline-flex min-h-11 items-center text-xs font-medium transition-colors
+              mt-2.5 inline-flex min-h-11 items-center rounded-md px-2 text-xs font-medium transition-colors
               ${toast.action.variant === 'primary'
-                ? 'text-primary hover:underline'
+                ? 'text-primary hover:bg-primary/10'
                 : toast.action.variant === 'secondary'
-                ? 'text-foreground hover:text-muted-foreground border-b border-transparent hover:border-current'
-                : 'text-muted-foreground hover:text-foreground'}
+                ? 'text-foreground hover:bg-muted/50 border border-border'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'}
             `}
           >
             {toast.action.label}
           </button>
         )}
       </div>
-      {!toast.persistent && !isPromisePending && (
+      {/* Always allow dismiss except while promise is in-flight (avoids trapped persistent errors) */}
+      {!isPromisePending && (
         <button
           type="button"
           onClick={handleDismiss}

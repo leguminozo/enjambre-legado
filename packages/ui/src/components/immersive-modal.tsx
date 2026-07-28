@@ -56,7 +56,7 @@ export function ImmersiveModal({
   const hasAside = Boolean(aside);
 
   return (
-    <div className="fixed inset-0 z-[220] flex items-center justify-center p-3 sm:p-6">
+    <div className="fixed inset-0 z-[220] flex items-center justify-center p-3 sm:p-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <button
         type="button"
         className={cn('absolute inset-0', overlayBackdropClassName)}
@@ -106,7 +106,7 @@ export function ImmersiveModal({
         )}
 
         {footer ? (
-          <footer className="flex w-full items-center justify-end gap-2 border-t border-border px-5 py-4 sm:px-6 shrink-0">
+          <footer className="flex w-full flex-wrap items-center justify-end gap-2 border-t border-border px-5 py-4 sm:px-6 shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))] [&>*]:min-h-11">
             {footer}
           </footer>
         ) : null}

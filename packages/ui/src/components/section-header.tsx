@@ -23,7 +23,7 @@ export function SectionHeader({
             {kicker}
           </span>
         )}
-        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground tracking-tight text-balance">
+        <h2 className="font-display text-[clamp(1.5rem,6vw,3rem)] sm:text-4xl md:text-5xl font-light text-foreground tracking-tight text-balance leading-tight">
           {title}
         </h2>
         {subtitle && (
