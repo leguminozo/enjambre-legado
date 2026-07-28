@@ -29,7 +29,7 @@
 
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
-| Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y; mapa href + editorial pages 375; 404/error btn fantasma + contacto/ulmo | ✅ pass 40+47+54+61+68 |
+| Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y; mapa href + editorial pages 375; 404/error btn fantasma + contacto/ulmo; residual contacto catálogo CTA + nosotros evidencia + landing H2 clamp + leaflet 44 | ✅ pass 40+47+54+61+68+75 |
 | Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom; auth btn fantasma + perfil safe-top; announcement h36 + legal H1 + footer PWA | ✅ pass 41+48+55+62+69 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
 | Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos; btn fantasma + card/input CSS; residual setup-error + siguiente venta + threshold dismiss/safe + empty cart CTA | ✅ pass 44+51+58+65+72 |
@@ -52,6 +52,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 75 (ui-tienda-landing)
+- Señal: contacto «Volver al Catálogo» sin min-h y href=/ (404 de catálogo); nosotros evidencia inline-block; H2 collections/products/map text-3xl denso; leaflet zoom ~30px; prose legal links sin hit
+- Compuesto: colapsar + redirigir + unificar
+- Regla nueva: CTAs editoriales landing = min-h-11/12 + href real store-routes; section H2 clamp; leaflet control a ≥44; prose a min-h-11
+- Anti-patrón: CTA contacto con copy catálogo pero href `/`; H2 `text-3xl` fijo en bloques landing
+- Guardriel: intacto
 
 ### Evo 2026-07-27 pass 74 (deep-followup-ui)
 - Señal: AliadosB2B w-9 approve/reject; ResenasSensoriales mod py-1.5; Pipeline/Bandeja chips densos; banco «Actualizar» text-only; creador términos sin hit

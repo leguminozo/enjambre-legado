@@ -15,6 +15,10 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Landing media arrows | flechas 40px + dots 8px | `w-10 h-10` / `w-2 h-2` | arrows `min-h-11`; dots wrap `min-h-11 min-w-11`; bottom safe-area |
 | Landing CTA ruta muerta | 404 desde mapa/historia | href legacy WP `/nuestra-historia` | usar `/nosotros` (store-routes) |
 | Editorial H1 denso 375 | título corta/solapa header | `text-5xl` + `py-16` sin safe | clamp H1 + `pt-[max(...,safe-top+header)]` |
+| Landing H2 densos | collections/products/map aplastados | `text-3xl` fijo | clamp(1.75rem,6vw,3.75rem) |
+| Contacto CTA mislabel | copy catálogo → `/` | href home | `/catalogo` + min-h-12 |
+| Leaflet zoom &lt;44 | mis-tap zoom mapa | control default ~30px | `.leaflet-control-zoom a` min 44 |
+| Legal prose links densos | anchors CMS sin hit | prose a inline | `.prose a { min-height: 44px }` |
 | Campaign banner CTA | CTA promo &lt;44 | `py-2` only | `min-h-11` + px-5 |
 | Hero stack denso | CTA cortado / formula corta | `min(70dvh)` + clamp grande | bajar clamp H1; `max-w` subtitle; `mt` CTA |
 | Nav densa | links apretados 1200px | header una sola fila | collapse / drawer desde `lg`; gap tokens |
