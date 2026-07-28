@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
 import { cors } from "hono/cors";
-import { type AppVariables, csrfMiddleware } from "@/api/lib/middleware";
+import { type AppVariables, csrfMiddleware, createSupabaseUserClient } from "@/api/lib/middleware";
 import { getInternalApiSecret, verifyInternalApiKey } from "@enjambre/auth/internal-api-secret";
 import { rateLimit, getIdentifierFromRequest } from "@/api/lib/rate-limit";
 import { healthRoutes } from "@/api/routes/health";
@@ -171,12 +171,23 @@ app.use("*", async (c, next) => {
     return c.json({ code: "unauthorized", message: "Invalid internal key" }, 401);
   }
 
+  // Zero-Trust: validar la FIRMA del JWT con el server (no confiar en el prefijo "Bearer ").
   const authHeader = c.req.header("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return c.json({ code: "unauthorized", message: "Global fallback: Missing token" }, 401);
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (!token) {
+    return c.json({ code: "unauthorized", message: "Missing Bearer token" }, 401);
   }
 
-  return next();
+  try {
+    const supabase = createSupabaseUserClient(token);
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) {
+      return c.json({ code: "unauthorized", message: "Invalid token signature" }, 401);
+    }
+    return next();
+  } catch {
+    return c.json({ code: "unauthorized", message: "Token validation failed" }, 401);
+  }
 });
 
 app.route("/health", healthRoutes);

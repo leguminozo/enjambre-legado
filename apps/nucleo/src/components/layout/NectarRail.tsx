@@ -36,9 +36,7 @@ export function NectarRail({
       {NECTAR_STEPS.map((step, i) => {
         const active =
           !!current &&
-          (current === step.href ||
-            (step.href !== '/' && current.startsWith(`${step.href}/`)) ||
-            current === step.href);
+          (current === step.href || current.startsWith(`${step.href}/`));
         return (
           <span key={step.href} className="inline-flex items-center gap-1">
             {i > 0 && (

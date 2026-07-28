@@ -35,7 +35,12 @@ conciliacionStatsRoutes.get("/metricas", async (c) => {
   ]);
 
   // Fallback if join filter fails on some PostgREST versions: filter in app
-  let concRows = concRes.data ?? [];
+  type ConcRow = { id: string; tipo_conciliacion: string | null; movimiento_id: string };
+  let concRows: ConcRow[] = (concRes.data ?? []).map((r) => ({
+    id: r.id,
+    tipo_conciliacion: r.tipo_conciliacion,
+    movimiento_id: r.movimiento_id,
+  }));
   if (concRes.error) {
     // Secondary path: get movimiento ids then count conciliaciones
     const movIds = (movRes.data ?? []).map((m) => m.id);
@@ -44,7 +49,7 @@ conciliacionStatsRoutes.get("/metricas", async (c) => {
         .from("banco_chile_conciliaciones")
         .select("id, tipo_conciliacion, movimiento_id")
         .in("movimiento_id", movIds);
-      concRows = conc2 ?? [];
+      concRows = (conc2 ?? []) as ConcRow[];
     } else {
       concRows = [];
     }

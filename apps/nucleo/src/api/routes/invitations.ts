@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
-import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import { authMiddleware, requireProfileRole, tenantMiddleware } from "@/api/lib/middleware";
 
 const CreateInvitationSchema = z.object({
   roles: z.array(z.string().min(1)).min(1).default(["rep_ventas"]),
@@ -90,7 +90,7 @@ invitationsRoutes.get("/validate/:code", async (c) => {
 });
 
 const adminRoutes = new Hono<{ Variables: AppVariables }>();
-adminRoutes.use("*", authMiddleware, tenantMiddleware);
+adminRoutes.use("*", authMiddleware, tenantMiddleware, requireProfileRole("admin"));
 
 adminRoutes.post("/", zValidator("json", CreateInvitationSchema), async (c) => {
   const input = c.req.valid("json");

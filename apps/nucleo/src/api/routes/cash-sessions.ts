@@ -225,17 +225,27 @@ cashSessionsRoutes.get("/history", async (c) => {
 
 cashSessionsRoutes.get("/:id", async (c) => {
   const sessionId = c.req.param("id");
+  const empresaId = c.get("empresaId");
   const supabase = c.get("supabase");
   const user = c.get("user");
 
+  // Zero-Trust: filtrar por empresa SIEMPRE, sin importar RLS del client.
   const { data: session } = await supabase
     .from("cash_sessions")
     .select("*")
     .eq("id", sessionId)
-    .single();
+    .eq("empresa_id", empresaId!)
+    .maybeSingle();
 
   if (!session) {
-    return c.json({ code: "not_found", message: "Sesión no encontrada" }, 404);
+    return c.json({ code: "not_found", message: "Sesión no encontrada en esta empresa" }, 404);
+  }
+
+  // Defensa en profundidad: un rep_ventas sólo ve sus propias sesiones;
+  // un admin puede ver cualquiera de su empresa.
+  const role = c.get("rol");
+  if (role !== "admin" && session.rep_id !== user.id) {
+    return c.json({ code: "forbidden", message: "Sesión no pertenece al rep" }, 403);
   }
 
   const { data: ventas } = await supabase

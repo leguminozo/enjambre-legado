@@ -1,4 +1,5 @@
 import type { AppVariables } from '@/api/lib/middleware';
+import type { TablesInsert } from '@enjambre/database';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
@@ -242,7 +243,7 @@ bancoChileRouter.post('/sync', async (c) => {
       if (!movRes.success || !movRes.data.length) continue;
 
       const rows = movRes.data.map((mov) =>
-        mapMovimientoRow(mov as Record<string, unknown>, localId, empresaId, hasta),
+        mapMovimientoRow(mov as unknown as Record<string, unknown>, localId, empresaId, hasta),
       );
 
       // Dedupe within batch by external_key
@@ -254,7 +255,7 @@ bancoChileRouter.post('/sync', async (c) => {
 
       const { error, count } = await supabase
         .from('banco_chile_movimientos')
-        .upsert(uniqueRows, {
+        .upsert(uniqueRows as TablesInsert<'banco_chile_movimientos'>[], {
           onConflict: 'cuenta_id,external_key',
           ignoreDuplicates: false,
           count: 'exact',
@@ -266,8 +267,8 @@ bancoChileRouter.post('/sync', async (c) => {
         // Fallback without unique (pre-mig 98): still try insert-ignore style batch
         if (error.message.includes('external_key') || error.code === '42P10') {
           for (const row of uniqueRows) {
-            const { error: insErr } = await supabase.from('banco_chile_movimientos').insert(row);
-            if (!insErr) movimientosUpserted += 1;
+            const { error: insError } = await supabase.from('banco_chile_movimientos').insert(row as TablesInsert<'banco_chile_movimientos'>);
+            if (!insError) movimientosUpserted += 1;
           }
         }
       }
@@ -356,7 +357,7 @@ bancoChileRouter.get(
         const byKey = new Map(movimientos.map((r) => [r.external_key, r]));
         const { error } = await supabase
           .from('banco_chile_movimientos')
-          .upsert(Array.from(byKey.values()), {
+          .upsert(Array.from(byKey.values()) as TablesInsert<'banco_chile_movimientos'>[], {
             onConflict: 'cuenta_id,external_key',
             ignoreDuplicates: false,
           });

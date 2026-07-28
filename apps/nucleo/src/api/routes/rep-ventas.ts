@@ -661,13 +661,22 @@ repVentasRoutes.post(
   ),
   async (c) => {
     const eventoId = c.req.param("eventoId");
+    const empresaId = c.get("empresaId");
     const { pausar_hasta } = c.req.valid("json");
     const supabase = c.get("supabase");
 
-    const { error } = await supabase.from("eventos").update({ pausada_hasta: pausar_hasta ?? null }).eq("id", eventoId);
+    // Zero-Trust: scoping por empresa SIEMPRE, sin importar RLS del client.
+    const { error, count } = await supabase
+      .from("eventos")
+      .update({ pausada_hasta: pausar_hasta ?? null }, { count: "exact" })
+      .eq("id", eventoId)
+      .eq("empresa_id", empresaId!);
 
     if (error) {
       return c.json({ code: "pause_failed", message: error.message }, 500);
+    }
+    if (count === 0) {
+      return c.json({ code: "not_found", message: "Evento no pertenece a la empresa" }, 404);
     }
     return c.json({ ok: true, pausada_hasta: pausar_hasta ?? null });
   },
@@ -678,12 +687,20 @@ repVentasRoutes.post(
   requireProfileRole("admin"),
   async (c) => {
     const eventoId = c.req.param("eventoId");
+    const empresaId = c.get("empresaId");
     const supabase = c.get("supabase");
 
-    const { error } = await supabase.from("eventos").update({ pausada_hasta: null }).eq("id", eventoId);
+    const { error, count } = await supabase
+      .from("eventos")
+      .update({ pausada_hasta: null }, { count: "exact" })
+      .eq("id", eventoId)
+      .eq("empresa_id", empresaId!);
 
     if (error) {
       return c.json({ code: "resume_failed", message: error.message }, 500);
+    }
+    if (count === 0) {
+      return c.json({ code: "not_found", message: "Evento no pertenece a la empresa" }, 404);
     }
     return c.json({ ok: true });
   },
@@ -702,16 +719,21 @@ repVentasRoutes.patch(
   ),
   async (c) => {
     const eventoId = c.req.param("eventoId");
+    const empresaId = c.get("empresaId");
     const { meta_ventas, meta_ingresos } = c.req.valid("json");
     const supabase = c.get("supabase");
 
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("eventos")
-      .update({ meta: { meta_ventas, meta_ingresos } })
-      .eq("id", eventoId);
+      .update({ meta: { meta_ventas, meta_ingresos } }, { count: "exact" })
+      .eq("id", eventoId)
+      .eq("empresa_id", empresaId!);
 
     if (error) {
       return c.json({ code: "meta_update_failed", message: error.message }, 500);
+    }
+    if (count === 0) {
+      return c.json({ code: "not_found", message: "Evento no pertenece a la empresa" }, 404);
     }
     return c.json({ ok: true });
   },

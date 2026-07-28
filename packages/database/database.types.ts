@@ -3044,6 +3044,7 @@ export type Database = {
       eventos: {
         Row: {
           created_at: string | null
+          empresa_id: string | null
           fecha_fin: string | null
           fecha_inicio: string | null
           id: string
@@ -3057,6 +3058,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          empresa_id?: string | null
           fecha_fin?: string | null
           fecha_inicio?: string | null
           id?: string
@@ -3070,6 +3072,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          empresa_id?: string | null
           fecha_fin?: string | null
           fecha_inicio?: string | null
           id?: string
@@ -7345,6 +7348,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "sumup_transacciones_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sumup_terminal_checkouts: {
+        Row: {
+          amount: number
+          checkout_id: string | null
+          checkout_reference: string
+          created_at: string
+          currency: string
+          empresa_id: string
+          id: string
+          reader_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          checkout_id?: string | null
+          checkout_reference: string
+          created_at?: string
+          currency?: string
+          empresa_id: string
+          id?: string
+          reader_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          checkout_id?: string | null
+          checkout_reference?: string
+          created_at?: string
+          currency?: string
+          empresa_id?: string
+          id?: string
+          reader_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sumup_terminal_checkouts_empresa_id_fkey"
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"

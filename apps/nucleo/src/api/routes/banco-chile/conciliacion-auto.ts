@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
+import type { TablesInsert } from "@enjambre/database";
 
 // Esquemas de validación
 // empresa_id optional: always resolve from tenant (config-en-UI / POS never send it)
@@ -259,7 +260,7 @@ conciliacionAutoRoutes.post(
 
       const { data: conciliacionDataResult, error: conciliacionError } = await supabase
         .from("banco_chile_conciliaciones")
-        .insert(conciliacionData)
+        .insert(conciliacionData as TablesInsert<'banco_chile_conciliaciones'>)
         .select()
         .single();
 
@@ -396,7 +397,7 @@ conciliacionAutoRoutes.post(
               entidadId = propuesta.entidad_id;
             }
 
-            const conciliacionData: Record<string, any> = {
+            const conciliacionData: Record<string, unknown> = {
               movimiento_id: propuesta.movimiento_id,
               monto: movimientoData.monto,
               concepto: `Conciliación automática (confianza: ${confianza.toFixed(1)}%) vía regla ${propuesta.propuesta_id}`,
@@ -412,7 +413,7 @@ conciliacionAutoRoutes.post(
 
             const { data: conciliacionDataResult, error: conciliacionError } = await supabase
               .from("banco_chile_conciliaciones")
-              .insert(conciliacionData)
+              .insert(conciliacionData as TablesInsert<'banco_chile_conciliaciones'>)
               .select()
               .single();
 

@@ -46,7 +46,7 @@ export function useCalendarioSync(
         userRole === 'rep_ventas' || userRole === 'vendedor' || isAdmin;
       const isMarketing = userRole === 'marketing' || isAdmin;
 
-      const promises: Promise<CalendarioEvent[]>[] = [];
+      const promises: PromiseLike<CalendarioEvent[]>[] = [];
       const vsIso = viewStart ? viewStart.toISOString() : undefined;
       const veIso = viewEnd ? viewEnd.toISOString() : undefined;
       const vsDate = viewStart
