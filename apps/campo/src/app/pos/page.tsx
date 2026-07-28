@@ -36,7 +36,7 @@ export default function PosIndex() {
           <Link
             href="/pos/catalogo"
             prefetch
-            className="card-glow p-5 flex items-center gap-4 hover:border-primary/40 transition-colors group"
+            className="card-glow min-h-11 p-5 flex items-center gap-4 hover:border-primary/40 transition-colors group"
           >
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
               <PackageSearch className="w-6 h-6 text-primary" />
@@ -49,7 +49,7 @@ export default function PosIndex() {
           <Link
             href="/pos/carrito"
             prefetch
-            className="card-glow p-5 flex items-center gap-4 hover:border-primary/40 transition-colors group"
+            className="card-glow min-h-11 p-5 flex items-center gap-4 hover:border-primary/40 transition-colors group"
           >
         <div className="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center group-hover:bg-warning/20 transition-colors">
           <ShoppingCart className="w-6 h-6 text-warning" />
@@ -62,7 +62,7 @@ export default function PosIndex() {
           <Link
             href="/pos/historial"
             prefetch
-            className="card-glow p-5 flex items-center gap-4 hover:border-primary/40 transition-colors group"
+            className="card-glow min-h-11 p-5 flex items-center gap-4 hover:border-primary/40 transition-colors group"
           >
         <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors">
           <TrendingUp className="w-6 h-6 text-success" />

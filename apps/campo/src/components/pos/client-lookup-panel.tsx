@@ -140,8 +140,9 @@ export function ClientLookupPanel() {
           {results.map((r) => (
             <button
               key={r.id}
+              type="button"
               onClick={() => { setSelectedClient(r); setExpanded(false); setQuery(''); }}
-              className="w-full text-left p-3 rounded-lg hover:bg-foreground/5 transition-colors flex items-center justify-between"
+              className="w-full min-h-11 text-left p-3 rounded-lg hover:bg-foreground/5 transition-colors flex items-center justify-between"
             >
               <div>
                 <p className="text-sm font-medium text-foreground">{r.full_name || 'Sin nombre'}</p>
@@ -157,8 +158,9 @@ export function ClientLookupPanel() {
         <div className="flex items-center justify-between py-2">
           <p className="text-xs text-muted-foreground">Sin resultados</p>
           <button
+            type="button"
             onClick={() => { setIsNewClient(true); setExpanded(false); setQuery(''); }}
-            className="inline-flex min-h-11 items-center px-2 text-xs text-primary hover:underline"
+            className="inline-flex min-h-11 items-center rounded-lg border border-primary/30 px-3 text-xs text-primary hover:bg-primary/10 transition-colors"
           >
             Registrar como nuevo
           </button>

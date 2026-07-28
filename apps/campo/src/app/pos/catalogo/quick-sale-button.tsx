@@ -165,8 +165,9 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
             ~{co2Saved.toFixed(1)}kg CO2 evitado hoy
           </p>
           <button
+            type="button"
             onClick={resetFlow}
-            className="mt-1 text-muted-foreground hover:text-foreground text-[10px] font-bold uppercase tracking-widest"
+            className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-border/60 px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
           >
             Siguiente venta
           </button>

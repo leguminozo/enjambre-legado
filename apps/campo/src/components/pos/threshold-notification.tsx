@@ -85,11 +85,16 @@ export function ThresholdNotificationBanner({ notification, onDismiss }: {
   const isCrossed = notification.percentage >= 100;
 
   return (
-    <div className={`fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-sm z-50 animate-in slide-in-from-bottom-4 ${
-      isCrossed ? 'bg-gradient-to-r from-warning/90 to-warning/90' : 'bg-gradient-to-r from-primary/90 to-primary/80'
-    } rounded-xl p-4 shadow-2xl backdrop-blur-sm`}>
+    <div
+      className={`fixed left-4 right-4 sm:left-auto sm:right-4 sm:max-w-sm z-50 animate-in slide-in-from-bottom-4 bottom-[max(1rem,env(safe-area-inset-bottom))] ${
+        isCrossed ? 'bg-gradient-to-r from-warning/90 to-warning/90' : 'bg-gradient-to-r from-primary/90 to-primary/80'
+      } rounded-xl p-4 shadow-2xl backdrop-blur-sm`}
+      role="status"
+    >
       <div className="flex items-start gap-3">
-        <div className="text-2xl">{isCrossed ? '🔥' : '⚡'}</div>
+        <div className="text-2xl" aria-hidden>
+          {isCrossed ? '🔥' : '⚡'}
+        </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-primary-foreground">{notification.message}</p>
           <p className="text-[10px] text-primary-foreground/70 mt-1">
@@ -101,7 +106,14 @@ export function ThresholdNotificationBanner({ notification, onDismiss }: {
             </div>
           )}
         </div>
-        <button onClick={onDismiss} className="text-primary-foreground/60 hover:text-primary-foreground text-lg leading-none">×</button>
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label="Cerrar aviso de umbral"
+          className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10 text-lg leading-none"
+        >
+          ×
+        </button>
       </div>
     </div>
   );

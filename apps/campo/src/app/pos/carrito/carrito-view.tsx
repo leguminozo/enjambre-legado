@@ -248,9 +248,15 @@ export default function CarritoView() {
         </div>
 
         {!lines.length ? (
-          <div className="bg-card border border-border border-dashed rounded-3xl p-20 text-center">
+          <div className="bg-card border border-border border-dashed rounded-3xl p-10 sm:p-20 text-center">
             <ShoppingBag className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground font-light">No hay productos en el carrito.</p>
+            <p className="text-muted-foreground font-light mb-6">No hay productos en el carrito.</p>
+            <Link
+              href="/pos/catalogo"
+              className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-8 py-3 text-sm font-bold uppercase tracking-widest text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Ir al catálogo
+            </Link>
           </div>
         ) : (
           <div className="space-y-4">

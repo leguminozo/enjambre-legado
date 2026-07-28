@@ -24,7 +24,10 @@ export default function SetupErrorPage() {
         <p className="text-sm text-muted-foreground mb-4">
           Tras guardar las variables en <strong>Configuración → Variables de entorno</strong>, vuelve a desplegar.
         </p>
-        <Link href="/" className="text-sm font-medium text-primary underline">
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-primary/40 px-5 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+        >
           Volver al inicio
         </Link>
       </div>
