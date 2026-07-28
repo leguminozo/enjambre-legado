@@ -90,6 +90,9 @@ Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
 | Quick-sale post-venta | «Siguiente venta» mis-tap | text-[10px] sin min-h | min-h-11 full-width bordered |
 | Threshold toast PWA | dismiss &lt;44; bajo home bar | × text-lg + bottom-4 | dismiss min-h/w-11; bottom max(1rem,safe) |
 | Empty cart POS | sin camino a catálogo | solo copy | CTA min-h-12 → /pos/catalogo |
+| Post-venta POS densos | Nueva Venta sin hit; H1 4xl | py-4 only / text-4xl | min-h-12 primary; clamp H1 |
+| Client chrome densos | Nuevo/Buscar text-only | text-[10px] underline | border + min-h-11 |
+| Comisiones checkbox 20 | select row mis-tap | input nativo | outer label min-h/w-11 |
 | POS cart row crush | qty/precio/QR salen del card en 375 | `flex items-center gap-6` single row | `flex-col sm:flex-row` + icon btns 44 |
 | Shop text-only recovery | error PDP / traza / volver catálogo | `hover:underline` sin min-h | `min-h-11` + border hit en recovery |
 | Shop not-found densos | producto 404 link fino | `inline-block underline` | `inline-flex min-h-11` |

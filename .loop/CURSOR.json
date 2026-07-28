@@ -1,10 +1,10 @@
 {
-  "index": 4,
-  "pass": 78,
-  "last_sector": "ui-nucleo-shell",
-  "last_commit": "2fb3460",
+  "index": 5,
+  "pass": 79,
+  "last_sector": "ui-campo-pos",
+  "last_commit": "d0d61b7",
   "streak_clean": 0,
   "boost": {},
   "phase": "v1.3-ui",
-  "notes": "Pass 78: login H2 clamp/safe, colmena ops 44, perfil save, search Esc. Siguiente: ui-campo-pos (#4)."
+  "notes": "Pass 79: post-venta CTA/H1, client chrome, comisiones checkbox, cart total. Siguiente: ui-shared-tokens (#5)."
 }

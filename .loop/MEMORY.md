@@ -32,7 +32,7 @@
 | Tienda hero | cue overlap (pass40); safe-area cue/pad + metrics clamp 375 + collections rhythm; residual media carousel 40/dots, campaign CTA, youtube a11y; mapa href + editorial pages 375; 404/error btn fantasma + contacto/ulmo; residual contacto catálogo CTA + nosotros evidencia + landing H2 clamp + leaflet 44 | ✅ pass 40+47+54+61+68+75 |
 | Tienda header | nav lg+ (41); residual: lang/social &lt;44, carousel dismiss hover-only, header notch; install py-2, lang hidden xs, drawer sin safe-bottom; auth btn fantasma + perfil safe-top; announcement h36 + legal H1 + footer PWA; residual annou internal blank + auth H1 clamp + recuperar/reset login CTAs | ✅ pass 41+48+55+62+69+76 |
 | Tienda conservation | metrics `text-5xl` en 2-col mobile; science 3-col apretado | ✅ pass 40 |
-| Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos; btn fantasma + card/input CSS; residual setup-error + siguiente venta + threshold dismiss/safe + empty cart CTA | ✅ pass 44+51+58+65+72 |
+| Campo POS | pb-safe undefined; terminal/retry text-only; logout p-2; cart row crush 375; residual sidebar logout/nav, login py-2, quick-sale text-only back, amber/cyan; residual historial/caja/cliente/feria densos; btn fantasma + card/input CSS; residual setup-error + siguiente venta + threshold dismiss/safe + empty cart CTA; residual post-venta Nueva Venta + client Nuevo/Buscar + comisiones checkbox | ✅ pass 44+51+58+65+72+79 |
 | Nucleo shell | header-btn 38 / nav close 40 / bell p-1; ViewShell hero color cascade; residual nav-item pad-xs / logout p-1.5 / avatar 36; residual .btn/.input sin min-h, chips 40, login densos; landing H1/CTAs + rail safe-top + CMS chrome 36; residual dashboard 404/error py-2 + AuthHero 4.5rem + search close; residual login H2 2.4rem + colmena ops pad4 + perfil save py-2 + search Esc | ✅ pass 43+50+57+64+71+78 |
 | Nucleo panels | checklists go-live (Card vs div Banco) residual ritmo | ✅ pass 46 |
 | Tienda shop | pass42 chips/cart; residual sticky double-safe, promo/pay &lt;44, catalog title scale; wallet/PDP/error/replenish residual; reseñas/QR/checkout resultado; residual not-found text-only + checkout dir nueva + QR manual densos + traza H1/breadcrumb; residual catálogo empty/H1 + términos + reposicion result + address field | ✅ pass 42+49+56+63+70+77 |
@@ -52,6 +52,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-07-27 pass 79 (ui-campo-pos)
+- Señal: post-venta «Nueva Venta» py-4 sin min-h + H1 text-4xl; client Nuevo/Buscar text-only residual; comisiones checkbox 20px; total carrito text-4xl; feria devolucion input w-20
+- Compuesto: colapsar + redirigir
+- Regla nueva: post-venta POS primary min-h-12 + clamp H1; client chrome CTAs border hit; DataTable checkbox outer 44; carrito total clamp
+- Anti-patrón: success screen CTA sin min-h; checkbox nativo sin hit-box en comisiones
+- Guardriel: intacto (solo UI POS)
 
 ### Evo 2026-07-27 pass 78 (ui-nucleo-shell)
 - Señal: login form H2 fontSize 2.4rem fijo + sin safe-area; colmena-item sin min-h y icon ops padding 4; perfil Guardar/Actualizar py-2; search panel sin Escape
