@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRateLimiter, getClientIdentifier } from '@/lib/ratelimit';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { guardMutation } from '@/lib/api-guard';
+import { friendlySupabaseError } from '@enjambre/ui';
 
 const registerRateLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 5 });
 
@@ -50,11 +51,16 @@ export async function POST(request: NextRequest) {
   });
 
   if (authError) {
-    return NextResponse.json({ error: 'No se pudo crear la cuenta' }, { status: 400 });
+    const friendlyMsg = friendlySupabaseError(authError);
+    return NextResponse.json(
+      { error: friendlyMsg !== 'Ocurrió un problema inesperado. Intenta más tarde' ? friendlyMsg : (authError.message || 'No se pudo crear la cuenta') },
+      { status: 400 }
+    );
   }
   if (!authData.user) {
     return NextResponse.json({ error: 'No se pudo crear el usuario' }, { status: 400 });
   }
+
 
   const { error: profileError } = await supabase
     .from('profiles')
