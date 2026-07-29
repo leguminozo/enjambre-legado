@@ -13,14 +13,32 @@ export default function LoginPage() {
   const [showForm, setShowForm] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
 
   const formRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
+      if (event === 'PASSWORD_RECOVERY' || (typeof window !== 'undefined' && window.location.hash.includes('type=recovery'))) {
+        setShowForm(true);
+        setIsRecoveryMode(true);
+      }
+    });
+    if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
+      setShowForm(true);
+      setIsRecoveryMode(true);
+    }
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (showForm && formRef.current) {
@@ -37,7 +55,21 @@ export default function LoginPage() {
     setMessage(null);
 
     try {
-      if (isForgotPassword) {
+      if (isRecoveryMode) {
+        if (password !== confirmPassword) {
+          throw new Error('Las contraseñas no coinciden');
+        }
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+        setMessage('¡Contraseña actualizada con éxito! Entrando al enjambre...');
+        setIsRecoveryMode(false);
+        await useAuthStore.getState().checkUser();
+        const userRole = useAuthStore.getState().user?.role ?? 'cliente';
+        setTimeout(() => {
+          router.replace(getRoleRedirectPath(userRole));
+        }, 1500);
+        return;
+      } else if (isForgotPassword) {
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/login` });
         if (error) throw error;
         await logSecurityEvent(supabase, { eventType: 'password_reset_requested', email, appSource: 'nucleo' });
@@ -100,10 +132,10 @@ export default function LoginPage() {
                 <Hexagon size={28} className="text-accent" />
               </div>
               <h2 className="font-existencial text-primary-foreground mb-2 italic m-0 text-balance text-[clamp(1.75rem,7vw,2.4rem)] leading-tight">
-                {isForgotPassword ? 'Recuperar Rastro' : isLogin ? 'Acceso al Núcleo' : 'Iniciar Legado'}
+                {isRecoveryMode ? 'Nueva Contraseña' : isForgotPassword ? 'Recuperar Rastro' : isLogin ? 'Acceso al Núcleo' : 'Iniciar Legado'}
               </h2>
               <p className="font-datos text-muted-foreground m-0 mt-2 text-sm sm:text-[0.9rem] tracking-wide opacity-60 text-pretty">
-                {isForgotPassword ? 'Reestablece tu conexión.' : isLogin ? 'Identifícate para sincronizar.' : 'Crea tu perfil regenerativo.'}
+                {isRecoveryMode ? 'Introduce y confirma tu nueva contraseña.' : isForgotPassword ? 'Reestablece tu conexión.' : isLogin ? 'Identifícate para sincronizar.' : 'Crea tu perfil regenerativo.'}
               </p>
             </div>
 
@@ -111,7 +143,7 @@ export default function LoginPage() {
             {error && <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-center animate-in">{error}</div>}
 
             <form onSubmit={handleAuth} className="flex flex-col gap-6">
-              {!isLogin && !isForgotPassword && (
+              {!isLogin && !isForgotPassword && !isRecoveryMode && (
                 <>
                   <div className="flex flex-col gap-2">
                     <label className="uppercase tracking-widest font-semibold text-muted-foreground m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Nombre Completo</label>
@@ -126,15 +158,17 @@ export default function LoginPage() {
                 </>
               )}
 
-              <div className="flex flex-col gap-2">
-                <label className="uppercase tracking-widest font-semibold text-muted-foreground m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Email</label>
-                <div className="relative text-left">
-                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ opacity: 0.5 }} />
-                  <input required type="email" className="input-field" placeholder="correo@ejemplo.com" value={email} onChange={e => setEmail(e.target.value)} style={{ paddingLeft: '2.8rem' }} />
+              {!isRecoveryMode && (
+                <div className="flex flex-col gap-2">
+                  <label className="uppercase tracking-widest font-semibold text-muted-foreground m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Email</label>
+                  <div className="relative text-left">
+                    <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ opacity: 0.5 }} />
+                    <input required type="email" className="input-field" placeholder="correo@ejemplo.com" value={email} onChange={e => setEmail(e.target.value)} style={{ paddingLeft: '2.8rem' }} />
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {!isForgotPassword && (
+              {!isForgotPassword && !isRecoveryMode && (
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center mb-1 text-left">
                     <label className="uppercase tracking-widest font-semibold text-muted-foreground m-0" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Contraseña</label>
@@ -155,34 +189,55 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {isRecoveryMode && (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <label className="uppercase tracking-widest font-semibold text-muted-foreground m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Nueva Contraseña</label>
+                    <div className="relative text-left">
+                      <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ opacity: 0.5 }} />
+                      <input required type="password" className="input-field" placeholder="Mínimo 6 caracteres" value={password} onChange={e => setPassword(e.target.value)} style={{ paddingLeft: '2.8rem' }} minLength={6} />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="uppercase tracking-widest font-semibold text-muted-foreground m-0 text-left" style={{ fontSize: '0.65rem', opacity: 0.7 }}>Confirmar Contraseña</label>
+                    <div className="relative text-left">
+                      <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ opacity: 0.5 }} />
+                      <input required type="password" className="input-field" placeholder="Repite tu contraseña" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} style={{ paddingLeft: '2.8rem' }} minLength={6} />
+                    </div>
+                  </div>
+                </>
+              )}
+
               <button type="submit" disabled={loading} className="btn btn-gold w-full min-h-12 py-4 mt-4">
                 {loading ? 'Procesando...' : (
                   <div className="flex items-center justify-center gap-2">
-                    <span>{isForgotPassword ? 'Enviar Enlace' : isLogin ? 'Entrar al Enjambre' : 'Crear Cuenta'}</span>
+                    <span>{isRecoveryMode ? 'Guardar Contraseña' : isForgotPassword ? 'Enviar Enlace' : isLogin ? 'Entrar al Enjambre' : 'Crear Cuenta'}</span>
                     <ArrowRight size={18} />
                   </div>
                 )}
               </button>
 
-              {isForgotPassword && (
-                <button type="button" onClick={() => setIsForgotPassword(false)} className="btn btn-ghost min-h-11 w-full text-center text-muted-foreground text-xs">
+              {(isForgotPassword || isRecoveryMode) && (
+                <button type="button" onClick={() => { setIsForgotPassword(false); setIsRecoveryMode(false); }} className="btn btn-ghost min-h-11 w-full text-center text-muted-foreground text-xs">
                   <ArrowLeft size={14} className="mr-2" />Volver al login
                 </button>
               )}
             </form>
 
-            <div className="mt-8 pt-8 border-t border-border text-center">
-              <p className="font-datos text-muted-foreground mb-5 m-0" style={{ opacity: 0.5, fontSize: '0.8rem' }}>
-                {isLogin ? '¿Aún no tienes registro?' : '¿Ya eres parte del enjambre?'}
-              </p>
-              <button
-                type="button"
-                onClick={() => { setIsLogin(!isLogin); }}
-                className="btn btn-outline rounded-full min-h-11 px-8 text-xs tracking-wider"
-              >
-                {isLogin ? 'Crear Legado' : 'Iniciar Sesión'}
-              </button>
-            </div>
+            {!isRecoveryMode && (
+              <div className="mt-8 pt-8 border-t border-border text-center">
+                <p className="font-datos text-muted-foreground mb-5 m-0" style={{ opacity: 0.5, fontSize: '0.8rem' }}>
+                  {isLogin ? '¿Aún no tienes registro?' : '¿Ya eres parte del enjambre?'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => { setIsLogin(!isLogin); }}
+                  className="btn btn-outline rounded-full min-h-11 px-8 text-xs tracking-wider"
+                >
+                  {isLogin ? 'Crear Legado' : 'Iniciar Sesión'}
+                </button>
+              </div>
+            )}
           </GlassPanel>
         </div>
       )}
