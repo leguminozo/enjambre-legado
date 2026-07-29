@@ -3,6 +3,8 @@ export const CANONICAL_PRODUCTION_URLS = {
   nucleo: 'https://nucleo-theta.vercel.app',
   tienda: 'https://tienda-eta-lime.vercel.app',
   campo: 'https://campo-olive.vercel.app',
+  tienda_cl: 'https://obrerayzangano.cl',
+  nucleo_online: 'https://obrerayzangano.online',
 } as const;
 
 function toOrigin(url: string): string | null {

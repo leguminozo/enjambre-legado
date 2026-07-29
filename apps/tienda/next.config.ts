@@ -37,6 +37,12 @@ function frameAncestorsDirective(): string {
   return `frame-ancestors ${Array.from(origins).join(' ')}`;
 }
 
+const CANONICAL_NUCLEO_ORIGINS = [
+  'https://nucleo-theta.vercel.app',
+  'https://obrerayzangano.online',
+  'https://www.obrerayzangano.online',
+];
+
 const connectSrc = [
   "'self'",
   'https://*.supabase.co',
@@ -47,6 +53,7 @@ const connectSrc = [
   'https://www.flow.cl',
   'https://sandbox.flow.cl',
   nucleoConnectOrigin(),
+  ...CANONICAL_NUCLEO_ORIGINS,
 ].filter(Boolean);
 
 const securityHeaders = [

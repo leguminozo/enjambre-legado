@@ -1,5 +1,21 @@
 import type { NextConfig } from "next";
 
+function collectOrigin(envKey: string): string | null {
+  const raw = process.env[envKey]?.trim();
+  if (!raw) return null;
+  try { return new URL(raw).origin; } catch { return null; }
+}
+
+const CANONICAL_TIENDA_ORIGINS = [
+  'https://tienda-eta-lime.vercel.app',
+  'https://obrerayzangano.cl',
+  'https://www.obrerayzangano.cl',
+];
+
+const CANONICAL_CAMPO_ORIGINS = [
+  'https://campo-olive.vercel.app',
+];
+
 /** Orígenes permitidos en iframes del Editor de Tienda (frame-src). */
 function frameSrcDirective(): string {
   const origins = new Set<string>([
@@ -9,6 +25,10 @@ function frameSrcDirective(): string {
     "https://*.vercel.app",
     "https://obrerayzangano.com",
     "https://www.obrerayzangano.com",
+    "https://obrerayzangano.cl",
+    "https://www.obrerayzangano.cl",
+    "https://obrerayzangano.online",
+    "https://www.obrerayzangano.online",
     "http://localhost:3001",
     "http://127.0.0.1:3001",
   ]);
@@ -41,7 +61,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' blob: data: https://*.supabase.co https://*.googleusercontent.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://unpkg.com",
       "font-src 'self' data: https://fonts.gstatic.com",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com https://api.open-meteo.com https://*.vercel.app",
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com https://api.open-meteo.com https://*.vercel.app ${CANONICAL_TIENDA_ORIGINS.join(' ')} ${CANONICAL_CAMPO_ORIGINS.join(' ')} ${[collectOrigin('NEXT_PUBLIC_URL_TIENDA'), collectOrigin('NEXT_PUBLIC_TIENDA_URL'), collectOrigin('NEXT_PUBLIC_URL_CAMPO'), collectOrigin('NEXT_PUBLIC_CAMPO_URL')].filter(Boolean).join(' ')}`,
       "worker-src 'self' blob:",
       "object-src 'none'",
       "base-uri 'self'",

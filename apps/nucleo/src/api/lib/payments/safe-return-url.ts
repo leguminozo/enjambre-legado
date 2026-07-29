@@ -24,8 +24,14 @@ function collectAllowedOrigins(): Set<string> {
       // ignore invalid env
     }
   }
-  // Local monorepo ports (tienda 3001, nucleo 3000)
+  // Local monorepo ports (tienda 3001, nucleo 3000) and canonical production domains
   for (const origin of [
+    'https://obrerayzangano.com',
+    'https://www.obrerayzangano.com',
+    'https://obrerayzangano.cl',
+    'https://www.obrerayzangano.cl',
+    'https://obrerayzangano.online',
+    'https://www.obrerayzangano.online',
     'http://localhost:3000',
     'http://localhost:3001',
     'http://127.0.0.1:3000',

@@ -3,8 +3,23 @@ import type { NextRequest } from 'next/server';
 
 const ALLOWED_ORIGINS = new Set([
   process.env.NEXT_PUBLIC_SITE_URL,
+  // Tienda canonical domains
+  'https://obrerayzangano.com',
+  'https://www.obrerayzangano.com',
+  'https://obrerayzangano.cl',
+  'https://www.obrerayzangano.cl',
+  // Nucleo canonical domains (BFF)
+  'https://obrerayzangano.online',
+  'https://www.obrerayzangano.online',
+  'https://nucleo-theta.vercel.app',
+  // Campo canonical domains (POS)
+  'https://campo-olive.vercel.app',
+  process.env.NEXT_PUBLIC_URL_CAMPO,
+  process.env.NEXT_PUBLIC_CAMPO_URL,
+  // Local dev
   'http://localhost:3000',
   'http://localhost:3001',
+  'http://localhost:3002',
 ].filter(Boolean) as string[]);
 
 export function validateCsrf(request: NextRequest): NextResponse | null {
