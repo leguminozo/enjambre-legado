@@ -71,14 +71,26 @@ export function friendlyApiError(code: string | undefined, fallback?: string): s
 export function friendlyError(err: unknown, fallback?: string): string {
   if (!err) return fallback || FRIENDLY_ERROR_MAP.unknown;
   if (typeof err === 'string') return err;
+
+  // Evaluar primero con friendlySupabaseError (tanto para AuthError/Error como para objetos genéricos)
+  if (typeof err === 'object' && err !== null) {
+    const code = 'code' in err && typeof err.code === 'string' ? err.code : undefined;
+    const message = 'message' in err && typeof err.message === 'string' ? err.message : undefined;
+    if (code || message) {
+      const mapped = friendlySupabaseError({ code, message });
+      if (mapped !== FRIENDLY_ERROR_MAP.internal && mapped !== FRIENDLY_ERROR_MAP.unknown) {
+        return mapped;
+      }
+    }
+  }
+
   if (err instanceof Error) {
     const msg = err.message.toLowerCase();
     if (msg.includes('network') || msg.includes('fetch') || msg.includes('failed to fetch')) return FRIENDLY_ERROR_MAP.network;
     if (msg.includes('timeout')) return FRIENDLY_ERROR_MAP.timeout;
     return fallback || FRIENDLY_ERROR_MAP.internal;
   }
-  if (typeof err === 'object' && err !== null) {
-    if ('code' in err || 'message' in err) return friendlySupabaseError(err as { code?: string; message?: string });
-  }
+
   return fallback || FRIENDLY_ERROR_MAP.unknown;
 }
+

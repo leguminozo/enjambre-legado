@@ -26,4 +26,10 @@ describe('friendlyApiError / friendlyError', () => {
   it('Error de red', () => {
     expect(friendlyError(new Error('Failed to fetch'))).toMatch(/conexión|internet/i);
   });
+
+  it('Error de auth (AuthError extendiendo Error) no es enmascarado por fallback', () => {
+    expect(friendlyError(new Error('Invalid login credentials'), 'Error de autenticación')).toMatch(/incorrectos/i);
+    expect(friendlyError(new Error('Email not confirmed'), 'Error de autenticación')).toMatch(/confirma/i);
+  });
 });
+
