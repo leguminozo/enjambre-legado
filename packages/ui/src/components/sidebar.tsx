@@ -93,6 +93,9 @@ interface SidebarNavItemProps {
   item: SidebarNavItemData
   active: boolean
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
+  // Polimorphic link: admite <a> nativo y next/link (cuyas LinkProps no son
+  // contravariantes con AnchorHTMLAttributes). Patrón estándar de UI library.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   linkComponent?: React.ComponentType<any>
 }
 
@@ -140,6 +143,9 @@ interface SidebarSectionProps {
   items: SidebarNavItemData[]
   activeKey?: string
   onItemClick?: (item: SidebarNavItemData, e: React.MouseEvent<HTMLAnchorElement>) => void
+  // Polimorphic link: admite <a> nativo y next/link (cuyas LinkProps no son
+  // contravariantes con AnchorHTMLAttributes). Patrón estándar de UI library.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   linkComponent?: React.ComponentType<any>
 }
 

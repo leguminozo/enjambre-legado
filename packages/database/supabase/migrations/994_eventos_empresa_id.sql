@@ -30,25 +30,8 @@ ALTER TABLE public.eventos
 COMMENT ON COLUMN public.eventos.empresa_id IS
   'Empresa owner del evento. NULL sólo para eventos legacy sin ventas asociadas; RLS fail-closed en NULL.';
 
--- 2) Backfill: el rep con más ventas del evento determina la empresa.
---ventas.vendedor_id → rep_profiles.user_id → rep_profiles.empresa_id.
-UPDATE public.eventos e
-SET empresa_id = sub.empresa_id
-FROM (
-  SELECT
-    v.evento_id AS id,
-    rp.empresa_id AS empresa_id,
-    ROW_NUMBER() OVER (
-      PARTITION BY v.evento_id
-      ORDER BY COUNT(*) DESC, MAX(v.created_at) DESC
-    ) AS rn
-  FROM public.ventas v
-  JOIN public.rep_profiles rp ON rp.user_id = v.vendedor_id
-  WHERE v.evento_id IS NOT NULL
-    AND rp.empresa_id IS NOT NULL
-  GROUP BY v.evento_id, rp.empresa_id
-) sub
-WHERE e.id = sub.id AND sub.rn = 1 AND e.empresa_id IS NULL;
+-- 2) Backfill omitido: tabla eventos está vacía en producción y ventas no tiene columna evento_id.
+-- UPDATE public.eventos e ...
 
 -- 3) Index para el scoping.
 CREATE INDEX IF NOT EXISTS idx_eventos_empresa

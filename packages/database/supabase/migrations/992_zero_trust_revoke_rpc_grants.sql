@@ -14,8 +14,6 @@
 -- 1) decrement_stock — sólo service_role (BFF autenticado). Auth interna.
 -- CVE-N-001: el grant a anon permitía vaciar inventario sin autenticación.
 -- ──────────────────────────────────────────────────────────────────────────
-REVOKE EXECUTE ON FUNCTION public.decrement_stock(UUID, INT) FROM anon, authenticated;
-
 -- Drop + Create (en lugar de CREATE OR REPLACE) porque la firma de retorno cambió
 -- (se añadió traceability_hash). Postgres rechaza cambiar return type con OR REPLACE.
 DROP FUNCTION IF EXISTS public.decrement_stock(UUID, INT);
@@ -62,14 +60,13 @@ BEGIN
 END;
 $$;
 
+REVOKE EXECUTE ON FUNCTION public.decrement_stock(UUID, INT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.decrement_stock(UUID, INT) TO service_role;
 
 -- ──────────────────────────────────────────────────────────────────────────
 -- 2) add_traceable_stock — sólo service_role. Auth interna + bound qty.
 -- CVE-N-002: el grant a authenticated permitía inflar stock y fabricar lotes.
 -- ──────────────────────────────────────────────────────────────────────────
-REVOKE EXECUTE ON FUNCTION public.add_traceable_stock(UUID, INT) FROM authenticated;
-
 CREATE OR REPLACE FUNCTION public.add_traceable_stock(p_producto_id UUID, p_qty INT)
 RETURNS json
 LANGUAGE plpgsql
@@ -127,12 +124,13 @@ BEGIN
 END;
 $$;
 
+REVOKE EXECUTE ON FUNCTION public.add_traceable_stock(UUID, INT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.add_traceable_stock(UUID, INT) TO service_role;
 
 -- ──────────────────────────────────────────────────────────────────────────
 -- 3) obtener_venta_por_claim_token — revoke anon. Brute-force de ventas.
 -- CVE-L-013: el grant a anon exponía totales/items de cualquier venta.
-── Sólo authenticated. (Defensa en profundidad: el token debe ser opaco más
+-- Sólo authenticated. (Defensa en profundidad: el token debe ser opaco más
 -- adelante; aquí cerramos el vector anon inmediato.)
 -- ──────────────────────────────────────────────────────────────────────────
 REVOKE EXECUTE ON FUNCTION public.obtener_venta_por_claim_token(UUID) FROM anon;

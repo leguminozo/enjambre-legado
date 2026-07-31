@@ -23,7 +23,7 @@ $$;
 -- 2. Elevar perfil existente de gabriel.cuevas01@alumnos.uach.cl (si ya se registró en profiles)
 UPDATE public.profiles
 SET role = 'admin',
-    nivel_guardian = 'COLMENA',
+    tier_override = 'COLMENA',
     updated_at = now()
 WHERE LOWER(email) = 'gabriel.cuevas01@alumnos.uach.cl';
 
@@ -40,7 +40,7 @@ DO UPDATE SET rol = 'owner';
 
 -- 4. Blindar handle_new_user() para que cualquier registro futuro o re-registro
 -- de Gabriel Cuevas (o fundadores whitelisteados) obtenga automáticamente
--- role='admin', nivel_guardian='COLMENA' y rol empresa='owner'.
+-- role='admin', tier_override='COLMENA' y rol empresa='owner'.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -63,7 +63,7 @@ BEGIN
     v_guardian := 'COLMENA';
   END IF;
 
-  INSERT INTO public.profiles (id, email, full_name, role, nivel_guardian)
+  INSERT INTO public.profiles (id, email, full_name, role, tier_override)
   VALUES (
     NEW.id,
     NEW.email,
