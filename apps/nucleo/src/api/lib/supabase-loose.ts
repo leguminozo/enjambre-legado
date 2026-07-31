@@ -7,9 +7,14 @@ import type { Database } from "@enjambre/database/database.types";
  *
  * Preferir `supabase.from(...)` tipado cuando el typegen ya cubre la tabla.
  * Grep: `fromLoose` / `rpcLoose` para deuda de typegen.
+ *
+ * El escape (`as unknown as`) es local y controlado: el `Database` real del repo
+ * se mantiene fuera del boundary en el caller y nunca se propaga `any` a los
+ * consumidores. Las APIs `.from(string)` / `.rpc(fn, args)` que supra-js expone
+ * tienen sobrecargas genéricas `DefaultSchema`, así que devolvemos el cliente con
+ * el esquema genérico por defecto en lugar de `any`.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LooseClient = SupabaseClient<any>;
+type LooseClient = SupabaseClient;
 
 export function looseClient(supabase: SupabaseClient<Database>): LooseClient {
   return supabase as unknown as LooseClient;

@@ -14,47 +14,7 @@ import { FinanceWidget } from './widgets/FinanceWidget'
 import { HealthWidget } from './widgets/HealthWidget'
 import { TeamWidget } from './widgets/TeamWidget'
 import { QuickActionAddStock } from './QuickActionAddStock'
-
-export interface EnjambreData {
-  colmenas?: { total: number; byHealth?: { optima: number; atencion: number; riesgo: number } }
-  cosechas?: { totalYTD: number }
-  arboles?: { co2Total: number; totalYTD: number }
-}
-
-export interface FinanzasData {
-  facturacionYTD: number
-  facturacionMes: number
-  margenUtilidad: number
-  utilidadNetaYTD: number
-  cashFlow?: Array<{ month: string; income: number; expenses: number }>
-  [key: string]: unknown
-}
-
-export interface EquipoEntry {
-  rep_id: string
-  display_name: string
-  commission_tier: string
-  total_commissions: number
-}
-
-export interface EquipoData {
-  activeReps: number
-  topRep?: { name: string; revenue: number }
-  leaderboard?: EquipoEntry[]
-  [key: string]: unknown
-}
-
-export interface VentasData {
-  byChannel?: Record<string, number>
-  [key: string]: unknown
-}
-
-interface ResumenData {
-  enjambre: EnjambreData
-  finanzas: FinanzasData
-  ventas: VentasData
-  equipo: EquipoData
-}
+import type { ResumenData } from './types'
 
 function fmtCLP(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -104,8 +64,8 @@ export function EcosistemaDashboard() {
 
   const { enjambre, finanzas, ventas, equipo } = data
 
-  const byChannel = ventas?.byChannel || {}
-  const topChannel = Object.entries(byChannel).sort((a, b) => (b[1] as number) - (a[1] as number))[0]
+  const byChannel: Record<string, number> = ventas?.byChannel ?? {}
+  const topChannel = Object.entries(byChannel).sort((a, b) => b[1] - a[1])[0]
 
   return (
     <div className="flex flex-col gap-8 pb-12 w-full max-w-full overflow-hidden">
@@ -157,7 +117,7 @@ export function EcosistemaDashboard() {
                 title={topChannel ? `Vía Destacada: ${topChannel[0]}` : 'Vías de Distribución'}
                 subtitle={
                   topChannel
-                    ? `Aporte YTD: ${fmtCLP(topChannel[1] as number)} · Abrir pipeline`
+                    ? `Aporte YTD: ${fmtCLP(topChannel[1])} · Abrir pipeline`
                     : 'Aún sin aportes · Abrir pipeline'
                 }
                 badgeText="Distribución"

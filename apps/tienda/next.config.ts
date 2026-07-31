@@ -22,6 +22,10 @@ function frameAncestorsDirective(): string {
     'https://*.vercel.app',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    // Dominios canónicos de Núcleo — editor de tienda los necesita para embeber el iframe
+    'https://nucleo-theta.vercel.app',
+    'https://obrerayzangano.online',
+    'https://www.obrerayzangano.online',
   ]);
 
   for (const key of ['NEXT_PUBLIC_NUCLEO_API_URL', 'NEXT_PUBLIC_URL_NUCLEO'] as const) {

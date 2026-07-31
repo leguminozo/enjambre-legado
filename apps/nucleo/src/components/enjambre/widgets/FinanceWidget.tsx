@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 import { ChartBox } from '@/components/charts/ChartBox'
 import { TrendingUp, DollarSign, ArrowUpRight } from 'lucide-react'
-import type { FinanzasData } from '../EcosistemaDashboard'
+import type { FinanzasData } from '../types'
 
 function fmtCLP(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`

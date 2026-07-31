@@ -8,48 +8,9 @@ import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@
 import { useApiFetch } from '@/hooks/use-api-fetch'
 import { KpiCard } from '@/components/ui/KpiCard'
 import { ChartBox } from '@/components/charts/ChartBox'
+import type { ResumenData } from '@/components/enjambre/types'
 
 const CHART_GRID = 'hsl(var(--border) / 0.5)'
-
-interface ResumenData {
-  enjambre: {
-    colmenas: { total: number; byHealth: { optima: number; atencion: number; riesgo: number }; productionTotal: number }
-    apiarios: { total: number }
-    inspecciones: { totalYTD: number; latestVarroa: number | null }
-    cosechas: { totalYTD: number; byMonth: { month: string; cosecha: number }[] }
-    arboles: { totalYTD: number; co2Total: number; byMonth: number[] }
-  }
-  finanzas: {
-    facturacionYTD: number
-    facturacionMes: number
-    ingresosNetosYTD: number
-    gastosYTD: number
-    utilidadNetaYTD: number
-    margenUtilidad: number
-    ivaDebitoYTD: number
-    ivaPagar: number
-    ppm: number
-    facturasPendientes: number
-    totalFacturasEmitidas: number
-    cashFlow: { month: string; income: number; expenses: number }[]
-  }
-  ventas: {
-    totalVentasYTD: number
-    facturacionYTD: number
-    newClientsYTD: number
-    byChannel: Record<string, number>
-    revenueByProductType: Record<string, { revenue: number; count: number }>
-    recent: { total: number; channel: string | null; created_at: string | null }[]
-  }
-  equipo: {
-    activeReps: number
-    repTiers: { base: number; senior: number; elite: number; legend: number }
-    topRep: { name: string; revenue: number } | null
-    comisiones: { totalYTD: number; pendientes: number; avgTierMultiplier: number }
-    caja: { openSessions: number; avgCashDifference: number; recentCount: number }
-    leaderboard: { rep_id: string; display_name: string; total_commissions: number; total_sales: number; commission_tier: string }[]
-  }
-}
 
 function fmtCLP(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`

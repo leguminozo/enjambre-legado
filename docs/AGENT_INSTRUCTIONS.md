@@ -13,6 +13,7 @@ Antes de CUALQUIER accion, lee estos archivos en orden:
 2. Este archivo (`docs/AGENT_INSTRUCTIONS.md`) — Reglas de operacion
 3. `docs/ARCHITECTURE.md` — Estructura del monorepo
 4. `docs/DATABASE_SCHEMA.md` — Si vas a tocar datos
+5. `docs/NUCLEO_CHILOE.md` — Si vas a tocar cualquier archivo del módulo territorial apícola (Chiloé)
 
 Si no entiendes la Constitucion, no escribas codigo.
 

@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { LogOut, X, User, Sun, Moon, Monitor, Grid3X3, ShoppingBag } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
-import { useTheme } from '@enjambre/ui';
+import { NotificationBell, useTheme } from '@enjambre/ui';
 import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
+import { useUserNotifications } from '@/lib/hooks/use-user-notifications';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 import type { ParticipacionActiva } from '@/lib/shop/participacion';
 import { buildSidebarSections } from '@/lib/shop/sidebar-nav';
@@ -28,6 +29,11 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
   const tPerfil = useTranslations('perfil');
   const tHeader = useTranslations('header');
   const tBridge = useTranslations('perfil.bridge');
+
+  const [realtimeOn, setRealtimeOn] = useState(false);
+  const { notifications, markRead, markAllRead, isLoading, error } = useUserNotifications(user?.id, {
+    enableRealtime: realtimeOn,
+  });
 
   const sections = useMemo(() => buildSidebarSections(participacion), [participacion]);
 
@@ -160,15 +166,25 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                   {participacion.esCreador ? tPerfil('roleEmbajador') : tPerfil('roleProtector')}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
-                title="Cerrar sesión"
-                aria-label="Cerrar sesión"
-              >
-                <LogOut size={20} strokeWidth={1.5} />
-              </button>
+              <div className="flex items-center gap-1 shrink-0">
+                <NotificationBell
+                  notifications={notifications}
+                  onMarkRead={markRead}
+                  onMarkAllRead={markAllRead}
+                  onOpenChange={(isOpen) => setRealtimeOn(isOpen)}
+                  isLoading={isLoading}
+                  error={error}
+                />
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
+                  title="Cerrar sesión"
+                  aria-label="Cerrar sesión"
+                >
+                  <LogOut size={20} strokeWidth={1.5} />
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-3 gap-2">

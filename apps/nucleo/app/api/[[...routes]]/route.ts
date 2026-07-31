@@ -38,6 +38,7 @@ import { walletRoutes } from "@/api/routes/wallet";
 import { replenishmentRoutes } from "@/api/routes/replenishment";
 import { ritualRoutes } from "@/api/routes/ritual";
 import { blockchainRoutes } from "@/api/routes/blockchain/anchors";
+import { registroTerritorialRoutes } from "@/api/routes/registro-territorial";
 import { getAllowedCorsOrigins } from "@/lib/publicUrls";
 
 export type { AppVariables };
@@ -224,6 +225,7 @@ app.route("/wallet", walletRoutes);
 app.route("/replenishment", replenishmentRoutes);
 app.route("/ritual", ritualRoutes);
 app.route("/blockchain", blockchainRoutes);
+app.route("/registro-territorial", registroTerritorialRoutes);
 
 app.onError((err, c) => {
   console.error(err);

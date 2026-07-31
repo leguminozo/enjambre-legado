@@ -168,21 +168,23 @@ export function ShopHeader() {
   const actions = (
     <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
       {settings.show_notifications && isAuthenticated && (
-        <NotificationBell
-          key={notifBellKey}
-          notifications={notifications}
-          onMarkRead={markRead}
-          onMarkAllRead={markAllRead}
-          onOpenChange={(isOpen) => {
-            setNotifOpen(isOpen);
-            if (isOpen) {
-              setOpen(false);
-              setRealtimeOn(true);
-            }
-          }}
-          isLoading={isLoading}
-          error={error}
-        />
+        <div className="hidden lg:block">
+          <NotificationBell
+            key={notifBellKey}
+            notifications={notifications}
+            onMarkRead={markRead}
+            onMarkAllRead={markAllRead}
+            onOpenChange={(isOpen) => {
+              setNotifOpen(isOpen);
+              if (isOpen) {
+                setOpen(false);
+                setRealtimeOn(true);
+              }
+            }}
+            isLoading={isLoading}
+            error={error}
+          />
+        </div>
       )}
 
       {settings.show_account && (
@@ -219,7 +221,7 @@ export function ShopHeader() {
       )}
 
       {settings.show_lang_selector && (
-        <div className="pl-0.5 sm:pl-1">
+        <div className="pl-0.5 sm:pl-1 hidden lg:block">
           <LanguageSelector />
         </div>
       )}

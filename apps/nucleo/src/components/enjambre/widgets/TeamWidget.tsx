@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Trophy, Users, ArrowUpRight } from 'lucide-react'
-import type { EquipoData } from '../EcosistemaDashboard'
+import type { EquipoData } from '../types'
 
 function fmtCLP(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`

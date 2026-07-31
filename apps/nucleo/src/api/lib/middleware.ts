@@ -10,8 +10,8 @@ export type AppVariables = {
   user: {
     id: string;
     email?: string;
-    app_metadata?: Record<string, any>;
-    user_metadata?: Record<string, any>;
+    app_metadata?: Record<string, unknown>;
+    user_metadata?: Record<string, unknown>;
   };
   accessToken: string;
   supabase: SupabaseClient<Database>;

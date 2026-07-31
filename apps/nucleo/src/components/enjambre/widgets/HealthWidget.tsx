@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { PieChart, Pie, Cell, Tooltip } from 'recharts'
 import { ChartBox } from '@/components/charts/ChartBox'
 import { Hexagon, ArrowUpRight } from 'lucide-react'
-import type { EnjambreData } from '../EcosistemaDashboard'
+import type { EnjambreData } from '../types'
 
 export function HealthWidget({ enjambre }: { enjambre: EnjambreData }) {
   const byHealth = enjambre.colmenas?.byHealth

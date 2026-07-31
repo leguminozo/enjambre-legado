@@ -39,6 +39,234 @@ export type Database = {
   }
   public: {
     Tables: {
+      actores_registro: {
+        Row: {
+          id: string
+          user_id: string | null
+          rol: string
+          rup: string | null
+          nombre_actor: string
+          comuna: string
+          region: string
+          estado: string
+          nivel_acreditacion: string
+          consentimientos: Json
+          observaciones: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          rol: string
+          rup?: string | null
+          nombre_actor: string
+          comuna: string
+          region?: string
+          estado?: string
+          nivel_acreditacion?: string
+          consentimientos?: Json
+          observaciones?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          rol?: string
+          rup?: string | null
+          nombre_actor?: string
+          comuna?: string
+          region?: string
+          estado?: string
+          nivel_acreditacion?: string
+          consentimientos?: Json
+          observaciones?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      predios_facilitadores: {
+        Row: {
+          id: string
+          actor_id: string
+          nombre: string | null
+          comuna: string
+          zona: string
+          lat_aproximada: number | null
+          lng_aproximada: number | null
+          superficie_ha: number | null
+          disponible_desde: string | null
+          disponible_hasta: string | null
+          condiciones: string | null
+          activo: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          actor_id: string
+          nombre?: string | null
+          comuna: string
+          zona: string
+          lat_aproximada?: number | null
+          lng_aproximada?: number | null
+          superficie_ha?: number | null
+          disponible_desde?: string | null
+          disponible_hasta?: string | null
+          condiciones?: string | null
+          activo?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          actor_id?: string
+          nombre?: string | null
+          comuna?: string
+          zona?: string
+          lat_aproximada?: number | null
+          lng_aproximada?: number | null
+          superficie_ha?: number | null
+          disponible_desde?: string | null
+          disponible_hasta?: string | null
+          condiciones?: string | null
+          activo?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      apiarios_externos: {
+        Row: {
+          id: string
+          actor_id: string
+          predio_id: string | null
+          nombre: string | null
+          n_colmenas: number
+          comuna_origen: string
+          comuna_destino: string
+          zona_destino: string
+          lat_aproximada: number | null
+          lng_aproximada: number | null
+          fecha_ingreso: string
+          fecha_salida: string | null
+          cert_sanitaria_url: string | null
+          cert_sanitaria_fecha: string | null
+          cert_sanitaria_lab: string | null
+          bioseguridad_declarada: string | null
+          estado: string
+          observaciones: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          actor_id: string
+          predio_id?: string | null
+          nombre?: string | null
+          n_colmenas: number
+          comuna_origen: string
+          comuna_destino: string
+          zona_destino: string
+          lat_aproximada?: number | null
+          lng_aproximada?: number | null
+          fecha_ingreso: string
+          fecha_salida?: string | null
+          cert_sanitaria_url?: string | null
+          cert_sanitaria_fecha?: string | null
+          cert_sanitaria_lab?: string | null
+          bioseguridad_declarada?: string | null
+          estado?: string
+          observaciones?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          actor_id?: string
+          predio_id?: string | null
+          nombre?: string | null
+          n_colmenas?: number
+          comuna_origen?: string
+          comuna_destino?: string
+          zona_destino?: string
+          lat_aproximada?: number | null
+          lng_aproximada?: number | null
+          fecha_ingreso?: string
+          fecha_salida?: string | null
+          cert_sanitaria_url?: string | null
+          cert_sanitaria_fecha?: string | null
+          cert_sanitaria_lab?: string | null
+          bioseguridad_declarada?: string | null
+          estado?: string
+          observaciones?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      alertas_fitosanitarias: {
+        Row: {
+          id: string
+          actor_id: string
+          comuna: string
+          zona: string
+          lat_aproximada: number | null
+          lng_aproximada: number | null
+          radio_km: number
+          producto: string
+          tipo_producto: string | null
+          metodo_aplicacion: string | null
+          fecha_programada: string
+          periodo_carencia_horas: number | null
+          confirmaciones: Json
+          estado: string
+          observaciones: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          actor_id: string
+          comuna: string
+          zona: string
+          lat_aproximada?: number | null
+          lng_aproximada?: number | null
+          radio_km?: number
+          producto: string
+          tipo_producto?: string | null
+          metodo_aplicacion?: string | null
+          fecha_programada: string
+          periodo_carencia_horas?: number | null
+          confirmaciones?: Json
+          estado?: string
+          observaciones?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          actor_id?: string
+          comuna?: string
+          zona?: string
+          lat_aproximada?: number | null
+          lng_aproximada?: number | null
+          radio_km?: number
+          producto?: string
+          tipo_producto?: string | null
+          metodo_aplicacion?: string | null
+          fecha_programada?: string
+          periodo_carencia_horas?: number | null
+          confirmaciones?: Json
+          estado?: string
+          observaciones?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       alerts: {
         Row: {
           created_at: string | null
@@ -8152,6 +8380,33 @@ export type Database = {
       }
     }
     Functions: {
+      alertas_en_radio: {
+        Args: {
+          p_lat: number
+          p_lng: number
+          p_radio_km?: number
+        }
+        Returns: {
+          id: string
+          actor_id: string
+          comuna: string
+          zona: string
+          lat_aproximada: number
+          lng_aproximada: number
+          radio_km: number
+          producto: string
+          tipo_producto: string | null
+          metodo_aplicacion: string | null
+          fecha_programada: string
+          periodo_carencia_horas: number | null
+          confirmaciones: Json
+          estado: string
+          observaciones: string | null
+          created_at: string
+          updated_at: string
+          distancia_km: number
+        }[]
+      }
       _postgis_deprecate: {
         Args: { newname: string; oldname: string; version: string }
         Returns: undefined

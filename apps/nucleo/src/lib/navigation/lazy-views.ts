@@ -107,3 +107,8 @@ export const LazyReglasComisionPanel = named(
 );
 export const LazyCalculosIAView = named(() => import('@/views/CalculosIAView'), 'CalculosIAView', 'Cálculos IA');
 export const LazyReportesView = named(() => import('@/views/ReportesView'), 'ReportesView', 'Reportes');
+export const LazyRegistroTerritorialView = named(
+  () => import('@/views/RegistroTerritorialView'),
+  'RegistroTerritorialView',
+  'Registro Territorial',
+);

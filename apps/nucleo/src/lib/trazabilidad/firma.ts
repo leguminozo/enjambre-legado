@@ -10,14 +10,14 @@ interface SignatureResult {
 /**
  * Calcular el hash SHA-256 de un payload de datos ordenando las llaves para asegurar determinismo
  */
-export function calculatePayloadHash(payload: Record<string, any>): string {
+export function calculatePayloadHash(payload: Record<string, unknown>): string {
   const serialized = JSON.stringify(
     Object.keys(payload)
       .sort()
-      .reduce((acc, key) => {
+      .reduce<Record<string, unknown>>((acc, key) => {
         acc[key] = payload[key];
         return acc;
-      }, {} as Record<string, any>)
+      }, {})
   );
   return createHash("sha256").update(serialized).digest("hex");
 }
@@ -31,7 +31,7 @@ export async function signAndRegisterEntity(
   empresaId: string,
   entityType: "lote" | "colmena" | "inspeccion",
   entityId: string,
-  payload: Record<string, any>
+  payload: Record<string, unknown>
 ): Promise<SignatureResult> {
   const supabase = createAdminClient();
   if (!supabase) {
