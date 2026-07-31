@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useApiFetch } from '@/hooks/use-api-fetch'
 import { prepareImageForUpload, resolveFileMime } from '@/lib/process-image'
@@ -70,6 +71,23 @@ export function useCMSContent() {
     },
     staleTime: 30_000,
   })
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('cms_realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'cms_items' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['cms'] })
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [queryClient])
 
   const sectionQuery = (key: CMSSectionKey) =>
     useQuery<{ data: CMSContentItem[] }>({

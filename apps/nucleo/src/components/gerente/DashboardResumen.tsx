@@ -6,7 +6,7 @@ import { BarChart3, TrendingUp, DollarSign, Target, Leaf, Crown, ArrowUpRight, H
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors'
 import { useApiFetch } from '@/hooks/use-api-fetch'
-import { KpiCard } from '@/components/ui/KpiCard'
+import { KpiCard } from '@/components/shared/KpiCard'
 import { ChartBox } from '@/components/charts/ChartBox'
 import type { ResumenData } from '@/components/enjambre/types'
 

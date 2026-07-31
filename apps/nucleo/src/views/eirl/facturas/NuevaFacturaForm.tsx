@@ -1,9 +1,7 @@
 'use client';
 
 import { useTransition, useOptimistic } from 'react';
-import { Button, Input, Textarea, toast, DatePicker } from "@enjambre/ui";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button, Input, Textarea, toast, DatePicker, Label, Select } from "@enjambre/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
 import { HexagonLoader } from '@enjambre/ui';
 import { FileText, Save, X } from "lucide-react";
@@ -121,18 +119,16 @@ className="bg-background border-border"
 
           <div>
             <Label>Cliente</Label>
-            <Select value={watch('clienteId')} onValueChange={(value) => setValue('clienteId', value)}>
-              <SelectTrigger className="bg-background border-border">
-                <SelectValue placeholder="Seleccionar cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {clientes.map((cliente) => (
-                  <SelectItem key={cliente.id} value={cliente.id}>
-                    {cliente.nombre} - {cliente.rut}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Select
+              value={watch('clienteId') || ""}
+              onValueChange={(value) => setValue('clienteId', value)}
+              options={clientes.map(cliente => ({
+                value: cliente.id,
+                label: `${cliente.nombre} - ${cliente.rut}`
+              }))}
+              placeholder="Seleccionar cliente"
+              className="bg-background border-border"
+            />
           </div>
 
           <div className="space-y-4">

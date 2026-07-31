@@ -438,45 +438,50 @@ export function LogisticaView() {
               <div className="section-title">Stock Multicentro</div>
             </div>
             {dashboard.stockCenters.length > 0 ? (
-              <EnjTableShell caption="Desliza para ver columnas de stock">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Centro</th>
-                      <th>Sachets</th>
-                      <th>Frascos</th>
-                      <th>Cofres</th>
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dashboard.stockCenters.map((sc) => (
-                      <tr key={sc.id}>
-                        <td className="font-medium text-foreground">{sc.name}</td>
-                        <td>{sc.sachets.toLocaleString()}</td>
-                        <td>{sc.frascos}</td>
-                        <td>{sc.cofres}</td>
-                        <td>
-                          <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border ${
-                              sc.ok
-                                ? 'bg-success/15 text-success border-success/30'
-                                : 'bg-destructive/15 text-destructive border-destructive/30'
-                            }`}
-                          >
-                            {sc.ok ? (
-                              <CheckCircle2 size={12} />
-                            ) : (
-                              <AlertCircle size={12} />
-                            )}
-                            {sc.ok ? 'Óptimo' : 'Bajo'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </EnjTableShell>
+              <div className="flex flex-col">
+                <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-surface-sunken text-xs uppercase tracking-wider text-muted-foreground font-medium border-b border-border">
+                  <div className="col-span-4">Centro</div>
+                  <div className="col-span-2 text-right">Sachets</div>
+                  <div className="col-span-2 text-right">Frascos</div>
+                  <div className="col-span-2 text-right">Cofres</div>
+                  <div className="col-span-2 text-right">Estado</div>
+                </div>
+                <div className="divide-y divide-border">
+                  {dashboard.stockCenters.map((sc) => (
+                    <div key={sc.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors">
+                      <div className="col-span-1 md:col-span-4 flex justify-between md:justify-start items-center">
+                        <span className="text-xs text-muted-foreground md:hidden">Centro:</span>
+                        <span className="font-medium text-foreground">{sc.name}</span>
+                      </div>
+                      <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
+                        <span className="text-xs text-muted-foreground md:hidden">Sachets:</span>
+                        <span className="font-display">{sc.sachets.toLocaleString()}</span>
+                      </div>
+                      <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
+                        <span className="text-xs text-muted-foreground md:hidden">Frascos:</span>
+                        <span className="font-display">{sc.frascos}</span>
+                      </div>
+                      <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
+                        <span className="text-xs text-muted-foreground md:hidden">Cofres:</span>
+                        <span className="font-display">{sc.cofres}</span>
+                      </div>
+                      <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
+                        <span className="text-xs text-muted-foreground md:hidden">Estado:</span>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border ${
+                            sc.ok
+                              ? 'bg-success/15 text-success border-success/30'
+                              : 'bg-destructive/15 text-destructive border-destructive/30'
+                          }`}
+                        >
+                          {sc.ok ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+                          {sc.ok ? 'Óptimo' : 'Bajo'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 <Warehouse size={32} className="mx-auto mb-2 opacity-50" />

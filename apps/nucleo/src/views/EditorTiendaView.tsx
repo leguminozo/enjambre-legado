@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect, useMemo, type ComponentType } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
   Monitor,
@@ -621,7 +622,14 @@ function EditableItemCard({
     key.toLowerCase().includes('src');
 
   return (
-    <div className={`bg-surface rounded-xl border border-border overflow-hidden transition-all ${!localActive ? 'opacity-60' : ''}`}>
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+      className={`bg-surface/80 backdrop-blur-md rounded-xl border border-border overflow-hidden transition-all shadow-sm hover:shadow-md ${!localActive ? 'opacity-60 grayscale-[30%]' : ''}`}
+    >
       {/* Card Header — always visible, touch-friendly */}
       <div
         className="flex items-center gap-2 p-3 cursor-pointer hover:bg-surface-raised/50 active:bg-surface-raised transition-colors select-none min-h-[52px]"
@@ -679,8 +687,17 @@ function EditableItemCard({
       </div>
 
       {/* Expanded content */}
-      {expanded && (
-        <div className="px-3 pb-4 space-y-4 border-t border-border pt-3 bg-surface-sunken">
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="px-3 pb-4 space-y-4 border-t border-border pt-3 bg-surface-sunken/50">
           <input
             ref={fileInputRef}
             type="file"
@@ -754,8 +771,10 @@ function EditableItemCard({
             </div>
           )}
         </div>
+        </motion.div>
       )}
-    </div>
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -827,13 +846,13 @@ function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: S
       </div>
 
       {/* Desktop: lista agrupada con iconos (theme customizer) */}
-      <div className="hidden md:block max-h-[min(42vh,360px)] overflow-y-auto -mx-1 px-1 space-y-3 scrollbar-thin">
+      <div className="hidden md:block max-h-[min(55vh,500px)] overflow-y-auto -mx-1 px-1 space-y-5 py-2 scrollbar-thin">
         {grouped.map((group) => (
-          <div key={group.id}>
-            <p className="px-2 mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
+          <div key={group.id} className="space-y-1.5">
+            <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
               {group.label}
             </p>
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {group.keys.map((key) => {
                 const meta = getSectionMeta(key);
                 const Icon = meta.icon;
@@ -845,10 +864,10 @@ function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: S
                     key={key}
                     type="button"
                     onClick={() => onSelect(key)}
-                    className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-left transition-all group ${
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all group ${
                       active
-                        ? 'bg-accent/15 text-foreground ring-1 ring-accent/30 shadow-sm'
-                        : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                        ? 'bg-accent/10 text-foreground ring-1 ring-accent/30 shadow-sm'
+                        : 'text-muted-foreground hover:bg-surface-raised/50 hover:text-foreground'
                     }`}
                   >
                     <span
@@ -1001,18 +1020,18 @@ function ItemsPanel({
   const SectionIcon = sectionMeta.icon;
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-start gap-2.5 min-w-0">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-accent shadow-sm">
-            <SectionIcon size={16} strokeWidth={2} />
+    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="flex items-start gap-3 min-w-0">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-accent shadow-sm">
+            <SectionIcon size={18} strokeWidth={2} />
           </span>
-          <div className="min-w-0">
-            <h3 className="text-sm font-bold text-foreground leading-tight truncate">
+          <div className="min-w-0 pt-0.5">
+            <h3 className="text-base font-bold text-foreground leading-tight truncate">
               {sectionMeta.label}
             </h3>
             {sectionMeta.hint ? (
-              <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{sectionMeta.hint}</p>
+              <p className="text-xs text-muted-foreground mt-1 truncate">{sectionMeta.hint}</p>
             ) : null}
           </div>
         </div>
@@ -1061,8 +1080,9 @@ function ItemsPanel({
           )
         ) : (
           <>
-            {items.map((item, index) => (
-              <EditableItemCard
+            <AnimatePresence mode="popLayout">
+              {items.map((item, index) => (
+                <EditableItemCard
                 key={item.id}
                 item={item}
                 activeSection={activeSection}
@@ -1077,6 +1097,7 @@ function ItemsPanel({
                 isLast={index === items.length - 1}
               />
             ))}
+            </AnimatePresence>
 
             {items.length === 0 && (
               <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl">
@@ -1224,10 +1245,10 @@ export function EditorTiendaView() {
   return (
     <div
       data-testid="editor-tienda-root"
-      className="flex-1 flex flex-col h-[calc(100vh-120px)] -mt-2 mb-4 mx-0 lg:-mx-4 bg-background border border-border rounded-xl overflow-hidden shadow-lg relative z-10 animate-in fade-in zoom-in-95 duration-300"
+      className="flex-1 flex flex-col h-[calc(100vh-120px)] -mt-2 mb-4 mx-0 lg:-mx-4 bg-background/40 backdrop-blur-2xl border border-border/60 rounded-2xl overflow-hidden shadow-2xl relative z-10 animate-in fade-in zoom-in-95 duration-500 ease-out"
     >
       {/* ── Top bar ── */}
-      <div className="h-14 border-b border-border bg-surface flex items-center justify-between px-4 shrink-0 shadow-sm z-10 gap-3">
+      <div className="h-14 border-b border-border/50 bg-surface/50 backdrop-blur-lg flex items-center justify-between px-4 shrink-0 shadow-sm z-10 gap-3">
         <div className="flex items-center gap-2 min-w-0">
           <span className="font-display font-medium text-base text-foreground truncate">
             Editor de Tienda
@@ -1296,11 +1317,11 @@ export function EditorTiendaView() {
       <div className="flex-1 flex overflow-hidden min-h-0">
 
         {/* Left sidebar / Editor area */}
-        <div className={`flex-col w-full md:w-80 lg:w-[26rem] shrink-0 border-r border-border bg-surface-sunken overflow-hidden ${mobileTab === 'editor' ? 'flex' : 'flex max-md:hidden'}`}>
+        <div className={`flex-col w-full md:w-80 lg:w-[28rem] shrink-0 border-r border-border/50 bg-surface-sunken/30 overflow-hidden ${mobileTab === 'editor' ? 'flex' : 'flex max-md:hidden'}`}>
           {/* Section selector — bloques con iconos */}
-          <div className="p-3 md:p-3 border-b border-border bg-surface shrink-0">
-            <div className="hidden md:flex items-center justify-between px-1 mb-2">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          <div className="p-3 md:p-4 border-b border-border bg-surface shrink-0">
+            <div className="hidden md:flex items-center justify-between px-2 mb-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Bloques de la tienda
               </p>
               <span className="text-[10px] tabular-nums text-muted-foreground">
@@ -1332,7 +1353,7 @@ export function EditorTiendaView() {
         </div>
 
         {/* Right: iframe preview */}
-        <div className={`flex-col flex-1 bg-secondary/30 relative items-center overflow-hidden ${mobileTab === 'preview' ? 'flex' : 'flex max-md:hidden'}`}>
+        <div className={`flex-col flex-1 bg-surface-sunken/50 relative items-center overflow-hidden ${mobileTab === 'preview' ? 'flex' : 'flex max-md:hidden'}`}>
           <div
             className="absolute inset-0 opacity-[0.03] pointer-events-none"
             style={{
@@ -1341,17 +1362,17 @@ export function EditorTiendaView() {
             }}
           />
 
-          <div className="flex-1 w-full flex items-center justify-center p-0 md:p-4 lg:p-8 overflow-hidden">
+          <div className="flex-1 w-full flex flex-col items-center justify-center p-0 md:p-6 lg:p-10 overflow-hidden relative">
             <div
-              className={`relative bg-background border-0 md:border md:border-border shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+              className={`relative bg-background border-0 shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col ${
                 viewMode === 'mobile'
-                  ? 'w-full h-full md:w-[375px] md:h-[812px] md:rounded-[3rem] md:ring-8 md:ring-surface-raised md:ring-offset-2 md:ring-offset-background'
-                  : 'w-full h-full md:rounded-xl'
+                  ? 'w-full h-full md:w-[375px] md:h-[812px] md:max-h-[calc(100vh-140px)] md:rounded-[2.5rem] md:border-8 md:border-surface-raised md:ring-1 md:ring-border'
+                  : 'w-full h-full md:rounded-2xl md:border md:border-border'
               }`}
             >
               {viewMode === 'mobile' && (
-                <div className="hidden md:flex absolute top-0 inset-x-0 h-6 bg-surface-raised z-20 justify-center items-center rounded-t-[3rem]">
-                  <div className="w-16 h-1.5 bg-border rounded-full" />
+                <div className="hidden md:flex absolute top-0 inset-x-0 h-7 bg-surface-raised z-20 justify-center items-center">
+                  <div className="w-12 h-1.5 bg-border rounded-full" />
                 </div>
               )}
 
@@ -1368,14 +1389,16 @@ export function EditorTiendaView() {
                   </div>
                 </div>
               ) : (
-                <iframe
-                  ref={iframeRef}
-                  key={iframeKey}
-                  src={tiendaUrl}
-                  title="Vista Previa de Tienda"
-                  className={`w-full h-full border-none bg-background ${viewMode === 'mobile' ? 'md:pt-6' : ''}`}
-                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                />
+                <div className={`flex-1 relative w-full overflow-hidden ${viewMode === 'mobile' ? 'md:mt-7 md:rounded-b-[2rem]' : ''}`}>
+                  <iframe
+                    ref={iframeRef}
+                    key={iframeKey}
+                    src={tiendaUrl}
+                    title="Vista Previa de Tienda"
+                    className="absolute inset-0 w-full h-full border-none bg-background"
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                  />
+                </div>
               )}
             </div>
           </div>

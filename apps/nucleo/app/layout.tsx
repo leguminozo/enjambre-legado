@@ -33,6 +33,11 @@ export const metadata: Metadata = {
     apple: "/icons/apple-touch-icon.png",
   },
   robots: { index: false, follow: false },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Núcleo",
+  },
 };
 
 export const viewport: Viewport = {

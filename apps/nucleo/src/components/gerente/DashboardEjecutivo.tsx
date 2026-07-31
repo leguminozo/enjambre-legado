@@ -16,7 +16,7 @@ import {
 import { ChartBox } from '@/components/charts/ChartBox'
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors'
 import { useApiFetch } from '@/hooks/use-api-fetch'
-import { KpiCard } from '@/components/ui/KpiCard'
+import { KpiCard } from '@/components/shared/KpiCard'
 import { ViewShell } from '@/components/layout/ViewShell'
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar'
 

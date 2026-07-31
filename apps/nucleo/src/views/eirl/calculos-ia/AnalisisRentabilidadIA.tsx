@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, ViewLoading } from "@enjambre/ui";
 import { Button } from "@enjambre/ui";
-import { Badge } from "@enjambre/ui";
-import { Progress } from "@/components/ui/progress";
+import { Badge, Progress } from "@enjambre/ui";
 import { 
   TrendingUp, 
   TrendingDown, 

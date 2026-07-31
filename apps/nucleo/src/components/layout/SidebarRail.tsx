@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
-import { LogOut } from 'lucide-react';
+import { LogOut, PanelLeftOpen } from 'lucide-react';
 import {
   getAccountItemsForRole,
   getSidebarGroupsForRole,
@@ -17,8 +17,12 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { ThemeToggle } from '@enjambre/ui';
 
+interface SidebarRailProps {
+  onExpand?: () => void;
+}
+
 /** Rail compacto tablet — iconos + tooltips, inspiración WebSidebar project 14 */
-export function SidebarRail() {
+export function SidebarRail({ onExpand }: SidebarRailProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const userRole = (useAuthStore((s) => s.user?.role ?? 'admin')) as RoleKey;
@@ -85,6 +89,17 @@ export function SidebarRail() {
           );
         })}
         <ThemeToggle size={18} className="sidebar-rail-theme" />
+        {onExpand && (
+          <button
+            type="button"
+            className="sidebar-rail-item"
+            onClick={onExpand}
+            title="Expandir panel"
+            aria-label="Expandir panel"
+          >
+            <PanelLeftOpen size={20} />
+          </button>
+        )}
         <button
           type="button"
           className="sidebar-rail-item"

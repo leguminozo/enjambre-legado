@@ -17,6 +17,23 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
   const [navSheetOpen, setNavSheetOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsDesktopCollapsed(localStorage.getItem('desktopSidebarCollapsed') === 'true');
+    }
+  }, []);
+
+  const toggleDesktopSidebar = () => {
+    setIsDesktopCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('desktopSidebarCollapsed', String(next));
+      return next;
+    });
+  };
+
   const pathname = usePathname();
   const userId = useAuthStore((s) => s.user?.id);
   const [realtimeOn, setRealtimeOn] = useState(false);
@@ -47,8 +64,12 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
 
   return (
     <div className={`app-layout app-layout--${shellMode}`}>
-      {shellMode === 'desktop' && (
-        <Sidebar onToggle={() => {}} isOpen variant="full" />
+      {shellMode === 'desktop' && !isDesktopCollapsed && (
+        <Sidebar onToggle={() => {}} isOpen variant="full" onCollapse={toggleDesktopSidebar} />
+      )}
+      
+      {shellMode === 'desktop' && isDesktopCollapsed && (
+        <SidebarRail onExpand={toggleDesktopSidebar} />
       )}
 
       {shellMode === 'tablet' && <SidebarRail />}

@@ -39,6 +39,7 @@ import { replenishmentRoutes } from "@/api/routes/replenishment";
 import { ritualRoutes } from "@/api/routes/ritual";
 import { blockchainRoutes } from "@/api/routes/blockchain/anchors";
 import { registroTerritorialRoutes } from "@/api/routes/registro-territorial";
+import { lotesPublicosRoutes } from "@/api/routes/lotes-publicos";
 import { getAllowedCorsOrigins } from "@/lib/publicUrls";
 
 export type { AppVariables };
@@ -154,6 +155,7 @@ app.use("*", async (c, next) => {
     "/api/resenas",
     "/api/wallet",
     "/api/blockchain/verify",
+    "/api/lotes-publicos",
   ];
   const path = new URL(c.req.url).pathname;
 
@@ -226,6 +228,7 @@ app.route("/replenishment", replenishmentRoutes);
 app.route("/ritual", ritualRoutes);
 app.route("/blockchain", blockchainRoutes);
 app.route("/registro-territorial", registroTerritorialRoutes);
+app.route("/lotes-publicos", lotesPublicosRoutes);
 
 app.onError((err, c) => {
   console.error(err);

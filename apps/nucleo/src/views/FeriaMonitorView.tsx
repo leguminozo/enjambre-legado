@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShoppingBag,
   Radio,
@@ -349,7 +350,7 @@ export function FeriaMonitorView() {
         actions={
           <div className="flex items-center gap-2">
             <span
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium border ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border shadow-sm transition-colors ${
                 realtimeStatus === 'live'
                   ? 'bg-success/10 text-success border-success/30'
                   : realtimeStatus === 'offline'
@@ -357,7 +358,12 @@ export function FeriaMonitorView() {
                     : 'bg-muted text-muted-foreground border-border'
               }`}
             >
-              {realtimeStatus === 'offline' ? <WifiOff size={12} /> : <Wifi size={12} />}
+              <div className="relative flex items-center justify-center">
+                {realtimeStatus === 'offline' ? <WifiOff size={14} /> : <Wifi size={14} />}
+                {realtimeStatus === 'live' && (
+                  <div className="absolute inset-0 rounded-full bg-success/40 animate-ping" />
+                )}
+              </div>
               {realtimeStatus === 'live' ? 'En vivo' : realtimeStatus === 'offline' ? 'Sin señal' : 'Conectando'}
             </span>
             <button
@@ -492,55 +498,75 @@ export function FeriaMonitorView() {
               Cuando un rep_ventas registre una venta en Campo POS, aparecerá aquí en tiempo real.
             </div>
           ) : (
-            <EnjTableShell>
-              <table className="enj-table">
-                <thead>
-                  <tr>
-                    <th className="text-left">Vendedor</th>
-                    <th className="text-right">Total</th>
-                    <th className="text-left">Método</th>
-                    <th className="text-left">Estado</th>
-                    <th className="text-left">Sync</th>
-                    <th className="text-left">Items</th>
-                    <th className="text-right">Hace</th>
-                    <th className="w-12"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ventasRecientes.map((v) => {
-                    const vendedor = v.vendedor_id ? monitor.vendedores[v.vendedor_id] : null;
-                    const itemsResolved = resolveItems(v.productos as Array<{ producto_id: string; nombre?: string; cantidad: number; precio_unitario?: number }> | null, monitor.productos);
-                    const itemsText = itemsResolved.map((i) => `${i.cantidad}x ${i.nombre}`).join(', ');
-                    return (
-                      <tr key={v.id} className="cursor-pointer hover:bg-muted/30" onClick={() => setDetailVenta(v)}>
-                        <td className="text-foreground font-medium text-sm">{vendedor?.full_name ?? '—'}</td>
-                        <td className="text-right font-semibold tabular-nums">{formatTotal(v.total)}</td>
-                        <td className="text-muted-foreground text-sm">{v.metodo_pago ? (METODO_PAGO_LABEL[v.metodo_pago] ?? v.metodo_pago) : '—'}</td>
-                        <td>
+            <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto scrollbar-thin">
+              <AnimatePresence initial={false}>
+                {ventasRecientes.map((v) => {
+                  const vendedor = v.vendedor_id ? monitor.vendedores[v.vendedor_id] : null;
+                  const itemsResolved = resolveItems(
+                    v.productos as Array<{ producto_id: string; nombre?: string; cantidad: number; precio_unitario?: number }> | null,
+                    monitor.productos
+                  );
+                  const itemsText = itemsResolved.map((i) => `${i.cantidad}x ${i.nombre}`).join(', ');
+
+                  return (
+                    <motion.div
+                      key={v.id}
+                      layout
+                      initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                      className="group cursor-pointer bg-surface border border-border hover:border-accent/50 rounded-xl p-4 shadow-sm hover:shadow-md transition-all relative overflow-hidden"
+                      onClick={() => setDetailVenta(v)}
+                    >
+                      <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-accent/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground text-sm">
+                            {vendedor?.full_name ?? 'Sin vendedor'}
+                          </span>
                           <span
-                            className={`px-2 py-0.5 rounded text-xs border ${
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider ${
                               v.estado === 'completada'
-                                ? 'bg-success/10 text-success border-success/30'
+                                ? 'bg-success/10 text-success'
                                 : v.estado === 'pendiente'
-                                  ? 'bg-warning/10 text-warning border-warning/30'
-                                  : 'bg-muted text-muted-foreground border-border'
+                                  ? 'bg-warning/10 text-warning'
+                                  : 'bg-muted text-muted-foreground'
                             }`}
                           >
                             {v.estado ?? '—'}
                           </span>
-                        </td>
-                        <td className="text-muted-foreground text-xs">
-                          {v.offline_synced ? <span className="text-warning">offline</span> : <span className="text-success">synced</span>}
-                        </td>
-                        <td className="text-sm text-muted-foreground max-w-xs truncate" title={itemsText}>{itemsText}</td>
-                        <td className="text-right text-muted-foreground text-xs tabular-nums">{timeAgo(v.created_at)}</td>
-                        <td className="text-center text-muted-foreground"><Eye size={14} /></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </EnjTableShell>
+                        </div>
+                        <span className="font-bold text-base text-foreground tabular-nums">
+                          {formatTotal(v.total)}
+                        </span>
+                      </div>
+                      
+                      <div className="text-xs text-muted-foreground mb-3 max-w-[85%] truncate" title={itemsText}>
+                        {itemsText}
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center gap-1">
+                            <Wallet size={12} />
+                            {v.metodo_pago ? (METODO_PAGO_LABEL[v.metodo_pago] ?? v.metodo_pago) : '—'}
+                          </span>
+                          <span className={`flex items-center gap-1 ${v.offline_synced ? 'text-warning' : 'text-success'}`}>
+                            {v.offline_synced ? <WifiOff size={12} /> : <Wifi size={12} />}
+                            {v.offline_synced ? 'offline' : 'synced'}
+                          </span>
+                        </div>
+                        <span className="tabular-nums opacity-60 flex items-center gap-1">
+                          <Eye size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                          {timeAgo(v.created_at)}
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
           )}
         </div>
 

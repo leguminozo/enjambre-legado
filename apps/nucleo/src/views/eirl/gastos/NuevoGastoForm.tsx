@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Input, Textarea, toast, DatePicker } from "@enjambre/ui";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button, Input, Textarea, toast, DatePicker, Label, Select } from "@enjambre/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
 import { ShoppingCart, Save, X, Calculator } from "lucide-react";
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -215,18 +213,13 @@ console.error('Error creando gasto:', error);
                 </div>
                 <div>
                   <Label htmlFor="categoria">Categoría</Label>
-                  <Select value={formData.categoria} onValueChange={(value) => handleInputChange('categoria', value)}>
-                    <SelectTrigger className="bg-background border-border">
-                  <SelectValue placeholder="Seleccionar categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoriasGasto.map((categoria) => (
-                    <SelectItem key={categoria} value={categoria}>
-                      {categoria}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  <Select
+                    value={formData.categoria}
+                    onValueChange={(value) => handleInputChange('categoria', value)}
+                    options={categoriasGasto.map(c => ({ value: c, label: c }))}
+                    placeholder="Seleccionar categoría"
+                    className="bg-background border-border"
+                  />
             </div>
           </div>
 
@@ -247,18 +240,13 @@ className="bg-background border-border"
           <div>
             <Label>Proveedor</Label>
             <div className="space-y-2">
-              <Select value={formData.proveedorId} onValueChange={(value) => handleInputChange('proveedorId', value)}>
-<SelectTrigger className="bg-background border-border">
-                        <SelectValue placeholder="Seleccionar proveedor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {proveedores.map((proveedor) => (
-                    <SelectItem key={proveedor.id} value={proveedor.id}>
-                      {proveedor.nombre} - {proveedor.rut}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Select
+                value={formData.proveedorId}
+                onValueChange={(value) => handleInputChange('proveedorId', value)}
+                options={proveedores.map(p => ({ value: p.id, label: `${p.nombre} - ${p.rut}` }))}
+                placeholder="Seleccionar proveedor"
+                className="bg-background border-border"
+              />
               
               <Button
                 type="button"
@@ -336,18 +324,13 @@ className="bg-surface-sunken border-input"
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="tipoComprobante">Tipo Comprobante</Label>
-              <Select value={formData.tipoComprobante} onValueChange={(value) => handleInputChange('tipoComprobante', value)}>
-<SelectTrigger className="bg-background border-border">
-                        <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {tiposComprobante.map((tipo) => (
-                    <SelectItem key={tipo} value={tipo}>
-                      {tipo}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Select
+                value={formData.tipoComprobante}
+                onValueChange={(value) => handleInputChange('tipoComprobante', value)}
+                options={tiposComprobante.map(t => ({ value: t, label: t }))}
+                placeholder="Seleccionar tipo"
+                className="bg-background border-border"
+              />
             </div>
             <div>
               <Label htmlFor="numeroComprobante">Número Comprobante</Label>

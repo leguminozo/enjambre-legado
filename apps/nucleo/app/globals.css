@@ -227,9 +227,7 @@
 /* ── Sidebar ── */
 .sidebar {
   width: var(--sidebar-width);
-  background: hsl(var(--card) / 0.55);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: hsl(var(--sidebar));
   color: hsl(var(--sidebar-foreground));
   display: flex;
   flex-direction: column;
@@ -240,7 +238,7 @@
   z-index: 100;
   transition: transform var(--transition-base);
   overflow-y: auto;
-  border-right: 1px solid hsl(var(--border) / 0.4);
+  border-right: 1px solid hsl(var(--sidebar-border));
 }
 
 .sidebar-brand {

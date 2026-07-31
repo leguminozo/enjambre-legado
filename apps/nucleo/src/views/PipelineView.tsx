@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
 import {
   Users,
   Target,
@@ -116,6 +117,22 @@ export function PipelineView() {
     },
     staleTime: 30_000,
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('pipeline_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['pipeline', 'dashboard'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tareas' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['pipeline', 'dashboard'] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const dashboard = data?.data;
   const stats = dashboard?.stats;
@@ -268,10 +285,10 @@ export function PipelineView() {
       )}
 
       <div className="card">
-        <div className="section-header">
+        <div className="section-header border-b border-border pb-4">
           <div>
-            <div className="section-title">Pipeline por Etapa</div>
-            <div className="section-subtitle">Arrastra leads entre etapas para actualizar</div>
+            <div className="section-title">Kanban de Ventas</div>
+            <div className="section-subtitle">Gestiona tus leads a través del embudo comercial</div>
           </div>
           <button className="btn btn-primary btn-sm" onClick={() => setShowNewLead(true)}>
             <Plus size={14} className="mr-1" />
@@ -279,100 +296,81 @@ export function PipelineView() {
           </button>
         </div>
 
-        <div className="filter-chips-scroll mb-6">
-          <button
-            type="button"
-            onClick={() => setSelectedEtapa('all')}
-            className={`min-h-11 px-3.5 py-2 rounded-lg text-xs font-medium transition-all ${
-              selectedEtapa === 'all'
-                ? 'bg-accent text-accent-foreground'
-                : 'bg-surface-sunken border border-border text-muted-foreground hover:border-accent/50'
-            }`}
-          >
-            Todas ({stats?.totalLeads ?? 0})
-          </button>
-          {ETAPAS_PIPELINE.map((etapa) => (
-            <button
-              type="button"
-              key={etapa.key}
-              onClick={() => setSelectedEtapa(etapa.key)}
-              className={`min-h-11 px-3.5 py-2 rounded-lg text-xs font-medium border transition-all ${
-                selectedEtapa === etapa.key
-                  ? 'border-accent bg-accent/10 text-accent'
-                  : 'bg-surface-sunken border-border text-muted-foreground hover:border-accent/50'
-              }`}
-            >
-              {etapa.label} ({stats?.byEtapa[etapa.key] ?? 0})
-            </button>
-          ))}
-        </div>
-
         {isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 size={24} className="animate-spin text-accent" />
           </div>
-        ) : filteredLeads.length > 0 ? (
+        ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId={selectedEtapa === 'all' ? 'all' : selectedEtapa}>
-              {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
-                  {filteredLeads.map((lead, index) => (
-                    <Draggable key={lead.id} draggableId={lead.id} index={index}>
+            <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin mt-4">
+              {ETAPAS_PIPELINE.map((etapa) => {
+                const leadsInEtapa = dashboard?.leads.filter((l) => l.etapa_pipeline === etapa.key) ?? [];
+                
+                return (
+                  <div key={etapa.key} className="w-[85vw] sm:w-[320px] shrink-0 snap-center flex flex-col h-[500px]">
+                    <div className="flex items-center justify-between mb-3 px-1">
+                      <span className="font-semibold text-sm text-foreground">{etapa.label}</span>
+                      <span className="text-xs bg-surface-sunken/80 px-2 py-0.5 rounded-full border border-border">
+                        {leadsInEtapa.length}
+                      </span>
+                    </div>
+                    <Droppable droppableId={etapa.key}>
                       {(provided, snapshot) => (
                         <div
+                          {...provided.droppableProps}
                           ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          className={`flex items-center gap-4 p-4 rounded-xl bg-surface-sunken border border-border hover:border-accent/30 transition-colors ${
-                            snapshot.isDragging ? 'shadow-lg border-accent' : ''
+                          className={`flex-1 rounded-xl p-2 overflow-y-auto transition-colors ${
+                            snapshot.isDraggingOver
+                              ? 'bg-accent/10 border border-dashed border-accent/40'
+                              : 'bg-surface-sunken/40 border border-border/50'
                           }`}
                         >
-                          <div {...provided.dragHandleProps} className="cursor-grab text-muted-foreground hover:text-foreground">
-                            <GripVertical size={16} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <div className="font-medium text-foreground truncate">{lead.nombre}</div>
-                              {lead.empresa && (
-                                <span className="text-xs text-muted-foreground">· {lead.empresa}</span>
-                              )}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {lead.email || lead.telefono || 'Sin contacto'}
-                              {lead.valor_estimado != null && ` · $${lead.valor_estimado.toLocaleString('es-CL')}`}
-                            </div>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <div className="text-xs text-muted-foreground mb-1">Probabilidad</div>
-                            <div className="text-sm font-medium text-foreground">{lead.probabilidad_cierre ?? 0}%</div>
-                          </div>
-                          <div className="shrink-0">
-                            <select
-                              value={lead.etapa_pipeline}
-                              onChange={(e) => moveLeadMutation.mutate({ leadId: lead.id, nuevaEtapa: e.target.value })}
-                              className="text-xs bg-surface border border-border rounded-lg px-2 py-1 text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                              disabled={moveLeadMutation.isPending}
-                            >
-                              {ETAPAS_PIPELINE.map((etapa) => (
-                                <option key={etapa.key} value={etapa.key}>
-                                  {etapa.label}
-                                </option>
-                              ))}
-                            </select>
+                          <div className="space-y-3 min-h-full">
+                            {leadsInEtapa.map((lead, index) => (
+                              <Draggable key={lead.id} draggableId={lead.id} index={index}>
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    className={`p-4 rounded-xl bg-background border transition-all ${
+                                      snapshot.isDragging
+                                        ? 'shadow-xl border-accent scale-[1.02] rotate-1 z-50'
+                                        : 'shadow-sm border-border hover:border-accent/40'
+                                    }`}
+                                  >
+                                    <div className="flex items-start justify-between mb-2">
+                                      <div className="font-medium text-sm text-foreground leading-tight">
+                                        {lead.nombre}
+                                      </div>
+                                      <div className="text-[10px] font-bold px-1.5 py-0.5 bg-surface-sunken rounded text-muted-foreground shrink-0">
+                                        {lead.probabilidad_cierre}%
+                                      </div>
+                                    </div>
+                                    {lead.empresa && (
+                                      <div className="text-xs text-muted-foreground mb-2">
+                                        {lead.empresa}
+                                      </div>
+                                    )}
+                                    <div className="flex items-center justify-between mt-3">
+                                      <div className="text-xs font-semibold text-accent">
+                                        {lead.valor_estimado != null ? `$${lead.valor_estimado.toLocaleString('es-CL')}` : '--'}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
                           </div>
                         </div>
                       )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
+                    </Droppable>
+                  </div>
+                );
+              })}
+            </div>
           </DragDropContext>
-        ) : (
-          <div className="text-center py-12 text-muted-foreground text-sm">
-            <Users size={32} className="mx-auto mb-2 opacity-50" />
-            Sin leads en esta etapa
-          </div>
         )}
       </div>
 

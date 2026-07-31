@@ -1,4 +1,10 @@
 import type { NextConfig } from "next";
+import withSerwistInit from "@serwist/next";
+
+const withSerwist = withSerwistInit({
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+});
 
 function collectOrigin(envKey: string): string | null {
   const raw = process.env[envKey]?.trim();
@@ -80,6 +86,7 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion", "@tanstack/react-query"],
   },
+  turbopack: {},
   transpilePackages: [
     "@enjambre/ui",
     "@enjambre/auth",
@@ -112,4 +119,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);

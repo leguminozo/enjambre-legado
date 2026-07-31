@@ -12,8 +12,14 @@ import { motion } from 'framer-motion';
 import { AlertaFitosanitariaForm } from '@/components/apicultor/AlertaFitosanitariaForm';
 import { AlertasPanel } from '@/components/apicultor/AlertasPanel';
 import { InscripcionActorForm } from '@/components/apicultor/InscripcionActorForm';
+import dynamic from 'next/dynamic';
 
-type Tab = 'resumen' | 'actores' | 'alertas' | 'predios' | 'trashumantes';
+const MapaTerritorial = dynamic(
+  () => import('@/components/apicultor/MapaTerritorial').then((mod) => mod.MapaTerritorial),
+  { ssr: false, loading: () => <div className="h-[500px] flex items-center justify-center bg-card rounded-xl border border-border"><Spinner /></div> }
+);
+
+type Tab = 'resumen' | 'mapa' | 'actores' | 'alertas' | 'predios' | 'trashumantes';
 
 interface ActorResumen {
   id: string;
@@ -93,6 +99,7 @@ export function RegistroTerritorialView() {
 
   const tabs: { id: Tab; label: string; icon: typeof MapPin }[] = [
     { id: 'resumen', label: 'Resumen', icon: MapPin },
+    { id: 'mapa', label: 'Mapa', icon: MapPin },
     { id: 'actores', label: 'Actores', icon: Users },
     { id: 'alertas', label: 'Alertas', icon: AlertTriangle },
     { id: 'predios', label: 'Predios', icon: Home },
@@ -227,6 +234,10 @@ export function RegistroTerritorialView() {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {tab === 'mapa' && (
+          <MapaTerritorial actores={actores} alertas={alertas} />
         )}
 
         {tab === 'actores' && (

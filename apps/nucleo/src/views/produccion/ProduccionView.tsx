@@ -149,63 +149,64 @@ export function ProduccionView() {
                   <CardDescription>Cálculo de días de inventario restante cruzando Stock Actual vs Demanda de los últimos 30 días.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <EnjTableShell>
-                    <table className="w-full text-sm text-left">
-                      <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
-                        <tr>
-                          <th className="px-4 py-3">Producto</th>
-                          <th className="px-4 py-3 text-center">Stock Actual</th>
-                          <th className="px-4 py-3 text-center">Demanda 30D</th>
-                          <th className="px-4 py-3 text-center">Días Estimados</th>
-                          <th className="px-4 py-3 text-center">Estado</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {[...productos].sort((a,b) => a.dias_stock_estimado - b.dias_stock_estimado).map((p) => {
-                          const stock = Number(p.stock || 0);
-                          const demanda = Number(p.demanda_30d || 0);
-                          const dias = p.dias_stock_estimado;
-                          
-                          let badgeStatus: 'success' | 'warning' | 'danger' | 'default' = 'default';
-                          let label = 'Estable';
+                  <div className="flex flex-col">
+                    <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-surface-sunken text-xs uppercase tracking-wider text-muted-foreground font-medium border-b border-border">
+                      <div className="col-span-4">Producto</div>
+                      <div className="col-span-2 text-center">Stock Actual</div>
+                      <div className="col-span-2 text-center">Demanda 30D</div>
+                      <div className="col-span-2 text-center">Días Estimados</div>
+                      <div className="col-span-2 text-center">Estado</div>
+                    </div>
+                    <div className="divide-y divide-border">
+                      {[...productos].sort((a,b) => a.dias_stock_estimado - b.dias_stock_estimado).map((p) => {
+                        const stock = Number(p.stock || 0);
+                        const demanda = Number(p.demanda_30d || 0);
+                        const dias = p.dias_stock_estimado;
+                        
+                        let badgeStatus: 'success' | 'warning' | 'danger' | 'default' = 'default';
+                        let label = 'Estable';
 
-                          if (dias === 999) {
-                            label = 'Sin Movimiento';
-                            badgeStatus = 'default';
-                          } else if (dias <= 15) {
-                            label = 'Crítico';
-                            badgeStatus = 'danger';
-                          } else if (dias <= 30) {
-                            label = 'Atención';
-                            badgeStatus = 'warning';
-                          } else {
-                            label = 'Saludable';
-                            badgeStatus = 'success';
-                          }
+                        if (dias === 999) {
+                          label = 'Sin Movimiento';
+                          badgeStatus = 'default';
+                        } else if (dias <= 15) {
+                          label = 'Crítico';
+                          badgeStatus = 'danger';
+                        } else if (dias <= 30) {
+                          label = 'Atención';
+                          badgeStatus = 'warning';
+                        } else {
+                          label = 'Saludable';
+                          badgeStatus = 'success';
+                        }
 
-                          return (
-                            <tr key={p.id} className="border-b border-border last:border-0 hover:bg-surface-sunken/50">
-                              <td className="px-4 py-3 font-medium">
-                                {p.nombre} {p.formato && <span className="text-xs text-muted-foreground">({p.formato})</span>}
-                              </td>
-                              <td className="px-4 py-3 text-center font-display text-lg">
-                                {stock}
-                              </td>
-                              <td className="px-4 py-3 text-center text-muted-foreground">
-                                {demanda} und
-                              </td>
-                              <td className="px-4 py-3 text-center font-medium">
-                                {dias === 999 ? '∞' : `${dias} días`}
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                <Badge variant={badgeStatus}>{label}</Badge>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </EnjTableShell>
+                        return (
+                          <div key={p.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors">
+                            <div className="col-span-1 md:col-span-4 flex flex-col">
+                              <span className="font-medium text-foreground">{p.nombre}</span>
+                              {p.formato && <span className="text-xs text-muted-foreground">{p.formato}</span>}
+                            </div>
+                            <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
+                              <span className="text-xs text-muted-foreground md:hidden">Stock:</span>
+                              <span className="font-display text-lg">{stock}</span>
+                            </div>
+                            <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
+                              <span className="text-xs text-muted-foreground md:hidden">Demanda 30D:</span>
+                              <span className="text-muted-foreground">{demanda} und</span>
+                            </div>
+                            <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
+                              <span className="text-xs text-muted-foreground md:hidden">Días Est.:</span>
+                              <span className="font-medium">{dias === 999 ? '∞' : `${dias} días`}</span>
+                            </div>
+                            <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
+                              <span className="text-xs text-muted-foreground md:hidden">Estado:</span>
+                              <Badge variant={badgeStatus}>{label}</Badge>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -229,47 +230,54 @@ export function ProduccionView() {
                   {lotes.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">No hay lotes registrados.</p>
                   ) : (
-                    <EnjTableShell>
-                      <table className="w-full text-sm text-left">
-                        <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
-                          <tr>
-                            <th className="px-4 py-3">Código Lote</th>
-                            <th className="px-4 py-3">Producto/Destino</th>
-                            <th className="px-4 py-3">Fecha</th>
-                            <th className="px-4 py-3">Kg Iniciales</th>
-                            <th className="px-4 py-3">Rendimiento Estimado</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {lotes.map((l) => {
-                            const kg = Number(l.kg_total || 0);
-                            const productoKg = l.productos ? (Number(l.productos.peso_neto_g || 1000) / 1000) : null;
-                            const rendimiento = productoKg ? Math.floor(kg / productoKg) : null;
+                    <div className="flex flex-col">
+                      <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-surface-sunken text-xs uppercase tracking-wider text-muted-foreground font-medium border-b border-border">
+                        <div className="col-span-3">Código Lote</div>
+                        <div className="col-span-3">Producto/Destino</div>
+                        <div className="col-span-2">Fecha</div>
+                        <div className="col-span-2 text-right">Kg Iniciales</div>
+                        <div className="col-span-2 text-right">Rendimiento Estimado</div>
+                      </div>
+                      <div className="divide-y divide-border">
+                        {lotes.map((l) => {
+                          const kg = Number(l.kg_total || 0);
+                          const productoKg = l.productos ? (Number(l.productos.peso_neto_g || 1000) / 1000) : null;
+                          const rendimiento = productoKg ? Math.floor(kg / productoKg) : null;
 
-                            return (
-                              <tr key={l.id} className="border-b border-border last:border-0 hover:bg-surface-sunken/50">
-                                <td className="px-4 py-3 font-mono font-medium text-primary">
+                          return (
+                            <div key={l.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors">
+                              <div className="col-span-1 md:col-span-3 flex justify-between md:justify-start items-center">
+                                <span className="text-xs text-muted-foreground md:hidden">Lote:</span>
+                                <span className="font-mono font-medium text-primary">
                                   {l.codigo || l.id.substring(0,8).toUpperCase()}
-                                </td>
-                                <td className="px-4 py-3">
-                                  {l.productos?.nombre || 'General / Sin Asignar'}
-                                </td>
-                                <td className="px-4 py-3 text-muted-foreground flex items-center gap-1">
-                                  <Calendar size={14} />
-                                  {new Date(l.created_at).toLocaleDateString('es-CL')}
-                                </td>
-                                <td className="px-4 py-3 font-display">
-                                  {kg.toFixed(1)} kg
-                                </td>
-                                <td className="px-4 py-3 text-muted-foreground">
+                                </span>
+                              </div>
+                              <div className="col-span-1 md:col-span-3 flex flex-col text-sm">
+                                <span className="md:hidden text-xs text-muted-foreground">Destino:</span>
+                                <span>{l.productos?.nombre || 'General / Sin Asignar'}</span>
+                              </div>
+                              <div className="col-span-1 md:col-span-2 flex justify-between md:justify-start items-center text-sm text-muted-foreground">
+                                <span className="text-xs text-muted-foreground md:hidden">Fecha:</span>
+                                <div className="flex items-center gap-1.5">
+                                  <Calendar size={14} className="hidden md:block"/>
+                                  <span>{new Date(l.created_at).toLocaleDateString('es-CL')}</span>
+                                </div>
+                              </div>
+                              <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
+                                <span className="text-xs text-muted-foreground md:hidden">Kg Iniciales:</span>
+                                <span className="font-display">{kg.toFixed(1)} kg</span>
+                              </div>
+                              <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
+                                <span className="text-xs text-muted-foreground md:hidden">Rendimiento:</span>
+                                <span className="text-muted-foreground text-sm">
                                   {rendimiento ? `~${rendimiento} frascos` : '-'}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </EnjTableShell>
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   )}
                 </CardContent>
               </Card>

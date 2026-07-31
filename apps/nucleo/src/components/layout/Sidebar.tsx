@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
-import { LogOut } from 'lucide-react';
+import { LogOut, PanelLeftClose } from 'lucide-react';
 import {
   getSidebarGroupsForRole,
   getAccountItemsForRole,
@@ -23,6 +23,7 @@ interface SidebarProps {
   onToggle: () => void;
   isOpen: boolean;
   variant?: 'full' | 'drawer';
+  onCollapse?: () => void;
 }
 
 function PrefetchLink({
@@ -48,7 +49,7 @@ function PrefetchLink({
   );
 }
 
-export function Sidebar({ onToggle, isOpen, variant = 'full' }: SidebarProps) {
+export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { prefetchMany } = useRoutePrefetch();
@@ -199,6 +200,17 @@ export function Sidebar({ onToggle, isOpen, variant = 'full' }: SidebarProps) {
           </div>
           <div className="flex items-center gap-1 ml-auto shrink-0">
             <ThemeToggle size={20} className="text-muted-foreground hover:text-accent" />
+            {onCollapse && (
+              <button
+                type="button"
+                onClick={onCollapse}
+                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:text-accent hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                title="Contraer panel"
+                aria-label="Contraer panel"
+              >
+                <PanelLeftClose size={18} />
+              </button>
+            )}
             <button
               type="button"
               onClick={handleLogout}

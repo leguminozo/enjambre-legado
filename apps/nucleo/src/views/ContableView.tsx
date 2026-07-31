@@ -236,42 +236,49 @@ export function ContableView() {
             <TrendingUp size={18} /> Facturas Recientes ({metricas?.totalFacturas ?? 0})
           </h3>
         </div>
-        <EnjTableShell>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">N°</th>
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Fecha</th>
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Neto</th>
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">IVA</th>
-                <th className="px-4 py-3 text-left text-xs text-muted-foreground">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {facturasQuery.isLoading ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                    <Loader2 className="animate-spin mx-auto" size={24} />
-                  </td>
-                </tr>
-              ) : (facturasQuery.data ?? []).length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Sin facturas</td>
-                </tr>
-              ) : (
-                (facturasQuery.data ?? []).map((f) => (
-                  <tr key={f.id} className="border-b border-border/50 hover:bg-secondary/50">
-                    <td className="px-4 py-3 text-sm font-mono">{f.numero}</td>
-                    <td className="px-4 py-3 text-sm">{new Date(f.fecha_emision).toLocaleDateString("es-CL")}</td>
-                    <td className="px-4 py-3 text-sm">{formatCurrency(f.monto_neto)}</td>
-                    <td className="px-4 py-3 text-sm">{formatCurrency(f.monto_iva)}</td>
-                    <td className="px-4 py-3 text-sm font-bold">{formatCurrency(f.monto_total)}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </EnjTableShell>
+        <div className="flex flex-col">
+          <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-surface-sunken text-xs uppercase tracking-wider text-muted-foreground font-medium border-b border-border">
+            <div className="col-span-2">N° Factura</div>
+            <div className="col-span-3">Fecha</div>
+            <div className="col-span-2 text-right">Neto</div>
+            <div className="col-span-2 text-right">IVA</div>
+            <div className="col-span-3 text-right">Total</div>
+          </div>
+          <div className="divide-y divide-border">
+            {facturasQuery.isLoading ? (
+              <div className="py-8 text-center text-muted-foreground">
+                <Loader2 className="animate-spin mx-auto" size={24} />
+              </div>
+            ) : (facturasQuery.data ?? []).length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground">Sin facturas registradas</div>
+            ) : (
+              (facturasQuery.data ?? []).map((f) => (
+                <div key={f.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors">
+                  <div className="col-span-1 md:col-span-2 flex justify-between md:justify-start items-center">
+                    <span className="text-xs text-muted-foreground md:hidden">N° Factura:</span>
+                    <span className="text-sm font-mono font-medium text-foreground">{f.numero}</span>
+                  </div>
+                  <div className="col-span-1 md:col-span-3 flex justify-between md:justify-start items-center">
+                    <span className="text-xs text-muted-foreground md:hidden">Fecha:</span>
+                    <span className="text-sm">{new Date(f.fecha_emision).toLocaleDateString("es-CL")}</span>
+                  </div>
+                  <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
+                    <span className="text-xs text-muted-foreground md:hidden">Neto:</span>
+                    <span className="text-sm">{formatCurrency(f.monto_neto)}</span>
+                  </div>
+                  <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
+                    <span className="text-xs text-muted-foreground md:hidden">IVA:</span>
+                    <span className="text-sm text-muted-foreground">{formatCurrency(f.monto_iva)}</span>
+                  </div>
+                  <div className="col-span-1 md:col-span-3 flex justify-between md:justify-end items-center">
+                    <span className="text-xs text-muted-foreground md:hidden">Total:</span>
+                    <span className="text-sm font-bold">{formatCurrency(f.monto_total)}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </section>
 
       {dashboardQuery.isError && (
