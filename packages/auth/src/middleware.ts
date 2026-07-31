@@ -41,6 +41,28 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
   ])
 }
 
+async function resolveUserRole(
+  supabase: ReturnType<typeof createServerClient>,
+  user: { id: string; app_metadata?: Record<string, unknown> },
+  defaultRole: string,
+): Promise<string> {
+  const fromJwt = typeof user.app_metadata?.role === 'string' ? user.app_metadata.role : null
+  if (fromJwt) {
+    return (LEGACY_ROLE_MAP[fromJwt] ?? fromJwt) as string
+  }
+  try {
+    const { data } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle()
+    const dbRole = data?.role ?? defaultRole
+    return (LEGACY_ROLE_MAP[dbRole] ?? dbRole) as string
+  } catch {
+    return defaultRole
+  }
+}
+
 export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
   const {
     publicRoutes = ['/', '/login'],
@@ -92,15 +114,13 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
     }
 
     if (user && pathname === authRedirect) {
-      const rawRole = (user.app_metadata?.role as string) ?? defaultRole
-      const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
+      const role = await resolveUserRole(supabase, user, defaultRole)
       const redirectPath = roleRedirectMap[role] ?? '/'
       return resolveRedirect(redirectPath, request)
     }
 
     if (user) {
-      const rawRole = (user.app_metadata?.role as string) ?? defaultRole
-      const role = (LEGACY_ROLE_MAP[rawRole] ?? rawRole) as string
+      const role = await resolveUserRole(supabase, user, defaultRole)
       if (!isRouteAllowed(pathname, role)) {
         const origin = request.nextUrl.origin
         const internalKey = getInternalApiSecret() || ''
