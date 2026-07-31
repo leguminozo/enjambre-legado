@@ -1,14 +1,44 @@
-/** URL del BFF nucleo — nunca localhost en build/produccion sin env explicita. */
+/** URL del BFF nucleo — con fallback canónico a nucleo-theta si falta o apunta a la misma tienda por error en env. */
+export const CANONICAL_NUCLEO_URL = 'https://nucleo-theta.vercel.app';
+
+const TIENDA_SELF_ORIGINS = new Set([
+  'https://obrerayzangano.online',
+  'https://www.obrerayzangano.online',
+  'https://obrerayzangano.com',
+  'https://www.obrerayzangano.com',
+  'https://obrerayzangano.cl',
+  'https://www.obrerayzangano.cl',
+  'https://tienda-eta-lime.vercel.app',
+]);
+
+function isSelfStoreUrl(url: string): boolean {
+  try {
+    const origin = new URL(url).origin;
+    if (TIENDA_SELF_ORIGINS.has(origin)) return true;
+    if (typeof window !== 'undefined' && window.location.origin === origin) {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export function getNucleoApiUrl(): string | null {
   const raw = process.env.NEXT_PUBLIC_NUCLEO_API_URL?.trim();
-  if (raw) return raw.replace(/\/$/, '');
+  if (raw) {
+    const cleaned = raw.replace(/\/$/, '');
+    if (!isSelfStoreUrl(cleaned)) {
+      return cleaned;
+    }
+  }
 
   const isProdBuild =
     process.env.NODE_ENV === 'production' ||
     Boolean(process.env.VERCEL) ||
     Boolean(process.env.CI);
 
-  if (isProdBuild) return null;
+  if (isProdBuild) return CANONICAL_NUCLEO_URL;
   return 'http://localhost:3000';
 }
 

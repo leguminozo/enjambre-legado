@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from '@enjambre/ui';
 import { safeReturnPath } from '@/lib/auth/safe-return-path';
-import { getNucleoStaffEntryUrl } from '@/lib/shop/nucleo-app-url';
+import { getNucleoStaffEntryUrl, isStaffRedirectExternal } from '@/lib/shop/nucleo-app-url';
 import { isNucleoStaffRole } from '@/lib/shop/staff-roles';
 
 const TIENDA_ROLE_REDIRECT: Record<string, string> = {
@@ -24,6 +24,23 @@ function getTiendaRedirect(role: string): string {
   return '/perfil';
 }
 
+// Next App Router router.replace/push emiten un fetch de payload RSC same-origin.
+// Objetivos cross-origin (Núcleo en otro dominio) no pueden devolver un stream RSC
+// válido → "Failed to fetch RSC payload". Para URLs externas usamos navegación
+// full-page (window.location), que es lo mismo que ya hace el middleware server-side
+// con NextResponse.redirect al marcar access.external.
+function navigate(router: ReturnType<typeof useRouter>, target: string, mode: 'replace' | 'push'): void {
+  if (isStaffRedirectExternal(target)) {
+    if (typeof window !== 'undefined') {
+      if (mode === 'replace') window.location.replace(target);
+      else window.location.assign(target);
+    }
+    return;
+  }
+  if (mode === 'replace') router.replace(target);
+  else router.push(target);
+}
+
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,7 +54,7 @@ export function LoginForm() {
 
   useEffect(() => {
     if (!authLoading && isAuthenticated && user) {
-      router.replace(returnTo ?? getTiendaRedirect(user.role));
+      navigate(router, returnTo ?? getTiendaRedirect(user.role), 'replace');
     }
   }, [authLoading, isAuthenticated, user, router, returnTo]);
 
@@ -50,9 +67,9 @@ export function LoginForm() {
     if (result.success) {
       toast('Sesión iniciada. Bienvenido de vuelta.', { type: 'success', duration: 4000 });
       if (returnTo) {
-        router.push(returnTo);
+        navigate(router, returnTo, 'push');
       } else if (user) {
-        router.push(getTiendaRedirect(user.role));
+        navigate(router, getTiendaRedirect(user.role), 'push');
       } else {
         router.push('/perfil');
       }
