@@ -22,6 +22,10 @@ type MobileNavSheetProps = {
   onClose: () => void;
 };
 
+function NavLink(props: React.ComponentProps<typeof Link>) {
+  return <Link {...props} />;
+}
+
 export function MobileNavSheet({ open, onClose }: MobileNavSheetProps) {
   const pathname = usePathname();
   const userRole = (useAuthStore((s) => s.user?.role ?? 'admin')) as RoleKey;
@@ -152,7 +156,7 @@ export function MobileNavSheet({ open, onClose }: MobileNavSheetProps) {
                       label={group.label}
                       items={group.items.map((item) => toNavItemDataFromItem(item, badgeOverrides))}
                       activeKey={activeItem?.key}
-                      linkComponent={Link}
+                      linkComponent={NavLink}
                       onItemClick={onClose}
                     />
                   ))}
@@ -160,7 +164,7 @@ export function MobileNavSheet({ open, onClose }: MobileNavSheetProps) {
                     label="CUENTA"
                     items={accountItems.map((item) => toNavItemDataFromItem(item, badgeOverrides))}
                     activeKey={activeItem?.key}
-                    linkComponent={Link}
+                    linkComponent={NavLink}
                     onItemClick={onClose}
                   />
                 </>
