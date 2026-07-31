@@ -26,22 +26,7 @@ export interface SavedAccount {
   lastUsed: number;
 }
 
-const DEFAULT_SAVED_ACCOUNTS: SavedAccount[] = [
-  {
-    email: 'gabriel.cuevas01@alumnos.uach.cl',
-    name: "Gaboo's",
-    handle: '@leguminozo',
-    role: 'admin',
-    lastUsed: Date.now() - 1000 * 60 * 60,
-  },
-  {
-    email: 'admin@enjambre.cl',
-    name: 'Administrador',
-    handle: '@admin_nucleo',
-    role: 'admin',
-    lastUsed: Date.now() - 1000 * 60 * 60 * 24,
-  },
-];
+const DEFAULT_SAVED_ACCOUNTS: SavedAccount[] = [];
 
 function getSavedAccounts(): SavedAccount[] {
   if (typeof window === 'undefined') return DEFAULT_SAVED_ACCOUNTS;
@@ -149,10 +134,14 @@ export default function LoginPage() {
       }
     });
 
-    if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
-      setIsRecoveryMode(true);
-      setIsForgotPassword(false);
-      setViewMode('sheet_recovery');
+    if (typeof window !== 'undefined') {
+      if (window.location.hash.includes('type=recovery')) {
+        setIsRecoveryMode(true);
+        setIsForgotPassword(false);
+        setViewMode('sheet_recovery');
+      } else if (window.location.search.includes('mode=signup')) {
+        setViewMode('sheet_signup');
+      }
     }
 
     return () => {
@@ -192,7 +181,7 @@ export default function LoginPage() {
         }
         const { error: updateErr } = await supabase.auth.updateUser({ password });
         if (updateErr) throw updateErr;
-        setMessage('¡Contraseña actualizada con éxito! Entrando al núcleo...');
+        setMessage('¡Contraseña actualizada con éxito! Accediendo al Registro Territorial...');
         setIsRecoveryMode(false);
         await useAuthStore.getState().checkUser();
         const userRole = useAuthStore.getState().user?.role ?? 'cliente';
@@ -305,7 +294,7 @@ export default function LoginPage() {
         </p>
         <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-surface-raised/50 backdrop-blur-md px-3 py-1 text-[0.6rem] tracking-[0.2em] text-muted-foreground uppercase">
           <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-          <span>Núcleo · Gestión</span>
+          <span>Registro Territorial</span>
         </div>
       </div>
 
@@ -392,7 +381,7 @@ export default function LoginPage() {
                 }}
                 className="inline-flex min-h-11 items-center text-foreground hover:text-primary underline underline-offset-4"
               >
-                Crear cuenta en Núcleo
+                Crear cuenta en el Registro Territorial
               </button>
             </p>
           </div>
@@ -562,7 +551,7 @@ export default function LoginPage() {
 
               <div className="mb-6 text-center">
                 <h2 className="text-lg font-semibold text-foreground tracking-tight">
-                  Iniciar sesión en Núcleo
+                  Iniciar sesión en el Registro
                 </h2>
                 <p className="text-xs text-muted-foreground mt-1">
                   Panel operativo y gestión del sistema
@@ -681,7 +670,7 @@ export default function LoginPage() {
 
               <div className="mb-6 text-center">
                 <h2 className="text-lg font-semibold text-foreground tracking-tight">
-                  Crear cuenta en Núcleo
+                  Crear cuenta en el Registro
                 </h2>
                 <p className="text-xs text-muted-foreground mt-1">
                   Tu cuenta será creada y un administrador verificará tu acceso
@@ -813,7 +802,7 @@ export default function LoginPage() {
                 </h2>
                 <p className="text-xs text-muted-foreground mt-1">
                   {isRecoveryMode
-                    ? 'Ingresa y confirma tu nueva contraseña para la cuenta del Núcleo.'
+                    ? 'Ingresa y confirma tu nueva contraseña para la cuenta del Registro Territorial.'
                     : 'Te enviaremos un enlace seguro a tu correo para crear una nueva contraseña.'}
                 </p>
               </div>
