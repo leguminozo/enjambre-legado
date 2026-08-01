@@ -282,7 +282,7 @@ export default function LoginPage() {
             >
               <div className="flex items-center gap-3">
                 <UserPlus className="w-4 h-4 text-muted-foreground" />
-                <span>Solicitar cuenta nueva</span>
+                <span>Crear cuenta nueva</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
             </button>
@@ -471,10 +471,10 @@ export default function LoginPage() {
 
               <div className="mb-6 text-center">
                 <h2 className="text-lg font-semibold text-foreground tracking-tight">
-                  Solicitar cuenta nueva
+                  Crear cuenta
                 </h2>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Tu cuenta será creada y un administrador verificará tu acceso
+                  Únete a la Red Apícola para registrar tu apiario de forma autónoma.
                 </p>
               </div>
 
