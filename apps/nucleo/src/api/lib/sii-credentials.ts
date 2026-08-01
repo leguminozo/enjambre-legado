@@ -5,6 +5,7 @@ import { decryptSiiSecret } from './sii-crypto';
 export type SiiCredentials = {
   p12Base64: string;
   p12Password: string;
+  siiClave: string; // The Clave Tributaria for SII web authentication
   source: 'storage' | 'env';
   certName?: string;
 };
@@ -35,6 +36,12 @@ export async function resolveSiiCredentials(
   if (certError) {
     console.error('[sii-credentials] cert lookup failed', { empresaId, certError });
   }
+
+  const { data: empresaData } = await supabase
+    .from('empresas')
+    .select('sii_clave_encriptada')
+    .eq('id', empresaId)
+    .single();
 
   let p12Base64 = '';
   if (certData?.storage_path) {
@@ -70,6 +77,16 @@ export async function resolveSiiCredentials(
     p12Password = envPassword;
   }
 
+  let siiClave = '';
+  if (empresaData?.sii_clave_encriptada) {
+    const decrypted = await decryptSiiSecret(empresaData.sii_clave_encriptada);
+    if (decrypted) siiClave = decrypted;
+  }
+  // Fallback to env variable if needed
+  if (!siiClave && process.env.SII_CLAVE) {
+    siiClave = process.env.SII_CLAVE;
+  }
+
   if (!p12Base64 || !p12Password) {
     const hasCertRecord = Boolean(certData);
     return {
@@ -81,11 +98,20 @@ export async function resolveSiiCredentials(
     };
   }
 
+  if (!siiClave) {
+    return {
+      ok: false,
+      code: 'no_credenciales',
+      message: 'Falta configurar la Clave Tributaria (SII) de la empresa. Ingrésala en la configuración del SII.',
+    };
+  }
+
   return {
     ok: true,
     credentials: {
       p12Base64,
       p12Password,
+      siiClave,
       source: certData?.storage_path && p12Base64 !== envBase64 ? 'storage' : 'env',
       certName: certData?.nombre ?? undefined,
     },

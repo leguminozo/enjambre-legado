@@ -16,9 +16,9 @@ import { getEnvOrThrow } from "../lib/env";
 
 const EnqueueNotificationSchema = z.object({
   channel: z.enum(["email", "whatsapp", "push", "system"]),
-  recipient: z.string().min(1),
-  subject: z.string().optional(),
-  body: z.string().min(1),
+  recipient: z.string().min(1).max(255),
+  subject: z.string().max(255).optional(),
+  body: z.string().min(1).max(20000),
   metadata: z.record(z.string(), z.unknown()).optional().default({}),
 });
 

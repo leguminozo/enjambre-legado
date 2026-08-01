@@ -7,7 +7,6 @@ export function resolveSiiEncryptionKeyBytes(): Uint8Array | null {
   const candidates = [
     process.env.SII_CLAVE_ENCRYPTION_KEY,
     process.env.FISCAL_ENCRYPTION_KEY,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
   ];
   for (const raw of candidates) {
     const v = raw?.trim();
@@ -16,6 +15,22 @@ export function resolveSiiEncryptionKeyBytes(): Uint8Array | null {
     }
   }
   return null;
+}
+
+export function resolveSiiDecryptionKeyBytes(): Uint8Array[] {
+  const keys: Uint8Array[] = [];
+  const candidates = [
+    process.env.SII_CLAVE_ENCRYPTION_KEY,
+    process.env.FISCAL_ENCRYPTION_KEY,
+    process.env.SUPABASE_SERVICE_ROLE_KEY, // Legacy fallback solo para leer
+  ];
+  for (const raw of candidates) {
+    const v = raw?.trim();
+    if (v && v.length >= 32) {
+      keys.push(new TextEncoder().encode(v.slice(0, 32)));
+    }
+  }
+  return keys;
 }
 
 export function hasSiiEncryptionMaterial(): boolean {
@@ -46,23 +61,34 @@ export async function encryptSiiSecret(plaintext: string): Promise<string | null
 }
 
 export async function decryptSiiSecret(ciphertextB64: string): Promise<string | null> {
-  const keyBytes = resolveSiiEncryptionKeyBytes();
-  if (!keyBytes) return null;
+  const candidateKeys = resolveSiiDecryptionKeyBytes();
+  if (candidateKeys.length === 0) return null;
 
   try {
     const combined = Uint8Array.from(atob(ciphertextB64), (c) => c.charCodeAt(0));
     if (combined.length < 13) return null;
     const iv = combined.slice(0, 12);
     const data = combined.slice(12);
-    const algoKey = await crypto.subtle.importKey(
-      "raw",
-      keyBytes as BufferSource,
-      { name: "AES-GCM" },
-      false,
-      ["decrypt"],
-    );
-    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, algoKey, data);
-    return new TextDecoder().decode(plain);
+    
+    // Probar todas las llaves candidatas (incluyendo el fallback)
+    for (const keyBytes of candidateKeys) {
+      try {
+        const algoKey = await crypto.subtle.importKey(
+          "raw",
+          keyBytes as BufferSource,
+          { name: "AES-GCM" },
+          false,
+          ["decrypt"],
+        );
+        const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, algoKey, data);
+        return new TextDecoder().decode(plain);
+      } catch {
+        // Ignorar error de desencriptación con esta llave y probar la siguiente
+        continue;
+      }
+    }
+    
+    return null; // Ninguna llave funcionó
   } catch {
     return null;
   }

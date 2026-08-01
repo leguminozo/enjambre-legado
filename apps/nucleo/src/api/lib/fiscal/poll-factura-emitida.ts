@@ -62,7 +62,7 @@ export async function pollFacturaEmitidaSii(
   const emisor = empresa as Record<string, unknown>;
   const ambiente = resolveSiiAmbiente(String(emisor.sii_ambiente ?? 'certificacion')) as import('@enjambre/contable').SiiEnvironment;
 
-  const token = await getSiiToken(ambiente, String(emisor.rut), credsResult.credentials.p12Password);
+  const token = await getSiiToken(ambiente, String(emisor.rut), credsResult.credentials.siiClave);
   const estadoResult = await consultarEstado(ambiente, token.token, String(row.track_id), String(emisor.rut));
 
   const nuevoEstado =

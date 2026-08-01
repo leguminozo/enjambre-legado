@@ -99,3 +99,18 @@ export interface SiiEstadoResult {
   rechazados: number;
   reparos: number;
 }
+
+export type SiiSoapEstado = 
+  | "DOK" | "DNK" | "FAU" | "FNA" | "FAN" 
+  | "EMP" | "TMD" | "TMC" | "MMD" | "MMC" 
+  | "AND" | "ANC" 
+  | "001" | "002" | "003"
+  | "-1" | "-2" | "-3" | "-4" | "Otros";
+
+export interface SiiQueryEstDteResult {
+  estado: SiiSoapEstado;
+  glosa: string;
+  errCode: string;
+  glosaErr: string;
+  numAtencion: string;
+}

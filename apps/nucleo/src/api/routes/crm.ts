@@ -40,7 +40,7 @@ const CreateClienteSchema = z.object({
     .enum(["activo", "inactivo", "prospecto", "frecuente"])
     .optional()
     .default("prospecto"),
-});
+}).strict();
 
 const UpdateClienteSchema = z.object({
   name: z.string().min(1).max(200).optional(),
@@ -58,7 +58,7 @@ const UpdateClienteSchema = z.object({
     .enum(["activo", "inactivo", "prospecto", "frecuente"])
     .optional(),
   notes: z.string().optional(),
-});
+}).strict();
 
 const AssignRepSchema = z.object({
   evento_id: z.string().uuid(),
@@ -309,8 +309,20 @@ crmRoutes.patch("/clientes/:id", zValidator("json", UpdateClienteSchema), async 
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
 
+  const payload = {
+    ...(input.name !== undefined && { name: input.name }),
+    ...(input.type !== undefined && { type: input.type }),
+    ...(input.email !== undefined && { email: input.email }),
+    ...(input.telefono !== undefined && { telefono: input.telefono }),
+    ...(input.empresa !== undefined && { empresa: input.empresa }),
+    ...(input.direccion !== undefined && { direccion: input.direccion }),
+    ...(input.fuente !== undefined && { fuente: input.fuente }),
+    ...(input.status !== undefined && { status: input.status }),
+    ...(input.notes !== undefined && { notes: input.notes }),
+  };
+
   const { data, error } = await fromLoose(supabase, "clientes")
-    .update(input)
+    .update(payload)
     .eq("id", clienteId)
     .select("*")
     .single();

@@ -136,10 +136,25 @@ export async function checkRateLimit(config: RateLimitConfig): Promise<{
 }
 
 export function getClientIdentifier(c: { req: { header: (name: string) => string | undefined; ip?: string } }): string {
+  // En Vercel, la cabecera x-vercel-forwarded-for es confiable y no puede ser inyectada por el cliente directamente
+  const vercelForwarded = c.req.header("x-vercel-forwarded-for");
+  if (vercelForwarded) {
+    return vercelForwarded.split(",")[0]?.trim() || "unknown";
+  }
+
+  // Fallback si no estamos en Vercel (ej. local o VPS directo).
+  // x-forwarded-for puede ser spoofed, por lo que tomamos la última IP que suele ser la del proxy inverso confiable,
+  // aunque sin una lista de proxies confiables, cualquier IP es sospechosa.
   const forwarded = c.req.header("x-forwarded-for");
   const realIp = c.req.header("x-real-ip");
-  const ip = forwarded?.split(",")[0]?.trim() || realIp || c.req.ip || "unknown";
-  return ip;
+  
+  if (forwarded) {
+    const parts = forwarded.split(",");
+    // La primera IP es la que afirma el cliente, la última es la conectada al proxy de Vercel/Nginx
+    return parts[parts.length - 1]?.trim() || "unknown";
+  }
+  
+  return realIp || c.req.ip || "unknown";
 }
 
 export const RATE_LIMIT_CONFIGS = {

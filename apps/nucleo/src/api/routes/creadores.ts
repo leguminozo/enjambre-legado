@@ -27,12 +27,9 @@ const CreadorSchema = z.object({
   plataforma_url: z.string().url().optional().or(z.literal("")),
   nicho: z.string().max(100).optional(),
   seguidores_aprox: z.number().int().min(0).optional(),
-  porcentaje_comision: z.number().min(0).max(30).optional(),
-  descuento_cliente: z.number().min(0).max(15).optional(),
   bio: z.string().max(500).optional(),
-  notas_internas: z.string().max(1000).optional(),
   avatar_url: z.string().url().optional().or(z.literal("")),
-});
+}).strict();
 
 const CreadorSelfEditSchema = z.object({
   nombre_publico: z.string().min(2).max(60).optional(),
@@ -165,10 +162,10 @@ protectedRoutes.post("/", zValidator("json", CreadorSchema), async (c) => {
     plataforma_url: input.plataforma_url || null,
     nicho: input.nicho || null,
     seguidores_aprox: input.seguidores_aprox || 0,
-    porcentaje_comision: input.porcentaje_comision ?? 5.0,
-    descuento_cliente: input.descuento_cliente ?? 3.0,
+    porcentaje_comision: 5.0,
+    descuento_cliente: 3.0,
     bio: input.bio || null,
-    notas_internas: input.notas_internas || null,
+    notas_internas: null,
     avatar_url: input.avatar_url || null,
   };
 

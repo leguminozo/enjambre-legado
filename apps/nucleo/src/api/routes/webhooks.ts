@@ -25,14 +25,14 @@ async function webhookRateLimit(c: { req: { header: (name: string) => string | u
 }
 
 const TransbankWebhookSchema = z.object({
-  token_ws: z.string(),
-  buyOrder: z.string().optional(),
-  sessionId: z.string().optional(),
-  cardNumber: z.string().optional(),
-  accountingDate: z.string().optional(),
-  transactionDate: z.string().optional(),
-  authorizationCode: z.string().optional(),
-  paymentTypeCode: z.string().optional(),
+  token_ws: z.string().max(1024),
+  buyOrder: z.string().max(1024).optional(),
+  sessionId: z.string().max(1024).optional(),
+  cardNumber: z.string().max(1024).optional(),
+  accountingDate: z.string().max(1024).optional(),
+  transactionDate: z.string().max(1024).optional(),
+  authorizationCode: z.string().max(1024).optional(),
+  paymentTypeCode: z.string().max(1024).optional(),
   responseCode: z.number().optional(),
   amount: z.number().optional(),
   sharesNumber: z.number().optional(),
@@ -155,7 +155,8 @@ webhooksApp.post("/retry-failed", async (c) => {
       await supabase.rpc("schedule_payment_retry", { p_failure_id: failure.id });
       results.push({ id: failure.id, status: "scheduled" });
     } catch (err) {
-      results.push({ id: failure.id, status: "error", error: String(err) });
+      console.error("[Webhook Retry] Error scheduling retry:", err);
+      results.push({ id: failure.id, status: "error", error: "Failed to schedule retry" });
     }
   }
 

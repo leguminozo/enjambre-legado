@@ -1,9 +1,6 @@
 import { createPrivateKey, createSign, createHash, X509Certificate } from "node:crypto";
-import { readFileSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { execSync } from "node:child_process";
-import type { CafFolio, SiiAuthToken, SiiEnvioResult, SiiEstadoResult } from "@enjambre/contable";
+import forge from "node-forge";
+import type { CafFolio, SiiAuthToken, SiiEnvioResult, SiiEstadoResult, SiiQueryEstDteResult, SiiSoapEstado } from "@enjambre/contable";
 import type { RcvRegistroCompra, RcvRegistroVenta, RcvResumen, RcvTipoRegistro } from "@enjambre/contable";
 import { SII_ENV } from "@enjambre/contable";
 import type { SiiEnvironment } from "@enjambre/contable";
@@ -18,34 +15,37 @@ interface P12ExtractResult {
 }
 
 function extractP12(p12Base64: string, p12Password: string): P12ExtractResult {
-  const p12Buffer = Buffer.from(p12Base64, "base64");
-  const tmpP12 = join(tmpdir(), `sii_${Date.now()}.p12`);
-  const tmpKey = join(tmpdir(), `sii_${Date.now()}_key.pem`);
-  const tmpCert = join(tmpdir(), `sii_${Date.now()}_cert.pem`);
-
   try {
-    writeFileSync(tmpP12, p12Buffer);
+    const p12Der = forge.util.decode64(p12Base64);
+    const p12Asn1 = forge.asn1.fromDer(p12Der);
+    const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, p12Password);
 
-    execSync(
-      `openssl pkcs12 -in "${tmpP12}" -nocerts -nodes -passin pass:${p12Password} -out "${tmpKey}"`,
-      { stdio: "pipe" },
-    );
-    execSync(
-      `openssl pkcs12 -in "${tmpP12}" -clcerts -nokeys -passin pass:${p12Password} -out "${tmpCert}"`,
-      { stdio: "pipe" },
-    );
+    let privateKeyPem = "";
+    let certPem = "";
 
-    const privateKeyPem = readFileSync(tmpKey, "utf8");
-    const certPem = readFileSync(tmpCert, "utf8");
+    for (const safeContent of p12.safeContents) {
+      for (const safeBag of safeContent.safeBags) {
+        if ((safeBag.type === forge.pki.oids.pkcs8ShroudedKeyBag || safeBag.type === forge.pki.oids.keyBag) && safeBag.key) {
+           privateKeyPem = forge.pki.privateKeyToPem(safeBag.key);
+        } else if (safeBag.type === forge.pki.oids.certBag && safeBag.cert) {
+           certPem = forge.pki.certificateToPem(safeBag.cert);
+        }
+      }
+    }
+
+    if (!privateKeyPem || !certPem) {
+      throw new Error("No se pudo extraer llave o certificado del P12");
+    }
 
     return { privateKeyPem, certPem };
-  } finally {
-    try { execSync(`rm -f "${tmpP12}" "${tmpKey}" "${tmpCert}"`, { stdio: "pipe" }); } catch (error) { console.error('[sii-client] cleanup error:', error) }
+  } catch (err) {
+    console.error("[sii-client] extractP12 error (possibly bad password)", err instanceof Error ? err.message : String(err));
+    throw new Error("Error al procesar el archivo P12. Verifica la contraseña.");
   }
 }
 
 export function signDteXml(xml: string, p12Base64: string, p12Password: string): string {
-  const { privateKeyPem, certPem } = extractP12(p12Base64, p12Password);
+  let { privateKeyPem, certPem } = extractP12(p12Base64, p12Password);
 
   const docMatch = xml.match(/<Documento[^>]*>([\s\S]*?)<\/Documento>/);
   if (!docMatch) {
@@ -66,6 +66,10 @@ export function signDteXml(xml: string, p12Base64: string, p12Password: string):
   sign.end();
 
   const key = createPrivateKey({ key: privateKeyPem, format: "pem" });
+  
+  // Zeroing mitigation para reducir tiempo en heap
+  privateKeyPem = '\0'.repeat(privateKeyPem.length);
+  
   const signature = sign.sign(key, "base64");
 
   const cert = new X509Certificate(certPem);
@@ -97,23 +101,31 @@ export function stampDteXml(xml: string, caf: CafFolio, folio: number): string {
     throw new Error(`Folio ${folio} fuera del rango CAF (${caf.desde}-${caf.hasta})`);
   }
 
-  const timbre = buildTimbre(caf, folio);
+  // Extraer valores dinámicamente del XML generado
+  const re = xml.match(/<RUTEmisor>([^<]+)<\/RUTEmisor>/)?.[1] || "";
+  const td = xml.match(/<TipoDTE>([^<]+)<\/TipoDTE>/)?.[1] || "";
+  const rr = xml.match(/<RUTRecep>([^<]+)<\/RUTRecep>/)?.[1] || "";
+  const rsr = xml.match(/<RznSocRecep>([^<]+)<\/RznSocRecep>/)?.[1]?.substring(0, 40) || "";
+  const mnt = xml.match(/<MntTotal>([^<]+)<\/MntTotal>/)?.[1] || "0";
+  const it1 = xml.match(/<NmbItem>([^<]+)<\/NmbItem>/)?.[1] || "";
+
+  const timbre = buildTimbre(caf, folio, re, td, rr, rsr, mnt, it1);
 
   return xml.replace("</Documento>", `${timbre}\n</Documento>`);
 }
 
-function buildTimbre(caf: CafFolio, folio: number): string {
+function buildTimbre(caf: CafFolio, folio: number, re: string, td: string, rr: string, rsr: string, mnt: string, it1: string): string {
+  const itemNode = it1 ? `\n    <IT1>${it1}</IT1>` : "";
   return `
 <TED version="1.0">
   <DD>
-    <RE>${caf.publicKey}</RE>
-    <TD>46</TD>
+    <RE>${re}</RE>
+    <TD>${td}</TD>
     <F>${folio}</F>
     <FE>${caf.fechaAutorizacion}</FE>
-    <RR>60803000-K</RR>
-    <RSR>SERVICIO DE IMPUESTOS INTERNOS</RSR>
-    <MNT>0</MNT>
-    <IT1>FACTURA COMPRA</IT1>
+    <RR>${rr}</RR>
+    <RSR>${rsr}</RSR>
+    <MNT>${mnt}</MNT>${itemNode}
   </DD>
   <FRMT algoritmo="SHA1withRSA">${caf.firma}</FRMT>
 </TED>`;
@@ -383,4 +395,105 @@ function parsearEstadoRcvXml(estado: string): import("@enjambre/contable").RcvEs
     REG: "registrar",
   };
   return map[estado] ?? "pendiente";
+}
+
+function extractRutParts(rut: string): { base: string; dv: string } {
+  const clean = rut.replace(/[^0-9kK]/g, "").toUpperCase();
+  const dv = clean.slice(-1);
+  const base = clean.slice(0, -1);
+  return { base, dv };
+}
+
+export async function consultarEstadoDteIndividual(
+  env: SiiEnvironment,
+  token: string,
+  rutEmisor: string,
+  rutReceptor: string,
+  tipoDte: number,
+  folio: number,
+  fechaEmision: string, // DDMMAAAA
+  montoTotal: number
+): Promise<SiiQueryEstDteResult> {
+  const { base: rutConsultante, dv: dvConsultante } = extractRutParts(rutEmisor);
+  const { base: rutReceptorBase, dv: dvReceptor } = extractRutParts(rutReceptor);
+  const baseUrl = getBaseUrl(env);
+
+  const soapBody = `<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <SOAP-ENV:Body>
+    <m:getEstDte xmlns:m="${baseUrl}/DTEWS/QueryEstDte.jws">
+      <RutConsultante xsi:type="xsd:string">${rutConsultante}</RutConsultante>
+      <DvConsultante xsi:type="xsd:string">${dvConsultante}</DvConsultante>
+      <RutCompania xsi:type="xsd:string">${rutConsultante}</RutCompania>
+      <DvCompania xsi:type="xsd:string">${dvConsultante}</DvCompania>
+      <RutReceptor xsi:type="xsd:string">${rutReceptorBase}</RutReceptor>
+      <DvReceptor xsi:type="xsd:string">${dvReceptor}</DvReceptor>
+      <TipoDte xsi:type="xsd:string">${tipoDte}</TipoDte>
+      <FolioDte xsi:type="xsd:string">${folio}</FolioDte>
+      <FechaEmisionDte xsi:type="xsd:string">${fechaEmision}</FechaEmisionDte>
+      <MontoDte xsi:type="xsd:string">${montoTotal}</MontoDte>
+      <Token xsi:type="xsd:string">${token}</Token>
+    </m:getEstDte>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>`;
+
+  const response = await fetch(`${baseUrl}/DTEWS/QueryEstDte.jws`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/xml; charset=utf-8",
+      "SOAPAction": "",
+      "User-Agent": "EnjambreDTE/1.0",
+    },
+    body: soapBody,
+  });
+
+  if (!response.ok) {
+    console.error('[SII] consultarEstadoDteIndividual HTTP error', { status: response.status, rutEmisor, tipoDte, folio });
+    return {
+      estado: "Otros",
+      glosa: `HTTP ${response.status}`,
+      errCode: "-2",
+      glosaErr: "Error de red",
+      numAtencion: "",
+    };
+  }
+
+  const text = await response.text();
+  const getEstDteReturnMatch = text.match(/<getEstDteReturn[^>]*>(.*?)<\/getEstDteReturn>/s);
+  
+  if (!getEstDteReturnMatch) {
+    return {
+      estado: "Otros",
+      glosa: "Respuesta SOAP sin getEstDteReturn",
+      errCode: "-3",
+      glosaErr: "Error de formato de respuesta SII",
+      numAtencion: "",
+    };
+  }
+
+  // Desencriptar inner XML
+  const innerXmlEncoded = getEstDteReturnMatch[1]!;
+  const innerXml = innerXmlEncoded
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&');
+
+  const estadoMatch = innerXml.match(/<ESTADO>([^<]+)<\/ESTADO>/);
+  const glosaMatch = innerXml.match(/<GLOSA>([^<]+)<\/GLOSA>/) || innerXml.match(/<GLOSA_ESTADO>([^<]+)<\/GLOSA_ESTADO>/);
+  const errCodeMatch = innerXml.match(/<ERR_CODE>([^<]+)<\/ERR_CODE>/);
+  const glosaErrMatch = innerXml.match(/<GLOSA_ERR>([^<]+)<\/GLOSA_ERR>/);
+  const numAtencionMatch = innerXml.match(/<NUM_ATENCION>([^<]+)<\/NUM_ATENCION>/);
+
+  return {
+    estado: (estadoMatch ? estadoMatch[1]!.trim() : "Otros") as SiiSoapEstado,
+    glosa: glosaMatch ? glosaMatch[1]!.trim() : "",
+    errCode: errCodeMatch ? errCodeMatch[1]!.trim() : "",
+    glosaErr: glosaErrMatch ? glosaErrMatch[1]!.trim() : "",
+    numAtencion: numAtencionMatch ? numAtencionMatch[1]!.trim() : "",
+  };
 }

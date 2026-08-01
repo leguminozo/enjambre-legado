@@ -92,7 +92,7 @@ function buildEncabezado(enc: DteEncabezado): string {
   <Totales>
     ${enc.montoNeto > 0 ? `<MntNeto>${Math.round(enc.montoNeto)}</MntNeto>` : ""}
     ${enc.montoExento > 0 ? `<MntExe>${Math.round(enc.montoExento)}</MntExe>` : ""}
-    ${enc.montoNeto > 0 ? `<TasaIVA>${enc.tasaIva}</TasaIVA>` : ""}
+    ${enc.montoNeto > 0 ? `<TasaIVA>${enc.tasaIva < 1 ? enc.tasaIva * 100 : enc.tasaIva}</TasaIVA>` : ""}
     ${enc.montoIva > 0 ? `<IVA>${Math.round(enc.montoIva)}</IVA>` : ""}
     <MntTotal>${Math.round(enc.montoTotal)}</MntTotal>
   </Totales>

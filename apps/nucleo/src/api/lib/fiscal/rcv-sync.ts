@@ -102,7 +102,7 @@ export async function syncRcvPeriod(
   const emisor = empresa as Record<string, unknown>;
   const ambiente = resolveSiiAmbiente(String(emisor.sii_ambiente ?? 'certificacion')) as import('@enjambre/contable').SiiEnvironment;
 
-  const token = await getSiiToken(ambiente, String(emisor.rut), credsResult.credentials.p12Password);
+  const token = await getSiiToken(ambiente, String(emisor.rut), credsResult.credentials.siiClave);
   const rcvResumen = await consultarRCV(ambiente, token.token, String(emisor.rut), periodo, tipo);
 
   const { data: sync, error: syncError } = await supabase

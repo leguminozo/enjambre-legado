@@ -243,6 +243,9 @@ importers:
       next:
         specifier: 16.2.6
         version: 16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      node-forge:
+        specifier: ^1.4.0
+        version: 1.4.0
       react:
         specifier: ^19.2.6
         version: 19.2.6
@@ -289,6 +292,9 @@ importers:
       '@types/node':
         specifier: ^25.9.1
         version: 25.9.1
+      '@types/node-forge':
+        specifier: ^1.3.14
+        version: 1.3.14
       '@types/react':
         specifier: ^19.2.15
         version: 19.2.15
@@ -2907,6 +2913,9 @@ packages:
   '@types/leaflet@1.9.21':
     resolution: {integrity: sha512-TbAd9DaPGSnzp6QvtYngntMZgcRk+igFELwR2N99XZn7RXUdKgsXMR+28bUO0rPsWp8MIu/f47luLIQuSLYv/w==}
 
+  '@types/node-forge@1.3.14':
+    resolution: {integrity: sha512-mhVF2BnD4BO+jtOp7z1CdzaK4mbuK0LLQYAvdOLqHTavxFNq4zA1EmYkpnFjP8HOUzedfQkRnp0E2ulSAYSzAw==}
+
   '@types/node@25.9.1':
     resolution: {integrity: sha512-xfrlY7UD5rMJk3ZVJP8BNzS28J36YJg+xp+LPXV1TdWxr8uMH5A860QNxYDGQe/ylDSgjxE52Q9VnO7p75tJxg==}
 
@@ -4247,6 +4256,10 @@ packages:
     peerDependenciesMeta:
       encoding:
         optional: true
+
+  node-forge@1.4.0:
+    resolution: {integrity: sha512-LarFH0+6VfriEhqMMcLX2F7SwSXeWwnEAJEsYm5QKWchiVYVvJyV9v7UDvUv+w5HO23ZpQTXDv/GxdDdMyOuoQ==}
+    engines: {node: '>= 6.13.0'}
 
   node-getopt@0.3.2:
     resolution: {integrity: sha512-yqkmYrMbK1wPrfz7mgeYvA4tBperLg9FQ4S3Sau3nSAkpOA0x0zC8nQ1siBwozy1f4SE8vq2n1WKv99r+PCa1Q==}
@@ -7043,6 +7056,10 @@ snapshots:
     dependencies:
       '@types/geojson': 7946.0.16
 
+  '@types/node-forge@1.3.14':
+    dependencies:
+      '@types/node': 25.9.1
+
   '@types/node@25.9.1':
     dependencies:
       undici-types: 7.24.6
@@ -8314,6 +8331,8 @@ snapshots:
   node-fetch@2.7.0:
     dependencies:
       whatwg-url: 5.0.0
+
+  node-forge@1.4.0: {}
 
   node-getopt@0.3.2: {}
 

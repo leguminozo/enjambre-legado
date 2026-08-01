@@ -40,7 +40,7 @@ const UpdateEnvioSchema = z.object({
   via: z.string().nullable().optional(),
   courier_code: z.string().nullable().optional(),
   courier_tracking_url: z.string().url().nullable().optional(),
-});
+}).strict();
 
 export const logisticaRoutes = new Hono<{
   Variables: AppVariables;
@@ -293,9 +293,20 @@ logisticaRoutes.patch("/envios/:id", zValidator("json", UpdateEnvioSchema), asyn
     return c.json({ code: "not_found", message: "Envío no encontrado" }, 404);
   }
 
+  const payload = {
+    ...(input.tracking_code !== undefined && { tracking_code: input.tracking_code }),
+    ...(input.destino !== undefined && { destino: input.destino }),
+    ...(input.items !== undefined && { items: input.items }),
+    ...(input.status !== undefined && { status: input.status }),
+    ...(input.eta !== undefined && { eta: input.eta }),
+    ...(input.via !== undefined && { via: input.via }),
+    ...(input.courier_code !== undefined && { courier_code: input.courier_code }),
+    ...(input.courier_tracking_url !== undefined && { courier_tracking_url: input.courier_tracking_url }),
+  };
+
   const { data, error } = await supabase
     .from("logistica_envios")
-    .update(input)
+    .update(payload)
     .eq("id", envioId)
     .select("*")
     .single();

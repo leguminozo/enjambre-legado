@@ -20,16 +20,28 @@ const UpdateLoteComercialSchema = z.object({
   canal_destino: z.enum(["individual", "colectivo", "acopio", "interno"]).optional().nullable(),
   relato_publico: z.string().max(5000).optional().nullable(),
   publico: z.boolean().optional(),
-});
+}).strict();
 
 produccionRoutes.patch("/lotes/:id", zValidator("json", UpdateLoteComercialSchema), async (c) => {
   const supabase = c.get("supabase");
   const { id } = c.req.param();
   const body = c.req.valid("json");
 
+  const payload = {
+    ...(body.variedad_floral !== undefined && { variedad_floral: body.variedad_floral }),
+    ...(body.metodo_extraccion !== undefined && { metodo_extraccion: body.metodo_extraccion }),
+    ...(body.analisis_humedad !== undefined && { analisis_humedad: body.analisis_humedad }),
+    ...(body.analisis_hmf !== undefined && { analisis_hmf: body.analisis_hmf }),
+    ...(body.lab_nombre !== undefined && { lab_nombre: body.lab_nombre }),
+    ...(body.lab_fecha !== undefined && { lab_fecha: body.lab_fecha }),
+    ...(body.canal_destino !== undefined && { canal_destino: body.canal_destino }),
+    ...(body.relato_publico !== undefined && { relato_publico: body.relato_publico }),
+    ...(body.publico !== undefined && { publico: body.publico }),
+  };
+
   const { data, error } = await supabase
     .from("lotes")
-    .update(body)
+    .update(payload)
     .eq("id", id)
     .select()
     .single();

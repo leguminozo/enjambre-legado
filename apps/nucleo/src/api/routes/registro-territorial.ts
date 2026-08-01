@@ -36,7 +36,7 @@ const ConsentimientosSchema = z.object({
   alertas_fitosanitarias: z.boolean().default(true),
   catalogo_infraestructura: z.boolean().default(false),
   acopio_cooperativo: z.boolean().default(false),
-});
+}).strict();
 
 const CreateActorSchema = z.object({
   rol: RolSchema,
@@ -46,7 +46,7 @@ const CreateActorSchema = z.object({
   region: z.string().default("Los Lagos"),
   consentimientos: ConsentimientosSchema.optional(),
   observaciones: z.string().max(1000).optional(),
-});
+}).strict();
 
 const CreatePredioSchema = z.object({
   actor_id: z.string().uuid(),
@@ -59,7 +59,7 @@ const CreatePredioSchema = z.object({
   disponible_desde: z.string().date().optional(),
   disponible_hasta: z.string().date().optional(),
   condiciones: z.string().max(2000).optional(),
-});
+}).strict();
 
 const CreateApiarioExternoSchema = z.object({
   actor_id: z.string().uuid(),
@@ -78,7 +78,7 @@ const CreateApiarioExternoSchema = z.object({
   cert_sanitaria_lab: z.string().max(200).optional(),
   bioseguridad_declarada: z.string().max(2000).optional(),
   observaciones: z.string().max(1000).optional(),
-});
+}).strict();
 
 const CreateAlertaSchema = z.object({
   actor_id: z.string().uuid(),
@@ -100,7 +100,7 @@ const CreateAlertaSchema = z.object({
   fecha_programada: z.string().datetime(),
   periodo_carencia_horas: z.number().int().min(0).optional(),
   observaciones: z.string().max(1000).optional(),
-});
+}).strict();
 
 // ---------------------------------------------------------------------------
 // ACTORES
@@ -236,9 +236,21 @@ registroTerritorialRoutes.post(
     const supabase = c.get("supabase");
     const body = c.req.valid("json");
 
+    const payload: any = {};
+    if (body.actor_id !== undefined) payload.actor_id = body.actor_id;
+    if (body.nombre !== undefined) payload.nombre = body.nombre;
+    if (body.comuna !== undefined) payload.comuna = body.comuna;
+    if (body.zona !== undefined) payload.zona = body.zona;
+    if (body.lat_aproximada !== undefined) payload.lat_aproximada = body.lat_aproximada;
+    if (body.lng_aproximada !== undefined) payload.lng_aproximada = body.lng_aproximada;
+    if (body.superficie_ha !== undefined) payload.superficie_ha = body.superficie_ha;
+    if (body.disponible_desde !== undefined) payload.disponible_desde = body.disponible_desde;
+    if (body.disponible_hasta !== undefined) payload.disponible_hasta = body.disponible_hasta;
+    if (body.condiciones !== undefined) payload.condiciones = body.condiciones;
+
     const { data, error } = await supabase
       .from("predios_facilitadores")
-      .insert(body)
+      .insert(payload)
       .select()
       .single();
 
@@ -289,9 +301,27 @@ registroTerritorialRoutes.post(
     const supabase = c.get("supabase");
     const body = c.req.valid("json");
 
+    const payload: any = {};
+    if (body.actor_id !== undefined) payload.actor_id = body.actor_id;
+    if (body.predio_id !== undefined) payload.predio_id = body.predio_id;
+    if (body.nombre !== undefined) payload.nombre = body.nombre;
+    if (body.n_colmenas !== undefined) payload.n_colmenas = body.n_colmenas;
+    if (body.comuna_origen !== undefined) payload.comuna_origen = body.comuna_origen;
+    if (body.comuna_destino !== undefined) payload.comuna_destino = body.comuna_destino;
+    if (body.zona_destino !== undefined) payload.zona_destino = body.zona_destino;
+    if (body.lat_aproximada !== undefined) payload.lat_aproximada = body.lat_aproximada;
+    if (body.lng_aproximada !== undefined) payload.lng_aproximada = body.lng_aproximada;
+    if (body.fecha_ingreso !== undefined) payload.fecha_ingreso = body.fecha_ingreso;
+    if (body.fecha_salida !== undefined) payload.fecha_salida = body.fecha_salida;
+    if (body.cert_sanitaria_url !== undefined) payload.cert_sanitaria_url = body.cert_sanitaria_url;
+    if (body.cert_sanitaria_fecha !== undefined) payload.cert_sanitaria_fecha = body.cert_sanitaria_fecha;
+    if (body.cert_sanitaria_lab !== undefined) payload.cert_sanitaria_lab = body.cert_sanitaria_lab;
+    if (body.bioseguridad_declarada !== undefined) payload.bioseguridad_declarada = body.bioseguridad_declarada;
+    if (body.observaciones !== undefined) payload.observaciones = body.observaciones;
+
     const { data, error } = await supabase
       .from("apiarios_externos")
-      .insert(body)
+      .insert(payload)
       .select()
       .single();
 
@@ -375,9 +405,23 @@ registroTerritorialRoutes.post(
     const supabase = c.get("supabase");
     const body = c.req.valid("json");
 
+    const payload: any = {};
+    if (body.actor_id !== undefined) payload.actor_id = body.actor_id;
+    if (body.comuna !== undefined) payload.comuna = body.comuna;
+    if (body.zona !== undefined) payload.zona = body.zona;
+    if (body.lat_aproximada !== undefined) payload.lat_aproximada = body.lat_aproximada;
+    if (body.lng_aproximada !== undefined) payload.lng_aproximada = body.lng_aproximada;
+    if (body.radio_km !== undefined) payload.radio_km = body.radio_km;
+    if (body.producto !== undefined) payload.producto = body.producto;
+    if (body.tipo_producto !== undefined) payload.tipo_producto = body.tipo_producto;
+    if (body.metodo_aplicacion !== undefined) payload.metodo_aplicacion = body.metodo_aplicacion;
+    if (body.fecha_programada !== undefined) payload.fecha_programada = body.fecha_programada;
+    if (body.periodo_carencia_horas !== undefined) payload.periodo_carencia_horas = body.periodo_carencia_horas;
+    if (body.observaciones !== undefined) payload.observaciones = body.observaciones;
+
     const { data, error } = await supabase
       .from("alertas_fitosanitarias")
-      .insert(body)
+      .insert(payload)
       .select()
       .single();
 

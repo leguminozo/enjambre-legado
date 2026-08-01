@@ -195,7 +195,7 @@ export async function emitBoletaVentaToSii(
     detalles,
   };
 
-  const { p12Base64, p12Password } = credsResult.credentials;
+  const { p12Base64, p12Password, siiClave } = credsResult.credentials;
   const signedXml = signDteXml(buildDteXml(dteDoc), p12Base64, p12Password);
   const caf = cafFull as Record<string, unknown>;
 
@@ -217,7 +217,7 @@ export async function emitBoletaVentaToSii(
   );
 
   const ambiente = resolveSiiAmbiente(String(emisor.sii_ambiente ?? 'certificacion')) as import('@enjambre/contable').SiiEnvironment;
-  const token = await getSiiToken(ambiente, String(emisor.rut), p12Password);
+  const token = await getSiiToken(ambiente, String(emisor.rut), siiClave);
   const envioResult = await enviarDte(ambiente, token.token, envioXml, formatRutSii(String(emisor.rut)));
 
   const estadoSii = mapEnvioEstado(envioResult.estado);

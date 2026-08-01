@@ -18,6 +18,7 @@ import {
   stampDteXml,
   enviarDte,
   consultarEstado,
+  consultarEstadoDteIndividual,
   getSiiToken,
 } from "@/api/lib/sii-client";
 import { resolveSiiAmbiente, resolveSiiCredentials } from "@/api/lib/sii-credentials";
@@ -25,12 +26,12 @@ import type { AppVariables } from "@/api/lib/middleware";
 import type { TablesInsert } from "@enjambre/database";
 
 const DteDetalleSchema = z.object({
-  nombre: z.string(),
+  nombre: z.string().max(255),
   cantidad: z.number().positive(),
   precio_unitario: z.number().nonnegative(),
-  codigo: z.string().optional(),
-  unidad_medida: z.string().optional(),
-  dimenciones: z.string().optional(),
+  codigo: z.string().max(100).optional(),
+  unidad_medida: z.string().max(20).optional(),
+  dimenciones: z.string().max(100).optional(),
 });
 
 // Esquemas de validación para diferentes tipos de DTE
@@ -49,13 +50,13 @@ const DteBaseSchema = z.object({
   fecha_emision: z.string().datetime(),
   monto_neto: z.number().nonnegative(),
   monto_exento: z.number().nonnegative().default(0),
-  descripcion: z.string().optional(),
-  receptor_rut: z.string(),
-  receptor_razon_social: z.string(),
-  receptor_giro: z.string().optional(),
-  receptor_direccion: z.string().optional(),
-  receptor_comuna: z.string().optional(),
-  receptor_ciudad: z.string().optional(),
+  descripcion: z.string().max(500).optional(),
+  receptor_rut: z.string().max(20),
+  receptor_razon_social: z.string().max(255),
+  receptor_giro: z.string().max(255).optional(),
+  receptor_direccion: z.string().max(300).optional(),
+  receptor_comuna: z.string().max(100).optional(),
+  receptor_ciudad: z.string().max(100).optional(),
   detalles: z.array(DteDetalleSchema).optional(),
   tercero_id: z.string().uuid().optional(),
 });
@@ -72,13 +73,13 @@ const BoletaSchema = DteBaseSchema.extend({
 
 // Esquema para guías de despacho
 const GuiaSchema = DteBaseSchema.extend({
-  destino_direccion: z.string(),
-  destino_comuna: z.string(),
-  destino_ciudad: z.string(),
-  motivo_traslado: z.string(),
+  destino_direccion: z.string().max(300),
+  destino_comuna: z.string().max(100),
+  destino_ciudad: z.string().max(100),
+  motivo_traslado: z.string().max(255),
   detalles: z.array(
     DteDetalleSchema.extend({
-      unidad_medida: z.string().default("UNIT"),
+      unidad_medida: z.string().max(20).default("UNIT"),
     })
   ).min(1),
 });
@@ -94,7 +95,7 @@ const NotaSchema = DteBaseSchema.extend({
   ]),
   folio_referencia: z.number().positive(),
   fecha_referencia: z.string().datetime(),
-  razon: z.string(), // Razón de la nota
+  razon: z.string().max(500), // Razón de la nota
 });
 
 // Union de todos los esquemas
@@ -183,7 +184,7 @@ dteRoutes.post(
         const status = credsResult.code === "no_certificado" ? 400 : 500;
         return c.json({ code: credsResult.code, message: credsResult.message }, status);
       }
-      const { p12Base64, p12Password } = credsResult.credentials;
+      const { p12Base64, p12Password, siiClave } = credsResult.credentials;
 
       // 5. Construir el documento DTE según el tipo
       let dteDoc: DteDocumento;
@@ -369,7 +370,7 @@ dteRoutes.post(
       const ambiente = (ambienteRaw.toUpperCase() === "PRODUCCION" ? "PRODUCCION" : "CERTIFICACION") as import("@enjambre/contable").SiiEnvironment;
 
       // 11. Obtener token SII
-      const token = await getSiiToken(ambiente, empresa.rut, p12Password);
+      const token = await getSiiToken(ambiente, empresa.rut, siiClave);
 
       // 12. Enviar DTE al SII
       const envioResult = await enviarDte(ambiente, token.token, envioXml, formatRutSii(empresa.rut));
@@ -618,12 +619,12 @@ dteRoutes.get(
         const status = credsResult.code === "no_certificado" ? 400 : 500;
         return c.json({ code: credsResult.code, message: credsResult.message }, status);
       }
-      const { p12Password } = credsResult.credentials;
+      const { siiClave } = credsResult.credentials;
 
       const ambiente = resolveSiiAmbiente(empresa.sii_ambiente) as import("@enjambre/contable").SiiEnvironment;
 
       // 4. Obtener token
-      const token = await getSiiToken(ambiente, empresa.rut, p12Password);
+      const token = await getSiiToken(ambiente, empresa.rut, siiClave);
 
       // 5. Consultar estado en SII
       const estadoResult = await consultarEstado(ambiente, token.token, track_id, empresa.rut);
@@ -707,6 +708,69 @@ dteRoutes.get(
         code: "sii_consulta_failed", 
         message: error instanceof Error ? error.message : "Error al consultar estado" 
       }, 500);
+    }
+  }
+);
+
+dteRoutes.get(
+  "/individual",
+  zValidator(
+    "query",
+    z.object({
+      tipo_dte: z.coerce.number(),
+      folio: z.coerce.number(),
+      rut_receptor: z.string(),
+      fecha_emision: z.string(), // DDMMAAAA
+      monto_total: z.coerce.number(),
+    })
+  ),
+  async (c) => {
+    const query = c.req.valid("query");
+    const supabase = c.get("supabase");
+    const empresaId = c.get("empresaId");
+
+    if (!empresaId) {
+      return c.json({ code: "unauthorized", message: "Empresa no definida en sesión" }, 401);
+    }
+
+    try {
+      const { data: empresaData, error: empresaError } = await supabase
+        .from("empresas")
+        .select("rut, sii_ambiente")
+        .eq("id", empresaId)
+        .single();
+
+      if (empresaError || !empresaData) {
+        return c.json({ code: "empresa_not_found", message: "Empresa no encontrada" }, 404);
+      }
+
+      const credsResult = await resolveSiiCredentials(supabase, empresaId);
+      if (!credsResult.ok) {
+        return c.json({ code: credsResult.code, message: credsResult.message }, 400);
+      }
+
+      const ambiente = resolveSiiAmbiente(empresaData.sii_ambiente) as import("@enjambre/contable").SiiEnvironment;
+      const token = await getSiiToken(ambiente, empresaData.rut, credsResult.credentials.siiClave);
+
+      const estadoResult = await consultarEstadoDteIndividual(
+        ambiente,
+        token.token,
+        empresaData.rut,
+        query.rut_receptor,
+        query.tipo_dte,
+        query.folio,
+        query.fecha_emision,
+        query.monto_total
+      );
+
+      return c.json({
+        success: true,
+        data: estadoResult,
+      });
+
+    } catch (error) {
+      console.error("[SII QueryEstDte] Error:", error);
+      return c.json({ code: "sii_query_failed", message: error instanceof Error ? error.message : "Error al consultar estado individual" }, 500);
     }
   }
 );

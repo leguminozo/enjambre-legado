@@ -41,8 +41,8 @@ const InitBodySchema = z.object({
 });
 
 const CommitBodySchema = z.object({
-  token_ws: z.string().min(1),
-  buyOrder: z.string().min(1).optional(),
+  token_ws: z.string().min(1).max(1024),
+  buyOrder: z.string().min(1).max(1024).optional(),
   provider: z.enum(['transbank', 'flow']).optional(),
 });
 

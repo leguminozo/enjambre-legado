@@ -184,9 +184,21 @@ pipelineRoutes.patch("/leads/:id", zValidator("json", UpdateLeadSchema), async (
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
 
+  const payload: any = {};
+  if (input.nombre !== undefined) payload.nombre = input.nombre;
+  if (input.email !== undefined) payload.email = input.email;
+  if (input.telefono !== undefined) payload.telefono = input.telefono;
+  if (input.empresa !== undefined) payload.empresa = input.empresa;
+  if (input.estado !== undefined) payload.estado = input.estado;
+  if (input.etapa_pipeline !== undefined) payload.etapa_pipeline = input.etapa_pipeline;
+  if (input.valor_estimado !== undefined) payload.valor_estimado = input.valor_estimado;
+  if (input.probabilidad_cierre !== undefined) payload.probabilidad_cierre = input.probabilidad_cierre;
+  if (input.fecha_cierre_estimada !== undefined) payload.fecha_cierre_estimada = input.fecha_cierre_estimada;
+  if (input.notas !== undefined) payload.notas = input.notas;
+
   const { data, error } = await supabase
     .from("crm_leads")
-    .update(input)
+    .update(payload)
     .eq("id", leadId)
     .eq("empresa_id", empresaId)
     .select("*")

@@ -11,7 +11,7 @@ const IngredientSchema = z.object({
   categoria: z.string().optional(),
   precio_ref: z.number().int().optional(),
   proveedor_ref: z.string().uuid().optional(),
-});
+}).strict();
 
 const PriceObsSchema = z.object({
   ingredient_id: z.string().uuid(),
@@ -21,7 +21,7 @@ const PriceObsSchema = z.object({
   fecha: z.string().optional(),
   fuente: z.enum(["manual", "factura", "cotizacion", "feria", "online"]).default("manual"),
   notas: z.string().optional(),
-});
+}).strict();
 
 const RecipeSchema = z.object({
   producto_id: z.string().uuid(),
@@ -31,7 +31,7 @@ const RecipeSchema = z.object({
   merma_pct: z.number().min(0).max(100).default(0),
   costo_empaque: z.number().int().min(0).default(0),
   notas: z.string().optional(),
-});
+}).strict();
 
 const RecipeLineSchema = z.object({
   ingredient_id: z.string().uuid(),
@@ -39,11 +39,11 @@ const RecipeLineSchema = z.object({
   estado: z.enum(["crudo", "procesado", "tostado", "molido", "fresco", "seco", "desecado"]),
   factor_conversion: z.number().positive().default(1.0),
   orden: z.number().int().min(0).default(0),
-});
+}).strict();
 
 const RecipeLinesBulkSchema = z.object({
   lines: z.array(RecipeLineSchema).min(1),
-});
+}).strict();
 
 export const costeoRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -283,9 +283,16 @@ costeoRoutes.patch("/recetas/:recipeId/lineas/:lineId", zValidator("json", Recip
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
 
+  const payload: any = {};
+  if (input.ingredient_id !== undefined) payload.ingredient_id = input.ingredient_id;
+  if (input.cantidad !== undefined) payload.cantidad = input.cantidad;
+  if (input.estado !== undefined) payload.estado = input.estado;
+  if (input.factor_conversion !== undefined) payload.factor_conversion = input.factor_conversion;
+  if (input.orden !== undefined) payload.orden = input.orden;
+
   const { data, error } = await supabase
     .from("recipe_lines")
-    .update(input)
+    .update(payload)
     .eq("id", lineId)
     .select("*, ingredients(id, nombre, unidad, precio_ref)")
     .single();

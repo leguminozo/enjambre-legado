@@ -6,19 +6,19 @@ import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, requireProfileRole, tenantMiddleware } from "@/api/lib/middleware";
 
 const CreateInvitationSchema = z.object({
-  roles: z.array(z.string().min(1)).min(1).default(["rep_ventas"]),
+  roles: z.array(z.enum(["rep_ventas", "creador", "admin", "cliente"])).min(1).default(["rep_ventas"]),
   tools: z.record(z.string(), z.unknown()).default({}),
   max_uses: z.number().int().min(1).optional(),
   expires_at: z.string().datetime().optional(),
-});
+}).strict();
 
 const UpdateInvitationSchema = z.object({
   active: z.boolean().optional(),
   max_uses: z.number().int().min(1).optional(),
   expires_at: z.string().datetime().nullable().optional(),
-  roles: z.array(z.string().min(1)).optional(),
+  roles: z.array(z.enum(["rep_ventas", "creador", "admin", "cliente"])).optional(),
   tools: z.record(z.string(), z.unknown()).optional(),
-});
+}).strict();
 
 const RedeemSchema = z.object({
   code: z.string().min(4).max(20),
@@ -30,7 +30,7 @@ const UpdateRepSchema = z.object({
   fixed_monthly: z.number().min(0).optional(),
   active: z.boolean().optional(),
   notas: z.string().max(500).optional(),
-});
+}).strict();
 
 const PayCommissionsSchema = z.object({
   commission_ids: z.array(z.string().uuid()).min(1),

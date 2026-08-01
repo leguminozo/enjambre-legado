@@ -20,6 +20,7 @@ describe('sii-credentials', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        single: vi.fn().mockResolvedValue({ data: null, error: null }),
       })),
       storage: { from: vi.fn() },
     } as any;
@@ -59,6 +60,12 @@ describe('sii-credentials', () => {
             storage_path: 'emp/cert.p12',
             nombre: 'demo',
             p12_password_encriptada: enc,
+          },
+          error: null,
+        }),
+        single: vi.fn().mockResolvedValue({
+          data: {
+            sii_clave_encriptada: enc,
           },
           error: null,
         }),

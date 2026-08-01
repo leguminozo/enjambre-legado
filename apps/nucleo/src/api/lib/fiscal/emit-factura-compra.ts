@@ -163,7 +163,7 @@ export async function emitFacturaCompraToSii(
     return { ok: false, code: credsResult.code, message: credsResult.message };
   }
 
-  const { p12Base64, p12Password } = credsResult.credentials;
+  const { p12Base64, p12Password, siiClave } = credsResult.credentials;
   const signedXml = signDteXml(buildDteXml(dteDoc), p12Base64, p12Password);
 
   const cafFolio = {
@@ -185,7 +185,7 @@ export async function emitFacturaCompraToSii(
   );
 
   const ambiente = resolveSiiAmbiente(String(emisor.sii_ambiente ?? 'certificacion')) as import('@enjambre/contable').SiiEnvironment;
-  const token = await getSiiToken(ambiente, String(emisor.rut), p12Password);
+  const token = await getSiiToken(ambiente, String(emisor.rut), siiClave);
   const envioResult = await enviarDte(ambiente, token.token, envioXml, String(emisor.rut));
 
   const estadoSii = mapEnvioEstado(envioResult.estado);

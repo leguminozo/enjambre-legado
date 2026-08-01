@@ -182,7 +182,7 @@ export async function emitFacturaDteFromRow(
 
   const ambienteRaw = empresa.sii_ambiente ?? 'certificacion';
   const ambiente = (ambienteRaw.toUpperCase() === 'PRODUCCION' ? 'PRODUCCION' : 'CERTIFICACION') as SiiEnvironment;
-  const token = await getSiiToken(ambiente, empresa.rut, credsResult.credentials.p12Password);
+  const token = await getSiiToken(ambiente, empresa.rut, credsResult.credentials.siiClave);
   const envioResult = await enviarDte(ambiente, token.token, envioXml, formatRutSii(empresa.rut));
 
   const estadoSii =

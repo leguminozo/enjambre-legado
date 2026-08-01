@@ -243,23 +243,35 @@ export default function LoginPage() {
     <main className="relative min-h-[100dvh] w-full bg-background text-foreground flex flex-col justify-between overflow-hidden px-5 pt-[max(3rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] select-none">
       {/* Starry / Cosmic Atmosphere Layer */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[60vh] rounded-full bg-gradient-to-b from-primary/15 via-primary/5 to-transparent blur-3xl opacity-60" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[60vh] rounded-full bg-gradient-to-b from-primary/25 via-primary/10 to-transparent blur-3xl opacity-80 mix-blend-screen" />
         <div
-          className="absolute inset-0 opacity-40"
+          className="absolute inset-0 opacity-80"
           style={{
-            backgroundImage: `radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.7), rgba(0, 0, 0, 0)),
-                              radial-gradient(1px 1px at 80px 120px, rgba(255, 255, 255, 0.5), rgba(0, 0, 0, 0)),
-                              radial-gradient(1.5px 1.5px at 150px 70px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
-                              radial-gradient(1px 1px at 220px 190px, rgba(255, 255, 255, 0.6), rgba(0, 0, 0, 0)),
-                              radial-gradient(1.5px 1.5px at 310px 40px, rgba(255, 255, 255, 0.75), rgba(0, 0, 0, 0)),
-                              radial-gradient(1px 1px at 50px 280px, rgba(255, 255, 255, 0.5), rgba(0, 0, 0, 0)),
-                              radial-gradient(2px 2px at 190px 320px, rgba(255, 255, 255, 0.65), rgba(0, 0, 0, 0)),
-                              radial-gradient(1px 1px at 290px 240px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0))`,
+            backgroundImage: `radial-gradient(1.5px 1.5px at 20px 30px, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0)),
+                              radial-gradient(1px 1px at 80px 120px, rgba(255, 255, 255, 0.6), rgba(0, 0, 0, 0)),
+                              radial-gradient(2px 2px at 150px 70px, rgba(255, 255, 255, 1), rgba(0, 0, 0, 0)),
+                              radial-gradient(1px 1px at 220px 190px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
+                              radial-gradient(2px 2px at 310px 40px, rgba(220, 200, 150, 0.9), rgba(0, 0, 0, 0)),
+                              radial-gradient(1.5px 1.5px at 50px 280px, rgba(255, 255, 255, 0.7), rgba(0, 0, 0, 0)),
+                              radial-gradient(2px 2px at 190px 320px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
+                              radial-gradient(1.5px 1.5px at 290px 240px, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0))`,
             backgroundRepeat: 'repeat',
-            backgroundSize: '350px 350px',
+            backgroundSize: '250px 250px',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/60" />
+        <div
+          className="absolute inset-0 opacity-60 animate-pulse"
+          style={{
+            animationDuration: '3s',
+            backgroundImage: `radial-gradient(1.5px 1.5px at 40px 70px, rgba(255, 255, 255, 0.9), rgba(0, 0, 0, 0)),
+                              radial-gradient(1px 1px at 110px 160px, rgba(255, 255, 255, 0.7), rgba(0, 0, 0, 0)),
+                              radial-gradient(2px 2px at 230px 80px, rgba(255, 215, 0, 0.8), rgba(0, 0, 0, 0)),
+                              radial-gradient(1.5px 1.5px at 320px 210px, rgba(255, 255, 255, 0.6), rgba(0, 0, 0, 0))`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: '300px 300px',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40" />
       </div>
 
       {/* Top / Center Hero Branding — Grok-style Display Logo + Tagline */}
@@ -375,7 +387,7 @@ export default function LoginPage() {
               className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 animate-in fade-in duration-200"
               onClick={() => setViewMode('collapsed')}
             />
-            <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-[32px] border-t border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] animate-in slide-in-from-bottom duration-300 max-w-md mx-auto">
+            <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 z-50 rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md mx-auto md:max-h-[90vh] overflow-y-auto">
               <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
 
               <div className="mb-6 text-center">
@@ -494,7 +506,7 @@ export default function LoginPage() {
               className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 animate-in fade-in duration-200"
               onClick={() => setViewMode('collapsed')}
             />
-            <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-[32px] border-t border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] animate-in slide-in-from-bottom duration-300 max-w-md mx-auto">
+            <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 z-50 rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md md:max-w-3xl mx-auto md:max-h-[90vh] overflow-y-auto">
               <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
 
               <div className="mb-6 text-center">
@@ -506,15 +518,17 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <form onSubmit={handleAuthSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto px-1 pb-4">
+              <form onSubmit={handleAuthSubmit} className="space-y-4 md:space-y-6 max-h-[70vh] md:max-h-[80vh] overflow-y-auto px-1 pb-4">
                 {message ? (
                   <div className="rounded-xl border border-primary/20 bg-primary/10 p-3 text-center text-xs text-primary">
                     {message}
                   </div>
                 ) : null}
 
-                <div>
-                  <label
+                <div className="flex flex-col md:grid md:grid-cols-2 md:gap-8">
+                  <div className="space-y-4">
+                    <div>
+                      <label
                     htmlFor="fullname"
                     className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
                   >
@@ -584,15 +598,17 @@ export default function LoginPage() {
                     </button>
                   </div>
                 </div>
-
-                <div className="pt-2">
-                  <div className="h-[1px] w-full bg-border/40 my-4" />
-                  <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-                    Perfil Territorial
-                  </h3>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-4 mt-2 md:mt-0">
+                  <div className="pt-2 md:pt-0">
+                    <div className="h-[1px] w-full bg-border/40 my-4 md:hidden" />
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+                      Perfil Territorial
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2">
                     <label
                       htmlFor="invite-code"
@@ -719,6 +735,8 @@ export default function LoginPage() {
                     </label>
                   </div>
                 </div>
+                </div>
+                </div>
 
                 {error ? <p className="text-xs text-destructive text-center mt-4">{error}</p> : null}
 
@@ -759,7 +777,7 @@ export default function LoginPage() {
                 setViewMode('collapsed');
               }}
             />
-            <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-[32px] border-t border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] animate-in slide-in-from-bottom duration-300 max-w-md mx-auto">
+            <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:top-1/2 md:-translate-y-1/2 z-50 rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md mx-auto md:max-h-[90vh] overflow-y-auto">
               <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
 
               <div className="mb-6 text-center">
