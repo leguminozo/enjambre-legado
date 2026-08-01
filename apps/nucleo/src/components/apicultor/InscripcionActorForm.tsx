@@ -17,6 +17,12 @@ export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFor
   const [rol, setRol] = useState('api_residente');
   const [comuna, setComuna] = useState('');
   const [region, setRegion] = useState('');
+  
+  // Consentimientos
+  const [mapaComunitario, setMapaComunitario] = useState(false);
+  const [alertasFitosanitarias, setAlertasFitosanitarias] = useState(true);
+  const [catalogoInfraestructura, setCatalogoInfraestructura] = useState(false);
+  const [acopioCooperativo, setAcopioCooperativo] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +41,12 @@ export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFor
           rol,
           comuna,
           region,
+          consentimientos: {
+            mapa_comunitario: mapaComunitario,
+            alertas_fitosanitarias: alertasFitosanitarias,
+            catalogo_infraestructura: catalogoInfraestructura,
+            acopio_cooperativo: acopioCooperativo
+          }
         }),
       });
 
@@ -52,8 +64,8 @@ export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFor
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-      <Card className="bg-card border-border w-full max-w-lg shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
+      <Card className="bg-card border-border w-full max-w-lg shadow-lg my-8">
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <div>
             <CardTitle className="text-lg font-semibold text-foreground">
@@ -93,7 +105,7 @@ export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFor
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
-                Nombre o Razón Social
+                Nombre o Razón Social <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
@@ -107,7 +119,7 @@ export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFor
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Comuna
+                  Comuna <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="text"
@@ -120,7 +132,7 @@ export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFor
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Región
+                  Región <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="text"
@@ -132,7 +144,76 @@ export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFor
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="border-t border-border pt-4 mt-2">
+              <h3 className="text-sm font-medium text-foreground mb-3">Consentimientos de Privacidad</h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                Usted decide qué nivel de visibilidad y participación desea tener en la red territorial.
+              </p>
+              
+              <div className="space-y-3">
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="flex items-center h-5">
+                    <input
+                      type="checkbox"
+                      checked={mapaComunitario}
+                      onChange={(e) => setMapaComunitario(e.target.checked)}
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Mapa Comunitario</span>
+                    <span className="text-xs text-muted-foreground">Acepto aparecer en el mapa comunitario (solo con ubicación aproximada, nunca exacta).</span>
+                  </div>
+                </label>
+                
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="flex items-center h-5">
+                    <input
+                      type="checkbox"
+                      checked={alertasFitosanitarias}
+                      onChange={(e) => setAlertasFitosanitarias(e.target.checked)}
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Alertas Fitosanitarias</span>
+                    <span className="text-xs text-muted-foreground">Deseo recibir y emitir notificaciones sobre aplicaciones de plaguicidas en mi sector.</span>
+                  </div>
+                </label>
+                
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="flex items-center h-5">
+                    <input
+                      type="checkbox"
+                      checked={catalogoInfraestructura}
+                      onChange={(e) => setCatalogoInfraestructura(e.target.checked)}
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Catálogo de Infraestructura</span>
+                    <span className="text-xs text-muted-foreground">Deseo participar en el sistema de reservas y arriendos compartidos (salas de extracción, etc.).</span>
+                  </div>
+                </label>
+                
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="flex items-center h-5">
+                    <input
+                      type="checkbox"
+                      checked={acopioCooperativo}
+                      onChange={(e) => setAcopioCooperativo(e.target.checked)}
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Acopio Cooperativo</span>
+                    <span className="text-xs text-muted-foreground">Tengo interés en participar en compras conjuntas o venta de miel en volumen.</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-6 border-t border-border">
               <Button
                 type="button"
                 variant="outline"

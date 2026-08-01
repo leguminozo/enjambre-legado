@@ -20,9 +20,22 @@ export interface EmpresaMember {
   rol: string;
 }
 
+export interface ActorRegistro {
+  id: string;
+  rol: string;
+  nombre_actor: string;
+  consentimientos: {
+    mapa_comunitario: boolean;
+    alertas_fitosanitarias: boolean;
+    catalogo_infraestructura: boolean;
+    acopio_cooperativo: boolean;
+  };
+}
+
 export function usePerfil() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [empresas, setEmpresas] = useState<EmpresaMember[]>([]);
+  const [actor, setActor] = useState<ActorRegistro | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -67,6 +80,15 @@ export function usePerfil() {
           rol: ue.rol as string,
         }));
         setEmpresas(mapped);
+      }
+
+      const { data: actorData } = await supabase
+        .from("actores_registro")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+      if (actorData) {
+        setActor(actorData as ActorRegistro);
       }
     } catch (err) {
       setMessage({ type: "error", text: "Error cargando perfil" });
@@ -166,6 +188,56 @@ export function usePerfil() {
     }
   }
 
+  async function updateConsentimiento(key: keyof ActorRegistro['consentimientos'], value: boolean) {
+    if (!actor) return;
+    try {
+      const newConsentimientos = {
+        ...actor.consentimientos,
+        [key]: value
+      };
+      const { error } = await supabase
+        .from("actores_registro")
+        .update({ consentimientos: newConsentimientos })
+        .eq("id", actor.id);
+      
+      if (error) throw error;
+      setActor({ ...actor, consentimientos: newConsentimientos });
+      setMessage({ type: "success", text: "Preferencias de privacidad actualizadas" });
+    } catch (error) {
+      console.error("[perfil] consent error:", error);
+      setMessage({ type: "error", text: "Error actualizando preferencias" });
+    }
+  }
+
+  async function joinRegistroTerritorial(rol: string, comuna: string) {
+    if (!profile) return;
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const res = await fetch("/api/registro-territorial/actores", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          rol,
+          comuna,
+          nombre_actor: profile.full_name || profile.email,
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setActor(json.data);
+        setMessage({ type: "success", text: "Te has unido al Registro Territorial" });
+      } else {
+        setMessage({ type: "error", text: "Error al unirte al Registro Territorial" });
+      }
+    } catch (error) {
+      console.error("[perfil] join registro error:", error);
+      setMessage({ type: "error", text: "Error de conexión al unirse al registro" });
+    }
+  }
+
   const cancelEdit = () => {
     if (profile) {
       setEditName(profile.full_name || "");
@@ -176,6 +248,7 @@ export function usePerfil() {
   return {
     profile,
     empresas,
+    actor,
     loading,
     saving,
     editMode,
@@ -201,5 +274,7 @@ export function usePerfil() {
     handleSaveProfile,
     handleAvatarUpload,
     handleChangePassword,
+    updateConsentimiento,
+    joinRegistroTerritorial,
   };
 }

@@ -40,6 +40,7 @@ import { ritualRoutes } from "@/api/routes/ritual";
 import { blockchainRoutes } from "@/api/routes/blockchain/anchors";
 import { registroTerritorialRoutes } from "@/api/routes/registro-territorial";
 import { lotesPublicosRoutes } from "@/api/routes/lotes-publicos";
+import { adminIdentidadesRoutes } from "@/api/routes/admin-identidades";
 import { getAllowedCorsOrigins } from "@/lib/publicUrls";
 
 export type { AppVariables };
@@ -228,6 +229,7 @@ app.route("/replenishment", replenishmentRoutes);
 app.route("/ritual", ritualRoutes);
 app.route("/blockchain", blockchainRoutes);
 app.route("/registro-territorial", registroTerritorialRoutes);
+app.route("/admin", adminIdentidadesRoutes);
 app.route("/lotes-publicos", lotesPublicosRoutes);
 
 app.onError((err, c) => {

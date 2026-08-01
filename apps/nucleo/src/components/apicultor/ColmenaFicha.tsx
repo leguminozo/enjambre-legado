@@ -135,14 +135,14 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                 <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid hsl(var(--accent) / 0.2)' }}>
                                     <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-sm)' }}>Nueva inspección — {inspeccionForm.date}</div>
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 8 }}>
-                                        <input type="number" placeholder="Marcos Cría" className="input-field" value={inspeccionForm.marcos_cria || ''} onChange={e => setInspeccionForm({ ...inspeccionForm, marcos_cria: parseInt(e.target.value) || 0 })} />
-                                        <input type="number" placeholder="Marcos Miel" className="input-field" value={inspeccionForm.marcos_miel || ''} onChange={e => setInspeccionForm({ ...inspeccionForm, marcos_miel: parseInt(e.target.value) || 0 })} />
-                                        <select className="input-field" value={inspeccionForm.poblacion} onChange={e => setInspeccionForm({ ...inspeccionForm, poblacion: e.target.value })}>
+                                        <input type="number" placeholder="Marcos Cría" className="input-field w-full" value={inspeccionForm.marcos_cria || ''} onChange={e => setInspeccionForm({ ...inspeccionForm, marcos_cria: parseInt(e.target.value) || 0 })} />
+                                        <input type="number" placeholder="Marcos Miel" className="input-field w-full" value={inspeccionForm.marcos_miel || ''} onChange={e => setInspeccionForm({ ...inspeccionForm, marcos_miel: parseInt(e.target.value) || 0 })} />
+                                        <select className="input-field w-full" value={inspeccionForm.poblacion} onChange={e => setInspeccionForm({ ...inspeccionForm, poblacion: e.target.value })}>
                                             <option value="Baja">Población: Baja</option>
                                             <option value="Media">Población: Media</option>
                                             <option value="Alta">Población: Alta</option>
                                         </select>
-                                        <select className="input-field" value={inspeccionForm.enjambrazon_riesgo} onChange={e => setInspeccionForm({ ...inspeccionForm, enjambrazon_riesgo: e.target.value as 'bajo' | 'medio' | 'alto' })}>
+                                        <select className="input-field w-full" value={inspeccionForm.enjambrazon_riesgo} onChange={e => setInspeccionForm({ ...inspeccionForm, enjambrazon_riesgo: e.target.value as 'bajo' | 'medio' | 'alto' })}>
                                             <option value="bajo">Enjambración: Bajo</option>
                                             <option value="medio">Enjambración: Medio</option>
                                             <option value="alto">Enjambración: Alto</option>
@@ -222,8 +222,8 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                             {showVarroaForm && (
                                 <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid hsl(var(--accent) / 0.2)' }}>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                                        <input type="number" step="0.5" className="input-field" placeholder="Nivel (0-10)" value={varroaForm.level || ''} onChange={e => setVarroaForm({ ...varroaForm, level: parseFloat(e.target.value) || 0 })} />
-                                        <select className="input-field" value={varroaForm.method} onChange={e => setVarroaForm({ ...varroaForm, method: e.target.value })}>
+                                        <input type="number" step="0.5" className="input-field w-full" placeholder="Nivel (0-10)" value={varroaForm.level || ''} onChange={e => setVarroaForm({ ...varroaForm, level: parseFloat(e.target.value) || 0 })} />
+                                        <select className="input-field w-full" value={varroaForm.method} onChange={e => setVarroaForm({ ...varroaForm, method: e.target.value })}>
                                             <option value="Lavado con alcohol">Lavado con alcohol</option>
                                             <option value="Caída natural">Caída natural</option>
                                             <option value="CO2">CO2</option>
@@ -288,8 +288,8 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                             {showPesoForm && (
                                 <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid hsl(var(--accent) / 0.2)' }}>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                                        <input type="number" step="0.1" className="input-field" placeholder="Peso en kg" value={pesoForm.kg || ''} onChange={e => setPesoForm({ ...pesoForm, kg: parseFloat(e.target.value) || 0 })} />
-                                        <input type="text" className="input-field" placeholder="Nota opcional" value={pesoForm.note} onChange={e => setPesoForm({ ...pesoForm, note: e.target.value })} />
+                                        <input type="number" step="0.1" className="input-field w-full" placeholder="Peso en kg" value={pesoForm.kg || ''} onChange={e => setPesoForm({ ...pesoForm, kg: parseFloat(e.target.value) || 0 })} />
+                                        <input type="text" className="input-field w-full" placeholder="Nota opcional" value={pesoForm.note} onChange={e => setPesoForm({ ...pesoForm, note: e.target.value })} />
                                     </div>
                                     <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
                                         <button className="btn btn-ghost btn-sm" onClick={() => setShowPesoForm(false)}>Cancelar</button>

@@ -447,8 +447,8 @@ export function VendedorView() {
         }
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input autoFocus type="text" placeholder="Nombre / Organización" className="input-field" value={newClientForm.name} onChange={e => setNewClientForm({ ...newClientForm, name: e.target.value })} />
-          <select className="input-field" value={newClientForm.type} onChange={e => setNewClientForm({ ...newClientForm, type: e.target.value })}>
+          <input autoFocus type="text" placeholder="Nombre / Organización" className="input-field w-full" value={newClientForm.name} onChange={e => setNewClientForm({ ...newClientForm, name: e.target.value })} />
+          <select className="input-field w-full" value={newClientForm.type} onChange={e => setNewClientForm({ ...newClientForm, type: e.target.value })}>
             <option value="Particular">Particular</option>
             <option value="Chef">Chef / Restorant</option>
             <option value="Reseller">Reseller / Tienda</option>

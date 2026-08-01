@@ -1,16 +1,26 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronRight, ImageOff, Plus, AlertTriangle, TrendingDown } from 'lucide-react';
+import { ChevronRight, ImageOff, Plus, AlertTriangle, TrendingDown, Edit } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, Badge, Spinner, toast, friendlyError, ImmersiveModal } from '@enjambre/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { LoteComercialForm } from './LoteComercialForm';
 
 interface Lote {
   id: string;
   nombre_lote?: string;
   kg_total: number;
   estado: string;
+  variedad_floral?: string;
+  metodo_extraccion?: string;
+  analisis_humedad?: number;
+  analisis_hmf?: number;
+  lab_nombre?: string;
+  lab_fecha?: string;
+  canal_destino?: string;
+  relato_publico?: string;
+  publico?: boolean;
   productos: Array<{
     id: string;
     nombre: string;
@@ -18,6 +28,16 @@ interface Lote {
     stock: number;
   }>;
   blockchain_hash?: string;
+  cosechas?: Array<{
+    kg: number;
+    floracion: string;
+    colmenas: {
+      name: string;
+      apiarios: {
+        name: string;
+      }
+    }
+  }>;
 }
 
 interface ProduccionData {
@@ -62,6 +82,7 @@ export function TrazabilidadPanel() {
     staleTime: 60_000,
   });
   const [selectedLote, setSelectedLote] = useState<string | null>(null);
+  const [editingLote, setEditingLote] = useState<Lote | null>(null);
   const [activeTab, setActiveTab] = useState<'arboles' | 'lotes' | 'reflexiones'>('lotes');
 
   const { data: localArboles = [], isLoading: loadingArboles } = useQuery<ArbolRow[]>({
@@ -289,25 +310,58 @@ export function TrazabilidadPanel() {
                             exit={{ height: 0, opacity: 0 }}
                             className="overflow-hidden"
                           >
-                            <div className="mt-4 pt-4 border-t border-border">
-                              <div className="text-xs font-medium mb-3 text-foreground">Productos del Lote:</div>
-                              {l.productos?.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                  {l.productos.map((p) => (
-                                    <div key={p.id} className="flex justify-between items-center text-xs bg-surface-sunken/50 px-3 py-2 rounded-md border border-border/30">
-                                      <span className="text-muted-foreground">{p.nombre} <span className="text-[0.65rem] opacity-70">({p.peso_neto_g}g)</span></span>
-                                      <span className="font-medium text-foreground">{p.stock} un.</span>
-                                    </div>
-                                  ))}
+                              <div className="mt-4 pt-4 border-t border-border">
+                                <div className="text-xs font-medium mb-3 text-foreground flex items-center justify-between">
+                                  <span>Origen del Bosque (Trazabilidad):</span>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="h-7 text-[0.65rem] border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingLote(l);
+                                    }}
+                                  >
+                                    <Edit size={12} className="mr-1.5" /> 
+                                    Editar Trazabilidad Comercial
+                                  </Button>
                                 </div>
-                              ) : (
-                                <div className="text-xs text-muted-foreground italic py-2">Sin productos asignados</div>
-                              )}
-                              <div className="mt-4 p-3 bg-primary/5 rounded-md border border-primary/10 flex items-center gap-3 text-xs">
-                                <span className="text-primary font-medium shrink-0 uppercase tracking-widest text-[0.6rem]">Blockchain</span>
-                                <span className="font-mono text-foreground/80 break-all select-all">{l.blockchain_hash || 'Sin firmar'}</span>
+                                {l.cosechas?.length ? (
+                                  <div className="flex flex-col gap-2 mb-4">
+                                    {l.cosechas.map((cos, idx) => (
+                                      <div key={idx} className="flex items-center gap-3 text-xs bg-accent/5 px-3 py-2 rounded-md border border-accent/20">
+                                        <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center text-accent shrink-0">🐝</div>
+                                        <div className="flex-1">
+                                          <div className="font-medium text-foreground">{cos.colmenas?.name || 'Colmena Desconocida'}</div>
+                                          <div className="text-[10px] text-muted-foreground uppercase">{cos.colmenas?.apiarios?.name || 'Apiario Desconocido'} · {cos.floracion || 'Floración nativa'}</div>
+                                        </div>
+                                        <div className="font-bold text-accent shrink-0">{cos.kg} kg</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="text-xs text-muted-foreground italic mb-4">No hay colmenas vinculadas en la plataforma.</div>
+                                )}
                               </div>
-                            </div>
+                              <div className="pt-2 border-t border-border">
+                                <div className="text-xs font-medium mb-3 text-foreground">Productos del Lote:</div>
+                                {l.productos?.length > 0 ? (
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {l.productos.map((p) => (
+                                      <div key={p.id} className="flex justify-between items-center text-xs bg-surface-sunken/50 px-3 py-2 rounded-md border border-border/30">
+                                        <span className="text-muted-foreground">{p.nombre} <span className="text-[0.65rem] opacity-70">({p.peso_neto_g}g)</span></span>
+                                        <span className="font-medium text-foreground">{p.stock} un.</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="text-xs text-muted-foreground italic py-2">Sin productos asignados</div>
+                                )}
+                                <div className="mt-4 p-3 bg-primary/5 rounded-md border border-primary/10 flex items-center gap-3 text-xs">
+                                  <span className="text-primary font-medium shrink-0 uppercase tracking-widest text-[0.6rem]">Blockchain</span>
+                                  <span className="font-mono text-foreground/80 break-all select-all">{l.blockchain_hash || 'Sin firmar'}</span>
+                                </div>
+                              </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -466,6 +520,27 @@ export function TrazabilidadPanel() {
           </div>
         </div>
       </ImmersiveModal>
+
+      {editingLote && (
+        <ImmersiveModal
+          open={!!editingLote}
+          onClose={() => setEditingLote(null)}
+          eyebrow="Trazabilidad"
+          title={`Editando Lote ${editingLote.id.slice(0, 8)}`}
+          size="lg"
+        >
+          <div className="flex justify-center">
+            <LoteComercialForm
+              lote={editingLote as any}
+              onSuccess={() => {
+                setEditingLote(null);
+                queryClient.invalidateQueries({ queryKey: ['produccion-dashboard'] });
+              }}
+              onCancel={() => setEditingLote(null)}
+            />
+          </div>
+        </ImmersiveModal>
+      )}
     </div>
   );
 }

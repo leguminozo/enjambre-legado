@@ -210,14 +210,14 @@ console.error('Error deleting product:', error);
               placeholder="Buscar productos..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field"
+              className="input-field w-full"
               style={{ paddingLeft: '2.5rem', width: '100%' }}
             />
           </div>
           <select
             value={filterVisible}
             onChange={(e) => setFilterVisible(e.target.value as typeof filterVisible)}
-            className="input-field"
+            className="input-field w-full"
             style={{ width: 'auto' }}
           >
             <option value="all">Todos</option>

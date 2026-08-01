@@ -4570,6 +4570,16 @@ export type Database = {
           id: string
           kg_total: number | null
           nombre_lote: string | null
+          actor_id: string | null
+          variedad_floral: string | null
+          metodo_extraccion: string | null
+          analisis_humedad: number | null
+          analisis_hmf: number | null
+          lab_nombre: string | null
+          lab_fecha: string | null
+          canal_destino: string | null
+          relato_publico: string | null
+          publico: boolean | null
         }
         Insert: {
           arboles_asociados?: number | null
@@ -4582,6 +4592,16 @@ export type Database = {
           id?: string
           kg_total?: number | null
           nombre_lote?: string | null
+          actor_id?: string | null
+          variedad_floral?: string | null
+          metodo_extraccion?: string | null
+          analisis_humedad?: number | null
+          analisis_hmf?: number | null
+          lab_nombre?: string | null
+          lab_fecha?: string | null
+          canal_destino?: string | null
+          relato_publico?: string | null
+          publico?: boolean | null
         }
         Update: {
           arboles_asociados?: number | null
@@ -4594,8 +4614,26 @@ export type Database = {
           id?: string
           kg_total?: number | null
           nombre_lote?: string | null
+          actor_id?: string | null
+          variedad_floral?: string | null
+          metodo_extraccion?: string | null
+          analisis_humedad?: number | null
+          analisis_hmf?: number | null
+          lab_nombre?: string | null
+          lab_fecha?: string | null
+          canal_destino?: string | null
+          relato_publico?: string | null
+          publico?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "lotes_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "actores_registro"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       loyalty_redemptions: {
         Row: {

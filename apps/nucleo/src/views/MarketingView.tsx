@@ -286,21 +286,21 @@ export function MarketingView() {
             value={postForm.content}
             onChange={(e) => setPostForm({ ...postForm, content: e.target.value })}
           />
-          <div className="form-grid-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <input
               type="text"
               placeholder="Fecha (ej: 12 mar)"
-              className="input-field"
+              className="input-field w-full"
               value={postForm.post_date}
               onChange={(e) => setPostForm({ ...postForm, post_date: e.target.value })}
             />
-            <select className="input-field" value={postForm.type} onChange={(e) => setPostForm({ ...postForm, type: e.target.value })}>
+            <select className="input-field w-full" value={postForm.type} onChange={(e) => setPostForm({ ...postForm, type: e.target.value })}>
               <option>Reel</option>
               <option>Story</option>
               <option>Post</option>
               <option>Carrusel</option>
             </select>
-            <select className="input-field" value={postForm.platform} onChange={(e) => setPostForm({ ...postForm, platform: e.target.value })}>
+            <select className="input-field w-full" value={postForm.platform} onChange={(e) => setPostForm({ ...postForm, platform: e.target.value })}>
               <option>IG</option>
               <option>TikTok</option>
               <option>LinkedIn</option>

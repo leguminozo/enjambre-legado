@@ -16,10 +16,7 @@ function resolveMode(width: number): ShellLayoutMode {
 export function useShellLayout(): ShellLayoutMode {
   // Prefer mobile on first paint to avoid missing bottom-nav on phones (SSR → client).
   // Desktop/tablet correct themselves on the first client effect frame.
-  const [mode, setMode] = useState<ShellLayoutMode>(() => {
-    if (typeof window === 'undefined') return 'mobile';
-    return resolveMode(window.innerWidth);
-  });
+  const [mode, setMode] = useState<ShellLayoutMode>('mobile');
 
   useEffect(() => {
     const update = () => setMode(resolveMode(window.innerWidth));

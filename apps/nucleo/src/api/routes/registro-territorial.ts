@@ -205,7 +205,7 @@ registroTerritorialRoutes.patch(
 /** GET /api/registro-territorial/predios — predios disponibles */
 registroTerritorialRoutes.get("/predios", async (c) => {
   const supabase = c.get("supabase");
-  const { comuna } = c.req.query();
+  const { comuna, actor_id } = c.req.query();
 
   let query = supabase
     .from("predios_facilitadores")
@@ -220,6 +220,7 @@ registroTerritorialRoutes.get("/predios", async (c) => {
     .order("created_at", { ascending: false });
 
   if (comuna) query = query.eq("comuna", comuna);
+  if (actor_id) query = query.eq("actor_id", actor_id);
 
   const { data, error } = await query;
   if (error) return c.json({ error: error.message }, 500);
@@ -254,7 +255,7 @@ registroTerritorialRoutes.post(
 /** GET /api/registro-territorial/apiarios-externos — declaraciones activas */
 registroTerritorialRoutes.get("/apiarios-externos", async (c) => {
   const supabase = c.get("supabase");
-  const { comuna, estado } = c.req.query();
+  const { comuna, estado, actor_id } = c.req.query();
 
   let query = supabase
     .from("apiarios_externos")
@@ -272,6 +273,7 @@ registroTerritorialRoutes.get("/apiarios-externos", async (c) => {
 
   if (comuna) query = query.eq("comuna_destino", comuna);
   if (estado) query = query.eq("estado", estado);
+  if (actor_id) query = query.eq("actor_id", actor_id);
 
   const { data, error } = await query;
   if (error) return c.json({ error: error.message }, 500);

@@ -333,26 +333,26 @@ export function RegeneracionView() {
           </>
         }
       >
-        <div className="form-grid-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="micro-label block mb-1">Especie</label>
-            <input type="text" placeholder="Ej: Ulmo, Tepú, Canelo..." value={formData.species} onChange={e => setFormData(prev => ({ ...prev, species: e.target.value }))} className="input-field" />
+            <input type="text" placeholder="Ej: Ulmo, Tepú, Canelo..." value={formData.species} onChange={e => setFormData(prev => ({ ...prev, species: e.target.value }))} className="input-field w-full" />
           </div>
           <div>
             <label className="micro-label block mb-1">Cantidad</label>
-            <input type="number" placeholder="Número de árboles" value={formData.count} onChange={e => setFormData(prev => ({ ...prev, count: e.target.value }))} className="input-field" />
+            <input type="number" placeholder="Número de árboles" value={formData.count} onChange={e => setFormData(prev => ({ ...prev, count: e.target.value }))} className="input-field w-full" />
           </div>
           <div>
             <label className="micro-label block mb-1">Ubicación / Sector</label>
-            <input type="text" placeholder="Sector o coordenada" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} className="input-field" />
+            <input type="text" placeholder="Sector o coordenada" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} className="input-field w-full" />
           </div>
           <div>
             <label className="micro-label block mb-1">Fecha</label>
-            <input type="text" placeholder="Ej: 2026-06-13 o rango" value={formData.date} onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))} className="input-field" />
+            <input type="text" placeholder="Ej: 2026-06-13 o rango" value={formData.date} onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))} className="input-field w-full" />
           </div>
           <div>
             <label className="micro-label block mb-1">Estado de Crecimiento</label>
-            <select value={formData.status} onChange={e => setFormData(prev => ({ ...prev, status: e.target.value }))} className="input-field">
+            <select value={formData.status} onChange={e => setFormData(prev => ({ ...prev, status: e.target.value }))} className="input-field w-full">
               <option value="joven">Joven</option>
               <option value="creciendo">Creciendo</option>
               <option value="adulto">Adulto</option>
@@ -360,7 +360,7 @@ export function RegeneracionView() {
           </div>
           <div>
             <label className="micro-label block mb-1">Notas</label>
-            <input type="text" placeholder="Observaciones (opcional)" value={formData.notes} onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))} className="input-field" />
+            <input type="text" placeholder="Observaciones (opcional)" value={formData.notes} onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))} className="input-field w-full" />
           </div>
         </div>
       </ImmersiveModal>
@@ -378,7 +378,7 @@ export function RegeneracionView() {
           </>
         }
       >
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="micro-label block mb-1">Especie</label>
             <input type="text" value={editFormData.species} onChange={e => setEditFormData(prev => ({ ...prev, species: e.target.value }))} className="input-field w-full" />

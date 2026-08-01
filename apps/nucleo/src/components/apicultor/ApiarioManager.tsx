@@ -241,16 +241,16 @@ const apiarioHealth = apiarioColmenas.some(c => c.health === 'risk') ? 'hsl(var(
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
                             <div>
                                 <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Nombre identificador</label>
-                                <input className="input-field" value={editingColmena.name} onChange={e => setEditingColmena({ ...editingColmena, name: e.target.value })} placeholder="Ej. Colmena Reina Vieja" />
+                                <input className="input-field w-full" value={editingColmena.name} onChange={e => setEditingColmena({ ...editingColmena, name: e.target.value })} placeholder="Ej. Colmena Reina Vieja" />
                             </div>
                             <div>
                                 <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Apiario destino</label>
-                                <input className="input-field" value={editingColmena.apiario_name || ''} onChange={e => setEditingColmena({ ...editingColmena, apiario_name: e.target.value })} />
+                                <input className="input-field w-full" value={editingColmena.apiario_name || ''} onChange={e => setEditingColmena({ ...editingColmena, apiario_name: e.target.value })} />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                                 <div>
                                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Estado de salud</label>
-                                    <select className="input-field" value={editingColmena.health || 'optimal'} onChange={e => setEditingColmena({ ...editingColmena, health: e.target.value as ColmenaWithRelations['health'] })}>
+                                    <select className="input-field w-full" value={editingColmena.health || 'optimal'} onChange={e => setEditingColmena({ ...editingColmena, health: e.target.value as ColmenaWithRelations['health'] })}>
                                         <option value="optimal">Óptima</option>
                                         <option value="attention">Atención</option>
                                         <option value="risk">Riesgo / Critica</option>
@@ -258,7 +258,7 @@ const apiarioHealth = apiarioColmenas.some(c => c.health === 'risk') ? 'hsl(var(
                                 </div>
                                 <div>
                                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Alzas activas</label>
-                                    <input className="input-field" type="number" min={0} max={6} value={editingColmena.alzas || 0} onChange={e => setEditingColmena({ ...editingColmena, alzas: parseInt(e.target.value) || 0 })} />
+                                    <input className="input-field w-full" type="number" min={0} max={6} value={editingColmena.alzas || 0} onChange={e => setEditingColmena({ ...editingColmena, alzas: parseInt(e.target.value) || 0 })} />
                                 </div>
                             </div>
                         </div>

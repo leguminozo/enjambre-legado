@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ShieldAlert, Map, QrCode, ArrowRight, UserCircle2 } from 'lucide-react';
-import { Button } from '@enjambre/ui';
+
 
 export default function RedApicolaLanding() {
   return (
@@ -12,7 +12,7 @@ export default function RedApicolaLanding() {
             CH
           </div>
           <span className="font-medium text-sm tracking-wide hidden sm:block">
-            Registro Territorial
+            Registro Territorial Apícola de Chiloé
           </span>
         </div>
         <div>
@@ -47,10 +47,10 @@ export default function RedApicolaLanding() {
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center max-w-md z-10">
           <Link
-            href="/login?mode=signup"
+            href="/login"
             className="w-full min-h-12 inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium transition-all duration-300 shadow-xl shadow-primary/20 active:scale-95 group"
           >
-            Inscribir mi Apiario
+            Inscribirse · Acceder
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

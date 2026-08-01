@@ -12,12 +12,16 @@ import { motion } from 'framer-motion';
 import { AlertaFitosanitariaForm } from '@/components/apicultor/AlertaFitosanitariaForm';
 import { AlertasPanel } from '@/components/apicultor/AlertasPanel';
 import { InscripcionActorForm } from '@/components/apicultor/InscripcionActorForm';
+import { ApiarioExternoForm } from '@/components/apicultor/ApiarioExternoForm';
 import dynamic from 'next/dynamic';
 
 const MapaTerritorial = dynamic(
   () => import('@/components/apicultor/MapaTerritorial').then((mod) => mod.MapaTerritorial),
   { ssr: false, loading: () => <div className="h-[500px] flex items-center justify-center bg-card rounded-xl border border-border"><Spinner /></div> }
 );
+
+import { PredioForm } from '@/components/apicultor/PredioForm';
+import { Map, Truck } from 'lucide-react';
 
 type Tab = 'resumen' | 'mapa' | 'actores' | 'alertas' | 'predios' | 'trashumantes';
 
@@ -37,6 +41,37 @@ interface AlertaResumen {
   fecha_programada: string;
   estado: string;
   confirmaciones: unknown[];
+  lat_aproximada?: number;
+  lng_aproximada?: number;
+  radio_km?: number;
+}
+
+interface PredioResumen {
+  id: string;
+  nombre?: string;
+  comuna: string;
+  zona: string;
+  superficie_ha?: number;
+  activo: boolean;
+  actores_registro: { nombre_actor: string, rol: string };
+}
+
+interface ApiarioExternoResumen {
+  id: string;
+  nombre?: string;
+  n_colmenas: number;
+  comuna_origen: string;
+  comuna_destino: string;
+  zona_destino: string;
+  lat_aproximada?: number;
+  lng_aproximada?: number;
+  fecha_ingreso: string;
+  fecha_salida?: string;
+  estado: string;
+  actores_registro: {
+    nombre_actor: string;
+    rup?: string;
+  };
 }
 
 const ROL_LABELS: Record<string, string> = {
@@ -64,6 +99,7 @@ export function RegistroTerritorialView() {
   const [showInscripcion, setShowInscripcion] = useState(false);
   const [showAlertaForm, setShowAlertaForm] = useState(false);
   const [showApiarioExterno, setShowApiarioExterno] = useState(false);
+  const [showPredioForm, setShowPredioForm] = useState(false);
 
   const { data: actoresData, isLoading: loadingActores, refetch: refetchActores } = useQuery<{
     data: ActorResumen[];
@@ -87,8 +123,32 @@ export function RegistroTerritorialView() {
     },
   });
 
+  const { data: prediosData, isLoading: loadingPredios, refetch: refetchPredios } = useQuery<{
+    data: PredioResumen[];
+  }>({
+    queryKey: ['registro-territorial-predios'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/registro-territorial/predios');
+      if (!res.ok) throw new Error('Error cargando predios');
+      return res.json();
+    },
+  });
+
+  const { data: apiariosData, isLoading: loadingApiarios, refetch: refetchApiarios } = useQuery<{
+    data: ApiarioExternoResumen[];
+  }>({
+    queryKey: ['registro-territorial-apiarios-externos'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/registro-territorial/apiarios-externos');
+      if (!res.ok) throw new Error('Error cargando apiarios externos');
+      return res.json();
+    },
+  });
+
   const actores = actoresData?.data ?? [];
   const alertas = alertasData?.data ?? [];
+  const predios = prediosData?.data ?? [];
+  const apiariosExternos = apiariosData?.data ?? [];
 
   const stats = {
     totalActores: actores.length,
@@ -97,17 +157,17 @@ export function RegistroTerritorialView() {
     alertasActivas: alertas.filter(a => a.estado === 'activa').length,
   };
 
-  const tabs: { id: Tab; label: string; icon: typeof MapPin }[] = [
+  const tabs: { id: Tab; label: string; icon: any }[] = [
     { id: 'resumen', label: 'Resumen', icon: MapPin },
-    { id: 'mapa', label: 'Mapa', icon: MapPin },
+    { id: 'mapa', label: 'Mapa', icon: Map },
     { id: 'actores', label: 'Actores', icon: Users },
     { id: 'alertas', label: 'Alertas', icon: AlertTriangle },
+    { id: 'trashumantes', label: 'Trashumantes', icon: Truck },
     { id: 'predios', label: 'Predios', icon: Home },
   ];
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">
@@ -127,6 +187,14 @@ export function RegistroTerritorialView() {
             Emitir alerta
           </Button>
           <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowApiarioExterno(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Declarar Ingreso
+          </Button>
+          <Button
             size="sm"
             onClick={() => setShowInscripcion(true)}
           >
@@ -136,7 +204,6 @@ export function RegistroTerritorialView() {
         </div>
       </div>
 
-      {/* Stats cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: 'Actores registrados', value: stats.totalActores, color: 'text-foreground' },
@@ -153,7 +220,6 @@ export function RegistroTerritorialView() {
         ))}
       </div>
 
-      {/* Tab nav */}
       <div className="flex gap-1 border-b border-border">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
@@ -171,7 +237,6 @@ export function RegistroTerritorialView() {
         ))}
       </div>
 
-      {/* Tab content */}
       <motion.div
         key={tab}
         initial={{ opacity: 0, y: 8 }}
@@ -237,7 +302,7 @@ export function RegistroTerritorialView() {
         )}
 
         {tab === 'mapa' && (
-          <MapaTerritorial actores={actores} alertas={alertas} />
+          <MapaTerritorial actores={actores} alertas={alertas} apiariosExternos={apiariosExternos} />
         )}
 
         {tab === 'actores' && (
@@ -281,19 +346,136 @@ export function RegistroTerritorialView() {
         {tab === 'alertas' && (
           <AlertasPanel
             alertas={alertas}
+            actores={actores}
             isLoading={loadingAlertas}
             onRefresh={() => { refetchAlertas().catch(() => toast.error('Error actualizando alertas')); }}
           />
         )}
 
+        {tab === 'trashumantes' && (
+          <div className="flex flex-col gap-3">
+            {loadingApiarios ? (
+              <div className="flex justify-center py-12"><Spinner /></div>
+            ) : apiariosExternos.length === 0 ? (
+              <Card className="bg-card border-border">
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">No hay ingresos de trashumantes declarados.</p>
+                  <Button className="mt-4" onClick={() => setShowApiarioExterno(true)}>
+                    Declarar primer ingreso
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              apiariosExternos.map((apiario) => (
+                <Card key={apiario.id} className="bg-card border-border">
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-foreground">
+                        {apiario.actores_registro.nombre_actor}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Origen: {apiario.comuna_origen} → Destino: {apiario.comuna_destino} ({apiario.zona_destino})
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {apiario.n_colmenas} colmenas | Ingreso: {new Date(apiario.fecha_ingreso).toLocaleDateString('es-CL')}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={apiario.estado === 'activo' || apiario.estado === 'declarado' ? 'default' : 'warning'}>
+                        {apiario.estado}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        )}
+
         {tab === 'predios' && (
-          <Card className="bg-card border-border">
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground text-sm">
-                Módulo de predios facilitadores — próximamente
-              </p>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-between items-center pb-2">
+              <h2 className="text-lg font-medium text-foreground">Catastro de Predios Facilitadores</h2>
+              <Button size="sm" onClick={() => setShowPredioForm(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Registrar Predio
+              </Button>
+            </div>
+            {loadingPredios ? (
+              <div className="flex justify-center py-12"><Spinner /></div>
+            ) : predios.length === 0 ? (
+              <Card className="bg-card border-border">
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">No hay predios facilitadores registrados aún.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              predios.map((predio) => (
+                <Card key={predio.id} className="bg-card border-border">
+                  <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <p className="font-medium text-foreground flex items-center gap-2">
+                        <Home className="w-4 h-4 text-primary" />
+                        {predio.nombre || 'Predio sin nombre'}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Propietario: {predio.actores_registro?.nombre_actor}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {predio.comuna} · {predio.zona} {predio.superficie_ha ? `· ${predio.superficie_ha} ha` : ''}
+                      </p>
+                    </div>
+                    <Badge variant={predio.activo ? 'success' : 'default'}>
+                      {predio.activo ? 'Disponible' : 'Inactivo'}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        )}
+
+        {tab === 'trashumantes' && (
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-between items-center pb-2">
+              <h2 className="text-lg font-medium text-foreground">Declaraciones de Trashumancia</h2>
+              <Button size="sm" onClick={() => setShowApiarioExterno(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Declarar Ingreso
+              </Button>
+            </div>
+            {loadingApiarios ? (
+              <div className="flex justify-center py-12"><Spinner /></div>
+            ) : apiariosExternos.length === 0 ? (
+              <Card className="bg-card border-border">
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">No hay declaraciones de apiarios trashumantes activas.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              apiariosExternos.map((apiario) => (
+                <Card key={apiario.id} className="bg-card border-border">
+                  <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <p className="font-medium text-foreground flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-accent" />
+                        {apiario.actores_registro?.nombre_actor} {apiario.nombre ? `- ${apiario.nombre}` : ''}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {apiario.n_colmenas} colmenas ingresadas el {new Date(apiario.fecha_ingreso).toLocaleDateString('es-CL')}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Ruta: {apiario.comuna_origen} ➔ {apiario.comuna_destino} ({apiario.zona_destino})
+                      </p>
+                    </div>
+                    <Badge variant={apiario.estado === 'activo' ? 'success' : 'default'}>
+                      {apiario.estado}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         )}
       </motion.div>
 
@@ -314,6 +496,29 @@ export function RegistroTerritorialView() {
           onSuccess={() => {
             setShowAlertaForm(false);
             refetchAlertas().catch(() => toast.error('Error actualizando alertas'));
+          }}
+        />
+      )}
+
+      {showApiarioExterno && (
+        <ApiarioExternoForm
+          actores={actores}
+          predios={predios}
+          onClose={() => setShowApiarioExterno(false)}
+          onSuccess={() => {
+            setShowApiarioExterno(false);
+            refetchApiarios().catch(() => toast.error('Error actualizando apiarios'));
+          }}
+        />
+      )}
+
+      {showPredioForm && (
+        <PredioForm
+          actores={actores}
+          onClose={() => setShowPredioForm(false)}
+          onSuccess={() => {
+            setShowPredioForm(false);
+            refetchPredios().catch(() => toast.error('Error actualizando predios'));
           }}
         />
       )}

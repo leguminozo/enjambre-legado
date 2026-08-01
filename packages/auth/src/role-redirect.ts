@@ -3,6 +3,7 @@ export type RoleKey =
   | 'creador'
   | 'rep_ventas'
   | 'cliente'
+  | 'territorial'
 
 export const LEGACY_ROLE_MAP: Record<string, RoleKey> = {
   gerente: 'admin',
@@ -24,6 +25,7 @@ const RELATIVE_ROLE_HOME: Record<string, string> = {
   creador: '/perfil/creador',
   rep_ventas: '/pos',
   cliente: '/catalogo',
+  territorial: '/territorio',
   ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map((k) => [k, '/ejecutivo'])),
 }
 
@@ -36,6 +38,7 @@ export const ROLE_REDIRECT_MAP: Record<string, string> = {
   creador: absOrPath(process.env.NEXT_PUBLIC_URL_TIENDA, '/perfil/creador'),
   rep_ventas: absOrPath(process.env.NEXT_PUBLIC_URL_CAMPO, '/pos'),
   cliente: absOrPath(process.env.NEXT_PUBLIC_URL_TIENDA, '/catalogo'),
+  territorial: '/territorio',
   ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map((k) => [k, '/ejecutivo'])),
 }
 
@@ -97,6 +100,7 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/editor-tienda': ['admin'],
   '/calendario': ['admin'],
   '/pipeline': ['admin'],
+  '/territorio': ['territorial'],
   // '/calculos-ia' y '/vanguardia' ya arriba (vanguardia redirect → /crm?tab=aliados)
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { BadgeDotColor, SidebarBadge } from '../config/sidebar-config'
 import { supabase } from '../lib/supabase'
 
@@ -151,6 +151,9 @@ export function useSidebarBadges() {
   const [badges, setBadges] = useState<SidebarBadgeValues>(() => readCache() ?? DEFAULT_BADGES)
   const [isLoading, setIsLoading] = useState(() => readCache() === null)
 
+  // Debounce para colapsar bursts de eventos realtime en una sola fetch.
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const fetchBadges = useCallback(async () => {
     if (!supabase) {
       setIsLoading(false)
@@ -178,6 +181,15 @@ export function useSidebarBadges() {
     setIsLoading(false)
   }, [])
 
+  // Trailing-edge ~300ms. El fetch inicial (Effect #1, idle-deferred) llama directo;
+  // solo los handlers de realtime usan esta versión para no thrashhear RPC + getUser.
+  const fetchBadgesDebounced = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      void fetchBadges()
+    }, 300)
+  }, [fetchBadges])
+
   useEffect(() => {
     const defer =
       typeof requestIdleCallback !== 'undefined'
@@ -200,31 +212,102 @@ export function useSidebarBadges() {
   useEffect(() => {
     if (!supabase) return
 
-    // Un solo canal + todos los .on() ANTES de subscribe().
-    // Nombre único: evita reutilizar un canal ya suscrito (Strict Mode / remount
-    // de fetchBadges) que lanza "cannot add postgres_changes callbacks after subscribe()".
-    const channelName = `sidebar-badges-${Math.random().toString(36).slice(2, 10)}`
-    const channel = supabase
-      .channel(channelName)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'varroa_records' }, () => {
-        void fetchBadges()
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'logistica_envios' }, () => {
-        void fetchBadges()
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'facturas_emitidas' }, () => {
-        void fetchBadges()
-      })
-      .subscribe((status: string, err?: Error) => {
-        if (err || status === 'CHANNEL_ERROR') {
-          console.error('[useSidebarBadges] realtime error', err)
+    // Refs vivos a lo largo del ciclo del efecto: canal activo, timer de backoff,
+    // contador de reintentos y flag de desmonte para no reconectar tras cleanup.
+    const channelRef: { current: ReturnType<typeof supabase.channel> | null } = { current: null }
+    const reconnectRef = { current: null as ReturnType<typeof setTimeout> | null }
+    const attemptsRef = { current: 0 }
+    let disposed = false
+
+    // Crea (o recrea) el canal. Solo se suscribe si hay sesión activa; sin sesión,
+    // RLS descarta silenciosamente los payloads, así que esperamos a onAuthStateChange.
+    const setupChannel = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (disposed || !session) return
+
+      // Un solo canal + todos los .on() ANTES de subscribe().
+      // Nombre único: evita reutilizar un canal ya suscrito (Strict Mode / remount)
+      // que lanza "cannot add postgres_changes callbacks after subscribe()".
+      const channelName = `sidebar-badges-${Math.random().toString(36).slice(2, 10)}`
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'varroa_records' },
+          () => fetchBadgesDebounced(),
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'logistica_envios' },
+          () => fetchBadgesDebounced(),
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'facturas_emitidas' },
+          () => fetchBadgesDebounced(),
+        )
+        .subscribe((status: string, err?: Error) => {
+          if (status === 'SUBSCRIBED') {
+            attemptsRef.current = 0
+            return
+          }
+          // TIMED_OUT | CLOSED | CHANNEL_ERROR: heartbeat muerto o JWT expirado.
+          // Tear down + backoff exponencial (1s, 2s, 4s, ... capped 30s, ~5 intentos).
+          // Cada reintento re-resuelve getSession() para usar un token ya refrescado.
+          if (status === 'TIMED_OUT' || status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+            console.error('[useSidebarBadges] realtime error', status, err)
+            if (channelRef.current) {
+              void supabase.removeChannel(channelRef.current)
+              channelRef.current = null
+            }
+            if (attemptsRef.current >= 5 || disposed) return
+            const delay = Math.min(1000 * 2 ** attemptsRef.current, 30_000)
+            attemptsRef.current += 1
+            if (reconnectRef.current) clearTimeout(reconnectRef.current)
+            reconnectRef.current = setTimeout(() => {
+              void setupChannel()
+            }, delay)
+          }
+        })
+
+      channelRef.current = channel
+    }
+
+    // Re-subscribe en cambios de sesión. Crítico para sesiones largas p.ej. admin
+    // creando cuentas en el Panel de Identidades: el token vence en mitad de la
+    // operación y hay que reenganchar el canal con el token refrescado.
+    const {
+      data: { subscription: authSub },
+    } = supabase.auth.onAuthStateChange((event: string) => {
+      if (disposed) return
+      if (event === 'SIGNED_OUT') {
+        if (channelRef.current) {
+          void supabase.removeChannel(channelRef.current)
+          channelRef.current = null
         }
-      })
+        return
+      }
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        if (channelRef.current) {
+          void supabase.removeChannel(channelRef.current)
+          channelRef.current = null
+        }
+        attemptsRef.current = 0
+        void setupChannel()
+      }
+    })
+
+    void setupChannel()
 
     return () => {
-      void supabase.removeChannel(channel)
+      disposed = true
+      if (reconnectRef.current) clearTimeout(reconnectRef.current)
+      if (channelRef.current) void supabase.removeChannel(channelRef.current)
+      authSub.unsubscribe()
     }
-  }, [fetchBadges])
+  }, [fetchBadgesDebounced])
 
   return { badges, isLoading, refetch: fetchBadges }
 }

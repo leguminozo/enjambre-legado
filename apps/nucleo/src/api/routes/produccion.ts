@@ -10,6 +10,34 @@ export const produccionRoutes = new Hono<{ Variables: AppVariables }>();
 
 produccionRoutes.use("*", authMiddleware, tenantMiddleware);
 
+const UpdateLoteComercialSchema = z.object({
+  variedad_floral: z.string().max(100).optional().nullable(),
+  metodo_extraccion: z.enum(["manual", "centrifugo", "prensado", "otro"]).optional().nullable(),
+  analisis_humedad: z.number().min(0).max(100).optional().nullable(),
+  analisis_hmf: z.number().min(0).max(500).optional().nullable(),
+  lab_nombre: z.string().max(200).optional().nullable(),
+  lab_fecha: z.string().date().optional().nullable(),
+  canal_destino: z.enum(["individual", "colectivo", "acopio", "interno"]).optional().nullable(),
+  relato_publico: z.string().max(5000).optional().nullable(),
+  publico: z.boolean().optional(),
+});
+
+produccionRoutes.patch("/lotes/:id", zValidator("json", UpdateLoteComercialSchema), async (c) => {
+  const supabase = c.get("supabase");
+  const { id } = c.req.param();
+  const body = c.req.valid("json");
+
+  const { data, error } = await supabase
+    .from("lotes")
+    .update(body)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ data });
+});
+
 produccionRoutes.get("/dashboard", async (c) => {
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
@@ -17,7 +45,7 @@ produccionRoutes.get("/dashboard", async (c) => {
   const [lotesRes, productosRes, ventasRes] = await Promise.all([
     supabase
       .from("lotes")
-      .select("*, productos(id, nombre, stock, peso_neto_g)")
+      .select("*, productos(id, nombre, stock, peso_neto_g), cosechas(kg, floracion, colmenas(name, apiarios(name)))")
       .order("created_at", { ascending: false }),
     supabase
       .from("productos")

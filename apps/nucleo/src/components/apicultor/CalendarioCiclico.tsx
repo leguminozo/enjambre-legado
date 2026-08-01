@@ -124,17 +124,17 @@ export function CalendarioCiclico() {
                         <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-sm)' }}>Programar Nueva Tarea</div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, marginBottom: 8 }}>
-                            <input autoFocus type="text" placeholder="Título de la tarea..." className="input-field" value={newTaskForm.title || ''} onChange={e => setNewTaskForm({ ...newTaskForm, title: e.target.value })} />
+                            <input autoFocus type="text" placeholder="Título de la tarea..." className="input-field w-full" value={newTaskForm.title || ''} onChange={e => setNewTaskForm({ ...newTaskForm, title: e.target.value })} />
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 8 }}>
-                            <select className="input-field" value={newTaskForm.month || ''} onChange={e => setNewTaskForm({ ...newTaskForm, month: e.target.value })}>
+                            <select className="input-field w-full" value={newTaskForm.month || ''} onChange={e => setNewTaskForm({ ...newTaskForm, month: e.target.value })}>
                                 {months.map(m => <option key={m} value={m}>{m}</option>)}
                             </select>
-                            <select className="input-field" value={newTaskForm.week || ''} onChange={e => setNewTaskForm({ ...newTaskForm, week: parseInt(e.target.value) })}>
+                            <select className="input-field w-full" value={newTaskForm.week || ''} onChange={e => setNewTaskForm({ ...newTaskForm, week: parseInt(e.target.value) })}>
                                 {[1, 2, 3, 4].map(w => <option key={w} value={w}>Semana {w}</option>)}
                             </select>
-                            <select className="input-field" value={newTaskForm.category || ''} onChange={e => setNewTaskForm({ ...newTaskForm, category: e.target.value as CalendarioTaskRow['category'] })}>
+                            <select className="input-field w-full" value={newTaskForm.category || ''} onChange={e => setNewTaskForm({ ...newTaskForm, category: e.target.value as CalendarioTaskRow['category'] })}>
                                 <option value="inspeccion">Inspección</option>
                                 <option value="tratamiento">Tratamiento</option>
                                 <option value="cosecha">Cosecha</option>
@@ -144,12 +144,12 @@ export function CalendarioCiclico() {
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-                            <select className="input-field" value={newTaskForm.priority || ''} onChange={e => setNewTaskForm({ ...newTaskForm, priority: e.target.value as CalendarioTaskRow['priority'] })}>
+                            <select className="input-field w-full" value={newTaskForm.priority || ''} onChange={e => setNewTaskForm({ ...newTaskForm, priority: e.target.value as CalendarioTaskRow['priority'] })}>
                                 <option value="baja">Prioridad Baja</option>
                                 <option value="media">Prioridad Media</option>
                                 <option value="alta">Prioridad Alta</option>
                             </select>
-                            <input placeholder="Apiario/Colmena opcional" className="input-field" value={newTaskForm.colmena || ''} onChange={e => setNewTaskForm({ ...newTaskForm, colmena: e.target.value })} />
+                            <input placeholder="Apiario/Colmena opcional" className="input-field w-full" value={newTaskForm.colmena || ''} onChange={e => setNewTaskForm({ ...newTaskForm, colmena: e.target.value })} />
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

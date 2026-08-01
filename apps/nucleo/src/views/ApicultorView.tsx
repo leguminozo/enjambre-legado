@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity } from 'lucide-react';
+import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity, Map as MapIcon } from 'lucide-react';
 import type { ColmenaWithRelations, InspeccionRow, VarroaRow, PesoRow } from '@/lib/apicultor-types';
 import type { Tables } from '@enjambre/database';
 import { healthFromEstado, estadoFromHealth } from '@/types/ecosystem';
@@ -11,7 +11,12 @@ import { fetchPronostico } from '@/lib/meteo';
 import { mapInAppNotificationToAlertItem } from '@enjambre/auth';
 import { supabase } from '../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { ColmenaFicha } from '../components/apicultor/ColmenaFicha';
+import dynamic from 'next/dynamic';
+
+const ColmenaFicha = dynamic(
+  () => import('../components/apicultor/ColmenaFicha').then((mod) => mod.ColmenaFicha),
+  { ssr: false }
+);
 import { TrazabilidadPanel } from '../components/apicultor/TrazabilidadPanel';
 import { ApiarioManager } from '../components/apicultor/ApiarioManager';
 import { HeaderEcosistema } from '../components/apicultor/HeaderEcosistema';
@@ -19,6 +24,8 @@ import { OraculoFloracion } from '../components/apicultor/OraculoFloracion';
 import { VentanasDeVuelo } from '../components/apicultor/VentanasDeVuelo';
 import { GemeloApiario } from '../components/apicultor/GemeloApiario';
 import { EspectroVivo } from '../components/apicultor/EspectroVivo';
+import { TerritorioUsuarioPanel } from '../components/apicultor/TerritorioUsuarioPanel';
+import { CuadernoCampoPanel } from '../components/apicultor/CuadernoCampoPanel';
 
 interface AlertItem {
   id?: string | number;
@@ -35,7 +42,7 @@ interface ReflexionData {
   created_at?: string;
 }
 
-type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad';
+type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad' | 'territorio' | 'sanidad';
 
 export function ApicultorView() {
     const apiFetch = useApiFetch();
@@ -227,8 +234,10 @@ export function ApicultorView() {
               className="mt-2 mb-2"
               tabs={[
                 { id: 'colmenas', label: 'Mis Colmenas', icon: <Activity size={16} /> },
+                { id: 'sanidad', label: 'Cuaderno Campo', icon: <Droplets size={16} /> },
                 { id: 'calendario', label: 'Ciclo del Bosque', icon: <CalendarDays size={16} /> },
                 { id: 'trazabilidad', label: 'Trazabilidad', icon: <LineChart size={16} /> },
+                { id: 'territorio', label: 'Mi Territorio', icon: <MapIcon size={16} /> },
               ]}
               activeId={activeView}
               onChange={(id) => setActiveView(id as ViewTab)}
@@ -260,6 +269,18 @@ export function ApicultorView() {
                     {activeView === 'trazabilidad' && (
                         <div className="animate-in delay-2">
                             <TrazabilidadPanel />
+                        </div>
+                    )}
+
+                    {activeView === 'territorio' && (
+                        <div className="animate-in delay-2">
+                            <TerritorioUsuarioPanel />
+                        </div>
+                    )}
+
+                    {activeView === 'sanidad' && (
+                        <div className="animate-in delay-2">
+                            <CuadernoCampoPanel colmenas={localColmenas} />
                         </div>
                     )}
                 </div>
