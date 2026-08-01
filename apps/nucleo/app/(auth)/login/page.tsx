@@ -6,59 +6,13 @@ import {
   Lock,
   Mail,
   User,
-  CheckCircle2,
-  Circle,
-  ChevronsUpDown,
   Eye,
   EyeOff,
   ChevronRight,
-  ArrowRight,
-  X,
+  UserPlus
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore, logSecurityEvent, getRoleRedirectPath } from '@enjambre/auth';
-
-export interface SavedAccount {
-  email: string;
-  name: string;
-  handle: string;
-  role?: string;
-  lastUsed: number;
-}
-
-const DEFAULT_SAVED_ACCOUNTS: SavedAccount[] = [];
-
-function getSavedAccounts(): SavedAccount[] {
-  if (typeof window === 'undefined') return DEFAULT_SAVED_ACCOUNTS;
-  try {
-    const raw = localStorage.getItem('enjambre_saved_accounts');
-    if (!raw) {
-      localStorage.setItem('enjambre_saved_accounts', JSON.stringify(DEFAULT_SAVED_ACCOUNTS));
-      return DEFAULT_SAVED_ACCOUNTS;
-    }
-    const parsed = JSON.parse(raw) as SavedAccount[];
-    return parsed.length > 0 ? parsed : DEFAULT_SAVED_ACCOUNTS;
-  } catch {
-    return DEFAULT_SAVED_ACCOUNTS;
-  }
-}
-
-function saveAccountToStorage(email: string, name?: string, role?: string) {
-  if (typeof window === 'undefined') return;
-  try {
-    const existing = getSavedAccounts();
-    const handle = '@' + email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '');
-    const displayName = name || email.split('@')[0];
-    const filtered = existing.filter((acc) => acc.email.toLowerCase() !== email.toLowerCase());
-    const updated = [
-      { email, name: displayName, handle, role: role || 'admin', lastUsed: Date.now() },
-      ...filtered,
-    ].slice(0, 5);
-    localStorage.setItem('enjambre_saved_accounts', JSON.stringify(updated));
-  } catch (err) {
-    console.error('Failed to save account to localStorage:', err);
-  }
-}
 
 function GoogleIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
@@ -90,35 +44,27 @@ function XLogoIcon({ className = 'w-4 h-4' }: { className?: string }) {
 type ViewMode =
   | 'collapsed'
   | 'expanded'
-  | 'sheet_accounts'
   | 'sheet_email'
-  | 'sheet_recovery'
-  | 'sheet_signup';
+  | 'sheet_signup'
+  | 'sheet_recovery';
 
 export default function LoginPage() {
   const router = useRouter();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
 
-  const [savedAccounts, setSavedAccounts] = useState<SavedAccount[]>([]);
-  const [selectedAccount, setSelectedAccount] = useState<SavedAccount | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('collapsed');
-
-  useEffect(() => {
-    const loaded = getSavedAccounts();
-    setSavedAccounts(loaded);
-    if (loaded.length > 0) {
-      setSelectedAccount(loaded[0]);
-    }
-  }, []);
 
   useEffect(() => {
     const {
@@ -181,13 +127,14 @@ export default function LoginPage() {
         }
         const { error: updateErr } = await supabase.auth.updateUser({ password });
         if (updateErr) throw updateErr;
-        setMessage('¡Contraseña actualizada con éxito! Accediendo al Registro Territorial...');
+        setMessage('¡Contraseña actualizada con éxito! Redirigiendo...');
         setIsRecoveryMode(false);
+        
         await useAuthStore.getState().checkUser();
         const userRole = useAuthStore.getState().user?.role ?? 'cliente';
         setTimeout(() => {
           router.replace(getRoleRedirectPath(userRole));
-        }, 1200);
+        }, 1500);
         return;
       }
 
@@ -195,13 +142,15 @@ export default function LoginPage() {
         if (!email.trim()) {
           throw new Error('Por favor ingresa tu correo electrónico.');
         }
-        const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/login`,
         });
         if (resetErr) throw resetErr;
+
         await logSecurityEvent(supabase, {
           eventType: 'password_reset_requested',
-          email: email.trim(),
+          userId: null,
+          email,
           appSource: 'nucleo',
         });
         setMessage('Te hemos enviado un enlace a tu correo para reestablecer tu contraseña.');
@@ -214,44 +163,46 @@ export default function LoginPage() {
         const { data, error: signUpErr } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName } },
+          options: {
+            data: { full_name: fullName },
+            emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/login`,
+          },
         });
         if (signUpErr) throw signUpErr;
+
         await logSecurityEvent(supabase, {
           eventType: 'signup_success',
-          email,
           userId: data.user?.id ?? null,
+          email,
           appSource: 'nucleo',
         });
-        setMessage(
-          '¡Registro exitoso! Por favor verifica tu bandeja de entrada para activar tu cuenta.'
-        );
+        setMessage('¡Registro exitoso! Por favor verifica tu bandeja de entrada para activar tu cuenta.');
         setLoading(false);
         return;
       }
 
+      // Default: Login
       const { error: signErr } = await supabase.auth.signInWithPassword({ email, password });
       if (signErr) {
         await logSecurityEvent(supabase, {
           eventType: 'login_failed',
+          userId: null,
           email,
           appSource: 'nucleo',
           details: { code: signErr.status },
         });
-        throw signErr;
+        throw new Error('Credenciales inválidas. Por favor intenta nuevamente.');
       }
 
       await useAuthStore.getState().checkUser();
-      const userId = useAuthStore.getState().user?.id;
       await logSecurityEvent(supabase, {
         eventType: 'login_success',
+        userId: useAuthStore.getState().user?.id ?? null,
         email,
-        userId,
         appSource: 'nucleo',
       });
+      
       const userRole = useAuthStore.getState().user?.role ?? 'cliente';
-
-      saveAccountToStorage(email, selectedAccount?.name || email.split('@')[0], userRole);
       router.replace(getRoleRedirectPath(userRole));
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error al procesar la solicitud.';
@@ -300,114 +251,55 @@ export default function LoginPage() {
 
       {/* Bottom Action Sheet / Pill Options + Modals */}
       <div className="relative z-10 w-full max-w-sm mx-auto">
-        {/* 1. COLLAPSED MODE */}
+        
+        {/* 1. COLLAPSED MODE (Clean Hybrid) */}
         {viewMode === 'collapsed' && (
           <div className="flex flex-col items-center gap-3 w-full animate-in fade-in duration-200">
-            {selectedAccount ? (
-              <div className="relative w-full">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail(selectedAccount.email);
-                    setViewMode('sheet_email');
-                    setError(null);
-                    setMessage(null);
-                  }}
-                  className="w-full min-h-14 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-4 py-2.5 flex items-center justify-between gap-3 text-sm font-medium text-foreground hover:border-border hover:bg-surface-raised transition-all shadow-lg group"
-                >
-                  <div className="flex items-center gap-3 truncate">
-                    <div className="w-9 h-9 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-semibold text-xs shrink-0">
-                      {selectedAccount.name.slice(0, 2).toUpperCase()}
-                    </div>
-                    <div className="flex flex-col items-start truncate">
-                      <span className="text-xs text-muted-foreground font-normal tracking-wide">
-                        Continuar como
-                      </span>
-                      <span className="text-sm font-medium text-foreground truncate">
-                        {selectedAccount.name}{' '}
-                        <span className="text-muted-foreground font-normal">
-                          {selectedAccount.handle}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setViewMode('sheet_accounts');
-                      }}
-                      className="p-2 rounded-full hover:bg-background/80 transition-colors text-muted-foreground hover:text-foreground"
-                      title="Cambiar de cuenta"
-                    >
-                      <ChevronsUpDown className="w-4 h-4" />
-                    </span>
-                  </div>
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setViewMode('sheet_email');
-                  setError(null);
-                  setMessage(null);
-                }}
-                className="w-full min-h-14 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-6 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border hover:bg-surface-raised transition-all shadow-lg"
-              >
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode('sheet_email');
+                setError(null);
+                setMessage(null);
+              }}
+              className="w-full min-h-14 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-6 py-3 flex items-center justify-between gap-3 text-sm font-medium text-foreground hover:border-border hover:bg-surface-raised transition-all shadow-lg"
+            >
+              <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-primary" />
-                <span>Continuar con correo electrónico</span>
-                <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
-              </button>
-            )}
+                <span>Iniciar sesión con correo</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode('sheet_signup');
+                setError(null);
+                setMessage(null);
+              }}
+              className="w-full min-h-14 rounded-full border border-border/60 bg-background/40 backdrop-blur-2xl px-6 py-3 flex items-center justify-between gap-3 text-sm font-medium text-foreground hover:border-border hover:bg-surface-raised transition-all shadow-lg"
+            >
+              <div className="flex items-center gap-3">
+                <UserPlus className="w-4 h-4 text-muted-foreground" />
+                <span>Solicitar cuenta nueva</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+            </button>
 
             <button
               type="button"
               onClick={() => setViewMode('expanded')}
-              className="w-full py-2.5 text-center text-xs text-muted-foreground/80 hover:text-foreground tracking-widest uppercase transition-colors"
+              className="w-full py-2.5 mt-2 text-center text-xs text-muted-foreground/80 hover:text-foreground tracking-widest uppercase transition-colors"
             >
               Otras opciones
             </button>
-
-            <p className="mt-4 text-[0.65rem] text-muted-foreground/60 text-center max-w-xs mx-auto text-balance leading-relaxed">
-              ¿No tienes cuenta?{' '}
-              <button
-                type="button"
-                onClick={() => {
-                  setViewMode('sheet_signup');
-                  setError(null);
-                  setMessage(null);
-                }}
-                className="inline-flex min-h-11 items-center text-foreground hover:text-primary underline underline-offset-4"
-              >
-                Crear cuenta en el Registro Territorial
-              </button>
-            </p>
           </div>
         )}
 
         {/* 2. EXPANDED OPTIONS MODE */}
         {viewMode === 'expanded' && (
           <div className="flex flex-col items-center gap-2.5 w-full animate-in fade-in duration-200">
-            {selectedAccount && (
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail(selectedAccount.email);
-                  setViewMode('sheet_email');
-                  setError(null);
-                  setMessage(null);
-                }}
-                className="w-full min-h-13 rounded-full border border-border/60 bg-surface-raised/90 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all"
-              >
-                <User className="w-4 h-4 text-primary" />
-                <span className="truncate">
-                  Continuar como {selectedAccount.name} {selectedAccount.handle}
-                </span>
-              </button>
-            )}
-
             <button
               type="button"
               onClick={() => void handleOAuth('google')}
@@ -440,106 +332,15 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={() => {
-                setViewMode('sheet_email');
-                setError(null);
-                setMessage(null);
-              }}
-              className="w-full min-h-13 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all"
-            >
-              <Mail className="w-4 h-4 text-muted-foreground" />
-              <span>Continuar con email</span>
-            </button>
-
-            <button
-              type="button"
               onClick={() => setViewMode('collapsed')}
-              className="w-full py-2.5 text-center text-xs text-muted-foreground/80 hover:text-foreground tracking-widest uppercase transition-colors"
+              className="w-full py-2.5 mt-2 text-center text-xs text-muted-foreground/80 hover:text-foreground tracking-widest uppercase transition-colors"
             >
               Menos opciones
             </button>
           </div>
         )}
 
-        {/* 3. ACCOUNT SWITCHER BOTTOM SHEET MODAL */}
-        {viewMode === 'sheet_accounts' && (
-          <>
-            <div
-              className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 animate-in fade-in duration-200"
-              onClick={() => setViewMode('collapsed')}
-            />
-            <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-[32px] border-t border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] animate-in slide-in-from-bottom duration-300 max-w-md mx-auto">
-              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-6" />
-
-              <div className="space-y-3 mb-6">
-                {savedAccounts.map((account) => {
-                  const isSelected =
-                    selectedAccount?.email.toLowerCase() === account.email.toLowerCase();
-                  return (
-                    <div
-                      key={account.email}
-                      onClick={() => setSelectedAccount(account)}
-                      className="rounded-2xl border border-border/40 bg-background/60 p-3.5 flex items-center justify-between gap-3 cursor-pointer hover:border-primary/50 transition-all"
-                    >
-                      <div className="flex items-center gap-3 truncate">
-                        <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
-                          {account.name.slice(0, 2).toUpperCase()}
-                        </div>
-                        <div className="flex flex-col truncate">
-                          <span className="text-sm font-medium text-foreground truncate">
-                            {account.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground truncate">
-                            {account.handle}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="shrink-0">
-                        {isSelected ? (
-                          <CheckCircle2 className="w-6 h-6 text-primary fill-primary/20" />
-                        ) : (
-                          <Circle className="w-6 h-6 text-muted-foreground/30" />
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  if (selectedAccount) {
-                    setEmail(selectedAccount.email);
-                    setViewMode('sheet_email');
-                    setError(null);
-                    setMessage(null);
-                  }
-                }}
-                className="w-full min-h-13 rounded-full bg-primary text-primary-foreground font-medium text-sm py-3.5 shadow-lg hover:opacity-95 transition-opacity"
-              >
-                Continuar con {selectedAccount?.handle || 'cuenta'}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('');
-                  setPassword('');
-                  setViewMode('sheet_email');
-                  setError(null);
-                  setMessage(null);
-                }}
-                className="w-full mt-3 min-h-11 text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                + Usar otra cuenta o correo electrónico
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* 4. EMAIL & PASSWORD LOGIN BOTTOM SHEET MODAL */}
+        {/* 3. EMAIL & PASSWORD LOGIN BOTTOM SHEET MODAL */}
         {viewMode === 'sheet_email' && (
           <>
             <div
@@ -554,7 +355,7 @@ export default function LoginPage() {
                   Iniciar sesión en el Registro
                 </h2>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Panel operativo y gestión del sistema
+                  Panel operativo y gestión del sistema territorial
                 </p>
               </div>
 
@@ -651,14 +452,14 @@ export default function LoginPage() {
                   }}
                   className="w-full min-h-10 text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Volver al menú de opciones
+                  Volver a las opciones
                 </button>
               </form>
             </div>
           </>
         )}
 
-        {/* 5. SIGNUP BOTTOM SHEET MODAL */}
+        {/* 4. SIGNUP BOTTOM SHEET MODAL */}
         {viewMode === 'sheet_signup' && (
           <>
             <div
@@ -670,7 +471,7 @@ export default function LoginPage() {
 
               <div className="mb-6 text-center">
                 <h2 className="text-lg font-semibold text-foreground tracking-tight">
-                  Crear cuenta en el Registro
+                  Solicitar cuenta nueva
                 </h2>
                 <p className="text-xs text-muted-foreground mt-1">
                   Tu cuenta será creada y un administrador verificará tu acceso
@@ -763,7 +564,7 @@ export default function LoginPage() {
                   disabled={loading}
                   className="w-full min-h-13 rounded-full bg-primary text-primary-foreground font-medium text-sm py-3.5 shadow-lg hover:opacity-95 transition-opacity disabled:opacity-50 mt-2"
                 >
-                  {loading ? 'Creando…' : 'Crear Cuenta'}
+                  {loading ? 'Procesando…' : 'Crear Cuenta'}
                 </button>
 
                 <button
@@ -775,14 +576,14 @@ export default function LoginPage() {
                   }}
                   className="w-full min-h-10 text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Volver al inicio de sesión
+                  Cancelar
                 </button>
               </form>
             </div>
           </>
         )}
 
-        {/* 6. RECOVERY / FORGOT PASSWORD BOTTOM SHEET MODAL */}
+        {/* 5. RECOVERY / FORGOT PASSWORD BOTTOM SHEET MODAL */}
         {viewMode === 'sheet_recovery' && (
           <>
             <div
@@ -925,7 +726,7 @@ export default function LoginPage() {
                   }}
                   className="w-full min-h-10 text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Volver al inicio de sesión
+                  Cancelar
                 </button>
               </form>
             </div>
