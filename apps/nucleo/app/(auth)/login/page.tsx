@@ -170,6 +170,11 @@ export default function LoginPage() {
         });
         if (signUpErr) throw signUpErr;
 
+        // Si data.user.identities está vacío, significa que el correo ya está registrado en Supabase
+        if (data?.user && data.user.identities && data.user.identities.length === 0) {
+          throw new Error('Ya existe una cuenta con este correo. Por favor inicia sesión o recupera tu contraseña.');
+        }
+
         await logSecurityEvent(supabase, {
           eventType: 'signup_success',
           userId: data.user?.id ?? null,
