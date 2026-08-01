@@ -259,8 +259,9 @@ export function useSidebarBadges() {
           if (status === 'TIMED_OUT' || status === 'CLOSED' || status === 'CHANNEL_ERROR') {
             console.error('[useSidebarBadges] realtime error', status, err)
             if (channelRef.current) {
-              void supabase.removeChannel(channelRef.current)
+              const old = channelRef.current
               channelRef.current = null
+              void supabase.removeChannel(old)
             }
             if (attemptsRef.current >= 5 || disposed) return
             const delay = Math.min(1000 * 2 ** attemptsRef.current, 30_000)
@@ -284,15 +285,17 @@ export function useSidebarBadges() {
       if (disposed) return
       if (event === 'SIGNED_OUT') {
         if (channelRef.current) {
-          void supabase.removeChannel(channelRef.current)
+          const old = channelRef.current
           channelRef.current = null
+          void supabase.removeChannel(old)
         }
         return
       }
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         if (channelRef.current) {
-          void supabase.removeChannel(channelRef.current)
+          const old = channelRef.current
           channelRef.current = null
+          void supabase.removeChannel(old)
         }
         attemptsRef.current = 0
         void setupChannel()
@@ -304,7 +307,11 @@ export function useSidebarBadges() {
     return () => {
       disposed = true
       if (reconnectRef.current) clearTimeout(reconnectRef.current)
-      if (channelRef.current) void supabase.removeChannel(channelRef.current)
+      if (channelRef.current) {
+        const old = channelRef.current
+        channelRef.current = null
+        void supabase.removeChannel(old)
+      }
       authSub.unsubscribe()
     }
   }, [fetchBadgesDebounced])

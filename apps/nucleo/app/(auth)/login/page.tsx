@@ -57,6 +57,16 @@ export default function LoginPage() {
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // Campos Territoriales Adicionales
+  const [inviteCode, setInviteCode] = useState('');
+  const [rol, setRol] = useState('api_residente');
+  const [region, setRegion] = useState('Los Lagos');
+  const [comuna, setComuna] = useState('');
+  const [consentMapa, setConsentMapa] = useState(false);
+  const [consentAlertas, setConsentAlertas] = useState(true);
+  const [consentCatalogo, setConsentCatalogo] = useState(false);
+  const [consentAcopio, setConsentAcopio] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -164,7 +174,20 @@ export default function LoginPage() {
           email,
           password,
           options: {
-            data: { full_name: fullName, app_source: 'nucleo_territorial' },
+            data: { 
+              full_name: fullName, 
+              app_source: 'nucleo_territorial',
+              referrer_id: inviteCode.trim() || undefined,
+              territorial_rol: rol,
+              territorial_region: region,
+              territorial_comuna: comuna,
+              territorial_consentimientos: {
+                mapa_comunitario: consentMapa,
+                alertas_fitosanitarias: consentAlertas,
+                catalogo_infraestructura: consentCatalogo,
+                acopio_cooperativo: consentAcopio,
+              }
+            },
             emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/login`,
           },
         });
@@ -483,7 +506,7 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <form onSubmit={handleAuthSubmit} className="space-y-4">
+              <form onSubmit={handleAuthSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto px-1 pb-4">
                 {message ? (
                   <div className="rounded-xl border border-primary/20 bg-primary/10 p-3 text-center text-xs text-primary">
                     {message}
@@ -562,15 +585,152 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {error ? <p className="text-xs text-destructive text-center">{error}</p> : null}
+                <div className="pt-2">
+                  <div className="h-[1px] w-full bg-border/40 my-4" />
+                  <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+                    Perfil Territorial
+                  </h3>
+                </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full min-h-13 rounded-full bg-primary text-primary-foreground font-medium text-sm py-3.5 shadow-lg hover:opacity-95 transition-opacity disabled:opacity-50 mt-2"
-                >
-                  {loading ? 'Procesando…' : 'Crear Cuenta'}
-                </button>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2">
+                    <label
+                      htmlFor="invite-code"
+                      className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
+                    >
+                      Código de Invitación <span className="text-muted-foreground/60 lowercase">(Opcional)</span>
+                    </label>
+                    <input
+                      id="invite-code"
+                      type="text"
+                      value={inviteCode}
+                      onChange={(e) => setInviteCode(e.target.value)}
+                      className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
+                      placeholder="Ej. d5301..."
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label
+                      htmlFor="rol"
+                      className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
+                    >
+                      Rol Territorial
+                    </label>
+                    <select
+                      id="rol"
+                      required
+                      value={rol}
+                      onChange={(e) => setRol(e.target.value)}
+                      className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none transition-colors appearance-none"
+                    >
+                      <option value="api_residente">Apicultor Residente</option>
+                      <option value="api_trashumante">Apicultor Trashumante</option>
+                      <option value="api_mixto">Apicultor Mixto</option>
+                      <option value="prop_facilitador">Propietario Facilitador</option>
+                      <option value="agri_fitosanitario">Agricultor / Forestal</option>
+                      <option value="agri_aplicador">Aplicador Fitosanitario</option>
+                      <option value="comercial_acopio">Centro de Acopio / Comercializador</option>
+                      <option value="tecnico_inspector">Técnico / Inspector / Investigador</option>
+                      <option value="institucion_publica">Institución Pública</option>
+                    </select>
+                  </div>
+
+                  <div className="col-span-2 sm:col-span-1">
+                    <label
+                      htmlFor="region"
+                      className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
+                    >
+                      Región
+                    </label>
+                    <input
+                      id="region"
+                      type="text"
+                      required
+                      value={region}
+                      onChange={(e) => setRegion(e.target.value)}
+                      className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none transition-colors"
+                      placeholder="Los Lagos"
+                    />
+                  </div>
+
+                  <div className="col-span-2 sm:col-span-1">
+                    <label
+                      htmlFor="comuna"
+                      className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
+                    >
+                      Comuna Principal
+                    </label>
+                    <input
+                      id="comuna"
+                      type="text"
+                      required
+                      value={comuna}
+                      onChange={(e) => setComuna(e.target.value)}
+                      className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
+                      placeholder="Ej. Ancud"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <label className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-3">
+                    Consentimientos de Participación
+                  </label>
+                  
+                  <div className="space-y-3 bg-surface-raised/40 p-3.5 rounded-xl border border-border/40">
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={consentMapa}
+                        onChange={(e) => setConsentMapa(e.target.checked)}
+                        className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary focus:ring-offset-background transition-colors"
+                      />
+                      <div className="flex-1">
+                        <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">Aparecer en Mapa Comunitario</span>
+                        <p className="text-[0.65rem] text-muted-foreground/80 mt-0.5 leading-tight">Visibilidad pública básica (nombre y comuna) para fortalecer la red local.</p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={consentAlertas}
+                        onChange={(e) => setConsentAlertas(e.target.checked)}
+                        className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary focus:ring-offset-background transition-colors"
+                      />
+                      <div className="flex-1">
+                        <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">Recibir Alertas Fitosanitarias</span>
+                        <p className="text-[0.65rem] text-muted-foreground/80 mt-0.5 leading-tight">Notificaciones tempranas sobre aplicaciones agroquímicas en un radio de 5km.</p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={consentCatalogo}
+                        onChange={(e) => setConsentCatalogo(e.target.checked)}
+                        className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary focus:ring-offset-background transition-colors"
+                      />
+                      <div className="flex-1">
+                        <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">Catálogo de Infraestructura</span>
+                        <p className="text-[0.65rem] text-muted-foreground/80 mt-0.5 leading-tight">Disponibilidad de predios facilitadores o salas de extracción compartidas.</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {error ? <p className="text-xs text-destructive text-center mt-4">{error}</p> : null}
+
+                <div className="pt-4 pb-2 sticky bottom-0 bg-gradient-to-t from-surface-raised via-surface-raised/95 to-transparent backdrop-blur-sm z-10">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full min-h-13 rounded-full bg-primary text-primary-foreground font-medium text-sm py-3.5 shadow-lg hover:opacity-95 transition-opacity disabled:opacity-50"
+                  >
+                    {loading ? 'Procesando…' : 'Crear Cuenta'}
+                  </button>
+                </div>
 
                 <button
                   type="button"
