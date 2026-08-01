@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: email.trim(),
     password,
-    options: { data: { full_name: fullName.trim() } },
+    options: { data: { full_name: fullName.trim(), app_source: 'tienda' } },
   });
 
   if (authError) {

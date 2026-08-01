@@ -164,7 +164,7 @@ export default function LoginPage() {
           email,
           password,
           options: {
-            data: { full_name: fullName },
+            data: { full_name: fullName, app_source: 'nucleo_territorial' },
             emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/login`,
           },
         });
