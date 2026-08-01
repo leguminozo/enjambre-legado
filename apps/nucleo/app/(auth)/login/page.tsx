@@ -170,6 +170,9 @@ export default function LoginPage() {
       }
 
       if (viewMode === 'sheet_signup') {
+        if (password !== confirmPassword) {
+          throw new Error('Las contraseñas no coinciden');
+        }
         const { data, error: signUpErr } = await supabase.auth.signUp({
           email,
           password,
@@ -243,9 +246,23 @@ export default function LoginPage() {
     <main className="relative min-h-[100dvh] w-full bg-background text-foreground flex flex-col justify-between overflow-hidden px-5 pt-[max(3rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] select-none">
       {/* Starry / Cosmic Atmosphere Layer */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url(/assets/auth-bg.png)', filter: 'brightness(0.5) contrast(1.1)' }} />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-transparent" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[60vh] rounded-full bg-gradient-to-b from-primary/15 via-primary/5 to-transparent blur-3xl opacity-60" />
+        <div
+          className="absolute inset-0 opacity-40"
+          style={{
+            backgroundImage: `radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.7), rgba(0, 0, 0, 0)),
+                              radial-gradient(1px 1px at 80px 120px, rgba(255, 255, 255, 0.5), rgba(0, 0, 0, 0)),
+                              radial-gradient(1.5px 1.5px at 150px 70px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
+                              radial-gradient(1px 1px at 220px 190px, rgba(255, 255, 255, 0.6), rgba(0, 0, 0, 0)),
+                              radial-gradient(1.5px 1.5px at 310px 40px, rgba(255, 255, 255, 0.75), rgba(0, 0, 0, 0)),
+                              radial-gradient(1px 1px at 50px 280px, rgba(255, 255, 255, 0.5), rgba(0, 0, 0, 0)),
+                              radial-gradient(2px 2px at 190px 320px, rgba(255, 255, 255, 0.65), rgba(0, 0, 0, 0)),
+                              radial-gradient(1px 1px at 290px 240px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0))`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: '350px 350px',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/60" />
       </div>
 
       {/* Top / Center Hero Branding — Grok-style Display Logo + Tagline */}
@@ -361,7 +378,7 @@ export default function LoginPage() {
               className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 animate-in fade-in duration-200"
               onClick={() => setViewMode('collapsed')}
             />
-            <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-50 rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md mx-auto md:max-h-[90vh] overflow-y-auto">
+            <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-[32px] border-t border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] animate-in slide-in-from-bottom duration-300 max-w-md mx-auto">
               <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
 
               <div className="mb-6 text-center">
@@ -480,7 +497,7 @@ export default function LoginPage() {
               className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 animate-in fade-in duration-200"
               onClick={() => setViewMode('collapsed')}
             />
-            <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-50 rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md md:max-w-3xl mx-auto md:max-h-[90vh] overflow-y-auto">
+            <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-50 rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md md:max-w-2xl mx-auto md:max-h-[90vh] overflow-y-auto">
               <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
 
               <div className="mb-6 text-center">
@@ -570,6 +587,28 @@ export default function LoginPage() {
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="confirm-signup-password"
+                    className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
+                  >
+                    Confirmar Contraseña
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                    <input
+                      id="confirm-signup-password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      minLength={6}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 pl-10 pr-11 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
+                      placeholder="Repite tu contraseña"
+                    />
                   </div>
                 </div>
                 </div>
@@ -751,7 +790,7 @@ export default function LoginPage() {
                 setViewMode('collapsed');
               }}
             />
-            <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-50 rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md mx-auto md:max-h-[90vh] overflow-y-auto">
+            <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-[32px] border-t border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] animate-in slide-in-from-bottom duration-300 max-w-md mx-auto">
               <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
 
               <div className="mb-6 text-center">
