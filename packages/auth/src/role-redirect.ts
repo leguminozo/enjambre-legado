@@ -88,20 +88,19 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/reps': ['admin'],
   '/caja': ['admin'],
   '/leaderboard': ['admin'],
-  '/colmenas': ['admin', 'territorial'],
+  '/colmenas': ['admin'],
   '/regeneracion': ['admin'],
-  '/mapa': ['admin', 'territorial'],
+  '/mapa': ['admin'],
   '/catalogo': ['admin'],
   '/operaciones': ['admin'],
   '/comunidad': ['admin'],
   '/creador': ['admin'],
-  '/perfil': ['admin', 'territorial'],
+  '/perfil': ['admin'],
   '/configuracion': ['admin'],
   '/editor-tienda': ['admin'],
   '/calendario': ['admin'],
   '/pipeline': ['admin'],
   '/territorio': ['territorial'],
-  '/registro-territorial': ['admin', 'territorial'],
   // '/calculos-ia' y '/vanguardia' ya arriba (vanguardia redirect → /crm?tab=aliados)
 }
 

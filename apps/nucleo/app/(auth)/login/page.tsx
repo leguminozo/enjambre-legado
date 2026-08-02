@@ -112,7 +112,7 @@ export default function LoginPage() {
     const { error: oAuthErr } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/dashboard`,
+        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/login`,
       },
     });
     if (oAuthErr) {
@@ -170,9 +170,6 @@ export default function LoginPage() {
       }
 
       if (viewMode === 'sheet_signup') {
-        if (password !== confirmPassword) {
-          throw new Error('Las contraseñas no coinciden');
-        }
         const { data, error: signUpErr } = await supabase.auth.signUp({
           email,
           password,
@@ -587,28 +584,6 @@ export default function LoginPage() {
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="confirm-signup-password"
-                    className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
-                  >
-                    Confirmar Contraseña
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
-                    <input
-                      id="confirm-signup-password"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      minLength={6}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 pl-10 pr-11 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Repite tu contraseña"
-                    />
                   </div>
                 </div>
                 </div>
