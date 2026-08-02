@@ -14,11 +14,6 @@ function named(
   );
 }
 
-export const LazyEcosistemaDashboard = named(
-  () => import('@/components/enjambre/EcosistemaDashboard'),
-  'EcosistemaDashboard',
-  'Ecosistema',
-);
 export const LazyConfiguracionView = named(
   () => import('@/views/configuracion/ConfiguracionView'),
   'ConfiguracionView',

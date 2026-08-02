@@ -27,6 +27,13 @@ export function useModalFocusTrap({
   lockBodyScroll = false,
 }: UseModalFocusTrapOptions): void {
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  // onClose en ref: los consumidores pasan arrows inline (identidad nueva por
+  // render). Si entrara en los deps del efecto, cada tecla re-ejecutaría el trap
+  // y el cleanup robaría el foco del input (síntoma: escribir de a una letra).
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   const trapFocus = useCallback((e: KeyboardEvent) => {
     if (e.key !== 'Tab' || !containerRef.current) return;
@@ -49,7 +56,7 @@ export function useModalFocusTrap({
     previousFocusRef.current = document.activeElement as HTMLElement | null;
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
       trapFocus(e);
     };
 
@@ -71,5 +78,5 @@ export function useModalFocusTrap({
       window.removeEventListener('keydown', onKey);
       previousFocusRef.current?.focus?.();
     };
-  }, [open, onClose, trapFocus, lockBodyScroll, containerRef]);
+  }, [open, trapFocus, lockBodyScroll, containerRef]);
 }

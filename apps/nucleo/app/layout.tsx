@@ -3,7 +3,7 @@ import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers/Providers";
 import { VercelInsights } from "@/components/VercelInsights";
-import { ThemeInitScript } from "@enjambre/ui";
+import { ThemeInitScript, LegacyBrowserPolyfills, ErrorRevealHarness } from "@enjambre/ui";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -51,6 +51,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={`${inter.variable} ${cormorant.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Antes de los chunks de Next (async): polyfills Safari/iOS 15 + harness de diagnóstico */}
+        <LegacyBrowserPolyfills />
+        <ErrorRevealHarness />
+      </head>
       <body
         className={`${inter.className} bg-background text-foreground antialiased`}
         suppressHydrationWarning

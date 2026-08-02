@@ -39,6 +39,24 @@ export const RAIL_PRIMARY_KEYS = [
   'crm',
 ] as const
 
+/**
+ * Herramientas que se precargan en idle (requestIdleCallback) al entrar.
+ * El resto de las rutas se descargan al hacer hover — evita bajar chunks
+ * pesados (three.js ~1MB, leaflet, recharts) de vistas que no se usan.
+ */
+export const PREFETCH_PRIORITY_KEYS = [
+  'ejecutivo',
+  'colmenas',
+  'produccion',
+  'alambique',
+  'catalogo',
+  'costeo',
+  'operaciones',
+  'contable',
+  'crm',
+  'configuracion',
+] as const
+
 export const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     key: 'vision',
@@ -51,14 +69,6 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         href: '/ejecutivo',
         greeting: 'Comandante del enjambre',
         mission: 'Visión total, operación total',
-      },
-      {
-        key: 'ecosistema',
-        label: 'Ecosistema',
-        icon: 'network',
-        href: '/',
-        greeting: 'Alma del Enjambre',
-        mission: 'Todo está conectado en el bosque vivo',
       },
     ],
   },

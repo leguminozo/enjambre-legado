@@ -104,6 +104,7 @@
   body {
     font-family: var(--font-datos);
     line-height: 1.6;
+    min-height: 100vh; /* fallback iOS <15.4 (dvh no existe) */
     min-height: 100dvh;
     overflow-x: hidden;
   }
@@ -200,6 +201,7 @@
 /* ── App Layout ── */
 .app-layout {
   display: flex;
+  height: 100vh;
   height: 100dvh;
   overflow: hidden;
 }
@@ -214,6 +216,7 @@
   position: fixed;
   top: 0;
   left: 0;
+  height: 100vh;
   height: 100dvh;
   z-index: 100;
   transition: transform var(--transition-base);
@@ -246,7 +249,7 @@
 
 .sidebar-nav {
   flex: 1;
-  padding: var(--space-md) 0;
+  padding: var(--space-lg) 0 var(--space-xl);
   /* Scroll interno: con muchos ítems el footer queda siempre visible */
   overflow-y: auto;
   min-height: 0;
@@ -267,7 +270,7 @@
   gap: var(--space-md);
   min-height: 44px;
   padding: 0.625rem var(--space-lg);
-  margin: 2px var(--space-sm);
+  margin: 6px var(--space-sm);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -365,6 +368,7 @@
 .main-content {
   flex: 1;
   margin-left: var(--sidebar-width);
+  height: 100vh;
   height: 100dvh;
   overflow-y: auto;
   overflow-x: hidden;

@@ -12,6 +12,7 @@ import {
 } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { VercelInsights } from '@/components/VercelInsights';
+import { LegacyBrowserPolyfills, ErrorRevealHarness } from '@enjambre/ui';
 import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
 
@@ -95,6 +96,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {...(nonce ? { nonce } : {})}
           dangerouslySetInnerHTML={{ __html: themeScript }}
         />
+        {/* Compat Safari/iOS 15 + diagnóstico en pantalla (solo aparece si hay errores) */}
+        <LegacyBrowserPolyfills nonce={nonce || undefined} />
+        <ErrorRevealHarness nonce={nonce || undefined} />
         <JsonLd data={rootJsonLd} />
       </head>
       <body className="font-sans antialiased bg-background text-foreground" suppressHydrationWarning>

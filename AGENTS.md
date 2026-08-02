@@ -85,6 +85,29 @@ packages/banco-chile → Banco Chile Empresas API client (OAuth 2.0, 8 APIs)
 | Skip build verification | Always build after changes |
 | `supabase.auth.getSession()` para verificar sesión | `supabase.auth.getUser()` (valida la firma del JWT con el servidor, previniendo falsificaciones) |
 | Confiar en `user` / `user_metadata` para roles | Confiar únicamente en `app_metadata` o en la tabla `profiles` (el usuario puede autodeclarar `user_metadata` a través del cliente) |
+| `100dvh`/`100svh` sin fallback | `min-h-(--vh-full)` (token compartido en `packages/ui/src/tokens.css` con `@supports` → 100vh en iOS < 15.4, 100dvh/100svh en modernos). NO usar pares `min-h-screen min-h-[100dvh]`: Tailwind ordena las arbitrarias antes que las de tema y la regla 100vh ganaría en modernos. |
+| `:has()` funcional en CSS (barras fijas, overlays) | data-attributes seteados por React (ver `StickyBarSensor` en tienda). `:has()` es 15.4+; los cosméticos se documentan como mejora progresiva. |
+| APIs modernas sin cubrir (`.at()`, `Object.hasOwn`, `structuredClone`…) | Verificar que estén en `LegacyBrowserPolyfills` o el build falla con `node scripts/compat-audit.mjs apps/<app>` |
+
+## Compatibilidad de Navegadores (Safari/iOS 15)
+
+**Matriz de soporte** (Next.js 16 exige oficialmente Safari 16.4+, pero el piso real soportado es iOS 15.4+, ej. iPhone 7):
+
+| Nivel | Soporte |
+|---|---|
+| iOS 16+ / Safari 16.4+ | Full |
+| iOS 15.4–15.8 (Safari 15.4+) | Soportado con la capa de compat: `LegacyBrowserPolyfills` + fallbacks CSS. Rendimiento según dispositivo (iPhone 7 = 2GB RAM: flujos core OK, dashboards 3D/mapas pesados) |
+| iOS < 15.4 | Sin garantía; degrada (cosmético), no bloquea |
+
+**Mecánica de la capa de compat** (`packages/ui`):
+- `LegacyBrowserPolyfills` → script inline ES5 (primer hijo de `<body>` en los 3 root layouts) que instala con feature-detection: `Array.prototype.at`, `Object.hasOwn`, `findLast/findLastIndex`, `String.replaceAll`, `Promise.withResolvers`, `structuredClone` (fallback JSON). Corre ANTES del runtime de Next (scripts async).
+- `ErrorRevealHarness` → panel en pantalla cuando hay errores JS (diagnóstico en dispositivos que no podemos reproducir: iPhone 7). NO es cosmético: es la única forma de ver el error real.
+- Regla de oro: **si el audit detecta una API nueva sin cubrir, se agrega a `LegacyBrowserPolyfills` con su unit test** (`packages/ui/src/components/legacy-browser-polyfills.test.ts`) — nunca silenciar el audit.
+- `node scripts/compat-audit.mjs apps/<app>` escanea `.next/static` post-build y falla el build ante sintaxis no parseable (lookbehind, import attributes) o APIs runtime no cubiertas (`AbortSignal.timeout`, `fromAsync`, `toSorted`…). Corre después de `next build`.
+
+**Service worker (@serwist en nucleo/campo)**: evaluado como NO factor de riesgo — assets con hash (sin stale-cache), HTML NetworkFirst, registro auto-guardado por feature-check. No agregar guardas UA que rompan PWA/offline sin evidencia nueva.
+
+**Riesgo conocido (documentado, no mitigado)**: si un dispositivo legacy mata la pestaña por memoria (no es un error JS capturable), el harness no lo mostrará. Plan B: reducir payload del login o entry estático legacy.
 
 ## Auth Package Convention
 

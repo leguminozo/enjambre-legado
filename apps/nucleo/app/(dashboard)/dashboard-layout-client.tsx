@@ -8,9 +8,15 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { SidebarRail } from '@/components/layout/SidebarRail';
 import { LiquidBottomNav } from '@/components/layout/LiquidBottomNav';
 import { MobileNavSheet } from '@/components/layout/MobileNavSheet';
-import { getAllItems, findActiveItem, routeUsesViewShell } from '@/config/sidebar-config';
+import {
+  getAccountItemsForRole,
+  getSidebarGroupsForRole,
+  findActiveItem,
+  routeUsesViewShell,
+} from '@/config/sidebar-config';
 import { NotificationBell } from '@enjambre/ui';
 import { createClient, isSupabaseConfigured, useAuthStore, useInAppNotifications } from '@enjambre/auth';
+import type { RoleKey } from '@enjambre/auth/role-redirect';
 import { useShellLayout } from '@/hooks/use-shell-layout';
 import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 
@@ -40,7 +46,12 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
   const router = useRouter();
   const userId = useAuthStore((s) => s.user?.id);
   const [realtimeOn, setRealtimeOn] = useState(false);
-  const supabaseClient = isSupabaseConfigured() ? createClient() : null;
+  // Cliente memoizado: createClient() en render crea identidad nueva por frame,
+  // lo que re-disparaba el efecto realtime de useInAppNotifications.
+  const supabaseClient = useMemo(
+    () => (isSupabaseConfigured() ? createClient() : null),
+    [],
+  );
   const { notifications, markRead, markAllRead, isLoading: notifLoading, error: notifError } = useInAppNotifications({
     userId,
     supabaseClient,
@@ -60,11 +71,14 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
     setSearchQuery('');
   }, []);
 
+  const userRole = (useAuthStore((s) => s.user?.role ?? 'admin')) as RoleKey;
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];
-    return getAllItems().filter((item) => item.label.toLowerCase().includes(q));
-  }, [searchQuery]);
+    // Búsqueda con los ítems del rol: un territorial no debe ver módulos admin
+    return [...getSidebarGroupsForRole(userRole).flatMap((g) => g.items), ...getAccountItemsForRole(userRole)]
+      .filter((item) => item.label.toLowerCase().includes(q));
+  }, [searchQuery, userRole]);
 
   const goToFirstResult = useCallback(() => {
     if (searchResults.length === 0) return;

@@ -52,6 +52,12 @@ export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
     setQuery('');
     onClose();
   }, [onClose]);
+  // onClose llega inline desde el layout (identidad nueva por render): ref para
+  // que el listener de Escape no se re-suscriba en cada render del padre.
+  const onCloseRef = useRef(handleClose);
+  useEffect(() => {
+    onCloseRef.current = handleClose;
+  }, [handleClose]);
 
   useEffect(() => {
     if (open) {
@@ -74,11 +80,11 @@ export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') handleClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, handleClose]);
+  }, [open]);
 
   const badgeOverrides = useMemo(() => {
     const map: Record<string, NonNullable<SidebarItem['badge']>> = {};

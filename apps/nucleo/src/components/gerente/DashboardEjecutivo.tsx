@@ -19,6 +19,7 @@ import { useApiFetch } from '@/hooks/use-api-fetch'
 import { KpiCard } from '@/components/shared/KpiCard'
 import { ViewShell } from '@/components/layout/ViewShell'
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar'
+import { QuickActionAddStock } from '@/components/enjambre/QuickActionAddStock'
 
 type TimeRange = 'month' | 'quarter' | 'ytd'
 
@@ -585,19 +586,20 @@ export function DashboardEjecutivo() {
             </div>
           )}
 
-          {stock.lowStock.length > 0 && (
-            <div className="mt-6">
-              <div className="section-title text-base mb-2 flex items-center gap-2">
+          <div className="mt-6">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="section-title text-base flex items-center gap-2">
                 <PackageX size={18} className="text-warning" /> Stock Bajo
               </div>
-              {stock.lowStock.slice(0, 4).map((p) => (
-                <div key={p.id} className="flex items-center justify-between py-1.5 border-b border-border/30">
-                  <span className="text-[0.82rem] text-foreground">{p.nombre ?? 'Sin nombre'}</span>
-                  <span className="badge badge-warning text-[0.7rem]">{p.stock} uds</span>
-                </div>
-              ))}
+              <QuickActionAddStock />
             </div>
-          )}
+            {stock.lowStock.slice(0, 4).map((p) => (
+              <div key={p.id} className="flex items-center justify-between py-1.5 border-b border-border/30">
+                <span className="text-[0.82rem] text-foreground">{p.nombre ?? 'Sin nombre'}</span>
+                <span className="badge badge-warning text-[0.7rem]">{p.stock} uds</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

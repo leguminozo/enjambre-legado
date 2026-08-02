@@ -30,6 +30,13 @@ export function OverlayFullscreen({
   panelClassName,
 }: OverlayFullscreenProps) {
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  // onClose en ref: los consumidores pasan arrows inline (identidad nueva por
+  // render). En deps, el cleanup robaría el foco en cada tecla (mismo bug que
+  // modal-focus) y el listener se re-suscribiría sin motivo.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -38,7 +45,7 @@ export function OverlayFullscreen({
     document.body.style.overflow = 'hidden';
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
     window.addEventListener('keydown', onKey);
 
@@ -47,7 +54,7 @@ export function OverlayFullscreen({
       window.removeEventListener('keydown', onKey);
       previousFocusRef.current?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 

@@ -597,7 +597,7 @@ export function InvitacionesPanel() {
                         value={nuevaCuenta.comuna}
                         onChange={e => setNuevaCuenta(p => ({ ...p, comuna: e.target.value }))}
                         className="input-field text-sm w-full"
-                        placeholder="Ej: Queilen, Chonchi, Castro..."
+                        placeholder="Ej: Queilén, Chonchi, Castro..."
                       />
                     </div>
                   </div>

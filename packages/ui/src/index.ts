@@ -25,6 +25,8 @@ export { toast } from './hooks/use-toast';
 export { NotificationBell, type Notification } from './components/notification-bell';
 export { ThemeProvider } from './components/ThemeProvider';
 export { ThemeInitScript, themeInitScript } from './components/theme-init-script';
+export { LegacyBrowserPolyfills, legacyBrowserPolyfillsScript } from './components/legacy-browser-polyfills';
+export { ErrorRevealHarness, errorRevealHarnessScript } from './components/error-reveal-harness';
 export { ThemeToggle } from './components/theme-toggle';
 export { SidebarSection, SidebarNavItem, SidebarBadgeIndicator, type SidebarNavItemData, type SidebarBadgeValue, type BadgeDotColor } from './components/sidebar';
 export { ModuleHero } from './components/module-hero';

@@ -93,7 +93,7 @@ function mapRpcToBadges(data: SidebarBadgesRpc): SidebarBadgeValues {
     pipeline: countBadge(data.leads_activos),
     monitorFeria:
       data.feria_en_curso > 0
-        ? { type: 'dot', color: 'orange' as BadgeDotColor }
+        ? { type: 'dot', color: 'green' as BadgeDotColor }
         : null,
     invitaciones: countBadge(data.invitaciones_activas),
     creadores: countBadge(data.creadores_pendientes),
@@ -220,7 +220,7 @@ async function fetchBadgesLegacy(): Promise<SidebarBadgeValues> {
     pipeline: countBadge(leadsActivos.count ?? 0),
     monitorFeria:
       (feriaEnCurso.count ?? 0) > 0
-        ? { type: 'dot', color: 'orange' as BadgeDotColor }
+        ? { type: 'dot', color: 'green' as BadgeDotColor }
         : null,
     invitaciones: countBadge(invitacionesActivas.count ?? 0),
     creadores: countBadge(creadoresPendientes.count ?? 0),

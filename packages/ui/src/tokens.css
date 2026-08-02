@@ -436,3 +436,17 @@ html.light {
 .enj-animate-slide-out-to-left { animation: enj-slide-out-to-left 0.2s ease-in; }
 .enj-animate-slide-out-to-right { animation: enj-slide-out-to-right 0.2s ease-in; }
 
+
+/* ── 7. Viewport — altura de pantalla con fallback iOS <15.4 ──
+   Uso en Tailwind: min-h-(--vh-full), h-(--vh-full), min-h-(--svh-full)
+   (una sola clase: sin problema de orden de cascada entre vh y dvh) */
+:root {
+  --vh-full: 100vh;
+  --svh-full: 100vh;
+}
+@supports (height: 100dvh) {
+  :root {
+    --vh-full: 100dvh;
+    --svh-full: 100svh;
+  }
+}

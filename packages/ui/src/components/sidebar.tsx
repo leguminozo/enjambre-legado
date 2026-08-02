@@ -161,7 +161,7 @@ export function SidebarSection({ label, items, activeKey, onItemClick, linkCompo
           textTransform: 'uppercase' as const,
           color: 'hsl(var(--sidebar-foreground) / 0.4)',
           padding: 'var(--space-sm) var(--space-md)',
-          marginTop: 'var(--space-sm)',
+          marginTop: 'var(--space-lg)',
         }}
       >
         {label}

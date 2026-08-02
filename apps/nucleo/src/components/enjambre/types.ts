@@ -4,9 +4,6 @@
  * Refleja el contrato completo del endpoint (`apps/nucleo/src/api/routes/dashboard-resumen.ts`):
  * todos los sub-campos son obligatorios salvo `equipo.topRep` (que puede ser `null`).
  * Los widgets que deban tolerar cargas parciales aplican fallbacks (`??`) en sus props.
- *
- * Consumidores: `gerente/DashboardResumen.tsx`, `enjambre/EcosistemaDashboard.tsx`
- * y `enjambre/widgets/*Widget.tsx`.
  */
 
 export interface EnjambreColmenas {

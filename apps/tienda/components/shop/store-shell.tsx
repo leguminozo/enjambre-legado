@@ -4,10 +4,12 @@ import { CampaignBanners } from '@/components/shop/campaign-banners';
 import { InstallPrompt } from '@/components/pwa/install-prompt';
 import { MobileBottomNav } from '@/components/shop/mobile-bottom-nav';
 import { MobileCartBar } from '@/components/shop/mobile-cart-bar';
+import { StickyBarSensor } from '@/components/shop/sticky-bar-sensor';
 
 export function StoreShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground antialiased tienda-shell">
+      <StickyBarSensor />
       <div className="tienda-shell-content">
         <CampaignBanners />
         {children}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   IN_APP_READ_STORAGE_PREFIX,
   mapInAppNotificationRow,
@@ -56,21 +56,38 @@ export function useInAppNotifications({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Los consumidores crean el cliente en render (identidad nueva por render).
+  // Ref: si entrara en deps, el canal realtime se re-crearía en cada render.
+  const supabaseRef = useRef(supabaseClient);
   useEffect(() => {
+    supabaseRef.current = supabaseClient;
+  }, [supabaseClient]);
+  const onLoadErrorRef = useRef(onLoadError);
+  useEffect(() => {
+    onLoadErrorRef.current = onLoadError;
+  }, [onLoadError]);
+
+  // Reset e hidratación en fase de render cuando el userId cambia (patrón
+  // recomendado por React para ajustar estado por prop; evita setState en
+  // efecto al desloguearse o cambiar de usuario).
+  const [prevUserId, setPrevUserId] = useState(userId);
+  if (prevUserId !== userId) {
+    setPrevUserId(userId);
     if (!userId) {
       setReadIds(new Set());
-      return;
-    }
-    try {
-      const stored = localStorage.getItem(`${IN_APP_READ_STORAGE_PREFIX}${userId}`);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) setReadIds(new Set(parsed));
+      setNotifs([]);
+    } else {
+      try {
+        const stored = localStorage.getItem(`${IN_APP_READ_STORAGE_PREFIX}${userId}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) setReadIds(new Set(parsed));
+        }
+      } catch {
+        // ignore corrupt localStorage
       }
-    } catch {
-      // ignore corrupt localStorage
     }
-  }, [userId]);
+  }
 
   const persistRead = useCallback((ids: Set<string>) => {
     if (!userId) return;
@@ -92,7 +109,7 @@ export function useInAppNotifications({
       if (!background) setIsLoading(true);
       setError(null);
 
-      const supabase = supabaseClient as SupabaseLike;
+      const supabase = supabaseRef.current as SupabaseLike;
       const { data, error: fetchError } = await supabase
         .from('notification_events')
         .select('*')
@@ -104,7 +121,7 @@ export function useInAppNotifications({
       if (fetchError) {
         const msg = fetchError.message || 'No se pudieron cargar las notificaciones';
         setError(msg);
-        onLoadError?.(msg);
+        onLoadErrorRef.current?.(msg);
         if (!background) setIsLoading(false);
         return;
       }
@@ -112,20 +129,19 @@ export function useInAppNotifications({
       setNotifs((data ?? []).map((row) => mapInAppNotificationRow(row, app)));
       if (!background) setIsLoading(false);
     },
-    [userId, limit, supabaseClient, app, onLoadError],
+    [userId, limit, app],
   );
 
   useEffect(() => {
-    if (!userId) {
-      setNotifs([]);
-      return;
-    }
+    if (!userId) return;
 
-    void load(false);
+    // Microtask: load() setea estado sincrónicamente antes del primer await;
+    // diferirlo evita el setState síncrono dentro del efecto (regla react-hooks).
+    queueMicrotask(() => void load(false));
 
     if (!enableRealtime) return;
 
-    const supabase = supabaseClient as SupabaseLike;
+    const supabase = supabaseRef.current as SupabaseLike;
     const realtimeChannel = supabase.channel(`in-app-notifications-${app}-${userId}`);
     realtimeChannel
       .on(
@@ -149,7 +165,7 @@ export function useInAppNotifications({
     return () => {
       supabase.removeChannel(realtimeChannel);
     };
-  }, [userId, load, supabaseClient, app, enableRealtime]);
+  }, [userId, load, app, enableRealtime]);
 
   const notifications = useMemo(
     () => notifs.map((n) => ({ ...n, read: readIds.has(String(n.id)) })),

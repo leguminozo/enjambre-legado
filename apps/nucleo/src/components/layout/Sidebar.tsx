@@ -9,6 +9,7 @@ import {
   getSidebarGroupsForRole,
   getAccountItemsForRole,
   findActiveItem,
+  PREFETCH_PRIORITY_KEYS,
   type SidebarBadge,
 } from '@/config/sidebar-config';
 import { toNavItemDataFromItem } from '@/components/layout/sidebar-shared';
@@ -60,9 +61,6 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
   const sidebarGroups = useMemo(() => getSidebarGroupsForRole(userRole), [userRole]);
   const accountItems = useMemo(() => getAccountItemsForRole(userRole), [userRole]);
 
-  const urlTienda = process.env.NEXT_PUBLIC_URL_TIENDA?.trim() || '';
-  const urlCampo = process.env.NEXT_PUBLIC_URL_CAMPO?.trim() || '';
-
   useEffect(() => {
     async function fetchUser() {
       if (!supabase) return;
@@ -81,9 +79,11 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
     [sidebarGroups, accountItems],
   );
 
-  // Prefetch rutas del rol en idle — navegación casi instantánea al primer click
+  // Prefetch en idle solo de las herramientas prioritarias; el resto se baja al hover
   useEffect(() => {
-    const hrefs = allItems.map((item) => item.href);
+    const priority = new Set<string>(PREFETCH_PRIORITY_KEYS as readonly string[]);
+    const hrefs = allItems.filter((item) => priority.has(item.key)).map((item) => item.href);
+    if (hrefs.length === 0) return;
     const run = () => prefetchMany(hrefs);
     if (typeof requestIdleCallback !== 'undefined') {
       const id = requestIdleCallback(run, { timeout: 4000 });
@@ -146,37 +146,6 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
       </nav>
 
       <div className="sidebar-footer">
-        {(urlTienda || urlCampo) && (
-          <div className="px-6 pb-4 text-[0.7rem] text-muted-foreground border-b border-border">
-            <div className="font-semibold tracking-wider mb-2 text-[0.65rem] text-foreground">ECOSISTEMA</div>
-            <div className="flex flex-col gap-1">
-              {urlTienda && (
-                <a
-                  href={urlTienda}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center min-h-11 text-accent font-medium"
-                  onClick={() => onToggle()}
-                  aria-label="Tienda web (abre en una nueva pestaña)"
-                >
-                  Tienda web
-                </a>
-              )}
-              {urlCampo && (
-                <a
-                  href={urlCampo}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center min-h-11 text-accent font-medium"
-                  onClick={() => onToggle()}
-                  aria-label="Terminal Campo (POS) (abre en una nueva pestaña)"
-                >
-                  Terminal Campo (POS)
-                </a>
-              )}
-            </div>
-          </div>
-        )}
         <div className="sidebar-user">
           <DropdownMenu
             trigger={

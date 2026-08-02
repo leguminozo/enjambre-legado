@@ -235,7 +235,7 @@ export function TiendaLandingView({
           return (
       <section
             key="hero"
-            className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] pb-[max(7rem,calc(env(safe-area-inset-bottom)+5.5rem))] md:pb-32 min-h-[100svh] md:min-h-[100dvh]"
+            className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] pb-[max(7rem,calc(env(safe-area-inset-bottom)+5.5rem))] md:pb-32 min-h-(--svh-full) md:min-h-(--vh-full)"
           >
             <div className="absolute inset-0 pointer-events-none" aria-hidden />
         {!isMobile && landing.show_bee_canvas ? <BeeCanvas /> : null}

@@ -349,9 +349,9 @@ html.tienda-overlay-open .tienda-text-carousel {
   }
 
   /* Con cart bar o sticky CTA, reserva espacio */
-  .tienda-shell:has(.tienda-cart-bar) .tienda-shell-content,
-  .tienda-shell:has(.tienda-sticky-cta) .tienda-shell-content,
-  .tienda-shell:has(.tienda-checkout-sticky-pay) .tienda-shell-content {
+  .tienda-shell[data-has-cart] .tienda-shell-content,
+  .tienda-shell[data-has-sticky-cta] .tienda-shell-content,
+  .tienda-shell[data-has-sticky-pay] .tienda-shell-content {
     padding-bottom: calc(var(--tienda-sticky-cta-h) + var(--safe-bottom) + 0.5rem);
   }
 }
@@ -366,8 +366,8 @@ html[data-tienda-pwa='standalone'] .tienda-shell-content {
   padding-bottom: var(--tienda-mobile-chrome-stack-pwa);
 }
 
-html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-sticky-cta) .tienda-shell-content,
-html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-checkout-sticky-pay) .tienda-shell-content {
+html[data-tienda-pwa='standalone'] .tienda-shell[data-has-sticky-cta] .tienda-shell-content,
+html[data-tienda-pwa='standalone'] .tienda-shell[data-has-sticky-pay] .tienda-shell-content {
   padding-bottom: calc(
     var(--tienda-mobile-chrome-stack-pwa) + var(--tienda-sticky-cta-h) + 0.5rem
   );
@@ -548,11 +548,11 @@ html[data-tienda-pwa='standalone'] .tienda-shop-footer {
 }
 
 /* Install no tapa la cart bar móvil */
-.tienda-shell:has(.tienda-cart-bar) .tienda-install-prompt {
+.tienda-shell[data-has-cart] .tienda-install-prompt {
   bottom: calc(var(--tienda-cart-bar-h) + var(--safe-bottom) + 0.5rem);
 }
 
-html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-cart-bar) .tienda-install-prompt {
+html[data-tienda-pwa='standalone'] .tienda-shell[data-has-cart] .tienda-install-prompt {
   bottom: calc(var(--tienda-bottom-nav-stack) + var(--tienda-cart-bar-h) + 0.5rem);
 }
 
@@ -663,7 +663,7 @@ html[data-tienda-pwa='standalone'] .tienda-sticky-cta {
   margin: 0 auto;
 }
 
-.tienda-shell:has(.tienda-checkout-sticky-pay) .tienda-shell-content {
+.tienda-shell[data-has-sticky-pay] .tienda-shell-content {
   padding-bottom: calc(4.5rem + var(--safe-bottom));
 }
 
@@ -696,7 +696,7 @@ html[data-tienda-pwa='standalone'] .tienda-sticky-cta {
   margin: 0 auto;
 }
 
-.tienda-shell:has(.tienda-cart-bar) .tienda-shell-content {
+.tienda-shell[data-has-cart] .tienda-shell-content {
   padding-bottom: calc(var(--tienda-cart-bar-h) + var(--safe-bottom));
 }
 
@@ -709,7 +709,7 @@ html[data-tienda-pwa='standalone'] .tienda-cart-bar {
   box-shadow: 0 8px 28px hsl(0 0% 0% / 0.14);
 }
 
-html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-cart-bar) .tienda-shell-content {
+html[data-tienda-pwa='standalone'] .tienda-shell[data-has-cart] .tienda-shell-content {
   padding-bottom: var(--tienda-mobile-chrome-stack-pwa);
 }
 
@@ -723,14 +723,14 @@ html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-cart-bar) .tienda-s
     bottom: calc(var(--tienda-mobile-chrome-stack-pwa) + 0.75rem) !important;
   }
 
-  .tienda-shell:has(.tienda-sticky-cta) .whatsapp-float-mobile,
-  .tienda-shell:has(.tienda-checkout-sticky-pay) .whatsapp-float-mobile,
-  .tienda-shell:has(.tienda-cart-bar) .whatsapp-float-mobile {
+  .tienda-shell[data-has-sticky-cta] .whatsapp-float-mobile,
+  .tienda-shell[data-has-sticky-pay] .whatsapp-float-mobile,
+  .tienda-shell[data-has-cart] .whatsapp-float-mobile {
     bottom: calc(var(--tienda-sticky-cta-h) + var(--safe-bottom) + 0.75rem) !important;
   }
 
-  html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-sticky-cta) .whatsapp-float-mobile,
-  html[data-tienda-pwa='standalone'] .tienda-shell:has(.tienda-checkout-sticky-pay) .whatsapp-float-mobile {
+  html[data-tienda-pwa='standalone'] .tienda-shell[data-has-sticky-cta] .whatsapp-float-mobile,
+  html[data-tienda-pwa='standalone'] .tienda-shell[data-has-sticky-pay] .whatsapp-float-mobile {
     bottom: calc(var(--tienda-mobile-chrome-stack-pwa) + var(--tienda-sticky-cta-h) + 0.5rem) !important;
   }
 
@@ -768,6 +768,7 @@ html[data-tienda-pwa='standalone'] .whatsapp-float-mobile {
 
 /* Auth — panel opaco en móvil (sin bleed del glow/grain) */
 .tienda-auth-page {
+  min-height: 100vh; /* fallback iOS <15.4 (dvh no existe) */
   min-height: 100dvh;
   background-color: hsl(var(--background));
   padding: calc(var(--safe-top) + 1.25rem) 1rem calc(var(--safe-bottom) + 1.25rem);
@@ -860,6 +861,7 @@ html[data-tienda-pwa='standalone'] .whatsapp-float-mobile {
   z-index: 1;
   pointer-events: auto;
   width: 100%;
+  max-height: min(92vh, 100%);
   max-height: min(92dvh, 100%);
   display: flex;
   flex-direction: column;
@@ -872,6 +874,7 @@ html[data-tienda-pwa='standalone'] .whatsapp-float-mobile {
 }
 
 .tienda-modal-panel.is-lg {
+  max-height: min(94vh, 100%);
   max-height: min(94dvh, 100%);
 }
 
