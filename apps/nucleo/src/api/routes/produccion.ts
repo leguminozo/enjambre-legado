@@ -1,9 +1,11 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
+import { createClient } from "@supabase/supabase-js";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 import { rpcLoose } from "@/api/lib/supabase-loose";
+import { notifyStockCritico } from "@/lib/notifications/enqueue-transactional";
 import type { Json } from "@enjambre/database/database.types";
 
 export const produccionRoutes = new Hono<{ Variables: AppVariables }>();
@@ -97,6 +99,30 @@ produccionRoutes.get("/dashboard", async (c) => {
       });
     }
   });
+
+  // Alertas de stock crítico → notificaciones centrales (campana + Voz de la Colmena).
+  // Fire-and-forget con dedupe diario: 1 alerta por lote/producto por día.
+  // Nunca bloquea la respuesta del dashboard: sin service key o ante error, solo log.
+  const user = c.get("user");
+  const criticalLotes = lotes.filter((l) => Number(l.kg_total ?? 0) < 50);
+  const quiebreProductos = productos.filter((p) => Number(p.stock ?? 0) < 10);
+  const serviceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (user?.id && serviceUrl && serviceKey && (criticalLotes.length > 0 || quiebreProductos.length > 0)) {
+    const admin = createClient(serviceUrl, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    void notifyStockCritico(admin, {
+      lotes: criticalLotes,
+      productos: quiebreProductos,
+      userId: user.id,
+      email: user.email ?? null,
+      empresaId: empresaId ?? undefined,
+      today: new Date().toISOString().slice(0, 10),
+    }).catch((err: unknown) => {
+      console.error("[produccion] stock alert enqueue failed:", err);
+    });
+  }
 
   return c.json({
     data: {

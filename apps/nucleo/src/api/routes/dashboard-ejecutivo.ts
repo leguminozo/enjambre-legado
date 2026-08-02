@@ -67,6 +67,7 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
     leaderboardRes,
     ventasRecentRes,
     productosRes,
+    lotesRes,
   ] = await Promise.all([
     supabase
       .from("colmenas")
@@ -165,6 +166,10 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
     fromLoose(supabase, "productos")
       .select("id, nombre, precio, stock, categoria")
       .eq("empresa_id", empresaId),
+    // Lotes de miel para KPIs operativos del panel (misma semántica que /produccion/dashboard)
+    supabase
+      .from("lotes")
+      .select("id, nombre_lote, kg_total"),
   ]);
 
   const colmenas = colmenasRes.data ?? [];
@@ -187,6 +192,11 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
   const leaderboard = leaderboardRes.data ?? [];
   const ventasRecent = ventasRecentRes.data ?? [];
   const productos = productosRes.data ?? [];
+  const lotes = lotesRes.data ?? [];
+
+  const mielEnLotesKg = lotes.reduce((acc: number, l: { kg_total: number | null }) => acc + Number(l.kg_total ?? 0), 0);
+  const lotesCriticos = lotes.filter((l: { kg_total: number | null }) => Number(l.kg_total ?? 0) < 50).length;
+  const productosQuiebre = productos.filter((p: { stock: number | null }) => Number(p.stock ?? 0) < 10).length;
 
   const totalColmenas = colmenas.length;
   const colmenasByHealth = {
@@ -458,6 +468,9 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
         stock: p.stock,
         categoria: p.categoria,
       })),
+      mielEnLotesKg,
+      lotesCriticos,
+      productosQuiebre,
     },
     alerts,
   });

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity, Map as MapIcon } from 'lucide-react';
+import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity, Map as MapIcon, MapPin } from 'lucide-react';
 import type { ColmenaWithRelations, InspeccionRow, VarroaRow, PesoRow } from '@/lib/apicultor-types';
 import type { Tables } from '@enjambre/database';
 import { healthFromEstado, estadoFromHealth } from '@/types/ecosystem';
@@ -41,9 +41,14 @@ interface ReflexionData {
   created_at?: string;
 }
 
-type ViewTab = 'colmenas' | 'calendario' | 'trazabilidad' | 'territorio' | 'sanidad';
+type ViewTab = 'colmenas' | 'apiarios' | 'calendario' | 'trazabilidad' | 'territorio' | 'sanidad';
 
-export function ApicultorView() {
+/**
+ * Vista del apiario. Cada tab puede abrirse como ruta propia desde la sidebar
+ * (RECOLECCIÓN → /colmenas, /colmenas/apiarios, /colmenas/cuaderno, /colmenas/trazabilidad)
+ * vía `initialView`; el tab bar permite moverse dentro del módulo sin recargar.
+ */
+export function ApicultorView({ initialView = 'colmenas' }: { initialView?: ViewTab } = {}) {
     const apiFetch = useApiFetch();
     const [userProfile, setUserProfile] = useState<{ full_name?: string } | null>(null);
     const [treesCount, setTreesCount] = useState<number>(0);
@@ -51,7 +56,7 @@ export function ApicultorView() {
     const [localColmenas, setLocalColmenas] = useState<ColmenaWithRelations[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedColmena, setSelectedColmena] = useState<ColmenaWithRelations | null>(null);
-    const [activeView, setActiveView] = useState<ViewTab>('colmenas');
+    const [activeView, setActiveView] = useState<ViewTab>(initialView);
 
     // Phase 4 dynamic data
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
@@ -232,6 +237,7 @@ export function ApicultorView() {
               className="mt-2 mb-2"
               tabs={[
                 { id: 'colmenas', label: 'Mis Colmenas', icon: <Activity size={16} /> },
+                { id: 'apiarios', label: 'Apiarios', icon: <MapPin size={16} /> },
                 { id: 'sanidad', label: 'Cuaderno Campo', icon: <Droplets size={16} /> },
                 { id: 'calendario', label: 'Ciclo del Bosque', icon: <CalendarDays size={16} /> },
                 { id: 'trazabilidad', label: 'Trazabilidad', icon: <LineChart size={16} /> },
@@ -247,6 +253,12 @@ export function ApicultorView() {
                     {activeView === 'colmenas' && (
                         <div className="animate-in delay-2" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                             <GemeloApiario colmenas={localColmenas} apiarioName={localColmenas[0]?.apiario_name} />
+                            <ApiarioManager colmenas={localColmenas} setColmenas={setLocalColmenas} onSelectColmena={setSelectedColmena} />
+                        </div>
+                    )}
+
+                    {activeView === 'apiarios' && (
+                        <div className="animate-in delay-2">
                             <ApiarioManager colmenas={localColmenas} setColmenas={setLocalColmenas} onSelectColmena={setSelectedColmena} />
                         </div>
                     )}

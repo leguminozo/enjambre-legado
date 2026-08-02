@@ -38,6 +38,8 @@ interface ApiarioRegistro {
   n_colmenas: number;
   categoria: string;
   activo: boolean;
+  lat_aproximada?: number | null;
+  lng_aproximada?: number | null;
 }
 
 interface CensoLegalWizardProps {
@@ -68,6 +70,10 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
   const [metodoVarroa, setMetodoVarroa] = useState(actor.metodo_control_varroa ?? '');
   const [savingActividad, setSavingActividad] = useState(false);
 
+  // ---- Aceptación de Carta y política (puede faltar en actores pre-existentes) ----
+  const [aceptaCartaLocal, setAceptaCartaLocal] = useState(Boolean(actor.acepta_carta));
+  const [aceptaPoliticaLocal, setAceptaPoliticaLocal] = useState(Boolean(actor.acepta_politica_datos));
+
   // ---- Paso 3: Apiarios ----
   const [showApiarioForm, setShowApiarioForm] = useState(false);
   const [apiarioNombre, setApiarioNombre] = useState('');
@@ -75,6 +81,8 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
   const [apiarioComuna, setApiarioComuna] = useState(actor.comuna);
   const [apiarioColmenas, setApiarioColmenas] = useState(10);
   const [apiarioCategoria, setApiarioCategoria] = useState('produccion');
+  const [apiarioLat, setApiarioLat] = useState('');
+  const [apiarioLng, setApiarioLng] = useState('');
   const [savingApiario, setSavingApiario] = useState(false);
   const [editandoApiario, setEditandoApiario] = useState<ApiarioRegistro | null>(null);
 
@@ -97,7 +105,7 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
   const tieneIdentidad = rutOk && telefono.trim().length >= 6 && declaracionExistencia;
   const tieneActividad = practicas.trim().length > 0 && metodoVarroa.trim().length > 0;
   const tieneApiarios = apiarios.length > 0;
-  const aceptaTodo = Boolean(actor.acepta_carta) && Boolean(actor.acepta_politica_datos);
+  const aceptaTodo = aceptaCartaLocal && aceptaPoliticaLocal;
   const todoListo = tieneIdentidad && tieneActividad && tieneApiarios && aceptaTodo;
 
   const guardarActor = async (body: Record<string, unknown>) => {
@@ -177,12 +185,26 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
     }
     setSavingApiario(true);
     try {
+      const lat = apiarioLat ? parseFloat(apiarioLat) : undefined;
+      const lng = apiarioLng ? parseFloat(apiarioLng) : undefined;
+      if (lat !== undefined && (Number.isNaN(lat) || lat < -90 || lat > 90)) {
+        toast.error('Latitud aproximada inválida (entre -90 y 90)');
+        setSavingApiario(false);
+        return;
+      }
+      if (lng !== undefined && (Number.isNaN(lng) || lng < -180 || lng > 180)) {
+        toast.error('Longitud aproximada inválida (entre -180 y 180)');
+        setSavingApiario(false);
+        return;
+      }
       const body = {
         nombre: apiarioNombre.trim() || null,
         comuna: apiarioComuna.trim(),
         zona: apiarioZona.trim(),
         n_colmenas: apiarioColmenas,
         categoria: apiarioCategoria,
+        lat_aproximada: lat,
+        lng_aproximada: lng,
       };
       const res = await apiFetch(
         editandoApiario
@@ -205,6 +227,8 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
       setApiarioZona('');
       setApiarioColmenas(10);
       setApiarioCategoria('produccion');
+      setApiarioLat('');
+      setApiarioLng('');
       refetchApiarios().catch(() => toast.error('Error actualizando apiarios'));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Error guardando apiario');
@@ -233,7 +257,11 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
       return;
     }
     try {
-      await guardarActor({ completo: true });
+      await guardarActor({
+        acepta_carta: aceptaCartaLocal,
+        acepta_politica_datos: aceptaPoliticaLocal,
+        completo: true,
+      });
       toast.success('¡Inscripción completada! Ya puedes declarar trashumancia y predios.');
       onSaved();
     } catch (e) {
@@ -458,6 +486,8 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                                 setApiarioComuna(a.comuna);
                                 setApiarioColmenas(a.n_colmenas);
                                 setApiarioCategoria(a.categoria);
+                                setApiarioLat(a.lat_aproximada?.toString() ?? '');
+                                setApiarioLng(a.lng_aproximada?.toString() ?? '');
                                 setShowApiarioForm(true);
                               }}
                             >
@@ -533,6 +563,34 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                           </div>
                         </div>
                       </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1.5">
+                            Latitud aprox. <span className="normal-case text-muted-foreground/60">(opcional)</span>
+                          </label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={apiarioLat}
+                            onChange={(e) => setApiarioLat(e.target.value)}
+                            placeholder="-42.48"
+                            className="w-full rounded-xl border border-border/60 bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition-colors"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1.5">
+                            Longitud aprox. <span className="normal-case text-muted-foreground/60">(opcional)</span>
+                          </label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={apiarioLng}
+                            onChange={(e) => setApiarioLng(e.target.value)}
+                            placeholder="-73.76"
+                            className="w-full rounded-xl border border-border/60 bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition-colors"
+                          />
+                        </div>
+                      </div>
                       <div className="flex gap-2">
                         <Button onClick={guardarApiario} disabled={savingApiario} size="sm">
                           {savingApiario ? 'Guardando…' : editandoApiario ? 'Actualizar' : 'Declarar'}
@@ -547,6 +605,8 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                             setApiarioZona('');
                             setApiarioColmenas(10);
                             setApiarioCategoria('produccion');
+                            setApiarioLat('');
+                            setApiarioLng('');
                           }}
                         >
                           Cancelar
@@ -582,8 +642,8 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                       { ok: practicas.trim().length > 0, label: 'Prácticas sanitarias declaradas' },
                       { ok: metodoVarroa.trim().length > 0, label: 'Método de control de varroa declarado' },
                       { ok: apiarios.length > 0, label: 'Al menos un apiario declarado con sector y colmenas' },
-                      { ok: Boolean(actor.acepta_carta), label: 'Aceptación de la Carta Constitutiva' },
-                      { ok: Boolean(actor.acepta_politica_datos), label: 'Aceptación de la política de datos' },
+                      { ok: aceptaCartaLocal, label: 'Aceptación de la Carta Constitutiva' },
+                      { ok: aceptaPoliticaLocal, label: 'Aceptación de la política de datos' },
                     ].map((item) => (
                       <div key={item.label} className="flex items-center gap-2 text-sm">
                         {item.ok ? (
@@ -595,6 +655,44 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                       </div>
                     ))}
                   </div>
+
+                  {(!aceptaCartaLocal || !aceptaPoliticaLocal) && (
+                    <div className="space-y-3 bg-surface-raised/40 p-3.5 rounded-xl border border-border/40">
+                      <label className="flex items-start gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={aceptaCartaLocal}
+                          onChange={(e) => setAceptaCartaLocal(e.target.checked)}
+                          className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary"
+                        />
+                        <div>
+                          <span className="text-sm font-medium text-foreground">
+                            Acepto la <a href="/carta" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Carta Constitutiva Apícola Territorial</a> *
+                          </span>
+                          <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
+                            Infraestructura colectiva, autónoma y no extractiva: consentimiento informado y beneficio recíproco.
+                          </p>
+                        </div>
+                      </label>
+                      <label className="flex items-start gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={aceptaPoliticaLocal}
+                          onChange={(e) => setAceptaPoliticaLocal(e.target.checked)}
+                          className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary"
+                        />
+                        <div>
+                          <span className="text-sm font-medium text-foreground">
+                            Acepto la política de datos y privacidad *
+                          </span>
+                          <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
+                            Tus datos se entregan en custodia: puedes corregirlos, descargarlos y retirar consentimientos.
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  )}
+
                   <Button onClick={completarInscripcion} disabled={!todoListo} size="sm">
                     <FileCheck2 size={15} className="mr-1" /> Completar inscripción
                   </Button>

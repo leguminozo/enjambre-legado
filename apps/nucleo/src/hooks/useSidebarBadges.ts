@@ -11,12 +11,12 @@ export interface SidebarBadgeValues {
   sii: SidebarBadge
   banco: SidebarBadge
   alambique: SidebarBadge
-  calendario: SidebarBadge
+  'ciclo-bosque': SidebarBadge
   pipeline: SidebarBadge
-  monitorFeria: SidebarBadge
+  'monitor-feria': SidebarBadge
   invitaciones: SidebarBadge
-  creadores: SidebarBadge
-  operadoresFeria: SidebarBadge
+  'creadores-admin': SidebarBadge
+  'operadores-feria': SidebarBadge
 }
 
 interface SidebarBadgesRpc {
@@ -39,12 +39,12 @@ const DEFAULT_BADGES: SidebarBadgeValues = {
   sii: null,
   banco: null,
   alambique: null,
-  calendario: null,
+  'ciclo-bosque': null,
   pipeline: null,
-  monitorFeria: null,
+  'monitor-feria': null,
   invitaciones: null,
-  creadores: null,
-  operadoresFeria: null,
+  'creadores-admin': null,
+  'operadores-feria': null,
 }
 
 const CACHE_KEY = 'nucleo:sidebar-badges:v3'
@@ -89,15 +89,15 @@ function mapRpcToBadges(data: SidebarBadgesRpc): SidebarBadgeValues {
         ? { type: 'dot', color: 'orange' as BadgeDotColor }
         : { type: 'dot', color: 'green' as BadgeDotColor },
     alambique: countBadge(data.destilaciones_activas),
-    calendario: countBadge(data.eventos_hoy),
+    'ciclo-bosque': countBadge(data.eventos_hoy),
     pipeline: countBadge(data.leads_activos),
-    monitorFeria:
+    'monitor-feria':
       data.feria_en_curso > 0
         ? { type: 'dot', color: 'green' as BadgeDotColor }
         : null,
     invitaciones: countBadge(data.invitaciones_activas),
-    creadores: countBadge(data.creadores_pendientes),
-    operadoresFeria: countBadge(data.arqueos_abiertos),
+    'creadores-admin': countBadge(data.creadores_pendientes),
+    'operadores-feria': countBadge(data.arqueos_abiertos),
   }
 }
 
@@ -216,15 +216,15 @@ async function fetchBadgesLegacy(): Promise<SidebarBadgeValues> {
         ? { type: 'dot', color: 'orange' as BadgeDotColor }
         : { type: 'dot', color: 'green' as BadgeDotColor },
     alambique: countBadge(destilacionesActivas.count ?? 0),
-    calendario: countBadge(eventosHoy.count ?? 0),
+    'ciclo-bosque': countBadge(eventosHoy.count ?? 0),
     pipeline: countBadge(leadsActivos.count ?? 0),
-    monitorFeria:
+    'monitor-feria':
       (feriaEnCurso.count ?? 0) > 0
         ? { type: 'dot', color: 'green' as BadgeDotColor }
         : null,
     invitaciones: countBadge(invitacionesActivas.count ?? 0),
-    creadores: countBadge(creadoresPendientes.count ?? 0),
-    operadoresFeria: countBadge(arqueosAbiertos.count ?? 0),
+    'creadores-admin': countBadge(creadoresPendientes.count ?? 0),
+    'operadores-feria': countBadge(arqueosAbiertos.count ?? 0),
   }
 }
 

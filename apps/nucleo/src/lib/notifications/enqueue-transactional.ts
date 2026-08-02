@@ -357,3 +357,50 @@ export async function notifyShipmentDispatched(
     category: "pedidos",
   });
 }
+
+export type StockCriticoNotificationInput = {
+  lotes: Array<{ id: string; nombre_lote?: string | null; kg_total?: number | null }>;
+  productos: Array<{ id: string; nombre?: string | null; stock?: number | null }>;
+  userId: string;
+  email: string | null;
+  empresaId?: string | null;
+  /** Fecha ISO (YYYY-MM-DD) para dedupe diario: 1 alerta por entidad por día */
+  today: string;
+};
+
+/**
+ * Alertas operativas de inventario → notificaciones centrales (campana + Voz de la Colmena).
+ * Idempotente por (entidad, día): un lote crítico alerta una vez al día, no en cada fetch.
+ */
+export async function notifyStockCritico(
+  admin: SupabaseClient,
+  input: StockCriticoNotificationInput,
+): Promise<void> {
+  for (const lote of input.lotes) {
+    const codigo = lote.nombre_lote?.trim() || lote.id.slice(0, 8).toUpperCase();
+    await enqueueTransactionalNotification(admin, {
+      dedupeKey: `stock_critico_lote:${lote.id}:${input.today}`,
+      source: "stock_critico",
+      email: input.email,
+      userId: input.userId,
+      subject: `Lote crítico: ${codigo}`,
+      body: `El lote ${codigo} está bajo el umbral operativo (${Number(lote.kg_total ?? 0)} kg < 50 kg). Revisa Inventario.`,
+      empresaId: input.empresaId,
+      category: "sistema",
+    });
+  }
+
+  for (const producto of input.productos) {
+    const nombre = producto.nombre?.trim() || "Producto";
+    await enqueueTransactionalNotification(admin, {
+      dedupeKey: `stock_critico_producto:${producto.id}:${input.today}`,
+      source: "stock_critico",
+      email: input.email,
+      userId: input.userId,
+      subject: `Riesgo de quiebre: ${nombre}`,
+      body: `${nombre} tiene ${Number(producto.stock ?? 0)} unidades (< 10). Repón stock desde Inventario.`,
+      empresaId: input.empresaId,
+      category: "sistema",
+    });
+  }
+}

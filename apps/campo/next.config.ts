@@ -77,6 +77,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // El panel de caja (CashSessionsPanel) y otros flujos consumen el BFF de
+  // Núcleo; sin este rewrite, /api/cash-sessions/* devuelve 404 en Campo.
+  async rewrites() {
+    const nucleoOrigin = nucleoConnectOrigin();
+    if (!nucleoOrigin) return [];
+    return [
+      {
+        source: '/api/cash-sessions/:path*',
+        destination: `${nucleoOrigin}/api/cash-sessions/:path*`,
+      },
+    ];
+  },
 };
 
 export default withSerwist(nextConfig);

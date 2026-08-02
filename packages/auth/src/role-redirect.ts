@@ -81,20 +81,14 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/creadores': ['admin'],
   '/operadores-feria': ['admin'],
   '/monitor-feria': ['admin'],
-  '/mi-feria': ['admin'],
   '/invitaciones': ['admin'],
   '/reglas-comision': ['admin'],
-  '/comisiones': ['admin'],
-  '/reps': ['admin'],
-  '/caja': ['admin'],
-  '/leaderboard': ['admin'],
   '/colmenas': ['admin'],
   '/regeneracion': ['admin'],
   '/mapa': ['admin'],
   '/catalogo': ['admin'],
   '/operaciones': ['admin'],
   '/comunidad': ['admin'],
-  '/creador': ['admin'],
   '/perfil': ['admin'],
   '/configuracion': ['admin'],
   '/editor-tienda': ['admin'],
@@ -103,7 +97,9 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/alambique': ['admin'],
   '/territorio': ['territorial'],
   '/registro-territorial': ['territorial', 'admin'],
-  // '/calculos-ia' y '/vanguardia' ya arriba (vanguardia redirect → /crm?tab=aliados)
+  // /vanguardia es un redirect vivo → /crm?tab=aliados (B2B)
+  // /mi-feria, /comisiones, /reps, /caja, /leaderboard, /creador viven en campo/tienda
+  // (no tienen página en nucleo) y se rigen por fail-closed si alguien las pide aquí.
 }
 
 function normalizeRole(role: string): string {

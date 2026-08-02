@@ -82,6 +82,10 @@ interface EjecutivoData {
   }
   stock: {
     lowStock: { id: string; nombre: string | null; stock: number | null; categoria: string | null }[]
+    /** KPIs operativos de miel — antes en /produccion, ahora en el panel ejecutivo */
+    mielEnLotesKg: number
+    lotesCriticos: number
+    productosQuiebre: number
   }
   alerts: Array<{ severity: 'critical' | 'warning' | 'info'; title: string; detail: string }>
 }
@@ -302,6 +306,28 @@ export function DashboardEjecutivo() {
           icon={<Leaf size={20} />}
           description={`${kpis.arbolesYTD} árboles nativos YTD.`}
           sparkline={enjambre.arboles.byMonth}
+        />
+      </div>
+
+      {/* Operación de miel — KPIs de stock/lotes centralizados en el panel ejecutivo */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+        <KpiCard
+          title="Miel en Lotes"
+          value={`${stock.mielEnLotesKg.toFixed(1)} kg`}
+          icon={<BarChart3 size={20} />}
+          description="Peso total en lotes activos."
+        />
+        <KpiCard
+          title="Lotes Críticos (&lt;50kg)"
+          value={stock.lotesCriticos}
+          icon={<AlertTriangle size={20} />}
+          description="Lotes bajo umbral operativo."
+        />
+        <KpiCard
+          title="Riesgo de Quiebre"
+          value={stock.productosQuiebre}
+          icon={<PackageX size={20} />}
+          description="Productos con stock &lt; 10 unidades."
         />
       </div>
 

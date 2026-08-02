@@ -45,6 +45,21 @@ export const LazyAlambiqueView = named(
   'Alambique',
 );
 export const LazyApicultorView = named(() => import('@/views/ApicultorView'), 'ApicultorView', 'Colmenas');
+export const LazyApiariosView = named(
+  () => import('@/views/apicultor/ApiariosView'),
+  'ApiariosView',
+  'Apiarios',
+);
+export const LazyCuadernoCampoView = named(
+  () => import('@/views/apicultor/CuadernoCampoView'),
+  'CuadernoCampoView',
+  'Cuaderno Campo',
+);
+export const LazyTrazabilidadView = named(
+  () => import('@/views/apicultor/TrazabilidadView'),
+  'TrazabilidadView',
+  'Trazabilidad',
+);
 export const LazyLogisticaView = named(() => import('@/views/LogisticaView'), 'LogisticaView', 'Operaciones');
 export const LazyRegeneracionView = named(
   () => import('@/views/RegeneracionView'),

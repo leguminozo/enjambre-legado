@@ -5,6 +5,7 @@ import {
   Calculator, Sparkles, BarChart3, FileText, UserCog, Settings, Building2,
   CreditCard, GitMerge, Printer, Ticket, Sliders, FlaskConical, Factory,
   Contact, Network, TrendingUp, TestTubes, LayoutTemplate, CalendarDays, Store,
+  Warehouse, NotebookPen, Route,
 } from 'lucide-react';
 import type { SidebarItem, SidebarBadge } from '@/config/sidebar-config';
 import type { SidebarNavItemData } from '@enjambre/ui';
@@ -38,6 +39,9 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   'trending-up': TrendingUp,
   'layout-template': LayoutTemplate,
   store: Store,
+  warehouse: Warehouse,
+  'notebook-pen': NotebookPen,
+  route: Route,
 };
 
 export function toNavItemDataFromItem(

@@ -9,7 +9,7 @@ import {
 } from '@enjambre/ui';
 import { formatCLP } from '@enjambre/ui';
 import { 
-  Activity, Package, AlertTriangle, Layers, Calendar, BarChart2
+  Activity, Package, Calendar, Layers
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -62,7 +62,7 @@ export function ProduccionView() {
   });
 
   const data = dashboardData?.data || { lotes: [], productos: [], stats: {} };
-  const { lotes, productos, stats } = data;
+  const { lotes, productos } = data;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -101,44 +101,7 @@ export function ProduccionView() {
               transition={{ duration: 0.2 }}
               className="space-y-6"
             >
-              {/* KPIs */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="bg-surface-sunken border-border">
-                  <CardContent className="p-6 flex items-center gap-4">
-                    <div className="bg-primary/10 p-3 rounded-xl text-primary">
-                      <BarChart2 size={24} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Miel en Lotes</p>
-                      <p className="text-3xl font-display mt-1">{stats.total_kg_lotes?.toFixed(1) || 0} kg</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-surface-sunken border-border">
-                  <CardContent className="p-6 flex items-center gap-4">
-                    <div className="bg-warning/10 p-3 rounded-xl text-warning">
-                      <Layers size={24} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Lotes Críticos (&lt;50kg)</p>
-                      <p className="text-3xl font-display mt-1">{stats.lotes_criticos || 0}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-surface-sunken border-border">
-                  <CardContent className="p-6 flex items-center gap-4">
-                    <div className="bg-danger/10 p-3 rounded-xl text-destructive">
-                      <AlertTriangle size={24} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Riesgo de Quiebre</p>
-                      <p className="text-3xl font-display mt-1 text-destructive">{stats.productos_quiebre || 0}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              {/* KPIs operativos de miel viven en el Panel Ejecutivo (/ejecutivo) */}
 
               {/* Tabla de Productos / Quiebres */}
               <Card>

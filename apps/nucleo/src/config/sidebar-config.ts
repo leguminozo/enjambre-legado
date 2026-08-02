@@ -49,10 +49,10 @@ export const PREFETCH_PRIORITY_KEYS = [
   'colmenas',
   'produccion',
   'alambique',
-  'catalogo',
+  'productos',
   'costeo',
-  'operaciones',
-  'contable',
+  'despacho',
+  'contabilidad',
   'crm',
   'configuracion',
 ] as const
@@ -73,40 +73,62 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     ],
   },
   {
-    key: 'enjambre',
-    label: 'EL ENJAMBRE',
+    key: 'recoleccion',
+    label: 'RECOLECCIÓN',
     items: [
       {
-        key: 'territorio',
-        label: 'Territorio',
-        icon: 'map',
-        href: '/mapa',
-        greeting: 'Cartógrafo del bosque',
-        mission: '22 años de territorio vivo en Chiloé',
-      },
-      {
-        key: 'bosque',
-        label: 'Bosque',
-        icon: 'tree-pine',
-        href: '/regeneracion',
-        greeting: 'Guardián del legado',
-        mission: 'Cada árbol plantado es deuda con el futuro',
-      },
-      {
         key: 'colmenas',
-        label: 'Colmenas',
+        label: 'Mis Colmenas',
         icon: 'hexagon',
         href: '/colmenas',
         greeting: 'Obrera del bosque',
         mission: 'El ciclo del ulmo guía tu día',
       },
       {
-        key: 'produccion',
-        label: 'Producción',
-        icon: 'factory',
-        href: '/produccion',
-        greeting: 'Maestro del panal',
-        mission: 'Cada lote es una verdad del proceso',
+        key: 'apiarios',
+        label: 'Apiarios',
+        icon: 'warehouse',
+        href: '/colmenas/apiarios',
+        greeting: 'Guardián de apiarios',
+        mission: 'Cada apiario es un ancla en el territorio',
+      },
+      {
+        key: 'cuaderno-campo',
+        label: 'Cuaderno Campo',
+        icon: 'notebook-pen',
+        href: '/colmenas/cuaderno',
+        greeting: 'Cronista del apiario',
+        mission: 'Cada anotación es memoria del ciclo',
+      },
+      {
+        key: 'trazabilidad',
+        label: 'Trazabilidad',
+        icon: 'route',
+        href: '/colmenas/trazabilidad',
+        greeting: 'Tejedor de rastros',
+        mission: 'Cada lote cuenta la historia del bosque',
+      },
+    ],
+  },
+  {
+    key: 'bosque',
+    label: 'BOSQUE',
+    items: [
+      {
+        key: 'ciclo-bosque',
+        label: 'Ciclo del Bosque',
+        icon: 'calendar-days',
+        href: '/calendario',
+        greeting: 'Guardián del tiempo',
+        mission: 'El ciclo del enjambre no se detiene',
+      },
+      {
+        key: 'bosque',
+        label: 'Bosque Plantado',
+        icon: 'tree-pine',
+        href: '/regeneracion',
+        greeting: 'Guardián del legado',
+        mission: 'Cada árbol plantado es deuda con el futuro',
       },
       {
         key: 'alambique',
@@ -116,6 +138,20 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Alquimista del vapor',
         mission: 'Cada gota destilada es memoria del bosque',
       },
+    ],
+  },
+  {
+    key: 'produccion',
+    label: 'PRODUCCIÓN',
+    items: [
+      {
+        key: 'produccion',
+        label: 'Inventario',
+        icon: 'factory',
+        href: '/produccion',
+        greeting: 'Maestro del panal',
+        mission: 'Cada lote es una verdad del proceso',
+      },
       {
         key: 'costeo',
         label: 'Costeo',
@@ -123,22 +159,6 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         href: '/costeo',
         greeting: 'Alquimista del número',
         mission: 'Cada frasco sin costo es miel que se pierde',
-      },
-      {
-        key: 'despacho',
-        label: 'Despacho',
-        icon: 'truck',
-        href: '/operaciones',
-        greeting: 'Arquitecto de flujos',
-        mission: 'Del panal al consumidor, sin perder una gota',
-      },
-      {
-        key: 'calendario',
-        label: 'Calendario',
-        icon: 'calendar-days',
-        href: '/calendario',
-        greeting: 'Guardián del tiempo',
-        mission: 'El ciclo del enjambre no se detiene',
       },
     ],
   },
@@ -153,6 +173,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         href: '/catalogo',
         greeting: 'Alquimista del panal',
         mission: 'La miel sin historia vale la mitad',
+      },
+      {
+        key: 'despacho',
+        label: 'Despacho',
+        icon: 'truck',
+        href: '/operaciones',
+        greeting: 'Arquitecto de flujos',
+        mission: 'Del panal al consumidor, sin perder una gota',
       },
       {
         key: 'editor-tienda',
@@ -193,6 +221,44 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         href: '/monitor-feria',
         greeting: 'Observador de feria',
         mission: 'Trazabilidad y observación en vivo de las ventas en feria',
+      },
+      {
+        key: 'operadores-feria',
+        label: 'Operadores Feria',
+        icon: 'calendar',
+        href: '/operadores-feria',
+        greeting: 'Director de campo',
+        mission: 'Contratos, consignación y arqueo sin subordinación',
+      },
+    ],
+  },
+  {
+    key: 'red',
+    label: 'RED',
+    items: [
+      {
+        key: 'creadores-admin',
+        label: 'Creadores Admin',
+        icon: 'sparkles',
+        href: '/creadores',
+        greeting: 'Director de embajadores',
+        mission: 'Quien representa la miel, representa el bosque',
+      },
+      {
+        key: 'reglas-comision',
+        label: 'Reglas de Comisión',
+        icon: 'sliders',
+        href: '/reglas-comision',
+        greeting: 'Legislador del incentivo',
+        mission: 'Reglas claras, ventas claras',
+      },
+      {
+        key: 'invitaciones',
+        label: 'Invitaciones',
+        icon: 'ticket',
+        href: '/invitaciones',
+        greeting: 'Reclutador del legado',
+        mission: 'Cada invitación es un nuevo guardián',
       },
     ],
   },
@@ -259,40 +325,16 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     ],
   },
   {
-    key: 'personas',
-    label: 'PERSONAS',
+    key: 'territorio',
+    label: 'TERRITORIO',
     items: [
       {
-        key: 'creadores-admin',
-        label: 'Creadores Admin',
-        icon: 'sparkles',
-        href: '/creadores',
-        greeting: 'Director de embajadores',
-        mission: 'Quien representa la miel, representa el bosque',
-      },
-      {
-        key: 'operadores-feria',
-        label: 'Operadores Feria',
-        icon: 'calendar',
-        href: '/operadores-feria',
-        greeting: 'Director de campo',
-        mission: 'Contratos, consignación y arqueo sin subordinación',
-      },
-      {
-        key: 'reglas-comision',
-        label: 'Reglas de Comisión',
-        icon: 'sliders',
-        href: '/reglas-comision',
-        greeting: 'Legislador del incentivo',
-        mission: 'Reglas claras, ventas claras',
-      },
-      {
-        key: 'invitaciones',
-        label: 'Invitaciones',
-        icon: 'ticket',
-        href: '/invitaciones',
-        greeting: 'Reclutador del legado',
-        mission: 'Cada invitación es un nuevo guardián',
+        key: 'territorio',
+        label: 'Territorio',
+        icon: 'map',
+        href: '/mapa',
+        greeting: 'Cartógrafo del bosque',
+        mission: '22 años de territorio vivo en Chiloé',
       },
     ],
   },
@@ -395,8 +437,11 @@ export function findActiveItem(pathname: string): SidebarItem | undefined {
   }
   const exactMatch = allItems.find(item => item.href === pathname)
   if (exactMatch) return exactMatch
-  const match = allItems.find(item => item.href !== '/' && pathname.startsWith(item.href))
-  return match
+  // Sub-rutas (/colmenas/apiarios) deben resaltar su ítem propio, no el padre (/colmenas)
+  const matches = allItems
+    .filter(item => item.href !== '/' && pathname.startsWith(item.href))
+    .sort((a, b) => b.href.length - a.href.length)
+  return matches[0]
 }
 
 export function getItemsByGroup(groupKey: string): SidebarItem[] {

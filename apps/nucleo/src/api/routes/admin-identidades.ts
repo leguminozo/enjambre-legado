@@ -57,6 +57,9 @@ adminIdentidadesRoutes.post(
     }
 
     // 1. Crear el usuario en Supabase Auth con service role
+    // El trigger handle_new_user() inserta el actor territorial automáticamente
+    // leyendo los metadata; por eso se pasan territorial_rol/comuna aquí y no se
+    // inserta actores_registro manualmente (evita doble fila y el rol perdido).
     const appSource =
       role === "territorial" ? "nucleo_territorial" : "nucleo_admin_created";
 
@@ -68,6 +71,13 @@ adminIdentidadesRoutes.post(
         user_metadata: {
           full_name: fullName,
           app_source: appSource,
+          ...(role === "territorial" && rolTerritorial
+            ? {
+                territorial_rol: rolTerritorial,
+                territorial_comuna: comuna ?? "Sin especificar",
+                territorial_region: "Los Lagos",
+              }
+            : {}),
         },
         app_metadata: {
           role: role,
@@ -106,26 +116,9 @@ adminIdentidadesRoutes.post(
       );
     }
 
-    // 3. Si el rol es territorial, crear registro en actores_registro
-    if (role === "territorial" && rolTerritorial) {
-      const { error: actorError } = await admin
-        .from("actores_registro")
-        .insert({
-          user_id: userId,
-          rol: rolTerritorial,
-          comuna: comuna ?? "Sin especificar",
-          estado: "activo",
-          nivel_acreditacion: "base",
-        });
-
-      if (actorError) {
-        // No es fatal — el usuario existe, solo falta el registro territorial
-        console.error(
-          "[admin-identidades] actores_registro insert failed:",
-          actorError.message
-        );
-      }
-    }
+    // 3. (El actor territorial lo inserta el trigger handle_new_user desde los
+    // metadata enviados en el createUser; no se inserta aquí para evitar doble
+    // fila en actores_registro.)
 
     // 4. Si es admin, vincularlo a la empresa
     if (role === "admin") {

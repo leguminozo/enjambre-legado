@@ -106,6 +106,7 @@ const CreateApiarioRegistroSchema = z.object({
   lng_aproximada: z.number().min(-180).max(180).optional(),
   n_colmenas: z.number().int().positive(),
   categoria: CategoriaApiarioSchema.default("produccion"),
+  activo: z.boolean().optional(),
   observaciones: z.string().max(1000).optional(),
 }).strict();
 
@@ -397,9 +398,20 @@ registroTerritorialRoutes.patch(
  *  (filtro actor_id). */
 registroTerritorialRoutes.get("/apiarios-externos", async (c) => {
   const supabase = c.get("supabase");
+  const user = c.get("user");
   const { comuna, estado, actor_id } = c.req.query();
 
-  const includeCert = Boolean(actor_id);
+  // El documento del certificado solo se expone al dueño de la declaración:
+  // si se filtra por un actor ajeno, la consulta cae en la visibilidad
+  // comunitaria (sin certificado).
+  const { data: miActor } = actor_id
+    ? await supabase
+        .from("actores_registro")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle()
+    : { data: null };
+  const includeCert = Boolean(actor_id && miActor && actor_id === miActor.id);
 
   // Selects estáticos: el parser de tipos de supabase-js no acepta template literals.
   const selectConCert =
@@ -440,7 +452,8 @@ registroTerritorialRoutes.get("/apiarios-externos", async (c) => {
           .createSignedUrl(row.cert_sanitaria_url, 3600);
         return {
           ...row,
-          cert_sanitaria_url: signed?.signedUrl ?? row.cert_sanitaria_url,
+          // Nunca exponer el path crudo del bucket si la firma falla.
+          cert_sanitaria_url: signed?.signedUrl ?? null,
         };
       })
     );

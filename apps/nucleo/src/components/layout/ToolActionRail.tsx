@@ -4,6 +4,10 @@ import Link from 'next/link';
 import { cn } from '@/lib/cn';
 import { ArrowUpRight } from 'lucide-react';
 
+/** Caja y POS viven en campo — enlace externo si NEXT_PUBLIC_URL_CAMPO existe; si no, el ítem se oculta */
+const CAMPO_BASE_URL = process.env.NEXT_PUBLIC_URL_CAMPO?.replace(/\/$/, '') ?? '';
+const campoHref = (path: string): string => (CAMPO_BASE_URL ? `${CAMPO_BASE_URL}${path}` : '');
+
 export type ToolAction = {
   href: string;
   label: string;
@@ -59,7 +63,7 @@ export const TOOL_ACTION_CONTEXTS = {
     { href: '/banco', label: 'Banco Chile' },
     { href: '/conciliacion', label: 'Conciliación', primary: true },
     { href: '/contable', label: 'Contable' },
-    { href: '/caja', label: 'Caja / POS campo' },
+    { href: campoHref('/caja'), label: 'Caja / POS campo' },
   ],
   creadores: [
     { href: '/crm?tab=aliados', label: 'Aliados B2B' },
@@ -70,7 +74,7 @@ export const TOOL_ACTION_CONTEXTS = {
     { href: '/monitor-feria', label: 'Monitor feria', primary: true },
     { href: '/crm?tab=ferias', label: 'CRM ferias' },
     { href: '/reglas-comision', label: 'Comisiones' },
-    { href: '/caja', label: 'Caja (campo)' },
+    { href: campoHref('/caja'), label: 'Caja (campo)' },
   ],
 } as const;
 
@@ -99,7 +103,8 @@ export function ToolActionRail({
         {label}
       </p>
       <nav className="flex flex-wrap gap-2" aria-label={label}>
-        {actions.map((action) => {
+        {actions.filter((a) => a.href).map((action) => {
+          const external = /^https?:/.test(action.href);
           const active =
             !!current &&
             (current === action.href ||
@@ -109,6 +114,8 @@ export function ToolActionRail({
             <Link
               key={action.href}
               href={action.href}
+              target={external ? '_blank' : undefined}
+              rel={external ? 'noreferrer' : undefined}
               className={cn(
                 'inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-[0.65rem] uppercase tracking-wide transition-colors min-h-11',
                 active
