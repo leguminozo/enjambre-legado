@@ -15,7 +15,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
-import { NectarRail } from '@/components/layout/NectarRail';
 
 interface LoteProduccionRow {
   id: string;
@@ -74,7 +73,6 @@ export function ProduccionView() {
         subtitle="Control de lotes de miel, envasado y proyecciones de quiebre de stock basado en demanda real."
         icon={<Package size={20} />}
       />
-      <NectarRail current="/produccion" />
 
       <ResponsiveTabBar
         variant="pill"

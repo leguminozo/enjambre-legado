@@ -1,29 +1,30 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
-import { LogOut, PanelLeftClose } from 'lucide-react';
+import { LogOut, Settings, ChevronDown, PanelLeftClose } from 'lucide-react';
 import {
   getSidebarGroupsForRole,
   getAccountItemsForRole,
   findActiveItem,
   type SidebarBadge,
 } from '@/config/sidebar-config';
-import { LUCIDE_MAP, toNavItemDataFromItem } from '@/components/layout/sidebar-shared';
-import type { RoleKey } from '@enjambre/auth/role-redirect';
-import { SidebarSection } from '@enjambre/ui';
-import { useSidebarBadges } from '@/hooks/useSidebarBadges';
+import { toNavItemDataFromItem } from '@/components/layout/sidebar-shared';
+import { getRoleRedirectPath, type RoleKey } from '@enjambre/auth/role-redirect';
+import { SidebarSection, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, ThemeToggle } from '@enjambre/ui';
+import type { SidebarBadgeValues } from '@/hooks/useSidebarBadges';
 import { useAuthStore } from '@enjambre/auth';
 import { supabase } from '@/lib/supabase';
-import { ThemeToggle } from '@enjambre/ui';
+import { ConfigModal } from '@/views/configuracion/ConfigModal';
 
 interface SidebarProps {
   onToggle: () => void;
   isOpen: boolean;
   variant?: 'full' | 'drawer';
   onCollapse?: () => void;
+  badges: SidebarBadgeValues;
 }
 
 function PrefetchLink({
@@ -49,16 +50,13 @@ function PrefetchLink({
   );
 }
 
-export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse }: SidebarProps) {
+export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { prefetchMany } = useRoutePrefetch();
   const [userName, setUserName] = useState('Usuario');
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const searchRef = useRef<HTMLInputElement>(null);
-  const { badges } = useSidebarBadges();
   const userRole = (useAuthStore((s) => s.user?.role ?? 'admin')) as RoleKey;
+  const storeSignOut = useAuthStore((s) => s.signOut);
   const sidebarGroups = useMemo(() => getSidebarGroupsForRole(userRole), [userRole]);
   const accountItems = useMemo(() => getAccountItemsForRole(userRole), [userRole]);
 
@@ -78,10 +76,6 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse }: Side
     fetchUser();
   }, []);
 
-  useEffect(() => {
-    if (searchOpen && searchRef.current) searchRef.current.focus();
-  }, [searchOpen]);
-
   const allItems = useMemo(
     () => [...sidebarGroups.flatMap(g => g.items), ...accountItems],
     [sidebarGroups, accountItems],
@@ -98,15 +92,14 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse }: Side
     const t = window.setTimeout(run, 1200);
     return () => window.clearTimeout(t);
   }, [allItems, prefetchMany]);
-  const filteredSearch = searchQuery.trim()
-    ? allItems.filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase()))
-    : [];
 
   const handleLogout = async () => {
-    if (!supabase) return;
-    await supabase.auth.signOut();
+    // signOut del store registra el evento de seguridad session_revoked
+    await storeSignOut();
     router.push('/login');
   };
+
+  const [configOpen, setConfigOpen] = useState(false);
 
   const activeItem = findActiveItem(pathname);
 
@@ -126,7 +119,7 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse }: Side
       aria-label="Menú de navegación lateral"
       aria-hidden={variant === 'drawer' && !isOpen ? true : undefined}
     >
-      <Link href="/" className="sidebar-brand" style={{ display: 'block', textDecoration: 'none' }} onClick={() => onToggle()}>
+      <Link href={getRoleRedirectPath(userRole, 'nucleo')} className="sidebar-brand" style={{ display: 'block', textDecoration: 'none' }} onClick={() => onToggle()}>
         <div className="sidebar-brand-title">Enjambre Legado</div>
         <div className="sidebar-brand-subtitle">Apicultura Regenerativa · Chiloé</div>
       </Link>
@@ -185,19 +178,36 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse }: Side
           </div>
         )}
         <div className="sidebar-user">
-          <Link
-            href="/perfil"
-            className="sidebar-user-avatar"
-            onClick={() => onToggle()}
-            aria-label="Ver mi perfil"
-            style={{ cursor: 'pointer', border: 'none', padding: 0 }}
+          <DropdownMenu
+            trigger={
+              <button
+                type="button"
+                className="flex items-center gap-2 min-w-0 flex-1 text-left"
+                aria-label="Menú de usuario"
+              >
+                <span className="sidebar-user-avatar" style={{ border: 'none', padding: 0 }}>
+                  {userName.charAt(0).toUpperCase()}
+                </span>
+                <span className="sidebar-user-info min-w-0">
+                  <span className="sidebar-user-name truncate block">{userName}</span>
+                  <span className="sidebar-user-role">{userRole}</span>
+                </span>
+                <ChevronDown size={14} className="text-muted-foreground shrink-0" />
+              </button>
+            }
+            align="start"
+            sideOffset={8}
           >
-            {userName.charAt(0).toUpperCase()}
-          </Link>
-          <div className="sidebar-user-info">
-            <div className="sidebar-user-name">{userName}</div>
-            <div className="sidebar-user-role">{userRole}</div>
-          </div>
+            <DropdownMenuItem onSelect={() => { setConfigOpen(true); onToggle(); }}>
+              <Settings size={16} className="mr-2" />
+              Configuración
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem destructive onSelect={() => void handleLogout()}>
+              <LogOut size={16} className="mr-2" />
+              Cerrar sesión
+            </DropdownMenuItem>
+          </DropdownMenu>
           <div className="flex items-center gap-1 ml-auto shrink-0">
             <ThemeToggle size={20} className="text-muted-foreground hover:text-accent" />
             {onCollapse && (
@@ -211,18 +221,11 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse }: Side
                 <PanelLeftClose size={18} />
               </button>
             )}
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:text-accent hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              title="Cerrar sesión"
-              aria-label="Cerrar sesión"
-            >
-              <LogOut size={18} />
-            </button>
           </div>
         </div>
       </div>
+
+      <ConfigModal open={configOpen} onClose={() => setConfigOpen(false)} />
     </aside>
   );
 }

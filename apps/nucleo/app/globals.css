@@ -217,12 +217,14 @@
   height: 100dvh;
   z-index: 100;
   transition: transform var(--transition-base);
-  overflow-y: auto;
+  /* Scroll solo en .sidebar-nav: el brand y el footer permanecen fijos */
+  overflow: hidden;
   border-right: 1px solid hsl(var(--sidebar-border));
 }
 
 .sidebar-brand {
-  padding: var(--space-xl) var(--space-lg);
+  /* Safe-area: con notch en landscape/iPad el brand no queda bajo la isla */
+  padding: calc(var(--space-xl) + env(safe-area-inset-top, 0px)) var(--space-lg);
   border-bottom: 1px solid hsl(var(--sidebar-border));
 }
 
@@ -242,56 +244,20 @@
   margin-top: var(--space-xs);
 }
 
-.sidebar-role-selector {
-  padding: var(--space-md) var(--space-lg);
-  border-bottom: 1px solid hsl(var(--sidebar-border));
-}
-
-.role-selector-label {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: hsl(var(--sidebar-foreground) / 0.4);
-  margin-bottom: var(--space-xs);
-}
-
-.role-selector-select {
-  width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  background: hsl(var(--sidebar-foreground) / 0.08);
-  border: 1px solid hsl(var(--sidebar-foreground) / 0.12);
-  border-radius: var(--radius-sm);
-  color: hsl(var(--sidebar-foreground));
-  font-family: var(--font-datos);
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23FDFBF7' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-}
-
-.role-selector-select:hover {
-  background: hsl(var(--sidebar-foreground) / 0.14);
-}
-
-.role-selector-select option {
-  background: hsl(var(--sidebar));
-  color: hsl(var(--sidebar-foreground));
-}
-
 .sidebar-nav {
   flex: 1;
   padding: var(--space-md) 0;
+  /* Scroll interno: con muchos ítems el footer queda siempre visible */
+  overflow-y: auto;
+  min-height: 0;
+  overscroll-behavior: contain;
 }
 
 .nav-section-label {
   font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: hsl(var(--sidebar-foreground) / 0.35);
+  color: hsl(var(--sidebar-foreground) / 0.6);
   padding: var(--space-lg) var(--space-lg) var(--space-sm);
 }
 
@@ -324,17 +290,8 @@
   font-weight: 500;
 }
 
-.nav-item.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 60%;
-  background: hsl(var(--sidebar-accent));
-  border-radius: 0 var(--radius-full) var(--radius-full) 0;
-}
+/* Indicador activo único: el borderLeft inline de SidebarNavItem (@enjambre/ui).
+   El ::before duplicaba la barra con otro color y se eliminó. */
 
 .nav-item-icon {
   width: 20px;
@@ -394,6 +351,16 @@
   color: hsl(var(--sidebar-foreground) / 0.45);
 }
 
+/* Contraste en light mode: tinta 12% sobre crema 96% a 0.7 de opacidad queda ~2.5:1;
+   a 0.95 sube a ~4.7:1 (AA). El color inline de SidebarNavItem lee esta variable. */
+:root.light {
+  --nav-item-opacity: 0.95;
+}
+
+:root.light .nav-section-label {
+  color: hsl(var(--sidebar-foreground) / 0.9);
+}
+
 /* ── Main Content ── */
 .main-content {
   flex: 1;
@@ -424,20 +391,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-md);
-}
-
-.menu-toggle {
-  display: none;
-  background: none;
-  border: none;
-  color: hsl(var(--foreground));
-  cursor: pointer;
-  padding: var(--space-sm);
-  border-radius: var(--radius-sm);
-}
-
-.menu-toggle:hover {
-  background: hsl(var(--muted) / 0.5);
 }
 
 .header-title {
@@ -473,17 +426,6 @@
 
 .header-btn:hover {
   background: hsl(var(--muted));
-}
-
-.header-btn-badge {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 8px;
-  height: 8px;
-  background: hsl(var(--accent));
-  border-radius: var(--radius-full);
-  border: 2px solid hsl(var(--card));
 }
 
 .page-content {
@@ -1340,7 +1282,14 @@
   gap: var(--space-xs);
   width: 100%;
   overflow-y: auto;
+  /* El scrollbar de 6px come espacio de los 72px; Firefox: scrollbar-width none */
+  scrollbar-width: none;
+  overscroll-behavior: contain;
   padding: 0 var(--space-xs);
+}
+
+.sidebar-rail-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar-rail-footer {
@@ -1412,15 +1361,6 @@
     0 12px 40px hsl(0 0% 0% / 0.22),
     inset 0 1px 0 hsl(var(--foreground) / 0.06);
   overflow: hidden;
-}
-
-@media (min-width: 1024px) {
-  .liquid-bottom-nav-glass {
-    background: hsl(var(--card) / 0.78);
-    backdrop-filter: blur(28px) saturate(1.2);
-    -webkit-backdrop-filter: blur(28px) saturate(1.2);
-    border-color: hsl(var(--border) / 0.55);
-  }
 }
 
 .liquid-bottom-nav-indicator {
@@ -1655,7 +1595,11 @@
   .dashboard-grid-1-2 {
     grid-template-columns: 1fr;
   }
+}
 
+/* JS (useShellLayout) considera tablet < 1024: a 1024px exactos el sidebar full
+   debe seguir visible — antes el CSS lo ocultaba a max-width:1024 y quedaba un hueco. */
+@media (max-width: 1023px) {
   .sidebar--full {
     display: none;
   }
@@ -1702,9 +1646,10 @@
 }
 
 @media (min-width: 769px) and (max-width: 1023px) {
-  .liquid-bottom-nav,
-  .mobile-nav-sheet,
-  .mobile-nav-sheet-backdrop {
+  /* El bottom nav es solo móvil. El sheet SÍ debe abrirse aquí: el rail
+     tablet lo invoca ("Todos los módulos") — antes el CSS lo ocultaba
+     dejando un modal invisible con el scroll de body bloqueado. */
+  .liquid-bottom-nav {
     display: none !important;
   }
 }

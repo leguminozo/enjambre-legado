@@ -10,7 +10,8 @@ describe('routeUsesViewShell', () => {
     expect(routeUsesViewShell('/invitaciones')).toBe(true);
     expect(routeUsesViewShell('/operadores-feria')).toBe(true);
     expect(routeUsesViewShell('/editor-tienda')).toBe(true);
-    expect(routeUsesViewShell('/creador')).toBe(true);
+    expect(routeUsesViewShell('/territorio')).toBe(true);
+    expect(routeUsesViewShell('/registro-territorial')).toBe(true);
   });
 
   it('mantiene header en módulos sin ViewShell propio', () => {
@@ -19,5 +20,7 @@ describe('routeUsesViewShell', () => {
     expect(routeUsesViewShell('/caja')).toBe(false);
     // /leaderboard no está en VIEW_SHELL_PATHS (usa header global)
     expect(routeUsesViewShell('/leaderboard')).toBe(false);
+    // /creadores usa header global: el panel no renderiza ViewShell propio
+    expect(routeUsesViewShell('/creadores')).toBe(false);
   });
 });

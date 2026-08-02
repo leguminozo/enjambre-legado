@@ -3,9 +3,8 @@
 import {
   Map, Hexagon, TreePine, ShoppingBag, Truck, Megaphone, Calendar,
   Calculator, Sparkles, BarChart3, FileText, UserCog, Settings, Building2,
-  CreditCard, GitMerge, Printer, Cpu, Shield, Wallet, Users, Ticket, Percent,
-  Sliders, Trophy, FlaskConical, Factory, Contact, Network, TrendingUp,
-  TestTubes,
+  CreditCard, GitMerge, Printer, Ticket, Sliders, FlaskConical, Factory,
+  Contact, Network, TrendingUp, TestTubes, LayoutTemplate, CalendarDays, Store,
 } from 'lucide-react';
 import type { SidebarItem, SidebarBadge } from '@/config/sidebar-config';
 import type { SidebarNavItemData } from '@enjambre/ui';
@@ -25,15 +24,9 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   'credit-card': CreditCard,
   'git-merge': GitMerge,
   printer: Printer,
-  cpu: Cpu,
   'bar-chart-3': BarChart3,
-  shield: Shield,
-  wallet: Wallet,
-  users: Users,
   ticket: Ticket,
-  percent: Percent,
   sliders: Sliders,
-  trophy: Trophy,
   'flask-conical': FlaskConical,
   factory: Factory,
   'test-tubes': TestTubes,
@@ -41,7 +34,10 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   settings: Settings,
   contact: Contact,
   calendar: Calendar,
+  'calendar-days': CalendarDays,
   'trending-up': TrendingUp,
+  'layout-template': LayoutTemplate,
+  store: Store,
 };
 
 export function toNavItemDataFromItem(

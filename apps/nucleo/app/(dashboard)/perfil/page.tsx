@@ -1,7 +1,6 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { LazyPerfilView } from '@/lib/navigation/lazy-views';
-
+/** El perfil vive dentro de /configuracion (hub unificado) — ruta legacy con redirect. */
 export default function PerfilPage() {
-  return <LazyPerfilView />;
+  redirect('/configuracion');
 }

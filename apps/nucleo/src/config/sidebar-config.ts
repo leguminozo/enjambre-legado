@@ -23,13 +23,35 @@ export interface SidebarGroup {
   items: SidebarItem[]
 }
 
-export const BOTTOM_NAV_KEYS = ['ejecutivo', 'colmenas', 'contabilidad', 'sistema'] as const
+/** Tabs de la navegación inferior (móvil) para el rol admin */
+export const BOTTOM_NAV_KEYS = ['ejecutivo', 'colmenas', 'contabilidad', 'configuracion'] as const
+
+/**
+ * Módulos primarios del rail compacto (tablet / desktop colapsado).
+ * Keys reales de SIDEBAR_GROUPS — no hrefs.
+ */
+export const RAIL_PRIMARY_KEYS = [
+  'ejecutivo',
+  'colmenas',
+  'contabilidad',
+  'productos',
+  'despacho',
+  'crm',
+] as const
 
 export const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
-    key: 'enjambre',
-    label: 'EL ENJAMBRE',
+    key: 'vision',
+    label: 'VISIÓN',
     items: [
+      {
+        key: 'ejecutivo',
+        label: 'Panel Ejecutivo',
+        icon: 'bar-chart-3',
+        href: '/ejecutivo',
+        greeting: 'Comandante del enjambre',
+        mission: 'Visión total, operación total',
+      },
       {
         key: 'ecosistema',
         label: 'Ecosistema',
@@ -38,6 +60,12 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Alma del Enjambre',
         mission: 'Todo está conectado en el bosque vivo',
       },
+    ],
+  },
+  {
+    key: 'enjambre',
+    label: 'EL ENJAMBRE',
+    items: [
       {
         key: 'territorio',
         label: 'Territorio',
@@ -47,14 +75,6 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         mission: '22 años de territorio vivo en Chiloé',
       },
       {
-      key: 'colmenas',
-      label: 'Colmenas',
-      icon: 'hexagon',
-      href: '/colmenas',
-        greeting: 'Obrera del bosque',
-        mission: 'El ciclo del ulmo guía tu día',
-      },
-      {
         key: 'bosque',
         label: 'Bosque',
         icon: 'tree-pine',
@@ -62,6 +82,60 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Guardián del legado',
         mission: 'Cada árbol plantado es deuda con el futuro',
       },
+      {
+        key: 'colmenas',
+        label: 'Colmenas',
+        icon: 'hexagon',
+        href: '/colmenas',
+        greeting: 'Obrera del bosque',
+        mission: 'El ciclo del ulmo guía tu día',
+      },
+      {
+        key: 'produccion',
+        label: 'Producción',
+        icon: 'factory',
+        href: '/produccion',
+        greeting: 'Maestro del panal',
+        mission: 'Cada lote es una verdad del proceso',
+      },
+      {
+        key: 'alambique',
+        label: 'Alambique',
+        icon: 'test-tubes',
+        href: '/alambique',
+        greeting: 'Alquimista del vapor',
+        mission: 'Cada gota destilada es memoria del bosque',
+      },
+      {
+        key: 'costeo',
+        label: 'Costeo',
+        icon: 'flask-conical',
+        href: '/costeo',
+        greeting: 'Alquimista del número',
+        mission: 'Cada frasco sin costo es miel que se pierde',
+      },
+      {
+        key: 'despacho',
+        label: 'Despacho',
+        icon: 'truck',
+        href: '/operaciones',
+        greeting: 'Arquitecto de flujos',
+        mission: 'Del panal al consumidor, sin perder una gota',
+      },
+      {
+        key: 'calendario',
+        label: 'Calendario',
+        icon: 'calendar-days',
+        href: '/calendario',
+        greeting: 'Guardián del tiempo',
+        mission: 'El ciclo del enjambre no se detiene',
+      },
+    ],
+  },
+  {
+    key: 'mercado',
+    label: 'MERCADO',
+    items: [
       {
         key: 'productos',
         label: 'Productos',
@@ -78,38 +152,6 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Director de marca',
         mission: 'La estética del panal define su valor',
       },
-        {
-          key: 'costeo',
-          label: 'Costeo',
-          icon: 'flask-conical',
-          href: '/costeo',
-          greeting: 'Alquimista del número',
-          mission: 'Cada frasco sin costo es miel que se pierde',
-        },
-        {
-          key: 'produccion',
-          label: 'Producción',
-          icon: 'factory',
-          href: '/produccion',
-          greeting: 'Maestro del panal',
-          mission: 'Cada lote es una verdad del proceso',
-        },
-        {
-          key: 'alambique',
-          label: 'Alambique',
-          icon: 'test-tubes',
-          href: '/alambique',
-          greeting: 'Alquimista del vapor',
-          mission: 'Cada gota destilada es memoria del bosque',
-        },
-        {
-          key: 'despacho',
-          label: 'Despacho',
-          icon: 'truck',
-          href: '/operaciones',
-          greeting: 'Arquitecto de flujos',
-          mission: 'Del panal al consumidor, sin perder una gota',
-        },
       {
         key: 'comunidad',
         label: 'Comunidad',
@@ -118,7 +160,30 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Narrador del bosque',
         mission: 'La historia de cada árbol merece ser contada',
       },
-
+      {
+        key: 'crm',
+        label: 'CRM Vendedores',
+        icon: 'contact',
+        href: '/crm',
+        greeting: 'Relacionador del legado',
+        mission: 'Cada cliente es una historia que se cultiva',
+      },
+      {
+        key: 'pipeline',
+        label: 'Pipeline Ventas',
+        icon: 'trending-up',
+        href: '/pipeline',
+        greeting: 'Arquitecto del flujo',
+        mission: 'Cada lead es una semilla de bosque',
+      },
+      {
+        key: 'monitor-feria',
+        label: 'Monitor de Feria',
+        icon: 'store',
+        href: '/monitor-feria',
+        greeting: 'Observador de feria',
+        mission: 'Trazabilidad y observación en vivo de las ventas en feria',
+      },
     ],
   },
   {
@@ -184,54 +249,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     ],
   },
   {
-    key: 'gestion',
-    label: 'GESTIÓN',
+    key: 'personas',
+    label: 'PERSONAS',
     items: [
-        {
-          key: 'calendario',
-          label: 'Calendario',
-          icon: 'calendar-days',
-          href: '/calendario',
-          greeting: 'Guardián del tiempo',
-          mission: 'El ciclo del enjambre no se detiene',
-        },
-        {
-          key: 'ejecutivo',
-          label: 'Panel Ejecutivo',
-          icon: 'bar-chart-3',
-          href: '/ejecutivo',
-          greeting: 'Comandante del enjambre',
-          mission: 'Visión total, operación total',
-        },
-        {
-          key: 'crm',
-          label: 'CRM Vendedores',
-          icon: 'contact',
-          href: '/crm',
-          greeting: 'Relacionador del legado',
-          mission: 'Cada cliente es una historia que se cultiva',
-        },
-        {
-          key: 'monitor-feria',
-          label: 'Monitor de Feria',
-          icon: 'store',
-          href: '/monitor-feria',
-          greeting: 'Observador de feria',
-          mission: 'Trazabilidad y observación en vivo de las ventas en feria',
-        },
-        {
-          key: 'pipeline',
-          label: 'Pipeline Ventas',
-          icon: 'trending-up',
-          href: '/pipeline',
-          greeting: 'Arquitecto del flujo',
-          mission: 'Cada lead es una semilla de bosque',
-        },
       {
-      key: 'creadores-admin',
-      label: 'Creadores Admin',
-      icon: 'sparkles',
-      href: '/creadores',
+        key: 'creadores-admin',
+        label: 'Creadores Admin',
+        icon: 'sparkles',
+        href: '/creadores',
         greeting: 'Director de embajadores',
         mission: 'Quien representa la miel, representa el bosque',
       },
@@ -244,18 +269,18 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         mission: 'Contratos, consignación y arqueo sin subordinación',
       },
       {
-      key: 'reglas-comision',
-      label: 'Reglas de Comisión',
-      icon: 'sliders',
-      href: '/reglas-comision',
+        key: 'reglas-comision',
+        label: 'Reglas de Comisión',
+        icon: 'sliders',
+        href: '/reglas-comision',
         greeting: 'Legislador del incentivo',
         mission: 'Reglas claras, ventas claras',
       },
       {
-      key: 'invitaciones',
-      label: 'Invitaciones',
-      icon: 'ticket',
-      href: '/invitaciones',
+        key: 'invitaciones',
+        label: 'Invitaciones',
+        icon: 'ticket',
+        href: '/invitaciones',
         greeting: 'Reclutador del legado',
         mission: 'Cada invitación es un nuevo guardián',
       },
@@ -265,20 +290,12 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
 
 export const ACCOUNT_ITEMS: SidebarItem[] = [
   {
-    key: 'perfil',
-    label: 'Perfil',
-    icon: 'user-cog',
-    href: '/perfil',
-    greeting: 'Tu identidad en el bosque',
-    mission: 'Datos personales, nivel Guardián, empresas',
-  },
-  {
-    key: 'sistema',
-    label: 'Sistema',
+    key: 'configuracion',
+    label: 'Configuración',
     icon: 'settings',
     href: '/configuracion',
-    greeting: 'Configure su colmena digital',
-    mission: 'Apariencia, notificaciones, sincronización',
+    greeting: 'Tu colmena digital',
+    mission: 'Perfil, preferencias, seguridad y sistema',
   },
 ]
 
@@ -304,15 +321,53 @@ export const VIEW_SHELL_PATHS = new Set([
   '/invitaciones',
   '/operadores-feria',
   '/calendario',
-  '/creador',
   '/editor-tienda',
   '/monitor-feria',
   '/calculos-ia',
   '/reportes',
   '/catalogo',
   '/mapa',
+  '/territorio',
+  '/registro-territorial',
   '/reglas-comision',
 ])
+
+/** Rutas que viven fuera del árbol de items pero pertenecen a un módulo del sidebar */
+const ROUTE_ITEM_ALIASES: Record<string, string> = {
+  '/territorio': 'territorio',
+  '/registro-territorial': 'territorio',
+}
+
+/**
+ * Ítems visibles por rol. Los roles no-admin (cliente/creador/rep_ventas) no viven
+ * en nucleo — el middleware los redirige a tienda/campo; solo territorial tiene
+ * home propio (`/territorio`). `[]` = todos los ítems.
+ */
+const ROLE_VISIBLE_KEYS: Record<RoleKey, readonly string[]> = {
+  admin: [],
+  territorial: ['territorio'],
+  creador: [],
+  rep_ventas: [],
+  cliente: [],
+}
+
+/**
+ * Overrides de href por rol: `/mapa` es admin-only; el territorial ve su registro
+ * en `/territorio` (el item Territorio apunta a `/mapa` por defecto).
+ */
+const ROLE_HREF_OVERRIDES: Record<RoleKey, Record<string, string>> = {
+  admin: {},
+  territorial: { territorio: '/territorio' },
+  creador: {},
+  rep_ventas: {},
+  cliente: {},
+}
+
+/** Tabs del bottom nav (móvil) por rol: territorial navega solo su registro */
+export function getBottomNavKeysForRole(role: RoleKey): readonly string[] {
+  if (role === 'territorial') return ['territorio']
+  return BOTTOM_NAV_KEYS
+}
 
 export function routeUsesViewShell(pathname: string): boolean {
   if (VIEW_SHELL_PATHS.has(pathname)) return true
@@ -323,6 +378,11 @@ export function routeUsesViewShell(pathname: string): boolean {
 
 export function findActiveItem(pathname: string): SidebarItem | undefined {
   const allItems = [...SIDEBAR_GROUPS.flatMap(g => g.items), ...ACCOUNT_ITEMS]
+  const aliasKey = ROUTE_ITEM_ALIASES[pathname]
+  if (aliasKey) {
+    const aliased = allItems.find(item => item.key === aliasKey)
+    if (aliased) return aliased
+  }
   const exactMatch = allItems.find(item => item.href === pathname)
   if (exactMatch) return exactMatch
   const match = allItems.find(item => item.href !== '/' && pathname.startsWith(item.href))
@@ -337,10 +397,21 @@ export function getAllItems(): SidebarItem[] {
   return [...SIDEBAR_GROUPS.flatMap(g => g.items), ...ACCOUNT_ITEMS]
 }
 
+/** Grupos visibles para el rol, con hrefs ajustados y grupos vacíos eliminados */
 export function getSidebarGroupsForRole(role: RoleKey): SidebarGroup[] {
+  const visible = ROLE_VISIBLE_KEYS[role]
+  const overrides = ROLE_HREF_OVERRIDES[role] ?? {}
   return SIDEBAR_GROUPS
+    .map((group) => ({
+      ...group,
+      items: group.items
+        .filter((item) => visible.length === 0 || visible.includes(item.key))
+        .map((item) => (overrides[item.key] ? { ...item, href: overrides[item.key] } : item)),
+    }))
+    .filter((group) => group.items.length > 0)
 }
 
 export function getAccountItemsForRole(role: RoleKey): SidebarItem[] {
-  return ACCOUNT_ITEMS
+  const visible = ROLE_VISIBLE_KEYS[role]
+  return ACCOUNT_ITEMS.filter((item) => visible.length === 0 || visible.includes(item.key))
 }

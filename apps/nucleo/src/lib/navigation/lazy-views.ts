@@ -20,7 +20,7 @@ export const LazyEcosistemaDashboard = named(
   'Ecosistema',
 );
 export const LazyConfiguracionView = named(
-  () => import('@/views/ConfiguracionView'),
+  () => import('@/views/configuracion/ConfiguracionView'),
   'ConfiguracionView',
   'Configuración',
 );
@@ -58,7 +58,6 @@ export const LazyRegeneracionView = named(
 );
 export const LazyMarketingView = named(() => import('@/views/MarketingView'), 'MarketingView', 'Comunidad');
 export const LazySumUpView = named(() => import('@/views/sumup/SumUpView'), 'SumUpView', 'Pagos');
-export const LazyPerfilView = named(() => import('@/views/PerfilView'), 'PerfilView', 'Perfil');
 export const LazyDashboardEjecutivo = named(
   () => import('@/components/gerente/DashboardEjecutivo'),
   'DashboardEjecutivo',

@@ -25,7 +25,6 @@ import {
 } from '@/components/logistica/EnvioComposerModal';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
-import { NectarRail } from '@/components/layout/NectarRail';
 import { BOSQUE_ULMO, ORO_MIEL, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors';
 import {
   DEFAULT_COURIER,
@@ -258,7 +257,6 @@ export function LogisticaView() {
         title="Logística en Tiempo Real"
         subtitle="Operaciones de despacho, stock multicentro y proveedores"
       />
-      <NectarRail current="/operaciones" />
 
       <div className="stats-grid">
         {[

@@ -4,17 +4,19 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import type { BadgeDotColor, SidebarBadge } from '../config/sidebar-config'
 import { supabase } from '../lib/supabase'
 
-interface SidebarBadgeValues {
-  territorio: SidebarBadge
+/** Claves reales de badges — una por módulo con estado operativo en vivo */
+export interface SidebarBadgeValues {
   colmenas: SidebarBadge
-  bosque: SidebarBadge
-  productos: SidebarBadge
   despacho: SidebarBadge
-  comunidad: SidebarBadge
-  contabilidad: SidebarBadge
   sii: SidebarBadge
   banco: SidebarBadge
-  conciliacion: SidebarBadge
+  alambique: SidebarBadge
+  calendario: SidebarBadge
+  pipeline: SidebarBadge
+  monitorFeria: SidebarBadge
+  invitaciones: SidebarBadge
+  creadores: SidebarBadge
+  operadoresFeria: SidebarBadge
 }
 
 interface SidebarBadgesRpc {
@@ -22,22 +24,30 @@ interface SidebarBadgesRpc {
   envios_pending: number
   facturas_pendientes: number
   banco_enabled: number
+  destilaciones_activas: number
+  eventos_hoy: number
+  leads_activos: number
+  feria_en_curso: number
+  invitaciones_activas: number
+  creadores_pendientes: number
+  arqueos_abiertos: number
 }
 
 const DEFAULT_BADGES: SidebarBadgeValues = {
-  territorio: { type: 'dot', color: 'green' },
   colmenas: null,
-  bosque: null,
-  productos: null,
   despacho: null,
-  comunidad: null,
-  contabilidad: null,
   sii: null,
   banco: null,
-  conciliacion: null,
+  alambique: null,
+  calendario: null,
+  pipeline: null,
+  monitorFeria: null,
+  invitaciones: null,
+  creadores: null,
+  operadoresFeria: null,
 }
 
-const CACHE_KEY = 'nucleo:sidebar-badges:v2'
+const CACHE_KEY = 'nucleo:sidebar-badges:v3'
 const CACHE_TTL_MS = 60_000
 
 type CountResult = { count: number | null; error: unknown }
@@ -64,21 +74,30 @@ function writeCache(badges: SidebarBadgeValues) {
   }
 }
 
+function countBadge(value: number): SidebarBadge {
+  return value > 0 ? { type: 'count', value } : null
+}
+
 function mapRpcToBadges(data: SidebarBadgesRpc): SidebarBadgeValues {
   return {
     ...DEFAULT_BADGES,
-    colmenas:
-      data.colmenas_risk > 0 ? { type: 'count', value: data.colmenas_risk } : null,
-    despacho:
-      data.envios_pending > 0 ? { type: 'count', value: data.envios_pending } : null,
-    sii:
-      data.facturas_pendientes > 0
-        ? { type: 'count', value: data.facturas_pendientes }
-        : null,
+    colmenas: countBadge(data.colmenas_risk),
+    despacho: countBadge(data.envios_pending),
+    sii: countBadge(data.facturas_pendientes),
     banco:
       data.banco_enabled === 0
         ? { type: 'dot', color: 'orange' as BadgeDotColor }
         : { type: 'dot', color: 'green' as BadgeDotColor },
+    alambique: countBadge(data.destilaciones_activas),
+    calendario: countBadge(data.eventos_hoy),
+    pipeline: countBadge(data.leads_activos),
+    monitorFeria:
+      data.feria_en_curso > 0
+        ? { type: 'dot', color: 'orange' as BadgeDotColor }
+        : null,
+    invitaciones: countBadge(data.invitaciones_activas),
+    creadores: countBadge(data.creadores_pendientes),
+    operadoresFeria: countBadge(data.arqueos_abiertos),
   }
 }
 
@@ -94,58 +113,134 @@ async function safeCount(
   }
 }
 
+/** Fallback solo para entornos sin el RPC v2 (todas las tablas son RLS-accessible a admin) */
 async function fetchBadgesLegacy(): Promise<SidebarBadgeValues> {
   if (!supabase) return DEFAULT_BADGES
 
-  const [colmenasRisk, enviosPending, facturasPendientes, integrationsConfig] =
-    await Promise.all([
-      safeCount(
-        supabase
-          .from('varroa_records')
-          .select('colmena_id', { count: 'exact', head: true })
-          .gt('level', 3),
-      ),
-      safeCount(
-        supabase
-          .from('logistica_envios')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'pendiente'),
-      ),
-      safeCount(
-        supabase
-          .from('facturas_emitidas')
-          .select('id', { count: 'exact', head: true })
-          .eq('estado_sii', 'pendiente'),
-      ),
-      safeCount(
-        supabase
-          .from('integrations')
-          .select('id', { count: 'exact', head: true })
-          .eq('key', 'banco_chile')
-          .eq('enabled', true),
-      ),
-    ])
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  const tomorrowStart = new Date(todayStart)
+  tomorrowStart.setDate(tomorrowStart.getDate() + 1)
+
+  const [
+    colmenasRisk,
+    enviosPending,
+    facturasPendientes,
+    integrationsConfig,
+    destilacionesActivas,
+    eventosHoy,
+    leadsActivos,
+    feriaEnCurso,
+    invitacionesActivas,
+    creadoresPendientes,
+    arqueosAbiertos,
+  ] = await Promise.all([
+    safeCount(
+      supabase
+        .from('varroa_records')
+        .select('colmena_id', { count: 'exact', head: true })
+        .gt('level', 3),
+    ),
+    safeCount(
+      supabase
+        .from('logistica_envios')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'pendiente'),
+    ),
+    safeCount(
+      supabase
+        .from('facturas_emitidas')
+        .select('id', { count: 'exact', head: true })
+        .eq('estado_sii', 'pendiente'),
+    ),
+    safeCount(
+      supabase
+        .from('integrations')
+        .select('id', { count: 'exact', head: true })
+        .eq('key', 'banco_chile')
+        .eq('enabled', true),
+    ),
+    safeCount(
+      supabase
+        .from('destilaciones')
+        .select('id', { count: 'exact', head: true })
+        .in('estado', ['en_proceso', 'planificada']),
+    ),
+    safeCount(
+      supabase
+        .from('calendario_eventos')
+        .select('id', { count: 'exact', head: true })
+        .gte('starts_at', todayStart.toISOString())
+        .lt('starts_at', tomorrowStart.toISOString()),
+    ),
+    safeCount(
+      supabase
+        .from('crm_leads')
+        .select('id', { count: 'exact', head: true })
+        .not('estado', 'in', '("cerrado_ganado","cerrado_perdido")'),
+    ),
+    safeCount(
+      supabase
+        .from('participante_evento')
+        .select('id', { count: 'exact', head: true })
+        .eq('estado', 'en_curso'),
+    ),
+    safeCount(
+      supabase
+        .from('invitation_codes')
+        .select('id', { count: 'exact', head: true })
+        .eq('active', true)
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`),
+    ),
+    safeCount(
+      supabase
+        .from('creadores')
+        .select('id', { count: 'exact', head: true })
+        .eq('estado', 'pendiente'),
+    ),
+    safeCount(
+      supabase
+        .from('participante_arqueo')
+        .select('id', { count: 'exact', head: true })
+        .is('cerrado_at', null),
+    ),
+  ])
 
   return {
     ...DEFAULT_BADGES,
-    colmenas:
-      (colmenasRisk.count ?? 0) > 0
-        ? { type: 'count', value: colmenasRisk.count ?? 0 }
-        : null,
-    despacho:
-      (enviosPending.count ?? 0) > 0
-        ? { type: 'count', value: enviosPending.count ?? 0 }
-        : null,
-    sii:
-      (facturasPendientes.count ?? 0) > 0
-        ? { type: 'count', value: facturasPendientes.count ?? 0 }
-        : null,
+    colmenas: countBadge(colmenasRisk.count ?? 0),
+    despacho: countBadge(enviosPending.count ?? 0),
+    sii: countBadge(facturasPendientes.count ?? 0),
     banco:
       (integrationsConfig.count ?? 0) === 0
         ? { type: 'dot', color: 'orange' as BadgeDotColor }
         : { type: 'dot', color: 'green' as BadgeDotColor },
+    alambique: countBadge(destilacionesActivas.count ?? 0),
+    calendario: countBadge(eventosHoy.count ?? 0),
+    pipeline: countBadge(leadsActivos.count ?? 0),
+    monitorFeria:
+      (feriaEnCurso.count ?? 0) > 0
+        ? { type: 'dot', color: 'orange' as BadgeDotColor }
+        : null,
+    invitaciones: countBadge(invitacionesActivas.count ?? 0),
+    creadores: countBadge(creadoresPendientes.count ?? 0),
+    operadoresFeria: countBadge(arqueosAbiertos.count ?? 0),
   }
 }
+
+/** Tablas cuyo cambio invalida un badge — un .on() por tabla en el canal único */
+const BADGE_TABLES = [
+  'varroa_records',
+  'logistica_envios',
+  'facturas_emitidas',
+  'destilaciones',
+  'calendario_eventos',
+  'crm_leads',
+  'participante_evento',
+  'participante_arqueo',
+  'invitation_codes',
+  'creadores',
+] as const
 
 export function useSidebarBadges() {
   const [badges, setBadges] = useState<SidebarBadgeValues>(() => readCache() ?? DEFAULT_BADGES)
@@ -167,7 +262,7 @@ export function useSidebarBadges() {
       return
     }
 
-    let next = DEFAULT_BADGES
+    let next: SidebarBadgeValues
 
     const { data, error } = await supabase.rpc('get_sidebar_badges')
     if (!error && data && typeof data === 'object') {
@@ -231,49 +326,40 @@ export function useSidebarBadges() {
       // Nombre único: evita reutilizar un canal ya suscrito (Strict Mode / remount)
       // que lanza "cannot add postgres_changes callbacks after subscribe()".
       const channelName = `sidebar-badges-${Math.random().toString(36).slice(2, 10)}`
-      const channel = supabase
-        .channel(channelName)
-        .on(
+      let channel = supabase.channel(channelName)
+      for (const table of BADGE_TABLES) {
+        channel = channel.on(
           'postgres_changes',
-          { event: '*', schema: 'public', table: 'varroa_records' },
+          { event: '*', schema: 'public', table },
           () => fetchBadgesDebounced(),
         )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'logistica_envios' },
-          () => fetchBadgesDebounced(),
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'facturas_emitidas' },
-          () => fetchBadgesDebounced(),
-        )
-        .subscribe((status: string, err?: Error) => {
-          if (status === 'SUBSCRIBED') {
-            attemptsRef.current = 0
-            return
+      }
+      channel = channel.subscribe((status: string, err?: Error) => {
+        if (status === 'SUBSCRIBED') {
+          attemptsRef.current = 0
+          return
+        }
+        // TIMED_OUT | CLOSED | CHANNEL_ERROR: heartbeat muerto o JWT expirado.
+        // Tear down + backoff exponencial (1s, 2s, 4s, ... capped 30s, ~5 intentos).
+        // Cada reintento re-resuelve getSession() para usar un token ya refrescado.
+        if (status === 'TIMED_OUT' || status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          if (!disposed) {
+            console.warn('[useSidebarBadges] realtime disconnected', status, err)
           }
-          // TIMED_OUT | CLOSED | CHANNEL_ERROR: heartbeat muerto o JWT expirado.
-          // Tear down + backoff exponencial (1s, 2s, 4s, ... capped 30s, ~5 intentos).
-          // Cada reintento re-resuelve getSession() para usar un token ya refrescado.
-          if (status === 'TIMED_OUT' || status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-            if (!disposed) {
-              console.warn('[useSidebarBadges] realtime disconnected', status, err)
-            }
-            if (channelRef.current) {
-              const old = channelRef.current
-              channelRef.current = null
-              void supabase.removeChannel(old)
-            }
-            if (attemptsRef.current >= 5 || disposed) return
-            const delay = Math.min(1000 * 2 ** attemptsRef.current, 30_000)
-            attemptsRef.current += 1
-            if (reconnectRef.current) clearTimeout(reconnectRef.current)
-            reconnectRef.current = setTimeout(() => {
-              void setupChannel()
-            }, delay)
+          if (channelRef.current) {
+            const old = channelRef.current
+            channelRef.current = null
+            void supabase.removeChannel(old)
           }
-        })
+          if (attemptsRef.current >= 5 || disposed) return
+          const delay = Math.min(1000 * 2 ** attemptsRef.current, 30_000)
+          attemptsRef.current += 1
+          if (reconnectRef.current) clearTimeout(reconnectRef.current)
+          reconnectRef.current = setTimeout(() => {
+            void setupChannel()
+          }, delay)
+        }
+      })
 
       channelRef.current = channel
     }

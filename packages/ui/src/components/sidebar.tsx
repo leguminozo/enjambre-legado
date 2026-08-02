@@ -15,8 +15,6 @@ export interface SidebarNavItemData {
   badge?: SidebarBadgeValue
 }
 
-export function registerSidebarIcons(_map: Record<string, React.ComponentType<{ size?: number }>>) {}
-
 const srOnlyStyle: React.CSSProperties = {
   position: 'absolute',
   width: '1px',
@@ -118,7 +116,8 @@ export function SidebarNavItem({ item, active, onClick, linkComponent }: Sidebar
         borderRadius: 'var(--radius-sm)',
         fontSize: '0.85rem',
         fontWeight: active ? 500 : 400,
-        color: active ? 'hsl(var(--sidebar-primary))' : 'hsl(var(--sidebar-foreground) / 0.7)',
+        // Opacidad vía CSS var: light mode puede subirla para contraste AA
+        color: active ? 'hsl(var(--sidebar-primary))' : 'hsl(var(--sidebar-foreground) / var(--nav-item-opacity, 0.7))',
         background: active ? 'hsl(var(--sidebar-accent))' : 'transparent',
         borderLeft: active ? '3px solid hsl(var(--sidebar-primary))' : '3px solid transparent',
         transition: 'all 150ms ease',

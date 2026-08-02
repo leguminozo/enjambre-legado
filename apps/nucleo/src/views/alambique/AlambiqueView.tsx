@@ -10,7 +10,6 @@ import {
 } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
-import { NectarRail } from '@/components/layout/NectarRail';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FlaskConical, Sprout, Droplets, LayoutDashboard, Plus, Pencil, Trash2,
@@ -293,7 +292,6 @@ export function AlambiqueView() {
         subtitle="Materia prima vegetal, corridas del alambique y envasados — la memoria del vapor hecha trazabilidad."
         icon={<FlaskConical size={20} />}
       />
-      <NectarRail current="/alambique" />
 
       <ResponsiveTabBar
         variant="pill"

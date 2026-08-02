@@ -102,6 +102,7 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/pipeline': ['admin'],
   '/alambique': ['admin'],
   '/territorio': ['territorial'],
+  '/registro-territorial': ['territorial', 'admin'],
   // '/calculos-ia' y '/vanguardia' ya arriba (vanguardia redirect → /crm?tab=aliados)
 }
 

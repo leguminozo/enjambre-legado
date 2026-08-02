@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -14,24 +14,25 @@ import {
 import type { RoleKey } from '@enjambre/auth/role-redirect';
 import { useAuthStore } from '@enjambre/auth';
 import { SidebarSection } from '@enjambre/ui';
-import { useSidebarBadges } from '@/hooks/useSidebarBadges';
+import type { SidebarBadgeValues } from '@/hooks/useSidebarBadges';
 import { toNavItemDataFromItem } from '@/components/layout/sidebar-shared';
 
 type MobileNavSheetProps = {
   open: boolean;
   onClose: () => void;
+  badges: SidebarBadgeValues;
 };
 
 function NavLink(props: React.ComponentProps<typeof Link>) {
   return <Link {...props} />;
 }
 
-export function MobileNavSheet({ open, onClose }: MobileNavSheetProps) {
+export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
   const pathname = usePathname();
   const userRole = (useAuthStore((s) => s.user?.role ?? 'admin')) as RoleKey;
-  const { badges } = useSidebarBadges();
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const lastActiveRef = useRef<HTMLElement | null>(null);
 
   const sidebarGroups = useMemo(() => getSidebarGroupsForRole(userRole), [userRole]);
   const accountItems = useMemo(() => getAccountItemsForRole(userRole), [userRole]);
@@ -46,8 +47,16 @@ export function MobileNavSheet({ open, onClose }: MobileNavSheetProps) {
     ? allItems.filter((item) => item.label.toLowerCase().includes(query.toLowerCase()))
     : null;
 
+  // Único camino de cierre: resetea la búsqueda y devuelve el control al abridor.
+  const handleClose = useCallback(() => {
+    setQuery('');
+    onClose();
+  }, [onClose]);
+
   useEffect(() => {
     if (open) {
+      lastActiveRef.current =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
       document.body.style.overflow = 'hidden';
       const t = window.setTimeout(() => inputRef.current?.focus(), 120);
       return () => {
@@ -56,9 +65,20 @@ export function MobileNavSheet({ open, onClose }: MobileNavSheetProps) {
       };
     }
     document.body.style.overflow = '';
-    setQuery('');
+    lastActiveRef.current?.focus();
+    lastActiveRef.current = null;
     return undefined;
   }, [open]);
+
+  // Escape cierra el diálogo; el foco vuelve al elemento que lo abrió (al cerrar).
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, handleClose]);
 
   const badgeOverrides = useMemo(() => {
     const map: Record<string, NonNullable<SidebarItem['badge']>> = {};
@@ -79,7 +99,7 @@ export function MobileNavSheet({ open, onClose }: MobileNavSheetProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={handleClose}
           />
           <motion.aside
             id="mobile-nav-sheet"
@@ -107,7 +127,7 @@ export function MobileNavSheet({ open, onClose }: MobileNavSheetProps) {
               <button
                 type="button"
                 className="mobile-nav-sheet-close"
-                onClick={onClose}
+                onClick={handleClose}
                 aria-label="Cerrar"
               >
                 <X size={20} />
@@ -139,7 +159,7 @@ export function MobileNavSheet({ open, onClose }: MobileNavSheetProps) {
                           href={item.href}
                           prefetch
                           className={`mobile-nav-sheet-result ${pathname.startsWith(item.href) ? 'is-active' : ''}`}
-                          onClick={onClose}
+                          onClick={handleClose}
                         >
                           <span>{item.label}</span>
                           <span className="mobile-nav-sheet-result-hint">{item.mission}</span>
@@ -157,7 +177,7 @@ export function MobileNavSheet({ open, onClose }: MobileNavSheetProps) {
                       items={group.items.map((item) => toNavItemDataFromItem(item, badgeOverrides))}
                       activeKey={activeItem?.key}
                       linkComponent={NavLink}
-                      onItemClick={onClose}
+                      onItemClick={handleClose}
                     />
                   ))}
                   <SidebarSection
@@ -165,7 +185,7 @@ export function MobileNavSheet({ open, onClose }: MobileNavSheetProps) {
                     items={accountItems.map((item) => toNavItemDataFromItem(item, badgeOverrides))}
                     activeKey={activeItem?.key}
                     linkComponent={NavLink}
-                    onItemClick={onClose}
+                    onItemClick={handleClose}
                   />
                 </>
               )}

@@ -3,21 +3,30 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { BarChart3, Hexagon, Calculator, Settings, LayoutGrid } from 'lucide-react';
-import { BOTTOM_NAV_KEYS, SIDEBAR_GROUPS, ACCOUNT_ITEMS } from '@/config/sidebar-config';
+import { BarChart3, Hexagon, Calculator, Settings, Map, LayoutGrid } from 'lucide-react';
+import {
+  getBottomNavKeysForRole,
+  getSidebarGroupsForRole,
+  getAccountItemsForRole,
+  type SidebarItem,
+} from '@/config/sidebar-config';
+import { useAuthStore } from '@enjambre/auth';
+import type { RoleKey } from '@enjambre/auth/role-redirect';
 
 const ICONS: Record<string, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
   ejecutivo: BarChart3,
   colmenas: Hexagon,
   contabilidad: Calculator,
-  sistema: Settings,
+  configuracion: Settings,
+  territorio: Map,
 };
 
 const LABELS: Record<string, string> = {
   ejecutivo: 'Inicio',
   colmenas: 'Colmenas',
   contabilidad: 'Contable',
-  sistema: 'Sistema',
+  configuracion: 'Configuración',
+  territorio: 'Territorio',
 };
 
 type LiquidBottomNavProps = {
@@ -25,23 +34,39 @@ type LiquidBottomNavProps = {
   menuOpen?: boolean;
 };
 
-function resolveNavItem(key: string, pathname: string) {
-  const allItems = [...SIDEBAR_GROUPS.flatMap((g) => g.items), ...ACCOUNT_ITEMS];
+function resolveNavItem(key: string, pathname: string, allItems: SidebarItem[]) {
   const item = allItems.find((i) => i.key === key);
   if (!item) return null;
-  const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+  // La home (/) es el hub del enjambre: "Inicio" se marca activo también allí.
+  const isActive =
+    item.href === '/'
+      ? pathname === '/'
+      : key === 'ejecutivo'
+        ? pathname === '/' || pathname.startsWith(item.href)
+        : key === 'territorio'
+          ? pathname === '/territorio' ||
+            pathname === '/registro-territorial' ||
+            pathname.startsWith(item.href)
+          : pathname.startsWith(item.href);
   return { href: item.href, label: LABELS[key] ?? item.label, isActive };
 }
 
 export function LiquidBottomNav({ onOpenMenu, menuOpen }: LiquidBottomNavProps) {
   const pathname = usePathname();
+  const userRole = (useAuthStore((s) => s.user?.role ?? 'admin')) as RoleKey;
+  const allItems = [
+    ...getSidebarGroupsForRole(userRole).flatMap((g) => g.items),
+    ...getAccountItemsForRole(userRole),
+  ];
 
-  const tabs = BOTTOM_NAV_KEYS.map((key) => {
-    const nav = resolveNavItem(key, pathname);
-    if (!nav) return null;
-    const Icon = ICONS[key];
-    return { key, ...nav, Icon };
-  }).filter(Boolean) as Array<{
+  const tabs = getBottomNavKeysForRole(userRole)
+    .map((key) => {
+      const nav = resolveNavItem(key, pathname, allItems);
+      if (!nav) return null;
+      const Icon = ICONS[key];
+      return { key, ...nav, Icon };
+    })
+    .filter(Boolean) as Array<{
     key: string;
     href: string;
     label: string;

@@ -1,16 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { Search, X } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { SidebarRail } from '@/components/layout/SidebarRail';
 import { LiquidBottomNav } from '@/components/layout/LiquidBottomNav';
 import { MobileNavSheet } from '@/components/layout/MobileNavSheet';
-import { findActiveItem, routeUsesViewShell } from '@/config/sidebar-config';
+import { getAllItems, findActiveItem, routeUsesViewShell } from '@/config/sidebar-config';
 import { NotificationBell } from '@enjambre/ui';
 import { createClient, isSupabaseConfigured, useAuthStore, useInAppNotifications } from '@enjambre/auth';
 import { useShellLayout } from '@/hooks/use-shell-layout';
+import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 
 export default function DashboardLayoutClient({ children }: { children: React.ReactNode }) {
   const shellMode = useShellLayout();
@@ -35,6 +37,7 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
   };
 
   const pathname = usePathname();
+  const router = useRouter();
   const userId = useAuthStore((s) => s.user?.id);
   const [realtimeOn, setRealtimeOn] = useState(false);
   const supabaseClient = isSupabaseConfigured() ? createClient() : null;
@@ -44,35 +47,52 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
     app: 'nucleo',
     enableRealtime: realtimeOn,
   });
+  // Un solo fetch + un solo canal realtime para toda la shell; los hijos reciben badges por props.
+  const { badges } = useSidebarBadges();
 
   const activeItem = findActiveItem(pathname);
   const showLayoutModuleHeader = !routeUsesViewShell(pathname);
   const headerTitle = activeItem?.label ?? 'Enjambre Legado';
   const headerMission = activeItem?.mission;
 
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false);
+    setSearchQuery('');
+  }, []);
+
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return getAllItems().filter((item) => item.label.toLowerCase().includes(q));
+  }, [searchQuery]);
+
+  const goToFirstResult = useCallback(() => {
+    if (searchResults.length === 0) return;
+    router.push(searchResults[0].href);
+    closeSearch();
+  }, [searchResults, router, closeSearch]);
+
   useEffect(() => {
     if (!searchOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setSearchOpen(false);
-        setSearchQuery('');
-      }
+      if (e.key === 'Escape') closeSearch();
+      if (e.key === 'Enter' && searchQuery.trim()) goToFirstResult();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [searchOpen]);
+  }, [searchOpen, searchQuery, searchResults, goToFirstResult, closeSearch]);
 
   return (
     <div className={`app-layout app-layout--${shellMode}`}>
       {shellMode === 'desktop' && !isDesktopCollapsed && (
-        <Sidebar onToggle={() => {}} isOpen variant="full" onCollapse={toggleDesktopSidebar} />
+        <Sidebar onToggle={() => {}} isOpen variant="full" onCollapse={toggleDesktopSidebar} badges={badges} />
       )}
       
       {shellMode === 'desktop' && isDesktopCollapsed && (
-        <SidebarRail onExpand={toggleDesktopSidebar} />
+        <SidebarRail onExpand={toggleDesktopSidebar} onOpenMenu={() => setNavSheetOpen(true)} badges={badges} />
       )}
 
-      {shellMode === 'tablet' && <SidebarRail />}
+      {shellMode === 'tablet' && <SidebarRail onOpenMenu={() => setNavSheetOpen(true)} badges={badges} />}
 
       <main className="main-content">
         <header className="main-header">
@@ -117,7 +137,7 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
                 id="header-search-panel"
                 role="region"
                 aria-label="Buscador"
-                className="absolute top-[calc(100%+12px)] right-0 w-[min(340px,calc(100vw-2rem))] bg-card border border-border rounded-lg shadow-xl z-60 overflow-hidden animate-in"
+                className="absolute top-[calc(100%+12px)] right-0 w-[min(340px,calc(100vw-2rem))] bg-card border border-border rounded-lg shadow-xl z-[60] overflow-hidden animate-in"
               >
                 <div className="p-3 sm:p-4 border-b border-border">
                   <div className="flex items-center gap-2 min-h-11 px-3 bg-background rounded-sm border border-border">
@@ -143,7 +163,7 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
                     ) : (
                       <button
                         type="button"
-                        onClick={() => setSearchOpen(false)}
+                        onClick={closeSearch}
                         aria-label="Cerrar buscador"
                         className="bg-transparent border-none cursor-pointer text-muted-foreground min-h-11 min-w-11 rounded-full flex items-center justify-center shrink-0 hover:text-foreground"
                       >
@@ -152,6 +172,33 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
                     )}
                   </div>
                 </div>
+
+                {searchResults.length > 0 ? (
+                  <ul role="listbox" aria-label="Resultados" className="max-h-[min(58vh,420px)] overflow-y-auto p-2">
+                    {searchResults.map((item) => (
+                      <li key={item.key}>
+                        <Link
+                          href={item.href}
+                          onClick={closeSearch}
+                          role="option"
+                          aria-selected={item.key === searchResults[0].key}
+                          className="flex flex-col justify-center gap-0.5 min-h-11 px-3 py-2 rounded-md text-foreground hover:bg-accent/10 hover:text-accent border border-transparent hover:border-accent/15 transition-colors"
+                        >
+                          <span className="text-[0.85rem] font-medium">{item.label}</span>
+                          <span className="text-[0.72rem] text-muted-foreground truncate">{item.mission}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : searchQuery.trim() ? (
+                  <p className="px-4 py-5 text-[0.85rem] text-muted-foreground">
+                    Sin resultados para «{searchQuery.trim()}»
+                  </p>
+                ) : (
+                  <p className="px-4 py-5 text-[0.8rem] text-muted-foreground">
+                    Escribe para buscar entre los módulos del enjambre…
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -170,7 +217,7 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
         onOpenMenu={() => setNavSheetOpen(true)}
         menuOpen={navSheetOpen}
       />
-      <MobileNavSheet open={navSheetOpen} onClose={() => setNavSheetOpen(false)} />
+      <MobileNavSheet open={navSheetOpen} onClose={() => setNavSheetOpen(false)} badges={badges} />
     </div>
   );
 }
