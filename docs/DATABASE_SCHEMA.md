@@ -35,7 +35,7 @@ La tabla maestra que define quien es quien en el ecosistema.
 | `nivel_guardian` | TEXT | - | Nivel en el programa de fidelizacion |
 | `created_at` | TIMESTAMPTZ | DEFAULT now() | Fecha de creacion |
 
-**Roles validos**: `admin`, `cliente`, `creador`, `rep_ventas`
+**Roles validos**: `admin`, `cliente`, `creador`, `rep_ventas`, `territorial` (via migration 997)
 
 > Los roles granulares anteriores (`apicultor`, `vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) fueron consolidados en `admin` via migration 39. Existe `LEGACY_ROLE_MAP` para compatibilidad.
 

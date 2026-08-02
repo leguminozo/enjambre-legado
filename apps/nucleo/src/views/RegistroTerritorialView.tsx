@@ -32,6 +32,7 @@ interface ActorResumen {
   comuna: string;
   nivel_acreditacion: string;
   estado: string;
+  completo?: boolean;
 }
 
 interface AlertaResumen {
@@ -72,6 +73,17 @@ interface ApiarioExternoResumen {
     nombre_actor: string;
     rup?: string;
   };
+}
+
+interface ApiarioRegistroResumen {
+  id: string;
+  nombre?: string | null;
+  comuna: string;
+  zona: string;
+  n_colmenas: number;
+  categoria: string;
+  lat_aproximada?: number | null;
+  lng_aproximada?: number | null;
 }
 
 const ROL_LABELS: Record<string, string> = {
@@ -145,10 +157,20 @@ export function RegistroTerritorialView() {
     },
   });
 
+  const { data: apiariosRegistroData } = useQuery<{ data: ApiarioRegistroResumen[] }>({
+    queryKey: ['registro-territorial-apiarios-registro'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/registro-territorial/apiarios');
+      if (!res.ok) throw new Error('Error cargando apiarios del registro');
+      return res.json();
+    },
+  });
+
   const actores = actoresData?.data ?? [];
   const alertas = alertasData?.data ?? [];
   const predios = prediosData?.data ?? [];
   const apiariosExternos = apiariosData?.data ?? [];
+  const apiariosRegistro = apiariosRegistroData?.data ?? [];
 
   const stats = {
     totalActores: actores.length,
@@ -302,7 +324,12 @@ export function RegistroTerritorialView() {
         )}
 
         {tab === 'mapa' && (
-          <MapaTerritorial actores={actores} alertas={alertas} apiariosExternos={apiariosExternos} />
+          <MapaTerritorial
+            actores={actores}
+            alertas={alertas}
+            apiariosExternos={apiariosExternos}
+            apiariosRegistro={apiariosRegistro}
+          />
         )}
 
         {tab === 'actores' && (
@@ -332,6 +359,9 @@ export function RegistroTerritorialView() {
                       <span className={`text-xs px-2 py-0.5 rounded-full ${NIVEL_COLORS[actor.nivel_acreditacion]}`}>
                         {actor.nivel_acreditacion}
                       </span>
+                      <Badge variant={actor.completo ? 'success' : 'warning'}>
+                        {actor.completo ? 'Censo OK' : 'Censo pendiente'}
+                      </Badge>
                       <Badge variant={actor.estado === 'activo' ? 'default' : 'danger'}>
                         {actor.estado}
                       </Badge>

@@ -95,6 +95,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
           mission: 'Cada lote es una verdad del proceso',
         },
         {
+          key: 'alambique',
+          label: 'Alambique',
+          icon: 'test-tubes',
+          href: '/alambique',
+          greeting: 'Alquimista del vapor',
+          mission: 'Cada gota destilada es memoria del bosque',
+        },
+        {
           key: 'despacho',
           label: 'Despacho',
           icon: 'truck',
@@ -280,6 +288,7 @@ export const VIEW_SHELL_PATHS = new Set([
   '/regeneracion',
   '/costeo',
   '/produccion',
+  '/alambique',
   '/operaciones',
   '/comunidad',
   '/contable',

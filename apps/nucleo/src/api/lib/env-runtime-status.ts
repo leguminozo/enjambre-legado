@@ -211,6 +211,98 @@ export function buildNucleoEnvRuntimeStatus(): EnvRuntimeStatus {
         ),
       ],
     },
+    {
+      id: "notificaciones",
+      label: "Mensajería y Notificaciones",
+      critical: false,
+      ok: false,
+      items: [
+        item(
+          "resend",
+          "Resend API Key (Emails)",
+          present("RESEND_API_KEY"),
+          false,
+        ),
+        item(
+          "twilio",
+          "Twilio (SMS / WhatsApp)",
+          presentAll("TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_WHATSAPP_FROM"),
+          false,
+        ),
+        item(
+          "notif_worker",
+          "NOTIFICATIONS_WORKER_SECRET",
+          present("NOTIFICATIONS_WORKER_SECRET"),
+          false,
+        ),
+      ],
+    },
+    {
+      id: "pases_digitales",
+      label: "Pases (Apple / Google Wallet)",
+      critical: false,
+      ok: false,
+      items: [
+        item(
+          "apple_wallet",
+          "Apple Pass Certs",
+          presentAll("APPLE_PASS_CERT_P12_BASE64", "APPLE_TEAM_IDENTIFIER", "APPLE_PASS_TYPE_IDENTIFIER"),
+          false,
+        ),
+        item(
+          "google_wallet",
+          "Google Wallet API",
+          presentAll("GOOGLE_WALLET_ISSUER_ID", "GOOGLE_WALLET_PRIVATE_KEY", "GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL"),
+          false,
+        ),
+        item(
+          "wallet_secrets",
+          "Pases Firmas Internas",
+          presentAll("WALLET_PASS_SECRET", "WALLET_QR_SIGNING_SECRET"),
+          false,
+        ),
+      ],
+    },
+    {
+      id: "blockchain",
+      label: "Trazabilidad Blockchain",
+      critical: false,
+      ok: false,
+      items: [
+        item(
+          "blockchain_amoy",
+          "Polygon Anchor Contracts",
+          presentAll("BLOCKCHAIN_ANCHOR_CONTRACT_POLYGON_AMOY", "BLOCKCHAIN_ANCHOR_PRIVATE_KEY"),
+          false,
+        ),
+      ],
+    },
+    {
+      id: "frontend_ops",
+      label: "Mapas, CMS y Monitoreo",
+      critical: false,
+      ok: false,
+      items: [
+        item(
+          "google_maps",
+          "Google Maps API Key",
+          present("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY"),
+          false,
+        ),
+        item(
+          "cms_revalidate",
+          "CMS Revalidate Secret",
+          present("CMS_REVALIDATE_SECRET"),
+          false,
+        ),
+        item(
+          "sentry_analytics",
+          "Sentry DSN",
+          present("NEXT_PUBLIC_SENTRY_DSN"),
+          false,
+        ),
+      ],
+    },
   ];
 
   for (const g of groups) {

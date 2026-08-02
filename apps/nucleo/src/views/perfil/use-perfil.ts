@@ -86,7 +86,7 @@ export function usePerfil() {
         .from("actores_registro")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
       if (actorData) {
         setActor(actorData as ActorRegistro);
       }

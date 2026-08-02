@@ -25,7 +25,7 @@ const SecurityEventTypeSchema = z.enum([
   "signup_success",
 ]);
 
-const AppSourceSchema = z.enum(["tienda", "nucleo", "campo", "api"]);
+const AppSourceSchema = z.enum(["tienda", "nucleo", "campo", "api", "nucleo-bff", "nucleo_territorial"]);
 
 const SecurityEventSchema = z.strictObject({
   eventType: SecurityEventTypeSchema,

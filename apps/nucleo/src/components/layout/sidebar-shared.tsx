@@ -5,6 +5,7 @@ import {
   Calculator, Sparkles, BarChart3, FileText, UserCog, Settings, Building2,
   CreditCard, GitMerge, Printer, Cpu, Shield, Wallet, Users, Ticket, Percent,
   Sliders, Trophy, FlaskConical, Factory, Contact, Network, TrendingUp,
+  TestTubes,
 } from 'lucide-react';
 import type { SidebarItem, SidebarBadge } from '@/config/sidebar-config';
 import type { SidebarNavItemData } from '@enjambre/ui';
@@ -35,6 +36,7 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   trophy: Trophy,
   'flask-conical': FlaskConical,
   factory: Factory,
+  'test-tubes': TestTubes,
   'user-cog': UserCog,
   settings: Settings,
   contact: Contact,

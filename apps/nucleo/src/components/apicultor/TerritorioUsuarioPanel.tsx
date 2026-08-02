@@ -2,10 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { Map, Plus, MapPin, Tent } from 'lucide-react';
-import { Button, HexagonLoader } from '@enjambre/ui';
+import { Map, Plus, MapPin, Tent, Lock } from 'lucide-react';
+import { Button, HexagonLoader, toast } from '@enjambre/ui';
 import { PredioForm } from './PredioForm';
 import { ApiarioExternoForm } from './ApiarioExternoForm';
+
+interface TerritorioUsuarioPanelProps {
+  /** Si el actor completó su inscripción legal del censo; si es false, las
+   *  declaraciones de trashumancia y predios se bloquean con orientación. */
+  inscripcionCompleta?: boolean;
+}
 
 interface ActorRegistro {
   id: string;
@@ -31,7 +37,7 @@ interface ApiarioExterno {
   fecha_ingreso: string;
 }
 
-export function TerritorioUsuarioPanel() {
+export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: TerritorioUsuarioPanelProps) {
   const apiFetch = useApiFetch();
   const [actor, setActor] = useState<ActorRegistro | null>(null);
   const [predios, setPredios] = useState<Predio[]>([]);
@@ -40,6 +46,10 @@ export function TerritorioUsuarioPanel() {
 
   const [showPredioForm, setShowPredioForm] = useState(false);
   const [showApiarioForm, setShowApiarioForm] = useState(false);
+
+  const bloquearPorCenso = () => {
+    toast.info('Completa tu inscripción legal en el censo (pestaña "Mi Registro") para declarar trashumancia o predios.');
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -103,6 +113,18 @@ export function TerritorioUsuarioPanel() {
 
   return (
     <div className="space-y-6">
+      {!inscripcionCompleta && (
+        <div className="p-4 rounded-2xl bg-warning/10 border border-warning/30 flex items-center gap-3">
+          <Lock className="w-5 h-5 text-warning shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground">Inscripción legal pendiente</p>
+            <p className="text-xs text-muted-foreground">
+              Completa tu inscripción en el censo (pestaña "Mi Registro") para declarar movimientos trashumantes o registrar predios facilitadores.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Mis Apiarios Trashumantes */}
       <div className="bg-card border border-border rounded-2xl p-6">
         <div className="flex items-center justify-between mb-6">
@@ -112,7 +134,11 @@ export function TerritorioUsuarioPanel() {
               Mis Movimientos Trashumantes
             </h3>
           </div>
-          <Button onClick={() => setShowApiarioForm(true)} size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+          <Button
+            onClick={() => (inscripcionCompleta ? setShowApiarioForm(true) : bloquearPorCenso())}
+            size="sm"
+            className="bg-accent text-accent-foreground hover:bg-accent/90"
+          >
             <Plus size={16} className="mr-1" /> Declarar Ingreso
           </Button>
         </div>
@@ -151,7 +177,11 @@ export function TerritorioUsuarioPanel() {
               Mis Predios Facilitadores
             </h3>
           </div>
-          <Button onClick={() => setShowPredioForm(true)} size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+          <Button
+            onClick={() => (inscripcionCompleta ? setShowPredioForm(true) : bloquearPorCenso())}
+            size="sm"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
             <Plus size={16} className="mr-1" /> Registrar Predio
           </Button>
         </div>

@@ -66,6 +66,8 @@ export default function LoginPage() {
   const [consentAlertas, setConsentAlertas] = useState(true);
   const [consentCatalogo, setConsentCatalogo] = useState(false);
   const [consentAcopio, setConsentAcopio] = useState(false);
+  const [aceptaCarta, setAceptaCarta] = useState(false);
+  const [aceptaPoliticaDatos, setAceptaPoliticaDatos] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -170,6 +172,9 @@ export default function LoginPage() {
       }
 
       if (viewMode === 'sheet_signup') {
+        if (!aceptaCarta || !aceptaPoliticaDatos) {
+          throw new Error('Debes aceptar la Carta Constitutiva y la política de datos para inscribirte.');
+        }
         const { data, error: signUpErr } = await supabase.auth.signUp({
           email,
           password,
@@ -181,6 +186,8 @@ export default function LoginPage() {
               territorial_rol: rol,
               territorial_region: region,
               territorial_comuna: comuna,
+              territorial_acepta_carta: aceptaCarta,
+              territorial_acepta_politica_datos: aceptaPoliticaDatos,
               territorial_consentimientos: {
                 mapa_comunitario: consentMapa,
                 alertas_fitosanitarias: consentAlertas,
@@ -202,7 +209,7 @@ export default function LoginPage() {
           eventType: 'signup_success',
           userId: data.user?.id ?? null,
           email,
-          appSource: 'nucleo',
+          appSource: 'nucleo_territorial',
         });
         setMessage('¡Registro exitoso! Por favor verifica tu bandeja de entrada para activar tu cuenta.');
         setLoading(false);
@@ -719,6 +726,57 @@ export default function LoginPage() {
                       <div className="flex-1">
                         <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">Catálogo de Infraestructura</span>
                         <p className="text-[0.65rem] text-muted-foreground/80 mt-0.5 leading-tight">Disponibilidad de predios facilitadores o salas de extracción compartidas.</p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={consentAcopio}
+                        onChange={(e) => setConsentAcopio(e.target.checked)}
+                        className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary focus:ring-offset-background transition-colors"
+                      />
+                      <div className="flex-1">
+                        <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">Acopio Cooperativo</span>
+                        <p className="text-[0.65rem] text-muted-foreground/80 mt-0.5 leading-tight">Participación en acopio colectivo y compras conjuntas de la red.</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <div className="space-y-3 bg-surface-raised/40 p-3.5 rounded-xl border border-border/40">
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={aceptaCarta}
+                        onChange={(e) => setAceptaCarta(e.target.checked)}
+                        className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary focus:ring-offset-background transition-colors"
+                      />
+                      <div className="flex-1">
+                        <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">
+                          Acepto la <a href="/carta" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-primary">Carta Constitutiva Apícola Territorial</a>
+                        </span>
+                        <p className="text-[0.65rem] text-muted-foreground/80 mt-0.5 leading-tight">
+                          Infraestructura colectiva, autónoma y no extractiva: consentimiento informado, datos mínimos y beneficio recíproco.
+                        </p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={aceptaPoliticaDatos}
+                        onChange={(e) => setAceptaPoliticaDatos(e.target.checked)}
+                        className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary focus:ring-offset-background transition-colors"
+                      />
+                      <div className="flex-1">
+                        <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">
+                          Acepto la política de datos y privacidad
+                        </span>
+                        <p className="text-[0.65rem] text-muted-foreground/80 mt-0.5 leading-tight">
+                          Tus datos se entregan en custodia: puedes corregirlos, descargarlos y retirar consentimientos en cualquier momento.
+                        </p>
                       </div>
                     </label>
                   </div>

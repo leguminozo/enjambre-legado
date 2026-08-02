@@ -257,7 +257,9 @@ export function useSidebarBadges() {
           // Tear down + backoff exponencial (1s, 2s, 4s, ... capped 30s, ~5 intentos).
           // Cada reintento re-resuelve getSession() para usar un token ya refrescado.
           if (status === 'TIMED_OUT' || status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-            console.error('[useSidebarBadges] realtime error', status, err)
+            if (!disposed) {
+              console.warn('[useSidebarBadges] realtime disconnected', status, err)
+            }
             if (channelRef.current) {
               const old = channelRef.current
               channelRef.current = null

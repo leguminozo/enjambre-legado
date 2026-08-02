@@ -45,6 +45,14 @@ export type Database = {
           user_id: string | null
           rol: string
           rup: string | null
+          rut: string | null
+          telefono: string | null
+          practicas_sanitarias: string | null
+          metodo_control_varroa: string | null
+          declaracion_existencia_animal: boolean
+          acepta_carta: boolean
+          acepta_politica_datos: boolean
+          completo: boolean
           nombre_actor: string
           comuna: string
           region: string
@@ -60,6 +68,14 @@ export type Database = {
           user_id?: string | null
           rol: string
           rup?: string | null
+          rut?: string | null
+          telefono?: string | null
+          practicas_sanitarias?: string | null
+          metodo_control_varroa?: string | null
+          declaracion_existencia_animal?: boolean
+          acepta_carta?: boolean
+          acepta_politica_datos?: boolean
+          completo?: boolean
           nombre_actor: string
           comuna: string
           region?: string
@@ -75,6 +91,14 @@ export type Database = {
           user_id?: string | null
           rol?: string
           rup?: string | null
+          rut?: string | null
+          telefono?: string | null
+          practicas_sanitarias?: string | null
+          metodo_control_varroa?: string | null
+          declaracion_existencia_animal?: boolean
+          acepta_carta?: boolean
+          acepta_politica_datos?: boolean
+          completo?: boolean
           nombre_actor?: string
           comuna?: string
           region?: string
@@ -87,11 +111,68 @@ export type Database = {
         }
         Relationships: []
       }
+      apiarios_registro: {
+        Row: {
+          id: string
+          actor_id: string
+          nombre: string | null
+          comuna: string
+          zona: string
+          lat_aproximada: number | null
+          lng_aproximada: number | null
+          n_colmenas: number
+          categoria: string
+          activo: boolean
+          observaciones: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          actor_id: string
+          nombre?: string | null
+          comuna: string
+          zona: string
+          lat_aproximada?: number | null
+          lng_aproximada?: number | null
+          n_colmenas: number
+          categoria?: string
+          activo?: boolean
+          observaciones?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          actor_id?: string
+          nombre?: string | null
+          comuna?: string
+          zona?: string
+          lat_aproximada?: number | null
+          lng_aproximada?: number | null
+          n_colmenas?: number
+          categoria?: string
+          activo?: boolean
+          observaciones?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apiarios_registro_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "actores_registro"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       predios_facilitadores: {
         Row: {
           id: string
           actor_id: string
           nombre: string | null
+          rol_predio: string | null
           comuna: string
           zona: string
           lat_aproximada: number | null
@@ -108,6 +189,7 @@ export type Database = {
           id?: string
           actor_id: string
           nombre?: string | null
+          rol_predio?: string | null
           comuna: string
           zona: string
           lat_aproximada?: number | null
@@ -124,6 +206,7 @@ export type Database = {
           id?: string
           actor_id?: string
           nombre?: string | null
+          rol_predio?: string | null
           comuna?: string
           zona?: string
           lat_aproximada?: number | null
@@ -3215,6 +3298,80 @@ export type Database = {
           },
         ]
       }
+      destilaciones: {
+        Row: {
+          agua_l: number | null
+          analisis_organoleptico: Json | null
+          carga_kg: number
+          codigo: string | null
+          created_at: string
+          duracion_min: number | null
+          estado: string
+          fecha_fin: string | null
+          fecha_inicio: string
+          id: string
+          metodo: string
+          observaciones: string | null
+          planta_id: string
+          publico: boolean
+          relato_publico: string | null
+          rendimiento_aceite_ml: number | null
+          rendimiento_hidrolato_ml: number | null
+          temperatura_promedio: number | null
+          updated_at: string
+        }
+        Insert: {
+          agua_l?: number | null
+          analisis_organoleptico?: Json | null
+          carga_kg: number
+          codigo?: string | null
+          created_at?: string
+          duracion_min?: number | null
+          estado?: string
+          fecha_fin?: string | null
+          fecha_inicio?: string
+          id?: string
+          metodo?: string
+          observaciones?: string | null
+          planta_id: string
+          publico?: boolean
+          relato_publico?: string | null
+          rendimiento_aceite_ml?: number | null
+          rendimiento_hidrolato_ml?: number | null
+          temperatura_promedio?: number | null
+          updated_at?: string
+        }
+        Update: {
+          agua_l?: number | null
+          analisis_organoleptico?: Json | null
+          carga_kg?: number
+          codigo?: string | null
+          created_at?: string
+          duracion_min?: number | null
+          estado?: string
+          fecha_fin?: string | null
+          fecha_inicio?: string
+          id?: string
+          metodo?: string
+          observaciones?: string | null
+          planta_id?: string
+          publico?: boolean
+          relato_publico?: string | null
+          rendimiento_aceite_ml?: number | null
+          rendimiento_hidrolato_ml?: number | null
+          temperatura_promedio?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "destilaciones_planta_id_fkey"
+            columns: ["planta_id"]
+            isOneToOne: false
+            referencedRelation: "plantas_destilacion"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       empresas: {
         Row: {
           acteco: string | null
@@ -5428,6 +5585,54 @@ export type Database = {
           },
         ]
       }
+      plantas_destilacion: {
+        Row: {
+          cantidad_kg: number
+          created_at: string
+          estado_material: string
+          fecha_recoleccion: string | null
+          id: string
+          lat: number | null
+          lng: number | null
+          nombre_cientifico: string | null
+          nombre_comun: string
+          observaciones: string | null
+          origen: string | null
+          parte_usada: string
+          updated_at: string
+        }
+        Insert: {
+          cantidad_kg: number
+          created_at?: string
+          estado_material?: string
+          fecha_recoleccion?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          nombre_cientifico?: string | null
+          nombre_comun: string
+          observaciones?: string | null
+          origen?: string | null
+          parte_usada?: string
+          updated_at?: string
+        }
+        Update: {
+          cantidad_kg?: number
+          created_at?: string
+          estado_material?: string
+          fecha_recoleccion?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          nombre_cientifico?: string | null
+          nombre_comun?: string
+          observaciones?: string | null
+          origen?: string | null
+          parte_usada?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pre_orders: {
         Row: {
           converted_venta_id: string | null
@@ -5639,6 +5844,69 @@ export type Database = {
             columns: ["lote_id"]
             isOneToOne: false
             referencedRelation: "lotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      productos_destilacion: {
+        Row: {
+          created_at: string
+          destilacion_id: string
+          destino: string
+          envase: string | null
+          fecha_envasado: string | null
+          id: string
+          observaciones: string | null
+          precio_sugerido_clp: number | null
+          producto_id: string | null
+          tipo: string
+          unidades: number
+          updated_at: string
+          volumen_ml: number
+        }
+        Insert: {
+          created_at?: string
+          destilacion_id: string
+          destino?: string
+          envase?: string | null
+          fecha_envasado?: string | null
+          id?: string
+          observaciones?: string | null
+          precio_sugerido_clp?: number | null
+          producto_id?: string | null
+          tipo: string
+          unidades?: number
+          updated_at?: string
+          volumen_ml: number
+        }
+        Update: {
+          created_at?: string
+          destilacion_id?: string
+          destino?: string
+          envase?: string | null
+          fecha_envasado?: string | null
+          id?: string
+          observaciones?: string | null
+          precio_sugerido_clp?: number | null
+          producto_id?: string | null
+          tipo?: string
+          unidades?: number
+          updated_at?: string
+          volumen_ml?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "productos_destilacion_destilacion_id_fkey"
+            columns: ["destilacion_id"]
+            isOneToOne: false
+            referencedRelation: "destilaciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "productos_destilacion_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
             referencedColumns: ["id"]
           },
         ]

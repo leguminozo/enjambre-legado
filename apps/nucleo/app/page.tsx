@@ -47,7 +47,7 @@ export default function RedApicolaLanding() {
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center max-w-md z-10">
           <Link
-            href="/login"
+            href="/login?mode=signup"
             className="w-full min-h-12 inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium transition-all duration-300 shadow-xl shadow-primary/20 active:scale-95 group"
           >
             Inscribirse · Acceder

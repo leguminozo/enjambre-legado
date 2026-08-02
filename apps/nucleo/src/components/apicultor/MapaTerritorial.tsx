@@ -42,10 +42,22 @@ interface ApiarioExternoResumen {
   actores_registro: { nombre_actor: string, rup?: string };
 }
 
+interface ApiarioRegistroResumen {
+  id: string;
+  nombre?: string | null;
+  comuna: string;
+  zona: string;
+  n_colmenas: number;
+  categoria: string;
+  lat_aproximada?: number | null;
+  lng_aproximada?: number | null;
+}
+
 interface MapaTerritorialProps {
   actores: ActorResumen[];
   alertas: AlertaResumen[];
   apiariosExternos?: ApiarioExternoResumen[];
+  apiariosRegistro?: ApiarioRegistroResumen[];
 }
 
 export function MapaTerritorial(props: MapaTerritorialProps) {

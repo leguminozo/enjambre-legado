@@ -52,7 +52,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       .from('profiles')
       .select('id, email, full_name, role, theme_preference')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (profile) {
       const rawTheme = profile.theme_preference

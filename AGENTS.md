@@ -120,9 +120,10 @@ BFF route: `POST /api/security-events` (Bearer auth) + `POST /api/security-event
 
 ## Roles
 
-`admin` | `cliente` | `creador` | `rep_ventas`
+`admin` | `cliente` | `creador` | `rep_ventas` | `territorial`
 
 > Los roles granulares anteriores (`apicultor`, `vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) fueron consolidados en `admin` via migration 39. Existe `LEGACY_ROLE_MAP` para compatibilidad.
+> `territorial` (migration 997) es el rol de los participantes del Registro Territorial Apícola de Chiloé; home `/territorio`, guard `ROUTE_ROLE_GUARDS['/territorio']`.
 
 ## Environment Variables
 

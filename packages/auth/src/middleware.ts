@@ -19,13 +19,17 @@ function resolveRedirect(target: string, request: NextRequest): NextResponse {
   return NextResponse.redirect(url)
 }
 
-function isPublicPath(pathname: string, publicRoutes: string[]): boolean {
+function isPublicPath(pathname: string, publicRoutes: string[], publicPathPrefixes: string[]): boolean {
   if (pathname.startsWith('/api/')) return true
-  return publicRoutes.some((route) => pathname === route)
+  if (publicRoutes.some((route) => pathname === route)) return true
+  // Rutas públicas por prefijo (páginas de trazabilidad con IDs dinámicos, ej. /alambique/xxx)
+  return publicPathPrefixes.some((prefix) => pathname.startsWith(prefix))
 }
 
 export interface AuthMiddlewareConfig {
   publicRoutes?: string[]
+  /** Prefijos de ruta accesibles sin sesión (páginas públicas con IDs dinámicos). */
+  publicPathPrefixes?: string[]
   authRedirect?: string
   roleRedirectMap?: Record<string, string>
 
@@ -66,6 +70,7 @@ async function resolveUserRole(
 export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
   const {
     publicRoutes = ['/', '/login'],
+    publicPathPrefixes = [],
     authRedirect = '/login',
     roleRedirectMap = NUCLEO_ROLE_REDIRECT_MAP,
     defaultRole = 'cliente',
@@ -78,7 +83,7 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
 
     // Fail-closed: misconfigured Supabase must not open protected surfaces.
     if (!isSupabaseConfigured()) {
-      if (isPublicPath(pathname, publicRoutes)) {
+      if (isPublicPath(pathname, publicRoutes, publicPathPrefixes)) {
         return supabaseResponse
       }
       const url = request.nextUrl.clone()
@@ -107,7 +112,7 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
     const result = await withTimeout(supabase.auth.getUser(), timeoutMs)
     const user = result?.data?.user ?? null
 
-    if (!user && !isPublicPath(pathname, publicRoutes)) {
+    if (!user && !isPublicPath(pathname, publicRoutes, publicPathPrefixes)) {
       const url = request.nextUrl.clone()
       url.pathname = authRedirect
       return NextResponse.redirect(url)

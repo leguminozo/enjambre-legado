@@ -93,6 +93,7 @@ docs/              Documentacion (estas leyendo esto)
 | `cliente` | tienda | Compra, ve impacto, fidelizacion |
 | `creador` | nucleo | Portal auto-servicio, comisiones |
 | `rep_ventas` | campo, nucleo | POS en ferias, ventas directas |
+| `territorial` | nucleo | Registro Territorial Apícola de Chiloé: inscripción, predios, trashumancia, alertas fitosanitarias (home `/territorio`) |
 
 ---
 

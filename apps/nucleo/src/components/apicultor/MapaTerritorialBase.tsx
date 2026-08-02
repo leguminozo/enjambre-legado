@@ -55,13 +55,26 @@ interface ApiarioExternoResumen {
   actores_registro: { nombre_actor: string, rup?: string };
 }
 
+interface ApiarioRegistroResumen {
+  id: string;
+  nombre?: string | null;
+  comuna: string;
+  zona: string;
+  n_colmenas: number;
+  categoria: string;
+  lat_aproximada?: number | null;
+  lng_aproximada?: number | null;
+}
+
 interface MapaTerritorialProps {
   actores: ActorResumen[];
   alertas: AlertaResumen[];
   apiariosExternos?: ApiarioExternoResumen[];
+  /** Apiarios declarados en el censo del registro (RLS: propios + comunitarios consentidos). */
+  apiariosRegistro?: ApiarioRegistroResumen[];
 }
 
-export function MapaTerritorial({ actores, alertas, apiariosExternos = [] }: MapaTerritorialProps) {
+export function MapaTerritorial({ actores, alertas, apiariosExternos = [], apiariosRegistro = [] }: MapaTerritorialProps) {
   // Centro aproximado de Chiloé
   const CHILOE_CENTER: [number, number] = [-42.48, -73.76];
   
@@ -191,6 +204,45 @@ export function MapaTerritorial({ actores, alertas, apiariosExternos = [] }: Map
                 </Marker>
               </div>
             ))
+          )}
+
+          {/* Capa Comunitaria y Restringida: apiarios declarados en el censo */}
+          {(capaActiva === 'comunitaria' || capaActiva === 'restringida') && (
+            apiariosRegistro
+              .filter(a => a.lat_aproximada != null && a.lng_aproximada != null)
+              .map(apiario => (
+                <div key={apiario.id}>
+                  {capaActiva === 'comunitaria' && (
+                    <Circle
+                      center={[apiario.lat_aproximada!, apiario.lng_aproximada!]}
+                      radius={1000}
+                      pathOptions={{
+                        color: 'hsl(var(--primary))',
+                        fillOpacity: 0.1,
+                        weight: 1,
+                        dashArray: '4, 4',
+                      }}
+                    />
+                  )}
+                  <Marker
+                    position={[apiario.lat_aproximada!, apiario.lng_aproximada!]}
+                    icon={ICON_RESIDENTE}
+                  >
+                    <Popup>
+                      <div className="text-sm">
+                        <p className="font-bold mb-1">🐝 Apiario del Registro</p>
+                        <p><strong>Colmenas:</strong> {apiario.n_colmenas}</p>
+                        <p><strong>Sector:</strong> {apiario.zona} · {apiario.comuna}</p>
+                        {capaActiva === 'restringida' && (
+                          <p className="text-xs text-muted-foreground mt-2 border-t pt-2">
+                            {apiario.nombre || 'Sin nombre'} · {apiario.categoria}
+                          </p>
+                        )}
+                      </div>
+                    </Popup>
+                  </Marker>
+                </div>
+              ))
           )}
 
         </MapContainer>

@@ -160,27 +160,7 @@
 /* ── LEGACY UI COMPONENTS ── */
 
 .input-field {
-  width: 100%;
-  min-height: 44px;
-  padding: 1rem 1.2rem;
-  background: hsl(var(--input) / 0.6);
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius-sm);
-  color: hsl(var(--foreground));
-  font-family: var(--font-datos);
-  font-size: 0.9rem;
-  transition: all var(--transition-base);
-  outline: none;
-}
-
-.input-field:focus {
-  background: hsl(var(--input));
-  border-color: hsl(var(--ring));
-  box-shadow: 0 0 15px hsl(var(--ring) / 0.15);
-}
-
-.input-field::placeholder {
-  color: hsl(var(--muted-foreground) / 0.5);
+  @apply w-full min-h-11 bg-surface-sunken/60 border border-border text-foreground text-sm rounded-sm px-4 py-3 placeholder:text-muted-foreground/50 transition-colors duration-150 outline-none focus:border-accent focus:ring-1 focus:ring-ring;
 }
 
 .glass-panel {

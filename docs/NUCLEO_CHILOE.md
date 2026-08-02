@@ -71,7 +71,7 @@ apps/nucleo/
 packages/database/supabase/migrations/
 ├── 00_initial_schema.sql                 ← apiarios, colmenas, inspecciones (existente)
 ├── 20260614053000_qr_trazabilidad.sql    ← qr_codes (existente)
-└── 100_registro_territorial_apicola.sql  ← actores, predios, apiarios externos, alertas ✅ Sprint 1
+└── 991_registro_territorial_apicola.sql  ← actores, predios, apiarios externos, alertas ✅ Sprint 1
 ```
 
 ### 1.2 Separación entre datos propios y datos territoriales
@@ -261,7 +261,7 @@ if (!actor.consentimientos.mapa_comunitario) {
 
 ### Sprint 1 — Base ✅ COMPLETADO (julio 2026)
 
-- [x] Migración `100_registro_territorial_apicola.sql`
+- [x] Migración `991_registro_territorial_apicola.sql`
 - [x] 4 tablas nuevas con RLS + índices + RPC Haversine
 - [x] BFF Hono `registro-territorial.ts` con 13 endpoints
 - [x] Registrado en `app/api/[[...routes]]/route.ts`
@@ -272,21 +272,20 @@ if (!actor.consentimientos.mapa_comunitario) {
 - [x] Ruta `/registro-territorial` en Next.js App Router
 - [x] Build verificado sin errores
 
-### Sprint 2 — Mapa territorial por capas (estimado: 3-4 días)
+### Sprint 2 — Mapa territorial por capas ✅ COMPLETADO (julio 2026)
 
-- [ ] `MapaTerritorial.tsx` — mapa Leaflet con 3 capas de visibilidad
-- [ ] Layer `publica`: polígonos de zonas generales (sin actores)
-- [ ] Layer `comunitaria`: marcadores de apiarios externos aproximados + alertas
-- [ ] Layer `restringida`: coordenadas exactas propias + vista admin
-- [ ] Integración con `alertas_en_radio` RPC para mostrar radio de alerta
-- [ ] Selector de comunas para filtrar el mapa
+- [x] `MapaTerritorial.tsx` / `MapaTerritorialBase.tsx` — mapa Leaflet con capas por rol (🐝 residentes, 🚚 trashumantes, ⚠️ alertas con radio)
+- [x] Layer `comunitaria`: marcadores de apiarios externos aproximados (~1 km) + alertas
+- [x] Integración con `alertas_en_radio` RPC para mostrar radio de alerta (BFF `GET /alertas?lat&lng`)
+- [x] Integrado en `/registro-territorial` (tab Mapa) y en el panel del actor `/territorio` (tab Mapa Comunitario)
+- [ ] Refinamientos pendientes: layer pública sin login (zonas generales), selector de comunas
 
-### Sprint 3 — Lotes comerciales + QR público (estimado: 2-3 días)
+### Sprint 3 — Lotes comerciales + QR público ✅ COMPLETADO (julio 2026)
 
-- [ ] Migración `101_cosechas_lote_comercial.sql` — campos de trazabilidad comercial
-- [ ] `LoteQRPreview.tsx` — preview interno del lote antes de publicar
-- [ ] Página pública `/lote/[id]` — escaneable sin login
-- [ ] Integración con `qr_codes` existente
+- [x] Migración `101_lotes_comerciales.sql` — campos de trazabilidad comercial (actor_id → actores_registro, variedad floral, análisis de laboratorio, relato público, `publico`)
+- [x] `LoteQRPreview.tsx` — preview interno del lote antes de publicar (existe; su integración en el panel del actor territorial queda para fase posterior)
+- [x] Página pública `/lote/[id]` — escaneable sin login (pasaporte público con mapa Leaflet)
+- [x] Integración con `qr_codes` / `qr_audit_trail` existentes
 
 ### Sprint 4 — Módulo económico básico (estimado: 5-7 días)
 
@@ -402,7 +401,7 @@ Antes de Sprint 2 (mapa territorial), correr:
 ```bash
 # 1. Aplicar migración en Supabase
 # Desde el dashboard de Supabase → SQL Editor → pegar contenido de:
-# packages/database/supabase/migrations/100_registro_territorial_apicola.sql
+# packages/database/supabase/migrations/991_registro_territorial_apicola.sql
 
 # 2. Regenerar tipos TypeScript
 cd packages/database && pnpm db:typegen

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { authMiddleware } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
+import { validarRUT } from "@enjambre/contable";
 
 export const registroTerritorialRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -41,9 +42,19 @@ const ConsentimientosSchema = z.object({
 const CreateActorSchema = z.object({
   rol: RolSchema,
   nombre_actor: z.string().min(2).max(200),
+  rut: z.string().optional().refine((rut) => !rut || validarRUT(rut), {
+    message: "RUT inválido",
+  }),
+  telefono: z.string().max(30).optional(),
   rup: z.string().optional(),
   comuna: z.string().min(2).max(100),
   region: z.string().default("Los Lagos"),
+  practicas_sanitarias: z.string().max(2000).optional(),
+  metodo_control_varroa: z.string().max(500).optional(),
+  declaracion_existencia_animal: z.boolean().optional(),
+  acepta_carta: z.boolean().optional(),
+  acepta_politica_datos: z.boolean().optional(),
+  completo: z.boolean().optional(),
   consentimientos: ConsentimientosSchema.optional(),
   observaciones: z.string().max(1000).optional(),
 }).strict();
@@ -73,10 +84,28 @@ const CreateApiarioExternoSchema = z.object({
   lng_aproximada: z.number().min(-180).max(180).optional(),
   fecha_ingreso: z.string().date(),
   fecha_salida: z.string().date().optional(),
-  cert_sanitaria_url: z.string().url().optional(),
+  cert_sanitaria_url: z.string().max(500).optional(), // path del PDF en storage o URL
   cert_sanitaria_fecha: z.string().date().optional(),
   cert_sanitaria_lab: z.string().max(200).optional(),
   bioseguridad_declarada: z.string().max(2000).optional(),
+  observaciones: z.string().max(1000).optional(),
+}).strict();
+
+const CategoriaApiarioSchema = z.enum([
+  "produccion",
+  "polinizacion",
+  "seleccion_cria",
+  "otro",
+]);
+
+const CreateApiarioRegistroSchema = z.object({
+  nombre: z.string().max(200).optional(),
+  comuna: z.string().min(2).max(100),
+  zona: z.string().min(2).max(200),
+  lat_aproximada: z.number().min(-90).max(90).optional(),
+  lng_aproximada: z.number().min(-180).max(180).optional(),
+  n_colmenas: z.number().int().positive(),
+  categoria: CategoriaApiarioSchema.default("produccion"),
   observaciones: z.string().max(1000).optional(),
 }).strict();
 
@@ -113,7 +142,7 @@ registroTerritorialRoutes.get("/actores", async (c) => {
 
   let query = supabase
     .from("actores_registro")
-    .select("id, rol, nombre_actor, comuna, nivel_acreditacion, estado, rup, created_at")
+    .select("id, rol, nombre_actor, comuna, nivel_acreditacion, estado, rup, completo, created_at")
     .order("created_at", { ascending: false });
 
   if (comuna) query = query.eq("comuna", comuna);
@@ -134,7 +163,8 @@ registroTerritorialRoutes.get("/actores/me", async (c) => {
   const { data, error } = await supabase
     .from("actores_registro")
     .select("*")
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   if (error) return c.json({ error: error.message }, 500);
 
@@ -179,10 +209,11 @@ registroTerritorialRoutes.post(
 /** PATCH /api/registro-territorial/actores/:id — actualizar perfil del actor */
 registroTerritorialRoutes.patch(
   "/actores/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
   zValidator("json", CreateActorSchema.partial()),
   async (c) => {
     const supabase = c.get("supabase");
-    const { id } = c.req.param();
+    const { id } = c.req.valid("param");
     const body = c.req.valid("json");
 
     const { data, error } = await supabase
@@ -261,25 +292,130 @@ registroTerritorialRoutes.post(
 );
 
 // ---------------------------------------------------------------------------
+// APIARIOS DEL REGISTRO (declaración censal de apiarios propios del actor)
+// ---------------------------------------------------------------------------
+
+/** GET /api/registro-territorial/apiarios — apiarios visibles para el usuario.
+ *  La RLS aplica la escalera de visibilidad: los propios siempre; los de otros
+ *  actores solo si consintieron el mapa comunitario. */
+registroTerritorialRoutes.get("/apiarios", async (c) => {
+  const supabase = c.get("supabase");
+  const { comuna, categoria, actor_id } = c.req.query();
+
+  let query = supabase
+    .from("apiarios_registro")
+    .select(
+      "id, nombre, comuna, zona, lat_aproximada, lng_aproximada, n_colmenas, categoria, activo, observaciones, created_at"
+    )
+    .order("created_at", { ascending: false });
+
+  if (comuna) query = query.eq("comuna", comuna);
+  if (categoria) query = query.eq("categoria", categoria);
+  if (actor_id) query = query.eq("actor_id", actor_id);
+
+  const { data, error } = await query;
+  if (error) return c.json({ error: error.message }, 500);
+
+  return c.json({ data });
+});
+
+/** POST /api/registro-territorial/apiarios — declarar un apiario propio */
+registroTerritorialRoutes.post(
+  "/apiarios",
+  zValidator("json", CreateApiarioRegistroSchema),
+  async (c) => {
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+    const body = c.req.valid("json");
+
+    const { data: miActor, error: errActor } = await supabase
+      .from("actores_registro")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (errActor) return c.json({ error: errActor.message }, 500);
+    if (!miActor) {
+      return c.json(
+        { error: "Debes estar inscrito en el Registro Territorial para declarar apiarios." },
+        400
+      );
+    }
+
+    const { data, error } = await supabase
+      .from("apiarios_registro")
+      .insert({
+        actor_id: miActor.id,
+        nombre: body.nombre ?? null,
+        comuna: body.comuna,
+        zona: body.zona,
+        lat_aproximada: body.lat_aproximada ?? null,
+        lng_aproximada: body.lng_aproximada ?? null,
+        n_colmenas: body.n_colmenas,
+        categoria: body.categoria,
+        observaciones: body.observaciones ?? null,
+      })
+      .select()
+      .single();
+
+    if (error) return c.json({ error: error.message }, 500);
+
+    return c.json({ data }, 201);
+  }
+);
+
+/** PATCH /api/registro-territorial/apiarios/:id — actualizar un apiario propio */
+registroTerritorialRoutes.patch(
+  "/apiarios/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  zValidator("json", CreateApiarioRegistroSchema.partial()),
+  async (c) => {
+    const supabase = c.get("supabase");
+    const { id } = c.req.valid("param");
+    const body = c.req.valid("json");
+
+    const { data, error } = await supabase
+      .from("apiarios_registro")
+      .update({ ...body, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) return c.json({ error: error.message }, 500);
+
+    return c.json({ data });
+  }
+);
+
+// ---------------------------------------------------------------------------
 // APIARIOS EXTERNOS (TRASHUMANTES)
 // ---------------------------------------------------------------------------
 
-/** GET /api/registro-territorial/apiarios-externos — declaraciones activas */
+/** GET /api/registro-territorial/apiarios-externos — declaraciones activas.
+ *  La visibilidad comunitaria funciona por RLS; el documento del certificado
+ *  sanitario (URL firmada) solo se expone cuando el dueño consulta los suyos
+ *  (filtro actor_id). */
 registroTerritorialRoutes.get("/apiarios-externos", async (c) => {
   const supabase = c.get("supabase");
   const { comuna, estado, actor_id } = c.req.query();
 
+  const includeCert = Boolean(actor_id);
+
+  // Selects estáticos: el parser de tipos de supabase-js no acepta template literals.
+  const selectConCert =
+    "id, nombre, n_colmenas, comuna_origen, comuna_destino, zona_destino, " +
+    "lat_aproximada, lng_aproximada, fecha_ingreso, fecha_salida, " +
+    "cert_sanitaria_fecha, cert_sanitaria_lab, cert_sanitaria_url, estado, created_at, " +
+    "actores_registro(nombre_actor, rup)";
+  const selectSinCert =
+    "id, nombre, n_colmenas, comuna_origen, comuna_destino, zona_destino, " +
+    "lat_aproximada, lng_aproximada, fecha_ingreso, fecha_salida, " +
+    "cert_sanitaria_fecha, cert_sanitaria_lab, estado, created_at, " +
+    "actores_registro(nombre_actor, rup)";
+
   let query = supabase
     .from("apiarios_externos")
-    .select(`
-      id, nombre, n_colmenas,
-      comuna_origen, comuna_destino, zona_destino,
-      lat_aproximada, lng_aproximada,
-      fecha_ingreso, fecha_salida,
-      cert_sanitaria_fecha, cert_sanitaria_lab,
-      estado, created_at,
-      actores_registro!inner(nombre_actor, rup)
-    `)
+    .select(includeCert ? selectConCert : selectSinCert)
     .in("estado", ["declarado", "activo"])
     .order("fecha_ingreso", { ascending: false });
 
@@ -290,7 +426,27 @@ registroTerritorialRoutes.get("/apiarios-externos", async (c) => {
   const { data, error } = await query;
   if (error) return c.json({ error: error.message }, 500);
 
-  return c.json({ data });
+  let rows = (data ?? []) as unknown as Array<{
+    cert_sanitaria_url?: string | null;
+    [key: string]: unknown;
+  }>;
+
+  if (includeCert && rows.length > 0) {
+    rows = await Promise.all(
+      rows.map(async (row) => {
+        if (!row.cert_sanitaria_url) return row;
+        const { data: signed } = await supabase.storage
+          .from("certificados-sanitarios")
+          .createSignedUrl(row.cert_sanitaria_url, 3600);
+        return {
+          ...row,
+          cert_sanitaria_url: signed?.signedUrl ?? row.cert_sanitaria_url,
+        };
+      })
+    );
+  }
+
+  return c.json({ data: rows });
 });
 
 /** POST /api/registro-territorial/apiarios-externos — declarar ingreso trashumante */
@@ -301,27 +457,44 @@ registroTerritorialRoutes.post(
     const supabase = c.get("supabase");
     const body = c.req.valid("json");
 
-    const payload: any = {};
-    if (body.actor_id !== undefined) payload.actor_id = body.actor_id;
-    if (body.predio_id !== undefined) payload.predio_id = body.predio_id;
-    if (body.nombre !== undefined) payload.nombre = body.nombre;
-    if (body.n_colmenas !== undefined) payload.n_colmenas = body.n_colmenas;
-    if (body.comuna_origen !== undefined) payload.comuna_origen = body.comuna_origen;
-    if (body.comuna_destino !== undefined) payload.comuna_destino = body.comuna_destino;
-    if (body.zona_destino !== undefined) payload.zona_destino = body.zona_destino;
-    if (body.lat_aproximada !== undefined) payload.lat_aproximada = body.lat_aproximada;
-    if (body.lng_aproximada !== undefined) payload.lng_aproximada = body.lng_aproximada;
-    if (body.fecha_ingreso !== undefined) payload.fecha_ingreso = body.fecha_ingreso;
-    if (body.fecha_salida !== undefined) payload.fecha_salida = body.fecha_salida;
-    if (body.cert_sanitaria_url !== undefined) payload.cert_sanitaria_url = body.cert_sanitaria_url;
-    if (body.cert_sanitaria_fecha !== undefined) payload.cert_sanitaria_fecha = body.cert_sanitaria_fecha;
-    if (body.cert_sanitaria_lab !== undefined) payload.cert_sanitaria_lab = body.cert_sanitaria_lab;
-    if (body.bioseguridad_declarada !== undefined) payload.bioseguridad_declarada = body.bioseguridad_declarada;
-    if (body.observaciones !== undefined) payload.observaciones = body.observaciones;
+    // Regla de la ordenanza (Art. 14): certificación sanitaria con antigüedad
+    // máxima de 30 días al momento del ingreso.
+    if (body.cert_sanitaria_fecha) {
+      const dias =
+        (new Date(body.fecha_ingreso).getTime() -
+          new Date(body.cert_sanitaria_fecha).getTime()) /
+        86_400_000;
+      if (dias < 0 || dias > 30) {
+        return c.json(
+          {
+            error:
+              "La certificación sanitaria debe tener una antigüedad máxima de 30 días al momento del ingreso (Art. 14 de la ordenanza).",
+          },
+          400
+        );
+      }
+    }
 
     const { data, error } = await supabase
       .from("apiarios_externos")
-      .insert(payload)
+      .insert({
+        actor_id: body.actor_id,
+        predio_id: body.predio_id ?? null,
+        nombre: body.nombre ?? null,
+        n_colmenas: body.n_colmenas,
+        comuna_origen: body.comuna_origen,
+        comuna_destino: body.comuna_destino,
+        zona_destino: body.zona_destino,
+        lat_aproximada: body.lat_aproximada ?? null,
+        lng_aproximada: body.lng_aproximada ?? null,
+        fecha_ingreso: body.fecha_ingreso,
+        fecha_salida: body.fecha_salida ?? null,
+        cert_sanitaria_url: body.cert_sanitaria_url ?? null,
+        cert_sanitaria_fecha: body.cert_sanitaria_fecha ?? null,
+        cert_sanitaria_lab: body.cert_sanitaria_lab ?? null,
+        bioseguridad_declarada: body.bioseguridad_declarada ?? null,
+        observaciones: body.observaciones ?? null,
+      })
       .select()
       .single();
 

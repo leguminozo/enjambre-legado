@@ -13,7 +13,7 @@ export type SecurityEventType =
   | 'access_denied'
   | 'signup_success'
 
-export type AppSource = 'tienda' | 'nucleo' | 'campo' | 'api'
+export type AppSource = 'tienda' | 'nucleo' | 'campo' | 'api' | 'nucleo-bff' | 'nucleo_territorial'
 
 interface SecurityEventPayload {
   eventType: SecurityEventType

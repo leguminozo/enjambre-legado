@@ -186,6 +186,7 @@
 | `rep_ventas` | Own `rep_profiles`, `cash_sessions`, `commission_records` (own) | `/api/rep-ventas`, `/api/cash-sessions`, `/api/commission-rules` (read) | Campo POS + Nucleo `/caja`, `/comisiones`, `/leaderboard` |
 | `creador` | Own `creadores`, `creador_contenido`, `commission_records` (own) | `/api/creadores` | Nucleo `/creador` |
 | `cliente` | Own `profiles`, `clientes`, `ventas`, `pedidos_cliente`, `arboles_plantados` (own) | Ninguno directo (Tienda usa Supabase client) | Tienda pública + `/perfil` |
+| `territorial` | Own `actores_registro`, `predios_facilitadores`, `apiarios_externos`, `alertas_fitosanitarias` (own + lectura comunitaria por consentimiento) | `/api/registro-territorial` (actores/me, predios, apiarios-externos, alertas) | Nucleo `/territorio` (módulo Registro Territorial Apícola de Chiloé) |
 
 ### Caching: qué, dónde y cuándo
 

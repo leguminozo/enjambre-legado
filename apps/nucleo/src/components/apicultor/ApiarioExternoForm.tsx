@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, toast } from '@enjambre/ui';
-import { X, Check } from 'lucide-react';
+import { X, Check, FileUp } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { supabase } from '@/lib/supabase';
 
 interface ActorResumen {
   id: string;
@@ -44,6 +45,8 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
   const [lngAproximada, setLngAproximada] = useState('');
   const [fechaIngreso, setFechaIngreso] = useState(new Date().toISOString().split('T')[0]);
   const [certSanitariaFecha, setCertSanitariaFecha] = useState('');
+  const [certSanitariaLab, setCertSanitariaLab] = useState('');
+  const [certArchivo, setCertArchivo] = useState<File | null>(null);
   const [bioseguridadDeclarada, setBioseguridadDeclarada] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,6 +58,18 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
 
     setLoading(true);
     try {
+      // Subir el certificado sanitario al bucket privado (si se adjuntó)
+      let certUrl: string | undefined;
+      if (certArchivo) {
+        const safeName = certArchivo.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const path = `${actorId}/${Date.now()}-${safeName}`;
+        const { error: uploadErr } = await supabase.storage
+          .from('certificados-sanitarios')
+          .upload(path, certArchivo, { contentType: certArchivo.type || 'application/pdf' });
+        if (uploadErr) throw new Error('Error al subir el certificado sanitario');
+        certUrl = path;
+      }
+
       const res = await apiFetch('/api/registro-territorial/apiarios-externos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -68,19 +83,22 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
           lat_aproximada: latAproximada ? parseFloat(latAproximada) : undefined,
           lng_aproximada: lngAproximada ? parseFloat(lngAproximada) : undefined,
           fecha_ingreso: fechaIngreso,
+          cert_sanitaria_url: certUrl,
           cert_sanitaria_fecha: certSanitariaFecha || undefined,
+          cert_sanitaria_lab: certSanitariaLab.trim() || undefined,
           bioseguridad_declarada: bioseguridadDeclarada || undefined,
         }),
       });
 
       if (!res.ok) {
-        throw new Error('Error al declarar apiario externo');
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Error al declarar apiario externo');
       }
 
       toast.success('Ingreso declarado correctamente');
       onSuccess();
-    } catch {
-      toast.error('Ocurrió un error al declarar el apiario');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Ocurrió un error al declarar el apiario');
     } finally {
       setLoading(false);
     }
@@ -253,16 +271,64 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                Fecha Certificado Sanitario SAG (Opcional)
-              </label>
-              <input
-                type="date"
-                value={certSanitariaFecha}
-                onChange={(e) => setCertSanitariaFecha(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+            <div className="border-t border-border pt-4 mt-2">
+              <h3 className="text-sm font-medium text-foreground mb-1">
+                Certificación Sanitaria
+              </h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                La ordenanza exige certificado de laboratorio acreditado con antigüedad máxima de 30 días al ingreso (Art. 14).
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Fecha del Certificado
+                  </label>
+                  <input
+                    type="date"
+                    value={certSanitariaFecha}
+                    onChange={(e) => setCertSanitariaFecha(e.target.value)}
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Laboratorio
+                  </label>
+                  <input
+                    type="text"
+                    value={certSanitariaLab}
+                    onChange={(e) => setCertSanitariaLab(e.target.value)}
+                    placeholder="Ej. Laboratorio Acreditado SAG"
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2 mt-3">
+                <label className="text-sm font-medium text-foreground">
+                  Adjuntar Certificado (PDF)
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer border border-dashed border-border rounded-md px-3 py-2.5 hover:border-primary/50 transition-colors">
+                  <FileUp className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground truncate flex-1">
+                    {certArchivo ? certArchivo.name : 'Seleccionar archivo PDF'}
+                  </span>
+                  <input
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    onChange={(e) => setCertArchivo(e.target.files?.[0] ?? null)}
+                    className="hidden"
+                  />
+                </label>
+                {certArchivo && (
+                  <button
+                    type="button"
+                    onClick={() => setCertArchivo(null)}
+                    className="text-xs text-destructive hover:underline"
+                  >
+                    Quitar archivo
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">

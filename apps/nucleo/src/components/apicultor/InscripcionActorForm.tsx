@@ -4,11 +4,24 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, toast } from '@enjambre/ui';
 import { X, Check } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { validarRUT, formatearRUT } from '@/lib/rut';
 
 interface InscripcionActorFormProps {
   onClose: () => void;
   onSuccess: () => void;
 }
+
+const ROLES_VALIDOS: { value: string; label: string }[] = [
+  { value: 'api_residente', label: 'Apicultor/a Residente' },
+  { value: 'api_trashumante', label: 'Apicultor/a Trashumante' },
+  { value: 'api_mixto', label: 'Apicultor/a Mixto' },
+  { value: 'prop_facilitador', label: 'Propietario/a Facilitador' },
+  { value: 'agri_fitosanitario', label: 'Agricultor/a (Fitosanitarios)' },
+  { value: 'agri_aplicador', label: 'Aplicador/a Agrícola' },
+  { value: 'comercial_acopio', label: 'Comercializador/a / Acopiador/a' },
+  { value: 'tecnico_inspector', label: 'Técnico/a / Inspector/a' },
+  { value: 'institucion_publica', label: 'Institución Pública' },
+];
 
 export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFormProps) {
   const apiFetch = useApiFetch();
@@ -17,7 +30,12 @@ export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFor
   const [rol, setRol] = useState('api_residente');
   const [comuna, setComuna] = useState('');
   const [region, setRegion] = useState('');
-  
+  const [rut, setRut] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [rup, setRup] = useState('');
+  const [aceptaCarta, setAceptaCarta] = useState(false);
+  const [aceptaPoliticaDatos, setAceptaPoliticaDatos] = useState(false);
+
   // Consentimientos
   const [mapaComunitario, setMapaComunitario] = useState(false);
   const [alertasFitosanitarias, setAlertasFitosanitarias] = useState(true);
@@ -28,6 +46,14 @@ export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFor
     e.preventDefault();
     if (!nombreActor || !comuna || !region) {
       toast.error('Complete todos los campos requeridos');
+      return;
+    }
+    if (rut && !validarRUT(rut)) {
+      toast.error('El RUT ingresado no es válido');
+      return;
+    }
+    if (!aceptaCarta || !aceptaPoliticaDatos) {
+      toast.error('Debes aceptar la Carta Constitutiva y la política de datos para inscribirte');
       return;
     }
 
@@ -41,6 +67,11 @@ export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFor
           rol,
           comuna,
           region,
+          rut: rut ? formatearRUT(rut) : undefined,
+          telefono: telefono.trim() || undefined,
+          rup: rup.trim() || undefined,
+          acepta_carta: aceptaCarta,
+          acepta_politica_datos: aceptaPoliticaDatos,
           consentimientos: {
             mapa_comunitario: mapaComunitario,
             alertas_fitosanitarias: alertasFitosanitarias,
@@ -95,11 +126,9 @@ export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFor
                 onChange={(e) => setRol(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="api_residente">Apicultor/a Residente</option>
-                <option value="api_trashumante">Apicultor/a Trashumante</option>
-                <option value="api_mixto">Apicultor/a Mixto</option>
-                <option value="predio_agricultor">Predio Agrícola / Facilitador</option>
-                <option value="brigada_sanitaria">Brigada Sanitaria</option>
+                {ROLES_VALIDOS.map((r) => (
+                  <option key={r.value} value={r.value}>{r.label}</option>
+                ))}
               </select>
             </div>
 
@@ -112,6 +141,51 @@ export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFor
                 value={nombreActor}
                 onChange={(e) => setNombreActor(e.target.value)}
                 placeholder="Ej. Apiario Nativos de Chiloé"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  RUT <span className="text-muted-foreground text-xs">(recomendado)</span>
+                </label>
+                <input
+                  type="text"
+                  value={rut}
+                  onChange={(e) => setRut(e.target.value)}
+                  onBlur={() => rut && setRut(formatearRUT(rut))}
+                  placeholder="12.345.678-9"
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                {rut && !validarRUT(rut) && (
+                  <p className="text-xs text-destructive">RUT no válido</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  Teléfono <span className="text-muted-foreground text-xs">(recomendado)</span>
+                </label>
+                <input
+                  type="tel"
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                  placeholder="+56 9 ..."
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                RUP (Registro Único Pecuario SAG) <span className="text-muted-foreground text-xs">— opcional</span>
+              </label>
+              <input
+                type="text"
+                value={rup}
+                onChange={(e) => setRup(e.target.value)}
+                placeholder="Número de tu registro SAG, si lo tienes"
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -211,6 +285,42 @@ export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFor
                   </div>
                 </label>
               </div>
+            </div>
+
+            <div className="border-t border-border pt-4 mt-2 space-y-3">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="flex items-center h-5">
+                  <input
+                    type="checkbox"
+                    checked={aceptaCarta}
+                    onChange={(e) => setAceptaCarta(e.target.checked)}
+                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                    Acepto la <a href="/carta" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Carta Constitutiva Apícola Territorial</a> <span className="text-destructive">*</span>
+                  </span>
+                  <span className="text-xs text-muted-foreground">Infraestructura colectiva, autónoma y no extractiva: consentimiento informado y beneficio recíproco.</span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="flex items-center h-5">
+                  <input
+                    type="checkbox"
+                    checked={aceptaPoliticaDatos}
+                    onChange={(e) => setAceptaPoliticaDatos(e.target.checked)}
+                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                    Acepto la política de datos y privacidad <span className="text-destructive">*</span>
+                  </span>
+                  <span className="text-xs text-muted-foreground">Tus datos se entregan en custodia: puedes corregirlos, descargarlos y retirar consentimientos.</span>
+                </div>
+              </label>
             </div>
 
             <div className="flex justify-end gap-3 pt-6 border-t border-border">

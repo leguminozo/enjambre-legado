@@ -21,6 +21,7 @@ import {
   Map,
   ToggleLeft,
   ToggleRight,
+  Settings,
 } from "lucide-react";
 import { HexagonLoader, ViewLoading } from "@enjambre/ui";
 const roleLabels: Record<string, string> = {
@@ -32,6 +33,7 @@ const roleLabels: Record<string, string> = {
 
 import { usePerfil } from "./perfil/use-perfil";
 import { TerritorioUsuarioPanel } from "@/components/apicultor/TerritorioUsuarioPanel";
+import { PreferenciasTab } from "./perfil/PreferenciasTab";
 
 const guardianLevels: Record<string, { label: string; description: string; icon: string }> = {
   brotes: { label: "Brotes", description: "Inicio del camino regenerativo", icon: "🌱" },
@@ -40,7 +42,7 @@ const guardianLevels: Record<string, { label: string; description: string; icon:
   legado: { label: "Legado", description: "Sembrador de futuros", icon: "🏆" },
 };
 
-type Section = "personal" | "seguridad" | "empresas" | "territorio" | "guardian";
+type Section = "personal" | "seguridad" | "empresas" | "territorio" | "guardian" | "preferencias";
 
 export function PerfilView() {
   const {
@@ -97,6 +99,7 @@ export function PerfilView() {
     { key: "empresas", icon: <Building2 size={18} />, label: "Empresas" },
     { key: "territorio", icon: <Map size={18} />, label: "Territorio y Privacidad" },
     { key: "guardian", icon: <TreePine size={18} />, label: "Nivel Guardián" },
+    { key: "preferencias", icon: <Settings size={18} />, label: "Preferencias" },
   ];
 
   return (
@@ -625,6 +628,10 @@ export function PerfilView() {
                 </div>
               </div>
             </div>
+          )}
+
+          {activeSection === "preferencias" && (
+            <PreferenciasTab />
           )}
         </div>
       </div>

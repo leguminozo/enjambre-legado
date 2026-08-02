@@ -41,6 +41,8 @@ import { blockchainRoutes } from "@/api/routes/blockchain/anchors";
 import { registroTerritorialRoutes } from "@/api/routes/registro-territorial";
 import { lotesPublicosRoutes } from "@/api/routes/lotes-publicos";
 import { adminIdentidadesRoutes } from "@/api/routes/admin-identidades";
+import { adminSystemRoutes } from "@/api/routes/admin-system";
+import { alambiqueRoutes, alambiquePublicRoutes } from "@/api/routes/alambique";
 import { getAllowedCorsOrigins } from "@/lib/publicUrls";
 
 export type { AppVariables };
@@ -92,6 +94,7 @@ app.use("*", async (c, next) => {
     "/api/cms",
     "/api/logistica",
     "/api/produccion",
+    "/api/alambique",
     "/api/crm",
   ];
   
@@ -157,6 +160,7 @@ app.use("*", async (c, next) => {
     "/api/wallet",
     "/api/blockchain/verify",
     "/api/lotes-publicos",
+    "/api/alambique/publico",
   ];
   const path = new URL(c.req.url).pathname;
 
@@ -230,7 +234,12 @@ app.route("/ritual", ritualRoutes);
 app.route("/blockchain", blockchainRoutes);
 app.route("/registro-territorial", registroTerritorialRoutes);
 app.route("/admin", adminIdentidadesRoutes);
+app.route("/admin-system", adminSystemRoutes);
 app.route("/lotes-publicos", lotesPublicosRoutes);
+// Público primero: alambiquePublicRoutes solo matchea /publico/:id y no debe
+// pasar por el authMiddleware del router admin (montado en el mismo base path).
+app.route("/alambique", alambiquePublicRoutes);
+app.route("/alambique", alambiqueRoutes);
 
 app.onError((err, c) => {
   console.error(err);

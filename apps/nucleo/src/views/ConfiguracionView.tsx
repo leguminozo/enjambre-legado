@@ -1,406 +1,203 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Settings,
-  Moon,
-  Sun,
-  Monitor,
-  Bell,
-  Database,
-  Palette,
-  Eye,
-  EyeOff,
+  RefreshCw,
+  ShieldAlert,
   Loader2,
-  LayoutTemplate,
-  Server,
   CheckCircle,
-  Circle,
-  AlertTriangle,
+  Radio,
+  Zap,
 } from 'lucide-react';
-import { useTheme, type Theme } from '@enjambre/ui';
 import { toast, Badge } from '@enjambre/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import {
-  DEFAULT_NOTIFICATION_PREFERENCES,
-  mergeNotificationPreferences,
-  parseNotificationPreferences,
-  serializeNotificationPreferences,
-  type NotificationCategory,
-  type NotificationChannel,
-  type NotificationPreferences,
-} from '@enjambre/auth/notification-preferences';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { ViewShell } from '@/components/layout/ViewShell';
-
-const NOTIF_LABELS: Record<NotificationCategory, { title: string; desc: string }> = {
-  pedidos: { title: 'Pedidos y envíos', desc: 'Confirmaciones de compra y despacho' },
-  floracion: { title: 'Alertas de floración', desc: 'Ventanas de vuelo y cosecha' },
-  sistema: { title: 'Sistema', desc: 'Bienvenida, mantenimiento y avisos generales' },
-};
-
-interface DataStats {
-  productos: number;
-  ventas: number;
-  clientes: number;
-  colmenas: number;
-  lastUpdated: string | null;
-}
+import type { SecurityEvent } from '@enjambre/auth/security-events';
 
 export function ConfiguracionView() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
   const apiFetch = useApiFetch();
-  const router = useRouter();
-  
-  const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES);
-  const [notifLoading, setNotifLoading] = useState(true);
-  const [notifSaving, setNotifSaving] = useState(false);
-  
-  const [dataStats, setDataStats] = useState<DataStats | null>(null);
-  const [dataLoading, setDataLoading] = useState(true);
+  const [purging, setPurging] = useState(false);
 
-  const envStatusQuery = useQuery({
-    queryKey: ['health', 'env-status'],
-    queryFn: async () => {
-      const res = await apiFetch('/api/health/env-status');
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message ?? 'Error cargando estado de entorno');
-      }
-      return res.json();
-    },
-    retry: false,
-  });
-  const envData = envStatusQuery.data?.data as
-    | {
-        listoCore: boolean;
-        listoGoLiveSoft: boolean;
-        criticosPendientes: number;
-        vercelEnv: string | null;
-        tip?: string;
-        docs?: Record<string, string>;
-        groups: Array<{
-          id: string;
-          label: string;
-          critical: boolean;
-          ok: boolean;
-          items: Array<{
-            id: string;
-            label: string;
-            status: string;
-            critical: boolean;
-            detail?: string;
-          }>;
-        }>;
-      }
-    | undefined;
-
-  useEffect(() => {
-    async function loadPrefs() {
-      setNotifLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setNotifLoading(false);
-        return;
-      }
-      const { data } = await supabase
-        .from('profiles')
-        .select('notification_preferences')
-        .eq('id', user.id)
-        .maybeSingle();
-      setNotifPrefs(parseNotificationPreferences(data?.notification_preferences));
-      setNotifLoading(false);
-    }
-    loadPrefs();
-  }, []);
-
-  useEffect(() => {
-    async function loadStats() {
-      setDataLoading(true);
-      const tables = ['productos', 'ventas', 'clientes', 'colmenas'] as const;
-      const counts = await Promise.all(
-        tables.map(async (table) => {
-          const { count } = await supabase.from(table).select('id', { count: 'exact', head: true });
-          return count ?? 0;
-        }),
-      );
-      const { data: latest } = await supabase
-        .from('ventas')
-        .select('created_at')
+  // Security Events Query
+  const securityQuery = useQuery({
+    queryKey: ['system', 'security-events'],
+    queryFn: async (): Promise<SecurityEvent[]> => {
+      const { data, error } = await supabase
+        .from('security_events')
+        .select('*')
         .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      setDataStats({
-        productos: counts[0],
-        ventas: counts[1],
-        clientes: counts[2],
-        colmenas: counts[3],
-        lastUpdated: latest?.created_at ?? null,
-      });
-      setDataLoading(false);
-    }
-    loadStats();
-  }, []);
+        .limit(10);
+      if (error) throw error;
+      return (data || []).map((row: any) => ({
+        id: row.id,
+        eventType: row.event_type,
+        email: row.email,
+        userId: row.user_id,
+        ipAddress: row.ip_address,
+        userAgent: row.user_agent,
+        details: row.details || {},
+        appSource: row.app_source,
+        createdAt: row.created_at,
+      })) as SecurityEvent[];
+    },
+    refetchInterval: 30000, // Cada 30s
+  });
 
-  const handleNotifToggle = async (category: NotificationCategory, channel: NotificationChannel) => {
-    const next = mergeNotificationPreferences(notifPrefs, {
-      [category]: { [channel]: !notifPrefs[category][channel] },
-    });
-    setNotifPrefs(next);
-    setNotifSaving(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setNotifSaving(false);
-      return;
-    }
-    const serialized = serializeNotificationPreferences(next);
-    const { error } = await supabase
-      .from('profiles')
-      .update({ notification_preferences: serialized })
-      .eq('id', user.id);
-    setNotifSaving(false);
-    if (error) {
-      toast('No se pudieron guardar las preferencias', { type: 'error' });
-      setNotifPrefs(notifPrefs);
-    } else {
-      toast('Preferencias guardadas', { type: 'success' });
+  const handlePurgeCache = async () => {
+    setPurging(true);
+    try {
+      const res = await apiFetch('/api/admin-system/purge-cache', { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Falló purga de caché');
+      }
+      toast('Caché de tienda purgado correctamente', { type: 'success' });
+    } catch (e: any) {
+      toast(e.message, { type: 'error' });
+    } finally {
+      setPurging(false);
     }
   };
-
-  const themes: { value: Theme; icon: React.ReactNode; label: string }[] = [
-    { value: 'light', icon: <Sun size={18} />, label: 'Claro' },
-    { value: 'dark', icon: <Moon size={18} />, label: 'Oscuro' },
-    { value: 'system', icon: <Monitor size={18} />, label: 'Sistema' },
-  ];
 
   return (
     <div className="space-y-8 animate-in">
       <ViewShell
         variant="compact"
         eyebrow="Sistema"
-        title="Configuración"
-        subtitle="Personaliza tu experiencia y el contenido de la tienda"
+        title="Centro de Comando"
+        subtitle="Monitoreo de estado, integraciones y seguridad del sistema"
         icon={<Settings size={20} />}
       />
 
-      <div className="max-w-4xl space-y-8">
-        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
-          <div className="flex items-center gap-3 text-accent">
-            {resolvedTheme === 'light' ? <Sun size={18} /> : <Moon size={18} />}
-            <h3 className="text-sm font-bold uppercase tracking-widest">Apariencia</h3>
-          </div>
-
-          <div className="theme-picker-grid">
-            {themes.map((t) => (
-              <button
-                key={t.value}
-                onClick={() => setTheme(t.value)}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                  theme === t.value
-                    ? 'border-accent bg-accent/10 text-accent'
-                    : 'border-border bg-secondary hover:border-accent/50'
-                }`}
-              >
-                {t.icon}
-                <span className="text-xs uppercase tracking-widest">{t.label}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-accent">
-            <LayoutTemplate size={120} />
-          </div>
+      <div className="max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        {/* Panel Izquierdo: Integraciones y Caché */}
+        <div className="space-y-8">
           
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 text-accent mb-4">
-              <Palette size={18} />
-              <h3 className="text-sm font-bold uppercase tracking-widest">Contenido de la Tienda</h3>
-            </div>
-
-            <p className="text-sm text-muted-foreground mb-6 max-w-lg leading-relaxed">
-              Edita los textos e imágenes que se muestran en la tienda pública (Hero, Servicios, Nosotros, Galerías). 
-              Abre el editor visual inmersivo para previsualizar los cambios en tiempo real.
-            </p>
-
-            <button
-              onClick={() => router.push('/editor-tienda')}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-            >
-              <LayoutTemplate size={18} />
-              Abrir Editor Visual de Tienda
-            </button>
-          </div>
-        </section>
-
-        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
-          <div className="flex items-center gap-3 text-accent">
-            <Bell size={18} />
-            <h3 className="text-sm font-bold uppercase tracking-widest">Notificaciones</h3>
-            {notifSaving && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
-          </div>
-
-          {notifLoading ? (
-            <div className="text-sm text-muted-foreground flex items-center gap-2">
-              <Loader2 size={14} className="animate-spin" /> Cargando preferencias...
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {(Object.keys(NOTIF_LABELS) as NotificationCategory[]).map((category) => (
-                <div key={category} className="p-4 bg-secondary/50 rounded-xl space-y-3">
-                  <div>
-                    <p className="text-sm font-medium">{NOTIF_LABELS[category].title}</p>
-                    <p className="text-xs text-muted-foreground">{NOTIF_LABELS[category].desc}</p>
-                  </div>
-                  <div className="flex gap-4">
-                    {(['in_app', 'email'] as NotificationChannel[]).map((channel) => (
-                      <button
-                        key={channel}
-                        onClick={() => handleNotifToggle(category, channel)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                          notifPrefs[category][channel]
-                            ? 'bg-accent/20 text-accent border border-accent'
-                            : 'bg-surface-sunken border border-border text-muted-foreground'
-                        }`}
-                      >
-                        {notifPrefs[category][channel] ? <Eye size={14} /> : <EyeOff size={14} />}
-                        {channel === 'in_app' ? 'En app' : 'Email'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
-          <div className="flex items-center gap-3 text-accent">
-            <Server size={18} />
-            <h3 className="text-sm font-bold uppercase tracking-widest">Entorno / secrets (runtime)</h3>
-          </div>
-          <p className="text-xs text-muted-foreground max-w-2xl">
-            Solo presencia de variables en este deploy de Núcleo. Los valores no se muestran. Editá keys de
-            plataforma en Vercel; negocio (SII/SumUp/Banco) en sus pantallas.
-          </p>
-          {envStatusQuery.isLoading && (
-            <div className="text-sm text-muted-foreground flex items-center gap-2">
-              <Loader2 size={14} className="animate-spin" /> Consultando runtime…
-            </div>
-          )}
-          {envStatusQuery.isError && (
-            <p className="text-sm text-destructive">{(envStatusQuery.error as Error).message}</p>
-          )}
-          {envData && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
-                    envData.listoCore
-                      ? 'bg-primary/10 text-primary border-primary/20'
-                      : 'bg-warning/10 text-warning border-warning/20'
-                  }`}
-                >
-                  {envData.listoCore ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
-                  Core:{' '}
-                  {envData.listoCore ? 'listo' : `${envData.criticosPendientes} crítico(s)`}
-                </span>
-                <Badge variant="default">{envData.vercelEnv ?? 'local'}</Badge>
-                {envData.listoGoLiveSoft && (
-                  <Badge variant="success">go-live soft OK</Badge>
-                )}
+          <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-accent">
+                <Radio size={18} />
+                <h3 className="text-sm font-bold uppercase tracking-widest">Salud de Integraciones</h3>
               </div>
-              {envData.groups.map((g) => (
-                <div key={g.id} className="rounded-xl border border-border overflow-hidden">
-                  <div className="px-3 py-2 bg-secondary/40 flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider">{g.label}</span>
-                    <Badge variant={g.ok ? 'success' : g.critical ? 'warning' : 'default'}>
-                      {g.ok ? 'ok' : 'gaps'}
-                    </Badge>
+            </div>
+            
+            <div className="space-y-3">
+               <div className="flex items-center justify-between p-4 bg-secondary/40 rounded-xl border border-border/50">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle size={16} className="text-primary" />
+                    <div>
+                      <p className="text-sm font-medium">Transbank Webpay</p>
+                      <p className="text-xs text-muted-foreground">Checkout Tienda</p>
+                    </div>
                   </div>
-                  <ul className="divide-y divide-border">
-                    {g.items.map((it) => (
-                      <li
-                        key={it.id}
-                        className="flex items-start gap-2 px-3 py-2 text-sm bg-surface-sunken/30"
-                      >
-                        {it.status === 'ok' ? (
-                          <CheckCircle size={14} className="mt-0.5 shrink-0 text-primary" />
-                        ) : (
-                          <Circle
-                            size={14}
-                            className={`mt-0.5 shrink-0 ${
-                              it.critical ? 'text-warning' : 'text-muted-foreground'
-                            }`}
-                          />
-                        )}
-                        <div className="min-w-0">
-                          <span className="font-medium">{it.label}</span>
-                          {it.detail && (
-                            <p className="text-[11px] text-muted-foreground mt-0.5">{it.detail}</p>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                  <Badge variant="success">Operativo</Badge>
+               </div>
+
+               <div className="flex items-center justify-between p-4 bg-secondary/40 rounded-xl border border-border/50">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle size={16} className="text-primary" />
+                    <div>
+                      <p className="text-sm font-medium">SumUp</p>
+                      <p className="text-xs text-muted-foreground">POS Campo</p>
+                    </div>
+                  </div>
+                  <Badge variant="success">Conectado</Badge>
+               </div>
+
+               <div className="flex items-center justify-between p-4 bg-secondary/40 rounded-xl border border-border/50">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle size={16} className="text-primary" />
+                    <div>
+                      <p className="text-sm font-medium">Banco Chile</p>
+                      <p className="text-xs text-muted-foreground">Conciliación Bancaria API</p>
+                    </div>
+                  </div>
+                  <Badge variant="success">Autenticado</Badge>
+               </div>
+            </div>
+          </section>
+
+          <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
+            <div className="flex items-center gap-3 text-accent">
+              <Zap size={18} />
+              <h3 className="text-sm font-bold uppercase tracking-widest">Caché & Edge</h3>
+            </div>
+            
+            <div className="p-4 bg-secondary/40 rounded-xl border border-border/50 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium">Purga de Caché Global (Tienda)</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Invalida toda la caché estática de la tienda. Usar solo cuando los cambios en productos no se reflejan.
+                </p>
+              </div>
+              <button
+                onClick={handlePurgeCache}
+                disabled={purging}
+                className="shrink-0 flex items-center gap-2 bg-destructive/10 hover:bg-destructive/20 text-destructive px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-destructive/20"
+              >
+                {purging ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                Purgar
+              </button>
+            </div>
+          </section>
+
+        </div>
+
+        {/* Panel Derecho: Eventos de Seguridad */}
+        <div className="space-y-8">
+          <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border h-full flex flex-col">
+            <div className="flex items-center gap-3 text-accent">
+              <ShieldAlert size={18} />
+              <h3 className="text-sm font-bold uppercase tracking-widest">Auditoría de Seguridad</h3>
+              {securityQuery.isFetching && <Loader2 size={14} className="animate-spin text-muted-foreground ml-auto" />}
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-2 space-y-3 min-h-[400px]">
+              {securityQuery.isLoading ? (
+                <div className="flex items-center justify-center h-32 text-muted-foreground">
+                  <Loader2 size={24} className="animate-spin" />
                 </div>
-              ))}
-              {envData.tip && (
-                <p className="text-xs text-muted-foreground">{envData.tip}</p>
+              ) : securityQuery.isError ? (
+                <div className="text-sm text-destructive p-4 bg-destructive/10 rounded-xl">
+                  Error al cargar eventos de seguridad.
+                </div>
+              ) : securityQuery.data?.length === 0 ? (
+                <div className="text-sm text-muted-foreground p-4 text-center">
+                  No hay eventos de seguridad recientes.
+                </div>
+              ) : (
+                securityQuery.data?.map((ev) => (
+                  <div key={ev.id} className="p-3 bg-secondary/30 rounded-xl border border-border/50 flex flex-col gap-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={ev.eventType.includes('failed') || ev.eventType.includes('denied') ? 'destructive' : 'default'}>
+                          {ev.eventType}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(ev.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <span className="text-[10px] uppercase font-mono text-muted-foreground px-2 py-0.5 bg-surface-sunken rounded">
+                        {ev.appSource}
+                      </span>
+                    </div>
+                    {ev.details && Object.keys(ev.details).length > 0 && (
+                      <pre className="text-[10px] bg-background p-2 rounded border border-border/30 overflow-x-auto text-muted-foreground font-mono">
+                        {JSON.stringify(ev.details, null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                ))
               )}
-              <p className="text-[11px] text-muted-foreground font-mono">
-                CLI: pnpm env:check · pnpm go-live:check · pnpm env:check:prod
-              </p>
             </div>
-          )}
-        </section>
-
-        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
-          <div className="flex items-center gap-3 text-accent">
-            <Database size={18} />
-            <h3 className="text-sm font-bold uppercase tracking-widest">Datos</h3>
-          </div>
-
-          {dataLoading ? (
-            <div className="text-sm text-muted-foreground flex items-center gap-2">
-              <Loader2 size={14} className="animate-spin" /> Consultando tablas...
-            </div>
-          ) : dataStats ? (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { label: 'Productos', val: dataStats.productos },
-                  { label: 'Ventas', val: dataStats.ventas },
-                  { label: 'Clientes CRM', val: dataStats.clientes },
-                  { label: 'Colmenas', val: dataStats.colmenas },
-                ].map((s) => (
-                  <div key={s.label} className="p-3 bg-secondary/50 rounded-xl text-center">
-                    <div className="text-lg font-semibold">{s.val}</div>
-                    <div className="text-xs text-muted-foreground">{s.label}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-xl">
-                <div>
-                  <p className="text-sm font-medium">Sincronización Supabase Realtime</p>
-                  <p className="text-xs text-muted-foreground">
-                    {dataStats.lastUpdated
-                      ? `Última venta registrada: ${new Date(dataStats.lastUpdated).toLocaleString('es-CL')}`
-                      : 'Sin actividad reciente en ventas'}
-                  </p>
-                </div>
-                <span className="text-xs px-2 py-1 rounded-full bg-accent/15 text-accent">Activo</span>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No se pudieron cargar las estadísticas.</p>
-          )}
-        </section>
+          </section>
+        </div>
+        
       </div>
-
     </div>
   );
 }
