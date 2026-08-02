@@ -69,6 +69,9 @@ adminIdentidadesRoutes.post(
           full_name: fullName,
           app_source: appSource,
         },
+        app_metadata: {
+          role: role,
+        },
       });
 
     if (authError) {

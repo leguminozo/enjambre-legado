@@ -69,7 +69,7 @@ export function InvitacionesPanel() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showCrearCuenta, setShowCrearCuenta] = useState(false);
-  const [activeTab, setActiveTab] = useState<'codigos' | 'canjes' | 'cuentas'>('codigos');
+  const [activeTab, setActiveTab] = useState<'codigos' | 'canjes'>('codigos');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   const [newCode, setNewCode] = useState<{ maxUses: string; expiresAt: string; roles: string[] }>({ maxUses: '', expiresAt: '', roles: ['rep_ventas'] });
@@ -234,8 +234,14 @@ export function InvitacionesPanel() {
         body: JSON.stringify(body),
       });
 
-      const json = await res.json() as { ok?: boolean; message?: string; code?: string };
-      if (!res.ok) throw new Error(json.message ?? 'Error al crear cuenta');
+      const json = await res.json() as { ok?: boolean; message?: string; code?: string; error?: { issues?: { message: string }[] } };
+      if (!res.ok) {
+        let errorMsg = json.message || 'Error al crear cuenta';
+        if (json.error?.issues?.length) {
+          errorMsg = json.error.issues.map(i => i.message).join(', ');
+        }
+        throw new Error(errorMsg);
+      }
 
       setCuentaCreada({
         email: nuevaCuenta.email,
@@ -322,16 +328,20 @@ export function InvitacionesPanel() {
           tabs={[
             { id: 'codigos', label: 'Códigos', icon: <Ticket size={16} /> },
             { id: 'canjes', label: 'Canjes', icon: <CheckCircle2 size={16} />, badge: redemptions.length || undefined },
-            { id: 'cuentas', label: 'Crear Cuenta', icon: <UserPlus size={16} /> },
           ]}
           activeId={activeTab}
-          onChange={(id) => setActiveTab(id as 'codigos' | 'canjes' | 'cuentas')}
+          onChange={(id) => setActiveTab(id as 'codigos' | 'canjes')}
         />
-        {activeTab === 'codigos' && (
-          <button onClick={() => setShowCreate(true)} className="btn btn-gold flex items-center justify-center gap-2 shrink-0">
-            <Plus size={16} />Nueva Invitación
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => setShowCrearCuenta(true)} className="btn btn-outline flex items-center justify-center gap-2 shrink-0 text-xs py-2 px-3">
+            <UserPlus size={16} />Crear Cuenta
           </button>
-        )}
+          {activeTab === 'codigos' && (
+            <button onClick={() => setShowCreate(true)} className="btn btn-gold flex items-center justify-center gap-2 shrink-0 text-xs py-2 px-3">
+              <Plus size={16} />Nueva Invitación
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Modal Código de Invitación */}
@@ -469,11 +479,34 @@ export function InvitacionesPanel() {
         </div>
       )}
 
-      {/* Tab: Crear Cuenta */}
-      {activeTab === 'cuentas' && (
-        <div className="card space-y-6">
+      {/* Modal Crear Cuenta */}
+      <ImmersiveModal
+        open={showCrearCuenta}
+        onClose={() => setShowCrearCuenta(false)}
+        eyebrow="Directorio"
+        title="Nueva cuenta directa"
+        size="md"
+        footer={
+          <>
+            <button onClick={() => { setShowCrearCuenta(false); setCuentaCreada(null); }} className="btn btn-outline text-xs">Cancelar</button>
+            <button
+              disabled={actionLoading === 'crear-cuenta' || !nuevaCuenta.email || !nuevaCuenta.password || !nuevaCuenta.fullName || !!cuentaCreada}
+              onClick={crearCuentaDirecta}
+              className="btn btn-gold text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {actionLoading === 'crear-cuenta' ? <Loader2 className="animate-spin" size={14} /> : <UserPlus size={14} />}
+              Crear cuenta
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-6">
+          <p className="text-xs text-muted-foreground">
+            Crea la cuenta completa desde aquí y comparte las credenciales con el usuario por fuera. La cuenta queda activa inmediatamente.
+          </p>
+
           {cuentaCreada && (
-            <div className="p-4 rounded-xl bg-success/10 border border-success/20 space-y-2">
+            <div className="p-4 rounded-xl bg-success/10 border border-success/20 space-y-2 mb-4 animate-in">
               <p className="text-sm font-bold text-success flex items-center gap-2">
                 <CheckCircle2 size={16} /> Cuenta creada exitosamente
               </p>
@@ -483,117 +516,97 @@ export function InvitacionesPanel() {
                 <p><span className="text-muted-foreground">Contraseña:</span> <strong className="text-foreground">{cuentaCreada.password}</strong></p>
                 <p><span className="text-muted-foreground">Rol:</span> <strong className="text-primary">{cuentaCreada.role}</strong></p>
               </div>
-              <button onClick={() => setCuentaCreada(null)} className="text-xs text-muted-foreground underline underline-offset-2">Cerrar</button>
             </div>
           )}
 
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <UserPlus size={16} className="text-primary" />
-              Nueva cuenta directa
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Crea la cuenta completa desde aquí y comparte las credenciales con el usuario por fuera. La cuenta queda activa inmediatamente.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Nombre completo *</label>
-                <input
-                  type="text"
-                  value={nuevaCuenta.fullName}
-                  onChange={e => setNuevaCuenta(p => ({ ...p, fullName: e.target.value }))}
-                  className="input-field text-sm w-full"
-                  placeholder="Ej: Juan Mansilla Torres"
-                />
-              </div>
-              <div>
-                <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Email *</label>
-                <input
-                  type="email"
-                  value={nuevaCuenta.email}
-                  onChange={e => setNuevaCuenta(p => ({ ...p, email: e.target.value }))}
-                  className="input-field text-sm w-full"
-                  placeholder="juan@ejemplo.cl"
-                />
-              </div>
-              <div>
-                <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Contraseña temporal *</label>
-                <input
-                  type="text"
-                  value={nuevaCuenta.password}
-                  onChange={e => setNuevaCuenta(p => ({ ...p, password: e.target.value }))}
-                  className="input-field text-sm w-full font-mono"
-                  placeholder="Mín. 8 caracteres"
-                />
-                <p className="text-[0.6rem] text-muted-foreground mt-1">El usuario podrá cambiarla después.</p>
-              </div>
-              <div>
-                <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Rol del sistema *</label>
-                <select
-                  value={nuevaCuenta.role}
-                  onChange={e => setNuevaCuenta(p => ({ ...p, role: e.target.value as NuevaCuenta['role'] }))}
-                  className="input-field text-sm w-full"
-                >
-                  {ROLES_SISTEMA.map(r => (
-                    <option key={r.value} value={r.value}>{r.label}</option>
-                  ))}
-                </select>
-                <p className="text-[0.6rem] text-muted-foreground mt-1">
-                  {ROLES_SISTEMA.find(r => r.value === nuevaCuenta.role)?.desc}
-                </p>
-              </div>
-            </div>
-
-            {/* Campos adicionales para rol territorial */}
-            {nuevaCuenta.role === 'territorial' && (
-              <div className="p-4 rounded-xl bg-surface-raised border border-border space-y-4 animate-in">
-                <p className="text-xs font-medium text-foreground">Configuración Territorial</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Tipo de Actor Territorial</label>
-                    <select
-                      value={nuevaCuenta.rolTerritorial}
-                      onChange={e => setNuevaCuenta(p => ({ ...p, rolTerritorial: e.target.value }))}
-                      className="input-field text-sm w-full"
-                    >
-                      {ROLES_TERRITORIALES.map(r => (
-                        <option key={r.value} value={r.value}>{r.label}</option>
-                      ))}
-                    </select>
-                    <p className="text-[0.6rem] text-muted-foreground mt-1">
-                      {ROLES_TERRITORIALES.find(r => r.value === nuevaCuenta.rolTerritorial)?.desc}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Comuna principal</label>
-                    <input
-                      type="text"
-                      value={nuevaCuenta.comuna}
-                      onChange={e => setNuevaCuenta(p => ({ ...p, comuna: e.target.value }))}
-                      className="input-field text-sm w-full"
-                      placeholder="Ej: Queilen, Chonchi, Castro..."
-                    />
-                  </div>
+          {!cuentaCreada && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Nombre completo *</label>
+                  <input
+                    type="text"
+                    value={nuevaCuenta.fullName}
+                    onChange={e => setNuevaCuenta(p => ({ ...p, fullName: e.target.value }))}
+                    className="input-field text-sm w-full"
+                    placeholder="Ej: Juan Mansilla Torres"
+                  />
+                </div>
+                <div>
+                  <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Email *</label>
+                  <input
+                    type="email"
+                    value={nuevaCuenta.email}
+                    onChange={e => setNuevaCuenta(p => ({ ...p, email: e.target.value }))}
+                    className="input-field text-sm w-full"
+                    placeholder="juan@ejemplo.cl"
+                  />
+                </div>
+                <div>
+                  <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Contraseña temporal *</label>
+                  <input
+                    type="text"
+                    value={nuevaCuenta.password}
+                    onChange={e => setNuevaCuenta(p => ({ ...p, password: e.target.value }))}
+                    className="input-field text-sm w-full font-mono"
+                    placeholder="Mín. 8 caracteres"
+                  />
+                  <p className="text-[0.6rem] text-muted-foreground mt-1">El usuario podrá cambiarla después.</p>
+                </div>
+                <div>
+                  <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Rol del sistema *</label>
+                  <select
+                    value={nuevaCuenta.role}
+                    onChange={e => setNuevaCuenta(p => ({ ...p, role: e.target.value as NuevaCuenta['role'] }))}
+                    className="input-field text-sm w-full"
+                  >
+                    {ROLES_SISTEMA.map(r => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
+                  </select>
+                  <p className="text-[0.6rem] text-muted-foreground mt-1">
+                    {ROLES_SISTEMA.find(r => r.value === nuevaCuenta.role)?.desc}
+                  </p>
                 </div>
               </div>
-            )}
 
-            <div className="flex justify-end pt-2">
-              <button
-                disabled={actionLoading === 'crear-cuenta' || !nuevaCuenta.email || !nuevaCuenta.password || !nuevaCuenta.fullName}
-                onClick={crearCuentaDirecta}
-                className="btn btn-gold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {actionLoading === 'crear-cuenta'
-                  ? <Loader2 className="animate-spin" size={16} />
-                  : <UserPlus size={16} />}
-                Crear cuenta
-              </button>
-            </div>
-          </div>
+              {/* Campos adicionales para rol territorial */}
+              {nuevaCuenta.role === 'territorial' && (
+                <div className="p-4 rounded-xl bg-surface-raised border border-border space-y-4 animate-in">
+                  <p className="text-xs font-medium text-foreground">Configuración Territorial</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Tipo de Actor Territorial</label>
+                      <select
+                        value={nuevaCuenta.rolTerritorial}
+                        onChange={e => setNuevaCuenta(p => ({ ...p, rolTerritorial: e.target.value }))}
+                        className="input-field text-sm w-full"
+                      >
+                        {ROLES_TERRITORIALES.map(r => (
+                          <option key={r.value} value={r.value}>{r.label}</option>
+                        ))}
+                      </select>
+                      <p className="text-[0.6rem] text-muted-foreground mt-1">
+                        {ROLES_TERRITORIALES.find(r => r.value === nuevaCuenta.rolTerritorial)?.desc}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Comuna principal</label>
+                      <input
+                        type="text"
+                        value={nuevaCuenta.comuna}
+                        onChange={e => setNuevaCuenta(p => ({ ...p, comuna: e.target.value }))}
+                        className="input-field text-sm w-full"
+                        placeholder="Ej: Queilen, Chonchi, Castro..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
-      )}
+      </ImmersiveModal>
     </div>
   );
 }
