@@ -4,8 +4,10 @@ import { zValidator } from "@hono/zod-validator";
 import { createClient } from "@supabase/supabase-js";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
-import { rpcLoose } from "@/api/lib/supabase-loose";
+import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
 import { notifyStockCritico } from "@/lib/notifications/enqueue-transactional";
+import { getBlockchainProvider, computeDataHash } from "@/api/lib/blockchain/provider";
+import { createAdminClient } from "@enjambre/auth/browser";
 import type { Json } from "@enjambre/database/database.types";
 
 export const produccionRoutes = new Hono<{ Variables: AppVariables }>();
@@ -139,6 +141,54 @@ produccionRoutes.get("/dashboard", async (c) => {
       }
     }
   });
+});
+
+const CreateCosechaSchema = z.object({
+  kg: z.number().positive(),
+  fecha: z.string().date(),
+  floracion: z.string().max(120).optional().nullable(),
+  colmena_id: z.string().uuid().optional().nullable(),
+  lote_id: z.string().uuid().optional().nullable(),
+});
+
+/** Cosechas de la temporada (con colmena/apiario anidados) para Inventario → Cosechas */
+produccionRoutes.get("/cosechas", async (c) => {
+  const supabase = c.get("supabase");
+
+  const { data, error } = await supabase
+    .from("cosechas")
+    .select("id, kg, fecha, floracion, created_at, colmena_id, colmenas(id, name, apiarios(name))")
+    .order("fecha", { ascending: false })
+    .limit(300);
+
+  if (error) {
+    return c.json({ code: "query_failed", message: error.message }, 500);
+  }
+
+  return c.json({ data: data ?? [] });
+});
+
+produccionRoutes.post("/cosechas", zValidator("json", CreateCosechaSchema), async (c) => {
+  const supabase = c.get("supabase");
+  const input = c.req.valid("json");
+
+  const { data, error } = await supabase
+    .from("cosechas")
+    .insert({
+      kg: input.kg,
+      fecha: input.fecha,
+      floracion: input.floracion?.trim() || null,
+      colmena_id: input.colmena_id ?? null,
+      lote_id: input.lote_id ?? null,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return c.json({ code: "cosecha_create_failed", message: error.message }, 400);
+  }
+
+  return c.json({ data }, 201);
 });
 
 const ArbolStatusSchema = z.enum(["joven", "creciendo", "adulto"]);
@@ -371,6 +421,93 @@ produccionRoutes.post(
       return c.json({ error: error.message }, 400);
     }
 
-    return c.json({ data });
+    // Movimiento 6 — ancla on-chain por defecto (fail-open): si el ancla
+    // falla (sin private key, RPC caído), la reposición NO se bloquea; el
+    // lote queda con su hash identificador local y la página pública lo
+    // etiqueta honestamente como "sin ancla on-chain".
+    const rpcData = data as Record<string, unknown> | null;
+    const loteId = typeof rpcData?.lote_id === "string" ? rpcData.lote_id : null;
+    const onChainTx = loteId
+      ? await anchorLoteOnChain(c.get("empresaId"), loteId, producto_id, cantidad, rpcData)
+      : null;
+
+    return c.json({ data: { ...rpcData, blockchain_tx: onChainTx } });
   }
 );
+
+/**
+ * Movimiento 6 — intento de ancla on-chain para un lote recién creado.
+ * Fail-open: cualquier fallo (env sin private key, tx rechazada, RPC caído)
+ * solo loguea; nunca bloquea la reposición de stock. El payload firmado se
+ * guarda en data_payload para que la página pública lo muestre y verifique.
+ */
+async function anchorLoteOnChain(
+  empresaId: string | undefined,
+  loteId: string,
+  productoId: string,
+  cantidad: number,
+  rpcData: Record<string, unknown> | null
+): Promise<string | null> {
+  try {
+    const admin = createAdminClient();
+    if (!admin) return null;
+
+    const { data: producto } = await admin
+      .from("productos")
+      .select("nombre, peso_neto_g")
+      .eq("id", productoId)
+      .maybeSingle();
+    if (!producto) return null;
+
+    const kgAgregado =
+      typeof producto.peso_neto_g === "number" && producto.peso_neto_g > 0
+        ? (cantidad * producto.peso_neto_g) / 1000
+        : null;
+
+    const payload = {
+      producto_id: productoId,
+      producto_nombre: producto.nombre ?? null,
+      cantidad,
+      kg_agregado: kgAgregado,
+      lote_id: loteId,
+      hash_identificador: typeof rpcData?.traceability_hash === "string" ? rpcData.traceability_hash : null,
+      fecha_recepcion: new Date().toISOString(),
+    };
+
+    const dataHash = computeDataHash("lote", loteId, payload);
+    const provider = getBlockchainProvider();
+    const anchorResult = await provider.anchor(dataHash);
+
+    if (!anchorResult.success || !anchorResult.txHash) {
+      console.warn("[Produccion] Ancla on-chain omitida (fail-open):", anchorResult.error);
+      return null;
+    }
+
+    // empresaId llega por parámetro de la función (redeclaración previa con `c` rota)
+    // fromLoose: data_payload aún no está en typegen (migración 20260802_real_traceability)
+    const { error: anchorInsertError } = await fromLoose(admin, "blockchain_anchors")
+      .insert({
+        empresa_id: empresaId,
+        entity_type: "lote",
+        entity_id: loteId,
+        tx_hash: anchorResult.txHash,
+        chain: "polygon-amoy",
+        block_number: anchorResult.blockNumber,
+        block_timestamp: anchorResult.blockTimestamp?.toISOString() ?? new Date().toISOString(),
+        data_hash: dataHash,
+        data_payload: payload,
+        merkle_proof: null,
+      });
+
+    if (anchorInsertError) {
+      console.error("[Produccion] Ancla registrada en cadena pero falló persistencia:", anchorInsertError.message);
+      return anchorResult.txHash;
+    }
+
+    await admin.from("lotes").update({ blockchain_hash: anchorResult.txHash }).eq("id", loteId);
+    return anchorResult.txHash;
+  } catch (err) {
+    console.warn("[Produccion] Ancla on-chain falló (fail-open):", err instanceof Error ? err.message : err);
+    return null;
+  }
+}

@@ -197,7 +197,10 @@ export function LoginForm() {
     const { error: oAuthErr } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}${returnTo ?? '/perfil'}`,
+        // Pasar por /auth/callback para intercambiar el code PKCE antes de
+        // tocar rutas protegidas; el middleware descartaría el code si el
+        // redirectTo apuntara directo a /perfil (login OAuth silencioso).
+        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback?next=${encodeURIComponent(returnTo ?? '/perfil')}`,
       },
     });
     if (oAuthErr) {

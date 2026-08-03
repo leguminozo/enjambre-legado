@@ -95,6 +95,7 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/calendario': ['admin'],
   '/pipeline': ['admin'],
   '/alambique': ['admin'],
+  '/fenologia': ['admin'],
   '/territorio': ['territorial'],
   '/registro-territorial': ['territorial', 'admin'],
   // /vanguardia es un redirect vivo → /crm?tab=aliados (B2B)

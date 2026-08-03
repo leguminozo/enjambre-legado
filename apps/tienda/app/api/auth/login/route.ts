@@ -47,6 +47,14 @@ export async function POST(request: NextRequest) {
   });
 
   if (error) {
+    // email_not_confirmed es seguro de revelar (el usuario conoce su propio
+    // correo) y evita un error engañoso tras registrarse sin confirmar.
+    if (error.code === 'email_not_confirmed') {
+      return NextResponse.json(
+        { error: 'Confirma tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.' },
+        { status: 401 }
+      );
+    }
     return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
   }
 

@@ -5,7 +5,7 @@ import {
   Calculator, Sparkles, BarChart3, FileText, UserCog, Settings, Building2,
   CreditCard, GitMerge, Printer, Ticket, Sliders, FlaskConical, Factory,
   Contact, Network, TrendingUp, TestTubes, LayoutTemplate, CalendarDays, Store,
-  Warehouse, NotebookPen, Route,
+  Warehouse, NotebookPen, Route, Sprout,
 } from 'lucide-react';
 import type { SidebarItem, SidebarBadge } from '@/config/sidebar-config';
 import type { SidebarNavItemData } from '@enjambre/ui';
@@ -42,6 +42,7 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   warehouse: Warehouse,
   'notebook-pen': NotebookPen,
   route: Route,
+  sprout: Sprout,
 };
 
 export function toNavItemDataFromItem(

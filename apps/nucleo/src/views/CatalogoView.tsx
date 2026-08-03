@@ -65,7 +65,7 @@ export function CatalogoView() {
             initialData={
               selectedProduct
                 ? {
-
+                    id: selectedProduct.id,
                     nombre: selectedProduct.nombre ?? '',
                     descripcion_regenerativa: selectedProduct.descripcion_regenerativa ?? '',
                     precio: selectedProduct.precio ?? 0,

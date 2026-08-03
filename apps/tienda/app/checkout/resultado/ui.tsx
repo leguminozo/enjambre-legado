@@ -84,7 +84,13 @@ export function CheckoutResultClient() {
         const raw = sessionStorage.getItem(CHECKOUT_SUCCESS_META_KEY);
         if (raw) {
           const parsed = JSON.parse(raw) as { buyOrder?: string; puntosGanados?: number };
-          setSuccessMeta(parsed);
+          // Solo confiar en la meta si pertenece a ESTA orden; si el checkout
+          // anterior se abandonó, la meta stale mostraría puntos/pedido ajenos.
+          if (parsed.buyOrder === result.data.buyOrder) {
+            setSuccessMeta(parsed);
+          } else if (result.data.buyOrder) {
+            setSuccessMeta({ buyOrder: result.data.buyOrder });
+          }
           sessionStorage.removeItem(CHECKOUT_SUCCESS_META_KEY);
         } else if (result.data.buyOrder) {
           setSuccessMeta({ buyOrder: result.data.buyOrder });

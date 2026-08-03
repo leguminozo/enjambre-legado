@@ -39,6 +39,7 @@ import { replenishmentRoutes } from "@/api/routes/replenishment";
 import { ritualRoutes } from "@/api/routes/ritual";
 import { blockchainRoutes } from "@/api/routes/blockchain/anchors";
 import { registroTerritorialRoutes } from "@/api/routes/registro-territorial";
+import { fenologiaRoutes } from "@/api/routes/fenologia";
 import { lotesPublicosRoutes } from "@/api/routes/lotes-publicos";
 import { adminIdentidadesRoutes } from "@/api/routes/admin-identidades";
 import { adminSystemRoutes } from "@/api/routes/admin-system";
@@ -95,6 +96,7 @@ app.use("*", async (c, next) => {
     "/api/logistica",
     "/api/produccion",
     "/api/alambique",
+    "/api/fenologia",
     "/api/crm",
   ];
   
@@ -233,6 +235,7 @@ app.route("/replenishment", replenishmentRoutes);
 app.route("/ritual", ritualRoutes);
 app.route("/blockchain", blockchainRoutes);
 app.route("/registro-territorial", registroTerritorialRoutes);
+app.route("/fenologia", fenologiaRoutes);
 app.route("/admin", adminIdentidadesRoutes);
 app.route("/admin-system", adminSystemRoutes);
 app.route("/lotes-publicos", lotesPublicosRoutes);

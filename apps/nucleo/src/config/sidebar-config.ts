@@ -138,6 +138,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Alquimista del vapor',
         mission: 'Cada gota destilada es memoria del bosque',
       },
+      {
+        key: 'fenologia',
+        label: 'Fenología',
+        icon: 'sprout',
+        href: '/fenologia',
+        greeting: 'Oráculo del bosque',
+        mission: 'La floración se mide, no se adivina',
+      },
     ],
   },
   {
@@ -382,6 +390,7 @@ export const VIEW_SHELL_PATHS = new Set([
   '/territorio',
   '/registro-territorial',
   '/reglas-comision',
+  '/fenologia',
 ])
 
 /** Rutas que viven fuera del árbol de items pero pertenecen a un módulo del sidebar */

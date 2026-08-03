@@ -126,3 +126,4 @@ export const LazyRegistroTerritorialView = named(
   'RegistroTerritorialView',
   'Registro Territorial',
 );
+export const LazyFenologiaView = named(() => import('@/views/fenologia/FenologiaView'), 'FenologiaView', 'Fenología');

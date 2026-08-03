@@ -1,0 +1,97 @@
+# Estado del Arte — Enjambre Legado
+
+> Radiografía estratégica del monorepo: madurez local por workflow vs. estado del arte planetario,
+> y la hoja de ruta de movimientos con valor real (inevitables → elegantes → salvajes).
+> Documento vivo: actualizar cuando un movimiento se complete.
+
+---
+
+## 1. Tesis
+
+El monorepo es un **sistema operativo biocultural**: el back es de clase mundial (fiscal, pagos,
+conciliación, offline-first) pero la capa que mira al cliente (trazabilidad, impacto, contenido)
+está desconectada del hardware ya construido. El ancla on-chain existe pero no se usa; los datos de
+laboratorio existen pero no llegan al frasco; el censo territorial existe pero no es público.
+
+**La estrategia**: no competir en precio de miel, competir en **prueba de origen verificable**.
+Convertir infraestructura invisible en transparencia que el cliente puede escanear, verificar y presumir.
+
+---
+
+## 2. Matriz de madurez local
+
+Escala 1-10. Fecha: 2026-08-02.
+
+| Workflow | Madurez | Fuerza local | Brecha vs. planeta |
+|---|---|---|---|
+| Checkout web one-shot | 8/10 | Precios server-side (`cart.ts`), conflictos de precio 409, holds de stock 30' (RPC `reserve_checkout_stock`), CAF fail-closed, loyalty integrado, boleta automática post-checkout | Sin wallets (Webpay/MercadoPago), sin one-page, sin tracking de pedido guest |
+| Reposición recurrente | 2→7/10 | Motor SQL (`process_ritual_renewals`), sesiones, UI completa | **No cobraba renovaciones** (migración 84); en curso: Pago Automático Flow (`20260802_flow_recurring_subscriptions.sql`) |
+| Fiscal / SII | 8/10 | 17 parsers de recibos (`packages/contable/src/domain/receipt-parsers/`), DTE 33/34/39…66 por API oficial SII (palena/maullin), F29/F22/PPM/RCV, tasa-cambio, gasto-extranjero | CAF manual (sin solicitud automática de folios), facturación B2B manual, sin contabilidad de doble partida (no necesaria hoy) |
+| Conciliación bancaria | 7/10 | Motor de matching banco↔ventas/gastos ≥90% auto-acepta (`banco-chile/conciliacion-auto.ts`), SumUp↔ventas, arqueo de caja | **Ventas web↔Flow sin conciliar** (el canal principal) |
+| POS campo | 7/10 | Offline-first real (Dexie + idempotencia `client_request_id`), SumUp terminal, ferias con consignación y comisiones | Sin devoluciones, sin descuentos, sobreventa offline permitida (`decrement_stock_force`), sin bodegas |
+| Trazabilidad | 4/10 | Lote→colmena→cosecha→envasado, análisis lab (humedad/HMF), anclaje on-chain real (Polygon Amoy, `blockchain/anchors.ts`) | "Blockchain" cosmético por defecto: `add_traceable_stock` hashea `producto+uuid+now` (sin payload), firma local con `block_number=1` fijo, página pública no verifica en explorer, sin QR por frasco |
+| Registro territorial | 5/10 | Censo apícola de Chiloé (`registro-territorial.ts`: actores, apiarios, trashumancia, alertas fitosanitarias) | Declaración manual, sin integración SAG, **no público** (moat de datos desaprovechado) |
+| Loyalty / guardianía | 7/10 | Puntos multi-nivel con multiplicador, canje idempotente, stamps guardian (`stamp-fulfill.ts`), ciclos, invitaciones | Referidos sin bono por compra, sin push |
+| Marketing / contenido | 5/10 | CMS real con revalidate (`site_content` + `/api/cms/revalidate`), JSON-LD, banners por placement | Seasonal **hardcodeado** (`seasonal.ts`), reseñas sin rating en catálogo (API existe, catálogo no la consume), sin push web |
+| Notificaciones | 6/10 | Email (Resend) + in-app, carrito abandonado con grace 30', dedupe por metadata | Sin push/SMS (schema lo contempla, sin sender) |
+| Impacto / regeneración | 4/10 | Árboles, CO2, IRR, ciclos, dashboard ejecutivo | Coeficientes hardcodeados (0.05 tCO2/árbol, IRR 0.5%), sin metodología publicada |
+
+---
+
+## 3. Estado del arte planetario (referencias)
+
+- **E-commerce**: Shopify/Stripe Checkout — one-page, wallets, guest tracking, rating+reviews en catálogo.
+- **Suscripciones**: Stripe Billing — dunning (reintentos inteligentes), customer portal, prorrateo, pausas por temporada.
+- **POS**: Square/Lightspeed — devoluciones, descuentos, split payments, conteo de inventario; offline-first como Shopify POS.
+- **Trazabilidad alimentaria**: VeChain (verificación pública en explorer), Lavazza farm-to-cup, miel europea con QR de origen. **Nadie en Chile** vende miel con origen verificable en cadena.
+- **Marcas "capitalismo salvaje"**: Patagonia (regeneración como core), Tony's Chocolonely (transparencia radical, cacao con blockchain), Who Gives A Crap (producto = activismo), Allbirds (carbon labels honestos). Patrón: **la transparencia verificable es el marketing**.
+- **Datos geográficos**: SAG publica censos; cartografía apícola fragmentada — un mapa público de Chiloé sería pionero.
+
+---
+
+## 4. Hoja de ruta — los movimientos
+
+### 🔵 Inevitables (madurar lo que ya existe; sin esto el negocio no escala)
+
+| # | Movimiento | Detalle | Referencias |
+|---|---|---|---|
+| 1 | Conciliar ventas web↔Flow | Reusar motor de matching de banco-chile para cruzar `ventas.buy_order` con pagos Flow | `banco-chile/conciliacion-auto.ts`, `checkout-fulfill.ts` |
+| 2 | CAF automático | Solicitar folios al SII por API cuando `restantes < umbral` (hoy manual) | `caf-guard.ts`, `sii/caf.ts` |
+| 3 | Dunning de reposición | Email al fallar cargo + reintento; marcar `past_due` correctamente | motor Flow recurrente (en curso) |
+| 4 | Devoluciones + descuentos en POS | Operativamente inevitables en ferias | `cash-context.tsx`, `rep-ventas.ts` |
+| 5 | Rating agregado en catálogo | Reseñas ya existen → estrellas + JSON-LD en catálogo | `resenas-api.ts`, `catalog-ratings.ts` |
+
+### 🟢 Elegantes (mínimos, intuitivos, alto valor percibido)
+
+| # | Movimiento | Detalle |
+|---|---|---|
+| 6 | **Trazabilidad real y honesta** (EN CURSO) | Hash del payload real (lote→colmena→cosecha→lab), anclaje Polygon Amoy por defecto, página pública que verifica en explorer, QR por frasco |
+| 7 | Métricas de impacto con metodología publicada | Coeficientes documentados + link a metodología (bosque nativo Chiloé) en vez de precisión falsa |
+| 8 | Pausa de temporada en reposición | Invierno sin entregas (cancel/crear inscripción Flow) |
+| 9 | Push web | Floración y entregas (schema ya lo contempla) |
+
+### 🔴 Salvajes / Vanguardistas (rupturistas — definen la marca)
+
+| # | Movimiento | Detalle |
+|---|---|---|
+| 10 | **"Miel con certificado de origen verificable en cadena"** | Cada frasco → QR → verificación on-chain + colmena real en mapa + apicultor + floración + análisis lab + CO2. El monorepo ya tiene el 80%: lotes, colmenas, apiarios, anclas, análisis, mapas, registro territorial |
+| 11 | **Mapa público apícola de Chiloé** | Publicar el Registro Territorial (anonimizado): colmenas, floraciones estacionales, alertas fitosanitarias → moat de datos + positioning institucional |
+| 12 | **Open-book de regeneración** | Dashboard público de impacto en vivo (árboles, CO2, kg, ciclos) — transparencia radical como marketing |
+| 13 | **Club de la Cosecha** | Suscripción por temporada (ulmo, tiaca, quillay) con cata guiada y trazabilidad por lote; convierte `seasonal.ts` en editorial vivo, usa el motor de reposición |
+
+### Qué NO hacer (el minimalismo es parte del diseño)
+
+- Contabilidad de doble partida completa (banco-chile + SII + conciliación cubren el flujo de caja).
+- Merkle trees / rollups / NFTs (el anchor simple da la garantía que el mercado entiende).
+- App nativa (PWA + offline-first es la estrategia correcta).
+- IA cosmética (no hay nada que alucinar en una miel).
+
+---
+
+## 5. Estado de los movimientos
+
+- [x] Auditoría de flujos (2026-08-02): checkout, auth, reposición, fiscal, trazabilidad, POS, territorial, contenido
+- [x] Fixes rápidos: OAuth PKCE (`login-form.tsx` → `/auth/callback?next=`), meta stale en resultado, registro 500 (insert redundante removido), `email_not_confirmed` mapeado
+- [ ] Reposición Pago Automático Flow (en curso, plan aprobado)
+- [ ] Movimiento 6: trazabilidad real y honesta
+- [ ] Movimientos 1-5, 7-9, 10-13 (priorizar tras 6)

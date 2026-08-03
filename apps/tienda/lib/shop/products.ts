@@ -16,6 +16,7 @@ export type ShopProduct = {
   photos: string[];
   visible: boolean;
   blockchain_hash?: string | null;
+  lote_id?: string | null;
   colmena_origen?: string | null;
   fecha_cosecha?: string | null;
   fecha_envasado?: string | null;
@@ -96,6 +97,7 @@ function mapProduct(p: ProductRow): ShopProduct {
     photos: p.fotos ?? [],
     visible: p.visible ?? true,
     blockchain_hash: p.lotes?.blockchain_hash ?? null,
+    lote_id: p.lote_id ?? null,
     colmena_origen: null,
     fecha_cosecha: null,
     fecha_envasado: p.lotes?.fecha_envasado ?? null,

@@ -62,13 +62,10 @@ export async function POST(request: NextRequest) {
   }
 
 
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .insert({ id: authData.user.id, email: email.trim(), full_name: fullName.trim(), role: 'cliente' });
-
-  if (profileError && profileError.code !== '23505') {
-    return NextResponse.json({ error: 'Error al crear perfil' }, { status: 500 });
-  }
+  // El perfil lo crea el trigger handle_new_user (migration 998, SECURITY
+  // DEFINER). Un insert aquí con el cliente anónimo falla por RLS (42501)
+  // cuando la confirmación de email está activa (signup sin sesión) y es
+  // redundante con el trigger.
 
   const nucleoUrl = getNucleoApiUrl();
   const internalKey = process.env.INTERNAL_API_SECRET;

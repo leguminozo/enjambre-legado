@@ -56,15 +56,61 @@ blockchainRoutes.post(
         }
         case 'lote': {
           const { data: lote } = await fromLoose(supabase, 'lotes')
-            .select('id, cosecha_ids, kg_total, estado, blockchain_hash')
+            .select(`
+              id, nombre_lote, kg_total, estado, blockchain_hash,
+              variedad_floral, metodo_extraccion, analisis_humedad, analisis_hmf,
+              lab_nombre, lab_fecha, relato_publico, fecha_envasado, descripcion,
+              cosecha_ids
+            `)
             .eq('id', entity_id)
             .maybeSingle();
           if (lote) {
             entityExists = true;
+            const colmenas: string[] = [];
+            let apiario: string | null = null;
+
+            // Origen real: cosechas → colmenas → apiario (mismo payload que la
+            // página pública de trazabilidad mostrará al consumidor)
+            if (Array.isArray(lote.cosecha_ids) && lote.cosecha_ids.length > 0) {
+              const { data: cosechas } = await fromLoose(supabase, 'cosechas')
+                .select('fecha, kg, colmenas(name, apiario_id)')
+                .in('id', lote.cosecha_ids)
+                .limit(10);
+              for (const c of cosechas ?? []) {
+                // fromLoose no sabe la cardinalidad del join: puede venir como
+                // objeto (many-to-one) o array; normalizamos ambos
+                const join = Array.isArray(c?.colmenas) ? c?.colmenas[0] : c?.colmenas;
+                const name = (join as { name?: string } | null | undefined)?.name;
+                if (name) colmenas.push(name);
+                const apiarioId = (join as { apiario_id?: string } | null | undefined)?.apiario_id;
+                if (apiarioId && !apiario) {
+                  const { data: apiarioRow } = await fromLoose(supabase, 'apiarios')
+                    .select('nombre')
+                    .eq('id', apiarioId)
+                    .maybeSingle();
+                  apiario = (apiarioRow?.nombre as string | undefined) ?? null;
+                }
+              }
+            }
+
             entityData = {
-              cosecha_ids: lote.cosecha_ids,
+              nombre_lote: lote.nombre_lote ?? null,
               kg_total: lote.kg_total,
               estado: lote.estado,
+              variedad_floral: lote.variedad_floral ?? null,
+              metodo_extraccion: lote.metodo_extraccion ?? null,
+              analisis: {
+                humedad: lote.analisis_humedad ?? null,
+                hmf: lote.analisis_hmf ?? null,
+                laboratorio: lote.lab_nombre ?? null,
+                fecha: lote.lab_fecha ?? null,
+              },
+              relato_publico: lote.relato_publico ?? null,
+              fecha_envasado: lote.fecha_envasado ?? null,
+              descripcion: lote.descripcion ?? null,
+              cosecha_ids: lote.cosecha_ids ?? [],
+              colmenas: [...new Set(colmenas)],
+              apiario,
             };
           }
           break;
@@ -114,8 +160,8 @@ blockchainRoutes.post(
       }
 
       const admin = createAdminClient();
-      const { error: insertError } = await admin
-        .from('blockchain_anchors')
+      // fromLoose: data_payload aún no está en typegen (migración 20260802_real_traceability)
+      const { error: insertError } = await fromLoose(admin, 'blockchain_anchors')
         .insert({
           empresa_id: empresaId,
           entity_type,
@@ -123,8 +169,9 @@ blockchainRoutes.post(
           tx_hash: result.txHash,
           chain: provider.name.toLowerCase().replace(' ', '-'),
           block_number: result.blockNumber,
-          timestamp: result.blockTimestamp?.toISOString() ?? new Date().toISOString(),
+          block_timestamp: result.blockTimestamp?.toISOString() ?? new Date().toISOString(),
           data_hash: dataHash,
+          data_payload: entityData,
           merkle_proof: null,
         });
 
@@ -209,7 +256,7 @@ blockchainRoutes.get(
         .eq('entity_type', entity_type)
         .eq('entity_id', entity_id)
         .eq('empresa_id', empresaId)
-        .order('timestamp', { ascending: false });
+        .order('block_timestamp', { ascending: false });
 
       if (error) {
         return c.json({ code: 'query_failed', message: error.message }, 500);

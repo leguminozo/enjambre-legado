@@ -206,7 +206,28 @@ export function generateMerkleProof(leaves: string[], index: number): string[] {
   return proof;
 }
 
+/**
+ * Ordenar llaves recursivamente: jsonb reordena las llaves al persistir, así
+ * que el hash debe ser independiente del orden para poder recomputarse desde
+ * data_payload y verificar integridad en la página pública.
+ */
+export function canonicalizeJson(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalizeJson);
+  if (value !== null && typeof value === 'object') {
+    const sorted: Record<string, unknown> = {};
+    for (const key of Object.keys(value as Record<string, unknown>).sort()) {
+      sorted[key] = canonicalizeJson((value as Record<string, unknown>)[key]);
+    }
+    return sorted;
+  }
+  return value;
+}
+
 export function computeDataHash(entityType: string, entityId: string, data: Record<string, unknown>): string {
-  const canonical = JSON.stringify({ entityType, entityId, data });
+  const canonical = JSON.stringify({
+    entityType,
+    entityId,
+    data: canonicalizeJson(data),
+  });
   return `0x${createHash('sha256').update(canonical).digest('hex')}`;
 }
