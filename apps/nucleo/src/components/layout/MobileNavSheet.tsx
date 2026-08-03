@@ -124,7 +124,7 @@ export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
               <div>
                 <p className="mobile-nav-sheet-eyebrow">Enjambre Legado</p>
                 <h2 className="mobile-nav-sheet-title">
-                  {activeItem?.greeting ?? 'Mapa del bosque'}
+                  {activeItem?.greeting ?? 'Explora el enjambre'}
                 </h2>
                 {activeItem?.mission && (
                   <p className="mobile-nav-sheet-mission">{activeItem.mission}</p>

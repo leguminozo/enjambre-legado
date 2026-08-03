@@ -288,7 +288,7 @@ export function AlambiqueView() {
       <ViewShell
         variant="compact"
         eyebrow="Alambique"
-        title="Bitácora de Destilación"
+        title="Alambique"
         subtitle="Materia prima vegetal, corridas del alambique y envasados — la memoria del vapor hecha trazabilidad."
         icon={<FlaskConical size={20} />}
       />

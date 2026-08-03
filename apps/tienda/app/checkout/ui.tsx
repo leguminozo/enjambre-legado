@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin } from 'lucide-react';
+import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin, Sparkles } from 'lucide-react';
 import {
   DEFAULT_COURIER,
   getCheckoutCourierOptions,
@@ -91,14 +91,16 @@ export function CheckoutClient() {
   const [usarPuntos, setUsarPuntos] = useState(false);
   const [codigoDescuento, setCodigoDescuento] = useState('');
   const [codigoAplicado, setCodigoAplicado] = useState<string | null>(null);
+  const [codigoCreador, setCodigoCreador] = useState('');
+  const [creadorAplicado, setCreadorAplicado] = useState<string | null>(null);
 
-  // Prefill embajador ref capturado en catálogo (?ref= / ?codigo=)
+  // Prefill embajador ref capturado en catálogo (?ref= / ?codigo=) → canal de creador
   useEffect(() => {
     try {
       const stored = sessionStorage.getItem(CREATOR_REF_CODE_KEY)?.trim();
       if (stored && stored.length >= 2) {
-        setCodigoDescuento(stored);
-        setCodigoAplicado(stored);
+        setCodigoCreador(stored);
+        setCreadorAplicado(stored.toUpperCase());
       }
     } catch {
       // ignore
@@ -114,6 +116,7 @@ export function CheckoutClient() {
     discountClp: number;
     shippingCost: number;
     loyaltyDiscountClp: number;
+    creadorDiscountClp: number;
     total: number;
   } | null>(null);
 
@@ -125,6 +128,7 @@ export function CheckoutClient() {
   const totalCompra = quote?.total ?? pricing?.total ?? 0;
   const shippingCost = quote?.shippingCost ?? 0;
   const promoDiscount = quote?.discountClp ?? 0;
+  const creadorDiscountClp = quote?.creadorDiscountClp ?? 0;
   const {
     loyaltyData,
     loading: loyaltyLoading,
@@ -185,6 +189,7 @@ export function CheckoutClient() {
             region,
             courierCode,
             codigoDescuento: codigoAplicado ?? undefined,
+            codigoCreador: creadorAplicado ?? undefined,
             puntosACanjear: usarPuntos ? puntosACanjear : 0,
           }),
           signal: controller.signal,
@@ -196,6 +201,7 @@ export function CheckoutClient() {
           discountClp?: number;
           shippingCost?: number;
           loyaltyDiscountClp?: number;
+          descuentoCreadorClp?: number;
           total?: number;
           message?: string;
         };
@@ -211,6 +217,9 @@ export function CheckoutClient() {
           if (promoInvalid) {
             setCodigoAplicado(null);
           }
+          if (json.code === 'invalid_creador_code') {
+            setCreadorAplicado(null);
+          }
           setQuoteError(friendly);
           setQuote(null);
           return;
@@ -221,6 +230,7 @@ export function CheckoutClient() {
           discountClp: json.discountClp ?? 0,
           shippingCost: json.shippingCost ?? 0,
           loyaltyDiscountClp: json.loyaltyDiscountClp ?? 0,
+          creadorDiscountClp: json.descuentoCreadorClp ?? 0,
           total: json.total ?? subtotalCompra,
         });
       } catch (err) {
@@ -246,6 +256,7 @@ export function CheckoutClient() {
     shipping.region,
     courierCode,
     codigoAplicado,
+    creadorAplicado,
     usarPuntos,
     puntosACanjear,
     isAuthenticated,
@@ -259,6 +270,16 @@ export function CheckoutClient() {
     }
     setQuoteError(null);
     setCodigoAplicado(code.toUpperCase());
+  };
+
+  const applyCreadorCode = () => {
+    const code = codigoCreador.trim().toUpperCase();
+    if (code.length < 2) {
+      setQuoteError('Ingresa un código de creador válido');
+      return;
+    }
+    setQuoteError(null);
+    setCreadorAplicado(code);
   };
 
   useEffect(() => {
@@ -383,6 +404,7 @@ export function CheckoutClient() {
       courierCode,
       puntosACanjear: usarPuntos ? puntosACanjear : 0,
       codigoDescuento: codigoAplicado ?? undefined,
+      codigoCreador: creadorAplicado ?? undefined,
       returnUrl: `${window.location.origin}${CHECKOUT_RESULTADO_PATH}`,
       puntosGanadosEstimados: loyaltyData?.puntos_ganados_compra,
     });
@@ -496,6 +518,12 @@ export function CheckoutClient() {
                       <span className="tabular-nums">-${promoDiscount.toLocaleString('es-CL')}</span>
                     </div>
                   )}
+                  {creadorDiscountClp > 0 && (
+                    <div className="flex justify-between text-accent">
+                      <span>Código de creador</span>
+                      <span className="tabular-nums">-${creadorDiscountClp.toLocaleString('es-CL')}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-muted-foreground">
                     <span>Envío ({getCourier(courierCode).shortLabel})</span>
                     <span className="tabular-nums">
@@ -568,6 +596,52 @@ export function CheckoutClient() {
                     >
                       Quitar
                     </button>
+                  </p>
+                )}
+              </section>
+
+              {/* Código de creador — cada uso registra comisión para quien te invitó */}
+              <section className="checkout-section">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="h-5 w-5 text-accent" />
+                  <h2 className="font-display text-lg text-foreground">Código de creador</h2>
+                </div>
+                <div className="rounded-xl border border-border bg-card/40 p-4 sm:p-6 flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="text"
+                    value={codigoCreador}
+                    onChange={(e) => setCodigoCreador(e.target.value.toUpperCase())}
+                    placeholder="¿Te invitó alguien? Pon su código"
+                    className="flex-1 min-h-11 rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground uppercase tracking-wider focus:outline-none focus:border-accent/50"
+                  />
+                  <button
+                    type="button"
+                    onClick={applyCreadorCode}
+                    className="min-h-11 inline-flex items-center justify-center rounded-full border border-accent/40 px-6 py-3 text-sm font-semibold text-accent hover:bg-accent/10 transition-colors"
+                  >
+                    Aplicar
+                  </button>
+                </div>
+                {creadorAplicado ? (
+                  <p className="text-xs text-accent mt-2 flex flex-wrap items-center gap-2">
+                    <span>Código de creador aplicado: {creadorAplicado}</span>
+                    {creadorDiscountClp > 0 && (
+                      <span className="tabular-nums">-${creadorDiscountClp.toLocaleString('es-CL')}</span>
+                    )}
+                    <button
+                      type="button"
+                      className="inline-flex min-h-11 items-center underline px-1"
+                      onClick={() => {
+                        setCreadorAplicado(null);
+                        setCodigoCreador('');
+                      }}
+                    >
+                      Quitar
+                    </button>
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Con tu compra, quien te invitó recibe una comisión — y tú, un descuento.
                   </p>
                 )}
               </section>

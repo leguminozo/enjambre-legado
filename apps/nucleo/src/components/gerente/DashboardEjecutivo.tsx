@@ -6,7 +6,7 @@ import { ViewLoading, LoadingOverlay, GlassPanel } from '@enjambre/ui'
 import {
   BarChart3, TrendingUp, DollarSign, Target, Leaf, Crown,
   ArrowUpRight, Hexagon, TreePine, Users, Wallet, Percent,
-  Trophy, AlertTriangle, AlertCircle, Info, Clock, ShoppingCart,
+  Trophy, AlertTriangle, AlertCircle, Info, ShoppingCart,
   CreditCard, PackageX,
 } from 'lucide-react'
 import {
@@ -226,12 +226,6 @@ export function DashboardEjecutivo() {
         title="Panel Ejecutivo"
         subtitle={rangeSubtitle}
         icon={<BarChart3 size={20} />}
-        actions={
-          <span className="text-[0.78rem] text-muted-foreground flex items-center gap-1.5">
-            <Clock size={14} />
-            Actualizado
-          </span>
-        }
       />
 
       <ResponsiveTabBar
@@ -282,7 +276,7 @@ export function DashboardEjecutivo() {
           sparkline={ventas.trend.map(t => t.count)}
         />
         <KpiCard
-          title={`Cosecha ${rangeLabel}`}
+          title={`Recolección ${rangeLabel}`}
           value={`${fmtNum(kpis.cosecha)} kg`}
           icon={<Target size={20} />}
           description={`YTD: ${fmtNum(kpis.cosechaYTD)} kg.`}

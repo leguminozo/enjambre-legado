@@ -7,10 +7,11 @@ import { NuevoGastoForm } from '@/views/eirl/gastos/NuevoGastoForm';
 import { MetricasCards } from '@/views/eirl/dashboard/MetricasCards';
 import { ResumenActividad } from '@/views/eirl/dashboard/ResumenActividad';
 import { ContableView } from '@/views/ContableView';
+import { LibrosView } from '@/views/contable/LibrosView';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useAuthStore } from '@enjambre/auth';
 import { ViewLoading } from '@enjambre/ui';
-import { Calculator, FileText, ShoppingCart, BarChart3 } from 'lucide-react';
+import { Calculator, FileText, ShoppingCart, BarChart3, BookOpen } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 
@@ -19,9 +20,11 @@ const tabs = [
   { id: 'facturas', label: 'Facturas', icon: FileText },
   { id: 'gastos', label: 'Gastos', icon: ShoppingCart },
   { id: 'contable', label: 'Contable', icon: Calculator },
+  { id: 'libros', label: 'Libros', icon: BookOpen },
 ] as const;
 
 type TabId = (typeof tabs)[number]['id'];
+
 
 interface DashboardData {
   metricas: {
@@ -79,7 +82,7 @@ export function ContableHubView() {
     <div className="space-y-6">
       <ViewShell
         eyebrow="Finanzas"
-        title="Contable EIRL"
+        title="Contabilidad"
         subtitle="Resumen, facturas, gastos y libro contable"
         icon={<Calculator size={20} />}
         variant="compact"
@@ -155,6 +158,7 @@ export function ContableHubView() {
         )
       )}
       {activeTab === 'contable' && <ContableView />}
+      {activeTab === 'libros' && <LibrosView />}
     </div>
   );
 }

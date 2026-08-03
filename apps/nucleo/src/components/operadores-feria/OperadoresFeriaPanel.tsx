@@ -535,7 +535,7 @@ export function OperadoresFeriaPanel() {
       <ViewShell
         variant="compact"
         eyebrow="Red de intercambio"
-        title="Operadores de Feria"
+        title="Operadores Feria"
         subtitle="Contratos de prestación independiente, consignación, arqueo e incentivos. Sin órdenes de trabajo."
         icon={<Calendar size={22} />}
       />

@@ -58,7 +58,7 @@ export function SiiDteView() {
       <ViewShell
         variant="compact"
         eyebrow="Fiscal"
-        title="SII · Facturación Electrónica"
+        title="SII"
         subtitle="Gestión integral de DTEs, impuestos (F29/F22) y honorarios"
         icon={<FileText size={20} />}
       />

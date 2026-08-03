@@ -214,3 +214,72 @@ cafRoutes.post("/:id/desactivar", async (c) => {
 
   return c.json({ data });
 });
+
+/**
+ * Movimiento 2 — disparo manual de solicitud de folios (CAF automático).
+ * Requiere SII_CAF_AUTO_ENABLED=true o se rechaza con 409 (kill-switch).
+ */
+cafRoutes.post(
+  "/auto-request",
+  zValidator(
+    "json",
+    z.object({
+      tipo_dte: z.number().int().positive(),
+      cantidad: z.number().int().positive().max(1000).optional(),
+      rut_empresa: z.string().min(3).optional(),
+    }),
+  ),
+  async (c) => {
+    const empresaId = c.get("empresaId");
+    const supabase = c.get("supabase");
+    const input = c.req.valid("json");
+
+    const { ensureCafFolios } = await import("@/lib/fiscal/caf-auto-worker");
+    const { data: empresa } = await supabase
+      .from("empresas")
+      .select("rut")
+      .eq("id", empresaId)
+      .maybeSingle();
+    const rut = input.rut_empresa ?? (empresa as { rut?: string } | null)?.rut;
+    if (!rut) {
+      return c.json({ code: "empresa_sin_rut", message: "La empresa no tiene RUT configurado" }, 400);
+    }
+
+    const result = await ensureCafFolios(supabase as unknown as SupabaseClient<Database>, {
+      empresaId,
+      rutEmpresa: rut,
+      tipoDte: input.tipo_dte,
+      cantidad: input.cantidad,
+    });
+
+    if (result.error === "solicitud pendiente") {
+      return c.json({ data: result, message: "Ya hay una solicitud en curso" }, 202);
+    }
+    if (!result.ok) {
+      return c.json({ code: "auto_request_failed", message: result.error ?? "falló la solicitud" }, 502);
+    }
+    return c.json({
+      data: result,
+      message: result.requested ? "Solicitud de folios enviada al SII" : "CAF con folios suficientes",
+    });
+  },
+);
+
+/** Historial de solicitudes de folios (auditoría del movimiento 2). */
+cafRoutes.get("/requests", async (c) => {
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+
+  const { data, error } = await supabase
+    .from("sii_caf_requests")
+    .select("id, tipo_dte, cantidad, estado, error, caf_id, requested_at, completed_at")
+    .eq("empresa_id", empresaId)
+    .order("requested_at", { ascending: false })
+    .limit(50);
+
+  if (error) {
+    return c.json({ code: "caf_requests_query_failed", message: error.message }, 500);
+  }
+
+  return c.json({ data: data ?? [] });
+});

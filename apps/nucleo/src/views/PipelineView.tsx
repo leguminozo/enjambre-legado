@@ -121,10 +121,10 @@ export function PipelineView() {
   useEffect(() => {
     const channel = supabase
       .channel('pipeline_realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'crm_leads' }, () => {
         queryClient.invalidateQueries({ queryKey: ['pipeline', 'dashboard'] });
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tareas' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'crm_tareas' }, () => {
         queryClient.invalidateQueries({ queryKey: ['pipeline', 'dashboard'] });
       })
       .subscribe();
@@ -260,7 +260,7 @@ export function PipelineView() {
     <div className="space-y-6 animate-in">
       <ViewShell
         eyebrow="Ventas"
-        title="Pipeline de Ventas"
+        title="Pipeline Ventas"
         subtitle="Gestión de leads, oportunidades y tareas de seguimiento"
       />
       <ToolActionRail context="pipeline" current="/pipeline" />

@@ -92,6 +92,10 @@ Escala 1-10. Fecha: 2026-08-02.
 
 - [x] Auditoría de flujos (2026-08-02): checkout, auth, reposición, fiscal, trazabilidad, POS, territorial, contenido
 - [x] Fixes rápidos: OAuth PKCE (`login-form.tsx` → `/auth/callback?next=`), meta stale en resultado, registro 500 (insert redundante removido), `email_not_confirmed` mapeado
-- [ ] Reposición Pago Automático Flow (en curso, plan aprobado)
-- [ ] Movimiento 6: trazabilidad real y honesta
-- [ ] Movimientos 1-5, 7-9, 10-13 (priorizar tras 6)
+- [x] Reposición Pago Automático Flow (migración `20260803_flow_recurring_subscriptions.sql`, flow-cl recurrente, commit endurecido, webhook, cron)
+- [x] Movimiento 6: trazabilidad real y honesta (hash canónico, anclaje por defecto, página con verificación en vivo)
+- [x] Movimiento 5: rating agregado en catálogo (UI `catalog-view.tsx` + rich results `itemListJsonLd` con AggregateRating + tests)
+- [x] Movimiento 1: integridad de pagos web (`GET /api/checkout/admin/integrity` — cruza sesiones/ventas, detecta pagos sin venta, webhooks perdidos, ventas sin sesión)
+- [x] Movimiento 3: dunning de reposición (cron diario → email único por sub `past_due` con dedupe)
+- [x] Test de auth-integration flaky arreglado (`vi.resetModules`) — 292/292 nucleo, 127/127 tienda
+- [ ] Movimientos 2 (CAF automático), 4 (devoluciones POS), 7-13 (priorizar tras 1-3)

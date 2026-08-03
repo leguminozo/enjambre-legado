@@ -257,7 +257,7 @@ export function SumUpView() {
       <ViewShell
         variant="compact"
         eyebrow="Pagos"
-        title="Pagos SumUp"
+        title="Pagos"
         subtitle="Terminal POS, sync y conciliación — configurá merchant y API key en la app."
         icon={<CreditCard size={20} />}
       />

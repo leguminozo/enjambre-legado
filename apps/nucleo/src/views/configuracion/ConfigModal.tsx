@@ -18,7 +18,7 @@ export function ConfigModal({ open, onClose }: ConfigModalProps) {
       open={open}
       onClose={onClose}
       eyebrow="Configuración"
-      title="Centro de Configuración"
+      title="Configuración"
       size="xl"
       bodyClassName="bg-surface-sunken/30"
     >

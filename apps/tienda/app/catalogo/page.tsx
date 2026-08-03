@@ -49,7 +49,18 @@ export default async function CatalogoPage() {
   }
 
   const listSchema = products.length > 0
-    ? itemListJsonLd(products.map((p, i) => ({ name: p.name, slug: p.slug, position: i + 1 })))
+    ? (() => {
+        // Ratings keyed por slug para el ItemList (rich results de estrellas)
+        const ratingsBySlug: Record<string, { ratingValue: number; reviewCount: number }> = {};
+        for (const p of products) {
+          const r = ratings[p.id];
+          if (r) ratingsBySlug[p.slug] = r;
+        }
+        return itemListJsonLd(
+          products.map((p, i) => ({ name: p.name, slug: p.slug, position: i + 1 })),
+          ratingsBySlug,
+        );
+      })()
     : null;
 
   return (

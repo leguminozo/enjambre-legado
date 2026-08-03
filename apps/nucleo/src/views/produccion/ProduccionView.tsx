@@ -1,26 +1,40 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { 
   Card, CardHeader, CardTitle, CardDescription, CardContent,
-  Badge, ViewLoading, LoadingOverlay,
+  Badge, ViewLoading, LoadingOverlay, Button, Label, Input, toast,
 } from '@enjambre/ui';
 import { formatCLP } from '@enjambre/ui';
 import { 
-  Activity, Package, Calendar, Layers
+  Activity, Package, Calendar, Layers, Droplets, ClipboardCheck, ArrowLeft, PackagePlus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
+import { LoteComercialForm } from '@/components/apicultor/LoteComercialForm';
+import { RecoleccionPanel } from '@/components/produccion/RecoleccionPanel';
 
 interface LoteProduccionRow {
   id: string;
+  nombre_lote?: string | null;
   codigo?: string;
   kg_total?: number;
+  estado?: string | null;
+  fecha_envasado?: string | null;
   created_at: string;
+  variedad_floral?: string | null;
+  metodo_extraccion?: string | null;
+  analisis_humedad?: number | null;
+  analisis_hmf?: number | null;
+  lab_nombre?: string | null;
+  lab_fecha?: string | null;
+  canal_destino?: string | null;
+  relato_publico?: string | null;
+  publico?: boolean | null;
   productos?: {
     nombre?: string;
     peso_neto_g?: number;
@@ -32,6 +46,7 @@ interface ProductoProduccionRow {
   nombre: string;
   formato?: string;
   stock?: number;
+  peso_neto_g?: number;
   demanda_30d?: number;
   dias_stock_estimado: number;
 }
@@ -49,8 +64,14 @@ interface ProduccionDashboardData {
 }
 
 export function ProduccionView() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'lotes'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'lotes' | 'cosechas'>('dashboard');
+  const [editingLote, setEditingLote] = useState<LoteProduccionRow | null>(null);
+  const [envasandoLote, setEnvasandoLote] = useState<LoteProduccionRow | null>(null);
+  const [envasarProductoId, setEnvasarProductoId] = useState('');
+  const [envasarCantidad, setEnvasarCantidad] = useState('');
+  const [envasando, setEnvasando] = useState(false);
   const apiFetch = useApiFetch();
+  const queryClient = useQueryClient();
 
   const { data: dashboardData, isLoading, isFetching } = useQuery<ProduccionDashboardData>({
     queryKey: ['produccion', 'dashboard'],
@@ -64,12 +85,53 @@ export function ProduccionView() {
   const data = dashboardData?.data || { lotes: [], productos: [], stats: {} };
   const { lotes, productos } = data;
 
+  const handleLoteSaved = () => {
+    setEditingLote(null);
+    void queryClient.invalidateQueries({ queryKey: ['produccion', 'dashboard'] });
+  };
+
+  const handleEnvasar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!envasandoLote) return;
+    const cantidad = parseInt(envasarCantidad, 10);
+    if (!envasarProductoId || !cantidad || cantidad <= 0) {
+      toast.error('Selecciona producto destino y una cantidad válida');
+      return;
+    }
+    setEnvasando(true);
+    try {
+      const res = await apiFetch(`/api/produccion/lotes/${envasandoLote.id}/envasar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ producto_id: envasarProductoId, cantidad }),
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { message?: string; code?: string };
+        throw new Error(err.message || err.code || 'Error al envasar');
+      }
+      toast.success('Envasado: stock del producto actualizado');
+      setEnvasandoLote(null);
+      setEnvasarProductoId('');
+      setEnvasarCantidad('');
+      void queryClient.invalidateQueries({ queryKey: ['produccion', 'dashboard'] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al envasar');
+    } finally {
+      setEnvasando(false);
+    }
+  };
+
+  const productoEnvasar = productos.find((p) => p.id === envasarProductoId);
+  const kgPreview = productoEnvasar?.peso_neto_g
+    ? (parseInt(envasarCantidad || '0', 10) || 0) * (Number(productoEnvasar.peso_neto_g) / 1000)
+    : null;
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <ViewShell
         variant="compact"
         eyebrow="Inventario"
-        title="Producción e Inventario"
+        title="Producción"
         subtitle="Control de lotes de miel, envasado y proyecciones de quiebre de stock basado en demanda real."
         icon={<Package size={20} />}
       />
@@ -80,9 +142,10 @@ export function ProduccionView() {
         tabs={[
           { id: 'dashboard', label: 'Alertas de Stock', icon: <Activity size={16} /> },
           { id: 'lotes', label: 'Lotes Activos', icon: <Layers size={16} /> },
+          { id: 'cosechas', label: 'Recolección', icon: <Droplets size={16} /> },
         ]}
         activeId={activeTab}
-        onChange={(id) => setActiveTab(id as 'dashboard' | 'lotes')}
+        onChange={(id) => setActiveTab(id as 'dashboard' | 'lotes' | 'cosechas')}
       />
 
       {isLoading ? (
@@ -101,7 +164,7 @@ export function ProduccionView() {
               transition={{ duration: 0.2 }}
               className="space-y-6"
             >
-              {/* KPIs operativos de miel viven en el Panel Ejecutivo (/ejecutivo) */}
+              {/* KPIs operativos de miel viven en el Inicio (/inicio) */}
 
               {/* Tabla de Productos / Quiebres */}
               <Card>
@@ -182,66 +245,184 @@ export function ProduccionView() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              <Card>
-                <CardHeader>
-                  <CardTitle>Lotes de Producción</CardTitle>
-                  <CardDescription>Registro de lotes de extracción y su rendimiento.</CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {lotes.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">No hay lotes registrados.</p>
-                  ) : (
-                    <div className="flex flex-col">
-                      <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-surface-sunken text-xs uppercase tracking-wider text-muted-foreground font-medium border-b border-border">
-                        <div className="col-span-3">Código Lote</div>
-                        <div className="col-span-3">Producto/Destino</div>
-                        <div className="col-span-2">Fecha</div>
-                        <div className="col-span-2 text-right">Kg Iniciales</div>
-                        <div className="col-span-2 text-right">Rendimiento Estimado</div>
-                      </div>
-                      <div className="divide-y divide-border">
-                        {lotes.map((l) => {
-                          const kg = Number(l.kg_total || 0);
-                          const productoKg = l.productos ? (Number(l.productos.peso_neto_g || 1000) / 1000) : null;
-                          const rendimiento = productoKg ? Math.floor(kg / productoKg) : null;
+              {editingLote ? (
+                <div className="space-y-4">
+                  <Button variant="ghost" onClick={() => setEditingLote(null)} className="gap-2">
+                    <ArrowLeft size={16} />
+                    Volver a lotes
+                  </Button>
+                  <LoteComercialForm
+                    lote={editingLote}
+                    onSuccess={handleLoteSaved}
+                    onCancel={() => setEditingLote(null)}
+                  />
+                </div>
+              ) : envasandoLote ? (
+                <div className="space-y-4">
+                  <Button variant="ghost" onClick={() => setEnvasandoLote(null)} className="gap-2">
+                    <ArrowLeft size={16} />
+                    Volver a lotes
+                  </Button>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <PackagePlus size={18} className="text-primary" />
+                        Envasar Lote → Frasco
+                      </CardTitle>
+                      <CardDescription>
+                        Convierte kg del lote en frascos del producto destino: el stock sube y el
+                        lote descuenta su peso. La trazabilidad del frasco apunta a este lote.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <form onSubmit={handleEnvasar} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="envasar-producto">Producto destino</Label>
+                          <select
+                            id="envasar-producto"
+                            value={envasarProductoId}
+                            onChange={(e) => setEnvasarProductoId(e.target.value)}
+                            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            <option value="">Selecciona producto</option>
+                            {productos.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.nombre} {p.peso_neto_g ? `(${p.peso_neto_g}g)` : ''} · stock {p.stock ?? 0}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="envasar-cantidad">Frascos</Label>
+                          <Input
+                            id="envasar-cantidad"
+                            type="number"
+                            min="1"
+                            step="1"
+                            placeholder="0"
+                            value={envasarCantidad}
+                            onChange={(e) => setEnvasarCantidad(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex items-end">
+                          <Button type="submit" disabled={envasando}>
+                            <PackagePlus size={16} className="mr-2" />
+                            {envasando ? 'Envasando…' : 'Envasar'}
+                          </Button>
+                        </div>
+                      </form>
+                      <p className="text-xs text-muted-foreground mt-4">
+                        Lote: <strong className="text-foreground">{Number(envasandoLote.kg_total ?? 0).toFixed(1)} kg</strong>
+                        {kgPreview !== null && (
+                          <> · se descontarán <strong className="text-foreground">{kgPreview.toFixed(2)} kg</strong></>
+                        )}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Lotes de Producción</CardTitle>
+                    <CardDescription>
+                      Registro de lotes de extracción y su rendimiento. Usa “Completar” para cerrar el lote
+                      con análisis de laboratorio y publicar su pasaporte de trazabilidad.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {lotes.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-8">No hay lotes registrados.</p>
+                    ) : (
+                      <div className="flex flex-col">
+                        <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-surface-sunken text-xs uppercase tracking-wider text-muted-foreground font-medium border-b border-border">
+                          <div className="col-span-3">Código Lote</div>
+                          <div className="col-span-2">Producto/Destino</div>
+                          <div className="col-span-2">Fecha</div>
+                          <div className="col-span-2 text-right">Kg Iniciales</div>
+                          <div className="col-span-1">Estado</div>
+                          <div className="col-span-2"></div>
+                        </div>
+                        <div className="divide-y divide-border">
+                          {lotes.map((l) => {
+                            const kg = Number(l.kg_total || 0);
+                            const productoKg = l.productos ? (Number(l.productos.peso_neto_g || 1000) / 1000) : null;
+                            const rendimiento = productoKg ? Math.floor(kg / productoKg) : null;
+                            const nombreLote = l.nombre_lote?.trim() || l.codigo || l.id.substring(0, 8).toUpperCase();
 
-                          return (
-                            <div key={l.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors">
-                              <div className="col-span-1 md:col-span-3 flex justify-between md:justify-start items-center">
-                                <span className="text-xs text-muted-foreground md:hidden">Lote:</span>
-                                <span className="font-mono font-medium text-primary">
-                                  {l.codigo || l.id.substring(0,8).toUpperCase()}
-                                </span>
-                              </div>
-                              <div className="col-span-1 md:col-span-3 flex flex-col text-sm">
-                                <span className="md:hidden text-xs text-muted-foreground">Destino:</span>
-                                <span>{l.productos?.nombre || 'General / Sin Asignar'}</span>
-                              </div>
-                              <div className="col-span-1 md:col-span-2 flex justify-between md:justify-start items-center text-sm text-muted-foreground">
-                                <span className="text-xs text-muted-foreground md:hidden">Fecha:</span>
-                                <div className="flex items-center gap-1.5">
-                                  <Calendar size={14} className="hidden md:block"/>
-                                  <span>{new Date(l.created_at).toLocaleDateString('es-CL')}</span>
+                            return (
+                              <div key={l.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors">
+                                <div className="col-span-1 md:col-span-3 flex flex-col">
+                                  <span className="font-mono font-medium text-primary text-sm">
+                                    {nombreLote}
+                                  </span>
+                                  {l.variedad_floral && (
+                                    <span className="text-xs text-muted-foreground">{l.variedad_floral}</span>
+                                  )}
+                                </div>
+                                <div className="col-span-1 md:col-span-2 flex flex-col text-sm">
+                                  <span>{l.productos?.nombre || 'General / Sin Asignar'}</span>
+                                  {rendimiento && (
+                                    <span className="text-xs text-muted-foreground">~{rendimiento} frascos</span>
+                                  )}
+                                </div>
+                                <div className="col-span-1 md:col-span-2 flex justify-between md:justify-start items-center text-sm text-muted-foreground">
+                                  <span className="text-xs text-muted-foreground md:hidden">Fecha:</span>
+                                  <div className="flex items-center gap-1.5">
+                                    <Calendar size={14} className="hidden md:block" />
+                                    <span>{new Date(l.created_at).toLocaleDateString('es-CL')}</span>
+                                  </div>
+                                </div>
+                                <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
+                                  <span className="text-xs text-muted-foreground md:hidden">Kg Iniciales:</span>
+                                  <span className="font-display">{kg.toFixed(1)} kg</span>
+                                </div>
+                                <div className="col-span-1 md:col-span-1 flex items-center gap-2">
+                                  <Badge variant={l.publico ? 'success' : l.estado && l.estado !== 'activo' ? 'warning' : 'default'}>
+                                    {l.publico ? 'Publicado' : l.estado || 'Activo'}
+                                  </Badge>
+                                </div>
+                                <div className="col-span-2 md:col-span-2 flex justify-end gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setEditingLote(l)}
+                                    className="gap-1.5 text-xs"
+                                  >
+                                    <ClipboardCheck size={14} />
+                                    Completar
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setEnvasandoLote(l)}
+                                    className="gap-1.5 text-xs"
+                                  >
+                                    <PackagePlus size={14} />
+                                    Envasar
+                                  </Button>
                                 </div>
                               </div>
-                              <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
-                                <span className="text-xs text-muted-foreground md:hidden">Kg Iniciales:</span>
-                                <span className="font-display">{kg.toFixed(1)} kg</span>
-                              </div>
-                              <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
-                                <span className="text-xs text-muted-foreground md:hidden">Rendimiento:</span>
-                                <span className="text-muted-foreground text-sm">
-                                  {rendimiento ? `~${rendimiento} frascos` : '-'}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </motion.div>
+          )}
+
+          {/* PESTAÑA: RECOLECCIÓN */}
+          {activeTab === 'cosechas' && (
+            <motion.div
+              key="cosechas"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <RecoleccionPanel />
             </motion.div>
           )}
         </AnimatePresence>

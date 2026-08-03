@@ -24,14 +24,14 @@ export interface SidebarGroup {
 }
 
 /** Tabs de la navegación inferior (móvil) para el rol admin */
-export const BOTTOM_NAV_KEYS = ['ejecutivo', 'colmenas', 'contabilidad', 'configuracion'] as const
+export const BOTTOM_NAV_KEYS = ['inicio', 'colmenas', 'contabilidad', 'configuracion'] as const
 
 /**
  * Módulos primarios del rail compacto (tablet / desktop colapsado).
  * Keys reales de SIDEBAR_GROUPS — no hrefs.
  */
 export const RAIL_PRIMARY_KEYS = [
-  'ejecutivo',
+  'inicio',
   'colmenas',
   'contabilidad',
   'productos',
@@ -45,7 +45,7 @@ export const RAIL_PRIMARY_KEYS = [
  * pesados (three.js ~1MB, leaflet, recharts) de vistas que no se usan.
  */
 export const PREFETCH_PRIORITY_KEYS = [
-  'ejecutivo',
+  'inicio',
   'colmenas',
   'produccion',
   'alambique',
@@ -63,12 +63,20 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     label: 'VISIÓN',
     items: [
       {
-        key: 'ejecutivo',
-        label: 'Panel Ejecutivo',
-        icon: 'bar-chart-3',
-        href: '/ejecutivo',
+        key: 'inicio',
+        label: 'Inicio',
+        icon: 'network',
+        href: '/inicio',
         greeting: 'Comandante del enjambre',
         mission: 'Visión total, operación total',
+      },
+      {
+        key: 'alma',
+        label: 'Alma del Enjambre',
+        icon: 'sparkles',
+        href: '/alma',
+        greeting: 'Corazón del legado',
+        mission: 'La vida del enjambre, en su forma más pura',
       },
     ],
   },
@@ -78,7 +86,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     items: [
       {
         key: 'colmenas',
-        label: 'Mis Colmenas',
+        label: 'Colmenas',
         icon: 'hexagon',
         href: '/colmenas',
         greeting: 'Obrera del bosque',
@@ -116,7 +124,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     items: [
       {
         key: 'ciclo-bosque',
-        label: 'Ciclo del Bosque',
+        label: 'Calendario',
         icon: 'calendar-days',
         href: '/calendario',
         greeting: 'Guardián del tiempo',
@@ -124,7 +132,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       },
       {
         key: 'bosque',
-        label: 'Bosque Plantado',
+        label: 'Bosque',
         icon: 'tree-pine',
         href: '/regeneracion',
         greeting: 'Guardián del legado',
@@ -140,7 +148,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       },
       {
         key: 'fenologia',
-        label: 'Fenología',
+        label: 'Oráculo Fenológico',
         icon: 'sprout',
         href: '/fenologia',
         greeting: 'Oráculo del bosque',
@@ -154,7 +162,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     items: [
       {
         key: 'produccion',
-        label: 'Inventario',
+        label: 'Producción',
         icon: 'factory',
         href: '/produccion',
         greeting: 'Maestro del panal',
@@ -338,7 +346,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     items: [
       {
         key: 'territorio',
-        label: 'Territorio',
+        label: 'Mapa del Legado',
         icon: 'map',
         href: '/mapa',
         greeting: 'Cartógrafo del bosque',
@@ -377,7 +385,8 @@ export const VIEW_SHELL_PATHS = new Set([
   '/pipeline',
   '/perfil',
   '/configuracion',
-  '/ejecutivo',
+  '/inicio',
+  '/alma',
   '/invitaciones',
   '/operadores-feria',
   '/calendario',
@@ -402,11 +411,11 @@ const ROUTE_ITEM_ALIASES: Record<string, string> = {
 /**
  * Ítems visibles por rol. Los roles no-admin (cliente/creador/rep_ventas) no viven
  * en nucleo — el middleware los redirige a tienda/campo; solo territorial tiene
- * home propio (`/territorio`). `[]` = todos los ítems.
+ * home propio (`/inicio` + registro). `[]` = todos los ítems.
  */
 const ROLE_VISIBLE_KEYS: Record<RoleKey, readonly string[]> = {
   admin: [],
-  territorial: ['territorio'],
+  territorial: ['inicio', 'territorio', 'fenologia'],
   creador: [],
   rep_ventas: [],
   cliente: [],
@@ -424,9 +433,18 @@ const ROLE_HREF_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   cliente: {},
 }
 
-/** Tabs del bottom nav (móvil) por rol: territorial navega solo su registro */
+/** Labels ajustados por rol (el territorial ve 'Mi Territorio', no 'Mapa del Legado') */
+const ROLE_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
+  admin: {},
+  territorial: { territorio: 'Mi Territorio' },
+  creador: {},
+  rep_ventas: {},
+  cliente: {},
+}
+
+/** Tabs del bottom nav (móvil) por rol: territorial navega inicio + su registro */
 export function getBottomNavKeysForRole(role: RoleKey): readonly string[] {
-  if (role === 'territorial') return ['territorio']
+  if (role === 'territorial') return ['inicio', 'territorio']
   return BOTTOM_NAV_KEYS
 }
 
@@ -461,16 +479,21 @@ export function getAllItems(): SidebarItem[] {
   return [...SIDEBAR_GROUPS.flatMap(g => g.items), ...ACCOUNT_ITEMS]
 }
 
-/** Grupos visibles para el rol, con hrefs ajustados y grupos vacíos eliminados */
+/** Grupos visibles para el rol, con hrefs/labels ajustados y grupos vacíos eliminados */
 export function getSidebarGroupsForRole(role: RoleKey): SidebarGroup[] {
   const visible = ROLE_VISIBLE_KEYS[role]
   const overrides = ROLE_HREF_OVERRIDES[role] ?? {}
+  const labelOverrides = ROLE_LABEL_OVERRIDES[role] ?? {}
   return SIDEBAR_GROUPS
     .map((group) => ({
       ...group,
       items: group.items
         .filter((item) => visible.length === 0 || visible.includes(item.key))
-        .map((item) => (overrides[item.key] ? { ...item, href: overrides[item.key] } : item)),
+        .map((item) => ({
+          ...item,
+          href: overrides[item.key] ? overrides[item.key] : item.href,
+          label: labelOverrides[item.key] ? labelOverrides[item.key] : item.label,
+        })),
     }))
     .filter((group) => group.items.length > 0)
 }

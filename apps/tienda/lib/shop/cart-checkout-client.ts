@@ -34,6 +34,7 @@ export type CartCheckoutOptions = {
   courierCode: string;
   puntosACanjear?: number;
   codigoDescuento?: string;
+  codigoCreador?: string;
   returnUrl: string;
   puntosGanadosEstimados?: number;
 };
@@ -95,6 +96,7 @@ export async function startCartCheckout(
         courierCode: options.courierCode,
         puntosACanjear: options.puntosACanjear ?? 0,
         codigoDescuento: options.codigoDescuento,
+        codigoCreador: options.codigoCreador,
       }),
     });
   } catch {

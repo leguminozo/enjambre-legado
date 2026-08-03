@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import type { Map } from 'leaflet';
 import { supabase } from '../../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import L from 'leaflet';
 import { BOSQUE_ULMO, ORO_MIEL, ORO_MIEL_DARK, SALUD_OPTIMA } from '@/lib/colors';
 import 'leaflet/dist/leaflet.css';
-import { Plus, X, MapPin } from 'lucide-react';
+import { Plus, X, MapPin, Clock, ChevronLeft, ChevronRight, X as CloseIcon } from 'lucide-react';
 import { toast, friendlyError, DatePicker } from '@enjambre/ui';
-import { resolveClienteCoords } from '@/lib/cliente-coords';
+import { resolveClienteCoords, resolveComunaCoords } from '@/lib/cliente-coords';
 
 export interface MapMarker {
     id: string;
@@ -135,6 +135,111 @@ interface Evento {
   fecha_inicio: string | null;
 }
 
+// ── Capas territoriales (Registro Territorial / Trama geo-temporal) ──────────
+
+interface AlertaTerritorial {
+  id: string;
+  producto: string;
+  zona: string;
+  fecha_programada: string;
+  estado: string;
+  radio_km?: number | null;
+  tipo_producto?: string | null;
+  lat_aproximada?: number | null;
+  lng_aproximada?: number | null;
+}
+
+interface TrashumanteActivo {
+  id: string;
+  nombre?: string | null;
+  n_colmenas: number;
+  comuna_origen: string;
+  comuna_destino: string;
+  zona_destino: string;
+  lat_aproximada?: number | null;
+  lng_aproximada?: number | null;
+  fecha_ingreso: string;
+  fecha_salida?: string | null;
+  cert_sanitaria_fecha?: string | null;
+  cert_sanitaria_lab?: string | null;
+  estado: string;
+  actores_registro?: { nombre_actor: string } | null;
+}
+
+interface PredioFacilitador {
+  id: string;
+  nombre?: string | null;
+  comuna: string;
+  zona: string;
+  lat_aproximada?: number | null;
+  lng_aproximada?: number | null;
+  superficie_ha?: number | null;
+  activo: boolean;
+}
+
+interface CensoApiario {
+  id: string;
+  nombre?: string | null;
+  comuna: string;
+  zona: string;
+  n_colmenas: number;
+  categoria: string;
+  activo: boolean;
+  lat_aproximada?: number | null;
+  lng_aproximada?: number | null;
+}
+
+interface CosechaMapa {
+  id: string;
+  fecha: string | null;
+  kg: number | null;
+  floracion: string | null;
+  colmenas?: {
+    apiarios?: { id?: string; name?: string | null; lat?: number | null; lng?: number | null } | null;
+  } | null;
+}
+
+interface HistorialApiario {
+  apiario: {
+    id: string;
+    name: string | null;
+    lat: number | null;
+    lng: number | null;
+    sector: string | null;
+    details: string | null;
+  };
+  colmenas: Array<{
+    id: string;
+    name?: string | null;
+    alzas?: number | null;
+    last_inspection?: string | null;
+    production_total?: number | null;
+    inspecciones?: Array<{ id: string; date: string | null; fase?: string | null; marcos_cria?: number | null; marcos_miel?: number | null; varroa?: number | null; poblacion?: string | null }>;
+    varroa_records?: Array<{ id: string; date: string | null; level: number | null; method?: string | null }>;
+    peso_records?: Array<{ id: string; date: string | null; kg: number | null }>;
+  }>;
+  cosechas: Array<{ id: string; fecha: string | null; kg: number | null; floracion?: string | null; lote_id?: string | null; colmena_id?: string | null }>;
+  tratamientos: Array<{ id: string; fecha: string | null; principio_activo?: string | null; producto_comercial?: string | null; enfermedad?: string | null; retiro_fin?: string | null }>;
+  reinas: Array<{ id: string; fecha: string | null; estado?: string | null; reemplazada_por?: string | null }>;
+}
+
+// Iconos de las capas geo-temporales
+function createLayerIcon(emoji: string, color: string): L.DivIcon {
+  return L.divIcon({
+    className: 'custom-map-icon',
+    html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); font-size: 14px;">${emoji}</div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -15],
+  });
+}
+
+const ICON_ALERTA = createLayerIcon('⚠️', 'hsl(var(--destructive))');
+const ICON_TRASHUMANTE = createLayerIcon('🚚', 'hsl(var(--accent))');
+const ICON_PREDIO = createLayerIcon('🌿', 'hsl(var(--success))');
+const ICON_CENSO = createLayerIcon('🐝', 'hsl(var(--primary))');
+const ICON_COSECHA = createLayerIcon('🍯', 'hsl(var(--warning, var(--accent)))');
+
 export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
     const apiFetch = useApiFetch();
     const [liveMarkers, setLiveMarkers] = useState<MapMarker[]>([]);
@@ -158,6 +263,30 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
     const [showTrees, setShowTrees] = useState(true);
     const [showTransito, setShowTransito] = useState(true);
     const [showAltaProduccion, setShowAltaProduccion] = useState(true);
+
+    // Capas geo-temporales (Registro Territorial / Trama)
+    const [showAlertas, setShowAlertas] = useState(true);
+    const [showTrashumantes, setShowTrashumantes] = useState(true);
+    const [showPredios, setShowPredios] = useState(true);
+    const [showCensoApiarios, setShowCensoApiarios] = useState(true);
+    const [showCosechas, setShowCosechas] = useState(true);
+
+    const [alertas, setAlertas] = useState<AlertaTerritorial[]>([]);
+    const [trashumantes, setTrashumantes] = useState<TrashumanteActivo[]>([]);
+    const [predios, setPredios] = useState<PredioFacilitador[]>([]);
+    const [censoApiarios, setCensoApiarios] = useState<CensoApiario[]>([]);
+    const [cosechasMapa, setCosechasMapa] = useState<CosechaMapa[]>([]);
+
+    // Timeline geo-temporal: 'ahora' (default) o un mes del pasado
+    const [esAhora, setEsAhora] = useState(true);
+    const [fechaEnfocada, setFechaEnfocada] = useState(() =>
+        new Date().toISOString().slice(0, 7)
+    );
+
+    // Ficha geo-temporal del apiario (panel lateral con la línea de vida)
+    const [apiarioSeleccionado, setApiarioSeleccionado] = useState<{ id: string; name: string } | null>(null);
+    const [historialApiario, setHistorialApiario] = useState<HistorialApiario | null>(null);
+    const [loadingHistorial, setLoadingHistorial] = useState(false);
 
     useEffect(() => {
         async function loadMaps() {
@@ -183,6 +312,31 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                     .from('colmenas')
                     .select('id, apiario_id, alzas')
                     .gte('alzas', 2);
+
+                // ── Capas geo-temporales (Registro Territorial / Trama) ──
+                const [alertasRes, trashumRes, prediosRes, censoRes] = await Promise.all([
+                    apiFetch('/api/registro-territorial/alertas'),
+                    apiFetch('/api/registro-territorial/apiarios-externos'),
+                    apiFetch('/api/registro-territorial/predios'),
+                    apiFetch('/api/registro-territorial/apiarios'),
+                ]);
+                const alertasJson = alertasRes.ok ? await alertasRes.json() : { data: [] };
+                const trashumJson = trashumRes.ok ? await trashumRes.json() : { data: [] };
+                const prediosJson = prediosRes.ok ? await prediosRes.json() : { data: [] };
+                const censoJson = censoRes.ok ? await censoRes.json() : { data: [] };
+                setAlertas(alertasJson.data ?? []);
+                setTrashumantes(trashumJson.data ?? []);
+                setPredios(prediosJson.data ?? []);
+                setCensoApiarios(censoJson.data ?? []);
+
+                // Cosechas con geolocalización (vía colmena → apiario) para la capa temporal
+                const { data: cosechasGeo } = await supabase
+                    .from('cosechas')
+                    .select('id, fecha, kg, floracion, colmenas(apiarios(id, name, lat, lng))')
+                    .not('fecha', 'is', null)
+                    .order('fecha', { ascending: false })
+                    .limit(500);
+                setCosechasMapa(cosechasGeo ?? []);
 
                 setEvents(evts ?? []);
 
@@ -487,6 +641,128 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
         filteredMarkers = filteredMarkers.filter(m => m.type !== 'transito');
     }
 
+    // ── Timeline geo-temporal: 'ahora' o un mes del pasado ──
+    const fechaFocus = esAhora ? new Date() : new Date(`${fechaEnfocada}-01T12:00:00`);
+    const mesInicio = new Date(fechaFocus.getFullYear(), fechaFocus.getMonth(), 1);
+    const mesFin = new Date(fechaFocus.getFullYear(), fechaFocus.getMonth() + 1, 0, 23, 59, 59);
+
+    // Trashumantes presentes en la ventana temporal (ingreso ≤ t ≤ salida)
+    const trashumantesVisibles = trashumantes.filter(t => {
+        if (t.lat_aproximada == null || t.lng_aproximada == null) return false;
+        const ingreso = new Date(t.fecha_ingreso);
+        const salida = t.fecha_salida ? new Date(t.fecha_salida) : null;
+        if (esAhora) {
+            return ingreso <= fechaFocus && (!salida || salida >= fechaFocus);
+        }
+        return ingreso <= mesFin && (!salida || salida >= mesInicio);
+    });
+
+    // Alertas visibles: ±7 días alrededor de 'ahora', o dentro del mes enfocado
+    const alertasVisibles = alertas.filter(a => {
+        if (a.lat_aproximada == null || a.lng_aproximada == null) return false;
+        const prog = new Date(a.fecha_programada);
+        if (esAhora) {
+            const diff = Math.abs(prog.getTime() - fechaFocus.getTime()) / 86_400_000;
+            return diff <= 7;
+        }
+        return prog >= mesInicio && prog <= mesFin;
+    });
+
+    // Cosechas con geo dentro de la ventana temporal
+    const cosechasVisibles = cosechasMapa.filter(c => {
+        if (!c.fecha || c.colmenas?.apiarios?.lat == null || c.colmenas?.apiarios?.lng == null) return false;
+        const f = new Date(c.fecha);
+        if (esAhora) {
+            return f.getFullYear() === fechaFocus.getFullYear() && f.getMonth() === fechaFocus.getMonth();
+        }
+        return f >= mesInicio && f <= mesFin;
+    });
+
+    // Eventos/ferias: en un mes enfocado solo los de ese mes
+    if (!esAhora) {
+        filteredMarkers = filteredMarkers.filter(m => {
+            if (m.type !== 'feria' || !m.details) return true;
+            const f = new Date(m.details);
+            return f >= mesInicio && f <= mesFin;
+        });
+    }
+
+    // ── Ficha geo-temporal del apiario (bitácora Trama) ──
+    const abrirFichaApiario = async (apiarioId: string, nombre: string) => {
+        setApiarioSeleccionado({ id: apiarioId, name: nombre });
+        setHistorialApiario(null);
+        setLoadingHistorial(true);
+        try {
+            const res = await apiFetch(`/api/mapa/historial/apiario/${apiarioId}`);
+            if (!res.ok) throw new Error('Error cargando historial');
+            const json = await res.json();
+            setHistorialApiario(json.data as HistorialApiario);
+        } catch (e) {
+            toast(friendlyError(e, 'Error al cargar la bitácora del apiario'), { type: 'error' });
+        } finally {
+            setLoadingHistorial(false);
+        }
+    };
+
+    const cerrarFichaApiario = () => {
+        setApiarioSeleccionado(null);
+        setHistorialApiario(null);
+    };
+
+    const irMes = (delta: number) => {
+        const d = new Date(`${fechaEnfocada}-01T12:00:00`);
+        d.setMonth(d.getMonth() + delta);
+        setFechaEnfocada(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+        setEsAhora(false);
+    };
+
+    const volverAhora = () => {
+        setEsAhora(true);
+        setFechaEnfocada(new Date().toISOString().slice(0, 7));
+    };
+
+    // ── Línea de vida unificada del apiario (bitácora Trama) ──
+    const lineaVida = (() => {
+        if (!historialApiario) return [];
+        const items: Array<{ fecha: string; tipo: string; texto: string }> = [];
+        for (const col of historialApiario.colmenas) {
+            const nombre = col.name ?? 'Colmena';
+            for (const ins of col.inspecciones ?? []) {
+                items.push({
+                    fecha: ins.date ?? '',
+                    tipo: '🔍 Inspección',
+                    texto: `${nombre}: ${ins.fase ?? 'revisión'}${ins.marcos_cria != null ? ` · ${ins.marcos_cria} cuadros cría` : ''}${ins.marcos_miel != null ? ` · ${ins.marcos_miel} miel` : ''}${ins.varroa != null ? ` · varroa ${ins.varroa}%` : ''}`,
+                });
+            }
+            for (const v of col.varroa_records ?? []) {
+                items.push({ fecha: v.date ?? '', tipo: '🐜 Varroa', texto: `${nombre}: ${v.level}%${v.method ? ` (${v.method})` : ''}` });
+            }
+            for (const p of col.peso_records ?? []) {
+                items.push({ fecha: p.date ?? '', tipo: '⚖️ Peso', texto: `${nombre}: ${p.kg} kg` });
+            }
+        }
+        for (const c of historialApiario.cosechas) {
+            items.push({
+                fecha: c.fecha ?? '',
+                tipo: '🍯 Cosecha',
+                texto: `${c.kg} kg${c.floracion ? ` · ${c.floracion}` : ''}${c.lote_id ? ` → lote ${c.lote_id.slice(0, 8)}` : ''}`,
+            });
+        }
+        for (const t of historialApiario.tratamientos) {
+            items.push({
+                fecha: t.fecha ?? '',
+                tipo: '⚕️ Tratamiento',
+                texto: `${t.principio_activo ?? t.producto_comercial ?? 'Tratamiento'}${t.retiro_fin ? ` · retiro hasta ${t.retiro_fin}` : ''}`,
+            });
+        }
+        for (const r of historialApiario.reinas) {
+            items.push({ fecha: r.fecha ?? '', tipo: '👑 Reina', texto: r.estado ?? 'Registro' });
+        }
+        return items
+            .filter((i) => i.fecha)
+            .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+    })();
+
     // Chiloé center
     const center: [number, number] = [-42.47, -73.73];
 
@@ -553,6 +829,121 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                         >
                             🌟 Alta Producción
                         </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowAlertas(!showAlertas)}
+                            className={`btn btn-sm ${showAlertas ? 'btn-primary' : 'btn-ghost'}`}
+                            style={{ 
+                                minHeight: 44,
+                                padding: '0.5rem 0.75rem', 
+                                fontSize: '0.72rem',
+                                background: showAlertas ? 'hsl(var(--destructive))' : 'transparent',
+                                color: showAlertas ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
+                            }}
+                        >
+                            ⚠️ Alertas
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowTrashumantes(!showTrashumantes)}
+                            className={`btn btn-sm ${showTrashumantes ? 'btn-primary' : 'btn-ghost'}`}
+                            style={{ 
+                                minHeight: 44,
+                                padding: '0.5rem 0.75rem', 
+                                fontSize: '0.72rem',
+                                background: showTrashumantes ? 'hsl(var(--accent))' : 'transparent',
+                                color: showTrashumantes ? 'hsl(var(--accent-foreground, var(--primary-foreground)))' : 'hsl(var(--foreground))'
+                            }}
+                        >
+                            🚚 Trashumantes
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowPredios(!showPredios)}
+                            className={`btn btn-sm ${showPredios ? 'btn-primary' : 'btn-ghost'}`}
+                            style={{ 
+                                minHeight: 44,
+                                padding: '0.5rem 0.75rem', 
+                                fontSize: '0.72rem',
+                                background: showPredios ? 'hsl(var(--success))' : 'transparent',
+                                color: showPredios ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
+                            }}
+                        >
+                            🌿 Predios
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowCensoApiarios(!showCensoApiarios)}
+                            className={`btn btn-sm ${showCensoApiarios ? 'btn-primary' : 'btn-ghost'}`}
+                            style={{ 
+                                minHeight: 44,
+                                padding: '0.5rem 0.75rem', 
+                                fontSize: '0.72rem',
+                                background: showCensoApiarios ? 'hsl(var(--primary))' : 'transparent',
+                                color: showCensoApiarios ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
+                            }}
+                        >
+                            🐝 Censo
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowCosechas(!showCosechas)}
+                            className={`btn btn-sm ${showCosechas ? 'btn-primary' : 'btn-ghost'}`}
+                            style={{ 
+                                minHeight: 44,
+                                padding: '0.5rem 0.75rem', 
+                                fontSize: '0.72rem',
+                                background: showCosechas ? 'hsl(var(--warning, var(--accent)))' : 'transparent',
+                                color: showCosechas ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
+                            }}
+                        >
+                            🍯 Cosechas
+                        </button>
+                    </div>
+
+                    {/* Timeline geo-temporal */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'hsl(var(--card) / 0.85)', border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-md)', padding: '4px 6px', backdropFilter: 'blur(8px)' }}>
+                        <button
+                            type="button"
+                            onClick={() => irMes(-1)}
+                            className="btn btn-ghost btn-sm"
+                            style={{ minHeight: 36, padding: '0.3rem 0.5rem', fontSize: '0.72rem', color: 'hsl(var(--foreground))' }}
+                            title="Mes anterior"
+                        >
+                            <ChevronLeft size={14} />
+                        </button>
+                        {esAhora ? (
+                            <button
+                                type="button"
+                                onClick={volverAhora}
+                                className="btn btn-primary btn-sm"
+                                style={{ minHeight: 36, padding: '0.3rem 0.6rem', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 4 }}
+                            >
+                                <Clock size={12} /> Hoy
+                            </button>
+                        ) : (
+                            <input
+                                type="month"
+                                value={fechaEnfocada}
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        setFechaEnfocada(e.target.value);
+                                        setEsAhora(false);
+                                    }
+                                }}
+                                className="input-field"
+                                style={{ minHeight: 36, padding: '0.3rem 0.5rem', fontSize: '0.72rem', width: 130, background: 'transparent', border: 'none', color: 'hsl(var(--foreground))' }}
+                            />
+                        )}
+                        <button
+                            type="button"
+                            onClick={() => irMes(1)}
+                            className="btn btn-ghost btn-sm"
+                            style={{ minHeight: 36, padding: '0.3rem 0.5rem', fontSize: '0.72rem', color: 'hsl(var(--foreground))' }}
+                            title="Mes siguiente"
+                        >
+                            <ChevronRight size={14} />
+                        </button>
                     </div>
 
                     <button
@@ -591,6 +982,12 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                                     const markerEvent = e.target;
                                     const position = markerEvent.getLatLng();
                                     await handleMoveMarker(marker.id, position.lat, position.lng);
+                                },
+                                click: () => {
+                                    if (marker.type === 'obrera' || marker.type === 'alta_produccion') {
+                                        const apiarioId = marker.id.startsWith('api-') ? marker.id.substring(4) : marker.id;
+                                        abrirFichaApiario(apiarioId, marker.name);
+                                    }
                                 }
                             }}
                         >
@@ -640,13 +1037,244 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                             </Popup>
                         </Marker>
                     ))}
+
+                    {/* ── Capa geo-temporal: cosechas del mes (🍯) ── */}
+                    {!filterRole && showCosechas && cosechasVisibles.map((c) => {
+                        const api = c.colmenas?.apiarios;
+                        if (api?.lat == null || api?.lng == null) return null;
+                        return (
+                            <Marker
+                                key={`cosecha-${c.id}`}
+                                position={[api.lat, api.lng]}
+                                icon={ICON_COSECHA}
+                            >
+                                <Popup>
+                                    <div style={{ minWidth: 180 }}>
+                                        <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>🍯 Cosecha</div>
+                                        <strong style={{ fontSize: '0.95rem', color: BOSQUE_ULMO }}>{c.kg != null ? `${c.kg} kg` : 'Cosecha'}</strong>
+                                        {c.floracion && (
+                                            <p style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', marginTop: 6 }}>{c.floracion}</p>
+                                        )}
+                                        {c.fecha && (
+                                            <p style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>
+                                                {new Date(c.fecha).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            </p>
+                                        )}
+                                    </div>
+                                </Popup>
+                            </Marker>
+                        );
+                    })}
+
+                    {/* ── Capa geo-temporal: alertas fitosanitarias (⚠️ + radio) ── */}
+                    {!filterRole && showAlertas && alertasVisibles.map((a) => {
+                        if (a.lat_aproximada == null || a.lng_aproximada == null) return null;
+                        return (
+                            <div key={`alerta-${a.id}`}>
+                                <Circle
+                                    center={[a.lat_aproximada, a.lng_aproximada]}
+                                    radius={(a.radio_km || 3) * 1000}
+                                    pathOptions={{
+                                        color: 'hsl(var(--destructive))',
+                                        fillColor: 'hsl(var(--destructive))',
+                                        fillOpacity: 0.12,
+                                        weight: 1,
+                                    }}
+                                />
+                                <Marker position={[a.lat_aproximada, a.lng_aproximada]} icon={ICON_ALERTA}>
+                                    <Popup>
+                                        <div style={{ minWidth: 200 }}>
+                                            <div style={{ fontSize: '0.7rem', color: 'hsl(var(--destructive))', marginBottom: 4 }}>⚠️ Alerta Fitosanitaria</div>
+                                            <strong style={{ fontSize: '0.95rem', color: BOSQUE_ULMO }}>{a.producto}</strong>
+                                            <p style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', marginTop: 6 }}>
+                                                {a.zona}{a.tipo_producto ? ` · ${a.tipo_producto}` : ''}
+                                            </p>
+                                            <p style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>
+                                                {new Date(a.fecha_programada).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })} · radio {a.radio_km || 3} km
+                                            </p>
+                                        </div>
+                                    </Popup>
+                                </Marker>
+                            </div>
+                        );
+                    })}
+
+                    {/* ── Capa geo-temporal: trashumantes con trayectoria (🚚 + polyline) ── */}
+                    {!filterRole && showTrashumantes && trashumantesVisibles.map((t) => {
+                        if (t.lat_aproximada == null || t.lng_aproximada == null) return null;
+                        const origen = resolveComunaCoords(t.comuna_origen);
+                        return (
+                            <div key={`trashum-${t.id}`}>
+                                {origen && (
+                                    <Polyline
+                                        positions={[[origen.lat, origen.lng], [t.lat_aproximada, t.lng_aproximada]]}
+                                        pathOptions={{ color: 'hsl(var(--accent))', weight: 2, dashArray: '6, 6', opacity: 0.8 }}
+                                    />
+                                )}
+                                <Marker position={[t.lat_aproximada, t.lng_aproximada]} icon={ICON_TRASHUMANTE}>
+                                    <Popup>
+                                        <div style={{ minWidth: 200 }}>
+                                            <div style={{ fontSize: '0.7rem', color: 'hsl(var(--accent))', marginBottom: 4 }}>🚚 Trashumante</div>
+                                            <strong style={{ fontSize: '0.95rem', color: BOSQUE_ULMO }}>
+                                                {t.actores_registro?.nombre_actor ?? t.nombre ?? 'Trashumante'}
+                                            </strong>
+                                            <p style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', marginTop: 6 }}>
+                                                {t.comuna_origen} → {t.comuna_destino} · {t.zona_destino}
+                                            </p>
+                                            <p style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>
+                                                🐝 {t.n_colmenas} colmenas · Ingreso {t.fecha_ingreso}
+                                                {t.fecha_salida ? ` · Salida ${t.fecha_salida}` : ''}
+                                            </p>
+                                            {(t.cert_sanitaria_fecha || t.cert_sanitaria_lab) && (
+                                                <p style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>
+                                                    Cert. sanitaria: {t.cert_sanitaria_lab ?? '—'} · {t.cert_sanitaria_fecha ?? '—'}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </Popup>
+                                </Marker>
+                            </div>
+                        );
+                    })}
+
+                    {/* ── Capa: predios facilitadores (🌿) ── */}
+                    {!filterRole && showPredios && predios
+                        .filter(p => p.activo && p.lat_aproximada != null && p.lng_aproximada != null)
+                        .map((p) => (
+                            <Marker
+                                key={`predio-${p.id}`}
+                                position={[p.lat_aproximada as number, p.lng_aproximada as number]}
+                                icon={ICON_PREDIO}
+                            >
+                                <Popup>
+                                    <div style={{ minWidth: 180 }}>
+                                        <div style={{ fontSize: '0.7rem', color: 'hsl(var(--success))', marginBottom: 4 }}>🌿 Predio Facilitador</div>
+                                        <strong style={{ fontSize: '0.95rem', color: BOSQUE_ULMO }}>{p.nombre ?? 'Predio'}</strong>
+                                        <p style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', marginTop: 6 }}>
+                                            {p.zona} · {p.comuna}
+                                        </p>
+                                        {p.superficie_ha != null && (
+                                            <p style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>
+                                                {p.superficie_ha} ha
+                                            </p>
+                                        )}
+                                    </div>
+                                </Popup>
+                            </Marker>
+                        ))}
+
+                    {/* ── Capa: apiarios del censo comunal (🐝) ── */}
+                    {!filterRole && showCensoApiarios && censoApiarios
+                        .filter(a => a.activo && a.lat_aproximada != null && a.lng_aproximada != null)
+                        .map((a) => (
+                            <Marker
+                                key={`censo-${a.id}`}
+                                position={[a.lat_aproximada as number, a.lng_aproximada as number]}
+                                icon={ICON_CENSO}
+                            >
+                                <Popup>
+                                    <div style={{ minWidth: 180 }}>
+                                        <div style={{ fontSize: '0.7rem', color: 'hsl(var(--primary))', marginBottom: 4 }}>🐝 Apiario del Registro</div>
+                                        <strong style={{ fontSize: '0.95rem', color: BOSQUE_ULMO }}>{a.nombre ?? 'Apiario comunal'}</strong>
+                                        <p style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', marginTop: 6 }}>
+                                            {a.zona} · {a.comuna}
+                                        </p>
+                                        <p style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>
+                                            🐝 {a.n_colmenas} colmenas · {a.categoria}
+                                        </p>
+                                    </div>
+                                </Popup>
+                            </Marker>
+                        ))}
                 </MapContainer>
             </div>
+
+            {/* ── Ficha geo-temporal del apiario (bitácora Trama) ── */}
+            {apiarioSeleccionado && (
+                <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 380, maxWidth: '92vw', zIndex: 1500, background: 'hsl(var(--card))', borderLeft: '1px solid hsl(var(--border))', overflowY: 'auto', padding: 'var(--space-lg)', boxShadow: '-10px 0 40px rgba(0,0,0,0.35)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-md)' }}>
+                        <div>
+                            <div className="section-title" style={{ marginBottom: 4 }}>Bitácora del Apiario</div>
+                            <div style={{ fontSize: '0.95rem', fontWeight: 700, color: BOSQUE_ULMO }}>
+                                🐝 {apiarioSeleccionado.name}
+                            </div>
+                            {historialApiario?.apiario?.sector && (
+                                <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginTop: 2 }}>
+                                    {historialApiario.apiario.sector}
+                                </div>
+                            )}
+                        </div>
+                        <button onClick={cerrarFichaApiario} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}>
+                            <CloseIcon size={18} />
+                        </button>
+                    </div>
+
+                    {loadingHistorial ? (
+                        <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'hsl(var(--muted-foreground))', fontSize: '0.8rem' }}>
+                            Cargando la línea de vida...
+                        </div>
+                    ) : !historialApiario ? (
+                        <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'hsl(var(--muted-foreground))', fontSize: '0.8rem' }}>
+                            Sin historial disponible.
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                            {/* Resumen */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                                <div style={{ background: 'hsl(var(--surface-raised, var(--card)))', border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-md)', padding: 10, textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{historialApiario.colmenas.length}</div>
+                                    <div style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>Colmenas</div>
+                                </div>
+                                <div style={{ background: 'hsl(var(--surface-raised, var(--card)))', border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-md)', padding: 10, textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{historialApiario.cosechas.length}</div>
+                                    <div style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>Cosechas</div>
+                                </div>
+                                <div style={{ background: 'hsl(var(--surface-raised, var(--card)))', border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-md)', padding: 10, textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{lineaVida.length}</div>
+                                    <div style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>Eventos</div>
+                                </div>
+                            </div>
+
+                            {/* Línea de vida cronológica */}
+                            <div>
+                                <div className="section-subtitle" style={{ marginBottom: 'var(--space-sm)' }}>Línea de vida</div>
+                                {lineaVida.length === 0 ? (
+                                    <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>
+                                        Aún no hay eventos registrados para este apiario.
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                                        {lineaVida.map((item, i) => (
+                                            <div key={i} style={{ display: 'flex', gap: 10, paddingBottom: 12, position: 'relative' }}>
+                                                {i < lineaVida.length - 1 && (
+                                                    <div style={{ position: 'absolute', left: 9, top: 20, bottom: 0, width: 2, background: 'hsl(var(--border) / 0.6)' }} />
+                                                )}
+                                                <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'hsl(var(--primary) / 0.12)', border: '2px solid hsl(var(--primary) / 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', flexShrink: 0, zIndex: 1 }}>
+                                                    {item.tipo.slice(0, 1)}
+                                                </div>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+                                                        <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>{item.tipo}</span>
+                                                        <span style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))', whiteSpace: 'nowrap' }}>
+                                                            {new Date(item.fecha).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', marginTop: 2, lineHeight: 1.4 }}>{item.texto}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Add Marker Modal */}
             {showAddModal && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ position: 'absolute', inset: 0, background: 'hsl(var(--foreground) / 0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setShowAddModal(false)} />
+                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />
                     <div className="card" style={{ position: 'relative', zIndex: 2001, width: 400, padding: 'var(--space-xl)' }}>
                         <button onClick={() => setShowAddModal(false)} style={{ position: 'absolute', top: 14, right: 14, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
                         <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
@@ -699,7 +1327,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
             {/* Edit Marker Modal */}
             {showEditModal && selectedMarker && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ position: 'absolute', inset: 0, background: 'hsl(var(--foreground) / 0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setShowEditModal(false)} />
+                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowEditModal(false)} />
                     <div className="card" style={{ position: 'relative', zIndex: 2001, width: 400, padding: 'var(--space-xl)' }}>
                         <button onClick={() => setShowEditModal(false)} style={{ position: 'absolute', top: 14, right: 14, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
                         <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
@@ -828,7 +1456,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
             {/* Add Event Modal */}
             {showAddEventModal && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ position: 'absolute', inset: 0, background: 'hsl(var(--foreground) / 0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setShowAddEventModal(false)} />
+                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowAddEventModal(false)} />
                     <div className="card" style={{ position: 'relative', zIndex: 2001, width: 400, padding: 'var(--space-xl)' }}>
                         <button onClick={() => setShowAddEventModal(false)} style={{ position: 'absolute', top: 14, right: 14, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
                         <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
@@ -878,6 +1506,21 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ width: 12, height: 12, borderRadius: '50%', background: SALUD_OPTIMA, border: `2px solid ${BOSQUE_ULMO}`, display: 'inline-block' }} /> Árbol ulmo (bosque)
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'hsl(var(--destructive))', border: '2px solid white', display: 'inline-block', fontSize: '0.55rem', textAlign: 'center', lineHeight: '14px' }}>⚠️</span> Alerta fitosanitaria (radio)
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'hsl(var(--accent))', border: '2px solid white', display: 'inline-block', fontSize: '0.55rem', textAlign: 'center', lineHeight: '14px' }}>🚚</span> Trashumante (trayectoria)
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'hsl(var(--success))', border: '2px solid white', display: 'inline-block', fontSize: '0.55rem', textAlign: 'center', lineHeight: '14px' }}>🌿</span> Predio facilitador
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'hsl(var(--primary))', border: '2px solid white', display: 'inline-block', fontSize: '0.55rem', textAlign: 'center', lineHeight: '14px' }}>🐝</span> Apiario del censo
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'hsl(var(--warning, var(--accent)))', border: '2px solid white', display: 'inline-block', fontSize: '0.55rem', textAlign: 'center', lineHeight: '14px' }}>🍯</span> Cosecha del mes
                     </span>
                 </div>
             </div>

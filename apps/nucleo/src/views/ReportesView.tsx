@@ -14,7 +14,7 @@ export function ReportesView() {
       <ViewShell
         variant="compact"
         eyebrow="Finanzas"
-        title="Reportes financieros"
+        title="Reportes"
         subtitle="Balances, estados de resultado, flujos y libros — con salida al contable, SII y cálculos IA."
         icon={<BarChart3 size={20} />}
       />

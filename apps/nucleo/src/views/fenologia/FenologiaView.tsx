@@ -22,6 +22,14 @@ interface Especie {
   activo: boolean;
 }
 
+interface Estacion {
+  id: string;
+  nombre: string;
+  lat: number;
+  lng: number;
+  activo: boolean;
+}
+
 interface PronosticoEspecie {
   id: string;
   nombreCientifico: string;
@@ -69,6 +77,9 @@ export function FenologiaView() {
   const [observaciones, setObservaciones] = useState<Observacion[]>([]);
   const [loading, setLoading] = useState(true);
   const [editUmbral, setEditUmbral] = useState<Record<string, string>>({});
+  const [estaciones, setEstaciones] = useState<Estacion[]>([]);
+  const [estacionId, setEstacionId] = useState('');
+  const [metaEstacion, setMetaEstacion] = useState<{ id: string; nombre: string } | null>(null);
 
   // Formulario de observación
   const [obsEspecie, setObsEspecie] = useState('');
@@ -79,10 +90,11 @@ export function FenologiaView() {
   const [obsMensaje, setObsMensaje] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
-    const [especiesRes, pronosticoRes, obsRes] = await Promise.all([
+    const [especiesRes, pronosticoRes, obsRes, estacionesRes] = await Promise.all([
       apiFetch('/api/fenologia/especies'),
       apiFetch('/api/fenologia/pronostico'),
       apiFetch('/api/fenologia/observaciones?todas=1'),
+      apiFetch('/api/fenologia/estaciones'),
     ]);
     if (especiesRes.ok) {
       const j = await especiesRes.json();
@@ -91,13 +103,30 @@ export function FenologiaView() {
     if (pronosticoRes.ok) {
       const j = await pronosticoRes.json();
       setPronostico(j.data ?? []);
+      const est = j.meta?.estacion ?? null;
+      setMetaEstacion(est ?? null);
+      if (est?.id) setEstacionId(est.id);
     }
     if (obsRes.ok) {
       const j = await obsRes.json();
       setObservaciones(j.data ?? []);
     }
+    if (estacionesRes.ok) {
+      const j = await estacionesRes.json();
+      setEstaciones(j.data ?? []);
+    }
     setLoading(false);
   }, [apiFetch]);
+
+  const cambiarEstacion = async (id: string) => {
+    setEstacionId(id);
+    const res = await apiFetch(`/api/fenologia/pronostico?estacion=${id}`);
+    if (res.ok) {
+      const j = await res.json();
+      setPronostico(j.data ?? []);
+      setMetaEstacion(j.meta?.estacion ?? null);
+    }
+  };
 
   useEffect(() => {
     void cargar();
@@ -169,8 +198,8 @@ export function FenologiaView() {
       <ViewShell
         variant="compact"
         eyebrow="Bosque · Ciencia"
-        title="Fenología"
-        subtitle="Oráculo de floración calibrado con datos abiertos: GBIF, iNaturalist y ERA5."
+        title="Oráculo Fenológico"
+        subtitle="GDD por estación, calibrado con datos abiertos: GBIF, iNaturalist y ERA5."
         icon={<Sprout size={20} />}
       />
 
@@ -196,11 +225,31 @@ export function FenologiaView() {
           <>
             {tab === 'pronostico' && (
               <motion.div key="pronostico" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
+                <div className="flex items-center justify-end gap-2">
+                  <label htmlFor="estacion-fenologica" className="text-xs uppercase tracking-wider text-muted-foreground">
+                    Estación
+                  </label>
+                  <select
+                    id="estacion-fenologica"
+                    value={estacionId}
+                    onChange={(e) => void cambiarEstacion(e.target.value)}
+                    className="bg-background border border-border rounded px-3 py-1.5 text-sm"
+                  >
+                    {estaciones.map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <StatCard label="Especies activas" value={stats.total} />
                   <StatCard label="Con umbral calibrado" value={stats.conUmbral} />
                   <StatCard label="En floración ahora" value={stats.enFloracion} accent={stats.enFloracion > 0} />
-                  <StatCard label="GDD acumulado (Pureo)" value={`${pronostico[0]?.gddActual ?? 0}°d`} />
+                  <StatCard
+                    label={metaEstacion ? `GDD acumulado (${metaEstacion.nombre})` : 'GDD acumulado'}
+                    value={`${pronostico[0]?.gddActual ?? 0}°d`}
+                  />
                 </div>
                 {pronostico.map((esp) => {
                   const progreso = esp.progreso ?? 0;

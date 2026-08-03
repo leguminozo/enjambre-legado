@@ -300,7 +300,7 @@ export function InvitacionesPanel() {
       <ViewShell
         variant="compact"
         eyebrow="Onboarding"
-        title="Identidades"
+        title="Invitaciones"
         subtitle="Códigos de acceso · Creación directa de cuentas"
         icon={<Users size={22} />}
       />

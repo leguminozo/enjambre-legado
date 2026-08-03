@@ -309,6 +309,17 @@ if (!actor.consentimientos.mapa_comunitario) {
 - [ ] Webhook o endpoint público para consulta de registro (autenticado con API key municipal)
 - [ ] Módulo de estadísticas territoriales para reportes anuales
 
+### Sprint 7 — Bitácora apícola por voz (especificación completa en `docs/BITACORA_APICOLA.md`)
+
+El registro longitudinal del ciclo de vida de la colmena (núcleo → traspaso → alzas → cosecha → invernada →
+nueva temporada), capturado por voz libre y no correlativa, con componente sanitario legal (muestreo,
+contramuestreo, tratamientos con período de retiro y rotación de principio activo) y sincronización
+offline-first. **Construcción por reutilización**: motor de sync de Campo (`sync_queue` + `useSyncEngine`),
+patrón de parsers con confianza de `packages/contable`, micrófono de `EspectroVivo`, `ColmenaFicha` y
+`CuadernoCampoPanel` como semillas — matriz completa en `docs/BITACORA_APICOLA.md` §5. Los datos productivos
+que genera alimentan el registro territorial: producción declarada por actor y temporada, base para acopio y
+trazabilidad de lote.
+
 ---
 
 ## 6. Decisiones de diseño y por qué
@@ -391,6 +402,7 @@ Estos datos tienen valor comercial, científico e institucional. La posición de
 | Sistema de pagos internos (cooperativa) | Requiere estructura legal previa. Se construye en Sprint 4+ cuando la AG esté operando. |
 | Módulo de crédito o financiamiento | Fuera del alcance legal de una AG. Requiere una cooperativa de ahorro y crédito separada. |
 | Trazabilidad de cera, propóleos, jalea real | Posible en Sprint 4+, pero no es el core del registro territorial. |
+| Bitácora por voz de inspecciones | No aquí: especificación propia en `docs/BITACORA_APICOLA.md` (Sprint 7), PWA sobre Núcleo reutilizando el motor offline-first de Campo. |
 
 ---
 

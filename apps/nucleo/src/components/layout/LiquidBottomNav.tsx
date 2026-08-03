@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { BarChart3, Hexagon, Calculator, Settings, Map, LayoutGrid } from 'lucide-react';
+import { Network, Hexagon, Calculator, Settings, Map, LayoutGrid } from 'lucide-react';
 import {
   getBottomNavKeysForRole,
   getSidebarGroupsForRole,
@@ -14,19 +14,11 @@ import { useAuthStore } from '@enjambre/auth';
 import type { RoleKey } from '@enjambre/auth/role-redirect';
 
 const ICONS: Record<string, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
-  ejecutivo: BarChart3,
+  inicio: Network,
   colmenas: Hexagon,
   contabilidad: Calculator,
   configuracion: Settings,
   territorio: Map,
-};
-
-const LABELS: Record<string, string> = {
-  ejecutivo: 'Inicio',
-  colmenas: 'Colmenas',
-  contabilidad: 'Contable',
-  configuracion: 'Configuración',
-  territorio: 'Territorio',
 };
 
 type LiquidBottomNavProps = {
@@ -37,18 +29,14 @@ type LiquidBottomNavProps = {
 function resolveNavItem(key: string, pathname: string, allItems: SidebarItem[]) {
   const item = allItems.find((i) => i.key === key);
   if (!item) return null;
-  // La home (/) es el hub del enjambre: "Inicio" se marca activo también allí.
   const isActive =
-    item.href === '/'
-      ? pathname === '/'
-      : key === 'ejecutivo'
-        ? pathname === '/' || pathname.startsWith(item.href)
-        : key === 'territorio'
-          ? pathname === '/territorio' ||
-            pathname === '/registro-territorial' ||
-            pathname.startsWith(item.href)
-          : pathname.startsWith(item.href);
-  return { href: item.href, label: LABELS[key] ?? item.label, isActive };
+    key === 'territorio'
+      ? pathname === '/territorio' ||
+        pathname === '/registro-territorial' ||
+        pathname.startsWith(item.href)
+      : pathname.startsWith(item.href);
+  // Label desde el config: fuente única con el sidebar (y sus overrides por rol)
+  return { href: item.href, label: item.label, isActive };
 }
 
 export function LiquidBottomNav({ onOpenMenu, menuOpen }: LiquidBottomNavProps) {

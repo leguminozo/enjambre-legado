@@ -7,6 +7,23 @@ vi.mock("@/api/lib/payments", () => ({
   expireStaleCheckoutSessions: (...args: unknown[]) => mockExpire(...args),
 }));
 
+// Sin red en tests: createAdminClient y el dunning usan el mismo mock
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => ({
+    rpc: async () => ({
+      data: { deliveries_healed: 0, marked_past_due: 1, engine: "subscription_renewal_v3_flow" },
+      error: null,
+    }),
+    from: (table: string) => {
+      const q = { select: () => q, eq: () => q, limit: () => q };
+      return Object.assign(q, {
+        then: async (resolve: (v: { data: unknown[]; error: null }) => void) =>
+          resolve({ data: [], error: null }),
+      });
+    },
+  }),
+}));
+
 describe("GET /api/cron/checkout", () => {
   beforeEach(() => {
     process.env.CRON_SECRET = "checkout-cron-secret";

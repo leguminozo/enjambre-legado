@@ -223,7 +223,7 @@ export function ConciliacionAutoView() {
       <ViewShell
         variant="compact"
         eyebrow="Banco Chile"
-        title="Conciliación Automática"
+        title="Conciliación"
         subtitle="Emparejamiento banco ↔ facturas/ventas/gastos. Tenant del BFF; sin empresa_id en el client."
         icon={<FileText size={20} />}
       />

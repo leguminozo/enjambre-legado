@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { decrementCartStock } from '@/api/lib/stock/cart-stock';
+import { rpcLoose } from '@/api/lib/supabase-loose';
 import { markCartAbandonmentConverted } from '@/lib/notifications/cart-abandonment-worker';
 import { notifyCheckoutConfirmed } from '@/lib/notifications/enqueue-transactional';
 import { maybeEmitBoletaPostCheckout } from '@/lib/fiscal/checkout-dte';
@@ -131,6 +132,31 @@ export async function fulfillCheckout(
   }
 
   const ventaId = venta.id as string;
+
+  // Código de creador: registra uso + comisión (el descuento ya se aplicó en init).
+  // Fire-and-forget con try/catch: un fallo aquí nunca bloquea el fulfill del pedido.
+  if (session.codigoCreador) {
+    try {
+      const { data: applyResult } = await rpcLoose(admin, 'aplicar_codigo_creador_admin', {
+        p_codigo: session.codigoCreador,
+        p_venta_id: ventaId,
+        p_cliente_id: ventaClienteId ?? null,
+        p_monto_venta: serverTotal,
+      });
+      const applied = Array.isArray(applyResult) ? (applyResult[0] as { valido?: boolean; creador_nombre?: string; comision?: number } | undefined) : undefined;
+      if (applied?.valido) {
+        console.info(
+          `[checkout-fulfill] creador ${applied.creador_nombre} comisión $${applied.comision} (${buyOrder})`,
+        );
+      } else {
+        console.warn(
+          `[checkout-fulfill] código de creador no aplicado: ${applied?.creador_nombre ?? 'inválido o inactivo'} (${buyOrder})`,
+        );
+      }
+    } catch (err) {
+      console.warn('[checkout-fulfill] creador code apply failed:', err);
+    }
+  }
 
   const trackingCode = `OYZ-${buyOrder.replace(/^ORD-/, '').slice(0, 8).toUpperCase()}`;
   const { data: defaultEmpresa } = await admin.from('empresas').select('id').limit(1).maybeSingle();

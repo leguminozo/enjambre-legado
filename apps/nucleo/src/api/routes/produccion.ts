@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { createClient } from "@supabase/supabase-js";
-import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import { authMiddleware, tenantMiddleware, requireProfileRole } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
 import { notifyStockCritico } from "@/lib/notifications/enqueue-transactional";
@@ -400,6 +400,7 @@ produccionRoutes.post("/reflexiones", zValidator("json", CreateReflexionSchema),
 
 produccionRoutes.post(
   "/add-stock",
+  requireProfileRole("admin"),
   zValidator(
     "json",
     z.object({
@@ -408,7 +409,10 @@ produccionRoutes.post(
     })
   ),
   async (c) => {
-    const supabase = c.get("supabase");
+    // add_traceable_stock es service_role-only (CVE-N-002: el grant a
+    // authenticated permitía inflar stock). El BFF autentica y exige admin;
+    // la ejecución del RPC va con service role, no con el client del usuario.
+    const supabase = createAdminClient();
     const { producto_id, cantidad } = c.req.valid("json");
 
     const { data, error } = await rpcLoose(supabase, "add_traceable_stock", {
@@ -433,6 +437,124 @@ produccionRoutes.post(
 
     return c.json({ data: { ...rpcData, blockchain_tx: onChainTx } });
   }
+);
+
+const CreateLoteSchema = z.object({
+  nombre_lote: z.string().min(1).max(200).optional(),
+  kg_total: z.number().positive(),
+  variedad_floral: z.string().max(100).optional().nullable(),
+  fecha: z.string().date().optional(),
+});
+
+/** Crea un lote (pipeline recolección → lote). La recolección se vincula luego con lote_id. */
+produccionRoutes.post(
+  "/lotes",
+  requireProfileRole("admin"),
+  zValidator("json", CreateLoteSchema),
+  async (c) => {
+    const admin = createAdminClient();
+    const input = c.req.valid("json");
+
+    const { data, error } = await admin
+      .from("lotes")
+      .insert({
+        nombre_lote: input.nombre_lote?.trim() || null,
+        kg_total: input.kg_total,
+        variedad_floral: input.variedad_floral?.trim() || null,
+        estado: "activo",
+        created_at: input.fecha ? `${input.fecha}T00:00:00.000Z` : new Date().toISOString(),
+      })
+      .select("id, nombre_lote, kg_total, variedad_floral, created_at")
+      .single();
+
+    if (error) {
+      return c.json({ code: "lote_create_failed", message: error.message }, 400);
+    }
+
+    return c.json({ data }, 201);
+  },
+);
+
+const EnvasarLoteSchema = z.object({
+  producto_id: z.string().uuid(),
+  cantidad: z.number().int().positive(),
+});
+
+/**
+ * Envasado: frascos del lote → stock del producto destino.
+ * Descuenta kg del lote (cantidad × peso_neto_g) y re-apunta productos.lote_id
+ * al lote actual para que la trazabilidad del frasco siga la cadena.
+ */
+produccionRoutes.post(
+  "/lotes/:id/envasar",
+  requireProfileRole("admin"),
+  zValidator("json", EnvasarLoteSchema),
+  async (c) => {
+    const { id } = c.req.param();
+    const { producto_id, cantidad } = c.req.valid("json");
+    const admin = createAdminClient();
+
+    const { data: lote, error: loteError } = await admin
+      .from("lotes")
+      .select("id, kg_total")
+      .eq("id", id)
+      .single();
+    if (loteError || !lote) {
+      return c.json({ code: "lote_not_found", message: "Lote no encontrado" }, 404);
+    }
+
+    const { data: producto, error: productoError } = await admin
+      .from("productos")
+      .select("id, stock, peso_neto_g")
+      .eq("id", producto_id)
+      .single();
+    if (productoError || !producto) {
+      return c.json({ code: "producto_not_found", message: "Producto no encontrado" }, 404);
+    }
+
+    const pesoKg = Number(producto.peso_neto_g) > 0 ? Number(producto.peso_neto_g) / 1000 : null;
+    if (!pesoKg) {
+      return c.json(
+        { code: "producto_sin_peso", message: "El producto no tiene peso_neto_g configurado" },
+        400,
+      );
+    }
+
+    const kgEnvasar = cantidad * pesoKg;
+    const kgRestante = Math.max(0, Number(lote.kg_total ?? 0) - kgEnvasar);
+
+    if (Number(lote.kg_total ?? 0) < kgEnvasar) {
+      return c.json(
+        { code: "kg_insuficientes", message: `El lote tiene ${Number(lote.kg_total ?? 0)} kg, no alcanza para ${kgEnvasar.toFixed(1)} kg de envasado` },
+        400,
+      );
+    }
+
+    const { error: stockError } = await admin
+      .from("productos")
+      .update({ stock: Number(producto.stock ?? 0) + cantidad, lote_id: id })
+      .eq("id", producto_id);
+    if (stockError) {
+      return c.json({ code: "stock_update_failed", message: stockError.message }, 400);
+    }
+
+    const { error: loteUpdateError } = await admin
+      .from("lotes")
+      .update({ kg_total: kgRestante })
+      .eq("id", id);
+    if (loteUpdateError) {
+      return c.json({ code: "lote_update_failed", message: loteUpdateError.message }, 400);
+    }
+
+    return c.json({
+      data: {
+        producto_id,
+        frascos_agregados: cantidad,
+        kg_descontados: Number(kgEnvasar.toFixed(2)),
+        kg_restante_lote: Number(kgRestante.toFixed(2)),
+      },
+    }, 201);
+  },
 );
 
 /**

@@ -14,7 +14,7 @@ export function ConfiguracionView() {
       <ViewShell
         variant="compact"
         eyebrow="Configuración"
-        title="Centro de Configuración"
+        title="Configuración"
         subtitle="Perfil, preferencias, seguridad y sistema del enjambre"
         icon={<Settings size={20} />}
       />

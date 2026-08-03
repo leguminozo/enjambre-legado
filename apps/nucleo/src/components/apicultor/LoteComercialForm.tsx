@@ -71,6 +71,14 @@ export function LoteComercialForm({ lote, onSuccess, onCancel }: LoteComercialFo
       }
 
       toast.success('Lote comercial actualizado correctamente');
+      // Al publicar el pasaporte, firmarlo con QR de trazabilidad (best-effort, no bloquea)
+      if (payload.publico) {
+        apiFetch(`/api/trazabilidad/lote/${lote.id}/qr`, { method: 'POST' })
+          .then((res) => {
+            if (res.ok) toast.success('Pasaporte firmado: QR de trazabilidad generado');
+          })
+          .catch(() => undefined);
+      }
       onSuccess();
     } catch (err: any) {
       toast.error(err.message || 'Ocurrió un error');

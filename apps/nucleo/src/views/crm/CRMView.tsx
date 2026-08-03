@@ -66,7 +66,7 @@ export function CRMView() {
     <div className="space-y-6 animate-in">
       <ViewShell
         eyebrow="Relaciones"
-        title="CRM de Vendedores"
+        title="CRM Vendedores"
         subtitle="Historial de interacciones, métricas de conversión y agenda de ferias"
       />
       <ToolActionRail context="crm" current="/crm" />

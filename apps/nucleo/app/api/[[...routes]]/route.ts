@@ -39,10 +39,15 @@ import { replenishmentRoutes } from "@/api/routes/replenishment";
 import { ritualRoutes } from "@/api/routes/ritual";
 import { blockchainRoutes } from "@/api/routes/blockchain/anchors";
 import { registroTerritorialRoutes } from "@/api/routes/registro-territorial";
-import { fenologiaRoutes } from "@/api/routes/fenologia";
 import { lotesPublicosRoutes } from "@/api/routes/lotes-publicos";
+import { trazabilidadRoutes } from "@/api/routes/trazabilidad";
+import { comisionesRoutes } from "@/api/routes/comisiones";
+import { fenologiaRoutes } from "@/api/routes/fenologia";
+import { meteoRoutes } from "@/api/routes/meteo";
+import { bitacoraRoutes } from "@/api/routes/bitacora";
 import { adminIdentidadesRoutes } from "@/api/routes/admin-identidades";
 import { adminSystemRoutes } from "@/api/routes/admin-system";
+import { mapaRoutes } from "@/api/routes/mapa";
 import { alambiqueRoutes, alambiquePublicRoutes } from "@/api/routes/alambique";
 import { getAllowedCorsOrigins } from "@/lib/publicUrls";
 
@@ -96,7 +101,6 @@ app.use("*", async (c, next) => {
     "/api/logistica",
     "/api/produccion",
     "/api/alambique",
-    "/api/fenologia",
     "/api/crm",
   ];
   
@@ -162,6 +166,7 @@ app.use("*", async (c, next) => {
     "/api/wallet",
     "/api/blockchain/verify",
     "/api/lotes-publicos",
+    "/api/trazabilidad",
     "/api/alambique/publico",
   ];
   const path = new URL(c.req.url).pathname;
@@ -235,10 +240,15 @@ app.route("/replenishment", replenishmentRoutes);
 app.route("/ritual", ritualRoutes);
 app.route("/blockchain", blockchainRoutes);
 app.route("/registro-territorial", registroTerritorialRoutes);
-app.route("/fenologia", fenologiaRoutes);
 app.route("/admin", adminIdentidadesRoutes);
 app.route("/admin-system", adminSystemRoutes);
+app.route("/mapa", mapaRoutes);
 app.route("/lotes-publicos", lotesPublicosRoutes);
+app.route("/trazabilidad", trazabilidadRoutes);
+app.route("/comisiones", comisionesRoutes);
+app.route("/fenologia", fenologiaRoutes);
+app.route("/meteo", meteoRoutes);
+app.route("/bitacora", bitacoraRoutes);
 // Público primero: alambiquePublicRoutes solo matchea /publico/:id y no debe
 // pasar por el authMiddleware del router admin (montado en el mismo base path).
 app.route("/alambique", alambiquePublicRoutes);

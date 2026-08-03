@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getCafAlertThreshold } from '@/api/lib/fiscal/caf-guard';
 import { notifyCafLowFolios } from '@/lib/notifications/enqueue-transactional';
+import { ensureCafFolios, isCafAutoEnabled } from './caf-auto-worker';
 
 function createAdminClient(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -60,16 +61,20 @@ export type CafAlertWorkerResult = {
   alertsQueued: number;
   skipped: number;
   errors: string[];
+  /** Movimiento 2: solicitudes de folios disparadas automáticamente */
+  autoRequested: number;
 };
 
 export async function monitorCafFolios(): Promise<CafAlertWorkerResult> {
   const admin = createAdminClient();
   const alertThreshold = getCafAlertThreshold();
+  const autoEnabled = isCafAutoEnabled();
   const result: CafAlertWorkerResult = {
     scanned: 0,
     alertsQueued: 0,
     skipped: 0,
     errors: [],
+    autoRequested: 0,
   };
 
   const { data: cafRows, error } = await admin
@@ -96,6 +101,34 @@ export async function monitorCafFolios(): Promise<CafAlertWorkerResult> {
 
     const restantes = Math.max(0, Number(caf.folio_hasta) - Number(caf.folio_actual));
     if (restantes > alertThreshold) continue;
+
+    // Movimiento 2: si el CAF automático está habilitado, intentar solicitar
+    // folios ANTES de notificar (la alerta queda como respaldo si falla)
+    if (autoEnabled) {
+      try {
+        const { data: empresa } = await admin
+          .from('empresas')
+          .select('rut')
+          .eq('id', caf.empresa_id)
+          .maybeSingle();
+        const rut = (empresa as { rut?: string } | null)?.rut;
+        if (rut) {
+          const autoResult = await ensureCafFolios(admin, {
+            empresaId: caf.empresa_id,
+            rutEmpresa: rut,
+            tipoDte: Number(caf.tipo_dte),
+          });
+          if (autoResult.requested) result.autoRequested += 1;
+          if (autoResult.error) {
+            result.errors.push(`auto-caf ${caf.empresa_id}/${caf.tipo_dte}: ${autoResult.error}`);
+          }
+        }
+      } catch (err) {
+        result.errors.push(
+          `auto-caf ${caf.empresa_id}/${caf.tipo_dte}: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }
 
     const recipients = await resolveFiscalAlertRecipients(admin, caf.empresa_id);
     if (!recipients.length) {

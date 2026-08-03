@@ -172,6 +172,63 @@ registroTerritorialRoutes.get("/actores/me", async (c) => {
   return c.json({ data });
 });
 
+/** GET /api/registro-territorial/resumen — métricas personales del actor (inicio territorial) */
+registroTerritorialRoutes.get("/resumen", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+
+  const { data: actor } = await supabase
+    .from("actores_registro")
+    .select("id, rol, nombre_actor, comuna, region, nivel_acreditacion, completo")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!actor) {
+    return c.json({
+      data: { actor: null, apiarios: 0, colmenas: 0, alertasActivas: 0, observaciones: 0 },
+    });
+  }
+
+  const [apiariosRes, obsRes] = await Promise.all([
+    supabase
+      .from("apiarios_registro")
+      .select("lat_aproximada, lng_aproximada, n_colmenas")
+      .eq("actor_id", actor.id)
+      .eq("activo", true),
+    supabase
+      .from("observaciones_floracion")
+      .select("id", { count: "exact", head: true })
+      .eq("observador_id", user.id),
+  ]);
+
+  const apiarios = apiariosRes.data ?? [];
+  const colmenas = apiarios.reduce((sum, a) => sum + Number(a.n_colmenas ?? 0), 0);
+
+  // Alertas fitosanitarias activas en el radio del primer apiario con coordenadas
+  let alertasActivas = 0;
+  const primerApiario = apiarios.find(
+    (a) => a.lat_aproximada != null && a.lng_aproximada != null
+  );
+  if (primerApiario) {
+    const { data: alertas } = await supabase.rpc("alertas_en_radio", {
+      p_lat: Number(primerApiario.lat_aproximada),
+      p_lng: Number(primerApiario.lng_aproximada),
+      p_radio: 5,
+    });
+    alertasActivas = Array.isArray(alertas) ? alertas.length : 0;
+  }
+
+  return c.json({
+    data: {
+      actor,
+      apiarios: apiarios.length,
+      colmenas,
+      alertasActivas,
+      observaciones: obsRes.count ?? 0,
+    },
+  });
+});
+
 /** POST /api/registro-territorial/actores — inscribir un nuevo actor */
 registroTerritorialRoutes.post(
   "/actores",

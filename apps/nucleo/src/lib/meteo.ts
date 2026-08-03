@@ -1,12 +1,8 @@
 /**
  * lib/meteo.ts
- * Integración con Open-Meteo y cálculos de fenología (Grados-Día de Crecimiento - GDD).
- * API Gratuita sin key.
+ * Pronóstico Open-Meteo servido por el proxy BFF (/api/meteo) y cálculos de
+ * fenología (Grados-Día de Crecimiento - GDD). API Gratuita sin key.
  */
-
-// Chiloé, Pureo (Aprox)
-const LAT = -41.86;
-const LNG = -73.82;
 
 export interface MeteoData {
   time: string[];
@@ -16,13 +12,14 @@ export interface MeteoData {
 }
 
 /**
- * Obtiene pronóstico hiper-local horario para Chiloé
+ * Obtiene pronóstico hiper-local horario para Chiloé.
+ * Vía proxy server-side: inmune a adblockers/redes que bloquean
+ * api.open-meteo.com y con caché (10 min) en el BFF.
  */
 export async function fetchPronostico(): Promise<MeteoData | null> {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}&hourly=temperature_2m,relative_humidity_2m,precipitation&timezone=America%2FSantiago`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Error Open-Meteo API');
+    const res = await fetch('/api/meteo');
+    if (!res.ok) throw new Error(`Error Open-Meteo API (${res.status})`);
     const data = await res.json();
     return data.hourly;
   } catch (error) {

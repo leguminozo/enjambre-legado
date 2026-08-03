@@ -64,7 +64,13 @@ export function useSyncEngine() {
 
     isSyncing.current = true;
     try {
-      const pendingItems = await db.sync_queue.where('status').equals('pending').toArray();
+      // Reintentos con backoff: pendientes + errores cuyo next_retry_at ya venció
+      const now = Date.now();
+      const pendingItems = await db.sync_queue
+        .where('status')
+        .anyOf('pending', 'error')
+        .filter((item) => !item.next_retry_at || item.next_retry_at <= now)
+        .toArray();
       if (pendingItems.length === 0) return;
 
       if (!token) {
@@ -74,7 +80,12 @@ export function useSyncEngine() {
 
       console.log(`[SyncEngine] Upsync starting for ${pendingItems.length} items...`);
 
+      // Backoff exponencial: 1min, 2min, 4min... cap 30min, máx 6 intentos
+      const backoffMs = (attempts: number) => Math.min(60_000 * 2 ** attempts, 1_800_000);
+      const MAX_ATTEMPTS = 6;
+
       for (const item of pendingItems) {
+        const attempts = item.attempts ?? 0;
         try {
           const res = await fetch(`${API_BASE}/api/rep-ventas/quick`, {
             method: 'POST',
@@ -104,6 +115,7 @@ export function useSyncEngine() {
             'Client logic error';
 
           if (res.status === 409 && data.code === 'consignacion_insuficiente') {
+            // Error de negocio permanente: no reintentar, queda visible para el usuario
             await db.sync_queue.update(item.id!, {
               status: 'error',
               error_message: `Consignación feria: ${errorMessage}`,
@@ -112,10 +124,22 @@ export function useSyncEngine() {
           }
 
           if (res.status >= 400 && res.status < 500) {
-            await db.sync_queue.update(item.id!, {
-              status: 'error',
-              error_message: errorMessage,
-            });
+            if (attempts + 1 >= MAX_ATTEMPTS) {
+              // Agotó reintentos: queda en error para revisión manual
+              await db.sync_queue.update(item.id!, {
+                status: 'error',
+                attempts: attempts + 1,
+                error_message: `${errorMessage} (${attempts + 1}/${MAX_ATTEMPTS})`,
+              });
+            } else {
+              // Reintentable: backoff exponencial
+              await db.sync_queue.update(item.id!, {
+                status: 'error',
+                attempts: attempts + 1,
+                next_retry_at: Date.now() + backoffMs(attempts),
+                error_message: errorMessage,
+              });
+            }
           }
         } catch (fetchErr) {
           console.warn('[SyncEngine] Network error pushing item, will retry later.', fetchErr);

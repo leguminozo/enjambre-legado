@@ -1,7 +1,6 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { LazyDashboardEjecutivo } from '@/lib/navigation/lazy-views';
-
+/** Compatibilidad: el panel ejecutivo ahora vive en /inicio. */
 export default function EjecutivoPage() {
-  return <LazyDashboardEjecutivo />;
+  redirect('/inicio');
 }

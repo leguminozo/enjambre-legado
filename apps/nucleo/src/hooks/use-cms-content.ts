@@ -77,7 +77,7 @@ export function useCMSContent() {
       .channel('cms_realtime')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'cms_items' },
+        { event: '*', schema: 'public', table: 'site_content' },
         () => {
           queryClient.invalidateQueries({ queryKey: ['cms'] })
         }

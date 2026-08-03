@@ -21,6 +21,7 @@ const QuickSaleSchema = z.object({
   metodo_pago: z.enum(["efectivo", "transferencia", "tarjeta", "pos_terminal", "mixto"]),
   channel: z.enum(["feria", "delivery", "local", "corporativo", "referido"]).optional(),
   cliente_id: z.string().uuid().optional(),
+  tercero_id: z.string().uuid().optional(),
   is_new_client: z.boolean().default(true),
   qr_codes: z.array(z.string()).optional(),
   /** Client-generated UUID — idempotency for offline sync retries (stored as ventas.buy_order). */
@@ -266,6 +267,17 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
   }
 
   // 2. Crear venta — typegen exige `productos` (Json) y a veces `id`; runtime acepta omitir id
+  // cliente_id es FK a profiles: si el emisor manda un id de otra tabla (tercero),
+  // el insert fallaría y el sync offline quedaría en error. Sanear antes de insertar.
+  let clienteIdSafe: string | null = input.cliente_id ?? null;
+  if (clienteIdSafe) {
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", clienteIdSafe)
+      .maybeSingle();
+    if (!prof) clienteIdSafe = null;
+  }
   const { data: venta, error: ventaError } = await fromLoose(supabase, "ventas")
     .insert({
       vendedor_id: user.id,
@@ -275,7 +287,8 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
       productos: enrichedItems as Json,
       metodo_pago: input.metodo_pago,
       channel,
-      cliente_id: input.cliente_id ?? null,
+      cliente_id: clienteIdSafe,
+      tercero_id: input.tercero_id ?? null,
       is_new_client: input.is_new_client,
       estado: "completada",
       origen: channel === "feria" || channel === "local" ? channel : "feria",

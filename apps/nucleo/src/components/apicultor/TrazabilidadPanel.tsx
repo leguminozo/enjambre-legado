@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronRight, ImageOff, Plus, AlertTriangle, TrendingDown, Edit } from 'lucide-react';
+import { ChevronRight, ImageOff, Plus, AlertTriangle, TrendingDown, Edit, QrCode, ShieldCheck, ShieldAlert, ExternalLink } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, Badge, Spinner, toast, friendlyError, ImmersiveModal } from '@enjambre/ui';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, Badge, Spinner, toast, friendlyError, ImmersiveModal, QRCode } from '@enjambre/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { LoteComercialForm } from './LoteComercialForm';
@@ -84,6 +84,57 @@ export function TrazabilidadPanel() {
   const [selectedLote, setSelectedLote] = useState<string | null>(null);
   const [editingLote, setEditingLote] = useState<Lote | null>(null);
   const [activeTab, setActiveTab] = useState<'arboles' | 'lotes' | 'reflexiones'>('lotes');
+
+  // Al expandir un lote, cargar su pasaporte (una sola vez por lote)
+  useEffect(() => {
+    if (selectedLote && qrPorLote[selectedLote] === undefined && !cargandoQr[selectedLote]) {
+      void cargarQr(selectedLote);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLote]);
+
+  // Pasaporte verificable: QR por lote (código + integridad de la cadena de custodia)
+  const [qrPorLote, setQrPorLote] = useState<Record<string, {
+    codigo: string;
+    integridad: { es_valido: boolean; eventos_verificados: number; total_eventos: number };
+  } | null>>({});
+  const [cargandoQr, setCargandoQr] = useState<Record<string, boolean>>({});
+
+  const cargarQr = async (loteId: string) => {
+    setCargandoQr((prev) => ({ ...prev, [loteId]: true }));
+    try {
+      const res = await fetch(`/api/trazabilidad/lote/${loteId}/qr`);
+      if (!res.ok) {
+        setQrPorLote((prev) => ({ ...prev, [loteId]: null }));
+        return;
+      }
+      const json = (await res.json()) as {
+        data: { codigo: string; integridad: { es_valido: boolean; eventos_verificados: number; total_eventos: number } };
+      };
+      setQrPorLote((prev) => ({ ...prev, [loteId]: json.data }));
+    } catch {
+      setQrPorLote((prev) => ({ ...prev, [loteId]: null }));
+    } finally {
+      setCargandoQr((prev) => ({ ...prev, [loteId]: false }));
+    }
+  };
+
+  const generarQr = async (loteId: string) => {
+    setCargandoQr((prev) => ({ ...prev, [loteId]: true }));
+    try {
+      const res = await apiFetch(`/api/trazabilidad/lote/${loteId}/qr`, { method: 'POST' });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(err.message || 'No se pudo generar el QR');
+      }
+      toast.success('Pasaporte firmado: QR generado');
+      await cargarQr(loteId);
+    } catch (err) {
+      toast.error(friendlyError(err));
+    } finally {
+      setCargandoQr((prev) => ({ ...prev, [loteId]: false }));
+    }
+  };
 
   const { data: localArboles = [], isLoading: loadingArboles } = useQuery<ArbolRow[]>({
     queryKey: ['trazabilidad-arboles'],
@@ -360,6 +411,73 @@ export function TrazabilidadPanel() {
                                 <div className="mt-4 p-3 bg-primary/5 rounded-md border border-primary/10 flex items-center gap-3 text-xs">
                                   <span className="text-primary font-medium shrink-0 uppercase tracking-widest text-[0.6rem]">Blockchain</span>
                                   <span className="font-mono text-foreground/80 break-all select-all">{l.blockchain_hash || 'Sin firmar'}</span>
+                                </div>
+                                <div className="mt-4 border-t border-border pt-4">
+                                  <div className="text-xs font-medium mb-3 text-foreground flex items-center justify-between">
+                                    <span className="flex items-center gap-1.5">
+                                      <QrCode size={12} className="text-primary" /> Pasaporte Verificable
+                                    </span>
+                                    {qrPorLote[l.id] && (
+                                      <a
+                                        href={`/lote/${l.id}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1 text-primary hover:underline"
+                                      >
+                                        <ExternalLink size={12} /> Ver pasaporte público
+                                      </a>
+                                    )}
+                                  </div>
+                                  {cargandoQr[l.id] ? (
+                                    <div className="flex justify-center py-4">
+                                      <Spinner size="md" />
+                                    </div>
+                                  ) : qrPorLote[l.id] ? (
+                                    <div className="flex items-center gap-4">
+                                      <QRCode
+                                        value={`${typeof window !== 'undefined' ? window.location.origin : ''}/lote/${l.id}`}
+                                        size={104}
+                                        className="p-2 shrink-0"
+                                      />
+                                      <div className="flex flex-col gap-2 text-xs">
+                                        <div className="flex items-center gap-2">
+                                          {qrPorLote[l.id]!.integridad.es_valido ? (
+                                            <Badge variant="success" className="h-5 px-2 flex items-center gap-1 text-[0.65rem]">
+                                              <ShieldCheck size={11} /> Cadena íntegra
+                                            </Badge>
+                                          ) : (
+                                            <Badge variant="danger" className="h-5 px-2 flex items-center gap-1 text-[0.65rem]">
+                                              <ShieldAlert size={11} /> Cadena manipulada
+                                            </Badge>
+                                          )}
+                                          <span className="font-mono text-muted-foreground">{qrPorLote[l.id]!.codigo}</span>
+                                        </div>
+                                        <span className="text-muted-foreground">
+                                          {qrPorLote[l.id]!.integridad.eventos_verificados}/{qrPorLote[l.id]!.integridad.total_eventos} eventos verificados · hash recomputado vs almacenado
+                                        </span>
+                                        <span className="text-muted-foreground/70">
+                                          Escanea el QR y el frasco cuenta su historia — con sello de integridad.
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-between gap-3">
+                                      <p className="text-xs text-muted-foreground italic">
+                                        Este lote aún no tiene pasaporte firmado.
+                                      </p>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 text-[0.65rem] border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          void generarQr(l.id);
+                                        }}
+                                      >
+                                        <QrCode size={12} className="mr-1.5" /> Firmar pasaporte
+                                      </Button>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                           </motion.div>

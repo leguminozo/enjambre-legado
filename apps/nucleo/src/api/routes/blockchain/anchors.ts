@@ -35,21 +35,23 @@ blockchainRoutes.post(
       let entityData: Record<string, unknown> = data ?? {};
       let entityExists = false;
 
-      // selects con columnas/filtros desfasados del typegen (empresa_id, blockchain_hash, etc.)
+      // selects con columnas reales del schema vivo (colmenas.name/health,
+      // apiarios.name/health/details — migraciones 1007/1008)
       switch (entity_type) {
         case 'colmena': {
           const { data: colmena } = await fromLoose(supabase, 'colmenas')
-            .select('id, name, numero_caja, apiario_id, estado, blockchain_hash')
+            .select('id, name, health, alzas, apiario_id, queen, created_at, blockchain_hash')
             .eq('id', entity_id)
-            .eq('apiario_id', empresaId)
             .maybeSingle();
           if (colmena) {
             entityExists = true;
             entityData = {
               name: colmena.name,
-              numero_caja: colmena.numero_caja,
+              health: colmena.health,
+              alzas: colmena.alzas,
               apiario_id: colmena.apiario_id,
-              estado: colmena.estado,
+              queen: colmena.queen,
+              creada_en: colmena.created_at,
             };
           }
           break;
@@ -134,13 +136,18 @@ blockchainRoutes.post(
         }
         case 'apiario': {
           const { data: apiario } = await fromLoose(supabase, 'apiarios')
-            .select('id, nombre, ubicacion, blockchain_hash')
+            .select('id, name, health, details, lat, lng, blockchain_hash')
             .eq('id', entity_id)
-            .eq('empresa_id', empresaId)
             .maybeSingle();
           if (apiario) {
             entityExists = true;
-            entityData = { nombre: apiario.nombre, ubicacion: apiario.ubicacion };
+            entityData = {
+              name: apiario.name,
+              health: apiario.health,
+              details: apiario.details,
+              lat: apiario.lat,
+              lng: apiario.lng,
+            };
           }
           break;
         }

@@ -40,6 +40,7 @@ export type CheckoutSession = {
   buyerMode?: BuyerMode;
   clienteId?: string | null;
   organizacionId?: string | null;
+  codigoCreador?: string | null;
 };
 
 export type PaymentInitResult = {
@@ -66,8 +67,41 @@ export type PaymentProvider = {
   refund(buyOrder: string, amount: number): Promise<{ ok: boolean }>;
 };
 
+/** Inscripción recurrente (Pago Automático). Solo Flow la implementa. */
+export type RecurringCreateInput = {
+  buyOrder: string;
+  sessionId: string;
+  firstAmount: number;
+  recurringAmount: number;
+  email: string;
+  returnUrl: string;
+  confirmationUrl: string;
+  planName?: string;
+  optional?: Record<string, unknown>;
+};
+
+export type RecurringCreateResult = {
+  url: string;
+  token: string;
+};
+
+export type RecurringChargeStatus = {
+  status: number; // 2 = pagado
+  commerceOrder: string;
+  flowOrder: number;
+  amount: number;
+};
+
+export type PaymentProviderWithRecurring = PaymentProvider & {
+  createRecurring(input: RecurringCreateInput): Promise<RecurringCreateResult>;
+  getRecurringStatus(token: string): Promise<RecurringChargeStatus>;
+  /** Cancelar la inscripción en el proveedor. Puede no estar soportada. */
+  cancelRecurring(buyOrder: string): Promise<{ ok: boolean; error?: string }>;
+};
+
 import { resolveCourierCode } from '@enjambre/logistica';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { fromLoose } from '@/api/lib/supabase-loose';
 
 function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -119,6 +153,7 @@ const CheckoutSessionRowSchema = z.object({
   discount_id: z.string().uuid().nullable().optional(),
   discount_clp: z.number().int().nonnegative().optional(),
   stock_reserved: z.boolean().optional(),
+  codigo_creador: z.string().nullable().optional(),
 });
 
 type CheckoutSessionRow = z.infer<typeof CheckoutSessionRowSchema>;
@@ -144,12 +179,14 @@ function toCheckoutSession(row: CheckoutSessionRow): CheckoutSession {
     buyerMode: row.buyer_mode ?? 'legado',
     clienteId: row.cliente_id ?? null,
     organizacionId: row.organizacion_id ?? null,
+    codigoCreador: row.codigo_creador ?? null,
   };
 }
 
 export async function saveCheckoutSession(session: CheckoutSession): Promise<void> {
   const admin = createAdminClient();
-  const { error } = await admin.from('checkout_sessions').insert({
+  // fromLoose: columna codigo_creador aún no está en el typegen local
+  const { error } = await fromLoose(admin, 'checkout_sessions').insert({
     buy_order: session.buyOrder,
     session_id: session.sessionId,
     provider: session.provider,
@@ -167,6 +204,7 @@ export async function saveCheckoutSession(session: CheckoutSession): Promise<voi
     discount_code: session.discountCode ?? null,
     discount_id: session.discountId ?? null,
     discount_clp: session.discountClp ?? 0,
+    codigo_creador: session.codigoCreador ?? null,
   });
   if (error) throw new Error(`Failed to save checkout session: ${error.message}`);
 }

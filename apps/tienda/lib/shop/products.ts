@@ -82,7 +82,7 @@ const CosechaJoinSchema = z.object({
 
 type ProductRow = z.infer<typeof ProductRowSchema>;
 
-function mapProduct(p: ProductRow): ShopProduct {
+export function mapProduct(p: ProductRow): ShopProduct {
   return {
     id: p.id,
     slug: p.slug ?? String(p.id),

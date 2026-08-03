@@ -12,6 +12,7 @@ import {
   type CreateCalendarioEventInput,
   resolveEventToolLink,
 } from '@enjambre/calendar';
+import { CalendarioCiclico } from '@/components/apicultor/CalendarioCiclico';
 import { createClient } from '@enjambre/auth/browser';
 import { useAuthStore } from '@enjambre/auth';
 import { ViewLoading, toast, friendlyError } from '@enjambre/ui';
@@ -67,6 +68,7 @@ export default function CalendarioPage() {
 
   const [currentDate, setCurrentDate] = React.useState(initialDate);
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(initialDate);
+  const [viewMode, setViewMode] = React.useState<'agenda' | 'ciclo'>('agenda');
 
   React.useEffect(() => {
     const d = searchParams.get('date');
@@ -234,51 +236,83 @@ export default function CalendarioPage() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-1 pb-12 sm:px-0">
       <header className="shrink-0">
-        <h1 className="font-display text-3xl font-bold tracking-wide text-foreground sm:text-4xl">
-          Calendario
-        </h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Agenda estilo Apple: mes completo, toca un día para la línea de horas,
-          crea eventos con inicio y fin. También ves ferias, cosechas y marketing
-          de las otras herramientas.
-        </p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="font-display text-3xl font-bold tracking-wide text-foreground sm:text-4xl">
+              Calendario
+            </h1>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              Agenda estilo Apple: mes completo, toca un día para la línea de horas,
+              crea eventos con inicio y fin. También ves ferias, cosechas y marketing
+              de las otras herramientas.
+            </p>
+          </div>
+          <div className="flex bg-background border border-border rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => setViewMode('agenda')}
+              className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
+                viewMode === 'agenda'
+                  ? 'bg-primary/10 text-primary shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Agenda
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('ciclo')}
+              className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
+                viewMode === 'ciclo'
+                  ? 'bg-primary/10 text-primary shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Ciclo del Año
+            </button>
+          </div>
+        </div>
       </header>
 
-      <div className="min-w-0">
-        {isLoading && events.length === 0 ? (
-          <ViewLoading label="Sincronizando calendario..." />
-        ) : (
-          <Calendario
-            events={events}
-            currentDate={currentDate}
-            selectedDate={selectedDate}
-            onMonthChange={setCurrentDate}
-            onSelectedDateChange={(d) => {
-              setSelectedDate(d);
-              pushQuery({ date: d });
-            }}
-            isLoading={isLoading}
-            onEventClick={openEdit}
-            onCreateEvent={openCreate}
-            onOpenTool={(href) => router.push(href)}
-            activeTypeFilter={typeFilter}
-            dayPanel={
-              selectedDate ? (
-                <DayTimeline
-                  date={selectedDate}
-                  events={events}
-                  onEventClick={openEdit}
-                  onCreateAt={openCreate}
-                  onClose={() => {
-                    setSelectedDate(null);
-                    pushQuery({ date: null });
-                  }}
-                />
-              ) : null
-            }
-          />
-        )}
-      </div>
+      {viewMode === 'ciclo' ? (
+        <CalendarioCiclico />
+      ) : (
+        <div className="min-w-0">
+          {isLoading && events.length === 0 ? (
+            <ViewLoading label="Sincronizando calendario..." />
+          ) : (
+            <Calendario
+              events={events}
+              currentDate={currentDate}
+              selectedDate={selectedDate}
+              onMonthChange={setCurrentDate}
+              onSelectedDateChange={(d) => {
+                setSelectedDate(d);
+                pushQuery({ date: d });
+              }}
+              isLoading={isLoading}
+              onEventClick={openEdit}
+              onCreateEvent={openCreate}
+              onOpenTool={(href) => router.push(href)}
+              activeTypeFilter={typeFilter}
+              dayPanel={
+                selectedDate ? (
+                  <DayTimeline
+                    date={selectedDate}
+                    events={events}
+                    onEventClick={openEdit}
+                    onCreateAt={openCreate}
+                    onClose={() => {
+                      setSelectedDate(null);
+                      pushQuery({ date: null });
+                    }}
+                  />
+                ) : null
+              }
+            />
+          )}
+        </div>
+      )}
 
       <EventEditorSheet
         open={editorOpen}

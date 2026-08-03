@@ -1,4 +1,5 @@
 import type { Database } from '@enjambre/database';
+import type { OrigenColmena } from './bitacora-types';
 
 export type ColmenaRow = Database['public']['Tables']['colmenas']['Row'];
 export type InspeccionRow = Database['public']['Tables']['inspecciones']['Row'];
@@ -9,7 +10,8 @@ export type CalendarioTaskRow = Database['public']['Tables']['calendario_tasks']
 
 // Extendemos el modelo básico de la tabla `colmenas` para añadir 
 // las relaciones y campos virtuales que usamos en el UI visual del Dashboard Apicultor.
-export type ColmenaWithRelations = ColmenaRow & {
+// OrigenColmena (migración 1008): provenance del núcleo/colmena.
+export type ColmenaWithRelations = ColmenaRow & Partial<OrigenColmena> & {
   apiario_name?: string;
   lat?: number;
   lng?: number;

@@ -34,13 +34,13 @@ export const TOOL_ACTION_CONTEXTS = {
     { href: '/crm', label: 'CRM clientes', primary: true },
     { href: '/calendario', label: 'Calendario' },
     { href: '/catalogo', label: 'Catálogo' },
-    { href: '/ejecutivo', label: 'Panel ejecutivo' },
+    { href: '/inicio', label: 'Inicio' },
   ],
   reportes: [
     { href: '/contable', label: 'Contable', primary: true },
     { href: '/sii', label: 'SII / F29' },
     { href: '/calculos-ia', label: 'Cálculos IA' },
-    { href: '/ejecutivo', label: 'Ejecutivo' },
+    { href: '/inicio', label: 'Inicio' },
   ],
   calculosIa: [
     { href: '/contable', label: 'Contable' },

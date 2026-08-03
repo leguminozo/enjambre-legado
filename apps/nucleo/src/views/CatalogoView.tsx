@@ -36,7 +36,7 @@ export function CatalogoView() {
     <div className="space-y-6">
       <ViewShell
         eyebrow="El Enjambre"
-        title="Catálogo de Productos"
+        title="Productos"
         subtitle="Administrá el catálogo de tu tienda con trazabilidad regenerativa"
         greeting="Alquimista del panal"
         icon={<Package size={20} />}

@@ -7,6 +7,7 @@ import {
   Percent, Check, Loader2, Plus, Edit3,
   Trash2, ToggleLeft, ToggleRight
 } from 'lucide-react';
+import { LiquidacionComisiones } from '@/components/reglas-comision/LiquidacionComisiones';
 
 interface CommissionRuleRow {
   id: string;
@@ -376,6 +377,10 @@ export function ReglasComisionPanel() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <LiquidacionComisiones />
       </div>
     </div>
   );

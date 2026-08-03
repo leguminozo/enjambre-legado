@@ -1,21 +1,43 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { X, MapPin, Crown, Droplets, Scale, DollarSign, Link, AlertTriangle, CheckCircle2, ChevronRight, Plus } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { X, MapPin, Crown, Droplets, Scale, DollarSign, Link, AlertTriangle, CheckCircle2, ChevronRight, Plus, Anchor, ShieldCheck, ExternalLink } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { BOSQUE_ULMO, BOSQUE_ULMO_LIGHT, ORO_MIEL, TEXT_MUTED } from '@/lib/colors';
 import { ChartBox } from '@/components/charts/ChartBox';
 import type { ColmenaWithRelations, InspeccionRow, VarroaRow, PesoRow } from '@/lib/apicultor-types';
+import type { HistorialColmena } from '@/lib/bitacora-types';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '../../lib/supabase';
 import { toast, friendlyError } from '@enjambre/ui';
+import { ColmenaOrigenTab } from './ColmenaOrigenTab';
+import { ColmenaBitacoraTab } from './ColmenaBitacoraTab';
+import { ColmenaSanidadTab } from './ColmenaSanidadTab';
+import { FASE_LABEL } from './bitacora-labels';
 
-type Tab = 'resumen' | 'inspecciones' | 'varroa' | 'peso' | 'costos' | 'blockchain';
+type Tab = 'resumen' | 'inspecciones' | 'varroa' | 'peso' | 'costos' | 'origen' | 'bitacora' | 'sanidad' | 'blockchain';
 
-interface Props { colmena: ColmenaWithRelations; onClose: () => void; onUpdate: (updated: ColmenaWithRelations) => void; }
+interface Props { colmena: ColmenaWithRelations; colmenas: ColmenaWithRelations[]; onClose: () => void; onUpdate: (updated: ColmenaWithRelations) => void; }
 
 const varroaColor = (v: number) => v <= 1.5 ? 'hsl(var(--success))' : v <= 3 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))';
 const healthLabel = (h: string) => h === 'optimal' ? 'Óptima' : h === 'attention' ? 'Atención' : 'Riesgo';
 
-export function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
+export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate }: Props) {
     const [tab, setTab] = useState<Tab>('resumen');
+    const apiFetch = useApiFetch();
+    const realId = Boolean(colmena.id && colmena.id.length >= 20);
+
+    // Historial completo de la bitácora: inspecciones+cuadros, tratamientos,
+    // reinas, alerta de retiro y origen (GET /api/bitacora/colmenas/:id)
+    const { data: historial, refetch: refetchHistorial } = useQuery<HistorialColmena>({
+        queryKey: ['bitacora-colmena', colmena.id],
+        queryFn: async () => {
+            const res = await apiFetch(`/api/bitacora/colmenas/${colmena.id}`);
+            if (!res.ok) throw new Error('Error cargando bitácora');
+            const json = await res.json();
+            return json.data as HistorialColmena;
+        },
+        enabled: realId,
+    });
 
     // Modal forms states
     const [showInspeccionForm, setShowInspeccionForm] = useState(false);
@@ -37,6 +59,9 @@ export function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
 
     const tabs: { id: Tab; label: string; icon: string }[] = [
         { id: 'resumen', label: 'Resumen', icon: '🐝' },
+        { id: 'origen', label: 'Origen', icon: '🧬' },
+        { id: 'bitacora', label: 'Bitácora', icon: '📔' },
+        { id: 'sanidad', label: 'Sanidad', icon: '💊' },
         { id: 'inspecciones', label: 'Inspecciones', icon: '📋' },
         { id: 'varroa', label: 'Varroa', icon: '🔬' },
         { id: 'peso', label: 'Peso', icon: '⚖️' },
@@ -44,9 +69,69 @@ export function ColmenaFicha({ colmena, onClose, onUpdate }: Props) {
         { id: 'blockchain', label: 'Trazabilidad', icon: '🔗' },
     ];
 
+    // ── Anclaje on-chain (testnet Polygon Amoy — sin costo real) ──────────────
+    const [anclando, setAnclando] = useState(false);
+    const [anclaError, setAnclaError] = useState<string | null>(null);
+    const [anclaOk, setAnclaOk] = useState<{ tx_hash?: string; explorer_url?: string; data_hash?: string } | null>(null);
+    const [verificando, setVerificando] = useState(false);
+    const [verificacion, setVerificacion] = useState<{ confirmed?: boolean; block_number?: number; block_timestamp?: string } | null>(null);
+
+    const { data: anclas = [], refetch: refetchAnclas } = useQuery<Array<{ id: string; tx_hash: string | null; chain: string | null; block_number: number | null; block_timestamp: string | null; data_hash: string | null; created_at: string | null }>>({
+        queryKey: ['blockchain-anclas', colmena.id],
+        queryFn: async () => {
+            const res = await apiFetch(`/api/blockchain/anchors/colmena/${colmena.id}`);
+            if (!res.ok) throw new Error('Error cargando anclas');
+            const json = await res.json();
+            return (json.data ?? []) as Array<{ id: string; tx_hash: string | null; chain: string | null; block_number: number | null; block_timestamp: string | null; data_hash: string | null; created_at: string | null }>;
+        },
+        enabled: realId,
+    });
+
+    const handleAnclar = async () => {
+        setAnclando(true);
+        setAnclaError(null);
+        setAnclaOk(null);
+        try {
+            const res = await apiFetch('/api/blockchain/anchor', {
+                method: 'POST',
+                body: JSON.stringify({ entity_type: 'colmena', entity_id: colmena.id }),
+            });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(json.message ?? json.code ?? 'No se pudo anclar la colmena');
+            setAnclaOk(json.data);
+            await refetchAnclas();
+            onUpdate({ ...colmena, blockchain_hash: json.data?.tx_hash ?? colmena.blockchain_hash });
+            toast('Colmena anclada en Polygon Amoy (testnet)', { type: 'success' });
+        } catch (err) {
+            console.error('Error anclando colmena', err);
+            setAnclaError(err instanceof Error ? err.message : 'Error al anclar');
+        } finally {
+            setAnclando(false);
+        }
+    };
+
+    const handleVerificar = async (txHash: string) => {
+        setVerificando(true);
+        setVerificacion(null);
+        try {
+            const res = await apiFetch('/api/blockchain/verify', {
+                method: 'POST',
+                body: JSON.stringify({ tx_hash: txHash, chain: 'polygon-amoy' }),
+            });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(json.message ?? json.code ?? 'No se pudo verificar');
+            setVerificacion(json.data);
+        } catch (err) {
+            console.error('Error verificando ancla', err);
+            toast(friendlyError(err, 'Error al verificar'), { type: 'error' });
+        } finally {
+            setVerificando(false);
+        }
+    };
+
     return (
         <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'hsl(var(--foreground) / 0.55)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={onClose} />
             <div className="card" style={{
                 position: 'relative', zIndex: 301, width: '95%', maxWidth: 680,
                 maxHeight: '90vh', display: 'flex', flexDirection: 'column',
@@ -118,10 +203,34 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                             {/* Reina history */}
                             <div>
                                 <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-sm)' }}>Linaje de Reinas</div>
-                                {/* La historia de la reina será implementada posteriormente a través de tabla reina_history */}
-                                <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))' }}>Sin historial registrado</div>
+                                {(historial?.reinas ?? []).length === 0 && (
+                                    <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))' }}>Sin historial registrado</div>
+                                )}
+                                {(historial?.reinas ?? []).slice(0, 3).map((r, i) => (
+                                    <div key={r.id || i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', fontSize: '0.78rem' }}>
+                                        <span style={{ color: r.estado === 'RV' ? 'hsl(var(--success))' : r.estado === 'NV' ? 'hsl(var(--warning))' : 'hsl(var(--destructive))', fontWeight: 700 }}>{r.estado}</span>
+                                        <span style={{ color: 'hsl(var(--muted-foreground))' }}>{r.fecha}</span>
+                                        {typeof (r.caracteristicas as Record<string, unknown> | null)?.color === 'string' && <span>· {(r.caracteristicas as Record<string, string>).color}</span>}
+                                    </div>
+                                ))}
+                                <button className="btn btn-ghost btn-sm" style={{ marginTop: 4, fontSize: '0.7rem' }} onClick={() => setTab('origen')}>Ver linaje completo →</button>
                             </div>
                         </div>
+                    )}
+
+                    {/* ── ORIGEN / PROVENANCE ── */}
+                    {tab === 'origen' && (
+                        <ColmenaOrigenTab colmena={colmena} colmenas={colmenas} historial={historial} refetchHistorial={() => void refetchHistorial()} onUpdate={onUpdate} />
+                    )}
+
+                    {/* ── BITÁCORA (ciclo de vida) ── */}
+                    {tab === 'bitacora' && (
+                        <ColmenaBitacoraTab colmena={colmena} colmenas={colmenas} historial={historial} refetchHistorial={() => void refetchHistorial()} onUpdate={onUpdate} />
+                    )}
+
+                    {/* ── SANIDAD ── */}
+                    {tab === 'sanidad' && (
+                        <ColmenaSanidadTab colmena={colmena} colmenas={colmenas} historial={historial} refetchHistorial={() => void refetchHistorial()} onUpdate={onUpdate} />
                     )}
 
                     {/* ── INSPECCIONES ── */}
@@ -382,28 +491,87 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                     {/* ── BLOCKCHAIN / TRAZABILIDAD ── */}
                     {tab === 'blockchain' && (
                         <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-lg)' }}>
-<Link size={16} style={{ color: 'hsl(var(--foreground))' }} />
-      <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>Trazabilidad del Lote</span>
-                                <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>Verificado</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-md)' }}>
+                                <Link size={16} style={{ color: 'hsl(var(--foreground))' }} />
+                                <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>Trazabilidad de la colmena</span>
+                                {colmena.blockchain_hash
+                                    ? <span className="badge badge-success" style={{ fontSize: '0.65rem' }}><ShieldCheck size={10} style={{ display: 'inline', marginRight: 4 }} />Anclada</span>
+                                    : <span className="badge" style={{ fontSize: '0.65rem' }}>Sin anclar</span>}
                             </div>
-                            {[
-                                { label: 'Hash blockchain', value: colmena.blockchain_hash || 'Pendiente', mono: true },
-                                { label: 'Lote activo', value: colmena.lote_activo || 'Sin lote activo' },
-                                { label: 'Colmena origen', value: colmena.name },
-                                { label: 'Apiario', value: colmena.apiario_name || 'Desconocido' },
-                                { label: 'Floración', value: colmena.floracion || 'N/A' },
-                                { label: 'Última cosecha', value: colmena.last_inspection || 'N/A' },
-                                { label: 'Producción lote', value: `${colmena.production_total || 0} kg miel virgen` },
-                            ].map((r, i) => (
-                                <div key={i} style={{ display: 'flex', gap: 'var(--space-md)', padding: '8px 0', borderBottom: '1px solid hsl(var(--border) / 0.3)', alignItems: 'flex-start' }}>
-                                    <span style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', width: 140, flexShrink: 0, paddingTop: 2 }}>{r.label}</span>
-                                    <span style={{ fontSize: r.mono ? '0.72rem' : '0.85rem', fontWeight: 500, color: r.mono ? 'hsl(var(--success))' : 'hsl(var(--foreground))', fontFamily: r.mono ? 'monospace' : undefined, wordBreak: 'break-all' }}>{r.value}</span>
+
+                            {/* Anclaje on-chain (testnet Polygon Amoy — sin costo real) */}
+                            <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)' }}>
+                                <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-sm)', lineHeight: 1.5 }}>
+                                    Ancla el estado actual de la colmena en blockchain (testnet Polygon Amoy, sin costo). El hash firmado queda inmutable y verificable.
                                 </div>
-                            ))}
-                            <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'hsl(var(--success) / 0.08)', borderRadius: 'var(--radius-sm)', border: '1px solid hsl(var(--success) / 0.2)', fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.6 }}>
-                                <ChevronRight size={12} style={{ display: 'inline', color: 'hsl(var(--success))' }} />
-                                {' '}Este lote está registrado de forma inmutable. El cliente puede escanear el QR del producto para ver esta ficha completa, el video de cosecha y los árboles plantados asociados.
+                                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                    <button className="btn btn-primary btn-sm" onClick={handleAnclar} disabled={anclando || !realId}>
+                                        <Anchor size={13} style={{ display: 'inline', marginRight: 6 }} />
+                                        {anclando ? 'Anclando…' : 'Anclar en blockchain'}
+                                    </button>
+                                    {colmena.blockchain_hash && (
+                                        <button className="btn btn-outline btn-sm" onClick={() => handleVerificar(colmena.blockchain_hash!)} disabled={verificando}>
+                                            <ShieldCheck size={13} style={{ display: 'inline', marginRight: 6 }} />
+                                            {verificando ? 'Verificando…' : 'Verificar integridad'}
+                                        </button>
+                                    )}
+                                </div>
+                                {anclaError && (
+                                    <div style={{ marginTop: 'var(--space-sm)', fontSize: '0.75rem', color: 'hsl(var(--destructive))' }}>{anclaError}</div>
+                                )}
+                                {anclaOk?.explorer_url && (
+                                    <a href={anclaOk.explorer_url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 'var(--space-sm)', fontSize: '0.75rem', color: 'hsl(var(--primary))' }}>
+                                        Ver transacción en el explorador <ExternalLink size={12} />
+                                    </a>
+                                )}
+                                {verificacion && (
+                                    <div style={{ marginTop: 'var(--space-sm)', fontSize: '0.78rem', color: verificacion.confirmed ? 'hsl(var(--success))' : 'hsl(var(--destructive))' }}>
+                                        {verificacion.confirmed ? `✓ Confirmada en bloque ${verificacion.block_number}` : '✗ Transacción no confirmada'}
+                                        {verificacion.block_timestamp && <> · {verificacion.block_timestamp}</>}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Hash actual */}
+                            <div style={{ display: 'flex', gap: 'var(--space-md)', padding: '8px 0', borderBottom: '1px solid hsl(var(--border) / 0.3)', alignItems: 'flex-start' }}>
+                                <span style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', width: 140, flexShrink: 0, paddingTop: 2 }}>Hash blockchain</span>
+                                <span style={{ fontSize: '0.72rem', fontWeight: 500, color: colmena.blockchain_hash ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                                    {colmena.blockchain_hash || 'Pendiente — ancla la colmena para firmar su estado'}
+                                </span>
+                            </div>
+
+                            {/* Historial de anclas */}
+                            {anclas.length > 0 && (
+                                <div style={{ marginTop: 'var(--space-md)' }}>
+                                    <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Anclas registradas</div>
+                                    {anclas.map(a => (
+                                        <div key={a.id} style={{ display: 'flex', gap: 'var(--space-md)', padding: '6px 0', borderBottom: '1px solid hsl(var(--border) / 0.2)', alignItems: 'center' }}>
+                                            <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', width: 90, flexShrink: 0 }}>{a.block_timestamp?.slice(0, 10) ?? '—'}</span>
+                                            <span style={{ fontSize: '0.68rem', fontFamily: 'monospace', color: 'hsl(var(--foreground))', wordBreak: 'break-all', flex: 1 }}>{a.tx_hash}</span>
+                                            <span style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>{a.chain}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Ficha del lote (contexto comercial) */}
+                            <div style={{ marginTop: 'var(--space-lg)' }}>
+                                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Lote activo</div>
+                                {[
+                                    { label: 'Lote activo', value: colmena.lote_activo || 'Sin lote activo' },
+                                    { label: 'Apiario', value: colmena.apiario_name || 'Desconocido' },
+                                    { label: 'Floración', value: colmena.floracion || 'N/A' },
+                                    { label: 'Producción temporada', value: `${colmena.production_total || 0} kg miel virgen` },
+                                ].map((r, i) => (
+                                    <div key={i} style={{ display: 'flex', gap: 'var(--space-md)', padding: '8px 0', borderBottom: '1px solid hsl(var(--border) / 0.3)', alignItems: 'flex-start' }}>
+                                        <span style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', width: 140, flexShrink: 0, paddingTop: 2 }}>{r.label}</span>
+                                        <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>{r.value}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.07)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.6 }}>
+                                <ChevronRight size={12} style={{ display: 'inline', color: 'hsl(var(--accent))' }} />
+                                {' '}El anclaje usa testnet Polygon Amoy: cuesta 0 CLP y no consume cuota de Supabase ni Vercel. El hash se recomputa desde <code>data_payload</code> para verificar que el estado firmado no fue alterado.
                             </div>
                         </div>
                     )}

@@ -98,7 +98,7 @@ export function CosteoView() {
       <ViewShell
         variant="compact"
         eyebrow="Finanzas"
-        title="Costeo y Rentabilidad"
+        title="Costeo"
         subtitle="Análisis de márgenes comerciales, gestión de recetas maestras e insumos."
         icon={<TrendingUp size={20} />}
       />

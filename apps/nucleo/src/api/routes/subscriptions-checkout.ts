@@ -4,6 +4,8 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
 import { getPaymentProvider } from '../lib/payments';
+import { getNucleoPublicUrl } from '../lib/payments/flow-sign';
+import type { PaymentInitResult, PaymentProviderWithRecurring } from '../lib/payments/types';
 import {
   saveSubscriptionCheckoutSession,
   getSubscriptionCheckoutSession,
@@ -11,6 +13,7 @@ import {
 import { fulfillSubscription } from '../lib/payments/subscription-fulfill';
 import { resolveCheckoutReturnUrl } from '../lib/payments/safe-return-url';
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from '../lib/ratelimit';
+import { fromLoose } from '@/api/lib/supabase-loose';
 
 async function rateLimitMiddleware(
   c: {
@@ -81,7 +84,7 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
 
     const { data: plan, error: planError } = await admin
       .from('subscription_plans')
-      .select('id, name, price_clp, active')
+      .select('id, name, price_clp, frequency, active')
       .eq('id', planId)
       .single();
 
@@ -89,11 +92,13 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
       return c.json({ code: 'plan_not_found', message: 'Plan no encontrado' }, 404);
     }
 
+    // Paused se EXCLUYE del bloqueo: reanudar = nueva autorización (el cliente
+    // paga de nuevo y el fulfill reactiva la sub pausada)
     const { data: activeSub } = await admin
       .from('subscriptions')
       .select('id')
       .eq('user_id', user.id)
-      .in('status', [...SUBSCRIPTION_BLOCKING_STATUSES])
+      .in('status', [...SUBSCRIPTION_BLOCKING_STATUSES.filter((s) => s !== 'paused')])
       .limit(1)
       .maybeSingle();
 
@@ -102,6 +107,14 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
     }
 
     const total = Math.max(1, Math.round(plan.price_clp));
+    // Cargo mensual equivalente: Pago Automático de Flow solo soporta períodos
+    // day/week/month, así que trimestral/anual se fraccionan en cargos mensuales.
+    const monthlyEquivalent =
+      plan.frequency === 'quarterly'
+        ? Math.max(1, Math.round(plan.price_clp / 3))
+        : plan.frequency === 'annual'
+          ? Math.max(1, Math.round(plan.price_clp / 12))
+          : total;
     const buyOrder = `SUB-${crypto.randomUUID()}`;
     const sessionId = `sub-sess-${crypto.randomUUID()}`;
 
@@ -113,13 +126,40 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
     );
 
     const provider = getPaymentProvider();
-    const result = await provider.init(
-      buyOrder,
-      sessionId,
-      total,
-      returnUrl,
-      user.email,
-    );
+    const isRecurringCapable =
+      provider.name === 'flow' &&
+      typeof (provider as Partial<PaymentProviderWithRecurring>).createRecurring === 'function';
+    const nucleoPublicUrl = getNucleoPublicUrl();
+
+    let result: PaymentInitResult;
+    let recurringToken: string | null = null;
+
+    if (isRecurringCapable && nucleoPublicUrl) {
+      // Inscripción Pago Automático: el primer cargo ocurre al autorizar en la
+      // página de Flow; los siguientes los cobra Flow solo cada mes.
+      const recurring = await (provider as PaymentProviderWithRecurring).createRecurring({
+        buyOrder,
+        sessionId,
+        firstAmount: total,
+        recurringAmount: monthlyEquivalent,
+        email: user.email ?? '',
+        returnUrl,
+        confirmationUrl: `${nucleoPublicUrl}/api/checkout/webhook/flow`,
+        planName: plan.name,
+        optional: { planId: plan.id },
+      });
+      result = {
+        url: recurring.url,
+        token: recurring.token,
+        buyOrder,
+        sessionId,
+        provider: provider.name,
+      };
+      recurringToken = recurring.token;
+    } else {
+      // Fallback one-shot (Transbank o Flow sin módulo recurrente habilitado)
+      result = await provider.init(buyOrder, sessionId, total, returnUrl, user.email);
+    }
 
     await saveSubscriptionCheckoutSession({
       buyOrder,
@@ -129,6 +169,7 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
       planId: plan.id,
       total,
       deliveryAddress: deliveryAddress?.trim() || null,
+      recurringToken,
       createdAt: Date.now(),
     });
 
@@ -140,6 +181,7 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
       total,
       provider: provider.name,
       planName: plan.name,
+      recurring: Boolean(recurringToken),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo iniciar el pago de reposición';
@@ -160,14 +202,39 @@ subscriptionsCheckoutRoutes.post('/commit', zValidator('json', CommitBodySchema)
       return c.json({ ok: false, authorized: false, result: result.raw }, 200);
     }
 
-    const buyOrder = clientBuyOrder || result.buyOrder;
+    // Fuente de verdad: el buyOrder devuelto por el proveedor. Si el cliente
+    // manda uno distinto, rechazamos (mismo criterio que el checkout one-shot).
+    const buyOrder = result.buyOrder?.trim();
     if (!buyOrder?.startsWith('SUB-')) {
       return c.json({ ok: false, authorized: true, error: 'Orden de suscripción inválida', buyOrder }, 200);
     }
+    if (clientBuyOrder && clientBuyOrder !== buyOrder) {
+      console.warn(`[subscriptions-checkout] buyOrder mismatch client=${clientBuyOrder} provider=${buyOrder}`);
+      return c.json({ code: 'buy_order_mismatch', message: 'buyOrder no coincide con el proveedor de pago' }, 400);
+    }
 
-    const session = buyOrder ? await getSubscriptionCheckoutSession(buyOrder) : undefined;
+    const session = await getSubscriptionCheckoutSession(buyOrder);
 
     if (!session) {
+      // Doble commit / webhook ya procesado: la sesión quedó completed pero la
+      // sub existe → responder idempotente en vez de "sesión expirada".
+      const admin = createAdminClient();
+      const { data: existingSub } = await admin
+        .from('subscriptions')
+        .select('id')
+        .eq('metadata->>buy_order', buyOrder)
+        .maybeSingle();
+
+      if (existingSub) {
+        return c.json({
+          ok: true,
+          authorized: true,
+          buyOrder,
+          subscriptionId: existingSub.id as string,
+          alreadyProcessed: true,
+        }, 200);
+      }
+
       console.error(`Subscription session not found for buyOrder: ${buyOrder}`);
       return c.json({
         ok: false,
@@ -175,6 +242,14 @@ subscriptionsCheckoutRoutes.post('/commit', zValidator('json', CommitBodySchema)
         error: 'Sesión de pago expirada. Contacta soporte con orden ' + buyOrder,
         buyOrder,
       }, 200);
+    }
+
+    // Ownership: la sesión debe pertenecer al usuario autenticado
+    const authHeader = c.req.header('Authorization');
+    const token = authHeader?.replace('Bearer ', '') || null;
+    const user = await resolveUserFromToken(token);
+    if (!user || user.id !== session.userId) {
+      return c.json({ code: 'forbidden', message: 'Esta orden no te pertenece' }, 403);
     }
 
     const admin = createAdminClient();
@@ -209,6 +284,57 @@ subscriptionsCheckoutRoutes.post('/commit', zValidator('json', CommitBodySchema)
   }
 });
 
+/**
+ * Cancela la inscripción recurrente en Flow para la suscripción activa del
+ * usuario. NO toca el estado DB (eso lo hace el PATCH de tienda); solo detiene
+ * los cargos automáticos. Best-effort: si Flow no expone el endpoint, devuelve
+ * flowCancelled:false para que el equipo cancele manualmente en el panel.
+ */
+subscriptionsCheckoutRoutes.post('/cancel-inscription', async (c) => {
+  try {
+    const authHeader = c.req.header('Authorization');
+    const token = authHeader?.replace('Bearer ', '') || null;
+    const user = await resolveUserFromToken(token);
+
+    if (!user) {
+      return c.json({ code: 'unauthorized', message: 'Debes iniciar sesión' }, 401);
+    }
+
+    const admin = createAdminClient();
+    // fromLoose: flow_inscription_buy_order aún no está en el typegen
+    const { data: sub } = await fromLoose(admin, 'subscriptions')
+      .select('id, flow_inscription_buy_order')
+      .eq('user_id', user.id)
+      .in('status', ['active', 'paused', 'trialing', 'past_due'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!sub || !sub.flow_inscription_buy_order) {
+      return c.json({ ok: true, flowCancelled: true, alreadyInactive: true }, 200);
+    }
+
+    const provider = getPaymentProvider();
+    if (typeof (provider as Partial<PaymentProviderWithRecurring>).cancelRecurring !== 'function') {
+      return c.json({ ok: true, flowCancelled: false, reason: 'provider_sin_cancel' }, 200);
+    }
+
+    const cancelResult = await (provider as PaymentProviderWithRecurring).cancelRecurring(
+      sub.flow_inscription_buy_order as string,
+    );
+
+    if (!cancelResult.ok) {
+      console.warn('[subscriptions-checkout] cancelRecurring:', cancelResult.error);
+    }
+
+    return c.json({ ok: true, flowCancelled: cancelResult.ok });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'No se pudo cancelar la inscripción';
+    console.error('[subscriptions-checkout] cancel-inscription:', message);
+    return c.json({ code: 'cancel_failed', message }, 500);
+  }
+});
+
 export async function fulfillSubscriptionFromWebhook(
   buyOrder: string,
   authorizationCode: string,
@@ -219,6 +345,16 @@ export async function fulfillSubscriptionFromWebhook(
 
   const session = await getSubscriptionCheckoutSession(buyOrder);
   if (!session) {
+    // Race con el commit del browser: la sesión ya se completó y la sub existe
+    const admin = createAdminClient();
+    const { data: existingSub } = await admin
+      .from('subscriptions')
+      .select('id')
+      .eq('metadata->>buy_order', buyOrder)
+      .maybeSingle();
+    if (existingSub) {
+      return { ok: true as const, status: 'already_processed' as const };
+    }
     console.error(`Flow webhook: subscription session not found for buyOrder ${buyOrder}`);
     return { ok: false as const, error: 'Sesión no encontrada', status: 404 };
   }

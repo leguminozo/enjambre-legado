@@ -1,5 +1,6 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
+import { fromLoose } from '@/api/lib/supabase-loose';
 
 export type SubscriptionCheckoutSession = {
   buyOrder: string;
@@ -9,6 +10,8 @@ export type SubscriptionCheckoutSession = {
   planId: string;
   total: number;
   deliveryAddress?: string | null;
+  /** Token de la inscripción recurrente Flow (Pago Automático) */
+  recurringToken?: string | null;
   createdAt: number;
 };
 
@@ -20,6 +23,7 @@ const SubscriptionSessionRowSchema = z.object({
   plan_id: z.string().uuid(),
   total: z.number(),
   delivery_address: z.string().nullable().optional(),
+  recurring_token: z.string().nullable().optional(),
   status: z.enum(['pending', 'completed', 'expired']),
   created_at: z.string(),
 });
@@ -40,6 +44,7 @@ function toSession(row: z.infer<typeof SubscriptionSessionRowSchema>): Subscript
     planId: row.plan_id,
     total: row.total,
     deliveryAddress: row.delivery_address ?? null,
+    recurringToken: row.recurring_token ?? null,
     createdAt: new Date(row.created_at).getTime(),
   };
 }
@@ -48,7 +53,8 @@ export async function saveSubscriptionCheckoutSession(
   session: SubscriptionCheckoutSession,
 ): Promise<void> {
   const admin = createAdminClient();
-  const { error } = await admin.from('subscription_checkout_sessions').insert({
+  // fromLoose: recurring_token aún no está en el typegen (migración 20260803)
+  const { error } = await fromLoose(admin, 'subscription_checkout_sessions').insert({
     buy_order: session.buyOrder,
     session_id: session.sessionId,
     provider: session.provider,
@@ -56,6 +62,7 @@ export async function saveSubscriptionCheckoutSession(
     plan_id: session.planId,
     total: session.total,
     delivery_address: session.deliveryAddress ?? null,
+    recurring_token: session.recurringToken ?? null,
   });
   if (error) throw new Error(`Failed to save subscription checkout session: ${error.message}`);
 }
@@ -64,9 +71,9 @@ export async function getSubscriptionCheckoutSession(
   buyOrder: string,
 ): Promise<SubscriptionCheckoutSession | undefined> {
   const admin = createAdminClient();
-  const { data, error } = await admin
-    .from('subscription_checkout_sessions')
-    .select('buy_order, session_id, provider, user_id, plan_id, total, delivery_address, status, created_at')
+  // fromLoose: recurring_token aún no está en el typegen
+  const { data, error } = await fromLoose(admin, 'subscription_checkout_sessions')
+    .select('buy_order, session_id, provider, user_id, plan_id, total, delivery_address, recurring_token, status, created_at')
     .eq('buy_order', buyOrder)
     .eq('status', 'pending')
     .single();

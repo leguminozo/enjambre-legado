@@ -20,8 +20,8 @@ export const LazyConfiguracionView = named(
   'Configuración',
 );
 export const LazySiiDteView = named(() => import('@/views/sii/SiiDteView'), 'SiiDteView', 'SII');
-export const LazyCRMView = named(() => import('@/views/crm/CRMView'), 'CRMView', 'CRM');
-export const LazyContableView = named(() => import('@/views/ContableView'), 'ContableView', 'Contable');
+export const LazyCRMView = named(() => import('@/views/crm/CRMView'), 'CRMView', 'CRM Vendedores');
+export const LazyContableView = named(() => import('@/views/ContableView'), 'ContableView', 'Contabilidad');
 export const LazyBancoChileView = named(
   () => import('@/views/banco-chile/BancoChileView'),
   'BancoChileView',
@@ -32,7 +32,7 @@ export const LazyConciliacionAutoView = named(
   'ConciliacionAutoView',
   'Conciliación',
 );
-export const LazyPipelineView = named(() => import('@/views/PipelineView'), 'PipelineView', 'Pipeline');
+export const LazyPipelineView = named(() => import('@/views/PipelineView'), 'PipelineView', 'Pipeline Ventas');
 export const LazyCosteoView = named(() => import('@/views/costeo/CosteoView'), 'CosteoView', 'Costeo');
 export const LazyProduccionView = named(
   () => import('@/views/produccion/ProduccionView'),
@@ -60,7 +60,7 @@ export const LazyTrazabilidadView = named(
   'TrazabilidadView',
   'Trazabilidad',
 );
-export const LazyLogisticaView = named(() => import('@/views/LogisticaView'), 'LogisticaView', 'Operaciones');
+export const LazyLogisticaView = named(() => import('@/views/LogisticaView'), 'LogisticaView', 'Despacho');
 export const LazyRegeneracionView = named(
   () => import('@/views/RegeneracionView'),
   'RegeneracionView',
@@ -73,13 +73,24 @@ export const LazyDashboardEjecutivo = named(
   'DashboardEjecutivo',
   'Ejecutivo',
 );
+export const LazyHomeView = named(() => import('@/views/HomeView'), 'HomeView', 'Inicio');
+export const LazyInicioTerritorialView = named(
+  () => import('@/views/InicioTerritorialView'),
+  'InicioTerritorialView',
+  'Inicio Territorial',
+);
+export const LazyAlmaEnjambreView = named(
+  () => import('@/components/enjambre/EcosistemaDashboard'),
+  'EcosistemaDashboard',
+  'Alma del Enjambre',
+);
 export const LazyOperadoresFeriaPanel = named(
   () => import('@/components/operadores-feria/OperadoresFeriaPanel'),
   'OperadoresFeriaPanel',
-  'Operadores feria',
+  'Operadores Feria',
 );
 
-export const LazyCatalogoView = named(() => import('@/views/CatalogoView'), 'CatalogoView', 'Catálogo');
+export const LazyCatalogoView = named(() => import('@/views/CatalogoView'), 'CatalogoView', 'Productos');
 export const LazyProductosCatalogoView = named(
   () => import('@/views/ProductosCatalogoView'),
   'ProductosCatalogoView',
@@ -90,7 +101,7 @@ export const LazyContableHubView = named(
   'ContableHubView',
   'Contable',
 );
-export const LazyMapaView = named(() => import('@/views/MapaView'), 'MapaView', 'Mapa');
+export const LazyMapaView = named(() => import('@/views/MapaView'), 'MapaView', 'Mapa del Legado');
 export const LazyEditorTiendaView = named(
   () => import('@/views/EditorTiendaView'),
   'EditorTiendaView',

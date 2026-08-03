@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Card, CardContent, Spinner } from '@enjambre/ui';
-import { Droplet, MapPin, Beaker, CheckCircle2, Users } from 'lucide-react';
+import { Droplet, MapPin, Beaker, CheckCircle2, Users, ShieldCheck, ShieldAlert } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 // Dynamic import for Leaflet map to avoid SSR issues
@@ -42,6 +42,31 @@ export default function LotePublicoPage() {
   const [lote, setLote] = useState<LotePublico | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cadena, setCadena] = useState<{
+    codigo: string;
+    integridad: { es_valido: boolean; eventos_verificados: number; total_eventos: number };
+    eventos: Array<{
+      evento: string;
+      ubicacion: string | null;
+      created_at: string | null;
+      valido: boolean;
+      hash: string | null;
+    }>;
+  } | null>(null);
+
+  // Cadena de custodia verificable: historial + hash recomputado vs almacenado
+  useEffect(() => {
+    if (!id) return;
+    fetch(`/api/trazabilidad/lote/${id}/qr`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => setCadena(json?.data ?? null))
+      .catch(() => setCadena(null));
+  }, [id]);
+
+  const formatFecha = (iso: string | null) =>
+    iso
+      ? new Date(iso).toLocaleString('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+      : '—';
 
   useEffect(() => {
     async function fetchLote() {
@@ -167,6 +192,69 @@ export default function LotePublicoPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Cadena de Custodia Verificable */}
+        {cadena && (
+          <Card className="bg-card shadow-sm border-0 rounded-2xl overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                {cadena.integridad.es_valido ? (
+                  <ShieldCheck className="w-5 h-5 text-success" />
+                ) : (
+                  <ShieldAlert className="w-5 h-5 text-destructive" />
+                )}
+                <h2 className="text-sm font-bold text-foreground">Cadena de Custodia</h2>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 mb-5">
+                {cadena.integridad.es_valido ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success/15 text-success border border-success/30">
+                    ✓ Cadena íntegra
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-destructive/15 text-destructive border border-destructive/30">
+                    ⚠ Cadena manipulada
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">
+                  {cadena.integridad.eventos_verificados}/{cadena.integridad.total_eventos} eventos verificados · código{' '}
+                  <span className="font-mono">{cadena.codigo}</span>
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {cadena.eventos.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">
+                    Cadena vacía — el pasaporte espera su primer evento.
+                  </p>
+                ) : (
+                  cadena.eventos.map((ev, i) => (
+                    <div key={i} className="flex items-start gap-3 text-xs bg-surface-sunken px-3 py-2 rounded-lg">
+                      <span className="mt-0.5 shrink-0">{ev.valido ? '✓' : '✗'}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between gap-2">
+                          <span className="font-medium text-foreground capitalize">{ev.evento}</span>
+                          <span className="text-muted-foreground shrink-0">{formatFecha(ev.created_at)}</span>
+                        </div>
+                        {ev.ubicacion && <div className="text-muted-foreground">{ev.ubicacion}</div>}
+                        {ev.hash && (
+                          <div className="font-mono text-[0.6rem] text-muted-foreground/60 truncate select-all">
+                            {ev.hash}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <p className="mt-4 text-[0.65rem] text-muted-foreground/70 leading-relaxed">
+                Cada evento de la cadena lleva un hash SHA-256 encadenado. Esta página lo recomputa y lo
+                compara con el almacenado: si alguien altera un eslabón, el sello se rompe.
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
       </div>
       

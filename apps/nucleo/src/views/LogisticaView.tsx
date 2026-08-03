@@ -254,7 +254,7 @@ export function LogisticaView() {
     <div className="space-y-6 animate-in">
       <ViewShell
         eyebrow="Operaciones"
-        title="Logística en Tiempo Real"
+        title="Despacho"
         subtitle="Operaciones de despacho, stock multicentro y proveedores"
       />
 

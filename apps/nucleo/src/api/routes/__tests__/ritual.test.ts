@@ -4,7 +4,11 @@ import { app } from '../../../../app/api/[[...routes]]/route';
 vi.mock('@supabase/supabase-js', () => ({
   createClient: () => ({
     rpc: vi.fn().mockResolvedValue({
-      data: { deliveries_scheduled: 2 },
+      data: {
+        deliveries_healed: 0,
+        marked_past_due: 1,
+        engine: 'subscription_renewal_v3_flow',
+      },
       error: null,
     }),
   }),
@@ -30,7 +34,10 @@ describe('replenishment cron', () => {
       expect(res.status).toBe(200);
       const json = await res.json();
       expect(json.ok).toBe(true);
-      expect(json.result).toMatchObject({ deliveries_scheduled: 2 });
+      // v3: ya no agenda entregas gratis; heala pagadas y marca past_due
+      expect(json.result).toMatchObject({ engine: 'subscription_renewal_v3_flow' });
+      expect(json.result.deliveries_healed).toBe(0);
+      expect(json.result.marked_past_due).toBe(1);
     });
   }
 });

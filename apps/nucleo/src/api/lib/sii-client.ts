@@ -45,19 +45,29 @@ function extractP12(p12Base64: string, p12Password: string): P12ExtractResult {
 }
 
 export function signDteXml(xml: string, p12Base64: string, p12Password: string): string {
+  // Contrato original intacto: firma el nodo <Documento> (wrapper de signNode)
+  return signNode(xml, 'Documento', p12Base64, p12Password);
+}
+
+/**
+ * Firma xmldsig RSA-SHA1 inline sobre un elemento raíz genérico (ej.
+ * SolicitudDeFolios para el CAF automático). Mismo patrón que signDteXml
+ * pero sin depender del nodo <Documento>.
+ */
+export function signNode(xml: string, rootTag: string, p12Base64: string, p12Password: string): string {
   let { privateKeyPem, certPem } = extractP12(p12Base64, p12Password);
 
-  const docMatch = xml.match(/<Documento[^>]*>([\s\S]*?)<\/Documento>/);
-  if (!docMatch) {
-    throw new Error("No se encontro nodo Documento en el XML");
+  const rootMatch = xml.match(new RegExp(`<${rootTag}[^>]*>([\\s\\S]*?)</${rootTag}>`));
+  if (!rootMatch) {
+    throw new Error(`No se encontro nodo ${rootTag} en el XML`);
   }
 
-  const documentoContent = docMatch[1]!.replace(/\s+/g, " ").trim();
+  const rootContent = rootMatch[1]!.replace(/\s+/g, " ").trim();
 
-  const digest = createHash("sha1").update(documentoContent, "latin1").digest("base64");
+  const digest = createHash("sha1").update(rootContent, "latin1").digest("base64");
 
-  const certIdMatch = xml.match(/<Documento[^>]*ID="([^"]*)"/);
-  const docId = certIdMatch ? certIdMatch[1]! : "DTE";
+  const certIdMatch = xml.match(new RegExp(`<${rootTag}[^>]*ID="([^"]*)"`));
+  const docId = certIdMatch ? certIdMatch[1]! : rootTag;
 
   const signedInfo = `<SignedInfo xmlns="http://www.w3.org/2000/09/xmldsig#"><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"></CanonicalizationMethod><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"></SignatureMethod><Reference URI="#${docId}"><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"></DigestMethod><DigestValue>${digest}</DigestValue></Reference></SignedInfo>`;
 
@@ -66,10 +76,10 @@ export function signDteXml(xml: string, p12Base64: string, p12Password: string):
   sign.end();
 
   const key = createPrivateKey({ key: privateKeyPem, format: "pem" });
-  
+
   // Zeroing mitigation para reducir tiempo en heap
   privateKeyPem = '\0'.repeat(privateKeyPem.length);
-  
+
   const signature = sign.sign(key, "base64");
 
   const cert = new X509Certificate(certPem);
@@ -93,7 +103,7 @@ export function signDteXml(xml: string, p12Base64: string, p12Password: string):
   </KeyInfo>
 </Signature>`;
 
-  return xml.replace("</Documento>", `${signatureNode}\n</Documento>`);
+  return xml.replace(`</${rootTag}>`, `${signatureNode}\n</${rootTag}>`);
 }
 
 export function stampDteXml(xml: string, caf: CafFolio, folio: number): string {

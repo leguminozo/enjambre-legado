@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Hexagon, ThermometerSun, Droplets, TreePine, AlertTriangle, CalendarDays, LineChart, Activity, Map as MapIcon, MapPin } from 'lucide-react';
+import { Hexagon, ThermometerSun, Droplets, TreePine, CalendarDays, LineChart, Activity, Map as MapIcon, MapPin } from 'lucide-react';
 import type { ColmenaWithRelations, InspeccionRow, VarroaRow, PesoRow } from '@/lib/apicultor-types';
 import type { Tables } from '@enjambre/database';
 import { healthFromEstado, estadoFromHealth } from '@/types/ecosystem';
@@ -7,9 +7,9 @@ import { ViewLoading } from '@enjambre/ui';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { fetchPronostico } from '@/lib/meteo';
-import { mapInAppNotificationToAlertItem } from '@enjambre/auth';
 import { supabase } from '../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { WidgetRail } from '@/components/widgets/WidgetRail';
 import dynamic from 'next/dynamic';
 
 const ColmenaFicha = dynamic(
@@ -19,29 +19,30 @@ const ColmenaFicha = dynamic(
 import { TrazabilidadPanel } from '../components/apicultor/TrazabilidadPanel';
 import { ApiarioManager } from '../components/apicultor/ApiarioManager';
 import { HeaderEcosistema } from '../components/apicultor/HeaderEcosistema';
-import { OraculoFloracion } from '../components/apicultor/OraculoFloracion';
-import { VentanasDeVuelo } from '../components/apicultor/VentanasDeVuelo';
 import { GemeloApiario } from '../components/apicultor/GemeloApiario';
-import { EspectroVivo } from '../components/apicultor/EspectroVivo';
 import { TerritorioUsuarioPanel } from '../components/apicultor/TerritorioUsuarioPanel';
 import { CuadernoCampoPanel } from '../components/apicultor/CuadernoCampoPanel';
 
-interface AlertItem {
-  id?: string | number;
-  severity: 'critical' | 'warning' | 'success';
-  title: string;
-  message: string;
-}
-
-interface ReflexionData {
-  date: string;
-  content: string;
-  author?: string;
-  date_display?: string;
-  created_at?: string;
-}
-
 type ViewTab = 'colmenas' | 'apiarios' | 'calendario' | 'trazabilidad' | 'territorio' | 'sanidad';
+
+/** Título y subtítulo por tab: la herramienta se nombra igual que en el sidebar */
+const VIEW_TITLES: Record<ViewTab, string> = {
+  colmenas: 'Colmenas',
+  apiarios: 'Apiarios',
+  sanidad: 'Cuaderno Campo',
+  calendario: 'Calendario',
+  trazabilidad: 'Trazabilidad',
+  territorio: 'Mi Territorio',
+}
+
+const VIEW_SUBTITLES: Record<ViewTab, string> = {
+  colmenas: 'Monitorea tus colmenas y su desarrollo',
+  apiarios: 'Organiza tus apiarios en el territorio',
+  sanidad: 'Cuaderno de campo: sanidad, varroa y peso',
+  calendario: 'Agenda del ciclo: mes, día y eventos',
+  trazabilidad: 'Lotes, QR y pasaporte público de tu miel',
+  territorio: 'Tu presencia en el Registro Territorial de Chiloé',
+}
 
 /**
  * Vista del apiario. Cada tab puede abrirse como ruta propia desde la sidebar
@@ -54,13 +55,10 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
     const [treesCount, setTreesCount] = useState<number>(0);
     const [tempPureo, setTempPureo] = useState<string>('—');
     const [localColmenas, setLocalColmenas] = useState<ColmenaWithRelations[]>([]);
+    const [apiarios, setApiarios] = useState<Tables<'apiarios'>[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedColmena, setSelectedColmena] = useState<ColmenaWithRelations | null>(null);
     const [activeView, setActiveView] = useState<ViewTab>(initialView);
-
-    // Phase 4 dynamic data
-  const [alerts, setAlerts] = useState<AlertItem[]>([]);
-  const [reflexion, setReflexion] = useState<ReflexionData | null>(null);
 
     // Fetch data from Supabase
     useEffect(() => {
@@ -81,8 +79,9 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
                     }
                 }
 
-                const { data: apiarios } = await supabase.from('apiarios').select('*');
-                const apiarioMap = new Map((apiarios as Tables<'apiarios'>[] | null)?.map((a) => [a.id, a]) || []);
+                const { data: apiariosData } = await supabase.from('apiarios').select('*');
+                setApiarios((apiariosData as Tables<'apiarios'>[] | null) ?? []);
+                const apiarioMap = new Map((apiariosData as Tables<'apiarios'>[] | null)?.map((a) => [a.id, a]) || []);
 
                 const nested = await supabase.from('colmenas').select(`
                     *,
@@ -116,38 +115,6 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
                     setLocalColmenas(mapped as ColmenaWithRelations[]);
                 } else {
                     setLocalColmenas([]);
-                }
-
-                if (uid) {
-                    const [resA, resR] = await Promise.all([
-                        supabase
-                            .from('notification_events')
-                            .select('*')
-                            .eq('created_by', uid)
-                            .eq('channel', 'in_app')
-                            .order('created_at', { ascending: false })
-                            .limit(3),
-                        apiFetch('/api/produccion/reflexiones'),
-                    ]);
-
-                    setAlerts((resA.data ?? []).map(mapInAppNotificationToAlertItem));
-                    if (resR.ok) {
-                        const reflexJson = await resR.json();
-                        const row = (reflexJson.data ?? [])[0] as
-                          | { fecha?: string; texto?: string; colmena?: string }
-                          | undefined;
-                        if (row) {
-                            setReflexion({
-                                date: row.fecha ?? '',
-                                content: row.texto ?? '',
-                                date_display: row.colmena,
-                            });
-                        } else {
-                            setReflexion(null);
-                        }
-                    } else {
-                        setReflexion(null);
-                    }
                 }
 
             } catch (err) {
@@ -185,6 +152,10 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
                 notes: updated.notes || '',
                 queen: updated.queen || null,
                 nucleos_candidatos: updated.nucleos_candidatos,
+                origen_tipo: updated.origen_tipo ?? null,
+                origen_fecha: updated.origen_fecha ?? null,
+                origen_colmena_madre: updated.origen_colmena_madre ?? null,
+                origen_detalle: updated.origen_detalle ?? null,
             }).eq('id', updated.id);
             if (error) throw error;
         } catch (err) {
@@ -205,13 +176,13 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
             </div>
 
             {selectedColmena && (
-                <ColmenaFicha colmena={selectedColmena} onClose={() => setSelectedColmena(null)} onUpdate={handleUpdateColmena} />
+                <ColmenaFicha colmena={selectedColmena} colmenas={localColmenas} onClose={() => setSelectedColmena(null)} onUpdate={handleUpdateColmena} />
             )}
 
             <ViewShell
                 greeting={`¡Hola, ${userProfile?.full_name || 'Apicultor'}!`}
-                title="Estás conectado al Bosque Nativo"
-                subtitle="Monitorea colmenas y analiza flujos de floración"
+                title={VIEW_TITLES[activeView]}
+                subtitle={VIEW_SUBTITLES[activeView]}
             />
 
             <div className="stats-grid">
@@ -236,10 +207,10 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
               layoutId="apicultor-tabs"
               className="mt-2 mb-2"
               tabs={[
-                { id: 'colmenas', label: 'Mis Colmenas', icon: <Activity size={16} /> },
+                { id: 'colmenas', label: 'Colmenas', icon: <Activity size={16} /> },
                 { id: 'apiarios', label: 'Apiarios', icon: <MapPin size={16} /> },
                 { id: 'sanidad', label: 'Cuaderno Campo', icon: <Droplets size={16} /> },
-                { id: 'calendario', label: 'Ciclo del Bosque', icon: <CalendarDays size={16} /> },
+                { id: 'calendario', label: 'Calendario', icon: <CalendarDays size={16} /> },
                 { id: 'trazabilidad', label: 'Trazabilidad', icon: <LineChart size={16} /> },
                 { id: 'territorio', label: 'Mi Territorio', icon: <MapIcon size={16} /> },
               ]}
@@ -253,13 +224,13 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
                     {activeView === 'colmenas' && (
                         <div className="animate-in delay-2" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                             <GemeloApiario colmenas={localColmenas} apiarioName={localColmenas[0]?.apiario_name} />
-                            <ApiarioManager colmenas={localColmenas} setColmenas={setLocalColmenas} onSelectColmena={setSelectedColmena} />
+                            <ApiarioManager colmenas={localColmenas} setColmenas={setLocalColmenas} apiarios={apiarios} setApiarios={setApiarios} onSelectColmena={setSelectedColmena} />
                         </div>
                     )}
 
                     {activeView === 'apiarios' && (
                         <div className="animate-in delay-2">
-                            <ApiarioManager colmenas={localColmenas} setColmenas={setLocalColmenas} onSelectColmena={setSelectedColmena} />
+                            <ApiarioManager colmenas={localColmenas} setColmenas={setLocalColmenas} apiarios={apiarios} setApiarios={setApiarios} onSelectColmena={setSelectedColmena} />
                         </div>
                     )}
 
@@ -295,41 +266,8 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
                     )}
                 </div>
 
-                {/* Right Column (Siempre visible: Voz de la colmena & Reflexiones rápidas) */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-                    <div className="card card-accent animate-in delay-3">
-                        <div className="section-title" style={{ fontSize: '1rem', marginBottom: 'var(--space-md)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <AlertTriangle size={16} style={{ color: 'hsl(var(--warning))' }} /> Voz de la Colmena
-                        </div>
-                        <div style={{ fontSize: '0.85rem', lineHeight: 1.7, color: 'hsl(var(--muted-foreground))' }}>
-                            {alerts.map((a, i) => (
-                                <p key={a.id || i} style={{ marginBottom: i < alerts.length - 1 ? 'var(--space-md)' : 0 }}>
-                                    <strong style={{ color: a.severity === 'critical' ? 'hsl(var(--destructive))' : a.severity === 'warning' ? 'hsl(var(--warning))' : 'hsl(var(--success))' }}>
-                                        {a.severity === 'critical' ? '🔴' : a.severity === 'warning' ? '⚠' : '✨'} {a.title}:
-                                    </strong> {a.message}
-                                </p>
-                            ))}
-                        </div>
-                    </div>
-                    
-                    <VentanasDeVuelo />
-                    <OraculoFloracion />
-                    <EspectroVivo />
-
-                    {reflexion && (
-                        <div className="card animate-in delay-4" style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.85))', color: 'hsl(var(--primary-foreground))', border: 'none' }}>
-                            <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'hsl(var(--accent))', marginBottom: 'var(--space-sm)' }}>
-                                Última Reflexión · {reflexion.date || new Date().toLocaleDateString()}
-                            </div>
-                            <p style={{ fontFamily: 'var(--font-existencial)', fontSize: '1rem', fontStyle: 'italic', lineHeight: 1.6, color: 'hsl(var(--primary-foreground) / 0.85)' }}>
-                                "{reflexion.content}"
-                            </p>
-                            <div style={{ marginTop: 'var(--space-md)', fontSize: '0.75rem', color: 'hsl(var(--primary-foreground) / 0.45)' }}>
-                                — {reflexion.author || 'Generado automático posvisita'}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                {/* Right Column (Widgets registrados: oráculo, vuelo, bioacústica, voz, reflexión) */}
+                <WidgetRail contexto="apicultor" />
             </div>
         </div>
     );

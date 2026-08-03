@@ -1,13 +1,6 @@
 import { useState, useEffect } from 'react';
 import { SCENE_DARK } from '@/lib/colors';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { fetchPronostico, calcularGDD } from '@/lib/meteo';
-
-const FALLBACK_ESPECIES = [
-  { id: 'ulmo', nombre: 'Ulmo', gddRequerido: 350, color: 'hsl(var(--primary-foreground))' },
-  { id: 'tepu', nombre: 'Tepú', gddRequerido: 200, color: 'hsl(var(--accent))' },
-  { id: 'tiaca', nombre: 'Tiaca', gddRequerido: 450, color: 'hsl(var(--primary-foreground))' },
-] as const;
 
 interface EspecieGDD {
   id: string;
@@ -19,18 +12,27 @@ interface EspecieGDD {
   color: string;
 }
 
-export function OraculoFloracion() {
+/**
+ * Widget del Oráculo Fenológico (GDD): consume el BFF `/api/fenologia/pronostico`
+ * con la estación activa por defecto. Sin datos locales: si el BFF falla o no hay
+ * especies activas, enlaza a la herramienta completa `/fenologia`.
+ */
+export function WidgetOraculoFenologico() {
   const apiFetch = useApiFetch();
-  const [datos, setDatos] = useState<EspecieGDD[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [datos, setDatos] = useState<EspecieGDD[] | null>(null);
+  const [cargando, setCargando] = useState(true);
+  const [estacion, setEstacion] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function cargarDesdeBFF() {
+    async function cargar() {
       try {
         const res = await apiFetch('/api/fenologia/pronostico');
-        if (!res.ok) return false;
+        if (!res.ok) {
+          if (!cancelled) setCargando(false);
+          return;
+        }
         const j = await res.json();
         const data: EspecieGDD[] = (j.data ?? []).map((e: Record<string, unknown>) => ({
           id: String(e.id),
@@ -43,42 +45,15 @@ export function OraculoFloracion() {
         }));
         if (!cancelled) {
           setDatos(data);
-          setLoading(false);
+          setEstacion(j.meta?.estacion?.nombre ?? null);
+          setCargando(false);
         }
-        return true;
       } catch {
-        return false;
+        if (!cancelled) setCargando(false);
       }
     }
 
-    async function fallbackLocal() {
-      const meteo = await fetchPronostico();
-      if (cancelled) return;
-      if (!meteo?.temperature_2m?.length) {
-        setDatos(FALLBACK_ESPECIES.map((e) => ({ ...e, gddActual: 0, diasEstimados: null, enFloracion: false })));
-        setLoading(false);
-        return;
-      }
-      const dailyTemps: number[] = [];
-      for (let d = 0; d < Math.min(14, Math.floor(meteo.temperature_2m.length / 24)); d++) {
-        const slice = meteo.temperature_2m.slice(d * 24, (d + 1) * 24);
-        const avg = slice.reduce((s, t) => s + t, 0) / slice.length;
-        dailyTemps.push(avg);
-      }
-      const gddBase = calcularGDD(dailyTemps);
-      setDatos(FALLBACK_ESPECIES.map((e) => ({
-        ...e,
-        gddActual: Math.round(gddBase * (e.id === 'tepu' ? 1.1 : e.id === 'tiaca' ? 0.7 : 1)),
-        diasEstimados: null,
-        enFloracion: false,
-      })));
-      setLoading(false);
-    }
-
-    void cargarDesdeBFF().then((ok) => {
-      if (!ok && !cancelled) void fallbackLocal();
-    });
-
+    void cargar();
     return () => {
       cancelled = true;
     };
@@ -90,11 +65,21 @@ export function OraculoFloracion() {
         Oráculo Fenológico (GDD)
       </div>
       <p style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-lg)' }}>
-        Grados-Día acumulados · calibración GBIF · iNaturalist · ERA5
+        Grados-Día acumulados · calibración GBIF · iNaturalist · ERA5{estacion ? ` · ${estacion}` : ''}
       </p>
 
-      {loading ? (
+      {cargando ? (
         <p className="text-sm text-muted-foreground">Calculando fenología...</p>
+      ) : !datos || datos.length === 0 ? (
+        <div className="text-sm text-muted-foreground space-y-3">
+          <p>El oráculo aún no tiene especies activas (o el pronóstico no está disponible).</p>
+          <a
+            href="/fenologia"
+            className="inline-block px-3 py-1.5 text-xs rounded bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
+          >
+            Abrir Oráculo Fenológico →
+          </a>
+        </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
           {datos.map((esp) => {
@@ -134,6 +119,12 @@ export function OraculoFloracion() {
               </div>
             );
           })}
+          <a
+            href="/fenologia"
+            className="text-xs text-accent hover:opacity-80 transition-opacity"
+          >
+            Ver herramienta completa →
+          </a>
         </div>
       )}
     </div>

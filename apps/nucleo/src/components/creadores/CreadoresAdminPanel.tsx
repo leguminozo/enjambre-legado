@@ -247,7 +247,7 @@ export function CreadoresAdminPanel() {
           <Sparkles size={24} />
         </div>
         <div>
-          <h2 className="text-2xl font-display text-primary">Red de Creadores</h2>
+          <h2 className="text-2xl font-display text-primary">Creadores Admin</h2>
           <p className="text-sm text-muted-foreground">Gestión de códigos de referencia, comisiones y retiros</p>
         </div>
       </div>

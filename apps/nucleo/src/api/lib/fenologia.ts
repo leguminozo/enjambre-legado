@@ -13,6 +13,23 @@ export function gddDiario(tmax: number | null, tmin: number | null, tbase: numbe
   return Math.max(0, media - tbase);
 }
 
+/**
+ * Agrupa especies por su Tbase para acumular GDD con una sola llamada a
+ * Open-Meteo por Tbase distinta (misma estación para todas).
+ */
+export function agruparEspeciesPorTbase<T extends { tbase_c?: number | string | null }>(
+  especies: T[],
+): Map<number, T[]> {
+  const grupos = new Map<number, T[]>();
+  for (const esp of especies) {
+    const tbase = Number(esp.tbase_c ?? 5);
+    const lista = grupos.get(tbase) ?? [];
+    lista.push(esp);
+    grupos.set(tbase, lista);
+  }
+  return grupos;
+}
+
 function inicioTemporadaGDD(ano: number): string {
   // Temporada fenológica hemisferio sur: acumulación desde el 1 de julio
   return `${ano}-07-01`;
@@ -119,6 +136,7 @@ export function proyectarFloracion(
   },
   historico: { acumulado: number } | null,
   pronostico: { serie: SerieGDD[]; acumulado: number } | null,
+  fecha?: Date,
 ): PronosticoEspecie {
   const tbase = Number(especie.tbase_c ?? 5);
   const umbral = especie.gdd_umbral != null ? Number(especie.gdd_umbral) : null;
@@ -141,7 +159,7 @@ export function proyectarFloracion(
     }
   }
 
-  const mes = new Date().getMonth() + 1;
+  const mes = (fecha ?? new Date()).getMonth() + 1;
   const enVentana =
     especie.ventana_ini != null && especie.ventana_fin != null
       ? (especie.ventana_ini <= especie.ventana_fin

@@ -487,6 +487,62 @@ export type Database = {
         }
         Relationships: []
       }
+      back_in_stock_subscriptions: {
+        Row: {
+          created_at: string | null
+          id: string
+          notified_at: string | null
+          producto_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notified_at?: string | null
+          producto_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notified_at?: string | null
+          producto_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "back_in_stock_subscriptions_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "back_in_stock_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "back_in_stock_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_ciclos_balance"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "back_in_stock_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_tier_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       banco_chile_conciliaciones: {
         Row: {
           concepto: string | null
@@ -1330,6 +1386,7 @@ export type Database = {
           chain: string
           created_at: string
           data_hash: string | null
+          data_payload: Json | null
           empresa_id: string | null
           entity_id: string
           entity_type: string
@@ -1344,6 +1401,7 @@ export type Database = {
           chain?: string
           created_at?: string
           data_hash?: string | null
+          data_payload?: Json | null
           empresa_id?: string | null
           entity_id: string
           entity_type: string
@@ -1358,6 +1416,7 @@ export type Database = {
           chain?: string
           created_at?: string
           data_hash?: string | null
+          data_payload?: Json | null
           empresa_id?: string | null
           entity_id?: string
           entity_type?: string
@@ -1837,6 +1896,7 @@ export type Database = {
           buyer_mode: string
           cart: Json
           cliente_id: string | null
+          codigo_creador: string | null
           completed_at: string | null
           courier_code: string
           created_at: string
@@ -1861,6 +1921,7 @@ export type Database = {
           buyer_mode?: string
           cart: Json
           cliente_id?: string | null
+          codigo_creador?: string | null
           completed_at?: string | null
           courier_code?: string
           created_at?: string
@@ -1885,6 +1946,7 @@ export type Database = {
           buyer_mode?: string
           cart?: Json
           cliente_id?: string | null
+          codigo_creador?: string | null
           completed_at?: string | null
           courier_code?: string
           created_at?: string
@@ -2201,6 +2263,10 @@ export type Database = {
           name: string
           notes: string | null
           nucleos_candidatos: boolean | null
+          origen_colmena_madre: string | null
+          origen_detalle: string | null
+          origen_fecha: string | null
+          origen_tipo: string | null
           production_total: number | null
           queen: string | null
           user_id: string | null
@@ -2218,6 +2284,10 @@ export type Database = {
           name: string
           notes?: string | null
           nucleos_candidatos?: boolean | null
+          origen_colmena_madre?: string | null
+          origen_detalle?: string | null
+          origen_fecha?: string | null
+          origen_tipo?: string | null
           production_total?: number | null
           queen?: string | null
           user_id?: string | null
@@ -2235,6 +2305,10 @@ export type Database = {
           name?: string
           notes?: string | null
           nucleos_candidatos?: boolean | null
+          origen_colmena_madre?: string | null
+          origen_detalle?: string | null
+          origen_fecha?: string | null
+          origen_tipo?: string | null
           production_total?: number | null
           queen?: string | null
           user_id?: string | null
@@ -2245,6 +2319,13 @@ export type Database = {
             columns: ["apiario_id"]
             isOneToOne: false
             referencedRelation: "apiarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "colmenas_origen_colmena_madre_fkey"
+            columns: ["origen_colmena_madre"]
+            isOneToOne: false
+            referencedRelation: "colmenas"
             referencedColumns: ["id"]
           },
         ]
@@ -3590,6 +3671,36 @@ export type Database = {
         }
         Relationships: []
       }
+      estaciones_fenologicas: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          lat: number
+          lng: number
+          nombre: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          lat: number
+          lng: number
+          nombre: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          lat?: number
+          lng?: number
+          nombre?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       eventos: {
         Row: {
           created_at: string | null
@@ -4755,12 +4866,54 @@ export type Database = {
           },
         ]
       }
+      inspeccion_cuadros: {
+        Row: {
+          created_at: string
+          cuerpo: string
+          id: string
+          inspeccion_id: string
+          notas: string | null
+          posicion: number
+          tipo: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          cuerpo?: string
+          id?: string
+          inspeccion_id: string
+          notas?: string | null
+          posicion: number
+          tipo: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          cuerpo?: string
+          id?: string
+          inspeccion_id?: string
+          notas?: string | null
+          posicion?: number
+          tipo?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspeccion_cuadros_inspeccion_id_fkey"
+            columns: ["inspeccion_id"]
+            isOneToOne: false
+            referencedRelation: "inspecciones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspecciones: {
         Row: {
           colmena_id: string | null
           created_at: string | null
           date: string
           enjambrazon_riesgo: string | null
+          fase: string | null
           foto_url: string | null
           id: string
           inspector: string | null
@@ -4777,6 +4930,7 @@ export type Database = {
           created_at?: string | null
           date?: string
           enjambrazon_riesgo?: string | null
+          fase?: string | null
           foto_url?: string | null
           id?: string
           inspector?: string | null
@@ -4793,6 +4947,7 @@ export type Database = {
           created_at?: string | null
           date?: string
           enjambrazon_riesgo?: string | null
+          fase?: string | null
           foto_url?: string | null
           id?: string
           inspector?: string | null
@@ -5290,6 +5445,36 @@ export type Database = {
         }
         Relationships: []
       }
+      loyalty_tiers: {
+        Row: {
+          benefits: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          key: string
+          min_points: number
+          name: string
+        }
+        Insert: {
+          benefits?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key: string
+          min_points: number
+          name: string
+        }
+        Update: {
+          benefits?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key?: string
+          min_points?: number
+          name?: string
+        }
+        Relationships: []
+      }
       loyalty_transactions: {
         Row: {
           action_type: Database["public"]["Enums"]["accion_tipo"]
@@ -5407,6 +5592,65 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      muestras: {
+        Row: {
+          apiario_id: string | null
+          confirmado_saneado: boolean
+          created_at: string
+          cuadros_muestreados: number | null
+          es_contramuestra: boolean
+          fecha: string
+          id: string
+          lab_fecha: string | null
+          lab_nombre: string | null
+          n_abejas: number | null
+          patogeno: string | null
+          resultado: string | null
+          tipo: string
+          user_id: string | null
+        }
+        Insert: {
+          apiario_id?: string | null
+          confirmado_saneado?: boolean
+          created_at?: string
+          cuadros_muestreados?: number | null
+          es_contramuestra?: boolean
+          fecha?: string
+          id?: string
+          lab_fecha?: string | null
+          lab_nombre?: string | null
+          n_abejas?: number | null
+          patogeno?: string | null
+          resultado?: string | null
+          tipo: string
+          user_id?: string | null
+        }
+        Update: {
+          apiario_id?: string | null
+          confirmado_saneado?: boolean
+          created_at?: string
+          cuadros_muestreados?: number | null
+          es_contramuestra?: boolean
+          fecha?: string
+          id?: string
+          lab_fecha?: string | null
+          lab_nombre?: string | null
+          n_abejas?: number | null
+          patogeno?: string | null
+          resultado?: string | null
+          tipo?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "muestras_apiario_id_fkey"
+            columns: ["apiario_id"]
+            isOneToOne: false
+            referencedRelation: "apiarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       niveles_fidelizacion: {
         Row: {
@@ -5571,7 +5815,6 @@ export type Database = {
       }
       observaciones_floracion: {
         Row: {
-          apiario_id: string | null
           created_at: string
           especie_id: string
           fecha: string
@@ -5586,7 +5829,6 @@ export type Database = {
           status: string
         }
         Insert: {
-          apiario_id?: string | null
           created_at?: string
           especie_id: string
           fecha: string
@@ -5601,7 +5843,6 @@ export type Database = {
           status?: string
         }
         Update: {
-          apiario_id?: string | null
           created_at?: string
           especie_id?: string
           fecha?: string
@@ -5616,13 +5857,6 @@ export type Database = {
           status?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "observaciones_floracion_apiario_id_fkey"
-            columns: ["apiario_id"]
-            isOneToOne: false
-            referencedRelation: "apiarios"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "observaciones_floracion_especie_id_fkey"
             columns: ["especie_id"]
@@ -5648,6 +5882,91 @@ export type Database = {
             foreignKeyName: "observaciones_floracion_observador_id_fkey"
             columns: ["observador_id"]
             isOneToOne: false
+            referencedRelation: "user_tier_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      order_regenerative_footprint: {
+        Row: {
+          azucar_sustituida_g: number | null
+          bosque_m2_protegido: number | null
+          co2_evitado_kg: number | null
+          created_at: string | null
+          id: string
+          irr_score: number | null
+          metadata: Json | null
+          venta_id: string
+        }
+        Insert: {
+          azucar_sustituida_g?: number | null
+          bosque_m2_protegido?: number | null
+          co2_evitado_kg?: number | null
+          created_at?: string | null
+          id?: string
+          irr_score?: number | null
+          metadata?: Json | null
+          venta_id: string
+        }
+        Update: {
+          azucar_sustituida_g?: number | null
+          bosque_m2_protegido?: number | null
+          co2_evitado_kg?: number | null
+          created_at?: string | null
+          id?: string
+          irr_score?: number | null
+          metadata?: Json | null
+          venta_id?: string
+        }
+        Relationships: []
+      }
+      palate_profiles: {
+        Row: {
+          created_at: string | null
+          discovery_count: number | null
+          id: string
+          last_quiz_at: string | null
+          preferences: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          discovery_count?: number | null
+          id?: string
+          last_quiz_at?: string | null
+          preferences?: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          discovery_count?: number | null
+          id?: string
+          last_quiz_at?: string | null
+          preferences?: Json
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "palate_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "palate_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_ciclos_balance"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "palate_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "user_tier_view"
             referencedColumns: ["user_id"]
           },
@@ -7265,31 +7584,46 @@ export type Database = {
       }
       reina_history: {
         Row: {
+          caracteristicas: Json | null
           colmena_id: string | null
           created_at: string | null
-          generation: string
+          estado: string | null
+          fecha: string | null
+          generation: string | null
           id: string
           origin: string | null
+          reemplazada_por: string | null
           since: string | null
           status: string | null
+          user_id: string | null
         }
         Insert: {
+          caracteristicas?: Json | null
           colmena_id?: string | null
           created_at?: string | null
-          generation: string
+          estado?: string | null
+          fecha?: string | null
+          generation?: string | null
           id?: string
           origin?: string | null
+          reemplazada_por?: string | null
           since?: string | null
           status?: string | null
+          user_id?: string | null
         }
         Update: {
+          caracteristicas?: Json | null
           colmena_id?: string | null
           created_at?: string | null
-          generation?: string
+          estado?: string | null
+          fecha?: string | null
+          generation?: string | null
           id?: string
           origin?: string | null
+          reemplazada_por?: string | null
           since?: string | null
           status?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -7889,6 +8223,53 @@ export type Database = {
           },
         ]
       }
+      sesiones_bitacora: {
+        Row: {
+          apiario_id: string | null
+          audio_url: string | null
+          contexto: string | null
+          created_at: string
+          duracion_seg: number | null
+          fecha: string
+          id: string
+          sincronizado_at: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          apiario_id?: string | null
+          audio_url?: string | null
+          contexto?: string | null
+          created_at?: string
+          duracion_seg?: number | null
+          fecha?: string
+          id?: string
+          sincronizado_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          apiario_id?: string | null
+          audio_url?: string | null
+          contexto?: string | null
+          created_at?: string
+          duracion_seg?: number | null
+          fecha?: string
+          id?: string
+          sincronizado_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sesiones_bitacora_apiario_id_fkey"
+            columns: ["apiario_id"]
+            isOneToOne: false
+            referencedRelation: "apiarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sii_caf: {
         Row: {
           activo: boolean
@@ -7941,6 +8322,60 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "sii_caf_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sii_caf_requests: {
+        Row: {
+          caf_id: string | null
+          cantidad: number
+          completed_at: string | null
+          created_at: string
+          empresa_id: string | null
+          error: string | null
+          estado: string
+          id: string
+          requested_at: string
+          tipo_dte: number
+        }
+        Insert: {
+          caf_id?: string | null
+          cantidad: number
+          completed_at?: string | null
+          created_at?: string
+          empresa_id?: string | null
+          error?: string | null
+          estado?: string
+          id?: string
+          requested_at?: string
+          tipo_dte: number
+        }
+        Update: {
+          caf_id?: string | null
+          cantidad?: number
+          completed_at?: string | null
+          created_at?: string
+          empresa_id?: string | null
+          error?: string | null
+          estado?: string
+          id?: string
+          requested_at?: string
+          tipo_dte?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sii_caf_requests_caf_id_fkey"
+            columns: ["caf_id"]
+            isOneToOne: false
+            referencedRelation: "sii_caf"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sii_caf_requests_empresa_id_fkey"
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
@@ -8248,6 +8683,47 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_charges: {
+        Row: {
+          amount: number
+          charged_at: string
+          created_at: string
+          flow_order: number
+          id: string
+          period_number: number
+          status: string
+          subscription_id: string
+        }
+        Insert: {
+          amount: number
+          charged_at?: string
+          created_at?: string
+          flow_order: number
+          id?: string
+          period_number: number
+          status?: string
+          subscription_id: string
+        }
+        Update: {
+          amount?: number
+          charged_at?: string
+          created_at?: string
+          flow_order?: number
+          id?: string
+          period_number?: number
+          status?: string
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_charges_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_checkout_sessions: {
         Row: {
           buy_order: string
@@ -8258,6 +8734,7 @@ export type Database = {
           payment_authorization_code: string | null
           plan_id: string
           provider: string
+          recurring_token: string | null
           session_id: string
           status: string
           total: number
@@ -8272,6 +8749,7 @@ export type Database = {
           payment_authorization_code?: string | null
           plan_id: string
           provider: string
+          recurring_token?: string | null
           session_id: string
           status?: string
           total: number
@@ -8286,6 +8764,7 @@ export type Database = {
           payment_authorization_code?: string | null
           plan_id?: string
           provider?: string
+          recurring_token?: string | null
           session_id?: string
           status?: string
           total?: number
@@ -8422,6 +8901,8 @@ export type Database = {
           created_at: string | null
           current_period_end: string
           current_period_start: string
+          flow_inscription_buy_order: string | null
+          flow_inscription_token: string | null
           id: string
           metadata: Json | null
           next_selection: Json | null
@@ -8438,6 +8919,8 @@ export type Database = {
           created_at?: string | null
           current_period_end: string
           current_period_start?: string
+          flow_inscription_buy_order?: string | null
+          flow_inscription_token?: string | null
           id?: string
           metadata?: Json | null
           next_selection?: Json | null
@@ -8454,6 +8937,8 @@ export type Database = {
           created_at?: string | null
           current_period_end?: string
           current_period_start?: string
+          flow_inscription_buy_order?: string | null
+          flow_inscription_token?: string | null
           id?: string
           metadata?: Json | null
           next_selection?: Json | null
@@ -8913,6 +9398,72 @@ export type Database = {
           },
         ]
       }
+      tratamientos: {
+        Row: {
+          colmena_id: string
+          contramuestreo_id: string | null
+          created_at: string
+          dosis_aplicada: string | null
+          dosis_recomendada: string | null
+          enfermedad: string
+          fecha: string
+          forma: string | null
+          id: string
+          principio_activo: string
+          producto_comercial: string | null
+          retiro_fin: string | null
+          user_id: string | null
+          via: string | null
+        }
+        Insert: {
+          colmena_id: string
+          contramuestreo_id?: string | null
+          created_at?: string
+          dosis_aplicada?: string | null
+          dosis_recomendada?: string | null
+          enfermedad?: string
+          fecha?: string
+          forma?: string | null
+          id?: string
+          principio_activo: string
+          producto_comercial?: string | null
+          retiro_fin?: string | null
+          user_id?: string | null
+          via?: string | null
+        }
+        Update: {
+          colmena_id?: string
+          contramuestreo_id?: string | null
+          created_at?: string
+          dosis_aplicada?: string | null
+          dosis_recomendada?: string | null
+          enfermedad?: string
+          fecha?: string
+          forma?: string | null
+          id?: string
+          principio_activo?: string
+          producto_comercial?: string | null
+          retiro_fin?: string | null
+          user_id?: string | null
+          via?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tratamientos_colmena_id_fkey"
+            columns: ["colmena_id"]
+            isOneToOne: false
+            referencedRelation: "colmenas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tratamientos_contramuestreo_id_fkey"
+            columns: ["contramuestreo_id"]
+            isOneToOne: false
+            referencedRelation: "muestras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           activated_at: string | null
@@ -9040,6 +9591,7 @@ export type Database = {
           rep_commission_total: number | null
           sumup_checkout_id: string | null
           sumup_transaction_id: string | null
+          tercero_id: string | null
           total: number
           user_id: string | null
           vendedor_id: string | null
@@ -9076,6 +9628,7 @@ export type Database = {
           rep_commission_total?: number | null
           sumup_checkout_id?: string | null
           sumup_transaction_id?: string | null
+          tercero_id?: string | null
           total: number
           user_id?: string | null
           vendedor_id?: string | null
@@ -9112,6 +9665,7 @@ export type Database = {
           rep_commission_total?: number | null
           sumup_checkout_id?: string | null
           sumup_transaction_id?: string | null
+          tercero_id?: string | null
           total?: number
           user_id?: string | null
           vendedor_id?: string | null
@@ -9171,6 +9725,76 @@ export type Database = {
             columns: ["participante_evento_id"]
             isOneToOne: false
             referencedRelation: "participante_evento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_tercero_id_fkey"
+            columns: ["tercero_id"]
+            isOneToOne: false
+            referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voice_inspection_captures: {
+        Row: {
+          atribucion_hipotesis: Json
+          audio_url: string | null
+          client_request_id: string
+          colmena_id: string | null
+          created_at: string
+          dispositivo: string | null
+          duracion_seg: number | null
+          estado: string
+          id: string
+          session_id: string
+          transcript_raw: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          atribucion_hipotesis?: Json
+          audio_url?: string | null
+          client_request_id: string
+          colmena_id?: string | null
+          created_at?: string
+          dispositivo?: string | null
+          duracion_seg?: number | null
+          estado?: string
+          id?: string
+          session_id: string
+          transcript_raw?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          atribucion_hipotesis?: Json
+          audio_url?: string | null
+          client_request_id?: string
+          colmena_id?: string | null
+          created_at?: string
+          dispositivo?: string | null
+          duracion_seg?: number | null
+          estado?: string
+          id?: string
+          session_id?: string
+          transcript_raw?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_inspection_captures_colmena_id_fkey"
+            columns: ["colmena_id"]
+            isOneToOne: false
+            referencedRelation: "colmenas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voice_inspection_captures_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sesiones_bitacora"
             referencedColumns: ["id"]
           },
         ]
@@ -9716,6 +10340,20 @@ export type Database = {
               valido: boolean
             }[]
           }
+      aplicar_codigo_creador_admin: {
+        Args: {
+          p_cliente_id: string
+          p_codigo: string
+          p_monto_venta: number
+          p_venta_id: string
+        }
+        Returns: {
+          comision: number
+          creador_nombre: string
+          descuento: number
+          valido: boolean
+        }[]
+      }
       aplicar_reglas_conciliacion: {
         Args: { p_empresa_id: string }
         Returns: {

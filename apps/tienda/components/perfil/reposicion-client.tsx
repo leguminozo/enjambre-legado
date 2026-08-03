@@ -86,6 +86,32 @@ export function ReposicionClient({
       return;
     }
 
+    if (action === 'resume') {
+      // Reanudar = nueva autorización de pago (al pausar se canceló la
+      // inscripción Flow). El cliente vuelve a autorizar y el fulfill reactiva
+      // la sub pausada.
+      const planId = subscription?.subscription_plans?.id;
+      if (!planId) {
+        toast(t('selectPlan'), { type: 'error' });
+        return;
+      }
+      const savedAddress = subscription?.delivery_address ?? loadReplenishmentAddress();
+      if ((savedAddress ?? '').trim().length < 5) {
+        toast(t('addressRequired'), { type: 'error' });
+        return;
+      }
+      saveReplenishmentAddress(savedAddress?.trim() ?? '');
+      setManageLoading(true);
+      const result = await startSubscriptionCheckout(planId, {
+        deliveryAddress: savedAddress?.trim(),
+      });
+      setManageLoading(false);
+      if (!result.ok) {
+        toast(result.message, { type: 'error' });
+      }
+      return;
+    }
+
     setManageLoading(true);
     const result = await manageSubscription(action);
     setManageLoading(false);

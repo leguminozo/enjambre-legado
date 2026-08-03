@@ -1,6 +1,7 @@
 export * from "./domain/impuestos";
 export * from "./domain/rut";
 export * from "./domain/sii-dte";
+export * from "./domain/solicitud-folios";
 export * from "./domain/dte-xml";
 export * from "./domain/gasto-extranjero";
 export * from "./domain/tasa-cambio";

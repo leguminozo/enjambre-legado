@@ -14,7 +14,7 @@ export function CalculosIAView() {
       <ViewShell
         variant="compact"
         eyebrow="Finanzas"
-        title="Cálculos inteligentes"
+        title="Cálculos IA"
         subtitle="Impuestos, PPM, proyección y optimización fiscal — enlazados a contable, SII y reportes."
         icon={<Brain size={20} />}
       />

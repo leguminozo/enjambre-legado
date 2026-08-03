@@ -4,6 +4,7 @@ import { zValidator } from "@hono/zod-validator";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 import {
+  agruparEspeciesPorTbase,
   gddHistoricoAcumulado,
   gddPronostico,
   proyectarFloracion,
@@ -13,10 +14,55 @@ export const fenologiaRoutes = new Hono<{ Variables: AppVariables }>();
 
 fenologiaRoutes.use("*", authMiddleware, tenantMiddleware);
 
-// Coordenadas de referencia (Pureo, Chiloé) — misma base que lib/meteo.ts
-const LAT = -41.86;
-const LNG = -73.82;
 const PRONOSTICO_DIAS = 16;
+
+// ── Estaciones fenológicas (puntos de referencia lat/lng para el GDD) ─────
+
+const EstacionSchema = z.object({
+  nombre: z.string().min(2).max(120),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  activo: z.boolean().default(true),
+}).strict();
+
+const EstacionPatchSchema = EstacionSchema.partial();
+
+fenologiaRoutes.get("/estaciones", async (c) => {
+  const supabase = c.get("supabase");
+  const { data, error } = await supabase
+    .from("estaciones_fenologicas")
+    .select("*")
+    .eq("activo", true)
+    .order("nombre");
+  if (error) return c.json({ code: "query_failed", message: error.message }, 500);
+  return c.json({ data: data ?? [] });
+});
+
+fenologiaRoutes.post("/estaciones", zValidator("json", EstacionSchema), async (c) => {
+  const supabase = c.get("supabase");
+  const body = c.req.valid("json");
+  const { data, error } = await supabase
+    .from("estaciones_fenologicas")
+    .insert(body)
+    .select()
+    .single();
+  if (error) return c.json({ code: "insert_failed", message: error.message }, 400);
+  return c.json({ data }, 201);
+});
+
+fenologiaRoutes.patch("/estaciones/:id", zValidator("json", EstacionPatchSchema), async (c) => {
+  const supabase = c.get("supabase");
+  const id = c.req.param("id");
+  const body = c.req.valid("json");
+  const { data, error } = await supabase
+    .from("estaciones_fenologicas")
+    .update(body)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) return c.json({ code: "update_failed", message: error.message }, 400);
+  return c.json({ data });
+});
 
 // ── Especies ────────────────────────────────────────────────────────────
 
@@ -95,7 +141,6 @@ const ObservacionSchema = z.object({
     .enum(["menos_3", "3_10", "11_100", "101_1000", "1001_10000", "mas_10000"])
     .optional()
     .nullable(),
-  apiario_id: z.string().uuid().optional().nullable(),
   foto_url: z.string().url().optional().nullable(),
   notas: z.string().max(1000).optional().nullable(),
 }).strict();
@@ -141,27 +186,71 @@ fenologiaRoutes.get("/observaciones", async (c) => {
 
 fenologiaRoutes.get("/pronostico", async (c) => {
   const supabase = c.get("supabase");
+  const estacionId = c.req.query("estacion");
+
+  // Estación solicitada o primera activa por defecto (seed: Pureo, Chiloé)
+  let estacionQuery = supabase
+    .from("estaciones_fenologicas")
+    .select("*")
+    .eq("activo", true)
+    .order("created_at");
+  if (estacionId) estacionQuery = estacionQuery.eq("id", estacionId);
+  const { data: estaciones, error: errEstacion } = await estacionQuery;
+  if (errEstacion) return c.json({ code: "query_failed", message: errEstacion.message }, 500);
+  const estacion = (estaciones ?? [])[0];
+  if (!estacion) {
+    return c.json({ code: "sin_estacion", message: "No hay estaciones fenológicas activas" }, 404);
+  }
+
   const { data: especies, error } = await supabase
     .from("especies_fenologicas")
     .select("*")
     .eq("activo", true);
   if (error) return c.json({ code: "query_failed", message: error.message }, 500);
-  if (!especies?.length) return c.json({ data: [], meta: { gddActual: 0 } });
 
-  // Un solo par de llamadas a Open-Meteo para todas las especies (misma estación)
-  const historico = await gddHistoricoAcumulado(LAT, LNG, new Date(), 5);
-  const pronostico = await gddPronostico(LAT, LNG, PRONOSTICO_DIAS, 5);
+  const lat = Number(estacion.lat);
+  const lng = Number(estacion.lng);
 
-  const data = especies.map((esp) =>
-    proyectarFloracion(esp, historico, pronostico),
-  );
+  if (!especies?.length) {
+    return c.json({
+      data: [],
+      meta: {
+        gddActual: 0,
+        fecha: new Date().toISOString().slice(0, 10),
+        estacion: { id: estacion.id, nombre: estacion.nombre, lat, lng },
+      },
+    });
+  }
+
+  // Una llamada a Open-Meteo por Tbase distinta (misma estación para todas)
+  const grupos = agruparEspeciesPorTbase(especies);
+  const porTbase = new Map<
+    number,
+    {
+      historico: Awaited<ReturnType<typeof gddHistoricoAcumulado>>;
+      pronostico: Awaited<ReturnType<typeof gddPronostico>>;
+    }
+  >();
+  for (const tbase of grupos.keys()) {
+    const [historico, pronostico] = await Promise.all([
+      gddHistoricoAcumulado(lat, lng, new Date(), tbase),
+      gddPronostico(lat, lng, PRONOSTICO_DIAS, tbase),
+    ]);
+    porTbase.set(tbase, { historico, pronostico });
+  }
+
+  const data = especies.map((esp) => {
+    const tbase = Number(esp.tbase_c ?? 5);
+    const serie = porTbase.get(tbase) ?? { historico: null, pronostico: null };
+    return proyectarFloracion(esp, serie.historico, serie.pronostico);
+  });
 
   return c.json({
     data,
     meta: {
-      gddActual: historico?.acumulado ?? null,
+      gddActual: porTbase.get(5)?.historico?.acumulado ?? null,
       fecha: new Date().toISOString().slice(0, 10),
-      estacion: { lat: LAT, lng: LNG },
+      estacion: { id: estacion.id, nombre: estacion.nombre, lat, lng },
     },
   });
 });

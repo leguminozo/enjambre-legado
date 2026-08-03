@@ -205,7 +205,7 @@ export function RegeneracionView() {
     <div className="space-y-6 animate-in">
       <ViewShell
         eyebrow="Regeneración 🌿"
-        title="Cada árbol plantado es un legado que el tiempo honra"
+        title="Bosque"
         subtitle={`${anosLegado} años de reforestación nativa en Chiloé. Cada lote de miel está vinculado directamente a los árboles que alimentan a las abejas.`}
       />
 

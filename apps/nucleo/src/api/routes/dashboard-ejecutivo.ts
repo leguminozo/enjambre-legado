@@ -5,6 +5,12 @@ import { fromLoose } from "@/api/lib/supabase-loose";
 
 type TimeRange = "month" | "quarter" | "ytd";
 
+/** Salud de colmenas/apiarios: la DB viva usa valores en inglés ('optimal'),
+ *  las migraciones originales en español ('optima'). Aceptamos ambos. */
+const saludOptima = (h: string | null) => h === "optimal" || h === "optima" || h === "óptima";
+const saludAtencion = (h: string | null) => h === "attention" || h === "atencion";
+const saludRiesgo = (h: string | null) => h === "risk" || h === "riesgo";
+
 function getDateRange(range: TimeRange): { from: string; to: string; label: string } {
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -73,7 +79,11 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
       .from("colmenas")
       .select("id, health, production_total, apiario_id")
       .eq("user_id", c.get("user").id),
-    supabase.from("apiarios").select("id, name, health"),
+    // Apiarios propios + huérfanos legacy (sin user_id): nunca el universo completo
+    supabase
+      .from("apiarios")
+      .select("id, name, health, user_id")
+      .or(`user_id.eq.${c.get("user").id},user_id.is.null`),
     supabase
       .from("inspecciones")
       .select("id, date, varroa, poblacion, reina")
@@ -200,15 +210,15 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
 
   const totalColmenas = colmenas.length;
   const colmenasByHealth = {
-    optima: colmenas.filter((c: { health: string | null }) => c.health === "optima").length,
-    atencion: colmenas.filter((c: { health: string | null }) => c.health === "atencion").length,
-    riesgo: colmenas.filter((c: { health: string | null }) => c.health === "riesgo").length,
+    optima: colmenas.filter((c: { health: string | null }) => saludOptima(c.health)).length,
+    atencion: colmenas.filter((c: { health: string | null }) => saludAtencion(c.health)).length,
+    riesgo: colmenas.filter((c: { health: string | null }) => saludRiesgo(c.health)).length,
   };
   const totalApiarios = apiarios.length;
   const apiariosByHealth = {
-    optima: apiarios.filter((a: { health: string | null }) => a.health === "optima").length,
-    atencion: apiarios.filter((a: { health: string | null }) => a.health === "atencion").length,
-    riesgo: apiarios.filter((a: { health: string | null }) => a.health === "riesgo").length,
+    optima: apiarios.filter((a: { health: string | null }) => saludOptima(a.health)).length,
+    atencion: apiarios.filter((a: { health: string | null }) => saludAtencion(a.health)).length,
+    riesgo: apiarios.filter((a: { health: string | null }) => saludRiesgo(a.health)).length,
   };
 
   const latestVarroa = inspecciones.length > 0

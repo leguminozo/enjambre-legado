@@ -15,6 +15,10 @@ export interface SyncQueueItem {
   status: 'pending' | 'error';
   error_message?: string;
   created_at: number;
+  /** Intentos de envío fallidos (4xx/409) — conduce el backoff exponencial */
+  attempts?: number;
+  /** Epoch ms del próximo reintento permitido (backoff) */
+  next_retry_at?: number;
 }
 
 export interface FeriaContextLocal {
@@ -47,6 +51,12 @@ db.version(1).stores({
 db.version(2).stores({
   productos: 'id, nombre, visible',
   sync_queue: '++id, status, created_at',
+  feria_context: 'id',
+});
+
+db.version(3).stores({
+  productos: 'id, nombre, visible',
+  sync_queue: '++id, status, created_at, next_retry_at',
   feria_context: 'id',
 });
 

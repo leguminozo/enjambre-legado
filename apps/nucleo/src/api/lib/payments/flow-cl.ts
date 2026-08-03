@@ -1,4 +1,4 @@
-import type { PaymentProvider, PaymentInitResult, PaymentCommitResult } from './types';
+import type { PaymentProvider, PaymentInitResult, PaymentCommitResult, RecurringCreateInput, RecurringCreateResult, RecurringChargeStatus } from './types';
 import { z } from 'zod';
 import { getNucleoPublicUrl, toFlowFormBody, withFlowSignature } from './flow-sign';
 
@@ -21,6 +21,18 @@ const FlowCommitResponseSchema = z.object({
   merchantData: z.record(z.string(), z.unknown()).optional(),
   flowOrder: z.number().optional(),
   commerceOrder: z.string().optional(),
+});
+
+const FlowRecurringCreateResponseSchema = z.object({
+  url: z.string().min(1),
+  token: z.union([z.string(), z.number()]),
+});
+
+const FlowRecurringStatusSchema = z.object({
+  status: z.number(),
+  commerceOrder: z.string().optional(),
+  flowOrder: z.number().optional(),
+  paymentData: z.object({ amount: z.number().optional() }).optional(),
 });
 
 function getFlowUrl(): string {
@@ -134,6 +146,79 @@ export class FlowClProvider implements PaymentProvider {
     } catch (error) {
       console.error('[flow-cl] refund error:', error);
       return { ok: false };
+    }
+  }
+
+  /**
+   * Pago Automático (inscripción recurrente). Flow cobra solo cada mes y postea
+   * un webhook a urlConfirmation por cargo. El primer cargo ocurre al autorizar.
+   * ⚠️ Confirmar nombres de params contra docs de Flow (account con Pago
+   * Automático habilitado).
+   */
+  async createRecurring(input: RecurringCreateInput): Promise<RecurringCreateResult> {
+    const params: Record<string, string> = {
+      apiKey: getFlowApiKey(),
+      commerceOrder: input.buyOrder,
+      planName: input.planName ?? `Reposición ${input.buyOrder}`,
+      amount: String(input.firstAmount),
+      currency: 'CLP',
+      email: input.email,
+      urlConfirmation: input.confirmationUrl,
+      urlReturn: input.returnUrl,
+      recurringPeriod: 'month',
+      recurringAmount: String(input.recurringAmount),
+      optional: JSON.stringify({
+        sessionId: input.sessionId,
+        ...(input.optional ?? {}),
+      }),
+    };
+
+    const raw = await flowPost<unknown>('/recurring/create', params);
+    const parsed = FlowRecurringCreateResponseSchema.safeParse(raw);
+    if (!parsed.success) {
+      throw new Error(`Flow.cl recurring create schema mismatch: ${parsed.error.flatten()}`);
+    }
+
+    return { url: parsed.data.url, token: String(parsed.data.token) };
+  }
+
+  async getRecurringStatus(token: string): Promise<RecurringChargeStatus> {
+    const raw = await flowPost<unknown>('/recurring/getStatus', {
+      apiKey: getFlowApiKey(),
+      token,
+    });
+
+    const parsed = FlowRecurringStatusSchema.safeParse(raw);
+    if (!parsed.success) {
+      throw new Error(`Flow.cl recurring getStatus schema mismatch: ${parsed.error.flatten()}`);
+    }
+
+    const data = parsed.data;
+    if (!data.commerceOrder || !data.flowOrder) {
+      throw new Error('Flow.cl recurring getStatus: commerceOrder/flowOrder ausente');
+    }
+
+    return {
+      status: data.status,
+      commerceOrder: data.commerceOrder,
+      flowOrder: data.flowOrder,
+      amount: data.paymentData?.amount ?? 0,
+    };
+  }
+
+  /** Cancelar la inscripción. Si Flow no expone el endpoint, devuelve error y
+   *  la cancelación queda como manual (panel Flow) + estado DB. */
+  async cancelRecurring(buyOrder: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      await flowPost<unknown>('/recurring/cancel', {
+        apiKey: getFlowApiKey(),
+        commerceOrder: buyOrder,
+      });
+      return { ok: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'cancel failed';
+      console.warn('[flow-cl] cancelRecurring:', message);
+      return { ok: false, error: message };
     }
   }
 }

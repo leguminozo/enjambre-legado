@@ -21,12 +21,12 @@ function absOrPath(baseEnv: string | undefined, path: string): string {
 
 /** Paths relativos dentro de cada app (sin dominio) */
 const RELATIVE_ROLE_HOME: Record<string, string> = {
-  admin: '/ejecutivo',
+  admin: '/inicio',
   creador: '/perfil/creador',
   rep_ventas: '/pos',
   cliente: '/catalogo',
-  territorial: '/territorio',
-  ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map((k) => [k, '/ejecutivo'])),
+  territorial: '/inicio',
+  ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map((k) => [k, '/inicio'])),
 }
 
 /**
@@ -34,12 +34,12 @@ const RELATIVE_ROLE_HOME: Record<string, string> = {
  * con URL absoluta si las env están definidas.
  */
 export const ROLE_REDIRECT_MAP: Record<string, string> = {
-  admin: '/ejecutivo',
+  admin: '/inicio',
   creador: absOrPath(process.env.NEXT_PUBLIC_URL_TIENDA, '/perfil/creador'),
   rep_ventas: absOrPath(process.env.NEXT_PUBLIC_URL_CAMPO, '/pos'),
   cliente: absOrPath(process.env.NEXT_PUBLIC_URL_TIENDA, '/catalogo'),
-  territorial: '/territorio',
-  ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map((k) => [k, '/ejecutivo'])),
+  territorial: '/inicio',
+  ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map((k) => [k, '/inicio'])),
 }
 
 /** En núcleo, la redirección es estricta hacia las otras apps para roles no admin */
@@ -66,6 +66,8 @@ export const ALL_ADMIN_ROLES: RoleKey[] = ['admin']
 
 export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/': ['admin'],
+  '/inicio': ['admin', 'territorial'],
+  '/alma': ['admin'],
   '/ejecutivo': ['admin'],
   '/costeo': ['admin'],
   '/produccion': ['admin'],
@@ -95,7 +97,7 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/calendario': ['admin'],
   '/pipeline': ['admin'],
   '/alambique': ['admin'],
-  '/fenologia': ['admin'],
+  '/fenologia': ['admin', 'territorial'],
   '/territorio': ['territorial'],
   '/registro-territorial': ['territorial', 'admin'],
   // /vanguardia es un redirect vivo → /crm?tab=aliados (B2B)

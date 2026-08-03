@@ -204,17 +204,38 @@ export function breadcrumbJsonLd(
 
 export function itemListJsonLd(
   items: Array<{ name: string; slug: string; position: number }>,
+  ratings?: Record<string, { ratingValue: number; reviewCount: number }>,
 ): JsonLdRecord {
   return {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     numberOfItems: items.length,
-    itemListElement: items.map((item) => ({
-      '@type': 'ListItem',
-      position: item.position,
-      name: item.name,
-      url: buildUrl(`/producto/${item.slug}`),
-    })),
+    itemListElement: items.map((item) => {
+      const rating = ratings?.[item.slug];
+      return {
+        '@type': 'ListItem',
+        position: item.position,
+        name: item.name,
+        url: buildUrl(`/producto/${item.slug}`),
+        ...(rating && rating.reviewCount > 0
+          ? {
+              // Rich result: estrellas del producto en el listado (SEO)
+              item: {
+                '@type': 'Product',
+                name: item.name,
+                url: buildUrl(`/producto/${item.slug}`),
+                aggregateRating: {
+                  '@type': 'AggregateRating',
+                  ratingValue: rating.ratingValue,
+                  reviewCount: rating.reviewCount,
+                  bestRating: 5,
+                  worstRating: 1,
+                },
+              },
+            }
+          : {}),
+      };
+    }),
   };
 }
 

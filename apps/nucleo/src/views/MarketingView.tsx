@@ -134,7 +134,7 @@ export function MarketingView() {
     <div className="space-y-6 animate-in">
       <ViewShell
         greeting={`¡Hola, ${userProfile?.full_name || 'Diseñador/Marketing'}!`}
-        title="Portal de Comunidad y Comunicación"
+        title="Comunidad"
         subtitle="Gestiona campañas, contenidos y fidelización del Club de Guardianes"
       />
 

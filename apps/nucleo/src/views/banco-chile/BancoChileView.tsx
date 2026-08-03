@@ -331,7 +331,7 @@ export function BancoChileView() {
       <ViewShell
         variant="compact"
         eyebrow="Finanzas"
-        title="Banco Chile Empresas"
+        title="Banco"
         subtitle="Credenciales y sync se configuran en la app (BFF cifrado) — sin SQL ni secretos en el browser."
         icon={<Building2 size={20} />}
       />

@@ -1251,7 +1251,7 @@ export function EditorTiendaView() {
       <div className="h-14 border-b border-border/50 bg-surface/50 backdrop-blur-lg flex items-center justify-between px-4 shrink-0 shadow-sm z-10 gap-3">
         <div className="flex items-center gap-2 min-w-0">
           <span className="font-display font-medium text-base text-foreground truncate">
-            Editor de Tienda
+            Editor Tienda
           </span>
           {cms.isLoading && <Loader2 size={14} className="animate-spin text-accent shrink-0" />}
         </div>

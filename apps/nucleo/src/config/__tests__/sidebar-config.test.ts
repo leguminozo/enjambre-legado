@@ -12,8 +12,9 @@ import {
 import type { SidebarBadgeValues } from '../../hooks/useSidebarBadges';
 
 describe('routeUsesViewShell', () => {
-  it('oculta header global en Panel Ejecutivo', () => {
-    expect(routeUsesViewShell('/ejecutivo')).toBe(true);
+  it('oculta header global en Inicio (panel ejecutivo)', () => {
+    expect(routeUsesViewShell('/inicio')).toBe(true);
+    expect(routeUsesViewShell('/alma')).toBe(true);
   });
 
   it('oculta header en módulos gerencia con ViewShell', () => {
@@ -70,12 +71,13 @@ describe('SIDEBAR_GROUPS — IA fragmentada por proceso', () => {
     }
   });
 
-  it('renombres del flujo: Inventario, Bosque Plantado, Ciclo del Bosque, Mis Colmenas', () => {
+  it('labels canónicos alineados con los títulos internos de cada herramienta', () => {
     const byKey = Object.fromEntries(allItems.map((i) => [i.key, i.label]));
-    expect(byKey['produccion']).toBe('Inventario');
-    expect(byKey['bosque']).toBe('Bosque Plantado');
-    expect(byKey['ciclo-bosque']).toBe('Ciclo del Bosque');
-    expect(byKey['colmenas']).toBe('Mis Colmenas');
+    expect(byKey['produccion']).toBe('Producción');
+    expect(byKey['bosque']).toBe('Bosque');
+    expect(byKey['ciclo-bosque']).toBe('Calendario');
+    expect(byKey['colmenas']).toBe('Colmenas');
+    expect(byKey['territorio']).toBe('Mapa del Legado');
   });
 
   it('Despacho y Operadores Feria viven en MERCADO; Alambique en BOSQUE; Territorio separado', () => {
@@ -88,14 +90,19 @@ describe('SIDEBAR_GROUPS — IA fragmentada por proceso', () => {
     expect(groupOf('creadores-admin')).toBe('red');
   });
 
-  it('rol territorial solo ve su grupo Territorio, con href al registro', () => {
+  it('rol territorial ve Inicio + su registro + el Oráculo Fenológico', () => {
     const groups = getSidebarGroupsForRole('territorial');
-    expect(groups).toHaveLength(1);
-    expect(groups[0].key).toBe('territorio');
-    expect(groups[0].items[0].href).toBe('/territorio');
+    expect(groups.map((g) => g.key)).toEqual(['vision', 'bosque', 'territorio']);
+    const byGroup = Object.fromEntries(groups.map((g) => [g.key, g.items.map((i) => i.key)]));
+    expect(byGroup['vision']).toEqual(['inicio']);
+    expect(byGroup['bosque']).toEqual(['fenologia']);
+    expect(byGroup['territorio']).toEqual(['territorio']);
+    const territorioItem = groups.find((g) => g.key === 'territorio')!.items[0]!;
+    expect(territorioItem.href).toBe('/territorio');
+    expect(territorioItem.label).toBe('Mi Territorio');
   });
 
-  it('RECOLECCIÓN expone Mis Colmenas, Apiarios, Cuaderno Campo y Trazabilidad como sub-rutas', () => {
+  it('RECOLECCIÓN expone Colmenas, Apiarios, Cuaderno Campo y Trazabilidad como sub-rutas', () => {
     const recoleccion = SIDEBAR_GROUPS.find((g) => g.key === 'recoleccion');
     const byKey = Object.fromEntries((recoleccion?.items ?? []).map((i) => [i.key, i.href]));
     expect(byKey['colmenas']).toBe('/colmenas');

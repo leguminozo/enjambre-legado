@@ -79,8 +79,12 @@ describe("Auth Integration Flow", () => {
 
   // ── 1. Role Redirect Logic ──
   describe("role-redirect.ts", () => {
-    it("redirects admin to /ejecutivo", () => {
-      expect(getRoleRedirectPath("admin")).toBe("/ejecutivo");
+    it("redirects admin to /inicio", () => {
+      expect(getRoleRedirectPath("admin")).toBe("/inicio");
+    });
+
+    it("redirects territorial to /inicio (home del apicultor residente)", () => {
+      expect(getRoleRedirectPath("territorial")).toBe("/inicio");
     });
 
     it("redirects creador to tienda portal path in tienda app", () => {
@@ -166,6 +170,12 @@ describe("Auth Integration Flow", () => {
       expect(isRouteAllowed("/monitor-feria", "admin")).toBe(true);
     });
 
+    it("allows territorial to access /inicio and /fenologia, but not /alma", () => {
+      expect(isRouteAllowed("/inicio", "territorial")).toBe(true);
+      expect(isRouteAllowed("/fenologia", "territorial")).toBe(true);
+      expect(isRouteAllowed("/alma", "territorial")).toBe(false);
+    });
+
     it("allows legacy gerente role to /ejecutivo via normalization", () => {
       expect(isRouteAllowed("/ejecutivo", "gerente")).toBe(true);
     });
@@ -212,7 +222,7 @@ describe("Auth Integration Flow", () => {
       expect(res.status).toBeUndefined(); // NextResponse.next() has no status
     });
 
-    it("redirects authenticated admin from /login to /ejecutivo", async () => {
+    it("redirects authenticated admin from /login to /inicio", async () => {
       const req = buildRequest("/login", {
         user: {
           id: "u1",
@@ -222,7 +232,7 @@ describe("Auth Integration Flow", () => {
       });
       const res = await middleware(req);
       expect(res.status).toBe(302);
-      expect(res.headers.get("location")).toBe("http://localhost:3000/ejecutivo");
+      expect(res.headers.get("location")).toBe("http://localhost:3000/inicio");
     });
 
     it("redirects authenticated creador from /login to tienda portal", async () => {
@@ -367,12 +377,17 @@ describe("Auth Integration Flow", () => {
           select: () => ({
             eq: () => ({
               single: async () => ({ data: null, error: { code: "PGRST116" } }),
+              // auth-store usa maybeSingle para el fallback sin profile
+              maybeSingle: async () => ({ data: null, error: null }),
             }),
           }),
         }),
       };
 
-      // Mock the createClient used by auth-store
+      // Mock the createClient used by auth-store. resetModules es necesario:
+      // el barrel @enjambre/auth queda cacheado por los tests previos del
+      // archivo y el doMock no aplicaría sobre el módulo ya cargado.
+      vi.resetModules();
       vi.doMock("@enjambre/auth/browser", async () => {
         return {
           getSupabaseUrl: () => "https://mock.supabase.co",

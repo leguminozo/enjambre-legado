@@ -10,6 +10,7 @@ import {
 } from "../lib/payments";
 import type { CartLineInput } from "../lib/payments";
 import { fulfillCheckout } from "../lib/payments/checkout-fulfill";
+import { fulfillRecurringCharge } from "../lib/payments/subscription-fulfill";
 import { resolveCheckoutReturnUrl } from "../lib/payments/safe-return-url";
 import { buildPagosGoLiveChecklist } from "../lib/payments/go-live-checklist";
 import { fulfillSubscriptionFromWebhook } from "./subscriptions-checkout";
@@ -85,6 +86,7 @@ const InitBodySchema = z.object({
   courierCode: z.string().optional(),
   puntosACanjear: z.number().int().nonnegative().optional().default(0),
   codigoDescuento: z.string().trim().min(2).max(40).optional(),
+  codigoCreador: z.string().trim().min(2).max(40).optional(),
 });
 
 const QuoteBodySchema = z.object({
@@ -93,6 +95,7 @@ const QuoteBodySchema = z.object({
   courierCode: z.string().optional(),
   codigoDescuento: z.string().trim().optional(),
   puntosACanjear: z.number().int().nonnegative().optional().default(0),
+  codigoCreador: z.string().trim().optional(),
 });
 
 const CommitBodySchema = z.object({
@@ -155,6 +158,28 @@ async function resolveDiscountClp(
   };
 }
 
+/**
+ * Descuento del código de creador: % sobre la base neta (después de códigos).
+ * Lanza si el código no existe o está inactivo — el checkout debe fallar claro.
+ */
+async function resolveCreadorDiscountClp(
+  admin: ReturnType<typeof createAdminClient>,
+  codigo: string | undefined,
+  baseClp: number,
+): Promise<number> {
+  if (!codigo) return 0;
+  const { data, error } = await admin
+    .from('creadores')
+    .select('descuento_cliente')
+    .ilike('codigo_ref', codigo)
+    .eq('estado', 'activo')
+    .maybeSingle();
+  if (error || !data) {
+    throw new Error('Código de creador no válido o inactivo');
+  }
+  return Math.floor(baseClp * Number(data.descuento_cliente) / 100);
+}
+
 checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => {
   try {
     const body = c.req.valid("json");
@@ -198,12 +223,24 @@ checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => 
       }
     }
 
-    const total = computePaidTotal(netSubtotal, shippingCost, loyaltyDiscountClp);
+    let descuentoCreadorClp = 0;
+    if (body.codigoCreador) {
+      const adminC = admin ?? createAdminClient();
+      try {
+        descuentoCreadorClp = await resolveCreadorDiscountClp(adminC, body.codigoCreador, netSubtotal);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Código inválido';
+        return c.json({ code: 'invalid_creador_code', message }, 400);
+      }
+    }
+
+    const total = Math.max(0, computePaidTotal(netSubtotal, shippingCost, loyaltyDiscountClp) - descuentoCreadorClp);
     return c.json({
       subtotal: body.subtotal,
       discountClp,
       shippingCost,
       loyaltyDiscountClp,
+      descuentoCreadorClp,
       total,
       courierCode,
     });
@@ -243,6 +280,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       courierCode: requestedCourier,
       puntosACanjear: requestedPoints,
       codigoDescuento,
+      codigoCreador,
     } = c.req.valid("json");
     const admin = createAdminClient();
     const productIds = cart.map((line) => line.productId);
@@ -436,7 +474,22 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       loyaltyDiscountClp = validation.discountClp;
     }
 
-    const total = computePaidTotal(netSubtotal, shippingCost, loyaltyDiscountClp);
+    // Código de creador: valida aquí (descuento al comprador) y se registra
+    // uso + comisión en fulfill — el circuito de dinero cierra post-pago.
+    let descuentoCreadorClp = 0;
+    if (codigoCreador) {
+      try {
+        descuentoCreadorClp = await resolveCreadorDiscountClp(admin, codigoCreador, netSubtotal);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Código inválido';
+        return c.json({ code: 'invalid_creador_code', message }, 400);
+      }
+    }
+
+    const total = Math.max(
+      0,
+      computePaidTotal(netSubtotal, shippingCost, loyaltyDiscountClp) - descuentoCreadorClp,
+    );
     const buyOrder = `ORD-${crypto.randomUUID()}`;
     const sessionId = `sess-${crypto.randomUUID()}`;
 
@@ -465,6 +518,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       buyerMode: effectiveBuyerMode,
       clienteId: effectiveClienteId,
       organizacionId: organizacionId ?? null,
+      codigoCreador: codigoCreador ?? null,
     });
 
     const { data: reserveResult, error: reserveError } = await admin.rpc('reserve_checkout_stock', {
@@ -505,6 +559,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       discountClp,
       discountCode,
       loyaltyDiscountClp,
+      descuentoCreadorClp,
       loyaltyPointsRedeemed,
       provider: provider.name,
       buyerMode: effectiveBuyerMode,
@@ -606,6 +661,25 @@ checkoutRoutes.post("/webhook/flow", async (c) => {
     const result = await provider.commit(token);
 
     if (!result.authorized) {
+      // Cargo recurrente fallido: marcar past_due de inmediato (el cron de 7
+      // días es el backstop) para que el cliente vea "Regularizar pago" pronto.
+      const failedBuyOrder = result.buyOrder?.trim();
+      if (failedBuyOrder?.startsWith('SUB-')) {
+        try {
+          const admin = createAdminClient();
+          const { data: subRow } = await admin
+            .from('subscriptions')
+            .select('id')
+            .eq('flow_inscription_buy_order', failedBuyOrder)
+            .maybeSingle();
+          if (subRow) {
+            await admin.from('subscriptions').update({ status: 'past_due' }).eq('id', subRow.id);
+            console.warn(`[webhook/flow] cargo recurrente fallido → past_due (${failedBuyOrder})`);
+          }
+        } catch (err) {
+          console.error('[webhook/flow] failed recurring charge handling:', err);
+        }
+      }
       return c.json({ ok: true, status: 'not_paid' }, 200);
     }
 
@@ -616,10 +690,35 @@ checkoutRoutes.post("/webhook/flow", async (c) => {
 
     if (buyOrder.startsWith('SUB-')) {
       const subResult = await fulfillSubscriptionFromWebhook(buyOrder, result.authorizationCode);
-      if (!subResult.ok) {
-        return c.json({ error: subResult.error }, (subResult.status ?? 500) as 500);
+      if (subResult.ok) {
+        return c.json({ ok: true, status: subResult.status }, 200);
       }
-      return c.json({ ok: true, status: subResult.status }, 200);
+
+      // Cargo recurrente: no hay sesión pending ni sub creada por este buy_order
+      // de checkout; buscar la sub por la inscripción (flow_inscription_buy_order)
+      if (subResult.status === 404) {
+        const admin = createAdminClient();
+        const { data: subRow } = await admin
+          .from('subscriptions')
+          .select('id')
+          .eq('flow_inscription_buy_order', buyOrder)
+          .maybeSingle();
+        if (subRow) {
+          const raw = result.raw as { paymentData?: { amount?: number } } | undefined;
+          const charged = await fulfillRecurringCharge(admin, {
+            subscriptionId: subRow.id as string,
+            flowOrder: Number(result.authorizationCode) || 0,
+            amount: raw?.paymentData?.amount ?? 0,
+          });
+          if (charged.ok) {
+            return c.json({ ok: true, status: charged.alreadyProcessed ? 'already_processed' : 'confirmed' }, 200);
+          }
+          console.error(`[webhook/flow] cargo recurrente falló: ${charged.error}`);
+          return c.json({ error: charged.error ?? 'Error procesando cargo recurrente' }, 500);
+        }
+      }
+
+      return c.json({ error: subResult.error }, (subResult.status ?? 500) as 500);
     }
 
     const admin = createAdminClient();
@@ -785,6 +884,98 @@ adminCheckout.post("/sessions/expire-stale", async (c) => {
   } catch (err) {
     const message = err instanceof Error ? err.message : "expire failed";
     return c.json({ code: "expire_failed", message }, 500);
+  }
+});
+
+/**
+ * Movimiento 1 — integridad de pagos web: cruza checkout_sessions con ventas
+ * para detectar brechas del ciclo dinero:
+ * - sesiones completed SIN venta (pago cobrado y no registrado → dinero perdido)
+ * - sesiones pending antiguas (webhook perdido o pago no completado)
+ * - ventas web SIN sesión completed (anomalía o canal distinto)
+ */
+adminCheckout.get("/integrity", async (c) => {
+  try {
+    const admin = createAdminClient();
+    const cutoff = new Date(Date.now() - 30 * 60_000).toISOString();
+
+    const { data: completedSessions } = await admin
+      .from("checkout_sessions")
+      .select("buy_order, total, provider, created_at, completed_at")
+      .eq("status", "completed")
+      .limit(200);
+
+    const completedOrders = ((completedSessions ?? []) as Array<{ buy_order: string }>).map((s) => s.buy_order);
+    const { data: ventasCompleted } = completedOrders.length
+      ? await admin.from("ventas").select("buy_order").in("buy_order", completedOrders)
+      : { data: [] };
+
+    const ventaOrders = new Set(
+      ((ventasCompleted ?? []) as Array<{ buy_order: string | null }>)
+        .map((v) => v.buy_order)
+        .filter((b): b is string => Boolean(b)),
+    );
+    const sessionsSinVenta = ((completedSessions ?? []) as Array<Record<string, unknown>>).filter(
+      (s) => !ventaOrders.has(s.buy_order as string),
+    );
+
+    const { data: stalePending } = await admin
+      .from("checkout_sessions")
+      .select("buy_order, total, created_at")
+      .eq("status", "pending")
+      .lt("created_at", cutoff)
+      .limit(100);
+
+    const { data: ventasWeb } = await admin
+      .from("ventas")
+      .select("id, buy_order, total, created_at")
+      .eq("origen", "web")
+      .limit(200);
+
+    const ventasWebOrders = ((ventasWeb ?? []) as Array<{ buy_order: string | null }>)
+      .map((v) => v.buy_order)
+      .filter((b): b is string => Boolean(b));
+    const { data: sessionsMatched } = ventasWebOrders.length
+      ? await admin.from("checkout_sessions").select("buy_order").in("buy_order", ventasWebOrders)
+      : { data: [] };
+
+    const sessionOrders = new Set(
+      ((sessionsMatched ?? []) as Array<{ buy_order: string }>).map((s) => s.buy_order),
+    );
+    const ventasSinSesion = ((ventasWeb ?? []) as Array<Record<string, unknown>>).filter(
+      (v) => !v.buy_order || !sessionOrders.has(v.buy_order as string),
+    );
+
+    return c.json({
+      data: {
+        sessionsSinVenta: sessionsSinVenta.map((s) => ({
+          buyOrder: s.buy_order,
+          total: s.total,
+          completedAt: s.completed_at,
+        })),
+        stalePending: ((stalePending ?? []) as Array<Record<string, unknown>>).map((s) => ({
+          buyOrder: s.buy_order,
+          total: s.total,
+          createdAt: s.created_at,
+        })),
+        ventasSinSesionCompletada: ventasSinSesion.map((v) => ({
+          ventaId: v.id,
+          buyOrder: v.buy_order ?? null,
+          total: v.total,
+        })),
+        totales: {
+          sesionesCompletadas: (completedSessions ?? []).length,
+          sesionesCompletadasSinVenta: sessionsSinVenta.length,
+          pendingStale: (stalePending ?? []).length,
+          ventasWeb: (ventasWeb ?? []).length,
+          ventasWebSinSesion: ventasSinSesion.length,
+        },
+      },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "integrity check failed";
+    console.error("[checkout/integrity]", message);
+    return c.json({ code: "integrity_failed", message }, 500);
   }
 });
 

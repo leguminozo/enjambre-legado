@@ -62,6 +62,7 @@ export async function POST(request: Request) {
     items?: ItemRow[];
     metodo_pago?: string;
     estado?: string;
+    tercero_id?: string;
   };
   try {
     body = (await request.json()) as typeof body;
@@ -191,6 +192,7 @@ export async function POST(request: Request) {
     total,
     items: enrichedItems as unknown as Record<string, unknown>,
     metodo_pago: body.metodo_pago ?? 'efectivo',
+    tercero_id: body.tercero_id ?? null,
   };
 
   const { data, error } = await supabase.from('ventas').insert(payload).select('id, claim_token').single();
