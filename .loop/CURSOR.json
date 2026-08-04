@@ -1,7 +1,7 @@
 {
-  "index": 3,
-  "pass": 103,
-  "last_sector": "auth-login-recovery",
+  "index": 4,
+  "pass": 104,
+  "last_sector": "tienda-commerce",
   "last_commit": null,
   "streak_clean": 0,
   "boost": {
@@ -9,5 +9,5 @@
     "nav-home-roles": 0
   },
   "phase": "v1.4-polish-layers",
-  "notes": "pass102 auth-login-recovery: friendlyError nucleo + campo OAuth /login + recovery checkUser/role redirect. Siguiente: tienda-commerce (#3)."
+  "notes": "pass103 tienda-commerce: catálogo schema resiliente + pricing slug/precio + checkout init coerce + cart-checkout json safe. Siguiente: tienda-landing-chrome (#4)."
 }

@@ -103,7 +103,7 @@ export async function startCartCheckout(
     return { ok: false, message: 'Error de conexión. Verifica tu internet e intenta de nuevo.' };
   }
 
-  const json = (await res.json()) as {
+  let json: {
     code?: string;
     url?: string;
     token?: string;
@@ -114,6 +114,17 @@ export async function startCartCheckout(
     details?: string[];
     verifiedCart?: CartCheckoutLine[];
   };
+  try {
+    json = (await res.json()) as typeof json;
+  } catch {
+    return {
+      ok: false,
+      message:
+        res.status >= 500
+          ? 'El servicio de pagos no respondió. Intenta de nuevo en unos minutos.'
+          : 'Respuesta inválida del checkout. Recarga e intenta de nuevo.',
+    };
+  }
 
   if (!res.ok) {
     if (res.status === 409 && json.verifiedCart) {

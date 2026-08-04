@@ -44,10 +44,23 @@ export async function calculateCartPricing(items: CartItemInput[]): Promise<Cart
     throw new Error('No se pudieron consultar los productos');
   }
 
-  return computeCartPricing(
-    items,
-    (products ?? []) as PricingProductRow[],
-    role,
-    pastOrdersCount,
-  );
+  // slug/precio nulos o string → checkout init Zod 400 / precios fantasma
+  const rows: PricingProductRow[] = (products ?? []).map((p) => {
+    const id = String(p.id);
+    const precioRaw = p.precio;
+    const precio =
+      typeof precioRaw === 'number'
+        ? precioRaw
+        : typeof precioRaw === 'string'
+          ? Number(precioRaw)
+          : 0;
+    return {
+      id,
+      nombre: p.nombre ?? 'Producto',
+      slug: (typeof p.slug === 'string' && p.slug.trim()) || id,
+      precio: Number.isFinite(precio) ? precio : 0,
+    };
+  });
+
+  return computeCartPricing(items, rows, role, pastOrdersCount);
 }

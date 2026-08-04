@@ -55,24 +55,56 @@ const LoteJoinSchema = z.object({
   fecha_envasado: z.string().nullable(),
 });
 
+/** Supabase a veces devuelve numéricos como string; coerce evita catálogo vacío. */
+const nullableNum = z.preprocess((v) => {
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  if (typeof v === 'string' && v.trim() !== '') {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  return v;
+}, z.number().nullable());
+
+const stringArray = z.preprocess((v) => {
+  if (v == null) return null;
+  if (Array.isArray(v)) return v.map(String);
+  if (typeof v === 'string') {
+    try {
+      const parsed = JSON.parse(v) as unknown;
+      return Array.isArray(parsed) ? parsed.map(String) : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}, z.array(z.string()).nullable());
+
+/** Join FK: objeto, array (0|1) o null — no tumbar todo el catálogo. */
+const lotesField = z.preprocess((v) => {
+  if (v == null) return null;
+  if (Array.isArray(v)) return v[0] ?? null;
+  return v;
+}, LoteJoinSchema.nullable());
+
 const ProductRowSchema = z.object({
   id: z.string().uuid(),
   slug: z.string().nullable(),
   nombre: z.string().nullable(),
   descripcion_regenerativa: z.string().nullable(),
-  precio: z.number().nullable(),
-  stock: z.number().nullable(),
+  precio: nullableNum,
+  stock: nullableNum,
   formato: z.string().nullable(),
   categoria: z.string().nullable(),
-  tags: z.array(z.string()).nullable(),
+  tags: stringArray,
   origen_apicola: z.string().nullable(),
-  fotos: z.array(z.string()).nullable(),
+  fotos: stringArray,
   visible: z.boolean().nullable(),
-  sustituye_azucar_g: z.number().nullable(),
-  co2_evitado_kg: z.number().nullable(),
-  irr_referencia: z.number().nullable(),
+  sustituye_azucar_g: nullableNum,
+  co2_evitado_kg: nullableNum,
+  irr_referencia: nullableNum,
   lote_id: z.string().nullable(),
-  lotes: LoteJoinSchema.nullable(),
+  lotes: lotesField,
 });
 
 const CosechaJoinSchema = z.object({
@@ -118,12 +150,26 @@ export const listVisibleProducts = cache(async function listVisibleProducts(): P
     .order('created_at', { ascending: false });
 
   if (error) throw new Error(error.message);
-  const parsed = z.array(ProductRowSchema).safeParse(data);
-  if (!parsed.success) {
-    console.error('[products] listVisibleProducts schema mismatch:', parsed.error.flatten());
-    return [];
+  const rawRows = data ?? [];
+  // Parse fila a fila: un producto roto no debe vaciar todo el catálogo
+  const rows: ProductRow[] = [];
+  let failed = 0;
+  for (const raw of rawRows) {
+    const one = ProductRowSchema.safeParse(raw);
+    if (one.success) rows.push(one.data);
+    else {
+      failed += 1;
+      console.warn('[products] row skipped:', one.error.flatten());
+    }
   }
-  return parsed.data.map(mapProduct);
+  if (rows.length === 0 && rawRows.length > 0) {
+    console.error('[products] listVisibleProducts: todas las filas fallaron schema', {
+      total: rawRows.length,
+      failed,
+    });
+    throw new Error('No se pudieron interpretar los productos del catálogo');
+  }
+  return rows.map(mapProduct);
 });
 
 export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
@@ -148,8 +194,11 @@ export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
   if (error) throw new Error(error.message);
   
   let row: ProductRow | null = null;
-  const parsed = ProductRowSchema.safeParse(data);
-  if (parsed.success) row = parsed.data;
+  if (data) {
+    const parsed = ProductRowSchema.safeParse(data);
+    if (parsed.success) row = parsed.data;
+    else console.warn('[products] getProductBySlugOrId schema:', parsed.error.flatten());
+  }
 
   if (!row) return null;
 

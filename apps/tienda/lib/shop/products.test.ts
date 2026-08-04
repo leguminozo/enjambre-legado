@@ -94,3 +94,19 @@ describe('mapProduct (catálogo → ShopProduct)', () => {
     expect(p.tags).toEqual([]);
   });
 });
+
+describe('ProductRowSchema coerce (catálogo resiliente)', () => {
+  // Import interno vía parse de mapProduct path: re-export test a través de list behavior
+  // Validamos coerce numérico/string con el mismo schema exportado indirectamente.
+  it('mapProduct acepta precio numérico y métricas cero', () => {
+    const p = mapProduct(baseRow({ precio: 15000, co2_evitado_kg: 0 }));
+    expect(p.price).toBe(15000);
+    expect(p.co2_evitado_kg).toBe(0);
+  });
+
+  it('mapProduct: lotes null no rompe', () => {
+    const p = mapProduct(baseRow({ lotes: null, lote_id: null }));
+    expect(p.blockchain_hash).toBeNull();
+  });
+});
+

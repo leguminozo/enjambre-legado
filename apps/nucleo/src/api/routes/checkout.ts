@@ -324,7 +324,11 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
         continue;
       }
 
-      const basePrice = product.precio;
+      const basePrice = Number(product.precio);
+      if (!Number.isFinite(basePrice)) {
+        errors.push(`Producto ${product.nombre}: precio inválido`);
+        continue;
+      }
       const discountedPrice = computeUnitPrice(basePrice, role, pastOrdersCount);
 
       if (line.unitPrice !== discountedPrice) {

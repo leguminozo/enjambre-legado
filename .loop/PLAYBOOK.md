@@ -25,6 +25,9 @@ v1.3 UI y go-live v1.2 se conservan abajo como referencia / residual.
 | Home duplicado | `HomeView`, sidebar VISIÓN, `/alma` `/ejecutivo` redirects, `role-redirect` |
 | Home rol wrong | territorial ve panel admin | `user.role` (profiles) no solo `app_metadata`; normalizar LEGACY; wait isLoading |
 | Alma en nav | dos homes | quitar item sidebar; page redirect `/inicio`; no reintroducir LazyAlma/Ecosistema |
+| Catálogo vacío fantasma | schema Zod tumba todos los productos | coerce num/string; lotes array→[0]; parse fila a fila; throw solo si 0/N |
+| Checkout 400 slug | product.slug null en line_items | slug fallback = product id en calculateCartPricing + preview BFF |
+| Checkout init JSON | 502 HTML rompe res.json() | try/catch → mensaje amigable en startCartCheckout |
 | Auth multi-app | login pages 3 apps, `friendlyError`, middleware guards |
 | OAuth code lost | middleware manda a login sin sesión | `redirectTo` = `/login` o `/auth/callback?next=`; nunca /pos|/perfil directo |
 | Recovery loading trap | botón «Procesando» eterno | setLoading(false) antes del delay de redirect post-updateUser |

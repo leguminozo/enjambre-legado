@@ -62,5 +62,24 @@ export async function previewCartPricing(
     throw new Error("Error consultando productos");
   }
 
-  return computeCartPricing(items, (products ?? []) as PricingProductRow[], role, pastOrdersCount);
+  // Misma normalización que tienda calculateCartPricing (slug/precio)
+  const rows: PricingProductRow[] = (products ?? []).map((p) => {
+    const id = String(p.id);
+    const precioRaw = p.precio as unknown;
+    const precio =
+      typeof precioRaw === "number"
+        ? precioRaw
+        : typeof precioRaw === "string"
+          ? Number(precioRaw)
+          : 0;
+    const slugRaw = p.slug as string | null | undefined;
+    return {
+      id,
+      nombre: (p.nombre as string | null) ?? "Producto",
+      slug: (typeof slugRaw === "string" && slugRaw.trim()) || id,
+      precio: Number.isFinite(precio) ? precio : 0,
+    };
+  });
+
+  return computeCartPricing(items, rows, role, pastOrdersCount);
 }

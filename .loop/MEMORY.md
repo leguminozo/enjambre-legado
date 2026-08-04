@@ -38,7 +38,7 @@
 | Alambique | Módulo nuevo | ⏳ shell + rutas |
 | Campo offline | Sync backoff, loyalty, feria | ⏳ regresión POS |
 | Subs + CAF | Flow recurrente, CAF auto, integrity | ⏳ solo regresión |
-| Tienda commerce | Checkout/catálogo deben funcionar (nucleo depende de tienda viva) | ⏳ smoke flujos |
+| Tienda commerce | pass103: catálogo parse fila-a-fila + coerce num/join; pricing slug/precio; init Number(precio); startCartCheckout json safe | ✅ núcleo flujo; ⏳ smoke e2e pago real |
 | sw.js ZCode | Basura otra sesión | 🚫 no tocar |
 
 ### Backlog UI (v1.3 — histórico / residual; no cono default)
@@ -68,6 +68,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-04 pass 103 (tienda-commerce)
+- Señal: listVisibleProducts devolvía [] silencioso si Zod fallaba (num string / lotes array); pricing pasaba slug null → checkout Zod 400; init sin Number(precio); res.json() sin catch en startCartCheckout
+- Compuesto: colapsar + entrelazado tienda↔nucleo pricing
+- Regla nueva: catálogo = coerce num/array + parse por fila; fallar ruidoso solo si 0/N filas OK; PricingProductRow siempre slug no vacío y precio finite; checkout init Number(precio); client checkout parse JSON fail-closed
+- Anti-patrón: safeParse array completo → return []; cast ciego `as PricingProductRow[]` con slug null
+- Guardriel: intacto (no reabrir CAF/pago provider)
 
 ### Evo 2026-08-04 pass 102 (auth-login-recovery)
 - Señal: nucleo login filtraba errores Auth crudos EN; recovery dejaba loading eterno; campo OAuth redirectTo a /pos (middleware mata ?code=); tienda reset 8 vs 6 y raw message; recovery tienda hardcode /perfil
