@@ -21,6 +21,11 @@ export interface SidebarGroup {
   key: string
   label: string
   items: SidebarItem[]
+  /**
+   * Categoría desplegable (estándar industria): clic en el label expande
+   * las micro-herramientas. Grupos de 1 ítem se renderizan planos.
+   */
+  collapsible?: boolean
 }
 
 /** Tabs de la navegación inferior (móvil) para el rol admin */
@@ -34,6 +39,7 @@ export const RAIL_PRIMARY_KEYS = [
   'inicio',
   'colmenas',
   'contabilidad',
+  'inventario',
   'productos',
   'despacho',
   'crm',
@@ -47,7 +53,9 @@ export const RAIL_PRIMARY_KEYS = [
 export const PREFETCH_PRIORITY_KEYS = [
   'inicio',
   'colmenas',
-  'produccion',
+  'recoleccion',
+  'inventario',
+  'lotes',
   'alambique',
   'productos',
   'costeo',
@@ -61,21 +69,23 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     key: 'vision',
     label: 'VISIÓN',
+    collapsible: false,
     items: [
       {
         key: 'inicio',
         label: 'Inicio',
         icon: 'network',
         href: '/inicio',
-        // Copy genérico: HomeView pinta el panel correcto por rol (admin vs territorial)
         greeting: 'Tu punto de partida',
         mission: 'Lo esencial del enjambre, según tu rol',
       },
     ],
   },
   {
-    key: 'recoleccion',
-    label: 'RECOLECCIÓN',
+    // Campo: bitácora minuciosa del ciclo de la colmena
+    key: 'campo',
+    label: 'CAMPO',
+    collapsible: true,
     items: [
       {
         key: 'colmenas',
@@ -99,37 +109,39 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         icon: 'notebook-pen',
         href: '/colmenas/cuaderno',
         greeting: 'Cronista del apiario',
-        mission: 'Cada anotación es memoria del ciclo',
-      },
-      {
-        key: 'trazabilidad',
-        label: 'Trazabilidad',
-        icon: 'route',
-        href: '/colmenas/trazabilidad',
-        greeting: 'Tejedor de rastros',
-        mission: 'Cada lote cuenta la historia del bosque',
+        mission: 'Visitas, sanidad y red semántica del ciclo',
       },
     ],
   },
   {
+    // Bosque: mundo vegetal, floración, regeneración, destilación
     key: 'bosque',
     label: 'BOSQUE',
+    collapsible: true,
     items: [
+      {
+        key: 'fenologia',
+        label: 'Oráculo Fenológico',
+        icon: 'sprout',
+        href: '/fenologia',
+        greeting: 'Oráculo del bosque',
+        mission: 'Índice de floración: la flor se mide, no se adivina',
+      },
       {
         key: 'ciclo-bosque',
         label: 'Calendario',
         icon: 'calendar-days',
         href: '/calendario',
         greeting: 'Guardián del tiempo',
-        mission: 'El ciclo del enjambre no se detiene',
+        mission: 'Ciclo estacional, floración y ventanas de trabajo',
       },
       {
         key: 'bosque',
-        label: 'Bosque',
+        label: 'Plantaciones',
         icon: 'tree-pine',
         href: '/regeneracion',
         greeting: 'Guardián del legado',
-        mission: 'Cada árbol plantado es deuda con el futuro',
+        mission: 'Reforestación, regeneración y CO₂ del territorio',
       },
       {
         key: 'alambique',
@@ -137,29 +149,39 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         icon: 'test-tubes',
         href: '/alambique',
         greeting: 'Alquimista del vapor',
-        mission: 'Cada gota destilada es memoria del bosque',
-      },
-      {
-        key: 'fenologia',
-        label: 'Oráculo Fenológico',
-        icon: 'sprout',
-        href: '/fenologia',
-        greeting: 'Oráculo del bosque',
-        mission: 'La floración se mide, no se adivina',
+        mission: 'Destilación de plantas: materia vegetal a hidrolato',
       },
     ],
   },
   {
+    // Producción: recolección → lotes → inventario de frascos listos
     key: 'produccion',
     label: 'PRODUCCIÓN',
+    collapsible: true,
     items: [
       {
-        key: 'produccion',
-        label: 'Producción',
+        key: 'recoleccion',
+        label: 'Recolección',
+        icon: 'droplets',
+        href: '/produccion/recoleccion',
+        greeting: 'Recolector del panal',
+        mission: 'Registro de recolecciones: kg, floración y vínculo a lote',
+      },
+      {
+        key: 'lotes',
+        label: 'Lotes',
         icon: 'factory',
-        href: '/produccion',
+        href: '/produccion/lotes',
         greeting: 'Maestro del panal',
-        mission: 'Cada lote es una verdad del proceso',
+        mission: 'Lotes en bodega, análisis de lab y pasaporte QR',
+      },
+      {
+        key: 'inventario',
+        label: 'Inventario',
+        icon: 'package',
+        href: '/produccion/inventario',
+        greeting: 'Custodio del stock',
+        mission: 'Stock de productos listos para la venta — un solo lugar',
       },
       {
         key: 'costeo',
@@ -174,14 +196,15 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     key: 'mercado',
     label: 'MERCADO',
+    collapsible: true,
     items: [
       {
         key: 'productos',
         label: 'Productos',
         icon: 'shopping-bag',
         href: '/catalogo',
-        greeting: 'Alquimista del panal',
-        mission: 'La miel sin historia vale la mitad',
+        greeting: 'Editor de catálogo',
+        mission: 'Ficha de tienda: nombre, foto, copy y precio — el stock vive en Inventario',
       },
       {
         key: 'despacho',
@@ -229,7 +252,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         icon: 'store',
         href: '/monitor-feria',
         greeting: 'Observador de feria',
-        mission: 'Trazabilidad y observación en vivo de las ventas en feria',
+        mission: 'Observación en vivo de las ventas en feria',
       },
       {
         key: 'operadores-feria',
@@ -244,6 +267,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     key: 'red',
     label: 'RED',
+    collapsible: true,
     items: [
       {
         key: 'creadores-admin',
@@ -272,8 +296,10 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     ],
   },
   {
+    // Finanzas: macro-categoría; SII/Banco se desfragmentarán más adelante
     key: 'finanzas',
     label: 'FINANZAS',
+    collapsible: true,
     items: [
       {
         key: 'contabilidad',
@@ -336,6 +362,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     key: 'territorio',
     label: 'TERRITORIO',
+    collapsible: false,
     items: [
       {
         key: 'territorio',
@@ -343,7 +370,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         icon: 'map',
         href: '/mapa',
         greeting: 'Cartógrafo del bosque',
-        mission: '22 años de territorio vivo en Chiloé',
+        mission: '22 años de territorio vivo en Chiloé · alertas fitosanitarias',
       },
     ],
   },
@@ -398,6 +425,9 @@ export const VIEW_SHELL_PATHS = new Set([
 const ROUTE_ITEM_ALIASES: Record<string, string> = {
   '/territorio': 'territorio',
   '/registro-territorial': 'territorio',
+  // Bookmarks legacy → herramienta canónica
+  '/colmenas/trazabilidad': 'lotes',
+  '/produccion': 'inventario',
 }
 
 /**
@@ -405,9 +435,6 @@ const ROUTE_ITEM_ALIASES: Record<string, string> = {
  * - `'all'` = menú completo (solo admin / legado→admin).
  * - lista = allowlist estricta.
  * - `[]` = sin módulos (cliente/creador/rep no viven en núcleo; middleware los saca).
- *
- * Anti-patrón (pre-pass112): `[]` significaba “todos” → shell con `role ?? 'admin'`
- * o roles huéspedes pintaban el menú gerencial completo.
  */
 const ROLE_VISIBLE_KEYS: Record<RoleKey, readonly string[] | 'all'> = {
   admin: 'all',
@@ -461,7 +488,6 @@ const ROLE_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
 export function getBottomNavKeysForRole(role: RoleKey): readonly string[] {
   if (role === 'territorial') return ['inicio', 'territorio']
   if (role === 'admin') return BOTTOM_NAV_KEYS
-  // No-admin en núcleo (loading / redirect en curso): no inventar tabs gerenciales
   return ['inicio']
 }
 
@@ -481,7 +507,7 @@ export function findActiveItem(pathname: string): SidebarItem | undefined {
   }
   const exactMatch = allItems.find(item => item.href === pathname)
   if (exactMatch) return exactMatch
-  // Sub-rutas (/colmenas/apiarios) deben resaltar su ítem propio, no el padre (/colmenas)
+  // Sub-rutas (/colmenas/apiarios) deben resaltar su ítem propio, no el padre
   const matches = allItems
     .filter(item => item.href !== '/' && pathname.startsWith(item.href))
     .sort((a, b) => b.href.length - a.href.length)

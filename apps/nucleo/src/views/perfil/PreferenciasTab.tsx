@@ -23,7 +23,7 @@ import { supabase } from '@/lib/supabase';
 
 const NOTIF_LABELS: Record<NotificationCategory, { title: string; desc: string }> = {
   pedidos: { title: 'Pedidos y envíos', desc: 'Confirmaciones de compra y despacho' },
-  floracion: { title: 'Alertas de floración', desc: 'Ventanas de vuelo y cosecha' },
+  floracion: { title: 'Alertas de floración', desc: 'Ventanas de vuelo y recolección' },
   sistema: { title: 'Sistema', desc: 'Bienvenida, mantenimiento y avisos generales' },
 };
 

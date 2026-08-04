@@ -37,7 +37,17 @@ export const LazyCosteoView = named(() => import('@/views/costeo/CosteoView'), '
 export const LazyProduccionView = named(
   () => import('@/views/produccion/ProduccionView'),
   'ProduccionView',
-  'Producción',
+  'Lotes',
+);
+export const LazyRecoleccionView = named(
+  () => import('@/views/produccion/RecoleccionView'),
+  'RecoleccionView',
+  'Recolección',
+);
+export const LazyInventarioView = named(
+  () => import('@/views/produccion/InventarioView'),
+  'InventarioView',
+  'Inventario',
 );
 export const LazyAlambiqueView = named(
   () => import('@/views/alambique/AlambiqueView'),
@@ -58,11 +68,6 @@ export const LazyCuadernoCampoView = named(
 export const LazyEscenaHojaView = lazyView<{ id: string }>(
   () => import('@/views/apicultor/EscenaHojaView').then((m) => ({ default: m.EscenaHojaView })),
   'Hoja',
-);
-export const LazyTrazabilidadView = named(
-  () => import('@/views/apicultor/TrazabilidadView'),
-  'TrazabilidadView',
-  'Trazabilidad',
 );
 export const LazyLogisticaView = named(() => import('@/views/LogisticaView'), 'LogisticaView', 'Despacho');
 export const LazyRegeneracionView = named(

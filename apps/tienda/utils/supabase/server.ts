@@ -1,24 +1,11 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { getSupabaseKey, getSupabaseUrl } from './env'
+import { createServerClientFromCookies } from '@enjambre/auth/server-index'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
-export async function createClient() {
-  const cookieStore = await cookies()
-
-  return createServerClient(getSupabaseUrl(), getSupabaseKey(), {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          )
-        } catch (error) {
-          console.error('[tienda-supabase-server] cookie set error:', error);
-        }
-      },
-    },
-  })
+/** Firma no-null: los consumidores de tienda asumen cliente configurado. */
+export async function createClient(): Promise<SupabaseClient> {
+  const client = await createServerClientFromCookies()
+  if (!client) {
+    throw new Error('Supabase no configurado')
+  }
+  return client
 }

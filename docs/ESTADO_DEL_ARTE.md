@@ -117,3 +117,22 @@ Durante la sesión, un agente de fondo implementó features completas por su cue
 | `apps/nucleo/public/sw.js` | 🔴 basura | 1 línea, regenerado constantemente por OTRA sesión de ZCode activa — ignorar hasta cerrarla |
 
 ⚠️ **Alerta operacional**: hay OTRA sesión de ZCode activa escribiendo en este repo (host de agentes con `sess_*` distintos). Mientras siga abierta puede regenerar `sw.js` y commitear. Cerrar esa sesión cuando ya no se necesite.
+
+## 7. Deuda de datos documentada (auditoría 2026-08-04 — NO tocar sin plan)
+
+| Deuda | Riesgo | Acción recomendada |
+|---|---|---|
+| Migración `991_registro_territorial_apicola.sql` tiene **dependencia hacia adelante**: crea `actores_registro`/`update_updated_at_column()` pero ~7 migraciones posteriores en orden lexicográfico (`1002`, `1003`, `1004`, `20260802*`, `20260803*`) las usan. **`supabase db reset` en fresco falla en `1002`**; en prod es inerte (se aplicó cronológicamente). | Reset/CI/staging roto | Renombrar a `0991_*` (o mover los objetos base a una migración temprana) — requiere probar `db reset` completo en staging |
+| DDL bootstrap duplicado: `subscription_plans`/`subscriptions`/`subscription_deliveries` en `42` y `61`; `loyalty_*`/`pre_orders`/`cart_abandonment_events` en `41`/`61`/`20260803130000` (idéntico con `IF NOT EXISTS` → no rompe, pero **drift silencioso** si una copia cambia). | Divergencia de esquema entre entornos | Consolidar: una migración define cada tabla; las demás solo verifican existencia |
+| **RPC overwrites en cascada** (`CREATE OR REPLACE` secuencial, last-wins): `handle_new_user` ×10 (995 usaba `tier_override` que 998 removió), `calcular_comision_venta` ×4, `decrement_stock` ×3, `process_ritual_renewals` ×3, `redeem_loyalty_reward` ×3, `get_sidebar_badges` ×2, etc. | Regresión funcional **silenciosa** en el último overwrite | Tests de salida por RPC crítico + consolidar definiciones en una migración |
+| Vistas `OR REPLACE` (11→40, 14→15→40, 28→40): mismo patrón last-wins. | Ídem | Ídem |
+| RLS: ✅ sin políticas duplicadas activas; enums: ✅ sin duplicados; columnas: ✅ todas `IF NOT EXISTS`. | — | — |
+
+## 8. Rondas de deduplicación de código (2026-08-04)
+
+| Ronda | Qué se eliminó | Estado |
+|---|---|---|
+| 1 (nucleo) | Alma completo, `ProductosCatalogoView`, `dashboard-resumen`, 5 formatters CLP, 4 lazy muertos | ✅ |
+| 2 (tienda/campo/packages) | 9 endpoints huérfanos + 4 componentes sin uso en tienda; `packages/rate-limit` canónico (2 copias unificadas); `use-api-fetch` campo sincronizado (fix Bearer expirado); formatCLP ×31 → `@enjambre/ui`; lazy reintroducido por otra sesión | ✅ |
+| 3 (transversal) | Alias legacy `/api/ritual` = `/api/replenishment` (0 callers, 2 bypasses, test); `nucleo/src/lib/rut.ts` → `@enjambre/contable`; `slugify` → `@enjambre/ui` (tienda re-export, ProductForm); `createServerClientFromCookies` unificado en 3 apps (re-export `@enjambre/auth/server-index`; tienda con wrapper no-null); `createAdminClient` con `persistSession:false` exportado de `@enjambre/auth/server-index` (2 workers sin client ad-hoc) | ✅ (verificar builds) |
+| Franja `INICIO_OPS` del Inicio admin | 8 chips que duplicaban la sidebar + `QuickActionAddStock` (duplicaba recarga de Catálogo) | ✅ |

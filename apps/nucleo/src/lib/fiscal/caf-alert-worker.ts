@@ -1,14 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@enjambre/auth/server-index';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getCafAlertThreshold } from '@/api/lib/fiscal/caf-guard';
 import { notifyCafLowFolios } from '@/lib/notifications/enqueue-transactional';
 import { ensureCafFolios, isCafAutoEnabled } from './caf-auto-worker';
 
-function createAdminClient(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Missing Supabase credentials for CAF alert worker');
-  return createClient(url, key, { auth: { persistSession: false } });
+function adminClient() {
+  return createAdminClient({ persistSession: false });
 }
 
 type FiscalAlertRecipient = {
@@ -66,7 +63,7 @@ export type CafAlertWorkerResult = {
 };
 
 export async function monitorCafFolios(): Promise<CafAlertWorkerResult> {
-  const admin = createAdminClient();
+  const admin = adminClient();
   const alertThreshold = getCafAlertThreshold();
   const autoEnabled = isCafAutoEnabled();
   const result: CafAlertWorkerResult = {

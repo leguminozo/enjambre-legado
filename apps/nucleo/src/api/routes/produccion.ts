@@ -213,11 +213,6 @@ const UpdateArbolSchema = z.object({
   lng: z.number().min(-180).max(180).optional(),
 });
 
-const CreateReflexionSchema = z.object({
-  colmena: z.string().max(200).optional(),
-  texto: z.string().min(1).max(8000),
-});
-
 produccionRoutes.get("/arboles/map", async (c) => {
   const supabase = c.get("supabase");
   const user = c.get("user");
@@ -346,56 +341,6 @@ produccionRoutes.delete("/arboles/:id", async (c) => {
   }
 
   return c.json({ data: { deleted: true } });
-});
-
-produccionRoutes.get("/reflexiones", async (c) => {
-  const supabase = c.get("supabase");
-  const user = c.get("user");
-
-  const { data, error } = await supabase
-    .from("reflexiones")
-    .select("id, texto, fecha, foto_url, created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(100);
-
-  if (error) {
-    return c.json({ code: "query_failed", message: error.message }, 500);
-  }
-
-  const rows = (data ?? []).map((r) => ({
-    id: String(r.id),
-    fecha: r.created_at
-      ? new Date(String(r.created_at)).toLocaleDateString("es-CL")
-      : new Date().toLocaleDateString("es-CL"),
-    colmena: r.foto_url?.trim() || "General",
-    texto: String(r.texto ?? ""),
-  }));
-
-  return c.json({ data: rows });
-});
-
-produccionRoutes.post("/reflexiones", zValidator("json", CreateReflexionSchema), async (c) => {
-  const input = c.req.valid("json");
-  const supabase = c.get("supabase");
-  const user = c.get("user");
-
-  const { data, error } = await supabase
-    .from("reflexiones")
-    .insert({
-      user_id: user.id,
-      texto: input.texto,
-      fecha: new Date().toISOString().split("T")[0],
-      foto_url: input.colmena?.trim() || null,
-    })
-    .select("id")
-    .single();
-
-  if (error) {
-    return c.json({ code: "reflexion_create_failed", message: error.message }, 400);
-  }
-
-  return c.json({ data }, 201);
 });
 
 produccionRoutes.post(

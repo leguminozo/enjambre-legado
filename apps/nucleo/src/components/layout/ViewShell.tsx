@@ -10,7 +10,7 @@ interface ViewShellProps {
   icon?: React.ReactNode;
   actions?: React.ReactNode;
   children?: React.ReactNode;
-  variant?: 'hero' | 'compact';
+  variant?: 'hero' | 'compact' | 'clean';
   className?: string;
 }
 
@@ -25,6 +25,21 @@ export function ViewShell({
   variant = 'hero',
   className,
 }: ViewShellProps) {
+  if (variant === 'clean') {
+    return (
+      <header className={cn('view-shell view-shell--clean flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-2', className)}>
+        <div className="space-y-1 min-w-0">
+          {eyebrow && <span className="view-shell-eyebrow">{eyebrow}</span>}
+          {greeting && <span className="view-shell-greeting">{greeting}</span>}
+          <h1 className="font-display italic text-2xl sm:text-3xl font-normal tracking-tight text-foreground">{title}</h1>
+          {subtitle && <p className="text-sm text-muted-foreground max-w-2xl">{subtitle}</p>}
+        </div>
+        {actions && <div className="view-shell-actions shrink-0">{actions}</div>}
+        {children}
+      </header>
+    );
+  }
+
   if (variant === 'compact') {
     return (
       <header className={cn('view-shell view-shell--compact', className)}>

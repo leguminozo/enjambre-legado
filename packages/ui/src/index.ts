@@ -37,6 +37,7 @@ export { friendlySupabaseError, friendlyApiError, friendlyError } from './lib/fr
 export { useModalFocusTrap, getFocusableElements, MODAL_FOCUSABLE_SELECTOR } from './lib/modal-focus';
 export { splitCsvLine, generateCsvBlob, downloadCsv } from './lib/csv';
 export { formatDate, formatDateShort, formatCLP, fmtCLP } from './lib/format';
+export { slugify } from './lib/slug';
 export { QRCode } from './components/QRCode';
 export { TierBadge, TierBadgeCompact, tierConfig, type TierBadgeProps, type TierBadgeCompactProps } from './components/tier-badge';
 export { ProgressRing, type ProgressRingProps } from './components/progress-ring';

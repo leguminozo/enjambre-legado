@@ -102,7 +102,7 @@ export function MarketingView() {
   }, []);
 
   const assetLibrary = [
-    { icon: '📸', label: 'Fotos de cosecha', count: assetCounts.fotos },
+    { icon: '📸', label: 'Fotos de recolección', count: assetCounts.fotos },
     { icon: '🎬', label: 'Videos Cristina en Pureo', count: assetCounts.videos },
     { icon: '📝', label: 'Textos regenerativos', count: assetCounts.textos },
     { icon: '🏷️', label: 'Logos y marca', count: assetCounts.logos },

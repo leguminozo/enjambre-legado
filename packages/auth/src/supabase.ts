@@ -28,12 +28,14 @@ export const createClient = () => {
   return _browserClient
 }
 
-export function createAdminClient() {
+export function createAdminClient(options?: { persistSession?: boolean }) {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!serviceRoleKey) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for admin operations')
   }
 
-  return createSupabaseClient(getSupabaseUrl(), serviceRoleKey)
+  // persistSession:false para workers server-side (no guardar sesión en storage).
+  const auth = options?.persistSession === false ? { persistSession: false } : undefined
+  return createSupabaseClient(getSupabaseUrl(), serviceRoleKey, auth ? { auth } : undefined)
 }

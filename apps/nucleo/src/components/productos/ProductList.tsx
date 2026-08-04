@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Eye, EyeOff, MoreVertical, ExternalLink, Package, PlusSquare } from 'lucide-react';
+import Link from 'next/link';
+import { Search, Plus, Edit, Trash2, Eye, EyeOff, ExternalLink, Package } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button, toast, ViewLoading } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
@@ -13,15 +14,15 @@ interface ProductListProps {
   onCreateNew?: () => void;
 }
 
+/**
+ * Lista de fichas de tienda. El stock se gestiona en Producción → Inventario.
+ */
 export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterVisible, setFilterVisible] = useState<'all' | 'visible' | 'hidden'>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [refillProduct, setRefillProduct] = useState<Product | null>(null);
-  const [refillAmount, setRefillAmount] = useState<number>(0);
-  const [isRefilling, setIsRefilling] = useState(false);
 
   const loadProducts = async () => {
     try {
@@ -61,15 +62,15 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
       });
       setProducts(mappedProducts);
     } catch (error) {
-console.error('Error loading products:', error);
-		toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
+      console.error('Error loading products:', error);
+      toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadProducts();
+    void loadProducts();
   }, []);
 
   const toggleVisibility = async (id: string, currentVisible: boolean) => {
@@ -80,14 +81,14 @@ console.error('Error loading products:', error);
         .eq('id', id);
 
       if (error) throw error;
-      
-      setProducts(prev => prev.map(p => 
-        p.id === id ? { ...p, visible: !currentVisible } : p
-      ));
+
+      setProducts((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, visible: !currentVisible } : p)),
+      );
       toast(currentVisible ? 'Producto ocultado' : 'Producto publicado', { type: 'success' });
     } catch (error) {
-console.error('Error toggling visibility:', error);
-		toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
+      console.error('Error toggling visibility:', error);
+      toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
     }
   };
 
@@ -98,80 +99,37 @@ console.error('Error toggling visibility:', error);
 
     setDeletingId(id);
     try {
-      const { error } = await supabase
-        .from('productos')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('productos').delete().eq('id', id);
 
       if (error) throw error;
-      
-      setProducts(prev => prev.filter(p => p.id !== id));
+
+      setProducts((prev) => prev.filter((p) => p.id !== id));
       toast('Producto eliminado', { type: 'success' });
     } catch (error) {
-console.error('Error deleting product:', error);
-		toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
+      console.error('Error deleting product:', error);
+      toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
     } finally {
       setDeletingId(null);
     }
   };
 
-  const handleRefillSubmit = async () => {
-    if (!refillProduct || refillAmount <= 0) return;
-    setIsRefilling(true);
-    try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) throw new Error('No autenticado');
-      const { data: { session: authSession } } = await supabase.auth.getSession();
-
-      const res = await fetch('/api/produccion/add-stock', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authSession?.access_token}`
-        },
-        body: JSON.stringify({
-          producto_id: refillProduct.id,
-          cantidad: refillAmount
-        })
-      });
-      
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Error agregando stock');
-      
-      toast(`Stock actualizado. Hash: ${json.data.traceability_hash.substring(0, 8)}...`, { type: 'success' });
-      
-      // Update local state
-      setProducts(prev => prev.map(p => 
-        p.id === refillProduct.id ? { ...p, stock: (p.stock || 0) + refillAmount, lote_id: json.data.lote_id } : p
-      ));
-      
-      setRefillProduct(null);
-      setRefillAmount(0);
-    } catch (error: unknown) {
-      console.error('Error refilling stock:', error);
-      toast(error instanceof Error ? error.message : 'Error al reponer stock', { type: 'error' });
-    } finally {
-      setIsRefilling(false);
-    }
-  };
-
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = (product.nombre || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      (product.nombre || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.descripcion_regenerativa?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.formato?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFilter = filterVisible === 'all' 
-      ? true 
-      : filterVisible === 'visible' 
-        ? product.visible 
-        : !product.visible;
+
+    const matchesFilter =
+      filterVisible === 'all'
+        ? true
+        : filterVisible === 'visible'
+          ? product.visible
+          : !product.visible;
 
     return matchesSearch && matchesFilter;
   });
 
-  const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
-  const visibleCount = products.filter(p => p.visible).length;
-  const totalValue = products.reduce((sum, p) => sum + (p.precio || 0) * (p.stock || 0), 0);
+  const visibleCount = products.filter((p) => p.visible).length;
   const tiendaUrl = process.env.NEXT_PUBLIC_URL_TIENDA || 'http://localhost:3001';
 
   if (loading) {
@@ -180,31 +138,85 @@ console.error('Error deleting product:', error);
 
   return (
     <div>
-      {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-        <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
-          <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Total Productos</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{products.length}</div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: 'var(--space-md)',
+          marginBottom: 'var(--space-lg)',
+        }}
+      >
+        <div
+          style={{
+            padding: 'var(--space-lg)',
+            background: 'hsl(var(--foreground) / 0.02)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid hsl(var(--border) / 0.5)',
+          }}
+        >
+          <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>
+            Fichas de catálogo
+          </div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>
+            {products.length}
+          </div>
         </div>
-        <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
-          <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Visibles</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-success)' }}>{visibleCount}</div>
+        <div
+          style={{
+            padding: 'var(--space-lg)',
+            background: 'hsl(var(--foreground) / 0.02)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid hsl(var(--border) / 0.5)',
+          }}
+        >
+          <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>
+            Visibles en tienda
+          </div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-success)' }}>
+            {visibleCount}
+          </div>
         </div>
-        <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
-          <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Stock Total</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{totalStock}</div>
-        </div>
-        <div style={{ padding: 'var(--space-lg)', background: 'hsl(var(--foreground) / 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)' }}>
-          <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Valor Inventario</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>${totalValue.toLocaleString()}</div>
+        <div
+          style={{
+            padding: 'var(--space-lg)',
+            background: 'hsl(var(--primary) / 0.06)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid hsl(var(--primary) / 0.2)',
+          }}
+        >
+          <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>
+            Stock y reposición
+          </div>
+          <Link
+            href="/produccion/inventario"
+            className="text-sm font-medium text-primary hover:underline inline-flex items-center gap-1 mt-1"
+          >
+            Ir a Inventario →
+          </Link>
         </div>
       </div>
 
-      {/* Toolbar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)', gap: 'var(--space-md)' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 'var(--space-md)',
+          gap: 'var(--space-md)',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', flex: 1 }}>
           <div style={{ position: 'relative', flex: 1, maxWidth: 400 }}>
-            <Search style={{ position: 'absolute', left: 'var(--space-md)', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--muted-foreground))' }} size={18} />
+            <Search
+              style={{
+                position: 'absolute',
+                left: 'var(--space-md)',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'hsl(var(--muted-foreground))',
+              }}
+              size={18}
+            />
             <input
               type="text"
               placeholder="Buscar productos..."
@@ -231,14 +243,13 @@ console.error('Error deleting product:', error);
         </Button>
       </div>
 
-      <EnjTableShell caption="Desliza para ver todas las columnas">
+      <EnjTableShell caption="Catálogo de productos para la tienda">
         <table className="data-table">
           <thead>
             <tr>
               <th style={{ width: 60 }}>Img</th>
               <th>Producto</th>
               <th>Estado</th>
-              <th>Stock</th>
               <th>Precio</th>
               <th>Formato</th>
               <th>Creado</th>
@@ -248,7 +259,14 @@ console.error('Error deleting product:', error);
           <tbody>
             {filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: 'var(--space-2xl)', color: 'hsl(var(--muted-foreground))' }}>
+                <td
+                  colSpan={7}
+                  style={{
+                    textAlign: 'center',
+                    padding: 'var(--space-2xl)',
+                    color: 'hsl(var(--muted-foreground))',
+                  }}
+                >
                   <Package size={48} style={{ margin: '0 auto var(--space-md)', opacity: 0.3 }} />
                   <div>No hay productos que coincidan con tu búsqueda</div>
                 </td>
@@ -258,23 +276,56 @@ console.error('Error deleting product:', error);
                 <tr key={product.id}>
                   <td>
                     {product.fotos?.[0] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={product.fotos[0]}
                         alt={product.nombre || 'Producto'}
-                        style={{ width: 48, height: 48, borderRadius: 'var(--radius-sm)', objectFit: 'cover' }}
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 'var(--radius-sm)',
+                          objectFit: 'cover',
+                        }}
                       />
                     ) : (
-                      <div style={{ width: 48, height: 48, background: 'hsl(var(--foreground) / 0.05)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div
+                        style={{
+                          width: 48,
+                          height: 48,
+                          background: 'hsl(var(--foreground) / 0.05)',
+                          borderRadius: 'var(--radius-sm)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
                         <Package size={20} style={{ color: 'hsl(var(--muted-foreground))' }} />
                       </div>
                     )}
                   </td>
                   <td>
-                    <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))' }}>{product.nombre}</div>
+                    <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+                      {product.nombre}
+                    </div>
                     {product.slug && (
-                      <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          color: 'hsl(var(--muted-foreground))',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          marginTop: 2,
+                        }}
+                      >
                         <ExternalLink size={10} />
-                        <a href={`${tiendaUrl}/producto/${product.slug}`} target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} className="hover:underline">
+                        <a
+                          href={`${tiendaUrl}/producto/${product.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ color: 'inherit', textDecoration: 'none' }}
+                          className="hover:underline"
+                        >
                           /producto/{product.slug}
                         </a>
                       </div>
@@ -287,12 +338,6 @@ console.error('Error deleting product:', error);
                     >
                       {product.visible ? 'Visible' : 'Oculto'}
                     </span>
-                  </td>
-                  <td>
-                    <span style={{ fontWeight: 500 }}>{product.stock}</span>
-                    {product.stock === 0 && (
-                      <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-error)' }}>Agotado</span>
-                    )}
                   </td>
                   <td style={{ fontWeight: 600 }}>${(product.precio || 0).toLocaleString()}</td>
                   <td>
@@ -312,18 +357,9 @@ console.error('Error deleting product:', error);
                         {product.visible ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                       <button
-                        onClick={() => { setRefillProduct(product); setRefillAmount(10); }}
-                        className="btn btn-ghost btn-sm"
-                        title="Relleno Rápido de Stock"
-                        disabled={deletingId === product.id}
-                        style={{ color: 'var(--text-success)' }}
-                      >
-                        <PlusSquare size={16} />
-                      </button>
-                      <button
                         onClick={() => onEdit?.(product)}
                         className="btn btn-ghost btn-sm"
-                        title="Editar"
+                        title="Editar ficha"
                         disabled={deletingId === product.id}
                       >
                         <Edit size={16} />
@@ -334,7 +370,10 @@ console.error('Error deleting product:', error);
                         rel="noopener noreferrer"
                         className="btn btn-ghost btn-sm"
                         title="Ver en tienda"
-                        style={{ pointerEvents: product.slug ? 'auto' : 'none', opacity: product.slug ? 1 : 0.5 }}
+                        style={{
+                          pointerEvents: product.slug ? 'auto' : 'none',
+                          opacity: product.slug ? 1 : 0.5,
+                        }}
                       >
                         <ExternalLink size={16} />
                       </a>
@@ -343,7 +382,10 @@ console.error('Error deleting product:', error);
                         className="btn btn-ghost btn-sm"
                         title="Eliminar"
                         disabled={deletingId === product.id}
-                        style={{ color: 'var(--text-error)', opacity: deletingId === product.id ? 0.5 : 1 }}
+                        style={{
+                          color: 'var(--text-error)',
+                          opacity: deletingId === product.id ? 0.5 : 1,
+                        }}
                       >
                         {deletingId === product.id ? (
                           <span style={{ fontSize: '0.7rem' }}>...</span>
@@ -360,44 +402,16 @@ console.error('Error deleting product:', error);
         </table>
       </EnjTableShell>
 
-      {/* Footer Info */}
       {filteredProducts.length > 0 && (
-        <div style={{ marginTop: 'var(--space-md)', fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', textAlign: 'right' }}>
+        <div
+          style={{
+            marginTop: 'var(--space-md)',
+            fontSize: '0.75rem',
+            color: 'hsl(var(--muted-foreground))',
+            textAlign: 'right',
+          }}
+        >
           Mostrando {filteredProducts.length} de {products.length} productos
-        </div>
-      )}
-
-      {/* Refill Modal */}
-      {refillProduct && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: 'var(--card)', padding: 'var(--space-xl)', borderRadius: 'var(--radius-md)', width: '100%', maxWidth: 400, border: '1px solid var(--border)' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: 'var(--space-sm)' }}>
-              Relleno Rápido: {refillProduct.nombre}
-            </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 'var(--space-lg)' }}>
-              Ingresa la cantidad de unidades nuevas. Esto generará un nuevo Lote y Hash de Trazabilidad digital automáticamente.
-            </p>
-            
-            <div style={{ marginBottom: 'var(--space-lg)' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: 'var(--space-xs)' }}>Cantidad a sumar</label>
-              <input 
-                type="number" 
-                className="input-field w-full" 
-                value={refillAmount} 
-                onChange={(e) => setRefillAmount(parseInt(e.target.value) || 0)}
-                min="1"
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: 'var(--space-sm)', justifyContent: 'flex-end' }}>
-              <Button variant="outline" onClick={() => setRefillProduct(null)} disabled={isRefilling}>
-                Cancelar
-              </Button>
-              <Button onClick={handleRefillSubmit} disabled={isRefilling || refillAmount <= 0}>
-                {isRefilling ? 'Generando...' : 'Confirmar Trazabilidad'}
-              </Button>
-            </div>
-          </div>
         </div>
       )}
     </div>

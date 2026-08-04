@@ -129,7 +129,9 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
         {sidebarGroups.map(group => (
           <SidebarSection
             key={group.key}
+            sectionKey={group.key}
             label={group.label}
+            collapsible={group.collapsible ?? true}
             items={group.items.map((item) => toNavItemDataFromItem(item, badgeOverrides))}
             activeKey={activeItem?.key}
             linkComponent={PrefetchLink}
@@ -138,7 +140,9 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
         ))}
 
         <SidebarSection
+          sectionKey="cuenta"
           label="CUENTA"
+          collapsible={false}
           items={accountItems.map((item) => toNavItemDataFromItem(item, badgeOverrides))}
           activeKey={activeItem?.key}
           linkComponent={PrefetchLink}

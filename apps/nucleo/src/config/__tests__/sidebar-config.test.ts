@@ -31,20 +31,18 @@ describe('routeUsesViewShell', () => {
     expect(routeUsesViewShell('/comisiones')).toBe(false);
     expect(routeUsesViewShell('/reps')).toBe(false);
     expect(routeUsesViewShell('/caja')).toBe(false);
-    // /leaderboard no está en VIEW_SHELL_PATHS (usa header global)
     expect(routeUsesViewShell('/leaderboard')).toBe(false);
-    // /creadores usa header global: el panel no renderiza ViewShell propio
     expect(routeUsesViewShell('/creadores')).toBe(false);
   });
 });
 
-describe('SIDEBAR_GROUPS — IA fragmentada por proceso', () => {
+describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
   const allItems = getAllItems();
 
   it('expone las categorías del flujo en orden', () => {
     expect(SIDEBAR_GROUPS.map((g) => g.label)).toEqual([
       'VISIÓN',
-      'RECOLECCIÓN',
+      'CAMPO',
       'BOSQUE',
       'PRODUCCIÓN',
       'MERCADO',
@@ -52,6 +50,17 @@ describe('SIDEBAR_GROUPS — IA fragmentada por proceso', () => {
       'FINANZAS',
       'TERRITORIO',
     ]);
+  });
+
+  it('categorías multi-ítem son colapsables; visión y territorio no', () => {
+    const byKey = Object.fromEntries(SIDEBAR_GROUPS.map((g) => [g.key, g.collapsible]));
+    expect(byKey['campo']).toBe(true);
+    expect(byKey['bosque']).toBe(true);
+    expect(byKey['produccion']).toBe(true);
+    expect(byKey['mercado']).toBe(true);
+    expect(byKey['finanzas']).toBe(true);
+    expect(byKey['vision']).toBe(false);
+    expect(byKey['territorio']).toBe(false);
   });
 
   it('cada ítem tiene key única', () => {
@@ -75,10 +84,13 @@ describe('SIDEBAR_GROUPS — IA fragmentada por proceso', () => {
 
   it('labels canónicos alineados con los títulos internos de cada herramienta', () => {
     const byKey = Object.fromEntries(allItems.map((i) => [i.key, i.label]));
-    expect(byKey['produccion']).toBe('Producción');
-    expect(byKey['bosque']).toBe('Bosque');
+    expect(byKey['recoleccion']).toBe('Recolección');
+    expect(byKey['inventario']).toBe('Inventario');
+    expect(byKey['lotes']).toBe('Lotes');
+    expect(byKey['bosque']).toBe('Plantaciones');
     expect(byKey['ciclo-bosque']).toBe('Calendario');
     expect(byKey['colmenas']).toBe('Colmenas');
+    expect(byKey['productos']).toBe('Productos');
     expect(byKey['territorio']).toBe('Mapa del Legado');
   });
 
@@ -90,6 +102,9 @@ describe('SIDEBAR_GROUPS — IA fragmentada por proceso', () => {
     expect(groupOf('alambique')).toBe('bosque');
     expect(groupOf('territorio')).toBe('territorio');
     expect(groupOf('creadores-admin')).toBe('red');
+    expect(groupOf('inventario')).toBe('produccion');
+    expect(groupOf('recoleccion')).toBe('produccion');
+    expect(groupOf('productos')).toBe('mercado');
   });
 
   it('rol territorial ve Inicio + su registro + el Oráculo Fenológico', () => {
@@ -126,19 +141,52 @@ describe('SIDEBAR_GROUPS — IA fragmentada por proceso', () => {
     expect(getBottomNavKeysForRole('cliente')).toEqual(['inicio']);
   });
 
-  it('RECOLECCIÓN expone Colmenas, Apiarios, Cuaderno Campo y Trazabilidad como sub-rutas', () => {
-    const recoleccion = SIDEBAR_GROUPS.find((g) => g.key === 'recoleccion');
-    const byKey = Object.fromEntries((recoleccion?.items ?? []).map((i) => [i.key, i.href]));
+  it('CAMPO expone Colmenas, Apiarios y Cuaderno (sin cajón “Trazabilidad”)', () => {
+    const campo = SIDEBAR_GROUPS.find((g) => g.key === 'campo');
+    const byKey = Object.fromEntries((campo?.items ?? []).map((i) => [i.key, i.href]));
     expect(byKey['colmenas']).toBe('/colmenas');
     expect(byKey['apiarios']).toBe('/colmenas/apiarios');
     expect(byKey['cuaderno-campo']).toBe('/colmenas/cuaderno');
-    expect(byKey['trazabilidad']).toBe('/colmenas/trazabilidad');
+    expect(byKey['trazabilidad']).toBeUndefined();
+    const allKeys = getAllItems().map((i) => i.key);
+    expect(allKeys).not.toContain('trazabilidad');
+    expect(allKeys).toContain('inventario');
+    expect(allKeys).toContain('recoleccion');
+    expect(allKeys).toContain('lotes');
+    expect(allKeys).toContain('fenologia');
+  });
+
+  it('PRODUCCIÓN separa Recolección, Lotes e Inventario', () => {
+    const prod = SIDEBAR_GROUPS.find((g) => g.key === 'produccion');
+    expect(prod?.items.map((i) => i.key)).toEqual([
+      'recoleccion',
+      'lotes',
+      'inventario',
+      'costeo',
+    ]);
+    expect(prod?.items.find((i) => i.key === 'recoleccion')?.href).toBe('/produccion/recoleccion');
+    expect(prod?.items.find((i) => i.key === 'inventario')?.href).toBe('/produccion/inventario');
+    expect(prod?.items.find((i) => i.key === 'lotes')?.href).toBe('/produccion/lotes');
   });
 
   it('findActiveItem resuelve sub-rutas al ítem propio, no al padre', () => {
     expect(findActiveItem('/colmenas/apiarios')?.key).toBe('apiarios');
     expect(findActiveItem('/colmenas/cuaderno')?.key).toBe('cuaderno-campo');
-    expect(findActiveItem('/colmenas/trazabilidad')?.key).toBe('trazabilidad');
+    expect(findActiveItem('/produccion/recoleccion')?.key).toBe('recoleccion');
+    expect(findActiveItem('/produccion/inventario')?.key).toBe('inventario');
+    expect(findActiveItem('/produccion/lotes')?.key).toBe('lotes');
+    expect(findActiveItem('/colmenas/trazabilidad')?.key).toBe('lotes');
+    expect(findActiveItem('/produccion')?.key).toBe('inventario');
     expect(findActiveItem('/colmenas')?.key).toBe('colmenas');
+  });
+
+  it('BOSQUE ordena fenología y plantaciones (mundo vegetal unificado)', () => {
+    const bosque = SIDEBAR_GROUPS.find((g) => g.key === 'bosque');
+    expect(bosque?.items.map((i) => i.key)).toEqual([
+      'fenologia',
+      'ciclo-bosque',
+      'bosque',
+      'alambique',
+    ]);
   });
 });

@@ -9,14 +9,13 @@ import {
 } from '@enjambre/ui';
 import { formatCLP } from '@enjambre/ui';
 import { 
-  Activity, Package, Calendar, Layers, Droplets, ClipboardCheck, ArrowLeft, PackagePlus
+  Activity, Package, Calendar, Layers, ClipboardCheck, ArrowLeft, PackagePlus, QrCode
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
-import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { LoteComercialForm } from '@/components/apicultor/LoteComercialForm';
-import { RecoleccionPanel } from '@/components/produccion/RecoleccionPanel';
+import { LotePasaporteQR } from '@/components/apicultor/LotePasaporteQR';
 
 interface LoteProduccionRow {
   id: string;
@@ -64,9 +63,11 @@ interface ProduccionDashboardData {
 }
 
 export function ProduccionView() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'lotes' | 'cosechas'>('dashboard');
+  // Lotes (bodega) + alertas de stock. Recolección e Inventario son herramientas propias.
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'lotes'>('lotes');
   const [editingLote, setEditingLote] = useState<LoteProduccionRow | null>(null);
   const [envasandoLote, setEnvasandoLote] = useState<LoteProduccionRow | null>(null);
+  const [pasaporteLoteId, setPasaporteLoteId] = useState<string | null>(null);
   const [envasarProductoId, setEnvasarProductoId] = useState('');
   const [envasarCantidad, setEnvasarCantidad] = useState('');
   const [envasando, setEnvasando] = useState(false);
@@ -130,9 +131,9 @@ export function ProduccionView() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <ViewShell
         variant="compact"
-        eyebrow="Inventario"
-        title="Producción"
-        subtitle="Control de lotes de miel, envasado y proyecciones de quiebre de stock basado en demanda real."
+        eyebrow="Producción"
+        title="Lotes"
+        subtitle="Miel en bodega: lotes, análisis de lab, envasado a frasco y pasaporte QR. El stock de tienda se gestiona en Inventario; las recolecciones en Recolección."
         icon={<Package size={20} />}
       />
 
@@ -140,12 +141,11 @@ export function ProduccionView() {
         variant="pill"
         layoutId="produccion-tabs"
         tabs={[
-          { id: 'dashboard', label: 'Alertas de Stock', icon: <Activity size={16} /> },
-          { id: 'lotes', label: 'Lotes Activos', icon: <Layers size={16} /> },
-          { id: 'cosechas', label: 'Recolección', icon: <Droplets size={16} /> },
+          { id: 'lotes', label: 'Lotes activos', icon: <Layers size={16} /> },
+          { id: 'dashboard', label: 'Alertas de stock', icon: <Activity size={16} /> },
         ]}
         activeId={activeTab}
-        onChange={(id) => setActiveTab(id as 'dashboard' | 'lotes' | 'cosechas')}
+        onChange={(id) => setActiveTab(id as 'dashboard' | 'lotes')}
       />
 
       {isLoading ? (
@@ -325,8 +325,8 @@ export function ProduccionView() {
                   <CardHeader>
                     <CardTitle>Lotes de Producción</CardTitle>
                     <CardDescription>
-                      Registro de lotes de extracción y su rendimiento. Usa “Completar” para cerrar el lote
-                      con análisis de laboratorio y publicar su pasaporte de trazabilidad.
+                      Extracción, envasado y pasaporte QR del lote. Completar cierra con análisis de lab;
+                      Firmar publica la cadena de custodia verificable del frasco.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -338,9 +338,9 @@ export function ProduccionView() {
                           <div className="col-span-3">Código Lote</div>
                           <div className="col-span-2">Producto/Destino</div>
                           <div className="col-span-2">Fecha</div>
-                          <div className="col-span-2 text-right">Kg Iniciales</div>
+                          <div className="col-span-1 text-right">Kg</div>
                           <div className="col-span-1">Estado</div>
-                          <div className="col-span-2"></div>
+                          <div className="col-span-3"></div>
                         </div>
                         <div className="divide-y divide-border">
                           {lotes.map((l) => {
@@ -348,59 +348,80 @@ export function ProduccionView() {
                             const productoKg = l.productos ? (Number(l.productos.peso_neto_g || 1000) / 1000) : null;
                             const rendimiento = productoKg ? Math.floor(kg / productoKg) : null;
                             const nombreLote = l.nombre_lote?.trim() || l.codigo || l.id.substring(0, 8).toUpperCase();
+                            const open = pasaporteLoteId === l.id;
 
                             return (
-                              <div key={l.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors">
-                                <div className="col-span-1 md:col-span-3 flex flex-col">
-                                  <span className="font-mono font-medium text-primary text-sm">
-                                    {nombreLote}
-                                  </span>
-                                  {l.variedad_floral && (
-                                    <span className="text-xs text-muted-foreground">{l.variedad_floral}</span>
-                                  )}
-                                </div>
-                                <div className="col-span-1 md:col-span-2 flex flex-col text-sm">
-                                  <span>{l.productos?.nombre || 'General / Sin Asignar'}</span>
-                                  {rendimiento && (
-                                    <span className="text-xs text-muted-foreground">~{rendimiento} frascos</span>
-                                  )}
-                                </div>
-                                <div className="col-span-1 md:col-span-2 flex justify-between md:justify-start items-center text-sm text-muted-foreground">
-                                  <span className="text-xs text-muted-foreground md:hidden">Fecha:</span>
-                                  <div className="flex items-center gap-1.5">
-                                    <Calendar size={14} className="hidden md:block" />
-                                    <span>{new Date(l.created_at).toLocaleDateString('es-CL')}</span>
+                              <div key={l.id} className="flex flex-col">
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors">
+                                  <div className="col-span-1 md:col-span-3 flex flex-col">
+                                    <span className="font-mono font-medium text-primary text-sm">
+                                      {nombreLote}
+                                    </span>
+                                    {l.variedad_floral && (
+                                      <span className="text-xs text-muted-foreground">{l.variedad_floral}</span>
+                                    )}
+                                  </div>
+                                  <div className="col-span-1 md:col-span-2 flex flex-col text-sm">
+                                    <span>{l.productos?.nombre || 'General / Sin Asignar'}</span>
+                                    {rendimiento && (
+                                      <span className="text-xs text-muted-foreground">~{rendimiento} frascos</span>
+                                    )}
+                                  </div>
+                                  <div className="col-span-1 md:col-span-2 flex justify-between md:justify-start items-center text-sm text-muted-foreground">
+                                    <span className="text-xs text-muted-foreground md:hidden">Fecha:</span>
+                                    <div className="flex items-center gap-1.5">
+                                      <Calendar size={14} className="hidden md:block" />
+                                      <span>{new Date(l.created_at).toLocaleDateString('es-CL')}</span>
+                                    </div>
+                                  </div>
+                                  <div className="col-span-1 md:col-span-1 flex justify-between md:justify-end items-center">
+                                    <span className="text-xs text-muted-foreground md:hidden">Kg:</span>
+                                    <span className="font-display">{kg.toFixed(1)} kg</span>
+                                  </div>
+                                  <div className="col-span-1 md:col-span-1 flex items-center gap-2">
+                                    <Badge variant={l.publico ? 'success' : l.estado && l.estado !== 'activo' ? 'warning' : 'default'}>
+                                      {l.publico ? 'Publicado' : l.estado || 'Activo'}
+                                    </Badge>
+                                  </div>
+                                  <div className="col-span-2 md:col-span-3 flex flex-wrap justify-end gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setPasaporteLoteId(open ? null : l.id)}
+                                      className="gap-1.5 text-xs"
+                                    >
+                                      <QrCode size={14} />
+                                      Pasaporte
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setEditingLote(l)}
+                                      className="gap-1.5 text-xs"
+                                    >
+                                      <ClipboardCheck size={14} />
+                                      Completar
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setEnvasandoLote(l)}
+                                      className="gap-1.5 text-xs"
+                                    >
+                                      <PackagePlus size={14} />
+                                      Envasar
+                                    </Button>
                                   </div>
                                 </div>
-                                <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
-                                  <span className="text-xs text-muted-foreground md:hidden">Kg Iniciales:</span>
-                                  <span className="font-display">{kg.toFixed(1)} kg</span>
-                                </div>
-                                <div className="col-span-1 md:col-span-1 flex items-center gap-2">
-                                  <Badge variant={l.publico ? 'success' : l.estado && l.estado !== 'activo' ? 'warning' : 'default'}>
-                                    {l.publico ? 'Publicado' : l.estado || 'Activo'}
-                                  </Badge>
-                                </div>
-                                <div className="col-span-2 md:col-span-2 flex justify-end gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setEditingLote(l)}
-                                    className="gap-1.5 text-xs"
-                                  >
-                                    <ClipboardCheck size={14} />
-                                    Completar
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setEnvasandoLote(l)}
-                                    className="gap-1.5 text-xs"
-                                  >
-                                    <PackagePlus size={14} />
-                                    Envasar
-                                  </Button>
-                                </div>
+                                {open && (
+                                  <div className="px-4 md:px-6 pb-4 border-t border-border/40 bg-primary/5">
+                                    <div className="pt-3 text-xs font-medium text-foreground mb-2 flex items-center gap-1.5">
+                                      <QrCode size={12} className="text-primary" />
+                                      Pasaporte verificable del lote
+                                    </div>
+                                    <LotePasaporteQR loteId={l.id} />
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
@@ -413,18 +434,6 @@ export function ProduccionView() {
             </motion.div>
           )}
 
-          {/* PESTAÑA: RECOLECCIÓN */}
-          {activeTab === 'cosechas' && (
-            <motion.div
-              key="cosechas"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <RecoleccionPanel />
-            </motion.div>
-          )}
         </AnimatePresence>
         </div>
       )}

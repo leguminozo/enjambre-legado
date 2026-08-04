@@ -239,14 +239,7 @@ export const arbolesPlantados: ArbolPlantado[] = [
     { id: 'a6', especie: 'Ulmo', cantidad: 200, fecha: '2025–2026', sector: 'Expansión Ancud', coordenadas: { lat: -41.872, lng: -73.832 }, co2_ton: 10, lotesMiel: ['2026-MEL-*'], status: 'joven' },
 ];
 
-// ─── REFLEXIONES DEL BOSQUE (historia existencial) ────────────────────────────
-export const reflexiones: { fecha: string; colmena: string; foto?: string; texto: string }[] = [
-    { fecha: '2026-02-26', colmena: 'Colmena Canelo Ancestral', texto: '"Las abejas de Canelo trabajan con una calma que solo da la abundancia. Cada marco lleno es un año más de legado. Cada árbol plantado es una promesa que el tiempo honra sin que nadie se lo pida."' },
-    { fecha: '2026-02-20', colmena: 'Colmena Avellano Sur', texto: '"El bosque advierte a quien sabe escuchar. La varroa no es el enemigo: es el mensajero que me pide mirar más hondo. Cui­dar es también corregir, con paciencia y con timol."' },
-    { fecha: '2026-02-10', colmena: 'Colmena Ulmo Mayor', texto: '"Abrir la colmena es siempre un acto de humildad. No soy yo quien decide el ritmo del panal. Soy la guardiana que llega, observa y se va sin interrumpir el legado."' },
-];
-
-// ─── TIMELINE + MAPA + ROLES (sin cambios) ────────────────────────────────────
+// ─── TIMELINE + MAPA + ROLES ──────────────────────────────────────────────────
 export const timelineEvents: TimelineEvent[] = [
     { year: 2003, label: 'Inicio en Pureo', description: 'Primeras 3 colmenas en Pureo, Chiloé' },
     { year: 2008, label: 'Reforestación', description: 'Primeros 200 ulmos plantados' },

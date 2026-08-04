@@ -18,7 +18,8 @@ export type ToolAction = {
 /** Contextos de herramientas admin: qué hacer después / en relación al resto del enjambre */
 export const TOOL_ACTION_CONTEXTS = {
   costeo: [
-    { href: '/produccion', label: 'Lotes / stock' },
+    { href: '/produccion/inventario', label: 'Inventario' },
+    { href: '/produccion/lotes', label: 'Lotes' },
     { href: '/catalogo', label: 'Productos' },
     { href: '/contable', label: 'Contable' },
     { href: '/reportes', label: 'Reportes' },

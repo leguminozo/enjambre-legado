@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/lib/supabase';
-import { Button, toast } from '@enjambre/ui';
+import { Button, toast, slugify } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
 import { productFormSchema, type ProductFormData, PRODUCT_FORMATS, PRODUCT_CATEGORIES } from '@/lib/product-types';
 import { processImage } from '@/lib/process-image';
@@ -72,15 +72,6 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
   const fotos = watch('fotos') || [];
   const visible = watch('visible');
   const nombre = watch('nombre');
-
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -173,7 +164,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
           return;
         }
 
-        let finalSlug = data.slug ? generateSlug(data.slug) : generateSlug(data.nombre);
+        let finalSlug = data.slug ? slugify(data.slug) : slugify(data.nombre);
         
         // Ensure slug uniqueness
         const { data: existingProd } = await supabase
@@ -282,7 +273,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
                 className="input-field text-xs px-2 py-1 w-[200px]"
                 onBlur={(e) => {
                   if (!e.target.value && nombre) {
-                    setValue('slug', generateSlug(nombre));
+                    setValue('slug', slugify(nombre));
                   }
                 }}
               />
@@ -419,7 +410,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
                     <span className="text-xs text-destructive">{errors.video_url.message}</span>
                   )}
                   <span className="text-[0.7rem] text-muted-foreground">
-                    Video de Cristina en la colmena o proceso de cosecha
+                    Video de Cristina en la colmena o proceso de recolección
                   </span>
                 </div>
 
@@ -554,18 +545,15 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
               {errors.precio && <span className="text-xs text-destructive">{errors.precio.message}</span>}
             </div>
 
-            <div className="mb-4">
-              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
-                Stock Disponible *
-              </label>
-              <input
-                {...register('stock')}
-                type="number"
-                placeholder="0"
-                className="input-field text-[0.9rem] p-4"
-              />
-              {errors.stock && <span className="text-xs text-destructive">{errors.stock.message}</span>}
-            </div>
+            {/* Stock vive en Producción → Inventario; aquí solo ficha de tienda */}
+            <input type="hidden" {...register('stock')} />
+            <p className="mb-4 text-xs text-muted-foreground rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
+              El stock no se edita en Productos. Carga y reposición de unidades:{" "}
+              <a href="/produccion/inventario" className="text-primary underline-offset-2 hover:underline">
+                Producción → Inventario
+              </a>
+              .
+            </p>
 
             <div className="mb-4">
               <label className="text-[0.8rem] font-medium text-foreground block mb-1.5 flex items-center justify-between">

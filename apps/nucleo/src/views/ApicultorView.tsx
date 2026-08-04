@@ -15,33 +15,31 @@ const ColmenaFicha = dynamic(
   () => import('../components/apicultor/ColmenaFicha').then((mod) => mod.ColmenaFicha),
   { ssr: false }
 );
-import { TrazabilidadPanel } from '../components/apicultor/TrazabilidadPanel';
 import { ApiarioManager } from '../components/apicultor/ApiarioManager';
 import { HeaderEcosistema } from '../components/apicultor/HeaderEcosistema';
 import { GemeloApiario } from '../components/apicultor/GemeloApiario';
 import { CuadernoColeccion } from '../components/apicultor/cuaderno/CuadernoColeccion';
 
-type ViewTab = 'colmenas' | 'apiarios' | 'sanidad' | 'trazabilidad';
+type ViewTab = 'colmenas' | 'apiarios' | 'sanidad';
 
 /** Título y subtítulo por herramienta: se nombran igual que en el sidebar */
 const VIEW_TITLES: Record<ViewTab, string> = {
   colmenas: 'Colmenas',
   apiarios: 'Apiarios',
   sanidad: 'Cuaderno de Campo',
-  trazabilidad: 'Trazabilidad',
 }
 
 const VIEW_SUBTITLES: Record<ViewTab, string> = {
   colmenas: 'Monitorea tus colmenas y su desarrollo',
   apiarios: 'Organiza tus apiarios en el territorio',
-  sanidad: 'Cuaderno de campo: sanidad, varroa y peso',
-  trazabilidad: 'Lotes, QR y pasaporte público de tu miel',
+  sanidad: 'Visitas, sanidad, varroa y red semántica del ciclo',
 }
 
 /**
  * Vista del apiario. Cada herramienta se abre como ruta propia desde la sidebar
- * (RECOLECCIÓN → /colmenas, /colmenas/apiarios, /colmenas/cuaderno, /colmenas/trazabilidad)
+ * (CAMPO → /colmenas, /colmenas/apiarios, /colmenas/cuaderno)
  * vía `initialView`; el sidebar es la navegación del módulo (sin tab bar duplicada).
+ * El pasaporte QR de lotes vive en Producción (/produccion).
  */
 export function ApicultorView({ initialView = 'colmenas' }: { initialView?: ViewTab } = {}) {
     const apiFetch = useApiFetch();
@@ -171,6 +169,7 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
             <ViewShell
                 title={VIEW_TITLES[initialView]}
                 subtitle={VIEW_SUBTITLES[initialView]}
+                variant="clean"
             />
 
             <div className="stats-grid">
@@ -206,20 +205,14 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
                         </div>
                     )}
 
-                    {initialView === 'trazabilidad' && (
-                        <div className="animate-in delay-2">
-                            <TrazabilidadPanel />
-                        </div>
-                    )}
-
                     {initialView === 'sanidad' && (
                         <div className="animate-in delay-2">
-                            <CuadernoColeccion colmenas={localColmenas} />
+                            <CuadernoColeccion colmenas={localColmenas} hideHeader />
                         </div>
                     )}
                 </div>
 
-                {/* Right Column (Widgets registrados: oráculo, vuelo, bioacústica, voz, reflexión) */}
+                {/* Right Column (Widgets: oráculo, vuelo, bioacústica, voz) */}
                 <WidgetRail contexto="apicultor" />
             </div>
         </div>

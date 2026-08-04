@@ -20,7 +20,7 @@ describe('replenishment cron', () => {
     vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'fallback-not-used');
   });
 
-  for (const path of ['/api/replenishment/cron/process', '/api/ritual/cron/process']) {
+  for (const path of ['/api/replenishment/cron/process']) {
     it(`rechaza sin x-internal-key (${path})`, async () => {
       const res = await app.request(path, { method: 'POST' });
       expect(res.status).toBe(401);

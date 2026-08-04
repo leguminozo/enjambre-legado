@@ -3,12 +3,14 @@ import { WidgetOraculoFenologico } from './oraculo-fenologico/WidgetOraculoFenol
 import { VentanasDeVuelo } from './ventanas-de-vuelo/VentanasDeVuelo';
 import { EspectroVivo } from './espectro-vivo/EspectroVivo';
 import { WidgetVozColmena } from './voz-colmena/WidgetVozColmena';
-import { WidgetReflexion } from './reflexion/WidgetReflexion';
 
 /**
  * Registro central de widgets. Para ampliar la lista: agregar un componente
  * autocontenido (se monta y consume sus propios datos) y declararlo aquí con
  * los contextos donde debe aparecer.
+ *
+ * “Última reflexión” se retiró: era un diario paralelo al Cuaderno de Campo.
+ * Las notas de visita viven en hojas del cuaderno.
  */
 export const WIDGETS: WidgetDef[] = [
   {
@@ -37,13 +39,6 @@ export const WIDGETS: WidgetDef[] = [
     titulo: 'Voz de la Colmena',
     descripcion: 'Últimas notificaciones in_app del usuario.',
     Componente: WidgetVozColmena,
-    contextos: ['apicultor'],
-  },
-  {
-    key: 'reflexion',
-    titulo: 'Última Reflexión',
-    descripcion: 'Reflexión generada tras la última visita.',
-    Componente: WidgetReflexion,
     contextos: ['apicultor'],
   },
 ];

@@ -30,6 +30,7 @@ import { cn } from '@/lib/cn';
 interface CuadernoColeccionProps {
   /** Presente cuando se monta dentro del tab de ApicultorView. */
   colmenas?: ColmenaWithRelations[];
+  hideHeader?: boolean;
 }
 
 interface HojasResponse {
@@ -39,7 +40,7 @@ interface HojasResponse {
 
 /** Colección del cuaderno de campo: cada hoja es un "estudio" de la red
  *  semántica (workflow RSN de Trama adaptado). */
-export function CuadernoColeccion({ colmenas }: CuadernoColeccionProps) {
+export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionProps) {
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -222,13 +223,15 @@ export function CuadernoColeccion({ colmenas }: CuadernoColeccionProps) {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* Header de herramienta (patrón Trama: título serif + descripción funcional) */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="font-display italic text-2xl sm:text-3xl font-normal tracking-tight text-foreground">Cuaderno de Campo</h1>
-          <p className="text-sm text-muted-foreground max-w-2xl">
-            La red viva de tus colmenas: cada hoja registra una visita y se conecta con su historia sanitaria, su linaje y lo que aún no se ha registrado.
-          </p>
-        </div>
+      <div className={cn("flex flex-col sm:flex-row sm:items-end justify-between gap-4", hideHeader && "justify-end")}>
+        {!hideHeader && (
+          <div className="space-y-1">
+            <h1 className="font-display italic text-2xl sm:text-3xl font-normal tracking-tight text-foreground">Cuaderno de Campo</h1>
+            <p className="text-sm text-muted-foreground max-w-2xl">
+              La red viva de tus colmenas: cada hoja registra una visita y se conecta con su historia sanitaria, su linaje y lo que aún no se ha registrado.
+            </p>
+          </div>
+        )}
         <div className="flex items-center gap-2 shrink-0">
           <div className="flex items-center rounded-xl border border-border/60 overflow-hidden">
             {(['hojas', 'red'] as const).map((v) => (

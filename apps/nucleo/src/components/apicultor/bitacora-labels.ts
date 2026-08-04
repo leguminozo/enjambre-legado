@@ -5,7 +5,7 @@ export const FASE_LABEL: Record<FaseBitacora, string> = {
   nucleo: 'Núcleo — estado basal',
   traspaso: 'Traspaso a cámara de cría',
   alza: 'Progresión de alzas',
-  cosecha: 'Cosecha',
+  cosecha: 'Recolección',
   invernada: 'Entrada a invernada',
   temporada: 'Nueva temporada',
 };

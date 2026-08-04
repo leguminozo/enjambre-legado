@@ -133,7 +133,7 @@ export function PlantaForm({ open, onOpenChange, initial }: PlantaFormProps) {
             <Input label="Fecha de recolección" type="date" {...register('fecha_recoleccion')} error={errors.fecha_recoleccion?.message} />
           </div>
 
-          <Textarea label="Observaciones" placeholder="Estado de la planta, incidencias de cosecha…" rows={3} {...register('observaciones')} error={errors.observaciones?.message} />
+          <Textarea label="Observaciones" placeholder="Estado de la planta, incidencias de recolección…" rows={3} {...register('observaciones')} error={errors.observaciones?.message} />
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>

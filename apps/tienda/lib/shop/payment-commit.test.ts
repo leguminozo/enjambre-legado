@@ -29,7 +29,7 @@ describe('payment-commit', () => {
   });
 
   it('commitPayment envía Authorization cuando accessToken está presente (reposicion ownership)', async () => {
-    const fetchMock = vi.fn(async () =>
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
       new Response(JSON.stringify({ ok: true, authorized: true, buyOrder: 'SUB-1' }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },

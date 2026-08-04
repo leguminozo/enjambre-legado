@@ -5,6 +5,21 @@ import { ChevronDownIcon, CheckIcon, SearchIcon } from "../icons";
 import { cn } from "../lib/utils";
 import { useState, useMemo } from "react";
 
+/**
+ * Radix Select forbids empty-string Item values ("A <Select.Item /> must have a
+ * value prop that is not an empty string"). Callers often use "" for "all/none".
+ * We map "" ↔ this sentinel so filters keep working without crashing.
+ */
+const EMPTY_VALUE_SENTINEL = "__enj_empty__";
+
+function toInternal(value: string): string {
+  return value === "" ? EMPTY_VALUE_SENTINEL : value;
+}
+
+function toExternal(value: string): string {
+  return value === EMPTY_VALUE_SENTINEL ? "" : value;
+}
+
 interface SelectProps {
   value: string;
   onValueChange: (value: string) => void;
@@ -26,18 +41,34 @@ export function Select({
 }: SelectProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
+  const internalOptions = useMemo(
+    () =>
+      options.map((o) => ({
+        value: toInternal(o.value),
+        label: o.label,
+      })),
+    [options],
+  );
+
   const filteredOptions = useMemo(() => {
-    if (!searchable || !searchQuery) return options;
+    if (!searchable || !searchQuery) return internalOptions;
     const q = searchQuery.toLowerCase();
-    return options.filter(
+    return internalOptions.filter(
       (o) => o.label.toLowerCase().includes(q) || o.value.toLowerCase().includes(q),
     );
-  }, [options, searchQuery, searchable]);
+  }, [internalOptions, searchQuery, searchable]);
 
-  const selectedLabel = options.find((o) => o.value === value)?.label ?? placeholder;
+  const internalValue = toInternal(value);
+  const selectedLabel =
+    options.find((o) => o.value === value)?.label ?? placeholder;
+  const hasSelection = value !== "" || options.some((o) => o.value === "");
 
   return (
-    <SelectPrimitive.Root value={value} onValueChange={onValueChange} disabled={disabled}>
+    <SelectPrimitive.Root
+      value={hasSelection ? internalValue : undefined}
+      onValueChange={(v) => onValueChange(toExternal(v))}
+      disabled={disabled}
+    >
       <SelectPrimitive.Trigger
         className={cn(
           "flex h-11 min-h-[44px] w-full items-center justify-between rounded-lg border border-input bg-background px-3 py-2 text-sm",
@@ -49,7 +80,11 @@ export function Select({
       >
         <SelectPrimitive.Value asChild>
           <span className="text-left truncate">
-            {value ? selectedLabel : <span className="text-muted-foreground">{placeholder}</span>}
+            {hasSelection ? (
+              selectedLabel
+            ) : (
+              <span className="text-muted-foreground">{placeholder}</span>
+            )}
           </span>
         </SelectPrimitive.Value>
         <SelectPrimitive.Icon asChild>
@@ -124,9 +159,11 @@ export function SelectItem({
   disabled = false,
   className,
 }: SelectItemProps) {
+  // Defensive: never pass "" to Radix even if used outside Select wrapper
+  const safeValue = value === "" ? EMPTY_VALUE_SENTINEL : value;
   return (
     <SelectPrimitive.Item
-      value={value}
+      value={safeValue}
       disabled={disabled}
       className={cn(
         "relative flex w-full min-h-11 cursor-default select-none items-center rounded-md py-2.5 pl-8 pr-2 text-sm outline-none",

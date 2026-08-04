@@ -24,7 +24,7 @@ describe('Registro de widgets', () => {
   it('filtra widgets por contexto', () => {
     const apicultor = widgetsPara('apicultor');
     expect(apicultor.map((w) => w.key)).toEqual(
-      expect.arrayContaining(['oraculo-fenologico', 'ventanas-de-vuelo', 'espectro-vivo', 'voz-colmena', 'reflexion']),
+      expect.arrayContaining(['oraculo-fenologico', 'ventanas-de-vuelo', 'espectro-vivo', 'voz-colmena']),
     );
     expect(widgetsPara('inicio-territorial').map((w) => w.key)).toContain('oraculo-fenologico');
     expect(widgetsPara('inicio-admin')).toHaveLength(0);

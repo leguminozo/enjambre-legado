@@ -35,9 +35,9 @@ export function CatalogoView() {
   return (
     <div className="space-y-6">
       <ViewShell
-        eyebrow="El Enjambre"
+        eyebrow="Mercado"
         title="Productos"
-        subtitle="Administrá el catálogo de tu tienda con trazabilidad regenerativa"
+        subtitle="Fichas de tienda: nombre, foto, descripción y precio. El stock se carga en Producción → Inventario."
         icon={<Package size={20} />}
         variant="compact"
         actions={

@@ -1,13 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@enjambre/auth/server-index';
 import { pollFacturaCompraSii } from '@/api/lib/fiscal/poll-factura-compra';
 import { pollFacturaEmitidaSii } from '@/api/lib/fiscal/poll-factura-emitida';
 import { periodoFromFecha, syncRcvPeriod } from '@/api/lib/fiscal/rcv-sync';
 
-function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Missing Supabase credentials for fiscal worker');
-  return createClient(url, key, { auth: { persistSession: false } });
+function adminClient() {
+  return createAdminClient({ persistSession: false });
 }
 
 export type FiscalPollWorkerResult = {
@@ -21,7 +18,7 @@ export type FiscalPollWorkerResult = {
 };
 
 export async function processPendingSiiPolls(limit = 20): Promise<FiscalPollWorkerResult> {
-  const admin = createAdminClient();
+  const admin = adminClient();
   const result: FiscalPollWorkerResult = {
     polled: 0,
     polledVentas: 0,

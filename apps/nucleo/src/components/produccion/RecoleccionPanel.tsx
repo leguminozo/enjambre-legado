@@ -38,7 +38,7 @@ export function RecoleccionPanel() {
     queryKey: ['produccion', 'cosechas'],
     queryFn: async () => {
       const res = await apiFetch('/api/produccion/cosechas');
-      if (!res.ok) throw new Error('Error al cargar cosechas');
+      if (!res.ok) throw new Error('Error al cargar recolecciones');
       return res.json() as Promise<CosechasResponse>;
     },
   });
@@ -136,9 +136,9 @@ export function RecoleccionPanel() {
         <CardContent>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="cosecha-fecha">Fecha</Label>
+              <Label htmlFor="recoleccion-fecha">Fecha</Label>
               <Input
-                id="cosecha-fecha"
+                id="recoleccion-fecha"
                 type="date"
                 value={fecha}
                 onChange={(e) => setFecha(e.target.value)}
@@ -146,9 +146,9 @@ export function RecoleccionPanel() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="cosecha-kg">Peso (kg)</Label>
+              <Label htmlFor="recoleccion-kg">Peso (kg)</Label>
               <Input
-                id="cosecha-kg"
+                id="recoleccion-kg"
                 type="number"
                 step="0.1"
                 min="0.1"
@@ -159,18 +159,18 @@ export function RecoleccionPanel() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="cosecha-floracion">Floración</Label>
+              <Label htmlFor="recoleccion-floracion">Floración</Label>
               <Input
-                id="cosecha-floracion"
+                id="recoleccion-floracion"
                 placeholder="ej. Ulmo, Tepú…"
                 value={floracion}
                 onChange={(e) => setFloracion(e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="cosecha-colmena">Colmena (opcional)</Label>
+              <Label htmlFor="recoleccion-colmena">Colmena (opcional)</Label>
               <select
-                id="cosecha-colmena"
+                id="recoleccion-colmena"
                 value={colmenaId}
                 onChange={(e) => setColmenaId(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

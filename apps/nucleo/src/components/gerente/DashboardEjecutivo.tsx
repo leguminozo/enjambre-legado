@@ -20,20 +20,7 @@ import { useApiFetch } from '@/hooks/use-api-fetch'
 import { KpiCard } from '@/components/shared/KpiCard'
 import { ViewShell } from '@/components/layout/ViewShell'
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar'
-import { QuickActionAddStock } from '@/components/gerente/QuickActionAddStock'
 import { useAuthStore } from '@enjambre/auth'
-
-/** Atajos operativos que el viejo Alma ofrecía como bento (sin duplicar KPIs). */
-const INICIO_OPS: { href: string; label: string }[] = [
-  { href: '/pipeline', label: 'Pipeline' },
-  { href: '/monitor-feria', label: 'Feria' },
-  { href: '/colmenas', label: 'Colmenas' },
-  { href: '/produccion', label: 'Producción' },
-  { href: '/catalogo', label: 'Catálogo' },
-  { href: '/regeneracion', label: 'Bosque' },
-  { href: '/operadores-feria', label: 'Operadores' },
-  { href: '/sii', label: 'SII' },
-]
 
 type TimeRange = 'month' | 'quarter' | 'ytd'
 
@@ -243,23 +230,6 @@ export function DashboardEjecutivo() {
         subtitle={rangeSubtitle}
         icon={<BarChart3 size={20} />}
       />
-
-      {/* Única franja de atajos: lo único del Alma que no era KPI duplicado */}
-      <div className="flex flex-wrap items-center gap-2">
-        {INICIO_OPS.map((op) => (
-          <Link
-            key={op.href}
-            href={op.href}
-            className="inline-flex min-h-11 items-center gap-1 rounded-full border border-border bg-card px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
-          >
-            {op.label}
-            <ArrowUpRight size={12} />
-          </Link>
-        ))}
-        <div className="ml-auto">
-          <QuickActionAddStock />
-        </div>
-      </div>
 
       <ResponsiveTabBar
         variant="pill"

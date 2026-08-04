@@ -139,7 +139,7 @@ export function CalendarioCiclico() {
                             <select className="input-field w-full" value={newTaskForm.category || ''} onChange={e => setNewTaskForm({ ...newTaskForm, category: e.target.value as CalendarioTaskRow['category'] })}>
                                 <option value="inspeccion">Inspección</option>
                                 <option value="tratamiento">Tratamiento</option>
-                                <option value="cosecha">Cosecha</option>
+                                <option value="cosecha">Recolección</option>
                                 <option value="transhumancia">Transhumancia</option>
                                 <option value="reforestacion">Reforestación</option>
                                 <option value="cera">Cera</option>

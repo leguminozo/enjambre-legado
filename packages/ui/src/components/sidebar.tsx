@@ -1,4 +1,6 @@
-import React from 'react'
+'use client';
+
+import React, { useEffect, useState } from 'react'
 
 export type BadgeDotColor = 'green' | 'orange' | 'red'
 
@@ -95,28 +97,28 @@ interface SidebarNavItemProps {
   // contravariantes con AnchorHTMLAttributes). Patrón estándar de UI library.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   linkComponent?: React.ComponentType<any>
+  /** Indentación visual para micro-herramientas bajo categoría */
+  nested?: boolean
 }
 
-export function SidebarNavItem({ item, active, onClick, linkComponent }: SidebarNavItemProps) {
+export function SidebarNavItem({ item, active, onClick, linkComponent, nested = false }: SidebarNavItemProps) {
   const Component = linkComponent || 'a'
 
   return (
     <Component
       href={item.href}
       onClick={onClick}
-      className={`nav-item ${active ? 'active' : ''}`}
+      className={`nav-item ${active ? 'active' : ''}${nested ? ' nav-item--nested' : ''}`}
       aria-current={active ? 'page' : undefined}
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: 'var(--space-sm)',
-        // Touch ≥44: inline padding was space-xs (4px) and crushed hit area under CSS .nav-item
         minHeight: 44,
-        padding: '0.625rem var(--space-md)',
+        padding: nested ? '0.5rem var(--space-md) 0.5rem 1.75rem' : '0.625rem var(--space-md)',
         borderRadius: 'var(--radius-sm)',
-        fontSize: '0.85rem',
+        fontSize: nested ? '0.8rem' : '0.85rem',
         fontWeight: active ? 500 : 400,
-        // Opacidad vía CSS var: light mode puede subirla para contraste AA
         color: active ? 'hsl(var(--sidebar-primary))' : 'hsl(var(--sidebar-foreground) / var(--nav-item-opacity, 0.7))',
         background: active ? 'hsl(var(--sidebar-accent))' : 'transparent',
         borderLeft: active ? '3px solid hsl(var(--sidebar-primary))' : '3px solid transparent',
@@ -142,39 +144,152 @@ interface SidebarSectionProps {
   items: SidebarNavItemData[]
   activeKey?: string
   onItemClick?: (item: SidebarNavItemData, e: React.MouseEvent<HTMLAnchorElement>) => void
-  // Polimorphic link: admite <a> nativo y next/link (cuyas LinkProps no son
-  // contravariantes con AnchorHTMLAttributes). Patrón estándar de UI library.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   linkComponent?: React.ComponentType<any>
+  /**
+   * Categoría desplegable (estándar industria). Si true, el label es un botón
+   * que expande/colapsa las micro-herramientas. Se auto-abre si hay ítem activo.
+   */
+  collapsible?: boolean
+  /** Estado abierto controlado (opcional). Si no se pasa, es interno. */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  /** Clave de grupo para aria */
+  sectionKey?: string
 }
 
-export function SidebarSection({ label, items, activeKey, onItemClick, linkComponent }: SidebarSectionProps) {
+export function SidebarSection({
+  label,
+  items,
+  activeKey,
+  onItemClick,
+  linkComponent,
+  collapsible = false,
+  open: openControlled,
+  onOpenChange,
+  sectionKey,
+}: SidebarSectionProps) {
   if (items.length === 0) return null
+
+  const hasActive = items.some((item) => item.key === activeKey)
+  // Un solo ítem: no hace falta accordion (Inicio, Territorio, etc.)
+  const useAccordion = collapsible && items.length > 1
+
+  const [openInternal, setOpenInternal] = useState(hasActive)
+  const isControlled = openControlled !== undefined
+  const open = isControlled ? openControlled : openInternal
+
+  // Auto-expandir cuando la ruta activa cae dentro de esta categoría
+  useEffect(() => {
+    if (!useAccordion) return
+    if (hasActive) {
+      if (isControlled) onOpenChange?.(true)
+      else setOpenInternal(true)
+    }
+  }, [hasActive, useAccordion, isControlled, onOpenChange])
+
+  const setOpen = (next: boolean) => {
+    if (isControlled) onOpenChange?.(next)
+    else setOpenInternal(next)
+  }
+
+  const labelId = `sidebar-section-${sectionKey ?? label.toLowerCase().replace(/\s+/g, '-')}`
+
+  if (!useAccordion) {
+    return (
+      <div role="group" aria-label={label}>
+        <div
+          className="nav-section-label"
+          style={{
+            fontSize: '0.65rem',
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase' as const,
+            color: 'hsl(var(--sidebar-foreground) / 0.4)',
+            padding: 'var(--space-sm) var(--space-md)',
+            marginTop: 'var(--space-lg)',
+          }}
+        >
+          {label}
+        </div>
+        {items.map((item) => (
+          <SidebarNavItem
+            key={item.key}
+            item={item}
+            active={item.key === activeKey}
+            onClick={(e) => onItemClick?.(item, e)}
+            linkComponent={linkComponent}
+          />
+        ))}
+      </div>
+    )
+  }
+
   return (
-    <div role="group" aria-label={label}>
-      <div
-        className="nav-section-label"
+    <div role="group" aria-labelledby={labelId}>
+      <button
+        type="button"
+        id={labelId}
+        className="nav-section-toggle"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
         style={{
-          fontSize: '0.65rem',
-          fontWeight: 600,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase' as const,
-          color: 'hsl(var(--sidebar-foreground) / 0.4)',
-          padding: 'var(--space-sm) var(--space-md)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          width: '100%',
+          minHeight: 44,
           marginTop: 'var(--space-lg)',
+          padding: '0.5rem var(--space-md)',
+          border: 'none',
+          borderRadius: 'var(--radius-sm)',
+          background: hasActive && !open ? 'hsl(var(--sidebar-accent) / 0.5)' : 'transparent',
+          cursor: 'pointer',
+          textAlign: 'left',
+          WebkitTapHighlightColor: 'transparent',
         }}
       >
-        {label}
-      </div>
-      {items.map(item => (
-        <SidebarNavItem
-          key={item.key}
-          item={item}
-          active={item.key === activeKey}
-          onClick={(e) => onItemClick?.(item, e)}
-          linkComponent={linkComponent}
-        />
-      ))}
+        <span
+          style={{
+            fontSize: '0.65rem',
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase' as const,
+            color: hasActive
+              ? 'hsl(var(--sidebar-primary))'
+              : 'hsl(var(--sidebar-foreground) / 0.45)',
+          }}
+        >
+          {label}
+        </span>
+        <span
+          aria-hidden
+          style={{
+            display: 'inline-flex',
+            transition: 'transform 150ms ease',
+            transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
+            color: 'hsl(var(--sidebar-foreground) / 0.4)',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </span>
+      </button>
+      {open && (
+        <div role="list" className="nav-section-items">
+          {items.map((item) => (
+            <SidebarNavItem
+              key={item.key}
+              item={item}
+              active={item.key === activeKey}
+              onClick={(e) => onItemClick?.(item, e)}
+              linkComponent={linkComponent}
+              nested
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
