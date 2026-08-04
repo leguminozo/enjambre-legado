@@ -69,6 +69,7 @@ export function InicioTerritorialView() {
       <ViewShell
         variant="compact"
         eyebrow="Registro Territorial · Chiloé"
+        greeting={resumen?.actor?.nombre_actor ? `¡Hola, ${resumen.actor.nombre_actor}!` : undefined}
         title="Inicio"
         subtitle={
           resumen?.actor

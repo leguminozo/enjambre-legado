@@ -170,10 +170,10 @@ describe("Auth Integration Flow", () => {
       expect(isRouteAllowed("/monitor-feria", "admin")).toBe(true);
     });
 
-    it("allows territorial to access /inicio and /fenologia, but not /alma", () => {
+    it("allows territorial to access /inicio and /fenologia, but not /monitor-feria", () => {
       expect(isRouteAllowed("/inicio", "territorial")).toBe(true);
       expect(isRouteAllowed("/fenologia", "territorial")).toBe(true);
-      expect(isRouteAllowed("/alma", "territorial")).toBe(false);
+      expect(isRouteAllowed("/monitor-feria", "territorial")).toBe(false);
     });
 
     it("allows legacy gerente role to /ejecutivo via normalization", () => {

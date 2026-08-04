@@ -92,7 +92,7 @@ Escala 1-10. Fecha: 2026-08-02.
 
 - [x] Auditoría de flujos (2026-08-02): checkout, auth, reposición, fiscal, trazabilidad, POS, territorial, contenido
 - [x] Fixes rápidos: OAuth PKCE (`login-form.tsx` → `/auth/callback?next=`), meta stale en resultado, registro 500 (insert redundante removido), `email_not_confirmed` mapeado
-- [x] Reposición Pago Automático Flow (migración `20260803_flow_recurring_subscriptions.sql`, flow-cl recurrente, commit endurecido, webhook, cron)
+- [x] Reposición Pago Automático Flow (migración `20260803160000_flow_recurring_subscriptions.sql`, flow-cl recurrente, commit endurecido, webhook, cron)
 - [x] Movimiento 6: trazabilidad real y honesta (hash canónico, anclaje por defecto, página con verificación en vivo)
 - [x] Movimiento 5: rating agregado en catálogo (UI `catalog-view.tsx` + rich results `itemListJsonLd` con AggregateRating + tests)
 - [x] Movimiento 1: integridad de pagos web (`GET /api/checkout/admin/integrity` — cruza sesiones/ventas, detecta pagos sin venta, webhooks perdidos, ventas sin sesión)
@@ -110,7 +110,7 @@ Durante la sesión, un agente de fondo implementó features completas por su cue
 | Bitácora apícola por voz + offline (parsers, Dexie, audio) | ✅ completa | spec `docs/BITACORA_APICOLA.md` |
 | Trazabilidad QR verificable (cadena de custodia en `/lote/[id]`) | ✅ completa | = movimiento 10 de la hoja de ruta |
 | Fenología GDD + proxy meteo + mapa del legado | ✅ completa | |
-| Alma/Inicio + navegación por roles | ✅ | ⚠️ cambió contrato de rutas (`/ejecutivo`→`/inicio`) — revisar |
+| Alma/Inicio + navegación por roles | ✅ | **Unificado sin Alma (2026-08-04).** Origen de la dup: Alma/`EcosistemaDashboard` (~2026-06) + Inicio ejecutivo (2026-08 en `92c17aa`) convivieron en VISIÓN. Ahora solo `/inicio` por rol: admin→DashboardEjecutivo (KPIs + atajos + Recargar Stock); territorial→InicioTerritorial; resto→tienda/campo. `/alma` y `/ejecutivo` = redirect. API `dashboard/resumen` y widgets Alma eliminados (sin deuda). |
 | Código de creador en checkout (comisión en fulfill) | ✅ | mezclado con checkout aprobado (`checkout.ts`, `types.ts`) |
 | POS Campo: tercero_id + loyalty + sync backoff | ✅ | fix real del ledger de puntos |
 | Widgets, comisiones, calendario cíclico, cosmético | ✅ | |

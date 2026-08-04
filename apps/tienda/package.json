@@ -38,6 +38,7 @@
     "@enjambre/auth": "workspace:*",
     "@enjambre/logistica": "workspace:*",
     "@enjambre/pricing": "workspace:*",
+    "@enjambre/rate-limit": "workspace:*",
     "@enjambre/resenas": "workspace:*",
     "@enjambre/shop-chrome": "workspace:*",
     "@enjambre/ui": "workspace:*",

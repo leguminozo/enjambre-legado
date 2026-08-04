@@ -17,7 +17,6 @@ export default async function DireccionesPage() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <PerfilPageHeader
         icon={<MapPin size={20} />}
-        greeting="Ajustes guardián"
         title={t('direcciones')}
         mission="Gestiona dónde recibes la miel de bosque nativo — predeterminada, editar y eliminar."
       />

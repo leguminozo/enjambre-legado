@@ -55,6 +55,10 @@ export const LazyCuadernoCampoView = named(
   'CuadernoCampoView',
   'Cuaderno Campo',
 );
+export const LazyEscenaHojaView = lazyView<{ id: string }>(
+  () => import('@/views/apicultor/EscenaHojaView').then((m) => ({ default: m.EscenaHojaView })),
+  'Hoja',
+);
 export const LazyTrazabilidadView = named(
   () => import('@/views/apicultor/TrazabilidadView'),
   'TrazabilidadView',
@@ -86,11 +90,6 @@ export const LazyOperadoresFeriaPanel = named(
 );
 
 export const LazyCatalogoView = named(() => import('@/views/CatalogoView'), 'CatalogoView', 'Productos');
-export const LazyProductosCatalogoView = named(
-  () => import('@/views/ProductosCatalogoView'),
-  'ProductosCatalogoView',
-  'Productos',
-);
 export const LazyContableHubView = named(
   () => import('@/views/contable/ContableHubView'),
   'ContableHubView',

@@ -20,7 +20,6 @@ import { cashSessionsRoutes } from "@/api/routes/cash-sessions";
 import { repVentasRoutes } from "@/api/routes/rep-ventas";
 import { invitationsRoutes } from "@/api/routes/invitations";
 import { commissionRulesRoutes } from "@/api/routes/commission-rules";
-import { dashboardResumenRoutes } from "@/api/routes/dashboard-resumen";
 import { dashboardEjecutivoRoutes } from "@/api/routes/dashboard-ejecutivo";
 import { costeoRoutes } from "@/api/routes/costeo";
 import { cmsRoutes } from "@/api/routes/cms";
@@ -94,7 +93,6 @@ app.use("*", async (c, next) => {
     "/api/reportes",
     "/api/calculos-ia",
     "/api/commission-rules",
-    "/api/dashboard/resumen",
     "/api/dashboard/ejecutivo",
     "/api/costeo",
     "/api/cms",
@@ -221,7 +219,6 @@ app.route("/cash-sessions", cashSessionsRoutes);
 app.route("/rep-ventas", repVentasRoutes);
 app.route("/invitations", invitationsRoutes);
 app.route("/commission-rules", commissionRulesRoutes);
-app.route("/dashboard/resumen", dashboardResumenRoutes);
 app.route("/dashboard/ejecutivo", dashboardEjecutivoRoutes);
 app.route("/costeo", costeoRoutes);
 app.route("/cms", cmsRoutes);

@@ -7,7 +7,7 @@ import L from 'leaflet';
 import { BOSQUE_ULMO, ORO_MIEL, ORO_MIEL_DARK, SALUD_OPTIMA } from '@/lib/colors';
 import 'leaflet/dist/leaflet.css';
 import { Plus, X, MapPin, Clock, ChevronLeft, ChevronRight, X as CloseIcon } from 'lucide-react';
-import { toast, friendlyError, DatePicker } from '@enjambre/ui';
+import { toast, friendlyError, DatePicker, formatCLP } from '@enjambre/ui';
 import { resolveClienteCoords, resolveComunaCoords } from '@/lib/cliente-coords';
 
 export interface MapMarker {
@@ -390,7 +390,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                         lng: coords.lng,
                         type: 'nectar',
                         name: String(cl.name ?? 'Punto de venta'),
-                        details: spent > 0 ? `Cliente activo · $${Math.round(spent).toLocaleString('es-CL')}` : 'Punto de venta',
+                        details: spent > 0 ? `Cliente activo · ${formatCLP(Math.round(spent))}` : 'Punto de venta',
                     });
                 });
 

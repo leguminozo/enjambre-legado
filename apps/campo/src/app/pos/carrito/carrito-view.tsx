@@ -10,7 +10,7 @@ import { useSumUp } from '@/components/pos/sumup-context';
 import { SumupTerminalFlow } from '@/components/pos/sumup-terminal-flow';
 import { QrCameraScanner } from '@/components/pos/qr-camera-scanner';
 import type { VentaChannel, PaymentMethod, TerminalFlowResult } from '@/components/pos/types';
-import { HexagonLoader, ViewLoadingPlaceholder } from '@enjambre/ui';
+import { HexagonLoader, ViewLoadingPlaceholder, formatCLP } from '@enjambre/ui';
 import { buildClaimUrl } from '@/lib/public-urls';
 import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft, Banknote, CreditCard, Smartphone, Store, Truck, Building2, Users, Nfc, AlertTriangle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -197,7 +197,7 @@ export default function CarritoView() {
 
         {successData.commission != null && (
           <p className="text-primary text-2xl font-mono font-bold mb-2">
-            +${successData.commission.toLocaleString('es-CL')} comision
+            +{formatCLP(successData.commission)} comision
           </p>
         )}
         <p className="text-muted-foreground mb-12 font-light text-pretty">

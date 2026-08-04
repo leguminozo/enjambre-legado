@@ -24,7 +24,6 @@ export default async function LogrosPage() {
     <div className="space-y-12 animate-in fade-in duration-700 pb-16">
       <PerfilPageHeader
         icon={<Trophy size={20} />}
-        greeting="Identidad guardiana"
         title="Mis Logros e Impacto"
         mission="Descubre cómo tus acciones regeneran la biodiversidad de Chiloé"
       />

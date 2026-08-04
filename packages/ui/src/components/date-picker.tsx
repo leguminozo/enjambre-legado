@@ -36,16 +36,16 @@ export function DatePicker({
     };
   }, [open]);
 
-  // Parse YYYY-MM-DD
+  // Parse YYYY-MM-DD (narrowing explícito: split[i] es string | undefined bajo noUncheckedIndexedAccess)
   let dateValue: Date | null = null;
   if (value) {
-    const parts = value.split('-');
-    if (parts.length === 3) {
-      const year = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10);
-      const day = parseInt(parts[2], 10);
+    const [yPart, mPart, dPart] = value.split('-');
+    if (yPart && mPart && dPart) {
+      const year = parseInt(yPart, 10);
+      const month = parseInt(mPart, 10);
+      const day = parseInt(dPart, 10);
       if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-         dateValue = new Date(year, month - 1, day);
+        dateValue = new Date(year, month - 1, day);
       }
     }
   }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { formatCLP } from "@enjambre/ui";
 import { BookOpen, Lock, Loader2, Check } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
@@ -21,10 +22,7 @@ interface Periodo {
   estado: 'abierto' | 'cerrado';
 }
 
-function formatCLP(v: number | null): string {
-  if (v == null) return '—';
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(v);
-}
+
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -187,9 +185,9 @@ export function LibrosView() {
                           {FUENTE_LABEL[f.fuente] ?? f.fuente}
                         </span>
                       </td>
-                      <td className="py-2 pr-3 text-right font-datos">{formatCLP(f.neto)}</td>
-                      <td className="py-2 pr-3 text-right font-datos">{formatCLP(f.iva)}</td>
-                      <td className="py-2 text-right font-datos">{formatCLP(f.total)}</td>
+                      <td className="py-2 pr-3 text-right font-datos">{formatCLP(f.neto ?? 0)}</td>
+                      <td className="py-2 pr-3 text-right font-datos">{formatCLP(f.iva ?? 0)}</td>
+                      <td className="py-2 text-right font-datos">{formatCLP(f.total ?? 0)}</td>
                     </tr>
                   ))
                 )}

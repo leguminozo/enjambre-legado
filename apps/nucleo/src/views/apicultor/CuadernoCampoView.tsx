@@ -1,8 +1,9 @@
 'use client';
 
-import { ApicultorView } from '../ApicultorView';
+import { CuadernoColeccion } from '@/components/apicultor/cuaderno/CuadernoColeccion';
 
-/** /colmenas/cuaderno — cuaderno de campo como herramienta propia de RECOLECCIÓN */
+/** /colmenas/cuaderno — colección del cuaderno de campo: cada hoja es un
+ *  "estudio" de la red semántica (workflow RSN de Trama adaptado). */
 export function CuadernoCampoView() {
-  return <ApicultorView initialView="sanidad" />;
+  return <CuadernoColeccion />;
 }

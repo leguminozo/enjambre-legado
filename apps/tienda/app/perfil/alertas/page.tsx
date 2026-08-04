@@ -14,7 +14,6 @@ export default async function AlertasFloracionPage() {
     <div className="space-y-16 animate-in">
       <PerfilPageHeader
         icon={<Bell size={20} />}
-        greeting="Red biocultural"
         title="Alertas Floración"
         mission="Entérate primero cuando la naturaleza ofrece lo mejor — y actúa antes que nadie"
         action={

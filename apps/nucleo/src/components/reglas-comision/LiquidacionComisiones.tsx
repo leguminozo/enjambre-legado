@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { formatCLP } from "@enjambre/ui";
 import { Wallet, Loader2, Check } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
@@ -14,9 +15,7 @@ interface ResumenRep {
   nPendientes: number;
 }
 
-function formatCLP(v: number): string {
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(v);
-}
+
 
 /** Liquidación de comisiones — cierra el ciclo: lo ganado se paga y queda registrado. */
 export function LiquidacionComisiones() {

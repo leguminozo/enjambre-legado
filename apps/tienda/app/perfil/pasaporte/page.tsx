@@ -28,7 +28,6 @@ export default async function PasaportePage() {
     <div className="space-y-16 animate-in">
       <PerfilPageHeader
         icon={<Compass size={20} />}
-        greeting="Identidad guardiana"
         title="Pasaporte de Colmena"
         mission="Trazabilidad profunda de tu vínculo con el ecosistema"
       />

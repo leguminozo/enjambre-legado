@@ -41,6 +41,8 @@ export function useModalFocusTrap({
     if (focusable.length === 0) return;
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
+    // length > 0 ya garantizado; narrowing para noUncheckedIndexedAccess
+    if (!first || !last) return;
     if (e.shiftKey && document.activeElement === first) {
       e.preventDefault();
       last.focus();

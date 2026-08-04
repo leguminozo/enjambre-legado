@@ -19,7 +19,7 @@ import {
   Edit3,
   Eye,
 } from 'lucide-react';
-import { friendlyError, toast } from '@enjambre/ui';
+import { friendlyError, toast, formatCLP } from '@enjambre/ui';
 import { supabase } from '@/lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -100,7 +100,7 @@ function timeAgo(iso: string | null): string {
 }
 
 function formatTotal(n: number | null): string {
-  return `$${(n ?? 0).toLocaleString('es-CL')}`;
+  return formatCLP(n ?? 0);
 }
 
 function resolveItems(

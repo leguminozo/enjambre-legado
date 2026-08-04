@@ -642,7 +642,8 @@ bitacoraRoutes.post(
   }
 );
 
-/** GET /api/bitacora/tratamientos?colmena_id= — historial con alerta de retiro */
+/** GET /api/bitacora/tratamientos?colmena_id= — historial con alerta de retiro.
+ *  Enriquecido con nombre y hash de la colmena para la trazabilidad del cuaderno. */
 bitacoraRoutes.get("/tratamientos", async (c) => {
   const supabase = bitacoraClient(c.get("supabase"));
   const { colmena_id } = c.req.query();
@@ -658,11 +659,25 @@ bitacoraRoutes.get("/tratamientos", async (c) => {
   const { data, error } = await query;
   if (error) return c.json({ error: error.message }, 500);
 
+  const tratamientos = data ?? [];
+  const colmenaIds = [...new Set(tratamientos.map((t) => t.colmena_id))];
+  const { data: colmenas } = await supabase
+    .from("colmenas")
+    .select("id, name, blockchain_hash")
+    .in("id", colmenaIds.length > 0 ? colmenaIds : [""]);
+  const colmenaMap = new Map((colmenas ?? []).map((c) => [c.id, c]));
+
+  const dataEnriquecida = tratamientos.map((t) => ({
+    ...t,
+    colmena_name: t.colmena_id ? colmenaMap.get(t.colmena_id)?.name ?? null : null,
+    colmena_hash: t.colmena_id ? colmenaMap.get(t.colmena_id)?.blockchain_hash ?? null : null,
+  }));
+
   const alerta = colmena_id
     ? await computeAlertaRetiro(supabase, colmena_id, fecha)
     : null;
 
-  return c.json({ data, alerta_retiro: alerta });
+  return c.json({ data: dataEnriquecida, alerta_retiro: alerta });
 });
 
 // ---------------------------------------------------------------------------
@@ -708,7 +723,8 @@ bitacoraRoutes.post(
   }
 );
 
-/** GET /api/bitacora/muestras?apiario_id= — historial de muestras */
+/** GET /api/bitacora/muestras?apiario_id= — historial de muestras.
+ *  Enriquecido con el nombre del apiario para la trazabilidad del cuaderno. */
 bitacoraRoutes.get("/muestras", async (c) => {
   const supabase = bitacoraClient(c.get("supabase"));
   const { apiario_id } = c.req.query();
@@ -722,7 +738,21 @@ bitacoraRoutes.get("/muestras", async (c) => {
 
   const { data, error } = await query;
   if (error) return c.json({ error: error.message }, 500);
-  return c.json({ data });
+
+  const muestras = data ?? [];
+  const apiarioIds = [...new Set(muestras.map((m) => m.apiario_id).filter((id): id is string => Boolean(id)))];
+  const { data: apiarios } = await supabase
+    .from("apiarios")
+    .select("id, name")
+    .in("id", apiarioIds.length > 0 ? apiarioIds : [""]);
+  const apiarioMap = new Map((apiarios ?? []).map((a) => [a.id, a.name]));
+
+  const dataEnriquecida = muestras.map((m) => ({
+    ...m,
+    apiario_name: m.apiario_id ? apiarioMap.get(m.apiario_id) ?? null : null,
+  }));
+
+  return c.json({ data: dataEnriquecida });
 });
 
 // ---------------------------------------------------------------------------
@@ -929,5 +959,847 @@ bitacoraRoutes.post(
   }
 );
 
-// TODO Sprint C: POST /capturas/:id/procesar — invoca el pipeline de parseo
-// (bitacora-parsers) y rellena atribucion_hipotesis + transcript_raw.
+// ---------------------------------------------------------------------------
+// CUADERNO DE CAMPO v2 — colección, escena de hoja y red semántica
+// (inspirada en la herramienta RSN de Trama, adaptada al dominio apícola).
+// El dueño administra sus datos (migración 1010 relajó las políticas delete).
+// ---------------------------------------------------------------------------
+
+const UpdateInspeccionSchema = z.object({
+  colmena_id: z.string().uuid().optional(),
+  fecha: z.string().date().optional(),
+  fase: FaseSchema.optional(),
+  poblacion: z.string().max(100).nullable().optional(),
+  reina: z.boolean().nullable().optional(),
+  marcos_cria: z.number().int().min(0).nullable().optional(),
+  marcos_miel: z.number().int().min(0).nullable().optional(),
+  varroa: z.number().min(0).nullable().optional(),
+  cuadros: z.array(CuadroSchema).max(40).optional(),
+  notas: z.string().max(2000).nullable().optional(),
+}).strict();
+
+const CreateVarroaSchema = z.object({
+  colmena_id: z.string().uuid(),
+  date: z.string().date().optional(),
+  level: z.number().min(0).max(100),
+  method: z.string().max(100).optional(),
+}).strict();
+
+const UpdateVarroaSchema = z.object({
+  date: z.string().date().optional(),
+  level: z.number().min(0).max(100).optional(),
+  method: z.string().max(100).nullable().optional(),
+}).strict();
+
+const UpdateTratamientoSchema = z.object({
+  fecha: z.string().date().optional(),
+  producto_comercial: z.string().max(200).nullable().optional(),
+  principio_activo: z.string().min(1).max(200).optional(),
+  dosis_recomendada: z.string().max(100).nullable().optional(),
+  dosis_aplicada: z.string().max(100).nullable().optional(),
+  enfermedad: z.enum(["varroa", "nosema", "loque", "otro"]).optional(),
+  via: z.string().max(100).nullable().optional(),
+  forma: z.string().max(100).nullable().optional(),
+  retiro_fin: z.string().date().nullable().optional(),
+}).strict();
+
+const UpdateMuestraSchema = z.object({
+  apiario_id: z.string().uuid().nullable().optional(),
+  fecha: z.string().date().optional(),
+  tipo: z.enum(["varroa", "nosema", "otro"]).optional(),
+  n_abejas: z.number().int().positive().nullable().optional(),
+  cuadros_muestreados: z.number().int().positive().nullable().optional(),
+  lab_nombre: z.string().max(200).nullable().optional(),
+  lab_fecha: z.string().date().nullable().optional(),
+  resultado: z.string().max(500).nullable().optional(),
+  patogeno: z.enum(["varroa", "nosema", "DWV", "ABPV", "otro"]).nullable().optional(),
+  es_contramuestra: z.boolean().optional(),
+  confirmado_saneado: z.boolean().optional(),
+}).strict();
+
+const CreateNodoManualSchema = z.object({
+  colmena_id: z.string().uuid().nullable().optional(),
+  tipo: z.enum(["observacion", "decision", "tension", "otro"]).default("observacion"),
+  label: z.string().min(1).max(200),
+  descripcion: z.string().max(2000).nullable().optional(),
+  x: z.number().nullable().optional(),
+  y: z.number().nullable().optional(),
+}).strict();
+
+const UpdateNodoManualSchema = z.object({
+  colmena_id: z.string().uuid().nullable().optional(),
+  tipo: z.enum(["observacion", "decision", "tension", "otro"]).optional(),
+  label: z.string().min(1).max(200).optional(),
+  descripcion: z.string().max(2000).nullable().optional(),
+  x: z.number().nullable().optional(),
+  y: z.number().nullable().optional(),
+}).strict();
+
+const CreateAristaSchema = z.object({
+  source_id: z.string().uuid(),
+  target_id: z.string().uuid(),
+  relacion: z.enum(["deriva_de", "observa", "tension", "analogia", "otro"]).default("observa"),
+  label: z.string().max(200).nullable().optional(),
+}).strict();
+
+function hoyISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function diasEntre(fecha: string, desde: string): number {
+  return Math.max(0, Math.floor((new Date(desde).getTime() - new Date(fecha).getTime()) / 86_400_000));
+}
+
+/** GET /api/bitacora/hojas?fase=&colmena_id= — colección de hojas (tarjetas).
+ *  Cada hoja es una entrada del cuaderno con su contexto de colmena/apiario,
+ *  conteos y brechas ("lo que no se dice también es información"). */
+bitacoraRoutes.get("/hojas", async (c) => {
+  const supabase = bitacoraClient(c.get("supabase"));
+  const { fase, colmena_id } = c.req.query();
+  const hoy = hoyISO();
+
+  let query = supabase
+    .from("inspecciones")
+    .select("*")
+    .order("date", { ascending: false })
+    .limit(300);
+  if (fase) query = query.eq("fase", fase as FaseBitacora);
+  if (colmena_id) query = query.eq("colmena_id", colmena_id);
+
+  const { data: inspecciones, error } = await query;
+  if (error) return c.json({ error: error.message }, 500);
+  if (!inspecciones) return c.json({ data: [], meta: { total: 0, colmenas: [], apiarios: [] } });
+
+  const colmenaIds = [...new Set(inspecciones.map((i) => i.colmena_id).filter((id): id is string => Boolean(id)))];
+  const insIds = inspecciones.map((i) => i.id);
+
+  const [colmenasRes, cuadrosRes, tratamientosRes] = await Promise.all([
+    colmenaIds.length > 0
+      ? supabase
+          .from("colmenas")
+          .select("id, name, apiario_id, blockchain_hash, origen_tipo, estado, alzas")
+          .in("id", colmenaIds)
+      : Promise.resolve({ data: [], error: null }),
+    supabase.from("inspeccion_cuadros").select("inspeccion_id").in("inspeccion_id", insIds),
+    supabase
+      .from("tratamientos")
+      .select("colmena_id, principio_activo, retiro_fin")
+      .in("colmena_id", colmenaIds.length > 0 ? colmenaIds : [""])
+      .not("retiro_fin", "is", null),
+  ]);
+  const error2 = colmenasRes.error ?? cuadrosRes.error ?? tratamientosRes.error;
+  if (error2) return c.json({ error: error2.message }, 500);
+
+  const colmenas = colmenasRes.data ?? [];
+  const apiarioIds = [...new Set(colmenas.map((c) => c.apiario_id).filter((id): id is string => Boolean(id)))];
+  const { data: apiarios } = await supabase.from("apiarios").select("id, name").in("id", apiarioIds.length > 0 ? apiarioIds : [""]);
+  const apiarioMap = new Map((apiarios ?? []).map((a) => [a.id, a.name]));
+
+  const cuadrosCount = new Map<string, number>();
+  for (const cua of cuadrosRes.data ?? []) {
+    cuadrosCount.set(cua.inspeccion_id, (cuadrosCount.get(cua.inspeccion_id) ?? 0) + 1);
+  }
+  const tratamientosCount = new Map<string, number>();
+  const retiroVigente = new Set<string>();
+  for (const t of tratamientosRes.data ?? []) {
+    tratamientosCount.set(t.colmena_id, (tratamientosCount.get(t.colmena_id) ?? 0) + 1);
+    if (t.retiro_fin && t.retiro_fin >= hoy) retiroVigente.add(t.colmena_id);
+  }
+
+  const data = inspecciones.map((ins) => {
+    const col = colmenas.find((c) => c.id === ins.colmena_id);
+    const brechas: string[] = [];
+    if (ins.varroa === null || ins.varroa === undefined) brechas.push("sin_varroa");
+    if ((cuadrosCount.get(ins.id) ?? 0) === 0) brechas.push("sin_cuadros");
+    if (!ins.notes?.trim()) brechas.push("sin_notas");
+    if (col && retiroVigente.has(col.id)) brechas.push("retiro_vigente");
+    return {
+      ...ins,
+      colmena: col
+        ? {
+            id: col.id,
+            name: col.name,
+            apiario_id: col.apiario_id,
+            blockchain_hash: col.blockchain_hash,
+            origen_tipo: col.origen_tipo,
+            estado: col.estado,
+            alzas: col.alzas,
+          }
+        : null,
+      apiario_name: col?.apiario_id ? (apiarioMap.get(col.apiario_id) ?? null) : null,
+      cuadros_count: cuadrosCount.get(ins.id) ?? 0,
+      tratamientos_count: tratamientosCount.get(ins.colmena_id ?? "") ?? 0,
+      brechas,
+    };
+  });
+
+  return c.json({
+    data,
+    meta: {
+      total: data.length,
+      colmenas: colmenas.map((c) => ({ id: c.id, name: c.name })),
+      apiarios: (apiarios ?? []).map((a) => ({ id: a.id, name: a.name })),
+    },
+  });
+});
+
+/** GET /api/bitacora/hojas/:id — escena de la hoja: detalle + red local. */
+bitacoraRoutes.get(
+  "/hojas/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+    const hoy = hoyISO();
+
+    const { data: hoja, error } = (await supabase
+      .from("inspecciones")
+      .select("*, inspeccion_cuadros(*)")
+      .eq("id", id)
+      .maybeSingle()) as unknown as {
+      data: InspeccionCuadrosEnHistorial | null;
+      error: { message: string } | null;
+    };
+    if (error) return c.json({ error: error.message }, 500);
+    if (!hoja) return c.json({ code: "not_found", message: "Hoja no encontrada" }, 404);
+
+    const colmenaId = hoja.colmena_id ?? null;
+    const [colmenaRes, tratamientosRes, varroaRes, nodosRes, aristasRes, alerta] = await Promise.all([
+      colmenaId
+        ? supabase
+            .from("colmenas")
+            .select("id, name, apiario_id, blockchain_hash, origen_tipo, origen_fecha, origen_colmena_madre, origen_detalle, estado, alzas")
+            .eq("id", colmenaId)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      colmenaId
+        ? supabase.from("tratamientos").select("*").eq("colmena_id", colmenaId).order("fecha", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
+      colmenaId
+        ? supabase.from("varroa_records").select("*").eq("colmena_id", colmenaId).order("date", { ascending: false }).limit(12)
+        : Promise.resolve({ data: [], error: null }),
+      supabase
+        .from("cuaderno_nodos")
+        .select("*")
+        .eq("colmena_id", colmenaId ?? "")
+        .order("created_at", { ascending: true }),
+      supabase.from("cuaderno_aristas").select("*"),
+      colmenaId
+        ? computeAlertaRetiro(supabase, colmenaId, hoy)
+        : Promise.resolve({
+            vigente: false,
+            tratamiento_id: null,
+            principio_activo: null,
+            retiro_fin: null,
+            mensaje: null,
+          }),
+    ]);
+    const error2 = colmenaRes.error ?? tratamientosRes.error ?? varroaRes.error ?? nodosRes.error ?? aristasRes.error;
+    if (error2) return c.json({ error: error2.message }, 500);
+
+    const colmena = colmenaRes.data ?? null;
+    let apiarioName: string | null = null;
+    if (colmena?.apiario_id) {
+      const { data: apiario } = await supabase.from("apiarios").select("name").eq("id", colmena.apiario_id).maybeSingle();
+      apiarioName = apiario?.name ?? null;
+    }
+
+    const { data: muestras } = await supabase
+      .from("muestras")
+      .select("*")
+      .eq("apiario_id", colmena?.apiario_id ?? "")
+      .order("fecha", { ascending: false })
+      .limit(12);
+
+    const nodosManuales = nodosRes.data ?? [];
+    const aristasManuales = aristasRes.data ?? [];
+
+    // Red local: colmena + hoja + cuadros + sanidad + monitoreo + manuales
+    const nodos: NodoRedCuaderno[] = [];
+    const aristas: AristaRedCuaderno[] = [];
+    if (colmena) {
+      nodos.push({
+        id: colmena.id,
+        kind: "colmena",
+        label: colmena.name ?? "Colmena",
+        estado: colmena.estado,
+        apiario_name: apiarioName,
+        origen_tipo: colmena.origen_tipo,
+        blockchain_hash: colmena.blockchain_hash,
+      });
+    }
+    nodos.push({
+      id: hoja.id,
+      kind: "hoja",
+      label: `Hoja · ${hoja.date}`,
+      estado: hoja.fase,
+      fecha: hoja.date,
+      colmena_id: colmenaId,
+    });
+    for (const cua of hoja.inspeccion_cuadros ?? []) {
+      nodos.push({
+        id: cua.id,
+        kind: "cuadro",
+        label: `#${cua.posicion} ${cua.tipo}`,
+        estado: cua.cuerpo,
+        descripcion: cua.notas,
+      });
+    }
+    for (const t of tratamientosRes.data ?? []) {
+      nodos.push({ id: t.id, kind: "tratamiento", label: t.principio_activo, fecha: t.fecha, estado: t.enfermedad });
+    }
+    for (const v of varroaRes.data ?? []) {
+      nodos.push({ id: v.id, kind: "varroa", label: `Varroa ${v.level}`, fecha: v.date, estado: v.method ?? null });
+    }
+    for (const m of muestras ?? []) {
+      nodos.push({ id: m.id, kind: "muestra", label: m.tipo, fecha: m.fecha, estado: m.patogeno ?? null });
+    }
+    for (const n of nodosManuales) {
+      nodos.push({
+        id: n.id,
+        kind: "manual",
+        label: n.label,
+        estado: n.tipo,
+        descripcion: n.descripcion,
+        x: n.x,
+        y: n.y,
+        created_at: n.created_at,
+        colmena_id: n.colmena_id,
+      });
+    }
+
+    if (colmena) {
+      aristas.push({ id: `registra:${colmena.id}:${hoja.id}`, source_id: colmena.id, target_id: hoja.id, relacion: "registra" });
+      if (colmena.origen_colmena_madre) {
+        aristas.push({ id: `deriva_de:${colmena.id}:${colmena.origen_colmena_madre}`, source_id: colmena.id, target_id: colmena.origen_colmena_madre, relacion: "deriva_de" });
+      }
+    }
+    for (const cua of hoja.inspeccion_cuadros ?? []) {
+      aristas.push({ id: `detalla:${hoja.id}:${cua.id}`, source_id: hoja.id, target_id: cua.id, relacion: "observa" });
+    }
+    for (const t of tratamientosRes.data ?? []) {
+      if (colmena) aristas.push({ id: `trata:${colmena.id}:${t.id}`, source_id: colmena.id, target_id: t.id, relacion: "trata" });
+    }
+    for (const v of varroaRes.data ?? []) {
+      if (colmena) aristas.push({ id: `monitorea:${colmena.id}:${v.id}`, source_id: colmena.id, target_id: v.id, relacion: "monitorea" });
+    }
+    for (const m of muestras ?? []) {
+      if (colmena?.apiario_id) aristas.push({ id: `muestrea:${colmena.apiario_id}:${m.id}`, source_id: colmena.apiario_id, target_id: m.id, relacion: "muestrea" });
+    }
+    for (const a of aristasManuales) {
+      aristas.push({ id: a.id, source_id: a.source_id, target_id: a.target_id, relacion: a.relacion, label: a.label });
+    }
+
+    return c.json({
+      data: {
+        hoja,
+        colmena: colmena ? { ...colmena, apiario_name: apiarioName } : null,
+        tratamientos: tratamientosRes.data ?? [],
+        muestras: muestras ?? [],
+        varroa: varroaRes.data ?? [],
+        nodos_manuales: nodosManuales,
+        aristas_manuales: aristasManuales,
+        alerta_retiro: alerta,
+        red: { nodos, aristas, meta: { conteos: { nodos: nodos.length, aristas: aristas.length }, brechas: [] } },
+      },
+    });
+  }
+);
+
+/** GET /api/bitacora/red — red semántica global del apiario (Hojas → vista Red). */
+bitacoraRoutes.get("/red", async (c) => {
+  const supabase = bitacoraClient(c.get("supabase"));
+  const hoy = hoyISO();
+
+  const [apiariosRes, colmenasRes, inspeccionesRes, tratamientosRes, muestrasRes, varroaRes, nodosRes, aristasRes] =
+    await Promise.all([
+      supabase.from("apiarios").select("id, name"),
+      supabase.from("colmenas").select("id, name, apiario_id, blockchain_hash, origen_tipo, origen_colmena_madre, estado, alzas"),
+      supabase.from("inspecciones").select("id, colmena_id, date, fase").order("date", { ascending: false }).limit(300),
+      supabase.from("tratamientos").select("id, colmena_id, principio_activo, retiro_fin"),
+      supabase.from("muestras").select("id, apiario_id, tipo"),
+      supabase.from("varroa_records").select("id, colmena_id, date, level").order("date", { ascending: false }).limit(300),
+      supabase.from("cuaderno_nodos").select("*"),
+      supabase.from("cuaderno_aristas").select("*"),
+    ]);
+  const error = apiariosRes.error ?? colmenasRes.error ?? inspeccionesRes.error ?? tratamientosRes.error
+    ?? muestrasRes.error ?? varroaRes.error ?? nodosRes.error ?? aristasRes.error;
+  if (error) return c.json({ error: error.message }, 500);
+
+  const apiarios = apiariosRes.data ?? [];
+  const colmenas = colmenasRes.data ?? [];
+  const inspecciones = inspeccionesRes.data ?? [];
+  const tratamientos = tratamientosRes.data ?? [];
+  const muestras = muestrasRes.data ?? [];
+  const varroa = varroaRes.data ?? [];
+  const nodosManuales = nodosRes.data ?? [];
+  const aristasManuales = aristasRes.data ?? [];
+
+  const apiarioName = new Map(apiarios.map((a) => [a.id, a.name]));
+
+  const nodos: NodoRedCuaderno[] = [];
+  for (const a of apiarios) nodos.push({ id: a.id, kind: "apiario", label: a.name ?? "Apiario" });
+  for (const col of colmenas) {
+    nodos.push({
+      id: col.id,
+      kind: "colmena",
+      label: col.name ?? "Colmena",
+      estado: col.estado,
+      apiario_name: col.apiario_id ? (apiarioName.get(col.apiario_id) ?? null) : null,
+      origen_tipo: col.origen_tipo,
+      blockchain_hash: col.blockchain_hash,
+    });
+  }
+  for (const ins of inspecciones) {
+    nodos.push({ id: ins.id, kind: "hoja", label: `Hoja · ${ins.date}`, estado: ins.fase, fecha: ins.date, colmena_id: ins.colmena_id });
+  }
+  for (const t of tratamientos) {
+    nodos.push({ id: t.id, kind: "tratamiento", label: t.principio_activo, colmena_id: t.colmena_id });
+  }
+  for (const m of muestras) nodos.push({ id: m.id, kind: "muestra", label: m.tipo });
+  for (const v of varroa) nodos.push({ id: v.id, kind: "varroa", label: `Varroa ${v.level}`, fecha: v.date, colmena_id: v.colmena_id });
+  for (const n of nodosManuales) {
+    nodos.push({ id: n.id, kind: "manual", label: n.label, estado: n.tipo, descripcion: n.descripcion, x: n.x, y: n.y, created_at: n.created_at, colmena_id: n.colmena_id });
+  }
+
+  const aristas: AristaRedCuaderno[] = [];
+  for (const col of colmenas) {
+    if (col.apiario_id) aristas.push({ id: `contiene:${col.apiario_id}:${col.id}`, source_id: col.apiario_id, target_id: col.id, relacion: "contiene" });
+    if (col.origen_colmena_madre) aristas.push({ id: `deriva_de:${col.id}:${col.origen_colmena_madre}`, source_id: col.id, target_id: col.origen_colmena_madre, relacion: "deriva_de" });
+  }
+  for (const ins of inspecciones) {
+    if (!ins.colmena_id) continue;
+    aristas.push({ id: `registra:${ins.colmena_id}:${ins.id}`, source_id: ins.colmena_id, target_id: ins.id, relacion: "registra" });
+  }
+  for (const t of tratamientos) {
+    aristas.push({ id: `trata:${t.colmena_id}:${t.id}`, source_id: t.colmena_id, target_id: t.id, relacion: "trata" });
+  }
+  for (const m of muestras) {
+    if (m.apiario_id) aristas.push({ id: `muestrea:${m.apiario_id}:${m.id}`, source_id: m.apiario_id, target_id: m.id, relacion: "muestrea" });
+  }
+  for (const v of varroa) {
+    if (!v.colmena_id) continue;
+    aristas.push({ id: `monitorea:${v.colmena_id}:${v.id}`, source_id: v.colmena_id, target_id: v.id, relacion: "monitorea" });
+  }
+  for (const a of aristasManuales) {
+    aristas.push({ id: a.id, source_id: a.source_id, target_id: a.target_id, relacion: a.relacion, label: a.label });
+  }
+
+  // Brechas por colmena: lo que NO se dice también es información
+  const brechas: BrechaColmena[] = [];
+  const hojaPorColmena = new Map<string, string>();
+  for (const ins of inspecciones) {
+    if (!ins.colmena_id) continue;
+    const prev = hojaPorColmena.get(ins.colmena_id);
+    if (!prev || ins.date > prev) hojaPorColmena.set(ins.colmena_id, ins.date);
+  }
+  const varroaPorColmena = new Map<string, string>();
+  for (const v of varroa) {
+    if (!v.colmena_id) continue;
+    const prev = varroaPorColmena.get(v.colmena_id);
+    if (!prev || v.date > prev) varroaPorColmena.set(v.colmena_id, v.date);
+  }
+  for (const col of colmenas) {
+    const label = col.name ?? "Colmena";
+    const ultimaHoja = hojaPorColmena.get(col.id);
+    if (!ultimaHoja || diasEntre(ultimaHoja, hoy) > 14) {
+      brechas.push({ colmena_id: col.id, colmena_label: label, tipo: "sin_hoja_14d", detalle: ultimaHoja ? `Sin hoja desde ${ultimaHoja} (>14 días)` : "Sin hojas registradas" });
+    }
+    const ultimaVarroa = varroaPorColmena.get(col.id);
+    if (!ultimaVarroa || diasEntre(ultimaVarroa, hoy) > 30) {
+      brechas.push({ colmena_id: col.id, colmena_label: label, tipo: "sin_varroa_30d", detalle: ultimaVarroa ? `Sin monitoreo de varroa desde ${ultimaVarroa}` : "Sin monitoreo de varroa" });
+    }
+    const retiro = tratamientos.find((t) => t.colmena_id === col.id && t.retiro_fin && t.retiro_fin >= hoy);
+    if (retiro) {
+      brechas.push({ colmena_id: col.id, colmena_label: label, tipo: "retiro_vigente", detalle: `Retiro de ${retiro.principio_activo} hasta ${retiro.retiro_fin}` });
+    }
+  }
+
+  return c.json({
+    data: {
+      nodos,
+      aristas,
+      meta: {
+        conteos: {
+          apiarios: apiarios.length,
+          colmenas: colmenas.length,
+          hojas: inspecciones.length,
+          tratamientos: tratamientos.length,
+          muestras: muestras.length,
+          varroa: varroa.length,
+          nodos_manuales: nodosManuales.length,
+        },
+        brechas,
+      },
+    },
+  });
+});
+
+/** PATCH /api/bitacora/inspecciones/:id — editar una hoja (cuadros opcionales:
+ *  si se envían, se reemplazan). Guard 409 retiro vigente si la fase final es alza. */
+bitacoraRoutes.patch(
+  "/inspecciones/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  zValidator("json", UpdateInspeccionSchema),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const user = c.get("user");
+    const { id } = c.req.valid("param");
+    const body = c.req.valid("json");
+
+    const { data: existente, error: existError } = await supabase
+      .from("inspecciones")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    if (existError) return c.json({ error: existError.message }, 500);
+    if (!existente) return c.json({ code: "not_found", message: "Hoja no encontrada" }, 404);
+
+    const colmenaId = body.colmena_id ?? existente.colmena_id;
+    const fecha = body.fecha ?? existente.date;
+    const faseFinal = body.fase ?? existente.fase;
+    if (faseFinal === "alza" && colmenaId) {
+      const alerta = await computeAlertaRetiro(supabase, colmenaId, fecha);
+      if (alerta.vigente) {
+        return c.json({ code: "retiro_vigente", message: alerta.mensaje, alerta }, 409);
+      }
+    }
+
+    const update: Partial<InspeccionRowWithBitacora> = {};
+    if (body.colmena_id !== undefined) update.colmena_id = body.colmena_id;
+    if (body.fecha !== undefined) update.date = body.fecha;
+    if (body.fase !== undefined) update.fase = body.fase;
+    if (body.poblacion !== undefined) update.poblacion = body.poblacion;
+    if (body.reina !== undefined) update.reina = body.reina;
+    if (body.marcos_cria !== undefined) update.marcos_cria = body.marcos_cria;
+    if (body.marcos_miel !== undefined) update.marcos_miel = body.marcos_miel;
+    if (body.varroa !== undefined) update.varroa = body.varroa;
+    if (body.notas !== undefined) update.notes = body.notas;
+
+    const { data, error } = await supabase
+      .from("inspecciones")
+      .update(update)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) return c.json({ error: error.message }, 500);
+
+    // Reemplazo de cuadros individualizados (§1.1): delete-all + reinsert
+    if (body.cuadros !== undefined) {
+      const { error: delError } = await supabase
+        .from("inspeccion_cuadros")
+        .delete()
+        .eq("inspeccion_id", id);
+      if (delError) return c.json({ error: delError.message }, 500);
+      if (body.cuadros.length > 0) {
+        const { error: insError } = await supabase.from("inspeccion_cuadros").insert(
+          body.cuadros.map((cua) => ({
+            inspeccion_id: id,
+            posicion: cua.posicion,
+            cuerpo: cua.cuerpo,
+            tipo: cua.tipo,
+            notas: cua.notas ?? null,
+            user_id: user.id,
+          }))
+        );
+        if (insError) return c.json({ error: insError.message }, 500);
+      }
+    }
+
+    return c.json({ data });
+  }
+);
+
+/** DELETE /api/bitacora/inspecciones/:id — eliminar una hoja (cuadros en cascade). */
+bitacoraRoutes.delete(
+  "/inspecciones/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+
+    const { error } = await supabase.from("inspecciones").delete().eq("id", id);
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data: { deleted: id } });
+  }
+);
+
+/** POST /api/bitacora/varroa — registrar monitoreo de varroa (cuaderno). */
+bitacoraRoutes.post(
+  "/varroa",
+  zValidator("json", CreateVarroaSchema),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const user = c.get("user");
+    const body = c.req.valid("json");
+
+    const { data, error } = await supabase
+      .from("varroa_records")
+      .insert({
+        colmena_id: body.colmena_id,
+        date: body.date ?? hoyISO(),
+        level: body.level,
+        method: body.method ?? null,
+        user_id: user.id,
+      })
+      .select()
+      .single();
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data }, 201);
+  }
+);
+
+/** GET /api/bitacora/varroa?colmena_id= — monitoreos con nombre de colmena. */
+bitacoraRoutes.get("/varroa", async (c) => {
+  const supabase = bitacoraClient(c.get("supabase"));
+  const { colmena_id } = c.req.query();
+
+  let query = supabase.from("varroa_records").select("*").order("date", { ascending: false });
+  if (colmena_id) query = query.eq("colmena_id", colmena_id);
+
+  const { data, error } = await query;
+  if (error) return c.json({ error: error.message }, 500);
+
+  const registros = data ?? [];
+  const colmenaIds = [...new Set(registros.map((v) => v.colmena_id).filter((id): id is string => Boolean(id)))];
+  const { data: colmenas } = await supabase
+    .from("colmenas")
+    .select("id, name")
+    .in("id", colmenaIds.length > 0 ? colmenaIds : [""]);
+  const colmenaMap = new Map((colmenas ?? []).map((c) => [c.id, c.name]));
+
+  return c.json({
+    data: registros.map((v) => ({ ...v, colmena_name: v.colmena_id ? colmenaMap.get(v.colmena_id) ?? null : null })),
+  });
+});
+
+/** PATCH /api/bitacora/varroa/:id — editar monitoreo. */
+bitacoraRoutes.patch(
+  "/varroa/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  zValidator("json", UpdateVarroaSchema),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+    const body = c.req.valid("json");
+
+    const update: Partial<VarroaRow> = {};
+    if (body.date !== undefined) update.date = body.date;
+    if (body.level !== undefined) update.level = body.level;
+    if (body.method !== undefined) update.method = body.method;
+
+    const { data, error } = await supabase.from("varroa_records").update(update).eq("id", id).select().single();
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data });
+  }
+);
+
+/** DELETE /api/bitacora/varroa/:id — eliminar monitoreo. */
+bitacoraRoutes.delete(
+  "/varroa/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+
+    const { error } = await supabase.from("varroa_records").delete().eq("id", id);
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data: { deleted: id } });
+  }
+);
+
+/** PATCH /api/bitacora/tratamientos/:id — editar tratamiento fitosanitario. */
+bitacoraRoutes.patch(
+  "/tratamientos/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  zValidator("json", UpdateTratamientoSchema),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+    const body = c.req.valid("json");
+
+    const update: Partial<TratamientoRow> = {};
+    if (body.fecha !== undefined) update.fecha = body.fecha;
+    if (body.producto_comercial !== undefined) update.producto_comercial = body.producto_comercial;
+    if (body.principio_activo !== undefined) update.principio_activo = body.principio_activo;
+    if (body.dosis_recomendada !== undefined) update.dosis_recomendada = body.dosis_recomendada;
+    if (body.dosis_aplicada !== undefined) update.dosis_aplicada = body.dosis_aplicada;
+    if (body.enfermedad !== undefined) update.enfermedad = body.enfermedad;
+    if (body.via !== undefined) update.via = body.via;
+    if (body.forma !== undefined) update.forma = body.forma;
+    if (body.retiro_fin !== undefined) update.retiro_fin = body.retiro_fin;
+
+    const { data, error } = await supabase.from("tratamientos").update(update).eq("id", id).select().single();
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data });
+  }
+);
+
+/** DELETE /api/bitacora/tratamientos/:id — eliminar tratamiento. */
+bitacoraRoutes.delete(
+  "/tratamientos/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+
+    const { error } = await supabase.from("tratamientos").delete().eq("id", id);
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data: { deleted: id } });
+  }
+);
+
+/** PATCH /api/bitacora/muestras/:id — editar muestra de laboratorio. */
+bitacoraRoutes.patch(
+  "/muestras/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  zValidator("json", UpdateMuestraSchema),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+    const body = c.req.valid("json");
+
+    const update: Partial<MuestraRow> = {};
+    if (body.apiario_id !== undefined) update.apiario_id = body.apiario_id;
+    if (body.fecha !== undefined) update.fecha = body.fecha;
+    if (body.tipo !== undefined) update.tipo = body.tipo;
+    if (body.n_abejas !== undefined) update.n_abejas = body.n_abejas;
+    if (body.cuadros_muestreados !== undefined) update.cuadros_muestreados = body.cuadros_muestreados;
+    if (body.lab_nombre !== undefined) update.lab_nombre = body.lab_nombre;
+    if (body.lab_fecha !== undefined) update.lab_fecha = body.lab_fecha;
+    if (body.resultado !== undefined) update.resultado = body.resultado;
+    if (body.patogeno !== undefined) update.patogeno = body.patogeno;
+    if (body.es_contramuestra !== undefined) update.es_contramuestra = body.es_contramuestra;
+    if (body.confirmado_saneado !== undefined) update.confirmado_saneado = body.confirmado_saneado;
+
+    const { data, error } = await supabase.from("muestras").update(update).eq("id", id).select().single();
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data });
+  }
+);
+
+/** DELETE /api/bitacora/muestras/:id — eliminar muestra. */
+bitacoraRoutes.delete(
+  "/muestras/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+
+    const { error } = await supabase.from("muestras").delete().eq("id", id);
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data: { deleted: id } });
+  }
+);
+
+// ---------------------------------------------------------------------------
+// CAPA MANUAL DE LA RED (nodos/aristas libres, como los nodos manuales de RSN)
+// ---------------------------------------------------------------------------
+
+/** POST /api/bitacora/nodos — crear nodo manual (observación/decisión/tensión). */
+bitacoraRoutes.post(
+  "/nodos",
+  zValidator("json", CreateNodoManualSchema),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const user = c.get("user");
+    const body = c.req.valid("json");
+
+    const { data, error } = await supabase
+      .from("cuaderno_nodos")
+      .insert({
+        colmena_id: body.colmena_id ?? null,
+        tipo: body.tipo,
+        label: body.label,
+        descripcion: body.descripcion ?? null,
+        x: body.x ?? null,
+        y: body.y ?? null,
+        user_id: user.id,
+      })
+      .select()
+      .single();
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data }, 201);
+  }
+);
+
+/** PATCH /api/bitacora/nodos/:id — editar nodo manual (incluye posición). */
+bitacoraRoutes.patch(
+  "/nodos/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  zValidator("json", UpdateNodoManualSchema),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+    const body = c.req.valid("json");
+
+    const update: Partial<NodoManualRow> = { updated_at: new Date().toISOString() };
+    if (body.colmena_id !== undefined) update.colmena_id = body.colmena_id;
+    if (body.tipo !== undefined) update.tipo = body.tipo;
+    if (body.label !== undefined) update.label = body.label;
+    if (body.descripcion !== undefined) update.descripcion = body.descripcion;
+    if (body.x !== undefined) update.x = body.x;
+    if (body.y !== undefined) update.y = body.y;
+
+    const { data, error } = await supabase.from("cuaderno_nodos").update(update).eq("id", id).select().single();
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data });
+  }
+);
+
+/** DELETE /api/bitacora/nodos/:id — eliminar nodo manual. */
+bitacoraRoutes.delete(
+  "/nodos/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+
+    const { error } = await supabase.from("cuaderno_nodos").delete().eq("id", id);
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data: { deleted: id } });
+  }
+);
+
+/** POST /api/bitacora/aristas — conectar dos nodos (modo conectar del lienzo). */
+bitacoraRoutes.post(
+  "/aristas",
+  zValidator("json", CreateAristaSchema),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const user = c.get("user");
+    const body = c.req.valid("json");
+
+    if (body.source_id === body.target_id) {
+      return c.json({ code: "self_loop", message: "Una arista no puede conectar un nodo consigo mismo" }, 400);
+    }
+
+    const { data, error } = await supabase
+      .from("cuaderno_aristas")
+      .insert({
+        source_id: body.source_id,
+        target_id: body.target_id,
+        relacion: body.relacion,
+        label: body.label ?? null,
+        user_id: user.id,
+      })
+      .select()
+      .single();
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data }, 201);
+  }
+);
+
+/** DELETE /api/bitacora/aristas/:id — quitar conexión manual. */
+bitacoraRoutes.delete(
+  "/aristas/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+
+    const { error } = await supabase.from("cuaderno_aristas").delete().eq("id", id);
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data: { deleted: id } });
+  }
+);

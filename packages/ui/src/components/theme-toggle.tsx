@@ -22,7 +22,10 @@ export function ThemeToggle({ size = 18, className }: ThemeToggleProps) {
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
 
-  const next = CYCLE[(CYCLE.indexOf(theme) + 1) % CYCLE.length];
+  const themeIdx = CYCLE.indexOf(theme);
+  const next: Theme = CYCLE[((themeIdx < 0 ? 0 : themeIdx) + 1) % CYCLE.length] ?? 'system';
+  const currentLabel = LABELS[theme] ?? LABELS.system;
+  const nextLabel = LABELS[next] ?? LABELS.light;
 
   const icon =
     !mounted || theme === 'system' ? (
@@ -37,8 +40,8 @@ export function ThemeToggle({ size = 18, className }: ThemeToggleProps) {
     <button
       type="button"
       onClick={() => setTheme(next)}
-      aria-label={`Tema: ${mounted ? LABELS[theme] : LABELS.system}. Cambiar a ${mounted ? LABELS[next] : LABELS.light}`}
-      title={`${mounted ? LABELS[theme] : LABELS.system} — clic para ${mounted ? LABELS[next] : LABELS.light}`}
+      aria-label={`Tema: ${mounted ? currentLabel : LABELS.system}. Cambiar a ${mounted ? nextLabel : LABELS.light}`}
+      title={`${mounted ? currentLabel : LABELS.system} — clic para ${mounted ? nextLabel : LABELS.light}`}
       className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:text-accent hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${className ?? ''}`}
       suppressHydrationWarning
     >

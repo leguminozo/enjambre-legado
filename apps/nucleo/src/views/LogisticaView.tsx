@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
-import { toast, ViewLoading } from '@enjambre/ui';
+import { toast, ViewLoading, formatCLP } from '@enjambre/ui';
 import {
   EnvioComposerModal,
   type EnvioFormState,
@@ -567,7 +567,7 @@ export function LogisticaView() {
                           {v.channel ?? 'web'} · {v.metodo_pago ?? 'N/A'}
                         </div>
                         <div className="text-sm font-medium text-foreground">
-                          ${Number(v.total).toLocaleString('es-CL')}
+                          {formatCLP(Number(v.total))}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">

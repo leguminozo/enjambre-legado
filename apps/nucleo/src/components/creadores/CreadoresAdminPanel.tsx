@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { friendlyError, friendlySupabaseError, toast, ViewLoading } from '@enjambre/ui';
+import { friendlyError, friendlySupabaseError, toast, ViewLoading, formatCLP } from '@enjambre/ui';
 import {
   Sparkles, Users, TrendingUp, DollarSign, Check, X,
   Loader2, Search, Filter, Eye, Edit3, ChevronDown, ExternalLink,
@@ -256,7 +256,7 @@ export function CreadoresAdminPanel() {
         {[
           { icon: <Users size={18} />, val: creadores.length, label: 'Total Creadores', accent: '' },
           { icon: <CheckCircle2 size={18} />, val: estadoCounts['activo'] || 0, label: 'Activos', accent: 'text-success' },
-          { icon: <DollarSign size={18} />, val: `$${creadores.reduce((s, c) => s + Number(c.total_comisiones || 0), 0).toLocaleString('es-CL')}`, label: 'Comisiones Totales', accent: 'text-accent' },
+          { icon: <DollarSign size={18} />, val: formatCLP(creadores.reduce((s, c) => s + Number(c.total_comisiones || 0), 0)), label: 'Comisiones Totales', accent: 'text-accent' },
           { icon: <TrendingUp size={18} />, val: creadores.reduce((s, c) => s + (c.total_usos_codigo || 0), 0), label: 'Usos de Códigos', accent: '' },
         ].map((s, i) => (
           <div key={i} className="stat-card animate-in" style={{ animationDelay: `${i * 80}ms` }}>
@@ -367,7 +367,7 @@ export function CreadoresAdminPanel() {
                       </div>
                       <div className="flex gap-4 mt-2">
                         <span className="text-[0.6rem] text-muted-foreground">Usos: <strong>{creador.total_usos_codigo}</strong></span>
-                        <span className="text-[0.6rem] text-muted-foreground">Comisiones: <strong className="text-accent">${Number(creador.total_comisiones || 0).toLocaleString('es-CL')}</strong></span>
+                        <span className="text-[0.6rem] text-muted-foreground">Comisiones: <strong className="text-accent">{formatCLP(Number(creador.total_comisiones || 0))}</strong></span>
                       </div>
                     </div>
 
@@ -557,7 +557,7 @@ export function CreadoresAdminPanel() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-accent">${Number(r.total_comisiones || 0).toLocaleString('es-CL')}</p>
+                    <p className="text-sm font-bold text-accent">{formatCLP(Number(r.total_comisiones || 0))}</p>
                     <p className="text-[0.6rem] text-muted-foreground">{r.total_usos_codigo} usos</p>
                   </div>
                 </div>
@@ -589,7 +589,7 @@ export function CreadoresAdminPanel() {
                       <p className="font-bold text-sm text-primary">{retiro.creadores?.nombre_publico || 'Desconocido'}</p>
                       <p className="text-xs text-muted-foreground font-mono">{retiro.creadores?.codigo_ref}</p>
                       <div className="flex gap-4 mt-2">
-                        <span className="text-sm font-bold text-accent">${Number(retiro.monto_solicitado).toLocaleString('es-CL')}</span>
+                        <span className="text-sm font-bold text-accent">{formatCLP(Number(retiro.monto_solicitado))}</span>
                         <span className="text-xs text-muted-foreground">Vía: {retiro.metodo_pago}</span>
                       </div>
                       {retiro.datos_pago && (

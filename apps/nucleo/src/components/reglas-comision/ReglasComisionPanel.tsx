@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, ImmersiveModal } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, ImmersiveModal, formatCLP } from '@enjambre/ui';
 import {
   Percent, Check, Loader2, Plus, Edit3,
   Trash2, ToggleLeft, ToggleRight
@@ -342,7 +342,7 @@ export function ReglasComisionPanel() {
                 ) : (
                   Object.entries(rule.parameter).map(([key, val]) => (
                     <span key={key} className="text-[0.65rem] text-muted-foreground">
-                      {key}: <strong className="text-primary">{typeof val === 'number' ? (key.includes('rate') || key.includes('multiplier') ? (val * (key.includes('rate') ? 100 : 1)).toFixed(key.includes('rate') ? 0 : 1) + (key.includes('rate') ? '%' : '×') : val.toLocaleString('es-CL')) : String(val)}</strong>
+                      {key}: <strong className="text-primary">{typeof val === 'number' ? (key.includes('rate') || key.includes('multiplier') ? (val * (key.includes('rate') ? 100 : 1)).toFixed(key.includes('rate') ? 0 : 1) + (key.includes('rate') ? '%' : '×') : formatCLP(val)) : String(val)}</strong>
                     </span>
                   ))
                 )}

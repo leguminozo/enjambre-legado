@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Hexagon, ThermometerSun, Droplets, TreePine, CalendarDays, LineChart, Activity, Map as MapIcon, MapPin } from 'lucide-react';
+import { Hexagon, ThermometerSun, Droplets, TreePine } from 'lucide-react';
 import type { ColmenaWithRelations, InspeccionRow, VarroaRow, PesoRow } from '@/lib/apicultor-types';
 import type { Tables } from '@enjambre/database';
 import { healthFromEstado, estadoFromHealth } from '@/types/ecosystem';
 import { ViewLoading } from '@enjambre/ui';
-import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { fetchPronostico } from '@/lib/meteo';
 import { supabase } from '../lib/supabase';
@@ -20,45 +19,38 @@ import { TrazabilidadPanel } from '../components/apicultor/TrazabilidadPanel';
 import { ApiarioManager } from '../components/apicultor/ApiarioManager';
 import { HeaderEcosistema } from '../components/apicultor/HeaderEcosistema';
 import { GemeloApiario } from '../components/apicultor/GemeloApiario';
-import { TerritorioUsuarioPanel } from '../components/apicultor/TerritorioUsuarioPanel';
-import { CuadernoCampoPanel } from '../components/apicultor/CuadernoCampoPanel';
+import { CuadernoColeccion } from '../components/apicultor/cuaderno/CuadernoColeccion';
 
-type ViewTab = 'colmenas' | 'apiarios' | 'calendario' | 'trazabilidad' | 'territorio' | 'sanidad';
+type ViewTab = 'colmenas' | 'apiarios' | 'sanidad' | 'trazabilidad';
 
-/** Título y subtítulo por tab: la herramienta se nombra igual que en el sidebar */
+/** Título y subtítulo por herramienta: se nombran igual que en el sidebar */
 const VIEW_TITLES: Record<ViewTab, string> = {
   colmenas: 'Colmenas',
   apiarios: 'Apiarios',
-  sanidad: 'Cuaderno Campo',
-  calendario: 'Calendario',
+  sanidad: 'Cuaderno de Campo',
   trazabilidad: 'Trazabilidad',
-  territorio: 'Mi Territorio',
 }
 
 const VIEW_SUBTITLES: Record<ViewTab, string> = {
   colmenas: 'Monitorea tus colmenas y su desarrollo',
   apiarios: 'Organiza tus apiarios en el territorio',
   sanidad: 'Cuaderno de campo: sanidad, varroa y peso',
-  calendario: 'Agenda del ciclo: mes, día y eventos',
   trazabilidad: 'Lotes, QR y pasaporte público de tu miel',
-  territorio: 'Tu presencia en el Registro Territorial de Chiloé',
 }
 
 /**
- * Vista del apiario. Cada tab puede abrirse como ruta propia desde la sidebar
+ * Vista del apiario. Cada herramienta se abre como ruta propia desde la sidebar
  * (RECOLECCIÓN → /colmenas, /colmenas/apiarios, /colmenas/cuaderno, /colmenas/trazabilidad)
- * vía `initialView`; el tab bar permite moverse dentro del módulo sin recargar.
+ * vía `initialView`; el sidebar es la navegación del módulo (sin tab bar duplicada).
  */
 export function ApicultorView({ initialView = 'colmenas' }: { initialView?: ViewTab } = {}) {
     const apiFetch = useApiFetch();
-    const [userProfile, setUserProfile] = useState<{ full_name?: string } | null>(null);
     const [treesCount, setTreesCount] = useState<number>(0);
     const [tempPureo, setTempPureo] = useState<string>('—');
     const [localColmenas, setLocalColmenas] = useState<ColmenaWithRelations[]>([]);
     const [apiarios, setApiarios] = useState<Tables<'apiarios'>[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedColmena, setSelectedColmena] = useState<ColmenaWithRelations | null>(null);
-    const [activeView, setActiveView] = useState<ViewTab>(initialView);
 
     // Fetch data from Supabase
     useEffect(() => {
@@ -69,9 +61,6 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
                 const uid = user?.id;
 
                 if (uid) {
-                    const { data: prof } = await supabase.from('profiles').select('*').eq('id', uid).single();
-                    setUserProfile(prof);
-
                     const treesRes = await apiFetch('/api/produccion/arboles');
                     if (treesRes.ok) {
                         const treesJson = await treesRes.json();
@@ -180,9 +169,8 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
             )}
 
             <ViewShell
-                greeting={`¡Hola, ${userProfile?.full_name || 'Apicultor'}!`}
-                title={VIEW_TITLES[activeView]}
-                subtitle={VIEW_SUBTITLES[activeView]}
+                title={VIEW_TITLES[initialView]}
+                subtitle={VIEW_SUBTITLES[initialView]}
             />
 
             <div className="stats-grid">
@@ -202,66 +190,31 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
                 ))}
             </div>
 
-            <ResponsiveTabBar
-              variant="pill"
-              layoutId="apicultor-tabs"
-              className="mt-2 mb-2"
-              tabs={[
-                { id: 'colmenas', label: 'Colmenas', icon: <Activity size={16} /> },
-                { id: 'apiarios', label: 'Apiarios', icon: <MapPin size={16} /> },
-                { id: 'sanidad', label: 'Cuaderno Campo', icon: <Droplets size={16} /> },
-                { id: 'calendario', label: 'Calendario', icon: <CalendarDays size={16} /> },
-                { id: 'trazabilidad', label: 'Trazabilidad', icon: <LineChart size={16} /> },
-                { id: 'territorio', label: 'Mi Territorio', icon: <MapIcon size={16} /> },
-              ]}
-              activeId={activeView}
-              onChange={(id) => setActiveView(id as ViewTab)}
-            />
-
             <div className="dashboard-grid dashboard-grid-2-1">
-                {/* Left Column (Main Content based on tab) */}
+                {/* Left Column (Main Content based on la herramienta del sidebar) */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-                    {activeView === 'colmenas' && (
+                    {initialView === 'colmenas' && (
                         <div className="animate-in delay-2" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                             <GemeloApiario colmenas={localColmenas} apiarioName={localColmenas[0]?.apiario_name} />
                             <ApiarioManager colmenas={localColmenas} setColmenas={setLocalColmenas} apiarios={apiarios} setApiarios={setApiarios} onSelectColmena={setSelectedColmena} />
                         </div>
                     )}
 
-                    {activeView === 'apiarios' && (
+                    {initialView === 'apiarios' && (
                         <div className="animate-in delay-2">
                             <ApiarioManager colmenas={localColmenas} setColmenas={setLocalColmenas} apiarios={apiarios} setApiarios={setApiarios} onSelectColmena={setSelectedColmena} />
                         </div>
                     )}
 
-                    {activeView === 'calendario' && (
-                        <div className="animate-in delay-2 flex flex-col items-center justify-center p-12 bg-card border border-border/50 rounded-xl text-center">
-                            <CalendarDays className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
-                            <h3 className="text-xl font-display font-bold mb-2">Calendario Centralizado</h3>
-                            <p className="text-muted-foreground mb-6 max-w-md">
-                                El ciclo del bosque ahora se gestiona desde el nuevo OmniCalendar transversal.
-                            </p>
-                            <a href="/calendario?type=apicultura" className="px-6 py-2 bg-primary text-primary-foreground font-medium rounded-full hover:bg-primary/90 transition-colors">
-                                Abrir mes · Apicultura
-                            </a>
-                        </div>
-                    )}
-
-                    {activeView === 'trazabilidad' && (
+                    {initialView === 'trazabilidad' && (
                         <div className="animate-in delay-2">
                             <TrazabilidadPanel />
                         </div>
                     )}
 
-                    {activeView === 'territorio' && (
+                    {initialView === 'sanidad' && (
                         <div className="animate-in delay-2">
-                            <TerritorioUsuarioPanel />
-                        </div>
-                    )}
-
-                    {activeView === 'sanidad' && (
-                        <div className="animate-in delay-2">
-                            <CuadernoCampoPanel colmenas={localColmenas} />
+                            <CuadernoColeccion colmenas={localColmenas} />
                         </div>
                     )}
                 </div>

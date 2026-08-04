@@ -38,7 +38,6 @@ export function CatalogoView() {
         eyebrow="El Enjambre"
         title="Productos"
         subtitle="Administrá el catálogo de tu tienda con trazabilidad regenerativa"
-        greeting="Alquimista del panal"
         icon={<Package size={20} />}
         variant="compact"
         actions={

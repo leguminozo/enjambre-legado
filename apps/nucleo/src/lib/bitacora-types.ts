@@ -190,6 +190,7 @@ export type OrigenColmena = {
 // ---------------------------------------------------------------------------
 import type { Database } from "@enjambre/database/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { VarroaRow } from "@/lib/apicultor-types";
 
 type BitacoraTable<Row extends Record<string, unknown>> = {
   Row: Row;
@@ -203,7 +204,11 @@ export type InspeccionRowWithBitacora = Database['public']['Tables']['inspeccion
   fase: FaseBitacora | null;
 };
 
-export type ColmenaRowWithOrigen = Database['public']['Tables']['colmenas']['Row'] & OrigenColmena;
+export type ColmenaRowWithOrigen = Database['public']['Tables']['colmenas']['Row'] & OrigenColmena & {
+  // `estado` existe en la BD (migración 00: optima/atencion/riesgo) pero el
+  // typegen no lo incluye; el código vivo lo usa vía cast — aquí se tipa.
+  estado: string | null;
+};
 
 export type InspeccionCuadrosEnHistorial = InspeccionRowWithBitacora & {
   inspeccion_cuadros?: InspeccionCuadroRow[];
@@ -244,8 +249,123 @@ export type BitacoraDb = Omit<Database, 'public'> & {
         Update: Partial<ColmenaRowWithOrigen>;
         Relationships: [];
       };
+      // Capa manual de la red del cuaderno (migración 1010_cuaderno_crud)
+      cuaderno_nodos: BitacoraTable<NodoManualRow>;
+      cuaderno_aristas: BitacoraTable<AristaManualRow>;
     };
   };
 };
 
 export type BitacoraSupabase = SupabaseClient<BitacoraDb>;
+
+// ---------------------------------------------------------------------------
+// Cuaderno de campo v2 — red semántica (inspirada en RSN de Trama, adaptada)
+// ---------------------------------------------------------------------------
+
+/** Nodo de la red del cuaderno. Los nodos derivados se componen en el BFF
+ *  desde las tablas canónicas; los manuales viven en `cuaderno_nodos`. */
+export type NodoRedCuaderno = {
+  id: string; // UUID real de la entidad (colmena, inspección, tratamiento…)
+  kind: 'apiario' | 'colmena' | 'hoja' | 'cuadro' | 'tratamiento' | 'muestra' | 'varroa' | 'manual';
+  label: string;
+  estado?: string | null; // colmena: estado; hoja: fase; manual: tipo
+  apiario_name?: string | null;
+  fecha?: string | null;
+  colmena_id?: string | null;
+  descripcion?: string | null;
+  origen_tipo?: string | null;
+  blockchain_hash?: string | null;
+  x?: number | null;
+  y?: number | null;
+  created_at?: string | null;
+};
+
+/** Arista tipada: derivadas (contiene/registra/trata/muestra/monitorea/
+ *  deriva_de) o manuales (cuaderno_aristas). */
+export type AristaRedCuaderno = {
+  id: string;
+  source_id: string;
+  target_id: string;
+  relacion: string;
+  label?: string | null;
+};
+
+export type BrechaColmena = {
+  colmena_id: string;
+  colmena_label: string;
+  tipo: 'sin_hoja_14d' | 'sin_varroa_30d' | 'retiro_vigente';
+  detalle: string;
+};
+
+export type RedCuaderno = {
+  nodos: NodoRedCuaderno[];
+  aristas: AristaRedCuaderno[];
+  meta: {
+    conteos: Record<string, number>;
+    brechas: BrechaColmena[];
+  };
+};
+
+/** Hoja de la colección (tarjeta del cuaderno) — GET /api/bitacora/hojas */
+export type HojaCuaderno = InspeccionRowWithBitacora & {
+  colmena: {
+    id: string;
+    name: string | null;
+    apiario_id: string | null;
+    blockchain_hash: string | null;
+    origen_tipo: string | null;
+    estado: string | null;
+    alzas: number | null;
+  } | null;
+  apiario_name: string | null;
+  cuadros_count: number;
+  tratamientos_count: number;
+  brechas: string[]; // 'sin_varroa' | 'sin_cuadros' | 'sin_notas' | 'retiro_vigente'
+};
+
+export type NodoManualRow = {
+  id: string;
+  user_id: string | null;
+  colmena_id: string | null;
+  tipo: 'observacion' | 'decision' | 'tension' | 'otro';
+  label: string;
+  descripcion: string | null;
+  x: number | null;
+  y: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AristaManualRow = {
+  id: string;
+  user_id: string | null;
+  source_id: string;
+  target_id: string;
+  relacion: 'deriva_de' | 'observa' | 'tension' | 'analogia' | 'otro';
+  label: string | null;
+  created_at: string;
+};
+
+/** Detalle de una hoja para la escena — GET /api/bitacora/hojas/:id */
+export type HojaDetalle = {
+  hoja: InspeccionCuadrosEnHistorial;
+  colmena: (ColmenaRowWithOrigen & { apiario_name: string | null }) | null;
+  tratamientos: TratamientoRow[];
+  muestras: MuestraRow[];
+  varroa: VarroaRow[];
+  nodos_manuales: NodoManualRow[];
+  aristas_manuales: AristaManualRow[];
+  red: RedCuaderno;
+  alerta_retiro: AlertaRetiro;
+};
+
+/** Tratamiento con contexto de colmena (GET /tratamientos enriquecido) */
+export type TratamientoConColmena = TratamientoRow & {
+  colmena_name: string | null;
+  colmena_hash: string | null;
+};
+
+/** Muestra con contexto de apiario (GET /muestras enriquecido) */
+export type MuestraConApiario = MuestraRow & {
+  apiario_name: string | null;
+};

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@enjambre/auth';
+import { formatCLP } from '@enjambre/ui';
 import { Crown, Star, Shield, Flame } from 'lucide-react';
 
 interface TierProgress {
@@ -94,7 +95,7 @@ export function TierProgressBar({ progress }: { progress: TierProgress }) {
 function MetricRow({ label, current, target, pct, isMoney, suffix }: {
   label: string; current: number; target: number; pct: number; isMoney?: boolean; suffix?: string;
 }) {
-  const fmt = (n: number) => isMoney ? '$' + n.toLocaleString('es-CL') : n.toLocaleString('es-CL');
+  const fmt = (n: number) => isMoney ? formatCLP(n) : n.toLocaleString('es-CL');
   const done = pct >= 1;
 
   return (

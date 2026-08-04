@@ -6,7 +6,7 @@ import { TierBadge, useTierProgress } from './tier-badge';
 import { useThresholdNotification, ThresholdNotificationBanner } from './threshold-notification';
 import { Wallet, Lock, TrendingUp, ChevronRight, Zap, Crown, Radio, Banknote, CreditCard, Smartphone, Nfc, RefreshCcw, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
-import { ViewLoading } from '@enjambre/ui';
+import { ViewLoading, formatCLP } from '@enjambre/ui';
 
 export function CashSessionPanel() {
   const { session, loading, todayCommissions, todaySales, todayRevenue, nextThreshold, lastCommission, openSession, closeSession } = useCashSession();
@@ -97,8 +97,6 @@ export function CashSessionPanel() {
       </div>
     );
   }
-
-  const formatCLP = (n: number) => '$' + n.toLocaleString('es-CL');
 
   return (
     <div className="space-y-4">

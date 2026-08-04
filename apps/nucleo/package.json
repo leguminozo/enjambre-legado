@@ -28,6 +28,7 @@
     "@enjambre/fiscal": "workspace:*",
     "@enjambre/logistica": "workspace:*",
     "@enjambre/pricing": "workspace:*",
+    "@enjambre/rate-limit": "workspace:*",
     "@enjambre/resenas": "workspace:*",
     "@enjambre/sale-qr": "workspace:*",
     "@enjambre/shop-chrome": "workspace:*",
@@ -53,6 +54,7 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "clsx": "^2.1.1",
+    "cytoscape": "^3.34.0",
     "date-fns": "^3.6.0",
     "dexie": "^4.4.3",
     "dexie-react-hooks": "^4.4.0",
@@ -79,6 +81,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
+    "@types/cytoscape": "^3.31.0",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^25.9.1",
     "@types/node-forge": "^1.3.14",

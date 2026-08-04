@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { formatCLP } from '@enjambre/ui';
 
 interface ThresholdNotification {
   id: string;
@@ -98,7 +99,7 @@ export function ThresholdNotificationBanner({ notification, onDismiss }: {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-primary-foreground">{notification.message}</p>
           <p className="text-[10px] text-primary-foreground/70 mt-1">
-            ×{notification.multiplier.toFixed(1)} multiplicador · ${notification.current.toLocaleString('es-CL')} / ${notification.threshold.toLocaleString('es-CL')}
+            ×{notification.multiplier.toFixed(1)} multiplicador · {formatCLP(notification.current)} / {formatCLP(notification.threshold)}
           </p>
           {!isCrossed && (
             <div className="mt-2 h-1.5 bg-primary-foreground/20 rounded-full overflow-hidden">

@@ -1,7 +1,6 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { LazyProductosCatalogoView } from '@/lib/navigation/lazy-views';
-
+/** Compatibilidad: la gestión de productos vive en /catalogo (vista única). */
 export default function ProductosPage() {
-  return <LazyProductosCatalogoView />;
+  redirect('/catalogo');
 }

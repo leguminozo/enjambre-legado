@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { Trophy, Medal, Crown, TrendingUp } from 'lucide-react';
 import { TierBadge } from './tier-badge';
-import { ViewLoading } from '@enjambre/ui';
+import { ViewLoading, formatCLP } from '@enjambre/ui';
 
 interface LeaderboardEntry {
   rank: number;
@@ -43,8 +43,6 @@ export function LeaderboardPanel() {
   }, []);
 
   useEffect(() => { fetchLeaderboard(); }, [fetchLeaderboard]);
-
-  const formatCLP = (n: number) => '$' + Math.abs(n).toLocaleString('es-CL');
 
   if (loading) {
     return <ViewLoading variant="view" label="Ranking" hideLabel />;
@@ -86,8 +84,8 @@ export function LeaderboardPanel() {
                 <RankIcon className={`w-6 h-6 mx-auto mb-2 ${iconColors[i] || iconColors[2]}`} />
                 <p className="text-sm font-bold text-foreground truncate">{entry.display_name}</p>
                 <TierBadge tier={entry.commission_tier} />
-                <p className="text-lg font-bold text-primary mt-2">{formatCLP(Number(entry.total_commissions))}</p>
-                <p className="text-[9px] text-muted-foreground uppercase tracking-widest">{entry.total_sales} ventas · {formatCLP(Number(entry.total_revenue))}</p>
+                <p className="text-lg font-bold text-primary mt-2">{formatCLP(Math.abs(Number(entry.total_commissions)))}</p>
+                <p className="text-[9px] text-muted-foreground uppercase tracking-widest">{entry.total_sales} ventas · {formatCLP(Math.abs(Number(entry.total_revenue)))}</p>
               </div>
             );
           })}
@@ -103,7 +101,7 @@ export function LeaderboardPanel() {
                 <p className="text-sm font-medium text-foreground truncate">{entry.display_name}</p>
               </div>
               <TierBadge tier={entry.commission_tier} />
-              <p className="text-sm font-bold text-primary">{formatCLP(Number(entry.total_commissions))}</p>
+              <p className="text-sm font-bold text-primary">{formatCLP(Math.abs(Number(entry.total_commissions)))}</p>
             </div>
           ))}
         </div>

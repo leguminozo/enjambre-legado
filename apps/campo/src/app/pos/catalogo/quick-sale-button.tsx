@@ -6,7 +6,7 @@ import { useCashSession } from '@/components/pos/cash-context';
 import { useSumUp } from '@/components/pos/sumup-context';
 import { SumupTerminalFlow } from '@/components/pos/sumup-terminal-flow';
 import type { PaymentMethod, TerminalFlowResult } from '@/components/pos/types';
-import { HexagonLoader } from '@enjambre/ui';
+import { HexagonLoader, formatCLP } from '@enjambre/ui';
 import { Plus, Zap, Banknote, CreditCard, Smartphone, CheckCircle2, Store, Truck, Building2, Users, Crown, Radio, Nfc } from 'lucide-react';
 
 interface Props {
@@ -142,7 +142,6 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
   }
 
   if (step === 'done') {
-    const fmtCLP = (n: number) => '$' + n.toLocaleString('es-CL');
     const hasExtras = lastCommissionDetail && (
       lastCommissionDetail.volume_multiplier > 1 ||
       lastCommissionDetail.loyalty_bonus > 0 ||
@@ -158,7 +157,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-success" />
             <span className="text-sm font-bold text-success">
-              +{lastCommission !== null ? fmtCLP(lastCommission) : 'Vendido'}
+              +{lastCommission !== null ? formatCLP(lastCommission) : 'Vendido'}
             </span>
           </div>
           <p className="text-[10px] text-success/80 font-medium uppercase tracking-tighter">
@@ -202,18 +201,18 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
             {lastCommissionDetail.loyalty_bonus > 0 && (
               <div className="flex items-center justify-between text-[10px]">
                 <span className="text-purple-400">Fidelizacion</span>
-                <span className="text-muted-foreground">+{fmtCLP(lastCommissionDetail.loyalty_bonus)}</span>
+                <span className="text-muted-foreground">+{formatCLP(lastCommissionDetail.loyalty_bonus)}</span>
               </div>
             )}
             {lastCommissionDetail.streak_bonus > 0 && (
               <div className="flex items-center justify-between text-[10px]">
                 <span className="text-accent">Racha</span>
-                <span className="text-muted-foreground">+{fmtCLP(lastCommissionDetail.streak_bonus)}</span>
+                <span className="text-muted-foreground">+{formatCLP(lastCommissionDetail.streak_bonus)}</span>
               </div>
             )}
             <div className="flex items-center justify-between text-[10px] border-t border-border pt-1.5">
               <span className="text-foreground font-bold">Comision total</span>
-              <span className="text-primary font-bold">{fmtCLP(lastCommissionDetail.total)}</span>
+              <span className="text-primary font-bold">{formatCLP(lastCommissionDetail.total)}</span>
             </div>
           </div>
         )}
@@ -239,7 +238,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     return (
       <div className="mt-4 space-y-2">
         <p className="text-[10px] uppercase text-muted-foreground tracking-widest text-center">
-          {qty}x {nombre} · ${' '}{(precio * qty).toLocaleString('es-CL')}
+          {qty}x {nombre} · {formatCLP(precio * qty)}
         </p>
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {channels.map((ch) => (
@@ -270,7 +269,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     return (
       <div className="mt-4 space-y-2">
         <p className="text-[10px] uppercase text-muted-foreground tracking-widest text-center">
-          {qty}x {nombre} · ${' '}{(precio * qty).toLocaleString('es-CL')}
+          {qty}x {nombre} · {formatCLP(precio * qty)}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {paymentMethods.map((pm) => (
@@ -325,7 +324,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
           </button>
         </div>
         <p className="text-center text-xs text-muted-foreground">
-          Total: <strong className="text-foreground">${(precio * qty).toLocaleString('es-CL')}</strong>
+          Total: <strong className="text-foreground">{formatCLP(precio * qty)}</strong>
         </p>
         <button
           type="button"

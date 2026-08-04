@@ -2,6 +2,7 @@ import React from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from "recharts";
 import { ChartBox } from "@/components/charts/ChartBox";
 import { MessageSquare } from "lucide-react";
+import { formatCLP } from "@enjambre/ui";
 import { BOSQUE_ULMO, ORO_MIEL } from "@/lib/colors";
 import {
   CRMDashboard,
@@ -70,11 +71,11 @@ export function OverviewTab({ dashboard }: OverviewTabProps) {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-sm font-bold text-foreground">
-                      ${Number(rep.total_revenue).toLocaleString("es-CL")}
+                      {formatCLP(Number(rep.total_revenue))}
                     </div>
                     {rep.commission_balance > 0 && (
                       <div className="text-xs text-accent">
-                        ${Number(rep.commission_balance).toLocaleString("es-CL")} pend.
+                        {formatCLP(Number(rep.commission_balance))} pend.
                       </div>
                     )}
                   </div>

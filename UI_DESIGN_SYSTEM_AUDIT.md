@@ -61,7 +61,7 @@ The `@enjambre/ui` package provides a **strong semantic token foundation** (HSL-
 | Tienda | `shop/mi-legado-client.tsx` | Bee flight path |
 | Tienda | `shop/page-transition.tsx` | Route transition |
 | Tienda | `shop/custom-cursor.tsx` | Cursor follower |
-| Nucleo | `enjambre/EcosistemaDashboard.tsx` | Bento grid stagger |
+| Nucleo | ~~`enjambre/EcosistemaDashboard`~~ unificado en `/inicio` (`DashboardEjecutivo`) | — |
 | Nucleo | `auth/AuthHero.tsx` | Hero entrance |
 
 ### Gaps
@@ -124,8 +124,8 @@ The `@enjambre/ui` package provides a **strong semantic token foundation** (HSL-
 | `NotificationBell` | ✅ | Tienda (shop-header), Nucleo (dashboard-layout) | Dropdown notifications |
 | `ThemeProvider` / `ThemeToggle` | ✅ | All 3 apps | |
 | `Dialog` (Radix) | ✅ | ❌ **Unused** — Tienda uses `TiendaModal`, Nucleo uses `ImmersiveModal` | |
-| `BentoGrid` | ✅ | Nucleo (EcosistemaDashboard) | |
-| `CinematicCard` | ✅ | Nucleo (EcosistemaDashboard) | |
+| `BentoGrid` | ✅ | packages/ui (disponible; Inicio admin usa grid KPI propio) | |
+| `CinematicCard` | ✅ | packages/ui / tienda landing | |
 | `PredictivePill` | ✅ | ❌ **Unused** | |
 | `Calendar` / `DatePicker` | ✅ | Nucleo (PipelineView, OperadoresFeria, etc.) | |
 | `QRCode` | ✅ | Tienda (producto, checkout) | |

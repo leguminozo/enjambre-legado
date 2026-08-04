@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker, formatCLP } from '@enjambre/ui';
 import {
   Calendar, Package, ClipboardCheck, FileText, Loader2,
   Plus, Check, X, Users, Wallet, AlertTriangle,
@@ -763,7 +763,7 @@ export function OperadoresFeriaPanel() {
             <div key={a.id} className="p-4 rounded-xl border border-border text-sm">
               <p className="font-medium">{a.participante_evento?.nombre_evento}</p>
               <p className="text-xs mt-1">
-                Stock Δ {a.diferencia_stock} · Efectivo Δ ${Number(a.diferencia_efectivo).toLocaleString('es-CL')}
+                Stock Δ {a.diferencia_stock} · Efectivo Δ {formatCLP(Number(a.diferencia_efectivo))}
               </p>
               {a.cerrado_at && (
                 <p className="text-[0.65rem] text-muted-foreground mt-1">
@@ -812,7 +812,7 @@ export function OperadoresFeriaPanel() {
                   <tr key={`${row.origen_tabla}-${row.id}`}>
                     <td>{new Date(row.created_at).toLocaleDateString('es-CL')}</td>
                     <td>{row.tipo}</td>
-                    <td>${Number(row.monto).toLocaleString('es-CL')}</td>
+                    <td>{formatCLP(Number(row.monto))}</td>
                     <td>{row.estado}</td>
                     <td className="text-xs">{row.origen_tabla}</td>
                   </tr>
@@ -854,7 +854,7 @@ export function OperadoresFeriaPanel() {
                           <td>{new Date(row.created_at).toLocaleDateString('es-CL')}</td>
                           <td className="text-xs">{operadorDisplayName(row.user_id)}</td>
                           <td>{row.tipo}</td>
-                          <td>${Number(row.monto).toLocaleString('es-CL')}</td>
+                          <td>{formatCLP(Number(row.monto))}</td>
                           <td>{row.estado}</td>
                           <td className="text-xs">{bridged ? 'En honorarios' : '—'}</td>
                           <td className="space-x-1 whitespace-nowrap">
@@ -1067,7 +1067,7 @@ export function OperadoresFeriaPanel() {
         {honorarioModal && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Monto: <span className="font-medium text-foreground">${honorarioModal.monto.toLocaleString('es-CL')}</span>
+              Monto: <span className="font-medium text-foreground">{formatCLP(Number(honorarioModal.monto))}</span>
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>

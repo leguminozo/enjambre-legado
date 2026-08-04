@@ -13,13 +13,27 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   BarChart, Bar, PieChart, Pie, Cell,
 } from 'recharts'
+import Link from 'next/link'
 import { ChartBox } from '@/components/charts/ChartBox'
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors'
 import { useApiFetch } from '@/hooks/use-api-fetch'
 import { KpiCard } from '@/components/shared/KpiCard'
 import { ViewShell } from '@/components/layout/ViewShell'
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar'
-import { QuickActionAddStock } from '@/components/enjambre/QuickActionAddStock'
+import { QuickActionAddStock } from '@/components/gerente/QuickActionAddStock'
+import { useAuthStore } from '@enjambre/auth'
+
+/** Atajos operativos que el viejo Alma ofrecía como bento (sin duplicar KPIs). */
+const INICIO_OPS: { href: string; label: string }[] = [
+  { href: '/pipeline', label: 'Pipeline' },
+  { href: '/monitor-feria', label: 'Feria' },
+  { href: '/colmenas', label: 'Colmenas' },
+  { href: '/produccion', label: 'Producción' },
+  { href: '/catalogo', label: 'Catálogo' },
+  { href: '/regeneracion', label: 'Bosque' },
+  { href: '/operadores-feria', label: 'Operadores' },
+  { href: '/sii', label: 'SII' },
+]
 
 type TimeRange = 'month' | 'quarter' | 'ytd'
 
@@ -164,6 +178,7 @@ const RANGE_OPTIONS: { key: TimeRange; label: string }[] = [
 export function DashboardEjecutivo() {
   const [range, setRange] = useState<TimeRange>('ytd')
   const apiFetch = useApiFetch()
+  const fullName = useAuthStore((s) => s.user?.full_name)
 
   const { data, isLoading, isFetching, error } = useQuery<EjecutivoData>({
     queryKey: ['dashboard-ejecutivo', range],
@@ -222,15 +237,33 @@ export function DashboardEjecutivo() {
       {isFetching && data ? <LoadingOverlay /> : null}
       <ViewShell
         variant="compact"
-        eyebrow="Gerencia"
-        title="Panel Ejecutivo"
+        eyebrow="Visión"
+        greeting={`¡Hola, ${fullName || 'Comandante'}!`}
+        title="Inicio"
         subtitle={rangeSubtitle}
         icon={<BarChart3 size={20} />}
       />
 
+      {/* Única franja de atajos: lo único del Alma que no era KPI duplicado */}
+      <div className="flex flex-wrap items-center gap-2">
+        {INICIO_OPS.map((op) => (
+          <Link
+            key={op.href}
+            href={op.href}
+            className="inline-flex min-h-11 items-center gap-1 rounded-full border border-border bg-card px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
+          >
+            {op.label}
+            <ArrowUpRight size={12} />
+          </Link>
+        ))}
+        <div className="ml-auto">
+          <QuickActionAddStock />
+        </div>
+      </div>
+
       <ResponsiveTabBar
         variant="pill"
-        layoutId="ejecutivo-range"
+        layoutId="inicio-range"
         tabs={RANGE_OPTIONS.map((opt) => ({ id: opt.key, label: opt.label }))}
         activeId={range}
         onChange={(id) => setRange(id as TimeRange)}
@@ -401,8 +434,16 @@ export function DashboardEjecutivo() {
 
         <div className="flex flex-col gap-6">
           <div className="card animate-in delay-4 flex-1">
-            <div className="section-title text-base mb-4 flex items-center gap-2">
-              <Hexagon size={18} className="text-accent" /> Estado Colmenas
+            <div className="section-title text-base mb-4 flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-2">
+                <Hexagon size={18} className="text-accent" /> Estado Colmenas
+              </span>
+              <Link
+                href="/colmenas"
+                className="inline-flex min-h-11 items-center gap-1 text-xs font-medium text-muted-foreground hover:text-accent"
+              >
+                Abrir <ArrowUpRight size={12} />
+              </Link>
             </div>
             {healthData.length > 0 ? (
               <div className="flex items-center gap-6">
@@ -436,8 +477,16 @@ export function DashboardEjecutivo() {
           </div>
 
           <div className="card animate-in delay-5 flex-1">
-            <div className="section-title text-base mb-4 flex items-center gap-2">
-              <TreePine size={18} className="text-success" /> Bosque
+            <div className="section-title text-base mb-4 flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-2">
+                <TreePine size={18} className="text-success" /> Bosque
+              </span>
+              <Link
+                href="/regeneracion"
+                className="inline-flex min-h-11 items-center gap-1 text-xs font-medium text-muted-foreground hover:text-accent"
+              >
+                Abrir <ArrowUpRight size={12} />
+              </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="p-4 rounded-sm bg-success/[0.08] text-center">
@@ -611,7 +660,12 @@ export function DashboardEjecutivo() {
               <div className="section-title text-base flex items-center gap-2">
                 <PackageX size={18} className="text-warning" /> Stock Bajo
               </div>
-              <QuickActionAddStock />
+              <Link
+                href="/catalogo"
+                className="inline-flex min-h-11 items-center gap-1 text-xs font-medium text-muted-foreground hover:text-accent"
+              >
+                Catálogo <ArrowUpRight size={12} />
+              </Link>
             </div>
             {stock.lowStock.slice(0, 4).map((p) => (
               <div key={p.id} className="flex items-center justify-between py-1.5 border-b border-border/30">

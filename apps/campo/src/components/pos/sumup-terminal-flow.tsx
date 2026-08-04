@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useSumUp } from './sumup-context';
 import { ReaderSelector } from './reader-selector';
 import type { SumUpReader, TerminalFlowResult } from './types';
-import { HexagonLoader } from '@enjambre/ui';
+import { HexagonLoader, formatCLP } from '@enjambre/ui';
 import { CheckCircle2, XCircle, Clock, Smartphone, Wifi } from 'lucide-react';
 
 interface Props {
@@ -122,8 +122,6 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
     onCancel();
   }, [cleanupPolling, activeReaderId, cancelReaderCheckout, setTerminalStep, onCancel]);
 
-  const fmtCLP = (n: number) => '$' + n.toLocaleString('es-CL');
-
   if (terminalStep === 'idle' || terminalStep === 'selecting_reader') {
     return (
       <div className="space-y-4">
@@ -134,7 +132,7 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
           </p>
         </div>
         <p className="text-center text-xs text-muted-foreground">
-          Monto: <strong className="text-foreground">{fmtCLP(amount)}</strong>
+          Monto: <strong className="text-foreground">{formatCLP(amount)}</strong>
         </p>
         <ReaderSelector onSelect={handleSelectReader} selectedReaderId={activeReaderId} />
         <button
@@ -159,7 +157,7 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
           Enviando al terminal...
         </p>
         <p className="text-xs text-muted-foreground">
-          {selectedReaderRef.current?.name ?? 'Terminal'} · {fmtCLP(amount)}
+          {selectedReaderRef.current?.name ?? 'Terminal'} · {formatCLP(amount)}
         </p>
         <HexagonLoader size="sm" />
       </div>
@@ -178,7 +176,7 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
         <p className="text-xs text-muted-foreground text-center">
           Presenta o inserta la tarjeta en el terminal
         </p>
-        <p className="text-2xl font-mono font-bold text-primary">{fmtCLP(amount)}</p>
+        <p className="text-2xl font-mono font-bold text-primary">{formatCLP(amount)}</p>
         <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
           <HexagonLoader size="sm" />
           Verificando...

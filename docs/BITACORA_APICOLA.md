@@ -424,11 +424,41 @@ de origen en la misma fila; `origen_colmena_madre` encadena el linaje hacia atr�
       colmena/fase, confirmar → `POST /capturas/:id/confirmar` (materializa inspección + cuadros + reina)
 - [x] Alerta de período de retiro (§2.3) en BFF (409 `retiro_vigente` en fase alza) + badge en el cuaderno
 
+### Sprint D — Cuaderno de campo v2: colección + escena + red semántica ✅ COMPLETADO
+
+Workflow inspirado en la herramienta **RSN (Redes Semánticas Naturales) de Trama** (proyecto local `~/Desktop/Antropoyo/trama`), **adaptado 100% al dominio apícola** — no es una copia: el lienzo es un espejo de los registros canónicos y los formularios son específicos (fases, cuadros C/L/E/V/M, retiro, patógeno).
+
+- [x] Migración `1010_cuaderno_crud.sql` — **auditoría RLS completa** (565 políticas): relaja a dueño las
+      políticas delete solo-gerente de la migración 40 (`colmenas_delete`, `inspecciones_delete`,
+      `varroa_records_delete`, `peso_records_delete`) + `"actores_own_delete"` en `actores_registro`;
+      documenta lo que se mantiene y por qué (ledgers inmutables, cosechas/lotes anclados, empresa/sistema).
+      Crea la capa manual de la red: `cuaderno_nodos` (observacion/decision/tension/otro, x/y) y
+      `cuaderno_aristas` (deriva_de/observa/tension/analogia/otro), RLS dueño o gerente.
+- [x] BFF (endpoints nuevos en `bitacora.ts`, admin-only por `requireProfileRole`):
+      `GET /hojas` (colección con colmena/apiario, conteos y **brechas**), `GET /hojas/:id` (escena:
+      detalle + red local), `GET /red` (red global + brechas por colmena: sin_hoja_14d, sin_varroa_30d,
+      retiro_vigente), `PATCH/DELETE /inspecciones/:id` (guard 409 retiro, reemplazo de cuadros),
+      CRUD `/varroa`, `PATCH/DELETE /tratamientos/:id` y `/muestras/:id`, `POST/PATCH/DELETE /nodos`,
+      `POST/DELETE /aristas`. GETs de tratamientos/muestras enriquecidos con colmena/apiario + hash.
+- [x] **Colección** (`/colmenas/cuaderno`, `CuadernoColeccion`): header con descripción funcional,
+      toggle Hojas|Red, "Nueva hoja" con **plantillas** (visita, monitoreo varroa, alzas, cosecha,
+      traspaso, invernada), filtros fase/colmena/búsqueda, tarjetas de hoja (estilo StudyCard) con
+      métricas y chips de brecha, HUD de métricas, captura por voz + curaduría.
+- [x] **Escena de hoja** (`/colmenas/cuaderno/[id]`, `EscenaHoja`): header compacto + HUD, rail de campo
+      (nueva hoja/varroa/tratamiento/muestra/nodo/conectar), **lienzo semántico Cytoscape** (`LienzoSemantico`,
+      layouts radial|cose|grid, nodos por categoría con color token, aristas tipadas, halo de brechas,
+      drag persiste nodos manuales), `PanelDetalleNodo` (overlay derecho con **Orígenes y anclaje**:
+      registro de origen, fase, linaje, `blockchain_hash` con copiar, autor), dock flotante (Red|Hojas,
+      layouts, análisis, conectar, nodo), `AnalisisSheet` (Hoja/Varroa/Tratamientos/Muestras/Trazabilidad).
+- [x] "**Lo que no se dice también es información**": brechas como dato de primera clase (chips en
+      tarjetas, halos en el lienzo, chip en el HUD, tab Brechas en el sheet).
+- [x] `ColmenaBitacoraTab` reutiliza `HojaForm` (misma fuente de verdad para crear/editar hojas).
+
 ### Pendiente (fuera de esta iteración)
 
 - [ ] Transcripción audio→texto (servicio externo, SOLO server-side) — no existe nada reutilizable localmente
 - [ ] `pnpm db:typegen` + `supabase db push` cuando haya proyecto linkeado (aquí no hay token)
-- [ ] Aplicar migraciones 1006-1009 a la BD real
+- [ ] Aplicar migraciones 1006-1010 a la BD real
 
 ---
 

@@ -15,7 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast, ImmersiveModal, DatePicker } from '@enjambre/ui';
+import { toast, ImmersiveModal, DatePicker, formatCLP } from '@enjambre/ui';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ToolActionRail } from '@/components/layout/ToolActionRail';
@@ -269,7 +269,7 @@ export function PipelineView() {
         <div className="stats-grid">
           {[
             { icon: <Users size={20} />, val: String(stats.totalLeads), label: 'Total Leads' },
-            { icon: <Target size={20} />, val: `$${stats.valorTotalPipeline.toLocaleString('es-CL')}`, label: 'Valor Pipeline' },
+            { icon: <Target size={20} />, val: formatCLP(stats.valorTotalPipeline), label: 'Valor Pipeline' },
             { icon: <Clock size={20} />, val: String(stats.tareasVencidas), label: 'Tareas Vencidas', accent: stats.tareasVencidas > 0 },
             { icon: <CheckCircle2 size={20} />, val: String(stats.tareasPendientes), label: 'Tareas Pendientes' },
           ].map((s, i) => (
@@ -354,7 +354,7 @@ export function PipelineView() {
                                     )}
                                     <div className="flex items-center justify-between mt-3">
                                       <div className="text-xs font-semibold text-accent">
-                                        {lead.valor_estimado != null ? `$${lead.valor_estimado.toLocaleString('es-CL')}` : '--'}
+                                        {lead.valor_estimado != null ? formatCLP(lead.valor_estimado) : '--'}
                                       </div>
                                     </div>
                                   </div>

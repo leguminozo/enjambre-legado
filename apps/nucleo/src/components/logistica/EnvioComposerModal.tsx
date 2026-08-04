@@ -16,7 +16,7 @@ import {
   DEFAULT_COURIER,
   type CourierCode,
 } from '@enjambre/logistica';
-import { ImmersiveModal, ViewLoading, DatePicker } from '@enjambre/ui';
+import { ImmersiveModal, ViewLoading, DatePicker, formatCLP } from '@enjambre/ui';
 import dynamic from 'next/dynamic';
 import type { EnvioMapPoint } from './MapaEnviosHistorico';
 
@@ -367,7 +367,7 @@ export function EnvioComposerModal({
                           : 'border-border hover:border-accent/40'
                       }`}
                     >
-                      ${Number(v.total).toLocaleString('es-CL')}
+                      {formatCLP(Number(v.total))}
                     </button>
                   ))}
                 </div>

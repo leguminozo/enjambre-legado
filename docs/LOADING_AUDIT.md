@@ -230,7 +230,7 @@ Documentado junto a esta auditoría por coherencia operativa:
 |------|-------|
 | `/perfil/creador` | `creador_required` |
 | `/perfil/mayorista` | `aliado_activo_required` |
-| `/perfil/*` staff admin | `nucleo_staff_redirect` → `{NUCLEO}/ejecutivo` |
+| `/perfil/*` staff admin | `nucleo_staff_redirect` → `{NUCLEO}/inicio` |
 | Contrato | `apps/tienda/lib/shop/store-routes.ts` |
 
 ---

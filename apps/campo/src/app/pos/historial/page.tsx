@@ -6,7 +6,7 @@ import { useCashSession } from '@/components/pos/cash-context';
 import { TierBadge, TierProgressBar, useTierProgress } from '@/components/pos/tier-badge';
 import { LeaderboardPanel } from '@/components/pos/leaderboard-panel';
 import { TrendingUp, Calendar, DollarSign, Zap, BarChart3, Clock } from 'lucide-react';
-import { useClientViewLoading, ViewLoading } from '@enjambre/ui';
+import { useClientViewLoading, ViewLoading, formatCLP } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 
 type DailyEntry = { date: string; revenue: number; commissions: number; sales: number };
@@ -54,8 +54,6 @@ export default function HistorialPage() {
   }, [range]);
 
   useEffect(() => { fetchHistory(); }, [fetchHistory]);
-
-  const formatCLP = (n: number) => '$' + Math.abs(n).toLocaleString('es-CL');
 
   const showLoading = useClientViewLoading(loading);
 
@@ -109,12 +107,12 @@ export default function HistorialPage() {
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <div className="card-glow p-4 text-center">
         <DollarSign className="w-4 h-4 text-primary mx-auto mb-2" />
-        <p className="text-lg font-bold text-primary">{formatCLP(data.summary.total_pending)}</p>
+        <p className="text-lg font-bold text-primary">{formatCLP(Math.abs(data.summary.total_pending))}</p>
         <p className="text-[9px] uppercase text-muted-foreground tracking-widest">Pendiente</p>
       </div>
       <div className="card-glow p-4 text-center">
         <TrendingUp className="w-4 h-4 text-success mx-auto mb-2" />
-        <p className="text-lg font-bold text-foreground">{formatCLP(Number(profile.total_revenue_lifetime))}</p>
+        <p className="text-lg font-bold text-foreground">{formatCLP(Math.abs(Number(profile.total_revenue_lifetime)))}</p>
         <p className="text-[9px] uppercase text-muted-foreground tracking-widest">Lifetime</p>
       </div>
       <div className="card-glow p-4 text-center">
@@ -163,7 +161,7 @@ export default function HistorialPage() {
       <div className="flex-1 h-6 bg-card rounded-lg overflow-hidden relative">
         <div className="h-full bg-gradient-to-r from-primary/40 to-primary rounded-lg transition-all" style={{ width: `${widthPct}%` }} />
         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-foreground font-bold">
-          {formatCLP(d.commissions)}
+          {formatCLP(Math.abs(d.commissions))}
         </span>
       </div>
       <span className="text-[10px] text-muted-foreground w-8 text-right">{d.sales}</span>
@@ -182,9 +180,9 @@ export default function HistorialPage() {
           ) : data.commissions.map(c => (
             <div key={c.id} className="card-glow p-4 flex items-center justify-between">
               <div>
-        <p className="text-sm font-bold text-foreground">{formatCLP(Number(c.total_commission))}</p>
+        <p className="text-sm font-bold text-foreground">{formatCLP(Math.abs(Number(c.total_commission)))}</p>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-[9px] text-muted-foreground">Base: {formatCLP(Number(c.base_commission))}</span>
+          <span className="text-[9px] text-muted-foreground">Base: {formatCLP(Math.abs(Number(c.base_commission)))}</span>
         {Number(c.volume_multiplier) > 1 && <span className="text-[9px] text-warning">×{Number(c.volume_multiplier).toFixed(1)}</span>}
         {Number(c.loyalty_bonus) > 0 && <span className="text-[9px] text-success">+loyalty</span>}
         {Number(c.streak_bonus) > 0 && <span className="text-[9px] text-info">+streak</span>}
@@ -218,10 +216,10 @@ export default function HistorialPage() {
           {new Date(s.opened_at).toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' })}
         </p>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-[9px] text-muted-foreground">Base: {formatCLP(s.opening_cash)}</span>
+          <span className="text-[9px] text-muted-foreground">Base: {formatCLP(Math.abs(s.opening_cash))}</span>
                   {s.cash_difference !== null && (
                     <span className={`text-[9px] font-bold ${Number(s.cash_difference) === 0 ? 'text-success' : 'text-destructive'}`}>
-                      Δ {Number(s.cash_difference) >= 0 ? '+' : '-'}{formatCLP(Number(s.cash_difference))}
+                      Δ {Number(s.cash_difference) >= 0 ? '+' : '-'}{formatCLP(Math.abs(Number(s.cash_difference)))}
                     </span>
                   )}
                 </div>

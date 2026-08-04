@@ -289,7 +289,7 @@ Prod verificada: `tienda-eta-lime.vercel.app`, `campo-olive.vercel.app`, `nucleo
 | `/eirl` | admin | EIRL views | Contabilidad EIRL (absorbido de apps/eirl) |
 | `/catalogo`, `/catalogo/productos` | admin | — | Catálogo y gestión de productos |
 | `/crm` | admin | CRMView | CRM de Representantes de Venta (rep_ventas) |
-| `/ejecutivo` | admin | — | Dashboard ejecutivo |
+| `/inicio` | admin, territorial | — | Home unificado: admin→DashboardEjecutivo; territorial→InicioTerritorial. `/ejecutivo` y `/alma` redirigen aquí |
 | `/comunidad` | admin | — | Gestión de comunidad |
 | `/operaciones` | admin | — | Operaciones logísticas |
 | `/conciliacion` | admin | — | Conciliación bancaria |
@@ -344,7 +344,7 @@ Prod verificada: `tienda-eta-lime.vercel.app`, `campo-olive.vercel.app`, `nucleo
 | `/api/rep-ventas` | `rep-ventas.ts` | Venta rápida (4 toques), estado comisiones, historial (week/month/quarter), tier-progress, leaderboard |
 | `/api/invitations` | `invitations.ts` | Canje público + admin CRUD invitaciones, reps, pagos |
 | `/api/commission-rules` | `commission-rules.ts` | CRUD reglas comisión (6 tipos) + dashboard |
-| `/api/dashboard/resumen` | `dashboard-resumen.ts` | Dashboard gerencial: 17 queries paralelas (colmenas, apiarios, cosechas, ventas, caja, comisiones, leaderboard) |
+| ~~`/api/dashboard/resumen`~~ | eliminado | Unificado en `/api/dashboard/ejecutivo` (Inicio admin) |
 | `/api/security-events` | `security-events.ts` | Logging de eventos de seguridad: `POST /` (auth Bearer) + `POST /internal` (x-internal-key) |
 | `/api/contable/*` | `contable.ts` | Dashboard, facturas emitidas |
 | `/api/banco-chile/*` | `banco-chile/` | Config, cuentas, movimientos, conciliacion, transferencias, nominas, documentos, cotizaciones, rentas, montos, webhook |

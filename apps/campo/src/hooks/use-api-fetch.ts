@@ -8,9 +8,12 @@ export function useApiFetch() {
   const session = useAuthStore((s) => s.session)
 
   return useCallback(async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
-    // getUser() validates JWT with Supabase Auth server
+    // getUser() validates JWT with Supabase Auth server (and refreshes if expired).
     const { data: { user } } = await supabase.auth.getUser()
-    const currentSession = session ?? (await supabase.auth.getSession())?.data?.session ?? null
+    // After getUser(), getSession() returns the already-refreshed session (local, no network).
+    // Preferring it over the store snapshot avoids sending an expired Bearer (401 in BFF).
+    const { data } = await supabase.auth.getSession()
+    const currentSession = data.session ?? session
     const token = currentSession?.access_token ?? ''
     const empresaId = user?.app_metadata?.empresa_id ?? ''
 

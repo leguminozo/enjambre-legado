@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Calendar, ExternalLink } from "lucide-react";
+import { formatCLP } from "@enjambre/ui";
 import { CRMDashboard } from "../types";
 
 interface FeriasTabProps {
@@ -70,7 +71,7 @@ export function FeriasTab({ dashboard }: FeriasTabProps) {
                           <span className="text-muted-foreground text-[11px]">({a.rol_evento})</span>
                           {a.meta_ventas > 0 && (
                             <span className="text-accent font-mono text-[11px] ml-auto">
-                              Meta: ${Number(a.meta_ventas).toLocaleString("es-CL")}
+                              Meta: {formatCLP(Number(a.meta_ventas))}
                             </span>
                           )}
                         </div>

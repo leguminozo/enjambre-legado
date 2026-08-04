@@ -1,3 +1,7 @@
+import { formatCLP } from "@enjambre/ui";
+
+export { formatCLP };
+
 export function formatDate(iso: string, options?: Intl.DateTimeFormatOptions): string {
   const defaultOptions: Intl.DateTimeFormatOptions = {
     day: '2-digit',
@@ -7,10 +11,8 @@ export function formatDate(iso: string, options?: Intl.DateTimeFormatOptions): s
   return new Date(iso).toLocaleDateString('es-CL', options ?? defaultOptions);
 }
 
+// Formateo canónico único: @enjambre/ui (formatCLP). Este alias histórico
+// evita duplicar Intl es-CL/CLP en cada vista.
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    minimumFractionDigits: 0,
-  }).format(amount);
+  return formatCLP(amount);
 }

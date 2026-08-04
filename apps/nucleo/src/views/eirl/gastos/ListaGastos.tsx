@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { formatCLP } from "@enjambre/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
 import { Button } from "@enjambre/ui";
 import { Badge } from "@enjambre/ui";
@@ -102,13 +103,7 @@ export function ListaGastos({ onNuevoGasto, onVerGasto, onEditarGasto, onDeleted
     return colors[categoria] || colors['Otros'];
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+
 
 if (loading) {
     return (
@@ -139,8 +134,8 @@ if (loading) {
               <Badge className={getCategoriaColor(viewGasto.categoria)}>{viewGasto.categoria}</Badge>
             </div>
             <p><span className="text-muted-foreground">Fecha:</span> {formatDate(viewGasto.fecha)}</p>
-            <p><span className="text-muted-foreground">Monto:</span> {formatCurrency(viewGasto.monto)}</p>
-            <p><span className="text-muted-foreground">Neto / IVA:</span> {formatCurrency(viewGasto.montoNeto)} / {formatCurrency(viewGasto.montoIva)}</p>
+            <p><span className="text-muted-foreground">Monto:</span> {formatCLP(viewGasto.monto)}</p>
+            <p><span className="text-muted-foreground">Neto / IVA:</span> {formatCLP(viewGasto.montoNeto)} / {formatCLP(viewGasto.montoIva)}</p>
             <p>
               <span className="text-muted-foreground">Proveedor:</span>{' '}
               {viewGasto.proveedor ? `${viewGasto.proveedor.nombre} (${viewGasto.proveedor.rut})` : 'Sin proveedor'}
@@ -218,9 +213,9 @@ if (loading) {
                   
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <div className="text-lg font-semibold text-destructive">-{formatCurrency(gasto.monto)}</div>
+                      <div className="text-lg font-semibold text-destructive">-{formatCLP(gasto.monto)}</div>
                       <div className="text-xs text-muted-foreground">
-                        Neto: {formatCurrency(gasto.montoNeto)}
+                        Neto: {formatCLP(gasto.montoNeto)}
                       </div>
                     </div>
                     

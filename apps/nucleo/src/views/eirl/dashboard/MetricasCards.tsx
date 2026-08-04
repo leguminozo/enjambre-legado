@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
+import { formatCLP } from "@enjambre/ui";
 import { TrendingUp, TrendingDown, DollarSign, FileText, Calculator, Brain } from "lucide-react";
 
 interface MetricasProps {
@@ -31,13 +32,7 @@ export function MetricasCards({
   gastosVariacionPct,
 }: MetricasProps) {
   
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+
 
   const formatPercentage = (value: number) => {
     return `${value.toFixed(1)}%`;
@@ -51,7 +46,7 @@ export function MetricasCards({
         <TrendingUp className="h-4 w-4 text-primary" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{formatCurrency(ingresosMes)}</div>
+        <div className="text-2xl font-bold">{formatCLP(ingresosMes)}</div>
         <p className="text-xs text-muted-foreground">{formatVariacion(ingresosVariacionPct)}</p>
       </CardContent>
     </Card>
@@ -62,7 +57,7 @@ export function MetricasCards({
         <TrendingDown className="h-4 w-4 text-destructive" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{formatCurrency(gastosMes)}</div>
+        <div className="text-2xl font-bold">{formatCLP(gastosMes)}</div>
         <p className="text-xs text-muted-foreground">{formatVariacion(gastosVariacionPct)}</p>
       </CardContent>
     </Card>
@@ -73,7 +68,7 @@ export function MetricasCards({
         <DollarSign className="h-4 w-4 text-primary" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{formatCurrency(utilidadNeta)}</div>
+        <div className="text-2xl font-bold">{formatCLP(utilidadNeta)}</div>
         <p className="text-xs text-muted-foreground">Margen: {formatPercentage(margenUtilidad)}</p>
       </CardContent>
     </Card>
@@ -85,9 +80,9 @@ export function MetricasCards({
       </CardHeader>
       <CardContent>
         <div className="space-y-1">
-          <div className="text-sm font-bold">{formatCurrency(ivaPagar)}</div>
+          <div className="text-sm font-bold">{formatCLP(ivaPagar)}</div>
           <div className="text-xs text-muted-foreground">IVA a pagar</div>
-          <div className="text-xs text-muted-foreground">PPM: {formatCurrency(ppm)}</div>
+          <div className="text-xs text-muted-foreground">PPM: {formatCLP(ppm)}</div>
           </div>
         </CardContent>
       </Card>

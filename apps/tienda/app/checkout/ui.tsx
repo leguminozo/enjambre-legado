@@ -15,7 +15,7 @@ import {
   getCourier,
   type CourierCode,
 } from '@enjambre/logistica';
-import { HexagonLoader } from '@enjambre/ui';
+import { HexagonLoader, formatCLP } from '@enjambre/ui';
 import {
   friendlyCheckoutApiMessage,
   isCheckoutShippingReady,
@@ -496,7 +496,7 @@ export function CheckoutClient() {
                         <span className="text-muted-foreground"> × {line.quantity}</span>
                       </span>
                       <span className="shrink-0 font-medium tabular-nums text-foreground">
-                        ${line.line_total.toLocaleString('es-CL')}
+                        {formatCLP(line.line_total)}
                       </span>
                     </li>
                   ))}
@@ -504,24 +504,24 @@ export function CheckoutClient() {
                 <div className="rounded-xl border border-border bg-card/30 px-6 py-4 mt-4 space-y-2 text-sm">
                   <div className="flex justify-between text-muted-foreground">
                     <span>Subtotal</span>
-                    <span className="tabular-nums">${subtotalCompra.toLocaleString('es-CL')}</span>
+                    <span className="tabular-nums">{formatCLP(subtotalCompra)}</span>
                   </div>
                   {pricing.discount_amount > 0 && (
                     <div className="flex justify-between text-accent">
                       <span>Descuento Guardianía</span>
-                      <span className="tabular-nums">-${pricing.discount_amount.toLocaleString('es-CL')}</span>
+                      <span className="tabular-nums">-{formatCLP(pricing.discount_amount)}</span>
                     </div>
                   )}
                   {promoDiscount > 0 && (
                     <div className="flex justify-between text-accent">
                       <span>Código promocional</span>
-                      <span className="tabular-nums">-${promoDiscount.toLocaleString('es-CL')}</span>
+                      <span className="tabular-nums">-{formatCLP(promoDiscount)}</span>
                     </div>
                   )}
                   {creadorDiscountClp > 0 && (
                     <div className="flex justify-between text-accent">
                       <span>Código de creador</span>
-                      <span className="tabular-nums">-${creadorDiscountClp.toLocaleString('es-CL')}</span>
+                      <span className="tabular-nums">-{formatCLP(creadorDiscountClp)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-muted-foreground">
@@ -531,14 +531,14 @@ export function CheckoutClient() {
                         ? '…'
                         : shippingCost === 0
                           ? 'Gratis'
-                          : `$${shippingCost.toLocaleString('es-CL')}`}
+                          : formatCLP(shippingCost)}
                     </span>
                   </div>
                   {usarPuntos && (quote?.loyaltyDiscountClp ?? descuentoPorPuntos) > 0 && (
                     <div className="flex justify-between text-accent">
                       <span>Puntos canjeados</span>
                       <span className="tabular-nums">
-                        -${(quote?.loyaltyDiscountClp ?? descuentoPorPuntos).toLocaleString('es-CL')}
+                        -{formatCLP(quote?.loyaltyDiscountClp ?? descuentoPorPuntos)}
                       </span>
                     </div>
                   )}
@@ -557,7 +557,7 @@ export function CheckoutClient() {
                   >
                     {quoteLoading && !quote
                       ? '…'
-                      : `$${totalCompra.toLocaleString('es-CL')}`}
+                      : formatCLP(totalCompra)}
                   </span>
                 </div>
               </section>
@@ -626,7 +626,7 @@ export function CheckoutClient() {
                   <p className="text-xs text-accent mt-2 flex flex-wrap items-center gap-2">
                     <span>Código de creador aplicado: {creadorAplicado}</span>
                     {creadorDiscountClp > 0 && (
-                      <span className="tabular-nums">-${creadorDiscountClp.toLocaleString('es-CL')}</span>
+                      <span className="tabular-nums">-{formatCLP(creadorDiscountClp)}</span>
                     )}
                     <button
                       type="button"
