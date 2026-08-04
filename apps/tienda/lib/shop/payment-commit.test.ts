@@ -1,10 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  commitPayment,
   parsePaymentCommitResponse,
   parsePendingPayment,
 } from './payment-commit';
 
 describe('payment-commit', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
   it('parsea pending payment desde sessionStorage', () => {
     expect(parsePendingPayment(null)).toBeNull();
     expect(parsePendingPayment('not-json')).toBeNull();
@@ -14,12 +20,54 @@ describe('payment-commit', () => {
   });
 
   it('parsea respuesta de commit', () => {
-    expect(parsePaymentCommitResponse({ ok: true, authorized: true, alreadyProcessed: true })).toEqual({
+    expect(parsePaymentCommitResponse({ ok: true, authorized: true, alreadyProcessed: true })).toMatchObject({
       ok: true,
       authorized: true,
       alreadyProcessed: true,
     });
     expect(parsePaymentCommitResponse(null)).toEqual({});
+  });
+
+  it('commitPayment envía Authorization cuando accessToken está presente (reposicion ownership)', async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({ ok: true, authorized: true, buyOrder: 'SUB-1' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await commitPayment({
+      commitUrl: 'https://nucleo.test/api/subscriptions/checkout/commit',
+      token: 'tok-ws',
+      buyOrder: 'SUB-1',
+      accessToken: 'jwt-user',
+    });
+
+    expect(result.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const init = fetchMock.mock.calls[0]![1] as RequestInit;
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toBe('Bearer jwt-user');
+  });
+
+  it('commitPayment no lanza si el body no es JSON (502 HTML)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('<html>bad gateway</html>', { status: 502 })),
+    );
+
+    const result = await commitPayment({
+      commitUrl: 'https://nucleo.test/api/checkout/commit',
+      token: 'tok-ws',
+      accessToken: 'jwt',
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.kind).toBe('network');
+      expect(result.message).toMatch(/soporte|no respondió/i);
+    }
   });
 
   it('pending: array o primitivo → null (storage corrupto no lanza)', () => {

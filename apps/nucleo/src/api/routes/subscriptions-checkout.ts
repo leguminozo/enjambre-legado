@@ -220,21 +220,31 @@ subscriptionsCheckoutRoutes.post('/commit', zValidator('json', CommitBodySchema)
     const session = await getSubscriptionCheckoutSession(buyOrder);
 
     if (!session) {
-      // Doble commit / webhook ya procesado: la sesión quedó completed pero la
-      // sub existe → responder idempotente en vez de "sesión expirada".
+      // Doble commit / webhook ya procesó: sesión completed + sub activa.
+      // Buscar por inscription (Flow reusa commerceOrder) y por metadata legacy.
       const admin = createAdminClient();
-      const { data: existingSub } = await admin
-        .from('subscriptions')
+      const { data: byInscription } = await fromLoose(admin, 'subscriptions')
         .select('id')
-        .eq('metadata->>buy_order', buyOrder)
+        .eq('flow_inscription_buy_order', buyOrder)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
+      const existingSubId =
+        (byInscription?.id as string | undefined) ??
+        (
+          await admin
+            .from('subscriptions')
+            .select('id')
+            .eq('metadata->>buy_order', buyOrder)
+            .maybeSingle()
+        ).data?.id;
 
-      if (existingSub) {
+      if (existingSubId) {
         return c.json({
           ok: true,
           authorized: true,
           buyOrder,
-          subscriptionId: existingSub.id as string,
+          subscriptionId: existingSubId as string,
           alreadyProcessed: true,
         }, 200);
       }

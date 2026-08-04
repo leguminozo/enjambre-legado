@@ -37,8 +37,8 @@
 | Fenología + traza | pass108: fenologia auth+requireProfileRole(admin\|territorial) sin tenant; esAdmin=profileRole; tienda traza page/PDP section sin exigir solo blockchain_hash | ✅ oráculo territorial + traza origen; ⏳ firma on-chain e2e |
 | Alambique | pass109: lat/lng form min(0)→coords Chile; GET productos destilaciones.id + destilacion_id; producto_id ""→null | ✅ shell usable; ⏳ stock sync al vincular catálogo ASK |
 | Campo offline | pass105: `/api/pos/venta` reprice server; sync 5xx/red backoff; rep-ventas Number(precio) | ✅ reprice path sin caja; ⏳ e2e offline feria real |
-| Subs + CAF | pass110: webhook Flow recurrente ya no short-circuit already_processed; primer cargo ancla flow_order; flowOrder≤0 reject; tienda init JSON safe | ✅ renovación path; ⏳ smoke Flow real + CAF auto residual |
-| Tienda commerce | pass103: catálogo parse fila-a-fila + coerce num/join; pricing slug/precio; init Number(precio); startCartCheckout json safe | ✅ núcleo flujo; ⏳ smoke e2e pago real |
+| Subs + CAF | pass110 webhook recurrente; pass111 commit post-redirect con Bearer (ownership) + alreadyProcessed por inscription | ✅ renovación+commit path; ⏳ smoke Flow real + CAF auto residual |
+| Tienda commerce | pass103 catálogo/pricing; pass111 commitPayment JSON safe + Authorization hop-1 (checkout+reposicion) | ✅ núcleo flujo; ⏳ smoke e2e pago real |
 | sw.js ZCode | Basura otra sesión | 🚫 no tocar |
 
 ### Backlog UI (v1.3 — histórico / residual; no cono default)
@@ -68,6 +68,14 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-04 pass 111 (deep-followup)
+- Señal: `/api/subscriptions/checkout/commit` exige Bearer ownership si la sesión aún está pending, pero `commitPayment` (tienda post-Flow) no enviaba Authorization → 403 en race browser-before-webhook; `res.json()` sin catch en commit; alreadyProcessed solo miraba metadata.buy_order
+- Compuesto: colapsar + entrelazado tienda↔nucleo reposición + brother checkout commit
+- Regla nueva: commitPayment hidrata JWT (getUser→getSession) y manda Authorization; parse JSON fail-closed; alreadyProcessed commit por flow_inscription_buy_order|metadata
+- Anti-patrón: ownership BFF sin Bearer en el client de resultado post-pago; confiar solo en webhook para activar reposición en UI
+- Guardriel: intacto (ownership de sesión se mantiene; guest cart commit sigue sin JWT)
+- DEFER: auth/callback formal nucleo/campo (PKCE client detect); WIP Ecosistema delete; e2e Flow real
 
 ### Evo 2026-08-04 pass 110 (subs-caf-pagos)
 - Señal: webhook Flow SUB-* sin sesión pending devolvía already_processed si existía sub con metadata.buy_order; Flow reusa commerceOrder de inscripción en cada cargo → renovaciones no avanzaban período ni agendaban entrega; fulfillRecurringCharge solo se alcanzaba en 404 (inalcanzable); flowOrder `|| 0` colisionaba UNIQUE; primer fulfill no insertaba subscription_charges

@@ -13,6 +13,8 @@ export type PaymentCommitResponse = {
   error?: string;
   buyOrder?: string;
   alreadyProcessed?: boolean;
+  message?: string;
+  code?: string;
 };
 
 export function parsePendingPayment(raw: string | null): PendingPayment | null {
@@ -37,6 +39,8 @@ export function parsePaymentCommitResponse(obj: unknown): PaymentCommitResponse 
     ok: typeof record.ok === 'boolean' ? record.ok : undefined,
     authorized: typeof record.authorized === 'boolean' ? record.authorized : undefined,
     error: typeof record.error === 'string' ? record.error : undefined,
+    message: typeof record.message === 'string' ? record.message : undefined,
+    code: typeof record.code === 'string' ? record.code : undefined,
     buyOrder: typeof record.buyOrder === 'string' ? record.buyOrder : undefined,
     alreadyProcessed:
       typeof record.alreadyProcessed === 'boolean' ? record.alreadyProcessed : undefined,
@@ -48,13 +52,31 @@ export type CommitPaymentInput = {
   token: string;
   buyOrder?: string;
   provider?: string;
+  /** Bearer opcional; si falta se intenta hidratar de la sesión (reposiciones lo requieren). */
+  accessToken?: string;
 };
 
 export type CommitPaymentResult =
   | { ok: true; data: PaymentCommitResponse }
   | { ok: false; kind: 'network' | 'rejected'; message: string; data?: PaymentCommitResponse };
 
+async function resolveAccessToken(explicit?: string): Promise<string | undefined> {
+  if (explicit) return explicit;
+  try {
+    const { createClient } = await import('@/utils/supabase/client');
+    const supabase = createClient();
+    // Refresca JWT si hace falta antes de leer session local
+    await supabase.auth.getUser();
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function commitPayment(input: CommitPaymentInput): Promise<CommitPaymentResult> {
+  const accessToken = await resolveAccessToken(input.accessToken);
+
   let res: Response;
   try {
     res = await fetch(input.commitUrl, {
@@ -62,6 +84,7 @@ export async function commitPayment(input: CommitPaymentInput): Promise<CommitPa
       headers: {
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
       body: JSON.stringify({
         token_ws: input.token,
@@ -73,13 +96,26 @@ export async function commitPayment(input: CommitPaymentInput): Promise<CommitPa
     return { ok: false, kind: 'network', message: 'Error de conexión. Verifica tu internet e intenta de nuevo.' };
   }
 
-  const data = parsePaymentCommitResponse(await res.json());
+  let raw: unknown;
+  try {
+    raw = await res.json();
+  } catch {
+    return {
+      ok: false,
+      kind: 'network',
+      message: res.ok
+        ? 'No se pudo confirmar el pago.'
+        : 'El servicio de pagos no respondió correctamente. Si te cobraron, contacta soporte con tu orden.',
+    };
+  }
+
+  const data = parsePaymentCommitResponse(raw);
 
   if (!res.ok || !data.ok || !data.authorized) {
     return {
       ok: false,
       kind: 'rejected',
-      message: data.error ?? 'No se pudo confirmar el pago.',
+      message: data.error ?? data.message ?? 'No se pudo confirmar el pago.',
       data,
     };
   }
