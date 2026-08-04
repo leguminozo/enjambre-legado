@@ -215,6 +215,24 @@ function asString(value: unknown, fallback: string): string {
   return typeof value === 'string' ? value : fallback;
 }
 
+/**
+ * Hrefs seguros para chrome CMS (announcement, campaign, hero CTA, social).
+ * - Internos: `/path` (no `//`)
+ * - Externos: solo `http(s)://`
+ * Rechaza javascript:, data:, protocol-relative malicioso.
+ */
+export function sanitizeStoreHref(
+  value: unknown,
+  fallback?: string,
+): string | undefined {
+  if (typeof value !== 'string') return fallback;
+  const href = value.trim();
+  if (!href) return fallback;
+  if (href.startsWith('/') && !href.startsWith('//')) return href;
+  if (/^https?:\/\//i.test(href)) return href;
+  return fallback;
+}
+
 export function parseBrandAssets(raw: Record<string, unknown> | null | undefined): BrandAssets {
   const d = DEFAULT_BRAND_ASSETS;
   if (!raw) return { ...d };
@@ -271,7 +289,7 @@ export function parseAnnouncementSlide(raw: Record<string, unknown>): Announceme
   return {
     text,
     text_en: typeof raw.text_en === 'string' ? raw.text_en : undefined,
-    href: typeof raw.href === 'string' && raw.href.trim() ? raw.href.trim() : undefined,
+    href: sanitizeStoreHref(raw.href),
     link_label: typeof raw.link_label === 'string' ? raw.link_label : undefined,
     link_label_en: typeof raw.link_label_en === 'string' ? raw.link_label_en : undefined,
   };
@@ -308,7 +326,7 @@ const NETWORKS = ['whatsapp', 'instagram', 'facebook', 'tiktok', 'x', 'youtube',
 
 export function parseFooterSocialItem(raw: Record<string, unknown>): FooterSocialItem | null {
   const label = typeof raw.label === 'string' ? raw.label.trim() : '';
-  const href = typeof raw.href === 'string' ? raw.href.trim() : '';
+  const href = sanitizeStoreHref(raw.href);
   if (!label || !href) return null;
   return {
     label,
@@ -530,7 +548,7 @@ export function parseLandingLayout(
     hero_cta_label: asString(raw.hero_cta_label, d.hero_cta_label),
     hero_cta_label_en:
       typeof raw.hero_cta_label_en === 'string' ? raw.hero_cta_label_en : d.hero_cta_label_en,
-    hero_cta_href: asString(raw.hero_cta_href, d.hero_cta_href),
+    hero_cta_href: sanitizeStoreHref(raw.hero_cta_href, d.hero_cta_href) ?? d.hero_cta_href,
     show_hero_cta: asBool(raw.show_hero_cta, d.show_hero_cta),
   };
 }
@@ -739,7 +757,7 @@ export function parseCampaignBanner(raw: Record<string, unknown>): CampaignBanne
     title_en: typeof raw.title_en === 'string' ? raw.title_en : undefined,
     body: asString(raw.body, ''),
     body_en: typeof raw.body_en === 'string' ? raw.body_en : undefined,
-    href: asString(raw.href, '/catalogo'),
+    href: sanitizeStoreHref(raw.href, '/catalogo') ?? '/catalogo',
     cta_label: asString(raw.cta_label, 'Ver más'),
     cta_label_en: typeof raw.cta_label_en === 'string' ? raw.cta_label_en : undefined,
     placement: pickEnum(raw.placement, PLACEMENTS, 'home'),

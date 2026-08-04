@@ -69,6 +69,13 @@
 
 ## Evolución del prompt
 
+### Evo 2026-08-04 pass 104 (tienda-landing-chrome)
+- Señal: SW cacheaba HTML de /login|/perfil|/checkout|/carrito (sesión/checkout stale); announcement/campaign/hero/social aceptaban javascript: o //evil vía CMS
+- Compuesto: colapsar + fail-closed chrome + PWA
+- Regla nueva: `sanitizeStoreHref` en @enjambre/shop-chrome (solo /path o http(s)); parsers announcement/campaign/landing/footer_social; SW v2.5 NetworkOnly documentos auth/commerce
+- Anti-patrón: cache.put navigate de rutas con sesión; Link Next con href // o javascript: desde CMS
+- Guardriel: intacto (no reabrir rueda UI touch residual v1.3)
+
 ### Evo 2026-08-04 pass 103 (tienda-commerce)
 - Señal: listVisibleProducts devolvía [] silencioso si Zod fallaba (num string / lotes array); pricing pasaba slug null → checkout Zod 400; init sin Number(precio); res.json() sin catch en startCartCheckout
 - Compuesto: colapsar + entrelazado tienda↔nucleo pricing

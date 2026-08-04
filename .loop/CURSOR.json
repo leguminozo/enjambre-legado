@@ -1,7 +1,7 @@
 {
-  "index": 4,
-  "pass": 104,
-  "last_sector": "tienda-commerce",
+  "index": 5,
+  "pass": 105,
+  "last_sector": "tienda-landing-chrome",
   "last_commit": null,
   "streak_clean": 0,
   "boost": {
@@ -9,5 +9,5 @@
     "nav-home-roles": 0
   },
   "phase": "v1.4-polish-layers",
-  "notes": "pass103 tienda-commerce: catálogo schema resiliente + pricing slug/precio + checkout init coerce + cart-checkout json safe. Siguiente: tienda-landing-chrome (#4)."
+  "notes": "pass104 tienda-landing-chrome: SW NetworkOnly auth/commerce; sanitizeStoreHref chrome CMS. Siguiente: campo-pos-offline (#5)."
 }

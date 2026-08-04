@@ -1,8 +1,9 @@
 /**
  * PWA mínima: NO interceptar /_next/* (chunks/CSS cambian en cada deploy).
  * HTML: red primero para no servir documentos viejos con hashes rotos.
+ * Auth/commerce: NetworkOnly (no cachear shell de sesión / checkout).
  */
-const CACHE_NAME = 'oyz-tienda-v2.4';
+const CACHE_NAME = 'oyz-tienda-v2.5';
 
 const PRECACHE_URLS = [
   '/manifest.webmanifest',
@@ -12,6 +13,21 @@ const PRECACHE_URLS = [
   '/icons/icon-192.svg',
   '/icons/icon-512.svg',
 ];
+
+/** Rutas con estado de sesión o dinero — nunca cachear el documento HTML. */
+function isAuthOrCommercePath(pathname) {
+  return (
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/register') ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/perfil') ||
+    pathname.startsWith('/checkout') ||
+    pathname.startsWith('/carrito') ||
+    pathname.startsWith('/recuperar') ||
+    pathname.startsWith('/reset-password') ||
+    pathname.startsWith('/claim')
+  );
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -71,6 +87,21 @@ self.addEventListener('fetch', (event) => {
   const isDocument = request.mode === 'navigate' || accept.includes('text/html');
 
   if (isDocument) {
+    // Auth/commerce: solo red (evita HTML de sesión ajena o checkout stale en PWA).
+    if (isAuthOrCommercePath(url.pathname)) {
+      event.respondWith(
+        fetch(request).catch(
+          () =>
+            new Response('Sin conexión. Vuelve a intentar.', {
+              status: 503,
+              statusText: 'Offline',
+              headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+            }),
+        ),
+      );
+      return;
+    }
+
     event.respondWith(
       fetch(request)
         .then((response) => {

@@ -56,12 +56,30 @@ export function CampaignBanners() {
             ) : null}
           </div>
           {banner.href ? (
-            <Link
-              href={banner.href}
-              className="inline-flex min-h-11 shrink-0 items-center self-start rounded-full bg-accent px-5 py-2 text-[0.65rem] font-semibold uppercase tracking-wider text-accent-foreground hover:opacity-90 sm:self-center"
-            >
-              {resolveLocalized(banner.cta_label, banner.cta_label_en, locale)}
-            </Link>
+            (() => {
+              const href = banner.href;
+              const isExternal = /^https?:\/\//i.test(href);
+              const cls =
+                'inline-flex min-h-11 shrink-0 items-center self-start rounded-full bg-accent px-5 py-2 text-[0.65rem] font-semibold uppercase tracking-wider text-accent-foreground hover:opacity-90 sm:self-center';
+              const label = resolveLocalized(banner.cta_label, banner.cta_label_en, locale);
+              if (isExternal) {
+                return (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className={cls}
+                  >
+                    {label}
+                  </a>
+                );
+              }
+              return (
+                <Link href={href} className={cls}>
+                  {label}
+                </Link>
+              );
+            })()
           ) : null}
         </div>
       ))}

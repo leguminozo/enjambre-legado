@@ -25,6 +25,8 @@ v1.3 UI y go-live v1.2 se conservan abajo como referencia / residual.
 | Home duplicado | `HomeView`, sidebar VISIÓN, `/alma` `/ejecutivo` redirects, `role-redirect` |
 | Home rol wrong | territorial ve panel admin | `user.role` (profiles) no solo `app_metadata`; normalizar LEGACY; wait isLoading |
 | Alma en nav | dos homes | quitar item sidebar; page redirect `/inicio`; no reintroducir LazyAlma/Ecosistema |
+| SW cache auth HTML | shell sesión/checkout stale en PWA | NetworkOnly document para /login|/register|/auth|/perfil|/checkout|/carrito|/claim; bump CACHE_NAME |
+| CMS href open/XSS | announcement/campaign javascript: o // | `sanitizeStoreHref` (solo `/` o `http(s)://`) en shop-chrome parsers |
 | Catálogo vacío fantasma | schema Zod tumba todos los productos | coerce num/string; lotes array→[0]; parse fila a fila; throw solo si 0/N |
 | Checkout 400 slug | product.slug null en line_items | slug fallback = product id en calculateCartPricing + preview BFF |
 | Checkout init JSON | 502 HTML rompe res.json() | try/catch → mensaje amigable en startCartCheckout |
