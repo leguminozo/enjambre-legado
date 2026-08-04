@@ -30,7 +30,7 @@
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
 | Editor CMS tienda | pass100 revalidate/admin/legales; **opción 2:** retirados del editor/BFF `hero` + `footer_branding|nav|legal`; tienda sin fetch footerData; pie=StoreChrome; hero=i18n | ✅ 2026-08-04 |
-| Home / Alma | pass101: HomeView usa profiles.role; /alma→/inicio; Alma fuera del sidebar VISIÓN; legacy guards OK | ✅ núcleo; ⏳ residual WIP EcosistemaDashboard delete sin commitear |
+| Home / Alma | pass101 home por rol; pass112 shell `?? admin`→resolveShellRoleKey least-privilege; ROLE_VISIBLE `all` vs allowlist; alma/ejecutivo +territorial | ✅ nav; ⏳ residual WIP Ecosistema delete |
 | Auth multi-app | pass102: nucleo friendlyError; campo OAuth redirectTo /login; recovery checkUser/role path; tienda reset min6 + friendly | ✅ regresión recovery; ⏳ residual auth/callback formal en nucleo/campo |
 | Territorial | pass106: POST actores persiste censo legal; BFF requireProfileRole(territorial|admin) sin exigir empresa; PATCH actores/apiarios ownership explícito | ✅ inscripción/censo; ⏳ mapa comunidad actores (RLS solo own) |
 | Colmenas + bitácora | pass107: PATCH captura acepta audio_url (offline); upload already-exists reusa path; requireProfileRole(admin); ownership PATCH | ✅ voz/sync audio; ⏳ cuaderno WIP no mergeado |
@@ -68,6 +68,14 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-04 pass 112 (nav-home-roles)
+- Señal: shell Sidebar/Rail/Bottom/Mobile/search usaban `user?.role ?? 'admin'` → menú gerencial completo durante loading o sin profile; ROLE_VISIBLE_KEYS `[]` = “todos los ítems” (cliente/creador/rep pintaban admin nav); profile.role `""` dejaba HomeView en spinner eterno
+- Compuesto: colapsar + fail-closed roles + unificar shell
+- Regla nueva: `resolveShellRoleKey` least-privilege (default cliente); ROLE_VISIBLE admin=`'all'`, resto allowlist/`[]` vacío real; bottom nav admin-only completo; auth-store role trim+fallback; /alma|/ejecutivo permiten territorial (redirect a /inicio)
+- Anti-patrón: `role ?? 'admin'` en UI de navegación; `visible.length === 0` como “show all”
+- Guardriel: intacto (middleware isRouteAllowed sigue fail-closed; no revivir Alma)
+- DEFER: WIP delete EcosistemaDashboard
 
 ### Evo 2026-08-04 pass 111 (deep-followup)
 - Señal: `/api/subscriptions/checkout/commit` exige Bearer ownership si la sesión aún está pending, pero `commitPayment` (tienda post-Flow) no enviaba Authorization → 403 en race browser-before-webhook; `res.json()` sin catch en commit; alreadyProcessed solo miraba metadata.buy_order

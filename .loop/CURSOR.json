@@ -1,13 +1,13 @@
 {
-  "index": 0,
-  "pass": 112,
-  "last_sector": "deep-followup",
-  "last_commit": "39b164c",
+  "index": 1,
+  "pass": 113,
+  "last_sector": "nav-home-roles",
+  "last_commit": "pending",
   "streak_clean": 0,
   "boost": {
     "editor-cms-tienda": 0,
     "nav-home-roles": 0
   },
   "phase": "v1.4-polish-layers",
-  "notes": "pass111 deep-followup: reposicion commitPayment Bearer + JSON safe; sub alreadyProcessed by inscription. Siguiente: nav-home-roles (#0)."
+  "notes": "pass112 nav-home: shell least-privilege role; ROLE_VISIBLE all vs allowlist; alma/ejecutivo territorial. Siguiente: editor-cms-tienda (#1)."
 }

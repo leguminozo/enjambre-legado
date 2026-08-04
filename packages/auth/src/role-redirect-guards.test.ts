@@ -34,10 +34,12 @@ describe('ROUTE_ROLE_GUARDS / nav-home-roles', () => {
   });
 
   it('aliases legacy /alma y /ejecutivo siguen en guards (pages redirigen a /inicio)', () => {
-    expect(ROUTE_ROLE_GUARDS['/alma']).toEqual(['admin']);
-    expect(ROUTE_ROLE_GUARDS['/ejecutivo']).toEqual(['admin']);
+    expect(ROUTE_ROLE_GUARDS['/alma']).toEqual(['admin', 'territorial']);
+    expect(ROUTE_ROLE_GUARDS['/ejecutivo']).toEqual(['admin', 'territorial']);
     expect(isRouteAllowed('/alma', 'admin')).toBe(true);
-    expect(isRouteAllowed('/alma', 'territorial')).toBe(false);
+    expect(isRouteAllowed('/alma', 'territorial')).toBe(true);
+    expect(isRouteAllowed('/ejecutivo', 'territorial')).toBe(true);
+    expect(isRouteAllowed('/alma', 'cliente')).toBe(false);
   });
 
   it('legacy gerente entra a /inicio vía normalización a admin', () => {

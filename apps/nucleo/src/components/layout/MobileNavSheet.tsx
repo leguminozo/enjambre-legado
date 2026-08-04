@@ -9,9 +9,9 @@ import {
   getAccountItemsForRole,
   getSidebarGroupsForRole,
   findActiveItem,
+  resolveShellRoleKey,
   type SidebarItem,
 } from '@/config/sidebar-config';
-import type { RoleKey } from '@enjambre/auth/role-redirect';
 import { useAuthStore } from '@enjambre/auth';
 import { SidebarSection } from '@enjambre/ui';
 import type { SidebarBadgeValues } from '@/hooks/useSidebarBadges';
@@ -29,7 +29,7 @@ function NavLink(props: React.ComponentProps<typeof Link>) {
 
 export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
   const pathname = usePathname();
-  const userRole = (useAuthStore((s) => s.user?.role ?? 'admin')) as RoleKey;
+  const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const lastActiveRef = useRef<HTMLElement | null>(null);

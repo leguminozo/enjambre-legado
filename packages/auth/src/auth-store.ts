@@ -61,10 +61,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           ? rawTheme
           : 'system'
 
+      // role vacío en DB no debe quedar como "" (HomeView cuelga en !role)
+      const resolvedRole =
+        (typeof profile.role === 'string' && profile.role.trim()) ||
+        (typeof user.app_metadata?.role === 'string' && user.app_metadata.role) ||
+        'cliente'
+
       const authUser: AuthUser = {
         id: profile.id,
         email: profile.email ?? user.email ?? '',
-        role: profile.role ?? (user.app_metadata?.role as string) ?? 'cliente',
+        role: resolvedRole,
         nivel_guardian: '',
         full_name: profile.full_name ?? '',
         avatar_url: '',

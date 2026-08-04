@@ -12,11 +12,11 @@ import {
   getAccountItemsForRole,
   getSidebarGroupsForRole,
   findActiveItem,
+  resolveShellRoleKey,
   routeUsesViewShell,
 } from '@/config/sidebar-config';
 import { NotificationBell } from '@enjambre/ui';
 import { createClient, isSupabaseConfigured, useAuthStore, useInAppNotifications } from '@enjambre/auth';
-import type { RoleKey } from '@enjambre/auth/role-redirect';
 import { useShellLayout } from '@/hooks/use-shell-layout';
 import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 
@@ -71,7 +71,8 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
     setSearchQuery('');
   }, []);
 
-  const userRole = (useAuthStore((s) => s.user?.role ?? 'admin')) as RoleKey;
+  // Least privilege: nunca elevar a admin si el store aún no hidrató el rol
+  const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];

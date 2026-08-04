@@ -8,10 +8,10 @@ import {
   getBottomNavKeysForRole,
   getSidebarGroupsForRole,
   getAccountItemsForRole,
+  resolveShellRoleKey,
   type SidebarItem,
 } from '@/config/sidebar-config';
 import { useAuthStore } from '@enjambre/auth';
-import type { RoleKey } from '@enjambre/auth/role-redirect';
 
 const ICONS: Record<string, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
   inicio: Network,
@@ -41,7 +41,7 @@ function resolveNavItem(key: string, pathname: string, allItems: SidebarItem[]) 
 
 export function LiquidBottomNav({ onOpenMenu, menuOpen }: LiquidBottomNavProps) {
   const pathname = usePathname();
-  const userRole = (useAuthStore((s) => s.user?.role ?? 'admin')) as RoleKey;
+  const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
   const allItems = [
     ...getSidebarGroupsForRole(userRole).flatMap((g) => g.items),
     ...getAccountItemsForRole(userRole),

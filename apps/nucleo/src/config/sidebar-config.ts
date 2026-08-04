@@ -1,4 +1,4 @@
-import type { RoleKey } from '@enjambre/auth/role-redirect'
+import { LEGACY_ROLE_MAP, type RoleKey } from '@enjambre/auth/role-redirect'
 
 export type BadgeDotColor = 'green' | 'orange' | 'red'
 
@@ -95,7 +95,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       },
       {
         key: 'cuaderno-campo',
-        label: 'Cuaderno Campo',
+        label: 'Cuaderno de Campo',
         icon: 'notebook-pen',
         href: '/colmenas/cuaderno',
         greeting: 'Cronista del apiario',
@@ -401,16 +401,39 @@ const ROUTE_ITEM_ALIASES: Record<string, string> = {
 }
 
 /**
- * Ítems visibles por rol. Los roles no-admin (cliente/creador/rep_ventas) no viven
- * en nucleo — el middleware los redirige a tienda/campo; solo territorial tiene
- * home propio (`/inicio` + registro). `[]` = todos los ítems.
+ * Ítems visibles por rol.
+ * - `'all'` = menú completo (solo admin / legado→admin).
+ * - lista = allowlist estricta.
+ * - `[]` = sin módulos (cliente/creador/rep no viven en núcleo; middleware los saca).
+ *
+ * Anti-patrón (pre-pass112): `[]` significaba “todos” → shell con `role ?? 'admin'`
+ * o roles huéspedes pintaban el menú gerencial completo.
  */
-const ROLE_VISIBLE_KEYS: Record<RoleKey, readonly string[]> = {
-  admin: [],
+const ROLE_VISIBLE_KEYS: Record<RoleKey, readonly string[] | 'all'> = {
+  admin: 'all',
   territorial: ['inicio', 'territorio', 'fenologia'],
   creador: [],
   rep_ventas: [],
   cliente: [],
+}
+
+/**
+ * Rol para la shell de navegación. Nunca elevar a admin si falta el profile
+ * (loading o sesión sin rol): least privilege → menú vacío, no el panel gerencial.
+ */
+export function resolveShellRoleKey(raw: string | undefined | null): RoleKey {
+  if (!raw) return 'cliente'
+  if (raw in LEGACY_ROLE_MAP) return LEGACY_ROLE_MAP[raw]!
+  if (
+    raw === 'admin' ||
+    raw === 'territorial' ||
+    raw === 'cliente' ||
+    raw === 'creador' ||
+    raw === 'rep_ventas'
+  ) {
+    return raw
+  }
+  return 'cliente'
 }
 
 /**
@@ -437,7 +460,9 @@ const ROLE_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
 /** Tabs del bottom nav (móvil) por rol: territorial navega inicio + su registro */
 export function getBottomNavKeysForRole(role: RoleKey): readonly string[] {
   if (role === 'territorial') return ['inicio', 'territorio']
-  return BOTTOM_NAV_KEYS
+  if (role === 'admin') return BOTTOM_NAV_KEYS
+  // No-admin en núcleo (loading / redirect en curso): no inventar tabs gerenciales
+  return ['inicio']
 }
 
 export function routeUsesViewShell(pathname: string): boolean {
@@ -471,16 +496,21 @@ export function getAllItems(): SidebarItem[] {
   return [...SIDEBAR_GROUPS.flatMap(g => g.items), ...ACCOUNT_ITEMS]
 }
 
+function roleCanSeeItem(role: RoleKey, itemKey: string): boolean {
+  const visible = ROLE_VISIBLE_KEYS[role] ?? []
+  if (visible === 'all') return true
+  return visible.includes(itemKey)
+}
+
 /** Grupos visibles para el rol, con hrefs/labels ajustados y grupos vacíos eliminados */
 export function getSidebarGroupsForRole(role: RoleKey): SidebarGroup[] {
-  const visible = ROLE_VISIBLE_KEYS[role]
   const overrides = ROLE_HREF_OVERRIDES[role] ?? {}
   const labelOverrides = ROLE_LABEL_OVERRIDES[role] ?? {}
   return SIDEBAR_GROUPS
     .map((group) => ({
       ...group,
       items: group.items
-        .filter((item) => visible.length === 0 || visible.includes(item.key))
+        .filter((item) => roleCanSeeItem(role, item.key))
         .map((item) => ({
           ...item,
           href: overrides[item.key] ? overrides[item.key] : item.href,
@@ -491,6 +521,5 @@ export function getSidebarGroupsForRole(role: RoleKey): SidebarGroup[] {
 }
 
 export function getAccountItemsForRole(role: RoleKey): SidebarItem[] {
-  const visible = ROLE_VISIBLE_KEYS[role]
-  return ACCOUNT_ITEMS.filter((item) => visible.length === 0 || visible.includes(item.key))
+  return ACCOUNT_ITEMS.filter((item) => roleCanSeeItem(role, item.key))
 }

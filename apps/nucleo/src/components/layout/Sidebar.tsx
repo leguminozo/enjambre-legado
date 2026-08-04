@@ -10,10 +10,11 @@ import {
   getAccountItemsForRole,
   findActiveItem,
   PREFETCH_PRIORITY_KEYS,
+  resolveShellRoleKey,
   type SidebarBadge,
 } from '@/config/sidebar-config';
 import { toNavItemDataFromItem } from '@/components/layout/sidebar-shared';
-import { getRoleRedirectPath, type RoleKey } from '@enjambre/auth/role-redirect';
+import { getRoleRedirectPath } from '@enjambre/auth/role-redirect';
 import { SidebarSection, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, ThemeToggle } from '@enjambre/ui';
 import type { SidebarBadgeValues } from '@/hooks/useSidebarBadges';
 import { useAuthStore } from '@enjambre/auth';
@@ -56,7 +57,7 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
   const router = useRouter();
   const { prefetchMany } = useRoutePrefetch();
   const [userName, setUserName] = useState('Usuario');
-  const userRole = (useAuthStore((s) => s.user?.role ?? 'admin')) as RoleKey;
+  const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
   const storeSignOut = useAuthStore((s) => s.signOut);
   const sidebarGroups = useMemo(() => getSidebarGroupsForRole(userRole), [userRole]);
   const accountItems = useMemo(() => getAccountItemsForRole(userRole), [userRole]);

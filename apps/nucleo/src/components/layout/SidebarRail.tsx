@@ -9,8 +9,9 @@ import {
   getSidebarGroupsForRole,
   findActiveItem,
   RAIL_PRIMARY_KEYS,
+  resolveShellRoleKey,
 } from '@/config/sidebar-config';
-import { getRoleRedirectPath, type RoleKey } from '@enjambre/auth/role-redirect';
+import { getRoleRedirectPath } from '@enjambre/auth/role-redirect';
 import { useAuthStore } from '@enjambre/auth';
 import type { SidebarBadgeValues } from '@/hooks/useSidebarBadges';
 import { LUCIDE_MAP } from '@/components/layout/sidebar-shared';
@@ -28,7 +29,7 @@ interface SidebarRailProps {
 export function SidebarRail({ onExpand, onOpenMenu, badges }: SidebarRailProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const userRole = (useAuthStore((s) => s.user?.role ?? 'admin')) as RoleKey;
+  const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
   const storeSignOut = useAuthStore((s) => s.signOut);
   const sidebarGroups = useMemo(() => getSidebarGroupsForRole(userRole), [userRole]);
   const accountItems = useMemo(() => getAccountItemsForRole(userRole), [userRole]);

@@ -7,14 +7,16 @@ import {
   BOTTOM_NAV_KEYS,
   getAllItems,
   getSidebarGroupsForRole,
+  getAccountItemsForRole,
   findActiveItem,
+  resolveShellRoleKey,
+  getBottomNavKeysForRole,
 } from '../sidebar-config';
 import type { SidebarBadgeValues } from '../../hooks/useSidebarBadges';
 
 describe('routeUsesViewShell', () => {
   it('oculta header global en Inicio (panel ejecutivo)', () => {
     expect(routeUsesViewShell('/inicio')).toBe(true);
-    expect(routeUsesViewShell('/alma')).toBe(true);
   });
 
   it('oculta header en módulos gerencia con ViewShell', () => {
@@ -100,6 +102,28 @@ describe('SIDEBAR_GROUPS — IA fragmentada por proceso', () => {
     const territorioItem = groups.find((g) => g.key === 'territorio')!.items[0]!;
     expect(territorioItem.href).toBe('/territorio');
     expect(territorioItem.label).toBe('Mi Territorio');
+  });
+
+  it('resolveShellRoleKey nunca eleva a admin sin rol (loading / huésped)', () => {
+    expect(resolveShellRoleKey(undefined)).toBe('cliente');
+    expect(resolveShellRoleKey(null)).toBe('cliente');
+    expect(resolveShellRoleKey('')).toBe('cliente');
+    expect(resolveShellRoleKey('gerente')).toBe('admin');
+    expect(resolveShellRoleKey('territorial')).toBe('territorial');
+  });
+
+  it('cliente/creador/rep no ven menú gerencial (allowlist vacía, no “all”)', () => {
+    expect(getSidebarGroupsForRole('cliente')).toEqual([]);
+    expect(getSidebarGroupsForRole('creador')).toEqual([]);
+    expect(getSidebarGroupsForRole('rep_ventas')).toEqual([]);
+    expect(getAccountItemsForRole('cliente')).toEqual([]);
+    expect(getSidebarGroupsForRole('admin').length).toBeGreaterThan(3);
+  });
+
+  it('bottom nav: admin completo; territorial inicio+territorio; resto mínimo', () => {
+    expect(getBottomNavKeysForRole('admin')).toEqual([...BOTTOM_NAV_KEYS]);
+    expect(getBottomNavKeysForRole('territorial')).toEqual(['inicio', 'territorio']);
+    expect(getBottomNavKeysForRole('cliente')).toEqual(['inicio']);
   });
 
   it('RECOLECCIÓN expone Colmenas, Apiarios, Cuaderno Campo y Trazabilidad como sub-rutas', () => {
