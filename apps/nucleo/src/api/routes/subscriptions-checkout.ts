@@ -10,7 +10,11 @@ import {
   saveSubscriptionCheckoutSession,
   getSubscriptionCheckoutSession,
 } from '../lib/payments/subscription-sessions';
-import { fulfillSubscription } from '../lib/payments/subscription-fulfill';
+import {
+  fulfillRecurringCharge,
+  fulfillSubscription,
+  parseFlowOrder,
+} from '../lib/payments/subscription-fulfill';
 import { resolveCheckoutReturnUrl } from '../lib/payments/safe-return-url';
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from '../lib/ratelimit';
 import { fromLoose } from '@/api/lib/supabase-loose';
@@ -335,44 +339,94 @@ subscriptionsCheckoutRoutes.post('/cancel-inscription', async (c) => {
   }
 });
 
+/**
+ * Webhook Flow para órdenes SUB-*.
+ * - Sesión pending → primer pago / reactivación (fulfillSubscription).
+ * - Sin sesión → cargo recurrente (mismo commerceOrder en cada mes de Flow).
+ *
+ * Anti-patrón (pre-pass110): short-circuit `already_processed` si existía sub
+ * con metadata.buy_order. Flow reusa el commerceOrder de inscripción en cada
+ * cargo → los renovaciones se tragaban como ya procesados y el período no avanzaba.
+ */
 export async function fulfillSubscriptionFromWebhook(
   buyOrder: string,
   authorizationCode: string,
+  amount?: number,
 ) {
   if (!buyOrder.startsWith('SUB-')) {
     return { ok: false as const, error: 'Not a subscription order', status: 400 };
   }
 
   const session = await getSubscriptionCheckoutSession(buyOrder);
-  if (!session) {
-    // Race con el commit del browser: la sesión ya se completó y la sub existe
+  if (session) {
     const admin = createAdminClient();
-    const { data: existingSub } = await admin
-      .from('subscriptions')
-      .select('id')
-      .eq('metadata->>buy_order', buyOrder)
-      .maybeSingle();
-    if (existingSub) {
-      return { ok: true as const, status: 'already_processed' as const };
+    const fulfilled = await fulfillSubscription(admin, {
+      buyOrder,
+      session,
+      authorizationCode,
+      paymentProvider: 'flow',
+    });
+
+    if (!fulfilled.ok) {
+      return { ok: false as const, error: 'Error activando suscripción', status: 500 };
     }
-    console.error(`Flow webhook: subscription session not found for buyOrder ${buyOrder}`);
-    return { ok: false as const, error: 'Sesión no encontrada', status: 404 };
+
+    return {
+      ok: true as const,
+      status: fulfilled.alreadyProcessed ? ('already_processed' as const) : ('confirmed' as const),
+    };
+  }
+
+  // Sin sesión pending: cargo recurrente o race post-commit del primer pago.
+  // Idempotencia real = flow_order en subscription_charges (no “sub existe”).
+  const flowOrder = parseFlowOrder(authorizationCode);
+  if (flowOrder == null) {
+    return { ok: false as const, error: 'flowOrder inválido', status: 400 };
   }
 
   const admin = createAdminClient();
-  const fulfilled = await fulfillSubscription(admin, {
-    buyOrder,
-    session,
-    authorizationCode,
-    paymentProvider: 'flow',
+
+  // Preferir clave de inscripción; fallback metadata del primer pago (legacy).
+  const { data: byInscription } = await fromLoose(admin, 'subscriptions')
+    .select('id')
+    .eq('flow_inscription_buy_order', buyOrder)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let subscriptionId = (byInscription?.id as string | undefined) ?? null;
+  if (!subscriptionId) {
+    const { data: byMeta } = await admin
+      .from('subscriptions')
+      .select('id')
+      .eq('metadata->>buy_order', buyOrder)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    subscriptionId = (byMeta?.id as string | undefined) ?? null;
+  }
+
+  if (!subscriptionId) {
+    console.error(`Flow webhook: subscription session/sub not found for buyOrder ${buyOrder}`);
+    return { ok: false as const, error: 'Sesión no encontrada', status: 404 };
+  }
+
+  const charged = await fulfillRecurringCharge(admin, {
+    subscriptionId,
+    flowOrder,
+    amount: typeof amount === 'number' && Number.isFinite(amount) && amount > 0 ? amount : 0,
   });
 
-  if (!fulfilled.ok) {
-    return { ok: false as const, error: 'Error activando suscripción', status: 500 };
+  if (!charged.ok) {
+    return {
+      ok: false as const,
+      error: charged.error ?? 'Error procesando cargo recurrente',
+      status: 500,
+    };
   }
 
   return {
     ok: true as const,
-    status: fulfilled.alreadyProcessed ? ('already_processed' as const) : ('confirmed' as const),
+    status: charged.alreadyProcessed ? ('already_processed' as const) : ('confirmed' as const),
   };
 }

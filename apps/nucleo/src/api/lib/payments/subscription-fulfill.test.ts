@@ -1,5 +1,21 @@
 import { describe, it, expect } from 'vitest';
-import { addMonthsClamped } from './subscription-fulfill';
+import { addMonthsClamped, parseFlowOrder } from './subscription-fulfill';
+
+describe('parseFlowOrder', () => {
+  it('acepta flowOrder positivo (string o numérico como string)', () => {
+    expect(parseFlowOrder('12345')).toBe(12345);
+    expect(parseFlowOrder('77')).toBe(77);
+  });
+
+  it('rechaza vacío, 0, NaN y negativos (evita colisión UNIQUE flow_order)', () => {
+    expect(parseFlowOrder(undefined)).toBeNull();
+    expect(parseFlowOrder(null)).toBeNull();
+    expect(parseFlowOrder('')).toBeNull();
+    expect(parseFlowOrder('0')).toBeNull();
+    expect(parseFlowOrder('abc')).toBeNull();
+    expect(parseFlowOrder('-1')).toBeNull();
+  });
+});
 
 describe('addMonthsClamped (períodos de suscripción)', () => {
   it('preserva el día cuando el mes destino lo tiene (15 ene → 15 feb)', () => {

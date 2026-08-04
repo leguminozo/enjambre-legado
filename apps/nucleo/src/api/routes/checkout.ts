@@ -10,7 +10,6 @@ import {
 } from "../lib/payments";
 import type { CartLineInput } from "../lib/payments";
 import { fulfillCheckout } from "../lib/payments/checkout-fulfill";
-import { fulfillRecurringCharge } from "../lib/payments/subscription-fulfill";
 import { resolveCheckoutReturnUrl } from "../lib/payments/safe-return-url";
 import { buildPagosGoLiveChecklist } from "../lib/payments/go-live-checklist";
 import { fulfillSubscriptionFromWebhook } from "./subscriptions-checkout";
@@ -693,36 +692,20 @@ checkoutRoutes.post("/webhook/flow", async (c) => {
     }
 
     if (buyOrder.startsWith('SUB-')) {
-      const subResult = await fulfillSubscriptionFromWebhook(buyOrder, result.authorizationCode);
+      // Primer pago (sesión pending) o cargo recurrente (mismo commerceOrder).
+      // amount opcional → auditoría; el roll de período es por flow_order.
+      const raw = result.raw as { paymentData?: { amount?: number } } | undefined;
+      const rawAmount = Number(raw?.paymentData?.amount);
+      const subResult = await fulfillSubscriptionFromWebhook(
+        buyOrder,
+        result.authorizationCode,
+        Number.isFinite(rawAmount) && rawAmount > 0 ? rawAmount : undefined,
+      );
       if (subResult.ok) {
         return c.json({ ok: true, status: subResult.status }, 200);
       }
-
-      // Cargo recurrente: no hay sesión pending ni sub creada por este buy_order
-      // de checkout; buscar la sub por la inscripción (flow_inscription_buy_order)
-      if (subResult.status === 404) {
-        const admin = createAdminClient();
-        const { data: subRow } = await admin
-          .from('subscriptions')
-          .select('id')
-          .eq('flow_inscription_buy_order', buyOrder)
-          .maybeSingle();
-        if (subRow) {
-          const raw = result.raw as { paymentData?: { amount?: number } } | undefined;
-          const charged = await fulfillRecurringCharge(admin, {
-            subscriptionId: subRow.id as string,
-            flowOrder: Number(result.authorizationCode) || 0,
-            amount: raw?.paymentData?.amount ?? 0,
-          });
-          if (charged.ok) {
-            return c.json({ ok: true, status: charged.alreadyProcessed ? 'already_processed' : 'confirmed' }, 200);
-          }
-          console.error(`[webhook/flow] cargo recurrente falló: ${charged.error}`);
-          return c.json({ error: charged.error ?? 'Error procesando cargo recurrente' }, 500);
-        }
-      }
-
-      return c.json({ error: subResult.error }, (subResult.status ?? 500) as 500);
+      console.error(`[webhook/flow] SUB fulfill failed: ${subResult.error}`);
+      return c.json({ error: subResult.error }, (subResult.status ?? 500) as 400 | 404 | 500);
     }
 
     const admin = createAdminClient();

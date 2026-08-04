@@ -56,13 +56,23 @@ export async function startSubscriptionCheckout(
     return { ok: false, message: 'Error de conexión. Intenta de nuevo.' };
   }
 
-  const json = (await res.json()) as {
+  let json: {
     url?: string;
     token?: string;
     buyOrder?: string;
     provider?: string;
     message?: string;
   };
+  try {
+    json = (await res.json()) as typeof json;
+  } catch {
+    return {
+      ok: false,
+      message: res.ok
+        ? 'No se pudo iniciar el pago'
+        : 'El servicio de reposición no respondió correctamente. Intenta de nuevo.',
+    };
+  }
 
   if (!res.ok) {
     return {

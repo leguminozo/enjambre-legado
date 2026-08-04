@@ -37,7 +37,7 @@
 | Fenología + traza | pass108: fenologia auth+requireProfileRole(admin\|territorial) sin tenant; esAdmin=profileRole; tienda traza page/PDP section sin exigir solo blockchain_hash | ✅ oráculo territorial + traza origen; ⏳ firma on-chain e2e |
 | Alambique | pass109: lat/lng form min(0)→coords Chile; GET productos destilaciones.id + destilacion_id; producto_id ""→null | ✅ shell usable; ⏳ stock sync al vincular catálogo ASK |
 | Campo offline | pass105: `/api/pos/venta` reprice server; sync 5xx/red backoff; rep-ventas Number(precio) | ✅ reprice path sin caja; ⏳ e2e offline feria real |
-| Subs + CAF | Flow recurrente, CAF auto, integrity | ⏳ solo regresión |
+| Subs + CAF | pass110: webhook Flow recurrente ya no short-circuit already_processed; primer cargo ancla flow_order; flowOrder≤0 reject; tienda init JSON safe | ✅ renovación path; ⏳ smoke Flow real + CAF auto residual |
 | Tienda commerce | pass103: catálogo parse fila-a-fila + coerce num/join; pricing slug/precio; init Number(precio); startCartCheckout json safe | ✅ núcleo flujo; ⏳ smoke e2e pago real |
 | sw.js ZCode | Basura otra sesión | 🚫 no tocar |
 
@@ -68,6 +68,14 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-04 pass 110 (subs-caf-pagos)
+- Señal: webhook Flow SUB-* sin sesión pending devolvía already_processed si existía sub con metadata.buy_order; Flow reusa commerceOrder de inscripción en cada cargo → renovaciones no avanzaban período ni agendaban entrega; fulfillRecurringCharge solo se alcanzaba en 404 (inalcanzable); flowOrder `|| 0` colisionaba UNIQUE; primer fulfill no insertaba subscription_charges
+- Compuesto: colapsar + fail-closed dinero + entrelazado tienda↔nucleo reposición
+- Regla nueva: sin sesión pending → fulfillRecurringCharge por flow_inscription_buy_order|metadata (idempotente flow_order); primer fulfill registra charge; parseFlowOrder rechaza ≤0; client init parse JSON fail-closed
+- Anti-patrón: short-circuit “sub existe” = already_processed en webhook recurrente con commerceOrder reusado; `Number(x) \|\| 0` como clave de idempotencia
+- Guardriel: intacto (CAF checkout enforce no reabierto; no re-cobra provider)
+- DEFER: smoke e2e Flow Pago Automático real; CAF auto-request residual ops
 
 ### Evo 2026-08-04 pass 109 (alambique-produccion)
 - Señal: plantaFormSchema lat/lng usaban optNum.min(0) → Chiloé (-42/-73) rechazado (placeholders del form); GET /productos select destilaciones sin id → edit producto destilacion_id vacío/uuid inválido; producto_id "" desde Select rompe Zod uuid

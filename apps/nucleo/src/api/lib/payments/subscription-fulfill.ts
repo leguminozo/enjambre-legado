@@ -37,6 +37,14 @@ function periodMonthsForFrequency(frequency: string): number {
   return 12;
 }
 
+/** Flow order numérico válido (>0). Rechaza "" / NaN / 0 que colisionarían en UNIQUE. */
+export function parseFlowOrder(authorizationCode?: string | null): number | null {
+  if (authorizationCode == null || authorizationCode === '') return null;
+  const n = Number(authorizationCode);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.trunc(n);
+}
+
 /** Sumar meses sin desbordar el fin de mes (31 ene → 28/29 feb, no 2-3 mar). */
 export function addMonthsClamped(date: Date, months: number): Date {
   const result = new Date(date);
@@ -73,8 +81,33 @@ async function insertRecurringCharge(
     charged_at: charge.chargedAt ?? new Date().toISOString(),
   });
   if (error) {
+    // 23505: race concurrente con el mismo flow_order (idempotente)
+    const code = (error as { code?: string }).code;
+    if (code === '23505' || /duplicate|unique/i.test(error.message ?? '')) {
+      return;
+    }
     console.error('[subscription-fulfill] insertRecurringCharge failed:', error.message);
   }
+}
+
+/** Primer cargo (inscripción / reactivación): ancla flow_order para que el webhook
+ *  post-commit no avance el período otra vez vía fulfillRecurringCharge. */
+async function recordInitialChargeIfAny(
+  admin: SupabaseClient,
+  subscriptionId: string,
+  periodNumber: number,
+  authorizationCode: string | undefined,
+  amount: number,
+): Promise<void> {
+  const flowOrder = parseFlowOrder(authorizationCode);
+  if (flowOrder == null) return;
+  await insertRecurringCharge(admin, {
+    subscriptionId,
+    periodNumber,
+    flowOrder,
+    amount: Math.max(0, Math.round(amount)),
+    status: 'paid',
+  });
 }
 
 export async function fulfillSubscription(
@@ -169,6 +202,7 @@ export async function fulfillSubscription(
         console.error('[subscription-fulfill] reactivate delivery insert failed:', deliveryError.message);
       }
 
+      await recordInitialChargeIfAny(admin, activeSub.id, nextPeriod, authorizationCode, session.total);
       await completeSubscriptionCheckoutSession(buyOrder, authorizationCode);
       return { ok: true, subscriptionId: activeSub.id, alreadyProcessed: false };
     }
@@ -232,6 +266,7 @@ export async function fulfillSubscription(
       console.error('[subscription-fulfill] past_due delivery insert failed:', deliveryError.message);
     }
 
+    await recordInitialChargeIfAny(admin, pastDueSub.id, nextPeriod, authorizationCode, session.total);
     await completeSubscriptionCheckoutSession(buyOrder, authorizationCode);
     return { ok: true, subscriptionId: pastDueSub.id, alreadyProcessed: false };
   }
@@ -269,6 +304,7 @@ export async function fulfillSubscription(
     console.error('[subscription-fulfill] first delivery insert failed:', deliveryError.message);
   }
 
+  await recordInitialChargeIfAny(admin, subscription.id as string, 1, authorizationCode, session.total);
   await completeSubscriptionCheckoutSession(buyOrder, authorizationCode);
 
   return { ok: true, subscriptionId: subscription.id, alreadyProcessed: false };
@@ -284,7 +320,13 @@ export async function fulfillRecurringCharge(
   admin: SupabaseClient,
   input: RecurringChargeInput,
 ): Promise<FulfillRecurringChargeResult> {
-  const { subscriptionId, flowOrder, amount } = input;
+  const { subscriptionId, amount } = input;
+  const flowOrder = Number(input.flowOrder);
+
+  // flow_order 0/NaN colisiona en UNIQUE y silenciaba cargos reales
+  if (!Number.isFinite(flowOrder) || flowOrder <= 0) {
+    return { ok: false, error: 'flowOrder inválido' };
+  }
 
   const { data: existing } = await admin
     .from('subscription_charges')
