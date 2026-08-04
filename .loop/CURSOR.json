@@ -1,13 +1,13 @@
 {
-  "index": 8,
-  "pass": 108,
-  "last_sector": "colmenas-bitacora",
-  "last_commit": null,
+  "index": 9,
+  "pass": 109,
+  "last_sector": "fenologia-traza",
+  "last_commit": "c6a87d6",
   "streak_clean": 0,
   "boost": {
     "editor-cms-tienda": 0,
     "nav-home-roles": 0
   },
   "phase": "v1.4-polish-layers",
-  "notes": "pass107 colmenas-bitacora: UpdateCapturaSchema audio_url; upload already-exists returns path; requireProfileRole admin; PATCH ownership. Siguiente: fenologia-traza (#8)."
+  "notes": "pass108 fenologia-traza: auth+requireProfileRole(admin|territorial) sin tenant; esAdmin profileRole; tienda traza gate lote|hash. Siguiente: alambique-produccion (#9)."
 }

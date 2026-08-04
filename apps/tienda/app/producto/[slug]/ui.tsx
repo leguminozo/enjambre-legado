@@ -68,7 +68,15 @@ export function TraceabilitySection({
 }: TraceabilityProps) {
   const [showQR, setShowQR] = useState(false);
 
-  if (!blockchainHash) return null;
+  // Mostrar origen con lote/colmena/fechas aunque el hash crypto aún no esté firmado
+  // (hermano de /trazabilidad page: no exigir solo blockchainHash).
+  const hasOrigin =
+    Boolean(blockchainHash) ||
+    Boolean(nombreLote) ||
+    Boolean(colmenaOrigen) ||
+    Boolean(fechaCosecha) ||
+    Boolean(fechaEnvasado);
+  if (!hasOrigin) return null;
 
   const qrUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/producto/${slug}/trazabilidad` 

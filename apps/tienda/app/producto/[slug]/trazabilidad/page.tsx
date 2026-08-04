@@ -119,7 +119,12 @@ export default async function TrazabilidadPage({ params }: PageProps) {
   const { slug } = await params;
   const product = await getProductBySlugOrId(slug);
 
-  if (!product || !product.blockchain_hash) {
+  // Origen usable sin ancla crypto aún: lote vinculado o hash firmado.
+  // Antes: notFound si !blockchain_hash → 404 en PDP/QR aunque haya lote_id.
+  if (
+    !product ||
+    (!product.blockchain_hash && !product.lote_id && !product.nombre_lote)
+  ) {
     notFound();
   }
 

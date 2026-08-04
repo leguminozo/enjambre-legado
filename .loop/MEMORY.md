@@ -34,7 +34,7 @@
 | Auth multi-app | pass102: nucleo friendlyError; campo OAuth redirectTo /login; recovery checkUser/role path; tienda reset min6 + friendly | ✅ regresión recovery; ⏳ residual auth/callback formal en nucleo/campo |
 | Territorial | pass106: POST actores persiste censo legal; BFF requireProfileRole(territorial|admin) sin exigir empresa; PATCH actores/apiarios ownership explícito | ✅ inscripción/censo; ⏳ mapa comunidad actores (RLS solo own) |
 | Colmenas + bitácora | pass107: PATCH captura acepta audio_url (offline); upload already-exists reusa path; requireProfileRole(admin); ownership PATCH | ✅ voz/sync audio; ⏳ cuaderno WIP no mergeado |
-| Fenología + traza | GDD, oráculo, hashes, `/lote/[id]`, PDP traza tienda | ⏳ entrelazado nucleo↔tienda |
+| Fenología + traza | pass108: fenologia auth+requireProfileRole(admin\|territorial) sin tenant; esAdmin=profileRole; tienda traza page/PDP section sin exigir solo blockchain_hash | ✅ oráculo territorial + traza origen; ⏳ firma on-chain e2e |
 | Alambique | Módulo nuevo | ⏳ shell + rutas |
 | Campo offline | pass105: `/api/pos/venta` reprice server; sync 5xx/red backoff; rep-ventas Number(precio) | ✅ reprice path sin caja; ⏳ e2e offline feria real |
 | Subs + CAF | Flow recurrente, CAF auto, integrity | ⏳ solo regresión |
@@ -68,6 +68,14 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-04 pass 108 (fenologia-traza)
+- Señal: `/api/fenologia/*` con tenantMiddleware → territorial sin usuarios_empresas = 403 (UI sidebar/InicioTerritorial/widget sí lo muestran); esAdmin solo app_metadata; tienda `/producto/.../trazabilidad` notFound si !blockchain_hash aunque haya lote_id; TraceabilitySection oculto sin hash
+- Compuesto: colapsar + fail-closed roles + entrelazado nucleo↔tienda (hermano pass106 territorial)
+- Regla nueva: fenologia routes = auth + requireProfileRole(admin|territorial) sin tenant; esAdmin = profileRole; observaciones no-admin siempre filtran observador_id; traza PDP/page = origen con lote|nombre|hash (no solo hash crypto)
+- Anti-patrón: tenantMiddleware en módulos territoriales sin empresa; gate traza cliente solo por blockchain_hash
+- Guardriel: intacto (lotes-publicos/trazabilidad QR públicos intencionales; no reabrir firma blockchain)
+- DEFER: mutaciones especies/estaciones sin requireProfileRole(admin) explícito en BFF (RLS is_admin protege); e2e ancla on-chain
 
 ### Evo 2026-08-04 pass 107 (colmenas-bitacora)
 - Señal: UpdateCapturaSchema.strict() sin audio_url → sync offline POST captura + PATCH audio falla 400; uploadAudio devolvía null si blob ya en bucket; PATCH sin .eq user_id; API sin role gate

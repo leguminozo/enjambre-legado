@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import { authMiddleware, requireProfileRole } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 import {
   agruparEspeciesPorTbase,
@@ -12,7 +12,10 @@ import {
 
 export const fenologiaRoutes = new Hono<{ Variables: AppVariables }>();
 
-fenologiaRoutes.use("*", authMiddleware, tenantMiddleware);
+// UI: /fenologia + InicioTerritorial widget — admin|territorial (sidebar).
+// Sin tenant: territorial no tiene usuarios_empresas (hermano registro-territorial / bitácora).
+// RLS de especies/estaciones/alertas sigue acotando mutaciones a is_admin().
+fenologiaRoutes.use("*", authMiddleware, requireProfileRole("admin", "territorial"));
 
 const PRONOSTICO_DIAS = 16;
 
@@ -162,7 +165,7 @@ fenologiaRoutes.post("/observaciones", zValidator("json", ObservacionSchema), as
 fenologiaRoutes.get("/observaciones", async (c) => {
   const supabase = c.get("supabase");
   const user = c.get("user");
-  const { especie_id, desde, hasta, todas } = c.req.query();
+  const { especie_id, desde, hasta } = c.req.query();
 
   let query = supabase
     .from("observaciones_floracion")
@@ -170,9 +173,10 @@ fenologiaRoutes.get("/observaciones", async (c) => {
     .order("fecha", { ascending: false })
     .limit(200);
 
-  // No-admin solo ve sus propias observaciones (RLS también lo garantiza)
-  const esAdmin = (user.app_metadata as Record<string, unknown> | undefined)?.role === "admin";
-  if (!esAdmin && todas !== "1") query = query.eq("observador_id", user.id);
+  // No-admin: solo propias (fail-closed; RLS también). profiles.role, no app_metadata.
+  // `todas=1` en UI es intent admin; territorial no amplía scope con el param.
+  const esAdmin = c.get("profileRole") === "admin";
+  if (!esAdmin) query = query.eq("observador_id", user.id);
   if (especie_id) query = query.eq("especie_id", especie_id);
   if (desde) query = query.gte("fecha", desde);
   if (hasta) query = query.lte("fecha", hasta);
