@@ -51,10 +51,13 @@ export function useBitacoraSyncEngine() {
         upsert: false,
       });
     if (error) {
-      // Si el objeto ya existe, el upload previo quedó huérfano tras un
-      // timeout de red: el path sigue siendo válido.
-      if (error.message !== 'The resource already exists') return null;
-      return null;
+      // Upload previo huérfano (timeout): el path en el bucket sigue siendo válido.
+      // Antes se devolvía null → nunca se hacía PATCH audio_url y el audio quedaba huérfano.
+      const already =
+        error.message?.includes('already exists') ||
+        error.message?.includes('The resource already exists') ||
+        (error as { statusCode?: string }).statusCode === '409';
+      if (!already) return null;
     }
     await db.grabaciones.update(grabacionId, { subida: true });
     return path;

@@ -33,7 +33,7 @@
 | Home / Alma | pass101: HomeView usa profiles.role; /alma→/inicio; Alma fuera del sidebar VISIÓN; legacy guards OK | ✅ núcleo; ⏳ residual WIP EcosistemaDashboard delete sin commitear |
 | Auth multi-app | pass102: nucleo friendlyError; campo OAuth redirectTo /login; recovery checkUser/role path; tienda reset min6 + friendly | ✅ regresión recovery; ⏳ residual auth/callback formal en nucleo/campo |
 | Territorial | pass106: POST actores persiste censo legal; BFF requireProfileRole(territorial|admin) sin exigir empresa; PATCH actores/apiarios ownership explícito | ✅ inscripción/censo; ⏳ mapa comunidad actores (RLS solo own) |
-| Colmenas + bitácora | Apiarios/cuaderno/traza + bitácora voz/offline nueva | ⏳ funcionar en terreno |
+| Colmenas + bitácora | pass107: PATCH captura acepta audio_url (offline); upload already-exists reusa path; requireProfileRole(admin); ownership PATCH | ✅ voz/sync audio; ⏳ cuaderno WIP no mergeado |
 | Fenología + traza | GDD, oráculo, hashes, `/lote/[id]`, PDP traza tienda | ⏳ entrelazado nucleo↔tienda |
 | Alambique | Módulo nuevo | ⏳ shell + rutas |
 | Campo offline | pass105: `/api/pos/venta` reprice server; sync 5xx/red backoff; rep-ventas Number(precio) | ✅ reprice path sin caja; ⏳ e2e offline feria real |
@@ -68,6 +68,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-04 pass 107 (colmenas-bitacora)
+- Señal: UpdateCapturaSchema.strict() sin audio_url → sync offline POST captura + PATCH audio falla 400; uploadAudio devolvía null si blob ya en bucket; PATCH sin .eq user_id; API sin role gate
+- Compuesto: colapsar + fail-closed + offline hermana campo
+- Regla nueva: UpdateCapturaSchema incluye audio_url; storage already-exists → return path; bitacora routes requireProfileRole(admin); PATCH sesiones/capturas filtran user_id; POST captura verifica sesión propia
+- Anti-patrón: schema update sin el campo que el motor offline escribe; return null en already exists sin reusar path
+- Guardriel: intacto (WIP cuaderno v2 no commiteado)
 
 ### Evo 2026-08-04 pass 106 (territorial-registro)
 - Señal: POST /actores ignoraba rut/telefono/acepta_*/practicas/completo del form; API solo authMiddleware (cualquier JWT); requireProfileRole dependía de tenantMiddleware pero territorial no tiene usuarios_empresas; PATCH sin ownership BFF (500 opaco)

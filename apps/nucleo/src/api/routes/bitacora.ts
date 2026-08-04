@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { authMiddleware } from "@/api/lib/middleware";
+import { authMiddleware, requireProfileRole } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 import type {
   BitacoraSupabase,
@@ -10,17 +10,27 @@ import type {
   TipoCuadro,
   FaseBitacora,
   TipoOrigen,
+  NodoRedCuaderno,
+  AristaRedCuaderno,
+  BrechaColmena,
+  InspeccionCuadrosEnHistorial,
+  InspeccionRowWithBitacora,
+  TratamientoRow,
+  MuestraRow,
+  NodoManualRow,
 } from "@/lib/bitacora-types";
+import type { VarroaRow } from "@/lib/apicultor-types";
 import { FASES_BITACORA, CUERPOS_CUADRO, TIPOS_CUADRO, TIPOS_ORIGEN } from "@/lib/bitacora-types";
 import { parseTranscripcion, PARSE_AUTO_EMIT_THRESHOLD } from "@/api/lib/bitacora-parsers";
 
 // Bitácora apícola por voz — especificación docs/BITACORA_APICOLA.md
-// Estilo: registro-territorial.ts (authMiddleware + zod strict + BFF como
+// Estilo: registro-territorial.ts (auth + role + zod strict + BFF como
 // única vía de escritura). Las tablas nuevas viven en la migración 1006.
+// UI /colmenas* es admin-only (ROUTE_ROLE_GUARDS).
 
 export const bitacoraRoutes = new Hono<{ Variables: AppVariables }>();
 
-bitacoraRoutes.use("*", authMiddleware);
+bitacoraRoutes.use("*", authMiddleware, requireProfileRole("admin"));
 
 // ---------------------------------------------------------------------------
 // Schemas de validación
@@ -65,6 +75,8 @@ const CreateCapturaSchema = z.object({
 
 const UpdateCapturaSchema = z.object({
   colmena_id: z.string().uuid().nullable().optional(),
+  // Offline sync: POST captura → upload storage → PATCH audio_url
+  audio_url: z.string().max(500).nullable().optional(),
   transcript_raw: z.string().nullable().optional(),
   estado: EstadoCapturaSchema.optional(),
   atribucion_hipotesis: z
@@ -271,13 +283,14 @@ bitacoraRoutes.post(
   }
 );
 
-/** PATCH /api/bitacora/sesiones/:id — actualizar contexto/fecha */
+/** PATCH /api/bitacora/sesiones/:id — actualizar contexto/fecha (propio) */
 bitacoraRoutes.patch(
   "/sesiones/:id",
   zValidator("param", z.object({ id: z.string().uuid() })),
   zValidator("json", UpdateSesionSchema),
   async (c) => {
     const supabase = bitacoraClient(c.get("supabase"));
+    const user = c.get("user");
     const { id } = c.req.valid("param");
     const body = c.req.valid("json");
 
@@ -285,10 +298,12 @@ bitacoraRoutes.patch(
       .from("sesiones_bitacora")
       .update({ ...body, updated_at: new Date().toISOString() })
       .eq("id", id)
+      .eq("user_id", user.id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) return c.json({ error: error.message }, 500);
+    if (!data) return c.json({ error: "Sesión no encontrada o sin permiso" }, 404);
     return c.json({ data });
   }
 );
@@ -335,10 +350,22 @@ bitacoraRoutes.post(
       .from("voice_inspection_captures")
       .select("*")
       .eq("client_request_id", body.client_request_id)
+      .eq("user_id", user.id)
       .maybeSingle();
 
     if (existente) {
       return c.json({ data: existente, meta: { already_processed: true } });
+    }
+
+    // Sesión debe ser del usuario (evita FK a sesión ajena)
+    const { data: sesion } = await supabase
+      .from("sesiones_bitacora")
+      .select("id")
+      .eq("id", body.session_id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!sesion) {
+      return c.json({ error: "Sesión no encontrada o sin permiso" }, 404);
     }
 
     const { data, error } = await supabase
@@ -360,13 +387,14 @@ bitacoraRoutes.post(
   }
 );
 
-/** PATCH /api/bitacora/capturas/:id — transcripción, estado, atribución */
+/** PATCH /api/bitacora/capturas/:id — audio_url (sync offline), estado, atribución */
 bitacoraRoutes.patch(
   "/capturas/:id",
   zValidator("param", z.object({ id: z.string().uuid() })),
   zValidator("json", UpdateCapturaSchema),
   async (c) => {
     const supabase = bitacoraClient(c.get("supabase"));
+    const user = c.get("user");
     const { id } = c.req.valid("param");
     const body = c.req.valid("json");
 
@@ -374,10 +402,12 @@ bitacoraRoutes.patch(
       .from("voice_inspection_captures")
       .update({ ...body, updated_at: new Date().toISOString() })
       .eq("id", id)
+      .eq("user_id", user.id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) return c.json({ error: error.message }, 500);
+    if (!data) return c.json({ error: "Captura no encontrada o sin permiso" }, 404);
     return c.json({ data });
   }
 );

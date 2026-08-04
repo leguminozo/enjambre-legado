@@ -1,7 +1,7 @@
 {
-  "index": 7,
-  "pass": 107,
-  "last_sector": "territorial-registro",
+  "index": 8,
+  "pass": 108,
+  "last_sector": "colmenas-bitacora",
   "last_commit": null,
   "streak_clean": 0,
   "boost": {
@@ -9,5 +9,5 @@
     "nav-home-roles": 0
   },
   "phase": "v1.4-polish-layers",
-  "notes": "pass106 territorial-registro: POST actores guarda censo legal; requireProfileRole territorial|admin sin tenant; PATCH ownership. Siguiente: colmenas-bitacora (#7)."
+  "notes": "pass107 colmenas-bitacora: UpdateCapturaSchema audio_url; upload already-exists returns path; requireProfileRole admin; PATCH ownership. Siguiente: fenologia-traza (#8)."
 }

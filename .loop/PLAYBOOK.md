@@ -312,6 +312,7 @@ v1.3 UI y go-live v1.2 se conservan abajo como referencia / residual.
 | supabase.insert UI directa | offline pierde venta | insert en component POS | Dexie `sync_queue` + `use-sync-engine` |
 | Double sync sale | stock/caja ×2 | reprocess sin idempotency key | `client_request_id` → ventas.buy_order `POS-{uuid}`; replay 200 |
 | items_override price | feria paga de menos | precio_unitario del body | reprice desde productos server |
+| Bitácora offline audio huérfano | PATCH audio_url 400 o path null | UpdateCapturaSchema sin audio_url; upload already-exists return null | schema + return path si exists |
 | Territorial POST drop censo | form envía rut/acepta pero DB vacío | insert incompleto | persistir columnas mig 1004 en POST actores |
 | requireProfileRole sin tenant | 403 siempre si no hay empresa | profileRole undefined | requireProfileRole carga profiles.role si falta |
 | POS /api/pos/venta open price | venta sin cash session con total client | body.total + item.precio_unitario | select precio; reprice; total = sum server (como rep-ventas/quick) |
