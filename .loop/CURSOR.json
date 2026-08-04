@@ -1,7 +1,7 @@
 {
-  "index": 6,
-  "pass": 106,
-  "last_sector": "campo-pos-offline",
+  "index": 7,
+  "pass": 107,
+  "last_sector": "territorial-registro",
   "last_commit": null,
   "streak_clean": 0,
   "boost": {
@@ -9,5 +9,5 @@
     "nav-home-roles": 0
   },
   "phase": "v1.4-polish-layers",
-  "notes": "pass105 campo-pos-offline: pos/venta server reprice; sync 5xx backoff; rep-ventas Number(precio). Siguiente: territorial-registro (#6)."
+  "notes": "pass106 territorial-registro: POST actores guarda censo legal; requireProfileRole territorial|admin sin tenant; PATCH ownership. Siguiente: colmenas-bitacora (#7)."
 }

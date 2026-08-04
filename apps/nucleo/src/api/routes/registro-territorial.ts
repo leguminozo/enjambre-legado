@@ -1,13 +1,18 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { authMiddleware } from "@/api/lib/middleware";
+import { authMiddleware, requireProfileRole } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 import { validarRUT } from "@enjambre/contable";
 
 export const registroTerritorialRoutes = new Hono<{ Variables: AppVariables }>();
 
-registroTerritorialRoutes.use("*", authMiddleware);
+// UI: /territorio y /registro-territorial solo territorial|admin (ROUTE_ROLE_GUARDS).
+registroTerritorialRoutes.use(
+  "*",
+  authMiddleware,
+  requireProfileRole("territorial", "admin"),
+);
 
 // ---------------------------------------------------------------------------
 // Schemas de validación
@@ -238,15 +243,24 @@ registroTerritorialRoutes.post(
     const user = c.get("user");
     const body = c.req.valid("json");
 
+    // Incluir campos del censo legal (mig 1004) — el form de inscripción los envía.
     const { data, error } = await supabase
       .from("actores_registro")
       .insert({
         user_id: user.id,
         rol: body.rol,
         nombre_actor: body.nombre_actor,
+        rut: body.rut ?? null,
+        telefono: body.telefono ?? null,
         rup: body.rup ?? null,
         comuna: body.comuna,
         region: body.region,
+        practicas_sanitarias: body.practicas_sanitarias ?? null,
+        metodo_control_varroa: body.metodo_control_varroa ?? null,
+        declaracion_existencia_animal: body.declaracion_existencia_animal ?? false,
+        acepta_carta: body.acepta_carta ?? false,
+        acepta_politica_datos: body.acepta_politica_datos ?? false,
+        completo: body.completo ?? false,
         consentimientos: body.consentimientos ?? {
           mapa_comunitario: false,
           alertas_fitosanitarias: true,
@@ -258,30 +272,48 @@ registroTerritorialRoutes.post(
       .select()
       .single();
 
-    if (error) return c.json({ error: error.message }, 500);
+    if (error) {
+      // Unique user_id: re-inscripción
+      if (error.code === "23505") {
+        return c.json(
+          { error: "Ya tienes un perfil en el Registro Territorial. Puedes completar el censo legal desde Mi Territorio." },
+          409,
+        );
+      }
+      return c.json({ error: error.message }, 500);
+    }
 
     return c.json({ data }, 201);
   }
 );
 
-/** PATCH /api/registro-territorial/actores/:id — actualizar perfil del actor */
+/** PATCH /api/registro-territorial/actores/:id — actualizar perfil del actor (propio o admin) */
 registroTerritorialRoutes.patch(
   "/actores/:id",
   zValidator("param", z.object({ id: z.string().uuid() })),
   zValidator("json", CreateActorSchema.partial()),
   async (c) => {
     const supabase = c.get("supabase");
+    const user = c.get("user");
+    const profileRole = c.get("profileRole");
     const { id } = c.req.valid("param");
     const body = c.req.valid("json");
 
-    const { data, error } = await supabase
+    // Fail-closed ownership en BFF (RLS también filtra; evita 500 PGRST116 opaco)
+    let query = supabase
       .from("actores_registro")
       .update({ ...body, updated_at: new Date().toISOString() })
-      .eq("id", id)
-      .select()
-      .single();
+      .eq("id", id);
+    if (profileRole !== "admin") {
+      query = query.eq("user_id", user.id);
+    }
+
+    const { data, error } = await query.select().maybeSingle();
 
     if (error) return c.json({ error: error.message }, 500);
+    if (!data) {
+      return c.json({ error: "Actor no encontrado o sin permiso" }, 404);
+    }
 
     return c.json({ data });
   }
@@ -429,17 +461,42 @@ registroTerritorialRoutes.patch(
   zValidator("json", CreateApiarioRegistroSchema.partial()),
   async (c) => {
     const supabase = c.get("supabase");
+    const user = c.get("user");
+    const profileRole = c.get("profileRole");
     const { id } = c.req.valid("param");
     const body = c.req.valid("json");
+
+    // Asegurar que el apiario pertenece al actor del usuario (o admin)
+    if (profileRole !== "admin") {
+      const { data: miActor } = await supabase
+        .from("actores_registro")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!miActor) {
+        return c.json({ error: "No tienes perfil en el registro territorial" }, 403);
+      }
+      const { data, error } = await supabase
+        .from("apiarios_registro")
+        .update({ ...body, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .eq("actor_id", miActor.id)
+        .select()
+        .maybeSingle();
+      if (error) return c.json({ error: error.message }, 500);
+      if (!data) return c.json({ error: "Apiario no encontrado o sin permiso" }, 404);
+      return c.json({ data });
+    }
 
     const { data, error } = await supabase
       .from("apiarios_registro")
       .update({ ...body, updated_at: new Date().toISOString() })
       .eq("id", id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) return c.json({ error: error.message }, 500);
+    if (!data) return c.json({ error: "Apiario no encontrado" }, 404);
 
     return c.json({ data });
   }

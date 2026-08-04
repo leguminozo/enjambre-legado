@@ -32,7 +32,7 @@
 | Editor CMS tienda | pass100 revalidate/admin/legales; **opción 2:** retirados del editor/BFF `hero` + `footer_branding|nav|legal`; tienda sin fetch footerData; pie=StoreChrome; hero=i18n | ✅ 2026-08-04 |
 | Home / Alma | pass101: HomeView usa profiles.role; /alma→/inicio; Alma fuera del sidebar VISIÓN; legacy guards OK | ✅ núcleo; ⏳ residual WIP EcosistemaDashboard delete sin commitear |
 | Auth multi-app | pass102: nucleo friendlyError; campo OAuth redirectTo /login; recovery checkUser/role path; tienda reset min6 + friendly | ✅ regresión recovery; ⏳ residual auth/callback formal en nucleo/campo |
-| Territorial | Registro, mapa, predios, trashumantes, InicioTerritorial | ⏳ absorción UX + roles |
+| Territorial | pass106: POST actores persiste censo legal; BFF requireProfileRole(territorial|admin) sin exigir empresa; PATCH actores/apiarios ownership explícito | ✅ inscripción/censo; ⏳ mapa comunidad actores (RLS solo own) |
 | Colmenas + bitácora | Apiarios/cuaderno/traza + bitácora voz/offline nueva | ⏳ funcionar en terreno |
 | Fenología + traza | GDD, oráculo, hashes, `/lote/[id]`, PDP traza tienda | ⏳ entrelazado nucleo↔tienda |
 | Alambique | Módulo nuevo | ⏳ shell + rutas |
@@ -68,6 +68,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-04 pass 106 (territorial-registro)
+- Señal: POST /actores ignoraba rut/telefono/acepta_*/practicas/completo del form; API solo authMiddleware (cualquier JWT); requireProfileRole dependía de tenantMiddleware pero territorial no tiene usuarios_empresas; PATCH sin ownership BFF (500 opaco)
+- Compuesto: colapsar + fail-closed roles + censo legal
+- Regla nueva: insert actores con columnas mig 1004; requireProfileRole resuelve profiles.role si falta profileRole; registro routes = auth + requireProfileRole(territorial|admin); PATCH actores/apiarios filtra user_id/actor_id
+- Anti-patrón: Zod schema con campos que el insert descarta; requireProfileRole sin cargar role tras solo authMiddleware
+- Guardriel: intacto
 
 ### Evo 2026-08-04 pass 105 (campo-pos-offline)
 - Señal: `/api/pos/venta` (venta sin sesión de caja) confiaba total/precio_unitario del carrito; sync_queue 5xx no hacía backoff y network abortaba toda la cola; precio string en rep-ventas

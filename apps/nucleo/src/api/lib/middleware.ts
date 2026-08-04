@@ -114,10 +114,27 @@ export const tenantMiddleware = createMiddleware<{
   await next();
 });
 
-/** Zero-Trust: autorización por profiles.role (no solo JWT válido). */
+/** Zero-Trust: autorización por profiles.role (no solo JWT válido).
+ *  Si no pasó tenantMiddleware (p.ej. registro territorial sin empresa),
+ *  resuelve role desde profiles. */
 export function requireProfileRole(...allowed: string[]) {
   return createMiddleware<{ Variables: AppVariables }>(async (c, next) => {
-    const profileRole = c.get("profileRole");
+    let profileRole = c.get("profileRole");
+    if (!profileRole) {
+      const supabase = c.get("supabase");
+      const user = c.get("user");
+      if (supabase && user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+        profileRole = profile?.role ?? "cliente";
+        c.set("profileRole", profileRole);
+      } else {
+        profileRole = "cliente";
+      }
+    }
     if (!allowed.includes(profileRole)) {
       return c.json({ code: "forbidden", message: "Rol insuficiente para esta operación" }, 403);
     }
