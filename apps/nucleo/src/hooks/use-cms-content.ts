@@ -20,14 +20,11 @@ export interface CMSGroupedData {
   [sectionKey: string]: CMSContentItem[]
 }
 
+/** Alineado a BFF cms SECTION_KEYS. Sin hero/footer legacy (no consumidos por tienda). */
 const CMS_SECTIONS = [
   'servicios',
   'talleres',
   'colecciones',
-  'footer_branding',
-  'footer_nav',
-  'footer_legal',
-  'hero',
   'nosotros',
   'galeria',
   'contacto',

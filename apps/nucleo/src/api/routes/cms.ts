@@ -6,14 +6,11 @@ import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, requireProfileRole, tenantMiddleware } from "@/api/lib/middleware";
 import { revalidateTiendaCms } from "@/lib/revalidate-tienda";
 
+/** Secciones editables. Retiradas (no consumidas por tienda): hero, footer_branding/nav/legal. */
 const SECTION_KEYS = [
   "servicios",
   "talleres",
   "colecciones",
-  "footer_branding",
-  "footer_nav",
-  "footer_legal",
-  "hero",
   "nosotros",
   "galeria",
   "contacto",

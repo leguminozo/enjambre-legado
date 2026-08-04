@@ -211,8 +211,8 @@ describe('CMS API Routes', () => {
       method: 'POST',
       headers: authHeaders,
       body: JSON.stringify({
-        section_key: 'hero',
-        content: { title: 'x' },
+        section_key: 'brand_assets',
+        content: { logo_url: 'x' },
       }),
     });
     expect(res.status).toBe(400);

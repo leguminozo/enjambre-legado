@@ -32,8 +32,6 @@ import {
   Flag,
   PanelBottom,
   Share2,
-  List,
-  Scale,
   AppWindow,
   FileText,
   Shield,
@@ -42,14 +40,12 @@ import {
   RotateCcw,
   Ban,
   BadgeCheck,
-  Sparkles,
   Layers,
   Wrench,
   GraduationCap,
   Users,
   Images,
   Mail,
-  Copyright,
   type LucideProps,
 } from 'lucide-react';
 import { toast, ImmersiveModal } from '@enjambre/ui';
@@ -177,13 +173,6 @@ const SECTION_META: Record<
     group: 'home',
     hint: 'Promos y campañas',
   },
-  hero: {
-    label: 'Hero (CMS)',
-    short: 'Hero',
-    icon: Sparkles,
-    group: 'home',
-    hint: 'Contenido hero',
-  },
   catalog_settings: {
     label: 'Catálogo',
     short: 'Catálogo',
@@ -210,25 +199,6 @@ const SECTION_META: Record<
     short: 'Redes',
     icon: Share2,
     group: 'pie',
-  },
-  footer_nav: {
-    label: 'Footer — Nav',
-    short: 'Nav pie',
-    icon: List,
-    group: 'pie',
-  },
-  footer_legal: {
-    label: 'Footer — Legal links',
-    short: 'Links legal',
-    icon: Scale,
-    group: 'pie',
-  },
-  footer_branding: {
-    label: 'Footer — Marca (legacy · no usar)',
-    short: 'Legacy',
-    icon: Copyright,
-    group: 'pie',
-    hint: 'Usá Marca y logos + Footer estilo',
   },
   pwa_nav_settings: {
     label: 'PWA — Estilo',
@@ -342,8 +312,6 @@ const SECTION_ORDER = [
   'campaign_banners',
   'footer_settings',
   'footer_social',
-  'footer_nav',
-  'footer_legal',
   'pwa_nav_settings',
   'pwa_nav_items',
   'legal_terminos',
@@ -353,15 +321,21 @@ const SECTION_ORDER = [
   'legal_reembolso',
   'legal_cancelacion',
   'legal_garantia',
-  'hero',
   'colecciones',
   'servicios',
   'talleres',
   'nosotros',
   'galeria',
   'contacto',
-  'footer_branding',
 ] as const;
+
+/** No listar en editor ni crear: tienda no los consume (hero=i18n, pie=StoreChrome). */
+const RETIRED_CMS_SECTIONS = new Set([
+  'hero',
+  'footer_branding',
+  'footer_nav',
+  'footer_legal',
+]);
 
 function getSectionMeta(key: string) {
   return (
@@ -382,13 +356,9 @@ const SECTION_TEMPLATES: Record<string, Record<string, unknown>> = {
   colecciones: { kicker: '', title: '', desc: '', href: '/catalogo', image: '' },
   servicios: { num: '', title: '', desc: '' },
   talleres: { date: '', title: '', desc: '', action: '' },
-  footer_nav: { label: '', href: '/' },
-  footer_legal: { label: '', href: '/' },
-  hero: { title: '', subtitle: '', cta: '' },
   nosotros: { title: '', desc: '', image: '' },
   galeria: { src: '', alt: '' },
   contacto: { title: '', desc: '', email: '' },
-  footer_branding: { tagline: '', email: '' },
   menu_settings: { ...HEADER_SETTINGS_TEMPLATE },
   menu_links: { ...HEADER_NAV_TEMPLATE },
   theme_settings: { ...THEME_SETTINGS_TEMPLATE },
@@ -1152,7 +1122,13 @@ export function EditorTiendaView() {
       ...Object.keys(groupedData),
     ]);
     const ordered = SECTION_ORDER.filter((k) => fromApi.has(k));
-    const rest = [...fromApi].filter((k) => !SECTION_ORDER.includes(k as (typeof SECTION_ORDER)[number])).sort();
+    const rest = [...fromApi]
+      .filter(
+        (k) =>
+          !SECTION_ORDER.includes(k as (typeof SECTION_ORDER)[number]) &&
+          !RETIRED_CMS_SECTIONS.has(k),
+      )
+      .sort();
     return [...ordered, ...rest];
   })();
 

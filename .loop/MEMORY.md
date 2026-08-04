@@ -29,7 +29,7 @@
 
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
-| Editor CMS tienda | pass100: revalidate status en respuesta + toast warning; requireProfileRole admin; error load UX; legal last_updated; paths revalidate legales | ✅ núcleo; ⏳ residual secciones CMS no consumidas (hero/footer_legacy/nosotros/servicios) |
+| Editor CMS tienda | pass100 revalidate/admin/legales; **opción 2:** retirados del editor/BFF `hero` + `footer_branding|nav|legal`; tienda sin fetch footerData; pie=StoreChrome; hero=i18n | ✅ 2026-08-04 |
 | Home / Alma | pass101: HomeView usa profiles.role; /alma→/inicio; Alma fuera del sidebar VISIÓN; legacy guards OK | ✅ núcleo; ⏳ residual WIP EcosistemaDashboard delete sin commitear |
 | Auth multi-app | pass102: nucleo friendlyError; campo OAuth redirectTo /login; recovery checkUser/role path; tienda reset min6 + friendly | ✅ regresión recovery; ⏳ residual auth/callback formal en nucleo/campo |
 | Territorial | Registro, mapa, predios, trashumantes, InicioTerritorial | ⏳ absorción UX + roles |
@@ -91,7 +91,8 @@
 - Regla nueva: mutaciones CMS devuelven `revalidated` boolean; toast warning si false; `revalidateTiendaCms` → `{ok,reason}`; CMS routes = auth+tenant+requireProfileRole(admin); legal pages = `resolveLegalLastUpdated` (last_updated||updated_at); EditableItemCard sync por id/updated_at/contentKey no `item` ref
 - Anti-patrón: await revalidate fire-and-forget sin señal al editor; confiar que layout revalidate alcanza legales sin paths; `useEffect([item])` en lista multi-card
 - Guardriel: intacto (no WIP ajeno; no Alma)
-- Residual DEFER: secciones hero/footer_branding|nav|legal/nosotros/servicios/talleres en editor sin consumidor en tienda (hero i18n; footer = storeChrome; nosotros hardcoded)
+- Residual DEFER residual: nosotros/servicios/talleres aún en editor (posible sin consumidor completo)
+- **Decisión producto 2 aplicada:** hero + footer_branding/nav/legal fuera del editor y del allowlist BFF; clean landing footerData
 
 ### Evo 2026-08-04 reorient v1.4 (operador)
 - Señal: semana de producto (nucleo territorial/bitácora/CAF/subs + auth) dejó loop v1.3 UI desfasado; operador exige monorepo entero (nucleo+tienda+campo), capas Detectar→Validar→Intervenir, profundidad ilimitada, pulir lo existente; editor-tienda posiblemente roto

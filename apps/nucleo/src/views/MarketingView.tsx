@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Megaphone, Users, Camera, Calendar, Gift, BookOpen, ArrowUpRight } from 'lucide-react';
-import { ImmersiveModal } from '@enjambre/ui';
+import { ImmersiveModal, formatCLP } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { supabase } from '../lib/supabase';
@@ -31,7 +31,6 @@ interface LocalClient {
 }
 
 export function MarketingView() {
-  const [userProfile, setUserProfile] = useState<{ full_name?: string } | null>(null);
   const [posts, setPosts] = useState<MarketingPost[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [localClients, setLocalClients] = useState<LocalClient[]>([]);
@@ -46,9 +45,6 @@ export function MarketingView() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const uid = user.id;
-
-      const { data: prof } = await supabase.from('profiles').select('*').eq('id', uid).single();
-      setUserProfile(prof);
 
       const [resP, resC] = await Promise.all([
         supabase.from('marketing_posts').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
@@ -79,7 +75,7 @@ export function MarketingView() {
 
       const [productosRes, cmsRes] = await Promise.all([
         supabase.from('productos').select('fotos, video_url'),
-        supabase.from('site_content').select('section_key, content').in('section_key', ['galeria', 'footer_branding', 'hero']),
+        supabase.from('site_content').select('section_key, content').in('section_key', ['galeria', 'brand_assets']),
       ]);
 
       const productos = productosRes.data ?? [];
@@ -133,7 +129,6 @@ export function MarketingView() {
   return (
     <div className="space-y-6 animate-in">
       <ViewShell
-        greeting={`¡Hola, ${userProfile?.full_name || 'Diseñador/Marketing'}!`}
         title="Comunidad"
         subtitle="Gestiona campañas, contenidos y fidelización del Club de Guardianes"
       />
@@ -233,7 +228,7 @@ export function MarketingView() {
               <div className="font-display text-lg mb-2">{activeSubscriptions} Guardianes Activos</div>
               <div className="text-sm opacity-70">Suscripción desde $15.000/mes</div>
               <div className="text-sm opacity-70 mt-1">
-                Ingresos mensuales estimados: ${Math.round(monthlyClubRevenue).toLocaleString('es-CL')}
+                Ingresos mensuales estimados: {formatCLP(Math.round(monthlyClubRevenue))}
               </div>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">

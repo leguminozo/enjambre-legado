@@ -65,11 +65,6 @@ interface TiendaLandingProps {
   products: ShopProduct[];
   mediaItems: MediaItem[];
   youtubeVideoId: string;
-  footerData: {
-    branding: { tagline: string; email: string };
-    nav: Array<{ label: string; href: string }>;
-    legal: Array<{ label: string; href: string }>;
-  };
   ecosystemMetrics: EcosystemMetrics;
   locale: string;
 }
@@ -100,7 +95,6 @@ export function TiendaLandingView({
   products,
   mediaItems,
   youtubeVideoId,
-  footerData,
   ecosystemMetrics,
   locale,
 }: TiendaLandingProps) {
@@ -108,7 +102,6 @@ export function TiendaLandingView({
   const tHero = useTranslations('hero');
   const tConservation = useTranslations('conservation');
   const tCollections = useTranslations('collections');
-  const tFooter = useTranslations('footer');
   const tCommon = useTranslations('common');
   const tScience = useTranslations('science');
   const currentLocale = useLocale();
