@@ -273,4 +273,38 @@ describe('CMS API Routes', () => {
     expect(json.data.deleted).toBe(true);
     expect(mockRevalidate).toHaveBeenCalledTimes(1);
   });
+
+  it('admin sin usuarios_empresas → 200 (site_content global; no tenant)', async () => {
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'usuarios_empresas') {
+        return makeChain({ data: [], error: null });
+      }
+      if (table === 'profiles') {
+        return makeChain({ data: { role: 'admin' }, error: null });
+      }
+      if (table === 'site_content') {
+        return makeChain({ data: [], error: null });
+      }
+      return makeChain({ data: null, error: null });
+    });
+
+    const res = await app.request('/api/cms/sections', { headers: authHeaders });
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.sections).toContain('brand_assets');
+  });
+
+  it('cliente (profiles.role) → 403 en CMS', async () => {
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return makeChain({ data: { role: 'cliente' }, error: null });
+      }
+      return makeChain({ data: null, error: null });
+    });
+
+    const res = await app.request('/api/cms/sections', { headers: authHeaders });
+    expect(res.status).toBe(403);
+    const json = await res.json();
+    expect(json.code).toBe('forbidden');
+  });
 });

@@ -63,7 +63,15 @@ export function useCMSContent() {
     queryKey: ['cms', 'sections'],
     queryFn: async () => {
       const res = await apiFetch('/api/cms/sections')
-      if (!res.ok) throw new Error('Failed to fetch CMS content')
+      if (!res.ok) {
+        const err = await res.json().catch(() => null) as { message?: string; code?: string } | null
+        const detail = err?.message || err?.code || res.statusText || String(res.status)
+        throw new Error(
+          res.status === 403
+            ? `Sin permiso para el CMS (${detail}). ¿Tu perfil es admin?`
+            : `No se pudo cargar el CMS: ${detail}`,
+        )
+      }
       return res.json()
     },
     staleTime: 30_000,

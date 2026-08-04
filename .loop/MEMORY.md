@@ -29,7 +29,7 @@
 
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
-| Editor CMS tienda | pass100 revalidate/admin/legales; **opción 2:** retirados del editor/BFF `hero` + `footer_branding|nav|legal`; tienda sin fetch footerData; pie=StoreChrome; hero=i18n | ✅ 2026-08-04 |
+| Editor CMS tienda | pass100 revalidate/admin/legales + hero/footer legacy fuera; pass113 CMS sin tenant (site_content global); revalidate secret timing-safe; error UX 403 | ✅ editor usable sin empresa |
 | Home / Alma | pass101 home por rol; pass112 shell `?? admin`→resolveShellRoleKey least-privilege; ROLE_VISIBLE `all` vs allowlist; alma/ejecutivo +territorial | ✅ nav; ⏳ residual WIP Ecosistema delete |
 | Auth multi-app | pass102: nucleo friendlyError; campo OAuth redirectTo /login; recovery checkUser/role path; tienda reset min6 + friendly | ✅ regresión recovery; ⏳ residual auth/callback formal en nucleo/campo |
 | Territorial | pass106: POST actores persiste censo legal; BFF requireProfileRole(territorial|admin) sin exigir empresa; PATCH actores/apiarios ownership explícito | ✅ inscripción/censo; ⏳ mapa comunidad actores (RLS solo own) |
@@ -68,6 +68,14 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-04 pass 113 (editor-cms-tienda)
+- Señal: cmsRoutes exigía tenantMiddleware + usuarios_empresas aunque site_content no tiene empresa_id → admin sin membership 403 y editor vacío/roto; revalidate secret con `===` timing-leaky; load CMS error genérico
+- Compuesto: colapsar + fail-closed roles + entrelazado nucleo↔tienda CMS
+- Regla nueva: CMS = auth + requireProfileRole(admin) sin tenant; revalidate secret timing-safe; fetch CMS expone code/message (403→hint admin)
+- Anti-patrón: tenantMiddleware en módulos de contenido global de tienda; secret compare `===`
+- Guardriel: intacto (solo admin; revalidate fail-closed prod sin secret)
+- DEFER: secciones editoriales residuales sin consumidor completo; /api/revalidate legacy SERVICE_ROLE
 
 ### Evo 2026-08-04 pass 112 (nav-home-roles)
 - Señal: shell Sidebar/Rail/Bottom/Mobile/search usaban `user?.role ?? 'admin'` → menú gerencial completo durante loading o sin profile; ROLE_VISIBLE_KEYS `[]` = “todos los ítems” (cliente/creador/rep pintaban admin nav); profile.role `""` dejaba HomeView en spinner eterno

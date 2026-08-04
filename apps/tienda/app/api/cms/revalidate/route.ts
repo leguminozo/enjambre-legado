@@ -6,6 +6,14 @@ import { NextRequest, NextResponse } from 'next/server';
  * Auth: Bearer INTERNAL_API_SECRET | CMS_REVALIDATE_SECRET
  * En development sin secret: permitido (preview local).
  */
+
+function timingSafeEqualString(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return out === 0;
+}
+
 export async function POST(req: NextRequest) {
   const configured =
     process.env.CMS_REVALIDATE_SECRET?.trim() ||
@@ -26,7 +34,7 @@ export async function POST(req: NextRequest) {
 
   const isDev = process.env.NODE_ENV === 'development';
   if (configured) {
-    if (provided !== configured) {
+    if (!provided || !timingSafeEqualString(provided, configured)) {
       return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
     }
   } else if (!isDev) {

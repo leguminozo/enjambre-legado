@@ -1,7 +1,7 @@
 {
-  "index": 1,
-  "pass": 113,
-  "last_sector": "nav-home-roles",
+  "index": 2,
+  "pass": 114,
+  "last_sector": "editor-cms-tienda",
   "last_commit": "pending",
   "streak_clean": 0,
   "boost": {
@@ -9,5 +9,5 @@
     "nav-home-roles": 0
   },
   "phase": "v1.4-polish-layers",
-  "notes": "pass112 nav-home: shell least-privilege role; ROLE_VISIBLE all vs allowlist; alma/ejecutivo territorial. Siguiente: editor-cms-tienda (#1)."
+  "notes": "pass113 editor-cms: CMS without tenant; revalidate timing-safe secret. Siguiente: auth-login-recovery (#2)."
 }

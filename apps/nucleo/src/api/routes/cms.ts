@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
-import { authMiddleware, requireProfileRole, tenantMiddleware } from "@/api/lib/middleware";
+import { authMiddleware, requireProfileRole } from "@/api/lib/middleware";
 import { revalidateTiendaCms } from "@/lib/revalidate-tienda";
 
 /** Secciones editables. Retiradas (no consumidas por tienda): hero, footer_branding/nav/legal. */
@@ -72,7 +72,9 @@ export const cmsRoutes = new Hono<{
 }>();
 
 // UI / ROUTE_ROLE_GUARDS: /editor-tienda solo admin. BFF alineado fail-closed.
-cmsRoutes.use("*", authMiddleware, tenantMiddleware, requireProfileRole("admin"));
+// site_content es global (sin empresa_id): no exigir tenantMiddleware —
+// admin sin fila en usuarios_empresas veía 403 y el editor “roto”.
+cmsRoutes.use("*", authMiddleware, requireProfileRole("admin"));
 
 cmsRoutes.get("/sections", async (c) => {
   const supabase = c.get("supabase");
