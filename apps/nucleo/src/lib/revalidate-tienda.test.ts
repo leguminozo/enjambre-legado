@@ -16,15 +16,16 @@ describe('revalidateTiendaCms', () => {
     vi.restoreAllMocks();
   });
 
-  it('no llama fetch si falta URL de tienda', async () => {
+  it('no llama fetch si falta URL de tienda y devuelve ok:false', async () => {
     delete process.env.NEXT_PUBLIC_URL_TIENDA;
     delete process.env.NEXT_PUBLIC_TIENDA_URL;
     const { revalidateTiendaCms } = await import('./revalidate-tienda');
-    await revalidateTiendaCms();
+    const result = await revalidateTiendaCms();
     expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(result).toEqual({ ok: false, reason: 'missing_url' });
   });
 
-  it('POST a /api/cms/revalidate con Bearer secret', async () => {
+  it('POST a /api/cms/revalidate con Bearer secret y ok:true', async () => {
     process.env.NEXT_PUBLIC_URL_TIENDA = 'https://tienda.test/';
     process.env.CMS_REVALIDATE_SECRET = 'sec-abc';
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -34,8 +35,9 @@ describe('revalidateTiendaCms', () => {
     });
 
     const { revalidateTiendaCms } = await import('./revalidate-tienda');
-    await revalidateTiendaCms();
+    const result = await revalidateTiendaCms();
 
+    expect(result).toEqual({ ok: true, status: 200 });
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [
       string,
@@ -67,14 +69,33 @@ describe('revalidateTiendaCms', () => {
     expect((init.headers as Record<string, string>)['x-revalidate-secret']).toBe('internal-1');
   });
 
-  it('no lanza si fetch falla', async () => {
+  it('no lanza si fetch falla; ok:false network', async () => {
     process.env.NEXT_PUBLIC_URL_TIENDA = 'https://tienda.test';
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('network'));
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     const { revalidateTiendaCms } = await import('./revalidate-tienda');
-    await expect(revalidateTiendaCms()).resolves.toBeUndefined();
+    await expect(revalidateTiendaCms()).resolves.toEqual({ ok: false, reason: 'network' });
     expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it('http no-OK → ok:false con status', async () => {
+    process.env.NEXT_PUBLIC_URL_TIENDA = 'https://tienda.test';
+    process.env.CMS_REVALIDATE_SECRET = 'sec';
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: false,
+      status: 401,
+      text: async () => 'unauthorized',
+    });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const { revalidateTiendaCms } = await import('./revalidate-tienda');
+    await expect(revalidateTiendaCms()).resolves.toEqual({
+      ok: false,
+      reason: 'http_error',
+      status: 401,
+    });
     warn.mockRestore();
   });
 });

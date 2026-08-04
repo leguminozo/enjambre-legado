@@ -100,7 +100,7 @@ export function useCMSContent() {
       enabled: false,
     })
 
-  const createItem = useMutation({
+const createItem = useMutation({
     mutationFn: async (item: {
       section_key: CMSSectionKey
       item_order?: number
@@ -120,7 +120,11 @@ export function useCMSContent() {
         const err = await res.json().catch(() => ({ message: 'Create failed' }))
         throw new Error(err.message ?? 'Create failed')
       }
-      return res.json()
+      return res.json() as Promise<{
+        data: CMSContentItem
+        revalidated?: boolean
+        revalidate_reason?: string | null
+      }>
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cms'] })
@@ -145,7 +149,11 @@ export function useCMSContent() {
         const err = await res.json().catch(() => ({ message: 'Update failed' }))
         throw new Error(err.message ?? 'Update failed')
       }
-      return res.json()
+      return res.json() as Promise<{
+        data: CMSContentItem
+        revalidated?: boolean
+        revalidate_reason?: string | null
+      }>
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cms'] })
@@ -161,7 +169,11 @@ export function useCMSContent() {
         const err = await res.json().catch(() => ({ message: 'Delete failed' }))
         throw new Error(err.message ?? 'Delete failed')
       }
-      return res.json()
+      return res.json() as Promise<{
+        data: { deleted: boolean }
+        revalidated?: boolean
+        revalidate_reason?: string | null
+      }>
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cms'] })
@@ -178,7 +190,11 @@ export function useCMSContent() {
         const err = await res.json().catch(() => ({ message: 'Reorder failed' }))
         throw new Error(err.message ?? 'Reorder failed')
       }
-      return res.json()
+      return res.json() as Promise<{
+        data: { reordered: number }
+        revalidated?: boolean
+        revalidate_reason?: string | null
+      }>
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cms'] })

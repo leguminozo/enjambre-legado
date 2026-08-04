@@ -8,6 +8,22 @@ export type SiteSectionItem = {
   item_order: number;
 };
 
+/**
+ * Fecha legal desde CMS.
+ * Editor (LEGAL_DOC_TEMPLATE) escribe `last_updated`; páginas leían solo `updated_at` → fecha muerta.
+ */
+export function resolveLegalLastUpdated(
+  content: Record<string, unknown> | null | undefined,
+  fallback: string,
+): string {
+  if (!content) return fallback;
+  const last = content.last_updated;
+  if (typeof last === 'string' && last.trim()) return last.trim();
+  const legacy = content.updated_at;
+  if (typeof legacy === 'string' && legacy.trim()) return legacy.trim();
+  return fallback;
+}
+
 export const getSiteContent = cache(async function getSiteContent(
   sectionKey: string,
 ): Promise<SiteSectionItem[]> {

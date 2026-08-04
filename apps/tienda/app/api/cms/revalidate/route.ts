@@ -36,12 +36,22 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Layout carga brand + menu; revalidate layout propaga a páginas
+  // Layout carga brand + menu; revalidate layout propaga a páginas.
+  // Paths editoriales/legales (CMS) se invalidan explícitos por si ISR propio no hereda layout.
   revalidatePath('/', 'layout');
   revalidatePath('/');
   revalidatePath('/catalogo');
   revalidatePath('/carrito');
   revalidatePath('/contacto');
+  revalidatePath('/nosotros');
+  revalidatePath('/galeria');
+  revalidatePath('/terminos');
+  revalidatePath('/privacidad');
+  revalidatePath('/cookies');
+  revalidatePath('/envio');
+  revalidatePath('/reembolso');
+  revalidatePath('/cancelacion');
+  revalidatePath('/garantia');
 
   return NextResponse.json({
     ok: true,

@@ -566,12 +566,17 @@ function EditableItemCard({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTargetField, setUploadTargetField] = useState<string>('');
 
+  // Solo re-sync cuando ESTE item cambia en servidor (id/updated_at/active/content).
+  // Dependencia en `item` entero reseteaba dirty de hermanas al invalidar la query tras un save.
+  const serverContentKey = JSON.stringify(item.content);
   useEffect(() => {
     setLocalContent(item.content);
     setLocalActive(item.is_active);
     setDirty(false);
     setUploadingField(null);
-  }, [item]);
+    // item.content / is_active leídos intencionalmente al cambiar las claves estables
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- serverContentKey serializa content
+  }, [item.id, item.updated_at, item.is_active, serverContentKey]);
 
   const handleFieldChange = useCallback((key: string, val: unknown) => {
     setLocalContent((prev) => ({ ...prev, [key]: val }));
@@ -1161,12 +1166,22 @@ export function EditorTiendaView() {
     }
   };
 
+  const notifyRevalidate = (revalidated?: boolean) => {
+    if (revalidated === false) {
+      toast(
+        'Guardado en base, pero la tienda no revalidó (URL/secret). Revisá NEXT_PUBLIC_URL_TIENDA y CMS_REVALIDATE_SECRET.',
+        { type: 'warning' },
+      );
+    }
+  };
+
   const handleUpdateItem = (id: string, content: Record<string, unknown>, isActive: boolean) => {
     cms.updateItem.mutate(
       { id, content, is_active: isActive },
       {
-        onSuccess: () => {
+        onSuccess: (res) => {
           toast('Contenido guardado', { type: 'success' });
+          notifyRevalidate(res?.revalidated);
           refreshIframe();
         },
         onError: (err) => toast(err.message, { type: 'error' }),
@@ -1176,8 +1191,9 @@ export function EditorTiendaView() {
 
   const handleDeleteItem = (id: string) => {
     cms.deleteItem.mutate(id, {
-      onSuccess: () => {
+      onSuccess: (res) => {
         toast('Item eliminado', { type: 'success' });
+        notifyRevalidate(res?.revalidated);
         refreshIframe();
       },
       onError: (err) => toast(err.message, { type: 'error' }),
@@ -1213,8 +1229,9 @@ export function EditorTiendaView() {
       cms.createItem.mutate(
         { section_key: activeSection as CMSSectionKey, content: newContent },
         {
-          onSuccess: () => {
+          onSuccess: (res) => {
             toast('Elemento añadido', { type: 'success' });
+            notifyRevalidate(res?.revalidated);
             setShowNewForm(false);
             refreshIframe();
           },
@@ -1232,8 +1249,9 @@ export function EditorTiendaView() {
       item_order: idx + 1,
     }));
     cms.reorderItems.mutate(payload, {
-      onSuccess: () => {
+      onSuccess: (res) => {
         toast('Orden actualizado', { type: 'success' });
+        notifyRevalidate(res?.revalidated);
         refreshIframe();
       },
       onError: (err) => toast(err.message, { type: 'error' }),
@@ -1254,6 +1272,11 @@ export function EditorTiendaView() {
             Editor Tienda
           </span>
           {cms.isLoading && <Loader2 size={14} className="animate-spin text-accent shrink-0" />}
+          {cms.error ? (
+            <span className="text-[10px] font-medium text-destructive truncate max-w-[12rem]" title={cms.error.message}>
+              Error al cargar CMS
+            </span>
+          ) : null}
         </div>
 
         {/* Desktop: view mode toggle */}
@@ -1338,18 +1361,36 @@ export function EditorTiendaView() {
             />
           </div>
 
-          {/* Items list */}
-          <ItemsPanel
-            items={currentItems}
-            activeSection={activeSection}
-            onUpdate={handleUpdateItem}
-            onDelete={handleDeleteItem}
-            onImageUpload={handleImageUpload}
-            onAddNew={() => setShowNewForm(true)}
-            onReorder={handleReorder}
-            isUpdating={cms.updateItem.isPending}
-            isDeleting={cms.deleteItem.isPending}
-          />
+          {/* Load failure: empty panels look like CMS vacío — error explícito + retry */}
+          {cms.error && !cms.isLoading ? (
+            <div className="flex-1 overflow-y-auto p-4 md:p-6">
+              <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-6 text-center space-y-3">
+                <p className="text-sm font-medium text-foreground">No se pudo cargar el contenido CMS</p>
+                <p className="text-xs text-muted-foreground break-words">
+                  {cms.error.message || 'Error de red o sesión. Reintentá o volvé a iniciar sesión.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void cms.refetch()}
+                  className="inline-flex min-h-11 items-center justify-center px-4 rounded-lg text-sm font-medium bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  Reintentar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <ItemsPanel
+              items={currentItems}
+              activeSection={activeSection}
+              onUpdate={handleUpdateItem}
+              onDelete={handleDeleteItem}
+              onImageUpload={handleImageUpload}
+              onAddNew={() => setShowNewForm(true)}
+              onReorder={handleReorder}
+              isUpdating={cms.updateItem.isPending}
+              isDeleting={cms.deleteItem.isPending}
+            />
+          )}
         </div>
 
         {/* Right: iframe preview */}

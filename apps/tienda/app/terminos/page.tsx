@@ -1,4 +1,4 @@
-import { getSiteContent } from '@/lib/cms';
+import { getSiteContent, resolveLegalLastUpdated } from '@/lib/cms';
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
@@ -207,7 +207,7 @@ Políticas relacionadas: <a href="/privacidad">Privacidad</a> | <a href="/cookie
     <LegalContent
       title={title}
       content={content}
-      lastUpdated={(item && typeof item === 'object' && 'updated_at' in item ? String(item.updated_at) : null) || '19 de mayo de 2026'}
+      lastUpdated={resolveLegalLastUpdated(item && typeof item === 'object' ? (item as Record<string, unknown>) : null, '19 de mayo de 2026')}
     />
   );
 }

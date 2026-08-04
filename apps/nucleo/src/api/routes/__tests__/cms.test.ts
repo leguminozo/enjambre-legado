@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { app } from '../../../../app/api/[[...routes]]/route';
 
 const mockFrom = vi.fn();
-const mockRevalidate = vi.fn().mockResolvedValue(undefined);
+const mockRevalidate = vi.fn().mockResolvedValue({ ok: true });
 
 vi.mock('@/lib/revalidate-tienda', () => ({
   revalidateTiendaCms: () => mockRevalidate(),
 }));
+
+// mockRevalidate defaults to ok:true shape consumed by CMS responses
 
 vi.mock('@supabase/supabase-js', () => ({
   createClient: (_url: string, _key: string, options?: { global?: { headers?: { Authorization?: string } } }) => {
@@ -65,7 +67,7 @@ describe('CMS API Routes', () => {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'mock-anon-key';
     mockFrom.mockReset();
     mockRevalidate.mockClear();
-    mockRevalidate.mockResolvedValue(undefined);
+    mockRevalidate.mockResolvedValue({ ok: true });
 
     mockFrom.mockImplementation((table: string) => {
       if (table === 'usuarios_empresas') {
@@ -187,6 +189,7 @@ describe('CMS API Routes', () => {
     expect(res.status).toBe(201);
     const json = await res.json();
     expect(json.data.id).toBe('new-1');
+    expect(json.revalidated).toBe(true);
     expect(mockRevalidate).toHaveBeenCalledTimes(1);
   });
 

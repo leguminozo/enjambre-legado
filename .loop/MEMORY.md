@@ -2,30 +2,46 @@
 
 ## Doctrina del loop (actualizar solo si el operador la cambia)
 
-- **Fase v1.3 (activa — interfaz gráfica / pulido visual):** valor = **experiencia de producto visible**: espaciado, ritmo editorial, responsive, overlap/z-index, touch targets, tokens semánticos, shells multi-app. Integraciones go-live v1.2 se asumen **base código lista**; residual ops (secrets, migs, smoke real) queda en backlog ops, **no** es el cono del tick salvo regresión dura de pago/auth.
-- **Prioridad de valor (orden fijo — fase v1.3):**
-  1. **U — UI / layout** — overlap, spacing scale, hierarchy, empty states, loading, motion no-invasivo
-  2. **R — Responsive** — 375 / 768 / 1024 / 1440; safe-area; nav colapsable; grids que no aplastan tipografía
-  3. **A — Accesibilidad táctil** — hit ≥44px; contraste tokens; focus visible; no solo hover
-  4. **T — Tokens / Ley III** — `bg-background`, `text-foreground`, `text-accent`, `border-border`; sin hex/stone/gray crudos
-  5. **S — Seguridad** solo si el cono UI toca forms de dinero/auth (fail-closed; no reabrir sec 1–6)
-  6. **O — Perf percibida** — LCP del hero, lazy canvas, no bloquear scroll
-- **Config-en-UI (sigue vigente):** negocio en interfaz + BFF; env = secretos plataforma.
-- Conos canónicos v1.3 (UI):
-  1. **tienda-landing** — `apps/tienda/app/landing-view.tsx`, header, chrome, hero/overlap
-  2. **tienda-shop** — catálogo, PDP, carrito, checkout UI (no re-lógica de pagos)
-  3. **nucleo-shell** — dashboard shell, ModuleHero, tables, panels go-live
-  4. **campo-pos** — POS/PWA, readers, touch, safe-area
-  5. **shared-ui** — `@enjambre/ui` tokens, componentes, preset Tailwind
-  6. **deep-followup-ui** — MEMORY backlog visual + regresión de go-live solo si bloquea uso
-- Criterio de “validado” UI: screenshot o traza en código del defecto + fix en breakpoints clave; no commit cosmético sin solapar/espacio roto demostrado.
-- **v1.2 go-live:** congelada como base; no reabrir pasadas de integración sin regresión de dinero/stock/auth.
-- **Loophole**: absorber → hipótesis → colapsar → redirigir → acrecer. Guardrieles fijos.
-- Guardrieles: fail-closed auth/pago; no quitar RLS/CAF; cirugía; evidencia; no spawnear loops; no mezclar WIP ajeno; no monorepo-spray; **no** mega-refactor de design system en un tick.
+- **Fase v1.4 (activa — pulir · funcionar · capas):** valor = **dejar funcionando y redondeado** el monorepo entero (nucleo + tienda + campo), absorbiendo actualizaciones recientes y cazando bugs (funcionales, ocultos, perf, auth, BFF, entrelazados). UI residual solo si bloquea uso.
+- **Metodología en capas (obligatoria por tick):**
+  1. **Capa 1 Detectar** — lista P0–P2 de candidatos (hipótesis + path + evidencia parcial).
+  2. **Capa 2 Validar** — más código/entrelazados/perspectiva → CONFIRMED | FALSE_POSITIVE | DEFER | ASK_HUMAN | ALREADY_FIXED.
+  3. **Capa 3 Intervenir** — solo CONFIRMED; cirugía; o pregunta humana si es producto/diseño.
+- **Prioridad de valor (orden fijo — fase v1.4):**
+  1. **F — Funciona** — flujos rotos, editor-tienda/CMS, commerce, POS, home por rol
+  2. **E — Entrelazados** — nucleo↔tienda↔campo, packages
+  3. **B — Bugs / regresión semana** — bitácora, fenología, CAF, subs, territorial, alambique, auth
+  4. **C — Coherencia nav/roles** — `/inicio` único; no Alma
+  5. **P — Perf** del cono
+  6. **U/R/A/T** — layout/responsive/touch/tokens solo si bloquean uso
+- **Ámbito multi-app:** cada tick puede tocar nucleo, tienda y/o campo según el cono; no sesgar solo a nucleo ni solo a UI tienda.
+- **Señal operador:** editor tienda en línea (`/editor-tienda`) puede estar roto → boost `editor-cms-tienda`.
+- **Config-en-UI** sigue vigente; env = secretos plataforma.
+- Conos canónicos v1.4: nav-home-roles · editor-cms-tienda · auth-login-recovery · tienda-commerce · tienda-landing-chrome · campo-pos-offline · territorial-registro · colmenas-bitacora · fenologia-traza · alambique-produccion · subs-caf-pagos · deep-followup.
+- **v1.3 UI:** congelada como base táctil (backlog abajo histórico ✅); no reabrir rueda de pass 40–82 sin P0 real.
+- **v1.2 go-live:** base; no reabrir sin regresión dinero/stock/auth.
+- **Loophole:** absorber → Capa1 → Capa2 → Capa3 → redirigir → acrecer. Guardrieles fijos.
+- Guardrieles: fail-closed; no RLS/CAF; cirugía; evidencia; no spawnear loops; no WIP ajeno; no Alma/resumen; no monorepo-spray; ASK_HUMAN solo producto/diseño.
 - Cadencia: 60s reactivación; investigación **ilimitada** si productiva.
-- Identidad: Enjambre Legado — néctar trazable multi-app, **editorial dark luxury**.
+- Identidad: Enjambre Legado — néctar trazable multi-app, editorial dark luxury.
 
-### Backlog UI (v1.3 — actualizar al pulir)
+### Backlog v1.4 (activo — pulir / funcionar)
+
+| Superficie | Hallazgo / gap | Estado |
+|------------|----------------|--------|
+| Editor CMS tienda | pass100: revalidate status en respuesta + toast warning; requireProfileRole admin; error load UX; legal last_updated; paths revalidate legales | ✅ núcleo; ⏳ residual secciones CMS no consumidas (hero/footer_legacy/nosotros/servicios) |
+| Home / Alma | WIP unificación `/inicio` por rol; redirects alma/ejecutivo; widgets Alma eliminados | ⏳ cerrar commit + validar |
+| Auth multi-app | Login cósmico nucleo + recovery + domains + friendlyError (semana) | ⏳ regresión recovery/redirect |
+| Territorial | Registro, mapa, predios, trashumantes, InicioTerritorial | ⏳ absorción UX + roles |
+| Colmenas + bitácora | Apiarios/cuaderno/traza + bitácora voz/offline nueva | ⏳ funcionar en terreno |
+| Fenología + traza | GDD, oráculo, hashes, `/lote/[id]`, PDP traza tienda | ⏳ entrelazado nucleo↔tienda |
+| Alambique | Módulo nuevo | ⏳ shell + rutas |
+| Campo offline | Sync backoff, loyalty, feria | ⏳ regresión POS |
+| Subs + CAF | Flow recurrente, CAF auto, integrity | ⏳ solo regresión |
+| Tienda commerce | Checkout/catálogo deben funcionar (nucleo depende de tienda viva) | ⏳ smoke flujos |
+| sw.js ZCode | Basura otra sesión | 🚫 no tocar |
+
+### Backlog UI (v1.3 — histórico / residual; no cono default)
 
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
@@ -52,6 +68,22 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-04 pass 100 (editor-cms-tienda)
+- Señal: operador preview/editor-tienda «roto»; revalidate fallaba en silencio; legal leía `updated_at` vs template `last_updated`; load CMS sin error UX; BFF sin requireProfileRole(admin); dirty cards reseteadas al invalidar query
+- Compuesto: colapsar + entrelazado nucleo↔tienda + fail-closed
+- Regla nueva: mutaciones CMS devuelven `revalidated` boolean; toast warning si false; `revalidateTiendaCms` → `{ok,reason}`; CMS routes = auth+tenant+requireProfileRole(admin); legal pages = `resolveLegalLastUpdated` (last_updated||updated_at); EditableItemCard sync por id/updated_at/contentKey no `item` ref
+- Anti-patrón: await revalidate fire-and-forget sin señal al editor; confiar que layout revalidate alcanza legales sin paths; `useEffect([item])` en lista multi-card
+- Guardriel: intacto (no WIP ajeno; no Alma)
+- Residual DEFER: secciones hero/footer_branding|nav|legal/nosotros/servicios/talleres en editor sin consumidor en tienda (hero i18n; footer = storeChrome; nosotros hardcoded)
+
+### Evo 2026-08-04 reorient v1.4 (operador)
+- Señal: semana de producto (nucleo territorial/bitácora/CAF/subs + auth) dejó loop v1.3 UI desfasado; operador exige monorepo entero (nucleo+tienda+campo), capas Detectar→Validar→Intervenir, profundidad ilimitada, pulir lo existente; editor-tienda posiblemente roto
+- Compuesto: redirigir doctrina + unificar conos multi-app
+- Regla nueva: todo tick con Capa1 lista + Capa2 veredictos; ASK_HUMAN solo producto/diseño; boost editor-cms-tienda
+- Anti-patrón: saltar a fix cosmético sin validación; rueda pass UI sin P0; sesgo solo-nucleo o solo-tienda
+- Guardriel: intacto (+ no revivir Alma)
+
 
 ### Evo 2026-07-27 pass 82 (ui-tienda-landing)
 - Señal: landing-products empty sin CTA; ciencia/nosotros H2 text-3xl fijo; claim claimed sin escape + H1 4xl; science/catalog CTAs text-only residual; youtube sin focus ring

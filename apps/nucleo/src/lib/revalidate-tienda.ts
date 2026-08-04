@@ -1,7 +1,14 @@
 /**
  * Pide a la app Tienda invalidar ISR/layout tras mutaciones CMS.
- * Fire-and-forget: no bloquea la respuesta del admin.
+ * Devuelve ok:false si no pudo invalidar (URL ausente, secret, red) —
+ * el editor avisa al operador; el save de site_content no se revierte.
  */
+
+export type RevalidateTiendaResult = {
+  ok: boolean;
+  reason?: 'missing_url' | 'http_error' | 'network';
+  status?: number;
+};
 
 function tiendaBaseUrl(): string {
   return (
@@ -21,13 +28,13 @@ function revalidateSecret(): string {
   );
 }
 
-export async function revalidateTiendaCms(): Promise<void> {
+export async function revalidateTiendaCms(): Promise<RevalidateTiendaResult> {
   const base = tiendaBaseUrl();
   if (!base) {
     if (process.env.NODE_ENV === 'development') {
       console.warn('[revalidate-tienda] NEXT_PUBLIC_URL_TIENDA no configurada');
     }
-    return;
+    return { ok: false, reason: 'missing_url' };
   }
 
   const secret = revalidateSecret();
@@ -53,8 +60,12 @@ export async function revalidateTiendaCms(): Promise<void> {
     if (!res.ok) {
       const text = await res.text().catch(() => '');
       console.warn(`[revalidate-tienda] ${res.status} ${text.slice(0, 200)}`);
+      return { ok: false, reason: 'http_error', status: res.status };
     }
+
+    return { ok: true, status: res.status };
   } catch (err) {
     console.warn('[revalidate-tienda] fetch failed', err);
+    return { ok: false, reason: 'network' };
   }
 }

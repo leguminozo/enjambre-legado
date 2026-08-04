@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
-import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import { authMiddleware, requireProfileRole, tenantMiddleware } from "@/api/lib/middleware";
 import { revalidateTiendaCms } from "@/lib/revalidate-tienda";
 
 const SECTION_KEYS = [
@@ -74,7 +74,8 @@ export const cmsRoutes = new Hono<{
   Variables: AppVariables;
 }>();
 
-cmsRoutes.use("*", authMiddleware, tenantMiddleware);
+// UI / ROUTE_ROLE_GUARDS: /editor-tienda solo admin. BFF alineado fail-closed.
+cmsRoutes.use("*", authMiddleware, tenantMiddleware, requireProfileRole("admin"));
 
 cmsRoutes.get("/sections", async (c) => {
   const supabase = c.get("supabase");
@@ -139,10 +140,10 @@ cmsRoutes.post("/items", zValidator("json", ContentItemSchema), async (c) => {
     return c.json({ code: "item_create_failed", message: error.message }, 400);
   }
 
-  // Await: el editor refresca el iframe al recibir 200; ISR debe estar invalidado
-  await revalidateTiendaCms();
+// Await: el editor refresca el iframe al recibir 200; ISR debe estar invalidado
+  const revalidate = await revalidateTiendaCms();
 
-  return c.json({ data }, 201);
+  return c.json({ data, revalidated: revalidate.ok, revalidate_reason: revalidate.reason ?? null }, 201);
 });
 
 cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async (c) => {
@@ -173,9 +174,9 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
     return c.json({ code: "update_failed", message: error.message }, 400);
   }
 
-  await revalidateTiendaCms();
+  const revalidate = await revalidateTiendaCms();
 
-  return c.json({ data });
+  return c.json({ data, revalidated: revalidate.ok, revalidate_reason: revalidate.reason ?? null });
 });
 
 cmsRoutes.delete("/items/:id", async (c) => {
@@ -191,9 +192,13 @@ cmsRoutes.delete("/items/:id", async (c) => {
     return c.json({ code: "delete_failed", message: error.message }, 400);
   }
 
-  await revalidateTiendaCms();
+  const revalidate = await revalidateTiendaCms();
 
-  return c.json({ data: { deleted: true } });
+  return c.json({
+    data: { deleted: true },
+    revalidated: revalidate.ok,
+    revalidate_reason: revalidate.reason ?? null,
+  });
 });
 
 cmsRoutes.post("/reorder", zValidator("json", ReorderItemSchema), async (c) => {
@@ -217,9 +222,13 @@ cmsRoutes.post("/reorder", zValidator("json", ReorderItemSchema), async (c) => {
     }, 207);
   }
 
-  await revalidateTiendaCms();
+  const revalidate = await revalidateTiendaCms();
 
-  return c.json({ data: { reordered: items.length } });
+  return c.json({
+    data: { reordered: items.length },
+    revalidated: revalidate.ok,
+    revalidate_reason: revalidate.reason ?? null,
+  });
 });
 
 cmsRoutes.post("/upload-url", zValidator("json", ImageUploadSchema), async (c) => {

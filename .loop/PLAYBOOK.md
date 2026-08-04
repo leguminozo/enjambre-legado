@@ -1,12 +1,37 @@
-# PLAYBOOK — patrones reales de Oyz App (Enjambre Legado) v1.3
+# PLAYBOOK — patrones reales de Oyz App (Enjambre Legado) v1.4
 
 Actualizar solo cuando un fix o audit confirma el patrón en código.  
-Prompt hermano: `.loop/PROMPT.md` **v1.3** (interfaz gráfica · spacing · responsive).  
-Sección go-live v1.2 se conserva abajo como referencia histórica/ops.
+Prompt hermano: `.loop/PROMPT.md` **v1.4** (pulir · funcionar · capas).  
+v1.3 UI y go-live v1.2 se conservan abajo como referencia / residual.
 
 ---
 
-## UI / interfaz gráfica (fase v1.3 — activa)
+## Metodología en capas (v1.4 — activa)
+
+| Capa | No hacer | Sí hacer |
+|------|----------|----------|
+| 1 Detectar | Commit a ciegas; un solo grep superficial | Lista P0–P2 multi-clase (funcional/oculto/perf/auth/BFF/cross-app/UI) |
+| 2 Validar | Confiar en la lista sin leer callers | Hermanas apps + tests + falsificar hipótesis |
+| 3 Intervenir | Mega-refactor; inventar producto | Un CONFIRMED + brothers hop-1; o ASK_HUMAN |
+
+| Patrón de investigación | Dónde mirar |
+|-------------------------|-------------|
+| Editor tienda roto | `EditorTiendaView`, `use-cms-content`, `/api/cms/*`, revalidate tienda, e2e `editor-tienda.spec.ts` |
+| Preview no actualiza | `revalidateTiendaCms` → `{ok}`; respuesta mutación `revalidated`; toast si false; URL_TIENDA + CMS_REVALIDATE_SECRET/INTERNAL_API_SECRET en nucleo+tienda |
+| CMS mutación open | BFF sin role | `requireProfileRole('admin')` en `cmsRoutes` (hermanas admin routes) |
+| Legal fecha muerta | `last_updated` editor vs `updated_at` page | `resolveLegalLastUpdated` en `@/lib/cms` tienda |
+| Dirty card wipe | save un item resetea edits de otros | EditableItemCard deps `id`+`updated_at`+`contentKey` no `item` ref |
+| CMS load silent | spinner off, vacío | `cms.error` + CTA Reintentar en EditorTiendaView |
+| Home duplicado | `HomeView`, sidebar VISIÓN, `/alma` `/ejecutivo` redirects, `role-redirect` |
+| Auth multi-app | login pages 3 apps, `friendlyError`, middleware guards |
+| Campo offline | `use-sync-engine`, Dexie `db.ts`, cash-context |
+| Traza nucleo↔tienda | `/lote/[id]`, anchors, PDP trazabilidad |
+| Catch vacío / silent fail | `catch {` / `catch (e) {}` en cono |
+| CTA fantasma | `btn btn-*` sin CSS de la app |
+
+---
+
+## UI / interfaz gráfica (fase v1.3 — residual; no cono default)
 
 | Patrón | Síntoma | Detección | Fix canónico |
 |--------|---------|-----------|--------------|

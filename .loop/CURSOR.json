@@ -1,10 +1,13 @@
 {
-  "index": 1,
-  "pass": 82,
-  "last_sector": "ui-tienda-landing",
-  "last_commit": "d18430b",
+  "index": 0,
+  "pass": 101,
+  "last_sector": "editor-cms-tienda",
+  "last_commit": "0056518",
   "streak_clean": 0,
-  "boost": {},
-  "phase": "v1.3-ui",
-  "notes": "Pass 82: empty creaciones CTA, ciencia/nosotros H2 clamp, science/catalog borders, claim claimed escape, youtube focus. Siguiente: ui-tienda-chrome (#1)."
+  "boost": {
+    "editor-cms-tienda": 0,
+    "nav-home-roles": 1
+  },
+  "phase": "v1.4-polish-layers",
+  "notes": "pass100 editor-cms-tienda: revalidate status + requireProfileRole admin + legal last_updated + error UX. Residual: hero/footer_legacy/nosotros secciones CMS no consumidas por tienda. Siguiente: nav-home-roles (#0)."
 }
