@@ -89,7 +89,7 @@ export function ProductoForm({ open, onOpenChange, initial }: ProductoFormProps)
     reset(
       initial
         ? {
-            destilacion_id: initial.destilacion?.id ?? '',
+            destilacion_id: initial.destilacion_id || initial.destilacion?.id || '',
             tipo: (initial.tipo as ProductoFormValues['tipo']) ?? 'hidrolato',
             volumen_ml: initial.volumen_ml,
             envase: initial.envase ?? '',

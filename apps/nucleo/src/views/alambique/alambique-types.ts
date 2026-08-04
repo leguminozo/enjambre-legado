@@ -49,6 +49,8 @@ export interface DestilacionRow {
 
 export interface ProductoDestilacionRow {
   id: string
+  /** FK siempre presente; preferir sobre destilacion.id al editar. */
+  destilacion_id: string
   tipo: string
   volumen_ml: number
   envase: string | null
@@ -157,10 +159,19 @@ export const DESTINO_LABEL: Record<string, string> = Object.fromEntries(
 
 /* ── Schemas de formulario (zod) ─────────────────────────────────────────── */
 
-const optNum = z.preprocess(
-  (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
-  z.number().min(0).nullable(),
-)
+/** Vacío → null; NaN no se cuela como 0 (Number('') = 0). */
+const emptyToNullNumber = (v: unknown): number | null => {
+  if (v === '' || v === null || v === undefined) return null
+  const n = typeof v === 'number' ? v : Number(v)
+  return Number.isFinite(n) ? n : null
+}
+
+/** Volúmenes / cantidades opcionales ≥ 0 (agua, rendimientos, precios). */
+const optNonNeg = z.preprocess(emptyToNullNumber, z.number().min(0).nullable())
+
+/** Lat/lng: Chiloé y el sur son negativos — no reutilizar min(0). */
+const optLat = z.preprocess(emptyToNullNumber, z.number().min(-90).max(90).nullable())
+const optLng = z.preprocess(emptyToNullNumber, z.number().min(-180).max(180).nullable())
 
 const reqNum = z.preprocess(
   (v) => (v === '' || v === null || v === undefined ? Number.NaN : Number(v)),
@@ -172,6 +183,11 @@ const optDate = z.preprocess(
   z.string().date().nullable(),
 )
 
+const optUuid = z.preprocess(
+  (v) => (v === '' || v === undefined ? null : v),
+  z.string().uuid().nullable().optional(),
+)
+
 export const plantaFormSchema = z
   .object({
     nombre_comun: z.string().min(1, 'El nombre común es obligatorio').max(200),
@@ -180,8 +196,8 @@ export const plantaFormSchema = z
     estado_material: z.enum(['fresco', 'seco', 'semicresco']),
     cantidad_kg: reqNum,
     origen: z.string().max(300).optional().nullable(),
-    lat: optNum,
-    lng: optNum,
+    lat: optLat,
+    lng: optLng,
     fecha_recoleccion: optDate,
     observaciones: z.string().max(5000).optional().nullable(),
   })
@@ -205,17 +221,17 @@ export const destilacionFormSchema = z
     fecha_inicio: z.string().min(1, 'Indica la fecha y hora de inicio'),
     fecha_fin: z.string().optional().nullable(),
     carga_kg: reqNum,
-    agua_l: optNum,
+    agua_l: optNonNeg,
     duracion_min: z.preprocess(
-      (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
+      emptyToNullNumber,
       z.number().int().positive().nullable(),
     ),
     temperatura_promedio: z.preprocess(
-      (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
+      emptyToNullNumber,
       z.number().min(0).max(200).nullable(),
     ),
-    rendimiento_hidrolato_ml: optNum,
-    rendimiento_aceite_ml: optNum,
+    rendimiento_hidrolato_ml: optNonNeg,
+    rendimiento_aceite_ml: optNonNeg,
     analisis_organoleptico: organolepticoSchema,
     observaciones: z.string().max(5000).optional().nullable(),
     estado: z.enum(['planificada', 'en_proceso', 'finalizada', 'descartada']),
@@ -238,9 +254,9 @@ export const productoFormSchema = z
     ),
     fecha_envasado: optDate,
     destino: z.enum(['venta', 'uso_propio', 'regalo', 'investigacion']),
-    producto_id: z.string().uuid().optional().nullable(),
+    producto_id: optUuid,
     precio_sugerido_clp: z.preprocess(
-      (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
+      emptyToNullNumber,
       z.number().int().min(0).nullable(),
     ),
     observaciones: z.string().max(5000).optional().nullable(),

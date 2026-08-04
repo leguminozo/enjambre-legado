@@ -35,7 +35,7 @@
 | Territorial | pass106: POST actores persiste censo legal; BFF requireProfileRole(territorial|admin) sin exigir empresa; PATCH actores/apiarios ownership explícito | ✅ inscripción/censo; ⏳ mapa comunidad actores (RLS solo own) |
 | Colmenas + bitácora | pass107: PATCH captura acepta audio_url (offline); upload already-exists reusa path; requireProfileRole(admin); ownership PATCH | ✅ voz/sync audio; ⏳ cuaderno WIP no mergeado |
 | Fenología + traza | pass108: fenologia auth+requireProfileRole(admin\|territorial) sin tenant; esAdmin=profileRole; tienda traza page/PDP section sin exigir solo blockchain_hash | ✅ oráculo territorial + traza origen; ⏳ firma on-chain e2e |
-| Alambique | Módulo nuevo | ⏳ shell + rutas |
+| Alambique | pass109: lat/lng form min(0)→coords Chile; GET productos destilaciones.id + destilacion_id; producto_id ""→null | ✅ shell usable; ⏳ stock sync al vincular catálogo ASK |
 | Campo offline | pass105: `/api/pos/venta` reprice server; sync 5xx/red backoff; rep-ventas Number(precio) | ✅ reprice path sin caja; ⏳ e2e offline feria real |
 | Subs + CAF | Flow recurrente, CAF auto, integrity | ⏳ solo regresión |
 | Tienda commerce | pass103: catálogo parse fila-a-fila + coerce num/join; pricing slug/precio; init Number(precio); startCartCheckout json safe | ✅ núcleo flujo; ⏳ smoke e2e pago real |
@@ -68,6 +68,14 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-04 pass 109 (alambique-produccion)
+- Señal: plantaFormSchema lat/lng usaban optNum.min(0) → Chiloé (-42/-73) rechazado (placeholders del form); GET /productos select destilaciones sin id → edit producto destilacion_id vacío/uuid inválido; producto_id "" desde Select rompe Zod uuid
+- Compuesto: colapsar + entrelazado alambique↔catálogo (FK)
+- Regla nueva: coords = optLat/optLng (−90…90 / −180…180); volúmenes = optNonNeg; GET productos incluye destilaciones(id) + destilacion_id en DTO; empty string → null en uuid opcionales
+- Anti-patrón: reutilizar min(0) numérico para lat/lng; nested select sin id cuando el form edita por FK
+- Guardriel: intacto (no auto-stock al vincular producto_id — ASK_HUMAN / DEFER)
+- DEFER: vincular producto_id no incrementa stock catálogo (posible doble conteo con /produccion envasar)
 
 ### Evo 2026-08-04 pass 108 (fenologia-traza)
 - Señal: `/api/fenologia/*` con tenantMiddleware → territorial sin usuarios_empresas = 403 (UI sidebar/InicioTerritorial/widget sí lo muestran); esAdmin solo app_metadata; tienda `/producto/.../trazabilidad` notFound si !blockchain_hash aunque haya lote_id; TraceabilitySection oculto sin hash

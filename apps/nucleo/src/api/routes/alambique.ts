@@ -63,6 +63,11 @@ const CreateDestilacionSchema = z
 
 const UpdateDestilacionSchema = CreateDestilacionSchema.partial();
 
+const emptyToNullUuid = z.preprocess(
+  (v) => (v === "" || v === undefined ? null : v),
+  z.string().uuid().nullable().optional(),
+);
+
 const CreateProductoDestilacionSchema = z
   .object({
     destilacion_id: z.string().uuid(),
@@ -72,7 +77,8 @@ const CreateProductoDestilacionSchema = z
     unidades: z.number().int().positive(),
     fecha_envasado: z.string().date().optional().nullable(),
     destino: z.enum(["venta", "uso_propio", "regalo", "investigacion"]),
-    producto_id: z.string().uuid().optional().nullable(),
+    // Select "Sin vínculo" manda "" — no uuid inválido
+    producto_id: emptyToNullUuid,
     precio_sugerido_clp: z.number().int().nonnegative().optional().nullable(),
     observaciones: z.string().max(5000).optional().nullable(),
   })
@@ -314,7 +320,8 @@ alambiqueRoutes.get("/productos", async (c) => {
   const { data, error } = await supabase
     .from("productos_destilacion")
     .select(
-      "*, destilaciones(codigo, fecha_inicio, plantas_destilacion(nombre_comun)), productos(id, nombre, stock, visible)",
+      // id de destilaciones es obligatorio: el form de edición usa destilacion.id / destilacion_id
+      "*, destilaciones(id, codigo, fecha_inicio, plantas_destilacion(nombre_comun)), productos(id, nombre, stock, visible)",
     )
     .order("created_at", { ascending: false });
 
@@ -325,8 +332,10 @@ alambiqueRoutes.get("/productos", async (c) => {
     const destilacion = d.destilaciones as Record<string, unknown> | null;
     const destilacionPlanta = destilacion?.plantas_destilacion as Record<string, unknown> | null;
     const productoVenta = d.productos as Record<string, unknown> | null;
+    const destilacionId = String(destilacion?.id ?? d.destilacion_id ?? "");
     return {
       id: String(d.id),
+      destilacion_id: destilacionId,
       tipo: String(d.tipo ?? ""),
       volumen_ml: Number(d.volumen_ml) || 0,
       envase: d.envase ? String(d.envase) : null,
@@ -335,11 +344,11 @@ alambiqueRoutes.get("/productos", async (c) => {
       destino: String(d.destino ?? "venta"),
       precio_sugerido_clp: d.precio_sugerido_clp != null ? Number(d.precio_sugerido_clp) : null,
       observaciones: d.observaciones ? String(d.observaciones) : null,
-      destilacion: destilacion
+      destilacion: destilacionId
         ? {
-            id: String(destilacion.id),
-            codigo: destilacion.codigo ? String(destilacion.codigo) : null,
-            fecha_inicio: String(destilacion.fecha_inicio ?? ""),
+            id: destilacionId,
+            codigo: destilacion?.codigo ? String(destilacion.codigo) : null,
+            fecha_inicio: String(destilacion?.fecha_inicio ?? ""),
             planta_nombre: String(destilacionPlanta?.nombre_comun ?? ""),
           }
         : null,
