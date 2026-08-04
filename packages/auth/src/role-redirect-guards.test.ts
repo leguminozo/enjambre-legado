@@ -23,3 +23,25 @@ describe('ROUTE_ROLE_GUARDS / editor-tienda', () => {
     expect(isRouteAllowed('/monitor-feria', 'admin')).toBe(true);
   });
 });
+
+describe('ROUTE_ROLE_GUARDS / nav-home-roles', () => {
+  it('/inicio es home de admin y territorial', () => {
+    expect(ROUTE_ROLE_GUARDS['/inicio']).toEqual(['admin', 'territorial']);
+    expect(isRouteAllowed('/inicio', 'admin')).toBe(true);
+    expect(isRouteAllowed('/inicio', 'territorial')).toBe(true);
+    expect(isRouteAllowed('/inicio', 'cliente')).toBe(false);
+    expect(isRouteAllowed('/inicio', 'rep_ventas')).toBe(false);
+  });
+
+  it('aliases legacy /alma y /ejecutivo siguen en guards (pages redirigen a /inicio)', () => {
+    expect(ROUTE_ROLE_GUARDS['/alma']).toEqual(['admin']);
+    expect(ROUTE_ROLE_GUARDS['/ejecutivo']).toEqual(['admin']);
+    expect(isRouteAllowed('/alma', 'admin')).toBe(true);
+    expect(isRouteAllowed('/alma', 'territorial')).toBe(false);
+  });
+
+  it('legacy gerente entra a /inicio vía normalización a admin', () => {
+    expect(isRouteAllowed('/inicio', 'gerente')).toBe(true);
+  });
+});
+

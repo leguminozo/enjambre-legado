@@ -71,18 +71,13 @@ export const LazySumUpView = named(() => import('@/views/sumup/SumUpView'), 'Sum
 export const LazyDashboardEjecutivo = named(
   () => import('@/components/gerente/DashboardEjecutivo'),
   'DashboardEjecutivo',
-  'Ejecutivo',
+  'Inicio',
 );
 export const LazyHomeView = named(() => import('@/views/HomeView'), 'HomeView', 'Inicio');
 export const LazyInicioTerritorialView = named(
   () => import('@/views/InicioTerritorialView'),
   'InicioTerritorialView',
   'Inicio Territorial',
-);
-export const LazyAlmaEnjambreView = named(
-  () => import('@/components/enjambre/EcosistemaDashboard'),
-  'EcosistemaDashboard',
-  'Alma del Enjambre',
 );
 export const LazyOperadoresFeriaPanel = named(
   () => import('@/components/operadores-feria/OperadoresFeriaPanel'),

@@ -67,8 +67,9 @@ export const ALL_ADMIN_ROLES: RoleKey[] = ['admin']
 export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/': ['admin'],
   '/inicio': ['admin', 'territorial'],
-  '/alma': ['admin'],
+  // aliases legacy → pages redirigen a /inicio
   '/ejecutivo': ['admin'],
+  '/alma': ['admin'],
   '/costeo': ['admin'],
   '/produccion': ['admin'],
   '/crm': ['admin'],

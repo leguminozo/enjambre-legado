@@ -1,7 +1,6 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { LazyAlmaEnjambreView } from '@/lib/navigation/lazy-views';
-
+/** Compatibilidad: /alma se unificó en /inicio (HomeView por rol). No revivir Alma. */
 export default function AlmaPage() {
-  return <LazyAlmaEnjambreView />;
+  redirect('/inicio');
 }

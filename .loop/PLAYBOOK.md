@@ -23,6 +23,8 @@ v1.3 UI y go-live v1.2 se conservan abajo como referencia / residual.
 | Dirty card wipe | save un item resetea edits de otros | EditableItemCard deps `id`+`updated_at`+`contentKey` no `item` ref |
 | CMS load silent | spinner off, vacío | `cms.error` + CTA Reintentar en EditorTiendaView |
 | Home duplicado | `HomeView`, sidebar VISIÓN, `/alma` `/ejecutivo` redirects, `role-redirect` |
+| Home rol wrong | territorial ve panel admin | `user.role` (profiles) no solo `app_metadata`; normalizar LEGACY; wait isLoading |
+| Alma en nav | dos homes | quitar item sidebar; page redirect `/inicio`; no reintroducir LazyAlma/Ecosistema |
 | Auth multi-app | login pages 3 apps, `friendlyError`, middleware guards |
 | Campo offline | `use-sync-engine`, Dexie `db.ts`, cash-context |
 | Traza nucleo↔tienda | `/lote/[id]`, anchors, PDP trazabilidad |

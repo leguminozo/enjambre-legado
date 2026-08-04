@@ -30,7 +30,7 @@
 | Superficie | Hallazgo / gap | Estado |
 |------------|----------------|--------|
 | Editor CMS tienda | pass100: revalidate status en respuesta + toast warning; requireProfileRole admin; error load UX; legal last_updated; paths revalidate legales | ✅ núcleo; ⏳ residual secciones CMS no consumidas (hero/footer_legacy/nosotros/servicios) |
-| Home / Alma | WIP unificación `/inicio` por rol; redirects alma/ejecutivo; widgets Alma eliminados | ⏳ cerrar commit + validar |
+| Home / Alma | pass101: HomeView usa profiles.role; /alma→/inicio; Alma fuera del sidebar VISIÓN; legacy guards OK | ✅ núcleo; ⏳ residual WIP EcosistemaDashboard delete sin commitear |
 | Auth multi-app | Login cósmico nucleo + recovery + domains + friendlyError (semana) | ⏳ regresión recovery/redirect |
 | Territorial | Registro, mapa, predios, trashumantes, InicioTerritorial | ⏳ absorción UX + roles |
 | Colmenas + bitácora | Apiarios/cuaderno/traza + bitácora voz/offline nueva | ⏳ funcionar en terreno |
@@ -68,6 +68,14 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-04 pass 101 (nav-home-roles)
+- Señal: HomeView leía solo `app_metadata.role` → territorial sin metadata veía DashboardEjecutivo; Alma aún en sidebar y page viva; rol vacío pintaba panel admin
+- Compuesto: colapsar + unificar home + fail-closed
+- Regla nueva: home nucleo = `user.role` (profiles) con fallback metadata; esperar `isLoading`; normalizar LEGACY_ROLE_MAP; no-admin/territorial → getRoleRedirectPath; `/alma` y `/ejecutivo` solo redirect a `/inicio`; sidebar VISIÓN = solo Inicio
+- Anti-patrón: `app_metadata.role` como única fuente en HomeView; default `return <DashboardEjecutivo />` para cualquier no-territorial; nav item Alma post-unificación
+- Guardriel: intacto (no revivir Alma/widgets; no mezclar delete Ecosistema WIP)
+- Residual: WIP tree aún tiene deletes Ecosistema/dashboard-resumen ajenos — no commitear en este tick
 
 ### Evo 2026-08-04 pass 100 (editor-cms-tienda)
 - Señal: operador preview/editor-tienda «roto»; revalidate fallaba en silencio; legal leía `updated_at` vs template `last_updated`; load CMS sin error UX; BFF sin requireProfileRole(admin); dirty cards reseteadas al invalidar query
