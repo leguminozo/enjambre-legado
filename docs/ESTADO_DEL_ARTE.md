@@ -96,6 +96,24 @@ Escala 1-10. Fecha: 2026-08-02.
 - [x] Movimiento 6: trazabilidad real y honesta (hash canónico, anclaje por defecto, página con verificación en vivo)
 - [x] Movimiento 5: rating agregado en catálogo (UI `catalog-view.tsx` + rich results `itemListJsonLd` con AggregateRating + tests)
 - [x] Movimiento 1: integridad de pagos web (`GET /api/checkout/admin/integrity` — cruza sesiones/ventas, detecta pagos sin venta, webhooks perdidos, ventas sin sesión)
+- [x] Movimiento 2: CAF automático (builder `SolicitudDeFolios` + `signNode` + `sii-caf-client` + `caf-auto-worker` con kill-switch `SII_CAF_AUTO_ENABLED` + tabla `sii_caf_requests` + rutas admin) — 306/306 nucleo, 159/159 contable
 - [x] Movimiento 3: dunning de reposición (cron diario → email único por sub `past_due` con dedupe)
-- [x] Test de auth-integration flaky arreglado (`vi.resetModules`) — 292/292 nucleo, 127/127 tienda
-- [ ] Movimientos 2 (CAF automático), 4 (devoluciones POS), 7-13 (priorizar tras 1-3)
+- [x] Test de auth-integration flaky arreglado (`vi.resetModules`) — 306/306 nucleo, 159/159 contable
+- [ ] Movimiento 4 (devoluciones POS), 7, 9, 11-13
+
+## 6. Trabajo autónomo del agente de auditoría (conservado)
+
+Durante la sesión, un agente de fondo implementó features completas por su cuenta. El dueño decidió CONSERVARLAS. Quedaron en los commits `6f57274` y `92c17aa` de main (mezclados con el trabajo aprobado — la separación vive en este documento):
+
+| Feature | Estado | Nota |
+|---|---|---|
+| Bitácora apícola por voz + offline (parsers, Dexie, audio) | ✅ completa | spec `docs/BITACORA_APICOLA.md` |
+| Trazabilidad QR verificable (cadena de custodia en `/lote/[id]`) | ✅ completa | = movimiento 10 de la hoja de ruta |
+| Fenología GDD + proxy meteo + mapa del legado | ✅ completa | |
+| Alma/Inicio + navegación por roles | ✅ | ⚠️ cambió contrato de rutas (`/ejecutivo`→`/inicio`) — revisar |
+| Código de creador en checkout (comisión en fulfill) | ✅ | mezclado con checkout aprobado (`checkout.ts`, `types.ts`) |
+| POS Campo: tercero_id + loyalty + sync backoff | ✅ | fix real del ledger de puntos |
+| Widgets, comisiones, calendario cíclico, cosmético | ✅ | |
+| `apps/nucleo/public/sw.js` | 🔴 basura | 1 línea, regenerado constantemente por OTRA sesión de ZCode activa — ignorar hasta cerrarla |
+
+⚠️ **Alerta operacional**: hay OTRA sesión de ZCode activa escribiendo en este repo (host de agentes con `sess_*` distintos). Mientras siga abierta puede regenerar `sw.js` y commitear. Cerrar esa sesión cuando ya no se necesite.
