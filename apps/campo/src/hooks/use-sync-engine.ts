@@ -140,10 +140,31 @@ export function useSyncEngine() {
                 error_message: errorMessage,
               });
             }
+            continue;
+          }
+
+          // 5xx / rate limit: no martillar; backoff y seguir con el resto
+          if (res.status >= 500 || res.status === 429) {
+            await db.sync_queue.update(item.id!, {
+              status: 'error',
+              attempts: attempts + 1,
+              next_retry_at: Date.now() + backoffMs(attempts),
+              error_message: errorMessage || `HTTP ${res.status}`,
+            });
+            continue;
           }
         } catch (fetchErr) {
           console.warn('[SyncEngine] Network error pushing item, will retry later.', fetchErr);
-          break;
+          // Backoff este item sin abortar toda la cola
+          if (item.id != null) {
+            await db.sync_queue.update(item.id, {
+              status: 'error',
+              attempts: attempts + 1,
+              next_retry_at: Date.now() + backoffMs(attempts),
+              error_message: 'Error de red; se reintentará',
+            });
+          }
+          continue;
         }
       }
 

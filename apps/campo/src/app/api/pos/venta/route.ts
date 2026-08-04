@@ -75,22 +75,79 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'El origen debe ser feria o local' }, { status: 400 });
   }
 
-  const items = Array.isArray(body.items) ? body.items : [];
-  if (items.length === 0) {
+  const rawItems = Array.isArray(body.items) ? body.items : [];
+  if (rawItems.length === 0) {
     return NextResponse.json({ error: 'No hay productos en la venta' }, { status: 400 });
   }
 
-  const total = Math.max(0, Math.round(Number(body.total ?? 0)));
+  const channel = body.origen;
+  const productIds = rawItems
+    .filter((item) => Math.max(0, Number(item.cantidad || 0)) > 0)
+    .map((item) => item.producto_id);
+
+  // Nunca confiar precio/total del cliente — reprice desde productos (hermano rep-ventas/quick).
+  const { data: products, error: productsError } = await supabase
+    .from('productos')
+    .select('id, nombre, precio, stock, visible')
+    .in('id', productIds);
+
+  if (productsError) {
+    return NextResponse.json({ error: friendlySupabaseError(productsError) }, { status: 500 });
+  }
+
+  const productMap = new Map((products ?? []).map((product) => [product.id, product]));
+  const stockErrors: string[] = [];
+  const repricedItems: ItemRow[] = [];
+
+  for (const item of rawItems) {
+    const qty = Math.max(0, Number(item.cantidad || 0));
+    if (!qty) continue;
+
+    const product = productMap.get(item.producto_id);
+    if (!product) {
+      stockErrors.push(`Producto ${item.nombre || item.producto_id}: no encontrado`);
+      continue;
+    }
+    if (product.visible === false) {
+      stockErrors.push(`Producto ${product.nombre ?? item.producto_id}: no disponible`);
+      continue;
+    }
+    if (product.stock != null && product.stock < qty) {
+      stockErrors.push(
+        `Producto ${product.nombre ?? item.producto_id}: stock insuficiente (${product.stock} disponible)`,
+      );
+      continue;
+    }
+
+    const unit = Number(product.precio);
+    const precio_unitario = Number.isFinite(unit) ? Math.max(0, Math.round(unit)) : 0;
+    repricedItems.push({
+      producto_id: product.id,
+      nombre: product.nombre ?? item.nombre ?? '',
+      cantidad: qty,
+      precio_unitario,
+      subtotal: precio_unitario * qty,
+      qr_codes: item.qr_codes,
+    });
+  }
+
+  if (stockErrors.length > 0) {
+    return NextResponse.json({ error: stockErrors.join('; ') }, { status: 409 });
+  }
+
+  if (repricedItems.length === 0) {
+    return NextResponse.json({ error: 'No hay productos válidos en la venta' }, { status: 400 });
+  }
+
+  const total = repricedItems.reduce((s, i) => s + i.precio_unitario * i.cantidad, 0);
   if (total <= 0) {
     return NextResponse.json({ error: 'El total de la venta no es válido' }, { status: 400 });
   }
 
-  const channel = body.origen;
-  const activeItems = items.filter((item) => Math.max(0, Number(item.cantidad || 0)) > 0);
-  const feriaItems: FeriaSaleItem[] = activeItems.map((item) => ({
+  const feriaItems: FeriaSaleItem[] = repricedItems.map((item) => ({
     producto_id: item.producto_id,
     nombre: item.nombre,
-    cantidad: Math.max(0, Number(item.cantidad || 0)),
+    cantidad: item.cantidad,
     precio_unitario: item.precio_unitario,
   }));
 
@@ -111,50 +168,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message, code: 'feria_validation_failed' }, { status: 500 });
   }
 
-  const productIds = activeItems.map((item) => item.producto_id);
-  const { data: products, error: productsError } = await supabase
-    .from('productos')
-    .select('id, nombre, stock, visible')
-    .in('id', productIds);
-
-  if (productsError) {
-    return NextResponse.json({ error: friendlySupabaseError(productsError) }, { status: 500 });
-  }
-
-  const productMap = new Map((products ?? []).map((product) => [product.id, product]));
-  const stockErrors: string[] = [];
-
-  for (const item of activeItems) {
-    const qty = Math.max(0, Number(item.cantidad || 0));
-    const product = productMap.get(item.producto_id);
-    if (!product) {
-      stockErrors.push(`Producto ${item.nombre || item.producto_id}: no encontrado`);
-      continue;
-    }
-    if (product.visible === false) {
-      stockErrors.push(`Producto ${product.nombre ?? item.producto_id}: no disponible`);
-      continue;
-    }
-    if (product.stock != null && product.stock < qty) {
-      stockErrors.push(
-        `Producto ${product.nombre ?? item.producto_id}: stock insuficiente (${product.stock} disponible)`,
-      );
-    }
-  }
-
-  if (stockErrors.length > 0) {
-    return NextResponse.json({ error: stockErrors.join('; ') }, { status: 409 });
-  }
-
   const decremented: DecrementedEntry[] = [];
   const enrichedItems = [];
 
-  for (const item of items) {
-    const qty = Math.max(0, Number(item.cantidad || 0));
-    if (!qty) {
-      enrichedItems.push(item);
-      continue;
-    }
+  for (const item of repricedItems) {
+    const qty = item.cantidad;
 
     const { data: decrementedRows, error: rpcErr } = await supabase.rpc('decrement_stock', {
       p_id: item.producto_id,
@@ -210,7 +228,7 @@ export async function POST(request: Request) {
       const { error } = await supabase.rpc('registrar_escaneo_qr', args);
       return { error };
     },
-    items,
+    repricedItems,
     ventaId,
   );
 

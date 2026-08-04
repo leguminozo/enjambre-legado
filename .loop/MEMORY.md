@@ -36,7 +36,7 @@
 | Colmenas + bitácora | Apiarios/cuaderno/traza + bitácora voz/offline nueva | ⏳ funcionar en terreno |
 | Fenología + traza | GDD, oráculo, hashes, `/lote/[id]`, PDP traza tienda | ⏳ entrelazado nucleo↔tienda |
 | Alambique | Módulo nuevo | ⏳ shell + rutas |
-| Campo offline | Sync backoff, loyalty, feria | ⏳ regresión POS |
+| Campo offline | pass105: `/api/pos/venta` reprice server; sync 5xx/red backoff; rep-ventas Number(precio) | ✅ reprice path sin caja; ⏳ e2e offline feria real |
 | Subs + CAF | Flow recurrente, CAF auto, integrity | ⏳ solo regresión |
 | Tienda commerce | pass103: catálogo parse fila-a-fila + coerce num/join; pricing slug/precio; init Number(precio); startCartCheckout json safe | ✅ núcleo flujo; ⏳ smoke e2e pago real |
 | sw.js ZCode | Basura otra sesión | 🚫 no tocar |
@@ -68,6 +68,13 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-04 pass 105 (campo-pos-offline)
+- Señal: `/api/pos/venta` (venta sin sesión de caja) confiaba total/precio_unitario del carrito; sync_queue 5xx no hacía backoff y network abortaba toda la cola; precio string en rep-ventas
+- Compuesto: colapsar + fail-closed dinero + hermano rep-ventas/quick
+- Regla nueva: POS venta sin caja = select precio+reprice+total server; never body.total; sync 5xx/429/red → attempts+next_retry_at; Number(precio) en quick sale
+- Anti-patrón: insert ventas con total del client; sync loop break en primer network error sin marcar item
+- Guardriel: intacto (no reabrir SumUp)
 
 ### Evo 2026-08-04 pass 104 (tienda-landing-chrome)
 - Señal: SW cacheaba HTML de /login|/perfil|/checkout|/carrito (sesión/checkout stale); announcement/campaign/hero/social aceptaban javascript: o //evil vía CMS

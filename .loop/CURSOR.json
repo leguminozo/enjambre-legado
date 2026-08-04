@@ -1,7 +1,7 @@
 {
-  "index": 5,
-  "pass": 105,
-  "last_sector": "tienda-landing-chrome",
+  "index": 6,
+  "pass": 106,
+  "last_sector": "campo-pos-offline",
   "last_commit": null,
   "streak_clean": 0,
   "boost": {
@@ -9,5 +9,5 @@
     "nav-home-roles": 0
   },
   "phase": "v1.4-polish-layers",
-  "notes": "pass104 tienda-landing-chrome: SW NetworkOnly auth/commerce; sanitizeStoreHref chrome CMS. Siguiente: campo-pos-offline (#5)."
+  "notes": "pass105 campo-pos-offline: pos/venta server reprice; sync 5xx backoff; rep-ventas Number(precio). Siguiente: territorial-registro (#6)."
 }

@@ -137,11 +137,13 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
           message: `Producto ${line.nombre} no encontrado`,
         }, 404);
       }
+      const unit = Number(product.precio);
+      const precio_unitario = Number.isFinite(unit) ? Math.max(0, Math.round(unit)) : 0;
       items.push({
         producto_id: product.id,
         nombre: product.nombre ?? line.nombre,
         cantidad: line.cantidad,
-        precio_unitario: product.precio ?? 0,
+        precio_unitario,
         qr_codes: line.qr_codes,
       });
     }
@@ -157,16 +159,18 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
       return c.json({ code: "product_not_found", message: "Producto no encontrado" }, 404);
     }
 
+    const unit = Number(producto.precio);
+    const precio_unitario = Number.isFinite(unit) ? Math.max(0, Math.round(unit)) : 0;
     items = [
       {
         producto_id: producto.id,
         nombre: producto.nombre ?? "",
         cantidad: input.cantidad,
-        precio_unitario: producto.precio ?? 0,
+        precio_unitario,
         qr_codes: input.qr_codes ?? [],
       },
     ];
-    total = (producto.precio ?? 0) * input.cantidad;
+    total = precio_unitario * input.cantidad;
   }
 
   const feriaItems: FeriaSaleItem[] = items.map((i) => ({
