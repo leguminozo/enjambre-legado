@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { toast } from '@enjambre/ui';
+import { friendlyError, friendlySupabaseError, toast } from '@enjambre/ui';
 import { createClient } from '@/utils/supabase/client';
 import { AuthFormPanel, AuthShell, authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
 
@@ -16,8 +16,9 @@ export function ResetPasswordForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) {
-      toast('La contraseña debe tener al menos 8 caracteres', { type: 'error' });
+    // Alineado con login recovery / Supabase min (6); path /recuperar→callback→aquí
+    if (password.length < 6) {
+      toast('La contraseña debe tener al menos 6 caracteres', { type: 'error' });
       return;
     }
     if (password !== confirm) {
@@ -28,11 +29,14 @@ export function ResetPasswordForm() {
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      if (error) throw new Error(friendlySupabaseError(error));
       toast('Contraseña actualizada. Ya puedes iniciar sesión.', { type: 'success' });
       router.replace('/login');
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'No se pudo actualizar la contraseña', { type: 'error' });
+      toast(
+        friendlyError(err, err instanceof Error ? err.message : 'No se pudo actualizar la contraseña'),
+        { type: 'error' },
+      );
     } finally {
       setLoading(false);
     }
@@ -54,7 +58,7 @@ export function ResetPasswordForm() {
                 id="password"
                 type="password"
                 required
-                minLength={8}
+                minLength={6}
                 autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -70,7 +74,7 @@ export function ResetPasswordForm() {
                 id="confirm"
                 type="password"
                 required
-                minLength={8}
+                minLength={6}
                 autoComplete="new-password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}

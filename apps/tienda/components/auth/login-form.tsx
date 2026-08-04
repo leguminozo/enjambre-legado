@@ -242,7 +242,8 @@ export function LoginForm() {
       setMessage('¡Contraseña actualizada con éxito! Entrando...');
       setIsRecoveryMode(false);
       setLoading(false);
-      router.push('/perfil');
+      // Misma ruta post-login (rol / returnTo), no hardcode /perfil
+      navigate(router, returnTo ?? getTiendaRedirect(user?.role ?? 'cliente'), 'push');
       return;
     }
 

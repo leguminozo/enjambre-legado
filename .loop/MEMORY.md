@@ -31,7 +31,7 @@
 |------------|----------------|--------|
 | Editor CMS tienda | pass100: revalidate status en respuesta + toast warning; requireProfileRole admin; error load UX; legal last_updated; paths revalidate legales | ✅ núcleo; ⏳ residual secciones CMS no consumidas (hero/footer_legacy/nosotros/servicios) |
 | Home / Alma | pass101: HomeView usa profiles.role; /alma→/inicio; Alma fuera del sidebar VISIÓN; legacy guards OK | ✅ núcleo; ⏳ residual WIP EcosistemaDashboard delete sin commitear |
-| Auth multi-app | Login cósmico nucleo + recovery + domains + friendlyError (semana) | ⏳ regresión recovery/redirect |
+| Auth multi-app | pass102: nucleo friendlyError; campo OAuth redirectTo /login; recovery checkUser/role path; tienda reset min6 + friendly | ✅ regresión recovery; ⏳ residual auth/callback formal en nucleo/campo |
 | Territorial | Registro, mapa, predios, trashumantes, InicioTerritorial | ⏳ absorción UX + roles |
 | Colmenas + bitácora | Apiarios/cuaderno/traza + bitácora voz/offline nueva | ⏳ funcionar en terreno |
 | Fenología + traza | GDD, oráculo, hashes, `/lote/[id]`, PDP traza tienda | ⏳ entrelazado nucleo↔tienda |
@@ -68,6 +68,14 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-04 pass 102 (auth-login-recovery)
+- Señal: nucleo login filtraba errores Auth crudos EN; recovery dejaba loading eterno; campo OAuth redirectTo a /pos (middleware mata ?code=); tienda reset 8 vs 6 y raw message; recovery tienda hardcode /perfil
+- Compuesto: colapsar + unificar multi-app + fail-closed UX
+- Regla nueva: login/recovery/signup/OAuth → friendlySupabaseError|friendlyError; OAuth redirectTo siempre ruta pública `/login` (o `/auth/callback?next=`); post-recovery checkUser + getRoleRedirect/getTiendaRedirect; min password 6 alineado Supabase
+- Anti-patrón: OAuth redirectTo a ruta middleware-protegida; throw AuthApiError sin mapear; setLoading(true) sin false en recovery success
+- Guardriel: intacto
+- Residual DEFER: callback PKCE dedicado en nucleo/campo (tienda ya tiene /auth/callback)
 
 ### Evo 2026-08-04 pass 101 (nav-home-roles)
 - Señal: HomeView leía solo `app_metadata.role` → territorial sin metadata veía DashboardEjecutivo; Alma aún en sidebar y page viva; rol vacío pintaba panel admin

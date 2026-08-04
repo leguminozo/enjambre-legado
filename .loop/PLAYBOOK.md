@@ -26,6 +26,9 @@ v1.3 UI y go-live v1.2 se conservan abajo como referencia / residual.
 | Home rol wrong | territorial ve panel admin | `user.role` (profiles) no solo `app_metadata`; normalizar LEGACY; wait isLoading |
 | Alma en nav | dos homes | quitar item sidebar; page redirect `/inicio`; no reintroducir LazyAlma/Ecosistema |
 | Auth multi-app | login pages 3 apps, `friendlyError`, middleware guards |
+| OAuth code lost | middleware manda a login sin sesión | `redirectTo` = `/login` o `/auth/callback?next=`; nunca /pos|/perfil directo |
+| Recovery loading trap | botón «Procesando» eterno | setLoading(false) antes del delay de redirect post-updateUser |
+| Auth error EN raw | usuario ve AuthApiError | friendlySupabaseError en OAuth/signup/reset/update |
 | Campo offline | `use-sync-engine`, Dexie `db.ts`, cash-context |
 | Traza nucleo↔tienda | `/lote/[id]`, anchors, PDP trazabilidad |
 | Catch vacío / silent fail | `catch {` / `catch (e) {}` en cono |

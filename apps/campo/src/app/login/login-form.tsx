@@ -190,10 +190,12 @@ export function LoginForm() {
       return;
     }
     setLoading(true);
+    // OAuth debe volver a /login (público): si redirectTo es /pos el middleware
+    // descarta el ?code= antes de que el client intercambie la sesión (hermano tienda /auth/callback).
     const { error: oAuthErr } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}${redirectPath}`,
+        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/login`,
       },
     });
     if (oAuthErr) {
@@ -233,6 +235,8 @@ export function LoginForm() {
       setMessage('¡Contraseña actualizada con éxito! Entrando...');
       setIsRecoveryMode(false);
       setLoading(false);
+      // Hidratar profiles.role antes de ir al POS (misma ruta post-login)
+      await useAuthStore.getState().checkUser();
       router.push(redirectPath);
       router.refresh();
       return;

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore, logSecurityEvent, getRoleRedirectPath } from '@enjambre/auth';
+import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
 
 function GoogleIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
@@ -118,7 +119,7 @@ export default function LoginPage() {
       },
     });
     if (oAuthErr) {
-      setError(oAuthErr.message || 'Error en autenticación');
+      setError(friendlySupabaseError(oAuthErr));
       setLoading(false);
     }
   }
@@ -138,10 +139,11 @@ export default function LoginPage() {
           throw new Error('Las contraseñas no coinciden');
         }
         const { error: updateErr } = await supabase.auth.updateUser({ password });
-        if (updateErr) throw updateErr;
+        if (updateErr) throw new Error(friendlySupabaseError(updateErr));
         setMessage('¡Contraseña actualizada con éxito! Redirigiendo...');
         setIsRecoveryMode(false);
-        
+        setLoading(false);
+
         await useAuthStore.getState().checkUser();
         const userRole = useAuthStore.getState().user?.role ?? 'cliente';
         setTimeout(() => {
@@ -157,7 +159,7 @@ export default function LoginPage() {
         const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/login`,
         });
-        if (resetErr) throw resetErr;
+        if (resetErr) throw new Error(friendlySupabaseError(resetErr));
 
         await logSecurityEvent(supabase, {
           eventType: 'password_reset_requested',
@@ -198,7 +200,7 @@ export default function LoginPage() {
             emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/login`,
           },
         });
-        if (signUpErr) throw signUpErr;
+        if (signUpErr) throw new Error(friendlySupabaseError(signUpErr));
 
         // Si data.user.identities está vacío, significa que el correo ya está registrado en Supabase
         if (data?.user && data.user.identities && data.user.identities.length === 0) {
@@ -240,8 +242,10 @@ export default function LoginPage() {
       const userRole = useAuthStore.getState().user?.role ?? 'cliente';
       router.replace(getRoleRedirectPath(userRole));
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error al procesar la solicitud.';
-      setError(msg);
+      // fallback = mensaje ES local si ya se mapearon; friendlyError mapea AuthApiError crudos
+      const fallback =
+        err instanceof Error ? err.message : 'Error al procesar la solicitud.';
+      setError(friendlyError(err, fallback));
       setLoading(false);
     }
   };
