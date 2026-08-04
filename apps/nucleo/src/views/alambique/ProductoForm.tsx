@@ -177,15 +177,20 @@ export function ProductoForm({ open, onOpenChange, initial }: ProductoFormProps)
           <Input label="Envase" placeholder="Frasco vidrio ámbar 100 ml" {...register('envase')} error={errors.envase?.message} />
 
           <div className="space-y-2">
-            <span className="block text-editorial-xs font-medium uppercase tracking-widest text-muted-foreground">Producto de venta (tienda / campo)</span>
+            <span className="block text-editorial-xs font-medium uppercase tracking-widest text-muted-foreground">
+              Producto de catálogo (venta / traza)
+            </span>
             <Select
               value={watch('producto_id') ?? ''}
               onValueChange={(v) => setValue('producto_id', v || null)}
               options={[{ value: '', label: 'Sin vínculo de venta' }, ...productoVentaOptions]}
-              placeholder="Vincular a producto con stock…"
+              placeholder="Elegir SKU del catálogo…"
               searchable
             />
-            <p className="text-xs text-muted-foreground">Entrelaza este envase con un producto existente para controlar stock y venta.</p>
+            <p className="text-xs text-muted-foreground">
+              Opcional. Enlaza este envase a un producto del catálogo para venta y trazabilidad.
+              El stock no se mueve al vincular: se gestiona en Producción (envasar / reponer).
+            </p>
           </div>
 
           <Textarea label="Observaciones" placeholder="Notas de envasado, etiquetado…" rows={2} {...register('observaciones')} />

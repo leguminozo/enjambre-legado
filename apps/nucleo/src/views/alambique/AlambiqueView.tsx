@@ -246,13 +246,13 @@ export function AlambiqueView() {
     },
     {
       key: 'producto_venta',
-      header: 'Venta (stock)',
+      header: 'SKU catálogo',
       render: (p) => p.producto_venta
         ? (
           <div className="flex flex-col">
             <span className="text-sm">{p.producto_venta.nombre}</span>
             <span className={`text-xs ${p.producto_venta.stock > 0 ? 'text-success' : 'text-destructive'}`}>
-              stock {p.producto_venta.stock}
+              stock catálogo {p.producto_venta.stock}
             </span>
           </div>
         )
