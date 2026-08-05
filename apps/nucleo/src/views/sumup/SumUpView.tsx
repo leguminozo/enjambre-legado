@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
-import { ToolActionRail } from '@/components/layout/ToolActionRail';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
@@ -261,7 +260,6 @@ export function SumUpView() {
         subtitle="Terminal POS, sync y conciliación — configurá merchant y API key en la app."
         icon={<CreditCard size={20} />}
       />
-      <ToolActionRail context="sumup" current="/sumup" />
 
       <ResponsiveTabBar
         variant="pill"

@@ -41,7 +41,7 @@ export const RAIL_PRIMARY_KEYS = [
   'contabilidad',
   'inventario',
   'productos',
-  'despacho',
+  'envios',
   'crm',
 ] as const
 
@@ -59,7 +59,7 @@ export const PREFETCH_PRIORITY_KEYS = [
   'alambique',
   'productos',
   'costeo',
-  'despacho',
+  'envios',
   'contabilidad',
   'crm',
   'configuracion',
@@ -93,15 +93,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         icon: 'hexagon',
         href: '/colmenas',
         greeting: 'Obrera del bosque',
-        mission: 'El ciclo del ulmo guía tu día',
-      },
-      {
-        key: 'apiarios',
-        label: 'Apiarios',
-        icon: 'warehouse',
-        href: '/colmenas/apiarios',
-        greeting: 'Guardián de apiarios',
-        mission: 'Cada apiario es un ancla en el territorio',
+        mission: 'Apiarios y colmenas en un solo flujo: entrar, crear, editar',
       },
       {
         key: 'cuaderno-campo',
@@ -194,6 +186,46 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     ],
   },
   {
+    // Despacho: envíos, centros logísticos, proveedores, mapa — sin cajón monolítico
+    key: 'despacho',
+    label: 'DESPACHO',
+    collapsible: true,
+    items: [
+      {
+        key: 'envios',
+        label: 'Envíos',
+        icon: 'truck',
+        href: '/despacho/envios',
+        greeting: 'Arquitecto de flujos',
+        mission: 'Cola de envíos: crear, estados y ventas a despachar',
+      },
+      {
+        key: 'centros-stock',
+        label: 'Centros de stock',
+        icon: 'warehouse',
+        href: '/despacho/centros',
+        greeting: 'Guardián multicentro',
+        mission: 'Stock por centro logístico (no el inventario de tienda)',
+      },
+      {
+        key: 'proveedores',
+        label: 'Proveedores',
+        icon: 'users',
+        href: '/despacho/proveedores',
+        greeting: 'Red de insumos',
+        mission: 'Proveedores, urgencias y próximas entregas',
+      },
+      {
+        key: 'mapa-envios',
+        label: 'Mapa de envíos',
+        icon: 'map',
+        href: '/despacho/mapa',
+        greeting: 'Cartógrafo de rutas',
+        mission: 'Historial geográfico de despachos',
+      },
+    ],
+  },
+  {
     key: 'mercado',
     label: 'MERCADO',
     collapsible: true,
@@ -205,14 +237,6 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         href: '/catalogo',
         greeting: 'Editor de catálogo',
         mission: 'Ficha de tienda: nombre, foto, copy y precio — el stock vive en Inventario',
-      },
-      {
-        key: 'despacho',
-        label: 'Despacho',
-        icon: 'truck',
-        href: '/operaciones',
-        greeting: 'Arquitecto de flujos',
-        mission: 'Del panal al consumidor, sin perder una gota',
       },
       {
         key: 'editor-tienda',
@@ -394,6 +418,7 @@ export const VIEW_SHELL_PATHS = new Set([
   '/costeo',
   '/produccion',
   '/alambique',
+  '/despacho',
   '/operaciones',
   '/comunidad',
   '/contable',
@@ -427,7 +452,10 @@ const ROUTE_ITEM_ALIASES: Record<string, string> = {
   '/registro-territorial': 'territorio',
   // Bookmarks legacy → herramienta canónica
   '/colmenas/trazabilidad': 'lotes',
+  '/colmenas/apiarios': 'colmenas',
   '/produccion': 'inventario',
+  '/operaciones': 'envios',
+  '/despacho': 'envios',
 }
 
 /**

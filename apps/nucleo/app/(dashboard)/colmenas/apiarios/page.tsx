@@ -1,7 +1,14 @@
 'use client';
 
-import { LazyApiariosView } from '@/lib/navigation/lazy-views';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { ViewLoading } from '@enjambre/ui';
 
-export default function ApiariosPage() {
-  return <LazyApiariosView />;
+/** Legacy: Apiarios se unificó en Colmenas (colección → workspace). */
+export default function ApiariosRedirectPage() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/colmenas');
+  }, [router]);
+  return <ViewLoading variant="view" label="Colmenas" hideLabel />;
 }

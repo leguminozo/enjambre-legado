@@ -7,6 +7,10 @@ import { ThemeProvider, ToastProvider, useTheme, type Theme } from '@enjambre/ui
 import { useAuthProvider, useAuthStore, createClient } from '@enjambre/auth'
 import type { Session, SupabaseClient } from '@supabase/supabase-js'
 import { createNucleoPersister, shouldPersistQuery } from '@/lib/query-persist'
+import { initPlatformCurrency } from '@/config/money'
+
+// Moneda de plataforma (CLP) antes del primer render de montos
+initPlatformCurrency()
 
 let _cachedClient: SupabaseClient | null = null
 

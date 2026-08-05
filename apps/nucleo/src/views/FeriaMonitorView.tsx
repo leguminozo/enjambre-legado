@@ -23,7 +23,6 @@ import { friendlyError, toast, formatCLP } from '@enjambre/ui';
 import { supabase } from '@/lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';
-import { ToolActionRail } from '@/components/layout/ToolActionRail';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { ImmersiveModal } from '@enjambre/ui';
 
@@ -377,7 +376,6 @@ export function FeriaMonitorView() {
           </div>
         }
       />
-      <ToolActionRail context="feriaOps" current="/monitor-feria" />
 
       {/* Filtro por evento + KPI meta */}
       <div className="card animate-in delay-1">

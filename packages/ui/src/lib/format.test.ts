@@ -7,10 +7,15 @@ describe('@enjambre/ui format', () => {
     expect(s).toMatch(/15.?000/);
   });
 
-  it('fmtCLP compacta miles y millones', () => {
-    expect(fmtCLP(1500)).toMatch(/1\.5K|\$1\.5K/);
-    expect(fmtCLP(2_500_000)).toMatch(/2\.5M|\$2\.5M/);
+  it('fmtCLP compacta miles y millones (separador decimal CLP = coma)', () => {
+    expect(fmtCLP(1500)).toBe('$1,5K');
+    expect(fmtCLP(2_500_000)).toBe('$2,5M');
     expect(fmtCLP(50)).toMatch(/50/);
+  });
+
+  it('formatCLP usa $ y punto de miles chileno', () => {
+    expect(formatCLP(8000)).toBe('$8.000');
+    expect(formatCLP(80_000)).toBe('$80.000');
   });
 
   it('formatDate / formatDateShort no vacíos', () => {

@@ -165,6 +165,9 @@ app.use("*", async (c, next) => {
     "/api/lotes-publicos",
     "/api/trazabilidad",
     "/api/alambique/publico",
+    // Proxy Open-Meteo (coords fijas Pureo, sin datos de usuario). El cliente
+    // llama sin Bearer; el rate-limit del route ya limita abuso.
+    "/api/meteo",
   ];
   const path = new URL(c.req.url).pathname;
 

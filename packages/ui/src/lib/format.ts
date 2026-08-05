@@ -1,3 +1,5 @@
+import { formatMoney, formatMoneyCompact } from './currency';
+
 export function formatDate(iso: string, options?: Intl.DateTimeFormatOptions): string {
   const defaultOptions: Intl.DateTimeFormatOptions = {
     day: '2-digit',
@@ -13,12 +15,14 @@ export function formatDateShort(iso: string): string {
   return new Date(iso).toLocaleDateString('es-CL');
 }
 
+/**
+ * Formato monetario canónico de plataforma (default CLP: `$8.000`).
+ * Preferir formatMoney cuando se quiera pasar currency explícita.
+ */
 export function formatCLP(amount: number): string {
-  return amount.toLocaleString('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 })
+  return formatMoney(amount, 'CLP');
 }
 
 export function fmtCLP(amount: number): string {
-  if (Math.abs(amount) >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`
-  if (Math.abs(amount) >= 1_000) return `$${(amount / 1_000).toFixed(1).replace(/\.0$/, '')}K`
-  return formatCLP(amount)
+  return formatMoneyCompact(amount, 'CLP');
 }

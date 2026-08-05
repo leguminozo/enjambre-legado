@@ -47,18 +47,24 @@ function DialogContent({
   showCloseButton = true,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & { showCloseButton?: boolean }) {
+  // Radix avisa si no hay DialogDescription ni aria-describedby explícito.
+  // Pasamos undefined por defecto (opt-out válido). Si el caller incluye
+  // DialogDescription, Radix enlaza el id vía contexto; si pasa aria-describedby
+  // en props, gana el valor del spread.
+  const { 'aria-describedby': ariaDescribedBy, ...rest } = props
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
+        aria-describedby={ariaDescribedBy}
         className={cn(
           'fixed top-[50%] left-[50%] z-[221] grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4',
           'rounded-2xl border border-border/80 bg-card p-6 shadow-2xl duration-200 sm:max-w-lg',
           overlayPanelMotionClassName,
           className,
         )}
-        {...props}
+        {...rest}
       >
         {children}
         {showCloseButton && (

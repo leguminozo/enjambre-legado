@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
-import { ToolActionRail } from '@/components/layout/ToolActionRail';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
@@ -227,7 +226,6 @@ export function ConciliacionAutoView() {
         subtitle="Emparejamiento banco ↔ facturas/ventas/gastos. Tenant del BFF; sin empresa_id en el client."
         icon={<FileText size={20} />}
       />
-      <ToolActionRail context="banco" current="/conciliacion" />
 
       {metricas && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

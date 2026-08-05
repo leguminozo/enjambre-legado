@@ -1,7 +1,14 @@
 'use client';
 
-import { LazyLogisticaView } from '@/lib/navigation/lazy-views';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { ViewLoading } from '@enjambre/ui';
 
-export default function OperacionesPage() {
-  return <LazyLogisticaView />;
+/** Legacy /operaciones → /despacho/envios */
+export default function OperacionesRedirectPage() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/despacho/envios');
+  }, [router]);
+  return <ViewLoading variant="view" label="Despacho" hideLabel />;
 }

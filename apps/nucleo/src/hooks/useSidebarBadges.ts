@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 /** Claves reales de badges — una por módulo con estado operativo en vivo */
 export interface SidebarBadgeValues {
   colmenas: SidebarBadge
-  despacho: SidebarBadge
+  envios: SidebarBadge
   sii: SidebarBadge
   banco: SidebarBadge
   alambique: SidebarBadge
@@ -35,7 +35,7 @@ interface SidebarBadgesRpc {
 
 const DEFAULT_BADGES: SidebarBadgeValues = {
   colmenas: null,
-  despacho: null,
+  envios: null,
   sii: null,
   banco: null,
   alambique: null,
@@ -82,7 +82,7 @@ function mapRpcToBadges(data: SidebarBadgesRpc): SidebarBadgeValues {
   return {
     ...DEFAULT_BADGES,
     colmenas: countBadge(data.colmenas_risk),
-    despacho: countBadge(data.envios_pending),
+    envios: countBadge(data.envios_pending),
     sii: countBadge(data.facturas_pendientes),
     banco:
       data.banco_enabled === 0
@@ -209,7 +209,7 @@ async function fetchBadgesLegacy(): Promise<SidebarBadgeValues> {
   return {
     ...DEFAULT_BADGES,
     colmenas: countBadge(colmenasRisk.count ?? 0),
-    despacho: countBadge(enviosPending.count ?? 0),
+    envios: countBadge(enviosPending.count ?? 0),
     sii: countBadge(facturasPendientes.count ?? 0),
     banco:
       (integrationsConfig.count ?? 0) === 0
@@ -339,18 +339,23 @@ export function useSidebarBadges() {
           attemptsRef.current = 0
           return
         }
-        // TIMED_OUT | CLOSED | CHANNEL_ERROR: heartbeat muerto o JWT expirado.
-        // Tear down + backoff exponencial (1s, 2s, 4s, ... capped 30s, ~5 intentos).
-        // Cada reintento re-resuelve getSession() para usar un token ya refrescado.
+        // TIMED_OUT | CLOSED | CHANNEL_ERROR: heartbeat muerto, JWT expirado o
+        // teardown de Strict Mode. Reconectar con backoff; no spamear consola en
+        // CLOSED normal (remount / tab sleep / removeChannel del cleanup).
         if (status === 'TIMED_OUT' || status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-          if (!disposed) {
-            console.warn('[useSidebarBadges] realtime disconnected', status, err)
+          if (
+            !disposed &&
+            status !== 'CLOSED' &&
+            process.env.NODE_ENV === 'development'
+          ) {
+            console.warn('[useSidebarBadges] realtime reconnect', status, err?.message ?? '')
           }
           if (channelRef.current) {
             const old = channelRef.current
             channelRef.current = null
             void supabase.removeChannel(old)
           }
+          // CLOSED tras dispose (unmount) no reintenta
           if (attemptsRef.current >= 5 || disposed) return
           const delay = Math.min(1000 * 2 ** attemptsRef.current, 30_000)
           attemptsRef.current += 1

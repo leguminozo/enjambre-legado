@@ -1,8 +1,14 @@
 'use client';
 
-import { ApicultorView } from '../ApicultorView';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { ViewLoading } from '@enjambre/ui';
 
-/** /colmenas/apiarios — gestión de apiarios como herramienta propia de RECOLECCIÓN */
+/** Legacy reexport: la herramienta Apiarios vive dentro de Colmenas. */
 export function ApiariosView() {
-  return <ApicultorView initialView="apiarios" />;
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/colmenas');
+  }, [router]);
+  return <ViewLoading variant="view" label="Colmenas" hideLabel />;
 }

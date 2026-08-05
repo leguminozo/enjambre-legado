@@ -23,7 +23,6 @@ import {
 
 import { formatCurrency } from '@/lib/format';
 import { ViewShell } from '@/components/layout/ViewShell';
-import { ToolActionRail } from '@/components/layout/ToolActionRail';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
@@ -335,7 +334,6 @@ export function BancoChileView() {
         subtitle="Credenciales y sync se configuran en la app (BFF cifrado) — sin SQL ni secretos en el browser."
         icon={<Building2 size={20} />}
       />
-      <ToolActionRail context="banco" current="/banco" />
 
       {/* Webhooks ops — mismo ritmo Card que checkout/SII/SumUp */}
       <Card className="max-w-3xl" hover={false}>

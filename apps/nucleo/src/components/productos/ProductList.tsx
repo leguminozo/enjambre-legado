@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, Plus, Edit, Trash2, Eye, EyeOff, ExternalLink, Package } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { Button, toast, ViewLoading } from '@enjambre/ui';
+import { Button, toast, ViewLoading, formatMoney } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
 import type { Product } from '@/lib/product-types';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
@@ -339,7 +339,9 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
                       {product.visible ? 'Visible' : 'Oculto'}
                     </span>
                   </td>
-                  <td style={{ fontWeight: 600 }}>${(product.precio || 0).toLocaleString()}</td>
+                  <td style={{ fontWeight: 600 }} className="tabular-nums">
+                    {formatMoney(product.precio || 0)}
+                  </td>
                   <td>
                     <span style={{ fontSize: '0.85rem' }}>{product.formato}</span>
                   </td>

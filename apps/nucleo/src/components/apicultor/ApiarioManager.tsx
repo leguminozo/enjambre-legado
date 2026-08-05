@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets, LocateFixed } from 'lucide-react';
+import { MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets, LocateFixed, ArrowLeft, Warehouse } from 'lucide-react';
 import type { ApiarioRow, ColmenaWithRelations } from '@/lib/apicultor-types';
-import { estadoFromHealth } from '@/types/ecosystem';
 import { supabase } from '../../lib/supabase';
 import { toast, friendlyError } from '@enjambre/ui';
 
@@ -11,9 +10,14 @@ interface ApiarioManagerProps {
     apiarios: ApiarioRow[];
     setApiarios: React.Dispatch<React.SetStateAction<ApiarioRow[]>>;
     onSelectColmena: (c: ColmenaWithRelations) => void;
+    /** null = colección de apiarios; uuid = workspace del apiario */
+    activeApiarioId: string | null;
+    onEnterApiario: (id: string) => void;
+    onLeaveApiario: () => void;
 }
 
 interface ApiarioDraft {
+    id?: string;
     name: string;
     lat: string;
     lng: string;
@@ -40,29 +44,52 @@ const INSPECCION_BASAL_INICIAL: InspeccionBasalForm = {
     enjambrazon_riesgo: 'bajo',
 };
 
-export function ApiarioManager({ colmenas: localColmenas, setColmenas: setLocalColmenas, apiarios, setApiarios, onSelectColmena }: ApiarioManagerProps) {
-    const [expandedApiarios, setExpandedApiarios] = useState<string[]>([]);
+export function ApiarioManager({
+    colmenas: localColmenas,
+    setColmenas: setLocalColmenas,
+    apiarios,
+    setApiarios,
+    onSelectColmena,
+    activeApiarioId,
+    onEnterApiario,
+    onLeaveApiario,
+}: ApiarioManagerProps) {
     const [editingColmena, setEditingColmena] = useState<ColmenaWithRelations | null>(null);
     const [inspeccionBasal, setInspeccionBasal] = useState<InspeccionBasalForm>(INSPECCION_BASAL_INICIAL);
     const [editingApiario, setEditingApiario] = useState<ApiarioDraft | null>(null);
     const [locatingGps, setLocatingGps] = useState(false);
     const [apiarioError, setApiarioError] = useState<string | null>(null);
 
-    // Apiarios reales de la BD (pueden tener 0 colmenas) + grupos legacy de colmenas sin apiario asignado
-    const apiarioNames = Array.from(new Set([
-        ...apiarios.map(a => a.name).filter((n): n is string => Boolean(n)),
-        ...localColmenas.map(c => c.apiario_name).filter((n): n is string => Boolean(n)),
-    ]));
+    const activeApiario = apiarios.find((a) => a.id === activeApiarioId) ?? null;
+    const workspaceMode = Boolean(activeApiario);
 
-    const toggleApiario = (apiario: string) => {
-        setExpandedApiarios(prev =>
-            prev.includes(apiario) ? prev.filter(a => a !== apiario) : [...prev, apiario]
-        );
+    const colmenasWorkspace = activeApiario
+        ? localColmenas.filter(
+            (c) => c.apiario_id === activeApiario.id || c.apiario_name === activeApiario.name,
+          )
+        : [];
+
+    const optimalCount = (workspaceMode ? colmenasWorkspace : localColmenas).filter((c) => c.health === 'optimal').length;
+    const attentionCount = (workspaceMode ? colmenasWorkspace : localColmenas).filter((c) => c.health === 'attention').length;
+    const riskCount = (workspaceMode ? colmenasWorkspace : localColmenas).filter((c) => c.health === 'risk').length;
+
+    const openNewApiario = () => {
+        setApiarioError(null);
+        setEditingApiario({ name: '', lat: '', lng: '', health: 'optimal', details: '' });
     };
 
-    const optimalCount = localColmenas.filter(c => c.health === 'optimal').length;
-    const attentionCount = localColmenas.filter(c => c.health === 'attention').length;
-    const riskCount = localColmenas.filter(c => c.health === 'risk').length;
+    const openEditApiario = (row: ApiarioRow, e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setApiarioError(null);
+        setEditingApiario({
+            id: row.id,
+            name: row.name ?? '',
+            lat: row.lat != null ? String(row.lat) : '',
+            lng: row.lng != null ? String(row.lng) : '',
+            health: (row.health as ApiarioDraft['health']) || 'optimal',
+            details: row.details ?? '',
+        });
+    };
 
     const handleAddColmena = (apiario: string) => {
         const apiarioRow = apiarios.find(a => a.name === apiario);
@@ -118,7 +145,10 @@ export function ApiarioManager({ colmenas: localColmenas, setColmenas: setLocalC
             setApiarioError('El nombre del apiario es obligatorio.');
             return;
         }
-        if (apiarioNames.includes(name)) {
+        const nameTaken = apiarios.some(
+            (a) => a.name === name && a.id !== editingApiario.id,
+        );
+        if (nameTaken) {
             setApiarioError(`Ya existe un apiario llamado "${name}".`);
             return;
         }
@@ -132,6 +162,35 @@ export function ApiarioManager({ colmenas: localColmenas, setColmenas: setLocalC
         setApiarioError(null);
         try {
             const { data: { user } } = await supabase.auth.getUser();
+            if (editingApiario.id) {
+                const { data: updated, error } = await supabase
+                    .from('apiarios')
+                    .update({
+                        name,
+                        lat,
+                        lng,
+                        health: editingApiario.health,
+                        details: editingApiario.details.trim() || null,
+                    })
+                    .eq('id', editingApiario.id)
+                    .select('*')
+                    .single();
+                if (error) throw error;
+                if (updated) {
+                    setApiarios((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+                    setLocalColmenas((prev) =>
+                        prev.map((c) =>
+                            c.apiario_id === updated.id
+                                ? { ...c, apiario_name: updated.name ?? name }
+                                : c,
+                        ),
+                    );
+                }
+                setEditingApiario(null);
+                toast('Apiario actualizado', { type: 'success' });
+                return;
+            }
+
             const { data: newAp, error } = await supabase.from('apiarios').insert({
                 name,
                 lat,
@@ -146,28 +205,32 @@ export function ApiarioManager({ colmenas: localColmenas, setColmenas: setLocalC
                 return;
             }
 
-            // El apiario es una entidad propia: se agrega a la lista real, sin colmena automática
-            setApiarios(prev => [...prev, newAp]);
-            setExpandedApiarios(p => [...p, name]);
+            setApiarios((prev) => [...prev, newAp]);
             setEditingApiario(null);
-            toast('Apiario registrado con coordenadas', { type: 'success' });
+            toast('Apiario registrado — entrando…', { type: 'success' });
+            onEnterApiario(newAp.id);
         } catch (err) {
-            console.error('Error creando apiario', err);
-            setApiarioError(friendlyError(err, 'Error al crear el apiario'));
+            console.error('Error guardando apiario', err);
+            setApiarioError(friendlyError(err, 'Error al guardar el apiario'));
         }
     };
 
-    const handleDeleteApiario = async (name: string, e: React.MouseEvent) => {
+    const handleDeleteApiario = async (row: ApiarioRow, e: React.MouseEvent) => {
         e.stopPropagation();
-        const row = apiarios.find(a => a.name === name);
-        if (!row) return;
-        if (!confirm(`¿Eliminar el apiario "${name}"? Sus colmenas quedarán sin apiario asignado.`)) return;
+        if (!confirm(`¿Eliminar el apiario "${row.name}"? Sus colmenas quedarán sin apiario asignado.`)) return;
         try {
             const { error } = await supabase.from('apiarios').delete().eq('id', row.id);
             if (error) throw error;
-            setApiarios(prev => prev.filter(a => a.id !== row.id));
-            setExpandedApiarios(prev => prev.filter(n => n !== name));
-            setLocalColmenas(prev => prev.map(c => c.apiario_name === name ? { ...c, apiario_name: 'Sin apiario', apiario_id: null } : c));
+            setApiarios((prev) => prev.filter((a) => a.id !== row.id));
+            setLocalColmenas((prev) =>
+                prev.map((c) =>
+                    c.apiario_id === row.id || c.apiario_name === row.name
+                        ? { ...c, apiario_name: 'Sin apiario', apiario_id: null }
+                        : c,
+                ),
+            );
+            if (activeApiarioId === row.id) onLeaveApiario();
+            toast('Apiario eliminado', { type: 'success' });
         } catch (err) {
             console.error('Error eliminando apiario', err);
             toast(friendlyError(err, 'Error al eliminar el apiario'), { type: 'error' });
@@ -207,9 +270,6 @@ export function ApiarioManager({ colmenas: localColmenas, setColmenas: setLocalC
             if (exists) return prev.map(p => p.id === c.id ? c : p);
             return [...prev, c];
         });
-        if (c.apiario_name && !expandedApiarios.includes(c.apiario_name)) {
-            setExpandedApiarios(prev => [...prev, c.apiario_name!]);
-        }
         setEditingColmena(null);
 
         // Supabase persistence
@@ -281,138 +341,296 @@ export function ApiarioManager({ colmenas: localColmenas, setColmenas: setLocalC
         }
     };
 
-    return (
-        <div className="card animate-in delay-2">
-            <div className="section-header">
-                <div>
-                    <div className="section-title">Gestión de Apiarios</div>
-                    <div className="section-subtitle">
-<span style={{ color: 'hsl(var(--success))' }}>● {optimalCount} óptimas</span>
-{attentionCount > 0 && <span style={{ marginLeft: 12, color: 'hsl(var(--warning))' }}>● {attentionCount} atención</span>}
-{riskCount > 0 && <span style={{ marginLeft: 12, color: 'hsl(var(--destructive))' }}>● {riskCount} riesgo</span>}
+    // ── Colección: tarjetas de apiarios ──────────────────────────────────
+    if (!workspaceMode) {
+        return (
+            <div className="card animate-in delay-2">
+                <div className="section-header">
+                    <div>
+                        <div className="section-title">Tus apiarios</div>
+                        <div className="section-subtitle">
+                            Entrá a un apiario para ver sus colmenas. Con uno solo se abre solo.
+                        </div>
                     </div>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={openNewApiario}>
+                        <MapPin size={14} /> Nuevo apiario
+                    </button>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="btn btn-outline btn-sm" onClick={() => {
-                        setApiarioError(null);
-                        setEditingApiario({ name: '', lat: '', lng: '', health: 'optimal', details: '' });
-                    }}><MapPin size={14} /> Nuevo Apiario</button>
-                    <button className="btn btn-gold btn-sm" onClick={() => handleAddColmena(apiarioNames[0] || 'Nuevo Apiario')}><Plus size={14} /> Colmena</button>
-                </div>
-            </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                {apiarioNames.length === 0 && (
-                    <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'hsl(var(--muted-foreground))' }}>
-                        No hay apiarios registrados.
+                {apiarios.length === 0 ? (
+                    <div className="text-center py-12 px-4">
+                        <Warehouse size={36} className="mx-auto mb-3 text-muted-foreground/40" />
+                        <p className="font-medium text-foreground mb-1">Aún no hay apiarios</p>
+                        <p className="text-sm text-muted-foreground mb-4">
+                            Creá el primero: nombre, GPS y estado sanitario. Luego sumás colmenas adentro.
+                        </p>
+                        <button type="button" className="btn btn-primary" onClick={openNewApiario}>
+                            <Plus size={14} className="mr-1" /> Registrar primer apiario
+                        </button>
                     </div>
-                )}
+                ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        {apiarios.map((row) => {
+                            const cols = localColmenas.filter(
+                                (c) => c.apiario_id === row.id || c.apiario_name === row.name,
+                            );
+                            const kg = cols.reduce((s, c) => s + (c.production_total || 0), 0);
+                            const risk = cols.some((c) => c.health === 'risk') || row.health === 'risk';
+                            const attn =
+                                !risk &&
+                                (cols.some((c) => c.health === 'attention') || row.health === 'attention');
+                            const healthColor = risk
+                                ? 'hsl(var(--destructive))'
+                                : attn
+                                  ? 'hsl(var(--warning))'
+                                  : 'hsl(var(--success))';
+                            const hasCoords =
+                                typeof row.lat === 'number' &&
+                                typeof row.lng === 'number' &&
+                                (row.lat !== 0 || row.lng !== 0);
 
-                {apiarioNames.map(apiario => {
-                    const apiarioRow = apiarios.find(a => a.name === apiario);
-                    const apiarioColmenas = localColmenas.filter(c => c.apiario_name === apiario);
-                    const isExpanded = expandedApiarios.includes(apiario);
-                    const hasCoords = !!apiarioRow && typeof apiarioRow.lat === 'number' && typeof apiarioRow.lng === 'number' && (apiarioRow.lat !== 0 || apiarioRow.lng !== 0);
-const apiarioHealth = (apiarioRow?.health === 'risk' || apiarioColmenas.some(c => c.health === 'risk')) ? 'hsl(var(--destructive))'
-: (apiarioRow?.health === 'attention' || apiarioColmenas.some(c => c.health === 'attention')) ? 'hsl(var(--warning))'
-: 'hsl(var(--success))';
-
-                    return (
-                        <div key={apiario} style={{ border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-                            {/* Apiario Header */}
-                            <div
-                                onClick={() => toggleApiario(apiario)}
-                                style={{
-                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                    padding: 'var(--space-md)', background: isExpanded ? 'hsl(var(--muted) / 0.5)' : 'transparent',
-                                    cursor: 'pointer', transition: 'background 150ms'
-                                }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: apiarioHealth }} />
-                                    <div>
-                                        <div style={{ fontWeight: 600, color: 'hsl(var(--foreground))', fontSize: '0.95rem' }}>{apiario}</div>
-                                        <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))' }}>
-                                            {apiarioColmenas.length} colmenas
-                                            {hasCoords && apiarioRow ? ` · ${apiarioRow.lat.toFixed(4)}, ${apiarioRow.lng.toFixed(4)}` : ''}
+                            return (
+                                <div
+                                    key={row.id}
+                                    className="rounded-xl border border-border/60 bg-card p-4 flex flex-col gap-3 hover:border-primary/30 transition-colors"
+                                >
+                                    <button
+                                        type="button"
+                                        className="text-left flex items-start gap-3 min-h-11"
+                                        onClick={() => onEnterApiario(row.id)}
+                                    >
+                                        <span
+                                            className="mt-1.5 size-2.5 rounded-full shrink-0"
+                                            style={{ background: healthColor }}
+                                        />
+                                        <div className="min-w-0 flex-1">
+                                            <div className="font-semibold text-foreground truncate">
+                                                {row.name}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground mt-0.5">
+                                                {cols.length} colmena{cols.length === 1 ? '' : 's'}
+                                                {hasCoords
+                                                    ? ` · ${row.lat!.toFixed(4)}, ${row.lng!.toFixed(4)}`
+                                                    : ''}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                                <Droplets size={12} className="text-accent" />
+                                                {kg} kg temporada
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                    <div style={{ textAlign: 'right', display: 'flex', gap: 12 }}>
-                                        <span style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))' }}><Droplets size={12} style={{ display: 'inline', marginRight: 4, color: 'hsl(var(--accent))' }} />{apiarioColmenas.reduce((s, c) => s + (c.production_total || 0), 0)} kg</span>
-                                    </div>
-                                    {apiarioRow && (
+                                        <ChevronRight size={18} className="text-muted-foreground shrink-0 mt-1" />
+                                    </button>
+                                    <div className="flex gap-2 border-t border-border/40 pt-2">
                                         <button
-                                          type="button"
-                                          className="btn btn-ghost btn-sm"
-                                          style={{ minWidth: 32, minHeight: 32, padding: 0, color: 'hsl(var(--destructive))' }}
-                                          aria-label={`Eliminar apiario ${apiario}`}
-                                          onClick={(e) => handleDeleteApiario(apiario, e)}
+                                            type="button"
+                                            className="btn btn-ghost btn-sm flex-1"
+                                            onClick={(e) => openEditApiario(row, e)}
+                                        >
+                                            <Edit2 size={14} className="mr-1" /> Editar
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-ghost btn-sm text-destructive"
+                                            aria-label={`Eliminar ${row.name}`}
+                                            onClick={(e) => void handleDeleteApiario(row, e)}
                                         >
                                             <Trash2 size={14} />
                                         </button>
-                                    )}
-                                    <ChevronRight size={18} style={{ color: 'hsl(var(--muted-foreground))', transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 200ms' }} />
-                                </div>
-                            </div>
-
-                            {/* Colmenas List */}
-                            {isExpanded && (
-                                <div style={{ borderTop: '1px solid hsl(var(--border) / 0.3)', background: 'hsl(var(--muted) / 0.5)', padding: 'var(--space-sm)' }}>
-                                    <div className="colmena-list" style={{ gap: 4 }}>
-                                        {apiarioColmenas.map(c => (
-                                            <div key={c.id} className="colmena-item" style={{ background: 'hsl(var(--card))', position: 'relative' }}>
-                                                <div className={`colmena-status ${c.health}`} />
-                                                <div style={{ flex: 1, cursor: 'pointer', minHeight: 44, display: 'flex', flexDirection: 'column', justifyContent: 'center' }} onClick={() => onSelectColmena(c)}>
-                                                    <div className="colmena-name" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                                        {c.name}
-                                                    </div>
-                                                    <div style={{ fontSize: '0.68rem', marginTop: 2, color: 'hsl(var(--muted-foreground))', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                                                        <span>{c.floracion || 'Sin floración'}</span>
-                                                        <span>⚖️ {c.peso_records?.at(-1)?.kg || 0} kg</span>
-                                                        <span>🔬 V {c.varroa_records?.at(-1)?.level || 0}/10</span>
-                                                    </div>
-                                                </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                    <div className="colmena-production" style={{ textAlign: 'right', marginRight: 8 }}>
-                                                        <div className="colmena-production-value" style={{ fontSize: '0.9rem' }}>{c.production_total || 0}</div>
-                                                        <div className="colmena-production-label" style={{ fontSize: '0.6rem' }}>kg</div>
-                                                    </div>
-
-                                                    {/* Context Menu Actions */}
-                                                    <div style={{ display: 'flex', gap: 4 }}>
-                                                        <button
-                                                          type="button"
-                                                          className="btn btn-ghost btn-sm"
-                                                          style={{ minWidth: 44, minHeight: 44, padding: 0, color: 'hsl(var(--foreground))' }}
-                                                          aria-label={`Editar ${c.name}`}
-                                                          onClick={(e) => { e.stopPropagation(); handleEditColmena(c); }}
-                                                        >
-                                                            <Edit2 size={14} />
-                                                        </button>
-                                                        <button
-                                                          type="button"
-                                                          className="btn btn-ghost btn-sm"
-                                                          style={{ minWidth: 44, minHeight: 44, padding: 0, color: 'hsl(var(--destructive))' }}
-                                                          aria-label={`Eliminar ${c.name}`}
-                                                          onClick={(e) => handleDelete(c.id, e)}
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        <button className="btn btn-outline btn-sm" onClick={() => handleAddColmena(apiario)} style={{ marginTop: 8, padding: '8px', borderStyle: 'dashed', color: 'hsl(var(--muted-foreground))', width: '100%' }}>
-                                            <Plus size={14} style={{ display: 'inline', marginRight: 6 }} /> Agregar colmena a este apiario
-                                        </button>
                                     </div>
                                 </div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {editingApiario && (
+                    <ApiarioFormModal
+                        draft={editingApiario}
+                        setDraft={setEditingApiario}
+                        error={apiarioError}
+                        locatingGps={locatingGps}
+                        onUseGps={handleUseMyLocation}
+                        onSave={() => void handleSaveApiario()}
+                        onClose={() => setEditingApiario(null)}
+                    />
+                )}
+            </div>
+        );
+    }
+
+    // ── Workspace: colmenas del apiario activo ───────────────────────────
+    const apiarioName = activeApiario!.name ?? 'Apiario';
+
+    return (
+        <div className="card animate-in delay-2">
+            <div className="section-header">
+                <div className="flex flex-col gap-2 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <button
+                            type="button"
+                            className="btn btn-ghost btn-sm"
+                            onClick={onLeaveApiario}
+                        >
+                            <ArrowLeft size={14} className="mr-1" />
+                            Todos los apiarios
+                        </button>
+                        {apiarios.length > 1 && (
+                            <select
+                                className="input-field text-sm max-w-[14rem]"
+                                value={activeApiario!.id}
+                                onChange={(e) => onEnterApiario(e.target.value)}
+                                aria-label="Cambiar de apiario"
+                            >
+                                {apiarios.map((a) => (
+                                    <option key={a.id} value={a.id}>
+                                        {a.name}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+                    <div>
+                        <div className="section-title">{apiarioName}</div>
+                        <div className="section-subtitle">
+                            <span style={{ color: 'hsl(var(--success))' }}>● {optimalCount} óptimas</span>
+                            {attentionCount > 0 && (
+                                <span style={{ marginLeft: 12, color: 'hsl(var(--warning))' }}>
+                                    ● {attentionCount} atención
+                                </span>
+                            )}
+                            {riskCount > 0 && (
+                                <span style={{ marginLeft: 12, color: 'hsl(var(--destructive))' }}>
+                                    ● {riskCount} riesgo
+                                </span>
                             )}
                         </div>
-                    );
-                })}
+                    </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        onClick={() => openEditApiario(activeApiario!)}
+                    >
+                        <Edit2 size={14} /> Editar apiario
+                    </button>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={openNewApiario}>
+                        <MapPin size={14} /> Otro apiario
+                    </button>
+                    <button
+                        type="button"
+                        className="btn btn-gold btn-sm"
+                        onClick={() => handleAddColmena(apiarioName)}
+                    >
+                        <Plus size={14} /> Colmena
+                    </button>
+                </div>
+            </div>
+
+            <div className="colmena-list" style={{ gap: 4 }}>
+                {colmenasWorkspace.length === 0 ? (
+                    <div className="text-center py-10 text-sm text-muted-foreground">
+                        Este apiario aún no tiene colmenas.
+                        <div className="mt-3">
+                            <button
+                                type="button"
+                                className="btn btn-primary btn-sm"
+                                onClick={() => handleAddColmena(apiarioName)}
+                            >
+                                <Plus size={14} className="mr-1" /> Primera colmena
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    colmenasWorkspace.map((c) => (
+                        <div key={c.id} className="colmena-item" style={{ background: 'hsl(var(--card))', position: 'relative' }}>
+                            <div className={`colmena-status ${c.health}`} />
+                            <div
+                                style={{
+                                    flex: 1,
+                                    cursor: 'pointer',
+                                    minHeight: 44,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                }}
+                                onClick={() => onSelectColmena(c)}
+                            >
+                                <div className="colmena-name" style={{ fontSize: '0.85rem' }}>
+                                    {c.name}
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: '0.68rem',
+                                        marginTop: 2,
+                                        color: 'hsl(var(--muted-foreground))',
+                                        display: 'flex',
+                                        gap: 10,
+                                        flexWrap: 'wrap',
+                                    }}
+                                >
+                                    <span>{c.floracion || 'Sin floración'}</span>
+                                    <span>⚖️ {c.peso_records?.at(-1)?.kg || 0} kg</span>
+                                    <span>🔬 V {c.varroa_records?.at(-1)?.level || 0}/10</span>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <div className="colmena-production" style={{ textAlign: 'right', marginRight: 8 }}>
+                                    <div className="colmena-production-value" style={{ fontSize: '0.9rem' }}>
+                                        {c.production_total || 0}
+                                    </div>
+                                    <div className="colmena-production-label" style={{ fontSize: '0.6rem' }}>
+                                        kg
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: 4 }}>
+                                    <button
+                                        type="button"
+                                        className="btn btn-ghost btn-sm"
+                                        style={{ minWidth: 44, minHeight: 44, padding: 0 }}
+                                        aria-label={`Editar ${c.name}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditColmena(c);
+                                        }}
+                                    >
+                                        <Edit2 size={14} />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn btn-ghost btn-sm"
+                                        style={{
+                                            minWidth: 44,
+                                            minHeight: 44,
+                                            padding: 0,
+                                            color: 'hsl(var(--destructive))',
+                                        }}
+                                        aria-label={`Eliminar ${c.name}`}
+                                        onClick={(e) => handleDelete(c.id, e)}
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+                {colmenasWorkspace.length > 0 && (
+                    <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        onClick={() => handleAddColmena(apiarioName)}
+                        style={{
+                            marginTop: 8,
+                            padding: '8px',
+                            borderStyle: 'dashed',
+                            color: 'hsl(var(--muted-foreground))',
+                            width: '100%',
+                        }}
+                    >
+                        <Plus size={14} style={{ display: 'inline', marginRight: 6 }} /> Agregar colmena
+                    </button>
+                )}
             </div>
 
             {/* Quick Edit Modal */}
@@ -502,54 +720,132 @@ const apiarioHealth = (apiarioRow?.health === 'risk' || apiarioColmenas.some(c =
                 </div>
             )}
 
-            {/* Registro científico de apiario */}
             {editingApiario && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setEditingApiario(null)} />
-                    <div className="card" style={{ position: 'relative', zIndex: 401, width: 460, maxHeight: '90vh', overflowY: 'auto', padding: 'var(--space-xl)' }}>
-                        <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
-                            Registrar Nuevo Apiario
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                            <div>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Nombre del apiario *</label>
-                                <input className="input-field w-full" value={editingApiario.name} onChange={e => setEditingApiario({ ...editingApiario, name: e.target.value })} placeholder="Ej. Valle Sur" />
-                                <div style={{ fontSize: '0.68rem', marginTop: 4, color: 'hsl(var(--muted-foreground))' }}>Nombre geográfico o de manejo del asentamiento.</div>
-                            </div>
-                            <div>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Coordenadas GPS (grados decimales)</label>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                    <input className="input-field w-full" type="number" step="any" placeholder="Latitud (ej. -42.483123)" value={editingApiario.lat} onChange={e => setEditingApiario({ ...editingApiario, lat: e.target.value })} />
-                                    <input className="input-field w-full" type="number" step="any" placeholder="Longitud (ej. -73.743195)" value={editingApiario.lng} onChange={e => setEditingApiario({ ...editingApiario, lng: e.target.value })} />
-                                </div>
-                                <button type="button" className="btn btn-outline btn-sm" style={{ marginTop: 8 }} onClick={handleUseMyLocation} disabled={locatingGps}>
-                                    <LocateFixed size={14} style={{ display: 'inline', marginRight: 6 }} />
-                                    {locatingGps ? 'Obteniendo ubicación…' : 'Usar mi ubicación actual'}
-                                </button>
-                            </div>
-                            <div>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Estado sanitario del apiario</label>
-                                <select className="input-field w-full" value={editingApiario.health} onChange={e => setEditingApiario({ ...editingApiario, health: e.target.value as ApiarioDraft['health'] })}>
-                                    <option value="optimal" className="bg-card text-foreground">Óptima</option>
-                                    <option value="attention" className="bg-card text-foreground">Atención</option>
-                                    <option value="risk" className="bg-card text-foreground">Riesgo / Crítica</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Detalles científicos</label>
-                                <textarea className="input-field w-full" rows={4} value={editingApiario.details} onChange={e => setEditingApiario({ ...editingApiario, details: e.target.value })} placeholder="Entorno vegetacional, flora predominante, altitud, exposición, distancia a cursos de agua, antecedentes sanitarios…" />
-                            </div>
-                            {apiarioError && (
-                                <div style={{ fontSize: '0.78rem', color: 'hsl(var(--destructive))' }}>{apiarioError}</div>
-                            )}
-                        </div>
-                        <div style={{ display: 'flex', gap: 8, marginTop: 'var(--space-xl)', justifyContent: 'flex-end' }}>
-                            <button className="btn btn-ghost" onClick={() => setEditingApiario(null)}>Cancelar</button>
-                            <button className="btn btn-primary" onClick={handleSaveApiario}>Registrar apiario</button>
-                        </div>
-                    </div>
-                </div>
+                <ApiarioFormModal
+                    draft={editingApiario}
+                    setDraft={setEditingApiario}
+                    error={apiarioError}
+                    locatingGps={locatingGps}
+                    onUseGps={handleUseMyLocation}
+                    onSave={() => void handleSaveApiario()}
+                    onClose={() => setEditingApiario(null)}
+                />
             )}
+        </div>
+    );
+}
+
+function ApiarioFormModal({
+    draft,
+    setDraft,
+    error,
+    locatingGps,
+    onUseGps,
+    onSave,
+    onClose,
+}: {
+    draft: ApiarioDraft;
+    setDraft: (d: ApiarioDraft | null) => void;
+    error: string | null;
+    locatingGps: boolean;
+    onUseGps: () => void;
+    onSave: () => void;
+    onClose: () => void;
+}) {
+    const isEdit = Boolean(draft.id);
+    return (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+            <div className="card" style={{ position: 'relative', zIndex: 401, width: 460, maxHeight: '90vh', overflowY: 'auto', padding: 'var(--space-xl)' }}>
+                <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
+                    {isEdit ? 'Editar apiario' : 'Registrar nuevo apiario'}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                    <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
+                            Nombre del apiario *
+                        </label>
+                        <input
+                            className="input-field w-full"
+                            value={draft.name}
+                            onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                            placeholder="Ej. Valle Sur"
+                        />
+                    </div>
+                    <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
+                            Coordenadas GPS (grados decimales)
+                        </label>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            <input
+                                className="input-field w-full"
+                                type="number"
+                                step="any"
+                                placeholder="Latitud"
+                                value={draft.lat}
+                                onChange={(e) => setDraft({ ...draft, lat: e.target.value })}
+                            />
+                            <input
+                                className="input-field w-full"
+                                type="number"
+                                step="any"
+                                placeholder="Longitud"
+                                value={draft.lng}
+                                onChange={(e) => setDraft({ ...draft, lng: e.target.value })}
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            className="btn btn-outline btn-sm"
+                            style={{ marginTop: 8 }}
+                            onClick={onUseGps}
+                            disabled={locatingGps}
+                        >
+                            <LocateFixed size={14} style={{ display: 'inline', marginRight: 6 }} />
+                            {locatingGps ? 'Obteniendo ubicación…' : 'Usar mi ubicación actual'}
+                        </button>
+                    </div>
+                    <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
+                            Estado sanitario del apiario
+                        </label>
+                        <select
+                            className="input-field w-full"
+                            value={draft.health}
+                            onChange={(e) =>
+                                setDraft({ ...draft, health: e.target.value as ApiarioDraft['health'] })
+                            }
+                        >
+                            <option value="optimal">Óptima</option>
+                            <option value="attention">Atención</option>
+                            <option value="risk">Riesgo / Crítica</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
+                            Detalles
+                        </label>
+                        <textarea
+                            className="input-field w-full"
+                            rows={4}
+                            value={draft.details}
+                            onChange={(e) => setDraft({ ...draft, details: e.target.value })}
+                            placeholder="Entorno, flora, altitud, antecedentes sanitarios…"
+                        />
+                    </div>
+                    {error && (
+                        <div style={{ fontSize: '0.78rem', color: 'hsl(var(--destructive))' }}>{error}</div>
+                    )}
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 'var(--space-xl)', justifyContent: 'flex-end' }}>
+                    <button type="button" className="btn btn-ghost" onClick={onClose}>
+                        Cancelar
+                    </button>
+                    <button type="button" className="btn btn-primary" onClick={onSave}>
+                        {isEdit ? 'Guardar cambios' : 'Registrar y entrar'}
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }

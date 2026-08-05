@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/lib/supabase';
-import { Button, toast, slugify } from '@enjambre/ui';
+import { Button, toast, slugify, MoneyInput, getCurrencyDefinition } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
 import { productFormSchema, type ProductFormData, PRODUCT_FORMATS, PRODUCT_CATEGORIES } from '@/lib/product-types';
 import { processImage } from '@/lib/process-image';
@@ -15,9 +15,20 @@ interface ProductFormProps {
   initialData?: ProductFormData & { id?: string };
   onSuccess?: () => void;
   onCancel?: () => void;
+  /**
+   * catalog: ficha de tienda (stock no se edita aquí).
+   * inventory: edición desde Inventario — stock editable para reformular tras incidentes.
+   */
+  variant?: 'catalog' | 'inventory';
 }
 
-export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormProps) {
+export function ProductForm({
+  initialData,
+  onSuccess,
+  onCancel,
+  variant = 'catalog',
+}: ProductFormProps) {
+  const fromInventory = variant === 'inventory';
   const [isPending, startTransition] = useTransition();
   const [imageUploading, setImageUploading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -72,6 +83,9 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
   const fotos = watch('fotos') || [];
   const visible = watch('visible');
   const nombre = watch('nombre');
+  const precio = watch('precio');
+  const stock = watch('stock');
+  const currencyDef = getCurrencyDefinition();
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -531,29 +545,63 @@ export function ProductForm({ initialData, onSuccess, onCancel }: ProductFormPro
 
             <div className="mb-4">
               <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
-                Precio CLP *
+                Precio ({currencyDef.code}) *
               </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-[0.9rem]">$</span>
-                <input
-                  {...register('precio')}
-                  type="number"
-                  placeholder="0"
-                  className="input-field pl-8 text-lg font-semibold"
-                />
-              </div>
+              <MoneyInput
+                value={precio ?? 0}
+                onValueChange={(v) => setValue('precio', v, { shouldValidate: true, shouldDirty: true })}
+                className="text-lg"
+                aria-label={`Precio en ${currencyDef.label}`}
+              />
+              <span className="text-[0.65rem] text-muted-foreground mt-1.5 block">
+                Escribí solo números: 8 → 80 → 800 → 8.000 (formato {currencyDef.label}).
+              </span>
               {errors.precio && <span className="text-xs text-destructive">{errors.precio.message}</span>}
             </div>
 
-            {/* Stock vive en Producción → Inventario; aquí solo ficha de tienda */}
-            <input type="hidden" {...register('stock')} />
-            <p className="mb-4 text-xs text-muted-foreground rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
-              El stock no se edita en Productos. Carga y reposición de unidades:{" "}
-              <a href="/produccion/inventario" className="text-primary underline-offset-2 hover:underline">
-                Producción → Inventario
-              </a>
-              .
-            </p>
+            {fromInventory ? (
+              <div className="mb-4 rounded-xl border border-primary/25 bg-primary/5 p-4 space-y-2">
+                <label className="text-[0.8rem] font-medium text-foreground block">
+                  Stock actual (reformular)
+                </label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  step={1}
+                  className="input-field text-lg font-semibold tabular-nums"
+                  value={stock ?? 0}
+                  onChange={(e) =>
+                    setValue('stock', Math.max(0, parseInt(e.target.value, 10) || 0), {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
+                  aria-label="Stock en unidades"
+                />
+                <p className="text-[0.65rem] text-muted-foreground">
+                  Ajuste absoluto de unidades (p. ej. merma, corrección de conteo o incidente).
+                  Para sumar stock de producción usá “Cargar stock” en la lista.
+                </p>
+                {errors.stock && (
+                  <span className="text-xs text-destructive">{errors.stock.message}</span>
+                )}
+              </div>
+            ) : (
+              <>
+                <input type="hidden" {...register('stock')} />
+                <p className="mb-4 text-xs text-muted-foreground rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
+                  El stock no se edita en Productos. Carga y reposición de unidades:{" "}
+                  <a
+                    href="/produccion/inventario"
+                    className="text-primary underline-offset-2 hover:underline"
+                  >
+                    Producción → Inventario
+                  </a>
+                  .
+                </p>
+              </>
+            )}
 
             <div className="mb-4">
               <label className="text-[0.8rem] font-medium text-foreground block mb-1.5 flex items-center justify-between">

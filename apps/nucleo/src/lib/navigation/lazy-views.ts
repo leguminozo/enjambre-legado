@@ -69,7 +69,27 @@ export const LazyEscenaHojaView = lazyView<{ id: string }>(
   () => import('@/views/apicultor/EscenaHojaView').then((m) => ({ default: m.EscenaHojaView })),
   'Hoja',
 );
-export const LazyLogisticaView = named(() => import('@/views/LogisticaView'), 'LogisticaView', 'Despacho');
+export const LazyLogisticaView = named(() => import('@/views/LogisticaView'), 'LogisticaView', 'Envíos');
+export const LazyEnviosView = named(
+  () => import('@/views/despacho/EnviosView'),
+  'EnviosView',
+  'Envíos',
+);
+export const LazyProveedoresView = named(
+  () => import('@/views/despacho/ProveedoresView'),
+  'ProveedoresView',
+  'Proveedores',
+);
+export const LazyMapaEnviosView = named(
+  () => import('@/views/despacho/MapaEnviosView'),
+  'MapaEnviosView',
+  'Mapa de envíos',
+);
+export const LazyCentrosStockView = named(
+  () => import('@/views/despacho/CentrosStockView'),
+  'CentrosStockView',
+  'Centros de stock',
+);
 export const LazyRegeneracionView = named(
   () => import('@/views/RegeneracionView'),
   'RegeneracionView',

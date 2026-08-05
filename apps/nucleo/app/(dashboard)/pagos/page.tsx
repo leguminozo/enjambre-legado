@@ -4,7 +4,6 @@ import { useState, Suspense } from 'react';
 import { CreditCard, Globe } from 'lucide-react';
 import { ViewLoading } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
-import { ToolActionRail } from '@/components/layout/ToolActionRail';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { LazySumUpView } from '@/lib/navigation/lazy-views';
 import { CheckoutWebStatusPanel } from '@/views/pagos/CheckoutWebStatusPanel';
@@ -25,7 +24,6 @@ export default function PagosPage() {
             subtitle="Estado go-live del cobro D2C y sesiones de checkout"
             icon={<Globe size={20} />}
           />
-          <ToolActionRail context="sumup" current="/pagos" />
           <ResponsiveTabBar
             variant="pill"
             layoutId="pagos-hub-tabs"

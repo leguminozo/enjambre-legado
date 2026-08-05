@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Sprout, MapPin, Hexagon, BellRing, ScanLine } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
-import { WidgetRail } from '@/components/widgets/WidgetRail';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
 interface ResumenTerritorial {
@@ -126,8 +125,7 @@ export function InicioTerritorialView() {
         </div>
       )}
 
-      <WidgetRail contexto="inicio-territorial" />
-
+      {/* Oráculo no se embebe aquí: herramienta canónica BOSQUE → /fenologia */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <a href="/territorio" className="card p-4 border border-border hover:border-accent/40 transition-colors">
           <div className="section-title text-sm text-foreground">Mi Territorio</div>
@@ -139,7 +137,7 @@ export function InicioTerritorialView() {
         </a>
         <a href="/fenologia" className="card p-4 border border-border hover:border-accent/40 transition-colors">
           <div className="section-title text-sm text-foreground">Oráculo Fenológico</div>
-          <p className="text-xs text-muted-foreground mt-1">GDD por especie y estación para anticipar la floración.</p>
+          <p className="text-xs text-muted-foreground mt-1">Abrir en Bosque: GDD y floración (herramienta completa).</p>
         </a>
       </div>
     </div>

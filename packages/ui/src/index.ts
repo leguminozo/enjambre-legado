@@ -37,6 +37,21 @@ export { friendlySupabaseError, friendlyApiError, friendlyError } from './lib/fr
 export { useModalFocusTrap, getFocusableElements, MODAL_FOCUSABLE_SELECTOR } from './lib/modal-focus';
 export { splitCsvLine, generateCsvBlob, downloadCsv } from './lib/csv';
 export { formatDate, formatDateShort, formatCLP, fmtCLP } from './lib/format';
+export {
+  CURRENCIES,
+  formatMoney,
+  formatMoneyCompact,
+  formatMoneyDigits,
+  parseMoneyInput,
+  moneyFromDigits,
+  extractMoneyDigits,
+  getDefaultCurrency,
+  setDefaultCurrency,
+  getCurrencyDefinition,
+  type CurrencyCode,
+  type CurrencyDefinition,
+} from './lib/currency';
+export { MoneyInput, type MoneyInputProps } from './components/money-input';
 export { slugify } from './lib/slug';
 export { QRCode } from './components/QRCode';
 export { TierBadge, TierBadgeCompact, tierConfig, type TierBadgeProps, type TierBadgeCompactProps } from './components/tier-badge';

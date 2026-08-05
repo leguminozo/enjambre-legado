@@ -1,25 +1,16 @@
 import type { WidgetContexto, WidgetDef } from './types';
-import { WidgetOraculoFenologico } from './oraculo-fenologico/WidgetOraculoFenologico';
 import { VentanasDeVuelo } from './ventanas-de-vuelo/VentanasDeVuelo';
 import { EspectroVivo } from './espectro-vivo/EspectroVivo';
 import { WidgetVozColmena } from './voz-colmena/WidgetVozColmena';
 
 /**
- * Registro central de widgets. Para ampliar la lista: agregar un componente
- * autocontenido (se monta y consume sus propios datos) y declararlo aquí con
- * los contextos donde debe aparecer.
+ * Registro central de widgets del rail de Colmenas/Apiarios.
  *
- * “Última reflexión” se retiró: era un diario paralelo al Cuaderno de Campo.
- * Las notas de visita viven en hojas del cuaderno.
+ * El Oráculo Fenológico NO vive aquí: es herramienta propia de BOSQUE
+ * (`/fenologia` → FenologiaView). Embebido en Campo generaba duplicación y
+ * confusión de ownership.
  */
 export const WIDGETS: WidgetDef[] = [
-  {
-    key: 'oraculo-fenologico',
-    titulo: 'Oráculo Fenológico (GDD)',
-    descripcion: 'Grados-Día acumulados por especie melífera nativa (GBIF · iNaturalist · ERA5).',
-    Componente: WidgetOraculoFenologico,
-    contextos: ['apicultor', 'inicio-territorial'],
-  },
   {
     key: 'ventanas-de-vuelo',
     titulo: 'Ventanas de Vuelo',

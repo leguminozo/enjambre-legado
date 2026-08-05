@@ -18,10 +18,16 @@ export interface MeteoData {
  */
 export async function fetchPronostico(): Promise<MeteoData | null> {
   try {
-    const res = await fetch('/api/meteo');
-    if (!res.ok) throw new Error(`Error Open-Meteo API (${res.status})`);
+    // /api/meteo es público (sin Bearer): coords fijas de Pureo + rate-limit en BFF.
+    const res = await fetch('/api/meteo', { credentials: 'same-origin' });
+    if (!res.ok) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`Meteo no disponible (${res.status})`);
+      }
+      return null;
+    }
     const data = await res.json();
-    return data.hourly;
+    return data.hourly ?? null;
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.warn('Meteo no disponible:', error);

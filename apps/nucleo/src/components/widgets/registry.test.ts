@@ -21,12 +21,13 @@ describe('Registro de widgets', () => {
     }
   });
 
-  it('filtra widgets por contexto', () => {
+  it('Colmenas/Apiarios no embeben el Oráculo (vive en BOSQUE → /fenologia)', () => {
     const apicultor = widgetsPara('apicultor');
     expect(apicultor.map((w) => w.key)).toEqual(
-      expect.arrayContaining(['oraculo-fenologico', 'ventanas-de-vuelo', 'espectro-vivo', 'voz-colmena']),
+      expect.arrayContaining(['ventanas-de-vuelo', 'espectro-vivo', 'voz-colmena']),
     );
-    expect(widgetsPara('inicio-territorial').map((w) => w.key)).toContain('oraculo-fenologico');
+    expect(apicultor.map((w) => w.key)).not.toContain('oraculo-fenologico');
+    expect(widgetsPara('inicio-territorial')).toHaveLength(0);
     expect(widgetsPara('inicio-admin')).toHaveLength(0);
   });
 });

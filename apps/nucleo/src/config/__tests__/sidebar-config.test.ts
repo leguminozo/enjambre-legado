@@ -45,6 +45,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'CAMPO',
       'BOSQUE',
       'PRODUCCIÓN',
+      'DESPACHO',
       'MERCADO',
       'RED',
       'FINANZAS',
@@ -57,6 +58,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(byKey['campo']).toBe(true);
     expect(byKey['bosque']).toBe(true);
     expect(byKey['produccion']).toBe(true);
+    expect(byKey['despacho']).toBe(true);
     expect(byKey['mercado']).toBe(true);
     expect(byKey['finanzas']).toBe(true);
     expect(byKey['vision']).toBe(false);
@@ -94,10 +96,13 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(byKey['territorio']).toBe('Mapa del Legado');
   });
 
-  it('Despacho y Operadores Feria viven en MERCADO; Alambique en BOSQUE; Territorio separado', () => {
+  it('DESPACHO es categoría propia; Operadores Feria en MERCADO; Alambique en BOSQUE', () => {
     const groupOf = (key: string) =>
       SIDEBAR_GROUPS.find((g) => g.items.some((i) => i.key === key))?.key;
-    expect(groupOf('despacho')).toBe('mercado');
+    expect(groupOf('envios')).toBe('despacho');
+    expect(groupOf('proveedores')).toBe('despacho');
+    expect(groupOf('mapa-envios')).toBe('despacho');
+    expect(groupOf('centros-stock')).toBe('despacho');
     expect(groupOf('operadores-feria')).toBe('mercado');
     expect(groupOf('alambique')).toBe('bosque');
     expect(groupOf('territorio')).toBe('territorio');
@@ -141,15 +146,16 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(getBottomNavKeysForRole('cliente')).toEqual(['inicio']);
   });
 
-  it('CAMPO expone Colmenas, Apiarios y Cuaderno (sin cajón “Trazabilidad”)', () => {
+  it('CAMPO expone Colmenas unificado y Cuaderno (sin Apiarios duplicado ni Trazabilidad)', () => {
     const campo = SIDEBAR_GROUPS.find((g) => g.key === 'campo');
     const byKey = Object.fromEntries((campo?.items ?? []).map((i) => [i.key, i.href]));
     expect(byKey['colmenas']).toBe('/colmenas');
-    expect(byKey['apiarios']).toBe('/colmenas/apiarios');
+    expect(byKey['apiarios']).toBeUndefined();
     expect(byKey['cuaderno-campo']).toBe('/colmenas/cuaderno');
-    expect(byKey['trazabilidad']).toBeUndefined();
+    expect(campo?.items.map((i) => i.key)).toEqual(['colmenas', 'cuaderno-campo']);
     const allKeys = getAllItems().map((i) => i.key);
     expect(allKeys).not.toContain('trazabilidad');
+    expect(allKeys).not.toContain('apiarios');
     expect(allKeys).toContain('inventario');
     expect(allKeys).toContain('recoleccion');
     expect(allKeys).toContain('lotes');
@@ -170,7 +176,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
   });
 
   it('findActiveItem resuelve sub-rutas al ítem propio, no al padre', () => {
-    expect(findActiveItem('/colmenas/apiarios')?.key).toBe('apiarios');
+    expect(findActiveItem('/colmenas/apiarios')?.key).toBe('colmenas');
     expect(findActiveItem('/colmenas/cuaderno')?.key).toBe('cuaderno-campo');
     expect(findActiveItem('/produccion/recoleccion')?.key).toBe('recoleccion');
     expect(findActiveItem('/produccion/inventario')?.key).toBe('inventario');
@@ -188,5 +194,20 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'bosque',
       'alambique',
     ]);
+  });
+
+  it('DESPACHO separa Envíos, Centros, Proveedores y Mapa', () => {
+    const d = SIDEBAR_GROUPS.find((g) => g.key === 'despacho');
+    expect(d?.items.map((i) => i.key)).toEqual([
+      'envios',
+      'centros-stock',
+      'proveedores',
+      'mapa-envios',
+    ]);
+    expect(findActiveItem('/despacho/envios')?.key).toBe('envios');
+    expect(findActiveItem('/despacho/proveedores')?.key).toBe('proveedores');
+    expect(findActiveItem('/despacho/mapa')?.key).toBe('mapa-envios');
+    expect(findActiveItem('/despacho/centros')?.key).toBe('centros-stock');
+    expect(findActiveItem('/operaciones')?.key).toBe('envios');
   });
 });
