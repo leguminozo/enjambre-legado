@@ -49,7 +49,10 @@ export const costeoRoutes = new Hono<{ Variables: AppVariables }>();
 
 costeoRoutes.use("*", authMiddleware, tenantMiddleware);
 
-// ── INGREDIENTES ──
+// ── INGREDIENTES DE FÓRMULA (costeo / recetas BOM) ──
+// No es el inventario físico: el stock de insumos, etiquetas y envases
+// se gestiona en /api/inventario e Inventario UI. Aquí solo el catálogo
+// de ingredientes con precio de referencia para calcular recetas.
 
 costeoRoutes.get("/ingredientes", async (c) => {
   const supabase = c.get("supabase");

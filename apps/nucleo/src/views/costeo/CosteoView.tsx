@@ -1,26 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { 
+import {
   Card, CardHeader, CardTitle, CardDescription, CardContent,
-  Badge, ViewLoading, LoadingOverlay, Button, ImmersiveModal
+  Badge, ViewLoading, LoadingOverlay, Button, ImmersiveModal, formatCLP,
 } from '@enjambre/ui';
-import { formatCLP } from '@enjambre/ui';
-import { 
-  TrendingUp, BookOpen, Leaf, ArrowRight, Plus
-} from 'lucide-react';
+import { TrendingUp, BookOpen, Plus, Link2 } from 'lucide-react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
-import { EnjTableShell } from '@/components/layout/EnjTableShell';
-import { InsumoForm } from '@/components/costeo/InsumoForm';
 import { RecetaForm } from '@/components/costeo/RecetaForm';
+import { cn } from '@/lib/cn';
 
 interface MargenRow {
   nombre_producto?: string;
   producto_nombre?: string;
+  producto_id?: string;
   costo_total?: number;
   costo?: number;
   precio_venta?: number;
@@ -36,25 +34,16 @@ interface RecetaRow {
   rendimiento_frascos: number;
   merma_pct: number;
   costo_empaque: number;
-  productos?: { nombre?: string; formato?: string };
+  producto_id?: string;
+  productos?: { id?: string; nombre?: string; formato?: string; precio?: number };
 }
 
-interface InsumoRow {
-  id: string;
-  nombre: string;
-  unidad: string;
-  estado_default: string;
-  categoria?: string;
-  precio_ref?: number;
-  precio_referencia?: number;
-  proveedor?: string;
-  proveedor_ref?: string;
-  proveedor_ref_terceros?: { nombre?: string } | null;
-}
-
+/**
+ * Costeo: solo Recetas + Rentabilidad.
+ * Insumos / stock viven en Inventario (hub centralizado).
+ */
 export function CosteoView() {
-  const [activeTab, setActiveTab] = useState<'margenes' | 'recetas' | 'insumos'>('margenes');
-  const [showInsumoModal, setShowInsumoModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'recetas' | 'margenes'>('recetas');
   const [showRecetaModal, setShowRecetaModal] = useState(false);
   const apiFetch = useApiFetch();
 
@@ -65,7 +54,6 @@ export function CosteoView() {
       if (!res.ok) throw new Error('Error al obtener márgenes');
       return res.json() as Promise<{ data: MargenRow[] }>;
     },
-    enabled: activeTab === 'margenes'
   });
 
   const { data: recetasData, isLoading: isLoadingRecetas, isFetching: isFetchingRecetas } = useQuery<{ data: RecetaRow[] }>({
@@ -75,47 +63,217 @@ export function CosteoView() {
       if (!res.ok) throw new Error('Error al obtener recetas');
       return res.json() as Promise<{ data: RecetaRow[] }>;
     },
-    enabled: activeTab === 'recetas'
-  });
-
-  const { data: insumosData, isLoading: isLoadingInsumos, isFetching: isFetchingInsumos } = useQuery<{ data: InsumoRow[] }>({
-    queryKey: ['costeo', 'ingredientes'],
-    queryFn: async () => {
-      const res = await apiFetch('/api/costeo/ingredientes');
-      if (!res.ok) throw new Error('Error al obtener insumos');
-      return res.json() as Promise<{ data: InsumoRow[] }>;
-    },
-    enabled: activeTab === 'insumos'
   });
 
   const margenes = margenesData?.data || [];
   const recetas = recetasData?.data || [];
-  const insumos = insumosData?.data || [];
+
+  const margenByProducto = useMemo(() => {
+    const map = new Map<string, MargenRow>();
+    for (const m of margenes) {
+      const key =
+        m.producto_id ||
+        m.nombre_producto ||
+        m.producto_nombre ||
+        '';
+      if (key) map.set(key, m);
+      if (m.nombre_producto) map.set(m.nombre_producto, m);
+      if (m.producto_nombre) map.set(m.producto_nombre, m);
+    }
+    return map;
+  }, [margenes]);
+
+  const resolveMargen = (r: RecetaRow): MargenRow | undefined => {
+    if (r.producto_id && margenByProducto.has(r.producto_id)) {
+      return margenByProducto.get(r.producto_id);
+    }
+    const nombre = r.productos?.nombre;
+    if (nombre && margenByProducto.has(nombre)) return margenByProducto.get(nombre);
+    return undefined;
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <ViewShell
         variant="compact"
-        eyebrow="Finanzas"
+        eyebrow="Producción"
         title="Costeo"
-        subtitle="Análisis de márgenes comerciales, gestión de recetas maestras e insumos."
+        subtitle="Colección de recetas maestras y rentabilidad por fórmula. Los insumos se gestionan en Inventario."
         icon={<TrendingUp size={20} />}
+        actions={
+          <Link
+            href="/produccion/inventario"
+            className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline min-h-11"
+          >
+            <Link2 size={16} />
+            Ir a Inventario (insumos)
+          </Link>
+        }
       />
 
       <ResponsiveTabBar
         variant="pill"
         layoutId="costeo-tabs"
         tabs={[
-          { id: 'margenes', label: 'Rentabilidad', icon: <TrendingUp size={16} /> },
           { id: 'recetas', label: 'Recetas', icon: <BookOpen size={16} /> },
-          { id: 'insumos', label: 'Insumos', icon: <Leaf size={16} /> },
+          { id: 'margenes', label: 'Rentabilidad', icon: <TrendingUp size={16} /> },
         ]}
         activeId={activeTab}
-        onChange={(id) => setActiveTab(id as 'margenes' | 'recetas' | 'insumos')}
+        onChange={(id) => setActiveTab(id as 'recetas' | 'margenes')}
       />
 
       <AnimatePresence mode="wait">
-        {/* PESTAÑA: MÁRGENES */}
+        {activeTab === 'recetas' && (
+          <motion.div
+            key="recetas"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold">Colección de recetas</h2>
+                <p className="text-sm text-muted-foreground">
+                  Cada fórmula muestra rendimiento, merma y rentabilidad cuando hay costo calculado.
+                </p>
+              </div>
+              <Button className="min-h-11 shrink-0" onClick={() => setShowRecetaModal(true)}>
+                <Plus size={16} className="mr-1" /> Nueva receta
+              </Button>
+            </div>
+
+            <div className="relative">
+              {isFetchingRecetas && recetas.length > 0 ? (
+                <LoadingOverlay label="Actualizando recetas" />
+              ) : null}
+              {isLoadingRecetas ? (
+                <ViewLoading variant="view" label="Recetas" hideLabel />
+              ) : recetas.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center space-y-3">
+                    <p className="text-muted-foreground text-sm">
+                      No hay recetas. Creá la primera fórmula y mirá la rentabilidad acá mismo.
+                    </p>
+                    <Button onClick={() => setShowRecetaModal(true)}>
+                      <Plus size={16} className="mr-1" /> Primera receta
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {recetas.map((r) => {
+                    const m = resolveMargen(r);
+                    const costo = Number(m?.costo_total ?? m?.costo ?? 0);
+                    const precio = Number(
+                      m?.precio_venta ?? m?.precio ?? r.productos?.precio ?? 0,
+                    );
+                    const margenBruto = Number(
+                      m?.margen_bruto ?? m?.margen_clp ?? (precio > 0 && costo > 0 ? precio - costo : 0),
+                    );
+                    const margenPct = Number(
+                      m?.margen_pct ??
+                        (precio > 0 ? (margenBruto / precio) * 100 : 0),
+                    );
+                    const bar = Math.max(0, Math.min(100, margenPct));
+                    const tone =
+                      margenPct >= 40 ? 'success' : margenPct >= 20 ? 'warning' : 'danger';
+
+                    return (
+                      <Card
+                        key={r.id}
+                        className="overflow-hidden border-border/60 hover:border-primary/25 transition-colors"
+                      >
+                        <CardHeader className="pb-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <CardTitle className="text-base truncate">
+                                {r.productos?.nombre || 'Producto'}
+                              </CardTitle>
+                              <CardDescription className="text-xs">
+                                {r.productos?.formato
+                                  ? `Formato ${r.productos.formato} · `
+                                  : ''}
+                                v{r.version}
+                              </CardDescription>
+                            </div>
+                            <Badge variant="default">v{r.version}</Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                            <div className="rounded-lg bg-muted/40 px-2 py-2">
+                              <div className="text-muted-foreground">Rendimiento</div>
+                              <div className="font-semibold tabular-nums mt-0.5">
+                                {r.rendimiento_frascos}
+                              </div>
+                            </div>
+                            <div className="rounded-lg bg-muted/40 px-2 py-2">
+                              <div className="text-muted-foreground">Merma</div>
+                              <div className="font-semibold tabular-nums mt-0.5">
+                                {r.merma_pct}%
+                              </div>
+                            </div>
+                            <div className="rounded-lg bg-muted/40 px-2 py-2">
+                              <div className="text-muted-foreground">Empaque</div>
+                              <div className="font-semibold tabular-nums mt-0.5 text-[0.7rem]">
+                                {formatCLP(r.costo_empaque)}
+                              </div>
+                            </div>
+                          </div>
+
+                          {precio > 0 || costo > 0 ? (
+                            <div className="space-y-2 pt-1">
+                              <div className="flex justify-between text-xs">
+                                <span className="text-muted-foreground">Rentabilidad</span>
+                                <Badge
+                                  variant={
+                                    tone === 'success'
+                                      ? 'success'
+                                      : tone === 'warning'
+                                        ? 'warning'
+                                        : 'danger'
+                                  }
+                                >
+                                  {margenPct.toFixed(1)}%
+                                </Badge>
+                              </div>
+                              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                                <div
+                                  className={cn(
+                                    'h-full rounded-full transition-all',
+                                    tone === 'success' && 'bg-success',
+                                    tone === 'warning' && 'bg-warning',
+                                    tone === 'danger' && 'bg-destructive',
+                                  )}
+                                  style={{ width: `${bar}%` }}
+                                />
+                              </div>
+                              <div className="flex justify-between text-[0.7rem] tabular-nums text-muted-foreground">
+                                <span>Costo {formatCLP(costo)}</span>
+                                <span>Venta {formatCLP(precio)}</span>
+                                <span className="text-foreground font-medium">
+                                  {formatCLP(margenBruto)}
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">
+                              Sin margen calculado aún — completá costos de insumos en Inventario y
+                              re-calculá.
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
         {activeTab === 'margenes' && (
           <motion.div
             key="margenes"
@@ -127,214 +285,101 @@ export function CosteoView() {
           >
             <Card>
               <CardHeader>
-                <CardTitle>Márgenes de Comercialización</CardTitle>
-                <CardDescription>Rentabilidad teórica por producto basada en el costo actual de los insumos.</CardDescription>
+                <CardTitle>Rentabilidad comercial</CardTitle>
+                <CardDescription>
+                  Márgenes por producto. Los insumos y su stock viven en Inventario; acá solo la
+                  lectura de rentabilidad.
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-0 relative">
-                {isFetchingMargenes && margenes.length > 0 ? <LoadingOverlay label="Actualizando márgenes" /> : null}
+                {isFetchingMargenes && margenes.length > 0 ? (
+                  <LoadingOverlay label="Actualizando márgenes" />
+                ) : null}
                 {isLoadingMargenes ? (
                   <ViewLoading variant="view" label="Márgenes" hideLabel />
                 ) : margenes.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No hay datos de rentabilidad calculados.</p>
+                  <p className="text-center text-muted-foreground py-8 text-sm">
+                    No hay datos de rentabilidad. Creá recetas y mantené costos de insumos al día en
+                    Inventario.
+                  </p>
                 ) : (
-                  <EnjTableShell>
-                    <table className="w-full text-sm text-left">
-                      <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
-                        <tr>
-                          <th className="px-4 py-3">Producto</th>
-                          <th className="px-4 py-3">Costo Producción</th>
-                          <th className="px-4 py-3">Precio Venta (Neto)</th>
-                          <th className="px-4 py-3">Margen CLP</th>
-                          <th className="px-4 py-3">Margen %</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {margenes.map((m, idx) => {
-                          const costo = Number(m.costo_total || m.costo || 0);
-                          const precio = Number(m.precio_venta || m.precio || 0);
-                          const margenBruto = Number(m.margen_bruto || m.margen_clp || (precio - costo));
-                          const margenPct = Number(m.margen_pct || (precio > 0 ? (margenBruto / precio) * 100 : 0));
-                          
-                          return (
-                            <tr key={idx} className="border-b border-border last:border-0 hover:bg-surface-sunken/50">
-                              <td className="px-4 py-3 font-medium">
-                                {m.nombre_producto || m.producto_nombre || 'Producto Desconocido'}
-                              </td>
-                              <td className="px-4 py-3 font-display text-destructive">
-                                {formatCLP(costo)}
-                              </td>
-                              <td className="px-4 py-3 font-display text-primary">
-                                {formatCLP(precio)}
-                              </td>
-                              <td className="px-4 py-3 font-medium">
-                                {formatCLP(margenBruto)}
-                              </td>
-                              <td className="px-4 py-3">
-                                <Badge variant={margenPct >= 40 ? 'success' : margenPct >= 20 ? 'warning' : 'danger'}>
-                                  {margenPct.toFixed(1)}%
-                                </Badge>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </EnjTableShell>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* PESTAÑA: RECETAS */}
-        {activeTab === 'recetas' && (
-          <motion.div
-            key="recetas"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Card>
-              <CardHeader className="flex flex-row items-start justify-between">
-                <div>
-                  <CardTitle>Recetas Maestras</CardTitle>
-                  <CardDescription>Formulaciones base para la producción y cálculo de mermas.</CardDescription>
-                </div>
-                <Button variant="primary" size="sm" onClick={() => setShowRecetaModal(true)}>
-                  <Plus size={16} className="mr-2" /> Nueva Receta
-                </Button>
-              </CardHeader>
-              <CardContent className="p-0 relative">
-                {isFetchingRecetas && recetas.length > 0 ? <LoadingOverlay label="Actualizando recetas" /> : null}
-                {isLoadingRecetas ? (
-                  <ViewLoading variant="view" label="Recetas" hideLabel />
-                ) : recetas.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No hay recetas configuradas.</p>
-                ) : (
-                  <EnjTableShell>
-                    <table className="w-full text-sm text-left">
-                      <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
-                        <tr>
-                          <th className="px-4 py-3">Producto Final</th>
-                          <th className="px-4 py-3">Versión</th>
-                          <th className="px-4 py-3">Rendimiento Base</th>
-                          <th className="px-4 py-3">Merma Est.</th>
-                          <th className="px-4 py-3">Costo Empaque</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {recetas.map((r) => (
-                          <tr key={r.id} className="border-b border-border last:border-0 hover:bg-surface-sunken/50">
-                            <td className="px-4 py-3 font-medium">
-                              {r.productos?.nombre || 'Desconocido'} 
-                              {r.productos?.formato && <span className="text-muted-foreground text-xs ml-2">({r.productos.formato})</span>}
-                            </td>
-                            <td className="px-4 py-3">
-                              <Badge variant="default">v{r.version}</Badge>
-                            </td>
-                            <td className="px-4 py-3">
-                              {r.rendimiento_frascos} frascos
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground">
-                              {r.merma_pct}%
-                            </td>
-                            <td className="px-4 py-3 font-display">
-                              {formatCLP(r.costo_empaque)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </EnjTableShell>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* PESTAÑA: INSUMOS */}
-        {activeTab === 'insumos' && (
-          <motion.div
-            key="insumos"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Card>
-              <CardHeader className="flex flex-row items-start justify-between">
-                <div>
-                  <CardTitle>Directorio de Insumos</CardTitle>
-                  <CardDescription>Materias primas y empaques utilizados en la regeneración.</CardDescription>
-                </div>
-                <Button variant="primary" size="sm" onClick={() => setShowInsumoModal(true)}>
-                  <Plus size={16} className="mr-2" /> Nuevo Insumo
-                </Button>
-              </CardHeader>
-              <CardContent className="p-0 relative">
-                {isFetchingInsumos && insumos.length > 0 ? <LoadingOverlay label="Actualizando insumos" /> : null}
-                {isLoadingInsumos ? (
-                  <ViewLoading variant="view" label="Insumos" hideLabel />
-                ) : insumos.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No hay insumos registrados.</p>
-                ) : (
-                  <EnjTableShell>
-                    <table className="w-full text-sm text-left">
-                      <thead className="text-xs text-muted-foreground uppercase bg-surface-sunken">
-                        <tr>
-                          <th className="px-4 py-3">Nombre</th>
-                          <th className="px-4 py-3">Estado Default</th>
-                          <th className="px-4 py-3">Categoría</th>
-                          <th className="px-4 py-3">Precio Ref (por unidad)</th>
-                          <th className="px-4 py-3">Proveedor Ref</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {insumos.map((i) => (
-                          <tr key={i.id} className="border-b border-border last:border-0 hover:bg-surface-sunken/50">
-                            <td className="px-4 py-3 font-medium">
-                              {i.nombre} <span className="text-xs text-muted-foreground ml-1">({i.unidad})</span>
-                            </td>
-                            <td className="px-4 py-3 capitalize">
-                              <Badge variant="default">{i.estado_default}</Badge>
-                            </td>
-                            <td className="px-4 py-3">
-                              {i.categoria || '-'}
-                            </td>
-                            <td className="px-4 py-3 font-display">
-                              {i.precio_ref ? formatCLP(i.precio_ref) : 'No definido'}
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground text-xs">
-                              {i.proveedor_ref_terceros?.nombre || 'Múltiples / General'}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </EnjTableShell>
+                  <div className="divide-y divide-border">
+                    {margenes.map((m, idx) => {
+                      const costo = Number(m.costo_total || m.costo || 0);
+                      const precio = Number(m.precio_venta || m.precio || 0);
+                      const margenBruto = Number(
+                        m.margen_bruto || m.margen_clp || precio - costo,
+                      );
+                      const margenPct = Number(
+                        m.margen_pct || (precio > 0 ? (margenBruto / precio) * 100 : 0),
+                      );
+                      const bar = Math.max(0, Math.min(100, margenPct));
+                      return (
+                        <div
+                          key={idx}
+                          className="px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-muted/20"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium truncate">
+                              {m.nombre_producto || m.producto_nombre || 'Producto'}
+                            </div>
+                            <div className="h-2 mt-2 rounded-full bg-muted overflow-hidden max-w-md">
+                              <div
+                                className={cn(
+                                  'h-full rounded-full',
+                                  margenPct >= 40
+                                    ? 'bg-success'
+                                    : margenPct >= 20
+                                      ? 'bg-warning'
+                                      : 'bg-destructive',
+                                )}
+                                style={{ width: `${bar}%` }}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-4 text-sm tabular-nums sm:justify-end">
+                            <div>
+                              <div className="text-[0.65rem] uppercase text-muted-foreground">
+                                Costo
+                              </div>
+                              <div className="text-destructive font-medium">{formatCLP(costo)}</div>
+                            </div>
+                            <div>
+                              <div className="text-[0.65rem] uppercase text-muted-foreground">
+                                Venta
+                              </div>
+                              <div className="text-primary font-medium">{formatCLP(precio)}</div>
+                            </div>
+                            <div>
+                              <div className="text-[0.65rem] uppercase text-muted-foreground">
+                                Margen
+                              </div>
+                              <div className="font-medium">{formatCLP(margenBruto)}</div>
+                            </div>
+                            <div className="flex items-end">
+                              <Badge
+                                variant={
+                                  margenPct >= 40
+                                    ? 'success'
+                                    : margenPct >= 20
+                                      ? 'warning'
+                                      : 'danger'
+                                }
+                              >
+                                {margenPct.toFixed(1)}%
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </CardContent>
             </Card>
           </motion.div>
         )}
       </AnimatePresence>
-
-      <ImmersiveModal
-        open={showInsumoModal}
-        onClose={() => setShowInsumoModal(false)}
-        eyebrow="Costeo"
-        title="Nuevo Insumo"
-        size="lg"
-        bodyClassName="!p-0"
-      >
-        <div className="p-5 sm:p-6">
-          <InsumoForm
-            onSuccess={() => setShowInsumoModal(false)}
-            onCancel={() => setShowInsumoModal(false)}
-          />
-        </div>
-      </ImmersiveModal>
 
       <ImmersiveModal
         open={showRecetaModal}

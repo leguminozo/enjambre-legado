@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { friendlyError, toast, ViewLoading, ImmersiveModal } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, ImmersiveModal, formatCLP } from '@enjambre/ui';
 import {
   Wallet, Check, Loader2, Search, Filter,
   CheckCircle2, Clock, Shield, Eye, Download, AlertTriangle
 } from 'lucide-react';
-import { formatCurrency } from '@/lib/format';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';
 
@@ -159,7 +158,6 @@ export function CashSessionsPanel() {
     return acc;
   }, {});
 
-  const formatCLP = (n: number) => formatCurrency(Math.abs(n));
   const statusIcon: Record<string, typeof Clock> = { open: Clock, closed: Shield, reconciled: CheckCircle2 };
 
   const exportCSV = async () => {
@@ -274,7 +272,7 @@ export function CashSessionsPanel() {
                       )}
                 {s.cash_difference !== null && (
                   <span className={`text-[0.65rem] font-bold ${Number(s.cash_difference) === 0 ? 'text-success' : 'text-destructive'}`}>
-                    Delta: {Number(s.cash_difference) >= 0 ? '+' : '-'}{formatCLP(Number(s.cash_difference))}
+                    Delta: {Number(s.cash_difference) >= 0 ? '+' : '-'}{formatCLP(Math.abs(Number(s.cash_difference)))}
                   </span>
                 )}
                 {s.cash_difference !== null && Math.abs(Number(s.cash_difference)) >= CASH_ALERT_THRESHOLD && (

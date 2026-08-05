@@ -14,8 +14,8 @@ const e2ePublicRoutes = e2eAuthSkipAllowed
 
 export const middleware = createAuthMiddleware({
   publicRoutes: ["/", "/login", "/carta", ...e2ePublicRoutes],
-  // Páginas públicas de trazabilidad con IDs dinámicos (QR de destilaciones)
-  publicPathPrefixes: ["/alambique/"],
+  // Trazabilidad escaneable sin sesión: destilaciones + pasaporte de frasco/lote
+  publicPathPrefixes: ["/alambique/", "/lote/"],
   authRedirect: "/login",
   // Least privilege: missing app_metadata.role must not become admin.
   defaultRole: "cliente",

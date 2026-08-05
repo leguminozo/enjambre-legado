@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { useCashSession } from '@/components/pos/cash-context';
 import { TierBadge, TierProgressBar, useTierProgress } from '@/components/pos/tier-badge';
-import { LeaderboardPanel } from '@/components/pos/leaderboard-panel';
+import { LeaderboardPanel } from '@/components/leaderboard/LeaderboardPanel';
 import { TrendingUp, Calendar, DollarSign, Zap, BarChart3, Clock } from 'lucide-react';
 import { useClientViewLoading, ViewLoading, formatCLP } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -236,7 +236,7 @@ export default function HistorialPage() {
         </div>
       )}
 
-      {tab === 'leaderboard' && <LeaderboardPanel />}
+      {tab === 'leaderboard' && <LeaderboardPanel variant="widget" />}
     </div>
   );
 }

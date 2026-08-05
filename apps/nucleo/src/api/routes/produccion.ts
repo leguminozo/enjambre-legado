@@ -401,20 +401,18 @@ produccionRoutes.post(
   },
 );
 
-/** UPDATE directo de stock (sin RPC/lote). Usado como fallback de add-stock. */
+/** UPDATE directo de stock (sin RPC/lote). Fallback de add-stock. */
 async function addStockDirect(
-  c: { get: (k: "supabase") => AppVariables["supabase"]; json: typeof Response.prototype.json extends never ? never : // keep hono c.json shape via any-compatible
-    (body: unknown, status?: number) => Response },
+  // Context Hono mínimo
+  c: {
+    get: (key: "supabase") => AppVariables["supabase"];
+    json: (body: unknown, status?: number) => Response;
+  },
   productoId: string,
   cantidad: number,
   reason: string,
 ) {
-  // Hono Context tipado de forma laxa para no acoplar el helper
-  const ctx = c as unknown as {
-    get: (key: "supabase") => AppVariables["supabase"];
-    json: (body: unknown, status?: number) => Response;
-  };
-  const userClient = ctx.get("supabase");
+  const userClient = c.get("supabase");
   const { data: producto, error: readErr } = await userClient
     .from("productos")
     .select("id, stock")
@@ -422,8 +420,12 @@ async function addStockDirect(
     .single();
 
   if (readErr || !producto) {
-    return ctx.json(
-      { code: "producto_not_found", message: readErr?.message ?? "Producto no encontrado", error: reason },
+    return c.json(
+      {
+        code: "producto_not_found",
+        message: readErr?.message ?? "Producto no encontrado",
+        error: reason,
+      },
       404,
     );
   }
@@ -436,13 +438,13 @@ async function addStockDirect(
     .eq("id", productoId);
 
   if (updErr) {
-    return ctx.json(
+    return c.json(
       { code: "stock_update_failed", message: updErr.message, error: updErr.message },
       400,
     );
   }
 
-  return ctx.json({
+  return c.json({
     data: {
       producto_id: productoId,
       stock_anterior: stockAnterior,

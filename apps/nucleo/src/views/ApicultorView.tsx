@@ -20,6 +20,7 @@ import { ApiarioManager } from '../components/apicultor/ApiarioManager';
 import { HeaderEcosistema } from '../components/apicultor/HeaderEcosistema';
 import { GemeloApiario } from '../components/apicultor/GemeloApiario';
 import { CuadernoColeccion } from '../components/apicultor/cuaderno/CuadernoColeccion';
+import type { TerritorialAlertInput } from '@/lib/hive-state';
 
 type ViewTab = 'colmenas' | 'apiarios' | 'sanidad';
 
@@ -40,6 +41,7 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
   const [apiarios, setApiarios] = useState<Tables<'apiarios'>[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedColmena, setSelectedColmena] = useState<ColmenaWithRelations | null>(null);
+  const [territorialAlerts, setTerritorialAlerts] = useState<TerritorialAlertInput[]>([]);
   const [activeApiarioId, setActiveApiarioId] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
     try {
@@ -122,6 +124,15 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
         } else {
           setLocalColmenas([]);
         }
+
+        // Alertas fitosanitarias activas → radio del gemelo (HiveState)
+        const { data: alertasData, error: alertasErr } = await supabase
+          .from('alertas_fitosanitarias')
+          .select('lat_aproximada, lng_aproximada, radio_km, estado, fecha_programada')
+          .in('estado', ['activa', 'programada']);
+        setTerritorialAlerts(
+          !alertasErr && alertasData ? (alertasData as TerritorialAlertInput[]) : [],
+        );
 
         // Auto-entrada: un solo apiario → entrar; id guardado inválido → limpiar
         if (list.length === 1 && list[0]) {
@@ -291,6 +302,10 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
                 <GemeloApiario
                   colmenas={colmenasEnApiario}
                   apiarioName={activeApiario.name ?? undefined}
+                  apiarioLat={typeof activeApiario.lat === 'number' ? activeApiario.lat : null}
+                  apiarioLng={typeof activeApiario.lng === 'number' ? activeApiario.lng : null}
+                  territorialAlerts={territorialAlerts}
+                  onSelectColmena={setSelectedColmena}
                 />
               )}
               <ApiarioManager

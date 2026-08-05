@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, formatCLP } from '@enjambre/ui';
 import {
   Percent, Loader2, Search, Filter,
   DollarSign, CheckCircle2, Eye
 } from 'lucide-react';
-import { formatCurrency } from '@/lib/format';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { ViewShell } from '@/components/layout/ViewShell';
 
@@ -129,8 +128,6 @@ export function ComisionesPanel() {
   const totalPending = commissions.filter(c => !c.paid).reduce((s, c) => s + Number(c.total_commission || 0), 0);
   const totalPaid = commissions.filter(c => c.paid).reduce((s, c) => s + Number(c.total_commission || 0), 0);
   const selectedTotal = commissions.filter(c => selectedIds.has(c.id)).reduce((s, c) => s + Number(c.total_commission || 0), 0);
-
-  const formatCLP = (n: number) => formatCurrency(n);
 
   if (loading) {
     return <ViewLoading variant="view" label="Comisiones" hideLabel />;

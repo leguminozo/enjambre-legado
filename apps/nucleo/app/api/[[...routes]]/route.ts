@@ -47,6 +47,7 @@ import { adminIdentidadesRoutes } from "@/api/routes/admin-identidades";
 import { adminSystemRoutes } from "@/api/routes/admin-system";
 import { mapaRoutes } from "@/api/routes/mapa";
 import { alambiqueRoutes, alambiquePublicRoutes } from "@/api/routes/alambique";
+import { inventarioRoutes } from "@/api/routes/inventario";
 import { getAllowedCorsOrigins } from "@/lib/publicUrls";
 
 export type { AppVariables };
@@ -246,6 +247,7 @@ app.route("/comisiones", comisionesRoutes);
 app.route("/fenologia", fenologiaRoutes);
 app.route("/meteo", meteoRoutes);
 app.route("/bitacora", bitacoraRoutes);
+app.route("/inventario", inventarioRoutes);
 // Público primero: alambiquePublicRoutes solo matchea /publico/:id y no debe
 // pasar por el authMiddleware del router admin (montado en el mismo base path).
 app.route("/alambique", alambiquePublicRoutes);

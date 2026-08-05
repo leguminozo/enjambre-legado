@@ -25,6 +25,7 @@ describe('routeUsesViewShell', () => {
     expect(routeUsesViewShell('/editor-tienda')).toBe(true);
     expect(routeUsesViewShell('/territorio')).toBe(true);
     expect(routeUsesViewShell('/registro-territorial')).toBe(true);
+    expect(routeUsesViewShell('/creadores')).toBe(true);
   });
 
   it('mantiene header en módulos sin ViewShell propio', () => {
@@ -32,7 +33,6 @@ describe('routeUsesViewShell', () => {
     expect(routeUsesViewShell('/reps')).toBe(false);
     expect(routeUsesViewShell('/caja')).toBe(false);
     expect(routeUsesViewShell('/leaderboard')).toBe(false);
-    expect(routeUsesViewShell('/creadores')).toBe(false);
   });
 });
 

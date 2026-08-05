@@ -6,8 +6,9 @@ import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
 
 export const trazabilidadRoutes = new Hono<{ Variables: AppVariables }>();
 
-// GET /api/trazabilidad/lote/:loteId/qr — público: QR del lote + historial + verificación
-// de integridad de la cadena (recompute SHA-256 de cada evento vs hash almacenado).
+// GET /api/trazabilidad/lote/:loteId/qr — público solo si el lote está publicado
+// (pasaporte del frasco). Admin con Bearer puede leer aunque no sea público.
+// Integridad: recompute SHA-256 de cada evento vs hash almacenado.
 trazabilidadRoutes.get("/lote/:loteId/qr", async (c) => {
   const { loteId } = c.req.param();
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(loteId)) {
@@ -15,6 +16,28 @@ trazabilidadRoutes.get("/lote/:loteId/qr", async (c) => {
   }
 
   const supabase = createAdminClient();
+
+  const { data: loteGate } = await supabase
+    .from("lotes")
+    .select("id, publico")
+    .eq("id", loteId)
+    .maybeSingle();
+
+  if (!loteGate) {
+    return c.json({ code: "not_found", message: "Lote no encontrado" }, 404);
+  }
+
+  // Lectura anónima solo con pasaporte publicado; operadores con Bearer sí ven borradores
+  if (!loteGate.publico) {
+    const authHeader = c.req.header("authorization");
+    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    if (!token) {
+      return c.json(
+        { code: "not_public", message: "Este lote no tiene pasaporte público" },
+        404,
+      );
+    }
+  }
 
   const { data: qr } = await supabase
     .from("qr_codes")

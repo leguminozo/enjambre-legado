@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent,
-  Button, Input, Label, toast, ViewLoading,
+  Button, Input, Label, toast, ViewLoading, ImmersiveModal,
 } from '@enjambre/ui';
 import { Droplets, Calendar, Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -27,6 +27,7 @@ interface CosechasResponse {
 /** Registro de recolecciones de la temporada — alimenta Panel Ejecutivo y stats de producción */
 export function RecoleccionPanel() {
   const apiFetch = useApiFetch();
+  const [modalOpen, setModalOpen] = useState(false);
   const [kg, setKg] = useState('');
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
   const [floracion, setFloracion] = useState('');
@@ -57,6 +58,14 @@ export function RecoleccionPanel() {
 
   const rows = data?.data ?? [];
   const totalKg = rows.reduce((acc, c) => acc + Number(c.kg ?? 0), 0);
+
+  const resetForm = () => {
+    setKg('');
+    setFecha(new Date().toISOString().slice(0, 10));
+    setFloracion('');
+    setColmenaId('');
+    setCrearLote(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,9 +119,8 @@ export function RecoleccionPanel() {
         throw new Error(err.message || err.code || 'Error al registrar recolección');
       }
       toast.success(loteId ? 'Lote creado y recolección vinculada' : 'Recolección registrada');
-      setKg('');
-      setFloracion('');
-      setColmenaId('');
+      resetForm();
+      setModalOpen(false);
       void refetch();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al registrar recolección');
@@ -124,93 +132,21 @@ export function RecoleccionPanel() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Droplets size={18} className="text-primary" />
-            Registrar Recolección
-          </CardTitle>
-          <CardDescription>
-            Cierra la temporada con números reales: cada kg recolectado alimenta el Panel Ejecutivo y la trazabilidad.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="recoleccion-fecha">Fecha</Label>
-              <Input
-                id="recoleccion-fecha"
-                type="date"
-                value={fecha}
-                onChange={(e) => setFecha(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="recoleccion-kg">Peso (kg)</Label>
-              <Input
-                id="recoleccion-kg"
-                type="number"
-                step="0.1"
-                min="0.1"
-                placeholder="0.0"
-                value={kg}
-                onChange={(e) => setKg(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="recoleccion-floracion">Floración</Label>
-              <Input
-                id="recoleccion-floracion"
-                placeholder="ej. Ulmo, Tepú…"
-                value={floracion}
-                onChange={(e) => setFloracion(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="recoleccion-colmena">Colmena (opcional)</Label>
-              <select
-                id="recoleccion-colmena"
-                value={colmenaId}
-                onChange={(e) => setColmenaId(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <option value="">General / Sin colmena</option>
-                {(colmenas ?? []).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name || c.id.slice(0, 8)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="md:col-span-4 flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={crearLote}
-                  onChange={(e) => setCrearLote(e.target.checked)}
-                  className="h-4 w-4 rounded border-border accent-[hsl(var(--primary))]"
-                />
-                Crear lote con esta recolección
-              </label>
-              <Button type="submit" disabled={saving}>
-                <Plus size={16} className="mr-2" />
-                {saving ? 'Registrando…' : 'Registrar recolección'}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-start justify-between">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <CardTitle>Recolección de la Temporada</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Droplets size={18} className="text-primary" />
+              Recolección de la Temporada
+            </CardTitle>
             <CardDescription>
               {rows.length} registro(s) · Total:{' '}
               <span className="font-semibold text-foreground">{totalKg.toFixed(1)} kg</span>
             </CardDescription>
           </div>
+          <Button onClick={() => setModalOpen(true)} className="shrink-0">
+            <Plus size={16} className="mr-2" />
+            Registrar Recolección
+          </Button>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
@@ -260,6 +196,94 @@ export function RecoleccionPanel() {
           )}
         </CardContent>
       </Card>
+
+      <ImmersiveModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        eyebrow="Producción"
+        title="Registrar Recolección"
+        size="md"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Cierra la temporada con números reales: cada kg recolectado alimenta el Panel Ejecutivo y la trazabilidad.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="recoleccion-fecha">Fecha</Label>
+              <Input
+                id="recoleccion-fecha"
+                type="date"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="recoleccion-kg">Peso (kg)</Label>
+              <Input
+                id="recoleccion-kg"
+                type="number"
+                step="0.1"
+                min="0.1"
+                placeholder="0.0"
+                value={kg}
+                onChange={(e) => setKg(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="recoleccion-floracion">Floración</Label>
+            <Input
+              id="recoleccion-floracion"
+              placeholder="ej. Ulmo, Tepú…"
+              value={floracion}
+              onChange={(e) => setFloracion(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="recoleccion-colmena">Colmena (opcional)</Label>
+            <select
+              id="recoleccion-colmena"
+              value={colmenaId}
+              onChange={(e) => setColmenaId(e.target.value)}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="">General / Sin colmena</option>
+              {(colmenas ?? []).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name || c.id.slice(0, 8)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer pt-2">
+            <input
+              type="checkbox"
+              checked={crearLote}
+              onChange={(e) => setCrearLote(e.target.checked)}
+              className="h-4 w-4 rounded border-border accent-[hsl(var(--primary))]"
+            />
+            Crear lote con esta recolección
+          </label>
+
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+            <Button variant="outline" type="button" onClick={() => setModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={saving}>
+              <Plus size={16} className="mr-2" />
+              {saving ? 'Registrando…' : 'Registrar recolección'}
+            </Button>
+          </div>
+        </form>
+      </ImmersiveModal>
     </div>
   );
 }
+

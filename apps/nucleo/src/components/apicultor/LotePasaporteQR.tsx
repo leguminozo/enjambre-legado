@@ -26,7 +26,8 @@ export function LotePasaporteQR({ loteId, compact = false }: { loteId: string; c
   const cargar = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/trazabilidad/lote/${loteId}/qr`);
+      // apiFetch manda Bearer: permite ver QR de lotes aún no publicados (borrador operador)
+      const res = await apiFetch(`/api/trazabilidad/lote/${loteId}/qr`);
       if (!res.ok) {
         setQr(null);
         return;
@@ -38,7 +39,7 @@ export function LotePasaporteQR({ loteId, compact = false }: { loteId: string; c
     } finally {
       setLoading(false);
     }
-  }, [loteId]);
+  }, [apiFetch, loteId]);
 
   useEffect(() => {
     void cargar();
@@ -95,7 +96,7 @@ export function LotePasaporteQR({ loteId, compact = false }: { loteId: string; c
             rel="noreferrer"
             className="inline-flex items-center gap-1 text-primary hover:underline w-fit"
           >
-            <ExternalLink size={12} /> Ver pasaporte público
+            <ExternalLink size={12} /> Ver pasaporte (requiere lote publicado)
           </a>
         </div>
       </div>

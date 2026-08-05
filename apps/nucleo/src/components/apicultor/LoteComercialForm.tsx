@@ -88,125 +88,128 @@ export function LoteComercialForm({ lote, onSuccess, onCancel }: LoteComercialFo
   };
 
   return (
-    <Card className="w-full max-w-2xl bg-card border-border">
-      <CardHeader>
-        <CardTitle className="text-xl">Trazabilidad Comercial del Lote</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Variedad Floral</Label>
-              <Input
-                value={formData.variedad_floral}
-                onChange={(e) => handleChange('variedad_floral', e.target.value)}
-                placeholder="Ej: Ulmo, Multiflora"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Método de Extracción</Label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={formData.metodo_extraccion}
-                onChange={(e) => handleChange('metodo_extraccion', e.target.value)}
-              >
-                <option value="">Seleccione...</option>
-                <option value="centrifugo">Centrífugo</option>
-                <option value="manual">Manual</option>
-                <option value="prensado">Prensado</option>
-                <option value="otro">Otro</option>
-              </select>
-            </div>
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Variedad Floral</Label>
+          <Input
+            value={formData.variedad_floral}
+            onChange={(e) => handleChange('variedad_floral', e.target.value)}
+            placeholder="Ej: Ulmo, Multiflora"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Método de Extracción</Label>
+          <select
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            value={formData.metodo_extraccion}
+            onChange={(e) => handleChange('metodo_extraccion', e.target.value)}
+          >
+            <option value="">Seleccione...</option>
+            <option value="centrifugo">Centrífugo</option>
+            <option value="manual">Manual</option>
+            <option value="prensado">Prensado</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Humedad (%)</Label>
-              <Input
-                type="number"
-                step="0.1"
-                value={formData.analisis_humedad}
-                onChange={(e) => handleChange('analisis_humedad', e.target.value)}
-                placeholder="Ej: 17.5"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>HMF (mg/kg)</Label>
-              <Input
-                type="number"
-                step="0.1"
-                value={formData.analisis_hmf}
-                onChange={(e) => handleChange('analisis_hmf', e.target.value)}
-                placeholder="Ej: 14.2"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Laboratorio Certificador</Label>
-              <Input
-                value={formData.lab_nombre}
-                onChange={(e) => handleChange('lab_nombre', e.target.value)}
-                placeholder="Ej: Lab Apícola Sur"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Fecha de Análisis</Label>
-              <Input
-                type="date"
-                value={formData.lab_fecha}
-                onChange={(e) => handleChange('lab_fecha', e.target.value)}
-              />
-            </div>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Humedad (%)</Label>
+          <Input
+            type="number"
+            step="0.1"
+            value={formData.analisis_humedad}
+            onChange={(e) => handleChange('analisis_humedad', e.target.value)}
+            placeholder="Ej: 17.5"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>HMF (mg/kg)</Label>
+          <Input
+            type="number"
+            step="0.1"
+            value={formData.analisis_hmf}
+            onChange={(e) => handleChange('analisis_hmf', e.target.value)}
+            placeholder="Ej: 14.2"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Laboratorio Certificador</Label>
+          <Input
+            value={formData.lab_nombre}
+            onChange={(e) => handleChange('lab_nombre', e.target.value)}
+            placeholder="Ej: Lab Apícola Sur"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Fecha de Análisis</Label>
+          <Input
+            type="date"
+            value={formData.lab_fecha}
+            onChange={(e) => handleChange('lab_fecha', e.target.value)}
+          />
+        </div>
+      </div>
 
-          <div className="space-y-2">
-            <Label>Canal de Destino Proyectado</Label>
-            <select
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              value={formData.canal_destino}
-              onChange={(e) => handleChange('canal_destino', e.target.value)}
+      <div className="space-y-2">
+        <Label>Canal de Destino Proyectado</Label>
+        <select
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          value={formData.canal_destino}
+          onChange={(e) => handleChange('canal_destino', e.target.value)}
+        >
+          <option value="">Seleccione...</option>
+          <option value="individual">Venta Individual (Retail/Directo)</option>
+          <option value="colectivo">Venta Colectiva</option>
+          <option value="acopio">Acopio Comunitario</option>
+          <option value="interno">Consumo Interno</option>
+        </select>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Relato Público (Visible al escanear QR)</Label>
+        <Textarea
+          value={formData.relato_publico}
+          onChange={(e) => handleChange('relato_publico', e.target.value)}
+          placeholder="Escribe la historia de este lote, las floraciones principales o detalles del territorio..."
+          className="h-24 resize-none"
+        />
+      </div>
+
+      <div className="flex items-center justify-between gap-4 p-4 bg-surface-raised rounded-lg border border-border">
+        <div className="space-y-1 min-w-0">
+          <Label className="text-base">Pasaporte público del frasco</Label>
+          <p className="text-sm text-muted-foreground">
+            Quien escanea el QR ve origen resumido, lab y relato — no GPS exacto ni bitácora.
+          </p>
+          {formData.publico && (
+            <a
+              href={`/lote/${lote.id}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-primary hover:underline font-mono break-all"
             >
-              <option value="">Seleccione...</option>
-              <option value="individual">Venta Individual (Retail/Directo)</option>
-              <option value="colectivo">Venta Colectiva</option>
-              <option value="acopio">Acopio Comunitario</option>
-              <option value="interno">Consumo Interno</option>
-            </select>
-          </div>
+              /lote/{lote.id.slice(0, 8)}…
+            </a>
+          )}
+        </div>
+        <Switch
+          checked={formData.publico}
+          onCheckedChange={(c) => handleChange('publico', c)}
+        />
+      </div>
 
-          <div className="space-y-2">
-            <Label>Relato Público (Visible al escanear QR)</Label>
-            <Textarea
-              value={formData.relato_publico}
-              onChange={(e) => handleChange('relato_publico', e.target.value)}
-              placeholder="Escribe la historia de este lote, las floraciones principales o detalles del territorio..."
-              className="h-24 resize-none"
-            />
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-surface-raised rounded-lg border border-border">
-            <div className="space-y-0.5">
-              <Label className="text-base">Página Pública</Label>
-              <p className="text-sm text-muted-foreground">
-                Hacer visible este lote a través del código QR
-              </p>
-            </div>
-            <Switch
-              checked={formData.publico}
-              onCheckedChange={(c) => handleChange('publico', c)}
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-border">
-            <Button variant="outline" type="button" onClick={onCancel} disabled={loading}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Spinner className="w-4 h-4 mr-2" />}
-              Guardar Trazabilidad
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+      <div className="flex justify-end gap-3 pt-4 border-t border-border">
+        <Button variant="outline" type="button" onClick={onCancel} disabled={loading}>
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={loading}>
+          {loading && <Spinner className="w-4 h-4 mr-2" />}
+          Guardar Trazabilidad
+        </Button>
+      </div>
+    </form>
   );
 }

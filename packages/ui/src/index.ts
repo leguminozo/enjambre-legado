@@ -36,6 +36,7 @@ export { createEnjambrePreset, enjambrePreset } from './tailwind-preset';
 export { friendlySupabaseError, friendlyApiError, friendlyError } from './lib/friendly-error';
 export { useModalFocusTrap, getFocusableElements, MODAL_FOCUSABLE_SELECTOR } from './lib/modal-focus';
 export { splitCsvLine, generateCsvBlob, downloadCsv } from './lib/csv';
+export { cn } from './lib/utils';
 export { formatDate, formatDateShort, formatCLP, fmtCLP } from './lib/format';
 export {
   CURRENCIES,
@@ -53,6 +54,7 @@ export {
 } from './lib/currency';
 export { MoneyInput, type MoneyInputProps } from './components/money-input';
 export { slugify } from './lib/slug';
+export { VercelInsights } from './components/vercel-insights';
 export { QRCode } from './components/QRCode';
 export { TierBadge, TierBadgeCompact, tierConfig, type TierBadgeProps, type TierBadgeCompactProps } from './components/tier-badge';
 export { ProgressRing, type ProgressRingProps } from './components/progress-ring';

@@ -21,7 +21,10 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
   const queryClient = useQueryClient();
 
   const [productos, setProductos] = useState<{ id: string; nombre: string; formato: string }[]>([]);
-  const [insumos, setInsumos] = useState<{ id: string; nombre: string; unidad: string }[]>([]);
+  /** Líneas de fórmula (costeo). El stock físico de insumos vive en Inventario. */
+  const [ingredientesFormula, setIngredientesFormula] = useState<
+    { id: string; nombre: string; unidad: string }[]
+  >([]);
 
   useEffect(() => {
     void (async () => {
@@ -29,9 +32,9 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
         .from('productos').select('id, nombre, formato').eq('visible', true);
       if (productosData) setProductos(productosData);
 
-      const { data: insumosData } = await supabase
+      const { data: ingredientesData } = await supabase
         .from('ingredients').select('id, nombre, unidad');
-      if (insumosData) setInsumos(insumosData);
+      if (ingredientesData) setIngredientesFormula(ingredientesData);
     })();
   }, []);
 
@@ -169,7 +172,7 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
       {/* 2. BOM (Bill of Materials) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-border pb-2">
-          <h3 className="font-semibold">2. Ingredientes (BOM)</h3>
+          <h3 className="font-semibold">2. Líneas de fórmula (BOM)</h3>
           <Button 
             type="button" 
             variant="outline" 
@@ -189,13 +192,15 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
           {fields.map((field, index) => (
             <div key={field.id} className="flex gap-3 items-start bg-surface-sunken p-3 rounded-md border border-border/50">
               <div className="flex-1">
-                <label className="block text-xs font-medium text-muted-foreground mb-1">Insumo</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
+                  Ingrediente de fórmula
+                </label>
                 <select
                   {...register(`lines.${index}.ingredient_id`)}
                   className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <option value="">Seleccionar...</option>
-                  {insumos.map(i => (
+                  {ingredientesFormula.map(i => (
                     <option key={i.id} value={i.id}>{i.nombre} ({i.unidad})</option>
                   ))}
                 </select>

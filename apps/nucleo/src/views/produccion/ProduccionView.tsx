@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { 
   Card, CardHeader, CardTitle, CardDescription, CardContent,
-  Badge, ViewLoading, LoadingOverlay, Button, Label, Input, toast,
+  Badge, ViewLoading, LoadingOverlay, Button, Label, Input, toast, ImmersiveModal,
 } from '@enjambre/ui';
 import { formatCLP } from '@enjambre/ui';
 import { 
@@ -63,7 +63,6 @@ interface ProduccionDashboardData {
 }
 
 export function ProduccionView() {
-  // Lotes (bodega) + alertas de stock. Recolección e Inventario son herramientas propias.
   const [activeTab, setActiveTab] = useState<'dashboard' | 'lotes'>('lotes');
   const [editingLote, setEditingLote] = useState<LoteProduccionRow | null>(null);
   const [envasandoLote, setEnvasandoLote] = useState<LoteProduccionRow | null>(null);
@@ -104,223 +103,197 @@ export function ProduccionView() {
       const res = await apiFetch(`/api/produccion/lotes/${envasandoLote.id}/envasar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ producto_id: envasarProductoId, cantidad }),
+        body: JSON.stringify({
+          producto_id: envasarProductoId,
+          unidades: cantidad,
+        }),
       });
+
       if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { message?: string; code?: string };
-        throw new Error(err.message || err.code || 'Error al envasar');
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || 'Error al envasar lote');
       }
-      toast.success('Envasado: stock del producto actualizado');
+
+      toast.success(`Se envasaron ${cantidad} frascos con éxito`);
       setEnvasandoLote(null);
       setEnvasarProductoId('');
       setEnvasarCantidad('');
       void queryClient.invalidateQueries({ queryKey: ['produccion', 'dashboard'] });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al envasar');
+    } catch (err: any) {
+      toast.error(err.message || 'Error al procesar el envasado');
     } finally {
       setEnvasando(false);
     }
   };
 
-  const productoEnvasar = productos.find((p) => p.id === envasarProductoId);
-  const kgPreview = productoEnvasar?.peso_neto_g
-    ? (parseInt(envasarCantidad || '0', 10) || 0) * (Number(productoEnvasar.peso_neto_g) / 1000)
+  const totalKgLotes = lotes.reduce((acc, l) => acc + Number(l.kg_total || 0), 0);
+  const lotesActivos = lotes.filter((l) => Number(l.kg_total || 0) > 0).length;
+  const productosBajoMinimo = productos.filter((p) => (p.stock ?? 0) <= 5).length;
+
+  const productoSeleccionado = productos.find((p) => p.id === envasarProductoId);
+  const kgPreview = productoSeleccionado && envasarCantidad
+    ? (Number(productoSeleccionado.peso_neto_g || 1000) / 1000) * (parseInt(envasarCantidad, 10) || 0)
     : null;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 relative">
+      {isFetching && !isLoading && <LoadingOverlay label="Actualizando producción..." />}
+
       <ViewShell
         variant="compact"
-        eyebrow="Producción"
-        title="Lotes"
+        eyebrow="Operación Apícola"
+        title="Lotes y Alertas de Producción"
         subtitle="Miel en bodega: lotes, análisis de lab, envasado a frasco y pasaporte QR. El stock de tienda se gestiona en Inventario; las recolecciones en Recolección."
-        icon={<Package size={20} />}
+        icon={<Layers size={20} />}
       />
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="bg-surface-sunken/40">
+          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+              Miel en Bodega (Lotes)
+            </CardTitle>
+            <Package size={16} className="text-primary" />
+          </CardHeader>
+          <CardContent className="px-4 pb-3 pt-0">
+            <div className="text-2xl font-display font-medium text-foreground">
+              {totalKgLotes.toFixed(1)} <span className="text-sm font-sans text-muted-foreground">kg</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">{lotesActivos} lote(s) con disponible</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-surface-sunken/40">
+          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+              Total Lotes Registrados
+            </CardTitle>
+            <Layers size={16} className="text-primary" />
+          </CardHeader>
+          <CardContent className="px-4 pb-3 pt-0">
+            <div className="text-2xl font-display font-medium text-foreground">{lotes.length}</div>
+            <p className="text-xs text-muted-foreground mt-0.5">Trazabilidad apícola end-to-end</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-surface-sunken/40">
+          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+              Alertas de Quiebre
+            </CardTitle>
+            <Activity size={16} className={productosBajoMinimo > 0 ? 'text-destructive' : 'text-primary'} />
+          </CardHeader>
+          <CardContent className="px-4 pb-3 pt-0">
+            <div className="text-2xl font-display font-medium text-foreground">
+              {productosBajoMinimo} <span className="text-sm font-sans text-muted-foreground">prod.</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">Stock crítico (&le; 5 unidades)</p>
+          </CardContent>
+        </Card>
+      </div>
 
       <ResponsiveTabBar
         variant="pill"
         layoutId="produccion-tabs"
         tabs={[
-          { id: 'lotes', label: 'Lotes activos', icon: <Layers size={16} /> },
-          { id: 'dashboard', label: 'Alertas de stock', icon: <Activity size={16} /> },
+          { id: 'lotes', label: 'Lotes de Miel (Bodega)', icon: <Package size={16} /> },
+          { id: 'dashboard', label: 'Alertas de Stock & Proyección', icon: <Activity size={16} /> },
         ]}
         activeId={activeTab}
         onChange={(id) => setActiveTab(id as 'dashboard' | 'lotes')}
       />
 
       {isLoading ? (
-        <ViewLoading variant="view" label="Producción" hideLabel />
+        <ViewLoading variant="view" label="Cargando producción..." />
       ) : (
-        <div className="relative">
-          {isFetching && dashboardData ? <LoadingOverlay label="Actualizando producción" /> : null}
-        <AnimatePresence mode="wait">
-          {/* PESTAÑA: DASHBOARD & ALERTAS */}
-          {activeTab === 'dashboard' && (
-            <motion.div
-              key="dashboard"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-6"
-            >
-              {/* KPIs operativos de miel viven en el Inicio (/inicio) */}
+        <div className="space-y-6">
+          <AnimatePresence mode="wait">
+            {activeTab === 'dashboard' && (
+              <motion.div
+                key="dashboard"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Proyección de Stock y Cobertura</CardTitle>
+                    <CardDescription>
+                      Estimación basada en las ventas de los últimos 30 días. Monitorea quiebres antes de que ocurran.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="flex flex-col">
+                      <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-surface-sunken text-xs uppercase tracking-wider text-muted-foreground font-medium border-b border-border">
+                        <div className="col-span-4">Producto</div>
+                        <div className="col-span-2 text-center">Stock Actual</div>
+                        <div className="col-span-2 text-center">Demanda (30D)</div>
+                        <div className="col-span-2 text-center">Días Cobertura</div>
+                        <div className="col-span-2 text-center">Estado</div>
+                      </div>
+                      <div className="divide-y divide-border">
+                        {productos.map((p) => {
+                          const stock = p.stock ?? 0;
+                          const demanda = p.demanda_30d ?? 0;
+                          const dias = p.dias_stock_estimado;
+                          let badgeStatus: 'success' | 'warning' | 'destructive' = 'success';
+                          let label = 'Saludable';
 
-              {/* Tabla de Productos / Quiebres */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Análisis de Quiebre de Stock</CardTitle>
-                  <CardDescription>Cálculo de días de inventario restante cruzando Stock Actual vs Demanda de los últimos 30 días.</CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="flex flex-col">
-                    <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-surface-sunken text-xs uppercase tracking-wider text-muted-foreground font-medium border-b border-border">
-                      <div className="col-span-4">Producto</div>
-                      <div className="col-span-2 text-center">Stock Actual</div>
-                      <div className="col-span-2 text-center">Demanda 30D</div>
-                      <div className="col-span-2 text-center">Días Estimados</div>
-                      <div className="col-span-2 text-center">Estado</div>
+                          if (stock === 0) {
+                            label = 'Agotado';
+                            badgeStatus = 'destructive';
+                          } else if (dias < 15) {
+                            label = 'Riesgo Quiebre';
+                            badgeStatus = 'destructive';
+                          } else if (dias < 30) {
+                            label = 'Atención';
+                            badgeStatus = 'warning';
+                          } else {
+                            label = 'Saludable';
+                            badgeStatus = 'success';
+                          }
+
+                          return (
+                            <div key={p.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors">
+                              <div className="col-span-1 md:col-span-4 flex flex-col">
+                                <span className="font-medium text-foreground">{p.nombre}</span>
+                                {p.formato && <span className="text-xs text-muted-foreground">{p.formato}</span>}
+                              </div>
+                              <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
+                                <span className="text-xs text-muted-foreground md:hidden">Stock:</span>
+                                <span className="font-display text-lg">{stock}</span>
+                              </div>
+                              <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
+                                <span className="text-xs text-muted-foreground md:hidden">Demanda 30D:</span>
+                                <span className="text-muted-foreground">{demanda} und</span>
+                              </div>
+                              <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
+                                <span className="text-xs text-muted-foreground md:hidden">Días Est.:</span>
+                                <span className="font-medium">{dias === 999 ? '∞' : `${dias} días`}</span>
+                              </div>
+                              <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
+                                <span className="text-xs text-muted-foreground md:hidden">Estado:</span>
+                                <Badge variant={badgeStatus}>{label}</Badge>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="divide-y divide-border">
-                      {[...productos].sort((a,b) => a.dias_stock_estimado - b.dias_stock_estimado).map((p) => {
-                        const stock = Number(p.stock || 0);
-                        const demanda = Number(p.demanda_30d || 0);
-                        const dias = p.dias_stock_estimado;
-                        
-                        let badgeStatus: 'success' | 'warning' | 'danger' | 'default' = 'default';
-                        let label = 'Estable';
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
 
-                        if (dias === 999) {
-                          label = 'Sin Movimiento';
-                          badgeStatus = 'default';
-                        } else if (dias <= 15) {
-                          label = 'Crítico';
-                          badgeStatus = 'danger';
-                        } else if (dias <= 30) {
-                          label = 'Atención';
-                          badgeStatus = 'warning';
-                        } else {
-                          label = 'Saludable';
-                          badgeStatus = 'success';
-                        }
-
-                        return (
-                          <div key={p.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors">
-                            <div className="col-span-1 md:col-span-4 flex flex-col">
-                              <span className="font-medium text-foreground">{p.nombre}</span>
-                              {p.formato && <span className="text-xs text-muted-foreground">{p.formato}</span>}
-                            </div>
-                            <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
-                              <span className="text-xs text-muted-foreground md:hidden">Stock:</span>
-                              <span className="font-display text-lg">{stock}</span>
-                            </div>
-                            <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
-                              <span className="text-xs text-muted-foreground md:hidden">Demanda 30D:</span>
-                              <span className="text-muted-foreground">{demanda} und</span>
-                            </div>
-                            <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
-                              <span className="text-xs text-muted-foreground md:hidden">Días Est.:</span>
-                              <span className="font-medium">{dias === 999 ? '∞' : `${dias} días`}</span>
-                            </div>
-                            <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
-                              <span className="text-xs text-muted-foreground md:hidden">Estado:</span>
-                              <Badge variant={badgeStatus}>{label}</Badge>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* PESTAÑA: LOTES */}
-          {activeTab === 'lotes' && (
-            <motion.div
-              key="lotes"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              {editingLote ? (
-                <div className="space-y-4">
-                  <Button variant="ghost" onClick={() => setEditingLote(null)} className="gap-2">
-                    <ArrowLeft size={16} />
-                    Volver a lotes
-                  </Button>
-                  <LoteComercialForm
-                    lote={editingLote}
-                    onSuccess={handleLoteSaved}
-                    onCancel={() => setEditingLote(null)}
-                  />
-                </div>
-              ) : envasandoLote ? (
-                <div className="space-y-4">
-                  <Button variant="ghost" onClick={() => setEnvasandoLote(null)} className="gap-2">
-                    <ArrowLeft size={16} />
-                    Volver a lotes
-                  </Button>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <PackagePlus size={18} className="text-primary" />
-                        Envasar Lote → Frasco
-                      </CardTitle>
-                      <CardDescription>
-                        Convierte kg del lote en frascos del producto destino: el stock sube y el
-                        lote descuenta su peso. La trazabilidad del frasco apunta a este lote.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <form onSubmit={handleEnvasar} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="envasar-producto">Producto destino</Label>
-                          <select
-                            id="envasar-producto"
-                            value={envasarProductoId}
-                            onChange={(e) => setEnvasarProductoId(e.target.value)}
-                            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                          >
-                            <option value="">Selecciona producto</option>
-                            {productos.map((p) => (
-                              <option key={p.id} value={p.id}>
-                                {p.nombre} {p.peso_neto_g ? `(${p.peso_neto_g}g)` : ''} · stock {p.stock ?? 0}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label htmlFor="envasar-cantidad">Frascos</Label>
-                          <Input
-                            id="envasar-cantidad"
-                            type="number"
-                            min="1"
-                            step="1"
-                            placeholder="0"
-                            value={envasarCantidad}
-                            onChange={(e) => setEnvasarCantidad(e.target.value)}
-                          />
-                        </div>
-                        <div className="flex items-end">
-                          <Button type="submit" disabled={envasando}>
-                            <PackagePlus size={16} className="mr-2" />
-                            {envasando ? 'Envasando…' : 'Envasar'}
-                          </Button>
-                        </div>
-                      </form>
-                      <p className="text-xs text-muted-foreground mt-4">
-                        Lote: <strong className="text-foreground">{Number(envasandoLote.kg_total ?? 0).toFixed(1)} kg</strong>
-                        {kgPreview !== null && (
-                          <> · se descontarán <strong className="text-foreground">{kgPreview.toFixed(2)} kg</strong></>
-                        )}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-              ) : (
+            {activeTab === 'lotes' && (
+              <motion.div
+                key="lotes"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
                 <Card>
                   <CardHeader>
                     <CardTitle>Lotes de Producción</CardTitle>
@@ -430,11 +403,92 @@ export function ProduccionView() {
                     )}
                   </CardContent>
                 </Card>
-              )}
-            </motion.div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        </AnimatePresence>
+          <ImmersiveModal
+            open={Boolean(envasandoLote)}
+            onClose={() => setEnvasandoLote(null)}
+            eyebrow="Envasado de Miel"
+            title={`Envasar Lote · ${envasandoLote?.nombre_lote || envasandoLote?.codigo || envasandoLote?.id.substring(0, 8).toUpperCase() || ''}`}
+            size="md"
+          >
+            <form onSubmit={handleEnvasar} className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Convierte kg del lote en frascos del producto destino: el stock del producto aumentará y el lote descontará su peso disponible para trazabilidad.
+              </p>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="envasar-producto">Producto destino</Label>
+                <select
+                  id="envasar-producto"
+                  value={envasarProductoId}
+                  onChange={(e) => setEnvasarProductoId(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  required
+                >
+                  <option value="">Selecciona producto</option>
+                  {productos.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nombre} {p.peso_neto_g ? `(${p.peso_neto_g}g)` : ''} · stock actual {p.stock ?? 0}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="envasar-cantidad">Cantidad de frascos</Label>
+                <Input
+                  id="envasar-cantidad"
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="0"
+                  value={envasarCantidad}
+                  onChange={(e) => setEnvasarCantidad(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="p-3 rounded-lg bg-surface-sunken border border-border text-xs text-muted-foreground space-y-1">
+                <div>
+                  Peso disponible en lote: <strong className="text-foreground">{Number(envasandoLote?.kg_total ?? 0).toFixed(1)} kg</strong>
+                </div>
+                {kgPreview !== null && (
+                  <div className="text-primary font-medium">
+                    Se descontarán {kgPreview.toFixed(2)} kg del disponible del lote.
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+                <Button variant="outline" type="button" onClick={() => setEnvasandoLote(null)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={envasando}>
+                  <PackagePlus size={16} className="mr-2" />
+                  {envasando ? 'Envasando…' : 'Envasar frascos'}
+                </Button>
+              </div>
+            </form>
+          </ImmersiveModal>
+
+          <ImmersiveModal
+            open={Boolean(editingLote)}
+            onClose={() => setEditingLote(null)}
+            eyebrow="Trazabilidad Comercial"
+            title={`Editar Lote · ${editingLote?.nombre_lote || editingLote?.codigo || ''}`}
+            size="lg"
+          >
+            {editingLote && (
+              <LoteComercialForm
+                lote={editingLote}
+                onSuccess={handleLoteSaved}
+                onCancel={() => setEditingLote(null)}
+              />
+            )}
+          </ImmersiveModal>
         </div>
       )}
     </div>

@@ -173,7 +173,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         icon: 'package',
         href: '/produccion/inventario',
         greeting: 'Custodio del stock',
-        mission: 'Stock de productos listos para la venta — un solo lugar',
+        mission: 'Productos, insumos, etiquetas, envases y material — con alertas',
       },
       {
         key: 'costeo',
@@ -181,7 +181,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         icon: 'flask-conical',
         href: '/costeo',
         greeting: 'Alquimista del número',
-        mission: 'Cada frasco sin costo es miel que se pierde',
+        mission: 'Recetas y rentabilidad — insumos en Inventario',
       },
     ],
   },
@@ -444,6 +444,7 @@ export const VIEW_SHELL_PATHS = new Set([
   '/registro-territorial',
   '/reglas-comision',
   '/fenologia',
+  '/creadores',
 ])
 
 /** Rutas que viven fuera del árbol de items pero pertenecen a un módulo del sidebar */

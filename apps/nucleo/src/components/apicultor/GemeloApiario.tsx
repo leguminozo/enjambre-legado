@@ -1,9 +1,14 @@
 import dynamic from 'next/dynamic';
 import type { ColmenaWithRelations } from '@/lib/apicultor-types';
+import type { TerritorialAlertInput } from '@/lib/hive-state';
 
 interface GemeloApiarioProps {
   colmenas?: ColmenaWithRelations[];
   apiarioName?: string;
+  apiarioLat?: number | null;
+  apiarioLng?: number | null;
+  territorialAlerts?: TerritorialAlertInput[];
+  onSelectColmena?: (colmena: ColmenaWithRelations) => void;
 }
 
 const GemeloApiarioBase = dynamic(
@@ -17,8 +22,8 @@ const GemeloApiarioBase = dynamic(
           Cargando entorno 3D...
         </div>
       </div>
-    )
-  }
+    ),
+  },
 );
 
 export function GemeloApiario(props: GemeloApiarioProps) {
