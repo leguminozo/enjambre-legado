@@ -156,6 +156,7 @@ export function EnvioComposerModal({
     <ImmersiveModal
       open={open}
       onClose={onClose}
+      size="xl"
       eyebrow="Centro de despacho"
       title="Nuevo envío"
       titleId="envio-composer-title"

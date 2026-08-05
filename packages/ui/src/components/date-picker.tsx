@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { overlayBackdropClassName } from '../lib/overlay-layer';
 import { Calendar } from './calendar';
 
 export interface DatePickerProps {
@@ -101,7 +102,7 @@ export function DatePicker({
         <>
           {/* Mobile Overlay (visible only on small screens) */}
           <div
-            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm sm:hidden"
+            className={cn('fixed inset-0 z-[220] sm:hidden', overlayBackdropClassName)}
             onClick={() => setOpen(false)}
             aria-hidden
           />

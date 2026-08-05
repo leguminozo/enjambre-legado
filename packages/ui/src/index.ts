@@ -16,6 +16,11 @@ export {
 export { useClientViewLoading } from './hooks/use-client-view-loading';
 export { ImmersiveModal, type ImmersiveModalSize } from './components/immersive-modal';
 export { OverlayFullscreen, type OverlayFullscreenProps } from './components/overlay-fullscreen';
+export {
+  overlayBackdropClassName,
+  overlayBackdropMotionClassName,
+  overlayPanelMotionClassName,
+} from './lib/overlay-layer';
 export { EmptyState } from './components/empty-state';
 export { SectionHeader } from './components/section-header';
 export { GrainOverlay } from './components/grain-overlay';

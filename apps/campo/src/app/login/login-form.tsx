@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { friendlySupabaseError } from '@enjambre/ui';
+import { friendlySupabaseError, overlayBackdropClassName } from '@enjambre/ui';
 import { logSecurityEvent, useAuthStore } from '@enjambre/auth';
 import {
   CheckCircle2,
@@ -470,10 +470,10 @@ export function LoginForm() {
       {viewMode === 'sheet_accounts' && (
         <>
           <div
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+            className={`fixed inset-0 z-[220] animate-in fade-in duration-200 ${overlayBackdropClassName}`}
             onClick={() => setViewMode('collapsed')}
           />
-          <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-50 rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md mx-auto md:max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-[221] rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md mx-auto md:max-h-[90vh] overflow-y-auto">
             <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-6" />
 
             <div className="space-y-3 mb-6">
@@ -548,10 +548,10 @@ export function LoginForm() {
       {viewMode === 'sheet_email' && (
         <>
           <div
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+            className={`fixed inset-0 z-[220] animate-in fade-in duration-200 ${overlayBackdropClassName}`}
             onClick={() => setViewMode('collapsed')}
           />
-          <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-50 rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md mx-auto md:max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-[221] rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md mx-auto md:max-h-[90vh] overflow-y-auto">
             <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
 
             <div className="mb-6 text-center">
@@ -667,14 +667,14 @@ export function LoginForm() {
       {viewMode === 'sheet_recovery' && (
         <>
           <div
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+            className={`fixed inset-0 z-[220] animate-in fade-in duration-200 ${overlayBackdropClassName}`}
             onClick={() => {
               setIsForgotPassword(false);
               setIsRecoveryMode(false);
               setViewMode('collapsed');
             }}
           />
-          <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-50 rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md mx-auto md:max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-[221] rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md mx-auto md:max-h-[90vh] overflow-y-auto">
             <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
 
             <div className="mb-6 text-center">

@@ -15,6 +15,7 @@ import {
   toDateInputValue,
   toDateTimeLocalValue,
 } from '../lib/dates';
+import { overlayBackdropClassName } from '@enjambre/ui';
 
 export interface EventEditorSheetProps {
   open: boolean;
@@ -156,20 +157,20 @@ export function EventEditorSheet({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      className="fixed inset-0 z-[220] flex items-end justify-center sm:items-center"
       role="dialog"
       aria-modal
       aria-labelledby="event-editor-title"
     >
       <button
         type="button"
-        className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+        className={`absolute inset-0 ${overlayBackdropClassName}`}
         aria-label="Cerrar"
         onClick={onClose}
       />
       <form
         onSubmit={handleSubmit}
-        className="relative z-[1] flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-border bg-card shadow-2xl sm:rounded-3xl"
+        className="relative z-[1] flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-border bg-card shadow-2xl shadow-black/40 ring-1 ring-white/10 sm:rounded-3xl"
       >
         <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/30 sm:hidden" />
 

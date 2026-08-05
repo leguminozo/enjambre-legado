@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets, LocateFixed, ArrowLeft, Warehouse } from 'lucide-react';
 import type { ApiarioRow, ColmenaWithRelations } from '@/lib/apicultor-types';
 import { supabase } from '../../lib/supabase';
-import { toast, friendlyError } from '@enjambre/ui';
+import { toast, friendlyError, ImmersiveModal } from '@enjambre/ui';
 import {
     buildApiaryState,
     buildHiveState,
@@ -728,13 +728,34 @@ export function ApiarioManager({
             </div>
 
             {/* Quick Edit Modal */}
-            {editingColmena && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setEditingColmena(null)} />
-                    <div className="card" style={{ position: 'relative', zIndex: 401, width: 400, maxHeight: '90vh', overflowY: 'auto', padding: 'var(--space-xl)' }}>
-                        <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
-                            {localColmenas.find(c => c.id === editingColmena.id) ? 'Editar Colmena' : 'Nueva Colmena'}
-                        </div>
+            <ImmersiveModal
+                open={Boolean(editingColmena)}
+                onClose={() => setEditingColmena(null)}
+                size="md"
+                eyebrow="Campo"
+                title={
+                    editingColmena && localColmenas.find((c) => c.id === editingColmena.id)
+                        ? 'Editar Colmena'
+                        : 'Nueva Colmena'
+                }
+                footer={
+                    editingColmena ? (
+                        <>
+                            <button type="button" className="btn btn-ghost" onClick={() => setEditingColmena(null)}>
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={() => handleSaveColmena(editingColmena)}
+                            >
+                                Guardar cambios
+                            </button>
+                        </>
+                    ) : null
+                }
+            >
+                {editingColmena && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
                             <div>
                                 <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Nombre identificador</label>
@@ -806,13 +827,8 @@ export function ApiarioManager({
                                 <input className="input-field w-full" value={editingColmena.floracion || ''} onChange={e => setEditingColmena({ ...editingColmena, floracion: e.target.value })} placeholder="Ej. Ulmo, Arrayán" />
                             </div>
                         </div>
-                        <div style={{ display: 'flex', gap: 8, marginTop: 'var(--space-xl)', justifyContent: 'flex-end' }}>
-                            <button className="btn btn-ghost" onClick={() => setEditingColmena(null)}>Cancelar</button>
-                            <button className="btn btn-primary" onClick={() => handleSaveColmena(editingColmena)}>Guardar cambios</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                )}
+            </ImmersiveModal>
 
             {editingApiario && (
                 <ApiarioFormModal
@@ -848,12 +864,23 @@ function ApiarioFormModal({
 }) {
     const isEdit = Boolean(draft.id);
     return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
-            <div className="card" style={{ position: 'relative', zIndex: 401, width: 460, maxHeight: '90vh', overflowY: 'auto', padding: 'var(--space-xl)' }}>
-                <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
-                    {isEdit ? 'Editar apiario' : 'Registrar nuevo apiario'}
-                </div>
+        <ImmersiveModal
+            open
+            onClose={onClose}
+            size="md"
+            eyebrow="Campo"
+            title={isEdit ? 'Editar apiario' : 'Registrar nuevo apiario'}
+            footer={
+                <>
+                    <button type="button" className="btn btn-ghost" onClick={onClose}>
+                        Cancelar
+                    </button>
+                    <button type="button" className="btn btn-primary" onClick={onSave}>
+                        {isEdit ? 'Guardar cambios' : 'Registrar y entrar'}
+                    </button>
+                </>
+            }
+        >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
                     <div>
                         <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
@@ -931,15 +958,6 @@ function ApiarioFormModal({
                         <div style={{ fontSize: '0.78rem', color: 'hsl(var(--destructive))' }}>{error}</div>
                     )}
                 </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 'var(--space-xl)', justifyContent: 'flex-end' }}>
-                    <button type="button" className="btn btn-ghost" onClick={onClose}>
-                        Cancelar
-                    </button>
-                    <button type="button" className="btn btn-primary" onClick={onSave}>
-                        {isEdit ? 'Guardar cambios' : 'Registrar y entrar'}
-                    </button>
-                </div>
-            </div>
-        </div>
+        </ImmersiveModal>
     );
 }

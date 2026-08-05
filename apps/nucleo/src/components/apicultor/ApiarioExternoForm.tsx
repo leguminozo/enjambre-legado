@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Button, toast } from '@enjambre/ui';
-import { X, Check, FileUp } from 'lucide-react';
+import { Button, toast, ImmersiveModal } from '@enjambre/ui';
+import { Check, FileUp } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
 
@@ -105,28 +105,28 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
-      <Card className="bg-card border-border w-full max-w-lg shadow-lg my-8">
-        <CardHeader className="flex flex-row items-center justify-between pb-4">
-          <div>
-            <CardTitle className="text-lg font-semibold text-foreground">
-              Declarar Ingreso Trashumante
-            </CardTitle>
-            <CardDescription className="text-sm text-muted-foreground">
-              Registre apiarios externos entrando al territorio
-            </CardDescription>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
+    <ImmersiveModal
+      open
+      onClose={onClose}
+      size="lg"
+      eyebrow="Territorio"
+      title="Declarar Ingreso Trashumante"
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancelar
           </Button>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <Button type="button" disabled={loading} onClick={() => void handleSubmit({ preventDefault() {} } as React.FormEvent)}>
+            <Check className="h-4 w-4 mr-2" />
+            Declarar Ingreso
+          </Button>
+        </>
+      }
+    >
+      <p className="text-sm text-muted-foreground -mt-2 mb-4">
+        Registre apiarios externos entrando al territorio
+      </p>
+      <form onSubmit={handleSubmit} className="space-y-4">
             {!fixedActorId && (
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
@@ -343,27 +343,7 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                className="border-border text-foreground"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                <Check className="h-4 w-4 mr-2" />
-                Declarar Ingreso
-              </Button>
-            </div>
           </form>
-        </CardContent>
-      </Card>
-    </div>
+    </ImmersiveModal>
   );
 }

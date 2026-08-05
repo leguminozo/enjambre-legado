@@ -566,79 +566,82 @@ export function InventarioItemsPanel({
       </ImmersiveModal>
 
       {/* Movimiento */}
-      {movItem && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
-          <div className="w-full sm:max-w-md rounded-t-2xl sm:rounded-xl border border-border bg-card p-5 space-y-3">
-            <h3 className="font-semibold text-lg">
-              Movimiento · {movItem.nombre}
-            </h3>
-            <select
-              className="input-field w-full min-h-11"
-              value={movTipo}
-              onChange={(e) => setMovTipo(e.target.value as typeof movTipo)}
-            >
-              <option value="entrada">Entrada (sumar)</option>
-              <option value="salida">Salida (consumir)</option>
-              <option value="merma">Merma / pérdida</option>
-              <option value="ajuste">Ajuste (stock final)</option>
-            </select>
-            <input
-              type="number"
-              min={movTipo === 'ajuste' ? 0 : 0.001}
-              step="any"
-              className="input-field w-full min-h-11 tabular-nums text-lg"
-              value={movCantidad}
-              onChange={(e) => setMovCantidad(Number(e.target.value) || 0)}
-            />
-            <input
-              className="input-field w-full min-h-11"
-              placeholder="Motivo (opcional, traza)"
-              value={movMotivo}
-              onChange={(e) => setMovMotivo(e.target.value)}
-            />
-            <div className="rounded-lg border border-border/50 bg-muted/15 p-3 space-y-2">
-              <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground tracking-wide">
-                Documento (opcional)
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <select
-                  className="input-field min-h-11 text-sm"
-                  value={movDocTipo}
-                  onChange={(e) => setMovDocTipo(e.target.value)}
-                >
-                  <option value="">Sin doc.</option>
-                  <option value="factura">Factura</option>
-                  <option value="boleta">Boleta</option>
-                  <option value="guia">Guía</option>
-                  <option value="orden_compra">Orden compra</option>
-                  <option value="comprobante">Comprobante</option>
-                  <option value="otro">Otro</option>
-                </select>
-                <input
-                  className="input-field min-h-11 text-sm"
-                  placeholder="Nº"
-                  value={movDocNumero}
-                  onChange={(e) => setMovDocNumero(e.target.value)}
-                />
-                <input
-                  type="date"
-                  className="input-field min-h-11 text-sm"
-                  value={movDocFecha}
-                  onChange={(e) => setMovDocFecha(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
-              <Button variant="outline" className="min-h-11" onClick={() => setMovItem(null)}>
-                Cancelar
-              </Button>
-              <Button className="min-h-11" disabled={movBusy} onClick={() => void applyMov()}>
-                {movBusy ? '…' : 'Registrar'}
-              </Button>
+      <ImmersiveModal
+        open={Boolean(movItem)}
+        onClose={() => setMovItem(null)}
+        size="md"
+        eyebrow="Inventario"
+        title={movItem ? `Movimiento · ${movItem.nombre}` : 'Movimiento'}
+        footer={
+          <>
+            <Button variant="outline" className="min-h-11" onClick={() => setMovItem(null)}>
+              Cancelar
+            </Button>
+            <Button className="min-h-11" disabled={movBusy} onClick={() => void applyMov()}>
+              {movBusy ? '…' : 'Registrar'}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <select
+            className="input-field w-full min-h-11"
+            value={movTipo}
+            onChange={(e) => setMovTipo(e.target.value as typeof movTipo)}
+          >
+            <option value="entrada">Entrada (sumar)</option>
+            <option value="salida">Salida (consumir)</option>
+            <option value="merma">Merma / pérdida</option>
+            <option value="ajuste">Ajuste (stock final)</option>
+          </select>
+          <input
+            type="number"
+            min={movTipo === 'ajuste' ? 0 : 0.001}
+            step="any"
+            className="input-field w-full min-h-11 tabular-nums text-lg"
+            value={movCantidad}
+            onChange={(e) => setMovCantidad(Number(e.target.value) || 0)}
+          />
+          <input
+            className="input-field w-full min-h-11"
+            placeholder="Motivo (opcional, traza)"
+            value={movMotivo}
+            onChange={(e) => setMovMotivo(e.target.value)}
+          />
+          <div className="rounded-lg border border-border/50 bg-muted/15 p-3 space-y-2">
+            <p className="text-[0.65rem] font-semibold uppercase text-muted-foreground tracking-wide">
+              Documento (opcional)
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <select
+                className="input-field min-h-11 text-sm"
+                value={movDocTipo}
+                onChange={(e) => setMovDocTipo(e.target.value)}
+              >
+                <option value="">Sin doc.</option>
+                <option value="factura">Factura</option>
+                <option value="boleta">Boleta</option>
+                <option value="guia">Guía</option>
+                <option value="orden_compra">Orden compra</option>
+                <option value="comprobante">Comprobante</option>
+                <option value="otro">Otro</option>
+              </select>
+              <input
+                className="input-field min-h-11 text-sm"
+                placeholder="Nº"
+                value={movDocNumero}
+                onChange={(e) => setMovDocNumero(e.target.value)}
+              />
+              <input
+                type="date"
+                className="input-field min-h-11 text-sm"
+                value={movDocFecha}
+                onChange={(e) => setMovDocFecha(e.target.value)}
+              />
             </div>
           </div>
         </div>
-      )}
+      </ImmersiveModal>
 
       {/* Historial / traza */}
       <ImmersiveModal

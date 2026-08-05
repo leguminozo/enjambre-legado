@@ -55,6 +55,7 @@ export function StockCenterComposerModal({
     <ImmersiveModal
       open={open}
       onClose={onClose}
+      size="md"
       eyebrow="Despacho"
       title="Nuevo Centro de Stock"
       titleId="stock-center-composer-title"

@@ -8,9 +8,11 @@ import { Analytics } from '@vercel/analytics/next';
  * Evita 404 en /{id}/script.js cuando la feature no está activa.
  */
 export function VercelInsights() {
+  const proc = (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process;
+  const env = proc?.env ?? {};
   const analyticsEnabled =
-    process.env.NEXT_PUBLIC_VERCEL_ANALYTICS_ENABLED === '1' ||
-    Boolean(process.env.NEXT_PUBLIC_VERCEL_ANALYTICS_ID);
+    env.NEXT_PUBLIC_VERCEL_ANALYTICS_ENABLED === '1' ||
+    Boolean(env.NEXT_PUBLIC_VERCEL_ANALYTICS_ID);
 
   return (
     <>

@@ -7,7 +7,7 @@ import L from 'leaflet';
 import { BOSQUE_ULMO, ORO_MIEL, ORO_MIEL_DARK, SALUD_OPTIMA } from '@/lib/colors';
 import 'leaflet/dist/leaflet.css';
 import { Plus, X, MapPin, Clock, ChevronLeft, ChevronRight, X as CloseIcon } from 'lucide-react';
-import { toast, friendlyError, DatePicker, formatCLP } from '@enjambre/ui';
+import { toast, friendlyError, DatePicker, formatCLP, ImmersiveModal, overlayBackdropClassName } from '@enjambre/ui';
 import { resolveClienteCoords, resolveComunaCoords } from '@/lib/cliente-coords';
 
 export interface MapMarker {
@@ -1191,7 +1191,20 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
 
             {/* ── Ficha geo-temporal del apiario (bitácora Trama) ── */}
             {apiarioSeleccionado && (
-                <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 380, maxWidth: '92vw', zIndex: 1500, background: 'hsl(var(--card))', borderLeft: '1px solid hsl(var(--border))', overflowY: 'auto', padding: 'var(--space-lg)', boxShadow: '-10px 0 40px rgba(0,0,0,0.35)' }}>
+                <>
+                {/* Backdrop compartido con ImmersiveModal (foco; clic cierra) */}
+                <button
+                    type="button"
+                    className={`fixed inset-0 z-[1490] border-0 p-0 cursor-default ${overlayBackdropClassName}`}
+                    aria-label="Cerrar bitácora"
+                    onClick={cerrarFichaApiario}
+                />
+                <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={`Bitácora del apiario ${apiarioSeleccionado.name}`}
+                    style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 380, maxWidth: '92vw', zIndex: 1500, background: 'hsl(var(--card))', borderLeft: '1px solid hsl(var(--border))', overflowY: 'auto', padding: 'var(--space-lg)', boxShadow: '-10px 0 40px rgba(0,0,0,0.45)' }}
+                >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-md)' }}>
                         <div>
                             <div className="section-title" style={{ marginBottom: 4 }}>Bitácora del Apiario</div>
@@ -1204,7 +1217,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                                 </div>
                             )}
                         </div>
-                        <button onClick={cerrarFichaApiario} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}>
+                        <button type="button" onClick={cerrarFichaApiario} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }} aria-label="Cerrar">
                             <CloseIcon size={18} />
                         </button>
                     </div>
@@ -1269,105 +1282,74 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                         </div>
                     )}
                 </div>
+                </>
             )}
 
             {/* Add Marker Modal */}
-            {showAddModal && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />
-                    <div className="card" style={{ position: 'relative', zIndex: 2001, width: 400, padding: 'var(--space-xl)' }}>
-                        <button onClick={() => setShowAddModal(false)} style={{ position: 'absolute', top: 14, right: 14, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
-                        <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
-                            Agregar al Mapa
+            <ImmersiveModal
+                open={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                size="md"
+                eyebrow="Mapa"
+                title="Agregar al Mapa"
+                footer={
+                    <>
+                        <button type="button" className="btn btn-ghost" onClick={() => setShowAddModal(false)}>Cancelar</button>
+                        <button type="button" className="btn btn-primary" onClick={handleSaveMarker}>Guardar</button>
+                    </>
+                }
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                    <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Tipo</label>
+                        <select
+                            className="input-field w-full"
+                            value={newMarkerForm.type}
+                            onChange={(e) => setNewMarkerForm({ ...newMarkerForm, type: e.target.value as 'obrera' | 'tree' })}
+                        >
+                            <option value="obrera">🐝 Apiario</option>
+                            <option value="tree">🌳 Árbol</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Nombre</label>
+                        <input
+                            className="input-field w-full"
+                            value={newMarkerForm.name}
+                            onChange={(e) => setNewMarkerForm({ ...newMarkerForm, name: e.target.value })}
+                            placeholder={newMarkerForm.type === 'obrera' ? 'Ej. Apiario Norte' : 'Ej. Ulmo'}
+                        />
+                    </div>
+                    {newMarkerForm.type === 'obrera' && (
+                        <div>
+                            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Detalles (opcional)</label>
+                            <input
+                                className="input-field w-full"
+                                value={newMarkerForm.details}
+                                onChange={(e) => setNewMarkerForm({ ...newMarkerForm, details: e.target.value })}
+                                placeholder="Sector, notas adicionales..."
+                            />
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                            <div>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Tipo</label>
-                                <select 
-                                    className="input-field w-full" 
-                                    value={newMarkerForm.type} 
-                                    onChange={e => setNewMarkerForm({ ...newMarkerForm, type: e.target.value as 'obrera' | 'tree' })}
-                                >
-                                    <option value="obrera">🐝 Apiario</option>
-                                    <option value="tree">🌳 Árbol</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Nombre</label>
-                                <input 
-                                    className="input-field w-full" 
-                                    value={newMarkerForm.name} 
-                                    onChange={e => setNewMarkerForm({ ...newMarkerForm, name: e.target.value })} 
-                                    placeholder={newMarkerForm.type === 'obrera' ? 'Ej. Apiario Norte' : 'Ej. Ulmo'}
-                                />
-                            </div>
-                            {newMarkerForm.type === 'obrera' && (
-                                <div>
-                                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Detalles (opcional)</label>
-                                    <input 
-                                        className="input-field w-full" 
-                                        value={newMarkerForm.details} 
-                                        onChange={e => setNewMarkerForm({ ...newMarkerForm, details: e.target.value })} 
-                                        placeholder="Sector, notas adicionales..."
-                                    />
-                                </div>
-                            )}
-                            <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
-                                Coordenadas: {newMarkerCoords?.lat.toFixed(6)}, {newMarkerCoords?.lng.toFixed(6)}
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 8, marginTop: 'var(--space-xl)', justifyContent: 'flex-end' }}>
-                            <button className="btn btn-ghost" onClick={() => setShowAddModal(false)}>Cancelar</button>
-                            <button className="btn btn-primary" onClick={handleSaveMarker}>Guardar</button>
-                        </div>
+                    )}
+                    <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
+                        Coordenadas: {newMarkerCoords?.lat.toFixed(6)}, {newMarkerCoords?.lng.toFixed(6)}
                     </div>
                 </div>
-            )}
+            </ImmersiveModal>
 
             {/* Edit Marker Modal */}
-            {showEditModal && selectedMarker && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowEditModal(false)} />
-                    <div className="card" style={{ position: 'relative', zIndex: 2001, width: 400, padding: 'var(--space-xl)' }}>
-                        <button onClick={() => setShowEditModal(false)} style={{ position: 'absolute', top: 14, right: 14, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
-                        <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
-                            Editar Marcador
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                            <div>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Tipo</label>
-                                <div style={{ fontSize: '0.9rem', color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>
-                                    {selectedMarker.type === 'obrera' ? '🐝 Apiario' : '🌳 Árbol'}
-                                </div>
-                            </div>
-                            <div>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Nombre</label>
-                                <input 
-                                    className="input-field w-full" 
-                                    value={editMarkerForm.name} 
-                                    onChange={e => setEditMarkerForm({ ...editMarkerForm, name: e.target.value })} 
-                                    placeholder={selectedMarker.type === 'obrera' ? 'Ej. Apiario Norte' : 'Ej. Ulmo'}
-                                />
-                            </div>
-                            {selectedMarker.type === 'obrera' && (
-                                <div>
-                                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Detalles (opcional)</label>
-                                    <input 
-                                        className="input-field w-full" 
-                                        value={editMarkerForm.details} 
-                                        onChange={e => setEditMarkerForm({ ...editMarkerForm, details: e.target.value })} 
-                                        placeholder="Sector, notas adicionales..."
-                                    />
-                                </div>
-                            )}
-                            <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
-                                Coordenadas: {selectedMarker.lat.toFixed(6)}, {selectedMarker.lng.toFixed(6)}
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 8, marginTop: 'var(--space-xl)', justifyContent: 'flex-end' }}>
-                            <button className="btn btn-ghost" onClick={() => setShowEditModal(false)}>Cancelar</button>
-                            <button 
-                                className="btn btn-ghost" 
+            <ImmersiveModal
+                open={Boolean(showEditModal && selectedMarker)}
+                onClose={() => setShowEditModal(false)}
+                size="md"
+                eyebrow="Mapa"
+                title="Editar Marcador"
+                footer={
+                    selectedMarker ? (
+                        <>
+                            <button
+                                type="button"
+                                className="btn btn-ghost"
                                 style={{ color: 'hsl(var(--destructive))', marginRight: 'auto' }}
                                 onClick={() => {
                                     if (confirm(`¿Está seguro que desea eliminar "${selectedMarker.name}"?`)) {
@@ -1377,11 +1359,50 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                             >
                                 Eliminar
                             </button>
-                            <button className="btn btn-primary" onClick={handleUpdateMarker}>Guardar</button>
+                            <button type="button" className="btn btn-ghost" onClick={() => setShowEditModal(false)}>
+                                Cancelar
+                            </button>
+                            <button type="button" className="btn btn-primary" onClick={handleUpdateMarker}>
+                                Guardar
+                            </button>
+                        </>
+                    ) : null
+                }
+            >
+                {selectedMarker && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                        <div>
+                            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Tipo</label>
+                            <div style={{ fontSize: '0.9rem', color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>
+                                {selectedMarker.type === 'obrera' ? '🐝 Apiario' : '🌳 Árbol'}
+                            </div>
+                        </div>
+                        <div>
+                            <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Nombre</label>
+                            <input
+                                className="input-field w-full"
+                                value={editMarkerForm.name}
+                                onChange={(e) => setEditMarkerForm({ ...editMarkerForm, name: e.target.value })}
+                                placeholder={selectedMarker.type === 'obrera' ? 'Ej. Apiario Norte' : 'Ej. Ulmo'}
+                            />
+                        </div>
+                        {selectedMarker.type === 'obrera' && (
+                            <div>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Detalles (opcional)</label>
+                                <input
+                                    className="input-field w-full"
+                                    value={editMarkerForm.details}
+                                    onChange={(e) => setEditMarkerForm({ ...editMarkerForm, details: e.target.value })}
+                                    placeholder="Sector, notas adicionales..."
+                                />
+                            </div>
+                        )}
+                        <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>
+                            Coordenadas: {selectedMarker.lat.toFixed(6)}, {selectedMarker.lng.toFixed(6)}
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </ImmersiveModal>
 
             {/* Timeline */}
             <div className="card" style={{ marginTop: 'var(--space-lg)' }}>
@@ -1454,40 +1475,43 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
             </div>
 
             {/* Add Event Modal */}
-            {showAddEventModal && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowAddEventModal(false)} />
-                    <div className="card" style={{ position: 'relative', zIndex: 2001, width: 400, padding: 'var(--space-xl)' }}>
-                        <button onClick={() => setShowAddEventModal(false)} style={{ position: 'absolute', top: 14, right: 14, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
-                        <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
-                            Agregar Hito Histórico
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                            <div>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Nombre del Hito</label>
-                                <input 
-                                    className="input-field w-full" 
-                                    value={newEventForm.nombre} 
-                                    onChange={e => setNewEventForm({ ...newEventForm, nombre: e.target.value })} 
-                                    placeholder="Ej. Fundación del Apiario Pureo, Ritual de Floración..."
-                                />
-                            </div>
-                            <div>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Fecha de Inicio</label>
-                                <DatePicker 
-                                    className="w-full" 
-                                    value={newEventForm.fecha_inicio} 
-                                    onChange={val => setNewEventForm({ ...newEventForm, fecha_inicio: val })} 
-                                />
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 8, marginTop: 'var(--space-xl)', justifyContent: 'flex-end' }}>
-                            <button className="btn btn-ghost" onClick={() => setShowAddEventModal(false)}>Cancelar</button>
-                            <button className="btn btn-primary" onClick={handleSaveEvent}>Guardar</button>
-                        </div>
+            <ImmersiveModal
+                open={showAddEventModal}
+                onClose={() => setShowAddEventModal(false)}
+                size="md"
+                eyebrow="Mapa"
+                title="Agregar Hito Histórico"
+                footer={
+                    <>
+                        <button type="button" className="btn btn-ghost" onClick={() => setShowAddEventModal(false)}>
+                            Cancelar
+                        </button>
+                        <button type="button" className="btn btn-primary" onClick={handleSaveEvent}>
+                            Guardar
+                        </button>
+                    </>
+                }
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                    <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Nombre del Hito</label>
+                        <input
+                            className="input-field w-full"
+                            value={newEventForm.nombre}
+                            onChange={(e) => setNewEventForm({ ...newEventForm, nombre: e.target.value })}
+                            placeholder="Ej. Fundación del Apiario Pureo, Ritual de Floración..."
+                        />
+                    </div>
+                    <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Fecha de Inicio</label>
+                        <DatePicker
+                            className="w-full"
+                            value={newEventForm.fecha_inicio}
+                            onChange={(val) => setNewEventForm({ ...newEventForm, fecha_inicio: val })}
+                        />
                     </div>
                 </div>
-            )}
+            </ImmersiveModal>
 
             {/* Legend */}
             <div className="card" style={{ marginTop: 'var(--space-md)' }}>

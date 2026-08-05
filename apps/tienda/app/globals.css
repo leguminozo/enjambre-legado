@@ -850,9 +850,10 @@ html[data-tienda-pwa='standalone'] .whatsapp-float-mobile {
   border: none;
   padding: 0;
   cursor: pointer;
-  background: hsl(var(--background) / 0.72);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* Paridad con overlayBackdropClassName (@enjambre/ui): foco denso */
+  background: hsl(var(--background) / 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   animation: tienda-fade-in 0.2s ease-out;
 }
 

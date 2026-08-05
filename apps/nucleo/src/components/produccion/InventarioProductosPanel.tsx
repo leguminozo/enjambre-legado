@@ -521,19 +521,47 @@ export function InventarioProductosPanel() {
       )}
 
       {/* Modal stock: cargar o reformular */}
-      {stockModal && (
-        <div
-          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4"
-          role="dialog"
-          aria-modal
-          aria-labelledby="stock-modal-title"
-        >
-          <div className="w-full sm:max-w-md rounded-t-2xl sm:rounded-xl border border-border bg-card p-5 sm:p-6 shadow-lg safe-area-pb">
-            <h3 id="stock-modal-title" className="text-lg font-semibold mb-1">
-              {stockModal.mode === 'add' ? 'Cargar stock' : 'Reformular stock'}:{' '}
-              {stockModal.product.nombre}
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
+      <ImmersiveModal
+        open={Boolean(stockModal)}
+        onClose={() => setStockModal(null)}
+        size="md"
+        eyebrow="Inventario"
+        title={
+          stockModal
+            ? `${stockModal.mode === 'add' ? 'Cargar stock' : 'Reformular stock'}: ${stockModal.product.nombre}`
+            : 'Stock'
+        }
+        footer={
+          <>
+            <Button
+              variant="outline"
+              className="min-h-11"
+              onClick={() => setStockModal(null)}
+              disabled={stockBusy}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="min-h-11"
+              onClick={() => void handleStockSubmit()}
+              disabled={
+                stockBusy ||
+                !stockModal ||
+                (stockModal.mode === 'add' ? stockAmount <= 0 : stockAmount < 0)
+              }
+            >
+              {stockBusy
+                ? 'Guardando…'
+                : stockModal?.mode === 'add'
+                  ? 'Confirmar carga'
+                  : 'Aplicar stock'}
+            </Button>
+          </>
+        }
+      >
+        {stockModal && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
               {stockModal.mode === 'add' ? (
                 <>
                   Unidades a <strong className="text-foreground">sumar</strong>. Actual:{' '}
@@ -554,38 +582,14 @@ export function InventarioProductosPanel() {
               type="number"
               inputMode="numeric"
               min={stockModal.mode === 'add' ? 1 : 0}
-              className="input-field w-full mb-5 min-h-11 text-lg tabular-nums"
+              className="input-field w-full min-h-11 text-lg tabular-nums"
               value={stockAmount}
               onChange={(e) => setStockAmount(parseInt(e.target.value, 10) || 0)}
               autoFocus
             />
-            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
-              <Button
-                variant="outline"
-                className="min-h-11 w-full sm:w-auto"
-                onClick={() => setStockModal(null)}
-                disabled={stockBusy}
-              >
-                Cancelar
-              </Button>
-              <Button
-                className="min-h-11 w-full sm:w-auto"
-                onClick={() => void handleStockSubmit()}
-                disabled={
-                  stockBusy ||
-                  (stockModal.mode === 'add' ? stockAmount <= 0 : stockAmount < 0)
-                }
-              >
-                {stockBusy
-                  ? 'Guardando…'
-                  : stockModal.mode === 'add'
-                    ? 'Confirmar carga'
-                    : 'Aplicar stock'}
-              </Button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </ImmersiveModal>
 
       {/* Edición desde inventario */}
       <ImmersiveModal

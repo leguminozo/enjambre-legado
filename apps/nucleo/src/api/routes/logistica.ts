@@ -12,6 +12,22 @@ import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import { isShippedStatus, notifyShipmentDispatched } from "@/lib/notifications/enqueue-transactional";
 
+type VentaLinea = { cantidad: number; nombre: string };
+
+/** Normaliza ventas.productos (Json) al shape {cantidad, nombre} del dashboard.
+ * El checkout inserta {quantity, name} y el POS {cantidad, nombre}. */
+function parseVentaLineas(productos: unknown): VentaLinea[] {
+  if (!Array.isArray(productos)) return [];
+  return productos.flatMap((linea) => {
+    if (typeof linea !== "object" || linea === null || Array.isArray(linea)) return [];
+    const l = linea as Record<string, unknown>;
+    const cantidadRaw = l.cantidad ?? l.quantity;
+    const nombre = l.nombre ?? l.name;
+    if (typeof cantidadRaw !== "number" || typeof nombre !== "string") return [];
+    return [{ cantidad: cantidadRaw, nombre }];
+  });
+}
+
 const LineItemSchema = z.object({
   producto_id: z.string().uuid(),
   cantidad: z.number().int().positive().max(9_999),
@@ -68,11 +84,18 @@ logisticaRoutes.get("/dashboard", async (c) => {
   const empresaId = c.get("empresaId");
   const user = c.get("user");
 
-  const [enviosRes, stockRes, proveedoresRes, ventasRecientesRes, productosRes] = await Promise.all([
+  const [
+    enviosRes,
+    stockRes,
+    proveedoresRes,
+    ventasRecientesRes,
+    productosRes,
+    envioVentaIdsRes,
+  ] = await Promise.all([
     supabase
       .from("logistica_envios")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("empresa_id", empresaId)
       .order("created_at", { ascending: false })
       .limit(100),
     supabase
@@ -87,7 +110,7 @@ logisticaRoutes.get("/dashboard", async (c) => {
       .order("created_at", { ascending: false }),
     supabase
       .from("ventas")
-      .select("id, total, channel, created_at, metodo_pago, items")
+      .select("id, total, channel, created_at, metodo_pago, productos")
       .eq("empresa_id", empresaId)
       .order("created_at", { ascending: false })
       .limit(20),
@@ -96,13 +119,33 @@ logisticaRoutes.get("/dashboard", async (c) => {
       .select("id, nombre, stock, categoria, formato")
       .eq("visible", true)
       .order("nombre", { ascending: true }),
+    // Verdad única de "ya enviado": ventas con envío en la empresa.
+    // Evita duplicados cuando el envío lo creó otro usuario (checkout de Tienda).
+    supabase
+      .from("logistica_envios")
+      .select("venta_id")
+      .eq("empresa_id", empresaId)
+      .not("venta_id", "is", null),
   ]);
 
   const envios = enviosRes.data ?? [];
   const stockCenters = stockRes.data ?? [];
   const proveedores = proveedoresRes.data ?? [];
-  const ventasRecientes = ventasRecientesRes.data ?? [];
   const productos = productosRes.data ?? [];
+  const envioVentaIds = new Set(
+    (envioVentaIdsRes.data ?? [])
+      .map((e: { venta_id: string | null }) => e.venta_id)
+      .filter((id): id is string => Boolean(id)),
+  );
+  const ventasRecientes = (ventasRecientesRes.data ?? []).map((v) => ({
+    id: v.id,
+    total: v.total,
+    channel: v.channel,
+    created_at: v.created_at,
+    metodo_pago: v.metodo_pago,
+    items: parseVentaLineas(v.productos),
+    pendiente_envio: !envioVentaIds.has(String(v.id)),
+  }));
 
   const byStatus: Record<string, number> = {};
   envios.forEach((e: { status: string }) => {
@@ -149,14 +192,14 @@ logisticaRoutes.get("/dashboard", async (c) => {
 
 logisticaRoutes.get("/envios", async (c) => {
   const supabase = c.get("supabase");
-  const user = c.get("user");
+  const empresaId = c.get("empresaId");
 
   const status = c.req.query("status");
 
   let query = supabase
     .from("logistica_envios")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("empresa_id", empresaId)
     .order("created_at", { ascending: false });
 
   if (status) {
@@ -176,6 +219,7 @@ logisticaRoutes.post("/envios", zValidator("json", CreateEnvioSchema), async (c)
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
   const user = c.get("user");
+  const empresaId = c.get("empresaId");
 
   const courierCode = input.courier_code
     ? resolveCourierCode(input.courier_code)
@@ -227,6 +271,7 @@ logisticaRoutes.post("/envios", zValidator("json", CreateEnvioSchema), async (c)
     .from("logistica_envios")
     .insert({
       user_id: user.id,
+      empresa_id: empresaId,
       tracking_code: input.tracking_code,
       destino: input.destino,
       items: input.items,
@@ -292,13 +337,13 @@ logisticaRoutes.patch("/envios/:id", zValidator("json", UpdateEnvioSchema), asyn
   const envioId = c.req.param("id");
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
-  const user = c.get("user");
+  const empresaId = c.get("empresaId");
 
   const { data: previous, error: fetchError } = await supabase
     .from("logistica_envios")
     .select("id, status, tracking_code, destino, user_id, venta_id, empresa_id")
     .eq("id", envioId)
-    .eq("user_id", user.id)
+    .eq("empresa_id", empresaId)
     .maybeSingle();
 
   if (fetchError) {
@@ -323,6 +368,7 @@ logisticaRoutes.patch("/envios/:id", zValidator("json", UpdateEnvioSchema), asyn
     .from("logistica_envios")
     .update(payload)
     .eq("id", envioId)
+    .eq("empresa_id", empresaId)
     .select("*")
     .single();
 
@@ -377,13 +423,13 @@ logisticaRoutes.patch("/envios/:id", zValidator("json", UpdateEnvioSchema), asyn
 logisticaRoutes.delete("/envios/:id", async (c) => {
   const envioId = c.req.param("id");
   const supabase = c.get("supabase");
-  const user = c.get("user");
+  const empresaId = c.get("empresaId");
 
   const { error } = await supabase
     .from("logistica_envios")
     .delete()
     .eq("id", envioId)
-    .eq("user_id", user.id);
+    .eq("empresa_id", empresaId);
 
   if (error) {
     return c.json({ code: "delete_failed", message: error.message }, 400);

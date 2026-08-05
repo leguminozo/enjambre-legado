@@ -57,6 +57,7 @@ export function ProveedorComposerModal({
     <ImmersiveModal
       open={open}
       onClose={onClose}
+      size="md"
       eyebrow="Despacho"
       title="Nuevo Proveedor"
       titleId="proveedor-composer-title"

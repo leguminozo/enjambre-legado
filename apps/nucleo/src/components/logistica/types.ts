@@ -43,6 +43,8 @@ export type LogisticaDashboard = {
     created_at: string | null;
     metodo_pago: string | null;
     items?: Array<{ cantidad: number; nombre: string }>;
+    /** Verdad única de "ya enviado": false si la venta ya tiene envío en la empresa. */
+    pendiente_envio?: boolean;
   }>;
   stats: {
     totalEnvios: number;

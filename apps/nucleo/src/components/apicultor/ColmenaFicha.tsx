@@ -8,7 +8,7 @@ import type { ColmenaWithRelations, InspeccionRow, VarroaRow, PesoRow } from '@/
 import type { HistorialColmena } from '@/lib/bitacora-types';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '../../lib/supabase';
-import { toast, friendlyError } from '@enjambre/ui';
+import { toast, friendlyError, ImmersiveModal } from '@enjambre/ui';
 import { ColmenaOrigenTab } from './ColmenaOrigenTab';
 import { ColmenaBitacoraTab } from './ColmenaBitacoraTab';
 import { ColmenaSanidadTab } from './ColmenaSanidadTab';
@@ -148,49 +148,51 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: 
     };
 
     return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={onClose} />
-            <div className="card" style={{
-                position: 'relative', zIndex: 301, width: '95%', maxWidth: 680,
-                maxHeight: '90vh', display: 'flex', flexDirection: 'column',
-                padding: 0, overflow: 'hidden', animation: 'fadeInUp 0.3s ease'
-            }}>
-                {/* Header */}
-                <div style={{ padding: 'var(--space-lg)', borderBottom: '1px solid hsl(var(--border) / 0.5)', background: `linear-gradient(135deg, hsl(var(--primary)) 0%, ${BOSQUE_ULMO_LIGHT} 100%)`, color: 'hsl(var(--primary-foreground))' }}>
-                    <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, background: 'hsl(var(--primary-foreground) / 0.15)', border: 'none', borderRadius: 6, cursor: 'pointer', color: 'hsl(var(--primary-foreground))', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <HiveStateDot risk={hiveState.risk} color={hiveState.color} size={12} />
-                        <div style={{ minWidth: 0 }}>
-                            <h3 style={{ color: 'hsl(var(--primary-foreground))', marginBottom: 2, fontSize: '1.15rem' }}>{colmena.name}</h3>
-                            <div style={{ fontSize: '0.78rem', opacity: 0.7, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                                <MapPin size={11} />
-                                {colmena.apiario_name || 'Sin apiario'} · Lote: {colmena.lote_activo || 'N/A'}
-                            </div>
-                            <div style={{ marginTop: 6 }}>
-                                <HiveStateBadge state={hiveState} size="sm" showAction />
-                            </div>
+        <ImmersiveModal
+            open
+            onClose={onClose}
+            size="lg"
+            eyebrow="Colmena"
+            title={colmena.name}
+            bodyClassName="!p-0"
+        >
+            {/* Subheader estado + tabs */}
+            <div className="border-b border-border px-5 py-4 sm:px-6 bg-surface-sunken/40">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                    <HiveStateDot risk={hiveState.risk} color={hiveState.color} size={12} />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                            <MapPin size={11} />
+                            {colmena.apiario_name || 'Sin apiario'} · Lote: {colmena.lote_activo || 'N/A'}
                         </div>
-                        <div style={{ marginLeft: 'auto', textAlign: 'right', flexShrink: 0 }}>
-                            <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{colmena.production_total || 0} kg</div>
-                            <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>Producción temporada</div>
+                        <div style={{ marginTop: 6 }}>
+                            <HiveStateBadge state={hiveState} size="sm" showAction />
                         </div>
                     </div>
-                    {/* Tabs */}
-                    <div style={{ display: 'flex', gap: 4, marginTop: 'var(--space-md)', flexWrap: 'wrap' }}>
-                        {tabs.map(t => (
-                            <button key={t.id} onClick={() => setTab(t.id)} style={{
-                                padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer',
-                                fontSize: '0.75rem', fontWeight: 500, fontFamily: 'var(--font-datos)',
-background: tab === t.id ? 'hsl(var(--accent))' : 'hsl(var(--primary-foreground) / 0.12)',
-color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0.8)',
-                                transition: 'all 150ms'
-                            }}>{t.icon} {t.label}</button>
-                        ))}
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{colmena.production_total || 0} kg</div>
+                        <div style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>Producción temporada</div>
                     </div>
                 </div>
+                <div style={{ display: 'flex', gap: 4, marginTop: 12, flexWrap: 'wrap' }}>
+                    {tabs.map(t => (
+                        <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => setTab(t.id)}
+                            className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+                            style={{
+                                background: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--muted) / 0.5)',
+                                color: tab === t.id ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
+                            }}
+                        >
+                            {t.icon} {t.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
 
-                {/* Body */}
-                <div style={{ overflow: 'auto', flex: 1, padding: 'var(--space-lg)' }}>
+            <div style={{ overflow: 'auto', flex: 1, padding: 'var(--space-lg)', maxHeight: 'min(60vh, 520px)' }}>
 
                     {/* ── RESUMEN ── */}
                     {tab === 'resumen' && (
@@ -617,7 +619,6 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                         </div>
                     )}
                 </div>
-            </div >
-        </div >
+        </ImmersiveModal>
     );
 }

@@ -1436,9 +1436,10 @@ select.input-field option,
   position: fixed;
   inset: 0;
   z-index: 1100;
-  background: hsl(var(--background) / 0.85);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  /* Paridad con ImmersiveModal: más opacidad = foco en el sheet */
+  background: hsl(var(--background) / 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: none;
   cursor: pointer;
 }
@@ -1462,9 +1463,9 @@ select.input-field option,
 
 @media (min-width: 1024px) {
   .mobile-nav-sheet-backdrop {
-    background: hsl(var(--background) / 0.55);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: hsl(var(--background) / 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .mobile-nav-sheet {

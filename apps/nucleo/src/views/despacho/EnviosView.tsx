@@ -21,8 +21,9 @@ import { ViewShell } from '@/components/layout/ViewShell';
 import { DEFAULT_COURIER, getCourierLabel } from '@enjambre/logistica';
 
 /**
- * Envíos: cola operativa de despacho + ventas pendientes de procesar.
- * Proveedores, mapa y centros son herramientas hermanas bajo DESPACHO.
+ * Envíos: cola operativa de despacho de la empresa (incluye los envíos
+ * automáticos del checkout de Tienda). Proveedores, mapa y centros son
+ * herramientas hermanas bajo DESPACHO.
  */
 export function EnviosView() {
   const apiFetch = useApiFetch();
@@ -117,7 +118,7 @@ export function EnviosView() {
       <ViewShell
         eyebrow="Despacho"
         title="Envíos"
-        subtitle="Cola de envíos: crear, actualizar estado y procesar ventas pendientes. Mapa, proveedores y centros de stock son herramientas aparte."
+        subtitle="Cola de despacho de la empresa: envíos automáticos de Tienda + manuales, actualizar estado y procesar ventas pendientes. Mapa, proveedores y centros de stock son herramientas aparte."
         icon={<Truck size={20} />}
       />
 
@@ -256,10 +257,11 @@ export function EnviosView() {
                             }
                             className="text-xs bg-surface border border-border rounded-lg px-2 py-1 text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
                           >
-                            <option value="Programado">Programado</option>
-                            <option value="Empacando">Empacando</option>
-                            <option value="En tránsito">En tránsito</option>
-                            <option value="Entregado">Entregado</option>
+                          <option value="pendiente">Pendiente</option>
+                          <option value="Programado">Programado</option>
+                          <option value="Empacando">Empacando</option>
+                          <option value="En tránsito">En tránsito</option>
+                          <option value="Entregado">Entregado</option>
                           </select>
                         )}
                         <span
@@ -295,7 +297,7 @@ export function EnviosView() {
             {dashboard.ventasRecientes.length > 0 ? (
               <div className="space-y-2">
                 {dashboard.ventasRecientes.slice(0, 12).map((v) => {
-                  const hasEnvio = dashboard.envios.some((e) => e.venta_id === v.id);
+                  const hasEnvio = v.pendiente_envio === false;
                   return (
                     <div
                       key={v.id}
@@ -362,7 +364,9 @@ export function EnviosView() {
         productos={dashboard.productos}
         productosLoading={isLoading}
         enviosHistoricos={dashboard.envios}
-        ventasRecientes={dashboard.ventasRecientes}
+        ventasRecientes={dashboard.ventasRecientes.filter(
+          (v) => v.pendiente_envio !== false,
+        )}
         onSubmit={(form, lineItems) => createEnvio.mutate({ form, lineItems })}
         submitting={createEnvio.isPending}
       />
