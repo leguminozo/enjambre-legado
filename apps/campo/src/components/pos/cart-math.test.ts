@@ -3,6 +3,8 @@ import {
   addCartLine,
   addQrToLine,
   cartTotal,
+  computePosTotals,
+  extractSaleLines,
   removeCartLine,
   removeQrFromLine,
   setCartQty,
@@ -67,5 +69,31 @@ describe('cart-math POS', () => {
     expect(lines[0].qr_codes).toEqual(['QR-1', 'QR-2']);
     lines = removeQrFromLine(lines, 'a', 'QR-1');
     expect(lines[0].qr_codes).toEqual(['QR-2']);
+  });
+
+  it('computePosTotals percent 10% y tope 50%', () => {
+    expect(computePosTotals(10_000, { kind: 'percent', value: 10 })).toEqual({
+      subtotal: 10_000,
+      descuentoClp: 1_000,
+      total: 9_000,
+      descuentoPct: 10,
+    });
+    const capped = computePosTotals(10_000, { kind: 'percent', value: 90 });
+    expect(capped.descuentoPct).toBe(50);
+    expect(capped.descuentoClp).toBe(5_000);
+  });
+
+  it('computePosTotals fixed no supera subtotal', () => {
+    expect(computePosTotals(5_000, { kind: 'fixed', value: 8_000 }).total).toBe(0);
+    expect(computePosTotals(5_000, { kind: 'fixed', value: 500 }).descuentoClp).toBe(500);
+  });
+
+  it('extractSaleLines ignora meta de descuento', () => {
+    const lines = extractSaleLines([
+      { producto_id: 'a', cantidad: 1, precio_unitario: 100 },
+      { _tipo: 'pos_descuento', descuento_clp: 10 },
+    ]);
+    expect(lines).toHaveLength(1);
+    expect(lines[0].producto_id).toBe('a');
   });
 });

@@ -1,8 +1,75 @@
 import type { CartLine } from './types';
 
-/** Total del carrito POS (precio_unitario × cantidad). */
+/** Máximo descuento porcentual en feria/POS (anti-abuso). */
+export const POS_MAX_DISCOUNT_PCT = 50;
+
+export type PosDiscount =
+  | { kind: 'none' }
+  | { kind: 'percent'; value: number }
+  | { kind: 'fixed'; value: number };
+
+export type PosTotals = {
+  subtotal: number;
+  descuentoClp: number;
+  total: number;
+  /** % efectivo aplicado (null si sin descuento). */
+  descuentoPct: number | null;
+};
+
+/** Total del carrito POS (precio_unitario × cantidad) sin descuento. */
 export function cartTotal(lines: CartLine[]): number {
   return lines.reduce((sum, line) => sum + line.precio_unitario * line.cantidad, 0);
+}
+
+/**
+ * Aplica descuento sobre subtotal en CLP enteros.
+ * percent: 0–50; fixed: 0–subtotal.
+ */
+export function computePosTotals(subtotal: number, discount: PosDiscount = { kind: 'none' }): PosTotals {
+  const sub = Math.max(0, Math.round(Number.isFinite(subtotal) ? subtotal : 0));
+  if (discount.kind === 'percent') {
+    const pct = Math.min(POS_MAX_DISCOUNT_PCT, Math.max(0, Number(discount.value) || 0));
+    const descuentoClp = Math.min(sub, Math.round((sub * pct) / 100));
+    return {
+      subtotal: sub,
+      descuentoClp,
+      total: sub - descuentoClp,
+      descuentoPct: descuentoClp > 0 ? pct : null,
+    };
+  }
+  if (discount.kind === 'fixed') {
+    const descuentoClp = Math.min(sub, Math.max(0, Math.round(Number(discount.value) || 0)));
+    const descuentoPct =
+      sub > 0 && descuentoClp > 0
+        ? Math.round((descuentoClp / sub) * 1000) / 10
+        : null;
+    return { subtotal: sub, descuentoClp, total: sub - descuentoClp, descuentoPct };
+  }
+  return { subtotal: sub, descuentoClp: 0, total: sub, descuentoPct: null };
+}
+
+/** Filtra líneas de producto (ignora meta de descuento en JSON de venta). */
+export function extractSaleLines(
+  productos: unknown,
+): Array<{ producto_id: string; nombre?: string; cantidad: number; precio_unitario?: number }> {
+  const arr = Array.isArray(productos)
+    ? productos
+    : productos &&
+        typeof productos === 'object' &&
+        Array.isArray((productos as { lines?: unknown }).lines)
+      ? (productos as { lines: unknown[] }).lines
+      : [];
+  return arr.filter((line): line is {
+    producto_id: string;
+    nombre?: string;
+    cantidad: number;
+    precio_unitario?: number;
+  } => {
+    if (!line || typeof line !== 'object') return false;
+    const r = line as Record<string, unknown>;
+    if (r._tipo === 'pos_descuento') return false;
+    return typeof r.producto_id === 'string' && r.producto_id.length > 0;
+  });
 }
 
 export function addCartLine(

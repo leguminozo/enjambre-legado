@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { X, MapPin, Crown, Droplets, Scale, DollarSign, Link, AlertTriangle, CheckCircle2, ChevronRight, Plus, Anchor, ShieldCheck, ExternalLink } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
@@ -13,18 +13,36 @@ import { ColmenaOrigenTab } from './ColmenaOrigenTab';
 import { ColmenaBitacoraTab } from './ColmenaBitacoraTab';
 import { ColmenaSanidadTab } from './ColmenaSanidadTab';
 import { FASE_LABEL } from './bitacora-labels';
+import { buildHiveState, type HiveStateContext } from '@/lib/hive-state';
+import { HiveStateBadge, HiveStateDot } from './HiveStateBadge';
+import { HiveWhatIfPanel } from './HiveWhatIfPanel';
 
 type Tab = 'resumen' | 'inspecciones' | 'varroa' | 'peso' | 'costos' | 'origen' | 'bitacora' | 'sanidad' | 'blockchain';
 
-interface Props { colmena: ColmenaWithRelations; colmenas: ColmenaWithRelations[]; onClose: () => void; onUpdate: (updated: ColmenaWithRelations) => void; }
+interface Props {
+    colmena: ColmenaWithRelations;
+    colmenas: ColmenaWithRelations[];
+    onClose: () => void;
+    onUpdate: (updated: ColmenaWithRelations) => void;
+    hiveCtx?: HiveStateContext;
+}
 
 const varroaColor = (v: number) => v <= 1.5 ? 'hsl(var(--success))' : v <= 3 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))';
-const healthLabel = (h: string) => h === 'optimal' ? 'Óptima' : h === 'attention' ? 'Atención' : 'Riesgo';
 
-export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate }: Props) {
+export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: Props) {
     const [tab, setTab] = useState<Tab>('resumen');
     const apiFetch = useApiFetch();
     const realId = Boolean(colmena.id && colmena.id.length >= 20);
+
+    const hiveState = useMemo(
+        () =>
+            buildHiveState(colmena, {
+                ...hiveCtx,
+                apiarioLat: hiveCtx?.apiarioLat ?? colmena.lat,
+                apiarioLng: hiveCtx?.apiarioLng ?? colmena.lng,
+            }),
+        [colmena, hiveCtx],
+    );
 
     // Historial completo de la bitácora: inspecciones+cuadros, tratamientos,
     // reinas, alerta de retiro y origen (GET /api/bitacora/colmenas/:id)
@@ -141,12 +159,18 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate }: Props) {
                 <div style={{ padding: 'var(--space-lg)', borderBottom: '1px solid hsl(var(--border) / 0.5)', background: `linear-gradient(135deg, hsl(var(--primary)) 0%, ${BOSQUE_ULMO_LIGHT} 100%)`, color: 'hsl(var(--primary-foreground))' }}>
                     <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, background: 'hsl(var(--primary-foreground) / 0.15)', border: 'none', borderRadius: 6, cursor: 'pointer', color: 'hsl(var(--primary-foreground))', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 12, height: 12, borderRadius: '50%', background: colmena.health === 'optimal' ? 'hsl(var(--success))' : colmena.health === 'attention' ? 'hsl(var(--warning))' : 'hsl(var(--destructive))', boxShadow: '0 0 8px currentColor', flexShrink: 0 }} />
-                        <div>
+                        <HiveStateDot risk={hiveState.risk} color={hiveState.color} size={12} />
+                        <div style={{ minWidth: 0 }}>
                             <h3 style={{ color: 'hsl(var(--primary-foreground))', marginBottom: 2, fontSize: '1.15rem' }}>{colmena.name}</h3>
-                            <div style={{ fontSize: '0.78rem', opacity: 0.7, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} />{colmena.apiario_name || 'Sin apiario'} · Lote: {colmena.lote_activo || 'N/A'}</div>
+                            <div style={{ fontSize: '0.78rem', opacity: 0.7, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                                <MapPin size={11} />
+                                {colmena.apiario_name || 'Sin apiario'} · Lote: {colmena.lote_activo || 'N/A'}
+                            </div>
+                            <div style={{ marginTop: 6 }}>
+                                <HiveStateBadge state={hiveState} size="sm" showAction />
+                            </div>
                         </div>
-                        <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+                        <div style={{ marginLeft: 'auto', textAlign: 'right', flexShrink: 0 }}>
                             <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{colmena.production_total || 0} kg</div>
                             <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>Producción temporada</div>
                         </div>
@@ -173,9 +197,9 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'var(--space-md)' }}>
                                 {[
-                                    { label: 'Estado', value: healthLabel(colmena.health || 'risk'), color: colmena.health === 'optimal' ? 'hsl(var(--success))' : colmena.health === 'attention' ? 'hsl(var(--warning))' : 'hsl(var(--destructive))' },
+                                    { label: 'Riesgo compuesto', value: hiveState.riskLabel, color: hiveState.color },
                                     { label: 'Alzas activas', value: `${colmena.alzas || 0} alzas`, color: 'hsl(var(--primary))' },
-                                    { label: 'Núcleos', value: colmena.nucleos_candidatos ? 'Candidata ✓' : 'No aplica', color: colmena.nucleos_candidatos ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))' },
+                                    { label: 'Señales', value: hiveState.signalQuality === 'rich' ? 'Ricas' : hiveState.signalQuality === 'partial' ? 'Parciales' : 'Escasas', color: hiveState.signalQuality === 'rich' ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))' },
                                 ].map((s, i) => (
                                     <div key={i} style={{ padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
                                         <div style={{ fontSize: '1rem', fontWeight: 700, color: s.color }}>{s.value}</div>
@@ -183,6 +207,23 @@ color: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground) / 0
                                     </div>
                                 ))}
                             </div>
+                            {hiveState.primaryAction && (
+                                <div
+                                    style={{
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        background: `${hiveState.color}18`,
+                                        border: `1px solid ${hiveState.color}33`,
+                                        fontSize: '0.8rem',
+                                        color: hiveState.color,
+                                        fontWeight: 500,
+                                    }}
+                                >
+                                    Acción sugerida: {hiveState.primaryAction}
+                                </div>
+                            )}
+
+                            <HiveWhatIfPanel state={hiveState} />
                             {[
                                 { icon: <Crown size={14} />, label: 'Reina activa', value: colmena.queen || 'N/A' },
                                 { icon: <Droplets size={14} />, label: 'Última inspección', value: colmena.last_inspection || 'Sin inspección' },

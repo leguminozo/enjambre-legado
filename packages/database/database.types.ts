@@ -3349,6 +3349,83 @@ export type Database = {
           },
         ]
       }
+      cuaderno_aristas: {
+        Row: {
+          created_at: string
+          id: string
+          label: string | null
+          relacion: string
+          source_id: string
+          target_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          relacion?: string
+          source_id: string
+          target_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          relacion?: string
+          source_id?: string
+          target_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cuaderno_nodos: {
+        Row: {
+          colmena_id: string | null
+          created_at: string
+          descripcion: string | null
+          id: string
+          label: string
+          tipo: string
+          updated_at: string
+          user_id: string
+          x: number | null
+          y: number | null
+        }
+        Insert: {
+          colmena_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          label: string
+          tipo?: string
+          updated_at?: string
+          user_id: string
+          x?: number | null
+          y?: number | null
+        }
+        Update: {
+          colmena_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          label?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+          x?: number | null
+          y?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cuaderno_nodos_colmena_id_fkey"
+            columns: ["colmena_id"]
+            isOneToOne: false
+            referencedRelation: "colmenas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       declaraciones_f29: {
         Row: {
           anio: number
@@ -5065,6 +5142,143 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      inventario_items: {
+        Row: {
+          activo: boolean
+          clase: string
+          costo_unitario: number
+          created_at: string
+          empresa_id: string | null
+          id: string
+          ingredient_id: string | null
+          metadata: Json
+          nombre: string
+          notas: string | null
+          producto_id: string | null
+          proveedor_nota: string | null
+          sku_code: string | null
+          stock: number
+          stock_minimo: number
+          unidad: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          activo?: boolean
+          clase: string
+          costo_unitario?: number
+          created_at?: string
+          empresa_id?: string | null
+          id?: string
+          ingredient_id?: string | null
+          metadata?: Json
+          nombre: string
+          notas?: string | null
+          producto_id?: string | null
+          proveedor_nota?: string | null
+          sku_code?: string | null
+          stock?: number
+          stock_minimo?: number
+          unidad?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          activo?: boolean
+          clase?: string
+          costo_unitario?: number
+          created_at?: string
+          empresa_id?: string | null
+          id?: string
+          ingredient_id?: string | null
+          metadata?: Json
+          nombre?: string
+          notas?: string | null
+          producto_id?: string | null
+          proveedor_nota?: string | null
+          sku_code?: string | null
+          stock?: number
+          stock_minimo?: number
+          unidad?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventario_items_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventario_items_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventario_movimientos: {
+        Row: {
+          cantidad: number
+          created_at: string
+          doc_fecha: string | null
+          doc_numero: string | null
+          doc_tipo: string | null
+          id: string
+          item_id: string
+          motivo: string | null
+          ref_id: string | null
+          ref_tipo: string | null
+          stock_antes: number
+          stock_despues: number
+          tipo: string
+          user_id: string | null
+        }
+        Insert: {
+          cantidad: number
+          created_at?: string
+          doc_fecha?: string | null
+          doc_numero?: string | null
+          doc_tipo?: string | null
+          id?: string
+          item_id: string
+          motivo?: string | null
+          ref_id?: string | null
+          ref_tipo?: string | null
+          stock_antes: number
+          stock_despues: number
+          tipo: string
+          user_id?: string | null
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          doc_fecha?: string | null
+          doc_numero?: string | null
+          doc_tipo?: string | null
+          id?: string
+          item_id?: string
+          motivo?: string | null
+          ref_id?: string | null
+          ref_tipo?: string | null
+          stock_antes?: number
+          stock_despues?: number
+          tipo?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventario_movimientos_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventario_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invitation_codes: {
         Row: {
@@ -10712,6 +10926,32 @@ export type Database = {
         Args: { p_descuento_id: string }
         Returns: undefined
       }
+      inventario_aplicar_movimiento:
+        | {
+            Args: {
+              p_cantidad: number
+              p_item_id: string
+              p_motivo?: string
+              p_ref_id?: string
+              p_ref_tipo?: string
+              p_tipo: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_cantidad: number
+              p_doc_fecha?: string
+              p_doc_numero?: string
+              p_doc_tipo?: string
+              p_item_id: string
+              p_motivo?: string
+              p_ref_id?: string
+              p_ref_tipo?: string
+              p_tipo: string
+            }
+            Returns: Json
+          }
       is_admin: { Args: never; Returns: boolean }
       is_gerente: { Args: never; Returns: boolean }
       longtransactionsenabled: { Args: never; Returns: boolean }

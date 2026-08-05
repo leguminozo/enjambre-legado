@@ -63,6 +63,8 @@ export async function POST(request: Request) {
     metodo_pago?: string;
     estado?: string;
     tercero_id?: string;
+    descuento_pct?: number;
+    descuento_clp?: number;
   };
   try {
     body = (await request.json()) as typeof body;
@@ -139,8 +141,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No hay productos válidos en la venta' }, { status: 400 });
   }
 
-  const total = repricedItems.reduce((s, i) => s + i.precio_unitario * i.cantidad, 0);
-  if (total <= 0) {
+  const subtotalBruto = repricedItems.reduce((s, i) => s + i.precio_unitario * i.cantidad, 0);
+  // Descuento server-side (misma regla que rep-ventas/quick)
+  let descuentoClp = 0;
+  let descuentoPct: number | null = null;
+  if (typeof body.descuento_pct === 'number' && body.descuento_pct > 0) {
+    const pct = Math.min(50, Math.max(0, body.descuento_pct));
+    descuentoClp = Math.min(subtotalBruto, Math.round((subtotalBruto * pct) / 100));
+    descuentoPct = pct;
+  } else if (typeof body.descuento_clp === 'number' && body.descuento_clp > 0) {
+    descuentoClp = Math.min(subtotalBruto, Math.max(0, Math.round(body.descuento_clp)));
+    descuentoPct =
+      subtotalBruto > 0 ? Math.round((descuentoClp / subtotalBruto) * 1000) / 10 : null;
+  }
+  const total = Math.max(0, subtotalBruto - descuentoClp);
+  if (total < 0 || subtotalBruto <= 0) {
     return NextResponse.json({ error: 'El total de la venta no es válido' }, { status: 400 });
   }
 
@@ -202,13 +217,24 @@ export async function POST(request: Request) {
     });
   }
 
+  const productosConMeta: unknown[] = [...enrichedItems];
+  if (descuentoClp > 0) {
+    productosConMeta.push({
+      _tipo: 'pos_descuento',
+      descuento_clp: descuentoClp,
+      descuento_pct: descuentoPct,
+      subtotal_bruto: subtotalBruto,
+      total_neto: total,
+    });
+  }
+
   const payload = {
     vendedor_id: user.id,
     origen: body.origen,
     channel: body.origen,
     estado: body.estado ?? 'confirmado',
     total,
-    items: enrichedItems as unknown as Record<string, unknown>,
+    productos: productosConMeta as unknown as Record<string, unknown>,
     metodo_pago: body.metodo_pago ?? 'efectivo',
     tercero_id: body.tercero_id ?? null,
   };

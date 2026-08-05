@@ -13,7 +13,7 @@ const e2ePublicRoutes = e2eAuthSkipAllowed
   : [];
 
 export const middleware = createAuthMiddleware({
-  publicRoutes: ["/", "/login", "/carta", ...e2ePublicRoutes],
+  publicRoutes: ["/", "/login", "/carta", "/impacto", "/mapa-chiloe", ...e2ePublicRoutes],
   // Trazabilidad escaneable sin sesión: destilaciones + pasaporte de frasco/lote
   publicPathPrefixes: ["/alambique/", "/lote/"],
   authRedirect: "/login",

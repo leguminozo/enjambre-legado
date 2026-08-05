@@ -57,7 +57,7 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
   const [muestraOpen, setMuestraOpen] = useState(false);
   const [muestraEditando, setMuestraEditando] = useState<MuestraRow | null>(null);
   const [nodoOpen, setNodoOpen] = useState(false);
-  const [nodoEditando, setNodoEditando] = useState<NodoManualRow | null>(null);
+  const [nodoEditando, setNodoEditando] = useState<Omit<NodoManualRow, 'user_id'> | null>(null);
   const [aristaOpen, setAristaOpen] = useState(false);
 
   const { data: detalle, isLoading } = useQuery<HojaDetalle>({
@@ -149,7 +149,6 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
     } else if (nodo.kind === 'manual') {
       setNodoEditando({
         id: nodo.id,
-        user_id: null,
         colmena_id: nodo.colmena_id ?? null,
         tipo: (nodo.estado as NodoManualRow['tipo']) ?? 'observacion',
         label: nodo.label,

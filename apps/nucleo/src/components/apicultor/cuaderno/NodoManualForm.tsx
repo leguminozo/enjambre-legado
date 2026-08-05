@@ -11,7 +11,7 @@ interface NodoManualFormProps {
   onOpenChange: (open: boolean) => void;
   colmenas?: { id: string; name: string | null }[];
   colmenaIdFijo?: string | null;
-  initial?: NodoManualRow | null;
+  initial?: Omit<NodoManualRow, 'user_id'> | null;
   onSaved?: () => void;
 }
 

@@ -99,7 +99,12 @@ Escala 1-10. Fecha: 2026-08-02.
 - [x] Movimiento 2: CAF automático (builder `SolicitudDeFolios` + `signNode` + `sii-caf-client` + `caf-auto-worker` con kill-switch `SII_CAF_AUTO_ENABLED` + tabla `sii_caf_requests` + rutas admin) — 306/306 nucleo, 159/159 contable
 - [x] Movimiento 3: dunning de reposición (cron diario → email único por sub `past_due` con dedupe)
 - [x] Test de auth-integration flaky arreglado (`vi.resetModules`) — 306/306 nucleo, 159/159 contable
-- [ ] Movimiento 4 (devoluciones POS), 7, 9, 11-13
+- [x] Movimiento 4: descuentos POS (0–50% / CLP fijo, server-side) + anulación de venta de sesión (stock + consignación feria)
+- [x] Movimiento 7: metodología de impacto versionada (`impacto-metodologia.ts`) + coeficientes en plantaciones
+- [x] Movimiento 12 (parcial): open-book público `/impacto` + `GET /api/impacto/{metodologia,open-book}`
+- [x] Movimiento 11: mapa público Chiloé `/mapa-chiloe` + `GET /api/mapa-publico/chiloe` (anonimizado ±1 km, bandas de colmenas, alertas por tipo)
+- [x] Movimiento 13: Club de la Cosecha (`/club-cosecha`, planes club_ulmo/tiaca/quillay, deep-link a reposición, cata + temporada)
+- [ ] Movimiento 9 (push web)
 
 ## 6. Trabajo autónomo del agente de auditoría (conservado)
 

@@ -10,7 +10,7 @@ import {
   validateFeriaConsignacion,
   type FeriaSaleItem,
 } from "@/api/lib/feria-pos";
-import { fromLoose } from "@/api/lib/supabase-loose";
+import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
 import { registerDeliveredQrCodes } from "@/lib/sale-qr";
 import { getCafMinFolios, getFoliosRestantes } from "@/api/lib/fiscal/caf-guard";
 
@@ -39,7 +39,51 @@ const QuickSaleSchema = z.object({
     .optional(),
   sumup_checkout_id: z.string().optional(),
   sumup_transaction_id: z.string().optional(),
+  /** Descuento POS feria: % 0–50 (preferido) o monto fijo CLP. Servidor recalcula; no confiar en total cliente. */
+  descuento_pct: z.number().min(0).max(50).optional(),
+  descuento_clp: z.number().min(0).optional(),
 });
+
+const POS_MAX_DISCOUNT_PCT = 50;
+
+function applyPosDiscount(
+  subtotal: number,
+  descuentoPct?: number,
+  descuentoClp?: number,
+): { subtotal: number; descuentoClp: number; total: number; descuentoPct: number | null } {
+  const sub = Math.max(0, Math.round(subtotal));
+  if (descuentoPct != null && descuentoPct > 0) {
+    const pct = Math.min(POS_MAX_DISCOUNT_PCT, Math.max(0, descuentoPct));
+    const d = Math.min(sub, Math.round((sub * pct) / 100));
+    return { subtotal: sub, descuentoClp: d, total: sub - d, descuentoPct: pct };
+  }
+  if (descuentoClp != null && descuentoClp > 0) {
+    const d = Math.min(sub, Math.max(0, Math.round(descuentoClp)));
+    const pct = sub > 0 ? Math.round((d / sub) * 1000) / 10 : null;
+    return { subtotal: sub, descuentoClp: d, total: sub - d, descuentoPct: pct };
+  }
+  return { subtotal: sub, descuentoClp: 0, total: sub, descuentoPct: null };
+}
+
+function extractVentaLines(productos: unknown): Array<{
+  producto_id: string;
+  nombre?: string;
+  cantidad: number;
+  precio_unitario?: number;
+}> {
+  if (!Array.isArray(productos)) return [];
+  return productos.filter((line): line is {
+    producto_id: string;
+    nombre?: string;
+    cantidad: number;
+    precio_unitario?: number;
+  } => {
+    if (!line || typeof line !== "object") return false;
+    const r = line as Record<string, unknown>;
+    if (r._tipo === "pos_descuento") return false;
+    return typeof r.producto_id === "string";
+  });
+}
 
 export const repVentasRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -173,6 +217,9 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     total = precio_unitario * input.cantidad;
   }
 
+  const priced = applyPosDiscount(total, input.descuento_pct, input.descuento_clp);
+  total = priced.total;
+
   const feriaItems: FeriaSaleItem[] = items.map((i) => ({
     producto_id: i.producto_id,
     nombre: i.nombre,
@@ -270,6 +317,18 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     });
   }
 
+  // Meta de descuento al final del array (auditable; consumidores filtran por producto_id)
+  const productosPayload: unknown[] = [...enrichedItems];
+  if (priced.descuentoClp > 0) {
+    productosPayload.push({
+      _tipo: "pos_descuento",
+      descuento_clp: priced.descuentoClp,
+      descuento_pct: priced.descuentoPct,
+      subtotal_bruto: priced.subtotal,
+      total_neto: priced.total,
+    });
+  }
+
   // 2. Crear venta — typegen exige `productos` (Json) y a veces `id`; runtime acepta omitir id
   // cliente_id es FK a profiles: si el emisor manda un id de otra tabla (tercero),
   // el insert fallaría y el sync offline quedaría en error. Sanear antes de insertar.
@@ -288,7 +347,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
       empresa_id: empresaId,
       cash_session_id: input.cash_session_id,
       total,
-      productos: enrichedItems as Json,
+      productos: productosPayload as Json,
       metodo_pago: input.metodo_pago,
       channel,
       cliente_id: clienteIdSafe,
@@ -632,6 +691,160 @@ repVentasRoutes.get("/history", async (c) => {
         session_count: sessions?.length ?? 0,
       },
       daily: Array.from(dailyMap.entries()).map(([date, data]) => ({ date, ...data })).sort((a, b) => a.date.localeCompare(b.date)),
+    },
+  });
+});
+
+/** Ventas de la sesión de caja abierta (para anular en feria). */
+repVentasRoutes.get("/session-ventas", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+  const sessionId = c.req.query("cash_session_id");
+  if (!sessionId || !/^[0-9a-f-]{36}$/i.test(sessionId)) {
+    return c.json({ code: "invalid_session", message: "cash_session_id requerido" }, 400);
+  }
+
+  const { data: session } = await supabase
+    .from("cash_sessions")
+    .select("id, session_status, rep_id")
+    .eq("id", sessionId)
+    .eq("rep_id", user.id)
+    .maybeSingle();
+  if (!session) {
+    return c.json({ code: "session_not_found", message: "Sesión no encontrada" }, 404);
+  }
+
+  const { data: ventas, error } = await supabase
+    .from("ventas")
+    .select("id, total, metodo_pago, channel, estado, created_at, productos, rep_commission_total")
+    .eq("cash_session_id", sessionId)
+    .eq("vendedor_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (error) {
+    return c.json({ code: "query_failed", message: error.message }, 500);
+  }
+
+  return c.json({
+    data: (ventas ?? []).map((v) => ({
+      ...v,
+      lines: extractVentaLines(v.productos),
+    })),
+  });
+});
+
+/**
+ * Anula una venta POS del rep (misma sesión o < 24 h).
+ * Restaura stock, revierte consignación feria si aplica, marca estado=anulada.
+ * Las commission_records son inmutables: quedan como deuda de ajuste operativo.
+ */
+repVentasRoutes.post("/ventas/:id/anular", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+  const ventaId = c.req.param("id");
+  if (!/^[0-9a-f-]{36}$/i.test(ventaId)) {
+    return c.json({ code: "invalid_id", message: "ID de venta inválido" }, 400);
+  }
+
+  const { data: venta, error: vErr } = await supabase
+    .from("ventas")
+    .select(
+      "id, total, estado, productos, vendedor_id, cash_session_id, channel, participante_evento_id, created_at",
+    )
+    .eq("id", ventaId)
+    .maybeSingle();
+
+  if (vErr || !venta) {
+    return c.json({ code: "not_found", message: "Venta no encontrada" }, 404);
+  }
+  if (venta.vendedor_id !== user.id) {
+    return c.json({ code: "forbidden", message: "Solo el vendedor puede anular" }, 403);
+  }
+  if (venta.estado === "anulada") {
+    return c.json({ code: "already_void", message: "La venta ya está anulada" }, 400);
+  }
+
+  const created = venta.created_at ? Date.parse(venta.created_at) : 0;
+  const ageMs = Date.now() - created;
+  const within24h = ageMs >= 0 && ageMs <= 24 * 60 * 60 * 1000;
+
+  if (venta.cash_session_id) {
+    const { data: sess } = await supabase
+      .from("cash_sessions")
+      .select("id, session_status, rep_id")
+      .eq("id", venta.cash_session_id)
+      .maybeSingle();
+    const sessionOpen = sess?.session_status === "open" && sess.rep_id === user.id;
+    if (!sessionOpen && !within24h) {
+      return c.json(
+        {
+          code: "void_window_closed",
+          message: "Solo se puede anular con sesión abierta o dentro de 24 h",
+        },
+        400,
+      );
+    }
+  } else if (!within24h) {
+    return c.json(
+      { code: "void_window_closed", message: "Solo se puede anular dentro de 24 h" },
+      400,
+    );
+  }
+
+  const lines = extractVentaLines(venta.productos);
+  if (lines.length === 0) {
+    return c.json({ code: "no_lines", message: "La venta no tiene ítems anulables" }, 400);
+  }
+
+  // Restaurar stock
+  for (const line of lines) {
+    const qty = Math.max(0, Math.floor(Number(line.cantidad) || 0));
+    if (!qty) continue;
+    const { data: product } = await supabase
+      .from("productos")
+      .select("stock")
+      .eq("id", line.producto_id)
+      .maybeSingle();
+    if (product?.stock != null) {
+      await supabase
+        .from("productos")
+        .update({ stock: Number(product.stock) + qty })
+        .eq("id", line.producto_id);
+    }
+  }
+
+  // Revertir consignación feria
+  if (venta.participante_evento_id && venta.channel === "feria") {
+    const itemsJson = lines.map((l) => ({
+      producto_id: l.producto_id,
+      cantidad: l.cantidad,
+    }));
+    try {
+      await rpcLoose(supabase, "revertir_consignacion_feria", {
+        p_evento_id: venta.participante_evento_id,
+        p_items: itemsJson,
+      });
+    } catch (err) {
+      console.warn("[rep-ventas] revertir_consignacion_feria:", err);
+    }
+  }
+
+  const { error: upErr } = await supabase
+    .from("ventas")
+    .update({ estado: "anulada" })
+    .eq("id", ventaId);
+
+  if (upErr) {
+    return c.json({ code: "void_failed", message: upErr.message }, 500);
+  }
+
+  return c.json({
+    data: {
+      id: ventaId,
+      estado: "anulada",
+      restored_lines: lines.length,
+      note: "Comisión original permanece en ledger (inmutable); ajustar pago de comisiones a mano si aplica.",
     },
   });
 });

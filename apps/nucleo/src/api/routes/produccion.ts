@@ -9,8 +9,118 @@ import { notifyStockCritico } from "@/lib/notifications/enqueue-transactional";
 import { getBlockchainProvider, computeDataHash } from "@/api/lib/blockchain/provider";
 import { createAdminClient } from "@enjambre/auth/browser";
 import type { Json } from "@enjambre/database/database.types";
+import {
+  appendCosechaId,
+  mergeCosechaIds,
+  removeCosechaId,
+} from "@/lib/link-cosecha-lote";
+import { co2TonFromArboles } from "@/lib/impacto-metodologia";
 
 export const produccionRoutes = new Hono<{ Variables: AppVariables }>();
+
+type AdminClient = ReturnType<typeof createAdminClient>;
+
+async function adjustLoteKg(
+  admin: AdminClient,
+  loteId: string,
+  deltaKg: number,
+): Promise<void> {
+  if (!deltaKg || !Number.isFinite(deltaKg)) return;
+  const { data: lote } = await admin
+    .from("lotes")
+    .select("id, kg_total")
+    .eq("id", loteId)
+    .maybeSingle();
+  if (!lote) return;
+  const next = Math.max(0, Number(lote.kg_total ?? 0) + deltaKg);
+  await admin.from("lotes").update({ kg_total: next }).eq("id", loteId);
+}
+
+/**
+ * Mantiene cosechas.lote_id ↔ lotes.cosecha_ids en sincronía (service role).
+ * adjustKg: sumar/restar kg al mover vínculos (vincular sueltas). No usar al crear
+ * lote+cosecha juntos (el kg_total del lote ya se setea en el formulario).
+ */
+async function attachCosechaToLote(
+  admin: AdminClient,
+  cosechaId: string,
+  loteId: string,
+  opts: { adjustKg?: boolean } = {},
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const { adjustKg = false } = opts;
+  const { data: cosecha, error: cErr } = await admin
+    .from("cosechas")
+    .select("id, lote_id, kg")
+    .eq("id", cosechaId)
+    .maybeSingle();
+  if (cErr || !cosecha) {
+    return { ok: false, message: cErr?.message ?? "Recolección no encontrada" };
+  }
+
+  const prevLoteId = cosecha.lote_id as string | null;
+  const kg = typeof cosecha.kg === "number" && Number.isFinite(cosecha.kg) ? Number(cosecha.kg) : 0;
+
+  if (prevLoteId === loteId) {
+    // Ya vinculado: solo asegurar cosecha_ids
+    const { data: lote } = await admin
+      .from("lotes")
+      .select("id, cosecha_ids")
+      .eq("id", loteId)
+      .maybeSingle();
+    if (lote) {
+      const nextIds = appendCosechaId((lote.cosecha_ids as string[] | null) ?? [], cosechaId);
+      await admin.from("lotes").update({ cosecha_ids: nextIds }).eq("id", loteId);
+    }
+    return { ok: true };
+  }
+
+  const { error: upC } = await admin
+    .from("cosechas")
+    .update({ lote_id: loteId })
+    .eq("id", cosechaId);
+  if (upC) return { ok: false, message: upC.message };
+
+  if (prevLoteId) {
+    const { data: prevLote } = await admin
+      .from("lotes")
+      .select("id, cosecha_ids")
+      .eq("id", prevLoteId)
+      .maybeSingle();
+    if (prevLote) {
+      const nextIds = removeCosechaId(
+        (prevLote.cosecha_ids as string[] | null) ?? [],
+        cosechaId,
+      );
+      await admin.from("lotes").update({ cosecha_ids: nextIds }).eq("id", prevLoteId);
+    }
+    if (adjustKg && kg) await adjustLoteKg(admin, prevLoteId, -kg);
+  }
+
+  const { data: lote, error: lErr } = await admin
+    .from("lotes")
+    .select("id, cosecha_ids")
+    .eq("id", loteId)
+    .maybeSingle();
+  if (lErr || !lote) {
+    return { ok: false, message: lErr?.message ?? "Lote no encontrado" };
+  }
+
+  const nextIds = appendCosechaId((lote.cosecha_ids as string[] | null) ?? [], cosechaId);
+  const { error: upL } = await admin
+    .from("lotes")
+    .update({ cosecha_ids: nextIds })
+    .eq("id", loteId);
+  if (upL) return { ok: false, message: upL.message };
+
+  // Sueltas → lote: sumar kg. Creación lote+cosecha usa adjustKg false.
+  if (adjustKg && kg && !prevLoteId) {
+    await adjustLoteKg(admin, loteId, kg);
+  } else if (adjustKg && kg && prevLoteId) {
+    await adjustLoteKg(admin, loteId, kg);
+  }
+
+  return { ok: true };
+}
 
 produccionRoutes.use("*", authMiddleware, tenantMiddleware);
 
@@ -151,13 +261,15 @@ const CreateCosechaSchema = z.object({
   lote_id: z.string().uuid().optional().nullable(),
 });
 
-/** Cosechas de la temporada (con colmena/apiario anidados) para Inventario → Cosechas */
+/** Cosechas de la temporada (con colmena/apiario anidados) + vínculo a lote */
 produccionRoutes.get("/cosechas", async (c) => {
   const supabase = c.get("supabase");
 
   const { data, error } = await supabase
     .from("cosechas")
-    .select("id, kg, fecha, floracion, created_at, colmena_id, colmenas(id, name, apiarios(name))")
+    .select(
+      "id, kg, fecha, floracion, created_at, colmena_id, lote_id, colmenas(id, name, apiarios(name))",
+    )
     .order("fecha", { ascending: false })
     .limit(300);
 
@@ -165,12 +277,51 @@ produccionRoutes.get("/cosechas", async (c) => {
     return c.json({ code: "query_failed", message: error.message }, 500);
   }
 
-  return c.json({ data: data ?? [] });
+  // Nombres de lote para la lista (sin join tipado en typegen)
+  const loteIds = [
+    ...new Set(
+      (data ?? [])
+        .map((r) => r.lote_id)
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    ),
+  ];
+  let loteNameById = new Map<string, string | null>();
+  if (loteIds.length > 0) {
+    const { data: lotesLite } = await supabase
+      .from("lotes")
+      .select("id, nombre_lote")
+      .in("id", loteIds);
+    loteNameById = new Map(
+      (lotesLite ?? []).map((l) => [l.id, l.nombre_lote ?? null]),
+    );
+  }
+
+  const enriched = (data ?? []).map((row) => ({
+    ...row,
+    lote_nombre: row.lote_id ? (loteNameById.get(row.lote_id) ?? null) : null,
+  }));
+
+  return c.json({ data: enriched });
 });
 
 produccionRoutes.post("/cosechas", zValidator("json", CreateCosechaSchema), async (c) => {
   const supabase = c.get("supabase");
   const input = c.req.valid("json");
+
+  // Validar lote destino antes de insertar
+  if (input.lote_id) {
+    const { data: loteExists, error: loteErr } = await supabase
+      .from("lotes")
+      .select("id")
+      .eq("id", input.lote_id)
+      .maybeSingle();
+    if (loteErr || !loteExists) {
+      return c.json(
+        { code: "lote_not_found", message: "El lote indicado no existe" },
+        400,
+      );
+    }
+  }
 
   const { data, error } = await supabase
     .from("cosechas")
@@ -181,15 +332,106 @@ produccionRoutes.post("/cosechas", zValidator("json", CreateCosechaSchema), asyn
       colmena_id: input.colmena_id ?? null,
       lote_id: input.lote_id ?? null,
     })
-    .select("id")
+    .select("id, lote_id")
     .single();
 
   if (error) {
     return c.json({ code: "cosecha_create_failed", message: error.message }, 400);
   }
 
+  // Sincronizar lotes.cosecha_ids (service role; no bloquea si falla el array)
+  if (data?.id && data.lote_id) {
+    try {
+      const admin = createAdminClient();
+      const link = await attachCosechaToLote(admin, data.id, data.lote_id);
+      if (!link.ok) {
+        console.warn("[Produccion] attachCosechaToLote:", link.message);
+      }
+    } catch (err) {
+      console.warn("[Produccion] attachCosechaToLote skipped:", err);
+    }
+  }
+
   return c.json({ data }, 201);
 });
+
+/** Lista liviana de lotes para selectores (vincular recolección). */
+produccionRoutes.get("/lotes", async (c) => {
+  const supabase = c.get("supabase");
+  const { data, error } = await supabase
+    .from("lotes")
+    .select("id, nombre_lote, kg_total, variedad_floral, publico, estado, created_at, cosecha_ids")
+    .order("created_at", { ascending: false })
+    .limit(150);
+
+  if (error) {
+    return c.json({ code: "query_failed", message: error.message }, 500);
+  }
+
+  return c.json({
+    data: (data ?? []).map((l) => ({
+      ...l,
+      n_cosechas: Array.isArray(l.cosecha_ids) ? l.cosecha_ids.length : 0,
+    })),
+  });
+});
+
+const VincularCosechasSchema = z.object({
+  cosecha_ids: z.array(z.string().uuid()).min(1).max(50),
+});
+
+/**
+ * Vincula recolecciones existentes a un lote (bidireccional).
+ * Uso: recolecciones sueltas → un lote de bodega / pasaporte.
+ */
+produccionRoutes.post(
+  "/lotes/:id/vincular-cosechas",
+  requireProfileRole("admin"),
+  zValidator("json", VincularCosechasSchema),
+  async (c) => {
+    const { id: loteId } = c.req.param();
+    const { cosecha_ids } = c.req.valid("json");
+    const admin = createAdminClient();
+
+    const { data: lote, error: loteErr } = await admin
+      .from("lotes")
+      .select("id, cosecha_ids")
+      .eq("id", loteId)
+      .maybeSingle();
+    if (loteErr || !lote) {
+      return c.json({ code: "lote_not_found", message: "Lote no encontrado" }, 404);
+    }
+
+    const linked: string[] = [];
+    const failed: Array<{ id: string; message: string }> = [];
+
+    for (const cosechaId of cosecha_ids) {
+      // Sueltas históricas: sí ajustar kg del lote destino
+      const result = await attachCosechaToLote(admin, cosechaId, loteId, { adjustKg: true });
+      if (result.ok) linked.push(cosechaId);
+      else failed.push({ id: cosechaId, message: result.message });
+    }
+
+    // Releer array final
+    const { data: refreshed } = await admin
+      .from("lotes")
+      .select("id, cosecha_ids")
+      .eq("id", loteId)
+      .maybeSingle();
+
+    return c.json({
+      data: {
+        lote_id: loteId,
+        linked,
+        failed,
+        cosecha_ids: (refreshed?.cosecha_ids as string[] | null) ?? mergeCosechaIds(
+          (lote.cosecha_ids as string[] | null) ?? [],
+          linked,
+        ),
+      },
+    });
+  },
+);
 
 const ArbolStatusSchema = z.enum(["joven", "creciendo", "adulto"]);
 
@@ -274,7 +516,7 @@ produccionRoutes.post("/arboles", zValidator("json", CreateArbolSchema), async (
       sector: input.sector?.trim() || null,
       fecha: input.fecha ?? new Date().toISOString().split("T")[0],
       status: input.status ?? "creciendo",
-      co2_ton: parseFloat((input.cantidad * 0.05).toFixed(2)),
+      co2_ton: co2TonFromArboles(input.cantidad),
       lat: input.lat ?? -42.6,
       lng: input.lng ?? -73.8,
       user_id: user.id,
@@ -300,7 +542,7 @@ produccionRoutes.patch("/arboles/:id", zValidator("json", UpdateArbolSchema), as
     ...(input.cantidad !== undefined
       ? {
           cantidad: input.cantidad,
-          co2_ton: parseFloat((input.cantidad * 0.05).toFixed(2)),
+          co2_ton: co2TonFromArboles(input.cantidad),
         }
       : {}),
     ...(input.sector !== undefined ? { sector: input.sector?.trim() || null } : {}),
@@ -461,9 +703,11 @@ const CreateLoteSchema = z.object({
   kg_total: z.number().positive(),
   variedad_floral: z.string().max(100).optional().nullable(),
   fecha: z.string().date().optional(),
+  /** Opcional: vincular recolecciones ya existentes al crear el lote. */
+  cosecha_ids: z.array(z.string().uuid()).max(50).optional(),
 });
 
-/** Crea un lote (pipeline recolección → lote). La recolección se vincula luego con lote_id. */
+/** Crea un lote (pipeline recolección → lote). Acepta cosecha_ids para vínculo inmediato. */
 produccionRoutes.post(
   "/lotes",
   requireProfileRole("admin"),
@@ -479,13 +723,24 @@ produccionRoutes.post(
         kg_total: input.kg_total,
         variedad_floral: input.variedad_floral?.trim() || null,
         estado: "activo",
+        cosecha_ids: input.cosecha_ids?.length ? input.cosecha_ids : [],
         created_at: input.fecha ? `${input.fecha}T00:00:00.000Z` : new Date().toISOString(),
       })
-      .select("id, nombre_lote, kg_total, variedad_floral, created_at")
+      .select("id, nombre_lote, kg_total, variedad_floral, created_at, cosecha_ids")
       .single();
 
     if (error) {
       return c.json({ code: "lote_create_failed", message: error.message }, 400);
+    }
+
+    // Bidireccional: cada cosecha apunta al lote nuevo
+    if (data?.id && input.cosecha_ids?.length) {
+      for (const cosechaId of input.cosecha_ids) {
+        const link = await attachCosechaToLote(admin, cosechaId, data.id);
+        if (!link.ok) {
+          console.warn("[Produccion] create lote attach:", cosechaId, link.message);
+        }
+      }
     }
 
     return c.json({ data }, 201);

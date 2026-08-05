@@ -18,6 +18,58 @@ const PRIVACIDAD = {
     "Pasaporte del frasco: origen comercial resumido. No incluye GPS exacto, bitácora sanitaria ni datos económicos.",
 };
 
+/**
+ * GET /api/lotes-publicos
+ * Lista resumida de lotes con publico=true (Club de la Cosecha, vitrina).
+ * Query: ?floracion=ulmo|tiaca|quillay|multifloral  limit=12
+ */
+lotesPublicosRoutes.get("/", async (c) => {
+  const floracion = (c.req.query("floracion") ?? "").trim().toLowerCase();
+  const limitRaw = parseInt(c.req.query("limit") ?? "12", 10);
+  const limit = Number.isFinite(limitRaw) ? Math.min(40, Math.max(1, limitRaw)) : 12;
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("lotes")
+    .select(
+      "id, nombre_lote, variedad_floral, fecha_envasado, created_at, lab_nombre, analisis_humedad, relato_publico",
+    )
+    .eq("publico", true)
+    .order("created_at", { ascending: false })
+    .limit(80);
+
+  if (error) {
+    return c.json({ code: "query_failed", message: error.message }, 500);
+  }
+
+  const rows = (data ?? []).filter((l) => {
+    if (!floracion || floracion === "multifloral") return true;
+    const v = (l.variedad_floral ?? "").toLowerCase();
+    return v.includes(floracion);
+  });
+
+  const sliced = rows.slice(0, limit).map((l) => ({
+    id: l.id,
+    nombre_lote: l.nombre_lote,
+    variedad_floral: l.variedad_floral || "Multifloral",
+    fecha: l.fecha_envasado || l.created_at,
+    lab_nombre: l.lab_nombre,
+    humedad: l.analisis_humedad,
+    relato_excerpt: l.relato_publico
+      ? String(l.relato_publico).slice(0, 160) + (String(l.relato_publico).length > 160 ? "…" : "")
+      : null,
+  }));
+
+  c.header("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
+  return c.json({
+    data: {
+      lotes: sliced,
+      total_match: rows.length,
+      floracion: floracion || null,
+    },
+  });
+});
+
 // GET /api/lotes-publicos/:id — solo lotes con publico=true
 lotesPublicosRoutes.get("/:id", async (c) => {
   const { id } = c.req.param();

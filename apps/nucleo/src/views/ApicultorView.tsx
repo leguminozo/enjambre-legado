@@ -236,6 +236,17 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           colmenas={localColmenas}
           onClose={() => setSelectedColmena(null)}
           onUpdate={handleUpdateColmena}
+          hiveCtx={{
+            ambientTempC:
+              tempPureo !== '—'
+                ? parseInt(tempPureo.replace(/[^\d-]/g, ''), 10) || null
+                : null,
+            apiarioLat:
+              typeof activeApiario?.lat === 'number' ? activeApiario.lat : selectedColmena.lat,
+            apiarioLng:
+              typeof activeApiario?.lng === 'number' ? activeApiario.lng : selectedColmena.lng,
+            territorialAlerts,
+          }}
         />
       )}
 
@@ -317,6 +328,17 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
                 activeApiarioId={activeApiarioId}
                 onEnterApiario={enterApiario}
                 onLeaveApiario={leaveApiario}
+                hiveCtx={{
+                  ambientTempC:
+                    tempPureo !== '—'
+                      ? parseInt(tempPureo.replace(/[^\d-]/g, ''), 10) || null
+                      : null,
+                  apiarioLat:
+                    typeof activeApiario?.lat === 'number' ? activeApiario.lat : null,
+                  apiarioLng:
+                    typeof activeApiario?.lng === 'number' ? activeApiario.lng : null,
+                  territorialAlerts,
+                }}
               />
             </div>
           )}

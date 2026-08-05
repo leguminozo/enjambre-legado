@@ -24,16 +24,21 @@ type ReposicionClientProps = {
   subscription: UserSubscription | null;
   plans: SubscriptionPlan[];
   deliveries?: SubscriptionDelivery[];
+  /** Prefill desde Club de la Cosecha (?plan=club_ulmo). */
+  initialPlanId?: string | null;
 };
 
 export function ReposicionClient({
   subscription,
   plans,
   deliveries = [],
+  initialPlanId = null,
 }: ReposicionClientProps) {
   const t = useTranslations('perfil.reposicion');
   const router = useRouter();
-  const [selectedPlanId, setSelectedPlanId] = useState(() => defaultPlanId(plans));
+  const [selectedPlanId, setSelectedPlanId] = useState(
+    () => initialPlanId || defaultPlanId(plans),
+  );
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [manageLoading, setManageLoading] = useState(false);

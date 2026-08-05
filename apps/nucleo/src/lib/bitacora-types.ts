@@ -325,7 +325,7 @@ export type HojaCuaderno = InspeccionRowWithBitacora & {
 
 export type NodoManualRow = {
   id: string;
-  user_id: string | null;
+  user_id: string;
   colmena_id: string | null;
   tipo: 'observacion' | 'decision' | 'tension' | 'otro';
   label: string;
@@ -338,7 +338,7 @@ export type NodoManualRow = {
 
 export type AristaManualRow = {
   id: string;
-  user_id: string | null;
+  user_id: string;
   source_id: string;
   target_id: string;
   relacion: 'deriva_de' | 'observa' | 'tension' | 'analogia' | 'otro';

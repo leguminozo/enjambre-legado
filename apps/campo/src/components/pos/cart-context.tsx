@@ -6,12 +6,16 @@ import {
   addCartLine,
   addQrToLine,
   cartTotal,
+  computePosTotals,
+  type PosDiscount,
+  type PosTotals,
   removeCartLine,
   removeQrFromLine,
   setCartQty,
 } from './cart-math';
 
 const STORAGE_KEY = 'enjambre-campo-pos-cart';
+const DISCOUNT_KEY = 'enjambre-campo-pos-discount';
 
 type CartContextValue = {
   lines: CartLine[];
@@ -21,8 +25,13 @@ type CartContextValue = {
   addQrCode: (producto_id: string, code: string) => void;
   removeQrCode: (producto_id: string, code: string) => void;
   clear: () => void;
-  /** Suma en la misma unidad que `precio` en BD (p. ej. CLP). */
+  discount: PosDiscount;
+  setDiscount: (d: PosDiscount) => void;
+  /** Subtotal sin descuento. */
+  subtotal: number;
+  /** Total a cobrar (con descuento). */
   total: number;
+  totals: PosTotals;
   ready: boolean;
 };
 
@@ -30,6 +39,7 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
+  const [discount, setDiscountState] = useState<PosDiscount>({ kind: 'none' });
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -38,6 +48,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (raw) {
         const parsed = JSON.parse(raw) as CartLine[];
         if (Array.isArray(parsed)) setLines(parsed);
+      }
+      const rawDisc = typeof window !== 'undefined' ? localStorage.getItem(DISCOUNT_KEY) : null;
+      if (rawDisc) {
+        const d = JSON.parse(rawDisc) as PosDiscount;
+        if (d && typeof d === 'object' && 'kind' in d) setDiscountState(d);
       }
     } catch (error) {
       console.error('[cart] localStorage parse error:', error);
@@ -49,6 +64,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (!ready || typeof window === 'undefined') return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
   }, [lines, ready]);
+
+  useEffect(() => {
+    if (!ready || typeof window === 'undefined') return;
+    localStorage.setItem(DISCOUNT_KEY, JSON.stringify(discount));
+  }, [discount, ready]);
 
   const addLine = useCallback((line: Omit<CartLine, 'cantidad'> & { cantidad?: number }) => {
     setLines((prev) => addCartLine(prev, line));
@@ -70,9 +90,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setLines((prev) => removeQrFromLine(prev, producto_id, code));
   }, []);
 
-  const clear = useCallback(() => setLines([]), []);
+  const setDiscount = useCallback((d: PosDiscount) => {
+    setDiscountState(d);
+  }, []);
 
-  const total = useMemo(() => cartTotal(lines), [lines]);
+  const clear = useCallback(() => {
+    setLines([]);
+    setDiscountState({ kind: 'none' });
+  }, []);
+
+  const subtotal = useMemo(() => cartTotal(lines), [lines]);
+  const totals = useMemo(() => computePosTotals(subtotal, discount), [subtotal, discount]);
+  const total = totals.total;
 
   const value = useMemo(
     () => ({
@@ -83,10 +112,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       addQrCode,
       removeQrCode,
       clear,
+      discount,
+      setDiscount,
+      subtotal,
       total,
+      totals,
       ready,
     }),
-    [lines, addLine, setQty, removeLine, addQrCode, removeQrCode, clear, total, ready],
+    [
+      lines,
+      addLine,
+      setQty,
+      removeLine,
+      addQrCode,
+      removeQrCode,
+      clear,
+      discount,
+      setDiscount,
+      subtotal,
+      total,
+      totals,
+      ready,
+    ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

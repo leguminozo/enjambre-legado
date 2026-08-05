@@ -35,7 +35,20 @@ type CheckoutMode = 'standard' | 'terminal';
 
 export default function CarritoView() {
   const router = useRouter();
-  const { lines, setQty, removeLine, addQrCode, removeQrCode, clear, total, ready } = useCart();
+  const {
+    lines,
+    setQty,
+    removeLine,
+    addQrCode,
+    removeQrCode,
+    clear,
+    total,
+    subtotal,
+    totals,
+    discount,
+    setDiscount,
+    ready,
+  } = useCart();
   const { session, cartSale } = useCashSession();
   const { active: feriaActiva, consignaciones, refresh: refreshFeria } = useFeriaContext();
   const { setTerminalStep, sumupMode, setSumupMode } = useSumUp();
@@ -85,7 +98,13 @@ export default function CarritoView() {
         }));
 
         const metodoBff = metodoPago === 'debito' ? 'tarjeta' : metodoPago === 'tarjeta_pos' ? 'pos_terminal' : metodoPago;
-        const result = await cartSale(cartItems, metodoBff, channel);
+        const discPayload =
+          discount.kind === 'percent' && discount.value > 0
+            ? { descuento_pct: discount.value }
+            : discount.kind === 'fixed' && discount.value > 0
+              ? { descuento_clp: discount.value }
+              : undefined;
+        const result = await cartSale(cartItems, metodoBff, channel, undefined, discPayload);
         if (!result) {
           setError('No se pudo registrar la venta en la sesion de caja');
           return;
@@ -110,6 +129,8 @@ export default function CarritoView() {
             items,
             metodo_pago: metodoPago === 'debito' ? 'tarjeta' : metodoPago === 'tarjeta_pos' ? 'pos_terminal' : metodoPago,
             estado: 'confirmado',
+            descuento_pct: discount.kind === 'percent' ? discount.value : undefined,
+            descuento_clp: discount.kind === 'fixed' ? discount.value : undefined,
           }),
         });
 
@@ -129,7 +150,7 @@ export default function CarritoView() {
     } finally {
       setLoading(false);
     }
-  }, [lines, metodoPago, isSessionOpen, channel, total, cartSale, clear, hasConsignacionBlock, refreshFeria]);
+  }, [lines, metodoPago, isSessionOpen, channel, total, cartSale, clear, hasConsignacionBlock, refreshFeria, discount]);
 
   const handleTerminalComplete = useCallback(async (terminalResult: TerminalFlowResult) => {
     setTerminalComplete(terminalResult);
@@ -144,10 +165,22 @@ export default function CarritoView() {
           qr_codes: l.qr_codes,
         }));
 
-        const result = await cartSale(cartItems, 'pos_terminal', channel, {
-          sumup_checkout_id: terminalResult.checkout_id,
-          sumup_transaction_id: terminalResult.transaction_id,
-        });
+        const discPayload =
+          discount.kind === 'percent' && discount.value > 0
+            ? { descuento_pct: discount.value }
+            : discount.kind === 'fixed' && discount.value > 0
+              ? { descuento_clp: discount.value }
+              : undefined;
+        const result = await cartSale(
+          cartItems,
+          'pos_terminal',
+          channel,
+          {
+            sumup_checkout_id: terminalResult.checkout_id,
+            sumup_transaction_id: terminalResult.transaction_id,
+          },
+          discPayload,
+        );
         if (!result) {
           setError('No se pudo registrar la venta en la sesion de caja');
           return;
@@ -163,7 +196,7 @@ export default function CarritoView() {
     } finally {
       setLoading(false);
     }
-  }, [lines, isSessionOpen, channel, cartSale, clear, refreshFeria]);
+  }, [lines, isSessionOpen, channel, cartSale, clear, refreshFeria, discount]);
 
   const handleTerminalCancel = useCallback(() => {
     setCheckoutMode('standard');
@@ -177,7 +210,8 @@ export default function CarritoView() {
   if (successData) {
     const claimUrl = successData.claim_token ? buildClaimUrl(successData.claim_token) : null;
 
-    const co2Saved = lines.reduce((acc, l) => acc + (l.cantidad * 0.5 * 2.4), 0);
+    // Metodología pública: 1.2 kg CO₂e / frasco 500 g (ver /impacto en Núcleo)
+    const co2Saved = lines.reduce((acc, l) => acc + l.cantidad * 1.2, 0);
 
     return (
       <div className="max-w-2xl mx-auto text-center py-12 px-4 animate-in fade-in zoom-in duration-500">
@@ -385,7 +419,91 @@ export default function CarritoView() {
           <div className="space-y-4 mb-8">
             <div className="flex justify-between items-center text-muted-foreground font-light">
               <span>Subtotal</span>
-              <span>{new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(total)}</span>
+              <span>{formatCLP(subtotal)}</span>
+            </div>
+
+            {totals.descuentoClp > 0 && (
+              <div className="flex justify-between items-center text-success font-light">
+                <span>
+                  Descuento
+                  {totals.descuentoPct != null ? ` (${totals.descuentoPct}%)` : ''}
+                </span>
+                <span>−{formatCLP(totals.descuentoClp)}</span>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-muted-foreground font-bold mb-2">
+                Descuento feria
+              </label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {[
+                  { label: 'Sin dto', d: { kind: 'none' as const } },
+                  { label: '5%', d: { kind: 'percent' as const, value: 5 } },
+                  { label: '10%', d: { kind: 'percent' as const, value: 10 } },
+                  { label: '15%', d: { kind: 'percent' as const, value: 15 } },
+                  { label: '20%', d: { kind: 'percent' as const, value: 20 } },
+                ].map((opt) => {
+                  const active =
+                    opt.d.kind === discount.kind &&
+                    (opt.d.kind === 'none' ||
+                      (opt.d.kind === 'percent' &&
+                        discount.kind === 'percent' &&
+                        opt.d.value === discount.value));
+                  return (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      onClick={() => setDiscount(opt.d)}
+                      className={`min-h-10 px-3 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${
+                        active
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-background border-border text-muted-foreground hover:text-primary'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex gap-2 items-center">
+                <input
+                  type="number"
+                  min={0}
+                  max={50}
+                  step={1}
+                  placeholder="% custom"
+                  className="w-24 rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                  value={discount.kind === 'percent' ? discount.value : ''}
+                  onChange={(e) => {
+                    const v = parseFloat(e.target.value);
+                    if (!e.target.value || Number.isNaN(v)) {
+                      setDiscount({ kind: 'none' });
+                      return;
+                    }
+                    setDiscount({ kind: 'percent', value: Math.min(50, Math.max(0, v)) });
+                  }}
+                />
+                <input
+                  type="number"
+                  min={0}
+                  step={100}
+                  placeholder="CLP fijo"
+                  className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                  value={discount.kind === 'fixed' ? discount.value : ''}
+                  onChange={(e) => {
+                    const v = parseFloat(e.target.value);
+                    if (!e.target.value || Number.isNaN(v) || v <= 0) {
+                      setDiscount({ kind: 'none' });
+                      return;
+                    }
+                    setDiscount({ kind: 'fixed', value: Math.max(0, Math.round(v)) });
+                  }}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1.5">
+                Máx. 50%. El servidor recalcula sobre precios de catálogo.
+              </p>
             </div>
 
             {channel === 'feria' && feriaActiva && consignacionIssues.length > 0 && (
@@ -470,7 +588,7 @@ export default function CarritoView() {
                 <SumupTerminalFlow
                   amount={total}
                   checkoutReference={`campo-cart-${Date.now()}`}
-                  description={`Carrito: ${lines.length} productos`}
+                  description={`Carrito: ${lines.length} productos${totals.descuentoClp > 0 ? ` (−${totals.descuentoClp} dto)` : ''}`}
                   onComplete={handleTerminalComplete}
                   onCancel={handleTerminalCancel}
                 />

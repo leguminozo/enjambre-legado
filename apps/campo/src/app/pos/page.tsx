@@ -2,6 +2,7 @@
 
 import { CashSessionPanel } from '@/components/pos/cash-session-panel';
 import { ClientLookupPanel } from '@/components/pos/client-lookup-panel';
+import { SessionVoidsPanel } from '@/components/pos/session-voids-panel';
 import { useCashSession } from '@/components/pos/cash-context';
 import { PackageSearch, TrendingUp, ShoppingCart, Store } from 'lucide-react';
 import Link from 'next/link';
@@ -31,6 +32,7 @@ export default function PosIndex() {
       {session && (
         <div className="space-y-4">
           <ClientLookupPanel />
+          <SessionVoidsPanel />
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Link

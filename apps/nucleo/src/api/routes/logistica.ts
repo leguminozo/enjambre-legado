@@ -42,6 +42,21 @@ const UpdateEnvioSchema = z.object({
   courier_tracking_url: z.string().url().nullable().optional(),
 }).strict();
 
+const CreateProveedorSchema = z.object({
+  name: z.string().min(1).max(200),
+  item: z.string().min(1).max(300),
+  next_delivery: z.string().max(100).nullable().optional(),
+  urgent: z.boolean().optional().default(false),
+});
+
+const CreateStockCenterSchema = z.object({
+  name: z.string().min(1).max(200),
+  sachets: z.number().int().min(0).optional().default(0),
+  frascos: z.number().int().min(0).optional().default(0),
+  cofres: z.number().int().min(0).optional().default(0),
+  ok: z.boolean().optional().default(true),
+});
+
 export const logisticaRoutes = new Hono<{
   Variables: AppVariables;
 }>();
@@ -376,3 +391,90 @@ logisticaRoutes.delete("/envios/:id", async (c) => {
 
   return c.json({ data: { deleted: true } });
 });
+
+logisticaRoutes.post("/proveedores", zValidator("json", CreateProveedorSchema), async (c) => {
+  const input = c.req.valid("json");
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+
+  const { data, error } = await supabase
+    .from("proveedores")
+    .insert({
+      user_id: user.id,
+      name: input.name,
+      item: input.item,
+      next_delivery: input.next_delivery ?? null,
+      urgent: input.urgent ?? false,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    return c.json({ code: "proveedor_create_failed", message: error.message }, 400);
+  }
+
+  return c.json({ data }, 201);
+});
+
+logisticaRoutes.delete("/proveedores/:id", async (c) => {
+  const proveedorId = c.req.param("id");
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+
+  const { error } = await supabase
+    .from("proveedores")
+    .delete()
+    .eq("id", proveedorId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return c.json({ code: "proveedor_delete_failed", message: error.message }, 400);
+  }
+
+  return c.json({ data: { deleted: true } });
+});
+
+logisticaRoutes.post("/stock-centers", zValidator("json", CreateStockCenterSchema), async (c) => {
+  const input = c.req.valid("json");
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+
+  const { data, error } = await supabase
+    .from("stock_centers")
+    .insert({
+      user_id: user.id,
+      name: input.name,
+      sachets: input.sachets ?? 0,
+      frascos: input.frascos ?? 0,
+      cofres: input.cofres ?? 0,
+      ok: input.ok ?? true,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    return c.json({ code: "stock_center_create_failed", message: error.message }, 400);
+  }
+
+  return c.json({ data }, 201);
+});
+
+logisticaRoutes.delete("/stock-centers/:id", async (c) => {
+  const centerId = c.req.param("id");
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+
+  const { error } = await supabase
+    .from("stock_centers")
+    .delete()
+    .eq("id", centerId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return c.json({ code: "stock_center_delete_failed", message: error.message }, 400);
+  }
+
+  return c.json({ data: { deleted: true } });
+});
+
+

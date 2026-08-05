@@ -1,8 +1,18 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets, LocateFixed, ArrowLeft, Warehouse } from 'lucide-react';
 import type { ApiarioRow, ColmenaWithRelations } from '@/lib/apicultor-types';
 import { supabase } from '../../lib/supabase';
 import { toast, friendlyError } from '@enjambre/ui';
+import {
+    buildApiaryState,
+    buildHiveState,
+    type HiveStateContext,
+    type RiskLevel,
+    RISK_COLORS,
+    RISK_LABELS,
+} from '@/lib/hive-state';
+import { HiveStateBadge, HiveStateDot } from './HiveStateBadge';
+import { YardActionFeed } from './YardActionFeed';
 
 interface ApiarioManagerProps {
     colmenas: ColmenaWithRelations[];
@@ -14,6 +24,8 @@ interface ApiarioManagerProps {
     activeApiarioId: string | null;
     onEnterApiario: (id: string) => void;
     onLeaveApiario: () => void;
+    /** Contexto compartido con el gemelo 3D (alertas, meteo de zona). */
+    hiveCtx?: HiveStateContext;
 }
 
 interface ApiarioDraft {
@@ -53,6 +65,7 @@ export function ApiarioManager({
     activeApiarioId,
     onEnterApiario,
     onLeaveApiario,
+    hiveCtx,
 }: ApiarioManagerProps) {
     const [editingColmena, setEditingColmena] = useState<ColmenaWithRelations | null>(null);
     const [inspeccionBasal, setInspeccionBasal] = useState<InspeccionBasalForm>(INSPECCION_BASAL_INICIAL);
@@ -69,9 +82,36 @@ export function ApiarioManager({
           )
         : [];
 
-    const optimalCount = (workspaceMode ? colmenasWorkspace : localColmenas).filter((c) => c.health === 'optimal').length;
-    const attentionCount = (workspaceMode ? colmenasWorkspace : localColmenas).filter((c) => c.health === 'attention').length;
-    const riskCount = (workspaceMode ? colmenasWorkspace : localColmenas).filter((c) => c.health === 'risk').length;
+    const workspaceCtx = useMemo<HiveStateContext>(
+        () => ({
+            ...hiveCtx,
+            apiarioLat:
+                hiveCtx?.apiarioLat ??
+                (typeof activeApiario?.lat === 'number' ? activeApiario.lat : null),
+            apiarioLng:
+                hiveCtx?.apiarioLng ??
+                (typeof activeApiario?.lng === 'number' ? activeApiario.lng : null),
+        }),
+        [hiveCtx, activeApiario],
+    );
+
+    const workspaceApiary = useMemo(
+        () =>
+            buildApiaryState(colmenasWorkspace, {
+                apiarioId: activeApiario?.id ?? null,
+                apiarioName: activeApiario?.name ?? undefined,
+                ctx: workspaceCtx,
+            }),
+        [colmenasWorkspace, activeApiario, workspaceCtx],
+    );
+
+    const hiveById = useMemo(() => {
+        const m = new Map(workspaceApiary.hives.map((h) => [h.id, h]));
+        return m;
+    }, [workspaceApiary.hives]);
+
+    const riskSummary = workspaceApiary.riskSummary;
+    const riskOrder: RiskLevel[] = ['critical', 'alert', 'watch', 'ok', 'unknown'];
 
     const openNewApiario = () => {
         setApiarioError(null);
@@ -375,15 +415,16 @@ export function ApiarioManager({
                                 (c) => c.apiario_id === row.id || c.apiario_name === row.name,
                             );
                             const kg = cols.reduce((s, c) => s + (c.production_total || 0), 0);
-                            const risk = cols.some((c) => c.health === 'risk') || row.health === 'risk';
-                            const attn =
-                                !risk &&
-                                (cols.some((c) => c.health === 'attention') || row.health === 'attention');
-                            const healthColor = risk
-                                ? 'hsl(var(--destructive))'
-                                : attn
-                                  ? 'hsl(var(--warning))'
-                                  : 'hsl(var(--success))';
+                            const yard = buildApiaryState(cols, {
+                                apiarioId: row.id,
+                                apiarioName: row.name ?? undefined,
+                                ctx: {
+                                    ...hiveCtx,
+                                    apiarioLat: typeof row.lat === 'number' ? row.lat : null,
+                                    apiarioLng: typeof row.lng === 'number' ? row.lng : null,
+                                },
+                            });
+                            const healthColor = RISK_COLORS[yard.worstRisk];
                             const hasCoords =
                                 typeof row.lat === 'number' &&
                                 typeof row.lng === 'number' &&
@@ -399,9 +440,10 @@ export function ApiarioManager({
                                         className="text-left flex items-start gap-3 min-h-11"
                                         onClick={() => onEnterApiario(row.id)}
                                     >
-                                        <span
-                                            className="mt-1.5 size-2.5 rounded-full shrink-0"
-                                            style={{ background: healthColor }}
+                                        <HiveStateDot
+                                            risk={yard.worstRisk}
+                                            color={healthColor}
+                                            size={10}
                                         />
                                         <div className="min-w-0 flex-1">
                                             <div className="font-semibold text-foreground truncate">
@@ -409,6 +451,10 @@ export function ApiarioManager({
                                             </div>
                                             <div className="text-xs text-muted-foreground mt-0.5">
                                                 {cols.length} colmena{cols.length === 1 ? '' : 's'}
+                                                {' · '}
+                                                <span style={{ color: healthColor }}>
+                                                    {RISK_LABELS[yard.worstRisk]}
+                                                </span>
                                                 {hasCoords
                                                     ? ` · ${row.lat!.toFixed(4)}, ${row.lng!.toFixed(4)}`
                                                     : ''}
@@ -491,17 +537,16 @@ export function ApiarioManager({
                     </div>
                     <div>
                         <div className="section-title">{apiarioName}</div>
-                        <div className="section-subtitle">
-                            <span style={{ color: 'hsl(var(--success))' }}>● {optimalCount} óptimas</span>
-                            {attentionCount > 0 && (
-                                <span style={{ marginLeft: 12, color: 'hsl(var(--warning))' }}>
-                                    ● {attentionCount} atención
-                                </span>
-                            )}
-                            {riskCount > 0 && (
-                                <span style={{ marginLeft: 12, color: 'hsl(var(--destructive))' }}>
-                                    ● {riskCount} riesgo
-                                </span>
+                        <div className="section-subtitle" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px' }}>
+                            {riskOrder
+                                .filter((r) => riskSummary[r] > 0)
+                                .map((r) => (
+                                    <span key={r} style={{ color: RISK_COLORS[r] }}>
+                                        ● {riskSummary[r]} {RISK_LABELS[r].toLowerCase()}
+                                    </span>
+                                ))}
+                            {workspaceApiary.hiveCount === 0 && (
+                                <span className="text-muted-foreground">Sin colmenas</span>
                             )}
                         </div>
                     </div>
@@ -527,6 +572,16 @@ export function ApiarioManager({
                 </div>
             </div>
 
+            <div style={{ marginBottom: 12 }}>
+                <YardActionFeed
+                    hives={workspaceApiary.hives}
+                    onSelectColmenaId={(id) => {
+                        const c = colmenasWorkspace.find((x) => x.id === id);
+                        if (c) onSelectColmena(c);
+                    }}
+                />
+            </div>
+
             <div className="colmena-list" style={{ gap: 4 }}>
                 {colmenasWorkspace.length === 0 ? (
                     <div className="text-center py-10 text-sm text-muted-foreground">
@@ -542,9 +597,22 @@ export function ApiarioManager({
                         </div>
                     </div>
                 ) : (
-                    colmenasWorkspace.map((c) => (
+                    colmenasWorkspace.map((c) => {
+                        const state =
+                            hiveById.get(c.id) ?? buildHiveState(c, workspaceCtx);
+                        const pesoLabel =
+                            state.weightKg != null ? `${state.weightKg} kg` : 'sin peso';
+                        const varroaLabel =
+                            state.varroaLevel != null
+                                ? `V ${state.varroaLevel}`
+                                : 'sin varroa';
+                        return (
                         <div key={c.id} className="colmena-item" style={{ background: 'hsl(var(--card))', position: 'relative' }}>
-                            <div className={`colmena-status ${c.health}`} />
+                            <div
+                                className="colmena-status"
+                                style={{ background: state.color }}
+                                title={state.riskLabel}
+                            />
                             <div
                                 style={{
                                     flex: 1,
@@ -553,26 +621,51 @@ export function ApiarioManager({
                                     display: 'flex',
                                     flexDirection: 'column',
                                     justifyContent: 'center',
+                                    gap: 4,
+                                    minWidth: 0,
                                 }}
                                 onClick={() => onSelectColmena(c)}
                             >
-                                <div className="colmena-name" style={{ fontSize: '0.85rem' }}>
-                                    {c.name}
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 8,
+                                        flexWrap: 'wrap',
+                                    }}
+                                >
+                                    <div className="colmena-name" style={{ fontSize: '0.85rem' }}>
+                                        {c.name}
+                                    </div>
+                                    <HiveStateBadge state={state} size="sm" />
                                 </div>
                                 <div
                                     style={{
                                         fontSize: '0.68rem',
-                                        marginTop: 2,
                                         color: 'hsl(var(--muted-foreground))',
                                         display: 'flex',
                                         gap: 10,
                                         flexWrap: 'wrap',
                                     }}
                                 >
-                                    <span>{c.floracion || 'Sin floración'}</span>
-                                    <span>⚖️ {c.peso_records?.at(-1)?.kg || 0} kg</span>
-                                    <span>🔬 V {c.varroa_records?.at(-1)?.level || 0}/10</span>
+                                    <span>{state.floracion || c.floracion || 'Sin floración'}</span>
+                                    <span>⚖️ {pesoLabel}</span>
+                                    <span>🔬 {varroaLabel}</span>
+                                    {state.weightTrend === 'down' && (
+                                        <span style={{ color: RISK_COLORS.alert }}>peso ↓</span>
+                                    )}
                                 </div>
+                                {state.primaryAction && (
+                                    <div
+                                        style={{
+                                            fontSize: '0.62rem',
+                                            color: state.color,
+                                            opacity: 0.9,
+                                        }}
+                                    >
+                                        {state.primaryAction}
+                                    </div>
+                                )}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <div className="colmena-production" style={{ textAlign: 'right', marginRight: 8 }}>
@@ -613,7 +706,8 @@ export function ApiarioManager({
                                 </div>
                             </div>
                         </div>
-                    ))
+                        );
+                    })
                 )}
                 {colmenasWorkspace.length > 0 && (
                     <button

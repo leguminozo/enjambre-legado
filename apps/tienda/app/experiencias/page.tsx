@@ -39,6 +39,21 @@ export default function ExperienciasPage() {
         <p className="mt-4 leading-relaxed text-muted-foreground text-pretty">
           Experiencias del bosque inmersivas ligadas a toda nuestra actividad.
         </p>
+        <div className="mt-8 rounded-2xl border border-border bg-card p-5">
+          <h2 className="font-display text-lg font-semibold text-foreground">
+            Club de la Cosecha
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+            Suscripción al ritmo del ulmo, la tiaca y el quillay: cata, origen y
+            trazabilidad de lote.
+          </p>
+          <Link
+            href="/club-cosecha"
+            className="mt-4 inline-flex min-h-11 items-center rounded-full bg-primary px-5 text-xs font-bold uppercase tracking-wider text-primary-foreground"
+          >
+            Conocer el club
+          </Link>
+        </div>
         <Link
           href="/"
           className="mt-8 inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-2"

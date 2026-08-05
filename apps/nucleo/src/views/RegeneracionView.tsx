@@ -4,6 +4,10 @@ import { TreePine, Camera, MapPin, Leaf, Plus, ChevronDown, Edit3, Trash2, X } f
 import { toast, friendlyError, ViewLoading, ImmersiveModal } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';
+import {
+  IMPACTO_METODOLOGIA_VERSION,
+  computeIrrSimplificado,
+} from '@/lib/impacto-metodologia';
 
 interface TreeRecord {
   id: string;
@@ -102,8 +106,8 @@ export function RegeneracionView() {
   const treeTrend = recentTrees > 0 ? `+${recentTrees.toLocaleString()}` : undefined;
   const co2Trend = recentCO2 > 0 ? `+${recentCO2} ton` : undefined;
 
-  const co2EmitidoEstimado = Math.round(totalTrees * 0.5 / 100);
-  const irrValue = co2EmitidoEstimado > 0 ? (totalCO2 / co2EmitidoEstimado).toFixed(2) : '—';
+  const irrNum = computeIrrSimplificado(totalCO2, totalTrees);
+  const irrValue = irrNum != null ? String(irrNum) : '—';
   const displayed = showAll ? records : records.slice(0, 4);
 
   const handleSubmit = async () => {
@@ -208,6 +212,21 @@ export function RegeneracionView() {
         title="Bosque"
         subtitle={`${anosLegado} años de reforestación nativa en Chiloé. Cada lote de miel está vinculado directamente a los árboles que alimentan a las abejas.`}
       />
+
+      <div className="rounded-xl border border-border/60 bg-card/80 px-4 py-3 text-xs text-muted-foreground flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <span>
+          CO₂ e IRR usan metodología pública v{IMPACTO_METODOLOGIA_VERSION} (coeficientes
+          conservadores, no LCA).
+        </span>
+        <a
+          href="/impacto"
+          target="_blank"
+          rel="noreferrer"
+          className="text-primary font-medium hover:underline shrink-0"
+        >
+          Ver open-book y fórmulas →
+        </a>
+      </div>
 
       <div className="stats-grid">
         {[

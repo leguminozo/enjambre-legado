@@ -70,7 +70,13 @@ type CashContextValue = {
   closeSession: (closingCashCounted: number, notas?: string) => Promise<Record<string, unknown> | null>;
   refreshStatus: () => Promise<void>;
   quickSale: (productoId: string, cantidad: number, metodoPago: string, channel?: string, sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => Promise<QuickSaleResult | null>;
-  cartSale: (items: CartItem[], metodoPago: string, channel?: string, sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => Promise<QuickSaleResult | null>;
+  cartSale: (
+    items: CartItem[],
+    metodoPago: string,
+    channel?: string,
+    sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string },
+    discount?: { descuento_pct?: number; descuento_clp?: number },
+  ) => Promise<QuickSaleResult | null>;
 };
 
 const CashContext = createContext<CashContextValue | null>(null);
@@ -235,7 +241,13 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
     return { ...res.data, commission: res.meta.commission ?? undefined };
   }, [token, session, selectedClient, isNewClient]);
 
-  const cartSale = useCallback(async (items: CartItem[], metodoPago: string, channel?: string, sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => {
+  const cartSale = useCallback(async (
+    items: CartItem[],
+    metodoPago: string,
+    channel?: string,
+    sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string },
+    discount?: { descuento_pct?: number; descuento_clp?: number },
+  ) => {
     if (!token || !session) throw new Error('Sin sesion abierta');
     const client_request_id = crypto.randomUUID();
     const payload = {
@@ -250,6 +262,12 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       items_override: items,
       sumup_checkout_id: sumupFields?.sumup_checkout_id,
       sumup_transaction_id: sumupFields?.sumup_transaction_id,
+      ...(discount?.descuento_pct != null && discount.descuento_pct > 0
+        ? { descuento_pct: discount.descuento_pct }
+        : {}),
+      ...(discount?.descuento_clp != null && discount.descuento_clp > 0
+        ? { descuento_clp: discount.descuento_clp }
+        : {}),
     };
 
     if (!navigator.onLine) {
