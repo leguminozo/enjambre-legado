@@ -172,6 +172,7 @@ app.use("*", async (c, next) => {
     "/api/impacto",
     "/api/mapa-publico",
     "/api/alambique/publico",
+    "/api/hidromiel/publico",
     // Proxy Open-Meteo (coords fijas Pureo, sin datos de usuario). El cliente
     // llama sin Bearer; el rate-limit del route ya limita abuso.
     "/api/meteo",
