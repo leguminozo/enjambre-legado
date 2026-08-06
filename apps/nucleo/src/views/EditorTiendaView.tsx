@@ -1236,6 +1236,20 @@ export function EditorTiendaView() {
 
   const tiendaUrl = getUrlTienda();
 
+  // Guard: si la URL de tienda apunta al propio Núcleo, el iframe se auto-embebe
+  // y queda en blanco (CSP frame-ancestors 'none'). Mostrar error explícito.
+  const tiendaOrigin = (() => {
+    try {
+      return tiendaUrl ? new URL(tiendaUrl).origin : '';
+    } catch {
+      return '';
+    }
+  })();
+  const isSelfEmbed =
+    typeof window !== 'undefined' &&
+    tiendaOrigin !== '' &&
+    tiendaOrigin === window.location.origin;
+
   return (
     <div
       data-testid="editor-tienda-root"
@@ -1405,6 +1419,20 @@ export function EditorTiendaView() {
                     </p>
                   </div>
                 </div>
+              ) : isSelfEmbed ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-surface-sunken p-6">
+                  <div className="text-center space-y-2 max-w-sm">
+                    <AppWindow size={48} className="mx-auto text-destructive opacity-70" />
+                    <p className="text-sm font-medium text-foreground">
+                      La URL de la tienda apunta a Núcleo
+                    </p>
+                    <p className="text-xs text-muted-foreground/70 break-words">
+                      NEXT_PUBLIC_URL_TIENDA está configurada con la URL de Núcleo (
+                      {tiendaOrigin}). El iframe no puede embeber Núcleo dentro de
+                      Núcleo. Corregí la variable en el proyecto de Vercel.
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <div className={`flex-1 relative w-full overflow-hidden ${viewMode === 'mobile' ? 'md:mt-7 md:rounded-b-[2rem]' : ''}`}>
                   <iframe
@@ -1419,6 +1447,19 @@ export function EditorTiendaView() {
               )}
             </div>
           </div>
+
+          {/* Escape hatch: si el navegador bloquea el iframe (CSP/privacidad), abrir la tienda en pestaña */}
+          {tiendaUrl && !isSelfEmbed && (
+            <a
+              href={tiendaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute bottom-4 right-4 z-20 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-background/90 backdrop-blur border border-border text-muted-foreground hover:text-accent hover:border-accent/50 transition-colors shadow-lg"
+            >
+              <ExternalLink size={12} />
+              Abrir tienda en pestaña
+            </a>
+          )}
         </div>
       </div>
 
