@@ -183,6 +183,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Alquimista del número',
         mission: 'Recetas y rentabilidad — insumos en Inventario',
       },
+      {
+        key: 'hidromiel',
+        label: 'Hidromiel',
+        icon: 'wine',
+        href: '/hidromiel',
+        greeting: 'Fermentador del bosque',
+        mission: 'Lotes de hidromiel: construye tu proceso, mide, registra y traza la miel',
+      },
     ],
   },
   {

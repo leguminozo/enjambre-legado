@@ -169,10 +169,12 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'lotes',
       'inventario',
       'costeo',
+      'hidromiel',
     ]);
     expect(prod?.items.find((i) => i.key === 'recoleccion')?.href).toBe('/produccion/recoleccion');
     expect(prod?.items.find((i) => i.key === 'inventario')?.href).toBe('/produccion/inventario');
     expect(prod?.items.find((i) => i.key === 'lotes')?.href).toBe('/produccion/lotes');
+    expect(prod?.items.find((i) => i.key === 'hidromiel')?.href).toBe('/hidromiel');
   });
 
   it('findActiveItem resuelve sub-rutas al ítem propio, no al padre', () => {

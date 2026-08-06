@@ -4686,6 +4686,223 @@ export type Database = {
           },
         ]
       }
+      hidromiel_etapas: {
+        Row: {
+          created_at: string
+          fecha: string
+          id: string
+          lote_id: string
+          nombre: string
+          nota: string | null
+        }
+        Insert: {
+          created_at?: string
+          fecha?: string
+          id?: string
+          lote_id: string
+          nombre: string
+          nota?: string | null
+        }
+        Update: {
+          created_at?: string
+          fecha?: string
+          id?: string
+          lote_id?: string
+          nombre?: string
+          nota?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hidromiel_etapas_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "hidromiel_lotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hidromiel_ingredientes: {
+        Row: {
+          cantidad: number | null
+          created_at: string
+          id: string
+          lote_id: string
+          nombre: string
+          nota: string | null
+          unidad: string | null
+        }
+        Insert: {
+          cantidad?: number | null
+          created_at?: string
+          id?: string
+          lote_id: string
+          nombre: string
+          nota?: string | null
+          unidad?: string | null
+        }
+        Update: {
+          cantidad?: number | null
+          created_at?: string
+          id?: string
+          lote_id?: string
+          nombre?: string
+          nota?: string | null
+          unidad?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hidromiel_ingredientes_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "hidromiel_lotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hidromiel_lotes: {
+        Row: {
+          co2_target_vol: number | null
+          codigo: string | null
+          costo_envases: number
+          costo_insumos: number
+          created_at: string
+          densidad_final: number | null
+          densidad_inicial: number | null
+          empresa_id: string | null
+          estado: string
+          fecha_inicio: string
+          id: string
+          levadura_cepa: string | null
+          miel_lote_id: string | null
+          n_botellas: number | null
+          nombre: string | null
+          nota_personal: number | null
+          observaciones: string | null
+          presion_target_bar: number | null
+          publico: boolean
+          relato_publico: string | null
+          temperatura_fermentacion: number | null
+          updated_at: string
+          user_id: string | null
+          volumen_litros: number | null
+        }
+        Insert: {
+          co2_target_vol?: number | null
+          codigo?: string | null
+          costo_envases?: number
+          costo_insumos?: number
+          created_at?: string
+          densidad_final?: number | null
+          densidad_inicial?: number | null
+          empresa_id?: string | null
+          estado?: string
+          fecha_inicio?: string
+          id?: string
+          levadura_cepa?: string | null
+          miel_lote_id?: string | null
+          n_botellas?: number | null
+          nombre?: string | null
+          nota_personal?: number | null
+          observaciones?: string | null
+          presion_target_bar?: number | null
+          publico?: boolean
+          relato_publico?: string | null
+          temperatura_fermentacion?: number | null
+          updated_at?: string
+          user_id?: string | null
+          volumen_litros?: number | null
+        }
+        Update: {
+          co2_target_vol?: number | null
+          codigo?: string | null
+          costo_envases?: number
+          costo_insumos?: number
+          created_at?: string
+          densidad_final?: number | null
+          densidad_inicial?: number | null
+          empresa_id?: string | null
+          estado?: string
+          fecha_inicio?: string
+          id?: string
+          levadura_cepa?: string | null
+          miel_lote_id?: string | null
+          n_botellas?: number | null
+          nombre?: string | null
+          nota_personal?: number | null
+          observaciones?: string | null
+          presion_target_bar?: number | null
+          publico?: boolean
+          relato_publico?: string | null
+          temperatura_fermentacion?: number | null
+          updated_at?: string
+          user_id?: string | null
+          volumen_litros?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hidromiel_lotes_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hidromiel_lotes_miel_lote_id_fkey"
+            columns: ["miel_lote_id"]
+            isOneToOne: false
+            referencedRelation: "lotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hidromiel_lotes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hidromiel_mediciones: {
+        Row: {
+          created_at: string
+          fecha: string
+          id: string
+          lote_id: string
+          nota: string | null
+          tipo: string
+          unidad: string | null
+          valor: number | null
+        }
+        Insert: {
+          created_at?: string
+          fecha?: string
+          id?: string
+          lote_id: string
+          nota?: string | null
+          tipo: string
+          unidad?: string | null
+          valor?: number | null
+        }
+        Update: {
+          created_at?: string
+          fecha?: string
+          id?: string
+          lote_id?: string
+          nota?: string | null
+          tipo?: string
+          unidad?: string | null
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hidromiel_mediciones_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "hidromiel_lotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       honorarios: {
         Row: {
           created_at: string

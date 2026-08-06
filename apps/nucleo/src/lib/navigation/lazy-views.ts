@@ -54,6 +54,11 @@ export const LazyAlambiqueView = named(
   'AlambiqueView',
   'Alambique',
 );
+export const LazyHidromielView = named(
+  () => import('@/views/hidromiel/HidromielView'),
+  'HidromielView',
+  'Hidromiel',
+);
 export const LazyApicultorView = named(() => import('@/views/ApicultorView'), 'ApicultorView', 'Colmenas');
 export const LazyApiariosView = named(
   () => import('@/views/apicultor/ApiariosView'),
