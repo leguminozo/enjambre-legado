@@ -3,6 +3,7 @@
 import { useCallback } from 'react'
 import { useAuthStore } from '@enjambre/auth'
 import { supabase } from '@/lib/supabase'
+import { getEmpresaId } from '@/lib/api'
 
 export function useApiFetch() {
   const session = useAuthStore((s) => s.session)
@@ -15,7 +16,8 @@ export function useApiFetch() {
     const { data } = await supabase.auth.getSession()
     const currentSession = data.session ?? session
     const token = currentSession?.access_token ?? ''
-    const empresaId = user?.app_metadata?.empresa_id ?? ''
+    // JWT claim o membership (usuarios_empresas) — paridad con tenantMiddleware
+    const empresaId = user ? await getEmpresaId() : ''
 
     const headers = new Headers(init?.headers)
     if (token) headers.set('Authorization', `Bearer ${token}`)

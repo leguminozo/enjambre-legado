@@ -9,7 +9,7 @@ import { ResumenActividad } from '@/views/eirl/dashboard/ResumenActividad';
 import { ContableView } from '@/views/ContableView';
 import { LibrosView } from '@/views/contable/LibrosView';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { useAuthStore } from '@enjambre/auth';
+import { useEmpresaId } from '@/hooks/use-empresa-id';
 import { ViewLoading } from '@enjambre/ui';
 import { Calculator, FileText, ShoppingCart, BarChart3, BookOpen } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -53,7 +53,7 @@ export function ContableHubView() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const apiFetch = useApiFetch();
-  const empresaId = useAuthStore((s) => s.session?.user?.app_metadata?.empresa_id ?? '');
+  const { empresaId, loading: empresaLoading } = useEmpresaId();
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -125,7 +125,13 @@ export function ContableHubView() {
           )}
         </div>
       )}
-      {activeTab === 'facturas' && <ListaFacturas empresaId={empresaId} />}
+      {activeTab === 'facturas' && (
+        empresaLoading ? (
+          <ViewLoading variant="view" label="Empresa" hideLabel />
+        ) : (
+          <ListaFacturas empresaId={empresaId} />
+        )
+      )}
       {activeTab === 'gastos' && (
         gastoMode === 'new' || gastoMode === 'edit' ? (
           <NuevoGastoForm

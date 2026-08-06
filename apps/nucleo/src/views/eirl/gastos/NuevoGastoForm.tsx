@@ -387,12 +387,12 @@ className="bg-background border-border"
 
           {/* Botones */}
           <div className="flex gap-4">
-            <Button type="submit" disabled={loading} className="bg-primary-foreground text-foreground hover:bg-secondary">
-              <Save className="h-4 w-4 mr-2" />
+            <Button type="submit" disabled={loading}>
+              <Save className="h-4 w-4" />
               {loading ? 'Guardando...' : 'Guardar Gasto'}
             </Button>
-            <Button type="button"  onClick={onCancel} className="border-input">
-              <X className="h-4 w-4 mr-2" />
+            <Button type="button" variant="outline" onClick={onCancel}>
+              <X className="h-4 w-4" />
               Cancelar
             </Button>
           </div>

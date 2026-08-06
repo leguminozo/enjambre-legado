@@ -179,30 +179,21 @@ className="bg-background border-border"
           </div>
 
           <div className="flex gap-4">
-            <Button 
-              type="submit" 
-              disabled={isPending} 
-              className="bg-primary-foreground text-foreground hover:bg-secondary"
-            >
+            <Button type="submit" disabled={isPending}>
               {isPending ? (
                 <>
-                  <HexagonLoader size="sm" className="mr-2" />
+                  <HexagonLoader size="sm" />
                   Guardando...
                 </>
               ) : (
                 <>
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="h-4 w-4" />
                   Guardar Factura
                 </>
               )}
             </Button>
-            <Button 
-              type="button" 
-               
-              onClick={onCancel} 
-              className="border-input"
-            >
-              <X className="h-4 w-4 mr-2" />
+            <Button type="button" variant="outline" onClick={onCancel}>
+              <X className="h-4 w-4" />
               Cancelar
             </Button>
           </div>

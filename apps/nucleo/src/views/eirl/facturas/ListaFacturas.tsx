@@ -181,15 +181,15 @@ export function ListaFacturas({ facturasInitiales = [], empresaId }: ListaFactur
             <FileText className="h-5 w-5" />
             Facturas Emitidas
           </CardTitle>
-          <Button 
-            onClick={() => setMostrarFormulario(true)} 
-            className="bg-primary-foreground text-foreground hover:bg-secondary"
-            disabled={isPending}
+          <Button
+            onClick={() => setMostrarFormulario(true)}
+            disabled={!empresaId || isPending}
+            title={!empresaId ? 'Necesitas una empresa vinculada' : undefined}
           >
             {isPending ? (
-              <HexagonLoader size="sm" className="mr-2" />
+              <HexagonLoader size="sm" />
             ) : (
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4" />
             )}
             Nueva Factura
           </Button>
@@ -199,19 +199,21 @@ export function ListaFacturas({ facturasInitiales = [], empresaId }: ListaFactur
         {loading ? (
           <ViewLoading variant="view" label="Facturas emitidas" hideLabel />
         ) : !empresaId ? (
-          <div className="text-center py-12 text-muted-foreground text-sm">
-            Vincula una empresa en tu perfil para gestionar facturas emitidas.
+          <div className="text-center py-12 max-w-md mx-auto space-y-2">
+            <FileText className="h-10 w-10 mx-auto text-muted-foreground/60" />
+            <h3 className="text-base font-medium text-foreground">Sin empresa en el enjambre</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              No hay membership en <span className="text-foreground/80">usuarios_empresas</span> para tu
+              usuario. Un admin debe vincularte a una empresa para emitir y listar facturas.
+            </p>
           </div>
         ) : facturas.length === 0 ? (
           <div className="text-center py-12">
             <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-medium mb-2">No hay facturas emitidas</h3>
             <p className="text-muted-foreground mb-4">Comienza creando tu primera factura</p>
-            <Button 
-              onClick={() => setMostrarFormulario(true)} 
-              className="bg-primary-foreground text-foreground hover:bg-secondary"
-            >
-              <Plus className="h-4 w-4 mr-2" />
+            <Button onClick={() => setMostrarFormulario(true)}>
+              <Plus className="h-4 w-4" />
               Crear Factura
             </Button>
           </div>

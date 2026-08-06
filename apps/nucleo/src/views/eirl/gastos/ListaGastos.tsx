@@ -158,8 +158,8 @@ if (loading) {
               <ShoppingCart className="h-5 w-5" />
               Gastos
             </CardTitle>
-            <Button onClick={onNuevoGasto} className="bg-primary-foreground text-foreground hover:bg-secondary">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button onClick={onNuevoGasto}>
+              <Plus className="h-4 w-4" />
               Nuevo Gasto
             </Button>
           </div>
@@ -170,8 +170,8 @@ if (loading) {
 <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-medium mb-2">No hay gastos registrados</h3>
           <p className="text-muted-foreground mb-4">Comienza registrando tu primer gasto</p>
-          <Button onClick={onNuevoGasto} className="bg-primary-foreground text-foreground hover:bg-secondary">
-              <Plus className="h-4 w-4 mr-2" />
+          <Button onClick={onNuevoGasto}>
+              <Plus className="h-4 w-4" />
               Registrar Gasto
             </Button>
           </div>

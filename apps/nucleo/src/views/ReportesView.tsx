@@ -1,12 +1,12 @@
 'use client';
 
 import { BarChart3 } from 'lucide-react';
-import { useAuthStore } from '@enjambre/auth';
 import { ReportesComponent } from '@/views/eirl/reportes/ReportesComponent';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { useEmpresaId } from '@/hooks/use-empresa-id';
 
 export function ReportesView() {
-  const empresaId = useAuthStore((s) => s.session?.user?.app_metadata?.empresa_id ?? '');
+  const { empresaId } = useEmpresaId();
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

@@ -1,12 +1,12 @@
 'use client';
 
 import { Brain } from 'lucide-react';
-import { useAuthStore } from '@enjambre/auth';
 import { CalculosIAComponent } from '@/views/eirl/calculos-ia/CalculosIAComponent';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { useEmpresaId } from '@/hooks/use-empresa-id';
 
 export function CalculosIAView() {
-  const empresaId = useAuthStore((s) => s.session?.user?.app_metadata?.empresa_id ?? '');
+  const { empresaId } = useEmpresaId();
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
