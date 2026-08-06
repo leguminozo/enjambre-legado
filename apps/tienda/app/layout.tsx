@@ -96,9 +96,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {...(nonce ? { nonce } : {})}
           dangerouslySetInnerHTML={{ __html: themeScript }}
         />
-        {/* Compat Safari/iOS 15 + diagnóstico en pantalla (solo aparece si hay errores) */}
+        {/* Compat Safari/iOS 15 + diagnóstico en pantalla (solo dev/preview, no en producción) */}
         <LegacyBrowserPolyfills nonce={nonce || undefined} />
-        <ErrorRevealHarness nonce={nonce || undefined} />
+        {process.env.VERCEL_ENV !== 'production' && (
+          <ErrorRevealHarness nonce={nonce || undefined} />
+        )}
         <JsonLd data={rootJsonLd} />
       </head>
       <body className="font-sans antialiased bg-background text-foreground" suppressHydrationWarning>

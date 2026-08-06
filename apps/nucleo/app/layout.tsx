@@ -52,9 +52,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className={`${inter.variable} ${cormorant.variable}`} suppressHydrationWarning>
       <head>
-        {/* Antes de los chunks de Next (async): polyfills Safari/iOS 15 + harness de diagnóstico */}
+        {/* Antes de los chunks de Next (async): polyfills Safari/iOS 15 + harness de diagnóstico.
+            El harness solo en dev/preview: en producción molesta al operador (basura visual). */}
         <LegacyBrowserPolyfills />
-        <ErrorRevealHarness />
+        {process.env.VERCEL_ENV !== 'production' && <ErrorRevealHarness />}
       </head>
       <body
         className={`${inter.className} bg-background text-foreground antialiased`}

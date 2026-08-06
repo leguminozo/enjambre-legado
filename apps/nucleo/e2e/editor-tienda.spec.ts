@@ -158,7 +158,7 @@ test.describe('Editor de Tienda — smoke Marca', () => {
     await page.goto('/editor-tienda');
 
     await expect(page.getByTestId('editor-tienda-root')).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText('Editor de Tienda')).toBeVisible();
+    await expect(page.getByText('Editor Tienda')).toBeVisible();
 
     // Desktop: lista agrupada; mobile: chips
     const marcaCandidates = [
