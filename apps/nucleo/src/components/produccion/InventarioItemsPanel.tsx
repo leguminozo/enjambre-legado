@@ -269,10 +269,6 @@ export function InventarioItemsPanel({
           <Button className="min-h-11 shrink-0" onClick={openCreate}>
             <Plus size={16} className="mr-1" /> Nuevo
           </Button>
-        ) : onRequestCreate ? (
-          <Button className="min-h-11 shrink-0" variant="outline" onClick={onRequestCreate}>
-            <Plus size={16} className="mr-1" /> Nuevo inventario
-          </Button>
         ) : null}
       </div>
 
