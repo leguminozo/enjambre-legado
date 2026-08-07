@@ -2,7 +2,6 @@
 
 import React, { useEffect, useId, useState, type ComponentType } from 'react';
 import {
-  Save,
   Loader2,
   Upload,
   Image as ImageIcon,
@@ -45,10 +44,11 @@ import {
   type SeoDefaults,
   type ContactSettings,
 } from '@/lib/store-chrome';
+import { TypographySettingsEditor } from '@/components/tienda/TypographySettingsEditor';
+import { useAutosaveEditor } from '@/components/tienda/save-status';
 
 interface SettingsEditorProps {
   content: Record<string, unknown>;
-  isUpdating: boolean;
   onSave: (content: Record<string, unknown>) => void;
   /** Sube a Storage CMS (WEBP optimizado) y devuelve URL pública. */
   onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
@@ -131,23 +131,6 @@ function ToggleField({
   );
 }
 
-function SaveBar({ dirty, isUpdating, onSave }: { dirty: boolean; isUpdating: boolean; onSave: () => void }) {
-  if (!dirty) return null;
-  return (
-    <div className="sticky bottom-0 pt-2 pb-1 bg-gradient-to-t from-surface-sunken via-surface-sunken to-transparent">
-      <button
-        type="button"
-        onClick={onSave}
-        disabled={isUpdating}
-        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors shadow-md disabled:opacity-50 min-h-[48px]"
-      >
-        {isUpdating ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-        Guardar cambios
-      </button>
-    </div>
-  );
-}
-
 function TextField({
   label,
   value,
@@ -185,18 +168,63 @@ function TextField({
 
 // ── Theme ──────────────────────────────────────────────────────────────────
 
-export function ThemeSettingsEditor({ content, isUpdating, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<ThemeSettings>(() => parseThemeSettings(content));
-  const [dirty, setDirty] = useState(false);
+/** Presets de acento (HSL). Oro miel = default de tokens.css. */
+const ACCENT_PRESETS: { label: string; h: number; s: number; l: number }[] = [
+  { label: 'Oro miel', h: 44, s: 85, l: 46 },
+  { label: 'Cobre', h: 25, s: 75, l: 50 },
+  { label: 'Bosque', h: 160, s: 40, l: 35 },
+  { label: 'Terracota', h: 12, s: 65, l: 50 },
+  { label: 'Burdeos', h: 340, s: 55, l: 35 },
+  { label: 'Salvia', h: 90, s: 25, l: 40 },
+];
 
+function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return null;
+  const r = parseInt(m[1].slice(0, 2), 16) / 255;
+  const g = parseInt(m[1].slice(2, 4), 16) / 255;
+  const b = parseInt(m[1].slice(4, 6), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return { h: 0, s: 0, l: Math.round(l * 100) };
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h: number;
+  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+  else if (max === g) h = ((b - r) / d + 2) / 6;
+  else h = ((r - g) / d + 4) / 6;
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  const sn = s / 100;
+  const ln = l / 100;
+  const c = (1 - Math.abs(2 * ln - 1)) * sn;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = ln - c / 2;
+  let rgb: [number, number, number];
+  if (h < 60) rgb = [c, x, 0];
+  else if (h < 120) rgb = [x, c, 0];
+  else if (h < 180) rgb = [0, c, x];
+  else if (h < 240) rgb = [0, x, c];
+  else if (h < 300) rgb = [x, 0, c];
+  else rgb = [c, 0, x];
+  return `#${rgb.map((v) => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('')}`;
+}
+
+export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
+  const [local, setLocal] = useState<ThemeSettings>(() => parseThemeSettings(content));
+  const { isDirty } = useAutosaveEditor('theme_settings', local, (next) => onSave(next));
+
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
+    if (isDirty) return;
     setLocal(parseThemeSettings(content));
-    setDirty(false);
-  }, [content]);
+  }, [content, isDirty]);
 
   const patch = <K extends keyof ThemeSettings>(key: K, value: ThemeSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
-    setDirty(true);
   };
 
   return (
@@ -244,25 +272,128 @@ export function ThemeSettingsEditor({ content, isUpdating, onSave }: SettingsEdi
         value={local.force_dark_public}
         onChange={(v) => patch('force_dark_public', v)}
       />
-      <SaveBar dirty={dirty} isUpdating={isUpdating} onSave={() => { onSave({ ...local }); setDirty(false); }} />
+
+      <div className="space-y-3 p-3 rounded-xl border border-border bg-surface">
+        <div className="flex items-center justify-between gap-2">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
+            Color de acento
+          </h4>
+          <span className="text-[10px] font-mono text-muted-foreground tabular-nums">
+            {local.accent_h} {local.accent_s}% {local.accent_l}%
+          </span>
+        </div>
+
+        {/* Presets */}
+        <div className="grid grid-cols-6 gap-2">
+          {ACCENT_PRESETS.map((p) => {
+            const active =
+              p.h === local.accent_h && p.s === local.accent_s && p.l === local.accent_l;
+            return (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => {
+                  patch('accent_h', p.h);
+                  patch('accent_s', p.s);
+                  patch('accent_l', p.l);
+                }}
+                title={p.label}
+                aria-label={`Acento ${p.label}`}
+                className={`min-h-11 rounded-lg border transition-all ${
+                  active ? 'ring-2 ring-accent scale-105' : 'hover:scale-105'
+                }`}
+                style={{
+                  backgroundColor: `hsl(${p.h} ${p.s}% ${p.l}%)`,
+                  borderColor: active ? 'hsl(var(--accent))' : 'hsl(var(--border))',
+                }}
+              />
+            );
+          })}
+        </div>
+
+        {/* Color libre */}
+        <div className="flex items-center gap-3">
+          <input
+            type="color"
+            value={hslToHex(local.accent_h, local.accent_s, local.accent_l)}
+            onChange={(e) => {
+              const c = hexToHsl(e.target.value);
+              if (!c) return;
+              patch('accent_h', c.h);
+              patch('accent_s', c.s);
+              patch('accent_l', c.l);
+            }}
+            className="w-14 h-11 rounded-lg border border-border bg-background cursor-pointer"
+            aria-label="Color de acento libre"
+          />
+          <p className="text-[11px] text-muted-foreground">
+            Color libre (selector) o preset. Se aplica a botones, links y acentos de la tienda.
+          </p>
+        </div>
+
+        {/* Preview sobre dark y light */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-lg border border-border bg-background p-3 flex flex-col items-center gap-2">
+            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">
+              Sobre fondo oscuro
+            </p>
+            <button
+              type="button"
+              className="px-3 py-1.5 rounded-lg text-xs font-medium"
+              style={{
+                backgroundColor: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)`,
+                color: 'hsl(var(--accent-foreground))',
+              }}
+            >
+              Comprar
+            </button>
+            <p
+              className="text-[11px] font-medium"
+              style={{ color: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)` }}
+            >
+              Link de acento
+            </p>
+          </div>
+          <div className="rounded-lg border border-border bg-surface-raised p-3 flex flex-col items-center gap-2">
+            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">
+              Sobre fondo claro
+            </p>
+            <button
+              type="button"
+              className="px-3 py-1.5 rounded-lg text-xs font-medium"
+              style={{
+                backgroundColor: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)`,
+                color: 'hsl(var(--accent-foreground))',
+              }}
+            >
+              Comprar
+            </button>
+            <p
+              className="text-[11px] font-medium"
+              style={{ color: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)` }}
+            >
+              Link de acento
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 // ── Announcement ───────────────────────────────────────────────────────────
 
-export function AnnouncementSettingsEditor({ content, isUpdating, onSave }: SettingsEditorProps) {
+export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorProps) {
   const [local, setLocal] = useState<AnnouncementSettings>(() => parseAnnouncementSettings(content));
-  const [dirty, setDirty] = useState(false);
+  const { isDirty } = useAutosaveEditor('announcement_settings', local, (next) => onSave(next));
 
   useEffect(() => {
+    if (isDirty) return;
     setLocal(parseAnnouncementSettings(content));
-    setDirty(false);
-  }, [content]);
+  }, [content, isDirty]);
 
   const patch = <K extends keyof AnnouncementSettings>(key: K, value: AnnouncementSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
-    setDirty(true);
   };
 
   return (
@@ -305,25 +436,24 @@ export function AnnouncementSettingsEditor({ content, isUpdating, onSave }: Sett
         unit="px"
         onChange={(v) => patch('height_desktop_px', v)}
       />
-      <SaveBar dirty={dirty} isUpdating={isUpdating} onSave={() => { onSave({ ...local }); setDirty(false); }} />
     </div>
   );
 }
 
 // ── Footer ─────────────────────────────────────────────────────────────────
 
-export function FooterSettingsEditor({ content, isUpdating, onSave }: SettingsEditorProps) {
+export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
   const [local, setLocal] = useState<FooterSettings>(() => parseFooterSettings(content));
-  const [dirty, setDirty] = useState(false);
+  const { isDirty } = useAutosaveEditor('footer_settings', local, (next) => onSave(next));
 
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
+    if (isDirty) return;
     setLocal(parseFooterSettings(content));
-    setDirty(false);
-  }, [content]);
+  }, [content, isDirty]);
 
   const patch = <K extends keyof FooterSettings>(key: K, value: FooterSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
-    setDirty(true);
   };
 
   return (
@@ -378,21 +508,21 @@ export function FooterSettingsEditor({ content, isUpdating, onSave }: SettingsEd
         value={local.copyright_suffix}
         onChange={(v) => patch('copyright_suffix', v)}
       />
-      <SaveBar dirty={dirty} isUpdating={isUpdating} onSave={() => { onSave({ ...local }); setDirty(false); }} />
     </div>
   );
 }
 
 // ── PWA ────────────────────────────────────────────────────────────────────
 
-export function PwaNavSettingsEditor({ content, isUpdating, onSave }: SettingsEditorProps) {
+export function PwaNavSettingsEditor({ content, onSave }: SettingsEditorProps) {
   const [local, setLocal] = useState<PwaNavSettings>(() => parsePwaNavSettings(content));
-  const [dirty, setDirty] = useState(false);
+  const { isDirty } = useAutosaveEditor('pwa_nav_settings', local, (next) => onSave(next));
 
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
+    if (isDirty) return;
     setLocal(parsePwaNavSettings(content));
-    setDirty(false);
-  }, [content]);
+  }, [content, isDirty]);
 
   return (
     <div className="space-y-4 pb-8">
@@ -402,13 +532,11 @@ export function PwaNavSettingsEditor({ content, isUpdating, onSave }: SettingsEd
         value={local.enabled}
         onChange={(v) => {
           setLocal({ enabled: v });
-          setDirty(true);
         }}
       />
       <p className="text-xs text-muted-foreground">
         Edita las pestañas en la sección <strong className="text-foreground">PWA — Pestañas</strong>.
       </p>
-      <SaveBar dirty={dirty} isUpdating={isUpdating} onSave={() => { onSave({ ...local }); setDirty(false); }} />
     </div>
   );
 }
@@ -569,20 +697,20 @@ function BrandAssetUploadField({
   );
 }
 
-export function BrandAssetsEditor({ content, isUpdating, onSave, onImageUpload }: SettingsEditorProps) {
+export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEditorProps) {
   const [local, setLocal] = useState<BrandAssets>(() => parseBrandAssets(content));
-  const [dirty, setDirty] = useState(false);
   const localRef = React.useRef(local);
   localRef.current = local;
+  const { isDirty, flush } = useAutosaveEditor('brand_assets', local, (next) => onSave(next));
 
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
+    if (isDirty) return;
     setLocal(parseBrandAssets(content));
-    setDirty(false);
-  }, [content]);
+  }, [content, isDirty]);
 
   const patch = <K extends keyof BrandAssets>(key: K, value: BrandAssets[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
-    setDirty(true);
   };
 
   /**
@@ -595,8 +723,7 @@ export function BrandAssetsEditor({ content, isUpdating, onSave, onImageUpload }
     if (typeof url !== 'string' || !url) return '';
     const next = { ...localRef.current, [fieldName]: url } as BrandAssets;
     setLocal(next);
-    onSave(next);
-    setDirty(false);
+    await flush(next); // upload -> guardado inmediato (sin debounce)
     return url;
   };
 
@@ -702,7 +829,6 @@ export function BrandAssetsEditor({ content, isUpdating, onSave, onImageUpload }
         no hay override). <strong className="text-foreground">Logo + texto:</strong> desactivá “Mostrar logo” y dejá
         “Mostrar texto de marca”.
       </p>
-      <SaveBar dirty={dirty} isUpdating={isUpdating} onSave={() => { onSave({ ...local }); setDirty(false); }} />
     </div>
   );
 }
@@ -729,18 +855,18 @@ const LANDING_BLOCK_HINTS: Record<LandingSectionId, string> = {
   map: 'Mapa / origen',
 };
 
-export function LandingLayoutEditor({ content, isUpdating, onSave }: SettingsEditorProps) {
+export function LandingLayoutEditor({ content, onSave }: SettingsEditorProps) {
   const [local, setLocal] = useState<LandingLayoutSettings>(() => parseLandingLayout(content));
-  const [dirty, setDirty] = useState(false);
+  const { isDirty } = useAutosaveEditor('landing_layout', local, (next) => onSave(next));
 
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
+    if (isDirty) return;
     setLocal(parseLandingLayout(content));
-    setDirty(false);
-  }, [content]);
+  }, [content, isDirty]);
 
   const patch = <K extends keyof LandingLayoutSettings>(key: K, value: LandingLayoutSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
-    setDirty(true);
   };
 
   const moveSection = (index: number, dir: -1 | 1) => {
@@ -885,33 +1011,24 @@ export function LandingLayoutEditor({ content, isUpdating, onSave }: SettingsEdi
           />
         </>
       ) : null}
-
-      <SaveBar
-        dirty={dirty}
-        isUpdating={isUpdating}
-        onSave={() => {
-          onSave({ ...local });
-          setDirty(false);
-        }}
-      />
     </div>
   );
 }
 
 // ── Catalog ────────────────────────────────────────────────────────────────
 
-export function CatalogSettingsEditor({ content, isUpdating, onSave }: SettingsEditorProps) {
+export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) {
   const [local, setLocal] = useState<CatalogSettings>(() => parseCatalogSettings(content));
-  const [dirty, setDirty] = useState(false);
+  const { isDirty } = useAutosaveEditor('catalog_settings', local, (next) => onSave(next));
 
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
+    if (isDirty) return;
     setLocal(parseCatalogSettings(content));
-    setDirty(false);
-  }, [content]);
+  }, [content, isDirty]);
 
   const patch = <K extends keyof CatalogSettings>(key: K, value: CatalogSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
-    setDirty(true);
   };
 
   return (
@@ -970,32 +1087,24 @@ export function CatalogSettingsEditor({ content, isUpdating, onSave }: SettingsE
         value={local.empty_message}
         onChange={(v) => patch('empty_message', v)}
       />
-      <SaveBar
-        dirty={dirty}
-        isUpdating={isUpdating}
-        onSave={() => {
-          onSave({ ...local });
-          setDirty(false);
-        }}
-      />
     </div>
   );
 }
 
 // ── PDP ────────────────────────────────────────────────────────────────────
 
-export function PdpSettingsEditor({ content, isUpdating, onSave }: SettingsEditorProps) {
+export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
   const [local, setLocal] = useState<PdpSettings>(() => parsePdpSettings(content));
-  const [dirty, setDirty] = useState(false);
+  const { isDirty } = useAutosaveEditor('pdp_settings', local, (next) => onSave(next));
 
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
+    if (isDirty) return;
     setLocal(parsePdpSettings(content));
-    setDirty(false);
-  }, [content]);
+  }, [content, isDirty]);
 
   const patch = <K extends keyof PdpSettings>(key: K, value: PdpSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
-    setDirty(true);
   };
 
   return (
@@ -1041,32 +1150,24 @@ export function PdpSettingsEditor({ content, isUpdating, onSave }: SettingsEdito
         value={local.continue_label_en ?? ''}
         onChange={(v) => patch('continue_label_en', v)}
       />
-      <SaveBar
-        dirty={dirty}
-        isUpdating={isUpdating}
-        onSave={() => {
-          onSave({ ...local });
-          setDirty(false);
-        }}
-      />
     </div>
   );
 }
 
 // ── SEO ────────────────────────────────────────────────────────────────────
 
-export function SeoDefaultsEditor({ content, isUpdating, onSave }: SettingsEditorProps) {
+export function SeoDefaultsEditor({ content, onSave }: SettingsEditorProps) {
   const [local, setLocal] = useState<SeoDefaults>(() => parseSeoDefaults(content));
-  const [dirty, setDirty] = useState(false);
+  const { isDirty } = useAutosaveEditor('seo_defaults', local, (next) => onSave(next));
 
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
+    if (isDirty) return;
     setLocal(parseSeoDefaults(content));
-    setDirty(false);
-  }, [content]);
+  }, [content, isDirty]);
 
   const patch = <K extends keyof SeoDefaults>(key: K, value: SeoDefaults[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
-    setDirty(true);
   };
 
   return (
@@ -1108,32 +1209,24 @@ export function SeoDefaultsEditor({ content, isUpdating, onSave }: SettingsEdito
         value={local.twitter_handle}
         onChange={(v) => patch('twitter_handle', v)}
       />
-      <SaveBar
-        dirty={dirty}
-        isUpdating={isUpdating}
-        onSave={() => {
-          onSave({ ...local });
-          setDirty(false);
-        }}
-      />
     </div>
   );
 }
 
 // ── Contact ────────────────────────────────────────────────────────────────
 
-export function ContactSettingsEditor({ content, isUpdating, onSave }: SettingsEditorProps) {
+export function ContactSettingsEditor({ content, onSave }: SettingsEditorProps) {
   const [local, setLocal] = useState<ContactSettings>(() => parseContactSettings(content));
-  const [dirty, setDirty] = useState(false);
+  const { isDirty } = useAutosaveEditor('contact_settings', local, (next) => onSave(next));
 
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
+    if (isDirty) return;
     setLocal(parseContactSettings(content));
-    setDirty(false);
-  }, [content]);
+  }, [content, isDirty]);
 
   const patch = <K extends keyof ContactSettings>(key: K, value: ContactSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
-    setDirty(true);
   };
 
   return (
@@ -1173,14 +1266,6 @@ export function ContactSettingsEditor({ content, isUpdating, onSave }: SettingsE
         multiline
       />
       <TextField label="Horario (ES)" value={local.hours} onChange={(v) => patch('hours', v)} />
-      <SaveBar
-        dirty={dirty}
-        isUpdating={isUpdating}
-        onSave={() => {
-          onSave({ ...local });
-          setDirty(false);
-        }}
-      />
     </div>
   );
 }
@@ -1188,6 +1273,7 @@ export function ContactSettingsEditor({ content, isUpdating, onSave }: SettingsE
 /** Secciones con editor settings dedicado (una sola fila). */
 export const SETTINGS_SECTION_KEYS = new Set([
   'theme_settings',
+  'typography_settings',
   'announcement_settings',
   'footer_settings',
   'pwa_nav_settings',
@@ -1214,20 +1300,20 @@ export const LEGAL_SECTION_KEYS = new Set([
 export function ChromeSettingsEditor({
   sectionKey,
   content,
-  isUpdating,
   onSave,
   onImageUpload,
 }: {
   sectionKey: string;
   content: Record<string, unknown>;
-  isUpdating: boolean;
   onSave: (content: Record<string, unknown>) => void;
   onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
 }) {
-  const props: SettingsEditorProps = { content, isUpdating, onSave, onImageUpload };
+  const props: SettingsEditorProps = { content, onSave, onImageUpload };
   switch (sectionKey) {
     case 'theme_settings':
       return <ThemeSettingsEditor {...props} />;
+    case 'typography_settings':
+      return <TypographySettingsEditor content={content} onSave={onSave} />;
     case 'announcement_settings':
       return <AnnouncementSettingsEditor {...props} />;
     case 'footer_settings':

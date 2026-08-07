@@ -1,17 +1,17 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Save, Loader2, Upload } from 'lucide-react';
+import { Loader2, Upload } from 'lucide-react';
 import {
   type HeaderMenuSettings,
   HEADER_LAYOUT_OPTIONS,
   MOBILE_MENU_OPTIONS,
   mergeHeaderSettings,
 } from '@/lib/header-menu';
+import { useAutosaveEditor } from '@/components/tienda/save-status';
 
 interface MenuStyleEditorProps {
   content: Record<string, unknown>;
-  isUpdating: boolean;
   onSave: (content: Record<string, unknown>) => void;
   onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
 }
@@ -147,25 +147,20 @@ function OptionCards<T extends string>({
  * Editor visual del menú (inspirado en theme customizer Shopify).
  * Controla formato, burger, tipografía, gaps y altura — sin JSON crudo.
  */
-export function MenuStyleEditor({ content, isUpdating, onSave, onImageUpload }: MenuStyleEditorProps) {
+export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEditorProps) {
   const [local, setLocal] = useState<HeaderMenuSettings>(() => mergeHeaderSettings(content));
-  const [dirty, setDirty] = useState(false);
+  const { isDirty, flush } = useAutosaveEditor('menu_settings', local, (next) => onSave(next));
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
+    if (isDirty) return;
     setLocal(mergeHeaderSettings(content));
-    setDirty(false);
     setIsUploadingLogo(false);
-  }, [content]);
+  }, [content, isDirty]);
 
   const patch = <K extends keyof HeaderMenuSettings>(key: K, value: HeaderMenuSettings[K]) => {
     setLocal((prev) => ({ ...prev, [key]: value }));
-    setDirty(true);
-  };
-
-  const handleSave = () => {
-    onSave({ ...local });
-    setDirty(false);
   };
 
   return (
@@ -433,12 +428,11 @@ export function MenuStyleEditor({ content, isUpdating, onSave, onImageUpload }: 
                         void Promise.resolve(onImageUpload(file, 'logo_src'))
                           .then((url) => {
                             if (typeof url === 'string' && url) {
-                              // Upload = URL only; editor guarda content completo
-                              const next = { ...local, logo_src: url, show_logo: true };
-                              setLocal(next);
-                              onSave(next);
-                              setDirty(false);
-                            }
+                          // Upload = URL only; editor guarda content completo (inmediato)
+                          const next = { ...local, logo_src: url, show_logo: true };
+                          setLocal(next);
+                          void flush(next);
+                        }
                           })
                           .catch(() => {
                             /* toast handled by parent */
@@ -542,20 +536,6 @@ export function MenuStyleEditor({ content, isUpdating, onSave, onImageUpload }: 
           onChange={(v) => patch('backdrop_blur', v)}
         />
       </section>
-
-      {dirty && (
-        <div className="sticky bottom-0 pt-2 pb-1 bg-gradient-to-t from-surface-sunken via-surface-sunken to-transparent">
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isUpdating}
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors shadow-md disabled:opacity-50 min-h-[48px]"
-          >
-            {isUpdating ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-            Guardar estilo del menú
-          </button>
-        </div>
-      )}
     </div>
   );
 }

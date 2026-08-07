@@ -31,6 +31,7 @@ const CMS_SECTIONS = [
   'menu_settings',
   'menu_links',
   'theme_settings',
+  'typography_settings',
   'announcement_settings',
   'announcement_slides',
   'footer_settings',

@@ -1,4 +1,5 @@
 export * from './store-chrome';
+export * from './typography';
 export * from './header-menu';
 export {
   type HeaderLogoSettings,

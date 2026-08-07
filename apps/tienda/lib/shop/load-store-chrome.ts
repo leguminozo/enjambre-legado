@@ -17,6 +17,7 @@ import {
   parseSeoDefaults,
   parseContactSettings,
   parseCampaignBanner,
+  parseTypographySettings,
   DEFAULT_ANNOUNCEMENT_SLIDES,
   DEFAULT_FOOTER_SOCIAL,
   DEFAULT_PWA_NAV_ITEMS,
@@ -25,6 +26,7 @@ import {
 export const loadStoreChrome = cache(async function loadStoreChrome(): Promise<StoreChromeConfig> {
   const batch = await getSiteContentBatch([
     'theme_settings',
+    'typography_settings',
     'announcement_settings',
     'announcement_slides',
     'footer_settings',
@@ -42,6 +44,9 @@ export const loadStoreChrome = cache(async function loadStoreChrome(): Promise<S
 
   const theme = parseThemeSettings(
     (batch.theme_settings?.[0]?.content as Record<string, unknown> | undefined) ?? null,
+  );
+  const typography = parseTypographySettings(
+    (batch.typography_settings?.[0]?.content as Record<string, unknown> | undefined) ?? null,
   );
   const announcement = parseAnnouncementSettings(
     (batch.announcement_settings?.[0]?.content as Record<string, unknown> | undefined) ?? null,
@@ -93,6 +98,7 @@ export const loadStoreChrome = cache(async function loadStoreChrome(): Promise<S
 
   return {
     theme: batch.theme_settings?.[0] ? theme : DEFAULT_STORE_CHROME.theme,
+    typography: batch.typography_settings?.[0] ? typography : DEFAULT_STORE_CHROME.typography,
     announcement: batch.announcement_settings?.[0] ? announcement : DEFAULT_STORE_CHROME.announcement,
     announcementSlides: slides.length > 0 ? slides : DEFAULT_ANNOUNCEMENT_SLIDES,
     footer: batch.footer_settings?.[0] ? footer : DEFAULT_STORE_CHROME.footer,

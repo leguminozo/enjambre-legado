@@ -5,6 +5,7 @@ import {
   type StoreChromeConfig,
   DEFAULT_STORE_CHROME,
   themeToCssVars,
+  typographyToCssVars,
 } from '@/lib/shop/store-chrome';
 
 const StoreChromeContext = createContext<StoreChromeConfig>(DEFAULT_STORE_CHROME);
@@ -20,7 +21,10 @@ export function StoreChromeProvider({
 
   useEffect(() => {
     const root = document.documentElement;
-    const vars = themeToCssVars(config.theme);
+    const vars = {
+      ...themeToCssVars(config.theme),
+      ...typographyToCssVars(config.typography),
+    };
     for (const [key, val] of Object.entries(vars)) {
       root.style.setProperty(key, val);
     }
@@ -33,7 +37,7 @@ export function StoreChromeProvider({
         root.style.removeProperty(key);
       }
     };
-  }, [config.theme]);
+  }, [config.theme, config.typography]);
 
   const memo = useMemo(() => config, [config]);
 

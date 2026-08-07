@@ -15,6 +15,7 @@ import { VercelInsights } from '@/components/VercelInsights';
 import { LegacyBrowserPolyfills, ErrorRevealHarness } from '@enjambre/ui';
 import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
+import { buildGoogleFontsHref, themeToCssVars, typographyToCssVars } from '@/lib/shop/store-chrome';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
 
@@ -80,6 +81,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const rootJsonLd = mergeJsonLd([organizationJsonLd(), webSiteJsonLd()]);
   const favicon = storeChrome.brand.favicon_url || '/icons/icon-192.svg';
   const htmlClass = forceDark || storeChrome.theme.default_theme !== 'light' ? 'dark' : 'light';
+  // Tipografía + acento CMS inyectados server-side: cero FOUT y cero flash de color
+  const chromeVars = {
+    ...typographyToCssVars(storeChrome.typography),
+    ...themeToCssVars(storeChrome.theme),
+  };
+  const chromeStyle = `:root{${Object.entries(chromeVars)
+    .map(([k, v]) => `${k}:${v}`)
+    .join(';')}}`;
 
   return (
     <html lang={locale} className={htmlClass} suppressHydrationWarning>
@@ -88,8 +97,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap"
+          href={buildGoogleFontsHref(storeChrome.typography)}
         />
+        <style dangerouslySetInnerHTML={{ __html: chromeStyle }} />
         <link rel="icon" href={favicon} />
         {/* Always inject — CSP allows unsafe-inline; nonce when middleware provides it */}
         <script

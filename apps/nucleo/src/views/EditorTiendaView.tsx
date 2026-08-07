@@ -3,10 +3,8 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo, type ComponentType } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X,
   Monitor,
   Smartphone,
-  Save,
   Loader2,
   Upload,
   Plus,
@@ -46,10 +44,24 @@ import {
   Users,
   Images,
   Mail,
+  Type,
   type LucideProps,
 } from 'lucide-react';
 import { toast, ImmersiveModal } from '@enjambre/ui';
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  type DropResult,
+  type DraggableProvidedDragHandleProps,
+} from '@hello-pangea/dnd';
 import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/use-cms-content';
+import {
+  EditorSaveStatusProvider,
+  useEditorSaveAggregate,
+  useAutosaveEditor,
+  EditorSaveStatusChip,
+} from '@/components/tienda/save-status';
 import { getUrlTienda } from '@/lib/publicUrls';
 import { MenuStyleEditor } from '@/components/tienda/MenuStyleEditor';
 import {
@@ -73,6 +85,7 @@ import {
   CONTACT_SETTINGS_TEMPLATE,
   CAMPAIGN_BANNER_TEMPLATE,
   LEGAL_DOC_TEMPLATE,
+  TYPOGRAPHY_SETTINGS_TEMPLATE,
 } from '@/lib/store-chrome';
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -109,6 +122,13 @@ const SECTION_META: Record<
     icon: Palette,
     group: 'apariencia',
     hint: 'Colores, radio, grain',
+  },
+  typography_settings: {
+    label: 'Tipografía',
+    short: 'Tipografía',
+    icon: Type,
+    group: 'apariencia',
+    hint: 'Fuentes display y texto',
   },
   brand_assets: {
     label: 'Marca y logos',
@@ -299,6 +319,7 @@ const SECTION_LABELS: Record<string, string> = Object.fromEntries(
 
 const SECTION_ORDER = [
   'theme_settings',
+  'typography_settings',
   'brand_assets',
   'seo_defaults',
   'contact_settings',
@@ -362,6 +383,7 @@ const SECTION_TEMPLATES: Record<string, Record<string, unknown>> = {
   menu_settings: { ...HEADER_SETTINGS_TEMPLATE },
   menu_links: { ...HEADER_NAV_TEMPLATE },
   theme_settings: { ...THEME_SETTINGS_TEMPLATE },
+  typography_settings: { ...TYPOGRAPHY_SETTINGS_TEMPLATE },
   announcement_settings: { ...ANNOUNCEMENT_SETTINGS_TEMPLATE },
   announcement_slides: { ...ANNOUNCEMENT_SLIDE_TEMPLATE },
   footer_settings: { ...FOOTER_SETTINGS_TEMPLATE },
@@ -382,6 +404,26 @@ const SECTION_TEMPLATES: Record<string, Record<string, unknown>> = {
   legal_reembolso: { ...LEGAL_DOC_TEMPLATE },
   legal_cancelacion: { ...LEGAL_DOC_TEMPLATE },
   legal_garantia: { ...LEGAL_DOC_TEMPLATE },
+};
+
+/**
+ * Ruta de la tienda que previsualiza cada sección del editor.
+ * Las que no figuran apuntan al home (cambios globales del layout).
+ */
+const SECTION_PREVIEW_PATHS: Record<string, string> = {
+  catalog_settings: '/catalogo',
+  pdp_settings: '/catalogo',
+  legal_terminos: '/terminos',
+  legal_privacidad: '/privacidad',
+  legal_cookies: '/cookies',
+  legal_envio: '/envio',
+  legal_reembolso: '/reembolso',
+  legal_cancelacion: '/cancelacion',
+  legal_garantia: '/garantia',
+  nosotros: '/nosotros',
+  galeria: '/galeria',
+  contacto: '/contacto',
+  talleres: '/experiencias',
 };
 
 const FIELD_LABELS: Record<string, string> = {
@@ -504,15 +546,19 @@ function ContentFieldEditor({
 interface EditableItemCardProps {
   item: CMSContentItem;
   activeSection: string;
-  onUpdate: (id: string, content: Record<string, unknown>, isActive: boolean) => void;
+  onUpdate: (
+    id: string,
+    content: Record<string, unknown>,
+    isActive: boolean,
+  ) => Promise<unknown> | void;
   onDelete: (id: string) => void;
   onImageUpload: (file: File, fieldName: string, itemId: string) => Promise<string>;
-  isUpdating: boolean;
   isDeleting: boolean;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   isFirst?: boolean;
   isLast?: boolean;
+  dragHandleProps?: DraggableProvidedDragHandleProps | null;
 }
 
 function EditableItemCard({
@@ -521,45 +567,46 @@ function EditableItemCard({
   onUpdate,
   onDelete,
   onImageUpload,
-  isUpdating,
   isDeleting,
   onMoveUp,
   onMoveDown,
   isFirst,
   isLast,
+  dragHandleProps,
 }: EditableItemCardProps) {
   const [expanded, setExpanded] = useState(true);
   const [localContent, setLocalContent] = useState<Record<string, unknown>>(item.content);
   const [localActive, setLocalActive] = useState(item.is_active);
-  const [dirty, setDirty] = useState(false);
   const [uploadingField, setUploadingField] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTargetField, setUploadTargetField] = useState<string>('');
 
-  // Solo re-sync cuando ESTE item cambia en servidor (id/updated_at/active/content).
-  // Dependencia en `item` entero reseteaba dirty de hermanas al invalidar la query tras un save.
+  // Autosave por card: payload = content + active (toggle se guarda solo)
+  const { isDirty, flush } = useAutosaveEditor(
+    `card-${item.id}`,
+    { content: localContent, active: localActive },
+    (payload) => onUpdate(item.id, payload.content, payload.active),
+  );
+
+  // Solo re-sync cuando ESTE item cambia en servidor y no hay pendientes.
+  // Dependencia en `item` entero reseteaba dirty de hermanas al invalidar la
+  // query tras un save; el gate isDirty evita clobber de tecleo en el vuelo.
   const serverContentKey = JSON.stringify(item.content);
   useEffect(() => {
+    if (isDirty) return;
     setLocalContent(item.content);
     setLocalActive(item.is_active);
-    setDirty(false);
     setUploadingField(null);
     // item.content / is_active leídos intencionalmente al cambiar las claves estables
     // eslint-disable-next-line react-hooks/exhaustive-deps -- serverContentKey serializa content
-  }, [item.id, item.updated_at, item.is_active, serverContentKey]);
+  }, [item.id, item.updated_at, item.is_active, serverContentKey, isDirty]);
 
   const handleFieldChange = useCallback((key: string, val: unknown) => {
     setLocalContent((prev) => ({ ...prev, [key]: val }));
-    setDirty(true);
   }, []);
-
-  const handleSave = () => {
-    onUpdate(item.id, localContent, localActive);
-  };
 
   const handleToggleActive = () => {
     setLocalActive(!localActive);
-    setDirty(true);
   };
 
   const handleImageClick = (fieldName: string) => {
@@ -575,13 +622,10 @@ function EditableItemCard({
     void onImageUpload(file, field, item.id)
       .then((url) => {
         if (!url) return;
-        // Editor dueño del save: merge snapshot local + persist content completo
-        setLocalContent((prev) => {
-          const next = { ...prev, [field]: url };
-          onUpdate(item.id, next, localActive);
-          return next;
-        });
-        setDirty(false);
+        // Upload = URL; editor dueño del snapshot → flush inmediato (sin debounce)
+        const next = { ...localContent, [field]: url };
+        setLocalContent(next);
+        void flush({ content: next, active: localActive });
       })
       .finally(() => setUploadingField(null));
     e.target.value = '';
@@ -610,7 +654,17 @@ function EditableItemCard({
         className="flex items-center gap-2 p-3 cursor-pointer hover:bg-surface-raised/50 active:bg-surface-raised transition-colors select-none min-h-[52px]"
         onClick={() => setExpanded(!expanded)}
       >
-        <GripVertical size={15} className="text-muted-foreground shrink-0" />
+        <button
+          {...dragHandleProps}
+          onClick={(e) => e.stopPropagation()}
+          className={`shrink-0 p-1 rounded-md text-muted-foreground transition-colors ${
+            dragHandleProps ? 'cursor-grab active:cursor-grabbing hover:text-accent' : 'cursor-default'
+          }`}
+          title="Arrastrar para reordenar"
+          aria-label="Arrastrar para reordenar"
+        >
+          <GripVertical size={15} />
+        </button>
         <ChevronDown
           size={15}
           className={`text-muted-foreground shrink-0 transition-transform ${expanded ? '' : '-rotate-90'}`}
@@ -618,6 +672,13 @@ function EditableItemCard({
         <span className="text-sm font-medium text-foreground flex-1 truncate">
           {titleField ? String(titleField) : `Item #${item.item_order + 1}`}
         </span>
+
+        {isDirty && (
+          <span
+            className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shrink-0"
+            title="Cambios pendientes por publicar"
+          />
+        )}
 
         {/* Controls always visible on mobile */}
         <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -731,23 +792,9 @@ function EditableItemCard({
               )}
             </div>
           ))}
-
-          {/* Save button — sticky feel, always visible if dirty */}
-          {dirty && (
-            <div className="pt-3 border-t border-border">
-              <button
-                onClick={handleSave}
-                disabled={isUpdating}
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors shadow-md disabled:opacity-50 min-h-[44px]"
-              >
-                {isUpdating ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                Guardar cambios
-              </button>
-            </div>
-          )}
-        </div>
-        </motion.div>
-      )}
+          </div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </motion.div>
   );
@@ -763,7 +810,20 @@ interface SectionNavProps {
 }
 
 function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: SectionNavProps) {
-  const keySet = useMemo(() => new Set(sectionKeys), [sectionKeys]);
+  const [query, setQuery] = useState('');
+  const q = query.trim().toLowerCase();
+
+  const matches = (key: string) => {
+    if (!q) return true;
+    const meta = getSectionMeta(key);
+    return (
+      meta.label.toLowerCase().includes(q) ||
+      meta.short.toLowerCase().includes(q) ||
+      (meta.hint ?? '').toLowerCase().includes(q)
+    );
+  };
+
+  const keySet = useMemo(() => new Set(sectionKeys.filter(matches)), [sectionKeys, q]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const grouped = useMemo(() => {
     return SECTION_GROUPS.map((g) => ({
@@ -774,15 +834,29 @@ function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: S
 
   // Secciones desconocidas (no en meta/order) al final
   const orphanKeys = useMemo(
-    () => sectionKeys.filter((k) => !SECTION_ORDER.includes(k as (typeof SECTION_ORDER)[number])),
-    [sectionKeys],
+    () => sectionKeys.filter((k) => !SECTION_ORDER.includes(k as (typeof SECTION_ORDER)[number]) && matches(k)),
+    [sectionKeys, q], // eslint-disable-line react-hooks/exhaustive-deps
   );
+
+  const filteredKeys = useMemo(() => sectionKeys.filter(matches), [sectionKeys, q]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="space-y-3">
+      {/* Búsqueda: filtra por label/hint y colapsa grupos vacíos */}
+      <div className="relative">
+        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar bloque…"
+          className="w-full bg-background border border-border rounded-lg pl-8 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+        />
+      </div>
+
       {/* Mobile: chips con icono (Shopify-like) */}
       <div className="md:hidden flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
-        {sectionKeys.map((key) => {
+        {filteredKeys.map((key) => {
           const meta = getSectionMeta(key);
           const Icon = meta.icon;
           const active = activeSection === key;
@@ -818,6 +892,9 @@ function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: S
             </button>
           );
         })}
+        {filteredKeys.length === 0 ? (
+          <p className="text-xs text-muted-foreground px-1 py-2">Sin resultados para “{query}”</p>
+        ) : null}
       </div>
 
       {/* Desktop: lista agrupada con iconos (theme customizer) */}
@@ -891,6 +968,10 @@ function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: S
           </div>
         ))}
 
+        {grouped.length === 0 && orphanKeys.length === 0 && q ? (
+          <p className="px-3 py-4 text-xs text-muted-foreground">Sin bloques que coincidan con “{query}”.</p>
+        ) : null}
+
         {orphanKeys.length > 0 ? (
           <div>
             <p className="px-2 mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
@@ -931,16 +1012,18 @@ function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: S
 
 interface MenuSettingsEditorProps {
   item: CMSContentItem;
-  onUpdate: (id: string, content: Record<string, unknown>, isActive: boolean) => void;
-  isUpdating: boolean;
+  onUpdate: (
+    id: string,
+    content: Record<string, unknown>,
+    isActive: boolean,
+  ) => Promise<unknown> | void;
   onImageUpload: (file: File, fieldName: string, itemId: string) => Promise<string>;
 }
 
-function MenuSettingsEditor({ item, onUpdate, isUpdating, onImageUpload }: MenuSettingsEditorProps) {
+function MenuSettingsEditor({ item, onUpdate, onImageUpload }: MenuSettingsEditorProps) {
   return (
     <MenuStyleEditor
       content={item.content}
-      isUpdating={isUpdating}
       onSave={(content) => onUpdate(item.id, content, item.is_active)}
       onImageUpload={(file, fieldName) => onImageUpload(file, fieldName, item.id)}
     />
@@ -952,12 +1035,15 @@ function MenuSettingsEditor({ item, onUpdate, isUpdating, onImageUpload }: MenuS
 interface ItemsPanelProps {
   items: CMSContentItem[];
   activeSection: string;
-  onUpdate: (id: string, content: Record<string, unknown>, isActive: boolean) => void;
+  onUpdate: (
+    id: string,
+    content: Record<string, unknown>,
+    isActive: boolean,
+  ) => Promise<unknown> | void;
   onDelete: (id: string) => void;
   onImageUpload: (file: File, fieldName: string, itemId: string) => Promise<string>;
   onAddNew: () => void;
   onReorder?: (items: CMSContentItem[]) => void;
-  isUpdating: boolean;
   isDeleting: boolean;
 }
 
@@ -969,7 +1055,6 @@ function ItemsPanel({
   onImageUpload,
   onAddNew,
   onReorder,
-  isUpdating,
   isDeleting,
 }: ItemsPanelProps) {
   const handleMoveUp = (index: number) => {
@@ -987,6 +1072,18 @@ function ItemsPanel({
     const temp = newItems[index];
     newItems[index] = newItems[index + 1];
     newItems[index + 1] = temp;
+    onReorder(newItems);
+  };
+
+  // Drag & drop (@hello-pangea/dnd) — mismo onReorder que las flechas
+  const handleDragEnd = (result: DropResult) => {
+    if (!onReorder || !result.destination) return;
+    const from = result.source.index;
+    const to = result.destination.index;
+    if (from === to) return;
+    const newItems = [...items];
+    const [moved] = newItems.splice(from, 1);
+    newItems.splice(to, 0, moved);
     onReorder(newItems);
   };
 
@@ -1028,14 +1125,12 @@ function ItemsPanel({
               <MenuSettingsEditor
                 item={items[0]}
                 onUpdate={onUpdate}
-                isUpdating={isUpdating}
                 onImageUpload={onImageUpload}
               />
             ) : (
               <ChromeSettingsEditor
                 sectionKey={activeSection}
                 content={items[0].content}
-                isUpdating={isUpdating}
                 onSave={(content) => onUpdate(items[0].id, content, items[0].is_active)}
                 onImageUpload={(file, fieldName) => onImageUpload(file, fieldName, items[0].id)}
               />
@@ -1053,41 +1148,70 @@ function ItemsPanel({
               </button>
             </div>
           )
-        ) : (
-          <>
-            <AnimatePresence mode="popLayout">
-              {items.map((item, index) => (
-                <EditableItemCard
+        ) : items.length > 0 && onReorder ? (
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId={`items-${activeSection}`}>
+              {(droppableProvided) => (
+                <div
+                  {...droppableProvided.droppableProps}
+                  ref={droppableProvided.innerRef}
+                  className="space-y-3"
+                >
+                  {items.map((item, index) => (
+                    <Draggable key={item.id} draggableId={item.id} index={index}>
+                      {(draggableProvided) => (
+                        <div
+                          ref={draggableProvided.innerRef}
+                          {...draggableProvided.draggableProps}
+                        >
+                          <EditableItemCard
+                            item={item}
+                            activeSection={activeSection}
+                            onUpdate={onUpdate}
+                            onDelete={onDelete}
+                            onImageUpload={onImageUpload}
+                            isDeleting={isDeleting}
+                            onMoveUp={() => handleMoveUp(index)}
+                            onMoveDown={() => handleMoveDown(index)}
+                            isFirst={index === 0}
+                            isLast={index === items.length - 1}
+                            dragHandleProps={draggableProvided.dragHandleProps}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {droppableProvided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        ) : items.length > 0 ? (
+          <div className="space-y-3">
+            {items.map((item, index) => (
+              <EditableItemCard
                 key={item.id}
                 item={item}
                 activeSection={activeSection}
                 onUpdate={onUpdate}
                 onDelete={onDelete}
                 onImageUpload={onImageUpload}
-                isUpdating={isUpdating}
                 isDeleting={isDeleting}
-                onMoveUp={onReorder ? () => handleMoveUp(index) : undefined}
-                onMoveDown={onReorder ? () => handleMoveDown(index) : undefined}
-                isFirst={index === 0}
-                isLast={index === items.length - 1}
               />
             ))}
-            </AnimatePresence>
-
-            {items.length === 0 && (
-              <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl">
-                <p className="text-sm text-muted-foreground mb-3">
-                  Sin elementos en esta sección.
-                </p>
-                <button
-                  onClick={onAddNew}
-                  className="inline-flex min-h-11 items-center px-3 text-accent text-sm font-medium hover:underline"
-                >
-                  Añadir el primero
-                </button>
-              </div>
-            )}
-          </>
+          </div>
+        ) : (
+          <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl">
+            <p className="text-sm text-muted-foreground mb-3">
+              Sin elementos en esta sección.
+            </p>
+            <button
+              onClick={onAddNew}
+              className="inline-flex min-h-11 items-center px-3 text-accent text-sm font-medium hover:underline"
+            >
+              Añadir el primero
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -1097,13 +1221,55 @@ function ItemsPanel({
 // ── EditorTiendaView (main) ────────────────────────────────────────────────
 
 export function EditorTiendaView() {
+  return (
+    <EditorSaveStatusProvider>
+      <EditorTiendaViewInner />
+    </EditorSaveStatusProvider>
+  );
+}
+
+function EditorTiendaViewInner() {
   const cms = useCMSContent();
   const [activeSection, setActiveSection] = useState<string>('menu_settings');
   const [iframeKey, setIframeKey] = useState(0);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [showNewForm, setShowNewForm] = useState(false);
+  const [previewPath, setPreviewPath] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const { status: saveStatus, flushAll } = useEditorSaveAggregate();
+
+  // Guard: no cerrar la pestaña con trabajo pendiente por publicar
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (saveStatus === 'pending' || saveStatus === 'saving') {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [saveStatus]);
+
+  // Cmd/Ctrl+S = publicar ahora (flush inmediato de todos los editores)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        void flushAll();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [flushAll]);
+
+  // Al cambiar de sección, la preview navega a la ruta relevante
+  useEffect(() => {
+    setPreviewPath(SECTION_PREVIEW_PATHS[activeSection] ?? '');
+    setPreviewLoading(true);
+  }, [activeSection]);
 
   // Derive default JSON from section template
   const defaultTemplate = SECTION_TEMPLATES[activeSection] ?? { title: '', desc: '' };
@@ -1151,24 +1317,29 @@ export function EditorTiendaView() {
     }
   };
 
-  const handleUpdateItem = (id: string, content: Record<string, unknown>, isActive: boolean) => {
-    cms.updateItem.mutate(
-      { id, content, is_active: isActive },
-      {
-        onSuccess: (res) => {
-          toast('Contenido guardado', { type: 'success' });
-          notifyRevalidate(res?.revalidated);
-          refreshIframe();
-        },
-        onError: (err) => toast(err.message, { type: 'error' }),
-      },
-    );
+  /**
+   * Promise para autosave: el hook marca 'saved'/'error' según resuelva.
+   * Toasts solo para errores (el chip global muestra "Publicado ✓").
+   */
+  const handleUpdateItem = async (
+    id: string,
+    content: Record<string, unknown>,
+    isActive: boolean,
+  ) => {
+    try {
+      const res = await cms.updateItem.mutateAsync({ id, content, is_active: isActive });
+      notifyRevalidate(res?.revalidated);
+      refreshIframe();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al guardar';
+      toast(message, { type: 'error' });
+      throw err instanceof Error ? err : new Error(message);
+    }
   };
 
   const handleDeleteItem = (id: string) => {
     cms.deleteItem.mutate(id, {
       onSuccess: (res) => {
-        toast('Item eliminado', { type: 'success' });
         notifyRevalidate(res?.revalidated);
         refreshIframe();
       },
@@ -1206,7 +1377,6 @@ export function EditorTiendaView() {
         { section_key: activeSection as CMSSectionKey, content: newContent },
         {
           onSuccess: (res) => {
-            toast('Elemento añadido', { type: 'success' });
             notifyRevalidate(res?.revalidated);
             setShowNewForm(false);
             refreshIframe();
@@ -1226,7 +1396,6 @@ export function EditorTiendaView() {
     }));
     cms.reorderItems.mutate(payload, {
       onSuccess: (res) => {
-        toast('Orden actualizado', { type: 'success' });
         notifyRevalidate(res?.revalidated);
         refreshIframe();
       },
@@ -1267,6 +1436,7 @@ export function EditorTiendaView() {
               Error al cargar CMS
             </span>
           ) : null}
+          <EditorSaveStatusChip />
         </div>
 
         {/* Desktop: view mode toggle */}
@@ -1377,7 +1547,6 @@ export function EditorTiendaView() {
               onImageUpload={handleImageUpload}
               onAddNew={() => setShowNewForm(true)}
               onReorder={handleReorder}
-              isUpdating={cms.updateItem.isPending}
               isDeleting={cms.deleteItem.isPending}
             />
           )}
@@ -1438,11 +1607,32 @@ export function EditorTiendaView() {
                   <iframe
                     ref={iframeRef}
                     key={iframeKey}
-                    src={tiendaUrl}
+                    src={`${tiendaUrl}${previewPath}`}
                     title="Vista Previa de Tienda"
                     className="absolute inset-0 w-full h-full border-none bg-background"
                     sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                    onLoad={() => setPreviewLoading(false)}
                   />
+                  {/* Overlay mientras la preview navega/revalida */}
+                  <AnimatePresence>
+                    {previewLoading ? (
+                      <motion.div
+                        key="preview-loading"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="absolute inset-0 z-10 flex items-center justify-center bg-surface-sunken/60 backdrop-blur-sm pointer-events-none"
+                      >
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/90 border border-border shadow-lg">
+                          <Loader2 size={14} className="animate-spin text-accent" />
+                          <span className="text-xs font-medium text-muted-foreground">
+                            Actualizando vista previa…
+                          </span>
+                        </div>
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
                 </div>
               )}
             </div>

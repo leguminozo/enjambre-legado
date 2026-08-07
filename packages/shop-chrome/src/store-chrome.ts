@@ -3,6 +3,11 @@
  * Consumido por apps/tienda y apps/nucleo vía re-export.
  */
 
+import {
+  type TypographySettings,
+  DEFAULT_TYPOGRAPHY_SETTINGS,
+} from './typography';
+
 // ── Theme ──────────────────────────────────────────────────────────────────
 
 export type ThemeMode = 'dark' | 'light' | 'system';
@@ -13,13 +18,21 @@ export type ThemeSettings = {
   grain_intensity: number;
   border_radius: RadiusPreset;
   force_dark_public: boolean;
+  /** Acento en canales HSL (formato "H S% L%" que consume hsl(var(--accent))). */
+  accent_h: number;
+  accent_s: number;
+  accent_l: number;
 };
 
+/** Defaults = oro-miel de tokens.css (--enj-oro-miel-h/s/l). */
 export const DEFAULT_THEME_SETTINGS: ThemeSettings = {
   default_theme: 'system',
   grain_intensity: 0.35,
   border_radius: 'md',
   force_dark_public: false,
+  accent_h: 44,
+  accent_s: 85,
+  accent_l: 46,
 };
 
 // ── Announcement ───────────────────────────────────────────────────────────
@@ -266,6 +279,9 @@ export function parseThemeSettings(raw: Record<string, unknown> | null | undefin
     grain_intensity: asNumber(raw.grain_intensity, d.grain_intensity, 0, 1),
     border_radius: pickEnum(raw.border_radius, ['sm', 'md', 'lg'] as const, d.border_radius),
     force_dark_public: asBool(raw.force_dark_public, d.force_dark_public),
+    accent_h: asNumber(raw.accent_h, d.accent_h, 0, 360),
+    accent_s: asNumber(raw.accent_s, d.accent_s, 0, 100),
+    accent_l: asNumber(raw.accent_l, d.accent_l, 0, 100),
   };
 }
 
@@ -368,6 +384,8 @@ export function themeToCssVars(theme: ThemeSettings): Record<string, string> {
   return {
     '--tienda-grain-opacity': String(theme.grain_intensity),
     '--tienda-radius': radiusMap[theme.border_radius],
+    // Formato de canales: las reglas usan hsl(var(--accent))
+    '--accent': `${theme.accent_h} ${theme.accent_s}% ${theme.accent_l}%`,
   };
 }
 
@@ -783,6 +801,7 @@ export type StoreChromeConfig = StoreChromeConfigOla1 & {
   seo: SeoDefaults;
   contact: ContactSettings;
   campaignBanners: CampaignBanner[];
+  typography: TypographySettings;
 };
 
 export const DEFAULT_STORE_CHROME: StoreChromeConfig = {
@@ -796,4 +815,5 @@ export const DEFAULT_STORE_CHROME: StoreChromeConfig = {
   seo: { ...DEFAULT_SEO_DEFAULTS },
   contact: { ...DEFAULT_CONTACT_SETTINGS },
   campaignBanners: [],
+  typography: { ...DEFAULT_TYPOGRAPHY_SETTINGS },
 };

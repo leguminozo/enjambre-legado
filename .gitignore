@@ -26,3 +26,6 @@ apps/tienda/playwright-report/
 # Vitest coverage
 coverage/
 **/coverage/
+
+# Tooling local del agente
+.zcode/
