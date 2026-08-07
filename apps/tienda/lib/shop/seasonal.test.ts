@@ -54,3 +54,60 @@ describe('getSeasonalContext (estacionalidad chilena)', () => {
     expect(getSeasonalContext().season).toBe('otono');
   });
 });
+
+describe('getSeasonalContext (overrides del CMS)', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const veranoOverrides = {
+    verano: { label: 'Verano Austral', message: 'Mensaje personalizado', floraciones: ['Quillay'] },
+  };
+
+  it('sin overrides → default intacto', () => {
+    setMonth(0); // enero
+    const ctx = getSeasonalContext(undefined, 'es');
+    expect(ctx.seasonLabel).toBe('Verano');
+    expect(ctx.message).toContain('Cosecha activa');
+  });
+
+  it('override de la temporada vigente gana sobre el default', () => {
+    setMonth(0); // enero → verano
+    const ctx = getSeasonalContext(veranoOverrides, 'es');
+    expect(ctx.seasonLabel).toBe('Verano Austral');
+    expect(ctx.message).toBe('Mensaje personalizado');
+    expect(ctx.availableFloraciones).toEqual(['Quillay']);
+  });
+
+  it('override de otra temporada no afecta la vigente', () => {
+    setMonth(6); // julio → invierno
+    const ctx = getSeasonalContext(veranoOverrides, 'es');
+    expect(ctx.seasonLabel).toBe('Invierno');
+    expect(ctx.message).toContain('colmenas descansan');
+    expect(ctx.availableFloraciones).toEqual([]);
+  });
+
+  it('override parcial: campos vacíos caen al default', () => {
+    setMonth(0); // enero → verano
+    const ctx = getSeasonalContext({ verano: { label: 'Verano Austral' } }, 'es');
+    expect(ctx.seasonLabel).toBe('Verano Austral');
+    expect(ctx.message).toContain('Cosecha activa');
+    expect(ctx.availableFloraciones).toContain('Ulmo');
+  });
+
+  it('locale en: usa label_en/message_en cuando existen', () => {
+    setMonth(0); // enero → verano
+    const ctx = getSeasonalContext(
+      { verano: { label: 'Verano Austral', label_en: 'Southern Summer', message_en: 'Harvest active' } },
+      'en',
+    );
+    expect(ctx.seasonLabel).toBe('Southern Summer');
+    expect(ctx.message).toBe('Harvest active');
+    // Sin label_en/message_en → cae al ES/default
+    const ctxEs = getSeasonalContext(
+      { verano: { label: 'Verano Austral', label_en: 'Southern Summer', message_en: 'Harvest active' } },
+      'es',
+    );
+    expect(ctxEs.seasonLabel).toBe('Verano Austral');
+  });
+});

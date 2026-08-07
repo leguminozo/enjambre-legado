@@ -1,12 +1,13 @@
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { getSupabaseUrl } from './env'
+import { createAdminClient as createAdminClientCanonical } from '@enjambre/auth/browser'
 
-export function createAdminClient(): ReturnType<typeof createSupabaseClient> | null {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!serviceRoleKey) {
+/**
+ * Fail-soft: null si falta SUPABASE_SERVICE_ROLE_KEY (el factory canónico de
+ * @enjambre/auth lanza; los consumidores de tienda esperan null).
+ */
+export function createAdminClient(): ReturnType<typeof createAdminClientCanonical> | null {
+  try {
+    return createAdminClientCanonical()
+  } catch {
     return null
   }
-
-  return createSupabaseClient(getSupabaseUrl(), serviceRoleKey)
 }

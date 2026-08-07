@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { CheckoutCinematicOverlay } from '@/components/shop/checkout-cinematic-overlay';
 import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin, Sparkles } from 'lucide-react';
 import {
   DEFAULT_COURIER,
@@ -1073,20 +1074,6 @@ export function CheckoutClient() {
                 </p>
               ) : null}
 
-              {redirectStalled && loading ? (
-                <p className="text-center text-xs text-muted-foreground">
-                  Si no fuiste redirigido,{' '}
-                  <button
-                    type="button"
-                    className="inline-flex min-h-11 items-center text-accent underline underline-offset-2 px-1"
-                    onClick={() => setLoading(false)}
-                  >
-                    reintenta
-                  </button>
-                  .
-                </p>
-              ) : null}
-
               {isPwa ? (
                 <p className="text-center text-xs text-muted-foreground">
                   Completa el pago en la misma ventana para confirmar tu pedido.
@@ -1164,6 +1151,13 @@ export function CheckoutClient() {
       )}
 
       <ShopFooter />
+
+      {/* Transición cinematográfica mientras la pasarela procesa el redirect */}
+      <CheckoutCinematicOverlay
+        open={loading}
+        stalled={redirectStalled}
+        onRetry={() => setLoading(false)}
+      />
     </StoreShell>
   );
 }

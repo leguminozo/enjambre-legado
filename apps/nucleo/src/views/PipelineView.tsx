@@ -15,7 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast, ImmersiveModal, DatePicker, formatCLP } from '@enjambre/ui';
+import { toast, ImmersiveModal, DatePicker, formatCLP, ViewLoading } from '@enjambre/ui';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { ViewShell } from '@/components/layout/ViewShell';
 
@@ -295,9 +295,7 @@ export function PipelineView() {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 size={24} className="animate-spin text-accent" />
-          </div>
+          <ViewLoading variant="view" />
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin mt-4">

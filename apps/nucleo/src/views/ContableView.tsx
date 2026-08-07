@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { calcularIVA, calcularTotal } from "@enjambre/contable";
+import { ViewLoading } from "@enjambre/ui";
 import { TrendingUp, FileText, Plus, Loader2 } from "lucide-react";
 import { useAuthStore } from "@enjambre/auth";
 import { formatCurrency } from "@/lib/format";
@@ -246,9 +247,7 @@ export function ContableView() {
           </div>
           <div className="divide-y divide-border">
             {facturasQuery.isLoading ? (
-              <div className="py-8 text-center text-muted-foreground">
-                <Loader2 className="animate-spin mx-auto" size={24} />
-              </div>
+              <ViewLoading variant="inline" />
             ) : (facturasQuery.data ?? []).length === 0 ? (
               <div className="py-8 text-center text-muted-foreground">Sin facturas registradas</div>
             ) : (

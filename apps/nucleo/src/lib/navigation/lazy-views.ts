@@ -60,11 +60,6 @@ export const LazyHidromielView = named(
   'Hidromiel',
 );
 export const LazyApicultorView = named(() => import('@/views/ApicultorView'), 'ApicultorView', 'Colmenas');
-export const LazyApiariosView = named(
-  () => import('@/views/apicultor/ApiariosView'),
-  'ApiariosView',
-  'Apiarios',
-);
 export const LazyCuadernoCampoView = named(
   () => import('@/views/apicultor/CuadernoCampoView'),
   'CuadernoCampoView',
@@ -74,7 +69,6 @@ export const LazyEscenaHojaView = lazyView<{ id: string }>(
   () => import('@/views/apicultor/EscenaHojaView').then((m) => ({ default: m.EscenaHojaView })),
   'Hoja',
 );
-export const LazyLogisticaView = named(() => import('@/views/LogisticaView'), 'LogisticaView', 'Envíos');
 export const LazyEnviosView = named(
   () => import('@/views/despacho/EnviosView'),
   'EnviosView',

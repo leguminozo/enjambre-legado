@@ -24,8 +24,12 @@ export function TextCarousel() {
   const [progress, setProgress] = useState(0);
   const [visible, setVisible] = useState(true);
   const [animating, setAnimating] = useState(false);
+  // La barra crece con su contenido (mensajes largos + link envuelven): la
+  // config height_*_px actúa como mínimo y --carousel-h usa la altura medida.
+  const [measuredHeight, setMeasuredHeight] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const barRef = useRef<HTMLDivElement>(null);
 
   // SSR-stable defaults → set real values after mount (evita React #418)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -44,6 +48,27 @@ export function TextCarousel() {
     window.addEventListener('resize', updateH);
     return () => window.removeEventListener('resize', updateH);
   }, [announcement.height_desktop_px, announcement.height_mobile_px]);
+
+  // Medir la altura real del carrusel (texto CMS largo puede envolver): el
+  // header sticky usa --carousel-h, así que debe coincidir con lo renderizado.
+  useEffect(() => {
+    const el = barRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setMeasuredHeight(el.offsetHeight);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Al desmontar (navegación SPA fuera del home) resetear la var global:
+  // si quedara el valor viejo, el header sticky de otras páginas quedaría
+  // desplazado 44-56px con contenido pasando por encima.
+  useEffect(() => {
+    return () => setCarouselHeightVar(0);
+  }, []);
+
+  const effectiveHeight = Math.max(carouselHeight, measuredHeight);
 
   const slideCount = Math.max(slides.length, 1);
 
@@ -65,7 +90,11 @@ export function TextCarousel() {
   }, [paused, prefersReducedMotion, stopTimers, slides.length, slideCount, intervalMs]);
 
   useEffect(() => {
-    if (!announcement.enabled || dismissed) return;
+    // Sin carrusel visible → var en 0 para que el sticky stack no se desplace.
+    if (!announcement.enabled || dismissed || slides.length === 0) {
+      setCarouselHeightVar(0);
+      return;
+    }
     const wasDismissed = sessionStorage.getItem(STORAGE_KEY);
     if (wasDismissed === '1' && announcement.dismissible) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -73,8 +102,8 @@ export function TextCarousel() {
       setCarouselHeightVar(0);
       return;
     }
-    setCarouselHeightVar(carouselHeight);
-  }, [dismissed, carouselHeight, announcement.enabled, announcement.dismissible]);
+    setCarouselHeightVar(effectiveHeight);
+  }, [dismissed, effectiveHeight, slides.length, announcement.enabled, announcement.dismissible]);
 
   useEffect(() => {
     if (dismissed || paused) {
@@ -154,6 +183,7 @@ export function TextCarousel() {
 
   return (
     <div
+      ref={barRef}
       role="region"
       aria-label="Mensajes del sitio"
       aria-live="polite"
@@ -163,7 +193,7 @@ export function TextCarousel() {
     >
       <div
         className="relative flex items-center justify-center overflow-hidden cursor-pointer select-none group"
-        style={{ height: `${Math.max(carouselHeight, 44)}px` }}
+        style={{ minHeight: `${Math.max(carouselHeight, 44)}px` }}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onTouchStart={() => setPaused(true)}

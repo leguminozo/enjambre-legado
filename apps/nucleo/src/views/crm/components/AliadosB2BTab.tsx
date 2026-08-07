@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading } from '@enjambre/ui';
 import { Users, Check, X, Loader2 } from 'lucide-react';
 
 interface Revendedor {
@@ -68,11 +68,7 @@ export function AliadosB2BTab() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="animate-spin text-accent" size={24} />
-      </div>
-    );
+    return <ViewLoading variant="inline" />;
   }
 
   const pendientes = revendedores.filter((r) => r.estado === 'pendiente').length;

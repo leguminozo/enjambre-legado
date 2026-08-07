@@ -7,6 +7,10 @@ import {
   type TypographySettings,
   DEFAULT_TYPOGRAPHY_SETTINGS,
 } from './typography';
+import {
+  type SeasonalSettings,
+  DEFAULT_SEASONAL_SETTINGS,
+} from './seasonal';
 
 // ── Theme ──────────────────────────────────────────────────────────────────
 
@@ -380,9 +384,14 @@ export function resolveLocalized(
 }
 
 export function themeToCssVars(theme: ThemeSettings): Record<string, string> {
-  const radiusMap = { sm: '0.375rem', md: '0.75rem', lg: '1rem' };
+  // Grano: 0-1 → 0-6% opacidad. El ruido visible se satura muy rápido: el
+  // default histórico de GrainOverlay era 0.02 y grain_intensity default es
+  // 0.35, así que la escala mapea 0.35 → ~0.021 (look actual).
+  const grainOpacity = String(Math.min(0.06, Number(theme.grain_intensity) * 0.06));
+  // Radio: presets alineados con las cards de la tienda (rounded-lg = 0.5rem).
+  const radiusMap = { sm: '0.375rem', md: '0.5rem', lg: '0.75rem' };
   return {
-    '--tienda-grain-opacity': String(theme.grain_intensity),
+    '--tienda-grain-opacity': grainOpacity,
     '--tienda-radius': radiusMap[theme.border_radius],
     // Formato de canales: las reglas usan hsl(var(--accent))
     '--accent': `${theme.accent_h} ${theme.accent_s}% ${theme.accent_l}%`,
@@ -828,6 +837,274 @@ export function isCampaignBannerActive(banner: CampaignBanner, now = new Date())
   return true;
 }
 
+// ── Ola 4: Contenido de los bloques del home (CMS-izado) ───────────────────
+// Vacío = la tienda cae al i18n (messages/*.json), mismo patrón del copy del
+// hero en landing_layout.
+
+export type ConservationContent = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  desc: string;
+  desc_en?: string;
+  /** Cabecera del bloque de triangulación (3 columnas). */
+  tri_label: string;
+  tri_label_en?: string;
+  stat1_label: string;
+  stat1_label_en?: string;
+  stat2_label: string;
+  stat2_label_en?: string;
+  stat3_label: string;
+  stat3_label_en?: string;
+  stat4_label: string;
+  stat4_label_en?: string;
+  tri1_label: string;
+  tri1_label_en?: string;
+  tri1_desc: string;
+  tri1_desc_en?: string;
+  tri2_label: string;
+  tri2_label_en?: string;
+  tri2_desc: string;
+  tri2_desc_en?: string;
+  tri3_label: string;
+  tri3_label_en?: string;
+  tri3_desc: string;
+  tri3_desc_en?: string;
+  irr_label: string;
+  irr_label_en?: string;
+  irr_pos_title: string;
+  irr_pos_title_en?: string;
+  irr_pos_desc: string;
+  irr_pos_desc_en?: string;
+  irr_neg_title: string;
+  irr_neg_title_en?: string;
+  irr_neg_desc: string;
+  irr_neg_desc_en?: string;
+  cta_label: string;
+  cta_label_en?: string;
+};
+
+export type HomeMediaItem = {
+  type: 'image' | 'video';
+  src: string;
+  alt?: string;
+};
+
+export type VideoSettings = {
+  /** Vacío → fallback a NEXT_PUBLIC_YOUTUBE_VIDEO_ID / id por defecto. */
+  youtube_id: string;
+  title?: string;
+};
+
+export type MapSettings = {
+  lat: number;
+  lng: number;
+  popup_title: string;
+  popup_body: string;
+};
+
+export type ProductsSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  desc: string;
+  desc_en?: string;
+};
+
+/** Defaults = copy actual de es.json/en.json (mensajes conservation + science). */
+export const DEFAULT_CONSERVATION_CONTENT: ConservationContent = {
+  kicker: 'Conservación demostrable',
+  kicker_en: 'Proven conservation',
+  title: 'Impacto sin atajos',
+  title_en: 'Impact without shortcuts',
+  desc: 'No certificamos con sellos de tercera mano. Nuestro impacto se demuestra por triangulación: papers revisados por pares, datos locales de Chiloé, y cálculos abiertos que cualquier persona puede verificar.',
+  desc_en:
+    "We don't certify with third-party seals. Our impact is proven by triangulation: peer-reviewed papers, local Chiloé data, and open calculations anyone can verify.",
+  tri_label: 'Triangulación de fuentes',
+  tri_label_en: 'Triangulation of sources',
+  stat1_label: 'Árboles plantados',
+  stat1_label_en: 'Trees planted',
+  stat2_label: 'CO₂ evitado (kg)',
+  stat2_label_en: 'CO₂ avoided (kg)',
+  stat3_label: 'Colmenas custodiadas',
+  stat3_label_en: 'Hives custodated',
+  stat4_label: 'Especies nativas',
+  stat4_label_en: 'Native species',
+  tri1_label: 'Papers revisados por pares',
+  tri1_label_en: 'Peer-reviewed papers',
+  tri1_desc:
+    'Secuestro de carbono en bosque templado lluvioso: 10–25 kg CO₂/árbol/año (Schneider et al., 2020; Gutiérrez & Lara, 2022). Actividad antimicrobiana en mieles chilenas comparable a Manuka (Montes et al., 2019).',
+  tri1_desc_en:
+    'Carbon sequestration in temperate rainforest: 10–25 kg CO₂/tree/year (Schneider et al., 2020; Gutiérrez & Lara, 2022). Antimicrobial activity in Chilean honeys comparable to Manuka (Montes et al., 2019).',
+  tri2_label: 'Datos locales de Chiloé',
+  tri2_label_en: 'Local Chiloé data',
+  // Versión estática: los números vivos (RPC get_ecosystem_metrics) solo se
+  // interpolar en el fallback i18n; si se edita este campo, se usa tal cual.
+  tri2_desc:
+    'Árboles registrados con coordenadas y especie en sectores de Pureo. Colmenas monitoreadas en apiarios entre Quemchi, Molulco y Pureo-Quelen.',
+  tri2_desc_en:
+    'Trees registered with coordinates and species in sectors of Pureo. Hives monitored in apiaries between Quemchi, Molulco and Pureo-Quelen.',
+  tri3_label: 'Cálculo abierto',
+  tri3_label_en: 'Open calculation',
+  tri3_desc:
+    'IRR = CO₂ capturado / CO₂ emitido. Fórmula y datos verificables en nuestra página de ciencia.',
+  tri3_desc_en:
+    'IRR = CO₂ captured / CO₂ emitted. Formula and data verifiable on our science page.',
+  irr_label: 'Índice de Regeneración Relativa',
+  irr_label_en: 'Relative Regeneration Index',
+  irr_pos_title: 'IRR · Impacto > Huella',
+  irr_pos_title_en: 'IRR · Impact > Footprint',
+  irr_pos_desc:
+    'El bosque captura más CO₂ del que la cadena productiva emite. Demostrable por registro forestal + balances de emisión.',
+  irr_pos_desc_en:
+    'The forest captures more CO₂ than the production chain emits. Verifiable by forest registry + emission balances.',
+  irr_neg_title: 'Miel de bosque + Reforestación > Huella de producción',
+  irr_neg_title_en: 'Forest honey + Reforestation > Production footprint',
+  irr_neg_desc:
+    'Años de reforestación nativa. Cada pedido financia árboles y sostiene apiarios en bosque nativo entre Quemchi, Molulco y Pureo-Quelen.',
+  irr_neg_desc_en:
+    'Years of native reforestation. Each order funds trees and sustains apiaries in native forest between Quemchi, Molulco and Pureo-Quelen.',
+  cta_label: 'Ver la ciencia detrás',
+  cta_label_en: 'View the science behind',
+};
+
+export const DEFAULT_MEDIA_ITEMS: HomeMediaItem[] = [
+  { type: 'image', src: '/assets/editorial/immersion.png', alt: 'Inmersión en el bosque' },
+  { type: 'image', src: '/assets/editorial/sachets.png', alt: 'Sachets de miel' },
+  { type: 'image', src: '/assets/editorial/honey-jar.png', alt: 'Frascos de miel' },
+];
+
+export const DEFAULT_VIDEO_SETTINGS: VideoSettings = {
+  youtube_id: '',
+  title: 'La Obrera y el Zángano',
+};
+
+export const DEFAULT_MAP_SETTINGS: MapSettings = {
+  lat: -43.0837,
+  lng: -73.6144,
+  popup_title: 'Pureo Rural km 8560',
+  popup_body: 'Queilén ~ Chiloé',
+};
+
+export const DEFAULT_PRODUCTS_SETTINGS: ProductsSettings = {
+  kicker: 'Creaciones',
+  kicker_en: 'Creations',
+  title: 'La materia de nuestras búsquedas',
+  title_en: 'The matter of our search',
+  desc: 'Creaciones cargadas de experiencias y legado.',
+  desc_en: 'Creations loaded with experiences and legacy.',
+};
+
+export const CONSERVATION_CONTENT_TEMPLATE = { ...DEFAULT_CONSERVATION_CONTENT };
+export const HOME_MEDIA_ITEM_TEMPLATE: HomeMediaItem = { type: 'image', src: '', alt: '' };
+export const VIDEO_SETTINGS_TEMPLATE = { ...DEFAULT_VIDEO_SETTINGS };
+export const MAP_SETTINGS_TEMPLATE = { ...DEFAULT_MAP_SETTINGS };
+export const PRODUCTS_SETTINGS_TEMPLATE = { ...DEFAULT_PRODUCTS_SETTINGS };
+
+const MEDIA_TYPES = ['image', 'video'] as const;
+
+export function parseConservationContent(
+  raw: Record<string, unknown> | null | undefined,
+): ConservationContent {
+  const d = DEFAULT_CONSERVATION_CONTENT;
+  if (!raw) return { ...d };
+  const es = (key: string, fallback: string) => {
+    const v = raw[key];
+    return typeof v === 'string' ? v : fallback;
+  };
+  const en = (key: string, fallback: string | undefined) =>
+    typeof raw[key] === 'string' ? (raw[key] as string) : fallback;
+  return {
+    kicker: es('kicker', d.kicker),
+    kicker_en: en('kicker_en', d.kicker_en),
+    title: es('title', d.title),
+    title_en: en('title_en', d.title_en),
+    desc: es('desc', d.desc),
+    desc_en: en('desc_en', d.desc_en),
+    tri_label: es('tri_label', d.tri_label),
+    tri_label_en: en('tri_label_en', d.tri_label_en),
+    stat1_label: es('stat1_label', d.stat1_label),
+    stat1_label_en: en('stat1_label_en', d.stat1_label_en),
+    stat2_label: es('stat2_label', d.stat2_label),
+    stat2_label_en: en('stat2_label_en', d.stat2_label_en),
+    stat3_label: es('stat3_label', d.stat3_label),
+    stat3_label_en: en('stat3_label_en', d.stat3_label_en),
+    stat4_label: es('stat4_label', d.stat4_label),
+    stat4_label_en: en('stat4_label_en', d.stat4_label_en),
+    tri1_label: es('tri1_label', d.tri1_label),
+    tri1_label_en: en('tri1_label_en', d.tri1_label_en),
+    tri1_desc: es('tri1_desc', d.tri1_desc),
+    tri1_desc_en: en('tri1_desc_en', d.tri1_desc_en),
+    tri2_label: es('tri2_label', d.tri2_label),
+    tri2_label_en: en('tri2_label_en', d.tri2_label_en),
+    tri2_desc: es('tri2_desc', d.tri2_desc),
+    tri2_desc_en: en('tri2_desc_en', d.tri2_desc_en),
+    tri3_label: es('tri3_label', d.tri3_label),
+    tri3_label_en: en('tri3_label_en', d.tri3_label_en),
+    tri3_desc: es('tri3_desc', d.tri3_desc),
+    tri3_desc_en: en('tri3_desc_en', d.tri3_desc_en),
+    irr_label: es('irr_label', d.irr_label),
+    irr_label_en: en('irr_label_en', d.irr_label_en),
+    irr_pos_title: es('irr_pos_title', d.irr_pos_title),
+    irr_pos_title_en: en('irr_pos_title_en', d.irr_pos_title_en),
+    irr_pos_desc: es('irr_pos_desc', d.irr_pos_desc),
+    irr_pos_desc_en: en('irr_pos_desc_en', d.irr_pos_desc_en),
+    irr_neg_title: es('irr_neg_title', d.irr_neg_title),
+    irr_neg_title_en: en('irr_neg_title_en', d.irr_neg_title_en),
+    irr_neg_desc: es('irr_neg_desc', d.irr_neg_desc),
+    irr_neg_desc_en: en('irr_neg_desc_en', d.irr_neg_desc_en),
+    cta_label: es('cta_label', d.cta_label),
+    cta_label_en: en('cta_label_en', d.cta_label_en),
+  };
+}
+
+export function parseHomeMediaItem(raw: Record<string, unknown>): HomeMediaItem | null {
+  const src = typeof raw.src === 'string' ? raw.src.trim() : '';
+  if (!src) return null;
+  return {
+    type: pickEnum(raw.type, MEDIA_TYPES, 'image'),
+    src,
+    alt: typeof raw.alt === 'string' ? raw.alt : undefined,
+  };
+}
+
+export function parseVideoSettings(raw: Record<string, unknown> | null | undefined): VideoSettings {
+  const d = DEFAULT_VIDEO_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    youtube_id: typeof raw.youtube_id === 'string' ? raw.youtube_id.trim() : d.youtube_id,
+    title: typeof raw.title === 'string' ? raw.title : d.title,
+  };
+}
+
+export function parseMapSettings(raw: Record<string, unknown> | null | undefined): MapSettings {
+  const d = DEFAULT_MAP_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    lat: asNumber(raw.lat, d.lat, -90, 90),
+    lng: asNumber(raw.lng, d.lng, -180, 180),
+    popup_title: asString(raw.popup_title, d.popup_title),
+    popup_body: asString(raw.popup_body, d.popup_body),
+  };
+}
+
+export function parseProductsSettings(
+  raw: Record<string, unknown> | null | undefined,
+): ProductsSettings {
+  const d = DEFAULT_PRODUCTS_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    kicker: asString(raw.kicker, d.kicker),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en : d.kicker_en,
+    title: asString(raw.title, d.title),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en : d.title_en,
+    desc: asString(raw.desc, d.desc),
+    desc_en: typeof raw.desc_en === 'string' ? raw.desc_en : d.desc_en,
+  };
+}
+
 // ── Bundle completo (Ola 1 + Ola 2) ────────────────────────────────────────
 
 export type StoreChromeConfig = StoreChromeConfigOla1 & {
@@ -838,6 +1115,7 @@ export type StoreChromeConfig = StoreChromeConfigOla1 & {
   contact: ContactSettings;
   campaignBanners: CampaignBanner[];
   typography: TypographySettings;
+  seasonal: SeasonalSettings;
 };
 
 export const DEFAULT_STORE_CHROME: StoreChromeConfig = {
@@ -852,4 +1130,10 @@ export const DEFAULT_STORE_CHROME: StoreChromeConfig = {
   contact: { ...DEFAULT_CONTACT_SETTINGS },
   campaignBanners: [],
   typography: { ...DEFAULT_TYPOGRAPHY_SETTINGS },
+  seasonal: {
+    primavera: { ...DEFAULT_SEASONAL_SETTINGS.primavera },
+    verano: { ...DEFAULT_SEASONAL_SETTINGS.verano },
+    otono: { ...DEFAULT_SEASONAL_SETTINGS.otono },
+    invierno: { ...DEFAULT_SEASONAL_SETTINGS.invierno },
+  },
 };

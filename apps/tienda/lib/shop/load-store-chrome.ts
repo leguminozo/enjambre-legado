@@ -18,6 +18,7 @@ import {
   parseContactSettings,
   parseCampaignBanner,
   parseTypographySettings,
+  parseSeasonalSettings,
   DEFAULT_ANNOUNCEMENT_SLIDES,
   DEFAULT_FOOTER_SOCIAL,
   DEFAULT_PWA_NAV_ITEMS,
@@ -40,6 +41,7 @@ export const loadStoreChrome = cache(async function loadStoreChrome(): Promise<S
     'seo_defaults',
     'contact_settings',
     'campaign_banners',
+    'seasonal_settings',
   ]);
 
   const theme = parseThemeSettings(
@@ -96,6 +98,10 @@ export const loadStoreChrome = cache(async function loadStoreChrome(): Promise<S
     .map((row) => parseCampaignBanner(row.content as Record<string, unknown>))
     .filter((b): b is NonNullable<typeof b> => b !== null);
 
+  const seasonal = parseSeasonalSettings(
+    (batch.seasonal_settings?.[0]?.content as Record<string, unknown> | undefined) ?? null,
+  );
+
   return {
     theme: batch.theme_settings?.[0] ? theme : DEFAULT_STORE_CHROME.theme,
     typography: batch.typography_settings?.[0] ? typography : DEFAULT_STORE_CHROME.typography,
@@ -112,5 +118,6 @@ export const loadStoreChrome = cache(async function loadStoreChrome(): Promise<S
     seo: batch.seo_defaults?.[0] ? seo : DEFAULT_STORE_CHROME.seo,
     contact: batch.contact_settings?.[0] ? contact : DEFAULT_STORE_CHROME.contact,
     campaignBanners,
+    seasonal: batch.seasonal_settings?.[0] ? seasonal : DEFAULT_STORE_CHROME.seasonal,
   };
 });

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect, useMemo, type ComponentType } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Monitor,
@@ -39,12 +40,15 @@ import {
   Ban,
   BadgeCheck,
   Layers,
-  Wrench,
   GraduationCap,
   Users,
   Images,
   Mail,
   Type,
+  Sun,
+  Leaf,
+  PlayCircle,
+  MapPin,
   type LucideProps,
 } from 'lucide-react';
 import { toast, ImmersiveModal } from '@enjambre/ui';
@@ -86,6 +90,12 @@ import {
   CAMPAIGN_BANNER_TEMPLATE,
   LEGAL_DOC_TEMPLATE,
   TYPOGRAPHY_SETTINGS_TEMPLATE,
+  SEASONAL_SETTINGS_TEMPLATE,
+  CONSERVATION_CONTENT_TEMPLATE,
+  HOME_MEDIA_ITEM_TEMPLATE,
+  VIDEO_SETTINGS_TEMPLATE,
+  MAP_SETTINGS_TEMPLATE,
+  PRODUCTS_SETTINGS_TEMPLATE,
 } from '@/lib/store-chrome';
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -193,6 +203,48 @@ const SECTION_META: Record<
     group: 'home',
     hint: 'Promos y campañas',
   },
+  seasonal_settings: {
+    label: 'Temporada',
+    short: 'Temporada',
+    icon: Sun,
+    group: 'home',
+    hint: 'Mensaje y floraciones',
+  },
+  conservation_content: {
+    label: 'Impacto — Contenido',
+    short: 'Impacto',
+    icon: Leaf,
+    group: 'home',
+    hint: 'Copy y métricas conservación',
+  },
+  media_items: {
+    label: 'Carrusel media — Items',
+    short: 'Media',
+    icon: GalleryHorizontalEnd,
+    group: 'home',
+    hint: 'Imágenes / videos del carrusel',
+  },
+  video_settings: {
+    label: 'Video central',
+    short: 'Video',
+    icon: PlayCircle,
+    group: 'home',
+    hint: 'ID de YouTube del video',
+  },
+  map_settings: {
+    label: 'Mapa / Lugar',
+    short: 'Mapa',
+    icon: MapPin,
+    group: 'home',
+    hint: 'Coordenadas y popup del origen',
+  },
+  products_settings: {
+    label: 'Creaciones — Cabecera',
+    short: 'Creaciones',
+    icon: Package,
+    group: 'home',
+    hint: 'Título y descripción de la sección',
+  },
   catalog_settings: {
     label: 'Catálogo',
     short: 'Catálogo',
@@ -237,12 +289,6 @@ const SECTION_META: Record<
     label: 'Colecciones',
     short: 'Colecciones',
     icon: Layers,
-    group: 'contenido',
-  },
-  servicios: {
-    label: 'Servicios',
-    short: 'Servicios',
-    icon: Wrench,
     group: 'contenido',
   },
   talleres: {
@@ -331,6 +377,12 @@ const SECTION_ORDER = [
   'catalog_settings',
   'pdp_settings',
   'campaign_banners',
+  'seasonal_settings',
+  'conservation_content',
+  'media_items',
+  'video_settings',
+  'map_settings',
+  'products_settings',
   'footer_settings',
   'footer_social',
   'pwa_nav_settings',
@@ -343,16 +395,21 @@ const SECTION_ORDER = [
   'legal_cancelacion',
   'legal_garantia',
   'colecciones',
-  'servicios',
   'talleres',
   'nosotros',
   'galeria',
   'contacto',
 ] as const;
 
-/** No listar en editor ni crear: tienda no los consume (hero=i18n, pie=StoreChrome). */
+/**
+ * No listar en editor ni crear: la tienda no los consume (hero=i18n,
+ * pie=StoreChrome, servicios=sin página). Las filas legacy de la tabla
+ * site_content se conservan (no se borran por diseño): son inofensivas y
+ * eliminarlas requeriría una migración de datos.
+ */
 const RETIRED_CMS_SECTIONS = new Set([
   'hero',
+  'servicios',
   'footer_branding',
   'footer_nav',
   'footer_legal',
@@ -375,7 +432,6 @@ function getSectionMeta(key: string) {
  */
 const SECTION_TEMPLATES: Record<string, Record<string, unknown>> = {
   colecciones: { kicker: '', title: '', desc: '', href: '/catalogo', image: '' },
-  servicios: { num: '', title: '', desc: '' },
   talleres: { date: '', title: '', desc: '', action: '' },
   nosotros: { title: '', desc: '', image: '' },
   galeria: { src: '', alt: '' },
@@ -397,6 +453,12 @@ const SECTION_TEMPLATES: Record<string, Record<string, unknown>> = {
   seo_defaults: { ...SEO_DEFAULTS_TEMPLATE },
   contact_settings: { ...CONTACT_SETTINGS_TEMPLATE },
   campaign_banners: { ...CAMPAIGN_BANNER_TEMPLATE },
+  seasonal_settings: { ...SEASONAL_SETTINGS_TEMPLATE },
+  conservation_content: { ...CONSERVATION_CONTENT_TEMPLATE },
+  media_items: { ...HOME_MEDIA_ITEM_TEMPLATE },
+  video_settings: { ...VIDEO_SETTINGS_TEMPLATE },
+  map_settings: { ...MAP_SETTINGS_TEMPLATE },
+  products_settings: { ...PRODUCTS_SETTINGS_TEMPLATE },
   legal_terminos: { ...LEGAL_DOC_TEMPLATE },
   legal_privacidad: { ...LEGAL_DOC_TEMPLATE },
   legal_cookies: { ...LEGAL_DOC_TEMPLATE },
@@ -449,7 +511,9 @@ const FIELD_LABELS: Record<string, string> = {
   cta_label: 'CTA (ES)',
   cta_label_en: 'CTA (EN)',
   desc: 'Descripción',
+  desc_en: 'Descripción (EN)',
   kicker: 'Kicker',
+  kicker_en: 'Kicker (EN)',
   image: 'Imagen',
   src: 'Imagen (URL)',
   alt: 'Texto alternativo',
@@ -460,6 +524,44 @@ const FIELD_LABELS: Record<string, string> = {
   num: 'Número',
   date: 'Fecha',
   action: 'Acción',
+  type: 'Tipo (image|video)',
+  youtube_id: 'ID de YouTube',
+  lat: 'Latitud',
+  lng: 'Longitud',
+  popup_title: 'Popup — Título',
+  popup_body: 'Popup — Texto',
+  tri_label: 'Triangulación — Título',
+  tri_label_en: 'Triangulación — Título (EN)',
+  stat1_label: 'Métrica 1 — Etiqueta',
+  stat1_label_en: 'Métrica 1 — Etiqueta (EN)',
+  stat2_label: 'Métrica 2 — Etiqueta',
+  stat2_label_en: 'Métrica 2 — Etiqueta (EN)',
+  stat3_label: 'Métrica 3 — Etiqueta',
+  stat3_label_en: 'Métrica 3 — Etiqueta (EN)',
+  stat4_label: 'Métrica 4 — Etiqueta',
+  stat4_label_en: 'Métrica 4 — Etiqueta (EN)',
+  tri1_label: 'Bloque 1 — Título',
+  tri1_label_en: 'Bloque 1 — Título (EN)',
+  tri1_desc: 'Bloque 1 — Texto',
+  tri1_desc_en: 'Bloque 1 — Texto (EN)',
+  tri2_label: 'Bloque 2 — Título',
+  tri2_label_en: 'Bloque 2 — Título (EN)',
+  tri2_desc: 'Bloque 2 — Texto',
+  tri2_desc_en: 'Bloque 2 — Texto (EN)',
+  tri3_label: 'Bloque 3 — Título',
+  tri3_label_en: 'Bloque 3 — Título (EN)',
+  tri3_desc: 'Bloque 3 — Texto',
+  tri3_desc_en: 'Bloque 3 — Texto (EN)',
+  irr_label: 'IRR — Título sección',
+  irr_label_en: 'IRR — Título sección (EN)',
+  irr_pos_title: 'IRR positivo — Título',
+  irr_pos_title_en: 'IRR positivo — Título (EN)',
+  irr_pos_desc: 'IRR positivo — Texto',
+  irr_pos_desc_en: 'IRR positivo — Texto (EN)',
+  irr_neg_title: 'IRR negativo — Título',
+  irr_neg_title_en: 'IRR negativo — Título (EN)',
+  irr_neg_desc: 'IRR negativo — Texto',
+  irr_neg_desc_en: 'IRR negativo — Texto (EN)',
 };
 
 function fieldLabel(key: string): string {
@@ -479,6 +581,23 @@ function ContentFieldEditor({
   onChange: (val: unknown) => void;
   fieldId?: string;
 }) {
+  // Enums conocidos: select en vez de texto libre (media_items.type).
+  // Un typo ("Image") caía silenciosamente al fallback del parser.
+  if (fieldKey === 'type' && typeof value === 'string') {
+    return (
+      <select
+        id={fieldId}
+        name={fieldId}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+      >
+        <option value="image">Imagen</option>
+        <option value="video">Video</option>
+      </select>
+    );
+  }
+
   if (typeof value === 'string') {
     if (
       fieldKey.includes('desc') ||
@@ -594,7 +713,7 @@ function EditableItemCard({
   dragHandleProps,
   template,
 }: EditableItemCardProps) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const [localContent, setLocalContent] = useState<Record<string, unknown>>(item.content);
   const [localActive, setLocalActive] = useState(item.is_active);
   const [uploadingField, setUploadingField] = useState<string | null>(null);
@@ -682,9 +801,11 @@ function EditableItemCard({
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       className={`bg-surface/80 backdrop-blur-md rounded-xl border border-border overflow-hidden transition-all shadow-sm hover:shadow-md ${!localActive ? 'opacity-60 grayscale-[30%]' : ''}`}
     >
-      {/* Card Header — always visible, touch-friendly */}
+      {/* Card Header — always visible, touch-friendly. flex-wrap: en paneles
+          angostos (320px) los 4 botones no dejan invisible el título; pasan a
+          una segunda fila alineada a la derecha. */}
       <div
-        className="flex items-center gap-2 p-3 cursor-pointer hover:bg-surface-raised/50 active:bg-surface-raised transition-colors select-none min-h-[52px]"
+        className="flex flex-wrap items-center gap-2 p-3 cursor-pointer hover:bg-surface-raised/50 active:bg-surface-raised transition-colors select-none min-h-[52px]"
         onClick={() => setExpanded(!expanded)}
       >
         <button
@@ -714,7 +835,7 @@ function EditableItemCard({
         )}
 
         {/* Controls always visible on mobile */}
-        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1 shrink-0 ml-auto" onClick={(e) => e.stopPropagation()}>
           {onMoveUp && (
             <button
               onClick={onMoveUp}
@@ -876,7 +997,7 @@ function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: S
   const filteredKeys = useMemo(() => sectionKeys.filter(matches), [sectionKeys, q]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3 min-h-0">
       {/* Búsqueda: filtra por label/hint y colapsa grupos vacíos */}
       <div className="relative">
         <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
@@ -936,8 +1057,9 @@ function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: S
         ) : null}
       </div>
 
-      {/* Desktop: lista agrupada con iconos (theme customizer) */}
-      <div className="hidden md:block max-h-[min(55vh,500px)] overflow-y-auto -mx-1 px-1 space-y-5 py-2 scrollbar-thin">
+      {/* Desktop: lista agrupada con iconos (theme customizer).
+          flex-1 min-h-0: scroll interno acotado al espacio real del panel. */}
+      <div className="hidden md:flex flex-col flex-1 min-h-0 overflow-y-auto -mx-1 px-1 space-y-5 py-2 scrollbar-thin">
         {grouped.map((group) => (
           <div key={group.id} className="space-y-1.5">
             <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
@@ -1133,7 +1255,7 @@ function ItemsPanel({
   const sectionTemplate = SECTION_TEMPLATES[activeSection];
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+    <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 space-y-6">
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-start gap-3 min-w-0">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-accent shadow-sm">
@@ -1463,9 +1585,13 @@ function EditorTiendaViewInner() {
     tiendaOrigin === window.location.origin;
 
   return (
+    // Altura anclada al viewport con tokens reales (--vh-full = 100dvh con
+    // fallback, --header-height, padding de .page-content y márgenes del tool):
+    // el calc mágico 100vh-120px desbordaba ~16px y la página entera scrolleaba,
+    // cortando el borde inferior y obligando a "bajar" toda la herramienta.
     <div
       data-testid="editor-tienda-root"
-      className="flex-1 flex flex-col h-[calc(100vh-120px)] -mt-2 mb-4 mx-0 lg:-mx-4 bg-background/40 backdrop-blur-2xl border border-border/60 rounded-2xl overflow-hidden shadow-2xl relative z-10 animate-in fade-in zoom-in-95 duration-500 ease-out"
+      className="flex-1 flex flex-col h-[calc(var(--vh-full)_-_var(--header-height)_-_env(safe-area-inset-top,0px)_-_var(--space-xl)_-_var(--space-xl)_-8px)] max-md:h-[calc(var(--vh-full)_-_var(--header-height)_-_env(safe-area-inset-top,0px)_-_var(--space-md)_-_var(--space-md)_-_var(--nav-height)_-_var(--liquid-nav-inset)_-_env(safe-area-inset-bottom,12px)_-8px)] -mt-2 mb-4 mx-0 lg:-mx-4 bg-background/40 backdrop-blur-2xl border border-border/60 rounded-2xl overflow-hidden shadow-2xl relative z-10 animate-in fade-in zoom-in-95 duration-500 ease-out"
     >
       {/* ── Top bar ── */}
       <div className="h-14 border-b border-border/50 bg-surface/50 backdrop-blur-lg flex items-center justify-between px-4 shrink-0 shadow-sm z-10 gap-3">
@@ -1544,8 +1670,11 @@ function EditorTiendaViewInner() {
 
         {/* Left sidebar / Editor area */}
         <div className={`flex-col w-full md:w-80 lg:w-[28rem] shrink-0 border-r border-border/50 bg-surface-sunken/30 overflow-hidden ${mobileTab === 'editor' ? 'flex' : 'flex max-md:hidden'}`}>
-          {/* Section selector — bloques con iconos */}
-          <div className="p-3 md:p-4 border-b border-border bg-surface shrink-0">
+          {/* Section selector — bloques con iconos.
+              flex-col min-h-0: la lista desktop crece/encoge con el espacio
+              disponible en vez de robarle el alto al ItemsPanel (55vh fijo
+              colapsaba el panel a ~0px en pantallas ≤800px de alto). */}
+          <div className="flex flex-col min-h-0 p-3 md:p-4 border-b border-border bg-surface">
             <div className="hidden md:flex items-center justify-between px-2 mb-3">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Bloques de la tienda
@@ -1609,7 +1738,7 @@ function EditorTiendaViewInner() {
             <div
               className={`relative bg-background border-0 shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col ${
                 viewMode === 'mobile'
-                  ? 'w-full h-full md:w-[375px] md:h-[812px] md:max-h-[calc(100vh-140px)] md:rounded-[2.5rem] md:border-8 md:border-surface-raised md:ring-1 md:ring-border'
+                  ? 'w-full h-full md:w-[375px] md:h-[812px] md:max-h-full md:rounded-[2.5rem] md:border-8 md:border-surface-raised md:ring-1 md:ring-border'
                   : 'w-full h-full md:rounded-2xl md:border md:border-border'
               }`}
             >
@@ -1681,13 +1810,15 @@ function EditorTiendaViewInner() {
             </div>
           </div>
 
-          {/* Escape hatch: si el navegador bloquea el iframe (CSP/privacidad), abrir la tienda en pestaña */}
-          {tiendaUrl && !isSelfEmbed && (
+          {/* Escape hatch: si el navegador bloquea el iframe (CSP/privacidad), abrir la tienda en pestaña.
+              Solo en vista desktop y pantallas md+: en el frame móvil (o en <768px) tapa el WhatsApp
+              float de la tienda en la esquina inferior derecha, así que va a la izquierda. */}
+          {tiendaUrl && !isSelfEmbed && viewMode === 'desktop' && (
             <a
               href={tiendaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="absolute bottom-4 right-4 z-20 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-background/90 backdrop-blur border border-border text-muted-foreground hover:text-accent hover:border-accent/50 transition-colors shadow-lg"
+              className="hidden md:inline-flex absolute bottom-4 left-4 z-20 items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-background/90 backdrop-blur border border-border text-muted-foreground hover:text-accent hover:border-accent/50 transition-colors shadow-lg"
             >
               <ExternalLink size={12} />
               Abrir tienda en pestaña
@@ -1697,13 +1828,20 @@ function EditorTiendaViewInner() {
       </div>
 
       {/* ── Add new item modal ── */}
-      <ImmersiveModal
-        open={showNewForm}
-        onClose={() => setShowNewForm(false)}
-        eyebrow={SECTION_LABELS[activeSection] ?? activeSection}
-        title="Añadir elemento"
-        size="md"
-        footer={
+      {/* Portal al body: el root del editor crea stacking context (relative z-10
+         + backdrop-blur) que confina el z-220 del modal por DEBAJO de la nav
+         líquida móvil (z-1000), tapando los botones Crear/Cancelar. El wrapper
+         z-[1100] lo sube por encima de la nav solo cuando está abierto. */}
+      {showNewForm && typeof document !== 'undefined'
+        ? createPortal(
+            <div className="fixed inset-0 z-[1100]">
+              <ImmersiveModal
+                open={showNewForm}
+                onClose={() => setShowNewForm(false)}
+                eyebrow={SECTION_LABELS[activeSection] ?? activeSection}
+                title="Añadir elemento"
+                size="md"
+                footer={
           <>
             <button
               type="button"
@@ -1741,7 +1879,11 @@ function EditorTiendaViewInner() {
             </div>
           ))}
         </div>
-      </ImmersiveModal>
+            </ImmersiveModal>
+          </div>,
+          document.body,
+        )
+        : null}
     </div>
   );
 }

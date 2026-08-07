@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -149,7 +150,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function NosotrosPage() {
+export default async function NosotrosPage() {
+  // Hero editable desde el Editor de Tienda (site_content 'nosotros').
+  // Vacío = copy hardcodeado actual; la evidencia científica sigue en código.
+  const cmsRows = await getSiteContent('nosotros');
+  const cms = cmsRows[0]?.content as Record<string, unknown> | undefined;
+  const heroTitle =
+    typeof cms?.title === 'string' && cms.title.trim()
+      ? cms.title
+      : 'Renacer de las Cenizas en Chiloé';
+  const heroDesc =
+    typeof cms?.desc === 'string' && cms.desc.trim()
+      ? cms.desc
+      : 'Regeneración, Legado y Miel Artesanal del Bosque Patagónico de Chiloé';
+  const heroImage =
+    typeof cms?.image === 'string' && cms.image.startsWith('http') ? cms.image : null;
+
   const nosotrosJsonLd = mergeJsonLd([
     articleJsonLd({
       headline: 'Renacer de las Cenizas en Chiloé',
@@ -175,11 +191,16 @@ export default function NosotrosPage() {
 Nuestra Historia
 </span>
 <h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 md:mb-8 text-balance">
-Renacer de las Cenizas en Chiloé
+{heroTitle}
 </h1>
 <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
-Regeneración, Legado y Miel Artesanal del Bosque Patagónico de Chiloé
+{heroDesc}
 </p>
+{heroImage ? (
+  <div className="relative aspect-[16/9] max-w-4xl mx-auto mt-8 rounded-[var(--tienda-radius,0.5rem)] overflow-hidden border border-border/30">
+    <Image src={heroImage} alt={heroTitle} fill sizes="(max-width: 1024px) 100vw, 896px" className="object-cover" />
+  </div>
+) : null}
 </div>
 
 {/* Main Story - Texto completo */}

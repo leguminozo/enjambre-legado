@@ -102,8 +102,10 @@
   --tienda-mobile-nav-size: 1.75rem;
   --tienda-mobile-nav-tracking: 0em;
   --tienda-brand-tracking: 0.28em;
-  --tienda-grain-opacity: 0.35;
-  --tienda-radius: 0.75rem;
+  /* Fallbacks = look actual; la tienda setea las vars reales desde el CMS
+     (themeToCssVars en layout): grano 0-1 → 0-6% opacidad, radio por preset. */
+  --tienda-grain-opacity: 0.02;
+  --tienda-radius: 0.5rem;
   --tienda-bottom-nav-h: 4.5rem;
   --tienda-liquid-nav-h: 4.5rem;
   --tienda-liquid-nav-float: 2rem;
@@ -580,6 +582,26 @@ html[data-tienda-pwa='standalone'] .tienda-sticky-cta {
   border: 1px solid hsl(var(--border) / 0.65);
 }
 
+/* PDP con items en el carrito: el CTA sticky (z55) tapaba la cart bar (z54).
+   Subirlo sobre ella; en PWA la cart bar no existe y el CTA sigue flotando. */
+.tienda-shell[data-has-cart] .tienda-sticky-cta,
+.tienda-shell[data-has-cart] .tienda-checkout-sticky-pay {
+  bottom: calc(var(--tienda-cart-bar-h) + var(--safe-bottom));
+  padding-bottom: 0.5rem;
+}
+
+html[data-tienda-pwa='standalone'] .tienda-shell[data-has-cart] .tienda-sticky-cta,
+html[data-tienda-pwa='standalone'] .tienda-shell[data-has-cart] .tienda-checkout-sticky-pay {
+  bottom: calc(var(--tienda-mobile-chrome-stack-pwa) + 0.25rem);
+  padding-bottom: 0.5rem;
+}
+
+/* CTA + cart bar a la vez: reservar ambas alturas en el contenido */
+.tienda-shell[data-has-cart][data-has-sticky-cta] .tienda-shell-content,
+.tienda-shell[data-has-cart][data-has-sticky-pay] .tienda-shell-content {
+  padding-bottom: calc(var(--tienda-cart-bar-h) + var(--tienda-sticky-cta-h) + var(--safe-bottom) + 0.5rem);
+}
+
 .tienda-sticky-cta-inner {
   display: flex;
   align-items: center;
@@ -727,6 +749,12 @@ html[data-tienda-pwa='standalone'] .tienda-shell[data-has-cart] .tienda-shell-co
   .tienda-shell[data-has-sticky-pay] .whatsapp-float-mobile,
   .tienda-shell[data-has-cart] .whatsapp-float-mobile {
     bottom: calc(var(--tienda-sticky-cta-h) + var(--safe-bottom) + 0.75rem) !important;
+  }
+
+  /* PWA standalone: la cart bar está display:none y data-has-cart no debe
+     bajar el WA a la zona de la bottom nav (la taparía). */
+  html[data-tienda-pwa='standalone'] .tienda-shell[data-has-cart] .whatsapp-float-mobile {
+    bottom: calc(var(--tienda-mobile-chrome-stack-pwa) + 0.75rem) !important;
   }
 
   html[data-tienda-pwa='standalone'] .tienda-shell[data-has-sticky-cta] .whatsapp-float-mobile,

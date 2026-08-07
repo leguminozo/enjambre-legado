@@ -88,15 +88,15 @@ export function ShopHeader() {
   };
 
   const brandBlock = headerBrand.showText ? (
-    <div className="flex flex-col items-center md:items-start">
+    <div className="flex flex-col items-center md:items-start min-w-0">
       <span
-        className="font-display text-lg uppercase text-foreground group-hover:text-accent transition-colors"
+        className="font-display text-lg uppercase text-foreground group-hover:text-accent transition-colors truncate max-w-full"
         style={{ letterSpacing: 'var(--tienda-brand-tracking, 0.3em)' }}
       >
         {settings.brand_line1 || tHeader('brandLine1')}
       </span>
       <span
-        className="text-[0.6rem] uppercase text-accent -mt-1 font-light"
+        className="text-[0.6rem] uppercase text-accent -mt-1 font-light truncate max-w-full"
         style={{ letterSpacing: 'calc(var(--tienda-brand-tracking, 0.3em) + 0.1em)' }}
       >
         {settings.brand_line2 || tHeader('brandLine2')}
@@ -124,7 +124,7 @@ export function ShopHeader() {
         {brandBlock}
       </>
     ) : (
-      <span className="font-display text-lg uppercase text-foreground">
+      <span className="font-display text-lg uppercase text-foreground truncate">
         {settings.brand_line1 || tHeader('brandLine1')}
       </span>
     );
@@ -134,9 +134,11 @@ export function ShopHeader() {
       href="/"
       className={`group flex min-h-11 items-center gap-3 md:gap-4 ${
         settings.layout === 'centered'
-          ? 'absolute left-1/2 -translate-x-1/2'
+          ? // Marca centrada absoluta: acotarla para que texto largo o tracking
+            // alto no caiga sobre el burger y las acciones en pantallas ≤390px.
+            'absolute left-1/2 -translate-x-1/2 max-w-[calc(100%-8.5rem)] overflow-hidden'
           : settings.layout === 'classic'
-            ? 'absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0'
+            ? 'absolute left-1/2 -translate-x-1/2 max-w-[calc(100%-8.5rem)] overflow-hidden md:static md:translate-x-0 md:max-w-none md:overflow-visible'
             : ''
       }`}
       aria-label={settings.brand_line1 || tHeader('brandLine1') || 'Inicio'}
@@ -401,6 +403,9 @@ function NavDesktopLink({
         fontSize: 'var(--tienda-nav-size, 0.65rem)',
         letterSpacing: 'var(--tienda-nav-tracking, 0.18em)',
         textTransform: settings.nav_text_transform,
+        // La var la setea HeaderMenuProvider desde nav_font: fuente única de
+        // verdad para que la config CMS del menú se aplique aquí también.
+        fontFamily: 'var(--tienda-nav-font, var(--font-sans, Inter, system-ui, sans-serif))',
       }}
     >
       {resolveNavLabel(item, locale)}

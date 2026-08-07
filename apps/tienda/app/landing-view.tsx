@@ -13,8 +13,18 @@ import { GrainOverlay } from '@/components/shop/grain-overlay';
 import { TextCarousel } from '@/components/shop/text-carousel';
 import { YoutubeLite } from '@/components/shop/youtube-lite';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
-import { resolveLocalized } from '@/lib/shop/store-chrome';
+import {
+  type ConservationContent,
+  type HomeMediaItem,
+  type MapSettings,
+  type ProductsSettings,
+  DEFAULT_CONSERVATION_CONTENT,
+  DEFAULT_MAP_SETTINGS,
+  DEFAULT_PRODUCTS_SETTINGS,
+  resolveLocalized,
+} from '@/lib/shop/store-chrome';
 import type { ShopProduct } from '@/lib/shop/products';
+import type { ProductRatingAggregate } from '@/lib/shop/catalog-ratings';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { ViewLoading } from '@enjambre/ui';
 
@@ -54,17 +64,19 @@ interface ColeccionItem {
   image?: string;
 }
 
-interface MediaItem {
-  type: 'image' | 'video';
-  src: string;
-  alt?: string;
-}
-
 interface TiendaLandingProps {
   initialColecciones: ColeccionItem[];
   products: ShopProduct[];
-  mediaItems: MediaItem[];
-  youtubeVideoId: string;
+  /** Agregados de reseñas por producto (estrellas en cards del home). */
+  ratings?: Record<string, ProductRatingAggregate>;
+  mediaItems: HomeMediaItem[];
+  /** ID de YouTube resuelto: video_settings → env → default. */
+  videoId: string;
+  videoTitle: string;
+  /** Copy del bloque Impacto/Conservación (CMS; vacío = i18n messages). */
+  conservationContent: ConservationContent;
+  mapSettings: MapSettings;
+  productsSettings: ProductsSettings;
   ecosystemMetrics: EcosystemMetrics;
   locale: string;
 }
@@ -93,8 +105,13 @@ function resolveCollectionImage(c: ColeccionItem): string {
 export function TiendaLandingView({
   initialColecciones,
   products,
+  ratings,
   mediaItems,
-  youtubeVideoId,
+  videoId,
+  videoTitle,
+  conservationContent,
+  mapSettings,
+  productsSettings,
   ecosystemMetrics,
   locale,
 }: TiendaLandingProps) {
@@ -106,6 +123,20 @@ export function TiendaLandingView({
   const tScience = useTranslations('science');
   const currentLocale = useLocale();
   const { landing } = useStoreChrome();
+  // CMS vacío (o sección sin inicializar) → defaults con el copy actual
+  const conservation = conservationContent ?? DEFAULT_CONSERVATION_CONTENT;
+  const map = mapSettings ?? DEFAULT_MAP_SETTINGS;
+  const productsHeader = {
+    kicker:
+      resolveLocalized(productsSettings?.kicker, productsSettings?.kicker_en, currentLocale) ||
+      'Creaciones',
+    title:
+      resolveLocalized(productsSettings?.title, productsSettings?.title_en, currentLocale) ||
+      'La materia de nuestras búsquedas',
+    desc:
+      resolveLocalized(productsSettings?.desc, productsSettings?.desc_en, currentLocale) ||
+      'Creaciones cargadas de experiencias y legado.',
+  };
   const orderedSections = [...landing.sections]
     .filter((s) => s.enabled)
     .sort((a, b) => a.order - b.order);
@@ -314,21 +345,29 @@ export function TiendaLandingView({
         <section key="conservation" className="editorial-section bg-surface-raised/50 border-y border-border/30">
           <div className="editorial-container">
             <div className="text-center mb-10 md:mb-16">
-              <span className="editorial-kicker mb-4 block">{tConservation('kicker') || 'Conservación demostrable'}</span>
+              <span className="editorial-kicker mb-4 block">
+                {resolveLocalized(conservation.kicker, conservation.kicker_en, currentLocale) ||
+                  tConservation('kicker') ||
+                  'Conservación demostrable'}
+              </span>
               <h2 className="font-display text-[clamp(1.75rem,6vw,3rem)] sm:text-4xl md:text-5xl font-light text-foreground mb-4 md:mb-6 text-balance leading-tight">
-                {tConservation('title') || 'Impacto sin atajos'}
+                {resolveLocalized(conservation.title, conservation.title_en, currentLocale) ||
+                  tConservation('title') ||
+                  'Impacto sin atajos'}
               </h2>
               <p className="text-sm text-muted-foreground italic max-w-2xl mx-auto leading-relaxed">
-                {tConservation('description') || 'No certificamos con sellos de tercera mano. Nuestro impacto se demuestra por triangulación: papers revisados por pares, datos locales de Chiloé, y cálculos abiertos que cualquier persona puede verificar.'}
+                {resolveLocalized(conservation.desc, conservation.desc_en, currentLocale) ||
+                  tConservation('description') ||
+                  'No certificamos con sellos de tercera mano. Nuestro impacto se demuestra por triangulación: papers revisados por pares, datos locales de Chiloé, y cálculos abiertos que cualquier persona puede verificar.'}
               </p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-8 sm:gap-8 text-center mb-12 md:mb-16">
               {[
-                { value: ecosystemMetrics.arboles_total, label: tConservation('treesPlanted') || 'Árboles plantados', suffix: '+' },
-                { value: ecosystemMetrics.co2_evitado_total_kg, label: tConservation('co2Avoided') || 'CO₂ evitado (kg)', suffix: '', prefix: '~' },
-                { value: ecosystemMetrics.colmenas_total, label: tConservation('hivesCustodied') || 'Colmenas custodiadas', suffix: '' },
-                { value: ecosystemMetrics.especies_nativas, label: tConservation('nativeSpecies') || 'Especies nativas', suffix: '' },
+                { value: ecosystemMetrics.arboles_total, label: resolveLocalized(conservation.stat1_label, conservation.stat1_label_en, currentLocale) || tConservation('treesPlanted') || 'Árboles plantados', suffix: '+' },
+                { value: ecosystemMetrics.co2_evitado_total_kg, label: resolveLocalized(conservation.stat2_label, conservation.stat2_label_en, currentLocale) || tConservation('co2Avoided') || 'CO₂ evitado (kg)', suffix: '', prefix: '~' },
+                { value: ecosystemMetrics.colmenas_total, label: resolveLocalized(conservation.stat3_label, conservation.stat3_label_en, currentLocale) || tConservation('hivesCustodied') || 'Colmenas custodiadas', suffix: '' },
+                { value: ecosystemMetrics.especies_nativas, label: resolveLocalized(conservation.stat4_label, conservation.stat4_label_en, currentLocale) || tConservation('nativeSpecies') || 'Especies nativas', suffix: '' },
               ].map((stat) => (
                 <div key={stat.label} className="py-2 sm:py-4 px-1 min-w-0">
                   <p className="counter-value font-display text-[clamp(1.65rem,6vw,3.75rem)] sm:text-5xl md:text-6xl font-light text-accent tabular-nums tracking-tight" data-target={stat.value} data-prefix={stat.prefix || ''} data-suffix={stat.suffix}>
@@ -340,47 +379,76 @@ export function TiendaLandingView({
             </div>
 
             <div className="max-w-3xl mx-auto border-t border-border/20 pt-10 mb-12 md:mb-16">
-              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-6 text-center">{tScience('triangulation') || 'Triangulación de fuentes'}</p>
+              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-6 text-center">
+                {resolveLocalized(conservation.tri_label, conservation.tri_label_en, currentLocale) ||
+                  tScience('triangulation') ||
+                  'Triangulación de fuentes'}
+              </p>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="text-center">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">{tScience('peerReviewed') || 'Papers revisados por pares'}</p>
+                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">
+                    {resolveLocalized(conservation.tri1_label, conservation.tri1_label_en, currentLocale) ||
+                      tScience('peerReviewed') ||
+                      'Papers revisados por pares'}
+                  </p>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {tScience('peerReviewedDesc') || 'Secuestro de carbono en bosque templado lluvioso: 10–25 kg CO₂/árbol/año (Schneider et al., 2020; Gutiérrez & Lara, 2022). Actividad antimicrobiana en mieles chilenas comparable a Manuka (Montes et al., 2019).'}
+                    {resolveLocalized(conservation.tri1_desc, conservation.tri1_desc_en, currentLocale) ||
+                      tScience('peerReviewedDesc') ||
+                      'Secuestro de carbono en bosque templado lluvioso: 10–25 kg CO₂/árbol/año (Schneider et al., 2020; Gutiérrez & Lara, 2022). Actividad antimicrobiana en mieles chilenas comparable a Manuka (Montes et al., 2019).'}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">{tScience('localData') || 'Datos locales de Chiloé'}</p>
+                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">
+                    {resolveLocalized(conservation.tri2_label, conservation.tri2_label_en, currentLocale) ||
+                      tScience('localData') ||
+                      'Datos locales de Chiloé'}
+                  </p>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {ecosystemMetrics.arboles_total.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US')} {tScience('treesRegistered') || 'árboles registrados'} {tScience('withCoordinates') || 'con coordenadas y especie'} {tScience('inSectors') || 'en'} {ecosystemMetrics.sectores} {tScience('sectorsOf') || 'sectores de'} Pureo. {ecosystemMetrics.colmenas_total} {tScience('hivesMonitored') || 'colmenas monitoreadas'} {tScience('inApiaries') || 'en apiarios'} {tScience('between') || 'entre'} Quemchi, Molulco y Pureo-Quelen.
+                    {resolveLocalized(conservation.tri2_desc, conservation.tri2_desc_en, currentLocale) ||
+                      `${ecosystemMetrics.arboles_total.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US')} ${tScience('treesRegistered') || 'árboles registrados'} ${tScience('withCoordinates') || 'con coordenadas y especie'} ${tScience('inSectors') || 'en'} ${ecosystemMetrics.sectores} ${tScience('sectorsOf') || 'sectores de'} Pureo. ${ecosystemMetrics.colmenas_total} ${tScience('hivesMonitored') || 'colmenas monitoreadas'} ${tScience('inApiaries') || 'en apiarios'} ${tScience('between') || 'entre'} Quemchi, Molulco y Pureo-Quelen.`}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">{tScience('openCalculation') || 'Cálculo abierto'}</p>
+                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">
+                    {resolveLocalized(conservation.tri3_label, conservation.tri3_label_en, currentLocale) ||
+                      tScience('openCalculation') ||
+                      'Cálculo abierto'}
+                  </p>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {tScience('openCalculationDesc') || 'IRR = CO₂ capturado / CO₂ emitido. Nuestro ecosistema registra'} {ecosystemMetrics.irr_ecosistema ? `${ecosystemMetrics.irr_ecosistema}×` : tScience('calculationInProgress') || 'cálculo en proceso'}. {ecosystemMetrics.anos_legado} {tScience('yearsOfReforestation') || 'años de reforestación nativa'}. {tScience('formulaVerifiable') || 'Fórmula y datos verificables en nuestra página de ciencia.'}
+                    {resolveLocalized(conservation.tri3_desc, conservation.tri3_desc_en, currentLocale) ||
+                      `${tScience('openCalculationDesc') || 'IRR = CO₂ capturado / CO₂ emitido. Nuestro ecosistema registra'} ${ecosystemMetrics.irr_ecosistema ? `${ecosystemMetrics.irr_ecosistema}×` : tScience('calculationInProgress') || 'cálculo en proceso'}. ${ecosystemMetrics.anos_legado} ${tScience('yearsOfReforestation') || 'años de reforestación nativa'}. ${tScience('formulaVerifiable') || 'Fórmula y datos verificables en nuestra página de ciencia.'}`}
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="max-w-2xl mx-auto text-center border-t border-border/20 pt-10">
-              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-4">{tScience('irrIndex') || 'Índice de Regeneración Relativa'}</p>
+              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-4">
+                {resolveLocalized(conservation.irr_label, conservation.irr_label_en, currentLocale) ||
+                  tScience('irrIndex') ||
+                  'Índice de Regeneración Relativa'}
+              </p>
               {ecosystemMetrics.irr_ecosistema && ecosystemMetrics.irr_ecosistema > 1 ? (
                 <>
                   <p className="font-display text-2xl md:text-3xl font-light text-foreground tracking-wide">
-                    {tScience('irrPositive') || 'IRR'} {ecosystemMetrics.irr_ecosistema} · {tScience('impactGreaterThanFootprint') || 'Impacto > Huella'}
+                    {resolveLocalized(conservation.irr_pos_title, conservation.irr_pos_title_en, currentLocale) ||
+                      `${tScience('irrPositive') || 'IRR'} ${ecosystemMetrics.irr_ecosistema} · ${tScience('impactGreaterThanFootprint') || 'Impacto > Huella'}`}
                   </p>
                   <p className="text-sm text-muted-foreground italic mt-4 max-w-lg mx-auto">
-                    {tScience('irrPositiveDesc') || 'El bosque captura'} {ecosystemMetrics.irr_ecosistema}× {tScience('moreCO2ThanEmitted') || 'más CO₂ del que la cadena productiva emite.'} {tScience('verifiableBy') || 'Demostrable por registro forestal + balances de emisión.'}
+                    {resolveLocalized(conservation.irr_pos_desc, conservation.irr_pos_desc_en, currentLocale) ||
+                      `${tScience('irrPositiveDesc') || 'El bosque captura'} ${ecosystemMetrics.irr_ecosistema}× ${tScience('moreCO2ThanEmitted') || 'más CO₂ del que la cadena productiva emite.'} ${tScience('verifiableBy') || 'Demostrable por registro forestal + balances de emisión.'}`}
                   </p>
                 </>
               ) : (
                 <>
                   <p className="font-display text-2xl md:text-3xl font-light text-foreground tracking-wide">
-                    {tScience('irrNegative') || 'Miel de bosque + Reforestación > Huella de producción'}
+                    {resolveLocalized(conservation.irr_neg_title, conservation.irr_neg_title_en, currentLocale) ||
+                      tScience('irrNegative') ||
+                      'Miel de bosque + Reforestación > Huella de producción'}
                   </p>
                   <p className="text-sm text-muted-foreground italic mt-4 max-w-lg mx-auto">
-                    {ecosystemMetrics.anos_legado} {tScience('yearsOfReforestation') || 'años de reforestación nativa.'} {tScience('eachOrderFunds') || 'Cada pedido financia árboles y sostiene apiarios en bosque nativo entre'} Quemchi, Molulco y Pureo-Quelen.
+                    {resolveLocalized(conservation.irr_neg_desc, conservation.irr_neg_desc_en, currentLocale) ||
+                      `${ecosystemMetrics.anos_legado} ${tScience('yearsOfReforestation') || 'años de reforestación nativa.'} ${tScience('eachOrderFunds') || 'Cada pedido financia árboles y sostiene apiarios en bosque nativo entre'} Quemchi, Molulco y Pureo-Quelen.`}
                   </p>
                 </>
               )}
@@ -389,7 +457,9 @@ export function TiendaLandingView({
                   href="/ciencia"
                   className="inline-flex min-h-11 items-center rounded-md border border-accent/40 px-4 py-2 text-editorial-xs uppercase tracking-widest text-accent hover:bg-accent/10 hover:text-accent/90 transition-colors"
                 >
-                  {tScience('viewScience') || 'Ver la ciencia detrás'} →
+                  {resolveLocalized(conservation.cta_label, conservation.cta_label_en, currentLocale) ||
+                    tScience('viewScience') ||
+                    'Ver la ciencia detrás'} →
                 </Link>
               </div>
             </div>
@@ -416,9 +486,9 @@ export function TiendaLandingView({
                   key={c.title}
                   href={c.href}
                   prefetch={false}
-                  className="group flex min-h-11 flex-col rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="group flex min-h-11 flex-col rounded-[var(--tienda-radius,0.5rem)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
-                  <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-4 sm:mb-6 rounded-lg">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-4 sm:mb-6 rounded-[var(--tienda-radius,0.5rem)]">
                     <Image
                       src={imageSrc}
                       alt={c.title}
@@ -457,7 +527,7 @@ export function TiendaLandingView({
         if (sec.id === 'products') {
           return (
       <div key="products" id="creaciones">
-        <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingCreations') || 'Creaciones'} hideLabel /></div></div>}><LandingProducts products={products} pageSize={8} /></Suspense>
+        <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingCreations') || 'Creaciones'} hideLabel /></div></div>}><LandingProducts products={products} pageSize={8} ratings={ratings} header={productsHeader} /></Suspense>
       </div>
           );
         }
@@ -467,7 +537,7 @@ export function TiendaLandingView({
         <section key="video" id="central-video" className="editorial-section">
           <div className="editorial-container">
             <div className="relative w-full aspect-video max-w-5xl mx-auto rounded-lg overflow-hidden border border-border/30 bg-surface-sunken">
-              <YoutubeLite videoId={youtubeVideoId} title="La Obrera y el Zángano" />
+              <YoutubeLite videoId={videoId} title={videoTitle} />
             </div>
           </div>
         </section>
@@ -477,7 +547,7 @@ export function TiendaLandingView({
         if (sec.id === 'map') {
           return (
       <div key="map" id="world-location">
-        <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingMap') || 'Mapa'} hideLabel /></div></div>}><WorldMapBlock /></Suspense>
+        <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingMap') || 'Mapa'} hideLabel /></div></div>}><WorldMapBlock mapSettings={map} /></Suspense>
       </div>
           );
         }

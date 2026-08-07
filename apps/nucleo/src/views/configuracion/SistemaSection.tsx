@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { RefreshCw, ShieldAlert, Loader2, CheckCircle, Radio, Zap } from 'lucide-react';
-import { toast, Badge } from '@enjambre/ui';
+import { toast, Badge, ViewLoading } from '@enjambre/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
@@ -147,9 +147,7 @@ export function SistemaSection() {
 
         <div className="flex-1 overflow-y-auto pr-2 space-y-3 min-h-[300px]">
           {securityQuery.isLoading ? (
-            <div className="flex items-center justify-center h-32 text-muted-foreground">
-              <Loader2 size={24} className="animate-spin" />
-            </div>
+            <ViewLoading variant="inline" />
           ) : securityQuery.isError ? (
             <div className="text-sm text-destructive p-4 bg-destructive/10 rounded-xl">Error al cargar eventos de seguridad.</div>
           ) : securityQuery.data?.length === 0 ? (

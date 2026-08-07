@@ -1,10 +1,27 @@
 import { getSiteContentBatch, type SiteSectionItem } from '@/lib/cms';
 import { getEcosystemMetrics, type EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { listVisibleProducts, type ShopProduct } from '@/lib/shop/products';
+import { fetchRatingAggregatesByProduct } from '@/lib/shop/catalog-ratings';
+import {
+  type ConservationContent,
+  type HomeMediaItem,
+  type MapSettings,
+  type ProductsSettings,
+  type VideoSettings,
+  DEFAULT_CONSERVATION_CONTENT,
+  DEFAULT_MEDIA_ITEMS,
+  DEFAULT_MAP_SETTINGS,
+  DEFAULT_PRODUCTS_SETTINGS,
+  DEFAULT_VIDEO_SETTINGS,
+  parseConservationContent,
+  parseHomeMediaItem,
+  parseMapSettings,
+  parseProductsSettings,
+  parseVideoSettings,
+} from '@/lib/shop/store-chrome';
 import { TiendaLandingView } from './landing-view';
 
 type ColeccionItem = { kicker: string; title: string; desc: string; href: string; image?: string };
-type MediaItem = { type: 'image' | 'video'; src: string; alt?: string };
 
 function extractContent<T extends Record<string, unknown>>(items: SiteSectionItem[]): T[] {
   return items.map((item) => item.content as T);
@@ -15,10 +32,20 @@ export const revalidate = 300;
 export default async function TiendaPage() {
   // Footer legacy (footer_branding/nav/legal) retirado: el pie real es StoreChrome.
   // Hero no se carga aquí: landing usa i18n + landing_layout (CTA).
-  const [cmsBatch, ecosystemMetrics, products] = await Promise.all([
-    getSiteContentBatch(['colecciones']),
+  // Contenido de bloques del home (ola 4): conservation_content, media_items,
+  // video_settings, map_settings y products_settings — vacío = defaults/i18n.
+  const products = await listVisibleProducts();
+  const [cmsBatch, ecosystemMetrics, ratings] = await Promise.all([
+    getSiteContentBatch([
+      'colecciones',
+      'conservation_content',
+      'media_items',
+      'video_settings',
+      'map_settings',
+      'products_settings',
+    ]),
     getEcosystemMetrics(),
-    listVisibleProducts(),
+    fetchRatingAggregatesByProduct(products.map((p) => p.id)),
   ]);
 
   const coleccionesData = cmsBatch.colecciones ?? [];
@@ -65,21 +92,43 @@ export default async function TiendaPage() {
           },
         ];
 
-  const mediaItems: MediaItem[] = [
-    { type: 'image', src: '/assets/editorial/immersion.png', alt: 'Inmersión en el bosque' },
-    { type: 'image', src: '/assets/editorial/sachets.png', alt: 'Sachets de miel' },
-    { type: 'image', src: '/assets/editorial/honey-jar.png', alt: 'Frascos de miel' },
-  ];
+  const conservationContent: ConservationContent = cmsBatch.conservation_content?.[0]
+    ? parseConservationContent(
+        cmsBatch.conservation_content[0].content as Record<string, unknown>,
+      )
+    : DEFAULT_CONSERVATION_CONTENT;
 
-  const youtubeVideoId = process.env.NEXT_PUBLIC_YOUTUBE_VIDEO_ID || 'btf0A6zzZtI';
+  const mediaItems: HomeMediaItem[] = (cmsBatch.media_items ?? [])
+    .map((row) => parseHomeMediaItem(row.content as Record<string, unknown>))
+    .filter((m): m is HomeMediaItem => m !== null);
+  const resolvedMediaItems = mediaItems.length > 0 ? mediaItems : DEFAULT_MEDIA_ITEMS;
+
+  const videoSettings: VideoSettings = cmsBatch.video_settings?.[0]
+    ? parseVideoSettings(cmsBatch.video_settings[0].content as Record<string, unknown>)
+    : DEFAULT_VIDEO_SETTINGS;
+  const videoId =
+    videoSettings.youtube_id || process.env.NEXT_PUBLIC_YOUTUBE_VIDEO_ID || 'btf0A6zzZtI';
+
+  const mapSettings: MapSettings = cmsBatch.map_settings?.[0]
+    ? parseMapSettings(cmsBatch.map_settings[0].content as Record<string, unknown>)
+    : DEFAULT_MAP_SETTINGS;
+
+  const productsSettings: ProductsSettings = cmsBatch.products_settings?.[0]
+    ? parseProductsSettings(cmsBatch.products_settings[0].content as Record<string, unknown>)
+    : DEFAULT_PRODUCTS_SETTINGS;
 
   return (
     <TiendaLandingView
       locale="es"
       initialColecciones={colecciones}
       products={products}
-      mediaItems={mediaItems}
-      youtubeVideoId={youtubeVideoId}
+      ratings={ratings}
+      mediaItems={resolvedMediaItems}
+      videoId={videoId}
+      videoTitle={videoSettings.title || 'La Obrera y el Zángano'}
+      conservationContent={conservationContent}
+      mapSettings={mapSettings}
+      productsSettings={productsSettings}
       ecosystemMetrics={ecosystemMetrics}
     />
   );

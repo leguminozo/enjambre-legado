@@ -269,7 +269,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                 <li key={p.id} className="min-w-0">
                   <Link
                     href={`/producto/${encodeURIComponent(p.slug)}`}
-                    className="product-card group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card/40 transition hover:border-accent/35"
+                    className="product-card group flex h-full flex-col overflow-hidden rounded-[var(--tienda-radius,0.5rem)] border border-border bg-card/40 transition hover:border-accent/35"
                   >
                     <div className="relative aspect-square bg-card overflow-hidden">
                       {img ? (

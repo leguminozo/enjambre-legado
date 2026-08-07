@@ -1,3 +1,5 @@
+import type { SeasonalOverrides } from './store-chrome';
+
 export type Season =
   | 'primavera'
   | 'verano'
@@ -55,6 +57,24 @@ const SEASONAL_DATA: Record<Season, SeasonalContext> = {
   },
 };
 
-export function getSeasonalContext(): SeasonalContext {
-  return SEASONAL_DATA[getChileanSeason()];
+/**
+ * Contexto de la temporada actual. Si el CMS define overrides para la temporada
+ * vigente (sección seasonal_settings del editor de tienda), ganan sobre el
+ * default calculado por mes; los campos vacíos caen al default.
+ */
+export function getSeasonalContext(
+  overrides?: SeasonalOverrides,
+  locale: string = 'es',
+): SeasonalContext {
+  const season = getChileanSeason();
+  const base = SEASONAL_DATA[season];
+  const o = overrides?.[season];
+  if (!o) return base;
+  const isEn = locale === 'en';
+  return {
+    ...base,
+    seasonLabel: isEn && o.label_en ? o.label_en : (o.label ?? base.seasonLabel),
+    message: isEn && o.message_en ? o.message_en : (o.message ?? base.message),
+    ...(o.floraciones && o.floraciones.length > 0 ? { availableFloraciones: o.floraciones } : {}),
+  };
 }

@@ -4,6 +4,7 @@
  */
 
 import { getSeasonalContext, type SeasonalContext } from './seasonal';
+import type { SeasonalOverrides } from './store-chrome';
 
 export type CosechaKey = 'ulmo' | 'tiaca' | 'quillay' | 'multifloral';
 
@@ -123,9 +124,14 @@ export type ClubCosechaContext = {
 
 /**
  * Contexto del club en la fecha actual (o inyectable en tests).
+ * `overrides` (del CMS) ajusta label/mensaje/floraciones de la temporada vigente.
  */
-export function getClubCosechaContext(now: Date = new Date()): ClubCosechaContext {
-  const seasonal = getSeasonalContext();
+export function getClubCosechaContext(
+  now: Date = new Date(),
+  overrides?: SeasonalOverrides,
+  locale: string = 'es',
+): ClubCosechaContext {
+  const seasonal = getSeasonalContext(overrides, locale);
   // getSeasonalContext uses real Date internally — for tests we need seasonal aligned.
   // Re-derive season labels from `now` via month for destacada only; seasonal message
   // may lag if fake timers not set before import. Callers in tests should set timers

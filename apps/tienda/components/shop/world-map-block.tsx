@@ -4,15 +4,36 @@ import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import {
+  type MapSettings,
+  DEFAULT_MAP_SETTINGS,
+} from '@/lib/shop/store-chrome';
 
-const PUREO_COORDS = { lat: -43.0837, lng: -73.6144 };
+/** Escapa texto CMS antes de inyectarlo al popup del marker (Leaflet usa HTML). */
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (ch) => {
+    switch (ch) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      default:
+        return '&#39;';
+    }
+  });
+}
 
-export function WorldMapBlock() {
+export function WorldMapBlock({ mapSettings = DEFAULT_MAP_SETTINGS }: { mapSettings?: MapSettings }) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
 
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
+    const { lat, lng, popup_title, popup_body } = mapSettings;
 
     mapInstance.current = L.map(mapRef.current, {
       zoomControl: true,
@@ -20,7 +41,7 @@ export function WorldMapBlock() {
       dragging: true,
       minZoom: 2,
       maxZoom: 15,
-    }).setView([PUREO_COORDS.lat, PUREO_COORDS.lng], 6);
+    }).setView([lat, lng], 6);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
@@ -43,13 +64,15 @@ export function WorldMapBlock() {
       iconAnchor: [9, 9],
     });
 
-    L.marker([PUREO_COORDS.lat, PUREO_COORDS.lng], { icon: markerIcon })
+    L.marker([lat, lng], { icon: markerIcon })
       .addTo(mapInstance.current)
-      .bindPopup('<strong style="font-family:Inter,sans-serif">Pureo Rural km 8560</strong><br/>Queilén ~ Chiloé');
+      .bindPopup(
+        `<strong style="font-family:Inter,sans-serif">${escapeHtml(popup_title)}</strong><br/>${escapeHtml(popup_body)}`,
+      );
 
     const handleOpenInMaps = () => {
       window.open(
-        `https://www.google.com/maps/dir/?api=1&destination=${PUREO_COORDS.lat},${PUREO_COORDS.lng}`,
+        `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
         '_blank',
       );
     };
@@ -65,7 +88,7 @@ export function WorldMapBlock() {
         mapInstance.current = null;
       }
     };
-  }, []);
+  }, [mapSettings]);
 
   return (
     <section className="editorial-section">
@@ -84,7 +107,7 @@ export function WorldMapBlock() {
 
       <div className="editorial-container text-center max-w-2xl mx-auto">
         <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-6">
-          Pureo Rural km 8560 — Queilén ~ Chiloé
+          {mapSettings.popup_title} — {mapSettings.popup_body}
         </p>
         <p className="font-display italic text-xl md:text-2xl text-foreground leading-relaxed mb-10">
           En el silencio del bosque, árboles nativos se regeneran y se transforman en el legado de nuestra existencia.

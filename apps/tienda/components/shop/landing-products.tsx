@@ -5,15 +5,30 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
 import type { ShopProduct } from '@/lib/shop/products';
+import type { ProductRatingAggregate } from '@/lib/shop/catalog-ratings';
 import { formatCLP } from '@/lib/shop/format';
+import { ProductRatingStars } from '@/components/shop/product-rating-stars';
 import { useCartLines } from '@/components/shop/cart-context';
 
 interface LandingProductsProps {
   products: ShopProduct[];
+  /** Agregados de reseñas por producto (estrellas en card, mismo patrón que catálogo). */
+  ratings?: Record<string, ProductRatingAggregate>;
   pageSize?: number;
+  /** Cabecera desde CMS (products_settings); si falta usa el copy hardcodeado. */
+  header?: { kicker: string; title: string; desc: string };
 }
 
-export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps) {
+export function LandingProducts({
+  products,
+  ratings = {},
+  pageSize = 8,
+  header = {
+    kicker: 'Creaciones',
+    title: 'La materia de nuestras búsquedas',
+    desc: 'Creaciones cargadas de experiencias y legado.',
+  },
+}: LandingProductsProps) {
   const [page, setPage] = useState(1);
   const { add } = useCartLines();
 
@@ -42,12 +57,12 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
   return (
     <section className="editorial-section">
       <div className="editorial-container text-center mb-10 md:mb-16 px-4 sm:px-0">
-        <span className="editorial-kicker mb-4 block">Creaciones</span>
+        <span className="editorial-kicker mb-4 block">{header.kicker}</span>
         <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground mb-4 text-balance leading-tight">
-          La materia de nuestras búsquedas
+          {header.title}
         </h2>
         <p className="text-muted-foreground italic font-display text-base sm:text-lg max-w-2xl mx-auto text-pretty">
-          Creaciones cargadas de experiencias y legado.
+          {header.desc}
         </p>
       </div>
 
@@ -57,7 +72,7 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
           return (
             <div
               key={p.id}
-              className="group relative bg-card border border-border rounded-lg overflow-hidden hover:border-accent/35 transition-all duration-base flex flex-col"
+              className="group relative bg-card border border-border rounded-[var(--tienda-radius,0.5rem)] overflow-hidden hover:border-accent/35 transition-all duration-base flex flex-col"
             >
               <Link
                 href={`/producto/${encodeURIComponent(p.slug)}`}
@@ -94,6 +109,18 @@ export function LandingProducts({ products, pageSize = 8 }: LandingProductsProps
                   </h3>
                 </Link>
                 <p className="mt-1 text-sm text-muted-foreground tabular-nums">{formatCLP(p.price)}</p>
+                {(() => {
+                  const rating = ratings[p.id];
+                  return rating && rating.reviewCount > 0 ? (
+                    <div className="mt-1.5">
+                      <ProductRatingStars
+                        rating={rating.ratingValue}
+                        reviewCount={rating.reviewCount}
+                        showCount
+                      />
+                    </div>
+                  ) : null;
+                })()}
                 <button
                   type="button"
                   onClick={(e) => {

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -9,6 +10,8 @@ import {
   groupLotesByClub,
   resolveClubPlanId,
 } from '@/lib/shop/club-cosecha';
+import { parseSeasonalOverrides } from '@/lib/shop/store-chrome';
+import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
 import { formatCLP } from '@/lib/shop/format';
 import { getNucleoAppUrl } from '@/lib/shop/nucleo-app-url';
 import {
@@ -35,11 +38,18 @@ export const metadata: Metadata = {
 };
 
 export default async function ClubCosechaPage() {
-  const ctx = getClubCosechaContext();
-  const [plans, lotesPublicos] = await Promise.all([
+  // Contenido estacional del CMS (sección seasonal_settings) sobre el default por mes.
+  const [chrome, plans, lotesPublicos] = await Promise.all([
+    loadStoreChrome(),
     listActiveSubscriptionPlans(),
     fetchLotesPublicosForClub(24),
   ]);
+  const locale = await getLocale();
+  const ctx = getClubCosechaContext(
+    new Date(),
+    parseSeasonalOverrides(chrome.seasonal),
+    locale,
+  );
   const nucleo = getNucleoAppUrl();
   const lotesByClub = groupLotesByClub(lotesPublicos);
   const suggestedId = resolveClubPlanId(ctx.suggestedPlanKey, plans);

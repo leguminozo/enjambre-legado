@@ -9,7 +9,14 @@ import 'leaflet/dist/leaflet.css';
 
 const MAP_COORDINATES = { lat: -42.854935, lng: -73.67796 };
 
-export function ContactForm() {
+export function ContactForm({
+  title = 'Contáctenos',
+  desc = 'No dudes en contactarnos si tienes alguna pregunta o inquietud.',
+}: {
+  /** Cabecera desde site_content 'contacto' (Editor de Tienda). */
+  title?: string;
+  desc?: string;
+}) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<{ remove: () => void } | null>(null);
 
@@ -66,10 +73,10 @@ export function ContactForm() {
       <main className="mx-auto max-w-4xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-12">
         <div className="text-center">
           <h1 className="font-display text-[clamp(2rem,7vw,2.75rem)] sm:text-4xl font-semibold text-foreground text-balance">
-            Contáctenos
+            {title}
           </h1>
           <p className="mt-4 text-base sm:text-lg text-muted-foreground text-pretty">
-            No dudes en contactarnos si tienes alguna pregunta o inquietud.
+            {desc}
           </p>
           <p className="text-base sm:text-lg text-muted-foreground text-pretty">
             Agradecemos su interés y esperamos tener noticias suyas.

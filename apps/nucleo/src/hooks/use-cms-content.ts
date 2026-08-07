@@ -22,7 +22,6 @@ export interface CMSGroupedData {
 
 /** Alineado a BFF cms SECTION_KEYS. Sin hero/footer legacy (no consumidos por tienda). */
 const CMS_SECTIONS = [
-  'servicios',
   'talleres',
   'colecciones',
   'nosotros',
@@ -45,6 +44,12 @@ const CMS_SECTIONS = [
   'seo_defaults',
   'contact_settings',
   'campaign_banners',
+  'seasonal_settings',
+  'conservation_content',
+  'media_items',
+  'video_settings',
+  'map_settings',
+  'products_settings',
   'legal_terminos',
   'legal_privacidad',
   'legal_cookies',
@@ -95,18 +100,7 @@ export function useCMSContent() {
     }
   }, [queryClient])
 
-  const sectionQuery = (key: CMSSectionKey) =>
-    useQuery<{ data: CMSContentItem[] }>({
-      queryKey: ['cms', 'section', key],
-      queryFn: async () => {
-        const res = await apiFetch(`/api/cms/sections/${key}`)
-        if (!res.ok) throw new Error(`Failed to fetch section ${key}`)
-        return res.json()
-      },
-      enabled: false,
-    })
-
-const createItem = useMutation({
+  const createItem = useMutation({
     mutationFn: async (item: {
       section_key: CMSSectionKey
       item_order?: number
@@ -271,7 +265,6 @@ const createItem = useMutation({
     isLoading: allQuery.isLoading,
     error: allQuery.error,
     refetch: allQuery.refetch,
-    sectionQuery,
     createItem,
     updateItem,
     deleteItem,

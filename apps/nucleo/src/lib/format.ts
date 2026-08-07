@@ -1,14 +1,13 @@
-import { formatCLP, formatMoney } from "@enjambre/ui";
+import { formatDate as formatDateCanonical, formatCLP, formatMoney } from "@enjambre/ui";
 
 export { formatCLP, formatMoney };
 
+/**
+ * Default de presentación de nucleo: fecha SIN hora (dd/mm/aaaa). El canónico
+ * incluye hora; los paneles de nucleo muestran solo la fecha.
+ */
 export function formatDate(iso: string, options?: Intl.DateTimeFormatOptions): string {
-  const defaultOptions: Intl.DateTimeFormatOptions = {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  };
-  return new Date(iso).toLocaleDateString('es-CL', options ?? defaultOptions);
+  return formatDateCanonical(iso, options ?? { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 /** Alias histórico → formatMoney con moneda de plataforma (CLP). */

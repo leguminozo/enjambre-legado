@@ -43,8 +43,17 @@ import {
   LANDING_SECTION_LABELS,
   type SeoDefaults,
   type ContactSettings,
+  type ConservationContent,
+  type VideoSettings,
+  type MapSettings,
+  type ProductsSettings,
+  parseConservationContent,
+  parseVideoSettings,
+  parseMapSettings,
+  parseProductsSettings,
 } from '@/lib/store-chrome';
 import { TypographySettingsEditor } from '@/components/tienda/TypographySettingsEditor';
+import { SeasonalSettingsEditor } from '@/components/tienda/SeasonalSettingsEditor';
 import { useAutosaveEditor } from '@/components/tienda/save-status';
 
 interface SettingsEditorProps {
@@ -56,6 +65,7 @@ interface SettingsEditorProps {
 
 function SliderField({
   label,
+  desc,
   value,
   min,
   max,
@@ -64,6 +74,7 @@ function SliderField({
   onChange,
 }: {
   label: string;
+  desc?: string;
   value: number;
   min: number;
   max: number;
@@ -83,6 +94,7 @@ function SliderField({
           {unit}
         </span>
       </div>
+      {desc ? <p className="text-[10px] text-muted-foreground -mt-1">{desc}</p> : null}
       <input
         id={sliderId}
         name={sliderId}
@@ -275,6 +287,7 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
       </div>
       <SliderField
         label="Intensidad grain"
+        desc="0.35 ≈ look actual (la opacidad real es 0–6%)"
         value={local.grain_intensity}
         min={0}
         max={1}
@@ -437,19 +450,21 @@ export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorPr
         onChange={(v) => patch('interval_ms', v)}
       />
       <SliderField
-        label="Altura móvil"
+        label="Altura móvil (mínima)"
+        desc="La barra crece si el mensaje envuelve"
         value={local.height_mobile_px}
-        min={28}
-        max={56}
+        min={44}
+        max={72}
         step={1}
         unit="px"
         onChange={(v) => patch('height_mobile_px', v)}
       />
       <SliderField
-        label="Altura desktop"
+        label="Altura desktop (mínima)"
+        desc="La barra crece si el mensaje envuelve"
         value={local.height_desktop_px}
-        min={32}
-        max={64}
+        min={44}
+        max={80}
         step={1}
         unit="px"
         onChange={(v) => patch('height_desktop_px', v)}
@@ -1356,6 +1371,350 @@ export function ContactSettingsEditor({ content, onSave }: SettingsEditorProps) 
   );
 }
 
+// ── Ola 4: Contenido de bloques del home ───────────────────────────────────
+// Vacío = la tienda cae al i18n / defaults (mismo patrón que el copy del hero).
+
+function NumberField({
+  label,
+  value,
+  onChange,
+  step = 'any',
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  step?: string;
+}) {
+  const fieldId = useId();
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={fieldId} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </label>
+      <input
+        id={fieldId}
+        name={fieldId}
+        type="number"
+        step={step}
+        value={Number.isFinite(value) ? value : ''}
+        onChange={(e) => onChange(e.target.value === '' ? Number.NaN : Number(e.target.value))}
+        className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+      />
+    </div>
+  );
+}
+
+/** Par ES/EN de un campo (en vacío = cae al español). */
+function LocalizedFields({
+  esLabel,
+  es,
+  en,
+  onEs,
+  onEn,
+  multiline,
+}: {
+  esLabel: string;
+  es: string;
+  en: string | undefined;
+  onEs: (v: string) => void;
+  onEn: (v: string) => void;
+  multiline?: boolean;
+}) {
+  return (
+    <>
+      <TextField label={esLabel} value={es} onChange={onEs} multiline={multiline} />
+      <TextField
+        label={`${esLabel} (EN)`}
+        value={en ?? ''}
+        onChange={onEn}
+        multiline={multiline}
+      />
+    </>
+  );
+}
+
+export function ConservationContentEditor({ content, onSave }: SettingsEditorProps) {
+  const [local, setLocal] = useState<ConservationContent>(() =>
+    parseConservationContent(content),
+  );
+  const { isDirty } = useAutosaveEditor('conservation_content', local, (next) => onSave(next));
+
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(parseConservationContent(content));
+  }, [content, isDirty]);
+
+  const patch = <K extends keyof ConservationContent>(key: K, value: ConservationContent[K]) => {
+    setLocal((p) => ({ ...p, [key]: value }));
+  };
+
+  return (
+    <div className="space-y-4 pb-8">
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Vacío = texto por defecto (i18n). Los números (árboles, CO₂, colmenas, IRR)
+        siguen viniendo de los datos reales del ecosistema.
+      </p>
+      <LocalizedFields
+        esLabel="Kicker"
+        es={local.kicker}
+        en={local.kicker_en}
+        onEs={(v) => patch('kicker', v)}
+        onEn={(v) => patch('kicker_en', v)}
+      />
+      <LocalizedFields
+        esLabel="Título"
+        es={local.title}
+        en={local.title_en}
+        onEs={(v) => patch('title', v)}
+        onEn={(v) => patch('title_en', v)}
+      />
+      <LocalizedFields
+        esLabel="Descripción"
+        es={local.desc}
+        en={local.desc_en}
+        onEs={(v) => patch('desc', v)}
+        onEn={(v) => patch('desc_en', v)}
+        multiline
+      />
+      <LocalizedFields
+        esLabel="Métrica 1 — Etiqueta"
+        es={local.stat1_label}
+        en={local.stat1_label_en}
+        onEs={(v) => patch('stat1_label', v)}
+        onEn={(v) => patch('stat1_label_en', v)}
+      />
+      <LocalizedFields
+        esLabel="Métrica 2 — Etiqueta"
+        es={local.stat2_label}
+        en={local.stat2_label_en}
+        onEs={(v) => patch('stat2_label', v)}
+        onEn={(v) => patch('stat2_label_en', v)}
+      />
+      <LocalizedFields
+        esLabel="Métrica 3 — Etiqueta"
+        es={local.stat3_label}
+        en={local.stat3_label_en}
+        onEs={(v) => patch('stat3_label', v)}
+        onEn={(v) => patch('stat3_label_en', v)}
+      />
+      <LocalizedFields
+        esLabel="Métrica 4 — Etiqueta"
+        es={local.stat4_label}
+        en={local.stat4_label_en}
+        onEs={(v) => patch('stat4_label', v)}
+        onEn={(v) => patch('stat4_label_en', v)}
+      />
+      <LocalizedFields
+        esLabel="Triangulación — Título"
+        es={local.tri_label}
+        en={local.tri_label_en}
+        onEs={(v) => patch('tri_label', v)}
+        onEn={(v) => patch('tri_label_en', v)}
+      />
+      <LocalizedFields
+        esLabel="Bloque 1 — Título"
+        es={local.tri1_label}
+        en={local.tri1_label_en}
+        onEs={(v) => patch('tri1_label', v)}
+        onEn={(v) => patch('tri1_label_en', v)}
+      />
+      <LocalizedFields
+        esLabel="Bloque 1 — Texto"
+        es={local.tri1_desc}
+        en={local.tri1_desc_en}
+        onEs={(v) => patch('tri1_desc', v)}
+        onEn={(v) => patch('tri1_desc_en', v)}
+        multiline
+      />
+      <LocalizedFields
+        esLabel="Bloque 2 — Título"
+        es={local.tri2_label}
+        en={local.tri2_label_en}
+        onEs={(v) => patch('tri2_label', v)}
+        onEn={(v) => patch('tri2_label_en', v)}
+      />
+      <LocalizedFields
+        esLabel="Bloque 2 — Texto"
+        es={local.tri2_desc}
+        en={local.tri2_desc_en}
+        onEs={(v) => patch('tri2_desc', v)}
+        onEn={(v) => patch('tri2_desc_en', v)}
+        multiline
+      />
+      <LocalizedFields
+        esLabel="Bloque 3 — Título"
+        es={local.tri3_label}
+        en={local.tri3_label_en}
+        onEs={(v) => patch('tri3_label', v)}
+        onEn={(v) => patch('tri3_label_en', v)}
+      />
+      <LocalizedFields
+        esLabel="Bloque 3 — Texto"
+        es={local.tri3_desc}
+        en={local.tri3_desc_en}
+        onEs={(v) => patch('tri3_desc', v)}
+        onEn={(v) => patch('tri3_desc_en', v)}
+        multiline
+      />
+      <LocalizedFields
+        esLabel="IRR — Título sección"
+        es={local.irr_label}
+        en={local.irr_label_en}
+        onEs={(v) => patch('irr_label', v)}
+        onEn={(v) => patch('irr_label_en', v)}
+      />
+      <LocalizedFields
+        esLabel="IRR positivo — Título"
+        es={local.irr_pos_title}
+        en={local.irr_pos_title_en}
+        onEs={(v) => patch('irr_pos_title', v)}
+        onEn={(v) => patch('irr_pos_title_en', v)}
+      />
+      <LocalizedFields
+        esLabel="IRR positivo — Texto"
+        es={local.irr_pos_desc}
+        en={local.irr_pos_desc_en}
+        onEs={(v) => patch('irr_pos_desc', v)}
+        onEn={(v) => patch('irr_pos_desc_en', v)}
+        multiline
+      />
+      <LocalizedFields
+        esLabel="IRR negativo — Título"
+        es={local.irr_neg_title}
+        en={local.irr_neg_title_en}
+        onEs={(v) => patch('irr_neg_title', v)}
+        onEn={(v) => patch('irr_neg_title_en', v)}
+      />
+      <LocalizedFields
+        esLabel="IRR negativo — Texto"
+        es={local.irr_neg_desc}
+        en={local.irr_neg_desc_en}
+        onEs={(v) => patch('irr_neg_desc', v)}
+        onEn={(v) => patch('irr_neg_desc_en', v)}
+        multiline
+      />
+      <LocalizedFields
+        esLabel="CTA — Texto"
+        es={local.cta_label}
+        en={local.cta_label_en}
+        onEs={(v) => patch('cta_label', v)}
+        onEn={(v) => patch('cta_label_en', v)}
+      />
+    </div>
+  );
+}
+
+export function VideoSettingsEditor({ content, onSave }: SettingsEditorProps) {
+  const [local, setLocal] = useState<VideoSettings>(() => parseVideoSettings(content));
+  const { isDirty } = useAutosaveEditor('video_settings', local, (next) => onSave(next));
+
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(parseVideoSettings(content));
+  }, [content, isDirty]);
+
+  const patch = <K extends keyof VideoSettings>(key: K, value: VideoSettings[K]) => {
+    setLocal((p) => ({ ...p, [key]: value }));
+  };
+
+  return (
+    <div className="space-y-4 pb-8">
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Vacío = usa NEXT_PUBLIC_YOUTUBE_VIDEO_ID (o el video por defecto).
+      </p>
+      <TextField label="ID de YouTube" value={local.youtube_id} onChange={(v) => patch('youtube_id', v)} />
+      <TextField label="Título" value={local.title ?? ''} onChange={(v) => patch('title', v)} />
+    </div>
+  );
+}
+
+export function MapSettingsEditor({ content, onSave }: SettingsEditorProps) {
+  const [local, setLocal] = useState<MapSettings>(() => parseMapSettings(content));
+  const { isDirty } = useAutosaveEditor('map_settings', local, (next) => onSave(next));
+
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(parseMapSettings(content));
+  }, [content, isDirty]);
+
+  const patch = <K extends keyof MapSettings>(key: K, value: MapSettings[K]) => {
+    setLocal((p) => ({ ...p, [key]: value }));
+  };
+
+  // Vacío → NaN: conservar el valor previo en vez de caer a (0,0) en el océano.
+  const patchCoord = (key: 'lat' | 'lng', value: number) => {
+    if (!Number.isFinite(value)) return;
+    patch(key, value);
+  };
+
+  return (
+    <div className="space-y-4 pb-8">
+      <div className="grid grid-cols-2 gap-3">
+        <NumberField label="Latitud" value={local.lat} onChange={(v) => patchCoord('lat', v)} />
+        <NumberField label="Longitud" value={local.lng} onChange={(v) => patchCoord('lng', v)} />
+      </div>
+      <TextField
+        label="Popup — Título"
+        value={local.popup_title}
+        onChange={(v) => patch('popup_title', v)}
+      />
+      <TextField
+        label="Popup — Texto"
+        value={local.popup_body}
+        onChange={(v) => patch('popup_body', v)}
+      />
+    </div>
+  );
+}
+
+export function ProductsSettingsEditor({ content, onSave }: SettingsEditorProps) {
+  const [local, setLocal] = useState<ProductsSettings>(() => parseProductsSettings(content));
+  const { isDirty } = useAutosaveEditor('products_settings', local, (next) => onSave(next));
+
+  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(parseProductsSettings(content));
+  }, [content, isDirty]);
+
+  const patch = <K extends keyof ProductsSettings>(key: K, value: ProductsSettings[K]) => {
+    setLocal((p) => ({ ...p, [key]: value }));
+  };
+
+  return (
+    <div className="space-y-4 pb-8">
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Cabecera de la sección “Creaciones”. Los productos siguen viniendo del catálogo.
+      </p>
+      <LocalizedFields
+        esLabel="Kicker"
+        es={local.kicker}
+        en={local.kicker_en}
+        onEs={(v) => patch('kicker', v)}
+        onEn={(v) => patch('kicker_en', v)}
+      />
+      <LocalizedFields
+        esLabel="Título"
+        es={local.title}
+        en={local.title_en}
+        onEs={(v) => patch('title', v)}
+        onEn={(v) => patch('title_en', v)}
+      />
+      <LocalizedFields
+        esLabel="Descripción"
+        es={local.desc}
+        en={local.desc_en}
+        onEs={(v) => patch('desc', v)}
+        onEn={(v) => patch('desc_en', v)}
+        multiline
+      />
+    </div>
+  );
+}
+
 /** Secciones con editor settings dedicado (una sola fila). */
 export const SETTINGS_SECTION_KEYS = new Set([
   'theme_settings',
@@ -1370,6 +1729,11 @@ export const SETTINGS_SECTION_KEYS = new Set([
   'pdp_settings',
   'seo_defaults',
   'contact_settings',
+  'seasonal_settings',
+  'conservation_content',
+  'video_settings',
+  'map_settings',
+  'products_settings',
 ]);
 
 /** Legales: un solo item por sección, editor de título + body HTML. */
@@ -1400,6 +1764,8 @@ export function ChromeSettingsEditor({
       return <ThemeSettingsEditor {...props} />;
     case 'typography_settings':
       return <TypographySettingsEditor content={content} onSave={onSave} />;
+    case 'seasonal_settings':
+      return <SeasonalSettingsEditor content={content} onSave={onSave} />;
     case 'announcement_settings':
       return <AnnouncementSettingsEditor {...props} />;
     case 'footer_settings':
@@ -1418,6 +1784,14 @@ export function ChromeSettingsEditor({
       return <SeoDefaultsEditor {...props} />;
     case 'contact_settings':
       return <ContactSettingsEditor {...props} />;
+    case 'conservation_content':
+      return <ConservationContentEditor {...props} />;
+    case 'video_settings':
+      return <VideoSettingsEditor {...props} />;
+    case 'map_settings':
+      return <MapSettingsEditor {...props} />;
+    case 'products_settings':
+      return <ProductsSettingsEditor {...props} />;
     default:
       return null;
   }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast } from '@enjambre/ui';
-import { Star, Loader2, Check, X, EyeOff } from 'lucide-react';
+import { friendlyError, toast, ViewLoading } from '@enjambre/ui';
+import { Star, Check, X, EyeOff } from 'lucide-react';
 
 type ResenaRow = {
   id: string;
@@ -95,11 +95,7 @@ export function ResenasSensorialesTab() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="animate-spin text-accent" size={24} />
-      </div>
-    );
+    return <ViewLoading variant="inline" />;
   }
 
   return (

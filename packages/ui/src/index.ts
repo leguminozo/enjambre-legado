@@ -15,6 +15,9 @@ export {
   viewLoadingFallback,
   type ViewLoadingVariant,
 } from './components/view-loading';
+export { EnjTableShell, type EnjTableShellProps } from './components/enj-table-shell';
+export { ViewShell, type ViewShellProps } from './components/view-shell';
+export { useApiFetch, type ApiFetchSession, type ApiFetchSupabase } from './hooks/use-api-fetch';
 export { useClientViewLoading } from './hooks/use-client-view-loading';
 export { ImmersiveModal, type ImmersiveModalSize } from './components/immersive-modal';
 export { OverlayFullscreen, type OverlayFullscreenProps } from './components/overlay-fullscreen';

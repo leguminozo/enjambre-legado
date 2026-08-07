@@ -8,7 +8,6 @@ import { revalidateTiendaCms } from "@/lib/revalidate-tienda";
 
 /** Secciones editables. Retiradas (no consumidas por tienda): hero, footer_branding/nav/legal. */
 const SECTION_KEYS = [
-  "servicios",
   "talleres",
   "colecciones",
   "nosotros",
@@ -31,6 +30,12 @@ const SECTION_KEYS = [
   "seo_defaults",
   "contact_settings",
   "campaign_banners",
+  "seasonal_settings",
+  "conservation_content",
+  "media_items",
+  "video_settings",
+  "map_settings",
+  "products_settings",
   "legal_terminos",
   "legal_privacidad",
   "legal_cookies",
@@ -60,12 +65,6 @@ const ReorderItemSchema = z.object({
       item_order: z.number().int().min(0),
     })
   ),
-});
-
-const ImageUploadSchema = z.object({
-  section_key: z.enum(SECTION_KEYS),
-  field_name: z.string().min(1),
-  item_id: z.string().uuid().optional(),
 });
 
 export const cmsRoutes = new Hono<{
@@ -228,31 +227,5 @@ cmsRoutes.post("/reorder", zValidator("json", ReorderItemSchema), async (c) => {
     data: { reordered: items.length },
     revalidated: revalidate.ok,
     revalidate_reason: revalidate.reason ?? null,
-  });
-});
-
-cmsRoutes.post("/upload-url", zValidator("json", ImageUploadSchema), async (c) => {
-  const input = c.req.valid("json");
-  const supabase = c.get("supabase");
-  const user = c.get("user");
-
-  const filePath = `cms/${input.section_key}/${user.id}/${Date.now()}`;
-
-  const { data, error } = await supabase.storage
-    .from("cms")
-    .createSignedUploadUrl(filePath);
-
-  if (error) {
-    return c.json({ code: "upload_url_failed", message: error.message }, 400);
-  }
-
-  const { data: urlData } = supabase.storage.from("cms").getPublicUrl(filePath);
-
-  return c.json({
-    data: {
-      path: filePath,
-      signedUrl: data?.signedUrl ?? null,
-      publicUrl: urlData?.publicUrl ?? null,
-    },
   });
 });

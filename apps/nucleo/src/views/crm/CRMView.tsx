@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Users, TrendingUp, MessageSquare, Calendar, Target, Loader2, Shield, Star, ExternalLink } from "lucide-react";
+import { Users, TrendingUp, MessageSquare, Calendar, Target, Shield, Star, ExternalLink } from "lucide-react";
+import { ViewLoading } from "@enjambre/ui";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { OverviewTab } from "./components/OverviewTab";
 import { ClientesTab } from "./components/ClientesTab";
@@ -123,11 +124,7 @@ export function CRMView() {
         onChange={(id) => setTab(id as CrmTab)}
       />
 
-      {isLoading && (
-        <div className="flex justify-center py-12">
-          <Loader2 size={24} className="animate-spin text-accent" />
-        </div>
-      )}
+      {isLoading && <ViewLoading variant="view" />}
 
       {error && (
         <div className="p-4 rounded-xl bg-destructive/10 border border-destructive text-destructive text-sm">
