@@ -572,6 +572,12 @@ interface EditableItemCardProps {
   isFirst?: boolean;
   isLast?: boolean;
   dragHandleProps?: DraggableProvidedDragHandleProps | null;
+  /**
+   * Campos default de la sección (SECTION_TEMPLATES). Los items creados antes
+   * de que exista un campo (p.ej. colecciones sin `image`) no lo traen en su
+   * content; se completan aquí para que el uploader aparezca igualmente.
+   */
+  template?: Record<string, unknown>;
 }
 
 function EditableItemCard({
@@ -586,6 +592,7 @@ function EditableItemCard({
   isFirst,
   isLast,
   dragHandleProps,
+  template,
 }: EditableItemCardProps) {
   const [expanded, setExpanded] = useState(true);
   const [localContent, setLocalContent] = useState<Record<string, unknown>>(item.content);
@@ -645,6 +652,19 @@ function EditableItemCard({
   };
 
   const titleField = localContent.title ?? localContent.label ?? localContent.kicker ?? null;
+
+  // Campos a renderizar: los del content + los de la plantilla que falten
+  // (con su valor default). Editar uno de los faltantes lo agrega al content
+  // y el autosave lo persiste — sin tocar localContent acá.
+  const displayEntries = useMemo(() => {
+    const entries = Object.entries(localContent);
+    if (!template) return entries;
+    const seen = new Set(entries.map(([k]) => k));
+    for (const [k, v] of Object.entries(template)) {
+      if (!seen.has(k)) entries.push([k, v]);
+    }
+    return entries;
+  }, [localContent, template]);
 
   const isImageField = (key: string) =>
     key.toLowerCase().includes('image') ||
@@ -756,7 +776,7 @@ function EditableItemCard({
             onChange={handleFileChange}
           />
 
-          {Object.entries(localContent).map(([key, val]) => (
+          {displayEntries.map(([key, val]) => (
             <div key={key} className="space-y-1.5">
               {/* id derivado del item + campo: único aunque haya N cards iguales */}
               <label htmlFor={`${item.id}-${key}`} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -1109,6 +1129,8 @@ function ItemsPanel({
   const isSettingsSection = SETTINGS_SECTION_KEYS.has(activeSection);
   const sectionMeta = getSectionMeta(activeSection);
   const SectionIcon = sectionMeta.icon;
+  // Plantilla de la sección: completa campos ausentes en items viejos (p.ej. image)
+  const sectionTemplate = SECTION_TEMPLATES[activeSection];
 
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
@@ -1195,6 +1217,7 @@ function ItemsPanel({
                             isFirst={index === 0}
                             isLast={index === items.length - 1}
                             dragHandleProps={draggableProvided.dragHandleProps}
+                            template={sectionTemplate}
                           />
                         </div>
                       )}
@@ -1216,6 +1239,7 @@ function ItemsPanel({
                 onDelete={onDelete}
                 onImageUpload={onImageUpload}
                 isDeleting={isDeleting}
+                template={sectionTemplate}
               />
             ))}
           </div>
