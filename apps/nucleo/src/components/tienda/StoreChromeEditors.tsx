@@ -1011,6 +1011,67 @@ export function LandingLayoutEditor({ content, onSave }: SettingsEditorProps) {
           />
         </>
       ) : null}
+
+      <div className="pt-2">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
+          Copy del hero
+        </p>
+        <p className="text-[10px] text-muted-foreground mb-3">
+          Vacío = texto por defecto (i18n). Aplica en desktop y móvil.
+        </p>
+        <div className="space-y-3">
+          <TextField
+            label="Eyebrow (ES)"
+            value={local.hero_eyebrow}
+            onChange={(v) => patch('hero_eyebrow', v)}
+          />
+          <TextField
+            label="Eyebrow (EN)"
+            value={local.hero_eyebrow_en ?? ''}
+            onChange={(v) => patch('hero_eyebrow_en', v)}
+          />
+          <TextField
+            label="Título línea 1 (ES)"
+            value={local.hero_title_line1}
+            onChange={(v) => patch('hero_title_line1', v)}
+          />
+          <TextField
+            label="Título línea 1 (EN)"
+            value={local.hero_title_line1_en ?? ''}
+            onChange={(v) => patch('hero_title_line1_en', v)}
+          />
+          <TextField
+            label="Título línea 2 (ES)"
+            value={local.hero_title_line2}
+            onChange={(v) => patch('hero_title_line2', v)}
+          />
+          <TextField
+            label="Título línea 2 (EN)"
+            value={local.hero_title_line2_en ?? ''}
+            onChange={(v) => patch('hero_title_line2_en', v)}
+          />
+          <TextField
+            label="Subtítulo (ES)"
+            value={local.hero_subtitle}
+            onChange={(v) => patch('hero_subtitle', v)}
+          />
+          <TextField
+            label="Subtítulo (EN)"
+            value={local.hero_subtitle_en ?? ''}
+            onChange={(v) => patch('hero_subtitle_en', v)}
+          />
+          <TextField
+            label="Fórmula (ES)"
+            value={local.hero_formula}
+            onChange={(v) => patch('hero_formula', v)}
+          />
+          <TextField
+            label="Fórmula (EN)"
+            value={local.hero_formula_en ?? ''}
+            onChange={(v) => patch('hero_formula_en', v)}
+          />
+        </div>
+      </div>
     </div>
   );
 }

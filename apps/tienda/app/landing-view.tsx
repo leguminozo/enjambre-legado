@@ -226,9 +226,11 @@ export function TiendaLandingView({
       {orderedSections.map((sec) => {
         if (sec.id === 'hero') {
           return (
-      <section
+          // Sintaxis v3 de var(): `min-h-(--vh-full)` (v4) no genera CSS en Tailwind 3.
+          // tokens.css define --svh-full/--vh-full con fallback 100vh → svh/dvh vía @supports.
+          <section
             key="hero"
-            className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] pb-[max(7rem,calc(env(safe-area-inset-bottom)+5.5rem))] md:pb-32 min-h-(--svh-full) md:min-h-(--vh-full)"
+            className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] min-h-[var(--svh-full)] md:min-h-[var(--vh-full)]"
           >
             <div className="absolute inset-0 pointer-events-none" aria-hidden />
         {!isMobile && landing.show_bee_canvas ? <BeeCanvas /> : null}
@@ -241,31 +243,45 @@ export function TiendaLandingView({
           style={{
             background:
               'radial-gradient(ellipse at center, transparent 0%, hsl(var(--background)) 70%)',
-            opacity: isMobile ? 0.88 : 0.6,
+            opacity: isMobile ? 0.88 : 0.55,
           }}
         />
 
           {/* z-20 above scroll cue; pb reserved so absolute cue never crosses copy */}
           <div className="relative z-20 mx-auto w-full max-w-4xl px-1">
-            <span className="hero-eyebrow editorial-kicker mb-6 md:mb-8 block">
-              {tHero('subtitle') || 'Miel Virgen del Sur del Mundo'}
+            <span className="hero-eyebrow editorial-kicker mb-5 md:mb-7 block">
+              {resolveLocalized(landing.hero_eyebrow, landing.hero_eyebrow_en, currentLocale) ||
+                tHero('subtitle') ||
+                'Miel Virgen del Sur del Mundo'}
             </span>
-            <h1 className="hero-title font-display text-[clamp(2.75rem,7vw,5.75rem)] font-light leading-[1.05] mb-5 md:mb-6 overflow-hidden text-balance">
+            <h1 className="hero-title font-display text-[clamp(2.5rem,6vw,5rem)] font-light leading-[1.05] mb-6 md:mb-8 overflow-hidden text-balance">
               <span className="block overflow-hidden">
-                <span className="line-inner block">{tHero('titlePart1') || 'La Obrera'}</span>
+                <span className="line-inner block">
+                  {resolveLocalized(landing.hero_title_line1, landing.hero_title_line1_en, currentLocale) ||
+                    tHero('titlePart1') ||
+                    'La Obrera'}
+                </span>
               </span>
               <span className="block overflow-hidden">
-                <span className="line-inner block">{tHero('titlePart2') || 'y el Zángano'}</span>
+                <span className="line-inner block">
+                  {resolveLocalized(landing.hero_title_line2, landing.hero_title_line2_en, currentLocale) ||
+                    tHero('titlePart2') ||
+                    'y el Zángano'}
+                </span>
               </span>
             </h1>
             <p className="hero-subtitle font-display italic text-[clamp(1.05rem,2.2vw,1.4rem)] text-muted-foreground tracking-wide max-w-2xl mx-auto text-pretty leading-relaxed">
-              {tHero('description') || 'Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje'}
+              {resolveLocalized(landing.hero_subtitle, landing.hero_subtitle_en, currentLocale) ||
+                tHero('description') ||
+                'Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje'}
             </p>
-            <p className="hero-formula mt-5 md:mt-6 font-mono text-[clamp(0.6rem,1.1vw,0.75rem)] tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.28em] uppercase text-accent/60 max-w-xl mx-auto leading-relaxed">
-              {tHero('formula') || 'Luz solar → Néctar → Miel virgen · Sin atajos industriales'}
+            <p className="hero-formula mt-5 md:mt-7 font-mono text-[clamp(0.6rem,1.1vw,0.75rem)] tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.28em] uppercase text-accent/60 max-w-xl mx-auto leading-relaxed">
+              {resolveLocalized(landing.hero_formula, landing.hero_formula_en, currentLocale) ||
+                tHero('formula') ||
+                'Luz solar → Néctar → Miel virgen · Sin atajos industriales'}
             </p>
             {landing.show_hero_cta ? (
-              <div className="mt-10 md:mt-12">
+              <div className="mt-9 md:mt-11">
                 <Link
                   href={landing.hero_cta_href || '/catalogo'}
                   className="inline-flex min-h-[48px] min-w-[44px] items-center justify-center rounded-full border border-accent bg-accent/10 px-8 py-3.5 text-[0.65rem] uppercase tracking-[0.2em] text-accent hover:bg-accent hover:text-accent-foreground transition-colors"

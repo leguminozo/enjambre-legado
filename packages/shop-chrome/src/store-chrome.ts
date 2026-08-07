@@ -442,6 +442,17 @@ export type LandingLayoutSettings = {
   hero_cta_label_en?: string;
   hero_cta_href: string;
   show_hero_cta: boolean;
+  /** Copy del hero editable desde el editor de nucleo. Vacío = la tienda cae al i18n (messages/*.json). */
+  hero_eyebrow: string;
+  hero_eyebrow_en?: string;
+  hero_title_line1: string;
+  hero_title_line1_en?: string;
+  hero_title_line2: string;
+  hero_title_line2_en?: string;
+  hero_subtitle: string;
+  hero_subtitle_en?: string;
+  hero_formula: string;
+  hero_formula_en?: string;
 };
 
 export const DEFAULT_LANDING_SECTIONS: LandingSectionConfig[] = [
@@ -463,6 +474,12 @@ export const DEFAULT_LANDING_LAYOUT: LandingLayoutSettings = {
   hero_cta_label_en: 'Explore creations',
   hero_cta_href: '/catalogo',
   show_hero_cta: true,
+  // Copy del hero: vacío por defecto → la tienda usa el i18n (messages/*.json)
+  hero_eyebrow: '',
+  hero_title_line1: '',
+  hero_title_line2: '',
+  hero_subtitle: '',
+  hero_formula: '',
 };
 
 export type CatalogSortKey = 'default' | 'price-asc' | 'price-desc' | 'name';
@@ -568,6 +585,25 @@ export function parseLandingLayout(
       typeof raw.hero_cta_label_en === 'string' ? raw.hero_cta_label_en : d.hero_cta_label_en,
     hero_cta_href: sanitizeStoreHref(raw.hero_cta_href, d.hero_cta_href) ?? d.hero_cta_href,
     show_hero_cta: asBool(raw.show_hero_cta, d.show_hero_cta),
+    hero_eyebrow: asString(raw.hero_eyebrow, d.hero_eyebrow).trim(),
+    hero_eyebrow_en:
+      typeof raw.hero_eyebrow_en === 'string' ? raw.hero_eyebrow_en.trim() : d.hero_eyebrow_en,
+    hero_title_line1: asString(raw.hero_title_line1, d.hero_title_line1).trim(),
+    hero_title_line1_en:
+      typeof raw.hero_title_line1_en === 'string'
+        ? raw.hero_title_line1_en.trim()
+        : d.hero_title_line1_en,
+    hero_title_line2: asString(raw.hero_title_line2, d.hero_title_line2).trim(),
+    hero_title_line2_en:
+      typeof raw.hero_title_line2_en === 'string'
+        ? raw.hero_title_line2_en.trim()
+        : d.hero_title_line2_en,
+    hero_subtitle: asString(raw.hero_subtitle, d.hero_subtitle).trim(),
+    hero_subtitle_en:
+      typeof raw.hero_subtitle_en === 'string' ? raw.hero_subtitle_en.trim() : d.hero_subtitle_en,
+    hero_formula: asString(raw.hero_formula, d.hero_formula).trim(),
+    hero_formula_en:
+      typeof raw.hero_formula_en === 'string' ? raw.hero_formula_en.trim() : d.hero_formula_en,
   };
 }
 
