@@ -71,10 +71,11 @@ function SliderField({
   unit: string;
   onChange: (v: number) => void;
 }) {
+  const sliderId = useId();
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <label htmlFor={sliderId} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           {label}
         </label>
         <span className="text-xs font-mono text-accent tabular-nums">
@@ -83,6 +84,8 @@ function SliderField({
         </span>
       </div>
       <input
+        id={sliderId}
+        name={sliderId}
         type="range"
         min={min}
         max={max}
@@ -142,13 +145,17 @@ function TextField({
   onChange: (v: string) => void;
   multiline?: boolean;
 }) {
+  const fieldId = useId();
   return (
     <div className="space-y-1.5">
-      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+      <label htmlFor={fieldId} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
         {label}
       </label>
       {multiline ? (
         <textarea
+          id={fieldId}
+          name={fieldId}
+          autoComplete="off"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           rows={3}
@@ -156,7 +163,10 @@ function TextField({
         />
       ) : (
         <input
+          id={fieldId}
+          name={fieldId}
           type="text"
+          autoComplete="off"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
@@ -216,6 +226,8 @@ function hslToHex(h: number, s: number, l: number): string {
 export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
   const [local, setLocal] = useState<ThemeSettings>(() => parseThemeSettings(content));
   const { isDirty } = useAutosaveEditor('theme_settings', local, (next) => onSave(next));
+  const themeId = useId();
+  const radiusId = useId();
 
   // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
@@ -230,10 +242,12 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
   return (
     <div className="space-y-4 pb-8">
       <div className="space-y-1.5">
-        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <label htmlFor={themeId} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           Tema por defecto
         </label>
         <select
+          id={themeId}
+          name={themeId}
           value={local.default_theme}
           onChange={(e) => patch('default_theme', e.target.value as ThemeSettings['default_theme'])}
           className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
@@ -244,10 +258,12 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
         </select>
       </div>
       <div className="space-y-1.5">
-        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <label htmlFor={radiusId} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           Radio de bordes
         </label>
         <select
+          id={radiusId}
+          name={radiusId}
           value={local.border_radius}
           onChange={(e) => patch('border_radius', e.target.value as ThemeSettings['border_radius'])}
           className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
@@ -314,6 +330,8 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
         {/* Color libre */}
         <div className="flex items-center gap-3">
           <input
+            id="accent-color-free"
+            name="accent-color-free"
             type="color"
             value={hslToHex(local.accent_h, local.accent_s, local.accent_l)}
             onChange={(e) => {
@@ -684,7 +702,11 @@ function BrandAssetUploadField({
           <span className="underline-offset-2 group-open:no-underline">URL manual (opcional)</span>
         </summary>
         <input
+          id={`${inputId}-url`}
+          name={`${inputId}-url`}
           type="text"
+          autoComplete="off"
+          aria-label={`${label} — URL manual`}
           value={value}
           onChange={(e) => onUrlChange(e.target.value)}
           placeholder="https://… o /icons/…"
@@ -1081,6 +1103,7 @@ export function LandingLayoutEditor({ content, onSave }: SettingsEditorProps) {
 export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) {
   const [local, setLocal] = useState<CatalogSettings>(() => parseCatalogSettings(content));
   const { isDirty } = useAutosaveEditor('catalog_settings', local, (next) => onSave(next));
+  const sortId = useId();
 
   // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
@@ -1125,10 +1148,12 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
         onChange={(v) => patch('columns_mobile', v)}
       />
       <div className="space-y-1.5">
-        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <label htmlFor={sortId} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           Orden por defecto
         </label>
         <select
+          id={sortId}
+          name={sortId}
           value={local.default_sort}
           onChange={(e) => patch('default_sort', e.target.value as CatalogSettings['default_sort'])}
           className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"

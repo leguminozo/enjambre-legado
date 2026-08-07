@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Cormorant_Garamond } from 'next/font/google';
 import React from 'react';
-import { ThemeProvider, ThemeInitScript, ToastProvider, LegacyBrowserPolyfills, ErrorRevealHarness } from '@enjambre/ui';
+import { ThemeProvider, ThemeInitScript, ToastProvider, LegacyBrowserPolyfills, ErrorRevealHarness, NavigationProgressBar } from '@enjambre/ui';
 import { CampoAuthProvider } from '@/components/campo-auth-provider';
 import { SyncProvider } from '@/components/sync-provider';
 import { VercelInsights } from '@/components/VercelInsights';
@@ -45,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ErrorRevealHarness />
       </head>
       <body className={`${inter.className} bg-background antialiased`} suppressHydrationWarning>
+        <NavigationProgressBar />
         <ThemeInitScript storageKey="enjambre-theme" defaultTheme="system" enableSystem />
         <ThemeProvider defaultTheme="system" storageKey="enjambre-theme" enableSystem>
           <ToastProvider>

@@ -12,7 +12,9 @@ export type ViewLoadingVariant = 'inline' | 'view' | 'page' | 'fullscreen';
 const VARIANT_CLASS: Record<ViewLoadingVariant, string> = {
   inline: 'inline-flex flex-col items-center justify-center gap-2.5',
   view: 'flex flex-col items-center justify-center gap-4 py-16 min-h-[12rem] w-full',
-  page: 'flex flex-col items-center justify-center gap-4 min-h-[50vh] w-full mx-auto',
+  // viewport completo (token --vh-full con fallback 100vh iOS <15.4 → 100dvh modernos).
+  // Antes: min-h-[50vh] — el loader quedaba confinado a la mitad superior de la pantalla (se veía cortado).
+  page: 'flex flex-col items-center justify-center gap-4 min-h-[var(--vh-full)] w-full mx-auto',
   fullscreen:
     'fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4',
 };
@@ -30,39 +32,55 @@ export function ViewLoading({
   className = '',
   hideLabel = false,
   context = 'default',
+  brand,
 }: {
   label?: string;
   variant?: ViewLoadingVariant;
   className?: string;
   hideLabel?: boolean;
   context?: HexagonContext;
+  /** Wordmark/marca opcional debajo del label (ej. BrandWordmark). */
+  brand?: React.ReactNode;
 }) {
   const ariaLabel = label ?? 'Cargando';
   const containerRef = useRef<HTMLDivElement>(null);
   const isFullscreen = variant === 'fullscreen';
 
   useGSAP(() => {
-    // Animación de entrada cinemática (solo para fullscreen o page)
+    // Animación de entrada cinemática (solo fullscreen/page, sin prefers-reduced-motion).
+    // El blur se limita a ≥768px: filtrar el viewport completo es costoso en móviles legacy (iPhone 7).
     if ((variant === 'fullscreen' || variant === 'page') && containerRef.current) {
-      gsap.fromTo(
-        containerRef.current,
-        { opacity: 0, scale: 0.95, filter: 'blur(10px)' },
-        { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 1.2, ease: 'power3.out' }
-      );
+      const mm = gsap.matchMedia();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        const withBlur = window.matchMedia('(min-width: 768px)').matches;
+        gsap.fromTo(
+          containerRef.current,
+          { opacity: 0, scale: 0.95, ...(withBlur ? { filter: 'blur(10px)' } : {}) },
+          {
+            opacity: 1,
+            scale: 1,
+            ...(withBlur ? { filter: 'blur(0px)' } : {}),
+            duration: 1.2,
+            ease: 'power3.out',
+          }
+        );
+      });
+      return () => mm.revert();
     }
   }, { scope: containerRef, dependencies: [variant] });
 
-  // Fondos solo con tokens semánticos (Ley III — sin hex / white crudo)
-  let bgClass = 'bg-background/95 backdrop-blur-sm';
+  // Fondos solo con tokens semánticos (Ley III — sin hex / white crudo).
+  // backdrop-blur solo en ≥768px: filtrar el fondo a pantalla completa es caro en móviles legacy.
+  let bgClass = 'bg-background/95';
   if (isFullscreen || variant === 'page') {
     if (context === 'tienda') {
       bgClass =
-        'bg-surface-sunken/95 backdrop-blur-md bg-[radial-gradient(ellipse_at_top,_hsla(var(--foreground)/0.05),_transparent)]';
+        'bg-surface-sunken/95 md:bg-surface-sunken/90 md:backdrop-blur-md bg-[radial-gradient(ellipse_at_top,_hsla(var(--foreground)/0.05),_transparent)]';
     } else if (context === 'campo') {
-      bgClass = 'bg-background/95 backdrop-blur-sm';
+      bgClass = 'bg-background/95 md:bg-background/90 md:backdrop-blur-sm';
     } else if (context === 'nucleo') {
       bgClass =
-        'bg-background/95 backdrop-blur-sm bg-[radial-gradient(ellipse_at_center,_hsla(var(--primary)/0.08),_transparent)]';
+        'bg-background/95 md:bg-background/90 md:backdrop-blur-sm bg-[radial-gradient(ellipse_at_center,_hsla(var(--primary)/0.08),_transparent)]';
     }
   }
 
@@ -78,10 +96,11 @@ export function ViewLoading({
         <HexagonLoader size={SIZE_BY_VARIANT[variant]} context={context} />
       </div>
       {!hideLabel && label ? (
-        <p className="text-[0.62rem] uppercase tracking-[0.32em] text-muted-foreground/75 font-medium text-center max-w-[16rem]">
+        <p className="text-[0.62rem] uppercase tracking-[0.32em] text-muted-foreground font-medium text-center max-w-[16rem] px-4">
           {label}
         </p>
       ) : null}
+      {brand ? <div className="mt-1.5">{brand}</div> : null}
     </div>
   );
 }

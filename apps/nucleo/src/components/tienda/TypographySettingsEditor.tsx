@@ -232,7 +232,11 @@ export function TypographySettingsEditor({ content, onSave }: TypographySettings
           <div className="p-3 space-y-3">
             <div className="flex gap-2">
               <input
+                id="font-search"
+                name="font-search"
                 type="text"
+                autoComplete="off"
+                aria-label="Buscar fuente"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar fuente…"
@@ -274,7 +278,11 @@ export function TypographySettingsEditor({ content, onSave }: TypographySettings
               </p>
               <div className="flex gap-2">
                 <input
+                  id="font-custom"
+                  name="font-custom"
                   type="text"
+                  autoComplete="off"
+                  aria-label="Otra Google Font"
                   value={customValue}
                   onChange={(e) => {
                     setCustomValue(e.target.value);

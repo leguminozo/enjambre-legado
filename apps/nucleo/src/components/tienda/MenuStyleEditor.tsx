@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import { Loader2, Upload } from 'lucide-react';
 import {
   type HeaderMenuSettings,
@@ -33,10 +33,11 @@ function SliderField({
   unit: string;
   onChange: (v: number) => void;
 }) {
+  const sliderId = useId();
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <label htmlFor={sliderId} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           {label}
         </label>
         <span className="text-xs font-mono text-accent tabular-nums">
@@ -45,6 +46,8 @@ function SliderField({
         </span>
       </div>
       <input
+        id={sliderId}
+        name={sliderId}
         type="range"
         min={min}
         max={max}
@@ -309,10 +312,12 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
           onChange={(v) => patch('nav_font_size_px', v)}
         />
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          <label htmlFor="menu-transform" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Transformación
           </label>
           <select
+            id="menu-transform"
+            name="menu-transform"
             value={local.nav_text_transform}
             onChange={(e) =>
               patch('nav_text_transform', e.target.value as HeaderMenuSettings['nav_text_transform'])
@@ -325,10 +330,12 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
           </select>
         </div>
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          <label htmlFor="menu-nav-font" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Tipografía
           </label>
           <select
+            id="menu-nav-font"
+            name="menu-nav-font"
             value={local.nav_font}
             onChange={(e) => patch('nav_font', e.target.value as HeaderMenuSettings['nav_font'])}
             className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
@@ -371,10 +378,12 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
           onChange={(v) => patch('mobile_letter_spacing_em', v)}
         />
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          <label htmlFor="menu-panel-font" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Tipografía panel
           </label>
           <select
+            id="menu-panel-font"
+            name="menu-panel-font"
             value={local.mobile_font}
             onChange={(e) => patch('mobile_font', e.target.value as HeaderMenuSettings['mobile_font'])}
             className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
@@ -462,22 +471,28 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
           onChange={(v) => patch('logo_height_px', v)}
         />
         <div className="space-y-1.5 mt-4">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          <label htmlFor="menu-brand-line1" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Línea 1
           </label>
           <input
+            id="menu-brand-line1"
+            name="menu-brand-line1"
             type="text"
+            autoComplete="off"
             value={local.brand_line1}
             onChange={(e) => patch('brand_line1', e.target.value)}
             className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          <label htmlFor="menu-brand-line2" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Línea 2
           </label>
           <input
+            id="menu-brand-line2"
+            name="menu-brand-line2"
             type="text"
+            autoComplete="off"
             value={local.brand_line2}
             onChange={(e) => patch('brand_line2', e.target.value)}
             className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"

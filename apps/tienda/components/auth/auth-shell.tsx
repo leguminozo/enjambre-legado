@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { ViewLoading } from '@enjambre/ui';
+import { ViewLoading, BrandWordmark } from '@enjambre/ui';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
 
 type AuthShellProps = {
@@ -74,7 +74,11 @@ export const authLabelClass = 'text-[0.6rem] uppercase tracking-[0.2em] text-mut
 export function AuthPageLoading({ label = 'Verificando sesión' }: { label?: string }) {
   return (
     <div className="tienda-auth-page flex items-center justify-center" aria-busy="true">
-      <ViewLoading variant="inline" label={label} hideLabel />
+      <ViewLoading
+        variant="inline"
+        label={label}
+        brand={<BrandWordmark tagline="Biocultural Regeneration" />}
+      />
     </div>
   );
 }

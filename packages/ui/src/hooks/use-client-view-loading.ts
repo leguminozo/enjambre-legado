@@ -10,7 +10,7 @@ function readPathname(): string {
 }
 
 /** Observa navegaciones cliente sin depender de `next/navigation`. */
-function usePathnameSnapshot(): string {
+export function usePathnameSnapshot(): string {
   const [pathname, setPathname] = useState(readPathname);
 
   useEffect(() => {

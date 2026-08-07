@@ -3,7 +3,7 @@ import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers/Providers";
 import { VercelInsights } from "@/components/VercelInsights";
-import { ThemeInitScript, LegacyBrowserPolyfills, ErrorRevealHarness } from "@enjambre/ui";
+import { ThemeInitScript, LegacyBrowserPolyfills, ErrorRevealHarness, NavigationProgressBar } from "@enjambre/ui";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -67,6 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           defaultTheme="dark"
           enableSystem
         />
+        <NavigationProgressBar />
         <Providers>
           {children}
         </Providers>

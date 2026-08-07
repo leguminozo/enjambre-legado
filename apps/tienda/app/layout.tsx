@@ -12,7 +12,7 @@ import {
 } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { VercelInsights } from '@/components/VercelInsights';
-import { LegacyBrowserPolyfills, ErrorRevealHarness } from '@enjambre/ui';
+import { LegacyBrowserPolyfills, ErrorRevealHarness, NavigationProgressBar } from '@enjambre/ui';
 import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
 import { buildGoogleFontsHref, themeToCssVars, typographyToCssVars } from '@/lib/shop/store-chrome';
@@ -114,6 +114,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <JsonLd data={rootJsonLd} />
       </head>
       <body className="font-sans antialiased bg-background text-foreground" suppressHydrationWarning>
+        <NavigationProgressBar />
         <NextIntlClientProvider locale={locale} messages={messages}>
           <RegisterServiceWorker />
           <AppProviders

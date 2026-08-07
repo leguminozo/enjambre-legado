@@ -5,6 +5,8 @@ export { Input, Textarea } from './components/input';
 export { StatCard } from './components/stat-card';
 export { Spinner } from './components/spinner';
 export { HexagonLoader, type HexagonLoaderSize } from './components/hexagon-loader';
+export { BrandWordmark } from './components/brand-wordmark';
+export { NavigationProgressBar } from './components/navigation-progress-bar';
 export {
   ViewLoading,
   ViewLoadingFallback,

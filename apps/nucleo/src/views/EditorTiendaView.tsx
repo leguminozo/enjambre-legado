@@ -472,10 +472,12 @@ function ContentFieldEditor({
   fieldKey,
   value,
   onChange,
+  fieldId,
 }: {
   fieldKey: string;
   value: unknown;
   onChange: (val: unknown) => void;
+  fieldId?: string;
 }) {
   if (typeof value === 'string') {
     if (
@@ -488,6 +490,8 @@ function ContentFieldEditor({
     ) {
       return (
         <textarea
+          id={fieldId}
+          name={fieldId}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           rows={fieldKey === 'body' || fieldKey === 'body_en' ? 12 : 3}
@@ -497,7 +501,10 @@ function ContentFieldEditor({
     }
     return (
       <input
+        id={fieldId}
+        name={fieldId}
         type="text"
+        autoComplete="off"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
@@ -508,7 +515,10 @@ function ContentFieldEditor({
   if (typeof value === 'number') {
     return (
       <input
+        id={fieldId}
+        name={fieldId}
         type="number"
+        autoComplete="off"
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
@@ -533,7 +543,10 @@ function ContentFieldEditor({
 
   return (
     <input
+      id={fieldId}
+      name={fieldId}
       type="text"
+      autoComplete="off"
       value={String(value ?? '')}
       onChange={(e) => onChange(e.target.value)}
       className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
@@ -736,6 +749,7 @@ function EditableItemCard({
             <div className="px-3 pb-4 space-y-4 border-t border-border pt-3 bg-surface-sunken/50">
           <input
             ref={fileInputRef}
+            id={`file-${item.id}`}
             type="file"
             accept="image/*"
             className="hidden"
@@ -744,7 +758,8 @@ function EditableItemCard({
 
           {Object.entries(localContent).map(([key, val]) => (
             <div key={key} className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {/* id derivado del item + campo: único aunque haya N cards iguales */}
+              <label htmlFor={`${item.id}-${key}`} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 {fieldLabel(key)}
               </label>
               {isImageField(key) ? (
@@ -774,7 +789,7 @@ function EditableItemCard({
               ) : key === 'href' || key === 'action' ? (
                 <div className="flex gap-2">
                   <div className="flex-1">
-                    <ContentFieldEditor fieldKey={key} value={val} onChange={(v) => handleFieldChange(key, v)} />
+                    <ContentFieldEditor fieldKey={key} fieldId={`${item.id}-${key}`} value={val} onChange={(v) => handleFieldChange(key, v)} />
                   </div>
                   {typeof val === 'string' && val.startsWith('/') && (
                     <a
@@ -788,7 +803,7 @@ function EditableItemCard({
                   )}
                 </div>
               ) : (
-                <ContentFieldEditor fieldKey={key} value={val} onChange={(v) => handleFieldChange(key, v)} />
+                <ContentFieldEditor fieldKey={key} fieldId={`${item.id}-${key}`} value={val} onChange={(v) => handleFieldChange(key, v)} />
               )}
             </div>
           ))}
@@ -846,7 +861,11 @@ function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: S
       <div className="relative">
         <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         <input
+          id="editor-section-search"
+          name="editor-section-search"
           type="text"
+          autoComplete="off"
+          aria-label="Buscar bloque"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar bloque…"
@@ -1686,11 +1705,12 @@ function EditorTiendaViewInner() {
         <div className="space-y-4">
           {Object.entries(newContent).map(([key, val]) => (
             <div key={key} className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <label htmlFor={`new-item-${key}`} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 {fieldLabel(key)}
               </label>
               <ContentFieldEditor
                 fieldKey={key}
+                fieldId={`new-item-${key}`}
                 value={val}
                 onChange={(v) => setNewContent((prev) => ({ ...prev, [key]: v }))}
               />

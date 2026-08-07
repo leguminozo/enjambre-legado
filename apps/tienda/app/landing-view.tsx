@@ -295,12 +295,12 @@ export function TiendaLandingView({
               </div>
             ) : null}
           </div>
-          {/* Scroll cue: side rail on md+, never center-stacked over subtitle/formula */}
+          {/* Scroll cue: rail centrado en el borde inferior del hero, nunca solapado con copy */}
           <div
-            className="pointer-events-none absolute right-4 sm:right-6 md:right-8 z-10 flex flex-col items-center gap-2 md:gap-3 bottom-[max(1.5rem,env(safe-area-inset-bottom))] md:bottom-10"
+            className="pointer-events-none absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 md:gap-3 bottom-[max(1.5rem,env(safe-area-inset-bottom))] md:bottom-10"
             aria-hidden
           >
-            <span className="hidden lg:block text-editorial-xs uppercase tracking-widest text-muted-foreground/80 [writing-mode:vertical-rl] rotate-180">
+            <span className="hidden lg:block text-editorial-xs uppercase tracking-widest text-muted-foreground/80 [writing-mode:vertical-rl]">
               {tCommon('scrollDown') || 'Descender'}
             </span>
             <div className="w-px h-10 md:h-14 bg-gradient-to-b from-accent/80 to-transparent" />
