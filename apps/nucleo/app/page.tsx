@@ -4,7 +4,7 @@ import { ShieldAlert, Map, QrCode, ArrowRight, UserCircle2 } from 'lucide-react'
 
 export default function RedApicolaLanding() {
   return (
-    <main className="min-h-(--vh-full) bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground flex flex-col">
+    <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground flex flex-col">
       {/* Top Navbar */}
       <header className="absolute top-0 w-full p-6 flex justify-between items-center z-50">
         <div className="flex items-center gap-2">

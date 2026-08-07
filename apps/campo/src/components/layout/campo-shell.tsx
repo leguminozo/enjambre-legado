@@ -12,7 +12,7 @@ export function CampoShell({ children }: { children: React.ReactNode }) {
   const isPublicLanding = pathname === '/' || pathname === '/login' || pathname === '/setup-error';
 
   return (
-    <div className="flex h-(--vh-full) w-full overflow-hidden bg-background text-foreground">
+    <div className="flex h-[var(--vh-full)] w-full overflow-hidden bg-background text-foreground">
       {!isPosWorkspace && !isPublicLanding && <CampoSidebar />}
 
       <div className="flex-1 flex flex-col min-w-0 relative">

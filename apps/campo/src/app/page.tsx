@@ -7,7 +7,7 @@ import { CAMPO_NAV_ROUTES } from '@/lib/navigation/routes';
 
 function CampoLanding() {
   return (
-    <main className="min-h-(--vh-full) bg-background text-foreground selection:bg-primary selection:text-primary-foreground pb-24 pb-[max(6rem,env(safe-area-inset-bottom))] font-sans">
+    <main className="min-h-[var(--vh-full)] bg-background text-foreground selection:bg-primary selection:text-primary-foreground pb-24 pb-[max(6rem,env(safe-area-inset-bottom))] font-sans">
       <section className="relative pt-[max(5rem,calc(env(safe-area-inset-top)+3.5rem))] sm:pt-32 pb-16 sm:pb-20 px-6 sm:px-12 lg:px-24 flex flex-col items-center text-center overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/10 blur-[120px] -z-10" />
 

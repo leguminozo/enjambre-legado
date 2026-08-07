@@ -85,7 +85,7 @@ packages/banco-chile → Banco Chile Empresas API client (OAuth 2.0, 8 APIs)
 | Skip build verification | Always build after changes |
 | `supabase.auth.getSession()` para verificar sesión | `supabase.auth.getUser()` (valida la firma del JWT con el servidor, previniendo falsificaciones) |
 | Confiar en `user` / `user_metadata` para roles | Confiar únicamente en `app_metadata` o en la tabla `profiles` (el usuario puede autodeclarar `user_metadata` a través del cliente) |
-| `100dvh`/`100svh` sin fallback | `min-h-(--vh-full)` (token compartido en `packages/ui/src/tokens.css` con `@supports` → 100vh en iOS < 15.4, 100dvh/100svh en modernos). NO usar pares `min-h-screen min-h-[100dvh]`: Tailwind ordena las arbitrarias antes que las de tema y la regla 100vh ganaría en modernos. |
+| `100dvh`/`100svh` sin fallback | `min-h-[var(--vh-full)]` / `min-h-[var(--svh-full)]` / `h-[var(--vh-full)]` (token compartido en `packages/ui/src/tokens.css` con `@supports` → 100vh en iOS < 15.4, 100dvh/100svh en modernos). NO usar pares `min-h-screen min-h-[100dvh]`: Tailwind ordena las arbitrarias antes que las de tema y la regla 100vh ganaría en modernos. NO usar la forma v4 `min-h-(--vh-full)`: no genera CSS en los apps con tailwindcss ^3 (bug que colapsaba el hero/login/shells). |
 | `:has()` funcional en CSS (barras fijas, overlays) | data-attributes seteados por React (ver `StickyBarSensor` en tienda). `:has()` es 15.4+; los cosméticos se documentan como mejora progresiva. |
 | APIs modernas sin cubrir (`.at()`, `Object.hasOwn`, `structuredClone`…) | Verificar que estén en `LegacyBrowserPolyfills` o el build falla con `node scripts/compat-audit.mjs apps/<app>` |
 

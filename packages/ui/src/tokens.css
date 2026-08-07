@@ -438,8 +438,10 @@ html.light {
 
 
 /* ── 7. Viewport — altura de pantalla con fallback iOS <15.4 ──
-   Uso en Tailwind: min-h-(--vh-full), h-(--vh-full), min-h-(--svh-full)
-   (una sola clase: sin problema de orden de cascada entre vh y dvh) */
+   Uso en Tailwind (sintaxis v3, proyectos con tailwindcss ^3):
+   min-h-[var(--vh-full)], h-[var(--vh-full)], min-h-[var(--svh-full)]
+   (una sola clase: sin problema de orden de cascada entre vh y dvh).
+   NO usar la forma v4 min-h-(--vh-full): no genera CSS en Tailwind 3. */
 :root {
   --vh-full: 100vh;
   --svh-full: 100vh;

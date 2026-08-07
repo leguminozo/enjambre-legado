@@ -251,7 +251,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative min-h-(--vh-full) w-full bg-background text-foreground flex flex-col justify-between overflow-hidden px-5 pt-[max(3rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] select-none">
+    <main className="relative min-h-[var(--vh-full)] w-full bg-background text-foreground flex flex-col justify-between overflow-hidden px-5 pt-[max(3rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] select-none">
       {/* Starry / Cosmic Atmosphere Layer */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[60vh] rounded-full bg-gradient-to-b from-primary/15 via-primary/5 to-transparent blur-3xl opacity-60" />
@@ -386,7 +386,7 @@ export default function LoginPage() {
               className={`fixed inset-0 z-[220] animate-in fade-in duration-200 ${overlayBackdropClassName}`}
               onClick={() => setViewMode('collapsed')}
             />
-            <div className="fixed inset-x-0 bottom-0 z-[221] rounded-t-[32px] border-t border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] animate-in slide-in-from-bottom duration-300 max-w-md mx-auto">
+            <div className="fixed inset-x-0 bottom-0 z-[221] rounded-t-[32px] border-t border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] animate-in slide-in-from-bottom duration-300 max-w-md mx-auto max-h-[calc(var(--vh-full)-2.5rem)] overflow-y-auto">
               <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
 
               <div className="mb-6 text-center">
@@ -505,7 +505,7 @@ export default function LoginPage() {
               className={`fixed inset-0 z-[220] animate-in fade-in duration-200 ${overlayBackdropClassName}`}
               onClick={() => setViewMode('collapsed')}
             />
-            <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-[221] rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md md:max-w-2xl mx-auto md:max-h-[90vh] overflow-y-auto">
+            <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-[221] rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md md:max-w-2xl mx-auto max-h-[calc(var(--vh-full)-2.5rem)] md:max-h-[90vh] overflow-y-auto">
               <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
 
               <div className="mb-6 text-center">
@@ -827,7 +827,7 @@ export default function LoginPage() {
                 setViewMode('collapsed');
               }}
             />
-            <div className="fixed inset-x-0 bottom-0 z-[221] rounded-t-[32px] border-t border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] animate-in slide-in-from-bottom duration-300 max-w-md mx-auto">
+            <div className="fixed inset-x-0 bottom-0 z-[221] rounded-t-[32px] border-t border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] animate-in slide-in-from-bottom duration-300 max-w-md mx-auto max-h-[calc(var(--vh-full)-2.5rem)] overflow-y-auto">
               <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
 
               <div className="mb-6 text-center">
