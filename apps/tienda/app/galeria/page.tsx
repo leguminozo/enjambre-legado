@@ -81,7 +81,14 @@ export default async function GaleriaPage() {
 
   const images = galeriaData.length > 0
     ? galeriaData.map(item => {
-        const parsed = GaleriaItemContentSchema.safeParse(item.content);
+        const raw = item.content as Record<string, unknown>;
+        // Compat: items creados con el template viejo del editor (src/alt)
+        const compatible = {
+          ...item.content,
+          url: typeof raw.url === 'string' && raw.url ? raw.url : raw.src,
+          titulo: typeof raw.titulo === 'string' && raw.titulo ? raw.titulo : raw.alt,
+        };
+        const parsed = GaleriaItemContentSchema.safeParse(compatible);
         return { id: item.id, content: parsed.success ? parsed.data : { titulo: '', descripcion: '', url: '', orden: 0 } };
       })
     : defaultImages;

@@ -1002,8 +1002,10 @@ export const DEFAULT_PRODUCTS_SETTINGS: ProductsSettings = {
 
 export const CONSERVATION_CONTENT_TEMPLATE = { ...DEFAULT_CONSERVATION_CONTENT };
 export const HOME_MEDIA_ITEM_TEMPLATE: Record<string, string> = {
-  /** Imagen SIEMPRE subida (nunca URL manual) — el editor muestra uploader. */
-  image: '',
+  /** Imagen: SIEMPRE subida (nunca URL manual) — el editor muestra uploader.
+      Video: `type` en 'video' convierte `src` en URL del video (input de texto). */
+  type: 'image',
+  src: '',
   alt: '',
 };
 export const VIDEO_SETTINGS_TEMPLATE = { ...DEFAULT_VIDEO_SETTINGS };

@@ -515,7 +515,7 @@ const SECTION_TEMPLATES: Record<string, Record<string, unknown>> = {
   colecciones: { kicker: '', title: '', desc: '', href: '/catalogo', image: '' },
   talleres: { date: '', title: '', desc: '', action: '' },
   nosotros: { title: '', desc: '', image: '' },
-  galeria: { src: '', alt: '' },
+  galeria: { titulo: '', descripcion: '', url: '' },
   contacto: { title: '', desc: '', email: '' },
   menu_settings: { ...HEADER_SETTINGS_TEMPLATE },
   menu_links: { ...HEADER_NAV_TEMPLATE },
@@ -593,6 +593,9 @@ const FIELD_LABELS: Record<string, string> = {
   cta_label_en: 'CTA (EN)',
   desc: 'Descripción',
   desc_en: 'Descripción (EN)',
+  descripcion: 'Descripción',
+  titulo: 'Título',
+  url: 'Imagen',
   kicker: 'Kicker',
   kicker_en: 'Kicker (EN)',
   image: 'Imagen',
@@ -649,8 +652,15 @@ function fieldLabel(key: string): string {
   return FIELD_LABELS[key] ?? key;
 }
 
+/** Campos de imagen por sección cuyo nombre no matchea el heurístico global
+ *  (p.ej. galería guarda la imagen en `url`, como lee la página de tienda). */
+const SECTION_IMAGE_FIELDS: Record<string, string[]> = {
+  galeria: ['url'],
+};
+
 /** Campos que se suben como archivo (nunca URL manual) — cards y modal. */
-function isImageField(key: string): boolean {
+function isImageField(key: string, sectionKey?: string): boolean {
+  if (sectionKey && SECTION_IMAGE_FIELDS[sectionKey]?.includes(key)) return true;
   return (
     key.toLowerCase().includes('image') ||
     key.toLowerCase().includes('img') ||
@@ -988,13 +998,19 @@ function EditableItemCard({
             onChange={handleFileChange}
           />
 
-          {displayEntries.map(([key, val]) => (
+          {displayEntries.map(([key, val]) => {
+            // Carrusel media: en modo video, `src` es una URL de video (no uploader de imagen)
+            const isVideoSrc =
+              activeSection === 'media_items' &&
+              key === 'src' &&
+              localContent.type === 'video';
+            return (
             <div key={key} className="space-y-1.5">
               {/* id derivado del item + campo: único aunque haya N cards iguales */}
               <label htmlFor={`${item.id}-${key}`} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 {fieldLabel(key)}
               </label>
-              {isImageField(key) ? (
+              {isImageField(key, activeSection) && !isVideoSrc ? (
                 <div className="space-y-2">
                   {val && typeof val === 'string' && val.startsWith('http') ? (
                     <img
@@ -1038,7 +1054,8 @@ function EditableItemCard({
                 <ContentFieldEditor fieldKey={key} fieldId={`${item.id}-${key}`} value={val} onChange={(v) => handleFieldChange(key, v)} />
               )}
             </div>
-          ))}
+            );
+          })}
           </div>
           </motion.div>
         )}
@@ -1434,6 +1451,8 @@ function ItemsPanel({
           <div className="p-3">
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
               {items.map((item, idx) => {
+                // Videos: no son thumbnail de imagen (evita img rota en la strip)
+                if (item.content.type === 'video') return null;
                 const src =
                   (typeof item.content.image === 'string' ? item.content.image : '') ||
                   (typeof item.content.src === 'string' ? item.content.src : '');
@@ -1626,10 +1645,14 @@ function EditorTiendaViewInner() {
     return () => window.removeEventListener('keydown', handler);
   }, [flushAll]);
 
-  // Al cambiar de sección, la preview navega a la ruta relevante
+  // Al cambiar de sección, la preview navega a la ruta relevante.
+  // Si la ruta no cambia (p.ej. bloques del home), el iframe no recarga:
+  // mostrar el overlay lo dejaría pegado para siempre.
+  const lastPreviewPathRef = useRef('');
   useEffect(() => {
-    setPreviewPath(SECTION_PREVIEW_PATHS[activeSection] ?? '');
-    setPreviewLoading(true);
+    const nextPath = SECTION_PREVIEW_PATHS[activeSection] ?? '';
+    setPreviewPath(nextPath);
+    if (nextPath !== lastPreviewPathRef.current) setPreviewLoading(true);
   }, [activeSection]);
 
   // Derive default JSON from section template
@@ -2131,7 +2154,10 @@ function EditorTiendaViewInner() {
                     title="Vista Previa de Tienda"
                     className="absolute inset-0 w-full h-full border-none bg-background"
                     sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                    onLoad={() => setPreviewLoading(false)}
+                    onLoad={() => {
+                      lastPreviewPathRef.current = previewPath;
+                      setPreviewLoading(false);
+                    }}
                   />
                   {/* Overlay mientras la preview navega/revalida */}
                   <AnimatePresence>
@@ -2218,7 +2244,7 @@ function EditorTiendaViewInner() {
               <label htmlFor={`new-item-${key}`} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 {fieldLabel(key)}
               </label>
-              {isImageField(key) ? (
+              {isImageField(key, activeSection) ? (
                 <div className="space-y-2">
                   {val && typeof val === 'string' && val.startsWith('http') ? (
                     <img

@@ -43,11 +43,9 @@ import {
   LANDING_SECTION_LABELS,
   type SeoDefaults,
   type ContactSettings,
-  type ConservationContent,
   type VideoSettings,
   type MapSettings,
   type ProductsSettings,
-  parseConservationContent,
   parseVideoSettings,
   parseMapSettings,
   parseProductsSettings,
@@ -1439,178 +1437,6 @@ function LocalizedFields({
   );
 }
 
-export function ConservationContentEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<ConservationContent>(() =>
-    parseConservationContent(content),
-  );
-  const { isDirty } = useAutosaveEditor('conservation_content', local, (next) => onSave(next));
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseConservationContent(content));
-  }, [content, isDirty]);
-
-  const patch = <K extends keyof ConservationContent>(key: K, value: ConservationContent[K]) => {
-    setLocal((p) => ({ ...p, [key]: value }));
-  };
-
-  return (
-    <div className="space-y-4 pb-8">
-      <p className="text-[11px] text-muted-foreground leading-relaxed">
-        Vacío = texto por defecto (i18n). Los números (árboles, CO₂, colmenas, IRR)
-        siguen viniendo de los datos reales del ecosistema.
-      </p>
-      <LocalizedFields
-        esLabel="Kicker"
-        es={local.kicker}
-        en={local.kicker_en}
-        onEs={(v) => patch('kicker', v)}
-        onEn={(v) => patch('kicker_en', v)}
-      />
-      <LocalizedFields
-        esLabel="Título"
-        es={local.title}
-        en={local.title_en}
-        onEs={(v) => patch('title', v)}
-        onEn={(v) => patch('title_en', v)}
-      />
-      <LocalizedFields
-        esLabel="Descripción"
-        es={local.desc}
-        en={local.desc_en}
-        onEs={(v) => patch('desc', v)}
-        onEn={(v) => patch('desc_en', v)}
-        multiline
-      />
-      <LocalizedFields
-        esLabel="Métrica 1 — Etiqueta"
-        es={local.stat1_label}
-        en={local.stat1_label_en}
-        onEs={(v) => patch('stat1_label', v)}
-        onEn={(v) => patch('stat1_label_en', v)}
-      />
-      <LocalizedFields
-        esLabel="Métrica 2 — Etiqueta"
-        es={local.stat2_label}
-        en={local.stat2_label_en}
-        onEs={(v) => patch('stat2_label', v)}
-        onEn={(v) => patch('stat2_label_en', v)}
-      />
-      <LocalizedFields
-        esLabel="Métrica 3 — Etiqueta"
-        es={local.stat3_label}
-        en={local.stat3_label_en}
-        onEs={(v) => patch('stat3_label', v)}
-        onEn={(v) => patch('stat3_label_en', v)}
-      />
-      <LocalizedFields
-        esLabel="Métrica 4 — Etiqueta"
-        es={local.stat4_label}
-        en={local.stat4_label_en}
-        onEs={(v) => patch('stat4_label', v)}
-        onEn={(v) => patch('stat4_label_en', v)}
-      />
-      <LocalizedFields
-        esLabel="Triangulación — Título"
-        es={local.tri_label}
-        en={local.tri_label_en}
-        onEs={(v) => patch('tri_label', v)}
-        onEn={(v) => patch('tri_label_en', v)}
-      />
-      <LocalizedFields
-        esLabel="Bloque 1 — Título"
-        es={local.tri1_label}
-        en={local.tri1_label_en}
-        onEs={(v) => patch('tri1_label', v)}
-        onEn={(v) => patch('tri1_label_en', v)}
-      />
-      <LocalizedFields
-        esLabel="Bloque 1 — Texto"
-        es={local.tri1_desc}
-        en={local.tri1_desc_en}
-        onEs={(v) => patch('tri1_desc', v)}
-        onEn={(v) => patch('tri1_desc_en', v)}
-        multiline
-      />
-      <LocalizedFields
-        esLabel="Bloque 2 — Título"
-        es={local.tri2_label}
-        en={local.tri2_label_en}
-        onEs={(v) => patch('tri2_label', v)}
-        onEn={(v) => patch('tri2_label_en', v)}
-      />
-      <LocalizedFields
-        esLabel="Bloque 2 — Texto"
-        es={local.tri2_desc}
-        en={local.tri2_desc_en}
-        onEs={(v) => patch('tri2_desc', v)}
-        onEn={(v) => patch('tri2_desc_en', v)}
-        multiline
-      />
-      <LocalizedFields
-        esLabel="Bloque 3 — Título"
-        es={local.tri3_label}
-        en={local.tri3_label_en}
-        onEs={(v) => patch('tri3_label', v)}
-        onEn={(v) => patch('tri3_label_en', v)}
-      />
-      <LocalizedFields
-        esLabel="Bloque 3 — Texto"
-        es={local.tri3_desc}
-        en={local.tri3_desc_en}
-        onEs={(v) => patch('tri3_desc', v)}
-        onEn={(v) => patch('tri3_desc_en', v)}
-        multiline
-      />
-      <LocalizedFields
-        esLabel="IRR — Título sección"
-        es={local.irr_label}
-        en={local.irr_label_en}
-        onEs={(v) => patch('irr_label', v)}
-        onEn={(v) => patch('irr_label_en', v)}
-      />
-      <LocalizedFields
-        esLabel="IRR positivo — Título"
-        es={local.irr_pos_title}
-        en={local.irr_pos_title_en}
-        onEs={(v) => patch('irr_pos_title', v)}
-        onEn={(v) => patch('irr_pos_title_en', v)}
-      />
-      <LocalizedFields
-        esLabel="IRR positivo — Texto"
-        es={local.irr_pos_desc}
-        en={local.irr_pos_desc_en}
-        onEs={(v) => patch('irr_pos_desc', v)}
-        onEn={(v) => patch('irr_pos_desc_en', v)}
-        multiline
-      />
-      <LocalizedFields
-        esLabel="IRR negativo — Título"
-        es={local.irr_neg_title}
-        en={local.irr_neg_title_en}
-        onEs={(v) => patch('irr_neg_title', v)}
-        onEn={(v) => patch('irr_neg_title_en', v)}
-      />
-      <LocalizedFields
-        esLabel="IRR negativo — Texto"
-        es={local.irr_neg_desc}
-        en={local.irr_neg_desc_en}
-        onEs={(v) => patch('irr_neg_desc', v)}
-        onEn={(v) => patch('irr_neg_desc_en', v)}
-        multiline
-      />
-      <LocalizedFields
-        esLabel="CTA — Texto"
-        es={local.cta_label}
-        en={local.cta_label_en}
-        onEs={(v) => patch('cta_label', v)}
-        onEn={(v) => patch('cta_label_en', v)}
-      />
-    </div>
-  );
-}
-
 export const SETTINGS_SECTION_KEYS = new Set([
   'theme_settings',
   'typography_settings',
@@ -1687,14 +1513,6 @@ export function ChromeSettingsEditor({
       return <SeoDefaultsEditor {...props} />;
     case 'contact_settings':
       return <ContactSettingsEditor {...props} />;
-    case 'conservation_content':
-      return <ConservationContentEditor {...props} />;
-    case 'video_settings':
-      return <VideoSettingsEditor {...props} />;
-    case 'map_settings':
-      return <MapSettingsEditor {...props} />;
-    case 'products_settings':
-      return <ProductsSettingsEditor {...props} />;
     default:
       return null;
   }
