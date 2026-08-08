@@ -15,16 +15,22 @@ export async function fetchWalletCapabilities(token?: string): Promise<WalletCap
   const nucleoUrl = getNucleoApiUrl();
   if (!nucleoUrl) return null;
 
-  const res = await fetch(`${nucleoUrl}/api/wallet/capabilities`, {
-    headers: {
-      Authorization: `Bearer ${authToken}`,
-      'X-Requested-With': 'XMLHttpRequest',
-    },
-    next: { revalidate: 300 },
-  });
+  try {
+    const res = await fetch(`${nucleoUrl}/api/wallet/capabilities`, {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      next: { revalidate: 300 },
+    });
 
-  if (!res.ok) return null;
-  return (await res.json()) as WalletCapabilities;
+    if (!res.ok) return null;
+    return (await res.json()) as WalletCapabilities;
+  } catch {
+    // Fail-soft: Núcleo 502/HTML rompería res.json() y dejaría la UI sin
+    // capacidades (mismo patrón que club-lotes-publicos).
+    return null;
+  }
 }
 
 export async function fetchWalletSnapshot(token?: string): Promise<WalletGuardianSnapshot | null> {
@@ -34,17 +40,23 @@ export async function fetchWalletSnapshot(token?: string): Promise<WalletGuardia
   const nucleoUrl = getNucleoApiUrl();
   if (!nucleoUrl) return null;
 
-  const res = await fetch(`${nucleoUrl}/api/wallet/stamps`, {
-    headers: {
-      Authorization: `Bearer ${authToken}`,
-      'X-Requested-With': 'XMLHttpRequest',
-    },
-    next: { revalidate: 60 },
-  });
+  try {
+    const res = await fetch(`${nucleoUrl}/api/wallet/stamps`, {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      next: { revalidate: 60 },
+    });
 
-  if (!res.ok) return null;
-  const json = (await res.json()) as { snapshot?: WalletGuardianSnapshot };
-  return json.snapshot ?? null;
+    if (!res.ok) return null;
+    const json = (await res.json()) as { snapshot?: WalletGuardianSnapshot };
+    return json.snapshot ?? null;
+  } catch {
+    // Fail-soft: si Núcleo responde 502/HTML, res.json() lanzaría y la
+    // sección "Sellos del bosque" quedaría en "Cargando..." eterno.
+    return null;
+  }
 }
 
 export async function downloadApplePass(): Promise<{ ok: boolean; message?: string }> {
@@ -53,22 +65,26 @@ export async function downloadApplePass(): Promise<{ ok: boolean; message?: stri
   const nucleoUrl = getNucleoApiUrl();
   if (!nucleoUrl) return { ok: false, message: 'Servicio no disponible' };
 
-  const res = await fetch(`${nucleoUrl}/api/wallet/apple/download`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'X-Requested-With': 'XMLHttpRequest',
-    },
-  });
+  try {
+    const res = await fetch(`${nucleoUrl}/api/wallet/apple/download`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    });
 
-  const json = (await res.json()) as Record<string, unknown>;
-  if (!res.ok) {
-    return {
-      ok: false,
-      message: typeof json.message === 'string' ? json.message : 'Apple Wallet no disponible aún',
-    };
+    const json = (await res.json()) as Record<string, unknown>;
+    if (!res.ok) {
+      return {
+        ok: false,
+        message: typeof json.message === 'string' ? json.message : 'Apple Wallet no disponible aún',
+      };
+    }
+
+    return { ok: true };
+  } catch {
+    return { ok: false, message: 'Error de conexión. Intenta de nuevo.' };
   }
-
-  return { ok: true };
 }
 
 export async function getGoogleSaveLink(): Promise<{ ok: boolean; saveUrl?: string; message?: string }> {
@@ -77,31 +93,35 @@ export async function getGoogleSaveLink(): Promise<{ ok: boolean; saveUrl?: stri
   const nucleoUrl = getNucleoApiUrl();
   if (!nucleoUrl) return { ok: false, message: 'Servicio no disponible' };
 
-  const res = await fetch(`${nucleoUrl}/api/wallet/google/save-link`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-      origin: typeof window !== 'undefined' ? window.location.origin : nucleoUrl,
-    },
-  });
+  try {
+    const res = await fetch(`${nucleoUrl}/api/wallet/google/save-link`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        origin: typeof window !== 'undefined' ? window.location.origin : nucleoUrl,
+      },
+    });
 
-  const json = (await res.json()) as Record<string, unknown>;
-  if (!res.ok) {
+    const json = (await res.json()) as Record<string, unknown>;
+    if (!res.ok) {
+      return {
+        ok: false,
+        message: typeof json.message === 'string' ? json.message : 'Google Wallet no disponible aún',
+      };
+    }
+
+    if (typeof json.saveUrl === 'string') {
+      window.open(json.saveUrl, '_blank');
+      return { ok: true, saveUrl: json.saveUrl };
+    }
+
     return {
       ok: false,
-      message: typeof json.message === 'string' ? json.message : 'Google Wallet no disponible aún',
+      message: typeof json.message === 'string' ? json.message : 'Google Wallet pendiente de configuración',
     };
+  } catch {
+    return { ok: false, message: 'Error de conexión. Intenta de nuevo.' };
   }
-
-  if (typeof json.saveUrl === 'string') {
-    window.open(json.saveUrl, '_blank');
-    return { ok: true, saveUrl: json.saveUrl };
-  }
-
-  return {
-    ok: false,
-    message: typeof json.message === 'string' ? json.message : 'Google Wallet pendiente de configuración',
-  };
 }

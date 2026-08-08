@@ -60,7 +60,12 @@ export async function manageSubscription(
     return { ok: false, message: 'Error de conexión. Intenta de nuevo.' };
   }
 
-  const json = (await res.json()) as { status?: string; error?: string; message?: string };
+  let json: { status?: string; error?: string; message?: string };
+  try {
+    json = (await res.json()) as typeof json;
+  } catch {
+    return { ok: false, message: 'Error de conexión. Intenta de nuevo.' };
+  }
 
   if (!res.ok) {
     const raw = json.message ?? json.error ?? 'No se pudo actualizar la reposición';

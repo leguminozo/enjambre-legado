@@ -128,27 +128,31 @@ export async function createResena(
     return { ok: false, error: 'Servicio de reseñas no disponible' };
   }
 
-  const res = await fetch(`${nucleoUrl}/api/resenas`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify(input),
-  });
-  const json = (await res.json()) as Record<string, unknown>;
-  if (!res.ok) {
+  try {
+    const res = await fetch(`${nucleoUrl}/api/resenas`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(input),
+    });
+    const json = (await res.json()) as Record<string, unknown>;
+    if (!res.ok) {
+      return {
+        ok: false,
+        error: typeof json.message === 'string' ? json.message : 'Error al enviar reseña',
+      };
+    }
     return {
-      ok: false,
-      error: typeof json.message === 'string' ? json.message : 'Error al enviar reseña',
+      ok: true,
+      claimToken: typeof json.claimToken === 'string' ? json.claimToken : undefined,
+      message: typeof json.message === 'string' ? json.message : 'Reseña enviada',
     };
+  } catch {
+    return { ok: false, error: 'Error de conexión. Intenta de nuevo.' };
   }
-  return {
-    ok: true,
-    claimToken: typeof json.claimToken === 'string' ? json.claimToken : undefined,
-    message: typeof json.message === 'string' ? json.message : 'Reseña enviada',
-  };
 }
 
 export async function checkEligible(productoId: string, token: string) {
@@ -158,18 +162,22 @@ export async function checkEligible(productoId: string, token: string) {
   }
 
   const params = new URLSearchParams({ producto_id: productoId });
-  const res = await fetch(`${nucleoUrl}/api/resenas/eligible?${params}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'X-Requested-With': 'XMLHttpRequest',
-    },
-  });
-  return res.json() as Promise<{
-    eligible: boolean;
-    compraVerificada?: boolean;
-    venta_id?: string | null;
-    reason?: string;
-  }>;
+  try {
+    const res = await fetch(`${nucleoUrl}/api/resenas/eligible?${params}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    });
+    return (await res.json()) as {
+      eligible: boolean;
+      compraVerificada?: boolean;
+      venta_id?: string | null;
+      reason?: string;
+    };
+  } catch {
+    return { eligible: false, reason: 'Error de conexión. Intenta de nuevo.' };
+  }
 }
 
 export async function claimResena(token: string, authToken: string): Promise<{ ok: boolean; message?: string }> {
@@ -178,20 +186,24 @@ export async function claimResena(token: string, authToken: string): Promise<{ o
     return { ok: false, message: 'Servicio no disponible' };
   }
 
-  const res = await fetch(`${nucleoUrl}/api/resenas/claim`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${authToken}`,
-      'X-Requested-With': 'XMLHttpRequest',
-    },
-    body: JSON.stringify({ token }),
-  });
-  const json = (await res.json()) as { message?: string };
-  if (!res.ok) {
-    return { ok: false, message: json.message ?? 'No se pudo vincular la reseña' };
+  try {
+    const res = await fetch(`${nucleoUrl}/api/resenas/claim`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({ token }),
+    });
+    const json = (await res.json()) as { message?: string };
+    if (!res.ok) {
+      return { ok: false, message: json.message ?? 'No se pudo vincular la reseña' };
+    }
+    return { ok: true, message: json.message ?? 'Reseña vinculada a tu cuenta' };
+  } catch {
+    return { ok: false, message: 'Error de conexión. Intenta de nuevo.' };
   }
-  return { ok: true, message: json.message ?? 'Reseña vinculada a tu cuenta' };
 }
 
 export function getPendingClaimToken(): string | null {
