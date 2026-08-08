@@ -12,6 +12,7 @@ import {
   Trash2,
   GripVertical,
   ChevronDown,
+  ChevronLeft,
   Eye,
   EyeOff,
   ExternalLink,
@@ -515,7 +516,7 @@ const FIELD_LABELS: Record<string, string> = {
   kicker: 'Kicker',
   kicker_en: 'Kicker (EN)',
   image: 'Imagen',
-  src: 'Imagen (URL)',
+  src: 'Imagen',
   alt: 'Texto alternativo',
   email: 'Email',
   tagline: 'Tagline',
@@ -566,6 +567,17 @@ const FIELD_LABELS: Record<string, string> = {
 
 function fieldLabel(key: string): string {
   return FIELD_LABELS[key] ?? key;
+}
+
+/** Campos que se suben como archivo (nunca URL manual) — cards y modal. */
+function isImageField(key: string): boolean {
+  return (
+    key.toLowerCase().includes('image') ||
+    key.toLowerCase().includes('img') ||
+    key.toLowerCase().includes('foto') ||
+    key.toLowerCase().includes('icon') ||
+    key.toLowerCase().includes('src')
+  );
 }
 
 // ── ContentFieldEditor ─────────────────────────────────────────────────────
@@ -784,13 +796,6 @@ function EditableItemCard({
     }
     return entries;
   }, [localContent, template]);
-
-  const isImageField = (key: string) =>
-    key.toLowerCase().includes('image') ||
-    key.toLowerCase().includes('img') ||
-    key.toLowerCase().includes('foto') ||
-    key.toLowerCase().includes('icon') ||
-    key.toLowerCase().includes('src');
 
   return (
     <motion.div
@@ -1196,6 +1201,8 @@ function MenuSettingsEditor({ item, onUpdate, onImageUpload }: MenuSettingsEdito
 interface ItemsPanelProps {
   items: CMSContentItem[];
   activeSection: string;
+  /** Drill-down: botón "← Bloques" en la cabecera (menú centralizado). */
+  onBack?: () => void;
   onUpdate: (
     id: string,
     content: Record<string, unknown>,
@@ -1211,6 +1218,7 @@ interface ItemsPanelProps {
 function ItemsPanel({
   items,
   activeSection,
+  onBack,
   onUpdate,
   onDelete,
   onImageUpload,
@@ -1258,6 +1266,17 @@ function ItemsPanel({
     <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 space-y-6">
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-start gap-3 min-w-0">
+          {onBack ? (
+            <button
+              type="button"
+              onClick={onBack}
+              aria-label="Volver a bloques"
+              className="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground hover:border-accent/50 transition-colors text-xs font-medium min-h-11"
+            >
+              <ChevronLeft size={14} />
+              Bloques
+            </button>
+          ) : null}
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-accent shadow-sm">
             <SectionIcon size={18} strokeWidth={2} />
           </span>
@@ -1400,6 +1419,9 @@ function EditorTiendaViewInner() {
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [showNewForm, setShowNewForm] = useState(false);
+  const [modalUploading, setModalUploading] = useState<string | null>(null);
+  /** Menú centralizado: 'blocks' = lista de bloques; 'tool' = herramienta desplegada sobre el menú. */
+  const [navDrill, setNavDrill] = useState<'blocks' | 'tool'>('blocks');
   const [previewPath, setPreviewPath] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -1668,59 +1690,86 @@ function EditorTiendaViewInner() {
       {/* ── Body ── */}
       <div className="flex-1 flex overflow-hidden min-h-0">
 
-        {/* Left sidebar / Editor area */}
+        {/* Left sidebar / Editor area — menú centralizado con drill-down:
+            los bloques se listan solos; al elegir uno se despliega la
+            herramienta sobre el menú (volver arriba-izquierda). */}
         <div className={`flex-col w-full md:w-80 lg:w-[28rem] shrink-0 border-r border-border/50 bg-surface-sunken/30 overflow-hidden ${mobileTab === 'editor' ? 'flex' : 'flex max-md:hidden'}`}>
-          {/* Section selector — bloques con iconos.
-              flex-col min-h-0: la lista desktop crece/encoge con el espacio
-              disponible en vez de robarle el alto al ItemsPanel (55vh fijo
-              colapsaba el panel a ~0px en pantallas ≤800px de alto). */}
-          <div className="flex flex-col min-h-0 p-3 md:p-4 border-b border-border bg-surface">
-            <div className="hidden md:flex items-center justify-between px-2 mb-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Bloques de la tienda
-              </p>
-              <span className="text-[10px] tabular-nums text-muted-foreground">
-                {sectionKeys.length}
-              </span>
-            </div>
-            <SectionNav
-              sectionKeys={sectionKeys}
-              activeSection={activeSection}
-              onSelect={setActiveSection}
-              itemCounts={Object.fromEntries(
-                sectionKeys.map((k) => [k, (groupedData[k] ?? []).length]),
-              )}
-            />
-          </div>
-
-          {/* Load failure: empty panels look like CMS vacío — error explícito + retry */}
-          {cms.error && !cms.isLoading ? (
-            <div className="flex-1 overflow-y-auto p-4 md:p-6">
-              <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-6 text-center space-y-3">
-                <p className="text-sm font-medium text-foreground">No se pudo cargar el contenido CMS</p>
-                <p className="text-xs text-muted-foreground break-words">
-                  {cms.error.message || 'Error de red o sesión. Reintentá o volvé a iniciar sesión.'}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => void cms.refetch()}
-                  className="inline-flex min-h-11 items-center justify-center px-4 rounded-lg text-sm font-medium bg-accent text-accent-foreground hover:bg-accent/90"
-                >
-                  Reintentar
-                </button>
+          {navDrill === 'blocks' ? (
+            <>
+              {/* Section selector — bloques con iconos */}
+              <div className="flex flex-col min-h-0 p-3 md:p-4 border-b border-border bg-surface">
+                <div className="hidden md:flex items-center justify-between px-2 mb-3">
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Bloques de la tienda
+                  </p>
+                  <span className="text-[10px] tabular-nums text-muted-foreground">
+                    {sectionKeys.length}
+                  </span>
+                </div>
+                <SectionNav
+                  sectionKeys={sectionKeys}
+                  activeSection={activeSection}
+                  onSelect={(k) => {
+                    setActiveSection(k);
+                    setNavDrill('tool');
+                  }}
+                  itemCounts={Object.fromEntries(
+                    sectionKeys.map((k) => [k, (groupedData[k] ?? []).length]),
+                  )}
+                />
               </div>
-            </div>
+
+              {/* Load failure: empty panels look like CMS vacío — error explícito + retry */}
+              {cms.error && !cms.isLoading ? (
+                <div className="flex-1 overflow-y-auto p-4 md:p-6">
+                  <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-6 text-center space-y-3">
+                    <p className="text-sm font-medium text-foreground">No se pudo cargar el contenido CMS</p>
+                    <p className="text-xs text-muted-foreground break-words">
+                      {cms.error.message || 'Error de red o sesión. Reintentá o volvé a iniciar sesión.'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void cms.refetch()}
+                      className="inline-flex min-h-11 items-center justify-center px-4 rounded-lg text-sm font-medium bg-accent text-accent-foreground hover:bg-accent/90"
+                    >
+                      Reintentar
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </>
           ) : (
-            <ItemsPanel
-              items={currentItems}
-              activeSection={activeSection}
-              onUpdate={handleUpdateItem}
-              onDelete={handleDeleteItem}
+            <>
+              {cms.error && !cms.isLoading ? (
+                <div className="flex-1 overflow-y-auto p-4 md:p-6">
+                  <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-6 text-center space-y-3">
+                    <p className="text-sm font-medium text-foreground">No se pudo cargar el contenido CMS</p>
+                    <p className="text-xs text-muted-foreground break-words">
+                      {cms.error.message || 'Error de red o sesión. Reintentá o volvé a iniciar sesión.'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void cms.refetch()}
+                      className="inline-flex min-h-11 items-center justify-center px-4 rounded-lg text-sm font-medium bg-accent text-accent-foreground hover:bg-accent/90"
+                    >
+                      Reintentar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <ItemsPanel
+                  items={currentItems}
+                  activeSection={activeSection}
+                  onBack={() => setNavDrill('blocks')}
+                  onUpdate={handleUpdateItem}
+                  onDelete={handleDeleteItem}
               onImageUpload={handleImageUpload}
               onAddNew={() => setShowNewForm(true)}
               onReorder={handleReorder}
               isDeleting={cms.deleteItem.isPending}
             />
+              )}
+            </>
           )}
         </div>
 
@@ -1862,7 +1911,7 @@ function EditorTiendaViewInner() {
         }
       >
         <p className="text-xs text-muted-foreground mb-3">
-          Completa los campos a continuación para añadir un nuevo elemento. Los campos con <code className="text-accent">image</code> o <code className="text-accent">src</code> permitirán subir fotos luego.
+          Las imágenes se suben directamente desde acá — nunca pegues URLs. Subí la foto y completá el texto alternativo.
         </p>
         <div className="space-y-4">
           {Object.entries(newContent).map(([key, val]) => (
@@ -1870,12 +1919,54 @@ function EditorTiendaViewInner() {
               <label htmlFor={`new-item-${key}`} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 {fieldLabel(key)}
               </label>
-              <ContentFieldEditor
-                fieldKey={key}
-                fieldId={`new-item-${key}`}
-                value={val}
-                onChange={(v) => setNewContent((prev) => ({ ...prev, [key]: v }))}
-              />
+              {isImageField(key) ? (
+                <div className="space-y-2">
+                  {val && typeof val === 'string' && val.startsWith('http') ? (
+                    <img
+                      src={val}
+                      alt={key}
+                      className="w-full h-32 object-cover rounded-lg border border-border bg-background"
+                    />
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.onchange = () => {
+                        const file = input.files?.[0];
+                        if (!file) return;
+                        setModalUploading(key);
+                        void handleImageUpload(file, key, '')
+                          .then((url) => {
+                            if (url) setNewContent((prev) => ({ ...prev, [key]: url }));
+                          })
+                          .finally(() => setModalUploading(null));
+                      };
+                      input.click();
+                    }}
+                    disabled={modalUploading === key}
+                    className="flex w-full justify-center items-center gap-2 px-3 py-3 rounded-lg text-xs font-medium bg-background border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50 min-h-[44px]"
+                  >
+                    {modalUploading === key ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Upload size={14} />
+                    )}
+                    {val && typeof val === 'string' && val.startsWith('http')
+                      ? 'Cambiar imagen'
+                      : 'Subir imagen'}
+                  </button>
+                </div>
+              ) : (
+                <ContentFieldEditor
+                  fieldKey={key}
+                  fieldId={`new-item-${key}`}
+                  value={val}
+                  onChange={(v) => setNewContent((prev) => ({ ...prev, [key]: v }))}
+                />
+              )}
             </div>
           ))}
         </div>

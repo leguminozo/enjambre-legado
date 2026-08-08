@@ -998,7 +998,11 @@ export const DEFAULT_PRODUCTS_SETTINGS: ProductsSettings = {
 };
 
 export const CONSERVATION_CONTENT_TEMPLATE = { ...DEFAULT_CONSERVATION_CONTENT };
-export const HOME_MEDIA_ITEM_TEMPLATE: HomeMediaItem = { type: 'image', src: '', alt: '' };
+export const HOME_MEDIA_ITEM_TEMPLATE: Record<string, string> = {
+  /** Imagen SIEMPRE subida (nunca URL manual) — el editor muestra uploader. */
+  image: '',
+  alt: '',
+};
 export const VIDEO_SETTINGS_TEMPLATE = { ...DEFAULT_VIDEO_SETTINGS };
 export const MAP_SETTINGS_TEMPLATE = { ...DEFAULT_MAP_SETTINGS };
 export const PRODUCTS_SETTINGS_TEMPLATE = { ...DEFAULT_PRODUCTS_SETTINGS };
@@ -1061,7 +1065,10 @@ export function parseConservationContent(
 }
 
 export function parseHomeMediaItem(raw: Record<string, unknown>): HomeMediaItem | null {
-  const src = typeof raw.src === 'string' ? raw.src.trim() : '';
+  // `image` (nuevo, uploader) con fallback a `src` (items viejos de la ola 4).
+  const src =
+    (typeof raw.image === 'string' ? raw.image.trim() : '') ||
+    (typeof raw.src === 'string' ? raw.src.trim() : '');
   if (!src) return null;
   return {
     type: pickEnum(raw.type, MEDIA_TYPES, 'image'),
