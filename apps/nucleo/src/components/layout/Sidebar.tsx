@@ -65,16 +65,11 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
   useEffect(() => {
     async function fetchUser() {
       if (!supabase) return;
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          // Use profiles table only (user_metadata can be spoofed)
-          const { data } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
-          if (data?.full_name) setUserName(data.full_name);
-        }
-      } catch (error) {
-        // Timeout de auth: se mantiene el nombre por defecto, sin crash.
-        console.error('[sidebar] fetchUser falló:', error);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Use profiles table only (user_metadata can be spoofed)
+        const { data } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
+        if (data?.full_name) setUserName(data.full_name);
       }
     }
     fetchUser();

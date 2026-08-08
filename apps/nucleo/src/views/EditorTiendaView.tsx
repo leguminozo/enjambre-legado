@@ -53,6 +53,8 @@ import {
   Leaf,
   PlayCircle,
   MapPin,
+  AlertTriangle,
+  Microscope,
   type LucideProps,
 } from 'lucide-react';
 import { toast, ImmersiveModal, PanelFocusToggle, type PanelFocus } from '@enjambre/ui';
@@ -64,6 +66,7 @@ import {
   type DraggableProvidedDragHandleProps,
 } from '@hello-pangea/dnd';
 import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/use-cms-content';
+import { supabase } from '@/lib/supabase';
 import {
   EditorSaveStatusProvider,
   useEditorSaveAggregate,
@@ -170,6 +173,7 @@ const SECTION_CATEGORY: Record<string, EditorCategoryId> = {
   nosotros: 'bloques',
   galeria: 'bloques',
   contacto: 'bloques',
+  ciencia: 'bloques',
   // Diseño — apariencia y chrome
   theme_settings: 'diseno',
   typography_settings: 'diseno',
@@ -396,6 +400,13 @@ const SECTION_META: Record<
     icon: Mail,
     group: 'contenido',
   },
+  ciencia: {
+    label: 'Ciencia — Evidencia',
+    short: 'Ciencia',
+    icon: Microscope,
+    group: 'contenido',
+    hint: 'Bloques de evidencia científica',
+  },
   legal_terminos: {
     label: 'Términos',
     short: 'Términos',
@@ -480,6 +491,7 @@ const SECTION_ORDER = [
   'nosotros',
   'galeria',
   'contacto',
+  'ciencia',
 ] as const;
 
 /**
@@ -514,9 +526,25 @@ function getSectionMeta(key: string) {
 const SECTION_TEMPLATES: Record<string, Record<string, unknown>> = {
   colecciones: { kicker: '', title: '', desc: '', href: '/catalogo', image: '' },
   talleres: { date: '', title: '', desc: '', action: '' },
-  nosotros: { title: '', desc: '', image: '' },
+  nosotros: {
+    title: '',
+    desc: '',
+    image: '',
+    historia: '',
+    mision: '',
+    vision: '',
+    stat1_label: '',
+    stat1_value: '',
+    stat2_label: '',
+    stat2_value: '',
+    stat3_label: '',
+    stat3_value: '',
+    stat4_label: '',
+    stat4_value: '',
+  },
   galeria: { titulo: '', descripcion: '', url: '' },
-  contacto: { title: '', desc: '', email: '' },
+  contacto: { title: '', desc: '' },
+  ciencia: { categoria: '', titulo: '', texto: '', fuente: '' },
   menu_settings: { ...HEADER_SETTINGS_TEMPLATE },
   menu_links: { ...HEADER_NAV_TEMPLATE },
   theme_settings: { ...THEME_SETTINGS_TEMPLATE },
@@ -578,6 +606,9 @@ const PREVIEW_DESTINATIONS: { path: string; label: string }[] = [
   { path: '/nosotros', label: 'Nosotros' },
   { path: '/galeria', label: 'Galería' },
   { path: '/contacto', label: 'Contacto' },
+  { path: '/carrito', label: 'Carrito' },
+  { path: '/checkout', label: 'Checkout' },
+  { path: '/perfil', label: 'Perfil' },
   { path: '/terminos', label: 'Términos' },
   { path: '/privacidad', label: 'Privacidad' },
   { path: '/cookies', label: 'Cookies' },
@@ -614,6 +645,16 @@ const FIELD_LABELS: Record<string, string> = {
   descripcion: 'Descripción',
   titulo: 'Título',
   url: 'Imagen',
+  historia: 'Historia',
+  mision: 'Misión',
+  vision: 'Visión',
+  categoria: 'Categoría',
+  texto: 'Texto',
+  fuente: 'Fuente',
+  stat1_value: 'Stat 1 — Valor',
+  stat2_value: 'Stat 2 — Valor',
+  stat3_value: 'Stat 3 — Valor',
+  stat4_value: 'Stat 4 — Valor',
   kicker: 'Kicker',
   kicker_en: 'Kicker (EN)',
   image: 'Imagen',
@@ -725,7 +766,10 @@ function ContentFieldEditor({
       fieldKey.includes('text') ||
       fieldKey === 'body' ||
       fieldKey === 'body_en' ||
-      fieldKey.includes('prefill')
+      fieldKey.includes('prefill') ||
+      fieldKey.includes('historia') ||
+      fieldKey.includes('mision') ||
+      fieldKey.includes('vision')
     ) {
       return (
         <textarea
@@ -733,7 +777,7 @@ function ContentFieldEditor({
           name={fieldId}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          rows={fieldKey === 'body' || fieldKey === 'body_en' ? 12 : 3}
+          rows={fieldKey === 'body' || fieldKey === 'body_en' ? 12 : 6}
           className="w-full bg-surface-sunken border border-border rounded-lg p-3 text-sm text-foreground resize-y focus:outline-none focus:ring-2 focus:ring-accent font-mono"
         />
       );
@@ -839,6 +883,27 @@ function EditableItemCard({
   const [uploadingField, setUploadingField] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTargetField, setUploadTargetField] = useState<string>('');
+  // Borrado seguro: primer clic arma, segundo confirma (resetea en 3s)
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const confirmTimerRef = useRef<number | null>(null);
+
+  const requestDelete = () => {
+    if (!confirmingDelete) {
+      setConfirmingDelete(true);
+      if (confirmTimerRef.current) window.clearTimeout(confirmTimerRef.current);
+      confirmTimerRef.current = window.setTimeout(() => setConfirmingDelete(false), 3000);
+      return;
+    }
+    if (confirmTimerRef.current) window.clearTimeout(confirmTimerRef.current);
+    setConfirmingDelete(false);
+    onDelete(item.id);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (confirmTimerRef.current) window.clearTimeout(confirmTimerRef.current);
+    };
+  }, []);
 
   // Autosave por card: payload = content + active (toggle se guarda solo)
   const { isDirty, flush } = useAutosaveEditor(
@@ -985,12 +1050,23 @@ function EditableItemCard({
             {localActive ? <Eye size={14} /> : <EyeOff size={14} />}
           </button>
           <button
-            onClick={() => onDelete(item.id)}
+            onClick={requestDelete}
             disabled={isDeleting}
-            className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 min-w-11 min-h-11 flex items-center justify-center"
-            title="Eliminar"
+            className={`p-2 rounded-lg transition-colors min-w-11 min-h-11 flex items-center justify-center ${
+              confirmingDelete
+                ? 'bg-destructive/15 text-destructive border border-destructive/40'
+                : 'text-destructive hover:bg-destructive/10'
+            }`}
+            title={confirmingDelete ? 'Confirmar eliminación' : 'Eliminar'}
+            aria-label={confirmingDelete ? 'Confirmar eliminación' : 'Eliminar'}
           >
-            {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+            {isDeleting ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : confirmingDelete ? (
+              <AlertTriangle size={14} />
+            ) : (
+              <Trash2 size={14} />
+            )}
           </button>
         </div>
       </div>
@@ -1616,12 +1692,49 @@ function EditorTiendaViewInner() {
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [showNewForm, setShowNewForm] = useState(false);
   const [modalUploading, setModalUploading] = useState<string | null>(null);
+  /** Paths subidos en la sesión del modal: si se cancela, se borran del bucket */
+  const [modalUploadedPaths, setModalUploadedPaths] = useState<Record<string, string>>({});
+
+  const cleanupModalUploads = () => {
+    for (const path of Object.values(modalUploadedPaths)) {
+      if (path) void supabase.storage.from('cms').remove([path]).catch(() => {});
+    }
+    setModalUploadedPaths({});
+  };
   /** Menú centralizado con segmentación: categorías → lista → herramienta. */
   const [navDrill, setNavDrill] = useState<'categories' | 'list' | 'tool'>('categories');
   const [activeCategory, setActiveCategory] = useState<EditorCategoryId>('bloques');
   const [globalQuery, setGlobalQuery] = useState('');
   const [previewPath, setPreviewPath] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
+  /** Producto seleccionado para previsualizar su ficha real (PDP) */
+  const [previewProductSlug, setPreviewProductSlug] = useState<string | null>(null);
+  const [previewProducts, setPreviewProducts] = useState<
+    { id: string; nombre: string; slug: string }[]
+  >([]);
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      const { data } = await supabase
+        .from('productos')
+        .select('id, nombre, slug')
+        .eq('visible', true)
+        .not('slug', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(60);
+      if (active && data) {
+        setPreviewProducts(
+          (data as { id: string; nombre: string | null; slug: string | null }[])
+            .filter((p) => p.slug)
+            .map((p) => ({ id: p.id, nombre: p.nombre ?? 'Sin nombre', slug: p.slug ?? '' })),
+        );
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   /** Foco de panel en desktop: maximizar editor ('a') o preview ('b') — persistido */
   const [desktopFocus, setDesktopFocus] = useState<PanelFocus>(null);
@@ -1669,6 +1782,13 @@ function EditorTiendaViewInner() {
   const goPreview = (path: string) => {
     if (path === previewPath) return;
     setPreviewPath(path);
+    setPreviewProductSlug(null);
+    setPreviewLoading(true);
+  };
+
+  const goProductPreview = (slug: string) => {
+    setPreviewProductSlug(slug);
+    setPreviewPath(`/producto/${slug}`);
     setPreviewLoading(true);
   };
 
@@ -1774,10 +1894,15 @@ function EditorTiendaViewInner() {
 
   const handleCreateItem = () => {
     try {
+      // Los items nuevos caen al FINAL de la sección (no item_order 0 = arriba)
+      const nextOrder =
+        currentItems.reduce((max, i) => Math.max(max, i.item_order ?? 0), 0) + 1;
       cms.createItem.mutate(
-        { section_key: activeSection as CMSSectionKey, content: newContent },
+        { section_key: activeSection as CMSSectionKey, content: newContent, item_order: nextOrder },
         {
           onSuccess: (res) => {
+            // Las imágenes del modal ya tienen dueño: no limpiarlas
+            setModalUploadedPaths({});
             notifyRevalidate(res?.revalidated);
             setShowNewForm(false);
             refreshIframe();
@@ -1787,6 +1912,20 @@ function EditorTiendaViewInner() {
       );
     } catch {
       toast('Error al crear elemento', { type: 'error' });
+    }
+  };
+
+  /** Best-effort: elimina del bucket cms las imágenes de un item borrado. */
+  const removeItemImages = (content: Record<string, unknown>) => {
+    for (const [key, val] of Object.entries(content)) {
+      if (
+        isImageField(key, activeSection) &&
+        typeof val === 'string' &&
+        val.includes('/storage/v1/object/public/cms/')
+      ) {
+        const path = val.split('/storage/v1/object/public/cms/')[1];
+        if (path) void supabase.storage.from('cms').remove([path]).catch(() => {});
+      }
     }
   };
 
@@ -2143,6 +2282,23 @@ function EditorTiendaViewInner() {
                 {d.label}
               </button>
             ))}
+            {/* Selector de producto real: previsualiza la ficha (PDP) */}
+            <select
+              value={previewProductSlug ?? ''}
+              onChange={(e) => {
+                const slug = e.target.value;
+                if (slug) goProductPreview(slug);
+              }}
+              aria-label="Previsualizar producto"
+              className="min-h-9 px-2 py-1 rounded-full text-[11px] font-medium bg-transparent border border-border text-muted-foreground hover:text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent"
+            >
+              <option value="">Producto…</option>
+              {previewProducts.map((p) => (
+                <option key={p.id} value={p.slug}>
+                  {p.nombre}
+                </option>
+              ))}
+            </select>
             <span className="w-px h-4 bg-border mx-1 shrink-0" aria-hidden />
             <button
               type="button"
@@ -2262,7 +2418,10 @@ function EditorTiendaViewInner() {
             <div className="fixed inset-0 z-[1100]">
               <ImmersiveModal
                 open={showNewForm}
-                onClose={() => setShowNewForm(false)}
+                onClose={() => {
+                  cleanupModalUploads();
+                  setShowNewForm(false);
+                }}
                 eyebrow={SECTION_LABELS[activeSection] ?? activeSection}
                 title="Añadir elemento"
                 size="md"
@@ -2270,7 +2429,10 @@ function EditorTiendaViewInner() {
           <>
             <button
               type="button"
-              onClick={() => setShowNewForm(false)}
+              onClick={() => {
+                cleanupModalUploads();
+                setShowNewForm(false);
+              }}
               className="btn btn-outline btn-sm"
             >
               Cancelar
@@ -2314,10 +2476,28 @@ function EditorTiendaViewInner() {
                         const file = input.files?.[0];
                         if (!file) return;
                         setModalUploading(key);
-                        void handleImageUpload(file, key, '')
-                          .then((url) => {
-                            if (url) setNewContent((prev) => ({ ...prev, [key]: url }));
+                        void cms.uploadImage
+                          .mutateAsync({
+                            file,
+                            sectionKey: activeSection as CMSSectionKey,
+                            fieldName: key,
                           })
+                          .then((result) => {
+                            setNewContent((prev) => ({ ...prev, [key]: result.publicUrl }));
+                            // Re-subida en la misma sesión: la imagen anterior queda huérfana
+                            setModalUploadedPaths((prev) => {
+                              const prevPath = prev[key];
+                              if (prevPath) {
+                                void supabase.storage.from('cms').remove([prevPath]).catch(() => {});
+                              }
+                              return { ...prev, [key]: result.path };
+                            });
+                          })
+                          .catch((err) =>
+                            toast(err instanceof Error ? err.message : 'Error al subir imagen', {
+                              type: 'error',
+                            }),
+                          )
                           .finally(() => setModalUploading(null));
                       };
                       input.click();

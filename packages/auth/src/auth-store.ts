@@ -33,75 +33,66 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: true,
   appSource: 'nucleo',
   checkUser: async () => {
-    try {
-      const supabase = createClient()
-      if (!supabase) {
-        set({ user: null, session: null, isAuthenticated: false, isLoading: false })
-        return
-      }
-
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-      if (userError || !user) {
-        set({ user: null, session: null, isAuthenticated: false, isLoading: false })
-        return
-      }
-
-      const { data: { session } } = await supabase.auth.getSession()
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, email, full_name, role, theme_preference')
-        .eq('id', user.id)
-        .maybeSingle()
-
-      if (profile) {
-        const rawTheme = profile.theme_preference
-        const theme_preference: AuthUser['theme_preference'] =
-          rawTheme === 'light' || rawTheme === 'dark' || rawTheme === 'system'
-            ? rawTheme
-            : 'system'
-
-        // role vacío en DB no debe quedar como "" (HomeView cuelga en !role)
-        const resolvedRole =
-          (typeof profile.role === 'string' && profile.role.trim()) ||
-          (typeof user.app_metadata?.role === 'string' && user.app_metadata.role) ||
-          'cliente'
-
-        const authUser: AuthUser = {
-          id: profile.id,
-          email: profile.email ?? user.email ?? '',
-          role: resolvedRole,
-          nivel_guardian: '',
-          full_name: profile.full_name ?? '',
-          avatar_url: '',
-          theme_preference,
-        }
-        set({ user: authUser, session, isAuthenticated: true, isLoading: false })
-        return
-      }
-
-      // Fallback: session exists but profile row is missing — keep authenticated
-      // to avoid desync with middleware and allow app to self-heal.
-      // Only trust app_metadata for role; use safe defaults for preferences.
-      const fallbackUser: AuthUser = {
-        id: user.id,
-        email: user.email ?? '',
-        role: (user.app_metadata?.role as string) ?? 'cliente',
-        nivel_guardian: '',
-        full_name: '',
-        avatar_url: '',
-        theme_preference: 'system',
-      }
-      set({ user: fallbackUser, session, isAuthenticated: true, isLoading: false })
-    } catch (error) {
-      // Timeout de boot de auth (auth_boot_timeout), red caída o 5xx: la sesión
-      // no hidrató. Nunca dejar el store colgado en isLoading ni propagar un
-      // unhandled rejection — el dashboard renderiza con user null y los
-      // consumidores usan guards (user?.id), sin crash.
-      console.error('[auth-store] checkUser falló:', error)
+    const supabase = createClient()
+    if (!supabase) {
       set({ user: null, session: null, isAuthenticated: false, isLoading: false })
+      return
     }
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+      set({ user: null, session: null, isAuthenticated: false, isLoading: false })
+      return
+    }
+
+    const { data: { session } } = await supabase.auth.getSession()
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, role, theme_preference')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (profile) {
+      const rawTheme = profile.theme_preference
+      const theme_preference: AuthUser['theme_preference'] =
+        rawTheme === 'light' || rawTheme === 'dark' || rawTheme === 'system'
+          ? rawTheme
+          : 'system'
+
+      // role vacío en DB no debe quedar como "" (HomeView cuelga en !role)
+      const resolvedRole =
+        (typeof profile.role === 'string' && profile.role.trim()) ||
+        (typeof user.app_metadata?.role === 'string' && user.app_metadata.role) ||
+        'cliente'
+
+      const authUser: AuthUser = {
+        id: profile.id,
+        email: profile.email ?? user.email ?? '',
+        role: resolvedRole,
+        nivel_guardian: '',
+        full_name: profile.full_name ?? '',
+        avatar_url: '',
+        theme_preference,
+      }
+      set({ user: authUser, session, isAuthenticated: true, isLoading: false })
+      return
+    }
+
+    // Fallback: session exists but profile row is missing — keep authenticated
+    // to avoid desync with middleware and allow app to self-heal.
+    // Only trust app_metadata for role; use safe defaults for preferences.
+    const fallbackUser: AuthUser = {
+      id: user.id,
+      email: user.email ?? '',
+      role: (user.app_metadata?.role as string) ?? 'cliente',
+      nivel_guardian: '',
+      full_name: '',
+      avatar_url: '',
+      theme_preference: 'system',
+    }
+    set({ user: fallbackUser, session, isAuthenticated: true, isLoading: false })
   },
   refreshSession: async () => {
     await get().checkUser()

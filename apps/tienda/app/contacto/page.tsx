@@ -6,27 +6,38 @@ import type { Metadata } from 'next';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
 
-export const metadata: Metadata = {
-  title: 'Contacto',
-  description:
-    'Escríbenos a hola@obrerayzangano.com o por WhatsApp. Estamos en Pureo, Quellón, Chiloé — La Obrera y el Zángano.',
-  alternates: { canonical: `${SITE_URL}/contacto` },
-  openGraph: {
-    title: 'Contacto · La Obrera y el Zángano',
-    description:
-      'Escríbenos a hola@obrerayzangano.com o por WhatsApp. Estamos en Pureo, Quellón, Chiloé.',
-    url: `${SITE_URL}/contacto`,
-    type: 'website',
-    locale: 'es_CL',
-    siteName: 'La Obrera y el Zángano',
-  },
-  twitter: {
-    card: 'summary',
-    title: 'Contacto · La Obrera y el Zángano',
-    description:
-      'Escríbenos a hola@obrerayzangano.com o por WhatsApp. Estamos en Pureo, Quellón, Chiloé.',
-  },
-};
+// Metadata con datos de contacto del CMS (contact_settings) — no hardcodeados
+export async function generateMetadata(): Promise<Metadata> {
+  const contactRows = await getSiteContent('contact_settings');
+  const contact = contactRows[0]?.content as Record<string, unknown> | undefined;
+  const email =
+    typeof contact?.email === 'string' && contact.email.trim()
+      ? contact.email
+      : 'hola@obrerayzangano.com';
+  const address =
+    typeof contact?.address === 'string' && contact.address.trim()
+      ? contact.address.split('\n')[0]
+      : 'Pureo, Quellón, Chiloé';
+  const description = `Escríbenos a ${email} o por WhatsApp. Estamos en ${address} — La Obrera y el Zángano.`;
+  return {
+    title: 'Contacto',
+    description,
+    alternates: { canonical: `${SITE_URL}/contacto` },
+    openGraph: {
+      title: 'Contacto · La Obrera y el Zángano',
+      description,
+      url: `${SITE_URL}/contacto`,
+      type: 'website',
+      locale: 'es_CL',
+      siteName: 'La Obrera y el Zángano',
+    },
+    twitter: {
+      card: 'summary',
+      title: 'Contacto · La Obrera y el Zángano',
+      description,
+    },
+  };
+}
 export const revalidate = 3600;
 
 export default async function ContactoPage() {

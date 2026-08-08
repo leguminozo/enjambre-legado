@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { useEffect, useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
 
@@ -17,6 +18,27 @@ export function ContactForm({
   title?: string;
   desc?: string;
 }) {
+  // Datos de contacto desde el CMS (contact_settings) — un solo lugar de verdad
+  const { contact } = useStoreChrome();
+  const email =
+    typeof contact.email === 'string' && contact.email.trim()
+      ? contact.email
+      : 'obrerayzangano@gmail.com';
+  const phone =
+    typeof contact.phone_display === 'string' && contact.phone_display.trim()
+      ? contact.phone_display
+      : '+56 9 4083 1358';
+  const address =
+    typeof contact.address === 'string' && contact.address.trim()
+      ? contact.address
+      : '8560 Pureo W-855\nChiloé, CL\n48WC+2R6 Queilén';
+  const hours =
+    typeof contact.hours === 'string' && contact.hours.trim()
+      ? contact.hours
+      : 'Lunes ~ Viernes: 10:00 - 20:00\nSábado: 10:00 - 18:00\nDomingos y feriados: Cerrado';
+
+  const addressLines = address.split('\n').filter(Boolean);
+  const hoursLines = hours.split('\n').filter(Boolean);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<{ remove: () => void } | null>(null);
 
@@ -151,29 +173,33 @@ export function ContactForm({
             <div className="text-center">
               <h2 className="font-display text-xl font-semibold text-foreground">Contactos</h2>
               <a
-                href="mailto:obrerayzangano@gmail.com"
+                href={`mailto:${email}`}
                 className="mt-3 inline-flex min-h-11 items-center text-foreground hover:text-accent transition-colors"
               >
-                obrerayzangano@gmail.com
+                {email}
               </a>
               <a
-                href="tel:+56940831358"
+                href={`tel:${phone.replace(/\s/g, '')}`}
                 className="mt-1 inline-flex min-h-11 items-center text-foreground hover:text-accent transition-colors"
               >
-                +56 9 4083 1358
+                {phone}
               </a>
             </div>
             <div className="text-center">
               <h2 className="font-display text-xl font-semibold text-foreground">Dirección</h2>
-              <p className="mt-3 text-foreground">8560 Pureo W-855</p>
-              <p className="text-foreground">Chiloé, CL</p>
-              <p className="mt-2 text-foreground">48WC+2R6 Queilén</p>
+              <div className="mt-3 text-foreground">
+                {addressLines.map((line, i) => (
+                  <p key={i} className="text-foreground">{line}</p>
+                ))}
+              </div>
             </div>
             <div className="text-center">
               <h2 className="font-display text-xl font-semibold text-foreground">Horarios</h2>
-              <p className="mt-3 text-foreground">Lunes ~ Viernes: 10:00 - 20:00</p>
-              <p className="mt-2 text-foreground">Sábado: 10:00 - 18:00</p>
-              <p className="mt-2 text-foreground">Domingos y feriados: Cerrado</p>
+              <div className="mt-3 text-foreground">
+                {hoursLines.map((line, i) => (
+                  <p key={i} className="mt-2 first:mt-0 text-foreground">{line}</p>
+                ))}
+              </div>
             </div>
           </div>
         </div>

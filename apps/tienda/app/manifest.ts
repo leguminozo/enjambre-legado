@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Enjambre Legado Tienda',
-    short_name: 'Enjambre',
-    description: 'Tienda PWA de Enjambre Legado',
+    name: 'La Obrera y el Zángano',
+    short_name: 'La Obrera',
+    description: 'Miel regenerativa del bosque nativo de Chiloé — La Obrera y el Zángano',
     start_url: '/',
     display: 'standalone',
     orientation: 'portrait',

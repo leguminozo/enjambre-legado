@@ -152,7 +152,8 @@ export const metadata: Metadata = {
 
 export default async function NosotrosPage() {
   // Hero editable desde el Editor de Tienda (site_content 'nosotros').
-  // Vacío = copy hardcodeado actual; la evidencia científica sigue en código.
+  // Vacío = copy hardcodeado actual; la evidencia científica ahora también es
+  // editable (site_content 'ciencia') con fallback al array hardcodeado.
   const cmsRows = await getSiteContent('nosotros');
   const cms = cmsRows[0]?.content as Record<string, unknown> | undefined;
   const heroTitle =
@@ -165,6 +166,64 @@ export default async function NosotrosPage() {
       : 'Regeneración, Legado y Miel Artesanal del Bosque Patagónico de Chiloé';
   const heroImage =
     typeof cms?.image === 'string' && cms.image.startsWith('http') ? cms.image : null;
+  const historia =
+    typeof cms?.historia === 'string' && cms.historia.trim() ? cms.historia : null;
+  const mision =
+    typeof cms?.mision === 'string' && cms.mision.trim() ? cms.mision : null;
+  const vision =
+    typeof cms?.vision === 'string' && cms.vision.trim() ? cms.vision : null;
+
+  // Stats: etiqueta/valor desde CMS con fallback a los valores actuales
+  const statDefs = [
+    { label: 'Años Regenerando', value: '22' },
+    { label: 'Índice Glucémico', value: '55' },
+    { label: 'Maduración', value: '48h' },
+    { label: 'Bosque Nativo', value: '100%' },
+  ];
+  const stats = statDefs.map((s, i) => ({
+    label:
+      typeof cms?.[`stat${i + 1}_label`] === 'string' &&
+      (cms[`stat${i + 1}_label`] as string).trim()
+        ? (cms[`stat${i + 1}_label`] as string)
+        : s.label,
+    value:
+      typeof cms?.[`stat${i + 1}_value`] === 'string' &&
+      (cms[`stat${i + 1}_value`] as string).trim()
+        ? (cms[`stat${i + 1}_value`] as string)
+        : s.value,
+  }));
+
+  // Evidencia científica: sección 'ciencia' (items {categoria, titulo, texto, fuente})
+  // agrupada por categoría; fallback al array hardcodeado.
+  const evidenciaRows = await getSiteContent('ciencia');
+  const evidenciaCms = evidenciaRows.map(
+    (r) => r.content as Record<string, unknown>,
+  );
+  const evidenciaRaw =
+    evidenciaCms.length > 0
+      ? evidenciaCms
+      : EVIDENCIA_CIENTIFICA.flatMap((g) =>
+          g.evidencias.map((e) => ({ categoria: g.categoria, ...e })),
+        );
+  const gruposEvidencia = evidenciaRaw.reduce<
+    { categoria: string; evidencias: { titulo: string; texto: string; fuente: string }[] }[]
+  >((acc, item) => {
+    const titulo = typeof item.titulo === 'string' ? item.titulo : '';
+    const texto = typeof item.texto === 'string' ? item.texto : '';
+    if (!titulo && !texto) return acc;
+    const categoria =
+      typeof item.categoria === 'string' && item.categoria.trim()
+        ? item.categoria
+        : 'Evidencia';
+    const fuente =
+      typeof item.fuente === 'string' && item.fuente.trim()
+        ? item.fuente
+        : 'EVIDENCIA CIENTÍFICA';
+    const existing = acc.find((g) => g.categoria === categoria);
+    if (existing) existing.evidencias.push({ titulo, texto, fuente });
+    else acc.push({ categoria, evidencias: [{ titulo, texto, fuente }] });
+    return acc;
+  }, []);
 
   const nosotrosJsonLd = mergeJsonLd([
     articleJsonLd({
@@ -203,8 +262,27 @@ Nuestra Historia
 ) : null}
 </div>
 
-{/* Main Story - Texto completo */}
-<div className="prose prose-lg prose-invert max-w-none mb-24">
+{/* Main Story - Texto completo (CMS 'historia' con fallback al texto hardcodeado) */}
+{historia ? (
+  <div className="prose prose-lg prose-invert max-w-none mb-24">
+    <p className="text-lg md:text-xl leading-relaxed text-muted-foreground whitespace-pre-line">
+      {historia}
+    </p>
+    <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Fuentes</h2>
+    <p className="text-lg leading-relaxed text-muted-foreground">
+      Las afirmaciones científicas se fundamentan en estudios que destacan las propiedades de la miel ulmo-tepú de Chiloé, contextualizadas a las ubicaciones de Pureo, Yerba Loza, y otras ubicaciones de nuestros respectivos apiarios:
+    </p>
+    <div className="mt-12 flex justify-center">
+      <a
+        href="#evidencia"
+        className="group relative inline-flex min-h-12 items-center justify-center px-8 py-4 border border-accent text-accent uppercase tracking-[0.2em] text-xs hover:bg-accent hover:text-accent-foreground transition-all duration-500"
+      >
+        Ver Evidencia Científica
+      </a>
+    </div>
+  </div>
+) : null}
+<div className={`prose prose-lg prose-invert max-w-none mb-24 ${historia ? 'hidden' : ''}`}>
 <div className="text-sm text-accent uppercase tracking-[0.2em] mb-4">2 de julio de 2025</div>
 <p className="text-lg md:text-xl leading-relaxed text-muted-foreground whitespace-pre-line">
 En términos generales, hacemos que la miel de Chiloé sea un puente entre la regeneración ecológica y la salud metabólica y nutricional. Al ser recolectada desde bosques nativos antiguos y regenerados, el néctar brota transformado directo desde el sol, logrando desafiar directamente ante el impacto del azúcar refinada. Con un índice glucémico de ~55 —frente al 65 del azúcar blanco—, reduce los picos glucémicos, promoviendo una energía estable que resuena con los ciclos vitales. Batida intermitentemente durante 48 horas, cada gota encapsula un vacío nutricional: una dulzura que no satura, sino que alimenta el cuerpo y la mente a partir del legado del bosque. Además, los polifenoles de la miel, abundantes en Chiloé, superan en capacidad antioxidante a variedades estándar, protegiendo contra el estrés oxidativo.
@@ -271,13 +349,41 @@ Ver Evidencia Científica
 </div>
 </div>
 
+{/* Evidencia Científica — CMS 'ciencia' agrupada por categoría (fallback: array hardcodeado) */}
+<div id="evidencia" className="border-t border-border pt-16 mb-24">
+  <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
+    Evidencia Científica
+  </h2>
+  {gruposEvidencia.map((g) => (
+    <div key={g.categoria} className="mb-10">
+      <h3 className="font-display text-xl font-medium text-foreground mb-4 text-center">
+        {g.categoria}
+      </h3>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {g.evidencias.map((e, i) => (
+          <div
+            key={`${g.categoria}-${i}`}
+            className="rounded-xl border border-border/40 bg-surface-raised p-5"
+          >
+            <p className="text-sm font-semibold text-foreground">{e.titulo}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{e.texto}</p>
+            <span className="mt-3 inline-block text-[0.6rem] uppercase tracking-[0.2em] text-accent">
+              {e.fuente}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  ))}
+</div>
+
 {/* Mission */}
 <div className="border-t border-border pt-16 mb-24">
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
 Nuestra Misión
 </h2>
 <p className="text-lg text-muted-foreground text-center max-w-3xl mx-auto mb-12">
-En La Obrera y el Zángano, buscamos fomentar y transformar el consumo de Miel en un acto de existencialismo saludable y cósmico, ofreciendo para esto nuestra Crema de Miel, forjada a partir de los ulmos, tepús y otros árboles antiguos y únicos del bosque nativo al sur del planeta, en Pureo, Queilen y otros entornos de Chiloé.
+{mision ?? 'En La Obrera y el Zángano, buscamos fomentar y transformar el consumo de Miel en un acto de existencialismo saludable y cósmico, ofreciendo para esto nuestra Crema de Miel, forjada a partir de los ulmos, tepús y otros árboles antiguos y únicos del bosque nativo al sur del planeta, en Pureo, Queilen y otros entornos de Chiloé.'}
 </p>
 </div>
 
@@ -287,28 +393,18 @@ En La Obrera y el Zángano, buscamos fomentar y transformar el consumo de Miel e
 Nuestra Visión
 </h2>
 <p className="text-lg text-muted-foreground text-center max-w-3xl mx-auto">
-Interconectamos la Miel, las abejas, nosotros como humanos y toda la complejidad natural de la tierra como planeta en medio del cosmos. Vemos energía y cultura, creada directa desde el sol, que nutre y regenera. Damos cuenta a través de nuestra historia y procesos con los que logramos la posibilidad de ofrecer nuestra Crema de Miel, color blanco cremoso, sublime y suave.
+{vision ?? 'Interconectamos la Miel, las abejas, nosotros como humanos y toda la complejidad natural de la tierra como planeta en medio del cosmos. Vemos energía y cultura, creada directa desde el sol, que nutre y regenera. Damos cuenta a través de nuestra historia y procesos con los que logramos la posibilidad de ofrecer nuestra Crema de Miel, color blanco cremoso, sublime y suave.'}
 </p>
 </div>
 
-{/* Stats */}
+{/* Stats — etiqueta/valor desde CMS con fallback */}
 <div className="grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-border pt-16">
-<div className="text-center">
-<div className="font-display text-4xl md:text-5xl text-accent mb-2">22</div>
-<div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">Años Regenerando</div>
-</div>
-<div className="text-center">
-<div className="font-display text-4xl md:text-5xl text-accent mb-2">55</div>
-<div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">Índice Glucémico</div>
-</div>
-<div className="text-center">
-<div className="font-display text-4xl md:text-5xl text-accent mb-2">48h</div>
-<div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">Maduración</div>
-</div>
-<div className="text-center">
-<div className="font-display text-4xl md:text-5xl text-accent mb-2">100%</div>
-<div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">Bosque Nativo</div>
-</div>
+  {stats.map((s) => (
+    <div key={s.label} className="text-center">
+      <div className="font-display text-4xl md:text-5xl text-accent mb-2">{s.value}</div>
+      <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">{s.label}</div>
+    </div>
+  ))}
 </div>
 </main>
 <ShopFooter /></StoreShell>

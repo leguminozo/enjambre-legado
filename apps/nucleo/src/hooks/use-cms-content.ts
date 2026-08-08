@@ -27,6 +27,7 @@ const CMS_SECTIONS = [
   'nosotros',
   'galeria',
   'contacto',
+  'ciencia',
   'menu_settings',
   'menu_links',
   'theme_settings',

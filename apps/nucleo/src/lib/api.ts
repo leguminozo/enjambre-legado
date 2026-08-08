@@ -28,16 +28,9 @@ export const getAccessToken = async (): Promise<string> => {
  * 2) primera membership en `usuarios_empresas` (mismo criterio que tenantMiddleware sin header)
  */
 export async function getEmpresaId(): Promise<string> {
-  let user: { id?: string; app_metadata?: Record<string, unknown>; email?: string | null } | null = null;
-  try {
-    const res = await supabase.auth.getUser();
-    user = res.data?.user ?? null;
-  } catch (error) {
-    // Timeout/red: sin sesión resoluble — la vista sigue sin empresa ("").
-    console.error("[getEmpresaId] getUser falló:", error);
-    empresaIdCache = null;
-    return "";
-  }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const userId = user?.id;
   if (!userId) {
     empresaIdCache = null;

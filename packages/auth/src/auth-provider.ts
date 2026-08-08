@@ -9,16 +9,14 @@ export function useAuthProvider() {
   const checkUser = useAuthStore((s) => s.checkUser)
 
   useEffect(() => {
-    // checkUser nunca rechaza (el store se asienta en su catch interno);
-    // el .catch es defensivo para no propagar unhandled rejections.
-    checkUser().catch(() => undefined)
+    checkUser()
 
     const supabase = createClient()
     if (!supabase) return
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       if (session) {
-        checkUser().catch(() => undefined)
+        checkUser()
       } else {
         useAuthStore.setState({ user: null, session: null, isAuthenticated: false, isLoading: false })
       }
