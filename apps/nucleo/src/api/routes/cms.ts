@@ -53,6 +53,8 @@ const ContentItemSchema = z.object({
   item_order: z.number().int().min(0).default(0),
   content: z.record(z.string(), z.unknown()),
   is_active: z.boolean().default(true),
+  /** es|en (migración 1001). La tienda cae a es por item si falta la versión. */
+  locale: z.enum(["es", "en"]).default("es"),
 });
 
 const UpdateContentItemSchema = z.object({
@@ -173,6 +175,7 @@ cmsRoutes.post("/items", zValidator("json", ContentItemSchema), async (c) => {
       item_order: input.item_order,
       content: input.content as Json,
       is_active: input.is_active,
+      locale: input.locale as never,
     })
     .select("*")
     .single();
@@ -221,7 +224,8 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
       payload.content = input.content as never;
       // Limpieza segura: solo acá lo publicado cambió al instante, así que las
       // imágenes que salieron del content ya no las referencia nadie (vivo).
-      removeRemovedImages(supabase, (existing as { content?: unknown } | null)?.content, input.content);
+      // locale-safe: otra fila (p.ej. EN) puede seguir usándolas.
+      void removeRemovedImages(supabase, itemId, (existing as { content?: unknown } | null)?.content, input.content);
     } else payload.draft_content = input.content as never;
   }
 
@@ -290,7 +294,8 @@ cmsRoutes.post("/publish", zValidator("json", PublishSchema), async (c) => {
     }
     // Limpieza segura en el momento exacto en que lo publicado cambia:
     // imágenes que salieron del content ya no las referencia nadie (vivo).
-    removeRemovedImages(supabase, draft.content, nextContent);
+    // locale-safe: la fila hermana de otra locale puede seguir usándolas.
+    await removeRemovedImages(supabase, draft.id, draft.content, nextContent);
     published += 1;
   }
 
@@ -428,19 +433,44 @@ async function listCmsImages(
   return images;
 }
 
-/** Borra del bucket las imágenes que salieron del contenido (best-effort). */
-function removeRemovedImages(
+/**
+ * Borra del bucket las imágenes que salieron del contenido (best-effort).
+ * locale-safe: una fila hermana (p.ej. la versión EN del mismo item) puede
+ * seguir referenciando el path — solo se borra lo que NINGUNA otra fila usa.
+ */
+async function removeRemovedImages(
   supabase: ReturnType<typeof createSupabaseUserClient>,
+  itemId: string | null,
   oldContent: unknown,
   newContent: unknown,
-): void {
+): Promise<void> {
   const oldPaths = new Set<string>();
   const newPaths = new Set<string>();
   extractCmsPaths(oldContent, oldPaths);
   extractCmsPaths(newContent, newPaths);
   const removed = [...oldPaths].filter((p) => !newPaths.has(p));
-  if (removed.length > 0) {
-    void supabase.storage.from("cms").remove(removed).catch(() => {});
+  if (removed.length === 0) return;
+
+  const { data: rows } = await supabase
+    .from("site_content")
+    .select("content, draft_content");
+  const stillReferenced = new Set<string>();
+  for (const row of (rows ?? []) as unknown as Array<{
+    id: string;
+    content: unknown;
+    draft_content: unknown;
+  }>) {
+    if (itemId && row.id === itemId) continue;
+    const paths = new Set<string>();
+    extractCmsPaths((row as unknown as { content: unknown }).content, paths);
+    const draft = (row as unknown as { draft_content: unknown }).draft_content;
+    if (draft != null) extractCmsPaths(draft, paths);
+    for (const p of paths) stillReferenced.add(p);
+  }
+
+  const toDelete = removed.filter((p) => !stillReferenced.has(p));
+  if (toDelete.length > 0) {
+    void supabase.storage.from("cms").remove(toDelete).catch(() => {});
   }
 }
 

@@ -163,7 +163,9 @@ describe('CMS API Routes', () => {
       item_order: 0,
       content: { logo_url: 'https://cdn/logo.png', logo_height_px: 40 },
       is_active: true,
+      locale: 'en',
     };
+    const insertSpy = vi.fn();
     mockFrom.mockImplementation((table: string) => {
       if (table === 'usuarios_empresas') {
         return makeChain({ data: [{ empresa_id: 'emp-1', rol: 'admin' }], error: null });
@@ -172,7 +174,12 @@ describe('CMS API Routes', () => {
         return makeChain({ data: { role: 'admin' }, error: null });
       }
       if (table === 'site_content') {
-        return makeChain({ data: created, error: null });
+        const chain = makeChain({ data: created, error: null });
+        chain.insert = vi.fn((payload: unknown) => {
+          insertSpy(payload);
+          return chain;
+        });
+        return chain;
       }
       return makeChain({ data: null, error: null });
     });
@@ -183,14 +190,60 @@ describe('CMS API Routes', () => {
       body: JSON.stringify({
         section_key: 'brand_assets',
         content: { logo_url: 'https://cdn/logo.png', logo_height_px: 40 },
+        locale: 'en',
       }),
     });
 
     expect(res.status).toBe(201);
     const json = await res.json();
     expect(json.data.id).toBe('new-1');
-    expect(json.revalidated).toBe(true);
+    expect(json.data.locale).toBe('en');
+    // "crear desde ES": el insert debe persistir el idioma del item
+    expect(insertSpy).toHaveBeenCalledWith(expect.objectContaining({ locale: 'en' }));
     expect(mockRevalidate).toHaveBeenCalledTimes(1);
+  });
+
+  it('POST /api/cms/items → 201 con locale default es (legacy)', async () => {
+    const created = {
+      id: 'new-2',
+      section_key: 'talleres',
+      item_order: 1,
+      content: { title: 'Taller' },
+      is_active: true,
+      locale: 'es',
+    };
+    const insertSpy = vi.fn();
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'usuarios_empresas') {
+        return makeChain({ data: [{ empresa_id: 'emp-1', rol: 'admin' }], error: null });
+      }
+      if (table === 'profiles') {
+        return makeChain({ data: { role: 'admin' }, error: null });
+      }
+      if (table === 'site_content') {
+        const chain = makeChain({ data: created, error: null });
+        chain.insert = vi.fn((payload: unknown) => {
+          insertSpy(payload);
+          return chain;
+        });
+        return chain;
+      }
+      return makeChain({ data: null, error: null });
+    });
+
+    const res = await app.request('/api/cms/items', {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify({
+        section_key: 'talleres',
+        content: { title: 'Taller' },
+      }),
+    });
+
+    expect(res.status).toBe(201);
+    const json = await res.json();
+    expect(json.data.locale).toBe('es');
+    expect(insertSpy).toHaveBeenCalledWith(expect.objectContaining({ locale: 'es' }));
   });
 
   it('POST /api/cms/items → 400 si insert falla', async () => {

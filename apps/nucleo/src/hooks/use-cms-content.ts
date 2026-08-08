@@ -17,6 +17,12 @@ export interface CMSContentItem {
   /** Ediciones pendientes de publicar (migración 1000); null = sin borrador */
   draft_content: Record<string, unknown> | null
   published_at: string | null
+  /**
+   * es|en (migración 1001). La DB remota la aplica con supabase db push; los
+   * consumidores usan `?? 'es'` como fallback hasta entonces (los rows legacy
+   * no traen la columna).
+   */
+  locale?: string
 }
 
 export interface CMSGroupedData {
@@ -112,6 +118,8 @@ export function useCMSContent() {
       item_order?: number
       content: Record<string, unknown>
       is_active?: boolean
+      /** es|en (default es) — "crear desde ES" usa en para clonar la sección */
+      locale?: 'es' | 'en'
     }) => {
       const res = await apiFetch('/api/cms/items', {
         method: 'POST',
@@ -120,6 +128,7 @@ export function useCMSContent() {
           item_order: item.item_order ?? 0,
           content: item.content,
           is_active: item.is_active ?? true,
+          locale: item.locale ?? 'es',
         }),
       })
       if (!res.ok) {

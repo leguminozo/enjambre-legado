@@ -58,6 +58,7 @@ import {
   Send,
   CreditCard,
   ShoppingCart,
+  Languages,
   type LucideProps,
 } from 'lucide-react';
 import { toast, ImmersiveModal, PanelFocusToggle, type PanelFocus } from '@enjambre/ui';
@@ -1752,6 +1753,14 @@ export function EditorTiendaView() {
 function EditorTiendaViewInner() {
   const cms = useCMSContent();
   const [activeSection, setActiveSection] = useState<string>('menu_settings');
+  /** Idioma de edición (migración 1001): cada item vive en es o en. */
+  const [editorLocale, setEditorLocale] = useState<'es' | 'en'>(() => {
+    if (typeof window === 'undefined') return 'es';
+    return window.localStorage.getItem('nucleo:cms-locale') === 'en' ? 'en' : 'es';
+  });
+  useEffect(() => {
+    window.localStorage.setItem('nucleo:cms-locale', editorLocale);
+  }, [editorLocale]);
   const [iframeKey, setIframeKey] = useState(0);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
@@ -1869,6 +1878,8 @@ function EditorTiendaViewInner() {
   }, [activeSection]);
 
   const groupedData = cms.data?.data ?? {};
+  /** Rows legacy (sin columna locale hasta migración 1001 aplicada) = es. */
+  const localeOf = (i: CMSContentItem) => i.locale ?? 'es';
   const sectionKeys = (() => {
     const fromApi = new Set<string>([
       ...cms.sections,
@@ -1885,7 +1896,43 @@ function EditorTiendaViewInner() {
     return [...ordered, ...rest];
   })();
 
-  const currentItems = groupedData[activeSection] ?? [];
+  const currentItems = (groupedData[activeSection] ?? []).filter(
+    (i) => localeOf(i) === editorLocale,
+  );
+
+  /** Items ES de la sección activa (fuente de "crear desde ES"). */
+  const esItems = useMemo(
+    () => (groupedData[activeSection] ?? []).filter((i) => localeOf(i) === 'es'),
+    [groupedData, activeSection],
+  );
+
+  /**
+   * Clona la sección activa al idioma EN: cada item ES → item EN con el mismo
+   * content (luego el admin traduce los textos; el orden es independiente).
+   */
+  const handleCreateLocaleCopy = async () => {
+    if (esItems.length === 0) return;
+    try {
+      await Promise.all(
+        esItems.map((i) =>
+          cms.createItem.mutateAsync({
+            section_key: activeSection as CMSSectionKey,
+            item_order: i.item_order,
+            content: i.content,
+            is_active: i.is_active,
+            locale: 'en',
+          }),
+        ),
+      );
+      toast(
+        `Versión EN creada (${esItems.length} item${esItems.length !== 1 ? 's' : ''}) — editá los textos`,
+        { type: 'success' },
+      );
+      refreshIframe();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Error al crear la versión EN', { type: 'error' });
+    }
+  };
 
   const refreshIframe = () => {
     if (iframeRef.current?.contentWindow) {
@@ -1928,7 +1975,7 @@ function EditorTiendaViewInner() {
     const item = currentItems.find((i) => i.id === id);
     cms.deleteItem.mutate(id, {
       onSuccess: (res) => {
-        if (item) removeItemImages(item.content);
+        if (item) removeItemImages(id, item.content);
         notifyRevalidate(res?.revalidated);
         refreshIframe();
       },
@@ -2021,7 +2068,12 @@ function EditorTiendaViewInner() {
       const nextOrder =
         currentItems.reduce((max, i) => Math.max(max, i.item_order ?? 0), 0) + 1;
       cms.createItem.mutate(
-        { section_key: activeSection as CMSSectionKey, content: newContent, item_order: nextOrder },
+        {
+          section_key: activeSection as CMSSectionKey,
+          content: newContent,
+          item_order: nextOrder,
+          locale: editorLocale,
+        },
         {
           onSuccess: (res) => {
             // Las imágenes del modal ya tienen dueño: no limpiarlas
@@ -2038,8 +2090,29 @@ function EditorTiendaViewInner() {
     }
   };
 
-  /** Best-effort: elimina del bucket cms las imágenes de un item borrado. */
-  const removeItemImages = (content: Record<string, unknown>) => {
+  /** Recolecta paths del bucket cms en profundidad (chequeo locale-safe). */
+  const collectCmsPaths = (value: unknown, acc: Set<string>) => {
+    if (typeof value === 'string') {
+      const idx = value.indexOf('/storage/v1/object/public/cms/');
+      if (idx !== -1) {
+        const path = value.slice(idx + '/storage/v1/object/public/cms/'.length).split(/[?#]/)[0];
+        if (path) acc.add(path);
+      }
+      return;
+    }
+    if (Array.isArray(value)) {
+      for (const v of value) collectCmsPaths(v, acc);
+      return;
+    }
+    if (value && typeof value === 'object') {
+      for (const v of Object.values(value)) collectCmsPaths(v, acc);
+    }
+  };
+
+  /** Best-effort: elimina del bucket cms las imágenes de un item borrado.
+   *  locale-safe: la versión hermana (otra locale) puede seguir usándolas. */
+  const removeItemImages = (id: string, content: Record<string, unknown>) => {
+    const toDelete: string[] = [];
     for (const [key, val] of Object.entries(content)) {
       if (
         isImageField(key, activeSection) &&
@@ -2047,9 +2120,19 @@ function EditorTiendaViewInner() {
         val.includes('/storage/v1/object/public/cms/')
       ) {
         const path = val.split('/storage/v1/object/public/cms/')[1];
-        if (path) void supabase.storage.from('cms').remove([path]).catch(() => {});
+        if (path) toDelete.push(path);
       }
     }
+    if (toDelete.length === 0) return;
+    const stillReferenced = new Set<string>();
+    for (const items of Object.values(groupedData)) {
+      for (const item of items) {
+        if (item.id === id) continue;
+        collectCmsPaths(item.content, stillReferenced);
+      }
+    }
+    const paths = toDelete.filter((p) => !stillReferenced.has(p));
+    if (paths.length > 0) void supabase.storage.from('cms').remove(paths).catch(() => {});
   };
 
   const handleReorder = (newItems: typeof currentItems) => {
@@ -2113,6 +2196,38 @@ function EditorTiendaViewInner() {
             <Images size={12} />
             Imágenes
           </button>
+          {/* Idioma de edición: cada item vive en es o en (migración 1001) */}
+          <div
+            className="flex items-center rounded-full border border-border bg-secondary/50 p-0.5"
+            role="group"
+            aria-label="Idioma de edición"
+          >
+            <button
+              type="button"
+              onClick={() => setEditorLocale('es')}
+              className={`min-h-8 inline-flex items-center gap-1 px-2.5 rounded-full text-[11px] font-semibold transition-colors ${
+                editorLocale === 'es'
+                  ? 'bg-background shadow-sm text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Editar contenido en español"
+            >
+              <Languages size={11} />
+              ES
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditorLocale('en')}
+              className={`min-h-8 inline-flex items-center gap-1 px-2.5 rounded-full text-[11px] font-semibold transition-colors ${
+                editorLocale === 'en'
+                  ? 'bg-background shadow-sm text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Editar contenido en inglés — la tienda cae a ES por item si falta la versión"
+            >
+              EN
+            </button>
+          </div>
           <button
             type="button"
             onClick={handlePublishAll}
@@ -2369,7 +2484,10 @@ function EditorTiendaViewInner() {
                     setNavDrill('tool');
                   }}
                   itemCounts={Object.fromEntries(
-                    sectionKeys.map((k) => [k, (groupedData[k] ?? []).length]),
+                    sectionKeys.map((k) => [
+                      k,
+                      (groupedData[k] ?? []).filter((i) => localeOf(i) === editorLocale).length,
+                    ]),
                   )}
                 />
               </div>
@@ -2389,20 +2507,44 @@ function EditorTiendaViewInner() {
                   onRetry={() => void cms.refetch()}
                 />
               ) : (
-                <ItemsPanel
-                  items={currentItems}
-                  activeSection={activeSection}
-                  onBack={() => setNavDrill('list')}
-                  backLabel={EDITOR_CATEGORIES.find((c) => c.id === activeCategory)?.label ?? 'Bloques'}
-                  onUpdate={handleUpdateItem}
-                  onDelete={handleDeleteItem}
-                  onPublish={handlePublishItem}
-                  onDiscard={handleDiscardItem}
-                  onImageUpload={handleImageUpload}
-                  onAddNew={() => setShowNewForm(true)}
-                  onReorder={handleReorder}
-                  isDeleting={cms.deleteItem.isPending}
-                />
+                <>
+                  {/* EN sin versión: la tienda muestra la ES; botón para clonar */}
+                  {editorLocale === 'en' && currentItems.length === 0 && esItems.length > 0 ? (
+                    <div className="mx-3 mt-3 flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2">
+                      <AlertTriangle size={14} className="text-accent shrink-0" />
+                      <p className="text-[11px] text-muted-foreground leading-snug flex-1">
+                        Esta sección no tiene versión EN — la tienda muestra la ES hasta que la crees.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => void handleCreateLocaleCopy()}
+                        disabled={cms.createItem.isPending}
+                        className="inline-flex min-h-8 items-center gap-1 px-2.5 rounded-full text-[11px] font-semibold border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors disabled:opacity-50 shrink-0"
+                      >
+                        {cms.createItem.isPending ? (
+                          <Loader2 size={11} className="animate-spin" />
+                        ) : (
+                          <Languages size={11} />
+                        )}
+                        Crear desde ES ({esItems.length})
+                      </button>
+                    </div>
+                  ) : null}
+                  <ItemsPanel
+                    items={currentItems}
+                    activeSection={activeSection}
+                    onBack={() => setNavDrill('list')}
+                    backLabel={EDITOR_CATEGORIES.find((c) => c.id === activeCategory)?.label ?? 'Bloques'}
+                    onUpdate={handleUpdateItem}
+                    onDelete={handleDeleteItem}
+                    onPublish={handlePublishItem}
+                    onDiscard={handleDiscardItem}
+                    onImageUpload={handleImageUpload}
+                    onAddNew={() => setShowNewForm(true)}
+                    onReorder={handleReorder}
+                    isDeleting={cms.deleteItem.isPending}
+                  />
+                </>
               )}
             </>
           )}
@@ -2516,8 +2658,10 @@ function EditorTiendaViewInner() {
                 <div className={`flex-1 relative w-full overflow-hidden ${viewMode === 'mobile' ? 'md:mt-7 md:rounded-b-[2rem]' : ''}`}>
                   <iframe
                     ref={iframeRef}
-                    key={iframeKey}
-                    src={`${tiendaUrl}${previewPath}?cms_preview=1`}
+                    // key con locale: al cambiar idioma, la preview recarga (el
+                    // middleware de tienda redirige /en → ruta canónica + cookie)
+                    key={`${iframeKey}-${editorLocale}`}
+                    src={`${tiendaUrl}${editorLocale === 'en' ? '/en' : ''}${previewPath}?cms_preview=1`}
                     title="Vista Previa de Tienda"
                     className="absolute inset-0 w-full h-full border-none bg-background"
                     sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
