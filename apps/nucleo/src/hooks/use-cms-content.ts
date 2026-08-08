@@ -14,6 +14,9 @@ export interface CMSContentItem {
   is_active: boolean
   created_at: string | null
   updated_at: string | null
+  /** Ediciones pendientes de publicar (migración 1000); null = sin borrador */
+  draft_content: Record<string, unknown> | null
+  published_at: string | null
 }
 
 export interface CMSGroupedData {
@@ -202,6 +205,46 @@ export function useCMSContent() {
     },
   })
 
+  /** Publica borradores (draft_content → content). Vacío = todo; o por sección/id. */
+  const publishItems = useMutation({
+    mutationFn: async (scope?: { section_key?: CMSSectionKey; id?: string }) => {
+      const res = await apiFetch('/api/cms/publish', {
+        method: 'POST',
+        body: JSON.stringify(scope ?? {}),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Publish failed' }))
+        throw new Error(err.message ?? 'Publish failed')
+      }
+      return res.json() as Promise<{
+        data: { published: number }
+        revalidated?: boolean
+        revalidate_reason?: string | null
+      }>
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cms'] })
+    },
+  })
+
+  /** Descarta borradores (draft_content = null). Por id o sección. */
+  const discardItem = useMutation({
+    mutationFn: async (scope: { id?: string; section_key?: CMSSectionKey }) => {
+      const res = await apiFetch('/api/cms/discard', {
+        method: 'POST',
+        body: JSON.stringify(scope),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Discard failed' }))
+        throw new Error(err.message ?? 'Discard failed')
+      }
+      return res.json() as Promise<{ data: { discarded: number } }>
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cms'] })
+    },
+  })
+
   const uploadImage = useMutation({
     mutationFn: async ({
       file,
@@ -270,6 +313,8 @@ export function useCMSContent() {
     updateItem,
     deleteItem,
     reorderItems,
+    publishItems,
+    discardItem,
     uploadImage,
   }
 }

@@ -219,9 +219,10 @@ describe('CMS API Routes', () => {
     expect(mockRevalidate).not.toHaveBeenCalled();
   });
 
-  it('PATCH /api/cms/items/:id → 200 y revalidate', async () => {
+  it('PATCH /api/cms/items/:id → 200 y revalidate (sección auto-publish)', async () => {
     const updated = {
       id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+      section_key: 'brand_assets',
       content: { logo_url: 'https://cdn/new.png', logo_height_px: 48 },
     };
     mockFrom.mockImplementation((table: string) => {
@@ -247,6 +248,41 @@ describe('CMS API Routes', () => {
 
     expect(res.status).toBe(200);
     expect(mockRevalidate).toHaveBeenCalledTimes(1);
+  });
+
+  it('PATCH /api/cms/items/:id → 200 sin revalidate (sección con borrador)', async () => {
+    const updated = {
+      id: 'bbbbbbbb-cccc-dddd-eeee-ffffffffffff',
+      section_key: 'talleres',
+      content: { title: 'publicado' },
+    };
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'usuarios_empresas') {
+        return makeChain({ data: [{ empresa_id: 'emp-1', rol: 'admin' }], error: null });
+      }
+      if (table === 'profiles') {
+        return makeChain({ data: { role: 'admin' }, error: null });
+      }
+      if (table === 'site_content') {
+        return makeChain({ data: updated, error: null });
+      }
+      return makeChain({ data: null, error: null });
+    });
+
+    const res = await app.request('/api/cms/items/bbbbbbbb-cccc-dddd-eeee-ffffffffffff', {
+      method: 'PATCH',
+      headers: authHeaders,
+      body: JSON.stringify({
+        content: { title: 'borrador' },
+      }),
+    });
+    const json = (await res.json()) as { revalidated?: boolean; revalidate_reason?: string | null };
+
+    expect(res.status).toBe(200);
+    // El borrador NO revalida la tienda: content publicado no cambió
+    expect(mockRevalidate).not.toHaveBeenCalled();
+    expect(json.revalidated).toBe(false);
+    expect(json.revalidate_reason).toBe('draft');
   });
 
   it('DELETE /api/cms/items/:id → 200 y revalidate', async () => {

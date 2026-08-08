@@ -37,8 +37,13 @@ const GaleriaItemContentSchema = z.object({
   orden: z.number().default(0),
 });
 
-export default async function GaleriaPage() {
-  const galeriaData = await getSiteContent('galeria');
+export default async function GaleriaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cms_preview?: string }>;
+}) {
+  const draft = (await searchParams).cms_preview === '1';
+  const galeriaData = await getSiteContent('galeria', { draft });
   
   const defaultImages = [
     { id: '1', content: { 

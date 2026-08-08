@@ -29,10 +29,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function ExperienciasPage() {
+export default async function ExperienciasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cms_preview?: string }>;
+}) {
+  const draft = (await searchParams).cms_preview === '1';
   // Talleres editables desde el Editor de Tienda (site_content 'talleres').
   // Vacío = solo el copy hardcodeado (look actual).
-  const cmsRows = await getSiteContent('talleres');
+  const cmsRows = await getSiteContent('talleres', { draft });
   const talleres = cmsRows
     .map((r) => r.content as { date?: string; title?: string; desc?: string; action?: string })
     .filter((t) => typeof t.title === 'string' && t.title.trim() !== '');

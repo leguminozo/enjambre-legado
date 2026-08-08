@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description: 'Garantía legal y voluntaria de nuestros productos conforme a la Ley 19.496.',
 };
 
-export default async function GarantiaPage() {
+export default async function GarantiaPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
+  const draft = (await searchParams).cms_preview === "1";
   const contentData = await getSiteContent('legal_garantia');
   const item = contentData[0]?.content;
   const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Política de Garantía';

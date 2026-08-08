@@ -40,10 +40,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 export const revalidate = 3600;
 
-export default async function ContactoPage() {
+export default async function ContactoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cms_preview?: string }>;
+}) {
+  const draft = (await searchParams).cms_preview === '1';
   // Cabecera editable desde el Editor de Tienda (site_content 'contacto').
   // Vacío = copy hardcodeado actual.
-  const cmsRows = await getSiteContent('contacto');
+  const cmsRows = await getSiteContent('contacto', { draft });
   const cms = cmsRows[0]?.content as Record<string, unknown> | undefined;
   const title =
     typeof cms?.title === 'string' && cms.title.trim() ? cms.title : 'Contáctenos';

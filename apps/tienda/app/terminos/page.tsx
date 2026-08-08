@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description: 'Condiciones de uso de la plataforma La Obrera y el Zángano.',
 };
 
-export default async function TerminosPage() {
+export default async function TerminosPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
+  const draft = (await searchParams).cms_preview === "1";
   const contentData = await getSiteContent('legal_terminos');
   const item = contentData[0]?.content;
   const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Términos del Servicio';

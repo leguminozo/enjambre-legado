@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description: 'Detalles sobre la logística y tiempos de despacho.',
 };
 
-export default async function EnvioPage() {
+export default async function EnvioPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
+  const draft = (await searchParams).cms_preview === "1";
   const contentData = await getSiteContent('legal_envio');
   const item = contentData[0]?.content;
   const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Política de Envío';

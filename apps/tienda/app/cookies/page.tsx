@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description: 'Cómo utilizamos cookies y tecnologías similares en La Obrera y el Zángano.',
 };
 
-export default async function CookiesPage() {
+export default async function CookiesPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
+  const draft = (await searchParams).cms_preview === "1";
   const contentData = await getSiteContent('legal_cookies');
   const item = contentData[0]?.content;
   const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Política de Cookies';

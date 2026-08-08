@@ -150,11 +150,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function NosotrosPage() {
+export default async function NosotrosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cms_preview?: string }>;
+}) {
+  const draft = (await searchParams).cms_preview === '1';
   // Hero editable desde el Editor de Tienda (site_content 'nosotros').
   // Vacío = copy hardcodeado actual; la evidencia científica ahora también es
   // editable (site_content 'ciencia') con fallback al array hardcodeado.
-  const cmsRows = await getSiteContent('nosotros');
+  const cmsRows = await getSiteContent('nosotros', { draft });
   const cms = cmsRows[0]?.content as Record<string, unknown> | undefined;
   const heroTitle =
     typeof cms?.title === 'string' && cms.title.trim()
@@ -195,7 +200,7 @@ export default async function NosotrosPage() {
 
   // Evidencia científica: sección 'ciencia' (items {categoria, titulo, texto, fuente})
   // agrupada por categoría; fallback al array hardcodeado.
-  const evidenciaRows = await getSiteContent('ciencia');
+  const evidenciaRows = await getSiteContent('ciencia', { draft });
   const evidenciaCms = evidenciaRows.map(
     (r) => r.content as Record<string, unknown>,
   );

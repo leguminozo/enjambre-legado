@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description: 'Cómo tratamos tus datos en La Obrera y el Zángano.',
 };
 
-export default async function PrivacidadPage() {
+export default async function PrivacidadPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
+  const draft = (await searchParams).cms_preview === "1";
   const contentData = await getSiteContent('legal_privacidad');
   const item = contentData[0]?.content;
   const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Política de Privacidad';

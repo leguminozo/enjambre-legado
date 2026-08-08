@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description: 'Información sobre cancelaciones de pedidos y suscripciones.',
 };
 
-export default async function CancelacionPage() {
+export default async function CancelacionPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
+  const draft = (await searchParams).cms_preview === "1";
   const contentData = await getSiteContent('legal_cancelacion');
   const item = contentData[0]?.content;
   const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Política de Cancelación';

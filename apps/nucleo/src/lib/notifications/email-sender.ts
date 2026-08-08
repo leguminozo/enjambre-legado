@@ -1,3 +1,5 @@
+import { Resend } from "resend";
+
 export async function sendNotificationEmail(
   recipient: string,
   subject: string,
@@ -11,25 +13,17 @@ export async function sendNotificationEmail(
     return { success: true, response: { mock: true, provider: "mock_resend" } };
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "Enjambre Legado <contacto@enjambrelegado.cl>",
-      to: recipient,
-      subject,
-      html: body,
-    }),
+  const resend = new Resend(apiKey);
+  const { data, error } = await resend.emails.send({
+    from: "Enjambre Legado <contacto@enjambrelegado.cl>",
+    to: recipient,
+    subject,
+    html: body,
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Error en Resend API (${response.status}): ${errorText}`);
+  if (error) {
+    throw new Error(`Error en Resend API (${error.statusCode ?? "unknown"}): ${error.message}`);
   }
 
-  const data = (await response.json()) as Record<string, unknown>;
-  return { success: true, response: data };
+  return { success: true, response: (data ?? {}) as unknown as Record<string, unknown> };
 }

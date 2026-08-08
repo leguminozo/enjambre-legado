@@ -4605,87 +4605,6 @@ export type Database = {
           },
         ]
       }
-      honey_analysis: {
-        Row: {
-          acidez_libre_meq: number | null
-          actividad_antimicrobiana: string | null
-          color_pfund: number | null
-          created_at: string | null
-          diastasa_actividad: number | null
-          fecha_analisis: string
-          glucosa_oxidasa: boolean | null
-          hmf_mg_kg: number | null
-          humedad_pct: number | null
-          id: string
-          indice_glicemico_estimado: number | null
-          invertasa_actividad: number | null
-          laboratorio: string | null
-          lote_id: string | null
-          notas: string | null
-          perfil_polen: Json | null
-          ph: number | null
-          producto_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          acidez_libre_meq?: number | null
-          actividad_antimicrobiana?: string | null
-          color_pfund?: number | null
-          created_at?: string | null
-          diastasa_actividad?: number | null
-          fecha_analisis?: string
-          glucosa_oxidasa?: boolean | null
-          hmf_mg_kg?: number | null
-          humedad_pct?: number | null
-          id?: string
-          indice_glicemico_estimado?: number | null
-          invertasa_actividad?: number | null
-          laboratorio?: string | null
-          lote_id?: string | null
-          notas?: string | null
-          perfil_polen?: Json | null
-          ph?: number | null
-          producto_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          acidez_libre_meq?: number | null
-          actividad_antimicrobiana?: string | null
-          color_pfund?: number | null
-          created_at?: string | null
-          diastasa_actividad?: number | null
-          fecha_analisis?: string
-          glucosa_oxidasa?: boolean | null
-          hmf_mg_kg?: number | null
-          humedad_pct?: number | null
-          id?: string
-          indice_glicemico_estimado?: number | null
-          invertasa_actividad?: number | null
-          laboratorio?: string | null
-          lote_id?: string | null
-          notas?: string | null
-          perfil_polen?: Json | null
-          ph?: number | null
-          producto_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "honey_analysis_lote_id_fkey"
-            columns: ["lote_id"]
-            isOneToOne: false
-            referencedRelation: "lotes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "honey_analysis_producto_id_fkey"
-            columns: ["producto_id"]
-            isOneToOne: false
-            referencedRelation: "productos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       hidromiel_etapas: {
         Row: {
           created_at: string
@@ -4853,13 +4772,6 @@ export type Database = {
             referencedRelation: "lotes"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "hidromiel_lotes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       hidromiel_mediciones: {
@@ -4899,6 +4811,87 @@ export type Database = {
             columns: ["lote_id"]
             isOneToOne: false
             referencedRelation: "hidromiel_lotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      honey_analysis: {
+        Row: {
+          acidez_libre_meq: number | null
+          actividad_antimicrobiana: string | null
+          color_pfund: number | null
+          created_at: string | null
+          diastasa_actividad: number | null
+          fecha_analisis: string
+          glucosa_oxidasa: boolean | null
+          hmf_mg_kg: number | null
+          humedad_pct: number | null
+          id: string
+          indice_glicemico_estimado: number | null
+          invertasa_actividad: number | null
+          laboratorio: string | null
+          lote_id: string | null
+          notas: string | null
+          perfil_polen: Json | null
+          ph: number | null
+          producto_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          acidez_libre_meq?: number | null
+          actividad_antimicrobiana?: string | null
+          color_pfund?: number | null
+          created_at?: string | null
+          diastasa_actividad?: number | null
+          fecha_analisis?: string
+          glucosa_oxidasa?: boolean | null
+          hmf_mg_kg?: number | null
+          humedad_pct?: number | null
+          id?: string
+          indice_glicemico_estimado?: number | null
+          invertasa_actividad?: number | null
+          laboratorio?: string | null
+          lote_id?: string | null
+          notas?: string | null
+          perfil_polen?: Json | null
+          ph?: number | null
+          producto_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          acidez_libre_meq?: number | null
+          actividad_antimicrobiana?: string | null
+          color_pfund?: number | null
+          created_at?: string | null
+          diastasa_actividad?: number | null
+          fecha_analisis?: string
+          glucosa_oxidasa?: boolean | null
+          hmf_mg_kg?: number | null
+          humedad_pct?: number | null
+          id?: string
+          indice_glicemico_estimado?: number | null
+          invertasa_actividad?: number | null
+          laboratorio?: string | null
+          lote_id?: string | null
+          notas?: string | null
+          perfil_polen?: Json | null
+          ph?: number | null
+          producto_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "honey_analysis_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "lotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "honey_analysis_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
             referencedColumns: ["id"]
           },
         ]

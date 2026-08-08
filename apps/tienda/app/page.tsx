@@ -29,21 +29,30 @@ function extractContent<T extends Record<string, unknown>>(items: SiteSectionIte
 
 export const revalidate = 300;
 
-export default async function TiendaPage() {
+export default async function TiendaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cms_preview?: string }>;
+}) {
+  // Preview del editor: ?cms_preview=1 muestra los borradores del CMS
+  const draft = (await searchParams).cms_preview === '1';
   // Footer legacy (footer_branding/nav/legal) retirado: el pie real es StoreChrome.
   // Hero no se carga aquí: landing usa i18n + landing_layout (CTA).
   // Contenido de bloques del home (ola 4): conservation_content, media_items,
   // video_settings, map_settings y products_settings — vacío = defaults/i18n.
   const products = await listVisibleProducts();
   const [cmsBatch, ecosystemMetrics, ratings] = await Promise.all([
-    getSiteContentBatch([
-      'colecciones',
-      'conservation_content',
-      'media_items',
-      'video_settings',
-      'map_settings',
-      'products_settings',
-    ]),
+    getSiteContentBatch(
+      [
+        'colecciones',
+        'conservation_content',
+        'media_items',
+        'video_settings',
+        'map_settings',
+        'products_settings',
+      ],
+      { draft },
+    ),
     getEcosystemMetrics(),
     fetchRatingAggregatesByProduct(products.map((p) => p.id)),
   ]);

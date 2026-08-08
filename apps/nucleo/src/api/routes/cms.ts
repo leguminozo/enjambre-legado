@@ -68,6 +68,43 @@ const ReorderItemSchema = z.object({
   ),
 });
 
+const PublishSchema = z.object({
+  /** Publica una sección completa o un item puntual (id). Vacío = todo. */
+  section_key: z.string().optional(),
+  id: z.string().uuid().optional(),
+});
+
+const DiscardSchema = z.object({
+  id: z.string().uuid().optional(),
+  section_key: z.string().optional(),
+});
+
+/**
+ * Secciones de diseño/chrome que se publican SOLAS (PATCH escribe `content`
+ * directo): la tienda las lee en el layout (loadStoreChrome) y su preview no
+ * es por página. El resto del contenido pasa por borrador (draft_content) y
+ * se publica con POST /api/cms/publish.
+ */
+const AUTO_PUBLISH_SECTIONS = new Set<string>([
+  "theme_settings",
+  "typography_settings",
+  "announcement_settings",
+  "announcement_slides",
+  "footer_settings",
+  "footer_social",
+  "pwa_nav_settings",
+  "pwa_nav_items",
+  "brand_assets",
+  "catalog_settings",
+  "pdp_settings",
+  "seo_defaults",
+  "contact_settings",
+  "campaign_banners",
+  "seasonal_settings",
+  "menu_settings",
+  "menu_links",
+]);
+
 export const cmsRoutes = new Hono<{
   Variables: AppVariables;
 }>();
@@ -151,21 +188,38 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
 
+  // Secciones auto-publish (chrome) escriben `content` (live); el resto escribe
+  // draft_content (borrador) — la tienda sigue leyendo content hasta publicar.
+  const { data: existing } = await supabase
+    .from("site_content")
+    .select("section_key")
+    .eq("id", itemId)
+    .single();
+  const autoPublish = existing
+    ? AUTO_PUBLISH_SECTIONS.has(existing.section_key as string)
+    : false;
+
   const payload: {
     item_order?: number;
-    content?: Json;
     is_active?: boolean;
     updated_at: string;
+    // draft_content llega con la migración 1000; los tipos generados aún no lo
+    // conocen (la DB remota lo aplica con supabase db push).
+    content?: never;
+    draft_content?: never;
   } = {
     updated_at: new Date().toISOString(),
   };
   if (input.item_order !== undefined) payload.item_order = input.item_order;
-  if (input.content !== undefined) payload.content = input.content as Json;
   if (input.is_active !== undefined) payload.is_active = input.is_active;
+  if (input.content !== undefined) {
+    if (autoPublish) payload.content = input.content as never;
+    else payload.draft_content = input.content as never;
+  }
 
   const { data, error } = await supabase
     .from("site_content")
-    .update(payload)
+    .update(payload as never)
     .eq("id", itemId)
     .select("*")
     .single();
@@ -174,9 +228,104 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
     return c.json({ code: "update_failed", message: error.message }, 400);
   }
 
+  // El borrador NO revalida la tienda (la página publicada no cambió);
+  // el iframe de preview la recarga igual con ?cms_preview=1.
+  if (!autoPublish && input.content !== undefined) {
+    return c.json({ data, revalidated: false, revalidate_reason: "draft" });
+  }
+
   const revalidate = await revalidateTiendaCms();
 
   return c.json({ data, revalidated: revalidate.ok, revalidate_reason: revalidate.reason ?? null });
+});
+
+cmsRoutes.post("/publish", zValidator("json", PublishSchema), async (c) => {
+  const input = c.req.valid("json");
+  const supabase = c.get("supabase");
+
+  // Supabase update() no asigna columna-a-columna (content = draft_content) y
+  // los tipos generados aún no tienen draft_content (migración 1000): traemos
+  // todo y filtramos en JS (admin, volumen bajo).
+  interface DraftRow {
+    id: string;
+    section_key: string;
+    content: unknown;
+    draft_content: unknown;
+  }
+
+  const { data: rows, error: fetchErr } = await supabase
+    .from("site_content")
+    .select("*");
+  if (fetchErr) {
+    return c.json({ code: "publish_failed", message: fetchErr.message }, 400);
+  }
+
+  const drafts = (rows ?? [])
+    .map((r) => r as unknown as DraftRow)
+    .filter((r) => r.draft_content != null)
+    .filter((r) => !input.section_key || r.section_key === input.section_key)
+    .filter((r) => !input.id || r.id === input.id);
+
+  let published = 0;
+  for (const draft of drafts) {
+    const { error } = await supabase
+      .from("site_content")
+      .update({
+        content: (draft.draft_content ?? draft.content) as Json,
+        draft_content: null,
+        published_at: new Date().toISOString(),
+      } as never)
+      .eq("id", draft.id);
+    if (error) {
+      return c.json({ code: "publish_failed", message: error.message }, 400);
+    }
+    published += 1;
+  }
+
+  const revalidate = await revalidateTiendaCms();
+  return c.json({
+    data: { published },
+    revalidated: revalidate.ok,
+    revalidate_reason: revalidate.reason ?? null,
+  });
+});
+
+cmsRoutes.post("/discard", zValidator("json", DiscardSchema), async (c) => {
+  const input = c.req.valid("json");
+  const supabase = c.get("supabase");
+
+  interface DraftRow {
+    id: string;
+    section_key: string;
+    draft_content: unknown;
+  }
+
+  const { data: rows, error: fetchErr } = await supabase
+    .from("site_content")
+    .select("*");
+  if (fetchErr) {
+    return c.json({ code: "discard_failed", message: fetchErr.message }, 400);
+  }
+
+  const ids = (rows ?? [])
+    .map((r) => r as unknown as DraftRow)
+    .filter((r) => r.draft_content != null)
+    .filter((r) => !input.section_key || r.section_key === input.section_key)
+    .filter((r) => !input.id || r.id === input.id)
+    .map((r) => r.id);
+
+  if (ids.length > 0) {
+    const { error } = await supabase
+      .from("site_content")
+      .update({ draft_content: null } as never)
+      .in("id", ids);
+    if (error) {
+      return c.json({ code: "discard_failed", message: error.message }, 400);
+    }
+  }
+
+  // Descartar no cambia la tienda publicada: sin revalidar.
+  return c.json({ data: { discarded: ids.length } });
 });
 
 cmsRoutes.delete("/items/:id", async (c) => {

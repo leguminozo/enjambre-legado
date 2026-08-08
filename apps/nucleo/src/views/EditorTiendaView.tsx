@@ -55,6 +55,7 @@ import {
   MapPin,
   AlertTriangle,
   Microscope,
+  Send,
   type LucideProps,
 } from 'lucide-react';
 import { toast, ImmersiveModal, PanelFocusToggle, type PanelFocus } from '@enjambre/ui';
@@ -848,6 +849,8 @@ interface EditableItemCardProps {
     isActive: boolean,
   ) => Promise<unknown> | void;
   onDelete: (id: string) => void;
+  onPublish: (id: string) => void;
+  onDiscard: (id: string) => void;
   onImageUpload: (file: File, fieldName: string, itemId: string) => Promise<string>;
   isDeleting: boolean;
   onMoveUp?: () => void;
@@ -868,6 +871,8 @@ function EditableItemCard({
   activeSection,
   onUpdate,
   onDelete,
+  onPublish,
+  onDiscard,
   onImageUpload,
   isDeleting,
   onMoveUp,
@@ -1049,6 +1054,33 @@ function EditableItemCard({
           >
             {localActive ? <Eye size={14} /> : <EyeOff size={14} />}
           </button>
+          {/* Borrador pendiente: publicar/descartar explícito (draft_content) */}
+          {item.draft_content != null && (
+            <>
+              <span
+                className="px-1.5 py-0.5 rounded-full bg-warning/15 text-warning text-[10px] font-bold uppercase tracking-wider shrink-0"
+                title="Cambios sin publicar"
+              >
+                Borrador
+              </span>
+              <button
+                onClick={() => onPublish(item.id)}
+                className="p-2 rounded-lg text-accent hover:bg-accent/10 transition-colors min-w-11 min-h-11 flex items-center justify-center"
+                title="Publicar"
+                aria-label="Publicar"
+              >
+                <Send size={14} />
+              </button>
+              <button
+                onClick={() => onDiscard(item.id)}
+                className="p-2 rounded-lg text-muted-foreground hover:bg-surface-raised transition-colors min-w-11 min-h-11 flex items-center justify-center"
+                title="Descartar borrador (vuelve a lo publicado)"
+                aria-label="Descartar borrador"
+              >
+                <RotateCcw size={14} />
+              </button>
+            </>
+          )}
           <button
             onClick={requestDelete}
             disabled={isDeleting}
@@ -1442,6 +1474,8 @@ interface ItemsPanelProps {
     isActive: boolean,
   ) => Promise<unknown> | void;
   onDelete: (id: string) => void;
+  onPublish: (id: string) => void;
+  onDiscard: (id: string) => void;
   onImageUpload: (file: File, fieldName: string, itemId: string) => Promise<string>;
   onAddNew: () => void;
   onReorder?: (items: CMSContentItem[]) => void;
@@ -1455,6 +1489,8 @@ function ItemsPanel({
   backLabel = 'Bloques',
   onUpdate,
   onDelete,
+  onPublish,
+  onDiscard,
   onImageUpload,
   onAddNew,
   onReorder,
@@ -1623,6 +1659,8 @@ function ItemsPanel({
                             activeSection={activeSection}
                             onUpdate={onUpdate}
                             onDelete={onDelete}
+                            onPublish={onPublish}
+                            onDiscard={onDiscard}
                             onImageUpload={onImageUpload}
                             isDeleting={isDeleting}
                             onMoveUp={() => handleMoveUp(index)}
@@ -1650,6 +1688,8 @@ function ItemsPanel({
                 activeSection={activeSection}
                 onUpdate={onUpdate}
                 onDelete={onDelete}
+                onPublish={onPublish}
+                onDiscard={onDiscard}
                 onImageUpload={onImageUpload}
                 isDeleting={isDeleting}
                 template={sectionTemplate}
@@ -1859,14 +1899,71 @@ function EditorTiendaViewInner() {
   };
 
   const handleDeleteItem = (id: string) => {
+    const item = currentItems.find((i) => i.id === id);
     cms.deleteItem.mutate(id, {
       onSuccess: (res) => {
+        if (item) removeItemImages(item.content);
         notifyRevalidate(res?.revalidated);
         refreshIframe();
       },
       onError: (err) => toast(err.message, { type: 'error' }),
     });
   };
+
+  // Draft/publish: publicar o descartar borradores (draft_content)
+  const handlePublishItem = (id: string) => {
+    cms.publishItems.mutate(
+      { id },
+      {
+        onSuccess: (res) => {
+          notifyRevalidate(res?.revalidated);
+          toast(
+            res.data.published > 0 ? 'Publicado ✓' : 'Este item no tiene cambios pendientes',
+            { type: res.data.published > 0 ? 'success' : 'info' },
+          );
+          refreshIframe();
+        },
+        onError: (err) => toast(err.message, { type: 'error' }),
+      },
+    );
+  };
+
+  const handleDiscardItem = (id: string) => {
+    cms.discardItem.mutate(
+      { id },
+      {
+        onSuccess: () => toast('Borrador descartado — se muestra lo publicado', { type: 'info' }),
+        onError: (err) => toast(err.message, { type: 'error' }),
+      },
+    );
+  };
+
+  const handlePublishAll = () => {
+    cms.publishItems.mutate(
+      {},
+      {
+        onSuccess: (res) => {
+          notifyRevalidate(res?.revalidated);
+          toast(
+            res.data.published > 0
+              ? `${res.data.published} item${res.data.published !== 1 ? 's' : ''} publicado${res.data.published !== 1 ? 's' : ''} ✓`
+              : 'No hay borradores pendientes',
+            { type: res.data.published > 0 ? 'success' : 'info' },
+          );
+          refreshIframe();
+        },
+        onError: (err) => toast(err.message, { type: 'error' }),
+      },
+    );
+  };
+
+  const pendingDraftsCount = useMemo(() => {
+    if (!cms.data) return 0;
+    return Object.values(cms.data.data).reduce(
+      (acc, items) => acc + items.filter((i) => i.draft_content != null).length,
+      0,
+    );
+  }, [cms.data]);
 
   /**
    * Opción A: solo sube a Storage y devuelve URL pública.
@@ -1981,6 +2078,29 @@ function EditorTiendaViewInner() {
             </span>
           ) : null}
           <EditorSaveStatusChip />
+          <button
+            type="button"
+            onClick={handlePublishAll}
+            disabled={cms.publishItems.isPending || pendingDraftsCount === 0}
+            className={`inline-flex min-h-9 items-center gap-1.5 px-3 rounded-full text-[11px] font-semibold transition-colors border ${
+              pendingDraftsCount > 0
+                ? 'border-accent/40 bg-accent/15 text-accent hover:bg-accent/25'
+                : 'border-border text-muted-foreground/60 opacity-70'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            title={
+              pendingDraftsCount > 0
+                ? `Publicar ${pendingDraftsCount} borrador${pendingDraftsCount !== 1 ? 'es' : ''} pendiente${pendingDraftsCount !== 1 ? 's' : ''}`
+                : 'Sin borradores pendientes'
+            }
+          >
+            {cms.publishItems.isPending ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <Send size={12} />
+            )}
+            Publicar todo
+            {pendingDraftsCount > 0 ? ` (${pendingDraftsCount})` : ''}
+          </button>
         </div>
 
         {/* Desktop: view mode toggle */}
@@ -2241,6 +2361,8 @@ function EditorTiendaViewInner() {
                   backLabel={EDITOR_CATEGORIES.find((c) => c.id === activeCategory)?.label ?? 'Bloques'}
                   onUpdate={handleUpdateItem}
                   onDelete={handleDeleteItem}
+                  onPublish={handlePublishItem}
+                  onDiscard={handleDiscardItem}
                   onImageUpload={handleImageUpload}
                   onAddNew={() => setShowNewForm(true)}
                   onReorder={handleReorder}
@@ -2360,7 +2482,7 @@ function EditorTiendaViewInner() {
                   <iframe
                     ref={iframeRef}
                     key={iframeKey}
-                    src={`${tiendaUrl}${previewPath}`}
+                    src={`${tiendaUrl}${previewPath}?cms_preview=1`}
                     title="Vista Previa de Tienda"
                     className="absolute inset-0 w-full h-full border-none bg-background"
                     sandbox="allow-same-origin allow-scripts allow-popups allow-forms"

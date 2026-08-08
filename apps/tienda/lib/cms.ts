@@ -26,6 +26,7 @@ export function resolveLegalLastUpdated(
 
 export const getSiteContent = cache(async function getSiteContent(
   sectionKey: string,
+  opts?: { draft?: boolean },
 ): Promise<SiteSectionItem[]> {
   try {
     const supabase = createAnonServerClient();
@@ -41,6 +42,19 @@ export const getSiteContent = cache(async function getSiteContent(
       return [];
     }
 
+    // Preview del editor (?cms_preview=1): muestra draft_content (borrador)
+    // por encima de lo publicado. La tienda real sigue leyendo content.
+    if (opts?.draft) {
+      return (data || []).map((row) => {
+        const draft = (row as unknown as { draft_content: Record<string, unknown> | null })
+          .draft_content;
+        return {
+          ...row,
+          content: draft != null ? draft : row.content,
+        };
+      });
+    }
+
     return data || [];
   } catch (err) {
     console.error(`Unexpected error fetching CMS content for ${sectionKey}:`, err);
@@ -51,6 +65,7 @@ export const getSiteContent = cache(async function getSiteContent(
 /** Una query para varias secciones (landing). */
 export const getSiteContentBatch = cache(async function getSiteContentBatch(
   sectionKeys: string[],
+  opts?: { draft?: boolean },
 ): Promise<Record<string, SiteSectionItem[]>> {
   if (sectionKeys.length === 0) return {};
   try {
@@ -72,7 +87,13 @@ export const getSiteContentBatch = cache(async function getSiteContentBatch(
     );
     for (const row of data ?? []) {
       const key = row.section_key as string;
-      if (grouped[key]) grouped[key].push(row as SiteSectionItem);
+      let item = row as SiteSectionItem;
+      if (opts?.draft) {
+        const draft = (row as unknown as { draft_content: Record<string, unknown> | null })
+          .draft_content;
+        item = { ...item, content: draft != null ? draft : row.content };
+      }
+      if (grouped[key]) grouped[key].push(item);
     }
     return grouped;
   } catch (err) {
