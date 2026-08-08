@@ -55,7 +55,7 @@ import {
   MapPin,
   type LucideProps,
 } from 'lucide-react';
-import { toast, ImmersiveModal } from '@enjambre/ui';
+import { toast, ImmersiveModal, PanelFocusToggle, type PanelFocus } from '@enjambre/ui';
 import {
   DragDropContext,
   Droppable,
@@ -1423,6 +1423,42 @@ function ItemsPanel({
         )}
       </div>
 
+      {/* Preview del carrusel media: imágenes subidas en orden real (media_items) */}
+      {activeSection === 'media_items' && items.length > 0 ? (
+        <div className="rounded-xl border border-border bg-background overflow-hidden">
+          <div className="px-3 py-2 border-b border-border bg-surface-raised">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Vista previa del carrusel
+            </p>
+          </div>
+          <div className="p-3">
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+              {items.map((item, idx) => {
+                const src =
+                  (typeof item.content.image === 'string' ? item.content.image : '') ||
+                  (typeof item.content.src === 'string' ? item.content.src : '');
+                if (!src.startsWith('http')) return null;
+                const alt =
+                  typeof item.content.alt === 'string' && item.content.alt
+                    ? item.content.alt
+                    : `Slide ${idx + 1}`;
+                return (
+                  <div
+                    key={item.id}
+                    className="shrink-0 w-28 h-20 rounded-lg overflow-hidden border border-border bg-surface-sunken relative"
+                  >
+                    <img src={src} alt={alt} className="w-full h-full object-cover" />
+                    <span className="absolute bottom-0 inset-x-0 bg-background/85 backdrop-blur text-[9px] text-muted-foreground px-1.5 py-0.5 truncate">
+                      {alt}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="space-y-3 pb-8">
         {isSettingsSection ? (
           items.length > 0 ? (
@@ -1550,6 +1586,19 @@ function EditorTiendaViewInner() {
   const [previewPath, setPreviewPath] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  /** Foco de panel en desktop: maximizar editor ('a') o preview ('b') — persistido */
+  const [desktopFocus, setDesktopFocus] = useState<PanelFocus>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const stored = localStorage.getItem('nucleo:focus-panels:editor-tienda');
+    setDesktopFocus(stored === 'a' || stored === 'b' ? stored : null);
+  }, []);
+
+  const handleFocusChange = (focus: PanelFocus) => {
+    setDesktopFocus(focus);
+    localStorage.setItem('nucleo:focus-panels:editor-tienda', focus ?? '');
+  };
 
   const { status: saveStatus, flushAll } = useEditorSaveAggregate();
 
@@ -1797,8 +1846,16 @@ function EditorTiendaViewInner() {
           </button>
         </div>
 
-        {/* Desktop: live site link */}
+        {/* Desktop: foco de panel + live site link */}
         <div className="hidden md:flex items-center gap-3">
+          <PanelFocusToggle
+            aKey="editor"
+            bKey="preview"
+            aLabel="Editor"
+            bLabel="Preview"
+            focus={desktopFocus}
+            onFocusChange={handleFocusChange}
+          />
           {tiendaUrl && (
             <a
               href={tiendaUrl}
@@ -1818,7 +1875,11 @@ function EditorTiendaViewInner() {
         {/* Left sidebar / Editor area — menú segmentado con drill-down:
             categorías (Bloques/Diseño/Otras formas) → lista de la categoría
             → herramienta; cada nivel con volver arriba-izquierda. */}
-        <div className={`flex-col w-full md:w-80 lg:w-[28rem] shrink-0 border-r border-border/50 bg-surface-sunken/30 overflow-hidden ${mobileTab === 'editor' ? 'flex' : 'flex max-md:hidden'}`}>
+        <div
+          className={`flex-col w-full shrink-0 border-r border-border/50 bg-surface-sunken/30 overflow-hidden ${
+            desktopFocus === 'b' ? 'hidden md:hidden' : desktopFocus === 'a' ? 'md:flex-1' : 'md:w-80 lg:w-[28rem]'
+          } ${mobileTab === 'editor' ? 'flex' : 'flex max-md:hidden'}`}
+        >
           {navDrill === 'categories' ? (
             <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-3">
               <div className="px-1 mb-1">
@@ -2012,7 +2073,7 @@ function EditorTiendaViewInner() {
         </div>
 
         {/* Right: iframe preview */}
-        <div className={`flex-col flex-1 bg-surface-sunken/50 relative items-center overflow-hidden ${mobileTab === 'preview' ? 'flex' : 'flex max-md:hidden'}`}>
+        <div className={`flex-col flex-1 bg-surface-sunken/50 relative items-center overflow-hidden ${desktopFocus === 'a' ? 'md:hidden' : ''} ${mobileTab === 'preview' ? 'flex' : 'flex max-md:hidden'}`}>
           <div
             className="absolute inset-0 opacity-[0.03] pointer-events-none"
             style={{

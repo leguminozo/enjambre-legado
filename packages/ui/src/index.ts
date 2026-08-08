@@ -19,6 +19,7 @@ export { EnjTableShell, type EnjTableShellProps } from './components/enj-table-s
 export { ViewShell, type ViewShellProps } from './components/view-shell';
 export { useApiFetch, type ApiFetchSession, type ApiFetchSupabase } from './hooks/use-api-fetch';
 export { useClientViewLoading } from './hooks/use-client-view-loading';
+export { useElementWidth } from './hooks/use-element-width';
 export { ImmersiveModal, type ImmersiveModalSize } from './components/immersive-modal';
 export { OverlayFullscreen, type OverlayFullscreenProps } from './components/overlay-fullscreen';
 export {
@@ -29,7 +30,7 @@ export {
 export { EmptyState } from './components/empty-state';
 export { SectionHeader } from './components/section-header';
 export { GrainOverlay } from './components/grain-overlay';
-export { ToastProvider, useToast, useToastHistory } from './components/toast';
+export { ToastProvider } from './components/toast';
 export type { Toast, ToastVariant, ToastAction, ToastPromise } from './components/toast';
 export { toast } from './hooks/use-toast';
 export { NotificationBell, type Notification } from './components/notification-bell';
@@ -98,3 +99,4 @@ export { Skeleton, SkeletonGroup } from './components/skeleton';
 export { Switch } from './components/switch';
 export { DataTable, type ColumnDef } from './components/data-table';
 export { GlassPanel } from './components/glass-panel';
+export { PanelFocusToggle, type PanelFocus } from './components/panel-focus-toggle';

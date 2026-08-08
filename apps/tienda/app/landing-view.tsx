@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, Suspense, useState } from 'react';
+import React, { useEffect, useMemo, useRef, Suspense, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
@@ -137,6 +137,17 @@ export function TiendaLandingView({
       resolveLocalized(productsSettings?.desc, productsSettings?.desc_en, currentLocale) ||
       'Creaciones cargadas de experiencias y legado.',
   };
+  // Destacados (featured_ids del CMS) primero; el resto mantiene su orden.
+  const orderedProducts = useMemo(() => {
+    const featured = productsSettings?.featured_ids ?? [];
+    if (featured.length === 0) return products;
+    const rank = new Map(featured.map((id, i) => [id, i]));
+    return [...products].sort((a, b) => {
+      const ra = rank.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+      const rb = rank.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+      return ra - rb;
+    });
+  }, [products, productsSettings?.featured_ids]);
   const orderedSections = [...landing.sections]
     .filter((s) => s.enabled)
     .sort((a, b) => a.order - b.order);
@@ -527,7 +538,7 @@ export function TiendaLandingView({
         if (sec.id === 'products') {
           return (
       <div key="products" id="creaciones">
-        <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingCreations') || 'Creaciones'} hideLabel /></div></div>}><LandingProducts products={products} pageSize={8} ratings={ratings} header={productsHeader} /></Suspense>
+        <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingCreations') || 'Creaciones'} hideLabel /></div></div>}><LandingProducts products={orderedProducts} pageSize={8} ratings={ratings} header={productsHeader} /></Suspense>
       </div>
           );
         }

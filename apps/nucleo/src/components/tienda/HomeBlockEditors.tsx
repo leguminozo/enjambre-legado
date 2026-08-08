@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { ChevronDown, MapPin, PlayCircle } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ChevronDown, MapPin, PlayCircle, Search } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 import {
   type ConservationContent,
   type MapSettings,
@@ -363,6 +364,58 @@ export function ProductsSettingsEditor({
   const patch = <K extends keyof ProductsSettings>(key: K, value: ProductsSettings[K]) =>
     setLocal((prev) => ({ ...prev, [key]: value }));
 
+  // Catálogo real para el selector de destacados (mismo patrón que CRM).
+  const [catalogProducts, setCatalogProducts] = useState<
+    Array<{ id: string; nombre: string; formato: string | null }>
+  >([]);
+  const [productQuery, setProductQuery] = useState('');
+  const [catalogError, setCatalogError] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void supabase
+      .from('productos')
+      .select('id, nombre, formato')
+      .eq('visible', true)
+      .order('nombre')
+      .limit(200)
+      .then(
+        (result: {
+          data: Array<{ id: string; nombre: string; formato: string | null }> | null;
+          error: unknown;
+        }) => {
+          const { data, error } = result;
+          if (!active) return;
+          if (error || !data) {
+            setCatalogError(true);
+            return;
+          }
+          setCatalogProducts(data);
+        },
+      );
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    const q = productQuery.trim().toLowerCase();
+    if (!q) return catalogProducts;
+    return catalogProducts.filter(
+      (p) =>
+        p.nombre.toLowerCase().includes(q) ||
+        (p.formato ?? '').toLowerCase().includes(q),
+    );
+  }, [catalogProducts, productQuery]);
+
+  const featured = local.featured_ids ?? [];
+  const toggleFeatured = (id: string) => {
+    const next = featured.includes(id)
+      ? featured.filter((x) => x !== id)
+      : [...featured, id];
+    patch('featured_ids', next);
+  };
+
   return (
     <div className="space-y-4 pb-8">
       {/* Mini-preview: cabecera editorial del bloque */}
@@ -410,6 +463,93 @@ export function ProductsSettingsEditor({
         onEn={(v) => patch('desc_en', v)}
         textarea
       />
+
+      {/* Selector de productos destacados (orden real en el bloque) */}
+      <div className="border border-border rounded-xl overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-border bg-surface-raised/50 flex items-center justify-between gap-2">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Productos destacados ({featured.length})
+          </p>
+          {featured.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => patch('featured_ids', [])}
+              className="text-[10px] font-medium text-muted-foreground hover:text-foreground underline underline-offset-2"
+            >
+              Limpiar
+            </button>
+          ) : null}
+        </div>
+        <div className="p-3 space-y-3">
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Los elegidos se muestran primero en el bloque de la tienda. Vacío =
+            todos los productos del catálogo en su orden.
+          </p>
+          <div className="relative">
+            <Search
+              size={12}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+            />
+            <input
+              id="products-featured-search"
+              name="products-featured-search"
+              type="text"
+              autoComplete="off"
+              aria-label="Buscar producto"
+              value={productQuery}
+              onChange={(e) => setProductQuery(e.target.value)}
+              placeholder="Buscar producto…"
+              className={`${inputClass} pl-8`}
+            />
+          </div>
+          {catalogError ? (
+            <p className="text-[11px] text-destructive">No se pudo cargar el catálogo.</p>
+          ) : filteredProducts.length === 0 ? (
+            <p className="text-[11px] text-muted-foreground">
+              {catalogProducts.length === 0
+                ? 'Cargando catálogo…'
+                : 'Sin productos para “' + productQuery.trim() + '”'}
+            </p>
+          ) : (
+            <div className="max-h-56 overflow-y-auto space-y-1 pr-1 scrollbar-thin">
+              {filteredProducts.map((p) => {
+                const checked = featured.includes(p.id);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => toggleFeatured(p.id)}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-xs transition-colors border ${
+                      checked
+                        ? 'bg-accent/10 border-accent/30 text-foreground'
+                        : 'bg-surface-sunken border-border text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <span
+                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                        checked ? 'bg-accent border-accent' : 'border-border bg-background'
+                      }`}
+                      aria-hidden
+                    >
+                      {checked ? (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-accent-foreground">
+                          <path d="M20 6L9 17l-5-5" />
+                        </svg>
+                      ) : null}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate font-medium">{p.nombre}</span>
+                    {p.formato ? (
+                      <span className="shrink-0 text-[10px] text-muted-foreground uppercase tracking-wider">
+                        {p.formato}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

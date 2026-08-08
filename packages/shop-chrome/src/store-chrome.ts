@@ -911,6 +911,8 @@ export type ProductsSettings = {
   title_en?: string;
   desc: string;
   desc_en?: string;
+  /** Productos destacados (se muestran primero en el bloque). Vacío = todos en orden. */
+  featured_ids: string[];
 };
 
 /** Defaults = copy actual de es.json/en.json (mensajes conservation + science). */
@@ -995,6 +997,7 @@ export const DEFAULT_PRODUCTS_SETTINGS: ProductsSettings = {
   title_en: 'The matter of our search',
   desc: 'Creaciones cargadas de experiencias y legado.',
   desc_en: 'Creations loaded with experiences and legacy.',
+  featured_ids: [],
 };
 
 export const CONSERVATION_CONTENT_TEMPLATE = { ...DEFAULT_CONSERVATION_CONTENT };
@@ -1109,6 +1112,9 @@ export function parseProductsSettings(
     title_en: typeof raw.title_en === 'string' ? raw.title_en : d.title_en,
     desc: asString(raw.desc, d.desc),
     desc_en: typeof raw.desc_en === 'string' ? raw.desc_en : d.desc_en,
+    featured_ids: Array.isArray(raw.featured_ids)
+      ? raw.featured_ids.filter((x): x is string => typeof x === 'string')
+      : [],
   };
 }
 
