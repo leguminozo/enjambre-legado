@@ -68,6 +68,7 @@ import {
 } from '@hello-pangea/dnd';
 import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/use-cms-content';
 import { supabase } from '@/lib/supabase';
+import { ImageLibraryModal } from '@/components/tienda/ImageLibraryModal';
 import {
   EditorSaveStatusProvider,
   useEditorSaveAggregate,
@@ -1752,6 +1753,7 @@ function EditorTiendaViewInner() {
   const [previewProducts, setPreviewProducts] = useState<
     { id: string; nombre: string; slug: string }[]
   >([]);
+  const [imagesOpen, setImagesOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -2078,6 +2080,15 @@ function EditorTiendaViewInner() {
             </span>
           ) : null}
           <EditorSaveStatusChip />
+          <button
+            type="button"
+            onClick={() => setImagesOpen(true)}
+            className="inline-flex min-h-9 items-center gap-1.5 px-3 rounded-full text-[11px] font-semibold transition-colors border border-border text-muted-foreground hover:text-foreground hover:border-accent/40"
+            title="Gestionar imágenes del bucket cms (librería, huérfanas)"
+          >
+            <Images size={12} />
+            Imágenes
+          </button>
           <button
             type="button"
             onClick={handlePublishAll}
@@ -2653,6 +2664,13 @@ function EditorTiendaViewInner() {
           document.body,
         )
         : null}
+
+      {/* Gestión de imágenes del bucket cms */}
+      <ImageLibraryModal
+        open={imagesOpen}
+        onClose={() => setImagesOpen(false)}
+        getSectionLabel={(key) => SECTION_LABELS[key] ?? key}
+      />
     </div>
   );
 }

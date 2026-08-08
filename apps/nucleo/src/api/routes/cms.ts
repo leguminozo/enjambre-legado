@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
-import { authMiddleware, requireProfileRole } from "@/api/lib/middleware";
+import { authMiddleware, requireProfileRole, createSupabaseUserClient } from "@/api/lib/middleware";
 import { revalidateTiendaCms } from "@/lib/revalidate-tienda";
 
 /** Secciones editables. Retiradas (no consumidas por tienda): hero, footer_branding/nav/legal. */
@@ -192,7 +192,7 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
   // draft_content (borrador) — la tienda sigue leyendo content hasta publicar.
   const { data: existing } = await supabase
     .from("site_content")
-    .select("section_key")
+    .select("section_key, content")
     .eq("id", itemId)
     .single();
   const autoPublish = existing
@@ -213,8 +213,12 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
   if (input.item_order !== undefined) payload.item_order = input.item_order;
   if (input.is_active !== undefined) payload.is_active = input.is_active;
   if (input.content !== undefined) {
-    if (autoPublish) payload.content = input.content as never;
-    else payload.draft_content = input.content as never;
+    if (autoPublish) {
+      payload.content = input.content as never;
+      // Limpieza segura: solo acá lo publicado cambió al instante, así que las
+      // imágenes que salieron del content ya no las referencia nadie (vivo).
+      removeRemovedImages(supabase, (existing as { content?: unknown } | null)?.content, input.content);
+    } else payload.draft_content = input.content as never;
   }
 
   const { data, error } = await supabase
@@ -268,10 +272,11 @@ cmsRoutes.post("/publish", zValidator("json", PublishSchema), async (c) => {
 
   let published = 0;
   for (const draft of drafts) {
+    const nextContent = draft.draft_content ?? draft.content;
     const { error } = await supabase
       .from("site_content")
       .update({
-        content: (draft.draft_content ?? draft.content) as Json,
+        content: nextContent as Json,
         draft_content: null,
         published_at: new Date().toISOString(),
       } as never)
@@ -279,6 +284,9 @@ cmsRoutes.post("/publish", zValidator("json", PublishSchema), async (c) => {
     if (error) {
       return c.json({ code: "publish_failed", message: error.message }, 400);
     }
+    // Limpieza segura en el momento exacto en que lo publicado cambia:
+    // imágenes que salieron del content ya no las referencia nadie (vivo).
+    removeRemovedImages(supabase, draft.content, nextContent);
     published += 1;
   }
 
@@ -326,6 +334,165 @@ cmsRoutes.post("/discard", zValidator("json", DiscardSchema), async (c) => {
 
   // Descartar no cambia la tienda publicada: sin revalidar.
   return c.json({ data: { discarded: ids.length } });
+});
+
+// ── Gestión de imágenes (bucket cms) ────────────────────────────────────────
+
+const CMS_PUBLIC_PREFIX = "/storage/v1/object/public/cms/";
+
+/** Recorre content/draft_content en profundidad y acumula paths del bucket cms. */
+function extractCmsPaths(value: unknown, acc: Set<string>): void {
+  if (typeof value === "string") {
+    const idx = value.indexOf(CMS_PUBLIC_PREFIX);
+    if (idx !== -1) {
+      const path = value.slice(idx + CMS_PUBLIC_PREFIX.length).split(/[?#]/)[0];
+      if (path) acc.add(path);
+    }
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const v of value) extractCmsPaths(v, acc);
+    return;
+  }
+  if (value && typeof value === "object") {
+    for (const v of Object.values(value)) extractCmsPaths(v, acc);
+  }
+}
+
+/** Paths del bucket cms referenciados por CUALQUIER content/draft_content. */
+async function collectReferencedPaths(
+  supabase: ReturnType<typeof createSupabaseUserClient>,
+): Promise<{ referenced: Set<string>; sectionsByPath: Map<string, string[]> }> {
+  const referenced = new Set<string>();
+  const sectionsByPath = new Map<string, string[]>();
+  const { data: rows } = await supabase.from("site_content").select("*");
+  for (const row of rows ?? []) {
+    const sectionKey = String(row.section_key ?? "");
+    const paths = new Set<string>();
+    extractCmsPaths(
+      (row as unknown as { content: unknown }).content,
+      paths,
+    );
+    const draft = (row as unknown as { draft_content: unknown }).draft_content;
+    if (draft != null) extractCmsPaths(draft, paths);
+    for (const p of paths) {
+      referenced.add(p);
+      const sections = sectionsByPath.get(p) ?? [];
+      if (!sections.includes(sectionKey)) sections.push(sectionKey);
+      sectionsByPath.set(p, sections);
+    }
+  }
+  return { referenced, sectionsByPath };
+}
+
+/** Lista recursiva del bucket cms (raíz → carpetas por sección → archivos). */
+async function listCmsImages(
+  supabase: ReturnType<typeof createSupabaseUserClient>,
+): Promise<{ path: string; name: string; size: number; created_at: string | null }[]> {
+  const images: { path: string; name: string; size: number; created_at: string | null }[] = [];
+  const { data: roots, error } = await supabase.storage.from("cms").list("", {
+    limit: 100,
+    offset: 0,
+    sortBy: { column: "name", order: "asc" },
+  });
+  if (error) throw error;
+  for (const entry of roots ?? []) {
+    if (entry.id) {
+      // Archivo suelto en la raíz (fuera de convención)
+      images.push({
+        path: entry.name,
+        name: entry.name,
+        size: Number(entry.metadata?.size ?? 0),
+        created_at: entry.created_at ?? null,
+      });
+      continue;
+    }
+    const { data: files, error: listErr } = await supabase.storage
+      .from("cms")
+      .list(entry.name, { limit: 1000 });
+    if (listErr) continue;
+    for (const f of files ?? []) {
+      if (!f.id) continue;
+      images.push({
+        path: `${entry.name}/${f.name}`,
+        name: f.name,
+        size: Number(f.metadata?.size ?? 0),
+        created_at: f.created_at ?? null,
+      });
+    }
+  }
+  return images;
+}
+
+/** Borra del bucket las imágenes que salieron del contenido (best-effort). */
+function removeRemovedImages(
+  supabase: ReturnType<typeof createSupabaseUserClient>,
+  oldContent: unknown,
+  newContent: unknown,
+): void {
+  const oldPaths = new Set<string>();
+  const newPaths = new Set<string>();
+  extractCmsPaths(oldContent, oldPaths);
+  extractCmsPaths(newContent, newPaths);
+  const removed = [...oldPaths].filter((p) => !newPaths.has(p));
+  if (removed.length > 0) {
+    void supabase.storage.from("cms").remove(removed).catch(() => {});
+  }
+}
+
+cmsRoutes.get("/images", async (c) => {
+  const supabase = c.get("supabase");
+  try {
+    const [images, { referenced, sectionsByPath }] = await Promise.all([
+      listCmsImages(supabase),
+      collectReferencedPaths(supabase),
+    ]);
+    const items = images.map((img) => ({
+      ...img,
+      referenced: referenced.has(img.path),
+      sections: sectionsByPath.get(img.path) ?? [],
+    }));
+    return c.json({
+      data: items,
+      orphans: items.filter((i) => !i.referenced).length,
+    });
+  } catch (err) {
+    return c.json(
+      { code: "images_list_failed", message: err instanceof Error ? err.message : "Error listando imágenes" },
+      500,
+    );
+  }
+});
+
+const DeleteImagesSchema = z.object({
+  paths: z.array(z.string()).optional(),
+  orphansOnly: z.boolean().optional(),
+});
+
+cmsRoutes.delete("/images", zValidator("json", DeleteImagesSchema), async (c) => {
+  const input = c.req.valid("json");
+  const supabase = c.get("supabase");
+  try {
+    let paths = input.paths ?? [];
+    if (input.orphansOnly) {
+      const [images, { referenced }] = await Promise.all([
+        listCmsImages(supabase),
+        collectReferencedPaths(supabase),
+      ]);
+      paths = images.filter((img) => !referenced.has(img.path)).map((img) => img.path);
+    }
+    if (paths.length === 0) return c.json({ data: { removed: 0 } });
+    const { error } = await supabase.storage.from("cms").remove(paths);
+    if (error) {
+      return c.json({ code: "images_delete_failed", message: error.message }, 400);
+    }
+    return c.json({ data: { removed: paths.length } });
+  } catch (err) {
+    return c.json(
+      { code: "images_delete_failed", message: err instanceof Error ? err.message : "Error borrando imágenes" },
+      500,
+    );
+  }
 });
 
 cmsRoutes.delete("/items/:id", async (c) => {
