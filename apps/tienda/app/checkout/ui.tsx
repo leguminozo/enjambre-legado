@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { CheckoutCinematicOverlay } from '@/components/shop/checkout-cinematic-overlay';
 import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin, Sparkles } from 'lucide-react';
 import {
@@ -81,6 +82,8 @@ export function CheckoutClient() {
   const { lines } = useCartLines();
   const { pricing, isLoading: pricingLoading, pricingError } = useCartPricing();
   const { isAuthenticated, user } = useAuth();
+  // Copy del checkout editable desde el Editor de Tienda (checkout_settings)
+  const { checkout } = useStoreChrome();
   useCartAbandonmentTracking(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -451,11 +454,11 @@ export function CheckoutClient() {
                 <Leaf className="h-5 w-5 text-accent" aria-hidden />
               </div>
               <h1 className="font-display text-[clamp(1.5rem,5vw,2.25rem)] font-semibold text-foreground text-balance sm:text-3xl md:text-4xl leading-tight">
-                Checkout Seguro
+                {checkout.title}
               </h1>
             </div>
             <p className="text-sm sm:text-base text-muted-foreground text-pretty max-w-2xl leading-relaxed">
-              Tu pedido será procesado de forma segura. Cada compra contribuye a regenerar el bosque nativo de Chiloé.
+              {checkout.subtitle}
             </p>
           </div>
         </div>
@@ -776,9 +779,9 @@ export function CheckoutClient() {
                         : 'border-border bg-card/40 hover:border-accent/40'
                     }`}
                   >
-                    <p className="font-display text-sm text-foreground mb-1">Continuar mi legado</p>
+                    <p className="font-display text-sm text-foreground mb-1">{checkout.buyer_legacy_label}</p>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Guardamos tu historial, impacto y direcciones para futuras visitas.
+                      {checkout.buyer_legacy_desc}
                     </p>
                     {!isAuthenticated && buyerMode === 'legado' && (
                       <p className="mt-3 text-xs text-accent">
@@ -809,10 +812,10 @@ export function CheckoutClient() {
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
-                      <p className="font-display text-sm text-foreground">Compra privada</p>
+                      <p className="font-display text-sm text-foreground">{checkout.buyer_private_label}</p>
                     </div>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Entrega puntual sin cuenta. Tus datos no quedan en tu perfil.
+                      {checkout.buyer_private_desc}
                     </p>
                   </button>
                 </div>
@@ -822,11 +825,11 @@ export function CheckoutClient() {
               <section className="checkout-section">
                 <div className="flex items-center gap-2 mb-4">
                   <Truck className="h-5 w-5 text-accent" />
-                  <h2 className="font-display text-lg text-foreground">Envío en Chile</h2>
+                  <h2 className="font-display text-lg text-foreground">{checkout.shipping_title}</h2>
                 </div>
                 <div className="rounded-xl border border-border bg-card/40 p-6 space-y-4">
                   <div className="form-field">
-                    <label className="block text-xs text-muted-foreground mb-1">Courier</label>
+                    <label className="block text-xs text-muted-foreground mb-1">{checkout.courier_label}</label>
                     <select
                       id="courier"
                       name="courier"
@@ -842,8 +845,7 @@ export function CheckoutClient() {
                       ))}
                     </select>
                     <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                      Por defecto despachamos con BlueExpress. Si necesitas otro operador o modalidad,
-                      elígelo aquí o contáctanos para coordinar algo a medida.
+                      {checkout.shipping_note}
                     </p>
                     {courierCode === 'retiro_tienda' && (
                       <p className="text-xs text-accent mt-2">
@@ -1018,7 +1020,7 @@ export function CheckoutClient() {
                       {validationErrors.region && <p className="text-xs text-destructive mt-1">{validationErrors.region}</p>}
                     </div>
                     <div className="form-field">
-                      <label className="block text-xs text-muted-foreground mb-1">Código postal</label>
+                      <label className="block text-xs text-muted-foreground mb-1">{checkout.postal_label}</label>
                       <input
                         type="text"
                         id="codigoPostal"
@@ -1060,11 +1062,11 @@ export function CheckoutClient() {
               <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">
                   <Lock className="h-3.5 w-3.5 text-accent" aria-hidden />
-                  Pago encriptado
+                  {checkout.secure_payment_text}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <Shield className="h-3.5 w-3.5 text-accent" aria-hidden />
-                  Transacción segura
+                  {checkout.secure_transaction_text}
                 </span>
               </div>
 
@@ -1115,14 +1117,14 @@ export function CheckoutClient() {
               </button>
 
               <p className="text-center text-xs text-muted-foreground mt-4">
-                Al completar tu compra, aceptas nuestros{' '}
+                {checkout.terms_prefix}{' '}
                 <Link
                   href="/terminos"
                   className="inline-flex min-h-11 items-center text-accent underline underline-offset-2 hover:text-accent/80"
                 >
                   Términos del Servicio
                 </Link>
-                . Tu pago está protegido con encriptación de grado bancario.
+                . {checkout.secure_note}
               </p>
             </div>
           )}

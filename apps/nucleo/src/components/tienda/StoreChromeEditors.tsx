@@ -40,9 +40,13 @@ import {
   parsePdpSettings,
   parseSeoDefaults,
   parseContactSettings,
+  parseCheckoutSettings,
+  parseCartSettings,
   LANDING_SECTION_LABELS,
   type SeoDefaults,
   type ContactSettings,
+  type CheckoutSettings,
+  type CartSettings,
   type VideoSettings,
   type MapSettings,
   type ProductsSettings,
@@ -1375,6 +1379,151 @@ export function ContactSettingsEditor({ content, onSave }: SettingsEditorProps) 
   );
 }
 
+export function CheckoutSettingsEditor({ content, onSave }: SettingsEditorProps) {
+  const [local, setLocal] = useState<CheckoutSettings>(() => parseCheckoutSettings(content));
+  const { isDirty } = useAutosaveEditor('checkout_settings', local, (next) => onSave(next));
+
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(parseCheckoutSettings(content));
+  }, [content, isDirty]);
+
+  const patch = <K extends keyof CheckoutSettings>(key: K, value: CheckoutSettings[K]) => {
+    setLocal((p) => ({ ...p, [key]: value }));
+  };
+
+  return (
+    <div className="space-y-4 pb-8">
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Copy del checkout (se publica al instante — sección de diseño). Vacío = texto actual.
+      </p>
+      <TextField label="Título" value={local.title} onChange={(v) => patch('title', v)} />
+      <TextField
+        label="Subtítulo"
+        value={local.subtitle}
+        onChange={(v) => patch('subtitle', v)}
+        multiline
+      />
+      <TextField
+        label="Compra privada — Título"
+        value={local.buyer_private_label}
+        onChange={(v) => patch('buyer_private_label', v)}
+      />
+      <TextField
+        label="Compra privada — Texto"
+        value={local.buyer_private_desc}
+        onChange={(v) => patch('buyer_private_desc', v)}
+        multiline
+      />
+      <TextField
+        label="Compra legado — Título"
+        value={local.buyer_legacy_label}
+        onChange={(v) => patch('buyer_legacy_label', v)}
+      />
+      <TextField
+        label="Compra legado — Texto"
+        value={local.buyer_legacy_desc}
+        onChange={(v) => patch('buyer_legacy_desc', v)}
+        multiline
+      />
+      <TextField
+        label="Envío — Título de sección"
+        value={local.shipping_title}
+        onChange={(v) => patch('shipping_title', v)}
+      />
+      <TextField
+        label="Envío — Label del courier"
+        value={local.courier_label}
+        onChange={(v) => patch('courier_label', v)}
+      />
+      <TextField
+        label="Envío — Nota (predeterminado)"
+        value={local.shipping_note}
+        onChange={(v) => patch('shipping_note', v)}
+        multiline
+      />
+      <TextField
+        label="Código postal — Label"
+        value={local.postal_label}
+        onChange={(v) => patch('postal_label', v)}
+      />
+      <TextField
+        label="Seguridad — Pago encriptado"
+        value={local.secure_payment_text}
+        onChange={(v) => patch('secure_payment_text', v)}
+      />
+      <TextField
+        label="Seguridad — Transacción segura"
+        value={local.secure_transaction_text}
+        onChange={(v) => patch('secure_transaction_text', v)}
+      />
+      <TextField
+        label="Términos — Prefijo (antes del link)"
+        value={local.terms_prefix}
+        onChange={(v) => patch('terms_prefix', v)}
+      />
+      <TextField
+        label="Términos — Nota de seguridad (después del link)"
+        value={local.secure_note}
+        onChange={(v) => patch('secure_note', v)}
+        multiline
+      />
+    </div>
+  );
+}
+
+export function CartSettingsEditor({ content, onSave }: SettingsEditorProps) {
+  const [local, setLocal] = useState<CartSettings>(() => parseCartSettings(content));
+  const { isDirty } = useAutosaveEditor('cart_settings', local, (next) => onSave(next));
+
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(parseCartSettings(content));
+  }, [content, isDirty]);
+
+  const patch = <K extends keyof CartSettings>(key: K, value: CartSettings[K]) => {
+    setLocal((p) => ({ ...p, [key]: value }));
+  };
+
+  return (
+    <div className="space-y-4 pb-8">
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Copy del carrito (se publica al instante — sección de diseño). Vacío = texto actual.
+      </p>
+      <TextField
+        label="Vacío — Título"
+        value={local.empty_title}
+        onChange={(v) => patch('empty_title', v)}
+      />
+      <TextField
+        label="Vacío — Descripción"
+        value={local.empty_desc}
+        onChange={(v) => patch('empty_desc', v)}
+      />
+      <TextField
+        label="Vacío — CTA"
+        value={local.empty_cta}
+        onChange={(v) => patch('empty_cta', v)}
+      />
+      <TextField
+        label="Subtotal — Label"
+        value={local.subtotal_label}
+        onChange={(v) => patch('subtotal_label', v)}
+      />
+      <TextField
+        label="Envío — Nota (calculado en checkout)"
+        value={local.shipping_note}
+        onChange={(v) => patch('shipping_note', v)}
+      />
+      <TextField
+        label="CTA — Finalizar compra"
+        value={local.cta_label}
+        onChange={(v) => patch('cta_label', v)}
+      />
+    </div>
+  );
+}
+
 // ── Ola 4: Contenido de bloques del home ───────────────────────────────────
 // Vacío = la tienda cae al i18n / defaults (mismo patrón que el copy del hero).
 
@@ -1450,6 +1599,8 @@ export const SETTINGS_SECTION_KEYS = new Set([
   'pdp_settings',
   'seo_defaults',
   'contact_settings',
+  'checkout_settings',
+  'cart_settings',
   'seasonal_settings',
   'conservation_content',
   'video_settings',
@@ -1513,6 +1664,10 @@ export function ChromeSettingsEditor({
       return <SeoDefaultsEditor {...props} />;
     case 'contact_settings':
       return <ContactSettingsEditor {...props} />;
+    case 'checkout_settings':
+      return <CheckoutSettingsEditor content={content} onSave={onSave} />;
+    case 'cart_settings':
+      return <CartSettingsEditor content={content} onSave={onSave} />;
     default:
       return null;
   }

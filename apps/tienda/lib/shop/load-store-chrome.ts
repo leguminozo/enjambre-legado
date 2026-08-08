@@ -16,6 +16,8 @@ import {
   parsePdpSettings,
   parseSeoDefaults,
   parseContactSettings,
+  parseCheckoutSettings,
+  parseCartSettings,
   parseCampaignBanner,
   parseTypographySettings,
   parseSeasonalSettings,
@@ -40,6 +42,8 @@ export const loadStoreChrome = cache(async function loadStoreChrome(): Promise<S
     'pdp_settings',
     'seo_defaults',
     'contact_settings',
+    'checkout_settings',
+    'cart_settings',
     'campaign_banners',
     'seasonal_settings',
   ]);
@@ -94,6 +98,12 @@ export const loadStoreChrome = cache(async function loadStoreChrome(): Promise<S
   const contact = parseContactSettings(
     (batch.contact_settings?.[0]?.content as Record<string, unknown> | undefined) ?? null,
   );
+  const checkout = parseCheckoutSettings(
+    (batch.checkout_settings?.[0]?.content as Record<string, unknown> | undefined) ?? null,
+  );
+  const cart = parseCartSettings(
+    (batch.cart_settings?.[0]?.content as Record<string, unknown> | undefined) ?? null,
+  );
   const campaignBanners = (batch.campaign_banners ?? [])
     .map((row) => parseCampaignBanner(row.content as Record<string, unknown>))
     .filter((b): b is NonNullable<typeof b> => b !== null);
@@ -117,6 +127,8 @@ export const loadStoreChrome = cache(async function loadStoreChrome(): Promise<S
     pdp: batch.pdp_settings?.[0] ? pdp : DEFAULT_STORE_CHROME.pdp,
     seo: batch.seo_defaults?.[0] ? seo : DEFAULT_STORE_CHROME.seo,
     contact: batch.contact_settings?.[0] ? contact : DEFAULT_STORE_CHROME.contact,
+    checkout: batch.checkout_settings?.[0] ? checkout : DEFAULT_STORE_CHROME.checkout,
+    cart: batch.cart_settings?.[0] ? cart : DEFAULT_STORE_CHROME.cart,
     campaignBanners,
     seasonal: batch.seasonal_settings?.[0] ? seasonal : DEFAULT_STORE_CHROME.seasonal,
   };

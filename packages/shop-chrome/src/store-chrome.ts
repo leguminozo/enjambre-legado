@@ -713,6 +713,34 @@ export type ContactSettings = {
   hours_en?: string;
 };
 
+/** Copy del checkout editable desde el Editor de Tienda (auto-publish). */
+export type CheckoutSettings = {
+  title: string;
+  subtitle: string;
+  buyer_private_label: string;
+  buyer_private_desc: string;
+  buyer_legacy_label: string;
+  buyer_legacy_desc: string;
+  shipping_title: string;
+  courier_label: string;
+  shipping_note: string;
+  postal_label: string;
+  secure_payment_text: string;
+  secure_transaction_text: string;
+  terms_prefix: string;
+  secure_note: string;
+};
+
+/** Copy del carrito editable desde el Editor de Tienda (auto-publish). */
+export type CartSettings = {
+  empty_title: string;
+  empty_desc: string;
+  empty_cta: string;
+  subtotal_label: string;
+  shipping_note: string;
+  cta_label: string;
+};
+
 export const DEFAULT_CONTACT_SETTINGS: ContactSettings = {
   show_whatsapp_float: true,
   whatsapp_e164: '56940831358',
@@ -770,7 +798,37 @@ export const CAMPAIGN_BANNER_TEMPLATE: CampaignBanner = {
 };
 
 export const SEO_DEFAULTS_TEMPLATE = { ...DEFAULT_SEO_DEFAULTS };
+export const DEFAULT_CHECKOUT_SETTINGS: CheckoutSettings = {
+  title: 'Checkout Seguro',
+  subtitle:
+    'Tu pedido será procesado de forma segura. Cada compra contribuye a regenerar el bosque nativo de Chiloé.',
+  buyer_private_label: 'Compra privada',
+  buyer_private_desc: 'Entrega puntual sin cuenta. Tus datos no quedan en tu perfil.',
+  buyer_legacy_label: 'Continuar mi legado',
+  buyer_legacy_desc: 'Guardamos tu historial, impacto y direcciones para futuras visitas.',
+  shipping_title: 'Envío en Chile',
+  courier_label: 'Courier',
+  shipping_note:
+    'Por defecto despachamos con BlueExpress. Si necesitas otro operador o modalidad, elígelo aquí o contáctanos para coordinar algo a medida.',
+  postal_label: 'Código postal',
+  secure_payment_text: 'Pago encriptado',
+  secure_transaction_text: 'Transacción segura',
+  terms_prefix: 'Al completar tu compra, aceptas nuestros',
+  secure_note: 'Tu pago está protegido con encriptación de grado bancario.',
+};
+
+export const DEFAULT_CART_SETTINGS: CartSettings = {
+  empty_title: 'Tu carrito está vacío',
+  empty_desc: 'Agrega productos para comenzar',
+  empty_cta: 'Seguir comprando',
+  subtotal_label: 'Subtotal',
+  shipping_note: 'Envío calculado en checkout',
+  cta_label: 'Finalizar compra',
+};
+
 export const CONTACT_SETTINGS_TEMPLATE = { ...DEFAULT_CONTACT_SETTINGS };
+export const CHECKOUT_SETTINGS_TEMPLATE = { ...DEFAULT_CHECKOUT_SETTINGS };
+export const CART_SETTINGS_TEMPLATE = { ...DEFAULT_CART_SETTINGS };
 
 export function parseSeoDefaults(raw: Record<string, unknown> | null | undefined): SeoDefaults {
   const d = DEFAULT_SEO_DEFAULTS;
@@ -807,6 +865,42 @@ export function parseContactSettings(
     address_en: typeof raw.address_en === 'string' ? raw.address_en : d.address_en,
     hours: asString(raw.hours, d.hours),
     hours_en: typeof raw.hours_en === 'string' ? raw.hours_en : d.hours_en,
+  };
+}
+
+export function parseCheckoutSettings(
+  raw: Record<string, unknown> | null | undefined,
+): CheckoutSettings {
+  const d = DEFAULT_CHECKOUT_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    title: asString(raw.title, d.title),
+    subtitle: asString(raw.subtitle, d.subtitle),
+    buyer_private_label: asString(raw.buyer_private_label, d.buyer_private_label),
+    buyer_private_desc: asString(raw.buyer_private_desc, d.buyer_private_desc),
+    buyer_legacy_label: asString(raw.buyer_legacy_label, d.buyer_legacy_label),
+    buyer_legacy_desc: asString(raw.buyer_legacy_desc, d.buyer_legacy_desc),
+    shipping_title: asString(raw.shipping_title, d.shipping_title),
+    courier_label: asString(raw.courier_label, d.courier_label),
+    shipping_note: asString(raw.shipping_note, d.shipping_note),
+    postal_label: asString(raw.postal_label, d.postal_label),
+    secure_payment_text: asString(raw.secure_payment_text, d.secure_payment_text),
+    secure_transaction_text: asString(raw.secure_transaction_text, d.secure_transaction_text),
+    terms_prefix: asString(raw.terms_prefix, d.terms_prefix),
+    secure_note: asString(raw.secure_note, d.secure_note),
+  };
+}
+
+export function parseCartSettings(raw: Record<string, unknown> | null | undefined): CartSettings {
+  const d = DEFAULT_CART_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    empty_title: asString(raw.empty_title, d.empty_title),
+    empty_desc: asString(raw.empty_desc, d.empty_desc),
+    empty_cta: asString(raw.empty_cta, d.empty_cta),
+    subtotal_label: asString(raw.subtotal_label, d.subtotal_label),
+    shipping_note: asString(raw.shipping_note, d.shipping_note),
+    cta_label: asString(raw.cta_label, d.cta_label),
   };
 }
 
@@ -1128,6 +1222,8 @@ export type StoreChromeConfig = StoreChromeConfigOla1 & {
   pdp: PdpSettings;
   seo: SeoDefaults;
   contact: ContactSettings;
+  checkout: CheckoutSettings;
+  cart: CartSettings;
   campaignBanners: CampaignBanner[];
   typography: TypographySettings;
   seasonal: SeasonalSettings;
@@ -1143,6 +1239,8 @@ export const DEFAULT_STORE_CHROME: StoreChromeConfig = {
   pdp: { ...DEFAULT_PDP_SETTINGS },
   seo: { ...DEFAULT_SEO_DEFAULTS },
   contact: { ...DEFAULT_CONTACT_SETTINGS },
+  checkout: { ...DEFAULT_CHECKOUT_SETTINGS },
+  cart: { ...DEFAULT_CART_SETTINGS },
   campaignBanners: [],
   typography: { ...DEFAULT_TYPOGRAPHY_SETTINGS },
   seasonal: {

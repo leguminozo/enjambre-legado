@@ -47,6 +47,8 @@ const CMS_SECTIONS = [
   'pdp_settings',
   'seo_defaults',
   'contact_settings',
+  'checkout_settings',
+  'cart_settings',
   'campaign_banners',
   'seasonal_settings',
   'conservation_content',

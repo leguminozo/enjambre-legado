@@ -3,11 +3,14 @@
 import Link from 'next/link';
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { useCartLines } from '@/components/shop/cart-context';
+import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { formatCLP } from '@/lib/shop/format';
 import { ViewLoadingPlaceholder } from '@enjambre/ui';
 
 export function CarritoClient() {
   const { lines, hydrated, setQty, remove, subtotal, itemCount } = useCartLines();
+  // Copy del carrito editable desde el Editor de Tienda (cart_settings)
+  const { cart } = useStoreChrome();
 
   if (!hydrated) {
     return (
@@ -21,13 +24,13 @@ export function CarritoClient() {
     return (
       <div className="mx-auto max-w-2xl px-4 pt-[max(4rem,calc(var(--safe-top)+3rem))] pb-16 sm:py-20 text-center">
         <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
-        <h1 className="font-display text-2xl font-semibold text-foreground text-balance">Tu carrito está vacío</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Agrega productos para comenzar</p>
+        <h1 className="font-display text-2xl font-semibold text-foreground text-balance">{cart.empty_title}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{cart.empty_desc}</p>
         <Link
           href="/catalogo"
           className="mt-8 inline-flex min-h-[48px] items-center rounded-full bg-accent px-8 py-3 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90"
         >
-          Seguir comprando
+          {cart.empty_cta}
         </Link>
       </div>
     );
@@ -99,12 +102,12 @@ export function CarritoClient() {
 
       <div className="mt-6 hidden rounded-xl border border-border bg-card/30 px-6 py-5 md:block">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Subtotal</span>
+          <span className="text-muted-foreground">{cart.subtotal_label}</span>
           <span className="font-display text-xl font-semibold tabular-nums text-accent">
             {formatCLP(subtotal)}
           </span>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">Envío calculado en checkout</p>
+        <p className="mt-2 text-xs text-muted-foreground">{cart.shipping_note}</p>
       </div>
 
       <div className="mt-8 hidden flex-col gap-3 sm:flex-row sm:items-center sm:justify-between md:flex">
@@ -119,7 +122,7 @@ export function CarritoClient() {
           data-testid="proceed-checkout"
           className="rounded-full bg-primary px-10 py-4 text-center text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 min-h-[48px] flex items-center justify-center"
         >
-          Finalizar compra
+          {cart.cta_label}
         </Link>
       </div>
 
@@ -127,11 +130,11 @@ export function CarritoClient() {
       <div className="tienda-sticky-cta md:hidden" data-testid="cart-sticky-checkout">
         <div className="tienda-sticky-cta-inner">
           <div className="min-w-0">
-            <p className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">Subtotal</p>
+            <p className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">{cart.subtotal_label}</p>
             <p className="tienda-sticky-cta-price">{formatCLP(subtotal)}</p>
           </div>
           <Link href="/checkout" data-testid="proceed-checkout" className="tienda-sticky-cta-btn text-center">
-            Finalizar compra
+            {cart.cta_label}
           </Link>
         </div>
       </div>
