@@ -54,6 +54,12 @@ import {
 } from '@/lib/store-chrome';
 import { TypographySettingsEditor } from '@/components/tienda/TypographySettingsEditor';
 import { SeasonalSettingsEditor } from '@/components/tienda/SeasonalSettingsEditor';
+import {
+  ConservationEditor,
+  MapSettingsEditor,
+  ProductsSettingsEditor,
+  VideoSettingsEditor,
+} from '@/components/tienda/HomeBlockEditors';
 import { useAutosaveEditor } from '@/components/tienda/save-status';
 
 interface SettingsEditorProps {
@@ -1605,117 +1611,6 @@ export function ConservationContentEditor({ content, onSave }: SettingsEditorPro
   );
 }
 
-export function VideoSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<VideoSettings>(() => parseVideoSettings(content));
-  const { isDirty } = useAutosaveEditor('video_settings', local, (next) => onSave(next));
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseVideoSettings(content));
-  }, [content, isDirty]);
-
-  const patch = <K extends keyof VideoSettings>(key: K, value: VideoSettings[K]) => {
-    setLocal((p) => ({ ...p, [key]: value }));
-  };
-
-  return (
-    <div className="space-y-4 pb-8">
-      <p className="text-[11px] text-muted-foreground leading-relaxed">
-        Vacío = usa NEXT_PUBLIC_YOUTUBE_VIDEO_ID (o el video por defecto).
-      </p>
-      <TextField label="ID de YouTube" value={local.youtube_id} onChange={(v) => patch('youtube_id', v)} />
-      <TextField label="Título" value={local.title ?? ''} onChange={(v) => patch('title', v)} />
-    </div>
-  );
-}
-
-export function MapSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<MapSettings>(() => parseMapSettings(content));
-  const { isDirty } = useAutosaveEditor('map_settings', local, (next) => onSave(next));
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseMapSettings(content));
-  }, [content, isDirty]);
-
-  const patch = <K extends keyof MapSettings>(key: K, value: MapSettings[K]) => {
-    setLocal((p) => ({ ...p, [key]: value }));
-  };
-
-  // Vacío → NaN: conservar el valor previo en vez de caer a (0,0) en el océano.
-  const patchCoord = (key: 'lat' | 'lng', value: number) => {
-    if (!Number.isFinite(value)) return;
-    patch(key, value);
-  };
-
-  return (
-    <div className="space-y-4 pb-8">
-      <div className="grid grid-cols-2 gap-3">
-        <NumberField label="Latitud" value={local.lat} onChange={(v) => patchCoord('lat', v)} />
-        <NumberField label="Longitud" value={local.lng} onChange={(v) => patchCoord('lng', v)} />
-      </div>
-      <TextField
-        label="Popup — Título"
-        value={local.popup_title}
-        onChange={(v) => patch('popup_title', v)}
-      />
-      <TextField
-        label="Popup — Texto"
-        value={local.popup_body}
-        onChange={(v) => patch('popup_body', v)}
-      />
-    </div>
-  );
-}
-
-export function ProductsSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<ProductsSettings>(() => parseProductsSettings(content));
-  const { isDirty } = useAutosaveEditor('products_settings', local, (next) => onSave(next));
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseProductsSettings(content));
-  }, [content, isDirty]);
-
-  const patch = <K extends keyof ProductsSettings>(key: K, value: ProductsSettings[K]) => {
-    setLocal((p) => ({ ...p, [key]: value }));
-  };
-
-  return (
-    <div className="space-y-4 pb-8">
-      <p className="text-[11px] text-muted-foreground leading-relaxed">
-        Cabecera de la sección “Creaciones”. Los productos siguen viniendo del catálogo.
-      </p>
-      <LocalizedFields
-        esLabel="Kicker"
-        es={local.kicker}
-        en={local.kicker_en}
-        onEs={(v) => patch('kicker', v)}
-        onEn={(v) => patch('kicker_en', v)}
-      />
-      <LocalizedFields
-        esLabel="Título"
-        es={local.title}
-        en={local.title_en}
-        onEs={(v) => patch('title', v)}
-        onEn={(v) => patch('title_en', v)}
-      />
-      <LocalizedFields
-        esLabel="Descripción"
-        es={local.desc}
-        en={local.desc_en}
-        onEs={(v) => patch('desc', v)}
-        onEn={(v) => patch('desc_en', v)}
-        multiline
-      />
-    </div>
-  );
-}
-
-/** Secciones con editor settings dedicado (una sola fila). */
 export const SETTINGS_SECTION_KEYS = new Set([
   'theme_settings',
   'typography_settings',
@@ -1766,6 +1661,14 @@ export function ChromeSettingsEditor({
       return <TypographySettingsEditor content={content} onSave={onSave} />;
     case 'seasonal_settings':
       return <SeasonalSettingsEditor content={content} onSave={onSave} />;
+    case 'video_settings':
+      return <VideoSettingsEditor content={content} onSave={onSave} />;
+    case 'map_settings':
+      return <MapSettingsEditor content={content} onSave={onSave} />;
+    case 'products_settings':
+      return <ProductsSettingsEditor content={content} onSave={onSave} />;
+    case 'conservation_content':
+      return <ConservationEditor content={content} onSave={onSave} />;
     case 'announcement_settings':
       return <AnnouncementSettingsEditor {...props} />;
     case 'footer_settings':

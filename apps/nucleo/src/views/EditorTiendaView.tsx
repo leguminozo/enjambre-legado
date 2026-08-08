@@ -862,7 +862,13 @@ function EditableItemCard({
     e.target.value = '';
   };
 
-  const titleField = localContent.title ?? localContent.label ?? localContent.kicker ?? null;
+  // Título visible del card header: título real, label, kicker o alt (galería/media).
+  const titleField =
+    localContent.title ??
+    localContent.label ??
+    localContent.kicker ??
+    localContent.alt ??
+    null;
 
   // Campos a renderizar: los del content + los de la plantilla que falten
   // (con su valor default). Editar uno de los faltantes lo agrega al content
