@@ -569,6 +569,24 @@ const SECTION_PREVIEW_PATHS: Record<string, string> = {
   talleres: '/experiencias',
 };
 
+/** Menú independiente del preview: páginas navegables sin tocar la selección
+ *  del editor. Los bloques del home viven en Inicio (no hay ancla cross-origin). */
+const PREVIEW_DESTINATIONS: { path: string; label: string }[] = [
+  { path: '', label: 'Inicio' },
+  { path: '/catalogo', label: 'Catálogo' },
+  { path: '/experiencias', label: 'Experiencias' },
+  { path: '/nosotros', label: 'Nosotros' },
+  { path: '/galeria', label: 'Galería' },
+  { path: '/contacto', label: 'Contacto' },
+  { path: '/terminos', label: 'Términos' },
+  { path: '/privacidad', label: 'Privacidad' },
+  { path: '/cookies', label: 'Cookies' },
+  { path: '/envio', label: 'Envío' },
+  { path: '/reembolso', label: 'Reembolso' },
+  { path: '/cancelacion', label: 'Cancelación' },
+  { path: '/garantia', label: 'Garantía' },
+];
+
 const FIELD_LABELS: Record<string, string> = {
   label: 'Texto (ES)',
   label_en: 'Texto (EN)',
@@ -1645,15 +1663,14 @@ function EditorTiendaViewInner() {
     return () => window.removeEventListener('keydown', handler);
   }, [flushAll]);
 
-  // Al cambiar de sección, la preview navega a la ruta relevante.
-  // Si la ruta no cambia (p.ej. bloques del home), el iframe no recarga:
-  // mostrar el overlay lo dejaría pegado para siempre.
-  const lastPreviewPathRef = useRef('');
-  useEffect(() => {
-    const nextPath = SECTION_PREVIEW_PATHS[activeSection] ?? '';
-    setPreviewPath(nextPath);
-    if (nextPath !== lastPreviewPathRef.current) setPreviewLoading(true);
-  }, [activeSection]);
+  // La preview es INDEPENDIENTE del editor: solo navega con su menú propio
+  // (previewPath ya no sigue a activeSection). "Ir a sección" salta a la
+  // página de la sección activa como acción explícita, sin acoplar ambos paneles.
+  const goPreview = (path: string) => {
+    if (path === previewPath) return;
+    setPreviewPath(path);
+    setPreviewLoading(true);
+  };
 
   // Derive default JSON from section template
   const defaultTemplate = SECTION_TEMPLATES[activeSection] ?? { title: '', desc: '' };
@@ -2105,6 +2122,43 @@ function EditorTiendaViewInner() {
             }}
           />
 
+          {/* Menú independiente del preview: navega sin acoplar al editor */}
+          <div
+            className="w-full shrink-0 flex items-center gap-1.5 overflow-x-auto px-3 py-2 border-b border-border/50 bg-surface/40 scrollbar-thin relative z-10"
+            role="navigation"
+            aria-label="Páginas de la vista previa"
+          >
+            {PREVIEW_DESTINATIONS.map((d) => (
+              <button
+                key={d.path}
+                type="button"
+                onClick={() => goPreview(d.path)}
+                aria-pressed={previewPath === d.path}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-colors min-h-9 ${
+                  previewPath === d.path
+                    ? 'bg-accent/15 text-accent border border-accent/30'
+                    : 'text-muted-foreground border border-transparent hover:text-foreground hover:bg-muted/40'
+                }`}
+              >
+                {d.label}
+              </button>
+            ))}
+            <span className="w-px h-4 bg-border mx-1 shrink-0" aria-hidden />
+            <button
+              type="button"
+              onClick={() => goPreview(SECTION_PREVIEW_PATHS[activeSection] ?? '')}
+              disabled={!SECTION_PREVIEW_PATHS[activeSection]}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap min-h-9 transition-colors border border-dashed ${
+                SECTION_PREVIEW_PATHS[activeSection]
+                  ? 'text-accent border-accent/40 hover:bg-accent/10'
+                  : 'text-muted-foreground/50 border-border opacity-60'
+              }`}
+              title="Saltar a la página de la sección que estás editando"
+            >
+              Ir a sección
+            </button>
+          </div>
+
           <div className="flex-1 w-full flex flex-col items-center justify-center p-0 md:p-6 lg:p-10 overflow-hidden relative">
             <div
               className={`relative bg-background border-0 shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col ${
@@ -2154,10 +2208,7 @@ function EditorTiendaViewInner() {
                     title="Vista Previa de Tienda"
                     className="absolute inset-0 w-full h-full border-none bg-background"
                     sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                    onLoad={() => {
-                      lastPreviewPathRef.current = previewPath;
-                      setPreviewLoading(false);
-                    }}
+                    onLoad={() => setPreviewLoading(false)}
                   />
                   {/* Overlay mientras la preview navega/revalida */}
                   <AnimatePresence>
