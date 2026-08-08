@@ -126,11 +126,11 @@ export function AlambiqueView() {
       ),
       csvValue: (p) => `${p.nombre_comun} ${p.nombre_cientifico ?? ''}`,
     },
-    { key: 'parte_usada', header: 'Parte', sortable: true, render: (p) => PARTE_USADA_LABEL[p.parte_usada] ?? p.parte_usada, csvValue: (p) => PARTE_USADA_LABEL[p.parte_usada] ?? '' },
-    { key: 'estado_material', header: 'Estado', sortable: true, render: (p) => <span className="capitalize">{p.estado_material}</span> },
+    { key: 'parte_usada', header: 'Parte', sortable: true, hideBelow: 480, render: (p) => PARTE_USADA_LABEL[p.parte_usada] ?? p.parte_usada, csvValue: (p) => PARTE_USADA_LABEL[p.parte_usada] ?? '' },
+    { key: 'estado_material', header: 'Estado', sortable: true, hideBelow: 380, render: (p) => <span className="capitalize">{p.estado_material}</span> },
     { key: 'cantidad_kg', header: 'Cantidad', sortable: true, align: 'right', render: (p) => `${p.cantidad_kg.toLocaleString('es-CL')} kg`, csvValue: (p) => String(p.cantidad_kg) },
-    { key: 'origen', header: 'Origen', sortable: true, render: (p) => p.origen ?? '—' },
-    { key: 'fecha_recoleccion', header: 'Recolección', sortable: true, render: (p) => fmtDate(p.fecha_recoleccion) },
+    { key: 'origen', header: 'Origen', sortable: true, hideBelow: 560, render: (p) => p.origen ?? '—' },
+    { key: 'fecha_recoleccion', header: 'Recolección', sortable: true, hideBelow: 640, render: (p) => fmtDate(p.fecha_recoleccion) },
     {
       key: 'acciones',
       header: '',
@@ -161,15 +161,17 @@ export function AlambiqueView() {
       key: 'planta',
       header: 'Planta',
       sortable: true,
+      hideBelow: 420,
       render: (d) => d.planta?.nombre_comun ?? '—',
       csvValue: (d) => d.planta?.nombre_comun ?? '',
     },
-    { key: 'metodo', header: 'Método', sortable: true, render: (d) => METODO_LABEL[d.metodo] ?? d.metodo, csvValue: (d) => METODO_LABEL[d.metodo] ?? '' },
-    { key: 'fecha_inicio', header: 'Fecha', sortable: true, render: (d) => fmtDate(d.fecha_inicio), csvValue: (d) => fmtDate(d.fecha_inicio) },
+    { key: 'metodo', header: 'Método', sortable: true, hideBelow: 520, render: (d) => METODO_LABEL[d.metodo] ?? d.metodo, csvValue: (d) => METODO_LABEL[d.metodo] ?? '' },
+    { key: 'fecha_inicio', header: 'Fecha', sortable: true, hideBelow: 380, render: (d) => fmtDate(d.fecha_inicio), csvValue: (d) => fmtDate(d.fecha_inicio) },
     { key: 'carga_kg', header: 'Carga', sortable: true, align: 'right', render: (d) => `${d.carga_kg.toLocaleString('es-CL')} kg`, csvValue: (d) => String(d.carga_kg) },
     {
       key: 'rendimientos',
       header: 'Rendimientos',
+      hideBelow: 640,
       render: (d) => (
         <div className="flex flex-col text-xs">
           <span>{d.rendimiento_hidrolato_ml != null ? `${d.rendimiento_hidrolato_ml.toLocaleString('es-CL')} ml hidrolato` : '—'}</span>
@@ -188,6 +190,7 @@ export function AlambiqueView() {
     {
       key: 'publico',
       header: 'QR',
+      hideBelow: 760,
       render: (d) => (d.publico
         ? <Badge variant="success" className="gap-1"><Globe2 size={12} /> Público</Badge>
         : <span className="text-xs text-muted-foreground">—</span>),
@@ -231,11 +234,12 @@ export function AlambiqueView() {
       csvValue: (p) => `${p.volumen_ml} ${p.envase ?? ''}`,
     },
     { key: 'unidades', header: 'Unds', sortable: true, align: 'right', render: (p) => p.unidades, csvValue: (p) => String(p.unidades) },
-    { key: 'fecha_envasado', header: 'Envasado', sortable: true, render: (p) => fmtDate(p.fecha_envasado) },
-    { key: 'destino', header: 'Destino', sortable: true, render: (p) => DESTINO_LABEL[p.destino] ?? p.destino, csvValue: (p) => DESTINO_LABEL[p.destino] ?? '' },
+    { key: 'fecha_envasado', header: 'Envasado', sortable: true, hideBelow: 480, render: (p) => fmtDate(p.fecha_envasado) },
+    { key: 'destino', header: 'Destino', sortable: true, hideBelow: 560, render: (p) => DESTINO_LABEL[p.destino] ?? p.destino, csvValue: (p) => DESTINO_LABEL[p.destino] ?? '' },
     {
       key: 'destilacion',
       header: 'Destilación',
+      hideBelow: 700,
       render: (p) => (
         <div className="flex flex-col">
           <span className="font-mono text-xs text-primary">{p.destilacion?.codigo ?? '—'}</span>
@@ -247,6 +251,7 @@ export function AlambiqueView() {
     {
       key: 'producto_venta',
       header: 'SKU catálogo',
+      hideBelow: 640,
       render: (p) => p.producto_venta
         ? (
           <div className="flex flex-col">
@@ -259,7 +264,7 @@ export function AlambiqueView() {
         : <span className="text-xs text-muted-foreground">Sin vínculo</span>,
       csvValue: (p) => (p.producto_venta ? `${p.producto_venta.nombre} (${p.producto_venta.stock})` : ''),
     },
-    { key: 'precio_sugerido_clp', header: 'Precio sug.', sortable: true, align: 'right', render: (p) => (p.precio_sugerido_clp != null ? formatCLP(p.precio_sugerido_clp) : '—'), csvValue: (p) => String(p.precio_sugerido_clp ?? '') },
+    { key: 'precio_sugerido_clp', header: 'Precio sug.', sortable: true, hideBelow: 420, align: 'right', render: (p) => (p.precio_sugerido_clp != null ? formatCLP(p.precio_sugerido_clp) : '—'), csvValue: (p) => String(p.precio_sugerido_clp ?? '') },
     {
       key: 'acciones',
       header: '',
@@ -338,6 +343,10 @@ export function AlambiqueView() {
                     getId={(p) => p.id}
                     sortable
                     exportable
+                    columnsControl
+                    storageKey="alambique-plantas"
+                    fullscreen
+                    fullscreenLabel="Materias primas — Alambique"
                     exportFilename="alambique-materias-primas"
                     emptyState="Aún no hay materias primas registradas."
                   />
@@ -365,6 +374,10 @@ export function AlambiqueView() {
                     getId={(d) => d.id}
                     sortable
                     exportable
+                    columnsControl
+                    storageKey="alambique-destilaciones"
+                    fullscreen
+                    fullscreenLabel="Destilaciones — Alambique"
                     exportFilename="alambique-destilaciones"
                     emptyState="Aún no hay destilaciones registradas."
                   />
@@ -392,6 +405,10 @@ export function AlambiqueView() {
                     getId={(p) => p.id}
                     sortable
                     exportable
+                    columnsControl
+                    storageKey="alambique-productos"
+                    fullscreen
+                    fullscreenLabel="Productos envasados — Alambique"
                     exportFilename="alambique-productos"
                     emptyState="Aún no hay productos envasados."
                   />

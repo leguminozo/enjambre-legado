@@ -17,6 +17,7 @@ import Link from 'next/link'
 import { ChartBox } from '@/components/charts/ChartBox'
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors'
 import { useApiFetch } from '@/hooks/use-api-fetch'
+import { useWorkspaceLayout } from '@/hooks/use-workspace-layout'
 import { KpiCard } from '@/components/shared/KpiCard'
 import { ViewShell } from '@/components/layout/ViewShell'
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar'
@@ -166,6 +167,9 @@ export function DashboardEjecutivo() {
   const [range, setRange] = useState<TimeRange>('ytd')
   const apiFetch = useApiFetch()
   const fullName = useAuthStore((s) => s.user?.full_name)
+  // Sistema adaptativo: el grid responde al ancho MEDIDO del contenido
+  // (sidebar colapsado/expandido, modo foco, densidad de la pantalla).
+  const { contentMode } = useWorkspaceLayout()
 
   const { data, isLoading, isFetching, error } = useQuery<EjecutivoData>({
     queryKey: ['dashboard-ejecutivo', range],
@@ -263,7 +267,16 @@ export function DashboardEjecutivo() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+      {/* Grid de KPIs: columnas según el ancho real del contenido */}
+      <div
+        className={`grid gap-6 ${
+          contentMode === 'narrow'
+            ? 'grid-cols-1'
+            : contentMode === 'medium'
+              ? 'grid-cols-2'
+              : 'grid-cols-3 xl:grid-cols-6'
+        }`}
+      >
         <KpiCard
           title={`Facturaciones YTD`}
           value={fmtCLP(kpis.facturacion)}
@@ -307,7 +320,11 @@ export function DashboardEjecutivo() {
       </div>
 
       {/* Operación de miel — KPIs de stock/lotes centralizados en el panel ejecutivo */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+      <div
+        className={`grid gap-4 mt-6 ${
+          contentMode === 'narrow' ? 'grid-cols-1' : contentMode === 'medium' ? 'grid-cols-2 md:grid-cols-2' : 'md:grid-cols-3'
+        }`}
+      >
         <KpiCard
           title="Miel en Lotes"
           value={`${stock.mielEnLotesKg.toFixed(1)} kg`}

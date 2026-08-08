@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Search, Plus, Edit, Trash2, Eye, EyeOff, ExternalLink, Package } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { Button, toast, ViewLoading, formatMoney } from '@enjambre/ui';
+import { Button, toast, ViewLoading, formatMoney, DataTable, type ColumnDef } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
 import type { Product } from '@/lib/product-types';
-import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 interface ProductListProps {
   onEdit?: (product: Product) => void;
@@ -132,6 +131,173 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
   const visibleCount = products.filter((p) => p.visible).length;
   const tiendaUrl = process.env.NEXT_PUBLIC_URL_TIENDA || 'http://localhost:3001';
 
+  // Columnas adaptativas: las secundarias se ocultan solas en espacio angosto
+  const columns = useMemo<ColumnDef<Product>[]>(() => [
+    {
+      key: 'img',
+      header: 'Img',
+      width: 60,
+      render: (product) =>
+        product.fotos?.[0] ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={product.fotos[0]}
+            alt={product.nombre || 'Producto'}
+            style={{ width: 48, height: 48, borderRadius: 'var(--radius-sm)', objectFit: 'cover' }}
+          />
+        ) : (
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              background: 'hsl(var(--foreground) / 0.05)',
+              borderRadius: 'var(--radius-sm)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Package size={20} style={{ color: 'hsl(var(--muted-foreground))' }} />
+          </div>
+        ),
+    },
+    {
+      key: 'nombre',
+      header: 'Producto',
+      sortable: true,
+      render: (product) => (
+        <div>
+          <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))' }}>{product.nombre}</div>
+          {product.slug && (
+            <div
+              style={{
+                fontSize: '0.75rem',
+                color: 'hsl(var(--muted-foreground))',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                marginTop: 2,
+              }}
+            >
+              <ExternalLink size={10} />
+              <a
+                href={`${tiendaUrl}/producto/${product.slug}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: 'inherit', textDecoration: 'none' }}
+                className="hover:underline"
+              >
+                /producto/{product.slug}
+              </a>
+            </div>
+          )}
+        </div>
+      ),
+      csvValue: (p) => p.nombre ?? '',
+    },
+    {
+      key: 'visible',
+      header: 'Estado',
+      sortable: true,
+      render: (product) => (
+        <span
+          className={`badge ${product.visible ? 'badge-success' : 'badge-warning'}`}
+          style={{ fontSize: '0.7rem' }}
+        >
+          {product.visible ? 'Visible' : 'Oculto'}
+        </span>
+      ),
+      csvValue: (p) => (p.visible ? 'visible' : 'oculto'),
+    },
+    {
+      key: 'precio',
+      header: 'Precio',
+      sortable: true,
+      align: 'right',
+      render: (product) => (
+        <span style={{ fontWeight: 600 }} className="tabular-nums">
+          {formatMoney(product.precio || 0)}
+        </span>
+      ),
+      csvValue: (p) => String(p.precio),
+    },
+    {
+      key: 'formato',
+      header: 'Formato',
+      sortable: true,
+      hideBelow: 560,
+      render: (product) => <span style={{ fontSize: '0.85rem' }}>{product.formato}</span>,
+      csvValue: (p) => p.formato ?? '',
+    },
+    {
+      key: 'created_at',
+      header: 'Creado',
+      sortable: true,
+      hideBelow: 420,
+      render: (product) => (
+        <span style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))' }}>
+          {product.created_at ? new Date(product.created_at).toLocaleDateString('es-CL') : '—'}
+        </span>
+      ),
+      csvValue: (p) => p.created_at ?? '',
+    },
+    {
+      key: 'acciones',
+      header: '',
+      align: 'right',
+      width: 130,
+      render: (product) => (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
+          <button
+            onClick={() => toggleVisibility(product.id, Boolean(product.visible))}
+            className="btn btn-ghost btn-sm"
+            title={product.visible ? 'Ocultar' : 'Publicar'}
+            disabled={deletingId === product.id}
+          >
+            {product.visible ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+          <button
+            onClick={() => onEdit?.(product)}
+            className="btn btn-ghost btn-sm"
+            title="Editar ficha"
+            disabled={deletingId === product.id}
+          >
+            <Edit size={16} />
+          </button>
+          <a
+            href={product.slug ? `${tiendaUrl}/producto/${product.slug}` : '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-ghost btn-sm"
+            title="Ver en tienda"
+            style={{
+              pointerEvents: product.slug ? 'auto' : 'none',
+              opacity: product.slug ? 1 : 0.5,
+            }}
+          >
+            <ExternalLink size={16} />
+          </a>
+          <button
+            onClick={() => deleteProduct(product.id)}
+            className="btn btn-ghost btn-sm"
+            title="Eliminar"
+            disabled={deletingId === product.id}
+            style={{
+              color: 'var(--text-error)',
+              opacity: deletingId === product.id ? 0.5 : 1,
+            }}
+          >
+            {deletingId === product.id ? (
+              <span style={{ fontSize: '0.7rem' }}>...</span>
+            ) : (
+              <Trash2 size={16} />
+            )}
+          </button>
+        </div>
+      ),
+    },
+  ], [deletingId, onEdit, tiendaUrl, toggleVisibility, deleteProduct]);
+
   if (loading) {
     return <ViewLoading variant="view" label="Productos" hideLabel />;
   }
@@ -243,166 +409,24 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
         </Button>
       </div>
 
-      <EnjTableShell caption="Catálogo de productos para la tienda">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th style={{ width: 60 }}>Img</th>
-              <th>Producto</th>
-              <th>Estado</th>
-              <th>Precio</th>
-              <th>Formato</th>
-              <th>Creado</th>
-              <th style={{ width: 120, textAlign: 'right' }}>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={7}
-                  style={{
-                    textAlign: 'center',
-                    padding: 'var(--space-2xl)',
-                    color: 'hsl(var(--muted-foreground))',
-                  }}
-                >
-                  <Package size={48} style={{ margin: '0 auto var(--space-md)', opacity: 0.3 }} />
-                  <div>No hay productos que coincidan con tu búsqueda</div>
-                </td>
-              </tr>
-            ) : (
-              filteredProducts.map((product) => (
-                <tr key={product.id}>
-                  <td>
-                    {product.fotos?.[0] ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={product.fotos[0]}
-                        alt={product.nombre || 'Producto'}
-                        style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 'var(--radius-sm)',
-                          objectFit: 'cover',
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: 48,
-                          height: 48,
-                          background: 'hsl(var(--foreground) / 0.05)',
-                          borderRadius: 'var(--radius-sm)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Package size={20} style={{ color: 'hsl(var(--muted-foreground))' }} />
-                      </div>
-                    )}
-                  </td>
-                  <td>
-                    <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))' }}>
-                      {product.nombre}
-                    </div>
-                    {product.slug && (
-                      <div
-                        style={{
-                          fontSize: '0.75rem',
-                          color: 'hsl(var(--muted-foreground))',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          marginTop: 2,
-                        }}
-                      >
-                        <ExternalLink size={10} />
-                        <a
-                          href={`${tiendaUrl}/producto/${product.slug}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{ color: 'inherit', textDecoration: 'none' }}
-                          className="hover:underline"
-                        >
-                          /producto/{product.slug}
-                        </a>
-                      </div>
-                    )}
-                  </td>
-                  <td>
-                    <span
-                      className={`badge ${product.visible ? 'badge-success' : 'badge-warning'}`}
-                      style={{ fontSize: '0.7rem' }}
-                    >
-                      {product.visible ? 'Visible' : 'Oculto'}
-                    </span>
-                  </td>
-                  <td style={{ fontWeight: 600 }} className="tabular-nums">
-                    {formatMoney(product.precio || 0)}
-                  </td>
-                  <td>
-                    <span style={{ fontSize: '0.85rem' }}>{product.formato}</span>
-                  </td>
-                  <td style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))' }}>
-                    {new Date(product.created_at || '').toLocaleDateString('es-CL')}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
-                      <button
-                        onClick={() => toggleVisibility(product.id, Boolean(product.visible))}
-                        className="btn btn-ghost btn-sm"
-                        title={product.visible ? 'Ocultar' : 'Publicar'}
-                        disabled={deletingId === product.id}
-                      >
-                        {product.visible ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                      <button
-                        onClick={() => onEdit?.(product)}
-                        className="btn btn-ghost btn-sm"
-                        title="Editar ficha"
-                        disabled={deletingId === product.id}
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <a
-                        href={product.slug ? `${tiendaUrl}/producto/${product.slug}` : '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-ghost btn-sm"
-                        title="Ver en tienda"
-                        style={{
-                          pointerEvents: product.slug ? 'auto' : 'none',
-                          opacity: product.slug ? 1 : 0.5,
-                        }}
-                      >
-                        <ExternalLink size={16} />
-                      </a>
-                      <button
-                        onClick={() => deleteProduct(product.id)}
-                        className="btn btn-ghost btn-sm"
-                        title="Eliminar"
-                        disabled={deletingId === product.id}
-                        style={{
-                          color: 'var(--text-error)',
-                          opacity: deletingId === product.id ? 0.5 : 1,
-                        }}
-                      >
-                        {deletingId === product.id ? (
-                          <span style={{ fontSize: '0.7rem' }}>...</span>
-                        ) : (
-                          <Trash2 size={16} />
-                        )}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </EnjTableShell>
+      <DataTable<Product>
+        columns={columns}
+        rows={filteredProducts}
+        getId={(p) => p.id}
+        sortable
+        exportable
+        columnsControl
+        storageKey="catalogo-productos"
+        fullscreen
+        fullscreenLabel="Catálogo de productos"
+        exportFilename="catalogo-productos"
+        emptyState={
+          <div style={{ textAlign: 'center' }}>
+            <Package size={48} style={{ margin: '0 auto var(--space-md)', opacity: 0.3 }} />
+            <div>No hay productos que coincidan con tu búsqueda</div>
+          </div>
+        }
+      />
 
       {filteredProducts.length > 0 && (
         <div

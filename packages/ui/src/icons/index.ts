@@ -4,35 +4,27 @@ export {
   ChevronUpIcon,
   ChevronRightIcon,
   ChevronLeftIcon,
-  ArrowRightIcon,
-  ArrowLeftIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-  
+
   // Actions
   SearchIcon,
-  PlusIcon,
   MinusIcon,
   XIcon,
   CheckIcon,
   CircleIcon,
   Loader2Icon,
-  ExternalLinkIcon,
-  LinkIcon,
-  CopyIcon,
   DownloadIcon,
-  
+
   // UI Elements
-  PanelLeftIcon,
-  GripVerticalIcon,
-  ImageIcon,
-  
+  Columns3Icon,
+  Rows3Icon,
+  Maximize2Icon,
+  Minimize2Icon,
+
   // Status & Feedback
   AlertCircleIcon,
   AlertTriangleIcon,
   InfoIcon,
   CheckCircleIcon,
-  XCircleIcon,
 } from 'lucide-react';
 
 export type { Icon as LucideIcon } from 'lucide-react';

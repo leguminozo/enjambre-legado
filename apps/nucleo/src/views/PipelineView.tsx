@@ -255,6 +255,12 @@ export function PipelineView() {
 
   const pendingTareas = dashboard?.tareas.filter((t) => t.estado === 'pendiente') ?? [];
 
+  // Foco de etapa: un chip aísla la columna del kanban (lógica de filtro rescatada)
+  const etapasVisibles =
+    selectedEtapa === 'all'
+      ? ETAPAS_PIPELINE
+      : ETAPAS_PIPELINE.filter((etapa) => etapa.key === selectedEtapa);
+
   return (
     <div className="space-y-6 animate-in">
       <ViewShell
@@ -297,10 +303,40 @@ export function PipelineView() {
         {isLoading ? (
           <ViewLoading variant="view" />
         ) : (
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin mt-4">
-              {ETAPAS_PIPELINE.map((etapa) => {
-                const leadsInEtapa = dashboard?.leads.filter((l) => l.etapa_pipeline === etapa.key) ?? [];
+          <>
+            {/* Filtro/foco de etapa: aísla una columna del kanban para trabajar en ella */}
+            <div className="flex gap-2 overflow-x-auto pb-1 mt-4 scrollbar-thin" role="group" aria-label="Filtrar por etapa">
+              <button
+                type="button"
+                onClick={() => setSelectedEtapa('all')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors shrink-0 ${
+                  selectedEtapa === 'all'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border text-muted-foreground hover:border-primary/50'
+                }`}
+              >
+                Todas las etapas
+              </button>
+              {ETAPAS_PIPELINE.map((etapa) => (
+                <button
+                  key={etapa.key}
+                  type="button"
+                  onClick={() => setSelectedEtapa(etapa.key)}
+                  aria-pressed={selectedEtapa === etapa.key}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors shrink-0 ${
+                    selectedEtapa === etapa.key
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border text-muted-foreground hover:border-primary/50'
+                  }`}
+                >
+                  {etapa.label}
+                </button>
+              ))}
+            </div>
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin mt-4">
+                {etapasVisibles.map((etapa) => {
+                  const leadsInEtapa = filteredLeads.filter((l) => l.etapa_pipeline === etapa.key) ?? [];
                 
                 return (
                   <div key={etapa.key} className="w-[85vw] sm:w-[320px] shrink-0 snap-center flex flex-col h-[500px]">
@@ -367,6 +403,7 @@ export function PipelineView() {
               })}
             </div>
           </DragDropContext>
+          </>
         )}
       </div>
 

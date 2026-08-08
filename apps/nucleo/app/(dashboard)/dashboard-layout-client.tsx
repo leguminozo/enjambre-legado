@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, X } from 'lucide-react';
+import { Search, X, Rows3, Maximize2, Minimize2 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { SidebarRail } from '@/components/layout/SidebarRail';
 import { LiquidBottomNav } from '@/components/layout/LiquidBottomNav';
 import { MobileNavSheet } from '@/components/layout/MobileNavSheet';
+import { ShellBarSensor } from '@/components/layout/ShellBarSensor';
+import { WorkspaceLayoutProvider, useWorkspaceLayout } from '@/providers/workspace-layout-provider';
 import {
   getAccountItemsForRole,
   getSidebarGroupsForRole,
@@ -17,30 +19,36 @@ import {
 } from '@/config/sidebar-config';
 import { NotificationBell } from '@enjambre/ui';
 import { createClient, isSupabaseConfigured, useAuthStore, useInAppNotifications } from '@enjambre/auth';
-import { useShellLayout } from '@/hooks/use-shell-layout';
 import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 
 export default function DashboardLayoutClient({ children }: { children: React.ReactNode }) {
-  const shellMode = useShellLayout();
+  return (
+    <WorkspaceLayoutProvider>
+      <ShellContent>{children}</ShellContent>
+    </WorkspaceLayoutProvider>
+  );
+}
+
+/** Shell del dashboard: consume el estado del área de trabajo y emite data-attributes
+ *  (data-sidebar-collapsed, data-density, data-focus) que el CSS del entorno consume. */
+function ShellContent({ children }: { children: React.ReactNode }) {
+  const {
+    shellMode,
+    sidebarCollapsed,
+    toggleSidebarCollapsed,
+    density,
+    toggleDensity,
+    focusMode,
+    toggleFocusMode,
+    drawerOpen,
+    openDrawer,
+    closeDrawer,
+    registerContentRef,
+  } = useWorkspaceLayout();
+
   const [navSheetOpen, setNavSheetOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
-  
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsDesktopCollapsed(localStorage.getItem('desktopSidebarCollapsed') === 'true');
-    }
-  }, []);
-
-  const toggleDesktopSidebar = () => {
-    setIsDesktopCollapsed(prev => {
-      const next = !prev;
-      localStorage.setItem('desktopSidebarCollapsed', String(next));
-      return next;
-    });
-  };
 
   const pathname = usePathname();
   const router = useRouter();
@@ -98,16 +106,32 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
   }, [searchOpen, searchQuery, searchResults, goToFirstResult, closeSearch]);
 
   return (
-    <div className={`app-layout app-layout--${shellMode}`}>
-      {shellMode === 'desktop' && !isDesktopCollapsed && (
-        <Sidebar onToggle={() => {}} isOpen variant="full" onCollapse={toggleDesktopSidebar} badges={badges} />
-      )}
-      
-      {shellMode === 'desktop' && isDesktopCollapsed && (
-        <SidebarRail onExpand={toggleDesktopSidebar} onOpenMenu={() => setNavSheetOpen(true)} badges={badges} />
+    <div
+      className={`app-layout app-layout--${shellMode}`}
+      data-sidebar-collapsed={sidebarCollapsed ? 'true' : 'false'}
+      data-density={density}
+      data-focus={focusMode ? 'true' : 'false'}
+    >
+      {shellMode === 'desktop' && !sidebarCollapsed && (
+        <Sidebar onToggle={() => {}} isOpen variant="full" onCollapse={toggleSidebarCollapsed} badges={badges} />
       )}
 
-      {shellMode === 'tablet' && <SidebarRail onOpenMenu={() => setNavSheetOpen(true)} badges={badges} />}
+      {shellMode === 'desktop' && sidebarCollapsed && (
+        <SidebarRail onExpand={toggleSidebarCollapsed} onOpenMenu={() => setNavSheetOpen(true)} badges={badges} />
+      )}
+
+      {shellMode === 'tablet' && (
+        <>
+          <SidebarRail onExpand={openDrawer} onOpenMenu={() => setNavSheetOpen(true)} badges={badges} />
+          <div
+            className="sidebar-drawer-backdrop"
+            data-open={drawerOpen ? 'true' : 'false'}
+            onClick={closeDrawer}
+            aria-hidden="true"
+          />
+          <Sidebar variant="drawer" isOpen={drawerOpen} onToggle={closeDrawer} badges={badges} />
+        </>
+      )}
 
       <main className="main-content">
         <header className="main-header">
@@ -126,6 +150,30 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
             )}
           </div>
           <div className="header-right relative flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              className="header-btn"
+              onClick={toggleDensity}
+              aria-label={density === 'compact' ? 'Cambiar a vista espaciosa' : 'Cambiar a vista compacta'}
+              aria-pressed={density === 'compact'}
+              title={density === 'compact' ? 'Vista compacta (más datos)' : 'Vista espaciosa'}
+            >
+              <Rows3 size={18} />
+            </button>
+
+            {shellMode !== 'mobile' && (
+              <button
+                type="button"
+                className="header-btn"
+                onClick={toggleFocusMode}
+                aria-label={focusMode ? 'Salir de modo foco' : 'Modo foco: usar todo el ancho disponible'}
+                aria-pressed={focusMode}
+                title={focusMode ? 'Salir de modo foco' : 'Modo foco'}
+              >
+                {focusMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+              </button>
+            )}
+
             <button
               className="header-btn"
               onClick={() => setSearchOpen(!searchOpen)}
@@ -220,6 +268,7 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
         </header>
 
         <div
+          ref={registerContentRef}
           className="page-content page-content--shell view-deep"
           onClick={() => setSearchOpen(false)}
         >
@@ -233,6 +282,7 @@ export default function DashboardLayoutClient({ children }: { children: React.Re
         menuOpen={navSheetOpen}
       />
       <MobileNavSheet open={navSheetOpen} onClose={() => setNavSheetOpen(false)} badges={badges} />
+      <ShellBarSensor />
     </div>
   );
 }

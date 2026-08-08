@@ -331,9 +331,30 @@ export function ProductForm({
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-foreground">
-              Imágenes del Producto
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label className="text-sm font-medium text-foreground">
+                Imágenes del Producto
+              </label>
+              {fotos.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(!showPreview)}
+                  aria-expanded={showPreview}
+                  className="inline-flex items-center gap-1.5 min-h-11 px-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                >
+                  <Eye size={14} />
+                  {showPreview ? 'Ocultar vista previa' : 'Vista previa'}
+                </button>
+              )}
+            </div>
+            {showPreview && fotos[0] && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={fotos[0]}
+                alt="Vista previa del producto"
+                className="w-full max-h-72 object-contain rounded-md border border-border bg-card"
+              />
+            )}
             <DragDropContext onDragEnd={onDragEnd}>
               <Droppable droppableId="fotos-droppable" direction="horizontal">
                 {(provided) => (

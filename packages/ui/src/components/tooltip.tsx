@@ -31,9 +31,9 @@ export function Tooltip({
             sideOffset={6}
             className={cn(
               "z-50 overflow-hidden rounded-md border border-border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md",
-              "data-[state=open]:animate-enj-fade-in data-[state=open]:animate-enj-zoom-in",
-              "data-[state=closed]:animate-enj-fade-out data-[state=closed]:animate-enj-zoom-out",
-              "data-[side=bottom]:animate-enj-slide-in-from-top data-[side=left]:animate-enj-slide-in-from-right data-[side=right]:animate-enj-slide-in-from-left data-[side=top]:animate-enj-slide-in-from-bottom",
+              "data-[state=open]:animate-fade-in data-[state=open]:animate-zoom-in",
+              "data-[state=closed]:animate-fade-out data-[state=closed]:animate-zoom-out",
+              "data-[side=bottom]:animate-slide-in-from-top data-[side=left]:animate-slide-in-from-right data-[side=right]:animate-slide-in-from-left data-[side=top]:animate-slide-in-from-bottom",
               className,
             )}
           >

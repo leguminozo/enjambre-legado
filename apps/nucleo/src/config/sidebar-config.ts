@@ -427,7 +427,6 @@ export const VIEW_SHELL_PATHS = new Set([
   '/produccion',
   '/alambique',
   '/despacho',
-  '/operaciones',
   '/comunidad',
   '/contable',
   '/sii',
@@ -436,7 +435,6 @@ export const VIEW_SHELL_PATHS = new Set([
   '/conciliacion',
   '/crm',
   '/pipeline',
-  '/perfil',
   '/configuracion',
   '/inicio',
   '/invitaciones',
@@ -549,10 +547,6 @@ export function findActiveItem(pathname: string): SidebarItem | undefined {
     .filter(item => item.href !== '/' && pathname.startsWith(item.href))
     .sort((a, b) => b.href.length - a.href.length)
   return matches[0]
-}
-
-export function getItemsByGroup(groupKey: string): SidebarItem[] {
-  return SIDEBAR_GROUPS.find(g => g.key === groupKey)?.items ?? []
 }
 
 export function getAllItems(): SidebarItem[] {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker, formatCLP } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker, formatCLP, DataTable, type ColumnDef } from '@enjambre/ui';
 import {
   Calendar, Package, ClipboardCheck, FileText, Loader2,
   Plus, Check, X, Users, Wallet, AlertTriangle,
@@ -17,7 +17,6 @@ import { useSearchParams } from 'next/navigation';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
-import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
 type Tab = 'contratos' | 'eventos' | 'consignacion' | 'arqueos' | 'ledger';
 
@@ -517,6 +516,59 @@ export function OperadoresFeriaPanel() {
     }
   };
 
+  // Columnas adaptativas del ledger: las secundarias se ocultan solas en espacio angosto
+  const ledgerColumns: ColumnDef<LedgerRow>[] = [
+    { key: 'created_at', header: 'Fecha', sortable: true, render: (row) => new Date(row.created_at).toLocaleDateString('es-CL'), csvValue: (row) => row.created_at },
+    { key: 'tipo', header: 'Tipo', sortable: true, render: (row) => row.tipo },
+    { key: 'monto', header: 'Monto', sortable: true, align: 'right', render: (row) => formatCLP(Number(row.monto)), csvValue: (row) => String(row.monto) },
+    { key: 'estado', header: 'Estado', sortable: true, render: (row) => row.estado },
+    { key: 'origen_tabla', header: 'Origen', sortable: true, hideBelow: 480, render: (row) => <span className="text-xs">{row.origen_tabla}</span>, csvValue: (row) => row.origen_tabla },
+  ];
+
+  const incentivoColumns: ColumnDef<IncentivoLedgerRow>[] = [
+    { key: 'created_at', header: 'Fecha', sortable: true, render: (row) => new Date(row.created_at).toLocaleDateString('es-CL'), csvValue: (row) => row.created_at },
+    { key: 'user_id', header: 'Operador', sortable: true, hideBelow: 420, render: (row) => <span className="text-xs">{operadorDisplayName(row.user_id)}</span>, csvValue: (row) => operadorDisplayName(row.user_id) },
+    { key: 'tipo', header: 'Tipo', sortable: true, render: (row) => row.tipo },
+    { key: 'monto', header: 'Monto', sortable: true, align: 'right', render: (row) => formatCLP(Number(row.monto)), csvValue: (row) => String(row.monto) },
+    { key: 'estado', header: 'Estado', sortable: true, render: (row) => row.estado },
+    {
+      key: 'sii',
+      header: 'SII',
+      hideBelow: 560,
+      render: (row) => {
+        const bridged = row.referencia_tabla === 'honorarios' && row.referencia_id;
+        return <span className="text-xs">{bridged ? 'En honorarios' : '—'}</span>;
+      },
+      csvValue: (row) => (row.referencia_tabla === 'honorarios' && row.referencia_id ? 'en honorarios' : ''),
+    },
+    {
+      key: 'acciones',
+      header: '',
+      align: 'right',
+      render: (row) => {
+        const bridged = row.referencia_tabla === 'honorarios' && row.referencia_id;
+        return (
+          <span className="space-x-1 whitespace-nowrap">
+            {row.estado === 'pendiente' && (
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => approveLedger(row.id)}>
+                Aprobar
+              </button>
+            )}
+            {row.estado === 'aprobado' && !bridged && (
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => openHonorarioModal(row)}
+              >
+                Preparar SII
+              </button>
+            )}
+          </span>
+        );
+      },
+    },
+  ];
+
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: 'contratos', label: 'Contratos', icon: <Users size={16} /> },
     { key: 'eventos', label: 'Eventos', icon: <Calendar size={16} /> },
@@ -794,90 +846,34 @@ export function OperadoresFeriaPanel() {
               onChange={(e) => setLedgerForm({ ...ledgerForm, monto: Number(e.target.value) })} />
             <button type="button" className="btn btn-primary btn-sm" onClick={registerHonorario}>Registrar (pendiente)</button>
           </div>
-          <EnjTableShell caption="Desliza horizontalmente para ver todas las columnas">
-            <table className="data-table text-sm w-full">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Tipo</th>
-                  <th>Monto</th>
-                  <th>Estado</th>
-                  <th>Origen</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ledger.map((row) => (
-                  <tr key={`${row.origen_tabla}-${row.id}`}>
-                    <td>{new Date(row.created_at).toLocaleDateString('es-CL')}</td>
-                    <td>{row.tipo}</td>
-                    <td>{formatCLP(Number(row.monto))}</td>
-                    <td>{row.estado}</td>
-                    <td className="text-xs">{row.origen_tabla}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </EnjTableShell>
+          <DataTable<LedgerRow>
+            columns={ledgerColumns}
+            rows={ledger}
+            getId={(row) => `${row.origen_tabla}-${row.id}`}
+            sortable
+            exportable
+            columnsControl
+            storageKey="feria-ledger"
+            caption="Ledger de incentivos — las columnas se adaptan al espacio disponible"
+            exportFilename="feria-ledger"
+          />
 
           <div className="border-t border-border pt-4 space-y-3">
             <h4 className="font-display text-sm">Honorarios feria → SII</h4>
             <p className="text-xs text-muted-foreground">
               Flujo: pendiente → aprobar → preparar honorario (retención F29). No emite DTE automáticamente.
             </p>
-            <EnjTableShell caption="Desliza horizontalmente para ver todas las columnas">
-              <table className="data-table text-sm w-full">
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Operador</th>
-                    <th>Tipo</th>
-                    <th>Monto</th>
-                    <th>Estado</th>
-                    <th>SII</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {incentivoLedger.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="text-center text-muted-foreground italic py-4">
-                        Sin registros en incentivo_ledger
-                      </td>
-                    </tr>
-                  ) : (
-                    incentivoLedger.map((row) => {
-                      const bridged = row.referencia_tabla === 'honorarios' && row.referencia_id;
-                      return (
-                        <tr key={row.id}>
-                          <td>{new Date(row.created_at).toLocaleDateString('es-CL')}</td>
-                          <td className="text-xs">{operadorDisplayName(row.user_id)}</td>
-                          <td>{row.tipo}</td>
-                          <td>{formatCLP(Number(row.monto))}</td>
-                          <td>{row.estado}</td>
-                          <td className="text-xs">{bridged ? 'En honorarios' : '—'}</td>
-                          <td className="space-x-1 whitespace-nowrap">
-                            {row.estado === 'pendiente' && (
-                              <button type="button" className="btn btn-ghost btn-sm" onClick={() => approveLedger(row.id)}>
-                                Aprobar
-                              </button>
-                            )}
-                            {row.estado === 'aprobado' && !bridged && (
-                              <button
-                                type="button"
-                                className="btn btn-outline btn-sm"
-                                onClick={() => openHonorarioModal(row)}
-                              >
-                                Preparar SII
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </EnjTableShell>
+            <DataTable<IncentivoLedgerRow>
+              columns={incentivoColumns}
+              rows={incentivoLedger}
+              getId={(row) => row.id}
+              sortable
+              exportable
+              columnsControl
+              storageKey="feria-incentivo-ledger"
+              exportFilename="feria-incentivo-ledger"
+              emptyState={<span className="italic text-muted-foreground">Sin registros en incentivo_ledger</span>}
+            />
           </div>
 
         </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Hexagon, ThermometerSun, Droplets, Warehouse } from 'lucide-react';
+import { Hexagon, ThermometerSun, Droplets, Warehouse, TreePine } from 'lucide-react';
 import type { ColmenaWithRelations } from '@/lib/apicultor-types';
 import type { Tables } from '@enjambre/database';
 import { ViewLoading } from '@enjambre/ui';
@@ -285,6 +285,11 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
               icon: <ThermometerSun size={20} />,
               val: tempPureo,
               label: 'Temp. Pureo ahora',
+            },
+            {
+              icon: <TreePine size={20} />,
+              val: treesCount,
+              label: 'Árboles nativos',
             },
           ].map((s, i) => (
             <div key={i} className={`stat-card animate-in delay-${i + 1}`}>

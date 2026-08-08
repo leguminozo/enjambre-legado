@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { resolveClienteCoords } from '@/lib/cliente-coords';
+import { MapResizeWatcher } from '@/components/map/MapResizeWatcher';
 
 export type EnvioMapPoint = {
   id: string;
@@ -109,6 +110,7 @@ export function MapaEnviosHistorico({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <MapResizeWatcher />
         <FitBounds points={plotted.map((p) => ({ lat: p.lat, lng: p.lng }))} />
         {plotted.map(({ envio, lat, lng }) => (
           <Marker key={envio.id} position={[lat, lng]} icon={markerIcon(envio.status)}>

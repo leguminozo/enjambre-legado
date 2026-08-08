@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
-import { LogOut, Settings, ChevronDown, PanelLeftClose } from 'lucide-react';
+import { LogOut, Settings, ChevronDown, PanelLeftClose, X } from 'lucide-react';
 import {
   getSidebarGroupsForRole,
   getAccountItemsForRole,
@@ -119,11 +119,22 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
       className={`sidebar sidebar--${variant} ${isOpen ? 'open' : ''}`}
       aria-label="Menú de navegación lateral"
       aria-hidden={variant === 'drawer' && !isOpen ? true : undefined}
+      inert={variant === 'drawer' && !isOpen ? true : undefined}
     >
       <Link href={getRoleRedirectPath(userRole, 'nucleo')} className="sidebar-brand" style={{ display: 'block', textDecoration: 'none' }} onClick={() => onToggle()}>
         <div className="sidebar-brand-title">Enjambre Legado</div>
         <div className="sidebar-brand-subtitle">Apicultura Regenerativa · Chiloé</div>
       </Link>
+      {variant === 'drawer' && (
+        <button
+          type="button"
+          className="sidebar-drawer-close"
+          onClick={onToggle}
+          aria-label="Cerrar menú"
+        >
+          <X size={18} />
+        </button>
+      )}
 
       <nav className="sidebar-nav" aria-label="Navegación principal">
         {sidebarGroups.map(group => (

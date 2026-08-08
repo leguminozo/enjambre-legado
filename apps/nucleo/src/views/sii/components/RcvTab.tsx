@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, CheckCircle2, Clock } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay, DataTable, type ColumnDef } from "@enjambre/ui";
 import { RcvSyncRow, RcvRegistroRow } from "../types";
-import { EnjTableShell } from "@/components/layout/EnjTableShell";
 
 export function RcvTab() {
   const queryClient = useQueryClient();
@@ -41,6 +40,37 @@ export function RcvTab() {
       queryClient.invalidateQueries({ queryKey: ["sii", "rcv", rcvPeriodo] });
     },
   });
+
+  // Columnas adaptativas: RUT/Neto/IVA se ocultan solas en espacio angosto
+  const rcvColumns = useMemo<ColumnDef<RcvRegistroRow>[]>(
+    () => [
+      { key: "tipo_dte", header: "Tipo", sortable: true, render: (r) => String(r.tipo_dte), csvValue: (r) => String(r.tipo_dte) },
+      { key: "folio", header: "Folio", sortable: true, render: (r) => <span className="font-mono">{r.folio}</span>, csvValue: (r) => String(r.folio) },
+      { key: "fecha_emision", header: "Fecha", sortable: true, render: (r) => new Date(r.fecha_emision).toLocaleDateString("es-CL"), csvValue: (r) => r.fecha_emision },
+      { key: "rut_contraparte", header: "RUT", sortable: true, hideBelow: 420, render: (r) => <span className="font-mono">{r.rut_contraparte}</span>, csvValue: (r) => r.rut_contraparte },
+      { key: "monto_neto", header: "Neto", sortable: true, align: "right", hideBelow: 560, render: (r) => <span className="font-mono">{formatCurrency(r.monto_neto)}</span>, csvValue: (r) => String(r.monto_neto) },
+      { key: "monto_iva", header: "IVA", sortable: true, align: "right", hideBelow: 480, render: (r) => <span className="font-mono">{formatCurrency(r.monto_iva)}</span>, csvValue: (r) => String(r.monto_iva) },
+      { key: "monto_total", header: "Total", sortable: true, align: "right", render: (r) => <span className="font-mono font-bold">{formatCurrency(r.monto_total)}</span>, csvValue: (r) => String(r.monto_total) },
+      {
+        key: "estado_rcv",
+        header: "Estado",
+        align: "center",
+        render: (r) => (
+          <span
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
+              r.reconciliado
+                ? "bg-primary/10 text-primary border-primary/20"
+                : "bg-surface-sunken text-muted-foreground border-border"
+            }`}
+          >
+            {r.reconciliado ? <CheckCircle2 size={14} /> : <Clock size={14} />} {r.estado_rcv}
+          </span>
+        ),
+        csvValue: (r) => r.estado_rcv,
+      },
+    ],
+    [],
+  );
 
   return (
     <Card>
@@ -114,51 +144,19 @@ export function RcvTab() {
                 </div>
 
                 {(rcvData.registros ?? []).length > 0 ? (
-                  <EnjTableShell>
-                    <table className="w-full text-sm text-left data-table">
-                      <thead className="bg-surface-sunken border-b border-border">
-                        <tr>
-                          <th className="px-4 py-3 font-medium text-muted-foreground">Tipo</th>
-                          <th className="px-4 py-3 font-medium text-muted-foreground">Folio</th>
-                          <th className="px-4 py-3 font-medium text-muted-foreground">Fecha</th>
-                          <th className="px-4 py-3 font-medium text-muted-foreground">RUT</th>
-                          <th className="px-4 py-3 font-medium text-muted-foreground text-right">Neto</th>
-                          <th className="px-4 py-3 font-medium text-muted-foreground text-right">IVA</th>
-                          <th className="px-4 py-3 font-medium text-muted-foreground text-right">Total</th>
-                          <th className="px-4 py-3 font-medium text-muted-foreground text-center">Estado</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {rcvData.registros.map((r) => (
-                          <tr key={r.id} className="hover:bg-surface-sunken/50 transition-colors">
-                            <td className="px-4 py-3 text-foreground">{r.tipo_dte}</td>
-                            <td className="px-4 py-3 font-mono text-foreground">{r.folio}</td>
-                            <td className="px-4 py-3 text-foreground">
-                              {new Date(r.fecha_emision).toLocaleDateString("es-CL")}
-                            </td>
-                            <td className="px-4 py-3 font-mono text-foreground">{r.rut_contraparte}</td>
-                            <td className="px-4 py-3 font-mono text-foreground text-right">{formatCurrency(r.monto_neto)}</td>
-                            <td className="px-4 py-3 font-mono text-foreground text-right">{formatCurrency(r.monto_iva)}</td>
-                            <td className="px-4 py-3 font-mono font-bold text-foreground text-right">
-                              {formatCurrency(r.monto_total)}
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              <span
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
-                                  r.reconciliado
-                                    ? "bg-primary/10 text-primary border-primary/20"
-                                    : "bg-surface-sunken text-muted-foreground border-border"
-                                }`}
-                              >
-                                {r.reconciliado ? <CheckCircle2 size={14} /> : <Clock size={14} />} 
-                                {r.estado_rcv}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </EnjTableShell>
+                  <DataTable<RcvRegistroRow>
+                    columns={rcvColumns}
+                    rows={rcvData.registros}
+                    getId={(r) => r.id}
+                    sortable
+                    exportable
+                    columnsControl
+                    storageKey="sii-rcv"
+                    fullscreen
+                    fullscreenLabel={`RCV compras ${rcvPeriodo}`}
+                    exportFilename={`sii-rcv-${rcvPeriodo}`}
+                    emptyState="Sin registros en este periodo"
+                  />
                 ) : (
                   <div className="py-8 text-center bg-surface-sunken rounded-xl border border-border">
                     <p className="text-sm text-muted-foreground">Sin registros en este periodo</p>

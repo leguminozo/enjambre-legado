@@ -6,6 +6,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card, CardContent, Badge, Switch, Label } from '@enjambre/ui';
 import { MapPin, Shield, Users, Eye } from 'lucide-react';
+import { MapResizeWatcher } from '@/components/map/MapResizeWatcher';
 
 // Fix Leaflet default icon issue
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -130,6 +131,7 @@ export function MapaTerritorial({ actores, alertas, apiariosExternos = [], apiar
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           />
+          <MapResizeWatcher />
 
           {/* Capa Comunitaria y Restringida: Mostrar alertas */}
           {(capaActiva === 'comunitaria' || capaActiva === 'restringida') && (

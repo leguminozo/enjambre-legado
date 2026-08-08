@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, type FormEvent } from "react";
+import React, { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Receipt,
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay, DatePicker } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay, DatePicker, PanelFocusToggle, type PanelFocus } from "@enjambre/ui";
 import {
   BandejaGastoRow,
   FiscalUploadResult,
@@ -399,12 +399,34 @@ export function BandejaFiscalTab() {
   const bandeja = bandejaQuery.data ?? [];
   const showRevision = !procesarResult && gastoParseado;
 
+  // Foco de panel (persistido por herramienta): maximizar Entrada o Cola
+  const [panelFocus, setPanelFocus] = useState<PanelFocus>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = localStorage.getItem("nucleo:focus-panels:bandeja-fiscal");
+    setPanelFocus(stored === "a" || stored === "b" ? stored : null);
+  }, []);
+  const handlePanelFocus = (focus: PanelFocus) => {
+    setPanelFocus(focus);
+    localStorage.setItem("nucleo:focus-panels:bandeja-fiscal", focus ?? "");
+  };
+
   return (
     <div
       data-testid="bandeja-fiscal"
       className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]"
     >
-      <Card>
+      <div className="lg:col-span-2 flex items-center justify-end">
+        <PanelFocusToggle
+          aKey="entrada"
+          bKey="cola"
+          aLabel="Entrada"
+          bLabel="Cola"
+          focus={panelFocus}
+          onFocusChange={handlePanelFocus}
+        />
+      </div>
+      <Card className={panelFocus === "b" ? "hidden lg:hidden" : ""}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Inbox size={18} /> Bandeja Fiscal — Entrada
@@ -648,7 +670,7 @@ export function BandejaFiscalTab() {
         </CardContent>
       </Card>
 
-      <Card data-testid="bandeja-cola">
+      <Card data-testid="bandeja-cola" className={panelFocus === "a" ? "hidden lg:hidden" : ""}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Receipt size={18} /> Cola de documentos

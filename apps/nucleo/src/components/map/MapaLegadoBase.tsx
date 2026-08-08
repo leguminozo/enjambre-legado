@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, useMap, useMa
 import type { Map } from 'leaflet';
 import { supabase } from '../../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { MapResizeWatcher } from '@/components/map/MapResizeWatcher';
 import L from 'leaflet';
 import { BOSQUE_ULMO, ORO_MIEL, ORO_MIEL_DARK, SALUD_OPTIMA } from '@/lib/colors';
 import 'leaflet/dist/leaflet.css';
@@ -970,6 +971,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
                     <FitBounds markers={filteredMarkers} />
+                    <MapResizeWatcher />
                     {isEditMode && <MapClickHandler onMapClick={handleMapClick} />}
                     {filteredMarkers.map((marker) => (
                         <Marker
