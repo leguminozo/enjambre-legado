@@ -8,6 +8,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from '@enjambre/ui';
 import { safeReturnPath } from '@/lib/auth/safe-return-path';
+import { createClient } from '@/utils/supabase/client';
+import { logSecurityEvent } from '@enjambre/auth';
 
 export function RegisterForm() {
   const [email, setEmail] = useState('');
@@ -40,6 +42,19 @@ export function RegisterForm() {
 
     const result = await register(email, password, fullName, referrerId);
     if (result.success) {
+      try {
+        const supabase = createClient();
+        if (supabase) {
+          await logSecurityEvent(supabase, {
+            eventType: 'signup_success',
+            email: email.trim(),
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+            appSource: 'tienda',
+          });
+        }
+      } catch (err) {
+        console.error('[register] failed to log security event:', err);
+      }
       sessionStorage.removeItem('oyz_ref');
       const referralNote = referrerId ? ' Tu invitación quedó vinculada a la colmena.' : '';
       toast(`¡Bienvenido al Legado! Revisa tu correo para confirmar tu cuenta.${referralNote}`, {

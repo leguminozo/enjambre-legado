@@ -284,6 +284,16 @@ export function LoginForm() {
 
     const result = await login(email, password);
     if (result.success) {
+      try {
+        await logSecurityEvent(supabase, {
+          eventType: 'login_success',
+          email: email.trim(),
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+          appSource: 'tienda',
+        });
+      } catch (err) {
+        console.error('[login] failed to log security event:', err);
+      }
       toast('Sesión iniciada. Bienvenido de vuelta.', { type: 'success', duration: 4000 });
       saveAccountToStorage(email, selectedAccount?.name || email.split('@')[0], user?.role);
       setLoading(false);
@@ -296,6 +306,17 @@ export function LoginForm() {
       }
     } else {
       const msg = result.message || 'Error al iniciar sesión';
+      try {
+        await logSecurityEvent(supabase, {
+          eventType: 'login_failed',
+          email: email.trim(),
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+          appSource: 'tienda',
+          details: { message: msg },
+        });
+      } catch (err) {
+        console.error('[login] failed to log security event:', err);
+      }
       setError(msg);
       toast(msg, { type: 'error', duration: 6000 });
       setLoading(false);

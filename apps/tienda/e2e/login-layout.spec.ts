@@ -33,7 +33,7 @@ test.describe('login viewport móvil (iPhone 7 375x667)', () => {
 
     expect(m).not.toBeNull();
     // El min-height aplica (antes del fix: 0px → layout colapsado).
-    expect(parseFloat(m!.mainMinHeight)).toBeGreaterThanOrEqual(m!.viewport);
+    expect(parseFloat(m!.mainMinHeight ?? '0')).toBeGreaterThanOrEqual(m!.viewport);
     expect(m!.mainHeight).toBeGreaterThanOrEqual(m!.viewport);
     // Debe existir al menos un botón de acceso visible en el viewport.
     expect(m!.buttons.some((b) => b.inViewport)).toBe(true);

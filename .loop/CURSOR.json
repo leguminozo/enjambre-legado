@@ -1,13 +1,13 @@
 {
-  "index": 2,
-  "pass": 114,
-  "last_sector": "editor-cms-tienda",
-  "last_commit": "651372a",
+  "index": 3,
+  "pass": 115,
+  "last_sector": "auth-login-recovery",
+  "last_commit": "533c0c7",
   "streak_clean": 0,
   "boost": {
     "editor-cms-tienda": 0,
     "nav-home-roles": 0
   },
   "phase": "v1.4-polish-layers",
-  "notes": "pass113 editor-cms: CMS without tenant; revalidate timing-safe secret. Siguiente: auth-login-recovery (#2)."
+  "notes": "pass115 tienda auth↔supabase: security events login/register tienda, DEFAULT profiles.role cliente, realtime notification_events publicada + índice. Siguiente: tienda-commerce (#3)."
 }

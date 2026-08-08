@@ -31,7 +31,9 @@
 |------------|----------------|--------|
 | Editor CMS tienda | pass100 revalidate/admin/legales + hero/footer legacy fuera; pass113 CMS sin tenant (site_content global); revalidate secret timing-safe; error UX 403 | ✅ editor usable sin empresa |
 | Home / Alma | pass101 home por rol; pass112 shell `?? admin`→resolveShellRoleKey least-privilege; ROLE_VISIBLE `all` vs allowlist; alma/ejecutivo +territorial | ✅ nav; ⏳ residual WIP Ecosistema delete |
-| Auth multi-app | pass102: nucleo friendlyError; campo OAuth redirectTo /login; recovery checkUser/role path; tienda reset min6 + friendly | ✅ regresión recovery; ⏳ residual auth/callback formal en nucleo/campo |
+| Auth multi-app | pass102 friendlyError/OAuth/recovery; pass115 security events login_success/login_failed/signup_success en tienda (contrato AGENTS.md) | ✅ regresión recovery + eventos security tienda; ⏳ residual auth/callback formal en nucleo/campo |
+| Realtime notificaciones | pass115: notification_events suscrita vía postgres_changes pero nunca publicada → campana sin eventos en vivo (misma clase 20260804000000) | ✅ publicada + índice (created_by, created_at desc) |
+| Profiles role default | pass115: DEFAULT 'admin' (mig 20260802100000) → least privilege 'cliente' | ✅ mig 20260808000000 |
 | Territorial | pass106: POST actores persiste censo legal; BFF requireProfileRole(territorial|admin) sin exigir empresa; PATCH actores/apiarios ownership explícito | ✅ inscripción/censo; ⏳ mapa comunidad actores (RLS solo own) |
 | Colmenas + bitácora | pass107: PATCH captura acepta audio_url (offline); upload already-exists reusa path; requireProfileRole(admin); ownership PATCH | ✅ voz/sync audio; ⏳ cuaderno WIP no mergeado |
 | Fenología + traza | pass108: fenologia auth+requireProfileRole(admin\|territorial) sin tenant; esAdmin=profileRole; tienda traza page/PDP section sin exigir solo blockchain_hash | ✅ oráculo territorial + traza origen; ⏳ firma on-chain e2e |
@@ -68,6 +70,14 @@
 ---
 
 ## Evolución del prompt
+
+### Evo 2026-08-08 pass 115 (auth-login-recovery / tienda-commerce)
+- Señal: auditoría tienda↔Supabase — login/register de tienda no logueaban login_success/login_failed/signup_success (solo password_reset_requested) pese al contrato AGENTS.md (campo/núcleo sí); `profiles.role DEFAULT 'admin'` (mig 20260802100000) privilegia por defecto; `notification_events` suscrita vía postgres_changes (useInAppNotifications) pero **nunca publicada** en supabase_realtime → campana de notificaciones (tienda header/sidebar, nucleo, campo) sin eventos en vivo; error TS preexistente en e2e/login-layout.spec.ts
+- Compuesto: colapsar + fail-closed + entrelazado tienda↔supabase (security/realtime)
+- Regla nueva: login page tienda loguea login_success/login_failed/signup_success (patrón campo/núcleo); DEFAULT profiles.role = 'cliente' (least privilege; trigger sigue asignando rol explícito); toda tabla suscrita postgres_changes debe estar en publicación realtime (audit: 12 suscritas / 12 publicadas)
+- Anti-patrón: evento security solo en reset; DEFAULT 'admin' en columna de rol; postgres_changes sin ADD TABLE a supabase_realtime
+- Guardriel: intacto (RLS security_events anon pre-auth verificada: login_failed/password_reset_requested/signup_success; policies propias verificadas; audit suscripciones completo)
+- DEFER: DEFAULT_SAVED_ACCOUNTS con email founder visible en login tienda (demo scaffolding, ASK_HUMAN si se limpia); get_ecosystem_metrics SECURITY INVOKER → métricas anon pueden dar 0 (verificar en prod); auth/callback formal nucleo/campo (anotado pass 102/111)
 
 ### Evo 2026-08-04 pass 113 (editor-cms-tienda)
 - Señal: cmsRoutes exigía tenantMiddleware + usuarios_empresas aunque site_content no tiene empresa_id → admin sin membership 403 y editor vacío/roto; revalidate secret con `===` timing-leaky; load CMS error genérico
