@@ -13,6 +13,9 @@ import {
   GripVertical,
   ChevronDown,
   ChevronLeft,
+  ChevronRight,
+  Blocks,
+  SlidersHorizontal,
   Eye,
   EyeOff,
   ExternalLink,
@@ -121,6 +124,83 @@ const SECTION_GROUPS: { id: SectionGroupId; label: string }[] = [
   { id: 'contenido', label: 'Contenido' },
   { id: 'legal', label: 'Legal' },
 ];
+
+// ── Segmentación del editor: categorías → lista → herramienta ──────────────
+
+type EditorCategoryId = 'bloques' | 'diseno' | 'otras';
+
+const EDITOR_CATEGORIES: {
+  id: EditorCategoryId;
+  label: string;
+  desc: string;
+  icon: SectionIcon;
+}[] = [
+  {
+    id: 'bloques',
+    label: 'Bloques',
+    desc: 'Contenido visible en la tienda: home, colecciones, páginas',
+    icon: Blocks,
+  },
+  {
+    id: 'diseno',
+    label: 'Diseño',
+    desc: 'Tema, tipografía, marca, menú, banners y pie',
+    icon: Palette,
+  },
+  {
+    id: 'otras',
+    label: 'Otras formas',
+    desc: 'SEO, temporada, contacto y legales',
+    icon: SlidersHorizontal,
+  },
+];
+
+/** Cada sección en UNA sola categoría (sin duplicados). Fallback: 'otras'. */
+const SECTION_CATEGORY: Record<string, EditorCategoryId> = {
+  // Bloques — contenido visible
+  conservation_content: 'bloques',
+  media_items: 'bloques',
+  video_settings: 'bloques',
+  map_settings: 'bloques',
+  products_settings: 'bloques',
+  landing_layout: 'bloques',
+  colecciones: 'bloques',
+  servicios: 'bloques',
+  talleres: 'bloques',
+  nosotros: 'bloques',
+  galeria: 'bloques',
+  contacto: 'bloques',
+  // Diseño — apariencia y chrome
+  theme_settings: 'diseno',
+  typography_settings: 'diseno',
+  brand_assets: 'diseno',
+  menu_settings: 'diseno',
+  menu_links: 'diseno',
+  announcement_settings: 'diseno',
+  announcement_slides: 'diseno',
+  campaign_banners: 'diseno',
+  footer_settings: 'diseno',
+  footer_social: 'diseno',
+  pwa_nav_settings: 'diseno',
+  pwa_nav_items: 'diseno',
+  catalog_settings: 'diseno',
+  pdp_settings: 'diseno',
+  // Otras formas — config, temporada y legales
+  seo_defaults: 'otras',
+  contact_settings: 'otras',
+  seasonal_settings: 'otras',
+  legal_terminos: 'otras',
+  legal_privacidad: 'otras',
+  legal_cookies: 'otras',
+  legal_envio: 'otras',
+  legal_reembolso: 'otras',
+  legal_cancelacion: 'otras',
+  legal_garantia: 'otras',
+};
+
+function sectionCategory(key: string): EditorCategoryId {
+  return SECTION_CATEGORY[key] ?? 'otras';
+}
 
 /** Meta estilo theme customizer (Shopify): icono + label + grupo */
 const SECTION_META: Record<
@@ -966,11 +1046,13 @@ function EditableItemCard({
 interface SectionNavProps {
   sectionKeys: string[];
   activeSection: string;
+  /** Segmentación: solo secciones de esta categoría (bloques/diseño/otras). */
+  category: EditorCategoryId;
   onSelect: (key: string) => void;
   itemCounts?: Record<string, number>;
 }
 
-function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: SectionNavProps) {
+function SectionNav({ sectionKeys, activeSection, category, onSelect, itemCounts = {} }: SectionNavProps) {
   const [query, setQuery] = useState('');
   const q = query.trim().toLowerCase();
 
@@ -984,7 +1066,10 @@ function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: S
     );
   };
 
-  const keySet = useMemo(() => new Set(sectionKeys.filter(matches)), [sectionKeys, q]); // eslint-disable-line react-hooks/exhaustive-deps
+  const keySet = useMemo(
+    () => new Set(sectionKeys.filter((k) => matches(k) && sectionCategory(k) === category)),
+    [sectionKeys, q, category], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   const grouped = useMemo(() => {
     return SECTION_GROUPS.map((g) => ({
@@ -995,11 +1080,20 @@ function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: S
 
   // Secciones desconocidas (no en meta/order) al final
   const orphanKeys = useMemo(
-    () => sectionKeys.filter((k) => !SECTION_ORDER.includes(k as (typeof SECTION_ORDER)[number]) && matches(k)),
-    [sectionKeys, q], // eslint-disable-line react-hooks/exhaustive-deps
+    () =>
+      sectionKeys.filter(
+        (k) =>
+          !SECTION_ORDER.includes(k as (typeof SECTION_ORDER)[number]) &&
+          matches(k) &&
+          sectionCategory(k) === category,
+      ),
+    [sectionKeys, q, category], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  const filteredKeys = useMemo(() => sectionKeys.filter(matches), [sectionKeys, q]); // eslint-disable-line react-hooks/exhaustive-deps
+  const filteredKeys = useMemo(
+    () => sectionKeys.filter((k) => matches(k) && sectionCategory(k) === category),
+    [sectionKeys, q, category], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   return (
     <div className="flex flex-col gap-3 min-h-0">
@@ -1118,11 +1212,11 @@ function SectionNav({ sectionKeys, activeSection, onSelect, itemCounts = {} }: S
                         }`}
                         title={
                           SETTINGS_SECTION_KEYS.has(key)
-                            ? 'Configurado'
+                            ? 'Formulario de ajustes'
                             : `${count} elemento${count === 1 ? '' : 's'}`
                         }
                       >
-                        {SETTINGS_SECTION_KEYS.has(key) ? '●' : count}
+                        {SETTINGS_SECTION_KEYS.has(key) ? 'Ajustes' : count}
                       </span>
                     ) : (
                       <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-border" title="Vacío" />
@@ -1198,11 +1292,33 @@ function MenuSettingsEditor({ item, onUpdate, onImageUpload }: MenuSettingsEdito
 
 // ── ItemsPanel ─────────────────────────────────────────────────────────────
 
+/** Error de carga del CMS: panel explícito + reintento (sin paneles vacíos). */
+function CmsLoadError({ message, onRetry }: { message: string | null; onRetry: () => void }) {
+  return (
+    <div className="flex-1 overflow-y-auto p-4 md:p-6">
+      <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-6 text-center space-y-3">
+        <p className="text-sm font-medium text-foreground">No se pudo cargar el contenido CMS</p>
+        <p className="text-xs text-muted-foreground break-words">
+          {message || 'Error de red o sesión. Reintentá o volvé a iniciar sesión.'}
+        </p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="inline-flex min-h-11 items-center justify-center px-4 rounded-lg text-sm font-medium bg-accent text-accent-foreground hover:bg-accent/90"
+        >
+          Reintentar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 interface ItemsPanelProps {
   items: CMSContentItem[];
   activeSection: string;
-  /** Drill-down: botón "← Bloques" en la cabecera (menú centralizado). */
+  /** Drill-down: botón "← {backLabel}" en la cabecera (menú centralizado). */
   onBack?: () => void;
+  backLabel?: string;
   onUpdate: (
     id: string,
     content: Record<string, unknown>,
@@ -1219,6 +1335,7 @@ function ItemsPanel({
   items,
   activeSection,
   onBack,
+  backLabel = 'Bloques',
   onUpdate,
   onDelete,
   onImageUpload,
@@ -1274,7 +1391,7 @@ function ItemsPanel({
               className="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground hover:border-accent/50 transition-colors text-xs font-medium min-h-11"
             >
               <ChevronLeft size={14} />
-              Bloques
+              {backLabel}
             </button>
           ) : null}
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-accent shadow-sm">
@@ -1420,8 +1537,10 @@ function EditorTiendaViewInner() {
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [showNewForm, setShowNewForm] = useState(false);
   const [modalUploading, setModalUploading] = useState<string | null>(null);
-  /** Menú centralizado: 'blocks' = lista de bloques; 'tool' = herramienta desplegada sobre el menú. */
-  const [navDrill, setNavDrill] = useState<'blocks' | 'tool'>('blocks');
+  /** Menú centralizado con segmentación: categorías → lista → herramienta. */
+  const [navDrill, setNavDrill] = useState<'categories' | 'list' | 'tool'>('categories');
+  const [activeCategory, setActiveCategory] = useState<EditorCategoryId>('bloques');
+  const [globalQuery, setGlobalQuery] = useState('');
   const [previewPath, setPreviewPath] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -1690,25 +1809,160 @@ function EditorTiendaViewInner() {
       {/* ── Body ── */}
       <div className="flex-1 flex overflow-hidden min-h-0">
 
-        {/* Left sidebar / Editor area — menú centralizado con drill-down:
-            los bloques se listan solos; al elegir uno se despliega la
-            herramienta sobre el menú (volver arriba-izquierda). */}
+        {/* Left sidebar / Editor area — menú segmentado con drill-down:
+            categorías (Bloques/Diseño/Otras formas) → lista de la categoría
+            → herramienta; cada nivel con volver arriba-izquierda. */}
         <div className={`flex-col w-full md:w-80 lg:w-[28rem] shrink-0 border-r border-border/50 bg-surface-sunken/30 overflow-hidden ${mobileTab === 'editor' ? 'flex' : 'flex max-md:hidden'}`}>
-          {navDrill === 'blocks' ? (
-            <>
-              {/* Section selector — bloques con iconos */}
-              <div className="flex flex-col min-h-0 p-3 md:p-4 border-b border-border bg-surface">
-                <div className="hidden md:flex items-center justify-between px-2 mb-3">
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Bloques de la tienda
-                  </p>
-                  <span className="text-[10px] tabular-nums text-muted-foreground">
-                    {sectionKeys.length}
-                  </span>
+          {navDrill === 'categories' ? (
+            <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-3">
+              <div className="px-1 mb-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Editor de tienda
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Elegí una categoría — cada bloque se edita desde su herramienta.
+                </p>
+              </div>
+
+              {/* Búsqueda global: encuentra bloques de cualquier categoría */}
+              <div className="relative">
+                <Search
+                  size={13}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                />
+                <input
+                  id="editor-global-search"
+                  name="editor-global-search"
+                  type="text"
+                  autoComplete="off"
+                  aria-label="Buscar bloque en toda la tienda"
+                  value={globalQuery}
+                  onChange={(e) => setGlobalQuery(e.target.value)}
+                  placeholder="Buscar en toda la tienda…"
+                  className="w-full bg-background border border-border rounded-lg pl-8 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </div>
+
+              {globalQuery.trim() ? (
+                <div className="space-y-1.5">
+                  {sectionKeys
+                    .filter((k) => {
+                      const meta = getSectionMeta(k);
+                      const q = globalQuery.trim().toLowerCase();
+                      return (
+                        meta.label.toLowerCase().includes(q) ||
+                        meta.short.toLowerCase().includes(q) ||
+                        (meta.hint ?? '').toLowerCase().includes(q)
+                      );
+                    })
+                    .map((k) => {
+                      const meta = getSectionMeta(k);
+                      const Icon = meta.icon;
+                      const cat = EDITOR_CATEGORIES.find((c) => c.id === sectionCategory(k));
+                      return (
+                        <button
+                          key={k}
+                          type="button"
+                          onClick={() => {
+                            setActiveCategory(sectionCategory(k));
+                            setGlobalQuery('');
+                            setActiveSection(k);
+                            setNavDrill('tool');
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all hover:bg-surface-raised/60"
+                        >
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground">
+                            <Icon size={15} strokeWidth={2} />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[13px] font-medium text-foreground truncate">
+                              {meta.label}
+                            </span>
+                            <span className="block text-[10px] text-muted-foreground truncate">
+                              {cat?.label ?? ''}
+                            </span>
+                          </span>
+                          <ChevronRight size={14} className="shrink-0 text-muted-foreground" />
+                        </button>
+                      );
+                    })}
+                  {sectionKeys.filter((k) => {
+                    const meta = getSectionMeta(k);
+                    const q = globalQuery.trim().toLowerCase();
+                    return (
+                      meta.label.toLowerCase().includes(q) ||
+                      meta.short.toLowerCase().includes(q) ||
+                      (meta.hint ?? '').toLowerCase().includes(q)
+                    );
+                  }).length === 0 ? (
+                    <p className="text-xs text-muted-foreground px-1 py-2">
+                      Sin resultados para “{globalQuery.trim()}”
+                    </p>
+                  ) : null}
                 </div>
+              ) : (
+                EDITOR_CATEGORIES.map((cat) => {
+                  const Icon = cat.icon;
+                  const catSections = sectionKeys.filter((k) => sectionCategory(k) === cat.id);
+                  const catItems = catSections.reduce(
+                    (acc, k) => acc + (groupedData[k] ?? []).length,
+                    0,
+                  );
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveCategory(cat.id);
+                        setNavDrill('list');
+                      }}
+                      className="w-full flex items-center gap-3 p-4 rounded-xl border border-border bg-surface/60 hover:border-accent/40 hover:bg-surface-raised/40 transition-all text-left"
+                    >
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent border border-accent/20">
+                        <Icon size={20} strokeWidth={1.75} />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-bold text-foreground">{cat.label}</span>
+                        <span className="block text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                          {cat.desc}
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-[10px] font-medium tabular-nums px-2 py-1 rounded-md bg-background border border-border text-muted-foreground">
+                        {catSections.length} · {catItems} ítems
+                      </span>
+                      <ChevronRight size={15} className="shrink-0 text-muted-foreground" />
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          ) : navDrill === 'list' ? (
+            <>
+              {/* Lista de la categoría — volver a categorías */}
+              <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border bg-surface shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setNavDrill('categories')}
+                  aria-label="Volver a categorías"
+                  className="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground hover:border-accent/50 transition-colors text-xs font-medium min-h-11"
+                >
+                  <ChevronLeft size={14} />
+                  Categorías
+                </button>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-foreground truncate">
+                    {EDITOR_CATEGORIES.find((c) => c.id === activeCategory)?.label}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {EDITOR_CATEGORIES.find((c) => c.id === activeCategory)?.desc}
+                  </p>
+                </div>
+              </div>
+              <div className="p-3 md:p-4 border-b border-border bg-surface">
                 <SectionNav
                   sectionKeys={sectionKeys}
                   activeSection={activeSection}
+                  category={activeCategory}
                   onSelect={(k) => {
                     setActiveSection(k);
                     setNavDrill('tool');
@@ -1719,55 +1973,33 @@ function EditorTiendaViewInner() {
                 />
               </div>
 
-              {/* Load failure: empty panels look like CMS vacío — error explícito + retry */}
               {cms.error && !cms.isLoading ? (
-                <div className="flex-1 overflow-y-auto p-4 md:p-6">
-                  <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-6 text-center space-y-3">
-                    <p className="text-sm font-medium text-foreground">No se pudo cargar el contenido CMS</p>
-                    <p className="text-xs text-muted-foreground break-words">
-                      {cms.error.message || 'Error de red o sesión. Reintentá o volvé a iniciar sesión.'}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => void cms.refetch()}
-                      className="inline-flex min-h-11 items-center justify-center px-4 rounded-lg text-sm font-medium bg-accent text-accent-foreground hover:bg-accent/90"
-                    >
-                      Reintentar
-                    </button>
-                  </div>
-                </div>
+                <CmsLoadError
+                  message={cms.error.message}
+                  onRetry={() => void cms.refetch()}
+                />
               ) : null}
             </>
           ) : (
             <>
               {cms.error && !cms.isLoading ? (
-                <div className="flex-1 overflow-y-auto p-4 md:p-6">
-                  <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-6 text-center space-y-3">
-                    <p className="text-sm font-medium text-foreground">No se pudo cargar el contenido CMS</p>
-                    <p className="text-xs text-muted-foreground break-words">
-                      {cms.error.message || 'Error de red o sesión. Reintentá o volvé a iniciar sesión.'}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => void cms.refetch()}
-                      className="inline-flex min-h-11 items-center justify-center px-4 rounded-lg text-sm font-medium bg-accent text-accent-foreground hover:bg-accent/90"
-                    >
-                      Reintentar
-                    </button>
-                  </div>
-                </div>
+                <CmsLoadError
+                  message={cms.error.message}
+                  onRetry={() => void cms.refetch()}
+                />
               ) : (
                 <ItemsPanel
                   items={currentItems}
                   activeSection={activeSection}
-                  onBack={() => setNavDrill('blocks')}
+                  onBack={() => setNavDrill('list')}
+                  backLabel={EDITOR_CATEGORIES.find((c) => c.id === activeCategory)?.label ?? 'Bloques'}
                   onUpdate={handleUpdateItem}
                   onDelete={handleDeleteItem}
-              onImageUpload={handleImageUpload}
-              onAddNew={() => setShowNewForm(true)}
-              onReorder={handleReorder}
-              isDeleting={cms.deleteItem.isPending}
-            />
+                  onImageUpload={handleImageUpload}
+                  onAddNew={() => setShowNewForm(true)}
+                  onReorder={handleReorder}
+                  isDeleting={cms.deleteItem.isPending}
+                />
               )}
             </>
           )}
