@@ -448,6 +448,8 @@ export const VIEW_SHELL_PATHS = new Set([
   '/mapa',
   '/territorio',
   '/registro-territorial',
+  '/declaracion-sag',
+  '/planes-territoriales',
   '/reglas-comision',
   '/fenologia',
   '/creadores',
@@ -457,6 +459,8 @@ export const VIEW_SHELL_PATHS = new Set([
 const ROUTE_ITEM_ALIASES: Record<string, string> = {
   '/territorio': 'territorio',
   '/registro-territorial': 'territorio',
+  '/declaracion-sag': 'territorio',
+  '/planes-territoriales': 'territorio',
   // Bookmarks legacy → herramienta canónica
   '/colmenas/trazabilidad': 'lotes',
   '/colmenas/apiarios': 'colmenas',

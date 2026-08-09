@@ -35,6 +35,9 @@ interface ApiarioExterno {
   zona_destino: string;
   estado: string;
   fecha_ingreso: string;
+  distancia_verificada?: boolean;
+  distancia_minima_km?: number | null;
+  distancia_km_menor?: number | null;
 }
 
 export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: TerritorioUsuarioPanelProps) {
@@ -157,6 +160,11 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
                     {a.estado}
                   </span>
                 </div>
+                {a.estado === 'suspendido' && (
+                  <span className="badge px-2 py-0.5 rounded-md text-[10px] font-bold uppercase badge-warning">
+                    Pendiente de revisión (distancia legal)
+                  </span>
+                )}
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p>📍 {a.comuna_destino} — {a.zona_destino}</p>
                   <p>🐝 {a.n_colmenas} Colmenas</p>

@@ -2,28 +2,34 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { HexagonLoader } from '@enjambre/ui';
-import { QrCode, ScanLine, Package, MapPin, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { QrCode, ScanLine, Package, MapPin, Clock, CheckCircle2, AlertCircle, ShieldCheck, ShieldAlert, ExternalLink } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { QrCameraScanner } from '@/components/shop/qr-camera-scanner';
+import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 
 type AuditEvent = {
-  id: string;
   evento: string;
   ubicacion: string | null;
   created_at: string;
   metadata: Record<string, unknown>;
+  hash: string | null;
+  valido: boolean;
 };
 
 type QRData = {
   codigo: string;
-  producto: string;
-  lote: string;
-  apiario: string | null;
-  cosecha: string | null;
   fecha_produccion: string;
-  audit_trail: AuditEvent[];
+  lote_id: string | null;
+  producto: { id: string; nombre: string } | null;
+  apiario: { id: string; nombre: string } | null;
+  integridad: {
+    es_valido: boolean;
+    eventos_verificados: number;
+    total_eventos: number;
+  };
+  eventos: AuditEvent[];
 };
 
 export default function QRScanPage() {
@@ -34,50 +40,54 @@ export default function QRScanPage() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleScan = useCallback(async (code: string) => {
-    if (!code.trim()) return;
+    const raw = code.trim();
+    if (!raw) return;
+
+    // Los QRs pueden ser URLs: el pasaporte de nucleo (/lote/:id) o el PDP de la
+    // tienda (/producto/:slug). Resolver redirigiendo al destino correcto.
+    try {
+      const url = new URL(raw);
+      const loteMatch = raw.match(/\/lote\/([0-9a-f-]{36})/i);
+      if (loteMatch) {
+        const nucleo = getNucleoApiUrl();
+        if (nucleo) {
+          window.location.href = `${nucleo}/lote/${loteMatch[1]}`;
+          return;
+        }
+      }
+      const productoMatch = raw.match(/\/producto\/([^/?#]+)/);
+      if (productoMatch) {
+        window.location.href = `/producto/${productoMatch[1]}`;
+        return;
+      }
+      if (url.origin === window.location.origin) {
+        window.location.href = url.pathname;
+        return;
+      }
+    } catch {
+      // No es una URL: es un código plano.
+    }
 
     setLoading(true);
     setError(null);
     setQrData(null);
 
     try {
-      const { createClient } = await import('@/utils/supabase/client');
-      const supabase = createClient();
-
-      // Buscar QR code
-      const { data: qrData, error: qrError } = await supabase
-        .from('qr_codes')
-        .select(`
-          *,
-          producto:productos(nombre),
-          apiario:apiarios(nombre)
-        `)
-        .eq('codigo', code.trim())
-        .eq('activo', true)
-        .single();
-
-      if (qrError || !qrData) {
-        setError('Código QR no encontrado o inactivo');
-        setLoading(false);
+      // Single source: el pasaporte verificado de nucleo (recomputa SHA-256 por
+      // evento). Antes se leía qr_codes/qr_audit_trail directo con cliente anon
+      // (sin verificación de integridad y con RLS que bloqueaba qr_codes).
+      const nucleo = getNucleoApiUrl();
+      if (!nucleo) {
+        setError('No se pudo conectar con el servicio de trazabilidad');
         return;
       }
-
-      // Obtener audit trail
-      const { data: auditTrail } = await supabase
-        .from('qr_audit_trail')
-        .select('*')
-        .eq('qr_id', qrData.id)
-        .order('created_at', { ascending: true });
-
-      setQrData({
-        codigo: qrData.codigo,
-        producto: (qrData.producto as { nombre?: string } | null)?.nombre || 'Producto desconocido',
-        lote: qrData.lote_id,
-        apiario: (qrData.apiario as { nombre?: string } | null)?.nombre || null,
-        cosecha: qrData.cosecha_id || null,
-        fecha_produccion: qrData.fecha_produccion,
-        audit_trail: auditTrail ?? [],
-      });
+      const res = await fetch(`${nucleo}/api/trazabilidad/qr/${encodeURIComponent(raw)}`);
+      if (!res.ok) {
+        setError('Código QR no encontrado o inactivo');
+        return;
+      }
+      const json = await res.json();
+      setQrData(json.data);
     } catch (err) {
       console.error('Error scanning QR:', err);
       setError('Error al escanear código QR');
@@ -185,6 +195,35 @@ export default function QRScanPage() {
 
             {qrData && (
               <div className="space-y-6 animate-in">
+                {/* Integridad de la cadena de custodia */}
+                <div className={`rounded-xl border p-6 ${qrData.integridad.es_valido ? 'border-success/40 bg-success/5' : 'border-destructive/50 bg-destructive/5'}`}>
+                  <div className="flex items-center gap-3 mb-2">
+                    {qrData.integridad.es_valido ? (
+                      <ShieldCheck className="h-6 w-6 text-success" />
+                    ) : (
+                      <ShieldAlert className="h-6 w-6 text-destructive" />
+                    )}
+                    <h2 className="font-display text-lg text-foreground">
+                      {qrData.integridad.es_valido ? 'Cadena de custodia íntegra' : 'Cadena de custodia alterada'}
+                    </h2>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {qrData.integridad.eventos_verificados} de {qrData.integridad.total_eventos} eventos verificados
+                    criptográficamente (SHA-256 recomputado por evento).
+                  </p>
+                  {qrData.lote_id && (
+                    <a
+                      href={`${getNucleoApiUrl()}/lote/${qrData.lote_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center gap-1.5 text-sm text-accent hover:underline"
+                    >
+                      Ver pasaporte completo del frasco
+                      <ExternalLink size={14} />
+                    </a>
+                  )}
+                </div>
+
                 {/* Product info */}
                 <div className="rounded-xl border border-border bg-card/40 p-6">
                   <h2 className="font-display text-lg text-foreground mb-4">Información del Producto</h2>
@@ -195,11 +234,11 @@ export default function QRScanPage() {
                     </div>
                     <div>
                       <p className="text-muted-foreground mb-1">Producto</p>
-                      <p className="font-medium text-foreground">{qrData.producto}</p>
+                      <p className="font-medium text-foreground">{qrData.producto?.nombre || 'Producto desconocido'}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground mb-1">Lote</p>
-                      <p className="font-medium text-foreground">{qrData.lote}</p>
+                      <p className="font-medium text-foreground">{qrData.lote_id || '—'}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground mb-1">Fecha de Producción</p>
@@ -208,13 +247,7 @@ export default function QRScanPage() {
                     {qrData.apiario && (
                       <div>
                         <p className="text-muted-foreground mb-1">Apiario</p>
-                        <p className="font-medium text-foreground">{qrData.apiario}</p>
-                      </div>
-                    )}
-                    {qrData.cosecha && (
-                      <div>
-                        <p className="text-muted-foreground mb-1">Cosecha</p>
-                        <p className="font-medium text-foreground">{qrData.cosecha}</p>
+                        <p className="font-medium text-foreground">{qrData.apiario.nombre}</p>
                       </div>
                     )}
                   </div>
@@ -223,11 +256,11 @@ export default function QRScanPage() {
                 {/* Audit trail */}
                 <div className="rounded-xl border border-border bg-card/40 p-6">
                   <h2 className="font-display text-lg text-foreground mb-4">Historial de Trazabilidad</h2>
-                  {qrData.audit_trail.length > 0 ? (
+                  {qrData.eventos.length > 0 ? (
                     <div className="space-y-3">
-                      {qrData.audit_trail.map((event, index) => (
+                      {qrData.eventos.map((event, index) => (
                         <div
-                          key={event.id}
+                          key={`${event.evento}-${index}`}
                           className="flex items-start gap-3 p-3 rounded-lg bg-surface-sunken border border-border"
                         >
                           <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center shrink-0 mt-0.5">
@@ -246,6 +279,10 @@ export default function QRScanPage() {
                                 {event.ubicacion}
                               </p>
                             )}
+                            <p className={`text-xs mt-1 flex items-center gap-1 ${event.valido ? 'text-success' : 'text-destructive'}`}>
+                              {event.valido ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+                              {event.valido ? 'Integridad verificada' : 'Hash no coincide'}
+                            </p>
                           </div>
                         </div>
                       ))}

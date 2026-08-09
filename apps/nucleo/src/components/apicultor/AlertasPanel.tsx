@@ -16,26 +16,23 @@ interface AlertaResumen {
 
 interface AlertasPanelProps {
   alertas: AlertaResumen[];
-  actores: { id: string; nombre_actor: string }[];
+  actorId?: string | null;
   isLoading: boolean;
   onRefresh: () => void;
 }
 
-export function AlertasPanel({ alertas, actores, isLoading, onRefresh }: AlertasPanelProps) {
+export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: AlertasPanelProps) {
   const apiFetch = useApiFetch();
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const handleConfirm = async (alertaId: string) => {
-    // Para el MVP asumimos que el admin usa el primer actor disponible, o podríamos tener un selector.
-    // Lo más simple para validar el flujo es usar el primer actor de la lista
-    if (actores.length === 0) {
-      toast.error('Debe existir al menos un actor registrado para confirmar');
+    if (!actorId) {
+      toast.error('Inscríbete para confirmar alertas');
       return;
     }
-    
-    const actorId = actores[0].id;
+
     setConfirmingId(alertaId);
-    
+
     try {
       const res = await apiFetch(`/api/registro-territorial/alertas/${alertaId}/confirmar`, {
         method: 'POST',
@@ -121,7 +118,8 @@ export function AlertasPanel({ alertas, actores, isLoading, onRefresh }: Alertas
                     variant="outline" 
                     className="text-xs h-8"
                     onClick={() => handleConfirm(alerta.id)}
-                    disabled={confirmingId === alerta.id}
+                    disabled={confirmingId === alerta.id || !actorId}
+                    title={actorId ? undefined : 'Inscríbete para confirmar alertas'}
                   >
                     {confirmingId === alerta.id ? (
                       <Spinner className="w-3 h-3 mr-1" />

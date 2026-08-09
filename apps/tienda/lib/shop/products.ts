@@ -17,6 +17,7 @@ export type ShopProduct = {
   visible: boolean;
   blockchain_hash?: string | null;
   lote_id?: string | null;
+  lote_publico?: boolean;
   colmena_origen?: string | null;
   fecha_cosecha?: string | null;
   fecha_envasado?: string | null;
@@ -44,7 +45,7 @@ const PRODUCT_SELECT = [
   'co2_evitado_kg',
   'irr_referencia',
   'lote_id',
-  'lotes(blockchain_hash, cosecha_ids, nombre_lote, descripcion, fecha_envasado)',
+  'lotes(blockchain_hash, cosecha_ids, nombre_lote, descripcion, fecha_envasado, publico)',
 ].join(', ');
 
 const LoteJoinSchema = z.object({
@@ -53,6 +54,7 @@ const LoteJoinSchema = z.object({
   nombre_lote: z.string().nullable(),
   descripcion: z.string().nullable(),
   fecha_envasado: z.string().nullable(),
+  publico: z.boolean().nullable(),
 });
 
 /** Supabase a veces devuelve numéricos como string; coerce evita catálogo vacío. */
@@ -130,6 +132,7 @@ export function mapProduct(p: ProductRow): ShopProduct {
     visible: p.visible ?? true,
     blockchain_hash: p.lotes?.blockchain_hash ?? null,
     lote_id: p.lote_id ?? null,
+    lote_publico: p.lotes?.publico ?? false,
     colmena_origen: null,
     fecha_cosecha: null,
     fecha_envasado: p.lotes?.fecha_envasado ?? null,

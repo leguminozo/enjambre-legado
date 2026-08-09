@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import type { LucideIcon } from 'lucide-react';
 import {
-  MapPin, Map, AlertTriangle, Truck, Plus, ShieldCheck, UserPlus, CheckCircle2, ClipboardList
+  MapPin, Map, AlertTriangle, Truck, Plus, ShieldCheck, UserPlus, CheckCircle2, ClipboardList, FileText
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Badge, Button, Spinner, toast } from '@enjambre/ui';
@@ -304,6 +305,15 @@ export function TerritorioHomeView() {
                       </dd>
                     </div>
                   </dl>
+                  <div className="pt-4 mt-4 border-t border-border">
+                    <Link
+                      href="/declaracion-sag"
+                      className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                    >
+                      <FileText size={16} />
+                      Descargar declaración SAG pre-llenada (Res. 8.196/2015)
+                    </Link>
+                  </div>
                 </div>
                 <div className="bg-card border border-border rounded-2xl p-6">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-2">¿Cómo subir de nivel?</h3>
@@ -377,7 +387,7 @@ export function TerritorioHomeView() {
           </div>
           <AlertasPanel
             alertas={alertas}
-            actores={actores.map((a) => ({ id: a.id, nombre_actor: a.nombre_actor }))}
+            actorId={miActor?.id ?? null}
             isLoading={loadingAlertas}
             onRefresh={() => {
               refetchAlertas().catch(() => toast.error('Error actualizando alertas'));

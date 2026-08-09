@@ -149,4 +149,14 @@ export const LazyRegistroTerritorialView = named(
   'RegistroTerritorialView',
   'Registro Territorial',
 );
+export const LazyDeclaracionSagView = named(
+  () => import('@/views/DeclaracionSagView'),
+  'DeclaracionSagView',
+  'Declaración SAG',
+);
+export const LazyPlanesTerritorialesView = named(
+  () => import('@/views/PlanesTerritorialesView'),
+  'PlanesTerritorialesView',
+  'Planes Territoriales',
+);
 export const LazyFenologiaView = named(() => import('@/views/fenologia/FenologiaView'), 'FenologiaView', 'Fenología');

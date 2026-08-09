@@ -29,13 +29,14 @@ export function AlertaFitosanitariaForm({ onClose, onSuccess }: AlertaFitosanita
     setLoading(true);
     try {
       const resMe = await apiFetch('/api/registro-territorial/actores/me');
-      let actorId = '00000000-0000-0000-0000-000000000000';
-      if (resMe.ok) {
-        const jsonMe = await resMe.json();
-        if (jsonMe?.data?.id) {
-          actorId = jsonMe.data.id;
-        }
+      const jsonMe = resMe.ok ? await resMe.json() : null;
+      if (!jsonMe?.data?.id) {
+        // Sin actor inscrito no hay alerta posible: el BFF rechaza actor_id
+        // ajeno/inválido para no-admin (fail-closed).
+        toast.error('Debes estar inscrito en el Registro Territorial para emitir alertas');
+        return;
       }
+      const actorId = jsonMe.data.id;
 
       const res = await apiFetch('/api/registro-territorial/alertas', {
         method: 'POST',

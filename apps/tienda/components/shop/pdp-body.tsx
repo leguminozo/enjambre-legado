@@ -136,6 +136,8 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
               fechaEnvasado={product.fecha_envasado}
               nombreLote={product.nombre_lote}
               descripcionLote={product.descripcion_lote}
+              loteId={product.lote_id}
+              lotePublico={product.lote_publico}
             />
           ) : null}
 

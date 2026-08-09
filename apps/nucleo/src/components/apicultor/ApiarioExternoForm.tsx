@@ -95,7 +95,12 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
         throw new Error(data.error || 'Error al declarar apiario externo');
       }
 
-      toast.success('Ingreso declarado correctamente');
+      const json = await res.json().catch(() => null);
+      if (json?.data?.estado === 'suspendido') {
+        toast.warning('Declaración guardada pendiente de revisión: no cumple la distancia mínima legal al apiario registrado más cercano');
+      } else {
+        toast.success('Ingreso declarado correctamente');
+      }
       onSuccess();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Ocurrió un error al declarar el apiario');
@@ -125,6 +130,9 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
     >
       <p className="text-sm text-muted-foreground -mt-2 mb-4">
         Registre apiarios externos entrando al territorio
+      </p>
+      <p className="text-xs text-muted-foreground bg-surface-sunken border border-border rounded-lg px-3 py-2 mb-4 leading-relaxed">
+        Al declarar, tu zona de destino aproximada (~1 km) será visible para la red durante la temporada. Tus coordenadas exactas nunca se publican.
       </p>
       <form onSubmit={handleSubmit} className="space-y-4">
             {!fixedActorId && (

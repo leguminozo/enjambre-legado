@@ -40,6 +40,7 @@ import { registroTerritorialRoutes } from "@/api/routes/registro-territorial";
 import { lotesPublicosRoutes } from "@/api/routes/lotes-publicos";
 import { impactoRoutes } from "@/api/routes/impacto";
 import { mapaPublicoRoutes } from "@/api/routes/mapa-publico";
+import { censoPublicoRoutes } from "@/api/routes/censo-publico";
 import { trazabilidadRoutes } from "@/api/routes/trazabilidad";
 import { comisionesRoutes } from "@/api/routes/comisiones";
 import { fenologiaRoutes } from "@/api/routes/fenologia";
@@ -171,6 +172,7 @@ app.use("*", async (c, next) => {
     "/api/trazabilidad",
     "/api/impacto",
     "/api/mapa-publico",
+    "/api/censo-publico",
     "/api/alambique/publico",
     "/api/hidromiel/publico",
     // Proxy Open-Meteo (coords fijas Pureo, sin datos de usuario). El cliente
@@ -251,6 +253,7 @@ app.route("/mapa", mapaRoutes);
 app.route("/lotes-publicos", lotesPublicosRoutes);
 app.route("/impacto", impactoRoutes);
 app.route("/mapa-publico", mapaPublicoRoutes);
+app.route("/censo-publico", censoPublicoRoutes);
 app.route("/trazabilidad", trazabilidadRoutes);
 app.route("/comisiones", comisionesRoutes);
 app.route("/fenologia", fenologiaRoutes);

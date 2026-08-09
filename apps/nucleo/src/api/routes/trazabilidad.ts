@@ -93,6 +93,84 @@ trazabilidadRoutes.get("/lote/:loteId/qr", async (c) => {
   });
 });
 
+// GET /api/trazabilidad/qr/:codigo — pasaporte por código QR (single source).
+// Público: busca el QR activo por código, verifica la integridad de la cadena
+// de custodia (RPC service_role-only) y devuelve el pasaporte con contexto de
+// producto/apiario. Reemplaza la lectura directa de qr_codes/qr_audit_trail con
+// cliente anon que hacía /qr-scan de la tienda (sin verificación de hash).
+trazabilidadRoutes.get("/qr/:codigo", async (c) => {
+  const { codigo } = c.req.param();
+  if (!/^[A-Za-z0-9-]{3,40}$/.test(codigo)) {
+    return c.json({ code: "invalid_code", message: "Código QR inválido" }, 400);
+  }
+
+  const supabase = createAdminClient();
+
+  const { data: qr } = await supabase
+    .from("qr_codes")
+    .select("id, codigo, activo, created_at, fecha_produccion, producto_id, lote_id, apiario_id, cosecha_id")
+    .eq("codigo", codigo)
+    .eq("activo", true)
+    .limit(1)
+    .maybeSingle();
+
+  if (!qr) {
+    return c.json(
+      { code: "not_found", message: "Código QR no encontrado o inactivo" },
+      404,
+    );
+  }
+
+  // RPC service_role-only: recomputa cada hash y compara con el almacenado
+  const { data: verificacion } = await rpcLoose(supabase, "verificar_integridad_audit_trail", {
+    p_qr_id: qr.id,
+  });
+
+  const eventos = Array.isArray(verificacion) ? verificacion : [];
+  const total = eventos.length;
+  const validos = eventos.filter((e: { es_valido?: boolean }) => e.es_valido === true).length;
+
+  const [productoRes, apiarioRes] = await Promise.all([
+    qr.producto_id
+      ? supabase.from("productos").select("id, nombre").eq("id", qr.producto_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    qr.apiario_id
+      ? supabase.from("apiarios").select("id, nombre").eq("id", qr.apiario_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  return c.json({
+    data: {
+      codigo: qr.codigo,
+      fecha_produccion: qr.fecha_produccion,
+      creado_en: qr.created_at,
+      lote_id: qr.lote_id,
+      producto: productoRes?.data ?? null,
+      apiario: apiarioRes?.data ?? null,
+      integridad: {
+        es_valido: total > 0 && validos === total,
+        eventos_verificados: validos,
+        total_eventos: total,
+      },
+      eventos: eventos.map((e: {
+        evento?: string;
+        ubicacion?: string | null;
+        created_at?: string;
+        metadata?: Record<string, unknown>;
+        hash_almacenado?: string | null;
+        es_valido?: boolean;
+      }) => ({
+        evento: e.evento ?? "desconocido",
+        ubicacion: e.ubicacion ?? null,
+        created_at: e.created_at ?? null,
+        metadata: e.metadata ?? {},
+        hash: e.hash_almacenado ?? null,
+        valido: e.es_valido === true,
+      })),
+    },
+  });
+});
+
 // POST /api/trazabilidad/lote/:loteId/qr — admin: genera el QR del lote (firma el pasaporte).
 // El bypass global de auth para /api/trazabilidad solo salta la validación global;
 // esta ruta exige Bearer + rol admin (authMiddleware + requireProfileRole).

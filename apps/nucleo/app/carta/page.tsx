@@ -79,6 +79,7 @@ const ARTICULOS: Articulo[] = [
       { tipo: 'parrafo', texto: 'El Mapa Apícola de Chiloé tendrá tres niveles de visibilidad:' },
       { tipo: 'lista', items: ['Público: zonas generales, productos, prácticas autorizadas y puntos comerciales. Acceso: toda persona.', 'Comunitario: alertas, contactos consentidos, rangos territoriales y oportunidades. Acceso: miembros autenticados.', 'Restringido: coordenadas precisas, datos sanitarios, movimientos y antecedentes personales. Acceso: titular y personas expresamente autorizadas.'] },
       { tipo: 'parrafo', texto: 'Las coordenadas exactas de apiarios, domicilios, predios, rutas de traslado y datos de contacto no serán públicas por defecto. El mapa no debe convertirse en un inventario para extracción comercial, robo, competencia desleal o exposición de riesgos.' },
+      { tipo: 'parrafo', texto: 'La visibilidad comunitaria se rige por una escalera de consentimiento (decisión C, agosto 2026): los predios facilitadores sólo se muestran a la red si su titular activó el consentimiento de mapa comunitario, pues se ofrecen voluntariamente; en cambio, la zona aproximada (~1 km) de un ingreso trashumante declarado es visible para la red durante la temporada como condición de la declaración — avisar es el precio de entrada al territorio, en línea con las ordenanzas apícolas existentes. En ningún caso se publican coordenadas exactas.' },
     ],
   },
   {

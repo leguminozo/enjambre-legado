@@ -1,6 +1,7 @@
 'use client';
 
 import type { ShopProduct } from '@/lib/shop/products';
+import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { useCartLines } from '@/components/shop/cart-context';
 import React, { useState } from 'react';
 import { QrCode, Shield, Clock, MapPin, Leaf } from 'lucide-react';
@@ -55,6 +56,8 @@ interface TraceabilityProps {
   fechaEnvasado?: string | null;
   nombreLote?: string | null;
   descripcionLote?: string | null;
+  loteId?: string | null;
+  lotePublico?: boolean;
 }
 
 export function TraceabilitySection({ 
@@ -64,7 +67,9 @@ export function TraceabilitySection({
   fechaCosecha,
   fechaEnvasado,
   nombreLote,
-  descripcionLote
+  descripcionLote,
+  loteId,
+  lotePublico
 }: TraceabilityProps) {
   const [showQR, setShowQR] = useState(false);
 
@@ -78,9 +83,14 @@ export function TraceabilitySection({
     Boolean(fechaEnvasado);
   if (!hasOrigin) return null;
 
-  const qrUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/producto/${slug}/trazabilidad` 
-    : '';
+  // QR canónico → pasaporte verificado de nucleo (/lote/:id) cuando el lote es
+  // público; si no, la página de trazabilidad de la tienda (misma verificación).
+  const qrUrl =
+    typeof window !== 'undefined'
+      ? loteId && lotePublico
+        ? `${getNucleoApiUrl()}/lote/${loteId}`
+        : `${window.location.origin}/producto/${slug}/trazabilidad`
+      : '';
 
   return (
     <div className="mt-12 border-t border-border pt-8">

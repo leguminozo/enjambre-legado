@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { MapPin, AlertTriangle, Home, Users, Plus } from 'lucide-react';
+import { MapPin, AlertTriangle, Home, Users, Plus, BarChart3, Download } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardContent, CardHeader, CardTitle, CardDescription,
@@ -23,7 +23,7 @@ const MapaTerritorial = dynamic(
 import { PredioForm } from '@/components/apicultor/PredioForm';
 import { Map, Truck } from 'lucide-react';
 
-type Tab = 'resumen' | 'mapa' | 'actores' | 'alertas' | 'predios' | 'trashumantes';
+type Tab = 'resumen' | 'mapa' | 'actores' | 'alertas' | 'predios' | 'trashumantes' | 'comunas';
 
 interface ActorResumen {
   id: string;
@@ -69,10 +69,22 @@ interface ApiarioExternoResumen {
   fecha_ingreso: string;
   fecha_salida?: string;
   estado: string;
+  distancia_verificada?: boolean;
+  distancia_minima_km?: number | null;
+  distancia_km_menor?: number | null;
   actores_registro: {
     nombre_actor: string;
     rup?: string;
   };
+}
+
+interface ComunaResumen {
+  comuna: string;
+  actores_activos: number;
+  apiarios: number;
+  colmenas: number;
+  trashumantes: number;
+  alertas_activas: number;
 }
 
 interface ApiarioRegistroResumen {
@@ -108,17 +120,47 @@ const NIVEL_COLORS: Record<string, string> = {
 export function RegistroTerritorialView() {
   const apiFetch = useApiFetch();
   const [tab, setTab] = useState<Tab>('resumen');
+  const [comuna, setComuna] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    return new URLSearchParams(window.location.search).get('comuna') ?? '';
+  });
   const [showInscripcion, setShowInscripcion] = useState(false);
   const [showAlertaForm, setShowAlertaForm] = useState(false);
   const [showApiarioExterno, setShowApiarioExterno] = useState(false);
   const [showPredioForm, setShowPredioForm] = useState(false);
 
+  const cambiarComuna = (c: string) => {
+    setComuna(c);
+    const url = new URL(window.location.href);
+    if (c) url.searchParams.set('comuna', c);
+    else url.searchParams.delete('comuna');
+    window.history.replaceState(null, '', url.toString());
+  };
+
+  const exportCsv = async () => {
+    try {
+      const res = await apiFetch('/api/registro-territorial/export/comunas.csv');
+      if (!res.ok) throw new Error('Error exportando CSV');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `resumen-comunas_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('Error exportando el resumen por comuna');
+    }
+  };
+
+  const qsComuna = comuna ? `?comuna=${encodeURIComponent(comuna)}` : '';
+
   const { data: actoresData, isLoading: loadingActores, refetch: refetchActores } = useQuery<{
     data: ActorResumen[];
   }>({
-    queryKey: ['registro-territorial-actores'],
+    queryKey: ['registro-territorial-actores', comuna],
     queryFn: async () => {
-      const res = await apiFetch('/api/registro-territorial/actores');
+      const res = await apiFetch(`/api/registro-territorial/actores${qsComuna}`);
       if (!res.ok) throw new Error('Error cargando actores');
       return res.json();
     },
@@ -127,9 +169,9 @@ export function RegistroTerritorialView() {
   const { data: alertasData, isLoading: loadingAlertas, refetch: refetchAlertas } = useQuery<{
     data: AlertaResumen[];
   }>({
-    queryKey: ['registro-territorial-alertas'],
+    queryKey: ['registro-territorial-alertas', comuna],
     queryFn: async () => {
-      const res = await apiFetch('/api/registro-territorial/alertas');
+      const res = await apiFetch(`/api/registro-territorial/alertas${qsComuna}`);
       if (!res.ok) throw new Error('Error cargando alertas');
       return res.json();
     },
@@ -138,9 +180,9 @@ export function RegistroTerritorialView() {
   const { data: prediosData, isLoading: loadingPredios, refetch: refetchPredios } = useQuery<{
     data: PredioResumen[];
   }>({
-    queryKey: ['registro-territorial-predios'],
+    queryKey: ['registro-territorial-predios', comuna],
     queryFn: async () => {
-      const res = await apiFetch('/api/registro-territorial/predios');
+      const res = await apiFetch(`/api/registro-territorial/predios${qsComuna}`);
       if (!res.ok) throw new Error('Error cargando predios');
       return res.json();
     },
@@ -149,19 +191,28 @@ export function RegistroTerritorialView() {
   const { data: apiariosData, isLoading: loadingApiarios, refetch: refetchApiarios } = useQuery<{
     data: ApiarioExternoResumen[];
   }>({
-    queryKey: ['registro-territorial-apiarios-externos'],
+    queryKey: ['registro-territorial-apiarios-externos', comuna],
     queryFn: async () => {
-      const res = await apiFetch('/api/registro-territorial/apiarios-externos');
+      const res = await apiFetch(`/api/registro-territorial/apiarios-externos${qsComuna}`);
       if (!res.ok) throw new Error('Error cargando apiarios externos');
       return res.json();
     },
   });
 
   const { data: apiariosRegistroData } = useQuery<{ data: ApiarioRegistroResumen[] }>({
-    queryKey: ['registro-territorial-apiarios-registro'],
+    queryKey: ['registro-territorial-apiarios-registro', comuna],
     queryFn: async () => {
-      const res = await apiFetch('/api/registro-territorial/apiarios');
+      const res = await apiFetch(`/api/registro-territorial/apiarios${qsComuna}`);
       if (!res.ok) throw new Error('Error cargando apiarios del registro');
+      return res.json();
+    },
+  });
+
+  const { data: comunasData, isLoading: loadingComunas } = useQuery<{ data: ComunaResumen[] }>({
+    queryKey: ['registro-territorial-resumen-comunas'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/registro-territorial/resumen-comunas');
+      if (!res.ok) throw new Error('Error cargando resumen por comuna');
       return res.json();
     },
   });
@@ -171,6 +222,7 @@ export function RegistroTerritorialView() {
   const predios = prediosData?.data ?? [];
   const apiariosExternos = apiariosData?.data ?? [];
   const apiariosRegistro = apiariosRegistroData?.data ?? [];
+  const comunas = comunasData?.data ?? [];
 
   const stats = {
     totalActores: actores.length,
@@ -186,6 +238,7 @@ export function RegistroTerritorialView() {
     { id: 'alertas', label: 'Alertas', icon: AlertTriangle },
     { id: 'trashumantes', label: 'Trashumantes', icon: Truck },
     { id: 'predios', label: 'Predios', icon: Home },
+    { id: 'comunas', label: 'Por comuna', icon: BarChart3 },
   ];
 
   return (
@@ -199,7 +252,19 @@ export function RegistroTerritorialView() {
             Red Apícola de Chiloé — Infraestructura territorial compartida
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {comunas.length > 0 && (
+            <select
+              value={comuna}
+              onChange={(e) => cambiarComuna(e.target.value)}
+              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Todas las comunas</option>
+              {comunas.map((c) => (
+                <option key={c.comuna} value={c.comuna}>{c.comuna}</option>
+              ))}
+            </select>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -376,50 +441,10 @@ export function RegistroTerritorialView() {
         {tab === 'alertas' && (
           <AlertasPanel
             alertas={alertas}
-            actores={actores}
+            actorId={null}
             isLoading={loadingAlertas}
             onRefresh={() => { refetchAlertas().catch(() => toast.error('Error actualizando alertas')); }}
           />
-        )}
-
-        {tab === 'trashumantes' && (
-          <div className="flex flex-col gap-3">
-            {loadingApiarios ? (
-              <div className="flex justify-center py-12"><Spinner /></div>
-            ) : apiariosExternos.length === 0 ? (
-              <Card className="bg-card border-border">
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No hay ingresos de trashumantes declarados.</p>
-                  <Button className="mt-4" onClick={() => setShowApiarioExterno(true)}>
-                    Declarar primer ingreso
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              apiariosExternos.map((apiario) => (
-                <Card key={apiario.id} className="bg-card border-border">
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {apiario.actores_registro.nombre_actor}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Origen: {apiario.comuna_origen} → Destino: {apiario.comuna_destino} ({apiario.zona_destino})
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {apiario.n_colmenas} colmenas | Ingreso: {new Date(apiario.fecha_ingreso).toLocaleDateString('es-CL')}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={apiario.estado === 'activo' || apiario.estado === 'declarado' ? 'default' : 'warning'}>
-                        {apiario.estado}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
         )}
 
         {tab === 'predios' && (
@@ -498,12 +523,69 @@ export function RegistroTerritorialView() {
                         Ruta: {apiario.comuna_origen} ➔ {apiario.comuna_destino} ({apiario.zona_destino})
                       </p>
                     </div>
-                    <Badge variant={apiario.estado === 'activo' ? 'success' : 'default'}>
-                      {apiario.estado}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge variant={apiario.estado === 'activo' ? 'success' : 'default'}>
+                        {apiario.estado}
+                      </Badge>
+                      {apiario.distancia_verificada ? (
+                        <Badge variant="success">Distancia verificada</Badge>
+                      ) : apiario.estado === 'suspendido' ? (
+                        <Badge variant="warning">Pendiente de revisión</Badge>
+                      ) : null}
+                    </div>
                   </CardContent>
                 </Card>
               ))
+            )}
+          </div>
+        )}
+
+        {tab === 'comunas' && (
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-muted-foreground">
+                Agregados por comuna del Registro Territorial.
+              </p>
+              <Button size="sm" variant="outline" onClick={() => void exportCsv()}>
+                <Download className="w-4 h-4 mr-2" />
+                Exportar CSV
+              </Button>
+            </div>
+            {loadingComunas ? (
+              <div className="flex justify-center py-12"><Spinner /></div>
+            ) : comunas.length === 0 ? (
+              <Card className="bg-card border-border">
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">Sin datos por comuna todavía.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="bg-card border-border overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                      <th className="p-3">Comuna</th>
+                      <th className="p-3">Actores</th>
+                      <th className="p-3">Apiarios</th>
+                      <th className="p-3">Colmenas</th>
+                      <th className="p-3">Trashumantes</th>
+                      <th className="p-3">Alertas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comunas.map((c) => (
+                      <tr key={c.comuna} className="border-b border-border/50 last:border-0">
+                        <td className="p-3 font-medium text-foreground">{c.comuna}</td>
+                        <td className="p-3">{c.actores_activos}</td>
+                        <td className="p-3">{c.apiarios}</td>
+                        <td className="p-3">{c.colmenas.toLocaleString('es-CL')}</td>
+                        <td className="p-3">{c.trashumantes}</td>
+                        <td className="p-3">{c.alertas_activas}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Card>
             )}
           </div>
         )}

@@ -37,6 +37,17 @@ function periodMonthsForFrequency(frequency: string): number {
   return 12;
 }
 
+/** Plan digital (included_items con {"type":"digital"}): no agenda entregas
+ *  físicas — el motor de deliveries y el heal del cron lo omiten. */
+function esPlanDigital(includedItems: unknown): boolean {
+  return (
+    Array.isArray(includedItems) &&
+    includedItems.some(
+      (i) => typeof i === 'object' && i !== null && (i as { type?: string }).type === 'digital',
+    )
+  );
+}
+
 /** Flow order numérico válido (>0). Rechaza "" / NaN / 0 que colisionarían en UNIQUE. */
 export function parseFlowOrder(authorizationCode?: string | null): number | null {
   if (authorizationCode == null || authorizationCode === '') return null;
@@ -154,6 +165,7 @@ export async function fulfillSubscription(
     .from('subscriptions')
     .select('id, status')
     .eq('user_id', session.userId)
+    .eq('plan_id', session.planId)
     .in('status', [...SUBSCRIPTION_BLOCKING_STATUSES])
     .limit(1)
     .maybeSingle();
@@ -191,15 +203,17 @@ export async function fulfillSubscription(
       }
 
       const nextPeriod = await nextPeriodNumber(admin, activeSub.id);
-      const { error: deliveryError } = await admin.from('subscription_deliveries').insert({
-        subscription_id: activeSub.id,
-        period_number: nextPeriod,
-        scheduled_for: periodEnd.toISOString(),
-        items: plan.included_items ?? [],
-        status: 'scheduled',
-      });
-      if (deliveryError) {
-        console.error('[subscription-fulfill] reactivate delivery insert failed:', deliveryError.message);
+      if (!esPlanDigital(plan.included_items)) {
+        const { error: deliveryError } = await admin.from('subscription_deliveries').insert({
+          subscription_id: activeSub.id,
+          period_number: nextPeriod,
+          scheduled_for: periodEnd.toISOString(),
+          items: plan.included_items ?? [],
+          status: 'scheduled',
+        });
+        if (deliveryError) {
+          console.error('[subscription-fulfill] reactivate delivery insert failed:', deliveryError.message);
+        }
       }
 
       await recordInitialChargeIfAny(admin, activeSub.id, nextPeriod, authorizationCode, session.total);
@@ -227,6 +241,7 @@ export async function fulfillSubscription(
     .from('subscriptions')
     .select('id')
     .eq('user_id', session.userId)
+    .eq('plan_id', session.planId)
     .eq('status', 'past_due')
     .order('created_at', { ascending: false })
     .limit(1)
@@ -291,17 +306,20 @@ export async function fulfillSubscription(
   }
 
   // Primera entrega al FINAL del período (consistente con "próxima entrega =
-  // current_period_end" que muestra la UI; antes se agendaba el día de compra)
-  const { error: deliveryError } = await admin.from('subscription_deliveries').insert({
-    subscription_id: subscription.id,
-    period_number: 1,
-    scheduled_for: periodEnd.toISOString(),
-    items: plan.included_items ?? [],
-    status: 'scheduled',
-  });
+  // current_period_end" que muestra la UI; antes se agendaba el día de compra).
+  // Los planes digitales no agendan entregas físicas.
+  if (!esPlanDigital(plan.included_items)) {
+    const { error: deliveryError } = await admin.from('subscription_deliveries').insert({
+      subscription_id: subscription.id,
+      period_number: 1,
+      scheduled_for: periodEnd.toISOString(),
+      items: plan.included_items ?? [],
+      status: 'scheduled',
+    });
 
-  if (deliveryError) {
-    console.error('[subscription-fulfill] first delivery insert failed:', deliveryError.message);
+    if (deliveryError) {
+      console.error('[subscription-fulfill] first delivery insert failed:', deliveryError.message);
+    }
   }
 
   await recordInitialChargeIfAny(admin, subscription.id as string, 1, authorizationCode, session.total);
@@ -403,16 +421,18 @@ export async function fulfillRecurringCharge(
     chargedAt: input.chargedAt,
   });
 
-  const { error: deliveryError } = await admin.from('subscription_deliveries').insert({
-    subscription_id: subscriptionId,
-    period_number: nextPeriod,
-    scheduled_for: newEnd.toISOString(),
-    items: plan.included_items ?? [],
-    status: 'scheduled',
-  });
+  if (!esPlanDigital(plan.included_items)) {
+    const { error: deliveryError } = await admin.from('subscription_deliveries').insert({
+      subscription_id: subscriptionId,
+      period_number: nextPeriod,
+      scheduled_for: newEnd.toISOString(),
+      items: plan.included_items ?? [],
+      status: 'scheduled',
+    });
 
-  if (deliveryError) {
-    console.error('[subscription-fulfill] recurring delivery insert failed:', deliveryError.message);
+    if (deliveryError) {
+      console.error('[subscription-fulfill] recurring delivery insert failed:', deliveryError.message);
+    }
   }
 
   return { ok: true, alreadyProcessed: false };
