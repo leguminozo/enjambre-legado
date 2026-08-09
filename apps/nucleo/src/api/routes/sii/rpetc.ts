@@ -6,6 +6,7 @@ import type { AccionReclamoDoc, SiiEnvironment } from "@enjambre/contable";
 import type { AppVariables } from "@/api/lib/middleware";
 import { resolveSiiAmbiente, resolveSiiCredentials } from "@/api/lib/sii-credentials";
 import { getSiiTokenWs, getSiiToken, extractP12 } from "@/api/lib/sii-client";
+import { fromLoose } from "@/api/lib/supabase-loose";
 import {
   enviarAec,
   consultarEstadoEnvioRpetc,
@@ -119,11 +120,33 @@ rpetcRoutes.get(
   ),
   async (c) => {
     const query = c.req.valid("query");
+    const empresaId = c.get("empresaId");
+    const supabase = c.get("supabase");
     try {
       const ctx = await resolverContexto(c);
       if (!ctx.ok) return ctx.response;
       const token = await getTokenConFallback(ctx.ambiente, ctx.credsResult.credentials, ctx.empresaData.rut);
       const result = await consultarCesionRpetc(ctx.ambiente, token, query.rut_emisor, query.tipo_doc, query.folio, query.id_cesion);
+
+      // Persistir la consulta (tabla rpetc_cesiones, typegen pendiente)
+      const { error: insertError } = await fromLoose(supabase, "rpetc_cesiones").insert({
+        empresa_id: empresaId,
+        rut_emisor: query.rut_emisor,
+        tipo_doc: query.tipo_doc,
+        folio: query.folio,
+        id_cesion: query.id_cesion ?? null,
+        estado_rpetc: result.estado,
+        glosa: result.glosa,
+        rut_tenedor: result.rutTenedor || null,
+        fecha_ult_anot: result.fechaUltAnot || null,
+        dec_jurada: result.decJurada || null,
+        rut_cobranza: result.rutCobranza || null,
+        dir_cobranza: result.dirCobranza || null,
+      });
+      if (insertError) {
+        console.error("[RPETC cesión] no se pudo persistir la consulta", insertError.message);
+      }
+
       return c.json({ success: true, data: result });
     } catch (error) {
       console.error("[RPETC getEstCesion] Error:", error);
@@ -173,6 +196,8 @@ rpetcRoutes.post(
   ),
   async (c) => {
     const input = c.req.valid("json");
+    const empresaId = c.get("empresaId");
+    const supabase = c.get("supabase");
     try {
       const ctx = await resolverContexto(c);
       if (!ctx.ok) return ctx.response;
@@ -185,6 +210,21 @@ rpetcRoutes.post(
         input.folio,
         input.accion as AccionReclamoDoc,
       );
+
+      // Persistir el evento (tabla rpetc_reclamos, typegen pendiente)
+      const { error: insertError } = await fromLoose(supabase, "rpetc_reclamos").insert({
+        empresa_id: empresaId,
+        rut_emisor: input.rut_emisor,
+        tipo_doc: input.tipo_doc,
+        folio: input.folio,
+        accion: input.accion,
+        codigo_respuesta: result.codigoRespuesta,
+        descripcion_respuesta: result.descripcionRespuesta || null,
+      });
+      if (insertError) {
+        console.error("[RPETC reclamo] no se pudo persistir el evento", insertError.message);
+      }
+
       return c.json({ success: result.codigoRespuesta === "0" || result.codigoRespuesta === "1", data: result });
     } catch (error) {
       console.error("[RPETC reclamo] Error:", error);
@@ -386,3 +426,39 @@ rpetcRoutes.get(
 );
 
 // Named export only, no default export
+
+/** Historial de consultas de cesión persistidas de la empresa. */
+rpetcRoutes.get("/cesiones", async (c) => {
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+  try {
+    const { data, error } = await fromLoose(supabase, "rpetc_cesiones")
+      .select("id, rut_emisor, tipo_doc, folio, id_cesion, estado_rpetc, glosa, rut_tenedor, fecha_ult_anot, dec_jurada, created_at")
+      .eq("empresa_id", empresaId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    return c.json({ success: true, data: data ?? [] });
+  } catch (error) {
+    console.error("[RPETC cesiones list] Error:", error);
+    return c.json({ code: "rpetc_list_failed", message: error instanceof Error ? error.message : "Error al listar cesiones" }, 500);
+  }
+});
+
+/** Historial de reclamos/aceptaciones persistidos de la empresa. */
+rpetcRoutes.get("/reclamos", async (c) => {
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+  try {
+    const { data, error } = await fromLoose(supabase, "rpetc_reclamos")
+      .select("id, rut_emisor, tipo_doc, folio, accion, codigo_respuesta, descripcion_respuesta, created_at")
+      .eq("empresa_id", empresaId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    return c.json({ success: true, data: data ?? [] });
+  } catch (error) {
+    console.error("[RPETC reclamos list] Error:", error);
+    return c.json({ code: "rpetc_list_failed", message: error instanceof Error ? error.message : "Error al listar reclamos" }, 500);
+  }
+});

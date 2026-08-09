@@ -46,6 +46,8 @@ export type Database = {
           completo: boolean
           comuna: string
           consentimientos: Json
+          consentimientos_at: string | null
+          consentimientos_version: string | null
           created_at: string
           declaracion_existencia_animal: boolean
           estado: string
@@ -69,6 +71,8 @@ export type Database = {
           completo?: boolean
           comuna: string
           consentimientos?: Json
+          consentimientos_at?: string | null
+          consentimientos_version?: string | null
           created_at?: string
           declaracion_existencia_animal?: boolean
           estado?: string
@@ -92,6 +96,8 @@ export type Database = {
           completo?: boolean
           comuna?: string
           consentimientos?: Json
+          consentimientos_at?: string | null
+          consentimientos_version?: string | null
           created_at?: string
           declaracion_existencia_animal?: boolean
           estado?: string

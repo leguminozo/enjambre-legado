@@ -11,7 +11,8 @@ import {
   formatRutSii,
   escapeXml,
   type DteTipo,
-  type DteDocumento
+  type DteDocumento,
+  type DteDetalle
 } from "@enjambre/contable";
 import {
   signDteXml,
@@ -36,6 +37,15 @@ const DteDetalleSchema = z.object({
   codigo: z.string().max(100).optional(),
   unidad_medida: z.string().max(20).optional(),
   dimenciones: z.string().max(100).optional(),
+  // Agente retenedor — cambio de sujeto de IVA (Res. Ex. 107/2005)
+  ind_agente: z.boolean().optional(),
+  codigo_item: z.object({
+    tipo_codigo: z.string().max(10),
+    valor_codigo: z.string().max(10),
+  }).optional(),
+  cantidad_referencia: z.number().nonnegative().optional(),
+  unidad_medida_referencia: z.string().max(20).optional(),
+  codigo_impuesto_adicional: z.number().optional(),
 });
 
 // Esquemas de validación para diferentes tipos de DTE
@@ -54,6 +64,9 @@ const DteBaseSchema = z.object({
   fecha_emision: z.string().datetime(),
   monto_neto: z.number().nonnegative(),
   monto_exento: z.number().nonnegative().default(0),
+  // Impuesto o retención del documento (cambio de sujeto)
+  tasa_imp: z.number().nonnegative().optional(),
+  monto_imp: z.number().optional(),
   descripcion: z.string().max(500).optional(),
   receptor_rut: z.string().max(20),
   receptor_razon_social: z.string().max(255),
@@ -116,6 +129,34 @@ const DteUnionSchema = z.discriminatedUnion("tipo_dte", [
 ]);
 
 export const dteRoutes = new Hono<{ Variables: AppVariables }>();
+
+/** Mapea un detalle del request al DteDetalle (incluye campos de retención). */
+function mapDetalle(det: {
+  nombre: string;
+  cantidad: number;
+  precio_unitario: number;
+  ind_agente?: boolean;
+  codigo_item?: { tipo_codigo: string; valor_codigo: string };
+  unidad_medida?: string;
+  cantidad_referencia?: number;
+  unidad_medida_referencia?: string;
+  codigo_impuesto_adicional?: number;
+}): DteDetalle {
+  return {
+    nombre: det.nombre,
+    cantidad: det.cantidad,
+    precioUnitario: det.precio_unitario,
+    montoItem: Math.round(det.cantidad * det.precio_unitario),
+    indAgente: det.ind_agente,
+    codigoItem: det.codigo_item
+      ? { tipoCodigo: det.codigo_item.tipo_codigo, valorCodigo: det.codigo_item.valor_codigo }
+      : undefined,
+    unidadMedida: det.unidad_medida,
+    cantidadReferencia: det.cantidad_referencia,
+    unidadMedidaReferencia: det.unidad_medida_referencia,
+    codigoImpuestoAdicional: det.codigo_impuesto_adicional,
+  };
+}
 
 /**
  * Emitir DTE al SII
@@ -238,13 +279,10 @@ dteRoutes.post(
                 tasaIva: esAfecto ? 0.19 : 0,
                 montoIva: montoIva,
                 montoTotal: montoTotal,
+                tasaImp: input.tasa_imp,
+                montoImp: input.monto_imp,
               },
-              detalles: input.detalles?.map((det, index) => ({
-                nombre: det.nombre,
-                cantidad: det.cantidad,
-                precioUnitario: det.precio_unitario,
-                montoItem: Math.round(det.cantidad * det.precio_unitario),
-              })) || [],
+              detalles: (input.detalles ?? []).map(mapDetalle),
             };
             break;
           }
@@ -281,15 +319,12 @@ dteRoutes.post(
                 tasaIva: esAfecto ? 0.19 : 0,
                 montoIva: montoIva,
                 montoTotal: montoTotal,
+                tasaImp: input.tasa_imp,
+                montoImp: input.monto_imp,
               },
               // Las boletas pueden no tener detalles o tener un solo detalle
               detalles: input.detalles ? 
-                input.detalles.map((det, index) => ({
-                  nombre: det.nombre,
-                  cantidad: det.cantidad,
-                  precioUnitario: det.precio_unitario,
-                  montoItem: Math.round(det.cantidad * det.precio_unitario),
-                })) : 
+                input.detalles.map(mapDetalle) : 
                 [{
                   nombre: input.descripcion || "VENTA EFECTIVA",
                   cantidad: 1,
@@ -331,14 +366,11 @@ dteRoutes.post(
                 tasaIva: 0, // Guías normalmente no tienen IVA
                 montoIva: 0,
                 montoTotal: montoTotal,
+                tasaImp: input.tasa_imp,
+                montoImp: input.monto_imp,
               },
               // Detalles de la guía (productos siendo trasladados)
-              detalles: input.detalles.map((det, index) => ({
-                nombre: det.nombre,
-                cantidad: det.cantidad,
-                precioUnitario: det.precio_unitario,
-                montoItem: Math.round(det.cantidad * det.precio_unitario),
-              })),
+              detalles: input.detalles.map(mapDetalle),
             };
             break;
           }

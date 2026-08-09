@@ -25,6 +25,7 @@ import {
   getSiiTokenWs,
 } from "@/api/lib/sii-client";
 import { resolveSiiAmbiente, resolveSiiCredentials } from "@/api/lib/sii-credentials";
+import { fromLoose } from "@/api/lib/supabase-loose";
 
 export const certificacionRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -583,10 +584,29 @@ certificacionRoutes.post(
         envioResult = await enviarDte(ambiente, token, envioFirmado, formatRutSii(empresa.rut));
       }
 
+      // Persistir el envío del set (tabla sii_set_pruebas_envios, typegen pendiente)
+      const { data: envioRegistro, error: insertError } = await fromLoose(supabase, "sii_set_pruebas_envios")
+        .insert({
+          empresa_id: empresaId,
+          track_id: envioResult?.trackId ?? null,
+          estado_sii: envioResult
+            ? (envioResult.estado === "aceptado" ? "enviado" : envioResult.estado)
+            : "generado",
+          sii_response: envioResult ? { estado: envioResult.estado, glosa: envioResult.glosa } : null,
+          envio_xml: envioFirmado,
+          casos: input.casos,
+        })
+        .select("id")
+        .single();
+      if (insertError) {
+        console.error("[SII Set de Pruebas] no se pudo persistir el envío", insertError.message);
+      }
+
       return c.json({
         success: true,
         message: input.enviar ? "Set de Pruebas enviado al SII" : "Set de Pruebas generado (sin enviar)",
         data: {
+          envio_id: envioRegistro?.id ?? null,
           documentos,
           envio_xml: envioFirmado,
           track_id: envioResult?.trackId ?? null,
@@ -739,3 +759,21 @@ certificacionRoutes.post(
     }
   }
 );
+
+/** Lista los envíos del Set de Pruebas persistidos de la empresa. */
+certificacionRoutes.get("/set-pruebas", async (c) => {
+  const empresaId = c.get("empresaId");
+  const supabase = c.get("supabase");
+  try {
+    const { data, error } = await fromLoose(supabase, "sii_set_pruebas_envios")
+      .select("id, track_id, estado_sii, sii_response, casos, created_at")
+      .eq("empresa_id", empresaId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    return c.json({ success: true, data: data ?? [] });
+  } catch (error) {
+    console.error("[SII Set de Pruebas list] Error:", error);
+    return c.json({ code: "set_pruebas_list_failed", message: error instanceof Error ? error.message : "Error al listar envíos" }, 500);
+  }
+});

@@ -15,7 +15,7 @@ export async function sendNotificationEmail(
 
   const resend = new Resend(apiKey);
   const { data, error } = await resend.emails.send({
-    from: "Enjambre Legado <contacto@enjambrelegado.cl>",
+    from: "Enjambre Legado <contacto@obrerayzangano.cl>",
     to: recipient,
     subject,
     html: body,
