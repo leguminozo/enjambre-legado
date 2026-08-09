@@ -19,7 +19,11 @@ import {
   enviarDte,
   consultarEstado,
   consultarEstadoDteIndividual,
+  consultarEstadoUpload,
+  consultarEstadoAvanzado,
+  reenviarCorreoValidacion,
   getSiiToken,
+  getSiiTokenWs,
 } from "@/api/lib/sii-client";
 import { resolveSiiAmbiente, resolveSiiCredentials } from "@/api/lib/sii-credentials";
 import type { AppVariables } from "@/api/lib/middleware";
@@ -771,6 +775,181 @@ dteRoutes.get(
     } catch (error) {
       console.error("[SII QueryEstDte] Error:", error);
       return c.json({ code: "sii_query_failed", message: error instanceof Error ? error.message : "Error al consultar estado individual" }, 500);
+    }
+  }
+);
+
+/**
+ * Token de sesión SII con fallback: autenticación automática WS (CrSeed +
+ * GetTokenFromSeed, manual de Autenticación Automática) y, si falla, el
+ * endpoint legacy U.Datos.LR.GetToken.
+ */
+async function getTokenConFallback(
+  ambiente: import("@enjambre/contable").SiiEnvironment,
+  creds: { p12Base64: string; p12Password: string; siiClave: string },
+  rut: string,
+): Promise<string> {
+  try {
+    const ws = await getSiiTokenWs(ambiente, creds.p12Base64, creds.p12Password);
+    return ws.token;
+  } catch (error) {
+    console.warn("[SII] getSiiTokenWs fallback a LR.GetToken", error instanceof Error ? error.message : String(error));
+    const legacy = await getSiiToken(ambiente, rut, creds.siiClave);
+    return legacy.token;
+  }
+}
+
+/** QueryEstUp — estado de un envío (upload) por TrackId vía WS SOAP. */
+dteRoutes.get(
+  "/consultar-upload/:track_id",
+  async (c) => {
+    const track_id = c.req.param("track_id");
+    const empresaId = c.get("empresaId");
+    const supabase = c.get("supabase");
+
+    try {
+      const { data: empresaData, error: empresaError } = await supabase
+        .from("empresas")
+        .select("rut, sii_ambiente")
+        .eq("id", empresaId)
+        .single();
+
+      if (empresaError || !empresaData) {
+        return c.json({ code: "empresa_not_found", message: "Empresa no encontrada" }, 404);
+      }
+
+      const credsResult = await resolveSiiCredentials(supabase, empresaId);
+      if (!credsResult.ok) {
+        return c.json({ code: credsResult.code, message: credsResult.message }, 400);
+      }
+
+      const ambiente = resolveSiiAmbiente(empresaData.sii_ambiente) as import("@enjambre/contable").SiiEnvironment;
+      const token = await getTokenConFallback(ambiente, credsResult.credentials, empresaData.rut);
+      const estadoResult = await consultarEstadoUpload(ambiente, token, empresaData.rut, track_id);
+
+      return c.json({ success: true, data: estadoResult });
+    } catch (error) {
+      console.error("[SII QueryEstUp] Error:", error, { trackId: track_id, empresaId });
+      return c.json({ code: "sii_query_failed", message: error instanceof Error ? error.message : "Error al consultar estado del envío" }, 500);
+    }
+  }
+);
+
+/** QueryEstDteAv — consulta avanzada de un DTE con verificación de datos (RECIBIDO/ESTADO). */
+dteRoutes.get(
+  "/individual-av",
+  zValidator(
+    "query",
+    z.object({
+      tipo_dte: z.coerce.number(),
+      folio: z.coerce.number(),
+      rut_receptor: z.string(),
+      fecha_emision: z.string(), // ISO YYYY-MM-DD
+      monto_total: z.coerce.number(),
+      firma_dte: z.string().optional(),
+    })
+  ),
+  async (c) => {
+    const query = c.req.valid("query");
+    const supabase = c.get("supabase");
+    const empresaId = c.get("empresaId");
+
+    try {
+      const { data: empresaData, error: empresaError } = await supabase
+        .from("empresas")
+        .select("rut, sii_ambiente")
+        .eq("id", empresaId)
+        .single();
+
+      if (empresaError || !empresaData) {
+        return c.json({ code: "empresa_not_found", message: "Empresa no encontrada" }, 404);
+      }
+
+      // Firma del DTE: se toma del sii_xml guardado (DTE/Signature/SignatureValue)
+      let firmaDte = query.firma_dte;
+      if (!firmaDte) {
+        const { data: facturaData, error: facturaError } = await supabase
+          .from("facturas_emitidas")
+          .select("sii_xml")
+          .eq("empresa_id", empresaId)
+          .eq("tipo_dte", query.tipo_dte)
+          .eq("folio", query.folio)
+          .maybeSingle();
+
+        if (facturaError || !facturaData?.sii_xml) {
+          return c.json({ code: "dte_no_encontrado", message: "No se encontró el DTE guardado (pasa firma_dte explícita)" }, 404);
+        }
+        firmaDte = String(facturaData.sii_xml).match(/<SignatureValue>([^<]+)<\/SignatureValue>/)?.[1] ?? "";
+        if (!firmaDte) {
+          return c.json({ code: "dte_sin_firma", message: "El DTE guardado no tiene SignatureValue" }, 422);
+        }
+      }
+
+      const credsResult = await resolveSiiCredentials(supabase, empresaId);
+      if (!credsResult.ok) {
+        return c.json({ code: credsResult.code, message: credsResult.message }, 400);
+      }
+
+      const ambiente = resolveSiiAmbiente(empresaData.sii_ambiente) as import("@enjambre/contable").SiiEnvironment;
+      const token = await getTokenConFallback(ambiente, credsResult.credentials, empresaData.rut);
+      const estadoResult = await consultarEstadoAvanzado(
+        ambiente,
+        token,
+        empresaData.rut,
+        query.rut_receptor,
+        query.tipo_dte,
+        query.folio,
+        query.fecha_emision,
+        query.monto_total,
+        firmaDte,
+      );
+
+      return c.json({ success: true, data: estadoResult });
+    } catch (error) {
+      console.error("[SII QueryEstDteAv] Error:", error);
+      return c.json({ code: "sii_query_failed", message: error instanceof Error ? error.message : "Error al consultar estado avanzado" }, 500);
+    }
+  }
+);
+
+/** wsDTECorreo — solicita el reenvío del correo con el diagnóstico de validación de un TrackId. */
+dteRoutes.post(
+  "/reenviar-correo",
+  zValidator(
+    "json",
+    z.object({
+      track_id: z.string().min(1),
+    })
+  ),
+  async (c) => {
+    const { track_id } = c.req.valid("json");
+    const empresaId = c.get("empresaId");
+    const supabase = c.get("supabase");
+
+    try {
+      const { data: empresaData, error: empresaError } = await supabase
+        .from("empresas")
+        .select("rut, sii_ambiente")
+        .eq("id", empresaId)
+        .single();
+
+      if (empresaError || !empresaData) {
+        return c.json({ code: "empresa_not_found", message: "Empresa no encontrada" }, 404);
+      }
+
+      const credsResult = await resolveSiiCredentials(supabase, empresaId);
+      if (!credsResult.ok) {
+        return c.json({ code: credsResult.code, message: credsResult.message }, 400);
+      }
+
+      const ambiente = resolveSiiAmbiente(empresaData.sii_ambiente) as import("@enjambre/contable").SiiEnvironment;
+      const token = await getTokenConFallback(ambiente, credsResult.credentials, empresaData.rut);
+      const result = await reenviarCorreoValidacion(ambiente, token, empresaData.rut, track_id);
+
+      return c.json({ success: result.estado === "0", data: result });
+    } catch (error) {
+      console.error("[SII wsDTECorreo] Error:", error, { trackId: track_id, empresaId });
+      return c.json({ code: "sii_reenvio_failed", message: error instanceof Error ? error.message : "Error al solicitar reenvío de correo" }, 500);
     }
   }
 );

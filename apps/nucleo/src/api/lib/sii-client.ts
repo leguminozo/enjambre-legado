@@ -1,9 +1,21 @@
-import { createPrivateKey, createSign, createHash, X509Certificate } from "node:crypto";
+import { createPrivateKey, createPublicKey, createSign, createHash, X509Certificate } from "node:crypto";
 import forge from "node-forge";
 import type { CafFolio, SiiAuthToken, SiiEnvioResult, SiiEstadoResult, SiiQueryEstDteResult, SiiSoapEstado } from "@enjambre/contable";
 import type { RcvRegistroCompra, RcvRegistroVenta, RcvResumen, RcvTipoRegistro } from "@enjambre/contable";
-import { SII_ENV } from "@enjambre/contable";
-import type { SiiEnvironment } from "@enjambre/contable";
+import { SII_ENV, DTEWS_PATHS } from "@enjambre/contable";
+import {
+  buildGetSeedEnvelope,
+  buildGetTokenEnvelope,
+  buildQueryEstUpEnvelope,
+  buildQueryEstDteAvEnvelope,
+  buildReenvioCorreoEnvelope,
+  parseQueryEstUp,
+  parseQueryEstDteAv,
+  parseReenvioCorreo,
+  parseAuthWsRespuesta,
+  formatDateSiiDdMmYyyy,
+} from "@enjambre/contable";
+import type { SiiEnvironment, QueryEstUpResult, QueryEstDteAvResult, ReenvioCorreoResult } from "@enjambre/contable";
 
 function getBaseUrl(env: SiiEnvironment): string {
   return SII_ENV[env];
@@ -14,7 +26,7 @@ interface P12ExtractResult {
   certPem: string;
 }
 
-function extractP12(p12Base64: string, p12Password: string): P12ExtractResult {
+export function extractP12(p12Base64: string, p12Password: string): P12ExtractResult {
   try {
     const p12Der = forge.util.decode64(p12Base64);
     const p12Asn1 = forge.asn1.fromDer(p12Der);
@@ -106,38 +118,124 @@ export function signNode(xml: string, rootTag: string, p12Base64: string, p12Pas
   return xml.replace(`</${rootTag}>`, `${signatureNode}\n</${rootTag}>`);
 }
 
-export function stampDteXml(xml: string, caf: CafFolio, folio: number): string {
+/**
+ * Firma la carátula del envío: nodo <SetDTE> del EnvioDTE (el SII exige la
+ * firma del envío completo, Reference URI="#SetDoc").
+ */
+export function signEnvioDteXml(envioXml: string, p12Base64: string, p12Password: string): string {
+  return signNode(envioXml, "SetDTE", p12Base64, p12Password);
+}
+
+/**
+ * Firma la semilla de CrSeed para GetTokenFromSeed, según el formato del
+ * manual de Autenticación Automática (fig 1.11): <getToken> con item/Semilla
+ * y <Signature> con Reference URI="" + transform enveloped-signature.
+ */
+export function signSeedXml(semilla: string, p12Base64: string, p12Password: string): string {
+  const { privateKeyPem, certPem } = extractP12(p12Base64, p12Password);
+
+  const content = `<item><Semilla>${semilla}</Semilla></item>`;
+  const digest = createHash("sha1").update(content, "latin1").digest("base64");
+
+  const signedInfo = `<SignedInfo xmlns="http://www.w3.org/2000/09/xmldsig#"><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"></CanonicalizationMethod><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"></SignatureMethod><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"></Transform></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"></DigestMethod><DigestValue>${digest}</DigestValue></Reference></SignedInfo>`;
+
+  const sign = createSign("RSA-SHA1");
+  sign.update(signedInfo, "latin1");
+  sign.end();
+  const key = createPrivateKey({ key: privateKeyPem, format: "pem" });
+  const signature = sign.sign(key, "base64");
+
+  const { m, e } = publicKeyToRsaComponents(certPem);
+  const cert = new X509Certificate(certPem);
+  const certB64 = cert.raw.toString("base64");
+
+  return `<?xml version="1.0"?><getToken>${content}<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><DigestValue>${digest}</DigestValue></Reference></SignedInfo><SignatureValue>${signature}</SignatureValue><KeyInfo><KeyValue><RSAKeyValue><Modulus>${m}</Modulus><Exponent>${e}</Exponent></RSAKeyValue></KeyValue><X509Data><X509Certificate>${certB64}</X509Certificate></X509Data></KeyInfo></Signature></getToken>`;
+}
+
+/**
+ * Firma RSA-SHA1 del contenido <DD> del timbre electrónico con la llave
+ * privada entregada por el SII en el CAF (manual "Timbre Electrónico de
+ * Ejemplo", sección 5.2): el Mensaje a firmar es el string <DD>...</DD>.
+ */
+export function firmarTimbre(contenidoDd: string, privateKeyPem: string): string {
+  const sign = createSign("RSA-SHA1");
+  sign.update(contenidoDd, "latin1");
+  sign.end();
+  const key = createPrivateKey({ key: privateKeyPem, format: "pem" });
+  return sign.sign(key, "base64");
+}
+
+function publicKeyToRsaComponents(publicKeyPem: string): { m: string; e: string } {
+  const key = createPublicKey({ key: publicKeyPem, format: "pem" });
+  const jwk = key.export({ format: "jwk" });
+  const b64 = (value: string | undefined): string => {
+    const unpadded = value ?? "";
+    const padded = unpadded.replace(/-/g, "+").replace(/_/g, "/");
+    return padded + "=".repeat((4 - (padded.length % 4)) % 4);
+  };
+  return { m: b64(jwk.n), e: b64(jwk.e) };
+}
+
+export interface StampDteOptions {
+  /** TSTED del timbre (YYYY-MM-DDTHH:MM:SS). Default: momento actual. */
+  tmstEd?: string;
+}
+
+export function stampDteXml(xml: string, caf: CafFolio, folio: number, options: StampDteOptions = {}): string {
   if (folio < caf.desde || folio > caf.hasta) {
     throw new Error(`Folio ${folio} fuera del rango CAF (${caf.desde}-${caf.hasta})`);
   }
 
   // Extraer valores dinámicamente del XML generado
   const re = xml.match(/<RUTEmisor>([^<]+)<\/RUTEmisor>/)?.[1] || "";
+  const rs = xml.match(/<RznSoc>([^<]+)<\/RznSoc>/)?.[1]?.substring(0, 40) || "";
   const td = xml.match(/<TipoDTE>([^<]+)<\/TipoDTE>/)?.[1] || "";
+  const fe = xml.match(/<FchEmis>([^<]+)<\/FchEmis>/)?.[1] || "";
   const rr = xml.match(/<RUTRecep>([^<]+)<\/RUTRecep>/)?.[1] || "";
   const rsr = xml.match(/<RznSocRecep>([^<]+)<\/RznSocRecep>/)?.[1]?.substring(0, 40) || "";
   const mnt = xml.match(/<MntTotal>([^<]+)<\/MntTotal>/)?.[1] || "0";
   const it1 = xml.match(/<NmbItem>([^<]+)<\/NmbItem>/)?.[1] || "";
 
-  const timbre = buildTimbre(caf, folio, re, td, rr, rsr, mnt, it1);
+  const tmstEd = options.tmstEd ?? buildTmstFirmaEnv();
+
+  const timbre = buildTimbre(caf, folio, fe, re, rs, td, rr, rsr, mnt, it1, tmstEd);
 
   return xml.replace("</Documento>", `${timbre}\n</Documento>`);
 }
 
-function buildTimbre(caf: CafFolio, folio: number, re: string, td: string, rr: string, rsr: string, mnt: string, it1: string): string {
-  const itemNode = it1 ? `\n    <IT1>${it1}</IT1>` : "";
-  return `
-<TED version="1.0">
-  <DD>
-    <RE>${re}</RE>
-    <TD>${td}</TD>
-    <F>${folio}</F>
-    <FE>${caf.fechaAutorizacion}</FE>
-    <RR>${rr}</RR>
-    <RSR>${rsr}</RSR>
-    <MNT>${mnt}</MNT>${itemNode}
-  </DD>
-  <FRMT algoritmo="SHA1withRSA">${caf.firma}</FRMT>
+function buildTmstFirmaEnv(): string {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+
+/**
+ * Construye el TED según el schema del SII: el <DD> incrusta el <CAF>
+ * completo (DA + FRMA firmado por el SII) y el <TSTED>; el <FRMT> es la
+ * firma RSA-SHA1 del string <DD> con la llave privada del CAF. El <DD> se
+ * emite en una sola línea para que el string firmado sea idéntico al XML.
+ */
+function buildTimbre(
+  caf: CafFolio,
+  folio: number,
+  fe: string,
+  re: string,
+  rs: string,
+  td: string,
+  rr: string,
+  rsr: string,
+  mnt: string,
+  it1: string,
+  tmstEd: string,
+): string {
+  const { m, e } = publicKeyToRsaComponents(caf.publicKey);
+  const idkNode = caf.idk ? `<IDK>${caf.idk}</IDK>` : "";
+  const itemNode = it1 ? `<IT1>${it1}</IT1>` : "";
+  const dd = `<DD><RE>${re}</RE><TD>${td}</TD><F>${folio}</F><FE>${fe}</FE><RR>${rr}</RR><RSR>${rsr}</RSR><MNT>${mnt}</MNT>${itemNode}<CAF version="1.0"><DA><RE>${re}</RE><RS>${rs}</RS><TD>${td}</TD><RNG><D>${caf.desde}</D><H>${caf.hasta}</H></RNG><FA>${caf.fechaAutorizacion}</FA><RSAPK><M>${m}</M><E>${e}</E></RSAPK>${idkNode}</DA><FRMA algoritmo="SHA1withRSA">${caf.firma}</FRMA></CAF><TSTED>${tmstEd}</TSTED></DD>`;
+  const frmt = firmarTimbre(dd, caf.privateKey);
+  return `<TED version="1.0">
+  ${dd}
+  <FRMT algoritmo="SHA1withRSA">${frmt}</FRMT>
 </TED>`;
 }
 
@@ -172,6 +270,64 @@ export async function getSiiToken(
 
   return {
     token: tokenMatch[1]!,
+    expiresAt: Date.now() + 60 * 60 * 1000,
+  };
+}
+
+const SOAP_HEADERS = {
+  "Content-Type": "text/xml; charset=utf-8",
+  "SOAPAction": "",
+  "User-Agent": "EnjambreDTE/1.0",
+};
+
+/**
+ * Autenticación Automática con Certificado Digital (manual del desarrollador):
+ * CrSeed.getSeed → firma de la semilla (signSeedXml) → GetTokenFromSeed.getToken.
+ * La semilla tiene un time-out de 2 minutos.
+ */
+export async function getSiiTokenWs(
+  env: SiiEnvironment,
+  p12Base64: string,
+  p12Password: string,
+): Promise<SiiAuthToken> {
+  const baseUrl = getBaseUrl(env);
+  const seedNs = `${baseUrl}${DTEWS_PATHS.CR_SEED}`;
+
+  const seedResponse = await fetch(`${baseUrl}${DTEWS_PATHS.CR_SEED}`, {
+    method: "POST",
+    headers: SOAP_HEADERS,
+    body: buildGetSeedEnvelope(seedNs),
+  });
+
+  if (!seedResponse.ok) {
+    throw new Error(`SII getSeed failed: ${seedResponse.status}`);
+  }
+
+  const seedResult = parseAuthWsRespuesta(await seedResponse.text(), "getSeedReturn");
+  if (!seedResult.semilla) {
+    throw new Error(`SII getSeed failed: ${seedResult.glosa || seedResult.estado}`);
+  }
+
+  const signedSeedXml = signSeedXml(seedResult.semilla, p12Base64, p12Password);
+
+  const tokenNs = `${baseUrl}${DTEWS_PATHS.GET_TOKEN_FROM_SEED}`;
+  const tokenResponse = await fetch(`${baseUrl}${DTEWS_PATHS.GET_TOKEN_FROM_SEED}`, {
+    method: "POST",
+    headers: SOAP_HEADERS,
+    body: buildGetTokenEnvelope(tokenNs, signedSeedXml),
+  });
+
+  if (!tokenResponse.ok) {
+    throw new Error(`SII getToken failed: ${tokenResponse.status}`);
+  }
+
+  const tokenResult = parseAuthWsRespuesta(await tokenResponse.text(), "getTokenReturn");
+  if (!tokenResult.token) {
+    throw new Error(`SII WS auth failed: ${tokenResult.glosa || tokenResult.estado}`);
+  }
+
+  return {
+    token: tokenResult.token,
     expiresAt: Date.now() + 60 * 60 * 1000,
   };
 }
@@ -506,4 +662,100 @@ SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
     glosaErr: glosaErrMatch ? glosaErrMatch[1]!.trim() : "",
     numAtencion: numAtencionMatch ? numAtencionMatch[1]!.trim() : "",
   };
+}
+
+/** QueryEstUp — estado de un envío (upload) por TrackId (WS de certificación). */
+export async function consultarEstadoUpload(
+  env: SiiEnvironment,
+  token: string,
+  rutEmisor: string,
+  trackId: string,
+): Promise<QueryEstUpResult> {
+  const baseUrl = getBaseUrl(env);
+  const { base, dv } = extractRutParts(rutEmisor);
+  const ns = `${baseUrl}${DTEWS_PATHS.QUERY_EST_UP}`;
+
+  const response = await fetch(`${baseUrl}${DTEWS_PATHS.QUERY_EST_UP}`, {
+    method: "POST",
+    headers: SOAP_HEADERS,
+    body: buildQueryEstUpEnvelope(ns, base, dv, trackId, token),
+  });
+
+  if (!response.ok) {
+    console.error('[SII] consultarEstadoUpload HTTP error', { status: response.status, trackId, rutEmisor });
+    return { estado: "Otros", glosa: `HTTP ${response.status}`, trackId, numAtencion: "" };
+  }
+
+  return parseQueryEstUp(await response.text());
+}
+
+/**
+ * QueryEstDteAv — consulta avanzada del estado de un DTE con verificación de
+ * datos (RECIBIDO/ESTADO). FirmaDte = DTE/Signature/SignatureValue del XML.
+ */
+export async function consultarEstadoAvanzado(
+  env: SiiEnvironment,
+  token: string,
+  rutEmisor: string,
+  rutReceptor: string,
+  tipoDte: number,
+  folio: number,
+  fechaEmision: string, // ISO YYYY-MM-DD
+  montoTotal: number,
+  firmaDte: string,
+): Promise<QueryEstDteAvResult> {
+  const baseUrl = getBaseUrl(env);
+  const { base: rutEmpresa, dv: dvEmpresa } = extractRutParts(rutEmisor);
+  const { base: rutReceptorBase, dv: dvReceptor } = extractRutParts(rutReceptor);
+  const ns = `${baseUrl}${DTEWS_PATHS.QUERY_EST_DTE_AV}`;
+
+  const response = await fetch(`${baseUrl}${DTEWS_PATHS.QUERY_EST_DTE_AV}`, {
+    method: "POST",
+    headers: SOAP_HEADERS,
+    body: buildQueryEstDteAvEnvelope(
+      ns,
+      rutEmpresa,
+      dvEmpresa,
+      rutReceptorBase,
+      dvReceptor,
+      tipoDte,
+      folio,
+      formatDateSiiDdMmYyyy(fechaEmision),
+      montoTotal,
+      firmaDte,
+      token,
+    ),
+  });
+
+  if (!response.ok) {
+    console.error('[SII] consultarEstadoAvanzado HTTP error', { status: response.status, rutEmisor, tipoDte, folio });
+    return { estado: "Otros", recibido: "", glosa: `HTTP ${response.status}`, trackId: "", numAtencion: "" };
+  }
+
+  return parseQueryEstDteAv(await response.text());
+}
+
+/** wsDTECorreo — solicita el reenvío del correo con el diagnóstico de validación de un TrackId. */
+export async function reenviarCorreoValidacion(
+  env: SiiEnvironment,
+  token: string,
+  rutEmisor: string,
+  trackId: string,
+): Promise<ReenvioCorreoResult> {
+  const baseUrl = getBaseUrl(env);
+  const { base, dv } = extractRutParts(rutEmisor);
+  const ns = `${baseUrl}${DTEWS_PATHS.WS_DTE_CORREO}`;
+
+  const response = await fetch(`${baseUrl}${DTEWS_PATHS.WS_DTE_CORREO}`, {
+    method: "POST",
+    headers: SOAP_HEADERS,
+    body: buildReenvioCorreoEnvelope(ns, token, base, dv, trackId),
+  });
+
+  if (!response.ok) {
+    console.error('[SII] reenviarCorreoValidacion HTTP error', { status: response.status, trackId, rutEmisor });
+    return { estado: "-1", glosa: `HTTP ${response.status}` };
+  }
+
+  return parseReenvioCorreo(await response.text());
 }
