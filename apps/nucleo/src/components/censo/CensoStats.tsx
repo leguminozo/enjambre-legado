@@ -52,24 +52,35 @@ export function CensoStats({ initialStats }: CensoStatsProps) {
   if (!stats) {
     return (
       <p className="text-sm text-muted-foreground z-10">
-        Los primeros apicultores fundadores se están inscribiendo. Datos protegidos: tu ubicación exacta nunca es pública.
+        <span className="font-semibold text-foreground">Hoy partimos desde cero: sé de los primeros en inscribirte.</span>
+        {' '}· Datos protegidos: tu ubicación exacta nunca es pública.
       </p>
     );
   }
 
-  // Si al inicio hay pocos actores, mostrar colmenas (número más grande) —
-  // regla del plan de lanzamiento.
+  // Fase inicial: si hay pocos actores, mostrar colmenas (número más grande);
+  // con red formada, apicultores por comuna — regla del plan de lanzamiento.
   const mostrarColmenas = stats.actores_activos < 20;
-  const numero = mostrarColmenas ? stats.colmenas_registradas : stats.actores_activos;
-  const rotulo = mostrarColmenas ? 'colmenas registradas' : 'apicultores inscritos';
 
   return (
     <p className="text-sm text-muted-foreground z-10">
-      <span className="font-semibold text-foreground">
-        {numero.toLocaleString('es-CL')} {rotulo}
-      </span>
-      {' · '}
-      <span className="font-semibold text-foreground">{stats.comunas.toLocaleString('es-CL')}</span> comunas
+      {mostrarColmenas ? (
+        <>
+          <span className="font-semibold text-foreground">
+            {stats.colmenas_registradas.toLocaleString('es-CL')} colmenas registradas
+          </span>
+          {' · '}
+          <span className="font-semibold text-foreground">{stats.comunas.toLocaleString('es-CL')}</span> comunas
+        </>
+      ) : (
+        <>
+          <span className="font-semibold text-foreground">
+            {stats.actores_activos.toLocaleString('es-CL')} apicultores
+          </span>
+          {' '}ya están en el mapa, en{' '}
+          <span className="font-semibold text-foreground">{stats.comunas.toLocaleString('es-CL')}</span> comunas
+        </>
+      )}
       {' · '}Datos protegidos: tu ubicación exacta nunca es pública
     </p>
   );
