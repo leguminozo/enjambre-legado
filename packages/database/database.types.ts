@@ -321,6 +321,10 @@ export type Database = {
           comuna_destino: string
           comuna_origen: string
           created_at: string
+          distancia_km_menor: number | null
+          distancia_minima_km: number | null
+          distancia_verificada: boolean
+          distancia_verificada_at: string | null
           estado: string
           fecha_ingreso: string
           fecha_salida: string | null
@@ -343,6 +347,10 @@ export type Database = {
           comuna_destino: string
           comuna_origen: string
           created_at?: string
+          distancia_km_menor?: number | null
+          distancia_minima_km?: number | null
+          distancia_verificada?: boolean
+          distancia_verificada_at?: string | null
           estado?: string
           fecha_ingreso: string
           fecha_salida?: string | null
@@ -365,6 +373,10 @@ export type Database = {
           comuna_destino?: string
           comuna_origen?: string
           created_at?: string
+          distancia_km_menor?: number | null
+          distancia_minima_km?: number | null
+          distancia_verificada?: boolean
+          distancia_verificada_at?: string | null
           estado?: string
           fecha_ingreso?: string
           fecha_salida?: string | null
@@ -2604,6 +2616,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      config_censo: {
+        Row: {
+          cierre: string | null
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          cierre?: string | null
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          cierre?: string | null
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       configuracion_ia: {
         Row: {
@@ -8595,6 +8625,112 @@ export type Database = {
           },
         ]
       }
+      rpetc_cesiones: {
+        Row: {
+          created_at: string
+          dec_jurada: string | null
+          dir_cobranza: string | null
+          empresa_id: string
+          estado_rpetc: string | null
+          fecha_ult_anot: string | null
+          folio: number
+          glosa: string | null
+          id: string
+          id_cesion: string | null
+          raw_xml: string | null
+          rut_cobranza: string | null
+          rut_emisor: string
+          rut_tenedor: string | null
+          tipo_doc: number
+        }
+        Insert: {
+          created_at?: string
+          dec_jurada?: string | null
+          dir_cobranza?: string | null
+          empresa_id: string
+          estado_rpetc?: string | null
+          fecha_ult_anot?: string | null
+          folio: number
+          glosa?: string | null
+          id?: string
+          id_cesion?: string | null
+          raw_xml?: string | null
+          rut_cobranza?: string | null
+          rut_emisor: string
+          rut_tenedor?: string | null
+          tipo_doc: number
+        }
+        Update: {
+          created_at?: string
+          dec_jurada?: string | null
+          dir_cobranza?: string | null
+          empresa_id?: string
+          estado_rpetc?: string | null
+          fecha_ult_anot?: string | null
+          folio?: number
+          glosa?: string | null
+          id?: string
+          id_cesion?: string | null
+          raw_xml?: string | null
+          rut_cobranza?: string | null
+          rut_emisor?: string
+          rut_tenedor?: string | null
+          tipo_doc?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rpetc_cesiones_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rpetc_reclamos: {
+        Row: {
+          accion: string
+          codigo_respuesta: string | null
+          created_at: string
+          descripcion_respuesta: string | null
+          empresa_id: string
+          folio: number
+          id: string
+          rut_emisor: string
+          tipo_doc: number
+        }
+        Insert: {
+          accion: string
+          codigo_respuesta?: string | null
+          created_at?: string
+          descripcion_respuesta?: string | null
+          empresa_id: string
+          folio: number
+          id?: string
+          rut_emisor: string
+          tipo_doc: number
+        }
+        Update: {
+          accion?: string
+          codigo_respuesta?: string | null
+          created_at?: string
+          descripcion_respuesta?: string | null
+          empresa_id?: string
+          folio?: number
+          id?: string
+          rut_emisor?: string
+          tipo_doc?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rpetc_reclamos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       security_events: {
         Row: {
           app_source: string
@@ -8912,6 +9048,88 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "sii_document_jobs_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sii_respuestas_intercambio: {
+        Row: {
+          created_at: string
+          empresa_id: string
+          id: string
+          nro_respuesta: number
+          rut_recibe: string
+          rut_responde: string
+          tipo: string
+          xml: string
+        }
+        Insert: {
+          created_at?: string
+          empresa_id: string
+          id?: string
+          nro_respuesta: number
+          rut_recibe: string
+          rut_responde: string
+          tipo: string
+          xml: string
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          nro_respuesta?: number
+          rut_recibe?: string
+          rut_responde?: string
+          tipo?: string
+          xml?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sii_respuestas_intercambio_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sii_set_pruebas_envios: {
+        Row: {
+          casos: Json
+          created_at: string
+          empresa_id: string
+          envio_xml: string
+          estado_sii: string
+          id: string
+          sii_response: Json | null
+          track_id: string | null
+        }
+        Insert: {
+          casos?: Json
+          created_at?: string
+          empresa_id: string
+          envio_xml: string
+          estado_sii?: string
+          id?: string
+          sii_response?: Json | null
+          track_id?: string | null
+        }
+        Update: {
+          casos?: Json
+          created_at?: string
+          empresa_id?: string
+          envio_xml?: string
+          estado_sii?: string
+          id?: string
+          sii_response?: Json | null
+          track_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sii_set_pruebas_envios_empresa_id_fkey"
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
@@ -10894,6 +11112,7 @@ export type Database = {
         }
         Returns: Json
       }
+      censo_stats_public: { Args: never; Returns: Json }
       cerrar_arqueo_feria: {
         Args: {
           p_cerrado_por?: string
