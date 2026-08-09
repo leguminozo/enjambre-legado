@@ -58,30 +58,40 @@ export function CensoStats({ initialStats }: CensoStatsProps) {
     );
   }
 
-  // Fase inicial: si hay pocos actores, mostrar colmenas (número más grande);
-  // con red formada, apicultores por comuna — regla del plan de lanzamiento.
-  const mostrarColmenas = stats.actores_activos < 20;
+  // Tres estados (microcopy del plan de lanzamiento):
+  // - red formada (≥20 actores): apicultores por comuna
+  // - masa (colmenas > 1000): colmenas, el número más grande
+  // - estado 0 (menos de 20 actores y pocas colmenas): invitación a ser fundador
+  if (stats.actores_activos >= 20) {
+    return (
+      <p className="text-sm text-muted-foreground z-10">
+        <span className="font-semibold text-foreground">
+          {stats.actores_activos.toLocaleString('es-CL')} apicultores
+        </span>
+        {' '}ya están en el mapa, en{' '}
+        <span className="font-semibold text-foreground">{stats.comunas.toLocaleString('es-CL')}</span> comunas
+        {' · '}Datos protegidos: tu ubicación exacta nunca es pública
+      </p>
+    );
+  }
+
+  if (stats.colmenas_registradas > 1000) {
+    return (
+      <p className="text-sm text-muted-foreground z-10">
+        <span className="font-semibold text-foreground">
+          {stats.colmenas_registradas.toLocaleString('es-CL')} colmenas registradas
+        </span>
+        {' · '}
+        <span className="font-semibold text-foreground">{stats.comunas.toLocaleString('es-CL')}</span> comunas
+        {' · '}Datos protegidos: tu ubicación exacta nunca es pública
+      </p>
+    );
+  }
 
   return (
     <p className="text-sm text-muted-foreground z-10">
-      {mostrarColmenas ? (
-        <>
-          <span className="font-semibold text-foreground">
-            {stats.colmenas_registradas.toLocaleString('es-CL')} colmenas registradas
-          </span>
-          {' · '}
-          <span className="font-semibold text-foreground">{stats.comunas.toLocaleString('es-CL')}</span> comunas
-        </>
-      ) : (
-        <>
-          <span className="font-semibold text-foreground">
-            {stats.actores_activos.toLocaleString('es-CL')} apicultores
-          </span>
-          {' '}ya están en el mapa, en{' '}
-          <span className="font-semibold text-foreground">{stats.comunas.toLocaleString('es-CL')}</span> comunas
-        </>
-      )}
-      {' · '}Datos protegidos: tu ubicación exacta nunca es pública
+      <span className="font-semibold text-foreground">Hoy partimos desde cero: sé de los primeros en inscribirte.</span>
+      {' '}· Datos protegidos: tu ubicación exacta nunca es pública
     </p>
   );
 }
