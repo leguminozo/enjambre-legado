@@ -138,4 +138,50 @@ describe("buildEnvioDteXml", () => {
     expect(envio).toContain("<NroResol>1024</NroResol>");
     expect(envio).toContain("<FchResol>2024-12-01</FchResol>");
   });
+
+  it("incluye RutEnvia, TmstFirmaEnv y receptor SII por defecto", () => {
+    const dteXml = buildDteXml(FACTURA_DOC);
+    const envio = buildEnvioDteXml([dteXml], "76350040-1", 1024, "2024-12-01", {
+      rutEnvia: "11111111-1",
+      tmstFirmaEnv: "2026-08-08T12:00:00",
+    });
+    expect(envio).toContain("<RutEnvia>11111111-1</RutEnvia>");
+    expect(envio).toContain("<TmstFirmaEnv>2026-08-08T12:00:00</TmstFirmaEnv>");
+    expect(envio).toContain("<RutReceptor>60803000-K</RutReceptor>");
+  });
+
+  it("RutEnvia por defecto = RutEmisor y genera TmstFirmaEnv", () => {
+    const dteXml = buildDteXml(FACTURA_DOC);
+    const envio = buildEnvioDteXml([dteXml], "76350040-1", 1024, "2024-12-01");
+    expect(envio).toContain("<RutEnvia>76350040-1</RutEnvia>");
+    expect(envio).toMatch(/<TmstFirmaEnv>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}<\/TmstFirmaEnv>/);
+  });
+
+  it("agrupa SubTotDTE por tipo de documento", () => {
+    const doc61: DteDocumento = {
+      ...FACTURA_DOC,
+      encabezado: { ...FACTURA_DOC.encabezado, tipoDte: DTE_TIPO.NOTA_CREDITO, folio: 124 },
+    };
+    const dte33 = buildDteXml(FACTURA_DOC);
+    const dte33b = buildDteXml({ ...FACTURA_DOC, encabezado: { ...FACTURA_DOC.encabezado, folio: 125 } });
+    const dte61 = buildDteXml(doc61);
+    const envio = buildEnvioDteXml([dte33, dte33b, dte61], "76350040-1", 1024, "2024-12-01", {
+      tmstFirmaEnv: "2026-08-08T12:00:00",
+    });
+    expect(envio).toContain("<SubTotDTE>");
+    expect(envio).toContain("<TpoDTE>33</TpoDTE>\n      <NroDTE>2</NroDTE>");
+    expect(envio).toContain("<TpoDTE>61</TpoDTE>\n      <NroDTE>1</NroDTE>");
+  });
+
+  it("emite referencia sin FolioRef/FchRef cuando son opcionales (SET)", () => {
+    const doc: DteDocumento = {
+      ...FACTURA_DOC,
+      referencias: [{ tipoDocumento: "SET", razonReferencia: "CASO 4256-1" }],
+    };
+    const xml = buildDteXml(doc);
+    expect(xml).toContain("<TpoDocRef>SET</TpoDocRef>");
+    expect(xml).toContain("<RazonRef>CASO 4256-1</RazonRef>");
+    expect(xml).not.toContain("<FolioRef>");
+    expect(xml).not.toContain("<FchRef>");
+  });
 });
