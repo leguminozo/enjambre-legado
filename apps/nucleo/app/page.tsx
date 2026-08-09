@@ -1,7 +1,18 @@
 import Link from 'next/link';
 import { headers } from 'next/headers';
-import { ShieldAlert, Map, QrCode, ArrowRight, UserCircle2, UserPlus, ShieldCheck, FileText, MapPin } from 'lucide-react';
+import { ShieldAlert, Map, QrCode, ArrowRight, UserCircle2, UserPlus, ShieldCheck, FileText, MapPin, Lock } from 'lucide-react';
 import { CensoStats, type CensoStatsData } from '@/components/censo/CensoStats';
+
+export const metadata = {
+  title: 'Registro Territorial Apícola de Chiloé — Censo, mapa y Pasaporte QR para apicultores',
+  description:
+    'Censo apícola gratuito de Chiloé. Inscribe tus apiarios, defiende tu zona de pecoreo con respaldo de la Ley 21.102 y dale a tu miel un Pasaporte QR verificable. Cierre: 31 de octubre.',
+  openGraph: {
+    title: 'Tu zona de pecoreo ya tiene defensa legal. Falta que esté en el mapa.',
+    description:
+      'Registro Territorial Apícola de Chiloé — gratis, hecho por apicultores de la isla.',
+  },
+};
 
 /**
  * Hero del Registro Territorial Apícola de Chiloé — Variante A ("Dato duro").
@@ -49,7 +60,14 @@ export default async function RedApicolaLanding() {
             Registro Territorial Apícola de Chiloé
           </span>
         </div>
-        <div>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/mapa-chiloe"
+            className="hidden sm:inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full hover:bg-surface-raised"
+          >
+            <Map className="w-4 h-4" />
+            Mapa público
+          </Link>
           <Link href="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full hover:bg-surface-raised">
             <UserCircle2 className="w-4 h-4" />
             Acceso
@@ -131,8 +149,11 @@ export default async function RedApicolaLanding() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <div className="bg-card p-8 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
+            {/* Feature 1 — destacada: el corazón de la Red */}
+            <div className="relative bg-card p-8 rounded-2xl border border-primary/40 shadow-sm hover:shadow-md transition-shadow">
+              <span className="absolute top-4 right-4 text-[10px] uppercase tracking-wider text-primary font-semibold bg-primary/10 px-2 py-1 rounded-full">
+                El corazón de la Red
+              </span>
               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
                 <ShieldAlert className="w-6 h-6 text-primary" />
               </div>
@@ -210,7 +231,7 @@ export default async function RedApicolaLanding() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
+            <div className="text-center md:relative">
               <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
                 <UserPlus className="w-6 h-6" />
               </div>
@@ -219,8 +240,9 @@ export default async function RedApicolaLanding() {
                 Cinco minutos, gratis. Si prefieres, te inscribimos en persona en una reunión de la
                 Red, en INDAP o en la feria. No necesitas saber de computadores.
               </p>
+              <span className="hidden md:block absolute top-6 -right-4 w-8 border-t-2 border-dashed border-primary/30" />
             </div>
-            <div className="text-center">
+            <div className="text-center md:relative">
               <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
                 <MapPin className="w-6 h-6" />
               </div>
@@ -229,6 +251,7 @@ export default async function RedApicolaLanding() {
                 Tu zona de pecoreo queda en el mapa de la Red. Tu ubicación exacta jamás se publica:
                 solo se muestra una zona aproximada de 1 km.
               </p>
+              <span className="hidden md:block absolute top-6 -right-4 w-8 border-t-2 border-dashed border-primary/30" />
             </div>
             <div className="text-center">
               <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
@@ -241,6 +264,56 @@ export default async function RedApicolaLanding() {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Mapa público — preview embebido */}
+      <section className="bg-background py-24 px-6 sm:px-12 lg:px-24 border-b border-border">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold font-serif text-foreground mb-3">El mapa de la isla, sin secretos</h2>
+            <p className="text-muted-foreground">Todos ven las zonas. Nadie ve tu punto exacto.</p>
+          </div>
+          <div className="relative rounded-2xl overflow-hidden border border-border">
+            <iframe
+              src="/mapa-chiloe"
+              title="Mapa apícola público de Chiloé"
+              className="w-full h-[480px] bg-surface-sunken"
+            />
+            {stats && stats.apiarios_activos === 0 && stats.actores_activos === 0 && (
+              <div className="absolute inset-0 bg-background/85 backdrop-blur flex items-center justify-center p-6">
+                <p className="text-sm text-muted-foreground max-w-sm text-center leading-relaxed">
+                  Aún estamos en fase inicial del censo. A medida que se inscriban apiarios, verás
+                  aparecer zonas difuminadas aquí.
+                </p>
+              </div>
+            )}
+          </div>
+          <p className="mt-4 text-xs text-muted-foreground flex items-center justify-center gap-2">
+            <Lock size={14} className="text-primary" />
+            Coordenadas redondeadas a ~1 km · Colmenas en bandas, nunca números exactos · Sin nombres ni contactos
+          </p>
+          <div className="text-center mt-6">
+            <Link href="/mapa-chiloe" className="text-sm text-primary underline underline-offset-4 hover:text-primary/80 transition-colors">
+              Explorar el mapa completo →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Para quienes compran miel */}
+      <section className="bg-surface-raised py-16 px-6 sm:px-12 lg:px-24 border-b border-border">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold font-serif text-foreground mb-4">
+            ¿Compraste miel con este código?
+          </h2>
+          <p className="text-muted-foreground leading-relaxed mb-6">
+            Escanéalo con tu celular y conoce quién la produjo, en qué comuna, de qué colmenas viene
+            y qué dicen sus análisis. La miel deja de ser una promesa: se puede comprobar.
+          </p>
+          <p className="text-sm text-muted-foreground italic">
+            Los primeros Pasaportes salen con la cosecha de esta temporada.
+          </p>
         </div>
       </section>
 
@@ -302,6 +375,9 @@ export default async function RedApicolaLanding() {
             Inscribir mis apiarios — es gratis
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
+          <p className="mt-6 text-sm text-muted-foreground">
+            ¿Tienes dudas? Escríbenos y te ayudamos a inscribirte en persona.
+          </p>
         </div>
       </section>
 
