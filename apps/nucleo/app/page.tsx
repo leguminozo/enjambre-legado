@@ -1,25 +1,23 @@
 import Link from 'next/link';
 import { headers } from 'next/headers';
-import { ShieldAlert, Map, QrCode, ArrowRight, UserPlus, ShieldCheck, MapPin, Lock } from 'lucide-react';
+import { ArrowRight, Map, Lock } from 'lucide-react';
 import { CensoStats, type CensoStatsData } from '@/components/censo/CensoStats';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 
 export const metadata = {
-  title: 'Registro Territorial Apícola de Chiloé — Censo, mapa y Pasaporte QR para apicultores',
+  title: 'Registro Apícola de Chiloé — Mapa y defensa de tu zona de pecoreo',
   description:
-    'Censo apícola gratuito de Chiloé. Inscribe tus apiarios, defiende tu zona de pecoreo con respaldo de la Ley 21.102 y dale a tu miel un Pasaporte QR verificable. Cierre: 31 de octubre.',
+    'Inscribe tus apiarios en el registro territorial de Chiloé. Es gratis. El mapa muestra zonas, no tu punto exacto. Te ayudamos si prefieres hacerlo en persona.',
   openGraph: {
-    title: 'Tu zona de pecoreo ya tiene defensa legal. Falta que esté en el mapa.',
-    description:
-      'Registro Territorial Apícola de Chiloé — gratis, hecho por apicultores de la isla.',
+    title: 'Tu zona de pecoreo ya tiene defensa. Falta que esté en el mapa.',
+    description: 'Registro territorial apícola de Chiloé — gratis, hecho en la isla.',
   },
 };
 
 /**
- * Hero del Registro Territorial Apícola de Chiloé — Variante A ("Dato duro").
- * El contador se renderiza en servidor (ISR 120 s vía /api/censo-publico/stats)
- * y la fecha de cierre del censo vive en la DB (config_censo), no en el copy.
+ * Landing pública del Registro Territorial Apícola de Chiloé.
+ * Arco: hero → mapa → por qué → cómo → origen → FAQ → cierre.
  */
 async function getCensoStats(): Promise<CensoStatsData | null> {
   try {
@@ -38,362 +36,326 @@ async function getCensoStats(): Promise<CensoStatsData | null> {
 }
 
 function formatCierre(cierre: string | null | undefined): string {
-  if (!cierre) return '31 DE OCTUBRE';
+  if (!cierre) return '31 de octubre';
   const d = new Date(`${cierre}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return '31 DE OCTUBRE';
-  return new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'long' })
-    .format(d)
-    .toUpperCase();
+  if (Number.isNaN(d.getTime())) return '31 de octubre';
+  return new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'long' }).format(d);
 }
 
 export default async function RedApicolaLanding() {
   const stats = await getCensoStats();
   const cierre = formatCierre(stats?.cierre ?? null);
+  const mapaVacio =
+    !stats || (stats.apiarios_activos === 0 && stats.actores_activos === 0);
 
   return (
     <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground flex flex-col">
       <TerritorioHeader />
 
-      {/* Hero — defensa territorial + censo */}
-      <section className="relative pt-14 sm:pt-20 pb-16 sm:pb-24 px-5 sm:px-10 lg:px-20 flex-1 flex flex-col items-center text-center overflow-hidden border-b border-border">
+      {/* A. HERO */}
+      <section className="relative flex min-h-[min(88dvh,820px)] flex-col items-center justify-center px-6 sm:px-10 lg:px-20 pt-16 pb-20 sm:pt-20 sm:pb-28 text-center overflow-hidden">
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="pointer-events-none absolute inset-0 opacity-[0.025]"
           style={{
-            backgroundImage: 'radial-gradient(circle at center, currentColor 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
+            backgroundImage:
+              'radial-gradient(circle at center, currentColor 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
           }}
         />
-        <div className="absolute top-[-12%] right-[-8%] w-[45%] h-[55%] bg-primary/12 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[35%] h-[40%] bg-accent/8 rounded-full blur-[100px] pointer-events-none" />
+        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[70%] h-[50%] bg-primary/[0.07] rounded-full blur-[100px]" />
 
-        <div className="z-10 bg-surface-raised/90 border border-border px-4 py-2 rounded-full inline-flex items-center gap-2.5 mb-8 sm:mb-10 shadow-sm backdrop-blur-sm">
-          <span className="w-2 h-2 rounded-full bg-success animate-pulse shrink-0" />
-          <span className="text-[0.7rem] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Censo apícola 2026–2027 · cierre {cierre}
-          </span>
-        </div>
+        <div className="relative z-10 w-full max-w-3xl mx-auto flex flex-col items-center">
+          <p className="text-[0.7rem] sm:text-xs font-medium tracking-[0.2em] uppercase text-muted-foreground mb-8 sm:mb-10">
+            Censo apícola · Chiloé · 2026–2027
+          </p>
 
-        <h1 className="font-existencial text-foreground font-bold tracking-tight mb-5 sm:mb-6 max-w-4xl text-balance text-[clamp(2.15rem,5.5vw,4.25rem)] leading-[1.08]">
-          Tu zona de pecoreo ya tiene defensa legal.
-          <br className="hidden sm:block" />{' '}
-          <span className="text-primary italic font-serif">Falta que esté en el mapa.</span>
-        </h1>
+          <h1 className="font-existencial font-semibold tracking-tight text-balance text-[clamp(2.35rem,6vw,4.5rem)] leading-[1.06] text-foreground mb-6 sm:mb-8">
+            Tu zona de pecoreo ya tiene defensa.
+            <span className="block mt-2 sm:mt-3 text-primary italic font-serif font-normal">
+              Falta que esté en el mapa.
+            </span>
+          </h1>
 
-        <p className="text-[0.95rem] sm:text-lg text-muted-foreground mb-3 max-w-2xl font-light leading-relaxed text-pretty">
-          La Ley Apícola (21.102) exige distancias de hasta 2,2 km entre apiarios. Sin registro
-          territorial, esa distancia no se puede exigir. Inscribe tus apiarios, recibe alertas y
-          dale a tu miel un Pasaporte QR.
-        </p>
+          <p className="text-base sm:text-lg text-muted-foreground font-light leading-relaxed text-pretty max-w-xl mb-10 sm:mb-12">
+            Inscribe tus apiarios. El mapa muestra zonas aproximadas — nunca tu punto exacto.
+            El registro básico es gratis.
+          </p>
 
-        <p className="text-sm text-primary/90 italic font-serif mb-8 sm:mb-10">
-          Creado por apicultores de Chiloé, para apicultores de Chiloé.
-        </p>
-
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full justify-center max-w-lg z-10">
-          <Link
-            href="/login?mode=signup"
-            className="w-full sm:flex-1 min-h-12 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-medium transition-all duration-300 shadow-xl shadow-primary/20 active:scale-[0.98] group"
-          >
-            Inscribir mis apiarios
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-          <Link
-            href="/mapa-chiloe"
-            className="w-full sm:flex-1 min-h-12 inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-border bg-surface-raised/80 hover:bg-surface-sunken text-foreground rounded-2xl font-medium transition-all duration-300"
-          >
-            <Map className="w-4 h-4 shrink-0" />
-            Ver el mapa
-          </Link>
-        </div>
-
-        <p className="mt-4 text-xs text-muted-foreground z-10">
-          ¿Ya tienes cuenta?{' '}
-          <Link href="/login" className="text-foreground underline underline-offset-4 hover:text-primary">
-            Entrar al Enjambre
-          </Link>
-        </p>
-
-        <div className="mt-6 sm:mt-8 z-10">
-          <CensoStats initialStats={stats} />
-        </div>
-
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground z-10 max-w-3xl px-2">
-          <span>Alineado con registro SAG (Res. 8.196/2015)</span>
-          <span className="hidden sm:inline text-muted-foreground/40">·</span>
-          <span>Cuaderno digital Res. 4590/2025</span>
-          <span className="hidden sm:inline text-muted-foreground/40">·</span>
-          <span>Datos protegidos Ley 21.719</span>
-        </div>
-
-        <Link
-          href="/municipalidades"
-          className="mt-8 z-10 inline-flex min-h-10 items-center gap-2 rounded-full border border-border/70 bg-surface-raised/60 px-4 py-2 text-xs text-muted-foreground hover:text-foreground hover:border-border transition-colors"
-        >
-          Municipalidades y prensa
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
-      </section>
-
-      {/* Beneficios */}
-      <section className="bg-surface-sunken py-24 px-6 sm:px-12 lg:px-24">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold font-serif text-foreground mb-4">¿Por qué registrarse?</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              No es solo un mapa. Es una plataforma integral diseñada por y para los apicultores locales.
-            </p>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 w-full max-w-md">
+            <Link
+              href="/login?mode=signup"
+              className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/15 transition-opacity hover:opacity-95 active:scale-[0.99] group"
+            >
+              Inscribirme
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              href="/mapa-chiloe"
+              className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-transparent px-7 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-raised"
+            >
+              <Map className="w-4 h-4 shrink-0 opacity-70" />
+              Ver el mapa
+            </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 — destacada: el corazón de la Red */}
-            <div className="relative bg-card p-8 rounded-2xl border border-primary/40 shadow-sm hover:shadow-md transition-shadow">
-              <span className="absolute top-4 right-4 text-[10px] uppercase tracking-wider text-primary font-semibold bg-primary/10 px-2 py-1 rounded-full">
-                El corazón de la Red
-              </span>
-              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
-                <ShieldAlert className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-bold text-foreground mb-3">Defensa Territorial</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                Recibe alertas si apicultores trashumantes no registrados se instalan cerca de tu zona de pecoreo. Protege la bioseguridad de tus colmenas.
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="bg-card p-8 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mb-6">
-                <Map className="w-6 h-6 text-accent" />
-              </div>
-              <h3 className="text-lg font-bold text-foreground mb-3">Ordenamiento Municipal</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                El registro territorial permite coordinar con las autoridades locales para exigir el cumplimiento de las normativas vigentes sobre distancias.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="bg-card p-8 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-success/10 rounded-xl flex items-center justify-center mb-6">
-                <QrCode className="w-6 h-6 text-success" />
-              </div>
-              <h3 className="text-lg font-bold text-foreground mb-3">Trazabilidad Comercial</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                Cada uno de tus lotes de miel obtendrá un Pasaporte Público con código QR, conectando tu esfuerzo directamente con el consumidor final.
-              </p>
-            </div>
-          </div>
+          <p className="mt-6 text-sm text-muted-foreground">
+            ¿Ya tienes cuenta?{' '}
+            <Link
+              href="/login"
+              className="text-foreground underline underline-offset-4 decoration-border hover:decoration-foreground transition-colors"
+            >
+              Entrar
+            </Link>
+          </p>
         </div>
       </section>
 
-      {/* Hecho por apicultores de Chiloé */}
-      <section className="bg-background py-24 px-6 sm:px-12 lg:px-24 border-b border-border">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-10 items-center">
-          <div className="md:col-span-2 space-y-3">
-            <div className="w-full aspect-[4/5] rounded-2xl bg-surface-raised border border-border flex items-center justify-center">
-              <p className="text-xs text-muted-foreground max-w-[200px] text-center px-4">
-                [Foto real: apiarios en bosque nativo, Pureo/Queilén — pendiente de producción]
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground italic">
-              Apiarios en bosque nativo, entre Pureo, Quemchi y Queilén.
-            </p>
-          </div>
-          <div className="md:col-span-3 space-y-5">
-            <h2 className="text-3xl font-bold font-serif text-foreground">
-              Hecho por apicultores de Chiloé
+      {/* B. MAPA */}
+      <section className="px-6 sm:px-10 lg:px-16 xl:px-24 py-24 sm:py-32 border-t border-border/60">
+        <div className="max-w-6xl mx-auto">
+          <div className="max-w-2xl mb-10 sm:mb-14">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground text-balance mb-4">
+              El mapa de la isla
             </h2>
-            <p className="text-muted-foreground leading-relaxed">
-              Este registro nació dentro de una apicultura real de la isla: La Obrera y el Zángano,
-              que trabaja hace más de veinte años con bosque nativo entre Pureo, Quemchi y Queilén.
-              La misma herramienta que usamos para ordenar nuestros propios apiarios, cuaderno de
-              campo y pasaportes QR es la que ahora compartimos con toda la isla.
+            <p className="text-muted-foreground text-base sm:text-lg font-light leading-relaxed">
+              Todos ven las zonas. Nadie ve tu nombre ni tu GPS exacto.
             </p>
-            <div className="border-l-4 border-primary bg-surface-raised rounded-r-xl p-5">
-              <p className="font-serif italic text-foreground">
-                El registro básico es y seguirá siendo gratuito. Es un bien común para defender el
-                territorio apícola de Chiloé.
-              </p>
-            </div>
           </div>
-        </div>
-      </section>
 
-      {/* Cómo funciona */}
-      <section className="bg-surface-sunken py-24 px-6 sm:px-12 lg:px-24">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold font-serif text-foreground mb-3">¿Cómo funciona?</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Tres pasos simples. Si no sabes de computadores, te ayudamos en persona.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center md:relative">
-              <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
-                <UserPlus className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-foreground mb-2">1 · Te inscribes (te ayudamos)</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Cinco minutos, gratis. Si prefieres, te inscribimos en persona en una reunión de la
-                Red, en INDAP o en la feria. No necesitas saber de computadores.
-              </p>
-              <span className="hidden md:block absolute top-6 -right-4 w-8 border-t-2 border-dashed border-primary/30" />
-            </div>
-            <div className="text-center md:relative">
-              <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
-                <MapPin className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-foreground mb-2">2 · Declaras tus apiarios</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Tu zona de pecoreo queda en el mapa de la Red. Tu ubicación exacta jamás se publica:
-                solo se muestra una zona aproximada de 1 km.
-              </p>
-              <span className="hidden md:block absolute top-6 -right-4 w-8 border-t-2 border-dashed border-primary/30" />
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-foreground mb-2">3 · Defiendes y vendes mejor</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Recibes alertas de instalaciones cercanas, tu declaración SAG lista para firmar en
-                octubre y Pasaportes QR para que tu miel cuente su propia historia.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Mapa público — preview embed limpio */}
-      <section className="bg-background py-20 sm:py-24 px-5 sm:px-10 lg:px-20 border-b border-border">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8 sm:mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold font-serif text-foreground mb-3 text-balance">
-              El mapa de la isla, sin secretos
-            </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">
-              Todos ven las zonas aproximadas. Nadie ve tu punto exacto ni tu nombre.
-            </p>
-          </div>
-          <div className="relative rounded-2xl overflow-hidden border border-border shadow-lg shadow-black/5 ring-1 ring-border/40">
+          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-surface-sunken ring-1 ring-border/50 shadow-xl shadow-black/[0.04]">
             <iframe
               src="/mapa-chiloe?embed=1"
               title="Mapa apícola público de Chiloé"
-              className="w-full h-[min(52vh,440px)] sm:h-[480px] bg-surface-sunken"
+              className="w-full h-[min(56vh,520px)] sm:h-[560px] bg-surface-sunken"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             />
-            {stats && stats.apiarios_activos === 0 && stats.actores_activos === 0 && (
-              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6 pointer-events-none">
-                <p className="text-sm text-muted-foreground max-w-sm text-center leading-relaxed">
-                  Aún estamos en fase inicial del censo. A medida que se inscriban apiarios, verás
-                  aparecer zonas difuminadas aquí.
+            {mapaVacio && (
+              <div className="absolute bottom-0 inset-x-0 p-4 sm:p-5 pointer-events-none">
+                <p className="mx-auto max-w-md rounded-full bg-background/90 backdrop-blur-md px-4 py-2.5 text-center text-xs sm:text-sm text-muted-foreground shadow-sm ring-1 ring-border/40">
+                  El censo recién empieza. Las zonas van a aparecer a medida que la gente se inscriba.
                 </p>
               </div>
             )}
           </div>
-          <p className="mt-5 text-xs text-muted-foreground flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center">
-            <Lock size={14} className="text-primary shrink-0" />
-            <span>
-              Coordenadas ~1 km · Colmenas en bandas · Sin nombres ni contactos
-            </span>
-          </p>
-          <div className="text-center mt-6">
+
+          <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            <div className="min-w-0">
+              <CensoStats initialStats={stats} variant="strip" />
+              <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                <Lock className="w-3.5 h-3.5 text-primary shrink-0" />
+                Zonas de ~1 km · sin nombres ni contactos
+              </p>
+            </div>
             <Link
               href="/mapa-chiloe"
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-surface-raised px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-sunken transition-colors"
+              className="inline-flex min-h-11 shrink-0 items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
             >
-              Explorar el mapa completo
+              Abrir mapa completo
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Para quienes compran miel */}
-      <section className="bg-surface-raised py-16 px-6 sm:px-12 lg:px-24 border-b border-border">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold font-serif text-foreground mb-4">
-            ¿Compraste miel con este código?
+      {/* C. POR QUÉ */}
+      <section className="bg-surface-sunken px-6 sm:px-10 lg:px-16 xl:px-24 py-24 sm:py-32">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-14 sm:mb-20 max-w-lg text-balance">
+            Para qué sirve estar en el mapa
           </h2>
-          <p className="text-muted-foreground leading-relaxed mb-6">
-            Escanéalo con tu celular y conoce quién la produjo, en qué comuna, de qué colmenas viene
-            y qué dicen sus análisis. La miel deja de ser una promesa: se puede comprobar.
-          </p>
-          <p className="text-sm text-muted-foreground italic">
-            Los primeros Pasaportes salen con la cosecha de esta temporada.
-          </p>
+
+          <ul className="divide-y divide-border/70">
+            {[
+              {
+                n: '01',
+                title: 'Defender tu zona de pecoreo',
+                body: 'Si alguien se instala cerca sin avisar, puedes enterarte a tiempo. La ley fija distancias; el mapa ayuda a hacerlas valer.',
+              },
+              {
+                n: '02',
+                title: 'Sin regalar tu ubicación',
+                body: 'En público solo se ve un área aproximada. El punto exacto lo ves tú. Tú eliges qué compartir.',
+              },
+              {
+                n: '03',
+                title: 'Que tu miel pueda contarse',
+                body: 'Cuando toque la cosecha, el pasaporte QR conecta el frasco con el territorio. Sin promesas vacías.',
+              },
+            ].map((item) => (
+              <li
+                key={item.n}
+                className="grid grid-cols-1 sm:grid-cols-[4rem_1fr] gap-3 sm:gap-10 py-10 sm:py-12 first:pt-0 last:pb-0"
+              >
+                <span className="font-mono text-xs tracking-widest text-muted-foreground/80 pt-1">
+                  {item.n}
+                </span>
+                <div className="min-w-0 max-w-2xl">
+                  <h3 className="text-lg sm:text-xl font-medium text-foreground mb-2.5 tracking-tight">
+                    {item.title}
+                  </h3>
+                  <p className="text-muted-foreground font-light leading-relaxed text-[0.95rem] sm:text-base">
+                    {item.body}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      {/* Preguntas frecuentes */}
-      <section id="faq" className="bg-background py-24 px-6 sm:px-12 lg:px-24 border-b border-border">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold font-serif text-foreground mb-3">Preguntas frecuentes</h2>
+      {/* D. CÓMO */}
+      <section className="px-6 sm:px-10 lg:px-16 xl:px-24 py-24 sm:py-32 border-t border-border/60">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-14 sm:mb-20 max-w-xl">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-4">
+              Cómo se hace
+            </h2>
+            <p className="text-muted-foreground font-light text-base sm:text-lg leading-relaxed">
+              Tres pasos. Si no te llevas bien con el computador, te ayudamos en persona.
+            </p>
           </div>
-          <div className="space-y-3">
+
+          <ol className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-10">
+            {[
+              {
+                step: '1',
+                title: 'Creas tu cuenta',
+                body: 'Cinco minutos, gratis. O te inscribimos en una reunión, en la feria o en el apiario.',
+              },
+              {
+                step: '2',
+                title: 'Declaras tus apiarios',
+                body: 'Tu zona queda en el mapa de la red. Lo exacto se queda contigo.',
+              },
+              {
+                step: '3',
+                title: 'Usas lo que necesites',
+                body: 'Alertas, apoyo para la declaración SAG de octubre, y el pasaporte cuando vendas.',
+              },
+            ].map((s) => (
+              <li key={s.step} className="relative">
+                <span className="font-existencial text-5xl sm:text-6xl font-light text-primary/20 leading-none select-none">
+                  {s.step}
+                </span>
+                <h3 className="mt-4 text-lg font-medium text-foreground tracking-tight">
+                  {s.title}
+                </h3>
+                <p className="mt-2 text-sm sm:text-[0.95rem] text-muted-foreground font-light leading-relaxed max-w-xs">
+                  {s.body}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* E. ORIGEN */}
+      <section className="bg-surface-sunken px-6 sm:px-10 lg:px-16 xl:px-24 py-24 sm:py-32">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          <div
+            className="lg:col-span-5 aspect-[4/5] sm:aspect-[5/4] lg:aspect-[4/5] rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary/20 via-surface-raised to-accent/10 ring-1 ring-border/40 flex items-end p-8 sm:p-10"
+            aria-hidden
+          >
+            <p className="font-existencial text-2xl sm:text-3xl italic text-foreground/90 leading-snug max-w-[14ch]">
+              Bosque nativo entre Pureo, Quemchi y Queilén.
+            </p>
+          </div>
+
+          <div className="lg:col-span-7 max-w-xl">
+            <h2 className="font-existencial text-3xl sm:text-4xl font-semibold tracking-tight text-foreground mb-6">
+              Hecho en Chiloé
+            </h2>
+            <p className="text-muted-foreground font-light leading-relaxed text-base sm:text-lg mb-6">
+              Nació en una apicultura real de la isla: La Obrera y el Zángano, más de veinte años
+              con bosque nativo. La misma herramienta con la que ordenamos nuestros apiarios es la
+              que abrimos a toda la isla.
+            </p>
+            <p className="text-foreground font-medium leading-relaxed border-l-2 border-primary pl-5">
+              El registro básico es y va a seguir siendo gratis. Es un bien común para defender el
+              territorio apícola.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* F. FAQ */}
+      <section id="faq" className="px-6 sm:px-10 lg:px-16 xl:px-24 py-24 sm:py-32 border-t border-border/60">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-12 sm:mb-16 text-center">
+            Preguntas frecuentes
+          </h2>
+
+          <div className="space-y-2">
             {[
               {
                 q: '¿De verdad es gratis?',
-                a: 'Sí. El censo, el mapa, las alertas y la declaración SAG son gratis para siempre. Es un bien común de la isla. Solo se cobran herramientas extra para quien vende más: Pasaportes QR ilimitados y cuaderno de campo digital completo.',
+                a: 'Sí. El censo, el mapa, las alertas y la ayuda con la declaración SAG son gratis. Solo se cobran herramientas extras si vendes más y las quieres — por ejemplo pasaportes ilimitados o el cuaderno digital completo.',
               },
               {
-                q: '¿Quién puede ver dónde están mis colmenas?',
-                a: 'Nadie ve tu punto exacto. El mapa público muestra zonas aproximadas de 1 km, sin nombres ni contactos. Solo tú ves tus coordenadas reales. Tú decides qué compartir, con consentimiento explícito para cada cosa.',
+                q: '¿Quién ve mis colmenas?',
+                a: 'Nadie ve el punto exacto. En el mapa público hay zonas de más o menos un kilómetro, sin nombres ni teléfonos. Solo tú ves tus coordenadas reales.',
               },
               {
-                q: 'No sé usar computadores. ¿Puedo participar igual?',
-                a: 'Sí. Te inscribimos en persona: en reuniones de la Red, en INDAP, en la feria o en tu propio apiario. Después puedes recibir todo por WhatsApp y usar el cuaderno en papel que nosotros te imprimimos.',
+                q: 'No me llevo bien con el computador',
+                a: 'No hay problema. Te podemos inscribir en persona: en una reunión, en INDAP, en la feria o en tu apiario. Después te podemos seguir por WhatsApp.',
               },
               {
-                q: '¿Esto reemplaza el registro del SAG?',
-                a: 'No lo reemplaza: te ayuda a cumplirlo. En octubre, mes de actualización obligatoria ante el SAG, la Red te entrega tu declaración pre-llenada, lista para imprimir y firmar.',
+                q: '¿Esto reemplaza al SAG?',
+                a: 'No. Te ayuda a cumplir. En octubre, cuando toca actualizar ante el SAG, la red te deja la declaración casi lista para imprimir y firmar.',
               },
               {
-                q: '¿Qué pasa si un trashumante se inscribe?',
-                a: 'Bienvenido sea: la Red no persigue la trashumancia, persigue la trashumancia no declarada. Quien declara su ingreso, cumple la ley y se hace visible — eso es exactamente lo que la isla necesita.',
+                q: '¿Y si soy trashumante?',
+                a: 'Bienvenido. Lo que la isla necesita es que quien llega declare. La red no persigue la trashumancia: persigue la que no se avisa.',
               },
             ].map(({ q, a }) => (
-              <details key={q} className="group bg-surface-raised border border-border rounded-xl px-5 py-4 open:pb-5">
-                <summary className="flex items-center justify-between gap-4 cursor-pointer list-none text-sm font-medium text-foreground">
+              <details
+                key={q}
+                className="group rounded-2xl border border-transparent open:border-border/60 open:bg-surface-raised px-5 py-4 transition-colors"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[0.95rem] font-medium text-foreground">
                   {q}
-                  <span className="text-primary transition-transform group-open:rotate-45 text-lg leading-none">+</span>
+                  <span
+                    className="text-muted-foreground text-xl leading-none transition-transform group-open:rotate-45 shrink-0"
+                    aria-hidden
+                  >
+                    +
+                  </span>
                 </summary>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{a}</p>
+                <p className="mt-3 pr-8 text-sm text-muted-foreground font-light leading-relaxed">
+                  {a}
+                </p>
               </details>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA final */}
-      <section className="bg-surface-sunken py-20 sm:py-24 px-5 sm:px-10 lg:px-20 text-center">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl sm:text-4xl font-bold font-serif text-foreground mb-4 text-balance">
-            El censo cierra el {cierre}.
+      {/* G. CIERRE */}
+      <section className="bg-surface-sunken px-6 sm:px-10 lg:px-20 py-24 sm:py-32 text-center">
+        <div className="max-w-xl mx-auto">
+          <h2 className="font-existencial text-3xl sm:text-4xl font-semibold tracking-tight text-foreground text-balance mb-5">
+            El censo cierra el {cierre}
           </h2>
-          <p className="text-muted-foreground mb-8 max-w-xl mx-auto leading-relaxed">
-            Tu zona de pecoreo empieza a existir cuando está en el mapa. Inscríbete gratis y sé de
-            los primeros en defenderla.
+          <p className="text-muted-foreground font-light leading-relaxed mb-10 text-base sm:text-lg">
+            Tu zona de pecoreo empieza a existir en el mapa cuando la inscribes. Si quieres, te
+            ayudamos a hacerlo en persona.
           </p>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 max-w-md mx-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
             <Link
               href="/login?mode=signup"
-              className="inline-flex min-h-12 items-center justify-center gap-2 px-7 py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-medium transition-all duration-300 shadow-xl shadow-primary/20 active:scale-[0.98] group"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/15 transition-opacity hover:opacity-95 group"
             >
               Inscribirme gratis
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
               href="/login"
-              className="inline-flex min-h-12 items-center justify-center gap-2 px-7 py-3.5 border border-border bg-surface-raised hover:bg-background text-foreground rounded-2xl font-medium transition-colors"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-border px-8 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-background"
             >
               Ya tengo cuenta
             </Link>
           </div>
-          <p className="mt-7 text-sm text-muted-foreground">
-            ¿Tienes dudas? Te ayudamos a inscribirte en persona.
-          </p>
         </div>
       </section>
 

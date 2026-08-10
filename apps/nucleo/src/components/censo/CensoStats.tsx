@@ -12,15 +12,14 @@ export interface CensoStatsData {
 
 interface CensoStatsProps {
   initialStats: CensoStatsData | null;
+  /** strip = métricas bajo el mapa; prose = una línea */
+  variant?: 'strip' | 'prose';
 }
 
 /**
- * Contador en vivo del censo (hero público). Recibe los datos renderizados
- * en servidor (ISR 120 s) y solo revalida al volver al foco, cada 30 min o
- * una vez al montar si el SSR falló — el cache del BFF (s-maxage=120) ya
- * cubre la frescura por segundo.
+ * Contador del censo público. SSR + revalidación en foco / 30 min.
  */
-export function CensoStats({ initialStats }: CensoStatsProps) {
+export function CensoStats({ initialStats, variant = 'prose' }: CensoStatsProps) {
   const [stats, setStats] = useState<CensoStatsData | null>(initialStats);
 
   useEffect(() => {
@@ -33,11 +32,11 @@ export function CensoStats({ initialStats }: CensoStatsProps) {
           if (!cancelled && json?.data) setStats(json.data);
         })
         .catch(() => {
-          // Conservar los datos actuales si el refresco falla.
+          /* conservar datos actuales */
         });
     };
 
-    refresh(); // cubre el caso en que el SSR falló y el cliente sí puede
+    refresh();
     const onFocus = () => refresh();
     window.addEventListener('focus', onFocus);
     const interval = window.setInterval(refresh, 30 * 60 * 1000);
@@ -49,49 +48,104 @@ export function CensoStats({ initialStats }: CensoStatsProps) {
     };
   }, []);
 
+  if (variant === 'strip') {
+    if (!stats || (stats.actores_activos === 0 && stats.apiarios_activos === 0)) {
+      return (
+        <p className="text-sm text-muted-foreground">
+          Aún casi no hay registros. Tiene sentido ser de los que empiezan.
+        </p>
+      );
+    }
+
+    const items: { value: string; label: string }[] = [];
+    if (stats.actores_activos > 0) {
+      items.push({
+        value: stats.actores_activos.toLocaleString('es-CL'),
+        label: stats.actores_activos === 1 ? 'apicultor' : 'apicultores',
+      });
+    }
+    if (stats.comunas > 0) {
+      items.push({
+        value: stats.comunas.toLocaleString('es-CL'),
+        label: stats.comunas === 1 ? 'comuna' : 'comunas',
+      });
+    }
+    if (stats.colmenas_registradas > 0) {
+      items.push({
+        value: stats.colmenas_registradas.toLocaleString('es-CL'),
+        label: 'colmenas',
+      });
+    }
+
+    if (items.length === 0) {
+      return (
+        <p className="text-sm text-muted-foreground">
+          Aún casi no hay registros. Tiene sentido ser de los que empiezan.
+        </p>
+      );
+    }
+
+    return (
+      <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
+        {items.map((item) => (
+          <div key={item.label}>
+            <p className="text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight text-foreground">
+              {item.value}
+            </p>
+            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground mt-0.5">
+              {item.label}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   if (!stats) {
     return (
-      <p className="text-sm text-muted-foreground z-10">
-        <span className="font-semibold text-foreground">Hoy partimos desde cero: sé de los primeros en inscribirte.</span>
-        {' '}· Datos protegidos: tu ubicación exacta nunca es pública.
+      <p className="text-sm text-muted-foreground">
+        <span className="font-medium text-foreground">
+          Aún casi no hay registros. Tiene sentido ser de los que empiezan.
+        </span>
       </p>
     );
   }
 
-  // Tres estados (microcopy del plan de lanzamiento):
-  // - red formada (≥20 actores): apicultores por comuna
-  // - masa (colmenas > 1000): colmenas, el número más grande
-  // - estado 0 (menos de 20 actores y pocas colmenas): invitación a ser fundador
   if (stats.actores_activos >= 20) {
     return (
-      <p className="text-sm text-muted-foreground z-10">
-        <span className="font-semibold text-foreground">
+      <p className="text-sm text-muted-foreground">
+        <span className="font-medium text-foreground">
           {stats.actores_activos.toLocaleString('es-CL')} apicultores
-        </span>
-        {' '}ya están en el mapa, en{' '}
-        <span className="font-semibold text-foreground">{stats.comunas.toLocaleString('es-CL')}</span> comunas
-        {' · '}Datos protegidos: tu ubicación exacta nunca es pública
+        </span>{' '}
+        ya están en el mapa, en{' '}
+        <span className="font-medium text-foreground">
+          {stats.comunas.toLocaleString('es-CL')}
+        </span>{' '}
+        comunas.
       </p>
     );
   }
 
   if (stats.colmenas_registradas > 1000) {
     return (
-      <p className="text-sm text-muted-foreground z-10">
-        <span className="font-semibold text-foreground">
-          {stats.colmenas_registradas.toLocaleString('es-CL')} colmenas registradas
-        </span>
-        {' · '}
-        <span className="font-semibold text-foreground">{stats.comunas.toLocaleString('es-CL')}</span> comunas
-        {' · '}Datos protegidos: tu ubicación exacta nunca es pública
+      <p className="text-sm text-muted-foreground">
+        <span className="font-medium text-foreground">
+          {stats.colmenas_registradas.toLocaleString('es-CL')} colmenas
+        </span>{' '}
+        registradas en{' '}
+        <span className="font-medium text-foreground">
+          {stats.comunas.toLocaleString('es-CL')}
+        </span>{' '}
+        comunas.
       </p>
     );
   }
 
   return (
-    <p className="text-sm text-muted-foreground z-10">
-      <span className="font-semibold text-foreground">Hoy partimos desde cero: sé de los primeros en inscribirte.</span>
-      {' '}· Datos protegidos: tu ubicación exacta nunca es pública
+    <p className="text-sm text-muted-foreground">
+      <span className="font-medium text-foreground">
+        Aún casi no hay registros. Tiene sentido ser de los que empiezan.
+      </span>
     </p>
   );
 }

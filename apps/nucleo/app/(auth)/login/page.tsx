@@ -10,6 +10,7 @@ import {
   Eye,
   EyeOff,
   ChevronRight,
+  ChevronDown,
   UserPlus,
   ArrowLeft,
 } from 'lucide-react';
@@ -45,6 +46,7 @@ export default function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showInviteCode, setShowInviteCode] = useState(false);
 
   // Campos Territoriales Adicionales
   const [inviteCode, setInviteCode] = useState('');
@@ -66,6 +68,16 @@ export default function LoginPage() {
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
 
   const [viewMode, setViewMode] = useState<ViewMode>('collapsed');
+
+  // Bloquear scroll del body mientras hay un panel abierto
+  useEffect(() => {
+    if (viewMode === 'collapsed') return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [viewMode]);
 
   useEffect(() => {
     const {
@@ -239,7 +251,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative min-h-[var(--vh-full)] w-full bg-background text-foreground flex flex-col justify-between overflow-hidden px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] select-none">
+    <main className="relative min-h-[var(--vh-full)] w-full bg-background text-foreground flex flex-col justify-between overflow-x-hidden px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] select-none">
       {/* Starry / Cosmic Atmosphere Layer */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[60vh] rounded-full bg-gradient-to-b from-primary/15 via-primary/5 to-transparent blur-3xl opacity-60" />
@@ -354,22 +366,34 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* EMAIL LOGIN SHEET */}
+        {/* EMAIL LOGIN SHEET — centrado en desktop, sheet abajo en móvil */}
         {viewMode === 'sheet_email' && (
-          <>
-            <div
-              className={`fixed inset-0 z-[220] animate-in fade-in duration-200 ${overlayBackdropClassName}`}
+          <div className="fixed inset-0 z-[220] flex items-end justify-center sm:items-center p-0 sm:p-5">
+            <button
+              type="button"
+              className={`absolute inset-0 animate-in fade-in duration-200 ${overlayBackdropClassName}`}
+              aria-label="Cerrar"
               onClick={() => setViewMode('collapsed')}
             />
-            <div className="fixed inset-x-0 bottom-0 z-[221] rounded-t-[32px] border-t border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] animate-in slide-in-from-bottom duration-300 max-w-md mx-auto max-h-[calc(var(--vh-full)-2.5rem)] overflow-y-auto">
-              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="login-email-title"
+              className="relative z-10 w-full max-w-md max-h-[min(90dvh,640px)] overflow-y-auto overscroll-contain
+                rounded-t-[28px] sm:rounded-3xl border border-border/60 border-b-0 sm:border-b
+                bg-surface-raised p-6 sm:p-8
+                shadow-[0_-8px_40px_rgba(0,0,0,0.45)] sm:shadow-[0_24px_64px_rgba(0,0,0,0.45)]
+                animate-in slide-in-from-bottom sm:fade-in sm:zoom-in-95 duration-300
+                pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+            >
+              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4 sm:hidden" />
 
               <div className="mb-6 text-center">
-                <h2 className="text-lg font-semibold text-foreground tracking-tight">
+                <h2 id="login-email-title" className="text-lg font-semibold text-foreground tracking-tight">
                   Iniciar sesión
                 </h2>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Acceso único al Enjambre y al registro territorial
+                  Acceso al Enjambre y al registro territorial
                 </p>
               </div>
 
@@ -476,35 +500,41 @@ export default function LoginPage() {
                 </Link>
               </form>
             </div>
-          </>
+          </div>
         )}
 
-        {/* REGISTRO TERRITORIAL — panel amplio (escritorio horizontal, móvil con aire) */}
+        {/* REGISTRO TERRITORIAL — overlay centrado (flex), scroll interno, no se corta */}
         {viewMode === 'sheet_signup' && (
-          <>
-            <div
-              className={`fixed inset-0 z-[220] animate-in fade-in duration-200 ${overlayBackdropClassName}`}
-              onClick={() => setViewMode('collapsed')}
+          <div
+            className="fixed inset-0 z-[220] flex items-end justify-center sm:items-center p-0 sm:p-5 md:p-8"
+            role="presentation"
+          >
+            <button
+              type="button"
+              className={`absolute inset-0 animate-in fade-in duration-200 ${overlayBackdropClassName}`}
+              aria-label="Cerrar registro"
+              onClick={() => {
+                setViewMode('collapsed');
+                setError(null);
+                setMessage(null);
+              }}
             />
             <div
               role="dialog"
               aria-modal="true"
               aria-labelledby="signup-title"
-              className="fixed z-[221] inset-x-0 bottom-0 max-h-[min(94dvh,920px)] overflow-hidden
-                rounded-t-[28px] border-t border-border/60
-                sm:inset-4 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 sm:max-h-[min(90dvh,880px)]
-                sm:rounded-3xl sm:border
-                lg:inset-x-8 xl:inset-x-16 2xl:inset-x-24
-                sm:max-w-none sm:w-auto
-                bg-surface-raised/98 backdrop-blur-2xl
-                shadow-[0_-12px_48px_rgba(0,0,0,0.85)] sm:shadow-[0_24px_80px_rgba(0,0,0,0.55)]
+              className="relative z-10 flex w-full max-w-5xl flex-col overflow-hidden
+                max-h-[min(92dvh,880px)]
+                rounded-t-[28px] sm:rounded-3xl
+                border border-border/60 border-b-0 sm:border-b
+                bg-surface-raised shadow-[0_-8px_40px_rgba(0,0,0,0.45)] sm:shadow-[0_24px_80px_rgba(0,0,0,0.5)]
                 animate-in slide-in-from-bottom sm:fade-in sm:zoom-in-95 duration-300
-                flex flex-col"
+                safe-area-pb"
             >
-              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mt-3 mb-1 sm:hidden shrink-0" />
+              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mt-3 mb-0 sm:hidden shrink-0" />
 
-              <header className="shrink-0 px-5 sm:px-8 lg:px-10 pt-3 sm:pt-7 pb-4 sm:pb-5 border-b border-border/40">
-                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+              <header className="shrink-0 px-5 sm:px-8 lg:px-10 pt-3 sm:pt-6 pb-4 sm:pb-5 border-b border-border/40">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[0.65rem] uppercase tracking-[0.16em] text-primary font-semibold mb-1">
                       Registro territorial · Chiloé
@@ -513,7 +543,7 @@ export default function LoginPage() {
                       Crear cuenta
                     </h2>
                     <p className="text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed">
-                      Cuenta Enjambre + perfil territorial. El registro básico es gratis.
+                      Cuenta + perfil territorial. El registro básico es gratis.
                     </p>
                   </div>
                   <button
@@ -523,7 +553,7 @@ export default function LoginPage() {
                       setError(null);
                       setMessage(null);
                     }}
-                    className="hidden sm:inline-flex min-h-10 items-center text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                    className="hidden sm:inline-flex min-h-10 items-center rounded-full px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors shrink-0"
                   >
                     Cerrar
                   </button>
@@ -533,7 +563,7 @@ export default function LoginPage() {
               <form
                 id="signup-territorial-form"
                 onSubmit={handleAuthSubmit}
-                className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 sm:px-8 lg:px-10 py-5 sm:py-7"
+                className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 sm:px-8 lg:px-10 py-5 sm:py-6"
               >
                 {message ? (
                   <div className="mb-5 rounded-xl border border-primary/20 bg-primary/10 p-3.5 text-center text-sm text-primary">
@@ -691,21 +721,49 @@ export default function LoginPage() {
                       </div>
                     </div>
 
-                    <div>
-                      <label htmlFor="invite-code" className={labelClass}>
-                        Código de invitación{' '}
-                        <span className="normal-case tracking-normal text-muted-foreground/70">
-                          (opcional)
-                        </span>
-                      </label>
-                      <input
-                        id="invite-code"
-                        type="text"
-                        value={inviteCode}
-                        onChange={(e) => setInviteCode(e.target.value)}
-                        className={fieldClass}
-                        placeholder="Ej. d5301..."
-                      />
+                    {/* Código opcional: oculto hasta que lo pidan */}
+                    <div className="pt-1">
+                      {!showInviteCode ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowInviteCode(true)}
+                          className="inline-flex min-h-10 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <ChevronDown className="w-4 h-4" aria-hidden />
+                          Tengo un código de invitación
+                        </button>
+                      ) : (
+                        <div className="space-y-2 animate-in fade-in duration-200">
+                          <div className="flex items-center justify-between gap-2">
+                            <label htmlFor="invite-code" className={labelClass + ' mb-0'}>
+                              Código de invitación
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowInviteCode(false);
+                                setInviteCode('');
+                              }}
+                              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              Ocultar
+                            </button>
+                          </div>
+                          <input
+                            id="invite-code"
+                            type="text"
+                            value={inviteCode}
+                            onChange={(e) => setInviteCode(e.target.value)}
+                            className={fieldClass}
+                            placeholder="Si te pasaron un código, pégalo acá"
+                            autoComplete="off"
+                            autoFocus
+                          />
+                          <p className="text-xs text-muted-foreground/80">
+                            Opcional. Si no tienes, sigue sin él.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </section>
                 </div>
@@ -829,9 +887,9 @@ export default function LoginPage() {
                 ) : null}
               </form>
 
-              <footer className="shrink-0 border-t border-border/40 px-5 sm:px-8 lg:px-10 py-4 sm:py-5 bg-surface-raised/95 backdrop-blur-md">
+              <footer className="shrink-0 border-t border-border/40 px-5 sm:px-8 lg:px-10 py-3.5 sm:py-4 bg-surface-raised pb-[max(0.875rem,env(safe-area-inset-bottom))]">
                 <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+                  <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3">
                     <button
                       type="button"
                       onClick={() => {
@@ -847,36 +905,47 @@ export default function LoginPage() {
                       href="/"
                       className="min-h-11 inline-flex items-center px-3 text-sm text-muted-foreground/80 hover:text-foreground transition-colors"
                     >
-                      Cancelar e ir al inicio
+                      Ir al inicio
                     </Link>
                   </div>
                   <button
                     type="submit"
                     form="signup-territorial-form"
                     disabled={loading}
-                    className="w-full sm:w-auto sm:min-w-[220px] min-h-12 rounded-full bg-primary text-primary-foreground font-medium text-sm px-8 py-3 shadow-lg hover:opacity-95 transition-opacity disabled:opacity-50"
+                    className="w-full sm:w-auto sm:min-w-[200px] min-h-12 rounded-full bg-primary text-primary-foreground font-medium text-sm px-8 py-3 shadow-lg hover:opacity-95 transition-opacity disabled:opacity-50"
                   >
                     {loading ? 'Procesando…' : 'Crear cuenta'}
                   </button>
                 </div>
               </footer>
             </div>
-          </>
+          </div>
         )}
 
-        {/* 5. RECOVERY / FORGOT PASSWORD BOTTOM SHEET MODAL */}
+        {/* RECOVERY — mismo patrón de centrado */}
         {viewMode === 'sheet_recovery' && (
-          <>
-            <div
-              className={`fixed inset-0 z-[220] animate-in fade-in duration-200 ${overlayBackdropClassName}`}
+          <div className="fixed inset-0 z-[220] flex items-end justify-center sm:items-center p-0 sm:p-5">
+            <button
+              type="button"
+              className={`absolute inset-0 animate-in fade-in duration-200 ${overlayBackdropClassName}`}
+              aria-label="Cerrar"
               onClick={() => {
                 setIsForgotPassword(false);
                 setIsRecoveryMode(false);
                 setViewMode('collapsed');
               }}
             />
-            <div className="fixed inset-x-0 bottom-0 z-[221] rounded-t-[32px] border-t border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] animate-in slide-in-from-bottom duration-300 max-w-md mx-auto max-h-[calc(var(--vh-full)-2.5rem)] overflow-y-auto">
-              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
+            <div
+              role="dialog"
+              aria-modal="true"
+              className="relative z-10 w-full max-w-md max-h-[min(90dvh,640px)] overflow-y-auto overscroll-contain
+                rounded-t-[28px] sm:rounded-3xl border border-border/60 border-b-0 sm:border-b
+                bg-surface-raised p-6 sm:p-8
+                shadow-[0_-8px_40px_rgba(0,0,0,0.45)] sm:shadow-[0_24px_64px_rgba(0,0,0,0.45)]
+                animate-in slide-in-from-bottom sm:fade-in sm:zoom-in-95 duration-300
+                pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+            >
+              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4 sm:hidden" />
 
               <div className="mb-6 text-center">
                 <h2 className="text-lg font-semibold text-foreground tracking-tight">
@@ -1011,7 +1080,7 @@ export default function LoginPage() {
                 </button>
               </form>
             </div>
-          </>
+          </div>
         )}
       </div>
     </main>
