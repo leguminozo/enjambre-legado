@@ -2166,13 +2166,11 @@ function EditorTiendaViewInner() {
     tiendaOrigin === window.location.origin;
 
   return (
-    // Altura anclada al viewport con tokens reales (--vh-full = 100dvh con
-    // fallback, --header-height, padding de .page-content y márgenes del tool):
-    // el calc mágico 100vh-120px desbordaba ~16px y la página entera scrolleaba,
-    // cortando el borde inferior y obligando a "bajar" toda la herramienta.
+    // Altura: llena .page-content--shell (flex chain en globals.css).
+    // No usar calc frágil: el preview de escritorio debe heredar el alto del panel.
     <div
       data-testid="editor-tienda-root"
-      className="flex-1 flex flex-col h-[calc(var(--vh-full)_-_var(--header-height)_-_env(safe-area-inset-top,0px)_-_var(--space-xl)_-_var(--space-xl)_-8px)] max-md:h-[calc(var(--vh-full)_-_var(--header-height)_-_env(safe-area-inset-top,0px)_-_var(--space-md)_-_var(--space-md)_-_var(--nav-height)_-_var(--liquid-nav-inset)_-_env(safe-area-inset-bottom,12px)_-8px)] -mt-2 mb-4 mx-0 lg:-mx-4 bg-background/40 backdrop-blur-2xl border border-border/60 rounded-2xl overflow-hidden shadow-2xl relative z-10 animate-in fade-in zoom-in-95 duration-500 ease-out"
+      className="flex flex-col flex-1 min-h-0 w-full mx-0 lg:-mx-4 bg-background/40 backdrop-blur-2xl border border-border/60 rounded-2xl overflow-hidden shadow-2xl relative z-10 animate-in fade-in zoom-in-95 duration-500 ease-out"
     >
       {/* ── Top bar ── */}
       <div className="h-14 border-b border-border/50 bg-surface/50 backdrop-blur-lg flex items-center justify-between px-4 shrink-0 shadow-sm z-10 gap-3">
@@ -2318,12 +2316,10 @@ function EditorTiendaViewInner() {
         </div>
       </div>
 
-      {/* ── Body: dos paneles independientes ──
-          Izquierda = categorías / herramientas (scroll propio).
-          Derecha = preview a tamaño de viewport (no se encoje con la altura del editor). */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 min-w-0">
+      {/* ── Body: editor (columna fija) | preview (resto del alto y ancho) ── */}
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 min-w-0 h-full">
 
-        {/* Editor — columna fija en desktop; scroll interno; no dicta alto del preview */}
+        {/* Editor — ancho acotado; el alto lo da el flex del body, no el contenido */}
         <div
           className={
             desktopFocus === 'b'
@@ -2332,7 +2328,7 @@ function EditorTiendaViewInner() {
                 ? `flex flex-col min-h-0 min-w-0 overflow-hidden bg-surface-sunken/40 w-full flex-1 ${
                     mobileTab === 'preview' ? 'max-md:hidden' : ''
                   }`
-                : `flex flex-col min-h-0 overflow-hidden bg-surface-sunken/40 md:w-[min(100%,22rem)] lg:w-[26rem] xl:w-[28rem] md:max-w-[40%] md:shrink-0 md:border-r md:border-border/50 md:h-full md:max-h-full ${
+                : `flex flex-col min-h-0 overflow-hidden bg-surface-sunken/40 md:w-[min(100%,20rem)] lg:w-[22rem] xl:w-[24rem] md:max-w-[32%] md:shrink-0 md:border-r md:border-border/50 md:self-stretch ${
                     mobileTab === 'editor' ? 'flex-1 md:flex-none' : 'max-md:hidden'
                   }`
           }
@@ -2558,10 +2554,10 @@ function EditorTiendaViewInner() {
           )}
         </div>
 
-        {/* Preview — ocupa TODO el resto del ancho/alto; no sigue la altura del panel de bloques */}
+        {/* Preview — flex-1 self-stretch: alto = body del editor, no el de las categorías */}
         <section
           aria-label="Vista previa de la tienda"
-          className={`min-h-0 min-w-0 flex-col bg-muted/30 relative overflow-hidden ${
+          className={`min-h-0 min-w-0 self-stretch flex-col bg-muted/30 relative overflow-hidden ${
             desktopFocus === 'a' ? 'hidden' : 'flex flex-1'
           } ${mobileTab === 'preview' ? 'flex' : 'max-md:hidden'}`}
         >
@@ -2648,16 +2644,22 @@ function EditorTiendaViewInner() {
             </div>
           </div>
 
-          {/* Escenario del iframe: tamaño propio, centrado; no hereda altura del editor */}
-          <div className="relative z-[1] flex-1 min-h-0 w-full flex items-center justify-center p-3 sm:p-5 lg:p-6 overflow-hidden">
+          {/* Lienzo del iframe: en desktop llena el panel; en mobile centra el teléfono */}
+          <div
+            className={`relative z-[1] flex-1 min-h-0 w-full overflow-hidden ${
+              viewMode === 'mobile'
+                ? 'flex items-center justify-center p-3 sm:p-5'
+                : 'flex flex-col p-0 sm:p-3 lg:p-4'
+            }`}
+          >
             {!tiendaUrl ? (
-              <div className="text-center space-y-2 px-4">
+              <div className="m-auto text-center space-y-2 px-4">
                 <Monitor size={48} className="mx-auto text-muted-foreground opacity-50" />
                 <p className="text-sm font-medium text-muted-foreground">URL de Tienda no configurada</p>
                 <p className="text-xs text-muted-foreground/70">Verifica NEXT_PUBLIC_URL_TIENDA en .env</p>
               </div>
             ) : isSelfEmbed ? (
-              <div className="text-center space-y-2 max-w-sm px-4">
+              <div className="m-auto text-center space-y-2 max-w-sm px-4">
                 <AppWindow size={48} className="mx-auto text-destructive opacity-70" />
                 <p className="text-sm font-medium text-foreground">La URL de la tienda apunta a Núcleo</p>
                 <p className="text-xs text-muted-foreground/70 break-words">
@@ -2666,7 +2668,6 @@ function EditorTiendaViewInner() {
                 </p>
               </div>
             ) : viewMode === 'mobile' ? (
-              /* Marco teléfono: alto acotado al panel; el ancho sale del aspect-ratio (sin pelear w+h) */
               <div
                 className="relative flex flex-col bg-background shadow-2xl overflow-hidden rounded-[1.75rem] sm:rounded-[2.25rem] border-[6px] sm:border-8 border-surface-raised ring-1 ring-border"
                 style={{
@@ -2678,7 +2679,7 @@ function EditorTiendaViewInner() {
                 <div className="shrink-0 flex h-6 sm:h-7 items-center justify-center bg-surface-raised border-b border-border/40">
                   <div className="w-10 h-1 rounded-full bg-border" aria-hidden />
                 </div>
-                <div className="relative flex-1 min-h-0 w-full overflow-hidden">
+                <div className="relative flex-1 min-h-0 w-full overflow-hidden bg-background">
                   <iframe
                     ref={iframeRef}
                     key={`${iframeKey}-${editorLocale}-m`}
@@ -2688,60 +2689,40 @@ function EditorTiendaViewInner() {
                     sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                     onLoad={() => setPreviewLoading(false)}
                   />
-                  <AnimatePresence>
-                    {previewLoading ? (
-                      <motion.div
-                        key="preview-loading-m"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="absolute inset-0 z-10 flex items-center justify-center bg-surface-sunken/60 backdrop-blur-sm pointer-events-none"
-                      >
-                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/90 border border-border shadow-lg">
-                          <Loader2 size={14} className="animate-spin text-accent" />
-                          <span className="text-xs font-medium text-muted-foreground">
-                            Actualizando vista previa…
-                          </span>
-                        </div>
-                      </motion.div>
-                    ) : null}
-                  </AnimatePresence>
+                  {previewLoading ? (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface-sunken/60 backdrop-blur-sm pointer-events-none">
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/90 border border-border shadow-lg">
+                        <Loader2 size={14} className="animate-spin text-accent" />
+                        <span className="text-xs font-medium text-muted-foreground">
+                          Actualizando vista previa…
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             ) : (
-              /* Escritorio: el iframe llena todo el panel de preview (independiente del editor) */
-              <div className="relative flex flex-col bg-background shadow-xl overflow-hidden w-full h-full min-h-0 rounded-xl border border-border">
-                <div className="relative flex-1 min-h-0 w-full overflow-hidden">
-                  <iframe
-                    ref={iframeRef}
-                    key={`${iframeKey}-${editorLocale}-d`}
-                    src={`${tiendaUrl}${editorLocale === 'en' ? '/en' : ''}${previewPath}?cms_preview=1`}
-                    title="Vista Previa de Tienda"
-                    className="absolute inset-0 w-full h-full border-none bg-background"
-                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                    onLoad={() => setPreviewLoading(false)}
-                  />
-                  <AnimatePresence>
-                    {previewLoading ? (
-                      <motion.div
-                        key="preview-loading-d"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="absolute inset-0 z-10 flex items-center justify-center bg-surface-sunken/60 backdrop-blur-sm pointer-events-none"
-                      >
-                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/90 border border-border shadow-lg">
-                          <Loader2 size={14} className="animate-spin text-accent" />
-                          <span className="text-xs font-medium text-muted-foreground">
-                            Actualizando vista previa…
-                          </span>
-                        </div>
-                      </motion.div>
-                    ) : null}
-                  </AnimatePresence>
-                </div>
+              /* Escritorio: 100% del panel derecho (ancho y alto) */
+              <div className="relative flex-1 min-h-0 w-full h-full rounded-none sm:rounded-xl border-0 sm:border border-border bg-background shadow-none sm:shadow-xl overflow-hidden">
+                <iframe
+                  ref={iframeRef}
+                  key={`${iframeKey}-${editorLocale}-d`}
+                  src={`${tiendaUrl}${editorLocale === 'en' ? '/en' : ''}${previewPath}?cms_preview=1`}
+                  title="Vista Previa de Tienda"
+                  className="absolute inset-0 w-full h-full border-none bg-background"
+                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                  onLoad={() => setPreviewLoading(false)}
+                />
+                {previewLoading ? (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface-sunken/60 backdrop-blur-sm pointer-events-none">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/90 border border-border shadow-lg">
+                      <Loader2 size={14} className="animate-spin text-accent" />
+                      <span className="text-xs font-medium text-muted-foreground">
+                        Actualizando vista previa…
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             )}
           </div>

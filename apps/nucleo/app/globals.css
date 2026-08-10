@@ -395,7 +395,10 @@ select.input-field option,
   transition: margin-left var(--transition-base);
   height: 100vh;
   height: 100dvh;
-  overflow-y: auto;
+  /* Columna: header fijo + page-content rellena el resto (crítico para Editor Tienda) */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   overflow-x: hidden;
 }
 
@@ -460,6 +463,29 @@ select.input-field option,
 .page-content {
   padding: var(--density-page-pad);
   max-width: var(--max-content-width);
+  /* Rellena el alto bajo el header; el scroll vive aquí, no en main */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Shell del dashboard: ocupa todo el alto útil para herramientas full-height */
+.page-content--shell.view-deep {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+/* Editor tienda: llena el shell (no altura de contenido de 3 cards) */
+[data-testid='editor-tienda-root'] {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  margin-bottom: 0 !important;
 }
 
 /* ── Cards ── */
@@ -1231,7 +1257,7 @@ select.input-field option,
 }
 
 .sidebar-rail-item {
-  position: relative;
+  position: relative; /* chevron de subherramientas */
   width: 48px;
   height: 48px;
   border-radius: var(--radius-md);
@@ -1244,6 +1270,7 @@ select.input-field option,
   cursor: pointer;
   text-decoration: none;
   transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .sidebar-rail-item:hover {
