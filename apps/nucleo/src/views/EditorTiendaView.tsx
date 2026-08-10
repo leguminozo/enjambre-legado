@@ -2323,17 +2323,17 @@ function EditorTiendaViewInner() {
           Derecha = preview a tamaño de viewport (no se encoje con la altura del editor). */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 min-w-0">
 
-        {/* Editor — ancho acotado; altura propia con scroll; no empuja al preview */}
+        {/* Editor — columna fija en desktop; scroll interno; no dicta alto del preview */}
         <div
           className={
             desktopFocus === 'b'
               ? 'hidden'
               : desktopFocus === 'a'
-                ? `flex flex-col min-h-0 overflow-hidden bg-surface-sunken/40 w-full flex-1 min-w-0 ${
+                ? `flex flex-col min-h-0 min-w-0 overflow-hidden bg-surface-sunken/40 w-full flex-1 ${
                     mobileTab === 'preview' ? 'max-md:hidden' : ''
                   }`
-                : `flex-col min-h-0 overflow-hidden bg-surface-sunken/40 md:w-[min(100%,22rem)] lg:w-[26rem] xl:w-[28rem] md:shrink-0 md:border-r md:border-border/50 md:h-full ${
-                    mobileTab === 'editor' ? 'flex flex-1 md:flex-none' : 'hidden md:flex'
+                : `flex flex-col min-h-0 overflow-hidden bg-surface-sunken/40 md:w-[min(100%,22rem)] lg:w-[26rem] xl:w-[28rem] md:max-w-[40%] md:shrink-0 md:border-r md:border-border/50 md:h-full md:max-h-full ${
+                    mobileTab === 'editor' ? 'flex-1 md:flex-none' : 'max-md:hidden'
                   }`
           }
         >
@@ -2461,7 +2461,7 @@ function EditorTiendaViewInner() {
               )}
             </div>
           ) : navDrill === 'list' ? (
-            <>
+            <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
               {/* Lista de la categoría — volver a categorías */}
               <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border bg-surface shrink-0">
                 <button
@@ -2482,7 +2482,7 @@ function EditorTiendaViewInner() {
                   </p>
                 </div>
               </div>
-              <div className="p-3 md:p-4 border-b border-border bg-surface">
+              <div className="flex-1 min-h-0 overflow-y-auto p-3 md:p-4 bg-surface">
                 <SectionNav
                   sectionKeys={sectionKeys}
                   activeSection={activeSection}
@@ -2506,9 +2506,9 @@ function EditorTiendaViewInner() {
                   onRetry={() => void cms.refetch()}
                 />
               ) : null}
-            </>
+            </div>
           ) : (
-            <>
+            <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
               {cms.error && !cms.isLoading ? (
                 <CmsLoadError
                   message={cms.error.message}
@@ -2518,7 +2518,7 @@ function EditorTiendaViewInner() {
                 <>
                   {/* EN sin versión: la tienda muestra la ES; botón para clonar */}
                   {editorLocale === 'en' && currentItems.length === 0 && esItems.length > 0 ? (
-                    <div className="mx-3 mt-3 flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2">
+                    <div className="mx-3 mt-3 flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 shrink-0">
                       <AlertTriangle size={14} className="text-accent shrink-0" />
                       <p className="text-[11px] text-muted-foreground leading-snug flex-1">
                         Esta sección no tiene versión EN — la tienda muestra la ES hasta que la crees.
@@ -2554,7 +2554,7 @@ function EditorTiendaViewInner() {
                   />
                 </>
               )}
-            </>
+            </div>
           )}
         </div>
 
@@ -2665,26 +2665,57 @@ function EditorTiendaViewInner() {
                   iframe no puede embeber Núcleo dentro de Núcleo.
                 </p>
               </div>
-            ) : (
+            ) : viewMode === 'mobile' ? (
+              /* Marco teléfono: alto acotado al panel; el ancho sale del aspect-ratio (sin pelear w+h) */
               <div
-                className={
-                  viewMode === 'mobile'
-                    ? // Marco teléfono: proporción fija, se reduce si el panel es bajo
-                      'relative flex flex-col bg-background shadow-2xl overflow-hidden w-[min(100%,375px)] h-[min(100%,812px)] max-h-full aspect-[375/812] rounded-[1.75rem] sm:rounded-[2.25rem] border-[6px] sm:border-8 border-surface-raised ring-1 ring-border'
-                    : // Escritorio: llena el panel de preview
-                      'relative flex flex-col bg-background shadow-xl overflow-hidden w-full h-full min-h-0 rounded-xl border border-border'
-                }
+                className="relative flex flex-col bg-background shadow-2xl overflow-hidden rounded-[1.75rem] sm:rounded-[2.25rem] border-[6px] sm:border-8 border-surface-raised ring-1 ring-border"
+                style={{
+                  height: 'min(100%, 812px)',
+                  width: 'min(100%, calc(min(100%, 812px) * 375 / 812))',
+                  maxWidth: '375px',
+                }}
               >
-                {viewMode === 'mobile' && (
-                  <div className="shrink-0 flex h-6 sm:h-7 items-center justify-center bg-surface-raised border-b border-border/40">
-                    <div className="w-10 h-1 rounded-full bg-border" aria-hidden />
-                  </div>
-                )}
-
+                <div className="shrink-0 flex h-6 sm:h-7 items-center justify-center bg-surface-raised border-b border-border/40">
+                  <div className="w-10 h-1 rounded-full bg-border" aria-hidden />
+                </div>
                 <div className="relative flex-1 min-h-0 w-full overflow-hidden">
                   <iframe
                     ref={iframeRef}
-                    key={`${iframeKey}-${editorLocale}`}
+                    key={`${iframeKey}-${editorLocale}-m`}
+                    src={`${tiendaUrl}${editorLocale === 'en' ? '/en' : ''}${previewPath}?cms_preview=1`}
+                    title="Vista Previa de Tienda (móvil)"
+                    className="absolute inset-0 w-full h-full border-none bg-background"
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                    onLoad={() => setPreviewLoading(false)}
+                  />
+                  <AnimatePresence>
+                    {previewLoading ? (
+                      <motion.div
+                        key="preview-loading-m"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="absolute inset-0 z-10 flex items-center justify-center bg-surface-sunken/60 backdrop-blur-sm pointer-events-none"
+                      >
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/90 border border-border shadow-lg">
+                          <Loader2 size={14} className="animate-spin text-accent" />
+                          <span className="text-xs font-medium text-muted-foreground">
+                            Actualizando vista previa…
+                          </span>
+                        </div>
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
+                </div>
+              </div>
+            ) : (
+              /* Escritorio: el iframe llena todo el panel de preview (independiente del editor) */
+              <div className="relative flex flex-col bg-background shadow-xl overflow-hidden w-full h-full min-h-0 rounded-xl border border-border">
+                <div className="relative flex-1 min-h-0 w-full overflow-hidden">
+                  <iframe
+                    ref={iframeRef}
+                    key={`${iframeKey}-${editorLocale}-d`}
                     src={`${tiendaUrl}${editorLocale === 'en' ? '/en' : ''}${previewPath}?cms_preview=1`}
                     title="Vista Previa de Tienda"
                     className="absolute inset-0 w-full h-full border-none bg-background"
@@ -2694,7 +2725,7 @@ function EditorTiendaViewInner() {
                   <AnimatePresence>
                     {previewLoading ? (
                       <motion.div
-                        key="preview-loading"
+                        key="preview-loading-d"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
