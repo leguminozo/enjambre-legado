@@ -2,6 +2,8 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
+import { rpcLoose } from "@/api/lib/supabase-loose";
+import { createAdminClient } from "@enjambre/auth/browser";
 import {
   materiaPrimaFormSchema,
   proveedorFormSchema,
@@ -11,6 +13,8 @@ import {
   ingredienteFormSchema,
   loteProduccionFormSchema,
   materialFormSchema,
+  equipoFormSchema,
+  tareaFormSchema,
 } from "@/lib/infusiones-types";
 
 /**
@@ -715,8 +719,29 @@ infusionesRoutes.patch(
 infusionesRoutes.delete("/lotes-produccion/:id", async (c) => {
   const id = c.req.param("id");
   const supabase = c.get("supabase");
+  const user = c.get("user");
+  const empresaId = c.get("empresaId");
+
+  // Antes del borrado en cascada: qué materias primas consumió este lote.
+  const { data: mats } = await supabase
+    .from("infusion_produccion_materiales")
+    .select("lote_deshidratado_id")
+    .eq("lote_produccion_id", id);
+  const mpIds = new Set<string>();
+  for (const m of mats ?? []) {
+    const mpId = await materiaPrimaDeLoteSeco(supabase, m.lote_deshidratado_id);
+    if (mpId) mpIds.add(mpId);
+  }
+
   const { error } = await supabase.from("infusion_lotes_produccion").delete().eq("id", id);
   if (error) return c.json({ code: "delete_failed", message: error.message }, 400);
+
+  for (const mpId of mpIds) {
+    await sincronizarInventarioItem(
+      supabase, user, empresaId, mpId, id,
+      "Eliminación de lote de producción Infusiones",
+    );
+  }
   return c.json({ data: { deleted: true } });
 });
 
@@ -771,6 +796,15 @@ infusionesRoutes.post(
       .select("*")
       .single();
     if (error) return c.json({ code: "create_failed", message: error.message }, 400);
+
+    // Espejo en inventario: ajusta el ítem de la materia prima al stock autoritativo.
+    const mpId = await materiaPrimaDeLoteSeco(supabase, input.lote_deshidratado_id);
+    if (mpId) {
+      await sincronizarInventarioItem(
+        supabase, c.get("user"), c.get("empresaId"), mpId, prodId,
+        "Consumo Infusiones — producción",
+      );
+    }
     return c.json({ data }, 201);
   },
 );
@@ -779,10 +813,499 @@ infusionesRoutes.post(
 infusionesRoutes.delete("/lotes-produccion/:id/materiales/:matId", async (c) => {
   const matId = c.req.param("matId");
   const supabase = c.get("supabase");
+  const user = c.get("user");
+  const empresaId = c.get("empresaId");
+
+  const { data: material } = await supabase
+    .from("infusion_produccion_materiales")
+    .select("lote_produccion_id, lote_deshidratado_id")
+    .eq("id", matId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("infusion_produccion_materiales")
     .delete()
     .eq("id", matId);
+  if (error) return c.json({ code: "delete_failed", message: error.message }, 400);
+
+  if (material) {
+    const mpId = await materiaPrimaDeLoteSeco(supabase, material.lote_deshidratado_id);
+    if (mpId) {
+      await sincronizarInventarioItem(
+        supabase, user, empresaId, mpId, material.lote_produccion_id,
+        "Reversión consumo Infusiones",
+      );
+    }
+  }
+  return c.json({ data: { deleted: true } });
+});
+
+/** GET /api/infusiones/costos — costo seco/kg por materia prima y costo por sachet por fórmula */
+infusionesRoutes.get("/costos", async (c) => {
+  const supabase = c.get("supabase");
+  const [viewRes, formulasRes] = await Promise.all([
+    supabase.from("v_infusion_costos").select("*"),
+    supabase
+      .from("infusion_formulas")
+      .select("id, nombre, gramaje_sachet_g, tipo, infusion_formula_ingredientes(materia_prima_id, porcentaje)")
+      .eq("activa", true),
+  ]);
+  if (viewRes.error) return c.json({ code: "query_failed", message: viewRes.error.message }, 500);
+  if (formulasRes.error) return c.json({ code: "query_failed", message: formulasRes.error.message }, 500);
+
+  const costoPorMp = new Map<string, number | null>();
+  for (const m of viewRes.data ?? []) {
+    if (!m.materia_prima_id) continue;
+    costoPorMp.set(m.materia_prima_id, m.costo_seco_kg_clp != null ? Number(m.costo_seco_kg_clp) : null);
+  }
+
+  const porFormula = (formulasRes.data ?? []).map((f) => {
+    const ingrs = f.infusion_formula_ingredientes ?? [];
+    let costoKg = 0;
+    let sinPrecios = ingrs.length === 0;
+    for (const i of ingrs) {
+      const costo = costoPorMp.get(i.materia_prima_id);
+      if (costo == null) {
+        sinPrecios = true;
+        continue;
+      }
+      costoKg += (Number(i.porcentaje) / 100) * costo;
+    }
+    return {
+      id: f.id,
+      nombre: f.nombre,
+      gramaje_sachet_g: f.gramaje_sachet_g,
+      tipo: f.tipo,
+      costo_kg_mezcla_clp: sinPrecios ? null : Math.round(costoKg),
+      costo_sachet_clp: sinPrecios
+        ? null
+        : Math.round((costoKg * Number(f.gramaje_sachet_g)) / 1000),
+      sin_precios: sinPrecios,
+    };
+  });
+
+  return c.json({ data: { por_materia: viewRes.data ?? [], por_formula: porFormula } });
+});
+
+/** GET /api/infusiones/planificacion?formula_id=&sachets= — cuánto recolectar según rendimiento histórico */
+infusionesRoutes.get("/planificacion", async (c) => {
+  const supabase = c.get("supabase");
+  const formulaId = c.req.query("formula_id");
+  const sachetsRaw = c.req.query("sachets");
+  if (!formulaId || !sachetsRaw) {
+    return c.json({ code: "invalid_params", message: "Faltan formula_id y sachets" }, 400);
+  }
+  const sachets = Number(sachetsRaw);
+  if (!Number.isFinite(sachets) || sachets <= 0) {
+    return c.json({ code: "invalid_params", message: "sachets debe ser un número positivo" }, 400);
+  }
+
+  const [fRes, stockRes, costoRes] = await Promise.all([
+    supabase
+      .from("infusion_formulas")
+      .select(
+        "id, nombre, gramaje_sachet_g, infusion_formula_ingredientes(materia_prima_id, porcentaje, infusion_materias_primas(nombre))",
+      )
+      .eq("id", formulaId)
+      .maybeSingle(),
+    supabase.from("v_infusion_stock_seco").select("*"),
+    supabase.from("v_infusion_costos").select("*"),
+  ]);
+  if (fRes.error) return c.json({ code: "query_failed", message: fRes.error.message }, 500);
+  if (!fRes.data) return c.json({ code: "not_found", message: "Fórmula no encontrada" }, 404);
+
+  const stockPorMp = new Map(
+    (stockRes.data ?? []).map((s) => [s.materia_prima_id, Number(s.stock_disponible_kg)]),
+  );
+  const rendPorMp = new Map(
+    (costoRes.data ?? []).map((m) => [
+      m.materia_prima_id,
+      m.rendimiento_promedio_pct != null ? Number(m.rendimiento_promedio_pct) : null,
+    ]),
+  );
+
+  const totalSeco = (Number(fRes.data.gramaje_sachet_g) / 1000) * sachets;
+  const redondear = (n: number) => Math.round(n * 1000) / 1000;
+
+  const porIngrediente = (fRes.data.infusion_formula_ingredientes ?? []).map((i) => {
+    const pct = Number(i.porcentaje);
+    const seco = (totalSeco * pct) / 100;
+    const disponible = stockPorMp.get(i.materia_prima_id) ?? 0;
+    const rend = rendPorMp.get(i.materia_prima_id) ?? null;
+    return {
+      materia_prima_id: i.materia_prima_id,
+      materia_prima: i.infusion_materias_primas?.nombre ?? "—",
+      porcentaje: pct,
+      seco_necesario_kg: redondear(seco),
+      disponible_kg: disponible,
+      deficit_kg: redondear(Math.max(0, seco - disponible)),
+      rendimiento_pct: rend,
+      fresco_a_recolectar_kg: rend && rend > 0
+        ? redondear(seco / (rend / 100))
+        : null,
+    };
+  });
+
+  const conHistorial = porIngrediente.filter((p) => p.fresco_a_recolectar_kg != null);
+  const totalFresco = conHistorial.length === porIngrediente.length && porIngrediente.length > 0
+    ? redondear(conHistorial.reduce((a, p) => a + (p.fresco_a_recolectar_kg ?? 0), 0))
+    : null;
+
+  return c.json({
+    data: {
+      formula: {
+        id: fRes.data.id,
+        nombre: fRes.data.nombre,
+        gramaje_sachet_g: fRes.data.gramaje_sachet_g,
+      },
+      sachets,
+      total_seco_necesario_kg: redondear(totalSeco),
+      total_fresco_sugerido_kg: totalFresco,
+      por_ingrediente: porIngrediente,
+    },
+  });
+});
+
+/* ── Equipo ─────────────────────────────────────────────────────────────────── */
+
+/** GET /api/infusiones/equipo */
+infusionesRoutes.get("/equipo", async (c) => {
+  const supabase = c.get("supabase");
+  const incluirInactivas = c.req.query("incluir_inactivas") === "1";
+  let q = supabase.from("infusion_equipo").select("*").order("nombre");
+  if (!incluirInactivas) q = q.eq("activa", true);
+  const { data, error } = await q;
+  if (error) return c.json({ code: "query_failed", message: error.message }, 500);
+  return c.json({ data: data ?? [] });
+});
+
+/** POST /api/infusiones/equipo */
+infusionesRoutes.post("/equipo", zValidator("json", equipoFormSchema), async (c) => {
+  const input = c.req.valid("json");
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+  const { data, error } = await supabase
+    .from("infusion_equipo")
+    .insert({ ...input, notas: input.notas ?? null, user_id: user.id })
+    .select("*")
+    .single();
+  if (error) return c.json({ code: "create_failed", message: error.message }, 400);
+  return c.json({ data }, 201);
+});
+
+/** PATCH /api/infusiones/equipo/:id */
+infusionesRoutes.patch(
+  "/equipo/:id",
+  zValidator("json", equipoFormSchema.partial()),
+  async (c) => {
+    const id = c.req.param("id");
+    const input = c.req.valid("json");
+    const supabase = c.get("supabase");
+    const { data, error } = await supabase
+      .from("infusion_equipo")
+      .update({ ...input, notas: input.notas === undefined ? undefined : input.notas ?? null })
+      .eq("id", id)
+      .select("*")
+      .single();
+    if (error) return c.json({ code: "update_failed", message: error.message }, 400);
+    return c.json({ data });
+  },
+);
+
+/** DELETE /api/infusiones/equipo/:id — soft delete */
+infusionesRoutes.delete("/equipo/:id", async (c) => {
+  const id = c.req.param("id");
+  const supabase = c.get("supabase");
+  const { error } = await supabase.from("infusion_equipo").update({ activa: false }).eq("id", id);
+  if (error) return c.json({ code: "delete_failed", message: error.message }, 400);
+  return c.json({ data: { deleted: true } });
+});
+
+/* ── Tareas ─────────────────────────────────────────────────────────────────── */
+
+const BUCKET_EVIDENCIAS = "infusiones-evidencias";
+
+async function materiaPrimaDeLoteSeco(
+  supabase: AppVariables["supabase"],
+  loteDeshidratadoId: string,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from("infusion_lotes_deshidratado")
+    .select("infusion_lotes_entrada(materia_prima_id)")
+    .eq("id", loteDeshidratadoId)
+    .maybeSingle();
+  return data?.infusion_lotes_entrada?.materia_prima_id ?? null;
+}
+
+/**
+ * Espejo del stock de Infusiones en el inventario operativo (clase insumo).
+ * La fuente de verdad es Infusiones (v_infusion_stock_seco): se ajusta el stock
+ * del ítem al valor autoritativo vía la RPC atómica. Una falla de sync no rompe
+ * la operación primaria (solo se registra en consola).
+ */
+async function sincronizarInventarioItem(
+  supabase: AppVariables["supabase"],
+  user: AppVariables["user"],
+  empresaId: string,
+  materiaPrimaId: string,
+  refId: string,
+  motivo: string,
+) {
+  // Lookup y creación con admin client: un usuario delegado no ve (RLS) los
+  // ítems creados por el admin y duplicaría el ítem de la misma materia prima.
+  // La RPC del movimiento sí usa el cliente del usuario (auth.uid() = actor).
+  const adminSupabase = createAdminClient() as unknown as AppVariables["supabase"];
+
+  const [stockRes, costoRes] = await Promise.all([
+    adminSupabase
+      .from("v_infusion_stock_seco")
+      .select("stock_disponible_kg")
+      .eq("materia_prima_id", materiaPrimaId)
+      .maybeSingle(),
+    adminSupabase
+      .from("v_infusion_costos")
+      .select("costo_seco_kg_clp")
+      .eq("materia_prima_id", materiaPrimaId)
+      .maybeSingle(),
+  ]);
+  const disponible = stockRes.data?.stock_disponible_kg != null
+    ? Number(stockRes.data.stock_disponible_kg)
+    : 0;
+
+  const { data: item } = await adminSupabase
+    .from("inventario_items")
+    .select("id, stock")
+    .eq("ingredient_id", materiaPrimaId)
+    .eq("clase", "insumo")
+    .maybeSingle();
+
+  let itemId = item?.id;
+  // El ítem recién creado ya nace con el stock autoritativo: no hace falta ajuste.
+  let itemCreado = false;
+  if (!itemId) {
+    const { data: mp } = await adminSupabase
+      .from("infusion_materias_primas")
+      .select("nombre")
+      .eq("id", materiaPrimaId)
+      .maybeSingle();
+    const { data: creado, error: creErr } = await adminSupabase
+      .from("inventario_items")
+      .insert({
+        clase: "insumo",
+        nombre: mp?.nombre ?? "Insumo infusiones",
+        unidad: "kg",
+        stock: disponible,
+        stock_minimo: 0,
+        costo_unitario: costoRes.data?.costo_seco_kg_clp != null
+          ? Math.round(Number(costoRes.data.costo_seco_kg_clp))
+          : 0,
+        ingredient_id: materiaPrimaId,
+        user_id: user.id,
+        empresa_id: empresaId || null,
+      })
+      .select("id")
+      .single();
+    if (creErr) {
+      console.warn("[infusiones] sync inventario: no se pudo crear el ítem", creErr.message);
+      return;
+    }
+    itemId = creado.id;
+    itemCreado = true;
+  }
+
+  if (itemCreado) return; // ya está sincronizado (nació con el stock correcto)
+
+  const antes = Number(item?.stock ?? 0);
+  if (Math.abs(antes - disponible) < 0.0001) return; // ya está sincronizado
+
+  const { error: rpcErr } = await rpcLoose(supabase, "inventario_aplicar_movimiento", {
+    p_item_id: itemId,
+    p_tipo: "ajuste",
+    p_cantidad: disponible,
+    p_motivo: motivo,
+    p_ref_tipo: "lote",
+    p_ref_id: refId,
+    p_doc_tipo: null,
+    p_doc_numero: null,
+    p_doc_fecha: null,
+  });
+  if (rpcErr) {
+    console.warn("[infusiones] sync inventario: RPC", rpcErr.message);
+  }
+}
+
+async function nombreEquipo(
+  supabase: AppVariables["supabase"],
+  equipoId: string | null,
+): Promise<string | null> {
+  if (!equipoId) return null;
+  const { data } = await supabase
+    .from("infusion_equipo")
+    .select("nombre")
+    .eq("id", equipoId)
+    .maybeSingle();
+  return data?.nombre ?? null;
+}
+
+/** Valida que el rol del equipo corresponda al paso: dosificado → solo dosificador. */
+async function validarRolEquipo(
+  supabase: AppVariables["supabase"],
+  tipo: string,
+  equipoId: string | null,
+): Promise<string | null> {
+  if (!equipoId) return null;
+  const { data: eq } = await supabase
+    .from("infusion_equipo")
+    .select("rol_operacion, nombre")
+    .eq("id", equipoId)
+    .maybeSingle();
+  if (!eq) return "El miembro del equipo no existe";
+  if (tipo === "dosificado" && eq.rol_operacion !== "dosificador") {
+    return `El paso "Dosificado" queda reservado al rol dosificador (${eq.nombre} es operario).`;
+  }
+  return null;
+}
+
+/** GET /api/infusiones/tareas?estado=&equipo_id=&tipo= */
+infusionesRoutes.get("/tareas", async (c) => {
+  const supabase = c.get("supabase");
+  const estado = c.req.query("estado");
+  const equipoId = c.req.query("equipo_id");
+  const tipo = c.req.query("tipo");
+
+  let q = supabase
+    .from("infusion_tareas")
+    .select(
+      "*, infusion_equipo(id, nombre, rol_operacion), infusion_lotes_entrada(id, codigo_lote), infusion_lotes_deshidratado(id, infusion_lotes_entrada(codigo_lote)), infusion_lotes_produccion(id, infusion_formulas(nombre))",
+    )
+    .order("fecha_vencimiento", { ascending: true, nullsFirst: false });
+  if (estado) q = q.eq("estado", estado);
+  if (equipoId) q = q.eq("equipo_id", equipoId);
+  if (tipo) q = q.eq("tipo", tipo);
+  const { data, error } = await q;
+  if (error) return c.json({ code: "query_failed", message: error.message }, 500);
+
+  const rows = data ?? [];
+  const conEvidencia = rows.filter((r) => r.evidencia_path);
+  const firmadas = await Promise.all(
+    conEvidencia.map(async (r) => {
+      const { data: signed } = await supabase.storage
+        .from(BUCKET_EVIDENCIAS)
+        .createSignedUrl(r.evidencia_path as string, 3600);
+      return { id: r.id, url: signed?.signedUrl ?? null };
+    }),
+  );
+  const urlPorId = new Map(firmadas.map((f) => [f.id, f.url]));
+  const out = rows.map((r) => ({
+    ...r,
+    evidencia_url: r.evidencia_path ? (urlPorId.get(r.id) ?? null) : null,
+  }));
+  return c.json({ data: out });
+});
+
+/** POST /api/infusiones/tareas */
+infusionesRoutes.post("/tareas", zValidator("json", tareaFormSchema), async (c) => {
+  const input = c.req.valid("json");
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+
+  const rolError = await validarRolEquipo(supabase, input.tipo, input.equipo_id ?? null);
+  if (rolError) return c.json({ code: "rol_no_corresponde", message: rolError }, 400);
+
+  const completada = input.estado === "completada";
+  const payload = {
+    ...input,
+    lote_entrada_id: input.lote_entrada_id ?? null,
+    lote_deshidratado_id: input.lote_deshidratado_id ?? null,
+    lote_produccion_id: input.lote_produccion_id ?? null,
+    equipo_id: input.equipo_id ?? null,
+    fecha_vencimiento: input.fecha_vencimiento || null,
+    evidencia_path: input.evidencia_path ?? null,
+    notas: input.notas ?? null,
+    completada_at: completada ? new Date().toISOString() : null,
+    completada_por: completada ? (await nombreEquipo(supabase, input.equipo_id ?? null)) ?? "—" : null,
+    user_id: user.id,
+  };
+
+  const { data, error } = await supabase
+    .from("infusion_tareas")
+    .insert(payload)
+    .select("*")
+    .single();
+  if (error) return c.json({ code: "create_failed", message: error.message }, 400);
+  return c.json({ data }, 201);
+});
+
+/** PATCH /api/infusiones/tareas/:id — al completar, el server setea fecha y quién */
+infusionesRoutes.patch(
+  "/tareas/:id",
+  zValidator("json", tareaFormSchema.partial()),
+  async (c) => {
+    const id = c.req.param("id");
+    const input = c.req.valid("json");
+    const supabase = c.get("supabase");
+
+    const { data: actual, error: readErr } = await supabase
+      .from("infusion_tareas")
+      .select("estado, tipo, equipo_id")
+      .eq("id", id)
+      .maybeSingle();
+    if (readErr) return c.json({ code: "query_failed", message: readErr.message }, 500);
+    if (!actual) return c.json({ code: "not_found", message: "Tarea no encontrada" }, 404);
+
+    const tipo = input.tipo ?? actual.tipo;
+    const equipoId = input.equipo_id !== undefined ? input.equipo_id : actual.equipo_id;
+    const rolError = await validarRolEquipo(supabase, tipo, equipoId ?? null);
+    if (rolError) return c.json({ code: "rol_no_corresponde", message: rolError }, 400);
+
+    const estado = input.estado ?? actual.estado;
+    const completando = estado === "completada" && actual.estado !== "completada";
+    const reabriendo = estado !== "completada" && actual.estado === "completada";
+    const payload = {
+      ...input,
+      lote_entrada_id:
+        input.lote_entrada_id === undefined ? undefined : input.lote_entrada_id ?? null,
+      lote_deshidratado_id:
+        input.lote_deshidratado_id === undefined ? undefined : input.lote_deshidratado_id ?? null,
+      lote_produccion_id:
+        input.lote_produccion_id === undefined ? undefined : input.lote_produccion_id ?? null,
+      equipo_id: input.equipo_id === undefined ? undefined : input.equipo_id ?? null,
+      fecha_vencimiento:
+        input.fecha_vencimiento === undefined ? undefined : input.fecha_vencimiento || null,
+      evidencia_path: input.evidencia_path === undefined ? undefined : input.evidencia_path ?? null,
+      notas: input.notas === undefined ? undefined : input.notas ?? null,
+      completada_at: completando ? new Date().toISOString() : reabriendo ? null : undefined,
+      completada_por: completando
+        ? (await nombreEquipo(supabase, equipoId ?? null)) ?? "—"
+        : reabriendo
+          ? null
+          : undefined,
+    };
+
+    const { data, error } = await supabase
+      .from("infusion_tareas")
+      .update(payload)
+      .eq("id", id)
+      .select("*")
+      .single();
+    if (error) return c.json({ code: "update_failed", message: error.message }, 400);
+    return c.json({ data });
+  },
+);
+
+/** DELETE /api/infusiones/tareas/:id — borra la tarea y su evidencia del bucket */
+infusionesRoutes.delete("/tareas/:id", async (c) => {
+  const id = c.req.param("id");
+  const supabase = c.get("supabase");
+  const { data: tarea } = await supabase
+    .from("infusion_tareas")
+    .select("evidencia_path")
+    .eq("id", id)
+    .maybeSingle();
+  if (tarea?.evidencia_path) {
+    await supabase.storage.from(BUCKET_EVIDENCIAS).remove([tarea.evidencia_path]);
+  }
+  const { error } = await supabase.from("infusion_tareas").delete().eq("id", id);
   if (error) return c.json({ code: "delete_failed", message: error.message }, 400);
   return c.json({ data: { deleted: true } });
 });

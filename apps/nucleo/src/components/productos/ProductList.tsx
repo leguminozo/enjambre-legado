@@ -6,6 +6,7 @@ import { Search, Plus, Edit, Trash2, Eye, EyeOff, ExternalLink, Package } from '
 import { supabase } from '@/lib/supabase';
 import { Button, toast, ViewLoading, formatMoney, DataTable, type ColumnDef } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { Product } from '@/lib/product-types';
 
 interface ProductListProps {
@@ -17,6 +18,7 @@ interface ProductListProps {
  * Lista de fichas de tienda. El stock se gestiona en Producción → Inventario.
  */
 export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
+  const apiFetch = useApiFetch();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -85,6 +87,8 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
         prev.map((p) => (p.id === id ? { ...p, visible: !currentVisible } : p)),
       );
       toast(currentVisible ? 'Producto ocultado' : 'Producto publicado', { type: 'success' });
+      // La visibilidad cambió en la tienda: invalidar ISR (fail-open).
+      void apiFetch('/api/admin-system/purge-cache', { method: 'POST' }).catch(() => undefined);
     } catch (error) {
       console.error('Error toggling visibility:', error);
       toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
@@ -104,6 +108,8 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
 
       setProducts((prev) => prev.filter((p) => p.id !== id));
       toast('Producto eliminado', { type: 'success' });
+      // El producto desaparece de la tienda: invalidar ISR (fail-open).
+      void apiFetch('/api/admin-system/purge-cache', { method: 'POST' }).catch(() => undefined);
     } catch (error) {
       console.error('Error deleting product:', error);
       toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });

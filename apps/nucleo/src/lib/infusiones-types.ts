@@ -144,6 +144,84 @@ export interface InfusionesDashboard {
   responsables: string[]
 }
 
+export interface CostoMateriaRow {
+  materia_prima_id: string
+  materia_prima: string
+  /** CLP por kg de materia seca (solo lotes con precio de compra). */
+  costo_seco_kg_clp: number | null
+  rendimiento_promedio_pct: number | null
+  lotes_con_costo: number
+}
+
+export interface CostoFormulaRow {
+  id: string
+  nombre: string
+  gramaje_sachet_g: number
+  tipo: string
+  costo_kg_mezcla_clp: number | null
+  costo_sachet_clp: number | null
+  /** true si algún ingrediente no tiene precio de compra registrado. */
+  sin_precios: boolean
+}
+
+export interface PlanificacionIngredienteRow {
+  materia_prima_id: string
+  materia_prima: string
+  porcentaje: number
+  seco_necesario_kg: number
+  disponible_kg: number
+  deficit_kg: number
+  rendimiento_pct: number | null
+  /** Fresco a recolectar = seco necesario ÷ rendimiento histórico (null sin historial). */
+  fresco_a_recolectar_kg: number | null
+}
+
+export interface PlanificacionResponse {
+  formula: { id: string; nombre: string; gramaje_sachet_g: number }
+  sachets: number
+  total_seco_necesario_kg: number
+  total_fresco_sugerido_kg: number | null
+  por_ingrediente: PlanificacionIngredienteRow[]
+}
+
+export interface EquipoRow {
+  id: string
+  nombre: string
+  rol_operacion: 'operario' | 'dosificador'
+  activa: boolean
+  notas: string | null
+  user_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type TareaTipo = 'recoleccion' | 'deshidratado' | 'molienda' | 'mezcla' | 'dosificado' | 'envasado'
+export type TareaEstado = 'pendiente' | 'en_proceso' | 'completada'
+export type TareaPrioridad = 'baja' | 'media' | 'alta' | 'urgente'
+
+export interface TareaRow {
+  id: string
+  tipo: TareaTipo
+  lote_entrada_id: string | null
+  lote_deshidratado_id: string | null
+  lote_produccion_id: string | null
+  equipo_id: string | null
+  estado: TareaEstado
+  fecha_vencimiento: string | null
+  prioridad: TareaPrioridad
+  evidencia_path: string | null
+  /** URL firmada por el BFF (bucket privado) — refrescar al listar. */
+  evidencia_url: string | null
+  completada_at: string | null
+  completada_por: string | null
+  notas: string | null
+  equipo?: { id: string; nombre: string; rol_operacion: string } | null
+  lote_entrada?: { id: string; codigo_lote: string } | null
+  lote_deshidratado?: { id: string; lote_entrada: { codigo_lote: string } | null } | null
+  lote_produccion?: { id: string; infusion_formulas: { nombre: string } | null } | null
+  created_at: string
+}
+
 /* ── Opciones de formulario ───────────────────────────────────────────────── */
 
 export const MATERIA_PRIMA_TIPO_OPTIONS = [
@@ -169,6 +247,33 @@ export const FORMULA_TIPO_OPTIONS = [
   { value: 'granel', label: 'Granel' },
 ]
 
+export const EQUIPO_ROL_OPTIONS = [
+  { value: 'operario', label: 'Operario' },
+  { value: 'dosificador', label: 'Dosificador' },
+]
+
+export const TAREA_TIPO_OPTIONS = [
+  { value: 'recoleccion', label: 'Recolección' },
+  { value: 'deshidratado', label: 'Deshidratado' },
+  { value: 'molienda', label: 'Molienda' },
+  { value: 'mezcla', label: 'Mezcla' },
+  { value: 'dosificado', label: 'Dosificado' },
+  { value: 'envasado', label: 'Envasado' },
+]
+
+export const TAREA_ESTADO_OPTIONS = [
+  { value: 'pendiente', label: 'Pendiente' },
+  { value: 'en_proceso', label: 'En proceso' },
+  { value: 'completada', label: 'Completada' },
+]
+
+export const TAREA_PRIORIDAD_OPTIONS = [
+  { value: 'baja', label: 'Baja' },
+  { value: 'media', label: 'Media' },
+  { value: 'alta', label: 'Alta' },
+  { value: 'urgente', label: 'Urgente' },
+]
+
 export const MATERIA_PRIMA_TIPO_LABEL: Record<string, string> = Object.fromEntries(
   MATERIA_PRIMA_TIPO_OPTIONS.map((o) => [o.value, o.label]),
 )
@@ -180,6 +285,18 @@ export const DESHIDRATADO_METODO_LABEL: Record<string, string> = Object.fromEntr
 )
 export const FORMULA_TIPO_LABEL: Record<string, string> = Object.fromEntries(
   FORMULA_TIPO_OPTIONS.map((o) => [o.value, o.label]),
+)
+export const EQUIPO_ROL_LABEL: Record<string, string> = Object.fromEntries(
+  EQUIPO_ROL_OPTIONS.map((o) => [o.value, o.label]),
+)
+export const TAREA_TIPO_LABEL: Record<string, string> = Object.fromEntries(
+  TAREA_TIPO_OPTIONS.map((o) => [o.value, o.label]),
+)
+export const TAREA_ESTADO_LABEL: Record<string, string> = Object.fromEntries(
+  TAREA_ESTADO_OPTIONS.map((o) => [o.value, o.label]),
+)
+export const TAREA_PRIORIDAD_LABEL: Record<string, string> = Object.fromEntries(
+  TAREA_PRIORIDAD_OPTIONS.map((o) => [o.value, o.label]),
 )
 
 /* ── Schemas de formulario (zod, compartidos con el BFF) ─────────────────── */
@@ -208,6 +325,11 @@ const optUuid = z.preprocess(
   (v) => (v === '' || v === undefined ? null : v),
   z.string().uuid().nullable(),
 )
+
+const optDate = z.preprocess(
+  (v) => (v === '' || v === null || v === undefined ? null : v),
+  z.string().date().nullable(),
+).optional()
 
 export const materiaPrimaFormSchema = z
   .object({
@@ -313,6 +435,33 @@ export const materialFormSchema = z
   .strict()
 
 export type MaterialFormValues = z.infer<typeof materialFormSchema>
+
+export const equipoFormSchema = z
+  .object({
+    nombre: z.string().min(1, 'El nombre es obligatorio').max(100),
+    rol_operacion: z.enum(['operario', 'dosificador']),
+    notas: optStr(2000),
+  })
+  .strict()
+
+export type EquipoFormValues = z.infer<typeof equipoFormSchema>
+
+export const tareaFormSchema = z
+  .object({
+    tipo: z.enum(['recoleccion', 'deshidratado', 'molienda', 'mezcla', 'dosificado', 'envasado']),
+    lote_entrada_id: optUuid,
+    lote_deshidratado_id: optUuid,
+    lote_produccion_id: optUuid,
+    equipo_id: optUuid,
+    estado: z.enum(['pendiente', 'en_proceso', 'completada']),
+    fecha_vencimiento: optDate,
+    prioridad: z.enum(['baja', 'media', 'alta', 'urgente']),
+    evidencia_path: optStr(500),
+    notas: optStr(2000),
+  })
+  .strict()
+
+export type TareaFormValues = z.infer<typeof tareaFormSchema>
 
 /* ── Formateo ─────────────────────────────────────────────────────────────── */
 

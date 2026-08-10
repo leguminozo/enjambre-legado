@@ -165,3 +165,8 @@ export const LazyPlanesTerritorialesView = named(
   'Planes Territoriales',
 );
 export const LazyFenologiaView = named(() => import('@/views/fenologia/FenologiaView'), 'FenologiaView', 'Fenología');
+export const LazyMicrocanalesView = named(
+  () => import('@/views/MicrocanalesView'),
+  'MicrocanalesView',
+  'Microcanales',
+);

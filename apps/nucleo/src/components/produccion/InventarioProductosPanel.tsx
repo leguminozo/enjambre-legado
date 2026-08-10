@@ -125,6 +125,8 @@ export function InventarioProductosPanel() {
             throw new Error(json.message || json.error || error.message || 'Error agregando stock');
           }
           toast(`Stock +${stockAmount} (modo directo)`, { type: 'success' });
+          // El BFF no intervino: invalidar la tienda desde el cliente
+          void apiFetch('/api/admin-system/purge-cache', { method: 'POST' }).catch(() => undefined);
           setProducts((list) =>
             list.map((p) =>
               p.id === product.id
@@ -157,17 +159,32 @@ export function InventarioProductosPanel() {
           );
         }
       } else {
-        // Ajuste absoluto (incidente / reformulación)
-        const { error } = await supabase
-          .from('productos')
-          .update({ stock: stockAmount, updated_at: new Date().toISOString() })
-          .eq('id', product.id);
-        if (error) throw error;
-        toast(`Stock reformulado a ${stockAmount} un.`, { type: 'success' });
+        // Ajuste absoluto (incidente / reformulación) — vía BFF: valida admin y
+        // revalida el ISR de la tienda server-side (sin depender de RLS cliente).
+        const res = await apiFetch('/api/produccion/set-stock', {
+          method: 'POST',
+          body: JSON.stringify({
+            producto_id: product.id,
+            stock: stockAmount,
+          }),
+        });
+        const json = (await res.json().catch(() => ({}))) as {
+          data?: { stock_nuevo?: number; mode?: string };
+          error?: string;
+          message?: string;
+        };
+        if (!res.ok) {
+          throw new Error(json.message || json.error || 'Error reformulando stock');
+        }
+        const nuevo =
+          typeof json.data?.stock_nuevo === 'number'
+            ? json.data.stock_nuevo
+            : stockAmount;
+        toast(`Stock reformulado a ${nuevo} un.`, { type: 'success' });
         setProducts((prev) =>
           prev.map((p) =>
             p.id === product.id
-              ? { ...p, stock: stockAmount, updated_at: new Date().toISOString() }
+              ? { ...p, stock: nuevo, updated_at: new Date().toISOString() }
               : p,
           ),
         );

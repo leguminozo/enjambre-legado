@@ -68,6 +68,26 @@ function ResenaCard({ resena }: { resena: ResenaPublic }) {
         </div>
       )}
 
+      {resena.percepcion && (
+        <div className="space-y-2 border-t border-border/60 pt-2">
+          {resena.percepcion.chips.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {resena.percepcion.chips.map((c) => (
+                <span key={`${c.bloque}:${c.chip}`} className="rounded-full bg-accent/10 border border-accent/20 px-2 py-0.5 text-[11px] text-foreground/80">
+                  {c.chip}
+                </span>
+              ))}
+            </div>
+          )}
+          {resena.percepcion.pares.length > 0 && (
+            <p className="text-[11px] text-muted-foreground">
+              {resena.percepcion.pares.map((p) => `${p.par}: ${p.valor}`).join(' · ')}
+            </p>
+          )}
+          <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Percepción del microcanal</p>
+        </div>
+      )}
+
       {resena.notas_personales && (
         <p className="text-xs text-muted-foreground italic border-t border-border pt-2">
           {resena.notas_personales}

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import {
-  LayoutDashboard, Sprout, Users, PackageOpen, Flame, FlaskConical, Factory,
+  LayoutDashboard, Sprout, Users, PackageOpen, Flame, FlaskConical, Factory, Users2, ListChecks,
+  Calculator,
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
@@ -13,8 +14,11 @@ import { LotesEntradaPanel } from '@/components/infusiones/LotesEntradaPanel';
 import { LotesDeshidratadoPanel } from '@/components/infusiones/LotesDeshidratadoPanel';
 import { FormulasPanel } from '@/components/infusiones/FormulasPanel';
 import { ProduccionPanel } from '@/components/infusiones/ProduccionPanel';
+import { EquipoPanel } from '@/components/infusiones/EquipoPanel';
+import { TareasPanel } from '@/components/infusiones/TareasPanel';
+import { CostosPlanPanel } from '@/components/infusiones/CostosPlanPanel';
 
-type Tab = 'resumen' | 'materias' | 'proveedores' | 'entrada' | 'deshidratado' | 'formulas' | 'produccion';
+type Tab = 'resumen' | 'materias' | 'proveedores' | 'entrada' | 'deshidratado' | 'formulas' | 'produccion' | 'equipo' | 'tareas' | 'costos';
 
 /**
  * Infusiones — trazabilidad de hierbas: entrada → deshidratado → stock seco →
@@ -44,6 +48,9 @@ export function InfusionesView() {
           { id: 'deshidratado', label: 'Deshidratación', icon: <Flame size={16} /> },
           { id: 'formulas', label: 'Fórmulas', icon: <FlaskConical size={16} /> },
           { id: 'produccion', label: 'Producción', icon: <Factory size={16} /> },
+          { id: 'equipo', label: 'Equipo', icon: <Users2 size={16} /> },
+          { id: 'tareas', label: 'Tareas', icon: <ListChecks size={16} /> },
+          { id: 'costos', label: 'Costos y Plan', icon: <Calculator size={16} /> },
         ]}
         activeId={activeTab}
         onChange={(id) => setActiveTab(id as Tab)}
@@ -56,6 +63,9 @@ export function InfusionesView() {
       {activeTab === 'deshidratado' && <LotesDeshidratadoPanel />}
       {activeTab === 'formulas' && <FormulasPanel />}
       {activeTab === 'produccion' && <ProduccionPanel />}
+      {activeTab === 'equipo' && <EquipoPanel />}
+      {activeTab === 'tareas' && <TareasPanel />}
+      {activeTab === 'costos' && <CostosPlanPanel />}
     </div>
   );
 }

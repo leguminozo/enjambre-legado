@@ -11,6 +11,7 @@ import {
 } from '@enjambre/logistica';
 import { applyCheckoutLoyalty } from './loyalty-fulfill';
 import { applyGuardianStamps, enqueueWalletPassUpdate } from '@/api/lib/wallet/stamp-fulfill';
+import { revalidateTiendaLayout } from '@/lib/revalidate-tienda';
 import type { CartLineInput, CheckoutSession, ShippingInfo } from './types';
 import { completeCheckoutSession } from './types';
 
@@ -251,6 +252,10 @@ export async function fulfillCheckout(
 
   await admin.rpc('release_checkout_stock', { p_buy_order: buyOrder });
   await completeCheckoutSession(buyOrder);
+
+  // El stock de la tienda bajó con la venta: invalidar ISR del catálogo.
+  // Fail-open: una falla aquí nunca revierte el pago.
+  await revalidateTiendaLayout().catch(() => undefined);
 
   const montoNeto = Math.round(serverTotal / 1.19);
   const montoIva = serverTotal - montoNeto;

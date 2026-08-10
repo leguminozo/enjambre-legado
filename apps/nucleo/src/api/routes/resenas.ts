@@ -92,7 +92,7 @@ resenasRoutes.get('/', zValidator('query', ListResenasQuerySchema), async (c) =>
   let query = admin
     .from('resenas_producto')
     .select(
-      'id, modo, rating, comentario_corto, cristalizacion_percibida, familia_aromatica, intensidad_fondo, notas_personales, momento_consumo, maridaje, venta_id, display_name, created_at',
+      'id, modo, rating, comentario_corto, cristalizacion_percibida, familia_aromatica, intensidad_fondo, notas_personales, momento_consumo, maridaje, venta_id, display_name, percepcion_sesion_id, created_at',
       { count: 'exact' },
     )
     .eq('producto_id', producto_id)
@@ -110,6 +110,41 @@ resenasRoutes.get('/', zValidator('query', ListResenasQuerySchema), async (c) =>
     return c.json({ code: 'list_failed', message: 'No se pudieron cargar reseñas' }, 500);
   }
 
+  // Percepción profunda: chips/pares de la sesión (una sola fuente de verdad, vía join).
+  const sesionIds = (data ?? [])
+    .map((r) => r.percepcion_sesion_id)
+    .filter((id): id is string => Boolean(id));
+  let percepcionPorSesion = new Map<string, { pares: { par: string; valor: number }[]; chips: { bloque: string; chip: string }[] }>();
+  if (sesionIds.length > 0) {
+    const [paresRes, chipsRes] = await Promise.all([
+      admin.from('perc_pares').select('sesion_id, par, valor').in('sesion_id', sesionIds),
+      admin.from('perc_chips').select('sesion_id, bloque, chip').in('sesion_id', sesionIds),
+    ]);
+    const paresMap = new Map<string, { par: string; valor: number }[]>();
+    for (const p of paresRes.data ?? []) {
+      const arr = paresMap.get(p.sesion_id) ?? [];
+      arr.push({ par: p.par, valor: p.valor });
+      paresMap.set(p.sesion_id, arr);
+    }
+    const chipsMap = new Map<string, { bloque: string; chip: string }[]>();
+    for (const ch of chipsRes.data ?? []) {
+      const arr = chipsMap.get(ch.sesion_id) ?? [];
+      arr.push({ bloque: ch.bloque, chip: ch.chip });
+      chipsMap.set(ch.sesion_id, arr);
+    }
+    percepcionPorSesion = new Map(
+      [...new Set([...paresMap.keys(), ...chipsMap.keys()])].map((sid) => [
+        sid,
+        { pares: paresMap.get(sid) ?? [], chips: chipsMap.get(sid) ?? [] },
+      ]),
+    );
+  }
+
+  const items = (data ?? []).map((r) => ({
+    ...r,
+    percepcion: r.percepcion_sesion_id ? (percepcionPorSesion.get(r.percepcion_sesion_id) ?? null) : null,
+  }));
+
   const ratingsRes = await admin
     .from('resenas_producto')
     .select('rating')
@@ -124,7 +159,7 @@ resenasRoutes.get('/', zValidator('query', ListResenasQuerySchema), async (c) =>
       : null;
 
   return c.json({
-    items: data ?? [],
+    items,
     page,
     limit,
     total: count ?? 0,
@@ -447,7 +482,8 @@ resenasRoutes.patch('/:id/moderar', authMiddleware, zValidator('json', ModerarRe
     .eq('id', user.id)
     .maybeSingle();
 
-  if (!profile || (profile.role !== 'gerente' && profile.role !== 'tienda_admin')) {
+  // Rol consolidado en 'admin' por migration 39 (gerente/tienda_admin ya no existen).
+  if (!profile || profile.role !== 'admin') {
     return c.json({ code: 'forbidden', message: 'Sin permisos de moderación' }, 403);
   }
 

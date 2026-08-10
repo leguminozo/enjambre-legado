@@ -505,6 +505,304 @@ export type Database = {
         }
         Relationships: []
       }
+      b2b_pedidos: {
+        Row: {
+          created_at: string
+          estado: string
+          fecha: string
+          id: string
+          monto_clp: number
+          notas: string | null
+          punto_venta_id: string | null
+          revendedor_id: string | null
+          set_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          estado?: string
+          fecha?: string
+          id?: string
+          monto_clp?: number
+          notas?: string | null
+          punto_venta_id?: string | null
+          revendedor_id?: string | null
+          set_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          estado?: string
+          fecha?: string
+          id?: string
+          monto_clp?: number
+          notas?: string | null
+          punto_venta_id?: string | null
+          revendedor_id?: string | null
+          set_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "b2b_pedidos_punto_venta_id_fkey"
+            columns: ["punto_venta_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_puntos_venta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "b2b_pedidos_punto_venta_id_fkey"
+            columns: ["punto_venta_id"]
+            isOneToOne: false
+            referencedRelation: "v_b2b_puntos_publicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "b2b_pedidos_revendedor_id_fkey"
+            columns: ["revendedor_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_revendedores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "b2b_pedidos_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_sets_entrada"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      b2b_puntos_venta: {
+        Row: {
+          ciudad: string | null
+          codigo_acceso: string
+          contacto_email: string | null
+          contacto_nombre: string | null
+          created_at: string
+          estado: string
+          id: string
+          nombre: string
+          notas: string | null
+          origen: string
+          publico: boolean
+          tipo: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          ciudad?: string | null
+          codigo_acceso: string
+          contacto_email?: string | null
+          contacto_nombre?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          nombre: string
+          notas?: string | null
+          origen?: string
+          publico?: boolean
+          tipo?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          ciudad?: string | null
+          codigo_acceso?: string
+          contacto_email?: string | null
+          contacto_nombre?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          nombre?: string
+          notas?: string | null
+          origen?: string
+          publico?: boolean
+          tipo?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      b2b_resenas_revendedor: {
+        Row: {
+          created_at: string
+          estado: string
+          id: string
+          rating: number
+          revendedor_id: string
+          texto: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estado?: string
+          id?: string
+          rating: number
+          revendedor_id: string
+          texto: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estado?: string
+          id?: string
+          rating?: number
+          revendedor_id?: string
+          texto?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "b2b_resenas_revendedor_revendedor_id_fkey"
+            columns: ["revendedor_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_revendedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      b2b_revendedores: {
+        Row: {
+          asignado_holdout_at: string | null
+          codigo_revendedor: string
+          created_at: string
+          estado: string
+          grupo_control: boolean
+          id: string
+          nombre: string
+          notas: string | null
+          origen: string
+          tipo_espacio: string
+          updated_at: string
+          user_id: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          asignado_holdout_at?: string | null
+          codigo_revendedor: string
+          created_at?: string
+          estado?: string
+          grupo_control?: boolean
+          id?: string
+          nombre: string
+          notas?: string | null
+          origen?: string
+          tipo_espacio?: string
+          updated_at?: string
+          user_id?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          asignado_holdout_at?: string | null
+          codigo_revendedor?: string
+          created_at?: string
+          estado?: string
+          grupo_control?: boolean
+          id?: string
+          nombre?: string
+          notas?: string | null
+          origen?: string
+          tipo_espacio?: string
+          updated_at?: string
+          user_id?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      b2b_set_items: {
+        Row: {
+          cantidad: number
+          created_at: string
+          es_degustacion: boolean
+          id: string
+          notas: string | null
+          producto_id: string
+          set_id: string
+        }
+        Insert: {
+          cantidad?: number
+          created_at?: string
+          es_degustacion?: boolean
+          id?: string
+          notas?: string | null
+          producto_id: string
+          set_id: string
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          es_degustacion?: boolean
+          id?: string
+          notas?: string | null
+          producto_id?: string
+          set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "b2b_set_items_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "b2b_set_items_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_sets_entrada"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      b2b_sets_entrada: {
+        Row: {
+          activo: boolean
+          created_at: string
+          descripcion: string | null
+          id: string
+          incluye_materiales: boolean
+          materiales_descripcion: string | null
+          nombre: string
+          pack_digital: boolean
+          precio_clp: number
+          sort_order: number
+          tipo_entorno: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          incluye_materiales?: boolean
+          materiales_descripcion?: string | null
+          nombre: string
+          pack_digital?: boolean
+          precio_clp?: number
+          sort_order?: number
+          tipo_entorno?: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          incluye_materiales?: boolean
+          materiales_descripcion?: string | null
+          nombre?: string
+          pack_digital?: boolean
+          precio_clp?: number
+          sort_order?: number
+          tipo_entorno?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       back_in_stock_subscriptions: {
         Row: {
           created_at: string | null
@@ -4158,6 +4456,472 @@ export type Database = {
           },
         ]
       }
+      fid_canjes: {
+        Row: {
+          cliente_id: string
+          costo: number
+          created_at: string
+          estado: string
+          fecha: string
+          id: string
+          membresia_id: string | null
+          programa_id: string | null
+          punto_venta_id: string
+          recompensa: string
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          costo?: number
+          created_at?: string
+          estado?: string
+          fecha?: string
+          id?: string
+          membresia_id?: string | null
+          programa_id?: string | null
+          punto_venta_id: string
+          recompensa: string
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          costo?: number
+          created_at?: string
+          estado?: string
+          fecha?: string
+          id?: string
+          membresia_id?: string | null
+          programa_id?: string | null
+          punto_venta_id?: string
+          recompensa?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fid_canjes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "fid_clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fid_canjes_membresia_id_fkey"
+            columns: ["membresia_id"]
+            isOneToOne: false
+            referencedRelation: "fid_membresias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fid_canjes_programa_id_fkey"
+            columns: ["programa_id"]
+            isOneToOne: false
+            referencedRelation: "fid_programas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fid_canjes_punto_venta_id_fkey"
+            columns: ["punto_venta_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_puntos_venta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fid_canjes_punto_venta_id_fkey"
+            columns: ["punto_venta_id"]
+            isOneToOne: false
+            referencedRelation: "v_b2b_puntos_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fid_clientes: {
+        Row: {
+          codigo_cliente: string
+          consentimiento: boolean
+          consentimiento_at: string | null
+          created_at: string
+          email: string | null
+          id: string
+          nombre: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          codigo_cliente: string
+          consentimiento?: boolean
+          consentimiento_at?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nombre?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          codigo_cliente?: string
+          consentimiento?: boolean
+          consentimiento_at?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nombre?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      fid_eventos: {
+        Row: {
+          cantidad: number
+          cliente_id: string
+          created_at: string
+          id: string
+          membresia_id: string | null
+          notas: string | null
+          origen: string
+          punto_venta_id: string
+          ref_id: string | null
+          tipo: string
+        }
+        Insert: {
+          cantidad?: number
+          cliente_id: string
+          created_at?: string
+          id?: string
+          membresia_id?: string | null
+          notas?: string | null
+          origen?: string
+          punto_venta_id: string
+          ref_id?: string | null
+          tipo: string
+        }
+        Update: {
+          cantidad?: number
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          membresia_id?: string | null
+          notas?: string | null
+          origen?: string
+          punto_venta_id?: string
+          ref_id?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fid_eventos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "fid_clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fid_eventos_membresia_id_fkey"
+            columns: ["membresia_id"]
+            isOneToOne: false
+            referencedRelation: "fid_membresias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fid_eventos_punto_venta_id_fkey"
+            columns: ["punto_venta_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_puntos_venta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fid_eventos_punto_venta_id_fkey"
+            columns: ["punto_venta_id"]
+            isOneToOne: false
+            referencedRelation: "v_b2b_puntos_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fid_membresias: {
+        Row: {
+          asignado_holdout_at: string | null
+          cliente_id: string
+          created_at: string
+          grupo_control: boolean
+          id: string
+          punto_venta_id: string
+          saldo_puntos: number
+          saldo_sellos: number
+          sellos_iniciales: number
+          updated_at: string
+        }
+        Insert: {
+          asignado_holdout_at?: string | null
+          cliente_id: string
+          created_at?: string
+          grupo_control?: boolean
+          id?: string
+          punto_venta_id: string
+          saldo_puntos?: number
+          saldo_sellos?: number
+          sellos_iniciales?: number
+          updated_at?: string
+        }
+        Update: {
+          asignado_holdout_at?: string | null
+          cliente_id?: string
+          created_at?: string
+          grupo_control?: boolean
+          id?: string
+          punto_venta_id?: string
+          saldo_puntos?: number
+          saldo_sellos?: number
+          sellos_iniciales?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fid_membresias_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "fid_clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fid_membresias_punto_venta_id_fkey"
+            columns: ["punto_venta_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_puntos_venta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fid_membresias_punto_venta_id_fkey"
+            columns: ["punto_venta_id"]
+            isOneToOne: false
+            referencedRelation: "v_b2b_puntos_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fid_programas: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          nombre: string
+          punto_venta_id: string
+          recompensa: string
+          regla: string
+          tipo: string
+          umbral: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre: string
+          punto_venta_id: string
+          recompensa: string
+          regla: string
+          tipo?: string
+          umbral?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre?: string
+          punto_venta_id?: string
+          recompensa?: string
+          regla?: string
+          tipo?: string
+          umbral?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fid_programas_punto_venta_id_fkey"
+            columns: ["punto_venta_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_puntos_venta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fid_programas_punto_venta_id_fkey"
+            columns: ["punto_venta_id"]
+            isOneToOne: false
+            referencedRelation: "v_b2b_puntos_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fid_retribucion_reglas: {
+        Row: {
+          activo: boolean
+          created_at: string
+          dias_max: number | null
+          id: string
+          nombre: string
+          skus_min: number | null
+          sort_order: number
+          tipo: string
+          umbral_max_clp: number | null
+          umbral_min_clp: number | null
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          dias_max?: number | null
+          id?: string
+          nombre: string
+          skus_min?: number | null
+          sort_order?: number
+          tipo: string
+          umbral_max_clp?: number | null
+          umbral_min_clp?: number | null
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          dias_max?: number | null
+          id?: string
+          nombre?: string
+          skus_min?: number | null
+          sort_order?: number
+          tipo?: string
+          umbral_max_clp?: number | null
+          umbral_min_clp?: number | null
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      fid_retribucion_tiers: {
+        Row: {
+          activo: boolean
+          beneficio: string
+          created_at: string
+          id: string
+          nombre: string
+          sort_order: number
+          umbral_anual_clp: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          beneficio: string
+          created_at?: string
+          id?: string
+          nombre: string
+          sort_order?: number
+          umbral_anual_clp?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          beneficio?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          sort_order?: number
+          umbral_anual_clp?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fid_retribuciones: {
+        Row: {
+          cantidad: number
+          contra_parte_id: string | null
+          created_at: string
+          estado: string
+          id: string
+          notas: string | null
+          pct_aplicado: number | null
+          pedido_id: string
+          revendedor_id: string
+          tipo: string
+        }
+        Insert: {
+          cantidad: number
+          contra_parte_id?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          notas?: string | null
+          pct_aplicado?: number | null
+          pedido_id: string
+          revendedor_id: string
+          tipo: string
+        }
+        Update: {
+          cantidad?: number
+          contra_parte_id?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          notas?: string | null
+          pct_aplicado?: number | null
+          pedido_id?: string
+          revendedor_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fid_retribuciones_contra_parte_id_fkey"
+            columns: ["contra_parte_id"]
+            isOneToOne: false
+            referencedRelation: "fid_retribuciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fid_retribuciones_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fid_retribuciones_revendedor_id_fkey"
+            columns: ["revendedor_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_revendedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fid_valores: {
+        Row: {
+          activo: boolean
+          clave: string
+          descripcion: string | null
+          id: string
+          nombre: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          activo?: boolean
+          clave: string
+          descripcion?: string | null
+          id?: string
+          nombre: string
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          activo?: boolean
+          clave?: string
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       fiscal_documents: {
         Row: {
           created_at: string
@@ -5135,6 +5899,39 @@ export type Database = {
           },
         ]
       }
+      infusion_equipo: {
+        Row: {
+          activa: boolean
+          created_at: string
+          id: string
+          nombre: string
+          notas: string | null
+          rol_operacion: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          activa?: boolean
+          created_at?: string
+          id?: string
+          nombre: string
+          notas?: string | null
+          rol_operacion?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          activa?: boolean
+          created_at?: string
+          id?: string
+          nombre?: string
+          notas?: string | null
+          rol_operacion?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       infusion_formula_ingredientes: {
         Row: {
           created_at: string
@@ -5174,6 +5971,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "infusion_materias_primas"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "infusion_formula_ingredientes_materia_prima_id_fkey"
+            columns: ["materia_prima_id"]
+            isOneToOne: false
+            referencedRelation: "v_infusion_costos"
+            referencedColumns: ["materia_prima_id"]
           },
           {
             foreignKeyName: "infusion_formula_ingredientes_materia_prima_id_fkey"
@@ -5335,6 +6139,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "infusion_materias_primas"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "infusion_lotes_entrada_materia_prima_id_fkey"
+            columns: ["materia_prima_id"]
+            isOneToOne: false
+            referencedRelation: "v_infusion_costos"
+            referencedColumns: ["materia_prima_id"]
           },
           {
             foreignKeyName: "infusion_lotes_entrada_materia_prima_id_fkey"
@@ -5509,6 +6320,92 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      infusion_tareas: {
+        Row: {
+          completada_at: string | null
+          completada_por: string | null
+          created_at: string
+          equipo_id: string | null
+          estado: string
+          evidencia_path: string | null
+          fecha_vencimiento: string | null
+          id: string
+          lote_deshidratado_id: string | null
+          lote_entrada_id: string | null
+          lote_produccion_id: string | null
+          notas: string | null
+          prioridad: string
+          tipo: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          completada_at?: string | null
+          completada_por?: string | null
+          created_at?: string
+          equipo_id?: string | null
+          estado?: string
+          evidencia_path?: string | null
+          fecha_vencimiento?: string | null
+          id?: string
+          lote_deshidratado_id?: string | null
+          lote_entrada_id?: string | null
+          lote_produccion_id?: string | null
+          notas?: string | null
+          prioridad?: string
+          tipo: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          completada_at?: string | null
+          completada_por?: string | null
+          created_at?: string
+          equipo_id?: string | null
+          estado?: string
+          evidencia_path?: string | null
+          fecha_vencimiento?: string | null
+          id?: string
+          lote_deshidratado_id?: string | null
+          lote_entrada_id?: string | null
+          lote_produccion_id?: string | null
+          notas?: string | null
+          prioridad?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "infusion_tareas_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "infusion_equipo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "infusion_tareas_lote_deshidratado_id_fkey"
+            columns: ["lote_deshidratado_id"]
+            isOneToOne: false
+            referencedRelation: "infusion_lotes_deshidratado"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "infusion_tareas_lote_entrada_id_fkey"
+            columns: ["lote_entrada_id"]
+            isOneToOne: false
+            referencedRelation: "infusion_lotes_entrada"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "infusion_tareas_lote_produccion_id_fkey"
+            columns: ["lote_produccion_id"]
+            isOneToOne: false
+            referencedRelation: "infusion_lotes_produccion"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ingredients: {
         Row: {
@@ -7111,6 +8008,212 @@ export type Database = {
         }
         Relationships: []
       }
+      perc_abiertas: {
+        Row: {
+          created_at: string
+          id: string
+          pregunta: string
+          sesion_id: string
+          texto: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pregunta?: string
+          sesion_id: string
+          texto: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pregunta?: string
+          sesion_id?: string
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perc_abiertas_sesion_id_fkey"
+            columns: ["sesion_id"]
+            isOneToOne: false
+            referencedRelation: "perc_sesiones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perc_chip_catalogos: {
+        Row: {
+          activo: boolean
+          bloque: string
+          chip: string
+          created_at: string
+          id: string
+          sort_order: number
+        }
+        Insert: {
+          activo?: boolean
+          bloque: string
+          chip: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+        }
+        Update: {
+          activo?: boolean
+          bloque?: string
+          chip?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      perc_chips: {
+        Row: {
+          bloque: string
+          chip: string
+          created_at: string
+          id: string
+          sesion_id: string
+        }
+        Insert: {
+          bloque: string
+          chip: string
+          created_at?: string
+          id?: string
+          sesion_id: string
+        }
+        Update: {
+          bloque?: string
+          chip?: string
+          created_at?: string
+          id?: string
+          sesion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perc_chips_sesion_id_fkey"
+            columns: ["sesion_id"]
+            isOneToOne: false
+            referencedRelation: "perc_sesiones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perc_pares: {
+        Row: {
+          created_at: string
+          id: string
+          par: string
+          sesion_id: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          par: string
+          sesion_id: string
+          valor: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          par?: string
+          sesion_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perc_pares_sesion_id_fkey"
+            columns: ["sesion_id"]
+            isOneToOne: false
+            referencedRelation: "perc_sesiones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perc_sesiones: {
+        Row: {
+          agrado_1_5: number | null
+          cliente_id: string | null
+          codigo_punto: string | null
+          completo: boolean
+          consentimiento: boolean
+          created_at: string
+          id: string
+          intencion_recompra: boolean | null
+          moderada_flag: boolean
+          origen: string
+          producto_id: string | null
+          punto_venta_id: string | null
+          seed_orden: number | null
+          tipo_evaluador: string
+          updated_at: string
+        }
+        Insert: {
+          agrado_1_5?: number | null
+          cliente_id?: string | null
+          codigo_punto?: string | null
+          completo?: boolean
+          consentimiento?: boolean
+          created_at?: string
+          id?: string
+          intencion_recompra?: boolean | null
+          moderada_flag?: boolean
+          origen?: string
+          producto_id?: string | null
+          punto_venta_id?: string | null
+          seed_orden?: number | null
+          tipo_evaluador?: string
+          updated_at?: string
+        }
+        Update: {
+          agrado_1_5?: number | null
+          cliente_id?: string | null
+          codigo_punto?: string | null
+          completo?: boolean
+          consentimiento?: boolean
+          created_at?: string
+          id?: string
+          intencion_recompra?: boolean | null
+          moderada_flag?: boolean
+          origen?: string
+          producto_id?: string | null
+          punto_venta_id?: string | null
+          seed_orden?: number | null
+          tipo_evaluador?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perc_sesiones_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "fid_clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perc_sesiones_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perc_sesiones_punto_venta_id_fkey"
+            columns: ["punto_venta_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_puntos_venta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perc_sesiones_punto_venta_id_fkey"
+            columns: ["punto_venta_id"]
+            isOneToOne: false
+            referencedRelation: "v_b2b_puntos_publicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       periodos_contables: {
         Row: {
           anio: number
@@ -7464,6 +8567,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      product_categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          label: string
+          sort_order: number
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      product_formats: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          label: string
+          sort_order: number
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
       }
       productos: {
         Row: {
@@ -8750,6 +9913,7 @@ export type Database = {
           modo: string
           momento_consumo: string | null
           notas_personales: string | null
+          percepcion_sesion_id: string | null
           producto_id: string
           rating: number
           updated_at: string
@@ -8774,6 +9938,7 @@ export type Database = {
           modo: string
           momento_consumo?: string | null
           notas_personales?: string | null
+          percepcion_sesion_id?: string | null
           producto_id: string
           rating: number
           updated_at?: string
@@ -8798,6 +9963,7 @@ export type Database = {
           modo?: string
           momento_consumo?: string | null
           notas_personales?: string | null
+          percepcion_sesion_id?: string | null
           producto_id?: string
           rating?: number
           updated_at?: string
@@ -8832,6 +9998,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_tier_view"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "resenas_producto_percepcion_sesion_id_fkey"
+            columns: ["percepcion_sesion_id"]
+            isOneToOne: false
+            referencedRelation: "perc_sesiones"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "resenas_producto_producto_id_fkey"
@@ -11143,6 +12316,40 @@ export type Database = {
           ciclos_historicos: number | null
           tier: string | null
           user_id: string | null
+        }
+        Relationships: []
+      }
+      v_b2b_puntos_publicos: {
+        Row: {
+          ciudad: string | null
+          codigo_acceso: string | null
+          id: string | null
+          nombre: string | null
+          tipo: string | null
+        }
+        Insert: {
+          ciudad?: string | null
+          codigo_acceso?: string | null
+          id?: string | null
+          nombre?: string | null
+          tipo?: string | null
+        }
+        Update: {
+          ciudad?: string | null
+          codigo_acceso?: string | null
+          id?: string | null
+          nombre?: string | null
+          tipo?: string | null
+        }
+        Relationships: []
+      }
+      v_infusion_costos: {
+        Row: {
+          costo_seco_kg_clp: number | null
+          lotes_con_costo: number | null
+          materia_prima: string | null
+          materia_prima_id: string | null
+          rendimiento_promedio_pct: number | null
         }
         Relationships: []
       }

@@ -17,6 +17,12 @@ export type ResenaPublic = {
   maridaje: string | null;
   venta_id: string | null;
   display_name: string | null;
+  percepcion_sesion_id: string | null;
+  /** Percepción profunda del microcanal (chips CATA + pares semánticos), vía join. */
+  percepcion: {
+    pares: { par: string; valor: number }[];
+    chips: { bloque: string; chip: string }[];
+  } | null;
   created_at: string;
 };
 
@@ -57,7 +63,7 @@ async function fetchResenasFromSupabase(
     let query = supabase
       .from('resenas_producto')
       .select(
-        'id, modo, rating, comentario_corto, cristalizacion_percibida, familia_aromatica, intensidad_fondo, notas_personales, momento_consumo, maridaje, venta_id, display_name, created_at',
+        'id, modo, rating, comentario_corto, cristalizacion_percibida, familia_aromatica, intensidad_fondo, notas_personales, momento_consumo, maridaje, venta_id, display_name, percepcion_sesion_id, created_at',
         { count: 'exact' },
       )
       .eq('producto_id', productoId)

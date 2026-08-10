@@ -6,7 +6,7 @@
 
 export type RevalidateTiendaResult = {
   ok: boolean;
-  reason?: 'missing_url' | 'http_error' | 'network';
+  reason?: 'missing_url' | 'missing_secret' | 'http_error' | 'network';
   status?: number;
 };
 
@@ -53,6 +53,55 @@ export async function revalidateTiendaCms(): Promise<RevalidateTiendaResult> {
           : {}),
       },
       body: JSON.stringify(secret ? { secret } : {}),
+      // No cachear la petición de invalidación
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      console.warn(`[revalidate-tienda] ${res.status} ${text.slice(0, 200)}`);
+      return { ok: false, reason: 'http_error', status: res.status };
+    }
+
+    return { ok: true, status: res.status };
+  } catch (err) {
+    console.warn('[revalidate-tienda] fetch failed', err);
+    return { ok: false, reason: 'network' };
+  }
+}
+
+/**
+ * Invalida el layout completo de la Tienda (revalidatePath('/', 'layout')).
+ * Se dispara tras mutaciones que cambian el catálogo visible: stock, precio,
+ * fotos, visible, lotes públicos y ventas (stock decrementado).
+ * Auth: el endpoint de la Tienda exige Bearer SUPABASE_SERVICE_ROLE_KEY.
+ * Fail-open: nunca bloquea la mutación original.
+ */
+export async function revalidateTiendaLayout(): Promise<RevalidateTiendaResult> {
+  const base = tiendaBaseUrl();
+  if (!base) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[revalidate-tienda] NEXT_PUBLIC_URL_TIENDA no configurada');
+    }
+    return { ok: false, reason: 'missing_url' };
+  }
+
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (!serviceKey) {
+    console.warn('[revalidate-tienda] SUPABASE_SERVICE_ROLE_KEY no configurada');
+    return { ok: false, reason: 'missing_secret' };
+  }
+
+  const url = `${base}/api/revalidate`;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({ path: '/', type: 'layout' }),
       // No cachear la petición de invalidación
       cache: 'no-store',
     });

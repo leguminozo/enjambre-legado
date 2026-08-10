@@ -8,7 +8,9 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { supabase } from '@/lib/supabase';
 import { Button, toast, slugify, MoneyInput, getCurrencyDefinition } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
-import { productFormSchema, type ProductFormData, PRODUCT_FORMATS, PRODUCT_CATEGORIES } from '@/lib/product-types';
+import { productFormSchema, type ProductFormData, DEFAULT_PRODUCT_FORMATS, DEFAULT_PRODUCT_CATEGORIES } from '@/lib/product-types';
+import { useProductTaxonomies } from '@/hooks/use-product-taxonomies';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 import { processImage } from '@/lib/process-image';
 
 interface ProductFormProps {
@@ -29,6 +31,7 @@ export function ProductForm({
   variant = 'catalog',
 }: ProductFormProps) {
   const fromInventory = variant === 'inventory';
+  const apiFetch = useApiFetch();
   const [isPending, startTransition] = useTransition();
   const [imageUploading, setImageUploading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -86,6 +89,27 @@ export function ProductForm({
   const precio = watch('precio');
   const stock = watch('stock');
   const currencyDef = getCurrencyDefinition();
+
+  // Taxonomías gestionables (Mercado → Productos → Formatos y Categorías).
+  // Fallback a los DEFAULT_* mientras carga o si la tabla aún no existe.
+  const { data: taxonomies } = useProductTaxonomies();
+  const formatOptions = taxonomies?.formats ?? DEFAULT_PRODUCT_FORMATS;
+  const categoryOptions = taxonomies?.categories ?? DEFAULT_PRODUCT_CATEGORIES;
+
+  // Al editar un producto cuyo valor ya no está activo (desactivado/renombrado
+  // en el panel), se agrega como opción para no perder el valor guardado.
+  const formatoActual = watch('formato');
+  const categoriaActual = watch('categoria');
+  const formatOptionsForSelect = formatOptions.some((f) => f.value === formatoActual)
+    ? formatOptions
+    : formatoActual
+      ? [...formatOptions, { value: formatoActual, label: formatoActual }]
+      : formatOptions;
+  const categoryOptionsForSelect = categoryOptions.some((c) => c.value === categoriaActual)
+    ? categoryOptions
+    : categoriaActual
+      ? [...categoryOptions, { value: categoriaActual, label: categoriaActual }]
+      : categoryOptions;
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -226,6 +250,10 @@ export function ProductForm({
           result = created;
           toast('Producto creado correctamente', { type: 'success' });
         }
+
+        // El catálogo cambió (precio/fotos/visible/stock): invalidar ISR de la
+        // tienda. Fail-open: nunca bloquea el guardado.
+        void apiFetch('/api/admin-system/purge-cache', { method: 'POST' }).catch(() => undefined);
 
         onSuccess?.();
       } catch (error) {
@@ -504,7 +532,7 @@ export function ProductForm({
               </label>
               <select {...register('formato')} className="input-field w-full">
                 <option value="">Seleccionar formato</option>
-                {PRODUCT_FORMATS.map(f => (
+                {formatOptionsForSelect.map(f => (
                   <option key={f.value} value={f.value}>{f.label}</option>
                 ))}
               </select>
@@ -517,7 +545,7 @@ export function ProductForm({
               </label>
               <select {...register('categoria')} className="input-field w-full">
                 <option value="">Seleccionar categoría</option>
-                {PRODUCT_CATEGORIES.map(c => (
+                {categoryOptionsForSelect.map(c => (
                   <option key={c.value} value={c.value}>{c.label}</option>
                 ))}
               </select>

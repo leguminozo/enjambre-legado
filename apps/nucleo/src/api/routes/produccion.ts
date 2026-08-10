@@ -15,6 +15,7 @@ import {
   removeCosechaId,
 } from "@/lib/link-cosecha-lote";
 import { co2TonFromArboles } from "@/lib/impacto-metodologia";
+import { revalidateTiendaLayout } from "@/lib/revalidate-tienda";
 
 export const produccionRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -161,6 +162,13 @@ produccionRoutes.patch("/lotes/:id", zValidator("json", UpdateLoteComercialSchem
     .single();
 
   if (error) return c.json({ error: error.message }, 500);
+
+  // `publico`/`relato_publico` se muestran en la página de producto de la
+  // tienda: invalidar ISR (fail-open, nunca bloquea).
+  if (body.publico !== undefined || body.relato_publico !== undefined) {
+    await revalidateTiendaLayout();
+  }
+
   return c.json({ data });
 });
 
@@ -634,12 +642,75 @@ produccionRoutes.post(
         console.error("[Produccion] anchorLoteOnChain:", anchorErr);
       }
 
+      // El stock cambió en la tienda: invalidar ISR (fail-open, nunca bloquea).
+      await revalidateTiendaLayout();
+
       return c.json({ data: { ...rpcData, blockchain_tx: onChainTx, mode: "traceable" } });
     } catch (err) {
       console.error("[Produccion] add-stock unhandled:", err);
       const message = err instanceof Error ? err.message : "Error interno al cargar stock";
       return c.json({ code: "add_stock_failed", message, error: message }, 500);
     }
+  },
+);
+
+/** POST /api/produccion/set-stock — ajuste absoluto de stock (reformular). */
+produccionRoutes.post(
+  "/set-stock",
+  requireProfileRole("admin"),
+  zValidator(
+    "json",
+    z.object({
+      producto_id: z.string().uuid(),
+      stock: z.number().int().min(0).max(100_000),
+    }),
+  ),
+  async (c) => {
+    const { producto_id, stock } = c.req.valid("json");
+
+    let admin: ReturnType<typeof createAdminClient> | null = null;
+    try {
+      admin = createAdminClient();
+    } catch (err) {
+      console.error("[Produccion] createAdminClient:", err);
+      // Fallback: el admin autenticado puede actualizar stock vía RLS (is_admin)
+    }
+
+    const client = admin ?? c.get("supabase");
+    const { data: producto, error: readErr } = await client
+      .from("productos")
+      .select("id, stock")
+      .eq("id", producto_id)
+      .single();
+
+    if (readErr || !producto) {
+      return c.json(
+        { code: "producto_not_found", message: readErr?.message ?? "Producto no encontrado" },
+        404,
+      );
+    }
+
+    const stockAnterior = Number(producto.stock ?? 0);
+    const { error: updErr } = await client
+      .from("productos")
+      .update({ stock, updated_at: new Date().toISOString() })
+      .eq("id", producto_id);
+
+    if (updErr) {
+      return c.json({ code: "stock_update_failed", message: updErr.message }, 400);
+    }
+
+    // El stock cambió en la tienda: invalidar ISR (fail-open, nunca bloquea).
+    await revalidateTiendaLayout();
+
+    return c.json({
+      data: {
+        producto_id,
+        stock_anterior: stockAnterior,
+        stock_nuevo: stock,
+        mode: admin ? "service" : "direct",
+      },
+    });
   },
 );
 
@@ -685,6 +756,9 @@ async function addStockDirect(
       400,
     );
   }
+
+  // El stock cambió en la tienda: invalidar ISR (fail-open, nunca bloquea).
+  await revalidateTiendaLayout();
 
   return c.json({
     data: {

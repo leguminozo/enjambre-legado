@@ -28,7 +28,21 @@ export type ProductFormData = z.infer<typeof productFormSchema>;
 
 export type Product = Database['public']['Tables']['productos']['Row'];
 
-export const PRODUCT_FORMATS = [
+/**
+ * Taxonomías de producto gestionables desde Mercado → Productos → Formatos y
+ * Categorías (tablas `product_formats` / `product_categories`). Estos arrays
+ * son SOLO el fallback offline/mientras carga — el valor canónico vive en la DB
+ * y lo consume `useProductTaxonomies()`.
+ */
+export type ProductFormat = Database['public']['Tables']['product_formats']['Row'];
+export type ProductCategory = Database['public']['Tables']['product_categories']['Row'];
+
+export interface ProductFormatOption {
+  value: string;
+  label: string;
+}
+
+export const DEFAULT_PRODUCT_FORMATS: ProductFormatOption[] = [
   { value: '500g', label: '500g - Frasco tradicional' },
   { value: '250g', label: '250g - Frasco pequeño' },
   { value: '1kg', label: '1kg - Frasco familiar' },
@@ -37,9 +51,9 @@ export const PRODUCT_FORMATS = [
   { value: 'Panal', label: 'Panal natural' },
   { value: 'Cofre', label: 'Cofre regalo' },
   { value: 'Kit', label: 'Kit degustación' },
-] as const;
+];
 
-export const PRODUCT_CATEGORIES = [
+export const DEFAULT_PRODUCT_CATEGORIES: ProductFormatOption[] = [
   { value: 'miel', label: 'Miel' },
   { value: 'polen', label: 'Polen' },
   { value: 'propoleo', label: 'Propóleo' },
@@ -47,7 +61,7 @@ export const PRODUCT_CATEGORIES = [
   { value: 'ceras', label: 'Ceras' },
   { value: 'cofres', label: 'Cofres' },
   { value: 'accesorios', label: 'Accesorios' },
-] as const;
+];
 
 export const PRODUCT_TAGS = [
   'monofloral',

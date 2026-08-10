@@ -303,6 +303,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Director de campo',
         mission: 'Contratos, consignación y arqueo sin subordinación',
       },
+      {
+        key: 'microcanales',
+        label: 'Microcanales',
+        icon: 'store',
+        href: '/microcanales',
+        greeting: 'Arquitecto de microcanales',
+        mission: 'Puntos de venta, revendedores, sets, fidelización y percepción sensorial',
+      },
     ],
   },
   {

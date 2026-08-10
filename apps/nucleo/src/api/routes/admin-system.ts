@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { authMiddleware, tenantMiddleware, requireProfileRole } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
+import { revalidateTiendaLayout } from "@/lib/revalidate-tienda";
 
 export const adminSystemRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -13,26 +14,18 @@ adminSystemRoutes.use("*", requireProfileRole("admin"));
 // POST /api/admin-system/purge-cache
 // Invalida el cache on-demand de la tienda (revalidatePath('/' , 'layout')).
 // Vive dentro del BFF para heredar JWT + CSRF + rate-limit + rol admin.
+// Delega en revalidateTiendaLayout (lib) — mismo endpoint que usan las
+// mutaciones de catálogo (stock/precio/ventas) para no duplicar lógica.
 // ---------------------------------------------------------------------------
 
 adminSystemRoutes.post("/purge-cache", async (c) => {
-  const tiendaUrl = process.env.NEXT_PUBLIC_TIENDA_URL || "http://localhost:3000";
-
-  const res = await fetch(`${tiendaUrl}/api/revalidate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-    },
-    // Invalidate the entire layout to ensure all data is refreshed
-    body: JSON.stringify({ path: "/", type: "layout" }),
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text();
-    return c.json({ error: `Tienda response error: ${errorText}` }, 500);
+  const result = await revalidateTiendaLayout();
+  if (!result.ok) {
+    return c.json(
+      { error: `Tienda revalidate falló: ${result.reason}${result.status ? ` (${result.status})` : ""}` },
+      500,
+    );
   }
-
   return c.json({ success: true });
 });
 

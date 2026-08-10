@@ -53,6 +53,9 @@ import { alambiqueRoutes, alambiquePublicRoutes } from "@/api/routes/alambique";
 import { inventarioRoutes } from "@/api/routes/inventario";
 import { hidromielRoutes, hidromielPublicRoutes } from "@/api/routes/hidromiel";
 import { infusionesRoutes } from "@/api/routes/infusiones";
+import { b2bRoutes } from "@/api/routes/b2b";
+import { b2bPublicoRoutes } from "@/api/routes/b2b-publico";
+import { percepcionRoutes } from "@/api/routes/percepcion";
 import { getAllowedCorsOrigins } from "@/lib/publicUrls";
 
 export type { AppVariables };
@@ -106,6 +109,7 @@ app.use("*", async (c, next) => {
     "/api/alambique",
     "/api/hidromiel",
     "/api/infusiones",
+    "/api/b2b",
     "/api/crm",
   ];
   
@@ -177,6 +181,8 @@ app.use("*", async (c, next) => {
     "/api/censo-publico",
     "/api/alambique/publico",
     "/api/hidromiel/publico",
+    "/api/b2b-publico",
+    "/api/percepcion",
     // Proxy Open-Meteo (coords fijas Pureo, sin datos de usuario). El cliente
     // llama sin Bearer; el rate-limit del route ya limita abuso.
     "/api/meteo",
@@ -272,6 +278,9 @@ app.route("/hidromiel", hidromielPublicRoutes);
 app.route("/hidromiel", hidromielRoutes);
 
 app.route("/infusiones", infusionesRoutes);
+app.route("/b2b", b2bRoutes);
+app.route("/b2b-publico", b2bPublicoRoutes);
+app.route("/percepcion", percepcionRoutes);
 
 app.onError((err, c) => {
   console.error(err);

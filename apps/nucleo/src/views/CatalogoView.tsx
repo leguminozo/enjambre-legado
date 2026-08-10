@@ -1,14 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Package, Plus } from 'lucide-react';
+import { Package, Plus, Tags } from 'lucide-react';
 import { ImmersiveModal, Button } from '@enjambre/ui';
 import { ProductList } from '@/components/productos/ProductList';
 import { ProductForm } from '@/components/productos/ProductForm';
+import { TaxonomiasPanel } from '@/components/productos/TaxonomiasPanel';
 import type { Product } from '@/lib/product-types';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+
+type CatalogoTab = 'productos' | 'taxonomias';
 
 export function CatalogoView() {
+  const [tab, setTab] = useState<CatalogoTab>('productos');
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
@@ -41,7 +46,7 @@ export function CatalogoView() {
         icon={<Package size={20} />}
         variant="compact"
         actions={
-          view === 'list' ? (
+          tab === 'productos' && view === 'list' ? (
             <Button type="button" onClick={handleCreateNew} className="inline-flex items-center gap-2 min-h-11">
               <Plus size={18} />
               Nuevo Producto
@@ -49,7 +54,19 @@ export function CatalogoView() {
           ) : undefined
         }
       />
-      {view === 'list' && <ProductList onEdit={handleEdit} onCreateNew={handleCreateNew} />}
+
+      <ResponsiveTabBar
+        layoutId="catalogo-tabs"
+        tabs={[
+          { id: 'productos', label: 'Productos', icon: <Package size={18} /> },
+          { id: 'taxonomias', label: 'Formatos y Categorías', icon: <Tags size={18} /> },
+        ]}
+        activeId={tab}
+        onChange={(id) => setTab(id as CatalogoTab)}
+      />
+
+      {tab === 'productos' && view === 'list' && <ProductList onEdit={handleEdit} onCreateNew={handleCreateNew} />}
+      {tab === 'taxonomias' && <TaxonomiasPanel />}
 
       <ImmersiveModal
         open={view === 'create' || view === 'edit'}
