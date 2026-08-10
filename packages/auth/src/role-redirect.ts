@@ -102,7 +102,7 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/territorio': ['territorial'],
   '/registro-territorial': ['territorial', 'admin'],
   '/declaracion-sag': ['territorial', 'admin'],
-  '/planes-territoriales': ['territorial', 'admin'],
+  '/mis-planes': ['territorial', 'admin'],
   // /vanguardia es un redirect vivo → /crm?tab=aliados (B2B)
   // /mi-feria, /comisiones, /reps, /caja, /leaderboard, /creador viven en campo/tienda
   // (no tienen página en nucleo) y se rigen por fail-closed si alguien las pide aquí.

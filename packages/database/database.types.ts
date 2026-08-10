@@ -5135,6 +5135,381 @@ export type Database = {
           },
         ]
       }
+      infusion_formula_ingredientes: {
+        Row: {
+          created_at: string
+          formula_id: string
+          gramos_por_kg_mezcla: number | null
+          id: string
+          materia_prima_id: string
+          porcentaje: number
+        }
+        Insert: {
+          created_at?: string
+          formula_id: string
+          gramos_por_kg_mezcla?: number | null
+          id?: string
+          materia_prima_id: string
+          porcentaje: number
+        }
+        Update: {
+          created_at?: string
+          formula_id?: string
+          gramos_por_kg_mezcla?: number | null
+          id?: string
+          materia_prima_id?: string
+          porcentaje?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "infusion_formula_ingredientes_formula_id_fkey"
+            columns: ["formula_id"]
+            isOneToOne: false
+            referencedRelation: "infusion_formulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "infusion_formula_ingredientes_materia_prima_id_fkey"
+            columns: ["materia_prima_id"]
+            isOneToOne: false
+            referencedRelation: "infusion_materias_primas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "infusion_formula_ingredientes_materia_prima_id_fkey"
+            columns: ["materia_prima_id"]
+            isOneToOne: false
+            referencedRelation: "v_infusion_stock_seco"
+            referencedColumns: ["materia_prima_id"]
+          },
+        ]
+      }
+      infusion_formulas: {
+        Row: {
+          activa: boolean
+          created_at: string
+          descripcion: string | null
+          gramaje_sachet_g: number
+          id: string
+          nombre: string
+          tipo: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          activa?: boolean
+          created_at?: string
+          descripcion?: string | null
+          gramaje_sachet_g: number
+          id?: string
+          nombre: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          activa?: boolean
+          created_at?: string
+          descripcion?: string | null
+          gramaje_sachet_g?: number
+          id?: string
+          nombre?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      infusion_lotes_deshidratado: {
+        Row: {
+          created_at: string
+          fecha_fin: string | null
+          fecha_inicio: string | null
+          id: string
+          lote_entrada_id: string
+          metodo: string
+          notas: string | null
+          peso_entrada_kg: number | null
+          peso_salida_kg: number | null
+          rendimiento_pct: number | null
+          responsable: string | null
+          temperatura_c: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          lote_entrada_id: string
+          metodo?: string
+          notas?: string | null
+          peso_entrada_kg?: number | null
+          peso_salida_kg?: number | null
+          rendimiento_pct?: number | null
+          responsable?: string | null
+          temperatura_c?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
+          id?: string
+          lote_entrada_id?: string
+          metodo?: string
+          notas?: string | null
+          peso_entrada_kg?: number | null
+          peso_salida_kg?: number | null
+          rendimiento_pct?: number | null
+          responsable?: string | null
+          temperatura_c?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "infusion_lotes_deshidratado_lote_entrada_id_fkey"
+            columns: ["lote_entrada_id"]
+            isOneToOne: true
+            referencedRelation: "infusion_lotes_entrada"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      infusion_lotes_entrada: {
+        Row: {
+          codigo_lote: string
+          created_at: string
+          fecha: string
+          id: string
+          materia_prima_id: string
+          notas: string | null
+          origen: string
+          peso_fresco_kg: number | null
+          precio_compra_clp: number | null
+          proveedor_id: string | null
+          recolector: string | null
+          ubicacion_recoleccion: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          codigo_lote: string
+          created_at?: string
+          fecha: string
+          id?: string
+          materia_prima_id: string
+          notas?: string | null
+          origen?: string
+          peso_fresco_kg?: number | null
+          precio_compra_clp?: number | null
+          proveedor_id?: string | null
+          recolector?: string | null
+          ubicacion_recoleccion?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          codigo_lote?: string
+          created_at?: string
+          fecha?: string
+          id?: string
+          materia_prima_id?: string
+          notas?: string | null
+          origen?: string
+          peso_fresco_kg?: number | null
+          precio_compra_clp?: number | null
+          proveedor_id?: string | null
+          recolector?: string | null
+          ubicacion_recoleccion?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "infusion_lotes_entrada_materia_prima_id_fkey"
+            columns: ["materia_prima_id"]
+            isOneToOne: false
+            referencedRelation: "infusion_materias_primas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "infusion_lotes_entrada_materia_prima_id_fkey"
+            columns: ["materia_prima_id"]
+            isOneToOne: false
+            referencedRelation: "v_infusion_stock_seco"
+            referencedColumns: ["materia_prima_id"]
+          },
+          {
+            foreignKeyName: "infusion_lotes_entrada_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "infusion_proveedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      infusion_lotes_produccion: {
+        Row: {
+          cantidad_sachets: number | null
+          created_at: string
+          fecha: string
+          formula_id: string
+          id: string
+          notas: string | null
+          peso_mezcla_kg: number | null
+          responsable: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cantidad_sachets?: number | null
+          created_at?: string
+          fecha: string
+          formula_id: string
+          id?: string
+          notas?: string | null
+          peso_mezcla_kg?: number | null
+          responsable?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cantidad_sachets?: number | null
+          created_at?: string
+          fecha?: string
+          formula_id?: string
+          id?: string
+          notas?: string | null
+          peso_mezcla_kg?: number | null
+          responsable?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "infusion_lotes_produccion_formula_id_fkey"
+            columns: ["formula_id"]
+            isOneToOne: false
+            referencedRelation: "infusion_formulas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      infusion_materias_primas: {
+        Row: {
+          activa: boolean
+          created_at: string
+          id: string
+          nombre: string
+          notas: string | null
+          tipo: string
+          unidad_medida: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          activa?: boolean
+          created_at?: string
+          id?: string
+          nombre: string
+          notas?: string | null
+          tipo?: string
+          unidad_medida?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          activa?: boolean
+          created_at?: string
+          id?: string
+          nombre?: string
+          notas?: string | null
+          tipo?: string
+          unidad_medida?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      infusion_produccion_materiales: {
+        Row: {
+          created_at: string
+          gramos_utilizados: number
+          id: string
+          lote_deshidratado_id: string
+          lote_produccion_id: string
+        }
+        Insert: {
+          created_at?: string
+          gramos_utilizados: number
+          id?: string
+          lote_deshidratado_id: string
+          lote_produccion_id: string
+        }
+        Update: {
+          created_at?: string
+          gramos_utilizados?: number
+          id?: string
+          lote_deshidratado_id?: string
+          lote_produccion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "infusion_produccion_materiales_lote_deshidratado_id_fkey"
+            columns: ["lote_deshidratado_id"]
+            isOneToOne: false
+            referencedRelation: "infusion_lotes_deshidratado"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "infusion_produccion_materiales_lote_produccion_id_fkey"
+            columns: ["lote_produccion_id"]
+            isOneToOne: false
+            referencedRelation: "infusion_lotes_produccion"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      infusion_proveedores: {
+        Row: {
+          activa: boolean
+          contacto: string | null
+          created_at: string
+          id: string
+          nombre: string
+          notas: string | null
+          ubicacion: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          activa?: boolean
+          contacto?: string | null
+          created_at?: string
+          id?: string
+          nombre: string
+          notas?: string | null
+          ubicacion?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          activa?: boolean
+          contacto?: string | null
+          created_at?: string
+          id?: string
+          nombre?: string
+          notas?: string | null
+          ubicacion?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ingredients: {
         Row: {
           categoria: string | null
@@ -10768,6 +11143,16 @@ export type Database = {
           ciclos_historicos: number | null
           tier: string | null
           user_id: string | null
+        }
+        Relationships: []
+      }
+      v_infusion_stock_seco: {
+        Row: {
+          consumido_kg: number | null
+          materia_prima: string | null
+          materia_prima_id: string | null
+          stock_disponible_kg: number | null
+          total_seco_kg: number | null
         }
         Relationships: []
       }

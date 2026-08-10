@@ -600,7 +600,10 @@
     "analytics": "Analíticas",
     "marketing": "Marketing",
     "preferences": "Preferencias",
-    "savePreferences": "Guardar preferencias"
+    "savePreferences": "Guardar preferencias",
+    "bannerTitle": "Valoramos tu privacidad",
+    "bannerText": "Usamos cookies esenciales para el funcionamiento de la tienda. Con tu consentimiento, también usamos cookies analíticas y de marketing (incluido Meta Pixel) para mejorar tu experiencia. Revisa nuestra {cookies} y nuestra {privacidad}.",
+    "essentialOnly": "Solo esenciales"
   },
   "language": {
     "spanish": "Español",

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
 import { PanelLeftClose, X } from 'lucide-react';
 import {

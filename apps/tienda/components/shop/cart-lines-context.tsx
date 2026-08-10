@@ -11,6 +11,7 @@ import {
 import { CART_STORAGE_KEY } from '@/lib/shop/commerce-storage';
 import { createClient } from '@/utils/supabase/client';
 import { useAuthStore } from '@enjambre/auth';
+import { useMetaTracking } from '@/lib/tracking/client';
 import React, {
   createContext,
   useCallback,
@@ -66,6 +67,7 @@ function toQuantityItems(lines: CartLine[]) {
 
 export function CartLinesProvider({ children }: { children: React.ReactNode }) {
   const userId = useAuthStore((state) => state.user?.id ?? null);
+  const track = useMetaTracking();
   const [lines, setLines] = useState<CartLine[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [remoteReady, setRemoteReady] = useState(false);
@@ -184,11 +186,24 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
 
   const add = useCallback(
     (product: Pick<ShopProduct, 'id' | 'slug' | 'name' | 'price'>, qty = 1) => {
+      const clampedQty = Math.min(qty, 99);
+      // AddToCart (Meta): chokepoint único — cubre PDP, landing y catálogo.
+      // El facade gatea por consentimiento; no bloquea el carrito nunca.
+      track({
+        eventName: 'AddToCart',
+        value: Math.round(product.price * clampedQty),
+        currency: 'CLP',
+        contentIds: [product.id],
+        contents: [{ id: product.id, quantity: clampedQty, itemPrice: product.price }],
+        contentName: product.name,
+        numItems: clampedQty,
+      });
+
       setLines((prev) => {
         const i = prev.findIndex((l) => l.productId === product.id);
         if (i >= 0) {
           const next = [...prev];
-          next[i] = { ...next[i]!, quantity: Math.min(next[i]!.quantity + qty, 99) };
+          next[i] = { ...next[i]!, quantity: Math.min(next[i]!.quantity + clampedQty, 99) };
           return next;
         }
         return [
@@ -198,12 +213,12 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
             slug: product.slug,
             name: product.name,
             unitPrice: product.price,
-            quantity: Math.min(qty, 99),
+            quantity: clampedQty,
           },
         ];
       });
     },
-    [],
+    [track],
   );
 
   const setQty = useCallback((productId: string, qty: number) => {

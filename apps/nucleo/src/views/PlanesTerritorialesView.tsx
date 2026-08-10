@@ -75,7 +75,7 @@ export function PlanesTerritorialesView() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           planId: plan.id,
-          returnUrl: `${window.location.origin}/planes-territoriales/resultado`,
+          returnUrl: `${window.location.origin}/mis-planes/resultado`,
         }),
       });
       const json = await res.json().catch(() => ({}));

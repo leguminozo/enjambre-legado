@@ -2,11 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Search, X } from 'lucide-react';
+import { LogOut, Search, Settings, X } from 'lucide-react';
 import {
-  getAccountItemsForRole,
   getSidebarGroupsForRole,
   findActiveItem,
   resolveShellRoleKey,
@@ -16,6 +15,7 @@ import { useAuthStore } from '@enjambre/auth';
 import { SidebarSection } from '@enjambre/ui';
 import type { SidebarBadgeValues } from '@/hooks/useSidebarBadges';
 import { toNavItemDataFromItem } from '@/components/layout/sidebar-shared';
+import { ConfigModal } from '@/views/configuracion/ConfigModal';
 
 type MobileNavSheetProps = {
   open: boolean;
@@ -29,22 +29,30 @@ function NavLink(props: React.ComponentProps<typeof Link>) {
 
 export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
+  const signOut = useAuthStore((s) => s.signOut);
   const [query, setQuery] = useState('');
+  const [configOpen, setConfigOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const lastActiveRef = useRef<HTMLElement | null>(null);
 
   const sidebarGroups = useMemo(() => getSidebarGroupsForRole(userRole), [userRole]);
-  const accountItems = useMemo(() => getAccountItemsForRole(userRole), [userRole]);
   const activeItem = findActiveItem(pathname);
 
   const allItems = useMemo(
-    () => [...sidebarGroups.flatMap((g) => g.items), ...accountItems],
-    [sidebarGroups, accountItems],
+    () => sidebarGroups.flatMap((g) => g.items),
+    [sidebarGroups],
   );
 
-  const filtered = query.trim()
-    ? allItems.filter((item) => item.label.toLowerCase().includes(query.toLowerCase()))
+  const q = query.trim().toLowerCase();
+  const configSearchHit =
+    Boolean(q) &&
+    ['configuración', 'configuracion', 'cuenta', 'perfil', 'sesión', 'sesion', 'cerrar'].some(
+      (term) => term.startsWith(q) || q.length >= 4 && term.includes(q),
+    );
+  const filtered = q
+    ? allItems.filter((item) => item.label.toLowerCase().includes(q))
     : null;
 
   // Único camino de cierre: resetea la búsqueda y devuelve el control al abridor.
@@ -95,114 +103,154 @@ export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
   }, [badges]);
 
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.button
-            type="button"
-            className="mobile-nav-sheet-backdrop"
-            aria-label="Cerrar navegación"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleClose}
-          />
-          <motion.aside
-            id="mobile-nav-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Mapa del enjambre"
-            className="mobile-nav-sheet"
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', stiffness: 420, damping: 38 }}
-          >
-            <div className="mobile-nav-sheet-handle" aria-hidden />
+    <>
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.button
+              type="button"
+              className="mobile-nav-sheet-backdrop"
+              aria-label="Cerrar navegación"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleClose}
+            />
+            <motion.aside
+              id="mobile-nav-sheet"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Mapa del enjambre"
+              className="mobile-nav-sheet"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 420, damping: 38 }}
+            >
+              <div className="mobile-nav-sheet-handle" aria-hidden />
 
-            <header className="mobile-nav-sheet-header">
-              <div>
-                <p className="mobile-nav-sheet-eyebrow">Enjambre Legado</p>
-                <h2 className="mobile-nav-sheet-title">
-                  {activeItem?.greeting ?? 'Explora el enjambre'}
-                </h2>
-                {activeItem?.mission && (
-                  <p className="mobile-nav-sheet-mission">{activeItem.mission}</p>
-                )}
+              <header className="mobile-nav-sheet-header">
+                <div>
+                  <p className="mobile-nav-sheet-eyebrow">Enjambre Legado</p>
+                  <h2 className="mobile-nav-sheet-title">
+                    {activeItem?.greeting ?? 'Explora el enjambre'}
+                  </h2>
+                  {activeItem?.mission && (
+                    <p className="mobile-nav-sheet-mission">{activeItem.mission}</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="mobile-nav-sheet-close"
+                  onClick={handleClose}
+                  aria-label="Cerrar"
+                >
+                  <X size={20} />
+                </button>
+              </header>
+
+              <div className="mobile-nav-sheet-search">
+                <Search size={16} className="text-muted-foreground" />
+                <input
+                  ref={inputRef}
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Buscar módulo..."
+                  aria-label="Buscar módulo"
+                  className="mobile-nav-sheet-search-input"
+                />
               </div>
-              <button
-                type="button"
-                className="mobile-nav-sheet-close"
-                onClick={handleClose}
-                aria-label="Cerrar"
-              >
-                <X size={20} />
-              </button>
-            </header>
 
-            <div className="mobile-nav-sheet-search">
-              <Search size={16} className="text-muted-foreground" />
-              <input
-                ref={inputRef}
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar módulo..."
-                aria-label="Buscar módulo"
-                className="mobile-nav-sheet-search-input"
-              />
-            </div>
-
-            <nav className="mobile-nav-sheet-nav" aria-label="Todos los módulos">
-              {filtered ? (
-                filtered.length === 0 ? (
-                  <p className="mobile-nav-sheet-empty">Sin resultados para «{query}»</p>
+              <nav className="mobile-nav-sheet-nav" aria-label="Todos los módulos">
+                {filtered ? (
+                  filtered.length === 0 && !configSearchHit ? (
+                    <p className="mobile-nav-sheet-empty">Sin resultados para «{query}»</p>
+                  ) : (
+                    <ul className="mobile-nav-sheet-results">
+                      {filtered.map((item) => (
+                        <li key={item.key}>
+                          <Link
+                            href={item.href}
+                            prefetch
+                            className={`mobile-nav-sheet-result ${pathname.startsWith(item.href) ? 'is-active' : ''}`}
+                            onClick={handleClose}
+                          >
+                            <span>{item.label}</span>
+                            <span className="mobile-nav-sheet-result-hint">{item.mission}</span>
+                          </Link>
+                        </li>
+                      ))}
+                      {configSearchHit && (
+                        <li>
+                          <button
+                            type="button"
+                            className="mobile-nav-sheet-result w-full text-left"
+                            onClick={() => {
+                              handleClose();
+                              window.setTimeout(() => setConfigOpen(true), 180);
+                            }}
+                          >
+                            <span>Configuración</span>
+                            <span className="mobile-nav-sheet-result-hint">
+                              Perfil, preferencias, seguridad y cerrar sesión
+                            </span>
+                          </button>
+                        </li>
+                      )}
+                    </ul>
+                  )
                 ) : (
-                  <ul className="mobile-nav-sheet-results">
-                    {filtered.map((item) => (
-                      <li key={item.key}>
-                        <Link
-                          href={item.href}
-                          prefetch
-                          className={`mobile-nav-sheet-result ${pathname.startsWith(item.href) ? 'is-active' : ''}`}
-                          onClick={handleClose}
-                        >
-                          <span>{item.label}</span>
-                          <span className="mobile-nav-sheet-result-hint">{item.mission}</span>
-                        </Link>
-                      </li>
+                  <>
+                    {sidebarGroups.map((group) => (
+                      <SidebarSection
+                        key={group.key}
+                        sectionKey={group.key}
+                        label={group.label}
+                        collapsible={group.collapsible ?? true}
+                        items={group.items.map((item) => toNavItemDataFromItem(item, badgeOverrides))}
+                        activeKey={activeItem?.key}
+                        linkComponent={NavLink}
+                        onItemClick={handleClose}
+                      />
                     ))}
-                  </ul>
-                )
-              ) : (
-                <>
-                  {sidebarGroups.map((group) => (
-                    <SidebarSection
-                      key={group.key}
-                      sectionKey={group.key}
-                      label={group.label}
-                      collapsible={group.collapsible ?? true}
-                      items={group.items.map((item) => toNavItemDataFromItem(item, badgeOverrides))}
-                      activeKey={activeItem?.key}
-                      linkComponent={NavLink}
-                      onItemClick={handleClose}
-                    />
-                  ))}
-                  <SidebarSection
-                    sectionKey="cuenta"
-                    label="CUENTA"
-                    collapsible={false}
-                    items={accountItems.map((item) => toNavItemDataFromItem(item, badgeOverrides))}
-                    activeKey={activeItem?.key}
-                    linkComponent={NavLink}
-                    onItemClick={handleClose}
-                  />
-                </>
-              )}
-            </nav>
-          </motion.aside>
-        </>
-      )}
-    </AnimatePresence>
+                    <div className="mobile-nav-sheet-account" role="group" aria-label="Cuenta">
+                      <p className="mobile-nav-sheet-account-label">Cuenta</p>
+                      <button
+                        type="button"
+                        className="mobile-nav-sheet-account-btn"
+                        onClick={() => {
+                          handleClose();
+                          // Abrir tras cerrar el sheet para evitar pelea de focus traps
+                          window.setTimeout(() => setConfigOpen(true), 180);
+                        }}
+                      >
+                        <Settings size={18} aria-hidden />
+                        <span>Configuración</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="mobile-nav-sheet-account-btn is-danger"
+                        onClick={() => {
+                          void (async () => {
+                            handleClose();
+                            await signOut();
+                            router.push('/login');
+                          })();
+                        }}
+                      >
+                        <LogOut size={18} aria-hidden />
+                        <span>Cerrar sesión</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </nav>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+      <ConfigModal open={configOpen} onClose={() => setConfigOpen(false)} />
+    </>
   );
 }

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
+import { useEffect, useRef } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { formatCLP } from '@/lib/shop/format';
 import type { ShopProduct } from '@/lib/shop/products';
@@ -12,6 +13,7 @@ import { ResenasSection } from '@/components/shop/resenas-section';
 import { TraceabilitySection, AddToCartButton } from '@/app/producto/[slug]/ui';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveLocalized } from '@/lib/shop/store-chrome';
+import { useMetaTracking } from '@/lib/tracking/client';
 
 type Props = {
   product: ShopProduct;
@@ -24,6 +26,22 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
   const locale = useLocale();
   const { pdp } = useStoreChrome();
   const continueLabel = resolveLocalized(pdp.continue_label, pdp.continue_label_en, locale);
+  const track = useMetaTracking();
+  const viewedRef = useRef(false);
+
+  // ViewContent (Meta) — una vez por montaje del PDP (gatea por consentimiento)
+  useEffect(() => {
+    if (viewedRef.current) return;
+    viewedRef.current = true;
+    track({
+      eventName: 'ViewContent',
+      value: Math.round(product.price),
+      currency: 'CLP',
+      contentIds: [product.id],
+      contents: [{ id: product.id, quantity: 1, itemPrice: product.price }],
+      contentName: product.name,
+    });
+  }, [track, product.id, product.name, product.price]);
 
   return (
     <main className="bg-background pb-28 md:pb-16">

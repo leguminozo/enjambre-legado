@@ -30,7 +30,13 @@ import { useAuth } from '@/components/providers/auth-context';
 import { useLoyaltyPoints } from '@/lib/hooks/use-loyalty-points';
 import { useCartAbandonmentTracking } from '@/lib/hooks/use-cart-abandonment';
 import { CHECKOUT_RESULTADO_PATH } from '@/lib/shop/store-routes';
-import { CREATOR_REF_CODE_KEY } from '@/lib/shop/commerce-storage';
+import {
+  CREATOR_REF_CODE_KEY,
+  PENDING_CHECKOUT_STORAGE_KEY,
+  PURCHASE_SNAPSHOT_STORAGE_KEY,
+} from '@/lib/shop/commerce-storage';
+import { useMetaTracking } from '@/lib/tracking/client';
+import type { PurchaseSnapshot } from '@/lib/tracking/types';
 import { getDirecciones } from '@/app/actions/direcciones';
 import type { ClienteDireccion } from '@/lib/shop/direcciones-schema';
 
@@ -82,6 +88,7 @@ export function CheckoutClient() {
   const { lines } = useCartLines();
   const { pricing, isLoading: pricingLoading, pricingError } = useCartPricing();
   const { isAuthenticated, user } = useAuth();
+  const track = useMetaTracking();
   // Copy del checkout editable desde el Editor de Tienda (checkout_settings)
   const { checkout } = useStoreChrome();
   useCartAbandonmentTracking(true);
@@ -420,6 +427,44 @@ export function CheckoutClient() {
       setError(result.message);
       setLoading(false);
       return;
+    }
+
+    // Tracking Meta: InitiateCheckout + snapshot para el Purchase (resultado).
+    // El snapshot valida buyOrder al confirmar; el facade gatea por consentimiento.
+    try {
+      const rawPending = sessionStorage.getItem(PENDING_CHECKOUT_STORAGE_KEY);
+      if (rawPending) {
+        const pending = JSON.parse(rawPending) as { buyOrder?: string };
+        const buyOrder = pending.buyOrder;
+        if (buyOrder) {
+          const items = (pricing?.line_items ?? []).map((l) => ({
+            id: l.product_id,
+            quantity: l.quantity,
+            itemPrice: l.unit_price,
+          }));
+          const snapshot: PurchaseSnapshot = {
+            buyOrder,
+            email: shipping.email,
+            total: totalCompra,
+            items,
+          };
+          sessionStorage.setItem(PURCHASE_SNAPSHOT_STORAGE_KEY, JSON.stringify(snapshot));
+          track({
+            eventName: 'InitiateCheckout',
+            value: Math.round(totalCompra),
+            currency: 'CLP',
+            contents: items,
+            contentIds: items.map((i) => i.id),
+            numItems: items.reduce((sum, i) => sum + i.quantity, 0),
+            email: shipping.email,
+          });
+        }
+      }
+    } catch (err) {
+      // El tracking nunca debe interrumpir el checkout
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('[tracking] InitiateCheckout falló', err);
+      }
     }
 
     gsap.to(buttonRef.current, {

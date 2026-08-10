@@ -27,6 +27,9 @@ const integrationsEnvSchema = z.object({
   // Boletas / DTE
   BOLETAS_API_KEY: z.string().optional(),
   DTE_API_TOKEN: z.string().optional(),
+  // Meta Ads — Conversions API (el pixel id es público: NEXT_PUBLIC_META_PIXEL_ID)
+  META_CAPI_TOKEN: z.string().optional(),
+  META_GRAPH_VERSION: z.string().optional(),
   // Pagos (ya usadas en checkout)
   TRANSBANK_COMMERCE_CODE: z.string().optional(),
   TRANSBANK_API_KEY: z.string().optional(),
@@ -49,6 +52,8 @@ export function parseIntegrationsEnv(e: NodeJS.ProcessEnv = process.env): Integr
     NOTIFY_SMTP_PASS: opt(e.NOTIFY_SMTP_PASS),
     BOLETAS_API_KEY: opt(e.BOLETAS_API_KEY),
     DTE_API_TOKEN: opt(e.DTE_API_TOKEN),
+    META_CAPI_TOKEN: opt(e.META_CAPI_TOKEN),
+    META_GRAPH_VERSION: opt(e.META_GRAPH_VERSION),
     TRANSBANK_COMMERCE_CODE: opt(e.TRANSBANK_COMMERCE_CODE),
     TRANSBANK_API_KEY: opt(e.TRANSBANK_API_KEY),
   });
@@ -74,6 +79,9 @@ export function getSecretsPresenceForIntegrationKey(
       );
     case 'boletas':
       return Boolean(env.BOLETAS_API_KEY || env.DTE_API_TOKEN);
+    case 'meta_ads':
+      // Token CAPI (server). El pixel id es público y se expone por separado.
+      return Boolean(env.META_CAPI_TOKEN);
     default:
       return false;
   }

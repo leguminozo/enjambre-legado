@@ -17,8 +17,11 @@ import { WalletButtons } from '@/components/shop/wallet-buttons';
 import {
   CHECKOUT_SUCCESS_META_KEY,
   PENDING_CHECKOUT_STORAGE_KEY,
+  PURCHASE_SNAPSHOT_STORAGE_KEY,
 } from '@/lib/shop/commerce-storage';
 import { commitPayment, parsePendingPayment } from '@/lib/shop/payment-commit';
+import { useMetaTracking } from '@/lib/tracking/client';
+import type { PurchaseSnapshot } from '@/lib/tracking/types';
 
 type CommitState = 'loading' | 'success' | 'failed';
 
@@ -34,6 +37,7 @@ export function CheckoutResultClient() {
     null,
   );
   const { clear } = useCartLines();
+  const track = useMetaTracking();
 
   const contentRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
@@ -100,6 +104,35 @@ export function CheckoutResultClient() {
           setSuccessMeta({ buyOrder: result.data.buyOrder });
         }
       }
+
+      // Purchase (Meta Ads): solo si el snapshot pertenece a ESTA orden
+      // (buyOrder coincide) — evita fires stale/duplicados de checkouts previos.
+      try {
+        const rawSnapshot = sessionStorage.getItem(PURCHASE_SNAPSHOT_STORAGE_KEY);
+        if (rawSnapshot) {
+          const snapshot = JSON.parse(rawSnapshot) as PurchaseSnapshot;
+          if (snapshot.buyOrder === result.data.buyOrder) {
+            const items = snapshot.items ?? [];
+            track({
+              eventName: 'Purchase',
+              value: Math.round(snapshot.total),
+              currency: 'CLP',
+              contents: items,
+              contentIds: items.map((i) => i.id),
+              numItems: items.reduce((sum, i) => sum + i.quantity, 0),
+              orderId: result.data.buyOrder,
+              email: snapshot.email,
+            });
+          }
+          sessionStorage.removeItem(PURCHASE_SNAPSHOT_STORAGE_KEY);
+        }
+      } catch (err) {
+        // El tracking nunca debe romper la página de confirmación
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('[tracking] Purchase falló', err);
+        }
+      }
+
       clear();
       setState('success');
       setMessage(t('confirmed'));

@@ -225,7 +225,11 @@ function FlyoutItem({
         className={`sidebar-rail-flyout-item ${active ? 'is-active' : ''}`}
         onClick={onNavigate}
       >
-        {Icon ? <Icon size={18} className="shrink-0" /> : null}
+        {Icon ? (
+          <span className="shrink-0 inline-flex">
+            <Icon size={18} />
+          </span>
+        ) : null}
         <span className="truncate">{item.label}</span>
         {badge && <span className="sidebar-rail-flyout-dot" aria-hidden />}
       </Link>

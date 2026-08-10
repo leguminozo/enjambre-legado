@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { headers } from 'next/headers';
-import { ShieldAlert, Map, QrCode, ArrowRight, UserCircle2, UserPlus, ShieldCheck, FileText, MapPin, Lock } from 'lucide-react';
+import { ShieldAlert, Map, QrCode, ArrowRight, UserPlus, ShieldCheck, MapPin, Lock } from 'lucide-react';
 import { CensoStats, type CensoStatsData } from '@/components/censo/CensoStats';
+import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
+import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 
 export const metadata = {
   title: 'Registro Territorial Apícola de Chiloé — Censo, mapa y Pasaporte QR para apicultores',
@@ -50,91 +52,85 @@ export default async function RedApicolaLanding() {
 
   return (
     <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground flex flex-col">
-      {/* Top Navbar */}
-      <header className="absolute top-0 w-full p-6 flex justify-between items-center z-50">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded bg-primary text-primary-foreground flex items-center justify-center font-bold font-serif">
-            CH
-          </div>
-          <span className="font-medium text-sm tracking-wide hidden sm:block">
-            Registro Territorial Apícola de Chiloé
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/mapa-chiloe"
-            className="hidden sm:inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full hover:bg-surface-raised"
-          >
-            <Map className="w-4 h-4" />
-            Mapa público
-          </Link>
-          <Link href="/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full hover:bg-surface-raised">
-            <UserCircle2 className="w-4 h-4" />
-            Acceso
-          </Link>
-        </div>
-      </header>
+      <TerritorioHeader />
 
-      {/* Hero Section — Variante A */}
-      <section className="relative pt-[22vh] pb-20 px-6 sm:px-12 lg:px-24 flex-1 flex flex-col items-center text-center overflow-hidden border-b border-border">
-        {/* Background Decorative */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at center, currentColor 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-        <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[60%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+      {/* Hero — defensa territorial + censo */}
+      <section className="relative pt-14 sm:pt-20 pb-16 sm:pb-24 px-5 sm:px-10 lg:px-20 flex-1 flex flex-col items-center text-center overflow-hidden border-b border-border">
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'radial-gradient(circle at center, currentColor 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        />
+        <div className="absolute top-[-12%] right-[-8%] w-[45%] h-[55%] bg-primary/12 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-20%] left-[-10%] w-[35%] h-[40%] bg-accent/8 rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="z-10 bg-surface-raised border border-border px-4 py-1.5 rounded-full inline-flex items-center gap-2 mb-8 shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Censo Apícola 2026–2027 · Cierre {cierre}
+        <div className="z-10 bg-surface-raised/90 border border-border px-4 py-2 rounded-full inline-flex items-center gap-2.5 mb-8 sm:mb-10 shadow-sm backdrop-blur-sm">
+          <span className="w-2 h-2 rounded-full bg-success animate-pulse shrink-0" />
+          <span className="text-[0.7rem] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Censo apícola 2026–2027 · cierre {cierre}
           </span>
         </div>
 
-        <h1 className="font-existencial text-foreground font-bold tracking-tight mb-6 max-w-4xl text-balance text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1]">
-          Tu zona de pecoreo ya tiene defensa legal. <br />
+        <h1 className="font-existencial text-foreground font-bold tracking-tight mb-5 sm:mb-6 max-w-4xl text-balance text-[clamp(2.15rem,5.5vw,4.25rem)] leading-[1.08]">
+          Tu zona de pecoreo ya tiene defensa legal.
+          <br className="hidden sm:block" />{' '}
           <span className="text-primary italic font-serif">Falta que esté en el mapa.</span>
         </h1>
 
-        <p className="text-base sm:text-lg text-muted-foreground mb-4 max-w-2xl font-light leading-relaxed text-pretty">
-          La Ley Apícola (21.102) exige distancias mínimas de hasta 2,2 km entre apiarios. Sin registro
-          territorial, esa distancia no se puede exigir. Inscribe tus apiarios, recibe alertas de
-          instalaciones cercanas y dale a tu miel un Pasaporte QR que la conecta con quien la compra.
+        <p className="text-[0.95rem] sm:text-lg text-muted-foreground mb-3 max-w-2xl font-light leading-relaxed text-pretty">
+          La Ley Apícola (21.102) exige distancias de hasta 2,2 km entre apiarios. Sin registro
+          territorial, esa distancia no se puede exigir. Inscribe tus apiarios, recibe alertas y
+          dale a tu miel un Pasaporte QR.
         </p>
 
-        <p className="text-sm text-primary italic font-serif mb-10">
+        <p className="text-sm text-primary/90 italic font-serif mb-8 sm:mb-10">
           Creado por apicultores de Chiloé, para apicultores de Chiloé.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center max-w-xl z-10">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full justify-center max-w-lg z-10">
           <Link
             href="/login?mode=signup"
-            className="w-full sm:w-auto min-h-12 inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium transition-all duration-300 shadow-xl shadow-primary/20 active:scale-95 group"
+            className="w-full sm:flex-1 min-h-12 inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-medium transition-all duration-300 shadow-xl shadow-primary/20 active:scale-[0.98] group"
           >
-            Inscribir mis apiarios — es gratis
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            Inscribir mis apiarios
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </Link>
           <Link
             href="/mapa-chiloe"
-            className="w-full sm:w-auto min-h-12 inline-flex items-center justify-center gap-2 px-8 py-4 border border-border bg-surface-raised hover:bg-surface-sunken text-foreground rounded-xl font-medium transition-all duration-300 group"
+            className="w-full sm:flex-1 min-h-12 inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-border bg-surface-raised/80 hover:bg-surface-sunken text-foreground rounded-2xl font-medium transition-all duration-300"
           >
-            <Map className="w-4 h-4" />
-            Ver el mapa público
+            <Map className="w-4 h-4 shrink-0" />
+            Ver el mapa
           </Link>
         </div>
 
-        <div className="mt-5 z-10">
+        <p className="mt-4 text-xs text-muted-foreground z-10">
+          ¿Ya tienes cuenta?{' '}
+          <Link href="/login" className="text-foreground underline underline-offset-4 hover:text-primary">
+            Entrar al Enjambre
+          </Link>
+        </p>
+
+        <div className="mt-6 sm:mt-8 z-10">
           <CensoStats initialStats={stats} />
         </div>
 
-        {/* Barra de confianza regulatoria */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] text-muted-foreground z-10 max-w-3xl">
-          <span>Alineado con el registro SAG (Res. 8.196/2015)</span>
-          <span className="hidden sm:inline text-muted-foreground/50">·</span>
-          <span>Cuaderno de campo digital conforme a Res. 4590/2025</span>
-          <span className="hidden sm:inline text-muted-foreground/50">·</span>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground z-10 max-w-3xl px-2">
+          <span>Alineado con registro SAG (Res. 8.196/2015)</span>
+          <span className="hidden sm:inline text-muted-foreground/40">·</span>
+          <span>Cuaderno digital Res. 4590/2025</span>
+          <span className="hidden sm:inline text-muted-foreground/40">·</span>
           <span>Datos protegidos Ley 21.719</span>
         </div>
 
-        <Link href="/impacto" className="mt-6 text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors z-10">
-          Municipalidad / prensa →
+        <Link
+          href="/municipalidades"
+          className="mt-8 z-10 inline-flex min-h-10 items-center gap-2 rounded-full border border-border/70 bg-surface-raised/60 px-4 py-2 text-xs text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+        >
+          Municipalidades y prensa
+          <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </section>
 
@@ -267,21 +263,27 @@ export default async function RedApicolaLanding() {
         </div>
       </section>
 
-      {/* Mapa público — preview embebido */}
-      <section className="bg-background py-24 px-6 sm:px-12 lg:px-24 border-b border-border">
+      {/* Mapa público — preview embed limpio */}
+      <section className="bg-background py-20 sm:py-24 px-5 sm:px-10 lg:px-20 border-b border-border">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold font-serif text-foreground mb-3">El mapa de la isla, sin secretos</h2>
-            <p className="text-muted-foreground">Todos ven las zonas. Nadie ve tu punto exacto.</p>
+          <div className="text-center mb-8 sm:mb-10">
+            <h2 className="text-2xl sm:text-3xl font-bold font-serif text-foreground mb-3 text-balance">
+              El mapa de la isla, sin secretos
+            </h2>
+            <p className="text-muted-foreground max-w-lg mx-auto">
+              Todos ven las zonas aproximadas. Nadie ve tu punto exacto ni tu nombre.
+            </p>
           </div>
-          <div className="relative rounded-2xl overflow-hidden border border-border">
+          <div className="relative rounded-2xl overflow-hidden border border-border shadow-lg shadow-black/5 ring-1 ring-border/40">
             <iframe
-              src="/mapa-chiloe"
+              src="/mapa-chiloe?embed=1"
               title="Mapa apícola público de Chiloé"
-              className="w-full h-[480px] bg-surface-sunken"
+              className="w-full h-[min(52vh,440px)] sm:h-[480px] bg-surface-sunken"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
             />
             {stats && stats.apiarios_activos === 0 && stats.actores_activos === 0 && (
-              <div className="absolute inset-0 bg-background/85 backdrop-blur flex items-center justify-center p-6">
+              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6 pointer-events-none">
                 <p className="text-sm text-muted-foreground max-w-sm text-center leading-relaxed">
                   Aún estamos en fase inicial del censo. A medida que se inscriban apiarios, verás
                   aparecer zonas difuminadas aquí.
@@ -289,13 +291,19 @@ export default async function RedApicolaLanding() {
               </div>
             )}
           </div>
-          <p className="mt-4 text-xs text-muted-foreground flex items-center justify-center gap-2">
-            <Lock size={14} className="text-primary" />
-            Coordenadas redondeadas a ~1 km · Colmenas en bandas, nunca números exactos · Sin nombres ni contactos
+          <p className="mt-5 text-xs text-muted-foreground flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center">
+            <Lock size={14} className="text-primary shrink-0" />
+            <span>
+              Coordenadas ~1 km · Colmenas en bandas · Sin nombres ni contactos
+            </span>
           </p>
           <div className="text-center mt-6">
-            <Link href="/mapa-chiloe" className="text-sm text-primary underline underline-offset-4 hover:text-primary/80 transition-colors">
-              Explorar el mapa completo →
+            <Link
+              href="/mapa-chiloe"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-surface-raised px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface-sunken transition-colors"
+            >
+              Explorar el mapa completo
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
@@ -318,7 +326,7 @@ export default async function RedApicolaLanding() {
       </section>
 
       {/* Preguntas frecuentes */}
-      <section className="bg-background py-24 px-6 sm:px-12 lg:px-24 border-b border-border">
+      <section id="faq" className="bg-background py-24 px-6 sm:px-12 lg:px-24 border-b border-border">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold font-serif text-foreground mb-3">Preguntas frecuentes</h2>
@@ -359,48 +367,37 @@ export default async function RedApicolaLanding() {
       </section>
 
       {/* CTA final */}
-      <section className="bg-surface-sunken py-24 px-6 sm:px-12 lg:px-24 text-center">
+      <section className="bg-surface-sunken py-20 sm:py-24 px-5 sm:px-10 lg:px-20 text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold font-serif text-foreground mb-4">
+          <h2 className="text-2xl sm:text-4xl font-bold font-serif text-foreground mb-4 text-balance">
             El censo cierra el {cierre}.
           </h2>
-          <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
+          <p className="text-muted-foreground mb-8 max-w-xl mx-auto leading-relaxed">
             Tu zona de pecoreo empieza a existir cuando está en el mapa. Inscríbete gratis y sé de
             los primeros en defenderla.
           </p>
-          <Link
-            href="/login?mode=signup"
-            className="inline-flex min-h-12 items-center justify-center gap-2 px-8 py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium transition-all duration-300 shadow-xl shadow-primary/20 active:scale-95 group"
-          >
-            Inscribir mis apiarios — es gratis
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
-          <p className="mt-6 text-sm text-muted-foreground">
-            ¿Tienes dudas? Escríbenos y te ayudamos a inscribirte en persona.
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 max-w-md mx-auto">
+            <Link
+              href="/login?mode=signup"
+              className="inline-flex min-h-12 items-center justify-center gap-2 px-7 py-3.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-medium transition-all duration-300 shadow-xl shadow-primary/20 active:scale-[0.98] group"
+            >
+              Inscribirme gratis
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex min-h-12 items-center justify-center gap-2 px-7 py-3.5 border border-border bg-surface-raised hover:bg-background text-foreground rounded-2xl font-medium transition-colors"
+            >
+              Ya tengo cuenta
+            </Link>
+          </div>
+          <p className="mt-7 text-sm text-muted-foreground">
+            ¿Tienes dudas? Te ayudamos a inscribirte en persona.
           </p>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-background py-10 border-t border-border">
-        <div className="max-w-5xl mx-auto px-6 flex flex-col items-center gap-4 text-center">
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
-            <Link href="/mapa-chiloe" className="hover:text-foreground transition-colors">Mapa público</Link>
-            <Link href="/carta" className="hover:text-foreground transition-colors">Carta Territorial</Link>
-            <Link href="/impacto" className="hover:text-foreground transition-colors">Municipalidades / prensa</Link>
-            <Link href="/login" className="hover:text-foreground transition-colors">Acceso</Link>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Hecho por La Obrera y el Zángano, en Chiloé.
-          </p>
-          <p className="text-[11px] text-muted-foreground/70 max-w-md">
-            La Red es un bien común; La Obrera y el Zángano es su proveedor tecnológico.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Registro Territorial Apícola de Chiloé.
-          </p>
-        </div>
-      </footer>
+      <TerritorioFooter />
     </main>
   );
 }

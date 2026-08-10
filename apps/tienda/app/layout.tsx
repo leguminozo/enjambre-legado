@@ -12,6 +12,9 @@ import {
 } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { VercelInsights } from '@/components/VercelInsights';
+import { ConsentProvider } from '@/components/shop/consent/consent-provider';
+import { ConsentBanner } from '@/components/shop/consent/consent-banner';
+import { MetaPixelLoader } from '@/components/shop/meta-pixel';
 import { LegacyBrowserPolyfills, ErrorRevealHarness, NavigationProgressBar } from '@enjambre/ui';
 import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
@@ -117,13 +120,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <NavigationProgressBar />
         <NextIntlClientProvider locale={locale} messages={messages}>
           <RegisterServiceWorker />
-          <AppProviders
-            headerSettings={headerMenu.settings}
-            headerItems={headerMenu.items}
-            storeChrome={storeChrome}
-          >
-            {children}
-          </AppProviders>
+          {/* Consentimiento envuelve a toda la app: banner + pixel + facade de tracking */}
+          <ConsentProvider>
+            <AppProviders
+              headerSettings={headerMenu.settings}
+              headerItems={headerMenu.items}
+              storeChrome={storeChrome}
+            >
+              {children}
+            </AppProviders>
+            <ConsentBanner />
+            <MetaPixelLoader />
+          </ConsentProvider>
         </NextIntlClientProvider>
         <VercelInsights />
       </body>

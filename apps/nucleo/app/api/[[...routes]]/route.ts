@@ -52,6 +52,7 @@ import { mapaRoutes } from "@/api/routes/mapa";
 import { alambiqueRoutes, alambiquePublicRoutes } from "@/api/routes/alambique";
 import { inventarioRoutes } from "@/api/routes/inventario";
 import { hidromielRoutes, hidromielPublicRoutes } from "@/api/routes/hidromiel";
+import { infusionesRoutes } from "@/api/routes/infusiones";
 import { getAllowedCorsOrigins } from "@/lib/publicUrls";
 
 export type { AppVariables };
@@ -104,6 +105,7 @@ app.use("*", async (c, next) => {
     "/api/produccion",
     "/api/alambique",
     "/api/hidromiel",
+    "/api/infusiones",
     "/api/crm",
   ];
   
@@ -268,6 +270,8 @@ app.route("/alambique", alambiqueRoutes);
 // Hidromiel: mismo patrón — pasaporte público sin auth, luego el router admin.
 app.route("/hidromiel", hidromielPublicRoutes);
 app.route("/hidromiel", hidromielRoutes);
+
+app.route("/infusiones", infusionesRoutes);
 
 app.onError((err, c) => {
   console.error(err);

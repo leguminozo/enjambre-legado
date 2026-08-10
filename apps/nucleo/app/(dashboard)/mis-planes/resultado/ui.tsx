@@ -64,7 +64,7 @@ export function PlanesResultadoClient() {
       </h1>
       <p className="text-sm text-muted-foreground max-w-md">{mensaje}</p>
       <Link
-        href="/planes-territoriales"
+        href="/mis-planes"
         className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
       >
         Volver a los planes

@@ -1,15 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { MapPin, Eye, AlertTriangle, Flower2, Shield } from 'lucide-react';
+import { useEffect, useState, Suspense } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { MapPin, Eye, AlertTriangle, Flower2, Shield, ArrowLeft, ExternalLink } from 'lucide-react';
 import type { MapaChiloePublico as MapaData } from '@/lib/mapa-chiloe-publico';
 import { MapaChiloePublico } from './MapaChiloePublico';
+import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
+import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 
 /**
- * Mapa público apícola de Chiloé (mov. 11).
- * Anonimizado: sin nombres, RUP ni GPS exacto.
+ * Mapa público apícola de Chiloé.
+ * ?embed=1 → vista limpia (sin chrome de página) para iframe en landing.
  */
-export default function MapaChiloePage() {
+function MapaChiloeContent() {
+  const searchParams = useSearchParams();
+  const embed = searchParams.get('embed') === '1';
+
   const [data, setData] = useState<MapaData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showApiarios, setShowApiarios] = useState(true);
@@ -23,72 +30,132 @@ export default function MapaChiloePage() {
       .catch((err) => setError(err instanceof Error ? err.message : 'Error'));
   }, []);
 
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="bg-primary text-primary-foreground px-6 py-12 text-center">
-        <p className="text-xs uppercase tracking-[0.2em] opacity-80 mb-2">
-          Red Apícola Territorial
-        </p>
-        <h1 className="text-3xl font-serif font-bold">Mapa apícola de Chiloé</h1>
-        <p className="mt-3 text-sm opacity-85 max-w-md mx-auto leading-relaxed">
-          Capa pública: apiarios declarados, predios facilitadores, alertas fitosanitarias y
-          floración — sin datos personales ni ubicación exacta.
-        </p>
-      </header>
+  const layerToggles = (
+    <div className="flex flex-wrap gap-2 text-xs">
+      <Toggle
+        active={showApiarios}
+        onClick={() => setShowApiarios((v) => !v)}
+        icon={<Eye className="w-3.5 h-3.5" />}
+        label="Apiarios / predios"
+      />
+      <Toggle
+        active={showAlertas}
+        onClick={() => setShowAlertas((v) => !v)}
+        icon={<AlertTriangle className="w-3.5 h-3.5" />}
+        label="Alertas"
+      />
+      <Toggle
+        active={showFloraciones}
+        onClick={() => setShowFloraciones((v) => !v)}
+        icon={<Flower2 className="w-3.5 h-3.5" />}
+        label="Floración"
+      />
+    </div>
+  );
 
-      <main className="max-w-3xl mx-auto px-4 -mt-6 pb-16 relative z-10 space-y-4">
+  const mapPanel = (
+    <section
+      className={`overflow-hidden border border-border bg-card ${
+        embed ? 'h-full rounded-none border-0' : 'rounded-2xl shadow-sm'
+      }`}
+    >
+      {!embed && (
+        <div className="p-4 sm:px-5 border-b border-border flex flex-col sm:flex-row flex-wrap gap-3 items-start sm:items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <MapPin className="w-4 h-4 text-primary shrink-0" />
+            Visor público · zonas aproximadas (±1 km)
+          </div>
+          {layerToggles}
+        </div>
+      )}
+      {embed && (
+        <div className="absolute top-3 left-3 right-3 z-[500] flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+          <span className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background/90 backdrop-blur-md px-3 py-1.5 text-[0.65rem] font-medium text-foreground shadow-sm">
+            <MapPin className="w-3 h-3 text-primary" />
+            Mapa público
+          </span>
+          <div className="pointer-events-auto">{layerToggles}</div>
+        </div>
+      )}
+      <div className={`relative w-full ${embed ? 'h-full min-h-[280px]' : 'h-[min(70vh,560px)]'}`}>
         {error && (
-          <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-            {error}
+          <div className="absolute inset-0 z-10 flex items-center justify-center p-4 bg-background/90">
+            <p className="text-sm text-destructive text-center max-w-sm">{error}</p>
           </div>
         )}
+        {data ? (
+          <MapaChiloePublico
+            data={data}
+            showApiarios={showApiarios}
+            showAlertas={showAlertas}
+            showFloraciones={showFloraciones}
+          />
+        ) : (
+          !error && (
+            <div className="h-full min-h-[280px] flex items-center justify-center text-sm text-muted-foreground animate-pulse">
+              Cargando capas…
+            </div>
+          )
+        )}
+      </div>
+    </section>
+  );
 
-        <section className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-border flex flex-wrap gap-3 items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <MapPin className="w-4 h-4 text-primary" />
-              Visor público
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <Toggle
-                active={showApiarios}
-                onClick={() => setShowApiarios((v) => !v)}
-                icon={<Eye className="w-3.5 h-3.5" />}
-                label="Apiarios / predios"
-              />
-              <Toggle
-                active={showAlertas}
-                onClick={() => setShowAlertas((v) => !v)}
-                icon={<AlertTriangle className="w-3.5 h-3.5" />}
-                label="Alertas"
-              />
-              <Toggle
-                active={showFloraciones}
-                onClick={() => setShowFloraciones((v) => !v)}
-                icon={<Flower2 className="w-3.5 h-3.5" />}
-                label="Floración"
-              />
-            </div>
-          </div>
-          <div className="h-[min(70vh,520px)] w-full">
-            {data ? (
-              <MapaChiloePublico
-                data={data}
-                showApiarios={showApiarios}
-                showAlertas={showAlertas}
-                showFloraciones={showFloraciones}
-              />
-            ) : (
-              <div className="h-full flex items-center justify-center text-sm text-muted-foreground animate-pulse">
-                Cargando capas…
-              </div>
-            )}
-          </div>
-        </section>
+  if (embed) {
+    return (
+      <div className="relative h-[100dvh] w-full bg-background overflow-hidden">
+        {mapPanel}
+        <Link
+          href="/mapa-chiloe"
+          target="_top"
+          className="absolute bottom-3 right-3 z-[500] inline-flex items-center gap-1.5 rounded-full border border-border bg-background/95 px-3 py-2 text-[0.7rem] font-medium text-foreground shadow-md hover:bg-surface-raised transition-colors"
+        >
+          Ampliar
+          <ExternalLink className="w-3 h-3" />
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-[var(--vh-full)] bg-background text-foreground flex flex-col">
+      <TerritorioHeader />
+
+      <section className="relative border-b border-border px-4 sm:px-8 lg:px-16 xl:px-24 pt-10 pb-12 overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage: 'radial-gradient(circle at center, currentColor 1px, transparent 1px)',
+            backgroundSize: '22px 22px',
+          }}
+        />
+        <div className="relative max-w-3xl mx-auto">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors min-h-10 mb-5"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Volver al inicio
+          </Link>
+          <p className="text-xs uppercase tracking-[0.18em] text-primary font-semibold mb-3">
+            Red apícola territorial · Chiloé
+          </p>
+          <h1 className="font-serif text-[clamp(1.75rem,4vw,2.75rem)] font-bold tracking-tight text-foreground text-balance leading-[1.15]">
+            Mapa apícola público
+          </h1>
+          <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-xl">
+            Apiarios declarados, predios facilitadores, alertas fitosanitarias y floración.
+            Sin nombres, sin contactos y sin GPS exacto: solo zonas aproximadas de ~1 km.
+          </p>
+        </div>
+      </section>
+
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-5">
+        {mapPanel}
 
         {data && (
           <>
-            <section className="rounded-2xl border border-border bg-card p-5 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <section className="rounded-2xl border border-border bg-card p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
               <Stat n={data.apiarios.filter((a) => a.tipo === 'externo').length} label="Apiarios" />
               <Stat n={data.apiarios.filter((a) => a.tipo === 'predio').length} label="Predios" />
               <Stat n={data.alertas.length} label="Alertas" />
@@ -97,24 +164,26 @@ export default function MapaChiloePage() {
 
             {data.comunas.length > 0 && (
               <section className="rounded-2xl border border-border bg-card p-5">
-                <h2 className="text-sm font-bold uppercase tracking-wider mb-3">Por comuna</h2>
+                <h2 className="text-sm font-bold uppercase tracking-wider mb-3 text-foreground">
+                  Por comuna
+                </h2>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="text-left text-muted-foreground border-b border-border">
-                        <th className="py-2 pr-2">Comuna</th>
-                        <th className="py-2 pr-2">Actores</th>
-                        <th className="py-2 pr-2">Apiarios</th>
-                        <th className="py-2">Alertas</th>
+                        <th className="py-2.5 pr-2 font-medium">Comuna</th>
+                        <th className="py-2.5 pr-2 font-medium">Actores</th>
+                        <th className="py-2.5 pr-2 font-medium">Apiarios</th>
+                        <th className="py-2.5 font-medium">Alertas</th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.comunas.map((c) => (
                         <tr key={c.comuna} className="border-b border-border/40">
-                          <td className="py-2 pr-2 font-medium">{c.comuna}</td>
-                          <td className="py-2 pr-2 tabular-nums">{c.actores_activos}</td>
-                          <td className="py-2 pr-2 tabular-nums">{c.apiarios_externos}</td>
-                          <td className="py-2 tabular-nums">{c.alertas_activas}</td>
+                          <td className="py-2.5 pr-2 font-medium text-foreground">{c.comuna}</td>
+                          <td className="py-2.5 pr-2 tabular-nums">{c.actores_activos}</td>
+                          <td className="py-2.5 pr-2 tabular-nums">{c.apiarios_externos}</td>
+                          <td className="py-2.5 tabular-nums">{c.alertas_activas}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -134,20 +203,40 @@ export default function MapaChiloePage() {
                 {new Date(data.generado_en).toLocaleString('es-CL')}
               </p>
               <p>
-                Mapa institucional de la Red ·{' '}
-                <a href="/carta" className="text-primary hover:underline">
+                Mapa de la Red ·{' '}
+                <Link href="/carta" className="text-primary hover:underline">
                   Carta constitutiva
-                </a>
+                </Link>
                 {' · '}
-                <a href="/impacto" className="text-primary hover:underline">
-                  Impacto open-book
-                </a>
+                <Link href="/impacto" className="text-primary hover:underline">
+                  Impacto
+                </Link>
+                {' · '}
+                <Link href="/login?mode=signup" className="text-primary hover:underline">
+                  Inscribirse
+                </Link>
               </p>
             </section>
           </>
         )}
       </main>
+
+      <TerritorioFooter />
     </div>
+  );
+}
+
+export default function MapaChiloePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[var(--vh-full)] flex items-center justify-center text-sm text-muted-foreground">
+          Cargando mapa…
+        </div>
+      }
+    >
+      <MapaChiloeContent />
+    </Suspense>
   );
 }
 
@@ -166,10 +255,10 @@ function Toggle({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-colors ${
+      className={`inline-flex items-center gap-1.5 min-h-9 px-3 py-1.5 rounded-full border transition-colors ${
         active
-          ? 'bg-primary/10 border-primary/40 text-primary'
-          : 'bg-background border-border text-muted-foreground'
+          ? 'bg-primary/12 border-primary/35 text-primary shadow-sm'
+          : 'bg-background/90 border-border text-muted-foreground hover:text-foreground'
       }`}
     >
       {icon}
@@ -180,9 +269,9 @@ function Toggle({
 
 function Stat({ n, label }: { n: number; label: string }) {
   return (
-    <div className="bg-surface-sunken rounded-xl p-3">
-      <p className="text-lg font-bold tabular-nums text-foreground">{n}</p>
-      <p className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">{label}</p>
+    <div className="bg-surface-sunken rounded-xl p-3.5">
+      <p className="text-xl font-bold tabular-nums text-foreground">{n}</p>
+      <p className="text-[0.65rem] uppercase tracking-wider text-muted-foreground mt-0.5">{label}</p>
     </div>
   );
 }

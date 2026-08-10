@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { RefreshCw, ShieldAlert, Loader2, CheckCircle, Radio, Zap } from 'lucide-react';
+import { RefreshCw, ShieldAlert, Loader2, CheckCircle, Radio, Zap, Plug, Power } from 'lucide-react';
 import { toast, Badge, ViewLoading } from '@enjambre/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -21,9 +21,20 @@ interface SecurityEventRow {
   created_at: string;
 }
 
+/** Row de integraciones devuelta por el BFF (enabled + presencia booleana). */
+interface IntegrationRow {
+  key: string;
+  name: string;
+  enabled: boolean;
+  configured: boolean;
+  hasPixelId?: boolean;
+  mode?: 'live' | 'stub';
+}
+
 export function SistemaSection() {
   const apiFetch = useApiFetch();
   const [purging, setPurging] = useState(false);
+  const [togglingKey, setTogglingKey] = useState<string | null>(null);
 
   const securityQuery = useQuery({
     queryKey: ['system', 'security-events'],
@@ -48,6 +59,37 @@ export function SistemaSection() {
     },
     refetchInterval: 30000, // Cada 30s
   });
+
+  const integrationsQuery = useQuery({
+    queryKey: ['system', 'integrations'],
+    queryFn: async (): Promise<IntegrationRow[]> => {
+      const res = await apiFetch('/api/admin-system/integrations');
+      if (!res.ok) throw new Error('Falló la carga de integraciones');
+      const data = (await res.json()) as { integrations: IntegrationRow[] };
+      return data.integrations ?? [];
+    },
+  });
+
+  const handleToggleIntegration = async (row: IntegrationRow) => {
+    setTogglingKey(row.key);
+    try {
+      const res = await apiFetch(`/api/admin-system/integrations/${row.key}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: !row.enabled }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Falló al actualizar la integración');
+      }
+      toast(row.enabled ? 'Integración desactivada' : 'Integración activada', { type: 'success' });
+      await integrationsQuery.refetch();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Error actualizando integración', { type: 'error' });
+    } finally {
+      setTogglingKey(null);
+    }
+  };
 
   const handlePurgeCache = async () => {
     setPurging(true);
@@ -110,6 +152,88 @@ export function SistemaSection() {
               <Badge variant="success">Autenticado</Badge>
             </div>
           </div>
+        </section>
+
+        <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">
+          <div className="flex items-center gap-3 text-accent">
+            <Plug size={18} />
+            <h3 className="text-sm font-bold uppercase tracking-widest">Integraciones</h3>
+            {integrationsQuery.isFetching && (
+              <Loader2 size={14} className="animate-spin text-muted-foreground ml-auto" />
+            )}
+          </div>
+
+          {integrationsQuery.isLoading ? (
+            <ViewLoading variant="inline" />
+          ) : integrationsQuery.isError ? (
+            <div className="text-sm text-destructive p-4 bg-destructive/10 rounded-xl">
+              Error al cargar integraciones.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {integrationsQuery.data?.map((row) => {
+                const isMeta = row.key === 'meta_ads';
+                return (
+                  <div
+                    key={row.key}
+                    className="flex items-center justify-between gap-3 p-4 bg-secondary/40 rounded-xl border border-border/50"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <CheckCircle
+                        size={16}
+                        className={row.enabled ? 'text-primary' : 'text-muted-foreground'}
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{row.name}</p>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <Badge variant={row.enabled ? 'success' : 'default'}>
+                            {row.enabled ? 'Activa' : 'Inactiva'}
+                          </Badge>
+                          <Badge variant={row.configured ? 'success' : 'danger'}>
+                            {row.configured ? 'Configurada' : 'Sin credenciales'}
+                          </Badge>
+                          {isMeta && (
+                            <Badge variant={row.mode === 'live' ? 'success' : 'default'}>
+                              CAPI {row.mode === 'live' ? 'live' : 'stub'}
+                            </Badge>
+                          )}
+                        </div>
+                        {isMeta && !row.hasPixelId && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Falta NEXT_PUBLIC_META_PIXEL_ID en env de la tienda.
+                          </p>
+                        )}
+                        {isMeta && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            El token CAPI se configura en env de la tienda (META_CAPI_TOKEN).
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {isMeta && (
+                      <button
+                        type="button"
+                        onClick={() => handleToggleIntegration(row)}
+                        disabled={togglingKey === row.key}
+                        className={`shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors border min-h-10 ${
+                          row.enabled
+                            ? 'bg-destructive/10 hover:bg-destructive/20 text-destructive border-destructive/20'
+                            : 'bg-primary/10 hover:bg-primary/20 text-primary border-primary/20'
+                        }`}
+                      >
+                        {togglingKey === row.key ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <Power size={14} />
+                        )}
+                        {row.enabled ? 'Desactivar' : 'Activar'}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <section className="space-y-6 bg-surface p-6 rounded-2xl border border-border">

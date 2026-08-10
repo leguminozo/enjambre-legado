@@ -7,7 +7,7 @@ const ALLOWED_PATHS = new Set([
   '/checkout/resultado',
   '/perfil/reposicion/resultado',
   '/perfil/ritual/resultado', // legacy redirect target if still hit
-  '/planes-territoriales/resultado', // planes digitales del registro territorial
+  '/mis-planes/resultado', // planes digitales del registro territorial
 ]);
 
 function collectAllowedOrigins(): Set<string> {

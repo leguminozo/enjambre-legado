@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Lock,
@@ -9,7 +10,8 @@ import {
   Eye,
   EyeOff,
   ChevronRight,
-  UserPlus
+  UserPlus,
+  ArrowLeft,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore, logSecurityEvent, getRoleRedirectPath } from '@enjambre/auth';
@@ -251,7 +253,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative min-h-[var(--vh-full)] w-full bg-background text-foreground flex flex-col justify-between overflow-hidden px-5 pt-[max(3rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] select-none">
+    <main className="relative min-h-[var(--vh-full)] w-full bg-background text-foreground flex flex-col justify-between overflow-hidden px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] select-none">
       {/* Starry / Cosmic Atmosphere Layer */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[60vh] rounded-full bg-gradient-to-b from-primary/15 via-primary/5 to-transparent blur-3xl opacity-60" />
@@ -273,27 +275,61 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/60" />
       </div>
 
-      {/* Top / Center Hero Branding — Grok-style Display Logo + Tagline */}
-      <div className="relative z-10 flex flex-col items-center justify-center my-auto pt-6 pb-4">
-        <h1 className="font-display text-[clamp(3.5rem,15vw,5rem)] font-light tracking-tight text-foreground text-center leading-none">
-          Enjambre
-        </h1>
-        <p className="mt-3 flex items-center justify-center gap-1 font-mono text-[0.65rem] tracking-[0.24em] text-muted-foreground uppercase text-center">
-          <span>Sistema Operativo Biocultural</span>
-          <span className="inline-block w-1.5 h-3 bg-primary animate-pulse" />
-        </p>
-        <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-surface-raised/50 backdrop-blur-md px-3 py-1 text-[0.6rem] tracking-[0.2em] text-muted-foreground uppercase">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-          <span>Registro Territorial</span>
-        </div>
+      {/* Salida clara: volver al inicio / cancelar */}
+      <div className="relative z-20 flex items-center justify-between gap-3 pt-2 pb-1">
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border/50 bg-surface-raised/70 px-3.5 py-2 text-sm text-foreground backdrop-blur-md transition-colors hover:border-border hover:bg-surface-raised"
+        >
+          <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
+          <span>Volver al inicio</span>
+        </Link>
+        <Link
+          href="/mapa-chiloe"
+          className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        >
+          Mapa público
+        </Link>
       </div>
 
-      {/* Bottom Action Sheet / Pill Options + Modals */}
-      <div className="relative z-10 w-full max-w-sm mx-auto">
+      {/* Top / Center Hero Branding */}
+      <div className="relative z-10 flex flex-col items-center justify-center my-auto py-8 sm:py-10">
+        <h1 className="font-display text-[clamp(3rem,12vw,4.5rem)] font-light tracking-tight text-foreground text-center leading-none">
+          Enjambre
+        </h1>
+        <p className="mt-3 flex items-center justify-center gap-1 font-mono text-[0.65rem] tracking-[0.24em] text-muted-foreground uppercase text-center max-w-[18rem]">
+          <span>Sistema operativo biocultural</span>
+          <span className="inline-block w-1.5 h-3 bg-primary animate-pulse" />
+        </p>
+        <p className="mt-4 max-w-xs text-center text-sm text-muted-foreground leading-relaxed">
+          Un solo acceso: panel, censo y registro territorial de Chiloé.
+        </p>
+      </div>
+
+      {/* Bottom: un solo flujo central (OAuth + correo + alta territorial) */}
+      <div className="relative z-10 w-full max-w-sm mx-auto pb-2">
         
-        {/* 1. COLLAPSED MODE (Clean Hybrid) */}
+        {/* 1. PANTALLA PRINCIPAL — Google / correo / crear cuenta */}
         {viewMode === 'collapsed' && (
-          <div className="flex flex-col items-center gap-3 w-full animate-in fade-in duration-200">
+          <div className="flex flex-col items-stretch gap-4 w-full animate-in fade-in duration-200">
+            <button
+              type="button"
+              onClick={() => void handleOAuth('google')}
+              disabled={loading}
+              className="w-full min-h-14 rounded-2xl border border-border/60 bg-surface-raised/90 backdrop-blur-2xl px-5 py-3.5 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border hover:bg-surface-raised transition-all shadow-lg disabled:opacity-50"
+            >
+              <GoogleIcon className="w-5 h-5" />
+              <span>Continuar con Google</span>
+            </button>
+
+            <div className="flex items-center gap-3 px-1">
+              <span className="h-px flex-1 bg-border/50" />
+              <span className="text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">
+                o con correo
+              </span>
+              <span className="h-px flex-1 bg-border/50" />
+            </div>
+
             <button
               type="button"
               onClick={() => {
@@ -301,13 +337,13 @@ export default function LoginPage() {
                 setError(null);
                 setMessage(null);
               }}
-              className="w-full min-h-14 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-6 py-3 flex items-center justify-between gap-3 text-sm font-medium text-foreground hover:border-border hover:bg-surface-raised transition-all shadow-lg"
+              className="w-full min-h-14 rounded-2xl border border-border/60 bg-background/50 backdrop-blur-2xl px-5 py-3.5 flex items-center justify-between gap-3 text-sm font-medium text-foreground hover:border-border hover:bg-surface-raised transition-all shadow-md"
             >
               <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-primary" />
                 <span>Iniciar sesión con correo</span>
               </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+              <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
             </button>
 
             <button
@@ -317,43 +353,38 @@ export default function LoginPage() {
                 setError(null);
                 setMessage(null);
               }}
-              className="w-full min-h-14 rounded-full border border-border/60 bg-background/40 backdrop-blur-2xl px-6 py-3 flex items-center justify-between gap-3 text-sm font-medium text-foreground hover:border-border hover:bg-surface-raised transition-all shadow-lg"
+              className="w-full min-h-12 rounded-2xl border border-primary/25 bg-primary/10 px-5 py-3 flex items-center justify-center gap-2.5 text-sm font-medium text-primary hover:bg-primary/15 transition-all"
             >
-              <div className="flex items-center gap-3">
-                <UserPlus className="w-4 h-4 text-muted-foreground" />
-                <span>Crear cuenta nueva</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+              <UserPlus className="w-4 h-4" />
+              <span>Crear cuenta · registro territorial</span>
             </button>
 
             <button
               type="button"
               onClick={() => setViewMode('expanded')}
-              className="w-full py-2.5 mt-2 text-center text-xs text-muted-foreground/80 hover:text-foreground tracking-widest uppercase transition-colors"
+              className="w-full min-h-11 py-2 text-center text-xs text-muted-foreground hover:text-foreground tracking-wide transition-colors"
             >
-              Otras opciones
+              Otras opciones (Apple, X)
             </button>
+
+            <p className="text-center text-[0.7rem] text-muted-foreground/80 leading-relaxed px-2">
+              Al continuar aceptas la{' '}
+              <Link href="/carta" className="underline underline-offset-2 hover:text-foreground">
+                Carta constitutiva
+              </Link>
+              {' '}y el uso de datos según la política de privacidad.
+            </p>
           </div>
         )}
 
-        {/* 2. EXPANDED OPTIONS MODE */}
+        {/* 2. OTRAS OPCIONES OAUTH */}
         {viewMode === 'expanded' && (
-          <div className="flex flex-col items-center gap-2.5 w-full animate-in fade-in duration-200">
-            <button
-              type="button"
-              onClick={() => void handleOAuth('google')}
-              disabled={loading}
-              className="w-full min-h-13 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all disabled:opacity-50"
-            >
-              <GoogleIcon className="w-4 h-4" />
-              <span>Continuar con Google</span>
-            </button>
-
+          <div className="flex flex-col items-stretch gap-3.5 w-full animate-in fade-in duration-200">
             <button
               type="button"
               onClick={() => void handleOAuth('apple')}
               disabled={loading}
-              className="w-full min-h-13 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all disabled:opacity-50"
+              className="w-full min-h-13 rounded-2xl border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all disabled:opacity-50"
             >
               <AppleIcon className="w-4 h-4" />
               <span>Iniciar sesión con Apple</span>
@@ -363,7 +394,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => void handleOAuth('twitter')}
               disabled={loading}
-              className="w-full min-h-13 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all disabled:opacity-50"
+              className="w-full min-h-13 rounded-2xl border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all disabled:opacity-50"
             >
               <XLogoIcon className="w-4 h-4" />
               <span>Continuar con X</span>
@@ -372,9 +403,9 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setViewMode('collapsed')}
-              className="w-full py-2.5 mt-2 text-center text-xs text-muted-foreground/80 hover:text-foreground tracking-widest uppercase transition-colors"
+              className="w-full min-h-11 py-2.5 text-center text-xs text-muted-foreground hover:text-foreground tracking-wide transition-colors"
             >
-              Menos opciones
+              Volver
             </button>
           </div>
         )}
@@ -391,10 +422,10 @@ export default function LoginPage() {
 
               <div className="mb-6 text-center">
                 <h2 className="text-lg font-semibold text-foreground tracking-tight">
-                  Iniciar sesión en el Registro
+                  Iniciar sesión
                 </h2>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Panel operativo y gestión del sistema territorial
+                  Acceso único al Enjambre y al registro territorial
                 </p>
               </div>
 
@@ -489,10 +520,16 @@ export default function LoginPage() {
                     setError(null);
                     setMessage(null);
                   }}
-                  className="w-full min-h-10 text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  className="w-full min-h-11 text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Volver a las opciones
+                  Volver
                 </button>
+                <Link
+                  href="/"
+                  className="block w-full min-h-10 text-center text-xs text-muted-foreground/80 hover:text-foreground transition-colors"
+                >
+                  Cancelar e ir al inicio
+                </Link>
               </form>
             </div>
           </>
@@ -807,10 +844,16 @@ export default function LoginPage() {
                     setError(null);
                     setMessage(null);
                   }}
-                  className="w-full min-h-10 text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  className="w-full min-h-11 text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Cancelar
+                  Volver
                 </button>
+                <Link
+                  href="/"
+                  className="block w-full min-h-10 text-center text-xs text-muted-foreground/80 hover:text-foreground transition-colors"
+                >
+                  Cancelar e ir al inicio
+                </Link>
               </form>
             </div>
           </>
