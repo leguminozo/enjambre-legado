@@ -28,28 +28,14 @@ function GoogleIcon({ className = 'w-4 h-4' }: { className?: string }) {
   );
 }
 
-function AppleIcon({ className = 'w-4 h-4' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.35c.64-.78 1.08-1.86.96-2.95-.94.04-2.09.63-2.75 1.41-.59.68-.96 1.78-.82 2.85 1.05.08 2.15-.53 2.61-1.31z" />
-    </svg>
-  );
-}
+const fieldClass =
+  'w-full min-h-12 rounded-xl border border-border/60 bg-background/80 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors';
+const fieldIconClass =
+  'w-full min-h-12 rounded-xl border border-border/60 bg-background/80 pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors';
+const labelClass =
+  'block text-[0.7rem] uppercase tracking-wider font-medium text-muted-foreground mb-2';
 
-function XLogoIcon({ className = 'w-4 h-4' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
-  );
-}
-
-type ViewMode =
-  | 'collapsed'
-  | 'expanded'
-  | 'sheet_email'
-  | 'sheet_signup'
-  | 'sheet_recovery';
+type ViewMode = 'collapsed' | 'sheet_email' | 'sheet_signup' | 'sheet_recovery';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -110,12 +96,12 @@ export default function LoginPage() {
     };
   }, []);
 
-  async function handleOAuth(provider: 'google' | 'apple' | 'twitter') {
+  async function handleGoogleOAuth() {
     setError(null);
     setMessage(null);
     setLoading(true);
     const { error: oAuthErr } = await supabase.auth.signInWithOAuth({
-      provider,
+      provider: 'google',
       options: {
         redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/login`,
       },
@@ -306,15 +292,14 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* Bottom: un solo flujo central (OAuth + correo + alta territorial) */}
-      <div className="relative z-10 w-full max-w-sm mx-auto pb-2">
+      {/* Bottom: Google + correo + alta territorial (sin Apple/X) */}
+      <div className="relative z-10 w-full max-w-md mx-auto pb-2 px-0 sm:px-1">
         
-        {/* 1. PANTALLA PRINCIPAL — Google / correo / crear cuenta */}
         {viewMode === 'collapsed' && (
           <div className="flex flex-col items-stretch gap-4 w-full animate-in fade-in duration-200">
             <button
               type="button"
-              onClick={() => void handleOAuth('google')}
+              onClick={() => void handleGoogleOAuth()}
               disabled={loading}
               className="w-full min-h-14 rounded-2xl border border-border/60 bg-surface-raised/90 backdrop-blur-2xl px-5 py-3.5 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border hover:bg-surface-raised transition-all shadow-lg disabled:opacity-50"
             >
@@ -359,14 +344,6 @@ export default function LoginPage() {
               <span>Crear cuenta · registro territorial</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setViewMode('expanded')}
-              className="w-full min-h-11 py-2 text-center text-xs text-muted-foreground hover:text-foreground tracking-wide transition-colors"
-            >
-              Otras opciones (Apple, X)
-            </button>
-
             <p className="text-center text-[0.7rem] text-muted-foreground/80 leading-relaxed px-2">
               Al continuar aceptas la{' '}
               <Link href="/carta" className="underline underline-offset-2 hover:text-foreground">
@@ -377,40 +354,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* 2. OTRAS OPCIONES OAUTH */}
-        {viewMode === 'expanded' && (
-          <div className="flex flex-col items-stretch gap-3.5 w-full animate-in fade-in duration-200">
-            <button
-              type="button"
-              onClick={() => void handleOAuth('apple')}
-              disabled={loading}
-              className="w-full min-h-13 rounded-2xl border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all disabled:opacity-50"
-            >
-              <AppleIcon className="w-4 h-4" />
-              <span>Iniciar sesión con Apple</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => void handleOAuth('twitter')}
-              disabled={loading}
-              className="w-full min-h-13 rounded-2xl border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all disabled:opacity-50"
-            >
-              <XLogoIcon className="w-4 h-4" />
-              <span>Continuar con X</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setViewMode('collapsed')}
-              className="w-full min-h-11 py-2.5 text-center text-xs text-muted-foreground hover:text-foreground tracking-wide transition-colors"
-            >
-              Volver
-            </button>
-          </div>
-        )}
-
-        {/* 3. EMAIL & PASSWORD LOGIN BOTTOM SHEET MODAL */}
+        {/* EMAIL LOGIN SHEET */}
         {viewMode === 'sheet_email' && (
           <>
             <div
@@ -535,326 +479,387 @@ export default function LoginPage() {
           </>
         )}
 
-        {/* 4. SIGNUP BOTTOM SHEET MODAL */}
+        {/* REGISTRO TERRITORIAL — panel amplio (escritorio horizontal, móvil con aire) */}
         {viewMode === 'sheet_signup' && (
           <>
             <div
               className={`fixed inset-0 z-[220] animate-in fade-in duration-200 ${overlayBackdropClassName}`}
               onClick={() => setViewMode('collapsed')}
             />
-            <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-[221] rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md md:max-w-2xl mx-auto max-h-[calc(var(--vh-full)-2.5rem)] md:max-h-[90vh] overflow-y-auto">
-              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="signup-title"
+              className="fixed z-[221] inset-x-0 bottom-0 max-h-[min(94dvh,920px)] overflow-hidden
+                rounded-t-[28px] border-t border-border/60
+                sm:inset-4 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 sm:max-h-[min(90dvh,880px)]
+                sm:rounded-3xl sm:border
+                lg:inset-x-8 xl:inset-x-16 2xl:inset-x-24
+                sm:max-w-none sm:w-auto
+                bg-surface-raised/98 backdrop-blur-2xl
+                shadow-[0_-12px_48px_rgba(0,0,0,0.85)] sm:shadow-[0_24px_80px_rgba(0,0,0,0.55)]
+                animate-in slide-in-from-bottom sm:fade-in sm:zoom-in-95 duration-300
+                flex flex-col"
+            >
+              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mt-3 mb-1 sm:hidden shrink-0" />
 
-              <div className="mb-6 text-center">
-                <h2 className="text-lg font-semibold text-foreground tracking-tight">
-                  Crear cuenta
-                </h2>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Únete a la Red Apícola para registrar tu apiario de forma autónoma.
-                </p>
-              </div>
+              <header className="shrink-0 px-5 sm:px-8 lg:px-10 pt-3 sm:pt-7 pb-4 sm:pb-5 border-b border-border/40">
+                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[0.65rem] uppercase tracking-[0.16em] text-primary font-semibold mb-1">
+                      Registro territorial · Chiloé
+                    </p>
+                    <h2 id="signup-title" className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
+                      Crear cuenta
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed">
+                      Cuenta Enjambre + perfil territorial. El registro básico es gratis.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setViewMode('collapsed');
+                      setError(null);
+                      setMessage(null);
+                    }}
+                    className="hidden sm:inline-flex min-h-10 items-center text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </header>
 
-              <form onSubmit={handleAuthSubmit} className="space-y-4 md:space-y-6 max-h-[70vh] md:max-h-[80vh] overflow-y-auto px-1 pb-4">
+              <form
+                id="signup-territorial-form"
+                onSubmit={handleAuthSubmit}
+                className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 sm:px-8 lg:px-10 py-5 sm:py-7"
+              >
                 {message ? (
-                  <div className="rounded-xl border border-primary/20 bg-primary/10 p-3 text-center text-xs text-primary">
+                  <div className="mb-5 rounded-xl border border-primary/20 bg-primary/10 p-3.5 text-center text-sm text-primary">
                     {message}
                   </div>
                 ) : null}
 
-                <div className="flex flex-col md:grid md:grid-cols-2 md:gap-8">
-                  <div className="space-y-4">
-                    <div>
-                      <label
-                    htmlFor="fullname"
-                    className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
-                  >
-                    Nombre Completo
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
-                    <input
-                      id="fullname"
-                      type="text"
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Ej. Gabriel Cuevas"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="signup-email"
-                    className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
-                  >
-                    Correo Electrónico
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
-                    <input
-                      id="signup-email"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
-                      placeholder="tu@correo.cl"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="signup-password"
-                    className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
-                  >
-                    Contraseña
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
-                    <input
-                      id="signup-password"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      minLength={6}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 pl-10 pr-11 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Mínimo 6 caracteres"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      aria-label="Ver contraseña"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-                </div>
-
-                <div className="space-y-4 mt-2 md:mt-0">
-                  <div className="pt-2 md:pt-0">
-                    <div className="h-[1px] w-full bg-border/40 my-4 md:hidden" />
-                    <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
-                      Perfil Territorial
+                {/* Fila principal: cuenta | territorio — usa el ancho en escritorio */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16">
+                  {/* Columna cuenta */}
+                  <section className="space-y-5">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                      Datos de cuenta
                     </h3>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2">
-                    <label
-                      htmlFor="invite-code"
-                      className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
-                    >
-                      Código de Invitación <span className="text-muted-foreground/60 lowercase">(Opcional)</span>
-                    </label>
-                    <input
-                      id="invite-code"
-                      type="text"
-                      value={inviteCode}
-                      onChange={(e) => setInviteCode(e.target.value)}
-                      className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Ej. d5301..."
-                    />
-                  </div>
+                    <div>
+                      <label htmlFor="fullname" className={labelClass}>
+                        Nombre completo
+                      </label>
+                      <div className="relative">
+                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                        <input
+                          id="fullname"
+                          type="text"
+                          required
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className={fieldIconClass}
+                          placeholder="Ej. Gabriel Cuevas"
+                          autoComplete="name"
+                        />
+                      </div>
+                    </div>
 
-                  <div className="col-span-2">
-                    <label
-                      htmlFor="rol"
-                      className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
-                    >
-                      Rol Territorial
-                    </label>
-                    <select
-                      id="rol"
-                      required
-                      value={rol}
-                      onChange={(e) => setRol(e.target.value)}
-                      className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none transition-colors appearance-none"
-                    >
-                      <option value="api_residente">Apicultor Residente</option>
-                      <option value="api_trashumante">Apicultor Trashumante</option>
-                      <option value="api_mixto">Apicultor Mixto</option>
-                      <option value="prop_facilitador">Propietario Facilitador</option>
-                      <option value="agri_fitosanitario">Agricultor / Forestal</option>
-                      <option value="agri_aplicador">Aplicador Fitosanitario</option>
-                      <option value="comercial_acopio">Centro de Acopio / Comercializador</option>
-                      <option value="tecnico_inspector">Técnico / Inspector / Investigador</option>
-                      <option value="institucion_publica">Institución Pública</option>
-                    </select>
-                  </div>
+                    <div>
+                      <label htmlFor="signup-email" className={labelClass}>
+                        Correo electrónico
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                        <input
+                          id="signup-email"
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className={fieldIconClass}
+                          placeholder="tu@correo.cl"
+                          autoComplete="email"
+                        />
+                      </div>
+                    </div>
 
-                  <div className="col-span-2 sm:col-span-1">
-                    <label
-                      htmlFor="region"
-                      className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
-                    >
-                      Región
-                    </label>
-                    <input
-                      id="region"
-                      type="text"
-                      required
-                      value={region}
-                      onChange={(e) => setRegion(e.target.value)}
-                      className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Los Lagos"
-                    />
-                  </div>
+                    <div>
+                      <label htmlFor="signup-password" className={labelClass}>
+                        Contraseña
+                      </label>
+                      <div className="relative">
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                        <input
+                          id="signup-password"
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          minLength={6}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className={`${fieldIconClass} pr-11`}
+                          placeholder="Mínimo 6 caracteres"
+                          autoComplete="new-password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          aria-label="Ver contraseña"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
 
-                  <div className="col-span-2 sm:col-span-1">
-                    <label
-                      htmlFor="comuna"
-                      className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5"
-                    >
-                      Comuna Principal
-                    </label>
-                    <input
-                      id="comuna"
-                      type="text"
-                      required
-                      value={comuna}
-                      onChange={(e) => setComuna(e.target.value)}
-                      className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
-                      placeholder="Ej. Ancud"
-                    />
-                  </div>
+                    <div className="rounded-2xl border border-border/50 bg-background/40 p-4 sm:p-5">
+                      <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                        También puedes crear la cuenta con Google y completar el perfil territorial después.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => void handleGoogleOAuth()}
+                        disabled={loading}
+                        className="w-full min-h-12 rounded-xl border border-border/60 bg-surface-raised px-4 flex items-center justify-center gap-2.5 text-sm font-medium text-foreground hover:bg-surface-sunken transition-colors disabled:opacity-50"
+                      >
+                        <GoogleIcon className="w-4 h-4" />
+                        Continuar con Google
+                      </button>
+                    </div>
+                  </section>
+
+                  {/* Columna territorio */}
+                  <section className="space-y-5">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                      Perfil territorial
+                    </h3>
+
+                    <div>
+                      <label htmlFor="rol" className={labelClass}>
+                        Rol territorial
+                      </label>
+                      <select
+                        id="rol"
+                        required
+                        value={rol}
+                        onChange={(e) => setRol(e.target.value)}
+                        className={`${fieldClass} appearance-none`}
+                      >
+                        <option value="api_residente">Apicultor Residente</option>
+                        <option value="api_trashumante">Apicultor Trashumante</option>
+                        <option value="api_mixto">Apicultor Mixto</option>
+                        <option value="prop_facilitador">Propietario Facilitador</option>
+                        <option value="agri_fitosanitario">Agricultor / Forestal</option>
+                        <option value="agri_aplicador">Aplicador Fitosanitario</option>
+                        <option value="comercial_acopio">Centro de Acopio / Comercializador</option>
+                        <option value="tecnico_inspector">Técnico / Inspector / Investigador</option>
+                        <option value="institucion_publica">Institución Pública</option>
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="region" className={labelClass}>
+                          Región
+                        </label>
+                        <input
+                          id="region"
+                          type="text"
+                          required
+                          value={region}
+                          onChange={(e) => setRegion(e.target.value)}
+                          className={fieldClass}
+                          placeholder="Los Lagos"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="comuna" className={labelClass}>
+                          Comuna principal
+                        </label>
+                        <input
+                          id="comuna"
+                          type="text"
+                          required
+                          value={comuna}
+                          onChange={(e) => setComuna(e.target.value)}
+                          className={fieldClass}
+                          placeholder="Ej. Ancud"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="invite-code" className={labelClass}>
+                        Código de invitación{' '}
+                        <span className="normal-case tracking-normal text-muted-foreground/70">
+                          (opcional)
+                        </span>
+                      </label>
+                      <input
+                        id="invite-code"
+                        type="text"
+                        value={inviteCode}
+                        onChange={(e) => setInviteCode(e.target.value)}
+                        className={fieldClass}
+                        placeholder="Ej. d5301..."
+                      />
+                    </div>
+                  </section>
                 </div>
 
-                <div className="pt-2">
-                  <label className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-3">
-                    Consentimientos de Participación
-                  </label>
-                  
-                  <div className="space-y-3 bg-surface-raised/40 p-3.5 rounded-xl border border-border/40">
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={consentMapa}
-                        onChange={(e) => setConsentMapa(e.target.checked)}
-                        className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary focus:ring-offset-background transition-colors"
-                      />
-                      <div className="flex-1">
-                        <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">Aparecer en Mapa Comunitario</span>
-                        <p className="text-[0.65rem] text-muted-foreground/80 mt-0.5 leading-tight">Visibilidad pública básica (nombre y comuna) para fortalecer la red local.</p>
-                      </div>
-                    </label>
-
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={consentAlertas}
-                        onChange={(e) => setConsentAlertas(e.target.checked)}
-                        className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary focus:ring-offset-background transition-colors"
-                      />
-                      <div className="flex-1">
-                        <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">Recibir Alertas Fitosanitarias</span>
-                        <p className="text-[0.65rem] text-muted-foreground/80 mt-0.5 leading-tight">Notificaciones tempranas sobre aplicaciones agroquímicas en un radio de 5km.</p>
-                      </div>
-                    </label>
-
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={consentCatalogo}
-                        onChange={(e) => setConsentCatalogo(e.target.checked)}
-                        className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary focus:ring-offset-background transition-colors"
-                      />
-                      <div className="flex-1">
-                        <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">Catálogo de Infraestructura</span>
-                        <p className="text-[0.65rem] text-muted-foreground/80 mt-0.5 leading-tight">Disponibilidad de predios facilitadores o salas de extracción compartidas.</p>
-                      </div>
-                    </label>
-
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={consentAcopio}
-                        onChange={(e) => setConsentAcopio(e.target.checked)}
-                        className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary focus:ring-offset-background transition-colors"
-                      />
-                      <div className="flex-1">
-                        <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">Acopio Cooperativo</span>
-                        <p className="text-[0.65rem] text-muted-foreground/80 mt-0.5 leading-tight">Participación en acopio colectivo y compras conjuntas de la red.</p>
-                      </div>
-                    </label>
+                {/* Consentimientos: ancho completo, 2 columnas en desktop */}
+                <section className="mt-8 lg:mt-10 space-y-5">
+                  <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    Consentimientos de participación
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    {(
+                      [
+                        {
+                          id: 'consent-mapa',
+                          checked: consentMapa,
+                          onChange: setConsentMapa,
+                          title: 'Aparecer en mapa comunitario',
+                          desc: 'Visibilidad pública básica (nombre y comuna) para fortalecer la red local.',
+                        },
+                        {
+                          id: 'consent-alertas',
+                          checked: consentAlertas,
+                          onChange: setConsentAlertas,
+                          title: 'Recibir alertas fitosanitarias',
+                          desc: 'Notificaciones tempranas sobre aplicaciones agroquímicas en un radio de 5 km.',
+                        },
+                        {
+                          id: 'consent-catalogo',
+                          checked: consentCatalogo,
+                          onChange: setConsentCatalogo,
+                          title: 'Catálogo de infraestructura',
+                          desc: 'Disponibilidad de predios facilitadores o salas de extracción compartidas.',
+                        },
+                        {
+                          id: 'consent-acopio',
+                          checked: consentAcopio,
+                          onChange: setConsentAcopio,
+                          title: 'Acopio cooperativo',
+                          desc: 'Participación en acopio colectivo y compras conjuntas de la red.',
+                        },
+                      ] as const
+                    ).map((c) => (
+                      <label
+                        key={c.id}
+                        htmlFor={c.id}
+                        className="flex items-start gap-3 cursor-pointer group rounded-xl border border-border/45 bg-background/35 p-4 hover:border-primary/30 transition-colors min-h-[5.5rem]"
+                      >
+                        <input
+                          id={c.id}
+                          type="checkbox"
+                          checked={c.checked}
+                          onChange={(e) => c.onChange(e.target.checked)}
+                          className="mt-0.5 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary"
+                        />
+                        <span className="min-w-0">
+                          <span className="block text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                            {c.title}
+                          </span>
+                          <span className="block text-xs text-muted-foreground mt-1 leading-relaxed">
+                            {c.desc}
+                          </span>
+                        </span>
+                      </label>
+                    ))}
                   </div>
-                </div>
 
-                <div className="pt-2">
-                  <div className="space-y-3 bg-surface-raised/40 p-3.5 rounded-xl border border-border/40">
-                    <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <label
+                      htmlFor="acepta-carta"
+                      className="flex items-start gap-3 cursor-pointer group rounded-xl border border-primary/25 bg-primary/5 p-4 min-h-[5.5rem]"
+                    >
                       <input
+                        id="acepta-carta"
                         type="checkbox"
                         checked={aceptaCarta}
                         onChange={(e) => setAceptaCarta(e.target.checked)}
-                        className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary focus:ring-offset-background transition-colors"
+                        className="mt-0.5 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary"
                       />
-                      <div className="flex-1">
-                        <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">
-                          Acepto la <a href="/carta" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-primary">Carta Constitutiva Apícola Territorial</a>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium text-foreground">
+                          Acepto la{' '}
+                          <a
+                            href="/carta"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline underline-offset-2 text-primary hover:text-primary/80"
+                          >
+                            Carta Constitutiva
+                          </a>
                         </span>
-                        <p className="text-[0.65rem] text-muted-foreground/80 mt-0.5 leading-tight">
-                          Infraestructura colectiva, autónoma y no extractiva: consentimiento informado, datos mínimos y beneficio recíproco.
-                        </p>
-                      </div>
+                        <span className="block text-xs text-muted-foreground mt-1 leading-relaxed">
+                          Infraestructura colectiva, consentimiento informado y beneficio recíproco.
+                        </span>
+                      </span>
                     </label>
-
-                    <label className="flex items-start gap-3 cursor-pointer group">
+                    <label
+                      htmlFor="acepta-politica"
+                      className="flex items-start gap-3 cursor-pointer group rounded-xl border border-primary/25 bg-primary/5 p-4 min-h-[5.5rem]"
+                    >
                       <input
+                        id="acepta-politica"
                         type="checkbox"
                         checked={aceptaPoliticaDatos}
                         onChange={(e) => setAceptaPoliticaDatos(e.target.checked)}
-                        className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary focus:ring-offset-background transition-colors"
+                        className="mt-0.5 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary"
                       />
-                      <div className="flex-1">
-                        <span className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium text-foreground">
                           Acepto la política de datos y privacidad
                         </span>
-                        <p className="text-[0.65rem] text-muted-foreground/80 mt-0.5 leading-tight">
-                          Tus datos se entregan en custodia: puedes corregirlos, descargarlos y retirar consentimientos en cualquier momento.
-                        </p>
-                      </div>
+                        <span className="block text-xs text-muted-foreground mt-1 leading-relaxed">
+                          Puedes corregir, descargar y retirar consentimientos en cualquier momento.
+                        </span>
+                      </span>
                     </label>
                   </div>
-                </div>
-                </div>
-                </div>
+                </section>
 
-                {error ? <p className="text-xs text-destructive text-center mt-4">{error}</p> : null}
+                {error ? (
+                  <p className="text-sm text-destructive text-center mt-6">{error}</p>
+                ) : null}
+              </form>
 
-                <div className="pt-4 pb-2 sticky bottom-0 bg-gradient-to-t from-surface-raised via-surface-raised/95 to-transparent backdrop-blur-sm z-10">
+              <footer className="shrink-0 border-t border-border/40 px-5 sm:px-8 lg:px-10 py-4 sm:py-5 bg-surface-raised/95 backdrop-blur-md">
+                <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setViewMode('collapsed');
+                        setError(null);
+                        setMessage(null);
+                      }}
+                      className="min-h-11 px-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Volver
+                    </button>
+                    <Link
+                      href="/"
+                      className="min-h-11 inline-flex items-center px-3 text-sm text-muted-foreground/80 hover:text-foreground transition-colors"
+                    >
+                      Cancelar e ir al inicio
+                    </Link>
+                  </div>
                   <button
                     type="submit"
+                    form="signup-territorial-form"
                     disabled={loading}
-                    className="w-full min-h-13 rounded-full bg-primary text-primary-foreground font-medium text-sm py-3.5 shadow-lg hover:opacity-95 transition-opacity disabled:opacity-50"
+                    className="w-full sm:w-auto sm:min-w-[220px] min-h-12 rounded-full bg-primary text-primary-foreground font-medium text-sm px-8 py-3 shadow-lg hover:opacity-95 transition-opacity disabled:opacity-50"
                   >
-                    {loading ? 'Procesando…' : 'Crear Cuenta'}
+                    {loading ? 'Procesando…' : 'Crear cuenta'}
                   </button>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setViewMode('collapsed');
-                    setError(null);
-                    setMessage(null);
-                  }}
-                  className="w-full min-h-11 text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Volver
-                </button>
-                <Link
-                  href="/"
-                  className="block w-full min-h-10 text-center text-xs text-muted-foreground/80 hover:text-foreground transition-colors"
-                >
-                  Cancelar e ir al inicio
-                </Link>
-              </form>
+              </footer>
             </div>
           </>
         )}
