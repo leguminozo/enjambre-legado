@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { LogOut, PanelLeftOpen, LayoutGrid, User } from 'lucide-react';
+import { ChevronDown, PanelLeftOpen, LayoutGrid, User } from 'lucide-react';
 import {
   getSidebarGroupsForRole,
   findActiveItem,
@@ -15,34 +15,39 @@ import { getRoleRedirectPath } from '@enjambre/auth/role-redirect';
 import { useAuthStore } from '@enjambre/auth';
 import type { SidebarBadgeValues } from '@/hooks/useSidebarBadges';
 import { LUCIDE_MAP } from '@/components/layout/sidebar-shared';
-import { ConfigModal } from '@/views/configuracion/ConfigModal';
+import { ProfileMenu } from '@/components/layout/ProfileMenu';
 
 interface SidebarRailProps {
   onExpand?: () => void;
   onOpenMenu?: () => void;
-  badges: SidebarBadgeValues;
+  /** Conservado por el layout; no se muestran contadores en el rail compacto */
+  badges?: SidebarBadgeValues;
 }
 
 /**
- * Rail compacto: un icono por grupo de herramientas.
- * Clic en grupo multi-ítem → flyout con subiconos; un solo ítem → navega.
- * Perfil abre ConfigModal (config + logout).
+ * Rail compacto (sidebar colapsada).
+ * Clic en categoría con varias herramientas → acordeón hacia abajo con subiconos.
+ * Un solo ítem → navega directo. Sin badges numéricos.
  */
-export function SidebarRail({ onExpand, onOpenMenu, badges }: SidebarRailProps) {
+export function SidebarRail({ onExpand, onOpenMenu }: SidebarRailProps) {
   const pathname = usePathname();
   const router = useRouter();
   const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
-  const storeSignOut = useAuthStore((s) => s.signOut);
+  const authUser = useAuthStore((s) => s.user);
   const sidebarGroups = useMemo(() => getSidebarGroupsForRole(userRole), [userRole]);
   const activeItem = findActiveItem(pathname);
 
   const [openGroupKey, setOpenGroupKey] = useState<string | null>(null);
-  const [configOpen, setConfigOpen] = useState(false);
   const railRef = useRef<HTMLElement>(null);
 
+  // Abrir por defecto el grupo de la ruta activa (si tiene subherramientas)
   useEffect(() => {
-    setOpenGroupKey(null);
-  }, [pathname]);
+    if (!activeItem) return;
+    const group = sidebarGroups.find((g) => g.items.some((i) => i.key === activeItem.key));
+    if (group && group.items.length > 1) {
+      setOpenGroupKey(group.key);
+    }
+  }, [activeItem?.key, sidebarGroups]);
 
   useEffect(() => {
     if (!openGroupKey) return;
@@ -62,17 +67,13 @@ export function SidebarRail({ onExpand, onOpenMenu, badges }: SidebarRailProps) 
     };
   }, [openGroupKey]);
 
-  const handleLogout = async () => {
-    await storeSignOut();
-    router.push('/login');
-  };
-
   const handleGroupClick = (group: SidebarGroup) => {
     if (group.items.length === 1) {
       setOpenGroupKey(null);
       router.push(group.items[0]!.href);
       return;
     }
+    // Toggle acordeón: no navega a “la principal”, solo abre subherramientas
     setOpenGroupKey((k) => (k === group.key ? null : group.key));
   };
 
@@ -80,7 +81,6 @@ export function SidebarRail({ onExpand, onOpenMenu, badges }: SidebarRailProps) 
     group.items.some((i) => activeItem?.key === i.key);
 
   const groupIcon = (group: SidebarGroup) => {
-    // Prefer first item icon as group face
     const key = group.items[0]?.icon;
     return key ? LUCIDE_MAP[key] : null;
   };
@@ -101,52 +101,59 @@ export function SidebarRail({ onExpand, onOpenMenu, badges }: SidebarRailProps) 
           const isActive = groupIsActive(group);
           const isOpen = openGroupKey === group.key;
           const multi = group.items.length > 1;
-          const badge = group.items.some(
-            (i) => badges[i.key as keyof typeof badges],
-          );
 
           return (
-            <div key={group.key} className="sidebar-rail-group">
+            <div
+              key={group.key}
+              className={`sidebar-rail-group ${isOpen ? 'is-open' : ''} ${isActive ? 'is-active-group' : ''}`}
+            >
               <button
                 type="button"
-                className={`sidebar-rail-item ${isActive ? 'is-active' : ''} ${isOpen ? 'is-flyout-open' : ''}`}
-                title={group.label}
+                className={`sidebar-rail-item ${isActive ? 'is-active' : ''} ${isOpen ? 'is-expanded' : ''}`}
+                title={
+                  multi
+                    ? `${group.label}: ver herramientas`
+                    : (group.items[0]?.label ?? group.label)
+                }
                 aria-label={
                   multi
-                    ? `${group.label}: mostrar herramientas`
-                    : group.items[0]?.label ?? group.label
+                    ? `${group.label}: mostrar u ocultar herramientas`
+                    : (group.items[0]?.label ?? group.label)
                 }
                 aria-expanded={multi ? isOpen : undefined}
-                aria-haspopup={multi ? 'menu' : undefined}
+                aria-controls={multi ? `rail-sub-${group.key}` : undefined}
                 onClick={() => handleGroupClick(group)}
               >
-                {Icon ? <Icon size={22} /> : <span className="text-[10px] font-bold">{group.label.slice(0, 2)}</span>}
-                {badge && <span className="sidebar-rail-badge" aria-hidden />}
+                {Icon ? (
+                  <Icon size={22} />
+                ) : (
+                  <span className="text-[10px] font-bold">{group.label.slice(0, 2)}</span>
+                )}
                 {multi && (
-                  <span className="sidebar-rail-group-count" aria-hidden>
-                    {group.items.length}
-                  </span>
+                  <ChevronDown
+                    size={12}
+                    className={`sidebar-rail-chevron ${isOpen ? 'is-open' : ''}`}
+                    aria-hidden
+                  />
                 )}
               </button>
 
-              {multi && isOpen && (
+              {multi && (
                 <div
-                  className="sidebar-rail-flyout"
-                  role="menu"
+                  id={`rail-sub-${group.key}`}
+                  className={`sidebar-rail-sub ${isOpen ? 'is-open' : ''}`}
+                  role="group"
                   aria-label={group.label}
+                  aria-hidden={!isOpen}
                 >
-                  <p className="sidebar-rail-flyout-label">{group.label}</p>
-                  <ul className="sidebar-rail-flyout-list">
-                    {group.items.map((item) => (
-                      <FlyoutItem
-                        key={item.key}
-                        item={item}
-                        active={activeItem?.key === item.key}
-                        badge={Boolean(badges[item.key as keyof typeof badges])}
-                        onNavigate={() => setOpenGroupKey(null)}
-                      />
-                    ))}
-                  </ul>
+                  {group.items.map((item) => (
+                    <SubToolLink
+                      key={item.key}
+                      item={item}
+                      active={activeItem?.key === item.key}
+                      tabIndex={isOpen ? 0 : -1}
+                    />
+                  ))}
                 </div>
               )}
             </div>
@@ -155,16 +162,25 @@ export function SidebarRail({ onExpand, onOpenMenu, badges }: SidebarRailProps) 
       </nav>
 
       <div className="sidebar-rail-footer">
-        <button
-          type="button"
-          className="sidebar-rail-item"
-          onClick={() => setConfigOpen(true)}
-          title="Configuración y cuenta"
-          aria-label="Abrir configuración y cuenta"
-          aria-haspopup="dialog"
-        >
-          <User size={20} />
-        </button>
+        <ProfileMenu
+          side="right"
+          align="end"
+          userName={authUser?.full_name || authUser?.email?.split('@')[0] || 'Usuario'}
+          userEmail={authUser?.email}
+          userRole={userRole}
+          className="w-52 p-1.5"
+          trigger={
+            <button
+              type="button"
+              className="sidebar-rail-item"
+              title="Cuenta"
+              aria-label="Menú de cuenta"
+              aria-haspopup="menu"
+            >
+              <User size={20} />
+            </button>
+          }
+        />
         {onExpand && (
           <button
             type="button"
@@ -188,51 +204,32 @@ export function SidebarRail({ onExpand, onOpenMenu, badges }: SidebarRailProps) 
             <LayoutGrid size={20} />
           </button>
         )}
-        <button
-          type="button"
-          className="sidebar-rail-item"
-          onClick={() => void handleLogout()}
-          title="Cerrar sesión"
-          aria-label="Cerrar sesión"
-        >
-          <LogOut size={20} />
-        </button>
       </div>
-
-      <ConfigModal open={configOpen} onClose={() => setConfigOpen(false)} />
     </aside>
   );
 }
 
-function FlyoutItem({
+function SubToolLink({
   item,
   active,
-  badge,
-  onNavigate,
+  tabIndex,
 }: {
   item: SidebarItem;
   active: boolean;
-  badge: boolean;
-  onNavigate: () => void;
+  tabIndex?: number;
 }) {
   const Icon = LUCIDE_MAP[item.icon];
   return (
-    <li role="none">
-      <Link
-        href={item.href}
-        prefetch
-        role="menuitem"
-        className={`sidebar-rail-flyout-item ${active ? 'is-active' : ''}`}
-        onClick={onNavigate}
-      >
-        {Icon ? (
-          <span className="shrink-0 inline-flex">
-            <Icon size={18} />
-          </span>
-        ) : null}
-        <span className="truncate">{item.label}</span>
-        {badge && <span className="sidebar-rail-flyout-dot" aria-hidden />}
-      </Link>
-    </li>
+    <Link
+      href={item.href}
+      prefetch
+      title={item.label}
+      aria-label={item.label}
+      aria-current={active ? 'page' : undefined}
+      tabIndex={tabIndex}
+      className={`sidebar-rail-sub-item ${active ? 'is-active' : ''}`}
+    >
+      {Icon ? <Icon size={18} /> : <span className="text-[9px] font-bold">{item.label.slice(0, 2)}</span>}
+    </Link>
   );
 }

@@ -2318,16 +2318,24 @@ function EditorTiendaViewInner() {
         </div>
       </div>
 
-      {/* ── Body ── */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
+      {/* ── Body: dos paneles independientes ──
+          Izquierda = categorías / herramientas (scroll propio).
+          Derecha = preview a tamaño de viewport (no se encoje con la altura del editor). */}
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 min-w-0">
 
-        {/* Left sidebar / Editor area — menú segmentado con drill-down:
-            categorías (Bloques/Diseño/Otras formas) → lista de la categoría
-            → herramienta; cada nivel con volver arriba-izquierda. */}
+        {/* Editor — ancho acotado; altura propia con scroll; no empuja al preview */}
         <div
-          className={`flex-col w-full shrink-0 border-r border-border/50 bg-surface-sunken/30 overflow-hidden ${
-            desktopFocus === 'b' ? 'hidden md:hidden' : desktopFocus === 'a' ? 'md:flex-1' : 'md:w-80 lg:w-[28rem]'
-          } ${mobileTab === 'editor' ? 'flex' : 'flex max-md:hidden'}`}
+          className={
+            desktopFocus === 'b'
+              ? 'hidden'
+              : desktopFocus === 'a'
+                ? `flex flex-col min-h-0 overflow-hidden bg-surface-sunken/40 w-full flex-1 min-w-0 ${
+                    mobileTab === 'preview' ? 'max-md:hidden' : ''
+                  }`
+                : `flex-col min-h-0 overflow-hidden bg-surface-sunken/40 md:w-[min(100%,22rem)] lg:w-[26rem] xl:w-[28rem] md:shrink-0 md:border-r md:border-border/50 md:h-full ${
+                    mobileTab === 'editor' ? 'flex flex-1 md:flex-none' : 'hidden md:flex'
+                  }`
+          }
         >
           {navDrill === 'categories' ? (
             <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-3">
@@ -2550,116 +2558,132 @@ function EditorTiendaViewInner() {
           )}
         </div>
 
-        {/* Right: iframe preview */}
-        <div className={`flex-col flex-1 bg-surface-sunken/50 relative items-center overflow-hidden ${desktopFocus === 'a' ? 'md:hidden' : ''} ${mobileTab === 'preview' ? 'flex' : 'flex max-md:hidden'}`}>
+        {/* Preview — ocupa TODO el resto del ancho/alto; no sigue la altura del panel de bloques */}
+        <section
+          aria-label="Vista previa de la tienda"
+          className={`min-h-0 min-w-0 flex-col bg-muted/30 relative overflow-hidden ${
+            desktopFocus === 'a' ? 'hidden' : 'flex flex-1'
+          } ${mobileTab === 'preview' ? 'flex' : 'max-md:hidden'}`}
+        >
           <div
-            className="absolute inset-0 opacity-[0.03] pointer-events-none"
+            className="absolute inset-0 opacity-[0.04] pointer-events-none"
             style={{
               backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
-              backgroundSize: '24px 24px',
+              backgroundSize: '20px 20px',
             }}
+            aria-hidden
           />
 
-          {/* Menú independiente del preview: navega sin acoplar al editor */}
-          <div
-            className="w-full shrink-0 flex items-center gap-1.5 overflow-x-auto px-3 py-2 border-b border-border/50 bg-surface/40 scrollbar-thin relative z-10"
-            role="navigation"
-            aria-label="Páginas de la vista previa"
-          >
-            {PREVIEW_DESTINATIONS.map((d) => (
-              <button
-                key={d.path}
-                type="button"
-                onClick={() => goPreview(d.path)}
-                aria-pressed={previewPath === d.path}
-                className={`px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-colors min-h-9 ${
-                  previewPath === d.path
-                    ? 'bg-accent/15 text-accent border border-accent/30'
-                    : 'text-muted-foreground border border-transparent hover:text-foreground hover:bg-muted/40'
-                }`}
-              >
-                {d.label}
-              </button>
-            ))}
-            {/* Selector de producto real: previsualiza la ficha (PDP) */}
-            <select
-              value={previewProductSlug ?? ''}
-              onChange={(e) => {
-                const slug = e.target.value;
-                if (slug) goProductPreview(slug);
-              }}
-              aria-label="Previsualizar producto"
-              className="min-h-9 px-2 py-1 rounded-full text-[11px] font-medium bg-transparent border border-border text-muted-foreground hover:text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent"
+          {/* Barra del preview (independiente del editor) */}
+          <div className="relative z-10 w-full shrink-0 border-b border-border/60 bg-background/80 backdrop-blur-md">
+            <div className="flex items-center justify-between gap-2 px-3 pt-2 pb-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Vista previa
+                <span className="ml-2 font-normal normal-case tracking-normal text-muted-foreground/80">
+                  {viewMode === 'mobile' ? '· móvil' : '· escritorio'}
+                </span>
+              </p>
+              {tiendaUrl && !isSelfEmbed && (
+                <a
+                  href={`${tiendaUrl}${editorLocale === 'en' ? '/en' : ''}${previewPath}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden sm:inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Abrir en pestaña
+                  <ExternalLink size={11} />
+                </a>
+              )}
+            </div>
+            <div
+              className="flex items-center gap-1.5 overflow-x-auto px-3 pb-2 scrollbar-thin"
+              role="navigation"
+              aria-label="Páginas de la vista previa"
             >
-              <option value="">Producto…</option>
-              {previewProducts.map((p) => (
-                <option key={p.id} value={p.slug}>
-                  {p.nombre}
-                </option>
+              {PREVIEW_DESTINATIONS.map((d) => (
+                <button
+                  key={d.path}
+                  type="button"
+                  onClick={() => goPreview(d.path)}
+                  aria-pressed={previewPath === d.path}
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-colors min-h-9 ${
+                    previewPath === d.path
+                      ? 'bg-accent/15 text-accent border border-accent/30'
+                      : 'text-muted-foreground border border-transparent hover:text-foreground hover:bg-muted/40'
+                  }`}
+                >
+                  {d.label}
+                </button>
               ))}
-            </select>
-            <span className="w-px h-4 bg-border mx-1 shrink-0" aria-hidden />
-            <button
-              type="button"
-              onClick={() => goPreview(SECTION_PREVIEW_PATHS[activeSection] ?? '')}
-              disabled={!SECTION_PREVIEW_PATHS[activeSection]}
-              className={`px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap min-h-9 transition-colors border border-dashed ${
-                SECTION_PREVIEW_PATHS[activeSection]
-                  ? 'text-accent border-accent/40 hover:bg-accent/10'
-                  : 'text-muted-foreground/50 border-border opacity-60'
-              }`}
-              title="Saltar a la página de la sección que estás editando"
-            >
-              Ir a sección
-            </button>
+              <select
+                value={previewProductSlug ?? ''}
+                onChange={(e) => {
+                  const slug = e.target.value;
+                  if (slug) goProductPreview(slug);
+                }}
+                aria-label="Previsualizar producto"
+                className="min-h-9 px-2 py-1 rounded-full text-[11px] font-medium bg-transparent border border-border text-muted-foreground hover:text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent"
+              >
+                <option value="">Producto…</option>
+                {previewProducts.map((p) => (
+                  <option key={p.id} value={p.slug}>
+                    {p.nombre}
+                  </option>
+                ))}
+              </select>
+              <span className="w-px h-4 bg-border mx-1 shrink-0" aria-hidden />
+              <button
+                type="button"
+                onClick={() => goPreview(SECTION_PREVIEW_PATHS[activeSection] ?? '')}
+                disabled={!SECTION_PREVIEW_PATHS[activeSection]}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap min-h-9 transition-colors border border-dashed ${
+                  SECTION_PREVIEW_PATHS[activeSection]
+                    ? 'text-accent border-accent/40 hover:bg-accent/10'
+                    : 'text-muted-foreground/50 border-border opacity-60'
+                }`}
+                title="Saltar a la página de la sección que estás editando"
+              >
+                Ir a sección
+              </button>
+            </div>
           </div>
 
-          <div className="flex-1 w-full flex flex-col items-center justify-center p-0 md:p-6 lg:p-10 overflow-hidden relative">
-            <div
-              className={`relative bg-background border-0 shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col ${
-                viewMode === 'mobile'
-                  ? 'w-full h-full md:w-[375px] md:h-[812px] md:max-h-full md:rounded-[2.5rem] md:border-8 md:border-surface-raised md:ring-1 md:ring-border'
-                  : 'w-full h-full md:rounded-2xl md:border md:border-border'
-              }`}
-            >
-              {viewMode === 'mobile' && (
-                <div className="hidden md:flex absolute top-0 inset-x-0 h-7 bg-surface-raised z-20 justify-center items-center">
-                  <div className="w-12 h-1.5 bg-border rounded-full" />
-                </div>
-              )}
+          {/* Escenario del iframe: tamaño propio, centrado; no hereda altura del editor */}
+          <div className="relative z-[1] flex-1 min-h-0 w-full flex items-center justify-center p-3 sm:p-5 lg:p-6 overflow-hidden">
+            {!tiendaUrl ? (
+              <div className="text-center space-y-2 px-4">
+                <Monitor size={48} className="mx-auto text-muted-foreground opacity-50" />
+                <p className="text-sm font-medium text-muted-foreground">URL de Tienda no configurada</p>
+                <p className="text-xs text-muted-foreground/70">Verifica NEXT_PUBLIC_URL_TIENDA en .env</p>
+              </div>
+            ) : isSelfEmbed ? (
+              <div className="text-center space-y-2 max-w-sm px-4">
+                <AppWindow size={48} className="mx-auto text-destructive opacity-70" />
+                <p className="text-sm font-medium text-foreground">La URL de la tienda apunta a Núcleo</p>
+                <p className="text-xs text-muted-foreground/70 break-words">
+                  NEXT_PUBLIC_URL_TIENDA está configurada con la URL de Núcleo ({tiendaOrigin}). El
+                  iframe no puede embeber Núcleo dentro de Núcleo.
+                </p>
+              </div>
+            ) : (
+              <div
+                className={
+                  viewMode === 'mobile'
+                    ? // Marco teléfono: proporción fija, se reduce si el panel es bajo
+                      'relative flex flex-col bg-background shadow-2xl overflow-hidden w-[min(100%,375px)] h-[min(100%,812px)] max-h-full aspect-[375/812] rounded-[1.75rem] sm:rounded-[2.25rem] border-[6px] sm:border-8 border-surface-raised ring-1 ring-border'
+                    : // Escritorio: llena el panel de preview
+                      'relative flex flex-col bg-background shadow-xl overflow-hidden w-full h-full min-h-0 rounded-xl border border-border'
+                }
+              >
+                {viewMode === 'mobile' && (
+                  <div className="shrink-0 flex h-6 sm:h-7 items-center justify-center bg-surface-raised border-b border-border/40">
+                    <div className="w-10 h-1 rounded-full bg-border" aria-hidden />
+                  </div>
+                )}
 
-              {!tiendaUrl ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-surface-sunken">
-                  <div className="text-center space-y-2">
-                    <Monitor size={48} className="mx-auto text-muted-foreground opacity-50" />
-                    <p className="text-sm font-medium text-muted-foreground">
-                      URL de Tienda no configurada
-                    </p>
-                    <p className="text-xs text-muted-foreground/70">
-                      Verifica NEXT_PUBLIC_URL_TIENDA en .env
-                    </p>
-                  </div>
-                </div>
-              ) : isSelfEmbed ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-surface-sunken p-6">
-                  <div className="text-center space-y-2 max-w-sm">
-                    <AppWindow size={48} className="mx-auto text-destructive opacity-70" />
-                    <p className="text-sm font-medium text-foreground">
-                      La URL de la tienda apunta a Núcleo
-                    </p>
-                    <p className="text-xs text-muted-foreground/70 break-words">
-                      NEXT_PUBLIC_URL_TIENDA está configurada con la URL de Núcleo (
-                      {tiendaOrigin}). El iframe no puede embeber Núcleo dentro de
-                      Núcleo. Corregí la variable en el proyecto de Vercel.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className={`flex-1 relative w-full overflow-hidden ${viewMode === 'mobile' ? 'md:mt-7 md:rounded-b-[2rem]' : ''}`}>
+                <div className="relative flex-1 min-h-0 w-full overflow-hidden">
                   <iframe
                     ref={iframeRef}
-                    // key con locale: al cambiar idioma, la preview recarga (el
-                    // middleware de tienda redirige /en → ruta canónica + cookie)
                     key={`${iframeKey}-${editorLocale}`}
                     src={`${tiendaUrl}${editorLocale === 'en' ? '/en' : ''}${previewPath}?cms_preview=1`}
                     title="Vista Previa de Tienda"
@@ -2667,7 +2691,6 @@ function EditorTiendaViewInner() {
                     sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                     onLoad={() => setPreviewLoading(false)}
                   />
-                  {/* Overlay mientras la preview navega/revalida */}
                   <AnimatePresence>
                     {previewLoading ? (
                       <motion.div
@@ -2688,25 +2711,10 @@ function EditorTiendaViewInner() {
                     ) : null}
                   </AnimatePresence>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-
-          {/* Escape hatch: si el navegador bloquea el iframe (CSP/privacidad), abrir la tienda en pestaña.
-              Solo en vista desktop y pantallas md+: en el frame móvil (o en <768px) tapa el WhatsApp
-              float de la tienda en la esquina inferior derecha, así que va a la izquierda. */}
-          {tiendaUrl && !isSelfEmbed && viewMode === 'desktop' && (
-            <a
-              href={tiendaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden md:inline-flex absolute bottom-4 left-4 z-20 items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-background/90 backdrop-blur border border-border text-muted-foreground hover:text-accent hover:border-accent/50 transition-colors shadow-lg"
-            >
-              <ExternalLink size={12} />
-              Abrir tienda en pestaña
-            </a>
-          )}
-        </div>
+        </section>
       </div>
 
       {/* ── Add new item modal ── */}

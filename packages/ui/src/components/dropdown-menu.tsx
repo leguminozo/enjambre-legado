@@ -7,28 +7,35 @@ interface DropdownMenuProps {
   trigger: React.ReactNode;
   children: React.ReactNode;
   align?: "start" | "center" | "end";
+  side?: "top" | "right" | "bottom" | "left";
   sideOffset?: number;
   className?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function DropdownMenu({
   trigger,
   children,
   align = "end",
+  side = "bottom",
   sideOffset = 8,
   className,
+  open,
+  onOpenChange,
 }: DropdownMenuProps) {
   return (
-    <DropdownMenuPrimitive.Root>
+    <DropdownMenuPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DropdownMenuPrimitive.Trigger asChild>
         {trigger}
       </DropdownMenuPrimitive.Trigger>
       <DropdownMenuPrimitive.Portal>
         <DropdownMenuPrimitive.Content
           align={align}
+          side={side}
           sideOffset={sideOffset}
           className={cn(
-            "z-50 min-w-[10rem] overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg",
+            "z-[240] min-w-[10rem] overflow-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-2xl",
             "data-[state=open]:animate-fade-in data-[state=open]:animate-zoom-in",
             "data-[state=closed]:animate-fade-out data-[state=closed]:animate-zoom-out",
             className,

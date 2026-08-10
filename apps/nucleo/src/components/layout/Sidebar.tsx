@@ -18,7 +18,7 @@ import { SidebarSection } from '@enjambre/ui';
 import type { SidebarBadgeValues } from '@/hooks/useSidebarBadges';
 import { useAuthStore } from '@enjambre/auth';
 import { supabase } from '@/lib/supabase';
-import { ConfigModal } from '@/views/configuracion/ConfigModal';
+import { ProfileMenu } from '@/components/layout/ProfileMenu';
 
 interface SidebarProps {
   onToggle: () => void;
@@ -59,7 +59,6 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
   const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
   const authUser = useAuthStore((s) => s.user);
   const sidebarGroups = useMemo(() => getSidebarGroupsForRole(userRole), [userRole]);
-  const [configOpen, setConfigOpen] = useState(false);
 
   useEffect(() => {
     async function fetchUser() {
@@ -114,11 +113,6 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
     return map;
   }, [badges]);
 
-  const openConfig = () => {
-    setConfigOpen(true);
-    if (variant === 'drawer') onToggle();
-  };
-
   return (
     <aside
       id="sidebar-navigation"
@@ -163,27 +157,36 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
         ))}
       </nav>
 
-      {/* Perfil: un solo control → modal de configuración + logout */}
+      {/* Perfil: menú compacto (Trama-style) → config grande solo si se elige */}
       <div className="sidebar-footer">
         <div className="sidebar-user-row">
-          <button
-            type="button"
-            className="sidebar-user-btn"
-            onClick={openConfig}
-            aria-haspopup="dialog"
-            aria-expanded={configOpen}
-            aria-label="Abrir configuración y cuenta"
-          >
-            <span className="sidebar-user-avatar" aria-hidden>
-              {userName.charAt(0).toUpperCase()}
-            </span>
-            <span className="sidebar-user-info min-w-0">
-              <span className="sidebar-user-name truncate block">{userName}</span>
-              <span className="sidebar-user-role truncate block">
-                {userEmail || userRole} · Configuración
-              </span>
-            </span>
-          </button>
+          <ProfileMenu
+            side="top"
+            align="start"
+            userName={userName}
+            userEmail={userEmail}
+            userRole={userRole}
+            onNavigate={variant === 'drawer' ? () => onToggle() : undefined}
+            className="w-[min(16.5rem,calc(100vw-2rem))] p-1.5"
+            trigger={
+              <button
+                type="button"
+                className="sidebar-user-btn"
+                aria-haspopup="menu"
+                aria-label="Menú de cuenta"
+              >
+                <span className="sidebar-user-avatar" aria-hidden>
+                  {userName.charAt(0).toUpperCase()}
+                </span>
+                <span className="sidebar-user-info min-w-0">
+                  <span className="sidebar-user-name truncate block">{userName}</span>
+                  <span className="sidebar-user-role truncate block">
+                    Cuenta y ajustes
+                  </span>
+                </span>
+              </button>
+            }
+          />
           {onCollapse && (
             <button
               type="button"
@@ -197,8 +200,6 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
           )}
         </div>
       </div>
-
-      <ConfigModal open={configOpen} onClose={() => setConfigOpen(false)} />
     </aside>
   );
 }
