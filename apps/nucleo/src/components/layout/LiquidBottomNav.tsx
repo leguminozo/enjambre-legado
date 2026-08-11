@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Network, Hexagon, Calculator, Settings, Map, LayoutGrid } from 'lucide-react';
+import {
+  Network, Hexagon, Calculator, Settings, Map, LayoutGrid, NotebookPen, CalendarDays, Users,
+} from 'lucide-react';
 import {
   getBottomNavKeysForRole,
   getSidebarGroupsForRole,
@@ -15,12 +17,17 @@ import {
 import { useAuthStore } from '@enjambre/auth';
 import { ConfigModal } from '@/views/configuracion/ConfigModal';
 
+/** Keys de bottom nav por rol — incluir iconos de patio (apicultor) y territorio. */
 const ICONS: Record<string, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
   inicio: Network,
   colmenas: Hexagon,
+  'cuaderno-campo': NotebookPen,
+  'ciclo-bosque': CalendarDays,
   contabilidad: Calculator,
   configuracion: Settings,
   territorio: Map,
+  'registro-comunal': Users,
+  'mis-planes': NotebookPen,
 };
 
 type LiquidBottomNavProps = {
@@ -37,27 +44,32 @@ function resolveNavItem(key: string, pathname: string, allItems: SidebarItem[]) 
   }
   const isActive =
     key === 'territorio'
-      ? pathname === '/territorio' ||
-        pathname === '/registro-territorial' ||
-        pathname.startsWith(item.href)
-      : pathname.startsWith(item.href);
+      ? pathname === '/territorio' || pathname.startsWith('/territorio')
+      : key === 'registro-comunal'
+        ? pathname.startsWith('/registro-territorial')
+        : pathname.startsWith(item.href);
   return { href: item.href, label: item.label, isActive, isModal: false as const };
 }
 
 export function LiquidBottomNav({ onOpenMenu, menuOpen }: LiquidBottomNavProps) {
   const pathname = usePathname();
   const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
+  const territorialRol = useAuthStore((s) => s.user?.territorial_rol ?? null);
+  const shellOpts = useMemo(() => ({ territorialRol }), [territorialRol]);
   const [configOpen, setConfigOpen] = useState(false);
-  const allItems = [
-    ...getSidebarGroupsForRole(userRole).flatMap((g) => g.items),
-    ...getAccountItemsForRole(userRole),
-  ];
+  const allItems = useMemo(
+    () => [
+      ...getSidebarGroupsForRole(userRole, shellOpts).flatMap((g) => g.items),
+      ...getAccountItemsForRole(userRole, shellOpts),
+    ],
+    [userRole, shellOpts],
+  );
 
-  const tabs = getBottomNavKeysForRole(userRole)
+  const tabs = getBottomNavKeysForRole(userRole, shellOpts)
     .map((key) => {
       const nav = resolveNavItem(key, pathname, allItems);
       if (!nav) return null;
-      const Icon = ICONS[key];
+      const Icon = ICONS[key] ?? LayoutGrid;
       return { key, ...nav, Icon };
     })
     .filter(Boolean) as Array<{

@@ -92,3 +92,47 @@ export async function enqueueCapturaVoz(input: {
   });
   return grabacion;
 }
+
+/**
+ * MVP sin STT: encolar transcript escrito/pegado (offline-first).
+ * El motor sube POST /capturas con transcript_raw → estado `transcrito` → curaduría/procesar.
+ * docs/BITACORA_APICOLA.md · plan PR6 (path manual no bloqueante).
+ */
+export async function enqueueTranscriptManual(input: {
+  session_id: string;
+  transcript_raw: string;
+}): Promise<{ client_request_id: string }> {
+  const text = input.transcript_raw.trim();
+  if (!text) throw new Error('El transcript no puede estar vacío');
+  if (text.length > 20_000) throw new Error('Transcript demasiado largo (máx. 20.000 caracteres)');
+
+  const clientRequestId = uuid();
+  await db.sync_queue.add({
+    tipo: 'captura',
+    payload: {
+      session_id: input.session_id,
+      client_request_id: clientRequestId,
+      transcript_raw: text,
+      dispositivo: 'manual-transcript',
+      duracion_seg: 0,
+    },
+    status: 'pending',
+    created_at: Date.now(),
+  });
+  return { client_request_id: clientRequestId };
+}
+
+/** Conteos de la cola local (banner de sync). */
+export async function countBitacoraSyncQueue(): Promise<{
+  pending: number;
+  errors: number;
+  lastError: string | null;
+}> {
+  const pending = await db.sync_queue.where('status').equals('pending').count();
+  const errorRows = await db.sync_queue.where('status').equals('error').toArray();
+  return {
+    pending,
+    errors: errorRows.length,
+    lastError: errorRows[0]?.error_message ?? null,
+  };
+}

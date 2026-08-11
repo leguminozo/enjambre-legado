@@ -26,11 +26,12 @@ import { parseTranscripcion, PARSE_AUTO_EMIT_THRESHOLD } from "@/api/lib/bitacor
 // Bitácora apícola por voz — especificación docs/BITACORA_APICOLA.md
 // Estilo: registro-territorial.ts (auth + role + zod strict + BFF como
 // única vía de escritura). Las tablas nuevas viven en la migración 1006.
-// UI /colmenas* es admin-only (ROUTE_ROLE_GUARDS).
+// Authz: admin + apicultor (patio). RLS owner-based (docs/RLS_AUDIT_COLMENAS_BITACORA.md).
+// UI /colmenas* en ROUTE_ROLE_GUARDS: admin | apicultor.
 
 export const bitacoraRoutes = new Hono<{ Variables: AppVariables }>();
 
-bitacoraRoutes.use("*", authMiddleware, requireProfileRole("admin"));
+bitacoraRoutes.use("*", authMiddleware, requireProfileRole("admin", "apicultor"));
 
 // ---------------------------------------------------------------------------
 // Schemas de validación
@@ -368,16 +369,22 @@ bitacoraRoutes.post(
       return c.json({ error: "Sesión no encontrada o sin permiso" }, 404);
     }
 
+    // Path manual (PR6): si llega transcript sin audio → estado listo para procesar/curar.
+    // Path voz: estado default `capturado` (schema) hasta STT/upload.
+    const hasTranscript =
+      typeof body.transcript_raw === "string" && body.transcript_raw.trim().length > 0;
+
     const { data, error } = await supabase
       .from("voice_inspection_captures")
       .insert({
         session_id: body.session_id,
         client_request_id: body.client_request_id,
         audio_url: body.audio_url ?? null,
-        transcript_raw: body.transcript_raw ?? null,
+        transcript_raw: hasTranscript ? body.transcript_raw!.trim() : null,
         dispositivo: body.dispositivo ?? null,
         duracion_seg: body.duracion_seg ?? null,
         user_id: user.id,
+        ...(hasTranscript ? { estado: "transcrito" as const } : {}),
       })
       .select()
       .single();

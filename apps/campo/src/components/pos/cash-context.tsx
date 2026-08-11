@@ -76,6 +76,8 @@ type CashContextValue = {
     channel?: string,
     sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string },
     discount?: { descuento_pct?: number; descuento_clp?: number },
+    /** Identidad del cliente final del microcanal (tarjeta QR / email / whatsapp). */
+    fidIdentidad?: string,
   ) => Promise<QuickSaleResult | null>;
 };
 
@@ -247,6 +249,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
     channel?: string,
     sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string },
     discount?: { descuento_pct?: number; descuento_clp?: number },
+    fidIdentidad?: string,
   ) => {
     if (!token || !session) throw new Error('Sin sesion abierta');
     const client_request_id = crypto.randomUUID();
@@ -259,6 +262,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       tercero_id: selectedClient?.id ?? undefined,
       is_new_client: isNewClient,
       client_request_id,
+      fid_identidad: fidIdentidad || undefined,
       items_override: items,
       sumup_checkout_id: sumupFields?.sumup_checkout_id,
       sumup_transaction_id: sumupFields?.sumup_transaction_id,

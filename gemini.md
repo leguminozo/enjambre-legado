@@ -5,7 +5,7 @@ Este archivo define las reglas arquitectonicas, metodologicas y de codificacion 
 ## 1. IDENTIDAD Y FILOSOFIA DEL PROYECTO
 - **Enjambre Legado** es un sistema operativo para la regeneracion biocultural. Orquesta la relacion entre el bosque nativo de Chiloe, la abeja virgen y el consumo consciente de alta gama.
 - **Estetica Premium No-Negociable**: El frontend es una pieza de diseno de lujo. Dark mode, Cormorant Garamond, GSAP, textura organica.
-- **Offline-First para Campo**: El apicultor trabaja sin internet. Dexie primero, Supabase despues.
+- **Offline-First para Campo**: Campo = **rep_ventas / POS feria** (no patio apícola). Dexie primero, Supabase despues. Bitácora de patio vive en Núcleo (`NucleoBitacoraDB`), no en Campo.
 - **Seguridad en Postgres**: RLS obligatorio. Nunca confiar en el cliente para seguridad.
 
 ## 2. STACK TECNOLOGICO STRICTO
@@ -38,7 +38,7 @@ Este archivo define las reglas arquitectonicas, metodologicas y de codificacion 
 ## 6. DOMINIOS CLAVE
 - **Tienda**: E-commerce premium con Transbank + CMS dinamico
 - **Nucleo**: Dashboard multi-rol con mapas (Leaflet + PostGIS), Hono BFF + contable
-- **Campo**: PWA para campo (apicultor/vendedor/rep_ventas), offline-first activo (Dexie)
+- **Campo**: PWA POS revendedores (`rep_ventas`), offline-first activo (Dexie). Patio apícola = Núcleo (`role=apicultor`)
 - **Contable**: IVA 19%, RUT chileno, facturas (Zod schemas)
 
 ## 7. REGLAS DE RESPUESTA

@@ -588,6 +588,7 @@ export type Database = {
           nombre: string
           notas: string | null
           origen: string
+          participante_contrato_id: string | null
           publico: boolean
           tipo: string
           updated_at: string
@@ -604,6 +605,7 @@ export type Database = {
           nombre: string
           notas?: string | null
           origen?: string
+          participante_contrato_id?: string | null
           publico?: boolean
           tipo?: string
           updated_at?: string
@@ -620,47 +622,18 @@ export type Database = {
           nombre?: string
           notas?: string | null
           origen?: string
+          participante_contrato_id?: string | null
           publico?: boolean
           tipo?: string
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
-      }
-      b2b_resenas_revendedor: {
-        Row: {
-          created_at: string
-          estado: string
-          id: string
-          rating: number
-          revendedor_id: string
-          texto: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          estado?: string
-          id?: string
-          rating: number
-          revendedor_id: string
-          texto: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          estado?: string
-          id?: string
-          rating?: number
-          revendedor_id?: string
-          texto?: string
-          updated_at?: string
-        }
         Relationships: [
           {
-            foreignKeyName: "b2b_resenas_revendedor_revendedor_id_fkey"
-            columns: ["revendedor_id"]
+            foreignKeyName: "b2b_puntos_venta_participante_contrato_id_fkey"
+            columns: ["participante_contrato_id"]
             isOneToOne: false
-            referencedRelation: "b2b_revendedores"
+            referencedRelation: "participante_contrato"
             referencedColumns: ["id"]
           },
         ]
@@ -3616,54 +3589,75 @@ export type Database = {
       }
       crm_tareas: {
         Row: {
+          asignado_nombre: string | null
           completada_at: string | null
+          completada_por: string | null
           created_at: string
           descripcion: string | null
           empresa_id: string | null
+          equipo_id: string | null
           estado: string
-          fecha_vencimiento: string
+          evidencia_path: string | null
+          fecha_vencimiento: string | null
           hora: string | null
           id: string
           lead_id: string | null
           metadata: Json | null
           prioridad: string
+          ref_id: string | null
+          ref_tipo: string | null
           tipo: string | null
           titulo: string
           updated_at: string
+          user_id: string | null
           vendedor_id: string | null
         }
         Insert: {
+          asignado_nombre?: string | null
           completada_at?: string | null
+          completada_por?: string | null
           created_at?: string
           descripcion?: string | null
           empresa_id?: string | null
+          equipo_id?: string | null
           estado?: string
-          fecha_vencimiento: string
+          evidencia_path?: string | null
+          fecha_vencimiento?: string | null
           hora?: string | null
           id?: string
           lead_id?: string | null
           metadata?: Json | null
           prioridad?: string
+          ref_id?: string | null
+          ref_tipo?: string | null
           tipo?: string | null
           titulo: string
           updated_at?: string
+          user_id?: string | null
           vendedor_id?: string | null
         }
         Update: {
+          asignado_nombre?: string | null
           completada_at?: string | null
+          completada_por?: string | null
           created_at?: string
           descripcion?: string | null
           empresa_id?: string | null
+          equipo_id?: string | null
           estado?: string
-          fecha_vencimiento?: string
+          evidencia_path?: string | null
+          fecha_vencimiento?: string | null
           hora?: string | null
           id?: string
           lead_id?: string | null
           metadata?: Json | null
           prioridad?: string
+          ref_id?: string | null
+          ref_tipo?: string | null
           tipo?: string | null
           titulo?: string
           updated_at?: string
+          user_id?: string | null
           vendedor_id?: string | null
         }
         Relationships: [
@@ -3672,6 +3666,13 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tareas_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "infusion_equipo"
             referencedColumns: ["id"]
           },
           {
@@ -4544,6 +4545,7 @@ export type Database = {
           id: string
           nombre: string | null
           updated_at: string
+          user_id: string | null
           whatsapp: string | null
         }
         Insert: {
@@ -4555,6 +4557,7 @@ export type Database = {
           id?: string
           nombre?: string | null
           updated_at?: string
+          user_id?: string | null
           whatsapp?: string | null
         }
         Update: {
@@ -4566,6 +4569,7 @@ export type Database = {
           id?: string
           nombre?: string | null
           updated_at?: string
+          user_id?: string | null
           whatsapp?: string | null
         }
         Relationships: []
@@ -4752,51 +4756,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      fid_retribucion_reglas: {
-        Row: {
-          activo: boolean
-          created_at: string
-          dias_max: number | null
-          id: string
-          nombre: string
-          skus_min: number | null
-          sort_order: number
-          tipo: string
-          umbral_max_clp: number | null
-          umbral_min_clp: number | null
-          updated_at: string
-          valor: number
-        }
-        Insert: {
-          activo?: boolean
-          created_at?: string
-          dias_max?: number | null
-          id?: string
-          nombre: string
-          skus_min?: number | null
-          sort_order?: number
-          tipo: string
-          umbral_max_clp?: number | null
-          umbral_min_clp?: number | null
-          updated_at?: string
-          valor?: number
-        }
-        Update: {
-          activo?: boolean
-          created_at?: string
-          dias_max?: number | null
-          id?: string
-          nombre?: string
-          skus_min?: number | null
-          sort_order?: number
-          tipo?: string
-          umbral_max_clp?: number | null
-          umbral_min_clp?: number | null
-          updated_at?: string
-          valor?: number
-        }
-        Relationships: []
       }
       fid_retribucion_tiers: {
         Row: {
@@ -6215,6 +6174,7 @@ export type Database = {
           activa: boolean
           created_at: string
           id: string
+          ingredient_id: string | null
           nombre: string
           notas: string | null
           tipo: string
@@ -6226,6 +6186,7 @@ export type Database = {
           activa?: boolean
           created_at?: string
           id?: string
+          ingredient_id?: string | null
           nombre: string
           notas?: string | null
           tipo?: string
@@ -6237,6 +6198,7 @@ export type Database = {
           activa?: boolean
           created_at?: string
           id?: string
+          ingredient_id?: string | null
           nombre?: string
           notas?: string | null
           tipo?: string
@@ -6244,7 +6206,15 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "infusion_materias_primas_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       infusion_produccion_materiales: {
         Row: {
@@ -6293,6 +6263,7 @@ export type Database = {
           id: string
           nombre: string
           notas: string | null
+          tercero_id: string | null
           ubicacion: string | null
           updated_at: string
           user_id: string | null
@@ -6304,6 +6275,7 @@ export type Database = {
           id?: string
           nombre: string
           notas?: string | null
+          tercero_id?: string | null
           ubicacion?: string | null
           updated_at?: string
           user_id?: string | null
@@ -6315,94 +6287,17 @@ export type Database = {
           id?: string
           nombre?: string
           notas?: string | null
+          tercero_id?: string | null
           ubicacion?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      infusion_tareas: {
-        Row: {
-          completada_at: string | null
-          completada_por: string | null
-          created_at: string
-          equipo_id: string | null
-          estado: string
-          evidencia_path: string | null
-          fecha_vencimiento: string | null
-          id: string
-          lote_deshidratado_id: string | null
-          lote_entrada_id: string | null
-          lote_produccion_id: string | null
-          notas: string | null
-          prioridad: string
-          tipo: string
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          completada_at?: string | null
-          completada_por?: string | null
-          created_at?: string
-          equipo_id?: string | null
-          estado?: string
-          evidencia_path?: string | null
-          fecha_vencimiento?: string | null
-          id?: string
-          lote_deshidratado_id?: string | null
-          lote_entrada_id?: string | null
-          lote_produccion_id?: string | null
-          notas?: string | null
-          prioridad?: string
-          tipo: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          completada_at?: string | null
-          completada_por?: string | null
-          created_at?: string
-          equipo_id?: string | null
-          estado?: string
-          evidencia_path?: string | null
-          fecha_vencimiento?: string | null
-          id?: string
-          lote_deshidratado_id?: string | null
-          lote_entrada_id?: string | null
-          lote_produccion_id?: string | null
-          notas?: string | null
-          prioridad?: string
-          tipo?: string
           updated_at?: string
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "infusion_tareas_equipo_id_fkey"
-            columns: ["equipo_id"]
+            foreignKeyName: "infusion_proveedores_tercero_id_fkey"
+            columns: ["tercero_id"]
             isOneToOne: false
-            referencedRelation: "infusion_equipo"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "infusion_tareas_lote_deshidratado_id_fkey"
-            columns: ["lote_deshidratado_id"]
-            isOneToOne: false
-            referencedRelation: "infusion_lotes_deshidratado"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "infusion_tareas_lote_entrada_id_fkey"
-            columns: ["lote_entrada_id"]
-            isOneToOne: false
-            referencedRelation: "infusion_lotes_entrada"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "infusion_tareas_lote_produccion_id_fkey"
-            columns: ["lote_produccion_id"]
-            isOneToOne: false
-            referencedRelation: "infusion_lotes_produccion"
+            referencedRelation: "terceros"
             referencedColumns: ["id"]
           },
         ]
@@ -9914,8 +9809,9 @@ export type Database = {
           momento_consumo: string | null
           notas_personales: string | null
           percepcion_sesion_id: string | null
-          producto_id: string
+          producto_id: string | null
           rating: number
+          revendedor_id: string | null
           updated_at: string
           user_id: string | null
           venta_id: string | null
@@ -9939,8 +9835,9 @@ export type Database = {
           momento_consumo?: string | null
           notas_personales?: string | null
           percepcion_sesion_id?: string | null
-          producto_id: string
+          producto_id?: string | null
           rating: number
+          revendedor_id?: string | null
           updated_at?: string
           user_id?: string | null
           venta_id?: string | null
@@ -9964,8 +9861,9 @@ export type Database = {
           momento_consumo?: string | null
           notas_personales?: string | null
           percepcion_sesion_id?: string | null
-          producto_id?: string
+          producto_id?: string | null
           rating?: number
+          revendedor_id?: string | null
           updated_at?: string
           user_id?: string | null
           venta_id?: string | null
@@ -10011,6 +9909,13 @@ export type Database = {
             columns: ["producto_id"]
             isOneToOne: false
             referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resenas_producto_revendedor_id_fkey"
+            columns: ["revendedor_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_revendedores"
             referencedColumns: ["id"]
           },
           {

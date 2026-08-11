@@ -127,9 +127,18 @@ export function useBitacoraSyncEngine() {
         const sesion = await db.sesiones_locales.get(sessionId);
         if (sesion && !sesion.sincronizada) continue;
 
+        // Payload ya incluye session_id, client_request_id y opcional transcript_raw (manual).
         const res = await apiFetch('/api/bitacora/capturas', {
           method: 'POST',
-          body: JSON.stringify(item.payload),
+          body: JSON.stringify({
+            session_id: item.payload.session_id,
+            client_request_id: item.payload.client_request_id,
+            dispositivo: item.payload.dispositivo,
+            duracion_seg: item.payload.duracion_seg,
+            ...(typeof item.payload.transcript_raw === 'string'
+              ? { transcript_raw: item.payload.transcript_raw }
+              : {}),
+          }),
         });
         if (res.ok) {
           const json = (await res.json()) as {
@@ -137,7 +146,7 @@ export function useBitacoraSyncEngine() {
             meta?: { already_processed?: boolean };
           };
           const capturaId = json.data.id;
-          // Subir el blob si existe y aún no está en el bucket
+          // Subir el blob si existe y aún no está en el bucket (path voz; manual no tiene blob)
           const grabacion = await db.grabaciones
             .where('client_request_id').equals(item.payload.client_request_id as string)
             .first();

@@ -1,13 +1,18 @@
 export type RoleKey =
   | 'admin'
+  | 'apicultor'
   | 'creador'
   | 'rep_ventas'
   | 'cliente'
   | 'territorial'
 
+/**
+ * Roles históricos que se elevan a admin (JWT / filas residuales).
+ * `apicultor` NO está aquí: es RoleKey de patio (allowlist), no elevación.
+ * Ver docs/ROLES_Y_ACCESO.md.
+ */
 export const LEGACY_ROLE_MAP: Record<string, RoleKey> = {
   gerente: 'admin',
-  apicultor: 'admin',
   vendedor: 'admin',
   logistica: 'admin',
   marketing: 'admin',
@@ -22,6 +27,7 @@ function absOrPath(baseEnv: string | undefined, path: string): string {
 /** Paths relativos dentro de cada app (sin dominio) */
 const RELATIVE_ROLE_HOME: Record<string, string> = {
   admin: '/inicio',
+  apicultor: '/inicio',
   creador: '/perfil/creador',
   rep_ventas: '/pos',
   cliente: '/catalogo',
@@ -35,6 +41,7 @@ const RELATIVE_ROLE_HOME: Record<string, string> = {
  */
 export const ROLE_REDIRECT_MAP: Record<string, string> = {
   admin: '/inicio',
+  apicultor: '/inicio',
   creador: absOrPath(process.env.NEXT_PUBLIC_URL_TIENDA, '/perfil/creador'),
   rep_ventas: absOrPath(process.env.NEXT_PUBLIC_URL_CAMPO, '/pos'),
   cliente: absOrPath(process.env.NEXT_PUBLIC_URL_TIENDA, '/catalogo'),
@@ -64,12 +71,15 @@ export function isExternalRedirect(path: string): boolean {
 
 export const ALL_ADMIN_ROLES: RoleKey[] = ['admin']
 
+/** Roles con shell de patio en Núcleo (módulos prestados, no panel gerencial). */
+export const APICULTOR_SHELL_ROLES: RoleKey[] = ['apicultor']
+
 export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/': ['admin'],
-  '/inicio': ['admin', 'territorial'],
+  '/inicio': ['admin', 'territorial', 'apicultor'],
   // aliases legacy → pages redirigen a /inicio (mismo home por rol)
-  '/ejecutivo': ['admin', 'territorial'],
-  '/alma': ['admin', 'territorial'],
+  '/ejecutivo': ['admin', 'territorial', 'apicultor'],
+  '/alma': ['admin', 'territorial', 'apicultor'],
   '/costeo': ['admin'],
   '/produccion': ['admin'],
   '/crm': ['admin'],
@@ -86,16 +96,17 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/monitor-feria': ['admin'],
   '/invitaciones': ['admin'],
   '/reglas-comision': ['admin'],
-  '/colmenas': ['admin'],
+  // Patio: colmenas + cuaderno + bitácora (admin ve todo vía RLS is_gerente)
+  '/colmenas': ['admin', 'apicultor'],
   '/regeneracion': ['admin'],
   '/mapa': ['admin'],
   '/catalogo': ['admin'],
   '/operaciones': ['admin'],
   '/comunidad': ['admin'],
-  '/perfil': ['admin'],
-  '/configuracion': ['admin'],
+  '/perfil': ['admin', 'apicultor', 'territorial'],
+  '/configuracion': ['admin', 'apicultor', 'territorial'],
   '/editor-tienda': ['admin'],
-  '/calendario': ['admin'],
+  '/calendario': ['admin', 'apicultor'],
   '/pipeline': ['admin'],
   '/alambique': ['admin'],
   '/fenologia': ['admin', 'territorial'],

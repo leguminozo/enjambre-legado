@@ -20,6 +20,7 @@ import {
 import { NotificationBell } from '@enjambre/ui';
 import { createClient, isSupabaseConfigured, useAuthStore, useInAppNotifications } from '@enjambre/auth';
 import { useSidebarBadges } from '@/hooks/useSidebarBadges';
+import { BitacoraSyncBanner } from '@/components/apicultor/BitacoraSyncBanner';
 
 export default function DashboardLayoutClient({ children }: { children: React.ReactNode }) {
   return (
@@ -81,13 +82,17 @@ function ShellContent({ children }: { children: React.ReactNode }) {
 
   // Least privilege: nunca elevar a admin si el store aún no hidrató el rol
   const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
+  const territorialRol = useAuthStore((s) => s.user?.territorial_rol ?? null);
+  const shellOpts = useMemo(() => ({ territorialRol }), [territorialRol]);
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];
     // Búsqueda con los ítems del rol: un territorial no debe ver módulos admin
-    return [...getSidebarGroupsForRole(userRole).flatMap((g) => g.items), ...getAccountItemsForRole(userRole)]
-      .filter((item) => item.label.toLowerCase().includes(q));
-  }, [searchQuery, userRole]);
+    return [
+      ...getSidebarGroupsForRole(userRole, shellOpts).flatMap((g) => g.items),
+      ...getAccountItemsForRole(userRole, shellOpts),
+    ].filter((item) => item.label.toLowerCase().includes(q));
+  }, [searchQuery, userRole, shellOpts]);
 
   const goToFirstResult = useCallback(() => {
     if (searchResults.length === 0) return;
@@ -266,6 +271,9 @@ function ShellContent({ children }: { children: React.ReactNode }) {
             )}
           </div>
         </header>
+
+        {/* Patio/admin: cola local de bitácora (PR6) */}
+        <BitacoraSyncBanner />
 
         <div
           ref={registerContentRef}

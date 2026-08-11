@@ -12,6 +12,7 @@ import {
 } from "@/api/lib/feria-pos";
 import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
 import { registerDeliveredQrCodes } from "@/lib/sale-qr";
+import { registrarEventoFid, resolverPuntoVendedor } from "./b2b";
 import { getCafMinFolios, getFoliosRestantes } from "@/api/lib/fiscal/caf-guard";
 
 const QuickSaleSchema = z.object({
@@ -23,6 +24,9 @@ const QuickSaleSchema = z.object({
   cliente_id: z.string().uuid().optional(),
   tercero_id: z.string().uuid().optional(),
   is_new_client: z.boolean().default(true),
+  /** Identidad del cliente final del microcanal (tarjeta QR / email / whatsapp):
+   *  la compra acredita sellos/puntos en el punto de venta del vendedor. */
+  fid_identidad: z.string().max(120).optional().nullable(),
   qr_codes: z.array(z.string()).optional(),
   /** Client-generated UUID — idempotency for offline sync retries (stored as ventas.buy_order). */
   client_request_id: z.string().uuid().optional(),
@@ -387,6 +391,21 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     ventaId,
   );
 
+  // Fidelización del microcanal: la identidad del cliente viaja con la venta
+  // (online y offline — el payload enqueueado la lleva y quick la procesa).
+  let fidMeta: Record<string, unknown> | null = null;
+  if (input.fid_identidad) {
+    try {
+      const punto = await resolverPuntoVendedor(supabase, user.id);
+      if (punto) {
+        const res = await registrarEventoFid(supabase, punto.id, input.fid_identidad, Number(venta.total), "pos");
+        fidMeta = { punto: punto.nombre, puntos_ganados: res.puntos_ganados, ok: res.ok };
+      }
+    } catch (err) {
+      console.warn("[rep-ventas] fid:", err);
+    }
+  }
+
   let feriaMeta: Record<string, unknown> | null = null;
   try {
     feriaMeta = (await applyFeriaPostVenta(
@@ -457,6 +476,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     data: venta,
     meta: {
       feria: feriaMeta,
+      fid: fidMeta,
       accumulated_commission: accumulatedCommission,
       day_total: dayTotal,
       next_threshold: nextThreshold,

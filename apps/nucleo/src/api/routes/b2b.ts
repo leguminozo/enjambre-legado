@@ -5,6 +5,7 @@ import {
   authMiddleware, tenantMiddleware, requireProfileRole,
 } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
+import type { Json } from "@enjambre/database/database.types";
 import {
   puntoVentaFormSchema,
   revendedorFormSchema,
@@ -46,6 +47,125 @@ export function normalizarWhatsapp(v: string | null | undefined): string | null 
   return digits || null;
 }
 
+/** Resuelve el punto de venta del microcanal de un vendedor de campo (por cuenta o contrato de feria). */
+export async function resolverPuntoVendedor(
+  supabase: AppVariables["supabase"],
+  userId: string,
+): Promise<{ id: string; nombre: string; codigo_acceso: string } | null> {
+  const { data: contratos } = await supabase
+    .from("participante_contrato")
+    .select("id")
+    .eq("user_id", userId);
+  const contratoIds = (contratos ?? []).map((c) => c.id);
+  const condicion = contratoIds.length > 0
+    ? `user_id.eq.${userId},participante_contrato_id.in.(${contratoIds.join(",")})`
+    : `user_id.eq.${userId}`;
+  const { data: pv } = await supabase
+    .from("b2b_puntos_venta")
+    .select("id, nombre, codigo_acceso")
+    .or(condicion)
+    .maybeSingle();
+  return pv ?? null;
+}
+
+/**
+ * Registra una compra de fidelización del microcanal (compartido entre el
+ * portal del dueño y el POS de campo): resuelve/crea el cliente global por
+ * identidad, asegura la membresía (endowed progress) y acredita sellos o
+ * puntos según el programa activo del punto de venta.
+ */
+export async function registrarEventoFid(
+  supabase: AppVariables["supabase"],
+  puntoVentaId: string,
+  identidad: string,
+  montoClp: number,
+  origen: string = "portal",
+): Promise<{ ok: boolean; puntos_ganados: number; cliente_id?: string; error?: string }> {
+  const ident = identidad.trim().toLowerCase();
+  const identWhatsapp = normalizarWhatsapp(identidad) ?? ident;
+
+  const { data: porEmail } = await supabase
+    .from("fid_clientes")
+    .select("*")
+    .eq("email", ident)
+    .maybeSingle();
+  const { data: porWhatsapp } = porEmail
+    ? { data: null }
+    : await supabase.from("fid_clientes").select("*").eq("whatsapp", identWhatsapp).maybeSingle();
+  const { data: porCodigo } = porEmail || porWhatsapp
+    ? { data: null }
+    : await supabase.from("fid_clientes").select("*").eq("codigo_cliente", identidad.trim().toUpperCase()).maybeSingle();
+
+  let cliente = porEmail ?? porWhatsapp ?? porCodigo;
+  if (!cliente) {
+    const nuevo = await supabase
+      .from("fid_clientes")
+      .insert({
+        email: ident.includes("@") ? ident : null,
+        whatsapp: ident.includes("@") ? null : identWhatsapp,
+        codigo_cliente: await generarCodigo(8),
+        consentimiento: false,
+      })
+      .select("*")
+      .single();
+    cliente = nuevo.data;
+  }
+  if (!cliente) return { ok: false, puntos_ganados: 0, error: "No se pudo resolver el cliente" };
+
+  let membresia = await supabase
+    .from("fid_membresias")
+    .select("*")
+    .eq("cliente_id", cliente.id)
+    .eq("punto_venta_id", puntoVentaId)
+    .maybeSingle();
+  if (!membresia.data) {
+    const creada = await supabase
+      .from("fid_membresias")
+      .insert({
+        cliente_id: cliente.id,
+        punto_venta_id: puntoVentaId,
+        saldo_sellos: 1,
+        sellos_iniciales: 1,
+      })
+      .select("*")
+      .single();
+    membresia = creada;
+  }
+  const mem = membresia.data;
+  if (!mem) return { ok: false, puntos_ganados: 0, error: "No se pudo crear la membresía" };
+
+  const { data: programa } = await supabase
+    .from("fid_programas")
+    .select("*")
+    .eq("punto_venta_id", puntoVentaId)
+    .eq("activo", true)
+    .order("created_at")
+    .limit(1)
+    .maybeSingle();
+
+  const puntosPorClp = await leerValor(supabase, "cliente_puntos_por_clp", 1000);
+  const cantidad = programa?.tipo === "puntos"
+    ? Math.floor(montoClp / puntosPorClp)
+    : 1;
+
+  await supabase.from("fid_eventos").insert({
+    cliente_id: cliente.id,
+    punto_venta_id: puntoVentaId,
+    membresia_id: mem.id,
+    tipo: "compra",
+    cantidad,
+    origen,
+    notas: `Compra de ${montoClp.toLocaleString("es-CL")} CLP`,
+  });
+
+  const saldo = programa?.tipo === "puntos"
+    ? { saldo_puntos: Number(mem.saldo_puntos) + cantidad }
+    : { saldo_sellos: Number(mem.saldo_sellos) + cantidad };
+  await supabase.from("fid_membresias").update(saldo).eq("id", mem.id);
+
+  return { ok: true, puntos_ganados: cantidad, cliente_id: cliente.id };
+}
+
 const toNum = (v: unknown): number => Number(v ?? 0);
 
 async function leerValor(
@@ -62,7 +182,10 @@ async function leerValor(
   return data?.valor != null ? Number(data.valor) : fallback;
 }
 
-/** Calcula e inserta las retribuciones de un pedido al por mayor confirmado. */
+/** Calcula e inserta las retribuciones de un pedido al por mayor confirmado.
+ *  El motor de reglas es commission_rules (rule_type 'mayorista', parameter JSONB)
+ *  — consolidado desde fid_retribucion_reglas. El ledger fid_retribuciones se
+ *  conserva (contra-asientos; incentivo_ledger no soporta sin-cuenta ni negativos). */
 async function calcularRetribucion(
   supabase: AppVariables["supabase"],
   revendedorId: string,
@@ -72,24 +195,27 @@ async function calcularRetribucion(
   fechaPedido: string,
 ): Promise<number> {
   const { data: reglas } = await supabase
-    .from("fid_retribucion_reglas")
+    .from("commission_rules")
     .select("*")
-    .eq("activo", true)
-    .order("sort_order");
+    .eq("rule_type", "mayorista")
+    .eq("active", true)
+    .order("priority");
   const filas: { tipo: string; cantidad: number; pct: number | null; notas: string }[] = [];
 
   for (const r of reglas ?? []) {
-    const valor = toNum(r.valor);
-    if (r.tipo === "puntos_por_clp") {
-      filas.push({ tipo: "puntos", cantidad: Math.floor(monto * valor), pct: null, notas: `${r.nombre} (${monto.toLocaleString("es-CL")} CLP)` });
-    } else if (r.tipo === "rebate_porcentual") {
+    const p = (r.parameter ?? {}) as Record<string, unknown>;
+    const tipo = String(p.tipo_original ?? "puntos_por_clp");
+    const valor = Number(p.valor ?? 0);
+    if (tipo === "puntos_por_clp") {
+      filas.push({ tipo: "puntos", cantidad: Math.floor(monto * valor), pct: null, notas: `${r.name} (${monto.toLocaleString("es-CL")} CLP)` });
+    } else if (tipo === "rebate_porcentual") {
       const enTramo =
-        (r.umbral_min_clp == null || monto >= toNum(r.umbral_min_clp)) &&
-        (r.umbral_max_clp == null || monto <= toNum(r.umbral_max_clp));
+        (p.umbral_min_clp == null || monto >= Number(p.umbral_min_clp)) &&
+        (p.umbral_max_clp == null || monto <= Number(p.umbral_max_clp));
       if (enTramo) {
-        filas.push({ tipo: "rebate", cantidad: Math.round((monto * valor) / 100), pct: valor, notas: `${r.nombre} (${valor}%)` });
+        filas.push({ tipo: "rebate", cantidad: Math.round((monto * valor) / 100), pct: valor, notas: `${r.name} (${valor}%)` });
       }
-    } else if (r.tipo === "bonus_recompra_rapida" && r.dias_max != null) {
+    } else if (tipo === "bonus_recompra_rapida" && p.dias_max != null) {
       const { data: previo } = await supabase
         .from("b2b_pedidos")
         .select("fecha")
@@ -101,14 +227,14 @@ async function calcularRetribucion(
         .maybeSingle();
       if (previo) {
         const dias = (new Date(fechaPedido).getTime() - new Date(previo.fecha).getTime()) / 86400000;
-        if (dias <= toNum(r.dias_max)) {
-          filas.push({ tipo: "bonus", cantidad: Math.round(valor), pct: null, notas: `${r.nombre} (recompra en ${Math.round(dias)} días)` });
+        if (dias <= Number(p.dias_max)) {
+          filas.push({ tipo: "bonus", cantidad: Math.round(valor), pct: null, notas: `${r.name} (recompra en ${Math.round(dias)} días)` });
         }
       }
-    } else if (r.tipo === "bonus_rango" && r.skus_min != null && setSkus >= toNum(r.skus_min)) {
-      filas.push({ tipo: "bonus", cantidad: Math.round(valor), pct: null, notas: `${r.nombre} (${setSkus} SKUs)` });
-    } else if (r.tipo === "co_op") {
-      filas.push({ tipo: "co_op", cantidad: Math.round((monto * valor) / 100), pct: valor, notas: `${r.nombre} (${valor}%)` });
+    } else if (tipo === "bonus_rango" && p.skus_min != null && setSkus >= Number(p.skus_min)) {
+      filas.push({ tipo: "bonus", cantidad: Math.round(valor), pct: null, notas: `${r.name} (${setSkus} SKUs)` });
+    } else if (tipo === "co_op") {
+      filas.push({ tipo: "co_op", cantidad: Math.round((monto * valor) / 100), pct: valor, notas: `${r.name} (${valor}%)` });
     }
   }
 
@@ -623,11 +749,38 @@ b2bRoutes.post(
       .select("id, nombre, codigo_revendedor")
       .single();
     if (error) return c.json({ code: "update_failed", message: error.message }, 400);
+
+    // Consistencia con el sistema existente de aliados B2B (AliadosB2BTab del CRM).
+    const { data: yaRol } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .eq("role", "revendedor")
+      .maybeSingle();
+    if (!yaRol) {
+      await supabase.from("user_roles").insert({ user_id: user.id, role: "revendedor" });
+    }
     return c.json({ data: { tipo: "revendedor", ...data } });
   },
 );
 
 /* ── Portal (dueño de local y revendedor) ──────────────────────────────────── */
+
+/** GET /api/b2b/mi-punto — el vendedor de campo resuelve SU punto del microcanal
+ *  (por cuenta propia o por contrato de feria) para registrar fidelización. */
+b2bRoutes.get("/mi-punto", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+  const punto = await resolverPuntoVendedor(supabase, user.id);
+  if (!punto) return c.json({ data: null });
+  const origin = new URL(c.req.url).origin;
+  return c.json({
+    data: {
+      punto,
+      url_landing: `${origin}/punto-de-venta/${punto.codigo_acceso}`,
+    },
+  });
+});
 
 /** GET /api/b2b/portal — todo lo del usuario autenticado */
 b2bRoutes.get("/portal", async (c) => {
@@ -667,11 +820,17 @@ b2bRoutes.get("/portal", async (c) => {
     supabase.from("fid_retribucion_tiers").select("*").eq("activo", true).order("sort_order"),
     rv.data
       ? supabase
-          .from("b2b_resenas_revendedor")
+          .from("resenas_producto")
           .select("*, b2b_revendedores(id, nombre)")
+          .eq("modo", "revendedor")
           .or(`revendedor_id.eq.${rv.data.id},estado.eq.aprobada`)
           .order("created_at", { ascending: false })
-      : supabase.from("b2b_resenas_revendedor").select("*, b2b_revendedores(id, nombre)").eq("estado", "aprobada"),
+      : supabase
+          .from("resenas_producto")
+          .select("*, b2b_revendedores(id, nombre)")
+          .eq("modo", "revendedor")
+          .eq("estado", "aprobada")
+          .order("created_at", { ascending: false }),
   ]);
 
   // Compras de 12 meses (ventana móvil) + tier + crédito disponible
@@ -708,7 +867,15 @@ b2bRoutes.get("/portal", async (c) => {
       programas: programas.data ?? [],
       retribuciones: retribuciones.data ?? [],
       tiers: tierConProgreso,
-      resenas_revendedor: (resenas.data ?? []).map((r) => ({ ...r, revendedor: r.b2b_revendedores })),
+      resenas_revendedor: (resenas.data ?? []).map((r) => ({
+        id: r.id,
+        revendedor_id: r.revendedor_id,
+        rating: r.rating,
+        texto: r.comentario_corto ?? "",
+        estado: r.estado,
+        created_at: r.created_at,
+        revendedor: r.b2b_revendedores,
+      })),
       credito_disponible: credito,
     },
   });
@@ -803,96 +970,23 @@ b2bRoutes.post(
   async (c) => {
     const input = c.req.valid("json");
     const supabase = c.get("supabase");
-
-    // Resolver cliente por identidad (email / whatsapp / codigo_cliente)
-    const ident = input.identidad.trim().toLowerCase();
-    const identWhatsapp = normalizarWhatsapp(input.identidad) ?? ident;
-    let query = supabase
-      .from("fid_clientes")
-      .select("*")
-      .eq("email", ident);
-    const { data: porEmail } = await query.maybeSingle();
-    const { data: porWhatsapp } = porEmail
-      ? { data: null }
-      : await supabase.from("fid_clientes").select("*").eq("whatsapp", identWhatsapp).maybeSingle();
-    const { data: porCodigo } = porEmail || porWhatsapp
-      ? { data: null }
-      : await supabase.from("fid_clientes").select("*").eq("codigo_cliente", input.identidad.trim().toUpperCase()).maybeSingle();
-
-    let cliente = porEmail ?? porWhatsapp ?? porCodigo;
-    if (!cliente) {
-      const nuevo = await supabase
-        .from("fid_clientes")
-        .insert({
-          email: ident.includes("@") ? ident : null,
-          whatsapp: ident.includes("@") ? null : identWhatsapp,
-          codigo_cliente: await generarCodigo(8),
-          consentimiento: false,
-        })
-        .select("*")
-        .single();
-      cliente = nuevo.data;
+    const resultado = await registrarEventoFid(supabase, input.punto_venta_id, input.identidad, input.monto_clp, "portal");
+    if (!resultado.ok || !resultado.cliente_id) {
+      return c.json({ code: "cliente_error", message: resultado.error ?? "Error al registrar la compra" }, 400);
     }
-    if (!cliente) return c.json({ code: "cliente_error", message: "No se pudo resolver el cliente" }, 400);
-
-    // Asegurar membresía (endowed progress: sellos_iniciales = 1)
-    let membresia = await supabase
+    const { data: membresia } = await supabase
       .from("fid_membresias")
-      .select("*")
-      .eq("cliente_id", cliente.id)
+      .select("*, fid_clientes(id, nombre, email, whatsapp, codigo_cliente)")
+      .eq("cliente_id", resultado.cliente_id)
       .eq("punto_venta_id", input.punto_venta_id)
       .maybeSingle();
-    if (!membresia.data) {
-      const creada = await supabase
-        .from("fid_membresias")
-        .insert({
-          cliente_id: cliente.id,
-          punto_venta_id: input.punto_venta_id,
-          saldo_sellos: 1,  // endowed progress (Nunes & Drèze 2006)
-          sellos_iniciales: 1,
-        })
-        .select("*")
-        .single();
-      membresia = creada;
-    }
-    const mem = membresia.data;
-    if (!mem) return c.json({ code: "membresia_error", message: "No se pudo crear la membresía" }, 400);
-
-    const { data: programa } = await supabase
-      .from("fid_programas")
-      .select("*")
-      .eq("punto_venta_id", input.punto_venta_id)
-      .eq("activo", true)
-      .order("created_at")
-      .limit(1)
-      .maybeSingle();
-
-    const puntosPorClp = await leerValor(supabase, "cliente_puntos_por_clp", 1000);
-    const cantidad = programa?.tipo === "puntos"
-      ? Math.floor(input.monto_clp / puntosPorClp)
-      : 1;  // sellos: 1 por compra
-
-    await supabase.from("fid_eventos").insert({
-      cliente_id: cliente.id,
-      punto_venta_id: input.punto_venta_id,
-      membresia_id: mem.id,
-      tipo: "compra",
-      cantidad,
-      origen: "portal",
-      notas: `Compra de ${input.monto_clp.toLocaleString("es-CL")} CLP`,
-    });
-
-    const saldo = programa?.tipo === "puntos"
-      ? { saldo_puntos: Number(mem.saldo_puntos) + cantidad }
-      : { saldo_sellos: Number(mem.saldo_sellos) + cantidad };
-    const { data: actualizada } = await supabase
-      .from("fid_membresias")
-      .update(saldo)
-      .eq("id", mem.id)
-      .select("*")
-      .single();
-
-    return c.json({ data: { cliente, membresia: actualizada, puntos_ganados: cantidad, programa: programa?.tipo ?? "sellos" } }, 201);
+    return c.json({
+      data: {
+        cliente: membresia?.fid_clientes ?? null,
+        membresia,
+        puntos_ganados: resultado.puntos_ganados,
+      },
+    }, 201);
   },
 );
 
@@ -959,14 +1053,30 @@ b2bRoutes.get("/configuracion", requireProfileRole("admin"), async (c) => {
   const supabase = c.get("supabase");
   const [valores, reglas, tiers, chips] = await Promise.all([
     supabase.from("fid_valores").select("*").order("clave"),
-    supabase.from("fid_retribucion_reglas").select("*").order("sort_order"),
+    supabase.from("commission_rules").select("*").eq("rule_type", "mayorista").order("priority"),
     supabase.from("fid_retribucion_tiers").select("*").order("sort_order"),
     supabase.from("perc_chip_catalogos").select("*").order("bloque, sort_order"),
   ]);
+  // Mapear commission_rules (parameter JSONB) a la forma del frontend
+  const reglasMapeadas = (reglas.data ?? []).map((r) => {
+    const p = (r.parameter ?? {}) as Record<string, unknown>;
+    return {
+      id: r.id,
+      tipo: String(p.tipo_original ?? "puntos_por_clp"),
+      nombre: r.name,
+      valor: Number(p.valor ?? 0),
+      umbral_min_clp: p.umbral_min_clp != null ? Number(p.umbral_min_clp) : null,
+      umbral_max_clp: p.umbral_max_clp != null ? Number(p.umbral_max_clp) : null,
+      dias_max: p.dias_max != null ? Number(p.dias_max) : null,
+      skus_min: p.skus_min != null ? Number(p.skus_min) : null,
+      activo: r.active,
+      sort_order: r.priority,
+    };
+  });
   return c.json({
     data: {
       valores: valores.data ?? [],
-      reglas: reglas.data ?? [],
+      reglas: reglasMapeadas,
       tiers: tiers.data ?? [],
       chips: chips.data ?? [],
     },
@@ -988,7 +1098,7 @@ b2bRoutes.patch(
   },
 );
 
-/** POST /api/b2b/configuracion/reglas */
+/** POST /api/b2b/configuracion/reglas — regla mayorista en commission_rules */
 b2bRoutes.post(
   "/configuracion/reglas",
   requireProfileRole("admin"),
@@ -996,9 +1106,24 @@ b2bRoutes.post(
   async (c) => {
     const input = c.req.valid("json");
     const supabase = c.get("supabase");
+    const empresaId = await empresaDeMarca(supabase, c.get("empresaId"));
     const { data, error } = await supabase
-      .from("fid_retribucion_reglas")
-      .insert(input)
+      .from("commission_rules")
+      .insert({
+        empresa_id: empresaId,
+        rule_type: "mayorista",
+        name: input.nombre,
+        parameter: {
+          tipo_original: input.tipo,
+          valor: input.valor,
+          umbral_min_clp: input.umbral_min_clp ?? null,
+          umbral_max_clp: input.umbral_max_clp ?? null,
+          dias_max: input.dias_max ?? null,
+          skus_min: input.skus_min ?? null,
+        },
+        active: input.activo,
+        priority: input.sort_order,
+      })
       .select("*")
       .single();
     if (error) return c.json({ code: "create_failed", message: error.message }, 400);
@@ -1015,9 +1140,29 @@ b2bRoutes.patch(
     const id = c.req.param("id");
     const input = c.req.valid("json");
     const supabase = c.get("supabase");
+    const payload: { name?: string; active?: boolean; priority?: number; parameter?: Json } = {};
+    if (input.nombre !== undefined) payload.name = input.nombre;
+    if (input.activo !== undefined) payload.active = input.activo;
+    if (input.sort_order !== undefined) payload.priority = input.sort_order;
+    if (input.tipo !== undefined || input.valor !== undefined || input.umbral_min_clp !== undefined
+      || input.umbral_max_clp !== undefined || input.dias_max !== undefined || input.skus_min !== undefined) {
+      const { data: actual } = await supabase
+        .from("commission_rules")
+        .select("parameter")
+        .eq("id", id)
+        .maybeSingle();
+      const p = { ...((actual?.parameter ?? {}) as Record<string, unknown>) };
+      if (input.tipo !== undefined) p.tipo_original = input.tipo;
+      if (input.valor !== undefined) p.valor = input.valor;
+      if (input.umbral_min_clp !== undefined) p.umbral_min_clp = input.umbral_min_clp ?? null;
+      if (input.umbral_max_clp !== undefined) p.umbral_max_clp = input.umbral_max_clp ?? null;
+      if (input.dias_max !== undefined) p.dias_max = input.dias_max ?? null;
+      if (input.skus_min !== undefined) p.skus_min = input.skus_min ?? null;
+      payload.parameter = p as unknown as Json;
+    }
     const { data, error } = await supabase
-      .from("fid_retribucion_reglas")
-      .update(input)
+      .from("commission_rules")
+      .update(payload)
       .eq("id", id)
       .select("*")
       .single();
@@ -1030,10 +1175,20 @@ b2bRoutes.patch(
 b2bRoutes.delete("/configuracion/reglas/:id", requireProfileRole("admin"), async (c) => {
   const id = c.req.param("id");
   const supabase = c.get("supabase");
-  const { error } = await supabase.from("fid_retribucion_reglas").delete().eq("id", id);
+  const { error } = await supabase.from("commission_rules").delete().eq("id", id).eq("rule_type", "mayorista");
   if (error) return c.json({ code: "delete_failed", message: error.message }, 400);
   return c.json({ data: { deleted: true } });
 });
+
+/** Empresa de la marca: la del tenant o la primera (single-brand). */
+async function empresaDeMarca(
+  supabase: AppVariables["supabase"],
+  tenantEmpresa: string,
+): Promise<string> {
+  if (tenantEmpresa) return tenantEmpresa;
+  const { data } = await supabase.from("empresas").select("id").order("created_at").limit(1).maybeSingle();
+  return data?.id ?? "";
+}
 
 /** POST /api/b2b/configuracion/tiers */
 b2bRoutes.post(
@@ -1123,7 +1278,8 @@ b2bRoutes.delete("/configuracion/chips/:id", requireProfileRole("admin"), async 
 
 /* ── Reseñas de revendedores ───────────────────────────────────────────────── */
 
-/** POST /api/b2b/resenas-revendedor — el revendedor cuenta su experiencia */
+/** POST /api/b2b/resenas-revendedor — el revendedor cuenta su experiencia
+ *  (consolidado en resenas_producto, modo 'revendedor' — moderación existente) */
 b2bRoutes.post(
   "/resenas-revendedor",
   zValidator("json", resenaRevendedorFormSchema),
@@ -1133,13 +1289,20 @@ b2bRoutes.post(
     const user = c.get("user");
     const { data: rv } = await supabase
       .from("b2b_revendedores")
-      .select("id")
+      .select("id, nombre")
       .eq("user_id", user.id)
       .maybeSingle();
     if (!rv) return c.json({ code: "sin_revendedor", message: "Necesitas un perfil de revendedor vinculado" }, 403);
     const { data, error } = await supabase
-      .from("b2b_resenas_revendedor")
-      .insert({ revendedor_id: rv.id, ...input })
+      .from("resenas_producto")
+      .insert({
+        modo: "revendedor",
+        estado: "pendiente",
+        rating: input.rating,
+        comentario_corto: input.texto.slice(0, 2000),
+        display_name: rv.nombre,
+        revendedor_id: rv.id,
+      })
       .select("*")
       .single();
     if (error) return c.json({ code: "create_failed", message: error.message }, 400);
@@ -1157,9 +1320,10 @@ b2bRoutes.patch(
     const { estado } = c.req.valid("json");
     const supabase = c.get("supabase");
     const { data, error } = await supabase
-      .from("b2b_resenas_revendedor")
+      .from("resenas_producto")
       .update({ estado })
       .eq("id", id)
+      .eq("modo", "revendedor")
       .select("*")
       .single();
     if (error) return c.json({ code: "update_failed", message: error.message }, 400);

@@ -34,7 +34,12 @@ export function SidebarRail({ onExpand, onOpenMenu }: SidebarRailProps) {
   const router = useRouter();
   const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
   const authUser = useAuthStore((s) => s.user);
-  const sidebarGroups = useMemo(() => getSidebarGroupsForRole(userRole), [userRole]);
+  const territorialRol = authUser?.territorial_rol ?? null;
+  const shellOpts = useMemo(() => ({ territorialRol }), [territorialRol]);
+  const sidebarGroups = useMemo(
+    () => getSidebarGroupsForRole(userRole, shellOpts),
+    [userRole, shellOpts],
+  );
   const activeItem = findActiveItem(pathname);
 
   const [openGroupKey, setOpenGroupKey] = useState<string | null>(null);

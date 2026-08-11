@@ -9,7 +9,11 @@ import {
   type RoleKey,
 } from '@enjambre/auth/role-redirect';
 import { ViewLoading } from '@enjambre/ui';
-import { LazyDashboardEjecutivo, LazyInicioTerritorialView } from '@/lib/navigation/lazy-views';
+import {
+  LazyDashboardEjecutivo,
+  LazyInicioApicultorView,
+  LazyInicioTerritorialView,
+} from '@/lib/navigation/lazy-views';
 
 /**
  * Único home de Núcleo: `/inicio`.
@@ -17,8 +21,9 @@ import { LazyDashboardEjecutivo, LazyInicioTerritorialView } from '@/lib/navigat
  * Rol canónico = `profiles.role` vía auth store (`user.role`), no solo
  * `app_metadata` (puede ir vacío o desfasado → territorial veía panel admin).
  *
- * - admin (+ legado gerente/apicultor/…): panel gerencial
+ * - admin (+ legado gerente/vendedor/…): panel gerencial
  * - territorial: métricas + herramientas registro Chiloé
+ * - apicultor (patio): CTAs colmenas/cuaderno/voz (no panel ejecutivo)
  * - resto: salen a tienda/campo (middleware ya acota /inicio; defensa en profundidad)
  *
  * Rutas legacy `/alma` y `/ejecutivo` solo redirigen aquí.
@@ -28,6 +33,7 @@ function normalizeRole(raw: string): RoleKey | '' {
   if (raw in LEGACY_ROLE_MAP) return LEGACY_ROLE_MAP[raw]!;
   if (
     raw === 'admin' ||
+    raw === 'apicultor' ||
     raw === 'territorial' ||
     raw === 'cliente' ||
     raw === 'creador' ||
@@ -37,6 +43,8 @@ function normalizeRole(raw: string): RoleKey | '' {
   }
   return '';
 }
+
+const NUCLEO_HOME_ROLES: RoleKey[] = ['admin', 'territorial', 'apicultor'];
 
 export function HomeView() {
   const router = useRouter();
@@ -51,7 +59,7 @@ export function HomeView() {
   const role = useMemo(() => normalizeRole(String(rawRole)), [rawRole]);
 
   const externalHome =
-    !isLoading && role && role !== 'admin' && role !== 'territorial'
+    !isLoading && role && !NUCLEO_HOME_ROLES.includes(role)
       ? getRoleRedirectPath(role, 'nucleo')
       : null;
 
@@ -64,6 +72,7 @@ export function HomeView() {
   }
 
   if (role === 'territorial') return <LazyInicioTerritorialView />;
+  if (role === 'apicultor') return <LazyInicioApicultorView />;
   if (role === 'admin') return <LazyDashboardEjecutivo />;
 
   // Redirigiendo a tienda/campo

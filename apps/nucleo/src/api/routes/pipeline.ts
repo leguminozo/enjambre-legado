@@ -97,8 +97,8 @@ pipelineRoutes.get("/dashboard", async (c) => {
   );
 
   const tareasVencidas = tareas.filter(
-    (t: { estado: string; fecha_vencimiento: string }) =>
-      t.estado === "pendiente" && new Date(t.fecha_vencimiento) < new Date()
+    (t: { estado: string; fecha_vencimiento: string | null }) =>
+      t.estado === "pendiente" && t.fecha_vencimiento != null && new Date(t.fecha_vencimiento) < new Date()
   ).length;
 
   const tareasPendientes = tareas.filter(

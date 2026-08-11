@@ -31,7 +31,15 @@ const CrearCuentaSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
   fullName: z.string().min(2, "Nombre demasiado corto"),
-  role: z.enum(["admin", "territorial", "cliente", "rep_ventas", "creador"]),
+  /** Platform RoleKey — incluye apicultor (patio). Ver docs/ROLES_Y_ACCESO.md */
+  role: z.enum([
+    "admin",
+    "apicultor",
+    "territorial",
+    "cliente",
+    "rep_ventas",
+    "creador",
+  ]),
   rolTerritorial: RolTerritorialSchema.optional(),
   comuna: z.string().optional(),
 });
@@ -61,7 +69,11 @@ adminIdentidadesRoutes.post(
     // leyendo los metadata; por eso se pasan territorial_rol/comuna aquí y no se
     // inserta actores_registro manualmente (evita doble fila y el rol perdido).
     const appSource =
-      role === "territorial" ? "nucleo_territorial" : "nucleo_admin_created";
+      role === "territorial"
+        ? "nucleo_territorial"
+        : role === "apicultor"
+          ? "nucleo_apicultor"
+          : "nucleo_admin_created";
 
     const { data: authData, error: authError } =
       await admin.auth.admin.createUser({
@@ -97,6 +109,7 @@ adminIdentidadesRoutes.post(
     const userId = authData.user.id;
 
     // 2. Crear o actualizar el perfil con el rol correcto
+    // (handle_new_user puede haber insertado cliente/territorial; upsert fija SoT)
     const { error: profileError } = await admin
       .from("profiles")
       .upsert(
@@ -120,15 +133,36 @@ adminIdentidadesRoutes.post(
     // metadata enviados en el createUser; no se inserta aquí para evitar doble
     // fila en actores_registro.)
 
-    // 4. Si es admin, vincularlo a la empresa
-    if (role === "admin") {
+    // 4. Vincular a la empresa del admin: admin + patio (apicultor) + rep
+    if (role === "admin" || role === "apicultor" || role === "rep_ventas") {
       const empresaId = c.get("empresaId");
       if (empresaId) {
+        const empresaRol =
+          role === "admin" ? "admin" : role === "rep_ventas" ? "operador" : "operador";
         await admin
           .from("usuarios_empresas")
           .upsert(
-            { user_id: userId, empresa_id: empresaId, rol: "admin" },
+            { user_id: userId, empresa_id: empresaId, rol: empresaRol },
             { onConflict: "user_id,empresa_id" }
+          )
+          .then(() => {});
+      }
+    }
+
+    // 5. rep_profiles si es rep de ventas
+    if (role === "rep_ventas") {
+      const empresaId = c.get("empresaId");
+      if (empresaId) {
+        await admin
+          .from("rep_profiles")
+          .upsert(
+            {
+              user_id: userId,
+              empresa_id: empresaId,
+              display_name: fullName,
+              active: true,
+            },
+            { onConflict: "user_id" }
           )
           .then(() => {});
       }

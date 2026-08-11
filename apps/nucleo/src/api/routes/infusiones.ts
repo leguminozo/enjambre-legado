@@ -4,6 +4,7 @@ import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 import { rpcLoose } from "@/api/lib/supabase-loose";
 import { createAdminClient } from "@enjambre/auth/browser";
+import type { Json } from "@enjambre/database/database.types";
 import {
   materiaPrimaFormSchema,
   proveedorFormSchema,
@@ -1166,7 +1167,8 @@ async function validarRolEquipo(
   return null;
 }
 
-/** GET /api/infusiones/tareas?estado=&equipo_id=&tipo= */
+/** GET /api/infusiones/tareas?estado=&equipo_id=&tipo=
+ *  Consolidado en crm_tareas (ref_tipo='infusion') — Fase C de la auditoría. */
 infusionesRoutes.get("/tareas", async (c) => {
   const supabase = c.get("supabase");
   const estado = c.req.query("estado");
@@ -1174,18 +1176,41 @@ infusionesRoutes.get("/tareas", async (c) => {
   const tipo = c.req.query("tipo");
 
   let q = supabase
-    .from("infusion_tareas")
-    .select(
-      "*, infusion_equipo(id, nombre, rol_operacion), infusion_lotes_entrada(id, codigo_lote), infusion_lotes_deshidratado(id, infusion_lotes_entrada(codigo_lote)), infusion_lotes_produccion(id, infusion_formulas(nombre))",
-    )
+    .from("crm_tareas")
+    .select("*, infusion_equipo(id, nombre, rol_operacion)")
+    .eq("ref_tipo", "infusion")
     .order("fecha_vencimiento", { ascending: true, nullsFirst: false });
   if (estado) q = q.eq("estado", estado);
   if (equipoId) q = q.eq("equipo_id", equipoId);
-  if (tipo) q = q.eq("tipo", tipo);
+  if (tipo) q = q.eq("titulo", tipo);
   const { data, error } = await q;
   if (error) return c.json({ code: "query_failed", message: error.message }, 500);
 
-  const rows = data ?? [];
+  const rows = (data ?? []) as { id: string; titulo: string; metadata: Record<string, unknown> | null; evidencia_path: string | null }[];
+
+  // Resolver nombres de lotes referenciados (metadata guarda los ids)
+  const leIds = new Set<string>();
+  const ldIds = new Set<string>();
+  const lpIds = new Set<string>();
+  for (const r of rows) {
+    const m = r.metadata ?? {};
+    if (m.lote_entrada_id) leIds.add(String(m.lote_entrada_id));
+    if (m.lote_deshidratado_id) ldIds.add(String(m.lote_deshidratado_id));
+    if (m.lote_produccion_id) lpIds.add(String(m.lote_produccion_id));
+  }
+  const [leRes, ldRes, lpRes] = await Promise.all([
+    leIds.size ? supabase.from("infusion_lotes_entrada").select("id, codigo_lote").in("id", [...leIds]) : Promise.resolve({ data: [] }),
+    ldIds.size
+      ? supabase.from("infusion_lotes_deshidratado").select("id, infusion_lotes_entrada(codigo_lote)").in("id", [...ldIds])
+      : Promise.resolve({ data: [] }),
+    lpIds.size
+      ? supabase.from("infusion_lotes_produccion").select("id, infusion_formulas(nombre)").in("id", [...lpIds])
+      : Promise.resolve({ data: [] }),
+  ]);
+  const leNombre = new Map((leRes.data ?? []).map((l) => [l.id, l.codigo_lote]));
+  const ldNombre = new Map((ldRes.data ?? []).map((l) => [l.id, l.infusion_lotes_entrada?.codigo_lote ?? ""]));
+  const lpNombre = new Map((lpRes.data ?? []).map((l) => [l.id, l.infusion_formulas?.nombre ?? ""]));
+
   const conEvidencia = rows.filter((r) => r.evidencia_path);
   const firmadas = await Promise.all(
     conEvidencia.map(async (r) => {
@@ -1196,10 +1221,35 @@ infusionesRoutes.get("/tareas", async (c) => {
     }),
   );
   const urlPorId = new Map(firmadas.map((f) => [f.id, f.url]));
-  const out = rows.map((r) => ({
-    ...r,
-    evidencia_url: r.evidencia_path ? (urlPorId.get(r.id) ?? null) : null,
-  }));
+
+  const out = rows.map((r) => {
+    const m = r.metadata ?? {};
+    return {
+      id: r.id,
+      tipo: r.titulo,
+      lote_entrada_id: m.lote_entrada_id ?? null,
+      lote_deshidratado_id: m.lote_deshidratado_id ?? null,
+      lote_produccion_id: m.lote_produccion_id ?? null,
+      equipo_id: (r as Record<string, unknown>).equipo_id ?? null,
+      estado: (r as Record<string, unknown>).estado ?? "pendiente",
+      fecha_vencimiento: (r as Record<string, unknown>).fecha_vencimiento ?? null,
+      prioridad: (r as Record<string, unknown>).prioridad ?? "media",
+      evidencia_path: r.evidencia_path,
+      evidencia_url: r.evidencia_path ? (urlPorId.get(r.id) ?? null) : null,
+      completada_at: (r as Record<string, unknown>).completada_at ?? null,
+      completada_por: (r as Record<string, unknown>).completada_por ?? null,
+      notas: (r as Record<string, unknown>).descripcion ?? null,
+      equipo: (r as Record<string, unknown>).infusion_equipo ?? null,
+      lote_entrada: m.lote_entrada_id ? { id: String(m.lote_entrada_id), codigo_lote: leNombre.get(String(m.lote_entrada_id)) ?? "" } : null,
+      lote_deshidratado: m.lote_deshidratado_id
+        ? { id: String(m.lote_deshidratado_id), lote_entrada: { codigo_lote: ldNombre.get(String(m.lote_deshidratado_id)) ?? "" } }
+        : null,
+      lote_produccion: m.lote_produccion_id
+        ? { id: String(m.lote_produccion_id), infusion_formulas: { nombre: lpNombre.get(String(m.lote_produccion_id)) ?? "" } }
+        : null,
+      created_at: (r as Record<string, unknown>).created_at ?? "",
+    };
+  });
   return c.json({ data: out });
 });
 
@@ -1212,24 +1262,30 @@ infusionesRoutes.post("/tareas", zValidator("json", tareaFormSchema), async (c) 
   const rolError = await validarRolEquipo(supabase, input.tipo, input.equipo_id ?? null);
   if (rolError) return c.json({ code: "rol_no_corresponde", message: rolError }, 400);
 
+  const refId = (input.lote_entrada_id ?? input.lote_deshidratado_id ?? input.lote_produccion_id ?? null) as string | null;
   const completada = input.estado === "completada";
-  const payload = {
-    ...input,
-    lote_entrada_id: input.lote_entrada_id ?? null,
-    lote_deshidratado_id: input.lote_deshidratado_id ?? null,
-    lote_produccion_id: input.lote_produccion_id ?? null,
-    equipo_id: input.equipo_id ?? null,
-    fecha_vencimiento: input.fecha_vencimiento || null,
-    evidencia_path: input.evidencia_path ?? null,
-    notas: input.notas ?? null,
-    completada_at: completada ? new Date().toISOString() : null,
-    completada_por: completada ? (await nombreEquipo(supabase, input.equipo_id ?? null)) ?? "—" : null,
-    user_id: user.id,
-  };
-
   const { data, error } = await supabase
-    .from("infusion_tareas")
-    .insert(payload)
+    .from("crm_tareas")
+    .insert({
+      titulo: input.tipo,
+      tipo: "produccion",
+      descripcion: input.notas ?? null,
+      fecha_vencimiento: input.fecha_vencimiento || null,
+      prioridad: input.prioridad,
+      estado: input.estado,
+      metadata: {
+        lote_entrada_id: input.lote_entrada_id ?? null,
+        lote_deshidratado_id: input.lote_deshidratado_id ?? null,
+        lote_produccion_id: input.lote_produccion_id ?? null,
+      },
+      ref_tipo: "infusion",
+      ref_id: refId,
+      equipo_id: input.equipo_id ?? null,
+      evidencia_path: input.evidencia_path ?? null,
+      completada_at: completada ? new Date().toISOString() : null,
+      completada_por: completada ? (await nombreEquipo(supabase, input.equipo_id ?? null)) ?? "—" : null,
+      user_id: user.id,
+    })
     .select("*")
     .single();
   if (error) return c.json({ code: "create_failed", message: error.message }, 400);
@@ -1246,14 +1302,15 @@ infusionesRoutes.patch(
     const supabase = c.get("supabase");
 
     const { data: actual, error: readErr } = await supabase
-      .from("infusion_tareas")
-      .select("estado, tipo, equipo_id")
+      .from("crm_tareas")
+      .select("estado, titulo, equipo_id, metadata")
       .eq("id", id)
+      .eq("ref_tipo", "infusion")
       .maybeSingle();
     if (readErr) return c.json({ code: "query_failed", message: readErr.message }, 500);
     if (!actual) return c.json({ code: "not_found", message: "Tarea no encontrada" }, 404);
 
-    const tipo = input.tipo ?? actual.tipo;
+    const tipo = input.tipo ?? actual.titulo;
     const equipoId = input.equipo_id !== undefined ? input.equipo_id : actual.equipo_id;
     const rolError = await validarRolEquipo(supabase, tipo, equipoId ?? null);
     if (rolError) return c.json({ code: "rol_no_corresponde", message: rolError }, 400);
@@ -1261,29 +1318,40 @@ infusionesRoutes.patch(
     const estado = input.estado ?? actual.estado;
     const completando = estado === "completada" && actual.estado !== "completada";
     const reabriendo = estado !== "completada" && actual.estado === "completada";
-    const payload = {
-      ...input,
-      lote_entrada_id:
-        input.lote_entrada_id === undefined ? undefined : input.lote_entrada_id ?? null,
-      lote_deshidratado_id:
-        input.lote_deshidratado_id === undefined ? undefined : input.lote_deshidratado_id ?? null,
-      lote_produccion_id:
-        input.lote_produccion_id === undefined ? undefined : input.lote_produccion_id ?? null,
-      equipo_id: input.equipo_id === undefined ? undefined : input.equipo_id ?? null,
-      fecha_vencimiento:
-        input.fecha_vencimiento === undefined ? undefined : input.fecha_vencimiento || null,
-      evidencia_path: input.evidencia_path === undefined ? undefined : input.evidencia_path ?? null,
-      notas: input.notas === undefined ? undefined : input.notas ?? null,
-      completada_at: completando ? new Date().toISOString() : reabriendo ? null : undefined,
-      completada_por: completando
-        ? (await nombreEquipo(supabase, equipoId ?? null)) ?? "—"
-        : reabriendo
-          ? null
-          : undefined,
-    };
+
+    const metadataActual = (actual.metadata ?? {}) as Record<string, unknown>;
+    const payload: {
+      titulo?: string; descripcion?: string | null; fecha_vencimiento?: string | null;
+      prioridad?: string; estado?: string; equipo_id?: string | null; evidencia_path?: string | null;
+      metadata?: Json; ref_id?: string | null; completada_at?: string | null; completada_por?: string | null;
+    } = {};
+    if (input.tipo !== undefined) payload.titulo = input.tipo;
+    if (input.notas !== undefined) payload.descripcion = input.notas ?? null;
+    if (input.fecha_vencimiento !== undefined) payload.fecha_vencimiento = input.fecha_vencimiento || null;
+    if (input.prioridad !== undefined) payload.prioridad = input.prioridad;
+    if (input.estado !== undefined) payload.estado = input.estado;
+    if (input.equipo_id !== undefined) payload.equipo_id = input.equipo_id ?? null;
+    if (input.evidencia_path !== undefined) payload.evidencia_path = input.evidencia_path ?? null;
+    if (input.lote_entrada_id !== undefined || input.lote_deshidratado_id !== undefined || input.lote_produccion_id !== undefined) {
+      const nuevoMetadata = {
+        ...metadataActual,
+        lote_entrada_id: input.lote_entrada_id !== undefined ? input.lote_entrada_id ?? null : metadataActual.lote_entrada_id ?? null,
+        lote_deshidratado_id: input.lote_deshidratado_id !== undefined ? input.lote_deshidratado_id ?? null : metadataActual.lote_deshidratado_id ?? null,
+        lote_produccion_id: input.lote_produccion_id !== undefined ? input.lote_produccion_id ?? null : metadataActual.lote_produccion_id ?? null,
+      };
+      payload.metadata = nuevoMetadata as unknown as Json;
+      const refId = nuevoMetadata.lote_entrada_id ?? nuevoMetadata.lote_deshidratado_id ?? nuevoMetadata.lote_produccion_id;
+      payload.ref_id = refId ? String(refId) : null;
+    }
+    payload.completada_at = completando ? new Date().toISOString() : reabriendo ? null : undefined;
+    payload.completada_por = completando
+      ? (await nombreEquipo(supabase, equipoId ?? null)) ?? "—"
+      : reabriendo
+        ? null
+        : undefined;
 
     const { data, error } = await supabase
-      .from("infusion_tareas")
+      .from("crm_tareas")
       .update(payload)
       .eq("id", id)
       .select("*")
@@ -1298,14 +1366,15 @@ infusionesRoutes.delete("/tareas/:id", async (c) => {
   const id = c.req.param("id");
   const supabase = c.get("supabase");
   const { data: tarea } = await supabase
-    .from("infusion_tareas")
+    .from("crm_tareas")
     .select("evidencia_path")
     .eq("id", id)
+    .eq("ref_tipo", "infusion")
     .maybeSingle();
   if (tarea?.evidencia_path) {
     await supabase.storage.from(BUCKET_EVIDENCIAS).remove([tarea.evidencia_path]);
   }
-  const { error } = await supabase.from("infusion_tareas").delete().eq("id", id);
+  const { error } = await supabase.from("crm_tareas").delete().eq("id", id).eq("ref_tipo", "infusion");
   if (error) return c.json({ code: "delete_failed", message: error.message }, 400);
   return c.json({ data: { deleted: true } });
 });

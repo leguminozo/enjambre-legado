@@ -112,16 +112,62 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(groupOf('productos')).toBe('mercado');
   });
 
-  it('rol territorial ve Inicio + su registro + el Oráculo Fenológico', () => {
-    const groups = getSidebarGroupsForRole('territorial');
-    expect(groups.map((g) => g.key)).toEqual(['vision', 'bosque', 'territorio']);
-    const byGroup = Object.fromEntries(groups.map((g) => [g.key, g.items.map((i) => i.key)]));
-    expect(byGroup['vision']).toEqual(['inicio']);
-    expect(byGroup['bosque']).toEqual(['fenologia']);
-    expect(byGroup['territorio']).toEqual(['territorio']);
-    const territorioItem = groups.find((g) => g.key === 'territorio')!.items[0]!;
+  it('territorial sin sub-rol: menú mínimo (inicio + territorio)', () => {
+    const groups = getSidebarGroupsForRole('territorial', { territorialRol: null });
+    const keys = groups.flatMap((g) => g.items.map((i) => i.key));
+    expect(keys).toEqual(['inicio', 'territorio']);
+    expect(keys).not.toContain('fenologia');
+    expect(keys).not.toContain('mis-planes');
+    expect(keys).not.toContain('registro-comunal');
+  });
+
+  it('territorial api_*: inicio + territorio + mis-planes + fenología', () => {
+    const groups = getSidebarGroupsForRole('territorial', {
+      territorialRol: 'api_residente',
+    });
+    const keys = groups.flatMap((g) => g.items.map((i) => i.key));
+    expect(keys).toEqual(['inicio', 'fenologia', 'territorio', 'mis-planes']);
+    expect(keys).not.toContain('registro-comunal');
+    const territorioItem = groups
+      .flatMap((g) => g.items)
+      .find((i) => i.key === 'territorio')!;
     expect(territorioItem.href).toBe('/territorio');
     expect(territorioItem.label).toBe('Mi Territorio');
+  });
+
+  it('territorial institucion_publica: inicio + censo + fenología (no mis-planes)', () => {
+    const groups = getSidebarGroupsForRole('territorial', {
+      territorialRol: 'institucion_publica',
+    });
+    const keys = groups.flatMap((g) => g.items.map((i) => i.key));
+    expect(keys).toEqual(['inicio', 'fenologia', 'territorio', 'registro-comunal']);
+    expect(keys).not.toContain('mis-planes');
+    const censo = groups.flatMap((g) => g.items).find((i) => i.key === 'registro-comunal')!;
+    expect(censo.href).toBe('/registro-territorial');
+  });
+
+  it('territorial 2b (ej. tecnico) queda en menú mínimo hasta oleada 2b', () => {
+    const keys = getSidebarGroupsForRole('territorial', {
+      territorialRol: 'tecnico_inspector',
+    }).flatMap((g) => g.items.map((i) => i.key));
+    expect(keys).toEqual(['inicio', 'territorio']);
+  });
+
+  it('rol apicultor (patio) ve Inicio + Colmenas + Cuaderno + Calendario; no gerencia', () => {
+    const groups = getSidebarGroupsForRole('apicultor');
+    expect(groups.map((g) => g.key)).toEqual(['vision', 'campo', 'bosque']);
+    const keys = groups.flatMap((g) => g.items.map((i) => i.key));
+    expect(keys).toEqual(['inicio', 'colmenas', 'cuaderno-campo', 'ciclo-bosque']);
+    expect(getAccountItemsForRole('apicultor').map((i) => i.key)).toEqual(['configuracion']);
+    const cal = groups.flatMap((g) => g.items).find((i) => i.key === 'ciclo-bosque');
+    expect(cal?.href).toBe('/calendario');
+    expect(cal?.label).toBe('Calendario de patio');
+    // No contable / CRM / producción / plantaciones admin
+    expect(keys).not.toContain('contabilidad');
+    expect(keys).not.toContain('crm');
+    expect(keys).not.toContain('inventario');
+    expect(keys).not.toContain('bosque'); // plantaciones regeneración
+    expect(keys).not.toContain('fenologia');
   });
 
   it('resolveShellRoleKey nunca eleva a admin sin rol (loading / huésped)', () => {
@@ -130,6 +176,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(resolveShellRoleKey('')).toBe('cliente');
     expect(resolveShellRoleKey('gerente')).toBe('admin');
     expect(resolveShellRoleKey('territorial')).toBe('territorial');
+    expect(resolveShellRoleKey('apicultor')).toBe('apicultor');
   });
 
   it('cliente/creador/rep no ven menú gerencial (allowlist vacía, no “all”)', () => {
@@ -140,9 +187,24 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(getSidebarGroupsForRole('admin').length).toBeGreaterThan(3);
   });
 
-  it('bottom nav: admin completo; territorial inicio+territorio; resto mínimo', () => {
+  it('bottom nav: admin completo; territorial por sub-rol; patio inicio+campo; resto mínimo', () => {
     expect(getBottomNavKeysForRole('admin')).toEqual([...BOTTOM_NAV_KEYS]);
-    expect(getBottomNavKeysForRole('territorial')).toEqual(['inicio', 'territorio']);
+    expect(getBottomNavKeysForRole('territorial', { territorialRol: null })).toEqual([
+      'inicio',
+      'territorio',
+    ]);
+    expect(
+      getBottomNavKeysForRole('territorial', { territorialRol: 'api_residente' }),
+    ).toEqual(['inicio', 'territorio']);
+    expect(
+      getBottomNavKeysForRole('territorial', { territorialRol: 'institucion_publica' }),
+    ).toEqual(['inicio', 'registro-comunal']);
+    expect(getBottomNavKeysForRole('apicultor')).toEqual([
+      'inicio',
+      'colmenas',
+      'cuaderno-campo',
+      'configuracion',
+    ]);
     expect(getBottomNavKeysForRole('cliente')).toEqual(['inicio']);
   });
 
@@ -170,6 +232,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'inventario',
       'costeo',
       'hidromiel',
+      'infusiones',
     ]);
     expect(prod?.items.find((i) => i.key === 'recoleccion')?.href).toBe('/produccion/recoleccion');
     expect(prod?.items.find((i) => i.key === 'inventario')?.href).toBe('/produccion/inventario');

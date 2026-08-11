@@ -68,7 +68,7 @@ cd packages/database && pnpm db:typegen          # Regenerate DB types
 ### Roles
 `admin`, `cliente`, `creador`, `rep_ventas`
 
-> Legacy roles (`apicultor`, `vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) consolidated into `admin` via migration 39.
+> Platform roles: `admin`, `apicultor` (patio), `territorial`, `rep_ventas`, `cliente`, `creador`. Legacy (`vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) → `admin` via `LEGACY_ROLE_MAP`. `apicultor` is a first-class RoleKey (not elevated). See `docs/ROLES_Y_ACCESO.md`.
 
 ### Environment Variables
 - Apps Next.js: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`

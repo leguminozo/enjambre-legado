@@ -9,9 +9,15 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Mic, Square, Plus, WifiOff, CheckCircle2, AlertTriangle } from 'lucide-react';
+import {
+  Mic, Square, Plus, WifiOff, CheckCircle2, AlertTriangle, FileText, Loader2,
+} from 'lucide-react';
 import { db } from '@/lib/offline/db';
-import { crearSesionLocal, enqueueCapturaVoz } from '@/lib/offline/bitacora-offline';
+import {
+  crearSesionLocal,
+  enqueueCapturaVoz,
+  enqueueTranscriptManual,
+} from '@/lib/offline/bitacora-offline';
 import { useBitacoraSyncEngine } from '@/hooks/use-bitacora-sync-engine';
 
 function pickMimeType(): string {
@@ -37,6 +43,10 @@ export function RecorderVoz() {
   const [mime, setMime] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [creandoSesion, setCreandoSesion] = useState(false);
+  /** Path MVP sin STT: pegar o escribir la narración del patio. */
+  const [transcriptManual, setTranscriptManual] = useState('');
+  const [enviandoTranscript, setEnviandoTranscript] = useState(false);
+  const [okTranscript, setOkTranscript] = useState<string | null>(null);
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -118,42 +128,62 @@ export function RecorderVoz() {
     }
   }, []);
 
+  const enviarTranscriptManual = useCallback(async () => {
+    if (!sesionActiva || !transcriptManual.trim()) return;
+    setEnviandoTranscript(true);
+    setError(null);
+    setOkTranscript(null);
+    try {
+      await enqueueTranscriptManual({
+        session_id: sesionActiva,
+        transcript_raw: transcriptManual,
+      });
+      setTranscriptManual('');
+      setOkTranscript('Transcript encolado — se sincroniza y queda listo para curaduría/procesar.');
+      void triggerSync();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo encolar el transcript');
+    } finally {
+      setEnviandoTranscript(false);
+    }
+  }, [sesionActiva, transcriptManual, triggerSync]);
+
   const offline = typeof navigator !== 'undefined' && !navigator.onLine;
   const totalPendientes = (pendientes?.capturas ?? 0) + (pendientes?.errores ?? 0);
   const mmss = `${String(Math.floor(duracion / 60)).padStart(2, '0')}:${String(duracion % 60).padStart(2, '0')}`;
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6">
-      <div className="flex items-center gap-3 mb-4">
+    <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
+      <div className="flex items-center gap-3">
         <div className={`p-2 rounded-lg ${grabando ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
           <Mic size={20} />
         </div>
-        <div className="flex-1">
-          <h3 className="text-sm font-bold text-foreground">Captura por voz</h3>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-bold text-foreground">Captura de campo</h3>
           <p className="text-xs text-muted-foreground">
-            Dicta la inspección: la colmena se identifica en tu voz
+            Voz o transcript manual — la colmena se identifica en el texto (sin STT obligatorio)
           </p>
         </div>
         {offline && (
-          <span className="badge badge-warning px-2 py-0.5 rounded-md text-[10px] font-bold uppercase flex items-center gap-1">
+          <span className="badge badge-warning px-2 py-0.5 rounded-md text-[10px] font-bold uppercase flex items-center gap-1 shrink-0">
             <WifiOff size={10} /> sin señal
           </span>
         )}
       </div>
 
-      {/* Estado de sincronización (patrón SyncStatusBanner de Campo) */}
+      {/* Estado de sincronización local (detalle; banner global en shell) */}
       {totalPendientes > 0 && (
-        <div className="mb-4 px-3 py-2 rounded-lg bg-secondary/30 border border-border/50 text-xs text-muted-foreground flex items-center gap-2">
+        <div className="px-3 py-2 rounded-lg bg-secondary/30 border border-border/50 text-xs text-muted-foreground flex items-center gap-2">
           {offline ? <WifiOff size={12} /> : <AlertTriangle size={12} />}
           <span>
-            {totalPendientes} captura{totalPendientes === 1 ? '' : 's'} pendiente{totalPendientes === 1 ? '' : 's'} de sync
+            {totalPendientes} ítem{totalPendientes === 1 ? '' : 's'} pendiente{totalPendientes === 1 ? '' : 's'} de sync
             {pendientes?.errores ? ` · ${pendientes.errores} con error` : ''} — se suben al recuperar señal
           </span>
         </div>
       )}
 
       {/* Sesión activa */}
-      <div className="mb-4">
+      <div>
         <label className="text-[10px] uppercase tracking-wide text-muted-foreground font-bold mb-1 block">
           Sesión de inspección
         </label>
@@ -172,6 +202,7 @@ export function RecorderVoz() {
             ))}
           </select>
           <button
+            type="button"
             onClick={() => void crearSesion()}
             disabled={creandoSesion}
             className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-bold flex items-center gap-1 disabled:opacity-50"
@@ -181,39 +212,77 @@ export function RecorderVoz() {
         </div>
       </div>
 
-      {error && <p className="text-xs text-destructive mb-3">{error}</p>}
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      {okTranscript && (
+        <p className="text-xs text-success flex items-center gap-1">
+          <CheckCircle2 size={12} /> {okTranscript}
+        </p>
+      )}
 
       {/* Controles de grabación */}
-      <div className="flex items-center gap-3">
-        {!grabando ? (
-          <button
-            onClick={() => void iniciarGrabacion()}
-            disabled={!sesionActiva || !mime}
-            className="flex-1 py-3 rounded-xl bg-destructive/90 hover:bg-destructive text-destructive-foreground text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-40"
-          >
-            <Mic size={16} /> Grabar
-          </button>
-        ) : (
-          <button
-            onClick={detenerGrabacion}
-            className="flex-1 py-3 rounded-xl bg-destructive text-destructive-foreground text-sm font-bold flex items-center justify-center gap-2 animate-pulse"
-          >
-            <Square size={16} /> Detener — {mmss}
-          </button>
+      <div>
+        <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-bold mb-2">
+          Opción A · Micrófono
+        </p>
+        <div className="flex items-center gap-3">
+          {!grabando ? (
+            <button
+              type="button"
+              onClick={() => void iniciarGrabacion()}
+              disabled={!sesionActiva || !mime}
+              className="flex-1 py-3 rounded-xl bg-destructive/90 hover:bg-destructive text-destructive-foreground text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-40"
+            >
+              <Mic size={16} /> Grabar
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={detenerGrabacion}
+              className="flex-1 py-3 rounded-xl bg-destructive text-destructive-foreground text-sm font-bold flex items-center justify-center gap-2 animate-pulse"
+            >
+              <Square size={16} /> Detener — {mmss}
+            </button>
+          )}
+        </div>
+        {!sesionActiva && !grabando && (
+          <p className="text-[10px] text-muted-foreground mt-2">
+            Crea una sesión (funciona sin señal: se sincroniza después)
+          </p>
+        )}
+        {grabando && (
+          <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+            <CheckCircle2 size={10} className="text-success" />
+            Grabando localmente — el audio se sube al recuperar señal (STT es opcional)
+          </p>
         )}
       </div>
 
-      {!sesionActiva && !grabando && (
-        <p className="text-[10px] text-muted-foreground mt-3">
-          Crea una sesión (funciona sin señal: se sincroniza después)
+      {/* Path manual sin STT */}
+      <div className="border-t border-border/60 pt-4">
+        <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-bold mb-2 flex items-center gap-1.5">
+          <FileText size={12} /> Opción B · Transcript manual (MVP sin STT)
         </p>
-      )}
-      {grabando && (
-        <p className="text-[10px] text-muted-foreground mt-3 flex items-center gap-1">
-          <CheckCircle2 size={10} className="text-success" />
-          Grabando localmente — el audio se subirá al bucket bitacora-audio al recuperar señal
+        <p className="text-[11px] text-muted-foreground mb-2">
+          Escribe o pega lo que dictaste: &quot;colmena 12, cría fuerte, varroa baja…&quot; Se encola offline y al sync queda listo para procesar/curar.
         </p>
-      )}
+        <textarea
+          value={transcriptManual}
+          onChange={(e) => setTranscriptManual(e.target.value)}
+          rows={4}
+          disabled={!sesionActiva || grabando}
+          placeholder="Ej.: Colmena 15. Reina vista. Tres marcos de cría. Varroa 2 en 10. Notas: entrada limpia."
+          className="w-full rounded-lg border border-border/50 bg-secondary/20 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 disabled:opacity-40 resize-y min-h-[5rem]"
+        />
+        <button
+          type="button"
+          onClick={() => void enviarTranscriptManual()}
+          disabled={!sesionActiva || !transcriptManual.trim() || enviandoTranscript || grabando}
+          className="mt-2 w-full sm:w-auto px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold inline-flex items-center justify-center gap-2 disabled:opacity-40"
+        >
+          {enviandoTranscript ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+          Encolar transcript
+        </button>
+      </div>
     </div>
   );
 }

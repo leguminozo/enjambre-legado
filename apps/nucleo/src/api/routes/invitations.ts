@@ -5,8 +5,18 @@ import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, requireProfileRole, tenantMiddleware } from "@/api/lib/middleware";
 
+/** Platform roles invitables (profiles.role). Incluye apicultor patio — docs/ROLES_Y_ACCESO.md */
+const InvitableRoleSchema = z.enum([
+  "apicultor",
+  "territorial",
+  "admin",
+  "cliente",
+  "rep_ventas",
+  "creador",
+]);
+
 const CreateInvitationSchema = z.object({
-  roles: z.array(z.enum(["rep_ventas", "creador", "admin", "cliente"])).min(1).default(["rep_ventas"]),
+  roles: z.array(InvitableRoleSchema).min(1).default(["rep_ventas"]),
   tools: z.record(z.string(), z.unknown()).default({}),
   max_uses: z.number().int().min(1).optional(),
   expires_at: z.string().datetime().optional(),
@@ -16,7 +26,7 @@ const UpdateInvitationSchema = z.object({
   active: z.boolean().optional(),
   max_uses: z.number().int().min(1).optional(),
   expires_at: z.string().datetime().nullable().optional(),
-  roles: z.array(z.enum(["rep_ventas", "creador", "admin", "cliente"])).optional(),
+  roles: z.array(InvitableRoleSchema).optional(),
   tools: z.record(z.string(), z.unknown()).optional(),
 }).strict();
 

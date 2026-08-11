@@ -37,7 +37,7 @@ La tabla maestra que define quien es quien en el ecosistema.
 
 **Roles validos**: `admin`, `cliente`, `creador`, `rep_ventas`, `territorial` (via migration 997)
 
-> Los roles granulares anteriores (`apicultor`, `vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) fueron consolidados en `admin` via migration 39. Existe `LEGACY_ROLE_MAP` para compatibilidad.
+> Roles de plataforma: `admin`, `apicultor` (patio), `territorial`, `rep_ventas`, `cliente`, `creador`. Legacy (`vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) → `admin` vía `LEGACY_ROLE_MAP`. Ver `docs/ROLES_Y_ACCESO.md`.
 
 **Funciones helper**:
 - `current_role()` → retorna el `role` del `auth.uid()` actual

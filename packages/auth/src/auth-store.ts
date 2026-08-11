@@ -8,6 +8,12 @@ export interface AuthUser {
   id: string
   email: string
   role: string
+  /**
+   * Eje B territorial: actores_registro.rol o user_metadata.territorial_rol.
+   * Solo aplica si role === 'territorial'. Null si no hay sub-rol.
+   * docs/ROLES_Y_ACCESO.md · PR5
+   */
+  territorial_rol: string | null
   nivel_guardian: string
   full_name: string
   avatar_url: string
@@ -54,6 +60,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       .eq('id', user.id)
       .maybeSingle()
 
+    // role vacío en DB no debe quedar como "" (HomeView cuelga en !role)
+    const resolvedRole =
+      (typeof profile?.role === 'string' && profile.role.trim()) ||
+      (typeof user.app_metadata?.role === 'string' && user.app_metadata.role) ||
+      'cliente'
+
+    // Eje B: actor inscrito (SoT) → metadata de signup (pre-inscripción)
+    let territorial_rol: string | null = null
+    if (resolvedRole === 'territorial') {
+      const metaRol = user.user_metadata?.territorial_rol
+      const metaFallback =
+        typeof metaRol === 'string' && metaRol.trim() ? metaRol.trim() : null
+      try {
+        const { data: actor } = await supabase
+          .from('actores_registro')
+          .select('rol')
+          .eq('user_id', user.id)
+          .maybeSingle()
+        const actorRol =
+          actor && typeof (actor as { rol?: string }).rol === 'string'
+            ? (actor as { rol: string }).rol.trim()
+            : null
+        territorial_rol = actorRol || metaFallback
+      } catch {
+        territorial_rol = metaFallback
+      }
+    }
+
     if (profile) {
       const rawTheme = profile.theme_preference
       const theme_preference: AuthUser['theme_preference'] =
@@ -61,16 +95,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           ? rawTheme
           : 'system'
 
-      // role vacío en DB no debe quedar como "" (HomeView cuelga en !role)
-      const resolvedRole =
-        (typeof profile.role === 'string' && profile.role.trim()) ||
-        (typeof user.app_metadata?.role === 'string' && user.app_metadata.role) ||
-        'cliente'
-
       const authUser: AuthUser = {
         id: profile.id,
         email: profile.email ?? user.email ?? '',
         role: resolvedRole,
+        territorial_rol,
         nivel_guardian: '',
         full_name: profile.full_name ?? '',
         avatar_url: '',
@@ -87,6 +116,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       id: user.id,
       email: user.email ?? '',
       role: (user.app_metadata?.role as string) ?? 'cliente',
+      territorial_rol,
       nivel_guardian: '',
       full_name: '',
       avatar_url: '',

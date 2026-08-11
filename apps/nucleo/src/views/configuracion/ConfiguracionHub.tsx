@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   User, Lock, Building2, Map, TreePine, Settings, Camera, AlertCircle,
 } from 'lucide-react';
@@ -14,13 +14,45 @@ import { EmpresasSection } from './EmpresasSection';
 import { TerritorioSection } from './TerritorioSection';
 import { GuardianSection } from './GuardianSection';
 import { SistemaSection } from './SistemaSection';
-import { ROLE_LABELS, type Section } from './constants';
+import {
+  ROLE_LABELS,
+  getConfigSectionsForRole,
+  type Section,
+} from './constants';
+
+const ALL_SECTION_DEFS: { key: Section; icon: React.ReactNode; label: string }[] = [
+  { key: 'personal', icon: <User size={18} />, label: 'Datos Personales' },
+  { key: 'seguridad', icon: <Lock size={18} />, label: 'Seguridad' },
+  { key: 'empresas', icon: <Building2 size={18} />, label: 'Empresas' },
+  { key: 'territorio', icon: <Map size={18} />, label: 'Territorio y Privacidad' },
+  { key: 'guardian', icon: <TreePine size={18} />, label: 'Nivel Guardián' },
+  { key: 'preferencias', icon: <Settings size={18} />, label: 'Preferencias' },
+  { key: 'sistema', icon: <Settings size={18} />, label: 'Sistema' },
+];
 
 export function ConfiguracionHub() {
   const perfil = usePerfil();
   const [activeSection, setActiveSection] = useState<Section>('personal');
 
   const { profile, loading, message } = perfil;
+
+  const allowedKeys = useMemo(
+    () => getConfigSectionsForRole(profile?.role),
+    [profile?.role],
+  );
+
+  const sections = useMemo(
+    () => ALL_SECTION_DEFS.filter((s) => allowedKeys.includes(s.key)),
+    [allowedKeys],
+  );
+
+  // Si el rol no puede ver el tab actual (p.ej. tras hidratar perfil), cae al primero permitido.
+  useEffect(() => {
+    if (!sections.some((s) => s.key === activeSection)) {
+      const first = sections[0]?.key;
+      if (first) setActiveSection(first);
+    }
+  }, [sections, activeSection]);
 
   if (loading) {
     return <ViewLoading variant="view" label="Configuración" hideLabel />;
@@ -33,16 +65,6 @@ export function ConfiguracionHub() {
       </div>
     );
   }
-
-  const sections: { key: Section; icon: React.ReactNode; label: string }[] = [
-    { key: 'personal', icon: <User size={18} />, label: 'Datos Personales' },
-    { key: 'seguridad', icon: <Lock size={18} />, label: 'Seguridad' },
-    { key: 'empresas', icon: <Building2 size={18} />, label: 'Empresas' },
-    { key: 'territorio', icon: <Map size={18} />, label: 'Territorio y Privacidad' },
-    { key: 'guardian', icon: <TreePine size={18} />, label: 'Nivel Guardián' },
-    { key: 'preferencias', icon: <Settings size={18} />, label: 'Preferencias' },
-    { key: 'sistema', icon: <Settings size={18} />, label: 'Sistema' },
-  ];
 
   return (
     <div className="config-hub space-y-5 sm:space-y-6">
@@ -104,7 +126,7 @@ export function ConfiguracionHub() {
         </div>
       </div>
 
-      {/* Una sola navegación de secciones (tabs) — sin duplicar lista lateral en modal */}
+      {/* Una sola navegación de secciones (tabs) — filtrada por role */}
       <ResponsiveTabBar
         layoutId="configuracion-tabs"
         tabs={sections.map((s) => ({ id: s.key, label: s.label, icon: s.icon }))}
@@ -115,11 +137,17 @@ export function ConfiguracionHub() {
       <div className="min-w-0 space-y-5 rounded-2xl border border-border bg-card p-4 sm:p-6">
         {activeSection === 'personal' && <DatosPersonalesSection {...perfil} />}
         {activeSection === 'seguridad' && <SeguridadSection {...perfil} />}
-        {activeSection === 'empresas' && <EmpresasSection {...perfil} />}
-        {activeSection === 'territorio' && <TerritorioSection {...perfil} />}
-        {activeSection === 'guardian' && <GuardianSection {...perfil} />}
+        {activeSection === 'empresas' && allowedKeys.includes('empresas') && (
+          <EmpresasSection {...perfil} />
+        )}
+        {activeSection === 'territorio' && allowedKeys.includes('territorio') && (
+          <TerritorioSection {...perfil} />
+        )}
+        {activeSection === 'guardian' && allowedKeys.includes('guardian') && (
+          <GuardianSection {...perfil} />
+        )}
         {activeSection === 'preferencias' && <PreferenciasTab />}
-        {activeSection === 'sistema' && <SistemaSection />}
+        {activeSection === 'sistema' && allowedKeys.includes('sistema') && <SistemaSection />}
       </div>
     </div>
   );

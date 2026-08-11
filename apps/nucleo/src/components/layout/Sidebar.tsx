@@ -58,7 +58,15 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
   const [userEmail, setUserEmail] = useState('');
   const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
   const authUser = useAuthStore((s) => s.user);
-  const sidebarGroups = useMemo(() => getSidebarGroupsForRole(userRole), [userRole]);
+  const territorialRol = authUser?.territorial_rol ?? null;
+  const shellOpts = useMemo(
+    () => ({ territorialRol }),
+    [territorialRol],
+  );
+  const sidebarGroups = useMemo(
+    () => getSidebarGroupsForRole(userRole, shellOpts),
+    [userRole, shellOpts],
+  );
 
   useEffect(() => {
     async function fetchUser() {

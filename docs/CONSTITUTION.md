@@ -53,7 +53,7 @@ banco-chile/ Banco Chile Empresas API client
 La base de datos (Supabase) es la fuente de verdad. La seguridad no es negociable.
 
 - **Row Level Security (RLS)**: Nunca se confia en el cliente. La seguridad vive en Postgres.
-- **Roles Estrictos**: `admin`, `cliente`, `creador`, `rep_ventas`, `territorial`. Los roles granulares anteriores (`apicultor`, `vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) fueron consolidados en `admin` via migration 39. `territorial` (migration 997) es el rol de los participantes del Registro Territorial Apícola de Chiloé; su home es `/territorio`. Cada rol ve exactamente lo que le corresponde.
+- **Roles Estrictos**: `admin`, `apicultor` (patio/operación), `cliente`, `creador`, `rep_ventas`, `territorial`. Los roles granulares anteriores (`vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) se elevan a `admin` vía `LEGACY_ROLE_MAP`. `apicultor` es RoleKey de primera clase (allowlist colmenas/bitácora; no elevación). `territorial` (migration 997) es red/censo Chiloé. Detalle: `docs/ROLES_Y_ACCESO.md`.
 - **Multi-tenant contable**: La capa contable usa `has_empresa_access()` para aislar datos por empresa.
 - **Validacion en BFF**: La API Hono valida JWT via Supabase Auth antes de cada operacion.
 - **Service Role Key**: Solo se usa en server-side (API routes, BFF). Nunca en el cliente.

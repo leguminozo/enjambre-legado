@@ -55,6 +55,30 @@ No es un programa de puntos: es la **primera infraestructura de percepción sens
 
 ---
 
+## 5. Mapa de reutilización (auditoría de duplicación, 2026-08-10)
+
+Auditoría profunda de todo lo construido vs. el monorepo completo. Veredicto: la mayoría de las entidades **llenan huecos reales** (identidad ligera sin cuenta, órdenes B2B, instrumento CATA, equipo sin cuenta). Las duplicaciones reales se consolidaron en la migración `20260810250000_consolidacion_duplicacion.sql`:
+
+| Construido | Existente | Decisión |
+|---|---|---|
+| `fid_retribucion_reglas` | `commission_rules` (rule_type + parameter JSONB) | **CONSOLIDADO** → reglas migradas como rule_type 'mayorista' |
+| `infusion_tareas` | `crm_tareas` (generalizable) | **CONSOLIDADO** → crm_tareas con ref_tipo='infusion' (ref_tipo/ref_id/equipo_id/evidencia_path/estado en_proceso) |
+| `b2b_resenas_revendedor` | `resenas_producto` (modo + producto_id nullable) | **CONSOLIDADO** → modo 'revendedor' + revendedor_id; moderación existente |
+| `fid_retribuciones` (ledger) | `incentivo_ledger` | **SE QUEDA**: incentivo_ledger exige user_id NOT NULL (revendedores sin cuenta) y monto ≥ 0 (contra-asientos negativos) — relajar 4 constraints de un sistema vivo no justifica la consolidación; unificación de ledgers es proyecto aparte |
+| `fid_retribucion_tiers` | `niveles_fidelizacion` | **SE QUEDA**: estatus aspiracional (ventana móvil 12m), modelo distinto; candidato futuro |
+| `fid_programas` (sellos) | `guardian_stamp_programs` | **INVIABLE hoy**: guardian_stamp_progress exige user_id de auth; los clientes del microcanal no tienen cuenta. Roadmap: cuando fid_clientes.user_id se use |
+| `fid_clientes` | `clientes` (user_id NOT NULL) | **SE QUEDA**: llena el hueco de identidad ligera global; puente vía fid_clientes.user_id |
+| `b2b_pedidos` | `ventas.buyer_mode='b2b'` | **SE QUEDA**: `ventas` es el canal de los vendedores presenciales de campo (boletas de honorario) — los pedidos del microcanal NO contaminan ese canal |
+| `b2b_revendedores` | `revendedor_profile` + `user_roles('revendedor')` | **VINCULADO**: claim con cuenta sincroniza user_roles (patrón AliadosB2BTab); PK user_id de revendedor_profile impide registro sin cuenta |
+| `b2b_puntos_venta` (feria_evento) | `participante_contrato` | **VINCULADO**: participante_contrato_id — el vendedor de campo con contrato = dueño de su punto del microcanal |
+| `infusion_materias_primas` | `ingredients` / `inventario_items` | **VINCULADO**: ingredient_id (costeo compartido) |
+| `infusion_proveedores` | `terceros` (maestro) | **VINCULADO**: tercero_id |
+| `perc_*` | `resenas_producto` (campos legacy) | **ALIMENTA**: la reseña guarda solo percepcion_sesion_id (una fuente de verdad); campos legacy siguen como canal |
+| `infusion_equipo` | — (nadie cubre personas sin cuenta) | **SE QUEDA** (hueco real) |
+| Roles nuevos | `profiles.role` CHECK | **NO SE CREARON** (correcto): claim user_id + RLS por dueño es más barato que un rol (CHECK + handle_new_user + role-redirect + sync app_metadata) y no resuelve el registro sin cuenta |
+
+**Nutrir campo (POS de vendedores presenciales)** — la fidelización del microcanal viaja con la venta: `POST /rep-ventas/quick` acepta `fid_identidad` (tarjeta/email/whatsapp) → el BFF resuelve el punto del vendedor (por cuenta o contrato de feria) y acredita sellos/puntos (helper compartido `registrarEventoFid`). El POS muestra el QR de la landing del punto (percepción + puntos) en la pantalla de éxito. Offline-first respetado: el payload enqueueado lleva fid_identidad y quick lo procesa al sincronizar.
+
 ## Fuera de alcance (roadmap)
 
 Gateway WhatsApp real (OTP) · pases Apple/Google Wallet (el patrón de `packages/wallet` existe pero los pases están en 503) · unificación de los ledgers web/POS existentes (`puntos_fidelizacion`, `ciclos`/`loyalty`, `guardian_stamps` — el sistema microcanal es canónico paralelo, no los toca) · compra POS automática (hoy la registra el dueño en su portal) · kit físico ST-CATA (protocolo escrito; kit se arma en campo) · pipeline analítico avanzado (Cochran's Q → análisis de correspondencias → penalty analysis / drivers of liking) · KPIs de canibalización/incrementality (se miden una vez haya datos del holdout).

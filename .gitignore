@@ -29,3 +29,6 @@ coverage/
 
 # Tooling local del agente
 .zcode/
+
+# Cache de la herramienta graphify (AST)
+graphify-out/

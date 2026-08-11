@@ -31,13 +31,18 @@ export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
   const pathname = usePathname();
   const router = useRouter();
   const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
+  const territorialRol = useAuthStore((s) => s.user?.territorial_rol ?? null);
+  const shellOpts = useMemo(() => ({ territorialRol }), [territorialRol]);
   const signOut = useAuthStore((s) => s.signOut);
   const [query, setQuery] = useState('');
   const [configOpen, setConfigOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const lastActiveRef = useRef<HTMLElement | null>(null);
 
-  const sidebarGroups = useMemo(() => getSidebarGroupsForRole(userRole), [userRole]);
+  const sidebarGroups = useMemo(
+    () => getSidebarGroupsForRole(userRole, shellOpts),
+    [userRole, shellOpts],
+  );
   const activeItem = findActiveItem(pathname);
 
   const allItems = useMemo(

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useCart } from '@/components/pos/cart-context';
 import { useCashSession } from '@/components/pos/cash-context';
 import { getConsignacionIssues, useFeriaContext } from '@/components/pos/feria-context';
@@ -12,6 +12,7 @@ import { QrCameraScanner } from '@/components/pos/qr-camera-scanner';
 import type { VentaChannel, PaymentMethod, TerminalFlowResult } from '@/components/pos/types';
 import { HexagonLoader, ViewLoadingPlaceholder, formatCLP } from '@enjambre/ui';
 import { buildClaimUrl } from '@/lib/public-urls';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft, Banknote, CreditCard, Smartphone, Store, Truck, Building2, Users, Nfc, AlertTriangle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -56,6 +57,20 @@ export default function CarritoView() {
   const [metodoPago, setMetodoPago] = useState<PaymentMethod>('efectivo');
   const [loading, setLoading] = useState(false);
   const [successData, setSuccessData] = useState<{ id: string; claim_token?: string; commission?: number } | null>(null);
+  const [fidIdentidad, setFidIdentidad] = useState('');
+  const [miPunto, setMiPunto] = useState<{ nombre: string; url_landing: string } | null>(null);
+  const apiFetch = useApiFetch();
+
+  // El QR de la landing del punto de venta (percepción + puntos) disponible en el POS
+  useEffect(() => {
+    if (successData) return;
+    apiFetch('/api/b2b/mi-punto')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.data) setMiPunto({ nombre: data.data.punto.nombre, url_landing: data.data.url_landing });
+      })
+      .catch(() => {});
+  }, [apiFetch, successData]);
   const [error, setError] = useState<string | null>(null);
   const [checkoutMode, setCheckoutMode] = useState<CheckoutMode>('standard');
   const [terminalComplete, setTerminalComplete] = useState<TerminalFlowResult | null>(null);
@@ -104,7 +119,7 @@ export default function CarritoView() {
             : discount.kind === 'fixed' && discount.value > 0
               ? { descuento_clp: discount.value }
               : undefined;
-        const result = await cartSale(cartItems, metodoBff, channel, undefined, discPayload);
+        const result = await cartSale(cartItems, metodoBff, channel, undefined, discPayload, fidIdentidad || undefined);
         if (!result) {
           setError('No se pudo registrar la venta en la sesion de caja');
           return;
@@ -180,6 +195,7 @@ export default function CarritoView() {
             sumup_transaction_id: terminalResult.transaction_id,
           },
           discPayload,
+          fidIdentidad || undefined,
         );
         if (!result) {
           setError('No se pudo registrar la venta en la sesion de caja');
@@ -196,7 +212,7 @@ export default function CarritoView() {
     } finally {
       setLoading(false);
     }
-  }, [lines, isSessionOpen, channel, cartSale, clear, refreshFeria, discount]);
+  }, [lines, isSessionOpen, channel, cartSale, clear, refreshFeria, discount, fidIdentidad]);
 
   const handleTerminalCancel = useCallback(() => {
     setCheckoutMode('standard');
@@ -246,6 +262,15 @@ export default function CarritoView() {
             <p className="mt-4 text-primary-foreground font-mono text-[10px] uppercase tracking-tighter opacity-40">
               ID: {successData.id.slice(0, 8)}...
             </p>
+            {miPunto && (
+              <div className="mt-6 pt-6 border-t border-border/40 space-y-2">
+                <p className="text-[10px] uppercase tracking-widest text-primary">Pulso y puntos — {miPunto.nombre}</p>
+                <QRCodeSVG value={miPunto.url_landing} size={160} level="H" includeMargin className="mx-auto" />
+                <p className="text-[10px] text-muted-foreground">
+                  Invita al cliente a escanear: deja su percepción semántica y suma puntos.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -603,6 +628,21 @@ export default function CarritoView() {
                 <span className="font-display text-[clamp(1.75rem,6vw,2.25rem)] text-primary tabular-nums">
                   {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(total)}
                 </span>
+              </div>
+
+              <div className="mb-4 space-y-1">
+                <label className="block text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
+                  Cliente microcanal (tarjeta QR / email / whatsapp)
+                </label>
+                <input
+                  value={fidIdentidad}
+                  onChange={(e) => setFidIdentidad(e.target.value)}
+                  placeholder="Tarjeta, email o WhatsApp del cliente"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  La compra suma sellos/puntos en la fidelización del microcanal{miPunto ? ` de ${miPunto.nombre}` : ''}.
+                </p>
               </div>
 
               <button

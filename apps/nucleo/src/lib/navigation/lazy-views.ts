@@ -111,6 +111,11 @@ export const LazyInicioTerritorialView = named(
   'InicioTerritorialView',
   'Inicio Territorial',
 );
+export const LazyInicioApicultorView = named(
+  () => import('@/views/InicioApicultorView'),
+  'InicioApicultorView',
+  'Inicio Patio',
+);
 export const LazyOperadoresFeriaPanel = named(
   () => import('@/components/operadores-feria/OperadoresFeriaPanel'),
   'OperadoresFeriaPanel',

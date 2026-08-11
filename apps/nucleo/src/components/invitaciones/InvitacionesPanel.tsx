@@ -9,6 +9,11 @@ import {
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import {
+  INVITABLE_PLATFORM_ROLES,
+  INVITABLE_ROLE_META,
+  type InvitablePlatformRole,
+} from '@/lib/invitation-roles';
 
 interface InvitationCodeRow {
   id: string;
@@ -39,18 +44,16 @@ interface NuevaCuenta {
   email: string;
   password: string;
   fullName: string;
-  role: 'admin' | 'territorial' | 'cliente' | 'rep_ventas' | 'creador';
+  role: InvitablePlatformRole;
   rolTerritorial: string;
   comuna: string;
 }
 
-const ROLES_SISTEMA = [
-  { value: 'territorial', label: '🐝 Apicultor / Territorial', desc: 'Acceso al Registro Territorial de Chiloé' },
-  { value: 'admin', label: '⚙️ Admin', desc: 'Acceso completo al sistema O&Z' },
-  { value: 'cliente', label: '🛒 Cliente Tienda', desc: 'Acceso a obrerayzangano.cl' },
-  { value: 'rep_ventas', label: '💼 Rep de Ventas', desc: 'Acceso al POS y comisiones' },
-  { value: 'creador', label: '✨ Creador', desc: 'Acceso al perfil de creador en tienda' },
-] as const;
+const ROLES_SISTEMA = INVITABLE_PLATFORM_ROLES.map((value) => ({
+  value,
+  label: INVITABLE_ROLE_META[value].label,
+  desc: INVITABLE_ROLE_META[value].desc,
+}));
 
 const ROLES_TERRITORIALES = [
   { value: 'api_residente', label: '🐝 Apicultor Residente', desc: 'Opera apiarios fijos en Chiloé' },
@@ -72,13 +75,17 @@ export function InvitacionesPanel() {
   const [activeTab, setActiveTab] = useState<'codigos' | 'canjes'>('codigos');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-  const [newCode, setNewCode] = useState<{ maxUses: string; expiresAt: string; roles: string[] }>({ maxUses: '', expiresAt: '', roles: ['rep_ventas'] });
+  const [newCode, setNewCode] = useState<{ maxUses: string; expiresAt: string; roles: string[] }>({
+    maxUses: '',
+    expiresAt: '',
+    roles: ['apicultor'],
+  });
 
   const [nuevaCuenta, setNuevaCuenta] = useState<NuevaCuenta>({
     email: '',
     password: '',
     fullName: '',
-    role: 'territorial',
+    role: 'apicultor',
     rolTerritorial: 'api_residente',
     comuna: '',
   });
@@ -183,7 +190,7 @@ export function InvitacionesPanel() {
         empresa_id: empresaId,
         code: generatedCode,
         created_by: authUser.id,
-        roles: newCode.roles.length > 0 ? newCode.roles : ['rep_ventas'],
+        roles: newCode.roles.length > 0 ? newCode.roles : ['apicultor'],
         tools: {},
         active: true,
       };
@@ -195,7 +202,7 @@ export function InvitacionesPanel() {
 
       toast('Invitación creada', { type: 'success' });
       setShowCreate(false);
-      setNewCode({ maxUses: '', expiresAt: '', roles: ['rep_ventas'] });
+      setNewCode({ maxUses: '', expiresAt: '', roles: ['apicultor'] });
       await fetchAll();
     } catch (err) {
       toast(friendlyError(err, 'Error al crear código'), { type: 'error' });
@@ -249,7 +256,14 @@ export function InvitacionesPanel() {
         role: nuevaCuenta.role,
       });
       toast(json.message ?? 'Cuenta creada', { type: 'success' });
-      setNuevaCuenta({ email: '', password: '', fullName: '', role: 'territorial', rolTerritorial: 'api_residente', comuna: '' });
+      setNuevaCuenta({
+        email: '',
+        password: '',
+        fullName: '',
+        role: 'apicultor',
+        rolTerritorial: 'api_residente',
+        comuna: '',
+      });
     } catch (err) {
       toast(friendlyError(err, 'Error al crear cuenta'), { type: 'error' });
     } finally {
@@ -376,16 +390,17 @@ export function InvitacionesPanel() {
         <div className="mt-4">
           <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-2">Roles asignados</label>
           <div className="flex flex-wrap gap-2">
-            {['admin', 'cliente', 'creador', 'rep_ventas', 'territorial'].map(role => (
+            {INVITABLE_PLATFORM_ROLES.map((role) => (
               <button
                 key={role}
                 type="button"
+                title={INVITABLE_ROLE_META[role].desc}
                 onClick={() => {
-                  setNewCode(prev => ({
+                  setNewCode((prev) => ({
                     ...prev,
                     roles: prev.roles.includes(role)
-                      ? prev.roles.filter(r => r !== role)
-                      : [...prev.roles, role]
+                      ? prev.roles.filter((r) => r !== role)
+                      : [...prev.roles, role],
                   }));
                 }}
                 className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors border ${
@@ -398,7 +413,11 @@ export function InvitacionesPanel() {
               </button>
             ))}
           </div>
-          <p className="text-[0.6rem] text-muted-foreground mt-1">Los usuarios que usen este código recibirán estos roles.</p>
+          <p className="text-[0.6rem] text-muted-foreground mt-1">
+            El rol de plataforma primario (prioridad: admin → apicultor → territorial → rep → …) se escribe en{' '}
+            <code className="text-[0.6rem]">profiles.role</code> al canjear. Patio = <strong>apicultor</strong>; red/censo ={' '}
+            <strong>territorial</strong>.
+          </p>
         </div>
       </ImmersiveModal>
 
@@ -557,20 +576,35 @@ export function InvitacionesPanel() {
                   <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Rol del sistema *</label>
                   <select
                     value={nuevaCuenta.role}
-                    onChange={e => setNuevaCuenta(p => ({ ...p, role: e.target.value as NuevaCuenta['role'] }))}
+                    onChange={(e) =>
+                      setNuevaCuenta((p) => ({
+                        ...p,
+                        role: e.target.value as InvitablePlatformRole,
+                      }))
+                    }
                     className="input-field text-sm w-full"
                   >
-                    {ROLES_SISTEMA.map(r => (
+                    {ROLES_SISTEMA.map((r) => (
                       <option key={r.value} value={r.value}>{r.label}</option>
                     ))}
                   </select>
                   <p className="text-[0.6rem] text-muted-foreground mt-1">
-                    {ROLES_SISTEMA.find(r => r.value === nuevaCuenta.role)?.desc}
+                    {ROLES_SISTEMA.find((r) => r.value === nuevaCuenta.role)?.desc}
                   </p>
                 </div>
               </div>
 
-              {/* Campos adicionales para rol territorial */}
+              {nuevaCuenta.role === 'apicultor' && (
+                <div className="p-4 rounded-xl bg-accent/5 border border-accent/20 space-y-1 animate-in">
+                  <p className="text-xs font-medium text-foreground">Apicultor de patio</p>
+                  <p className="text-[0.65rem] text-muted-foreground">
+                    Accede a Núcleo en <code className="text-[0.65rem]">/inicio</code> con colmenas, cuaderno y bitácora.
+                    No ve contable, SII ni editor de tienda. Credenciales: copialas abajo y entréguelas por canal seguro.
+                  </p>
+                </div>
+              )}
+
+              {/* Campos adicionales para rol territorial (red/censo, no patio) */}
               {nuevaCuenta.role === 'territorial' && (
                 <div className="p-4 rounded-xl bg-surface-raised border border-border space-y-4 animate-in">
                   <p className="text-xs font-medium text-foreground">Configuración Territorial</p>

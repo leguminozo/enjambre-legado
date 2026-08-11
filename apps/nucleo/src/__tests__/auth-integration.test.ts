@@ -125,10 +125,12 @@ describe("Auth Integration Flow", () => {
       expect(getRoleRedirectPath("random")).toBe("/perfil");
     });
 
-    it("maps legacy roles to admin", () => {
+    it("maps legacy roles to admin (apicultor is patio, not legacy elevación)", () => {
       expect(LEGACY_ROLE_MAP["gerente"]).toBe("admin");
       expect(LEGACY_ROLE_MAP["vendedor"]).toBe("admin");
       expect(LEGACY_ROLE_MAP["marketing"]).toBe("admin");
+      expect(LEGACY_ROLE_MAP["apicultor"]).toBeUndefined();
+      expect(getRoleRedirectPath("apicultor")).toBe("/inicio");
     });
   });
 
@@ -178,6 +180,16 @@ describe("Auth Integration Flow", () => {
 
     it("allows legacy gerente role to /ejecutivo via normalization", () => {
       expect(isRouteAllowed("/ejecutivo", "gerente")).toBe(true);
+    });
+
+    it("allows apicultor patio routes and denies gerencia", () => {
+      expect(isRouteAllowed("/colmenas", "apicultor")).toBe(true);
+      expect(isRouteAllowed("/colmenas/cuaderno", "apicultor")).toBe(true);
+      expect(isRouteAllowed("/calendario", "apicultor")).toBe(true);
+      expect(isRouteAllowed("/configuracion", "apicultor")).toBe(true);
+      expect(isRouteAllowed("/inicio", "apicultor")).toBe(true);
+      expect(isRouteAllowed("/editor-tienda", "apicultor")).toBe(false);
+      expect(isRouteAllowed("/contable", "apicultor")).toBe(false);
     });
   });
 

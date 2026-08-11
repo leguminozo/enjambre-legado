@@ -1,4 +1,8 @@
 import { LEGACY_ROLE_MAP, type RoleKey } from '@enjambre/auth/role-redirect'
+import {
+  getTerritorialBottomNavKeys,
+  getTerritorialVisibleKeys,
+} from '@/lib/territorial-rol'
 
 export type BadgeDotColor = 'green' | 'orange' | 'red'
 
@@ -421,6 +425,22 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Cartógrafo del bosque',
         mission: '22 años de territorio vivo en Chiloé · alertas fitosanitarias',
       },
+      {
+        key: 'registro-comunal',
+        label: 'Censo comunal',
+        icon: 'users',
+        href: '/registro-territorial',
+        greeting: 'Red territorial',
+        mission: 'Actores, apiarios y agregados de la comuna',
+      },
+      {
+        key: 'mis-planes',
+        label: 'Mis planes',
+        icon: 'clipboard-list',
+        href: '/mis-planes',
+        greeting: 'Temporada en red',
+        mission: 'Planes de trabajo y herramientas de la red territorial',
+      },
     ],
   },
 ]
@@ -475,9 +495,9 @@ export const VIEW_SHELL_PATHS = new Set([
 /** Rutas que viven fuera del árbol de items pero pertenecen a un módulo del sidebar */
 const ROUTE_ITEM_ALIASES: Record<string, string> = {
   '/territorio': 'territorio',
-  '/registro-territorial': 'territorio',
   '/declaracion-sag': 'territorio',
-  '/mis-planes': 'territorio',
+  '/registro-territorial': 'registro-comunal',
+  '/mis-planes': 'mis-planes',
   // Bookmarks legacy → herramienta canónica
   '/colmenas/trazabilidad': 'lotes',
   '/colmenas/apiarios': 'colmenas',
@@ -491,24 +511,40 @@ const ROUTE_ITEM_ALIASES: Record<string, string> = {
  * - `'all'` = menú completo (solo admin / legado→admin).
  * - lista = allowlist estricta.
  * - `[]` = sin módulos (cliente/creador/rep no viven en núcleo; middleware los saca).
+ *
+ * `apicultor` = patio (docs/ROLES_Y_ACCESO.md): inicio + colmenas + cuaderno +
+ * calendario + config. No contable, no editor-tienda, no CRM, no plantaciones.
+ */
+/**
+ * Base por platform role. Para `territorial`, la allowlist se refina con
+ * `territorial_rol` (oleada 2a) vía getSidebarGroupsForRole opts.
  */
 const ROLE_VISIBLE_KEYS: Record<RoleKey, readonly string[] | 'all'> = {
   admin: 'all',
-  territorial: ['inicio', 'territorio', 'fenologia'],
+  apicultor: ['inicio', 'colmenas', 'cuaderno-campo', 'ciclo-bosque', 'configuracion'],
+  // Base amplia; se intersecta con TERRITORIAL_FAMILY_VISIBLE_KEYS en getSidebarGroupsForRole
+  territorial: ['inicio', 'territorio', 'registro-comunal', 'mis-planes', 'fenologia'],
   creador: [],
   rep_ventas: [],
   cliente: [],
 }
 
+export type ShellNavOptions = {
+  /** Eje B: actores_registro.rol / metadata (solo si role=territorial) */
+  territorialRol?: string | null
+}
+
 /**
  * Rol para la shell de navegación. Nunca elevar a admin si falta el profile
  * (loading o sesión sin rol): least privilege → menú vacío, no el panel gerencial.
+ * `apicultor` es RoleKey real (no LEGACY_ROLE_MAP → admin).
  */
 export function resolveShellRoleKey(raw: string | undefined | null): RoleKey {
   if (!raw) return 'cliente'
   if (raw in LEGACY_ROLE_MAP) return LEGACY_ROLE_MAP[raw]!
   if (
     raw === 'admin' ||
+    raw === 'apicultor' ||
     raw === 'territorial' ||
     raw === 'cliente' ||
     raw === 'creador' ||
@@ -525,6 +561,7 @@ export function resolveShellRoleKey(raw: string | undefined | null): RoleKey {
  */
 const ROLE_HREF_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   admin: {},
+  apicultor: {},
   territorial: { territorio: '/territorio' },
   creador: {},
   rep_ventas: {},
@@ -534,15 +571,24 @@ const ROLE_HREF_OVERRIDES: Record<RoleKey, Record<string, string>> = {
 /** Labels ajustados por rol (el territorial ve 'Mi Territorio', no 'Mapa del Legado') */
 const ROLE_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   admin: {},
-  territorial: { territorio: 'Mi Territorio' },
+  apicultor: { 'ciclo-bosque': 'Calendario de patio' },
+  territorial: {
+    territorio: 'Mi Territorio',
+    'registro-comunal': 'Censo comunal',
+    'mis-planes': 'Mis planes',
+  },
   creador: {},
   rep_ventas: {},
   cliente: {},
 }
 
-/** Tabs del bottom nav (móvil) por rol: territorial navega inicio + su registro */
-export function getBottomNavKeysForRole(role: RoleKey): readonly string[] {
-  if (role === 'territorial') return ['inicio', 'territorio']
+/** Tabs del bottom nav (móvil) por rol; territorial refina por sub-rol (PR5). */
+export function getBottomNavKeysForRole(
+  role: RoleKey,
+  opts?: ShellNavOptions,
+): readonly string[] {
+  if (role === 'territorial') return getTerritorialBottomNavKeys(opts?.territorialRol)
+  if (role === 'apicultor') return ['inicio', 'colmenas', 'cuaderno-campo', 'configuracion']
   if (role === 'admin') return BOTTOM_NAV_KEYS
   return ['inicio']
 }
@@ -574,21 +620,33 @@ export function getAllItems(): SidebarItem[] {
   return [...SIDEBAR_GROUPS.flatMap(g => g.items), ...ACCOUNT_ITEMS]
 }
 
-function roleCanSeeItem(role: RoleKey, itemKey: string): boolean {
+function roleCanSeeItem(
+  role: RoleKey,
+  itemKey: string,
+  opts?: ShellNavOptions,
+): boolean {
   const visible = ROLE_VISIBLE_KEYS[role] ?? []
   if (visible === 'all') return true
-  return visible.includes(itemKey)
+  if (!visible.includes(itemKey)) return false
+  // Oleada 2a: territorial solo ve la intersección con su familia de sub-rol
+  if (role === 'territorial') {
+    return getTerritorialVisibleKeys(opts?.territorialRol).includes(itemKey)
+  }
+  return true
 }
 
 /** Grupos visibles para el rol, con hrefs/labels ajustados y grupos vacíos eliminados */
-export function getSidebarGroupsForRole(role: RoleKey): SidebarGroup[] {
+export function getSidebarGroupsForRole(
+  role: RoleKey,
+  opts?: ShellNavOptions,
+): SidebarGroup[] {
   const overrides = ROLE_HREF_OVERRIDES[role] ?? {}
   const labelOverrides = ROLE_LABEL_OVERRIDES[role] ?? {}
   return SIDEBAR_GROUPS
     .map((group) => ({
       ...group,
       items: group.items
-        .filter((item) => roleCanSeeItem(role, item.key))
+        .filter((item) => roleCanSeeItem(role, item.key, opts))
         .map((item) => ({
           ...item,
           href: overrides[item.key] ? overrides[item.key] : item.href,
@@ -598,6 +656,9 @@ export function getSidebarGroupsForRole(role: RoleKey): SidebarGroup[] {
     .filter((group) => group.items.length > 0)
 }
 
-export function getAccountItemsForRole(role: RoleKey): SidebarItem[] {
-  return ACCOUNT_ITEMS.filter((item) => roleCanSeeItem(role, item.key))
+export function getAccountItemsForRole(
+  role: RoleKey,
+  opts?: ShellNavOptions,
+): SidebarItem[] {
+  return ACCOUNT_ITEMS.filter((item) => roleCanSeeItem(role, item.key, opts))
 }
