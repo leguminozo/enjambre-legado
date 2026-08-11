@@ -204,7 +204,7 @@ adminRoutes.patch("/:id", zValidator("json", UpdateInvitationSchema), async (c) 
         .select("roles")
         .eq("id", invitationId)
         .maybeSingle();
-      rolesForPolicy = (current?.roles as string[] | undefined) ?? [];
+      rolesForPolicy = ((current?.roles ?? []) as unknown) as NonNullable<typeof nextRoles>;
     }
     const enforced = enforceAdminInviteConstraints({
       roles: rolesForPolicy,

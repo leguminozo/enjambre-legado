@@ -12858,32 +12858,20 @@ export type Database = {
         Args: { p_descuento_id: string }
         Returns: undefined
       }
-      inventario_aplicar_movimiento:
-        | {
-            Args: {
-              p_cantidad: number
-              p_item_id: string
-              p_motivo?: string
-              p_ref_id?: string
-              p_ref_tipo?: string
-              p_tipo: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_cantidad: number
-              p_doc_fecha?: string
-              p_doc_numero?: string
-              p_doc_tipo?: string
-              p_item_id: string
-              p_motivo?: string
-              p_ref_id?: string
-              p_ref_tipo?: string
-              p_tipo: string
-            }
-            Returns: Json
-          }
+      inventario_aplicar_movimiento: {
+        Args: {
+          p_cantidad: number
+          p_doc_fecha?: string
+          p_doc_numero?: string
+          p_doc_tipo?: string
+          p_item_id: string
+          p_motivo?: string
+          p_ref_id?: string
+          p_ref_tipo?: string
+          p_tipo: string
+        }
+        Returns: Json
+      }
       is_admin: { Args: never; Returns: boolean }
       is_gerente: { Args: never; Returns: boolean }
       longtransactionsenabled: { Args: never; Returns: boolean }
