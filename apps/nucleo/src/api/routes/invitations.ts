@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, requireProfileRole, tenantMiddleware } from "@/api/lib/middleware";
+import { enforceAdminInviteConstraints } from "@/lib/invitation-policy";
 
 /** Platform roles invitables (profiles.role). Incluye apicultor patio — docs/ROLES_Y_ACCESO.md */
 const InvitableRoleSchema = z.enum([
@@ -69,7 +70,15 @@ invitationsRoutes.post("/redeem", zValidator("json", RedeemSchema), async (c) =>
     return c.json({ code: "invalid_code", message: "Código inválido, expirado o ya usado" }, 404);
   }
 
-  return c.json({ data: result }, 201);
+  // Cliente debe refreshSession/checkUser: profiles.role (y JWT) pueden haber cambiado.
+  return c.json({
+    data: result,
+    meta: {
+      requires_session_refresh: true,
+      message:
+        "Rol actualizado en profiles. Refrescá la sesión (checkUser/refreshSession) antes de navegar.",
+    },
+  }, 201);
 });
 
 invitationsRoutes.get("/validate/:code", async (c) => {
@@ -108,6 +117,13 @@ adminRoutes.post("/", zValidator("json", CreateInvitationSchema), async (c) => {
   const user = c.get("user");
   const empresaId = c.get("empresaId");
 
+  // Hardening: códigos con admin = 1 uso + TTL ≤7d (no multi-uso abierto)
+  const enforced = enforceAdminInviteConstraints({
+    roles: input.roles,
+    max_uses: input.max_uses,
+    expires_at: input.expires_at ?? null,
+  });
+
   const { data: code, error: codeError } = await supabase.rpc("generar_codigo_invitacion", {
     p_empresa_id: empresaId,
   });
@@ -124,8 +140,8 @@ adminRoutes.post("/", zValidator("json", CreateInvitationSchema), async (c) => {
       created_by: user.id,
       roles: input.roles,
       tools: input.tools as Json,
-      max_uses: input.max_uses ?? null,
-      expires_at: input.expires_at ?? null,
+      max_uses: enforced.max_uses,
+      expires_at: enforced.expires_at,
     })
     .select("*")
     .single();
@@ -134,7 +150,10 @@ adminRoutes.post("/", zValidator("json", CreateInvitationSchema), async (c) => {
     return c.json({ code: "invite_create_failed", message: error.message }, 400);
   }
 
-  return c.json({ data }, 201);
+  return c.json({
+    data,
+    meta: enforced.warnings.length ? { policy_warnings: enforced.warnings } : undefined,
+  }, 201);
 });
 
 adminRoutes.get("/", async (c) => {
@@ -168,15 +187,45 @@ adminRoutes.patch("/:id", zValidator("json", UpdateInvitationSchema), async (c) 
     tools?: Json;
   } = {};
   if (input.active !== undefined) payload.active = input.active;
-  if (input.max_uses !== undefined) payload.max_uses = input.max_uses;
-  if (input.expires_at !== undefined) payload.expires_at = input.expires_at;
-  if (input.roles !== undefined) payload.roles = input.roles;
   if (input.tools !== undefined) payload.tools = input.tools as Json;
 
+  // Si toca roles/max_uses/expires y termina con admin → re-aplicar política
+  const nextRoles = input.roles ?? undefined;
+  if (
+    input.roles !== undefined ||
+    input.max_uses !== undefined ||
+    input.expires_at !== undefined
+  ) {
+    // Leer roles actuales si no vienen en el patch
+    let rolesForPolicy = nextRoles;
+    if (!rolesForPolicy) {
+      const { data: current } = await supabase
+        .from("invitation_codes")
+        .select("roles")
+        .eq("id", invitationId)
+        .maybeSingle();
+      rolesForPolicy = (current?.roles as string[] | undefined) ?? [];
+    }
+    const enforced = enforceAdminInviteConstraints({
+      roles: rolesForPolicy,
+      max_uses: input.max_uses,
+      expires_at: input.expires_at === undefined ? undefined : input.expires_at,
+    });
+    if (input.roles !== undefined) payload.roles = input.roles;
+    if (input.max_uses !== undefined || rolesForPolicy.includes("admin")) {
+      payload.max_uses = enforced.max_uses ?? undefined;
+    }
+    if (input.expires_at !== undefined || rolesForPolicy.includes("admin")) {
+      payload.expires_at = enforced.expires_at;
+    }
+  }
+
+  const empresaId = c.get("empresaId");
   const { data, error } = await supabase
     .from("invitation_codes")
     .update(payload)
     .eq("id", invitationId)
+    .eq("empresa_id", empresaId)
     .select("*")
     .single();
 

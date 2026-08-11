@@ -10,6 +10,7 @@ import { createAdminClient } from "@enjambre/auth/browser";
 import { haversineKm } from "@/lib/hive-state";
 import { distanciaMinimaLegalKm } from "@/lib/distancias-legales";
 import { fromLoose } from "@/api/lib/supabase-loose";
+import { resolveTerritorialMenuFamily } from "@/lib/territorial-rol";
 
 export const registroTerritorialRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -19,6 +20,65 @@ registroTerritorialRoutes.use(
   authMiddleware,
   requireProfileRole("territorial", "admin"),
 );
+
+/**
+ * Oleada 2a: escrituras solo para familias api|institucion (o admin).
+ * Familia `minimo` (2b / sin sub-rol) solo puede inscribir actor propio.
+ * Lecturas (GET) siguen abiertas a todo territorial (RLS filtra datos).
+ */
+registroTerritorialRoutes.use("*", async (c, next) => {
+  const method = c.req.method;
+  if (method === "GET" || method === "HEAD" || method === "OPTIONS") {
+    return next();
+  }
+
+  const profileRole = c.get("profileRole");
+  if (profileRole === "admin") return next();
+
+  const path = new URL(c.req.url).pathname;
+  // Inscripción / auto-registro: siempre permitido para territorial
+  if (
+    method === "POST" &&
+    (path.endsWith("/actores") || path.endsWith("/registro-territorial/actores"))
+  ) {
+    return next();
+  }
+
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+  let rol: string | null = null;
+  try {
+    const { data: actor } = await supabase
+      .from("actores_registro")
+      .select("rol")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (actor && typeof (actor as { rol?: string }).rol === "string") {
+      rol = (actor as { rol: string }).rol;
+    }
+  } catch {
+    /* fallback metadata */
+  }
+  if (!rol) {
+    const meta = user.user_metadata?.territorial_rol;
+    rol = typeof meta === "string" ? meta : null;
+  }
+
+  const family = resolveTerritorialMenuFamily(rol);
+  if (family === "minimo") {
+    return c.json(
+      {
+        code: "territorial_family_restricted",
+        message:
+          "Tu sub-rol territorial aún no tiene escrituras habilitadas (oleada 2b). Completá la inscripción o pedí promoción de rol.",
+        family,
+      },
+      403,
+    );
+  }
+
+  return next();
+});
 
 // ---------------------------------------------------------------------------
 // Schemas de validación

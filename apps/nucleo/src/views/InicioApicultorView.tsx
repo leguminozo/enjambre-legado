@@ -6,6 +6,7 @@ import { Hexagon, BookOpen, Mic, CalendarDays, Sprout } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useAuthStore } from '@enjambre/auth';
 import { supabase } from '@/lib/supabase';
+import { RegistryAskPanel } from '@/components/apicultor/RegistryAskPanel';
 
 /**
  * Inicio del rol apicultor (patio/operación).
@@ -114,6 +115,8 @@ export function InicioApicultorView() {
           </Link>
         ))}
       </div>
+
+      <RegistryAskPanel compact />
     </div>
   );
 }

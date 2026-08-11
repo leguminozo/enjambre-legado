@@ -21,11 +21,14 @@ import { NotificationBell } from '@enjambre/ui';
 import { createClient, isSupabaseConfigured, useAuthStore, useInAppNotifications } from '@enjambre/auth';
 import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 import { BitacoraSyncBanner } from '@/components/apicultor/BitacoraSyncBanner';
+import { BitacoraSyncProvider } from '@/providers/bitacora-sync-provider';
 
 export default function DashboardLayoutClient({ children }: { children: React.ReactNode }) {
   return (
     <WorkspaceLayoutProvider>
-      <ShellContent>{children}</ShellContent>
+      <BitacoraSyncProvider>
+        <ShellContent>{children}</ShellContent>
+      </BitacoraSyncProvider>
     </WorkspaceLayoutProvider>
   );
 }

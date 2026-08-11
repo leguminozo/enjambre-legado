@@ -212,12 +212,19 @@ export function usePerfil() {
   async function joinRegistroTerritorial(rol: string, comuna: string) {
     if (!profile) return;
     try {
+      // getUser() refresca JWT si hace falta (paridad con useApiFetch)
+      await supabase.auth.getUser();
       const { data: session } = await supabase.auth.getSession();
+      const token = session.session?.access_token;
+      if (!token) {
+        setMessage({ type: "error", text: "Sesión expirada — volvé a iniciar sesión" });
+        return;
+      }
       const res = await fetch("/api/registro-territorial/actores", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.session?.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           rol,
@@ -225,12 +232,19 @@ export function usePerfil() {
           nombre_actor: profile.full_name || profile.email,
         }),
       });
+      const json = (await res.json().catch(() => ({}))) as {
+        data?: ActorRegistro;
+        message?: string;
+        code?: string;
+      };
       if (res.ok) {
-        const json = await res.json();
-        setActor(json.data);
+        setActor(json.data ?? null);
         setMessage({ type: "success", text: "Te has unido al Registro Territorial" });
       } else {
-        setMessage({ type: "error", text: "Error al unirte al Registro Territorial" });
+        setMessage({
+          type: "error",
+          text: json.message || "Error al unirte al Registro Territorial",
+        });
       }
     } catch (error) {
       console.error("[perfil] join registro error:", error);

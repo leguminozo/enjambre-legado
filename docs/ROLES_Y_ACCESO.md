@@ -28,7 +28,7 @@
 
 Valores de signup/BFF (ejemplos): `api_residente`, `api_trashumante`, `api_mixto`, `prop_facilitador`, `agri_*`, `comercial_acopio`, `tecnico_inspector`, `institucion_publica`.
 
-- Filtra menú y escrituras de censo **después** de que el platform role sea `territorial`.
+- Filtra menú (shell) y, en oleada 2a, **escrituras BFF** (familia `minimo` bloqueada salvo inscripción de actor).
 - No sustituye a `profiles.role`.
 
 ---
@@ -111,10 +111,11 @@ Código: `apps/nucleo/src/lib/territorial-rol.ts` + `getSidebarGroupsForRole(rol
 | Offline Dexie `NucleoBitacoraDB` | Sesiones + capturas + cola |
 | Banner global sync | `BitacoraSyncBanner` en shell (admin/apicultor) |
 | Voz → cola → upload audio | `RecorderVoz` + `useBitacoraSyncEngine` |
-| **Transcript manual (sin STT)** | Opción B en `RecorderVoz` → `enqueueTranscriptManual` → estado `transcrito` |
+| **Transcript manual** | Opción B en `RecorderVoz` → cola → `transcrito` |
+| **STT Groq (neocloud)** | `POST /api/ai/bitacora/transcribe` + botón en curaduría |
 | Curaduría | `CuraduriaBitacoraPanel` en cuaderno |
 
-STT server-side sigue opcional (no bloquea el patio).
+STT: path manual + **Groq Whisper** (`POST /api/ai/bitacora/transcribe`, `docs/AI_NUCLEO.md`).
 
 ### Campo / Tienda
 
@@ -143,12 +144,14 @@ Sin cambio de dominio. Bitácora de patio **nunca** en Campo.
 | Path | Cómo | Resultado |
 |------|------|-----------|
 | **Crear cuenta directa** | Admin → Invitaciones → Crear cuenta → rol `apicultor` | `POST /api/admin/crear-cuenta`; `profiles.role=apicultor`; membresía empresa; home `/inicio` patio |
-| **Código de invitación** | Admin genera código con rol `apicultor`; usuario autenticado canjea | `canjear_codigo_invitacion` escribe `profiles.role` (prioridad admin→apicultor→territorial→…) |
+| **Código de invitación** | Admin genera código; usuario autenticado canjea vía `redeemInvitationCode` | `canjear_codigo_invitacion` → `profiles.role` + **refreshSession** |
 | **Signup público Núcleo** | Sheet territorial (`app_source=nucleo_territorial`) | Solo `territorial` (red/censo) — **no** crea patio |
+
+**Política admin en códigos:** `max_uses = 1` y TTL ≤ 7 días (BFF + panel). Preferir crear cuenta directa para admins.
 
 No self-serve patio en v1. Frontera: no usar “Apicultor” como label de territorial.
 
-Código: `apps/nucleo/src/lib/invitation-roles.ts`, `InvitacionesPanel`, `admin-identidades.ts`, mig `20260811010000_invitation_platform_roles.sql`.
+Código: `invitation-roles.ts`, `invitation-policy.ts`, `redeem-invitation.ts`, `InvitacionesPanel`, `admin-identidades.ts`, mig `20260811010000_*.sql`.
 
 ---
 
@@ -158,7 +161,7 @@ Código: `apps/nucleo/src/lib/invitation-roles.ts`, `InvitacionesPanel`, `admin-
 |-----|--------------|---------------------------|
 | admin | menú completo | `/inicio` |
 | apicultor | inicio, colmenas, cuaderno, calendario patio, config | `/inicio` |
-| territorial | inicio, territorio, fenología | `/inicio` |
+| territorial (2a) | según familia api / institución / mínimo | `/inicio` |
 | rep_ventas | vacío (sale a Campo) | URL Campo `/pos` |
 | cliente / creador | vacío (sale a Tienda) | Tienda catálogo / creador |
 
@@ -167,12 +170,32 @@ Tests de regresión:
 - `packages/auth/src/role-redirect-guards.test.ts`
 - `apps/nucleo/src/__tests__/auth-integration.test.ts`
 - `apps/nucleo/src/config/__tests__/sidebar-config.test.ts`
+- `apps/nucleo/src/lib/__tests__/territorial-rol.test.ts`
+- `apps/nucleo/src/lib/__tests__/invitation-policy.test.ts`
+
+Ops: **`docs/OPS_ROLES_CHECKLIST.md`**.
 
 ---
 
-## 8. Referencias
+## 8. Riesgos y deuda (largo horizonte)
 
+| Riesgo | Mitigación actual | Horizon |
+|--------|-------------------|---------|
+| Código invitación con `admin` multi-uso | Forzado 1 uso + 7d | Preferir crear cuenta; auditoría de códigos activos |
+| JWT desfasado tras canje | `redeemInvitationCode` + meta `requires_session_refresh` | Forzar re-login si middleware falla |
+| Sub-rol solo UI | BFF bloquea escrituras familia `minimo` | 2b: menús + authz por sub-rol fino |
+| `packages/auth` → `actores_registro` | Funcional | Mover a claim/hook nucleo |
+| e2e aislamiento A≠B | Unit + RLS design | Playwright multi-user |
+| STT bitácora | Manual + Groq Whisper (`/api/ai/bitacora/transcribe`) | Enrichment LLM del parse (horizon) |
+
+**No requiere rewrite.** Cimiento MVP sólido; checklist ops antes de prod.
+
+---
+
+## 9. Referencias
+
+- `docs/OPS_ROLES_CHECKLIST.md` — migraciones, smoke, política invitaciones  
 - `docs/BITACORA_APICOLA.md` — dominio bitácora / offline patio  
 - `docs/NUCLEO_CHILOE.md` — registro territorial  
 - `docs/RLS_AUDIT_COLMENAS_BITACORA.md` — ownership RLS patio  
-- Migraciones: `39_admin_role_consolidation.sql`, `997_territorial_role.sql`, `1006_bitacora_apicola.sql`, `1010_cuaderno_crud.sql`, `*_apicultor_platform_role.sql`
+- Migraciones: `39_*`, `997_*`, `1006_*`, `1010_*`, `20260811000000_*`, `20260811010000_*`

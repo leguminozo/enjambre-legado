@@ -13,6 +13,7 @@ import {
   TERRITORIAL_ROL_LABELS,
   type TerritorialRol,
 } from '@/lib/territorial-rol';
+import { RegistryAskPanel } from '@/components/apicultor/RegistryAskPanel';
 
 interface ResumenTerritorial {
   actor: {
@@ -212,6 +213,8 @@ export function InicioTerritorialView() {
           </Link>
         ))}
       </div>
+
+      <RegistryAskPanel compact />
     </div>
   );
 }

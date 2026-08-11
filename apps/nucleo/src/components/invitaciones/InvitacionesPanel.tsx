@@ -14,6 +14,9 @@ import {
   INVITABLE_ROLE_META,
   type InvitablePlatformRole,
 } from '@/lib/invitation-roles';
+import { enforceAdminInviteConstraints, invitationIncludesAdmin } from '@/lib/invitation-policy';
+import { useApiFetch } from '@/hooks/use-api-fetch';
+import { RedeemInviteForm } from '@/components/invitaciones/RedeemInviteForm';
 
 interface InvitationCodeRow {
   id: string;
@@ -66,6 +69,7 @@ const ROLES_TERRITORIALES = [
 ];
 
 export function InvitacionesPanel() {
+  const apiFetch = useApiFetch();
   const [codes, setCodes] = useState<InvitationCodeRow[]>([]);
   const [redemptions, setRedemptions] = useState<RedemptionRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,20 +95,13 @@ export function InvitacionesPanel() {
   });
   const [cuentaCreada, setCuentaCreada] = useState<{ email: string; password: string; role: string } | null>(null);
 
-  const resolveEmpresaId = async () => {
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (!authUser) throw new Error('No autenticado');
-
-    const { data: ueData, error: ueError } = await supabase
-      .from('usuarios_empresas')
-      .select('empresa_id')
-      .eq('user_id', authUser.id)
-      .limit(1);
-    if (ueError) throw ueError;
-
-    const empresaId = ueData?.[0]?.empresa_id;
-    if (!empresaId) throw new Error('Sin empresa asignada');
-    return empresaId;
+  type BffInvitation = InvitationCodeRow & {
+    invitation_redemptions?: Array<{
+      id: string;
+      user_id: string;
+      redeemed_at: string;
+      roles_assigned: string[];
+    }>;
   };
 
   const fetchProfileNames = async (userIds: string[]) => {
@@ -125,45 +122,53 @@ export function InvitacionesPanel() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const empresaId = await resolveEmpresaId();
-
-      const { data: codesData, error: codesError } = await supabase
-        .from('invitation_codes')
-        .select('*')
-        .eq('empresa_id', empresaId)
-        .order('created_at', { ascending: false })
-        .limit(100);
-      if (codesError) throw codesError;
-
-      const codeRows = (codesData as InvitationCodeRow[]) || [];
-      const codeIds = codeRows.map(c => c.id);
-
-      let redemptionRows: RedemptionRow[] = [];
-      if (codeIds.length > 0) {
-        const { data: redemptionsData, error: redemptionsError } = await supabase
-          .from('invitation_redemptions')
-          .select('*, invitation_codes(code)')
-          .in('invitation_id', codeIds)
-          .order('redeemed_at', { ascending: false })
-          .limit(50);
-        if (redemptionsError) throw redemptionsError;
-        redemptionRows = (redemptionsData as RedemptionRow[]) || [];
+      // Una sola vía: BFF admin (tenant + requireProfileRole)
+      const res = await apiFetch('/api/invitations');
+      const json = (await res.json().catch(() => ({}))) as {
+        data?: BffInvitation[];
+        message?: string;
+        code?: string;
+      };
+      if (!res.ok) {
+        throw new Error(json.message || 'No se pudieron cargar las invitaciones');
       }
 
+      const codeRows = json.data ?? [];
+      const redemptionRows: RedemptionRow[] = [];
+      for (const c of codeRows) {
+        for (const r of c.invitation_redemptions ?? []) {
+          redemptionRows.push({
+            id: r.id,
+            invitation_id: c.id,
+            user_id: r.user_id,
+            redeemed_at: r.redeemed_at,
+            roles_assigned: r.roles_assigned ?? [],
+            invitation_codes: { code: c.code },
+          });
+        }
+      }
+      redemptionRows.sort(
+        (a, b) => new Date(b.redeemed_at).getTime() - new Date(a.redeemed_at).getTime(),
+      );
+
       const profileMap = await fetchProfileNames([
-        ...codeRows.map(c => c.created_by),
-        ...redemptionRows.map(r => r.user_id),
+        ...codeRows.map((c) => c.created_by),
+        ...redemptionRows.map((r) => r.user_id),
       ]);
 
-      setCodes(codeRows.map(c => ({
-        ...c,
-        creatorName: profileMap[c.created_by]?.full_name,
-      })));
-      setRedemptions(redemptionRows.map(r => ({
-        ...r,
-        userName: profileMap[r.user_id]?.full_name,
-        userEmail: profileMap[r.user_id]?.email,
-      })));
+      setCodes(
+        codeRows.map((c) => ({
+          ...c,
+          creatorName: profileMap[c.created_by]?.full_name,
+        })),
+      );
+      setRedemptions(
+        redemptionRows.map((r) => ({
+          ...r,
+          userName: profileMap[r.user_id]?.full_name,
+          userEmail: profileMap[r.user_id]?.email,
+        })),
+      );
     } catch (err) {
       toast(friendlyError(err, 'Error al cargar invitaciones'), { type: 'error' });
     } finally {
@@ -171,35 +176,50 @@ export function InvitacionesPanel() {
     }
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => {
+    void fetchAll();
+  }, []);
 
   const createCode = async () => {
     setActionLoading('creating');
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) throw new Error('No autenticado');
-
-      const empresaId = await resolveEmpresaId();
-      const { data: generatedCode, error: codeError } = await supabase.rpc('generar_codigo_invitacion', {
-        p_empresa_id: empresaId,
-      });
-      if (codeError) throw codeError;
-      if (!generatedCode) throw new Error('No se pudo generar el código');
-
-      const payload: Record<string, unknown> = {
-        empresa_id: empresaId,
-        code: generatedCode,
-        created_by: authUser.id,
-        roles: newCode.roles.length > 0 ? newCode.roles : ['apicultor'],
+      // Una sola vía: BFF aplica política admin (1 uso / ≤7d) y genera el código
+      const roles = newCode.roles.length > 0 ? newCode.roles : ['apicultor'];
+      const body: Record<string, unknown> = {
+        roles,
         tools: {},
-        active: true,
       };
-      if (newCode.maxUses) payload.max_uses = Number(newCode.maxUses);
-      if (newCode.expiresAt) payload.expires_at = new Date(newCode.expiresAt).toISOString();
+      if (newCode.maxUses) body.max_uses = Number(newCode.maxUses);
+      if (newCode.expiresAt) {
+        body.expires_at = new Date(newCode.expiresAt).toISOString();
+      }
 
-      const { error } = await supabase.from('invitation_codes').insert(payload);
-      if (error) throw error;
+      // Preview local de warnings (el BFF re-aplica enforce)
+      const preview = enforceAdminInviteConstraints({
+        roles,
+        max_uses: body.max_uses as number | undefined,
+        expires_at: (body.expires_at as string | undefined) ?? null,
+      });
 
+      const res = await apiFetch('/api/invitations', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        data?: unknown;
+        message?: string;
+        code?: string;
+        meta?: { policy_warnings?: string[] };
+        error?: string;
+      };
+      if (!res.ok) {
+        throw new Error(json.message || json.error || 'No se pudo crear la invitación');
+      }
+
+      const warnings = json.meta?.policy_warnings?.length
+        ? json.meta.policy_warnings
+        : preview.warnings;
+      if (warnings.length) toast(warnings[0]!, { type: 'info' });
       toast('Invitación creada', { type: 'success' });
       setShowCreate(false);
       setNewCode({ maxUses: '', expiresAt: '', roles: ['apicultor'] });
@@ -218,9 +238,6 @@ export function InvitacionesPanel() {
     }
     setActionLoading('crear-cuenta');
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error('No autenticado');
-
       const body: Record<string, unknown> = {
         email: nuevaCuenta.email,
         password: nuevaCuenta.password,
@@ -232,20 +249,21 @@ export function InvitacionesPanel() {
         if (nuevaCuenta.comuna) body.comuna = nuevaCuenta.comuna;
       }
 
-      const res = await fetch('/api/admin/crear-cuenta', {
+      const res = await apiFetch('/api/admin/crear-cuenta', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
         body: JSON.stringify(body),
       });
 
-      const json = await res.json() as { ok?: boolean; message?: string; code?: string; error?: { issues?: { message: string }[] } };
+      const json = (await res.json()) as {
+        ok?: boolean;
+        message?: string;
+        code?: string;
+        error?: { issues?: { message: string }[] };
+      };
       if (!res.ok) {
         let errorMsg = json.message || 'Error al crear cuenta';
         if (json.error?.issues?.length) {
-          errorMsg = json.error.issues.map(i => i.message).join(', ');
+          errorMsg = json.error.issues.map((i) => i.message).join(', ');
         }
         throw new Error(errorMsg);
       }
@@ -274,8 +292,12 @@ export function InvitacionesPanel() {
   const toggleCodeActive = async (codeId: string, active: boolean) => {
     setActionLoading(codeId);
     try {
-      const { error } = await supabase.from('invitation_codes').update({ active: !active }).eq('id', codeId);
-      if (error) throw error;
+      const res = await apiFetch(`/api/invitations/${codeId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ active: !active }),
+      });
+      const json = (await res.json().catch(() => ({}))) as { message?: string };
+      if (!res.ok) throw new Error(json.message || 'No se pudo actualizar');
       toast(`Código ${active ? 'desactivado' : 'activado'}`, { type: 'success' });
       await fetchAll();
     } catch (err) {
@@ -288,8 +310,9 @@ export function InvitacionesPanel() {
   const deleteCode = async (codeId: string) => {
     setActionLoading(codeId);
     try {
-      const { error } = await supabase.from('invitation_codes').delete().eq('id', codeId);
-      if (error) throw error;
+      const res = await apiFetch(`/api/invitations/${codeId}`, { method: 'DELETE' });
+      const json = (await res.json().catch(() => ({}))) as { message?: string };
+      if (!res.ok) throw new Error(json.message || 'No se pudo eliminar');
       toast('Código eliminado', { type: 'success' });
       await fetchAll();
     } catch (err) {
@@ -315,9 +338,11 @@ export function InvitacionesPanel() {
         variant="compact"
         eyebrow="Onboarding"
         title="Invitaciones"
-        subtitle="Códigos de acceso · Creación directa de cuentas"
+        subtitle="Códigos de acceso · Creación directa de cuentas · Canje"
         icon={<Users size={22} />}
       />
+
+      <RedeemInviteForm compact />
 
       <div className="stats-grid">
         {[
@@ -418,6 +443,13 @@ export function InvitacionesPanel() {
             <code className="text-[0.6rem]">profiles.role</code> al canjear. Patio = <strong>apicultor</strong>; red/censo ={' '}
             <strong>territorial</strong>.
           </p>
+          {invitationIncludesAdmin(newCode.roles) && (
+            <p className="text-[0.65rem] text-warning mt-2 p-2 rounded-md bg-warning/10 border border-warning/20">
+              <strong>Seguridad:</strong> códigos con <code className="text-[0.65rem]">admin</code> se limitan a{' '}
+              <strong>1 uso</strong> y caducidad máxima <strong>7 días</strong> (forzado en UI y BFF). Preferí crear cuenta
+              directa para admins.
+            </p>
+          )}
         </div>
       </ImmersiveModal>
 

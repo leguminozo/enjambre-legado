@@ -19,6 +19,7 @@ import {
   getConfigSectionsForRole,
   type Section,
 } from './constants';
+import { RedeemInviteForm } from '@/components/invitaciones/RedeemInviteForm';
 
 const ALL_SECTION_DEFS: { key: Section; icon: React.ReactNode; label: string }[] = [
   { key: 'personal', icon: <User size={18} />, label: 'Datos Personales' },
@@ -135,7 +136,12 @@ export function ConfiguracionHub() {
       />
 
       <div className="min-w-0 space-y-5 rounded-2xl border border-border bg-card p-4 sm:p-6">
-        {activeSection === 'personal' && <DatosPersonalesSection {...perfil} />}
+        {activeSection === 'personal' && (
+          <div className="space-y-5">
+            <DatosPersonalesSection {...perfil} />
+            <RedeemInviteForm compact />
+          </div>
+        )}
         {activeSection === 'seguridad' && <SeguridadSection {...perfil} />}
         {activeSection === 'empresas' && allowedKeys.includes('empresas') && (
           <EmpresasSection {...perfil} />

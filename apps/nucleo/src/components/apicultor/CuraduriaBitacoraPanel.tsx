@@ -9,6 +9,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CheckCircle2, Sparkles, ShieldAlert, Loader2 } from 'lucide-react';
+import { toast } from '@enjambre/ui';
 import type { CapturaVozRow, AtribucionHipotesis, FaseBitacora } from '@/lib/bitacora-types';
 import { FASES_BITACORA } from '@/lib/bitacora-types';
 import type { ColmenaWithRelations } from '@/lib/apicultor-types';
@@ -22,12 +23,23 @@ interface CapturasResponse {
   data: CapturaVozRow[];
 }
 
-const ESTADOS_CURADURIA: CapturaVozRow['estado'][] = ['procesado', 'en_revision', 'transcrito'];
+/** En cola de curaduría: con texto listo, o audio pendiente de STT */
+function capturasEnCuraduria(c: CapturaVozRow): boolean {
+  if (c.estado === 'procesado' || c.estado === 'en_revision' || c.estado === 'transcrito') {
+    return true;
+  }
+  // Audio subido, aún sin transcript (path STT Groq)
+  if (c.estado === 'capturado' && Boolean(c.audio_url) && !c.transcript_raw) {
+    return true;
+  }
+  return false;
+}
 
 export function CuraduriaBitacoraPanel({ colmenas }: Props) {
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
   const [confirmando, setConfirmando] = useState<string | null>(null);
+  const [transcribiendo, setTranscribiendo] = useState<string | null>(null);
   const [fases, setFases] = useState<Record<string, FaseBitacora>>({});
 
   const { data: capturasData, refetch } = useQuery<CapturasResponse>({
@@ -41,8 +53,8 @@ export function CuraduriaBitacoraPanel({ colmenas }: Props) {
   });
 
   const capturas = useMemo(
-    () => (capturasData?.data ?? []).filter((c) => ESTADOS_CURADURIA.includes(c.estado)),
-    [capturasData]
+    () => (capturasData?.data ?? []).filter(capturasEnCuraduria),
+    [capturasData],
   );
 
   const nombreColmena = (id: string | null) =>
@@ -50,8 +62,36 @@ export function CuraduriaBitacoraPanel({ colmenas }: Props) {
 
   const procesar = async (capturaId: string) => {
     const res = await apiFetch(`/api/bitacora/capturas/${capturaId}/procesar`, { method: 'POST' });
-    if (!res.ok) return;
+    if (!res.ok) {
+      const err = (await res.json().catch(() => null)) as { message?: string } | null;
+      toast(err?.message ?? 'No se pudo procesar la transcripción', { type: 'error' });
+      return;
+    }
+    toast('Transcripción procesada — revisá las hipótesis', { type: 'success' });
     await refetch();
+  };
+
+  /** STT Groq (neocloud) — solo capturas propias con audio */
+  const transcribirIa = async (capturaId: string) => {
+    setTranscribiendo(capturaId);
+    try {
+      const res = await apiFetch('/api/ai/bitacora/transcribe', {
+        method: 'POST',
+        body: JSON.stringify({ captura_id: capturaId }),
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => null)) as {
+          message?: string;
+          code?: string;
+        } | null;
+        toast(err?.message ?? 'Error al transcribir con IA', { type: 'error' });
+        return;
+      }
+      toast('Transcripción lista — podés procesar', { type: 'success' });
+      await refetch();
+    } finally {
+      setTranscribiendo(null);
+    }
   };
 
   const confirmar = async (capturaId: string, hip: AtribucionHipotesis) => {
@@ -111,20 +151,41 @@ export function CuraduriaBitacoraPanel({ colmenas }: Props) {
               </span>
             </div>
 
-            {cap.estado === 'transcrito' ? (
+            {cap.transcript_raw && (
+              <p className="text-[11px] text-muted-foreground mb-3 line-clamp-3 whitespace-pre-wrap">
+                {cap.transcript_raw}
+              </p>
+            )}
+
+            {cap.estado === 'capturado' && cap.audio_url && !cap.transcript_raw ? (
               <button
+                type="button"
+                onClick={() => void transcribirIa(cap.id)}
+                disabled={transcribiendo === cap.id}
+                className="px-3 py-1.5 rounded-lg bg-accent text-accent-foreground text-xs font-bold flex items-center gap-1 disabled:opacity-40"
+              >
+                {transcribiendo === cap.id ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <Sparkles size={12} />
+                )}
+                Transcribir con IA (Groq)
+              </button>
+            ) : cap.estado === 'transcrito' ? (
+              <button
+                type="button"
                 onClick={() => void procesar(cap.id)}
                 className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold"
               >
                 Procesar transcripción
               </button>
-            ) : cap.atribucion_hipotesis.length === 0 ? (
+            ) : (cap.atribucion_hipotesis?.length ?? 0) === 0 ? (
               <p className="text-xs text-muted-foreground">
                 Sin marcadores de colmena detectados — revisa la transcripción manualmente.
               </p>
             ) : (
               <div className="space-y-3">
-                {cap.atribucion_hipotesis.map((hip, i) => {
+                {(cap.atribucion_hipotesis ?? []).map((hip, i) => {
                   const asignado = nombreColmena(hip.colmena_id);
                   return (
                     <div key={i} className="flex flex-col md:flex-row md:items-center gap-3 bg-card border border-border/50 rounded-lg p-3">

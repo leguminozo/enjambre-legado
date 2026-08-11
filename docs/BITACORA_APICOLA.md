@@ -456,7 +456,7 @@ Workflow inspirado en la herramienta **RSN (Redes Semánticas Naturales) de Tram
 
 ### Pendiente (fuera de esta iteración)
 
-- [ ] Transcripción audio→texto (servicio externo, SOLO server-side) — no existe nada reutilizable localmente
+- [x] Transcripción audio→texto (Groq Whisper neocloud, SOLO server-side) — `POST /api/ai/bitacora/transcribe` (`docs/AI_NUCLEO.md`); path manual sigue disponible
 - [ ] `pnpm db:typegen` + `supabase db push` cuando haya proyecto linkeado (aquí no hay token)
 - [ ] Aplicar migraciones 1006-1010 a la BD real
 

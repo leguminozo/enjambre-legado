@@ -12,12 +12,12 @@ import { CloudOff, AlertTriangle, RefreshCw, Wifi } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
 import { resolveShellRoleKey } from '@/config/sidebar-config';
 import { db } from '@/lib/offline/db';
-import { useBitacoraSyncEngine } from '@/hooks/use-bitacora-sync-engine';
+import { useBitacoraSync } from '@/providers/bitacora-sync-provider';
 
 export function BitacoraSyncBanner() {
   const rawRole = useAuthStore((s) => s.user?.role);
   const role = resolveShellRoleKey(rawRole);
-  const { triggerSync } = useBitacoraSyncEngine();
+  const { triggerSync } = useBitacoraSync();
   const [syncing, setSyncing] = useState(false);
   const [online, setOnline] = useState(
     typeof navigator !== 'undefined' ? navigator.onLine : true,

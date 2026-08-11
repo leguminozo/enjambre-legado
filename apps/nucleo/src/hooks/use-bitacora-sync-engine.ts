@@ -87,17 +87,48 @@ export function useBitacoraSyncEngine() {
           const localId = json.meta?.client_local_id ?? (item.payload.client_local_id as string | undefined);
           const serverId = json.data.id;
           if (localId && serverId) {
-            // Reconciliar: actualizar la sesión local y reescribir las capturas
-            // pendientes que referencian el id local.
-            await db.sesiones_locales.update(localId, { id: serverId, sincronizada: true });
-            const capturasPendientes = await db.sync_queue
-              .where('tipo').equals('captura')
-              .filter((i) => i.payload.session_id === localId)
-              .toArray();
-            for (const cap of capturasPendientes) {
-              await db.sync_queue.update(cap.id!, { payload: { ...cap.payload, session_id: serverId } });
-            }
-            await db.grabaciones.where('session_id').equals(localId).modify({ session_id: serverId });
+            // Dexie NO permite cambiar la PK con update() — hay que delete+put.
+            await db.transaction(
+              'rw',
+              db.sesiones_locales,
+              db.sync_queue,
+              db.grabaciones,
+              async () => {
+                const prev = await db.sesiones_locales.get(localId);
+                if (prev) {
+                  await db.sesiones_locales.delete(localId);
+                  await db.sesiones_locales.put({
+                    ...prev,
+                    id: serverId,
+                    sincronizada: true,
+                    updated_at: Date.now(),
+                  });
+                } else {
+                  await db.sesiones_locales.put({
+                    id: serverId,
+                    apiario_id: (item.payload.apiario_id as string | null) ?? null,
+                    fecha: (item.payload.fecha as string) ?? new Date().toISOString().slice(0, 10),
+                    contexto: (item.payload.contexto as string | null) ?? null,
+                    sincronizada: true,
+                    updated_at: Date.now(),
+                  });
+                }
+                const capturasPendientes = await db.sync_queue
+                  .where('tipo')
+                  .equals('captura')
+                  .filter((i) => i.payload.session_id === localId)
+                  .toArray();
+                for (const cap of capturasPendientes) {
+                  await db.sync_queue.update(cap.id!, {
+                    payload: { ...cap.payload, session_id: serverId },
+                  });
+                }
+                await db.grabaciones
+                  .where('session_id')
+                  .equals(localId)
+                  .modify({ session_id: serverId });
+              },
+            );
           }
           await db.sync_queue.delete(item.id!);
         } else if (res.status === 401 || res.status === 403) {
@@ -157,6 +188,26 @@ export function useBitacoraSyncEngine() {
                 method: 'PATCH',
                 body: JSON.stringify({ audio_url: path }),
               });
+              // Auto-STT best-effort (Groq). Si no hay key o falla, no rompe la cola.
+              // Desactivar: NEXT_PUBLIC_BITACORA_AUTO_STT=false (solo lectura en cliente)
+              const autoStt =
+                typeof process !== 'undefined' &&
+                process.env.NEXT_PUBLIC_BITACORA_AUTO_STT !== 'false';
+              if (autoStt) {
+                try {
+                  const sttRes = await apiFetch('/api/ai/bitacora/transcribe', {
+                    method: 'POST',
+                    body: JSON.stringify({ captura_id: capturaId }),
+                  });
+                  // 503 = IA off — silencioso; otros códigos se loguean en dev
+                  if (!sttRes.ok && sttRes.status !== 503 && process.env.NODE_ENV !== 'production') {
+                    const err = await sttRes.json().catch(() => null);
+                    console.warn('[bitacora-sync] auto-STT', sttRes.status, err);
+                  }
+                } catch {
+                  /* offline / red: la cola de captura ya está limpia; STT manual en curaduría */
+                }
+              }
             }
           }
           await db.sync_queue.delete(item.id!);

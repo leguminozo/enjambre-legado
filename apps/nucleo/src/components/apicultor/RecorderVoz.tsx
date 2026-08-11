@@ -18,7 +18,7 @@ import {
   enqueueCapturaVoz,
   enqueueTranscriptManual,
 } from '@/lib/offline/bitacora-offline';
-import { useBitacoraSyncEngine } from '@/hooks/use-bitacora-sync-engine';
+import { useBitacoraSync } from '@/providers/bitacora-sync-provider';
 
 function pickMimeType(): string {
   if (typeof MediaRecorder === 'undefined') return '';
@@ -28,7 +28,7 @@ function pickMimeType(): string {
 }
 
 export function RecorderVoz() {
-  const { triggerSync } = useBitacoraSyncEngine();
+  const { triggerSync } = useBitacoraSync();
 
   const sesiones = useLiveQuery(() =>
     db.sesiones_locales.orderBy('updated_at').reverse().toArray(), []);

@@ -46,6 +46,7 @@ import { comisionesRoutes } from "@/api/routes/comisiones";
 import { fenologiaRoutes } from "@/api/routes/fenologia";
 import { meteoRoutes } from "@/api/routes/meteo";
 import { bitacoraRoutes } from "@/api/routes/bitacora";
+import { aiRoutes } from "@/api/routes/ai";
 import { adminIdentidadesRoutes } from "@/api/routes/admin-identidades";
 import { adminSystemRoutes } from "@/api/routes/admin-system";
 import { mapaRoutes } from "@/api/routes/mapa";
@@ -100,6 +101,7 @@ app.use("*", async (c, next) => {
     "/api/eirl-dashboard",
     "/api/reportes",
     "/api/calculos-ia",
+    "/api/ai",
     "/api/commission-rules",
     "/api/dashboard/ejecutivo",
     "/api/costeo",
@@ -267,6 +269,7 @@ app.route("/comisiones", comisionesRoutes);
 app.route("/fenologia", fenologiaRoutes);
 app.route("/meteo", meteoRoutes);
 app.route("/bitacora", bitacoraRoutes);
+app.route("/ai", aiRoutes);
 app.route("/inventario", inventarioRoutes);
 // Público primero: alambiquePublicRoutes solo matchea /publico/:id y no debe
 // pasar por el authMiddleware del router admin (montado en el mismo base path).

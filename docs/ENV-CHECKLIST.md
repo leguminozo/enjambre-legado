@@ -36,6 +36,11 @@ No uses proyectos viejos (`gaboxxc/*`) para prod.
 | Transbank (`TRANSBANK_*`) | si TBK | — | — | Solo nucleo |
 | SumUp / Banco Chile negocio | UI + DB | — | via nucleo BFF | Credenciales en app (cifradas); no solo env |
 | Upstash Redis | recomendado | — | — | Rate limit multi-instancia |
+| `GROQ_API_KEY` | ✅ IA Núcleo | — | — | **Solo nucleo** server-side; nunca `NEXT_PUBLIC_*`. Ver `docs/AI_NUCLEO.md` |
+| `GROQ_CHAT_MODEL` | opcional | — | — | Default `llama-3.3-70b-versatile` |
+| `GROQ_STT_MODEL` | opcional | — | — | Default `whisper-large-v3-turbo` |
+| `AI_ENABLED` | opcional | — | — | `false` = kill-switch IA |
+| `NEXT_PUBLIC_BITACORA_AUTO_STT` | opcional | — | — | Default auto-STT tras sync de audio; `false` = solo botón curaduría |
 
 ### Config-en-UI vs env plataforma
 

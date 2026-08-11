@@ -145,7 +145,7 @@ BFF route: `POST /api/security-events` (Bearer auth) + `POST /api/security-event
 
 `admin` | `cliente` | `creador` | `rep_ventas` | `territorial`
 
-> Roles de plataforma: `admin`, `apicultor` (patio), `territorial`, `rep_ventas`, `cliente`, `creador`. Legacy (`vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) → `admin` vía `LEGACY_ROLE_MAP`. `apicultor` **no** se eleva a admin. Ver `docs/ROLES_Y_ACCESO.md`.
+> Roles de plataforma: `admin`, `apicultor` (patio), `territorial`, `rep_ventas`, `cliente`, `creador`. Legacy (`vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) → `admin` vía `LEGACY_ROLE_MAP`. `apicultor` **no** se eleva a admin. Docs: `docs/ROLES_Y_ACCESO.md`, checklist ops: `docs/OPS_ROLES_CHECKLIST.md`.
 > `territorial` (migration 997) es el rol de los participantes del Registro Territorial Apícola de Chiloé; home `/territorio`, guard `ROUTE_ROLE_GUARDS['/territorio']`.
 
 ## Environment Variables
