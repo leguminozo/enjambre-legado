@@ -1,5 +1,6 @@
 import type { ReceiptParser, ProveedorConfig, GastoExtranjeroResult } from "../gasto-extranjero";
 import { convertirALCLP } from "../gasto-extranjero";
+import { buildMontos } from "./parser-utils";
 
 function parseAmount(raw: string): number {
   const hasDotDecimal = /\.\d{2}$/.test(raw) && /,/.test(raw);
@@ -48,9 +49,7 @@ export const uberParser: ReceiptParser = {
 
     const tripMatch = text.match(/Trip\s+([\d.A-Za-z-]+)/i) ?? text.match(/Viaje\s+([\d.A-Za-z-]+)/i);
 
-    const montoNeto = config.conIva ? Math.round(montoCLP / 1.19) : 0;
-    const montoIva = config.conIva ? montoCLP - montoNeto : 0;
-    const montoExento = config.conIva ? 0 : montoCLP;
+    const { montoNeto, montoIva, montoExento } = buildMontos(montoCLP, config.conIva, config.cambioSujeto);
 
     return {
       proveedorId: config.id,

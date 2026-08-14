@@ -28,6 +28,7 @@ export function mergeProveedorCatalog(overrides: ProveedorOverride[] = []): Prov
       giro: row.giro || base?.giro || 'SERVICIOS DIGITALES',
       moneda: row.moneda || base?.moneda || 'USD',
       conIva: row.con_iva ?? base?.conIva ?? false,
+      cambioSujeto: base?.cambioSujeto ?? false,
       keywords: base?.keywords ?? [row.proveedor_id, row.nombre.toLowerCase()],
     });
   }

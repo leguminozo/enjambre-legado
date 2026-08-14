@@ -56,6 +56,7 @@ Compartimos datos con los siguientes encargados de tratamiento:
 - <strong>Transbank / Flow.cl:</strong> procesamiento de pagos. Los datos de tarjeta no pasan por nuestros servidores; se procesan en su plataforma certificada PCI DSS.
 - <strong>Blue Express:</strong> logística y envíos (nombre, dirección, teléfono del destinatario).
 - <strong>Diagnóstico de errores:</strong> Functional Software, Inc. (Sentry), solo fallos técnicos del sitio.
+- <strong>Asistente de patio (solo Núcleo):</strong> Groq, Inc., para transcribir audio de bitácora apícola que tú grabas. No opera en la tienda pública.
 - <strong>Analítica y publicidad:</strong> Google y Meta, únicamente si otorgas consentimiento de cookies no esenciales.
 
 Realizamos transferencias internacionales (Europa y América). Esos encargados aplican medidas de seguridad y cláusulas contractuales estándar conforme a la Ley 21.719.

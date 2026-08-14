@@ -21,7 +21,7 @@ describe("calcularF29", () => {
     expect(result.ivaPagar).toBe(0);
     expect(result.remanenteProximoPeriodo).toBe(0);
     expect(result.totalPagar).toBe(0);
-    expect(result.lineas).toHaveLength(16);
+    expect(result.lineas).toHaveLength(17);
   });
 
   it("debitos > creditos = IVA por pagar", () => {
@@ -97,20 +97,20 @@ describe("calcularF29", () => {
     expect(neto?.monto).toBe(300000);
   });
 
-  it("IVA digital se incluye como credito en cambio sujeto", () => {
+  it("IVA digital 511/512 se anulan (cambio sujeto)", () => {
     const input: F29Input = {
       ...baseInput,
       debitoFacturas: 100000,
       creditoFacturaCompraDigital: 38000,
     };
     const result = calcularF29(input);
-    expect(result.ivaPagar).toBe(62000);
+    expect(result.ivaPagar).toBe(100000);
 
     const montoNetoDigital = result.lineas.find((l) => l.codigo === F29_CODIGO.MONTO_NETO_DIGITAL);
     expect(montoNetoDigital?.monto).toBe(Math.round(38000 / 0.19));
 
-    const ivaDigital = result.lineas.find((l) => l.codigo === F29_CODIGO.IVA_DIGITAL_CAMBIO_SUJETO);
-    expect(ivaDigital?.monto).toBe(38000);
+    expect(result.lineas.find((l) => l.codigo === F29_CODIGO.IVA_DIGITAL_CAMBIO_SUJETO)?.monto).toBe(38000);
+    expect(result.lineas.find((l) => l.codigo === F29_CODIGO.IVA_DIGITAL_CREDITO)?.monto).toBe(38000);
   });
 
   it("lineas tienen codigos SII correctos", () => {
@@ -122,6 +122,7 @@ describe("calcularF29", () => {
     expect(codigos).toContain(F29_CODIGO.TOTAL_DEBITOS);
     expect(codigos).toContain(F29_CODIGO.CREDITO_COMPRAS_NACIONALES);
     expect(codigos).toContain(F29_CODIGO.IVA_DIGITAL_CAMBIO_SUJETO);
+    expect(codigos).toContain(F29_CODIGO.IVA_DIGITAL_CREDITO);
     expect(codigos).toContain(F29_CODIGO.REMANENTE_CF_ANTERIOR);
     expect(codigos).toContain(F29_CODIGO.TOTAL_CREDITOS);
     expect(codigos).toContain(F29_CODIGO.IVA_PAGAR);
@@ -165,7 +166,7 @@ describe("calcularF29", () => {
     };
     const result = calcularF29(input);
 
-    const totalDebitos = 95000 + 28500;
+    const totalDebitos = 95000 + 28500 + 19000;
     const totalCreditos = 57000 + 19000 + 10000;
     const expectedIva = totalDebitos - totalCreditos;
 
@@ -188,7 +189,9 @@ describe("F29_CODIGO", () => {
     expect(F29_CODIGO.PPM_BASE_INGRESOS).toBe(563);
     expect(F29_CODIGO.PPM_TASA).toBe(115);
     expect(F29_CODIGO.PPM_MONTO).toBe(62);
+    expect(F29_CODIGO.CREDITO_COMPRAS_NACIONALES).toBe(507);
     expect(F29_CODIGO.IVA_DIGITAL_CAMBIO_SUJETO).toBe(511);
+    expect(F29_CODIGO.IVA_DIGITAL_CREDITO).toBe(512);
     expect(F29_CODIGO.CANTIDAD_DOCS_DIGITAL).toBe(519);
     expect(F29_CODIGO.MONTO_NETO_DIGITAL).toBe(520);
   });

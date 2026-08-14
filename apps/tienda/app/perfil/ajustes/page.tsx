@@ -4,6 +4,7 @@ import { getNotificationPreferences } from '@/app/actions/notification-preferenc
 import { getProfileIdentity } from '@/app/actions/profile';
 import { NotificationPreferencesForm } from '@/components/perfil/notification-preferences-form';
 import { ProfileIdentityForm } from '@/components/perfil/profile-identity-form';
+import { AccountPrivacySection } from '@/components/perfil/account-privacy-section';
 import { AjustesThemeSection } from './ajustes-theme-section';
 
 export default async function AjustesPage() {
@@ -44,6 +45,7 @@ export default async function AjustesPage() {
         </section>
 
         <NotificationPreferencesForm initialPreferences={notificationPreferences} />
+        <AccountPrivacySection />
       </div>
     </div>
   );

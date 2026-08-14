@@ -131,10 +131,11 @@ export function ImpuestosTab({ initialType }: ImpuestosTabProps) {
                   
                   <div className="border-t border-border my-2" />
                   
-                  <F29LineItem label="Crédito facturas nacionales (cod 503)" value={Number(f29Query.data.creditoFacturas ?? 0)} />
+                  <F29LineItem label="Crédito facturas nacionales (cod 507)" value={Number(f29Query.data.creditoFacturas ?? 0)} />
                   <F29LineItem label="Cantidad FC46 digitales (cod 519)" value={Number(f29Query.data.cantidadDocsDigital ?? 0)} integer />
                   <F29LineItem label="Monto neto digital (cod 520)" value={Number(f29Query.data.montoNetoDigital ?? 0)} />
-                  <F29LineItem label="IVA digital cambio sujeto (cod 511)" value={Number(f29Query.data.creditoFacturaCompraDigital ?? 0)} />
+                  <F29LineItem label="Débito IVA digital (cod 511)" value={Number(f29Query.data.creditoFacturaCompraDigital ?? 0)} />
+                  <F29LineItem label="Crédito IVA digital (cod 512)" value={Number(f29Query.data.creditoFacturaCompraDigital ?? 0)} />
                   <F29LineItem label="Total crédito IVA" value={Number(f29Query.data.totalCredito ?? 0)} />
                   
                   <div className="border-t border-border my-2" />

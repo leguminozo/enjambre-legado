@@ -47,6 +47,7 @@ describe("parseReceipt", () => {
       giro: "SERVICIOS DE COMPUTACION EN LA NUBE",
       moneda: "USD" as const,
       conIva: false,
+      cambioSujeto: true,
       keywords: ["amazon web services", "aws"],
     };
     const text = "AWS Billing $100.00 for January";

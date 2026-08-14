@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Lock, CheckCircle2, KeyRound } from 'lucide-react';
@@ -15,6 +15,24 @@ export default function NucleoResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) return;
+
+    if (typeof window !== 'undefined') {
+      const search = new URLSearchParams(window.location.search);
+      const tokenHash = search.get('token_hash');
+      const type = search.get('type');
+      if (tokenHash && type === 'recovery') {
+        supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' }).then(({ error }) => {
+          if (error) {
+            toast(friendlySupabaseError(error), { type: 'error' });
+          }
+        });
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

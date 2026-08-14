@@ -26,8 +26,8 @@ export function BeeCanvas() {
     const HONEY_GLOW = 'rgba(201, 162, 39, 0.12)';
     const WING = '#f5f0e8';
 
-    let width: number;
-    let height: number;
+    let width = 0;
+    let height = 0;
     let bees: Bee[] = [];
     let honeyParticles: HoneyParticle[] = [];
     let honeycombCells: HoneycombCell[] = [];
@@ -313,8 +313,9 @@ export function BeeCanvas() {
       }
     }
 
-    const NUM_BEES = width < 768 ? 22 : 48;
-    const NUM_PARTICLES = width < 768 ? 25 : 55;
+    const currentWidth = width || (typeof window !== 'undefined' ? window.innerWidth : 1024);
+    const NUM_BEES = currentWidth < 768 ? 22 : 48;
+    const NUM_PARTICLES = currentWidth < 768 ? 25 : 55;
 
     bees = [];
     honeyParticles = [];

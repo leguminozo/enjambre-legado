@@ -15,12 +15,12 @@ categoria: 'Control Glicémico',
 evidencias: [
 {
 titulo: 'Evidencia Monumental Control Glicémico',
-texto: 'Comparada con dextrosa, la miel reduce el aumento de glucosa (IG ~55).',
+texto: 'Hay literatura que compara la respuesta glucémica de mieles con otros endulzantes; no es un sello nutricional de este frasco.',
 fuente: 'EVIDENCIA CIENTÍFICA'
 },
 {
 titulo: 'Impacto HbA1c',
-texto: 'Consumo de 50g/día mejora control sin picos drásticos.',
+texto: 'Los ensayos clínicos no sustituyen el rotulado ni el consejo médico.',
 fuente: 'EVIDENCIA CIENTÍFICA'
 },
 {
@@ -30,17 +30,17 @@ fuente: 'EVIDENCIA CIENTÍFICA'
 },
 {
 titulo: 'Síndrome Metabólico',
-texto: 'Mejora metabolismo lipídico y reduce aumento de peso.',
+texto: 'No atribuimos a este producto efectos sobre peso o metabolismo.',
 fuente: 'EVIDENCIA CIENTÍFICA'
 },
 {
 titulo: 'Revisión Sistemática',
-texto: 'IG inferior minimiza picos glucémicos.',
+texto: 'No usamos índice glicémico como claim de envase.',
 fuente: 'EVIDENCIA CIENTÍFICA'
 },
 {
 titulo: 'Prediabetes',
-texto: 'Asociación inversa; mejora control en Diabetes T2.',
+texto: 'Este alimento no está indicado para tratar diabetes.',
 fuente: 'EVIDENCIA CIENTÍFICA'
 }
 ]
@@ -287,7 +287,7 @@ export default async function NosotrosPage({
     </p>
     <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Fuentes</h2>
     <p className="text-lg leading-relaxed text-muted-foreground">
-      Las afirmaciones científicas se fundamentan en estudios que destacan las propiedades de la miel ulmo-tepú de Chiloé, contextualizadas a las ubicaciones de Pureo, Yerba Loza, y otras ubicaciones de nuestros respectivos apiarios:
+      Las notas que siguen son contexto bibliográfico sobre miel y flora nativa. No son indicación terapéutica ni rotulado Minsal (Ley 20.606). El alimento se presenta por origen y oficio. Contextualizadas a Pureo, Yerba Loza y apiarios de Chiloé:
     </p>
     <div className="mt-12 flex justify-center">
       <a
@@ -302,7 +302,7 @@ export default async function NosotrosPage({
 <div className={`prose prose-lg prose-invert max-w-none mb-24 ${historia ? 'hidden' : ''}`}>
 <div className="text-sm text-accent-text uppercase tracking-[0.2em] mb-4">2 de julio de 2025</div>
 <p className="text-lg md:text-xl leading-relaxed text-muted-foreground whitespace-pre-line">
-En términos generales, hacemos que la miel de Chiloé sea un puente entre la regeneración ecológica y la salud metabólica y nutricional. Al ser recolectada desde bosques nativos antiguos y regenerados, el néctar brota transformado directo desde el sol, logrando desafiar directamente ante el impacto del azúcar refinada. Con un índice glucémico de ~55 —frente al 65 del azúcar blanco—, reduce los picos glucémicos, promoviendo una energía estable que resuena con los ciclos vitales. Batida intermitentemente durante 48 horas, cada gota encapsula un vacío nutricional: una dulzura que no satura, sino que alimenta el cuerpo y la mente a partir del legado del bosque. Además, los polifenoles de la miel, abundantes en Chiloé, superan en capacidad antioxidante a variedades estándar, protegiendo contra el estrés oxidativo.
+En términos generales, hacemos que la miel de Chiloé sea un puente entre el bosque nativo y una mesa consciente. La recolectamos en bosques antiguos y regenerados; el néctar llega crudo, batido en frío, con el perfil de las floraciones de ulmo y tepú. Cada frasco es un alimento de origen, no un medicamento ni un sustituto etiquetado de azúcar.
 
 En "La Obrera y el Zángano", hacemos que este puente invite a un consumo consciente, sencillo y lujoso, que fusiona ciencia con existencia.
 </p>
@@ -311,25 +311,25 @@ En "La Obrera y el Zángano", hacemos que este puente invite a un consumo consci
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
 Hace 22 años comenzamos un proceso piloto de reforestación en un terreno de baja densidad boscosa y alta erosión derivada del impacto de un incencio varios años antes de nuestra llegada. Con paciencia, reconstruimos este paisaje con especies nativas como ulmo, tepú, tiaca, avellanos, entre otros. Tejiendo al final de años, un ecosistema que respira como pulmón vivo para nuestras colmenas y los demás seres que han llegado a habitar el entorno. Las abejas, en su existencia polinizadora, recolectan néctar de flores bañadas por la luz de bosques regenerados, directo desde el frío sur del planeta, creando una miel ámbar extra claro cremosa. Nuestra apicultura rompe con lo convencional: no solo produce, sino que restaura y preserva, la llamamos apicultura regenerativa, reflejando transmitir confianza en que todo se puede regenerar y convertir hacia algo mas profundo y capaz de crear un legado que trasciende la existencia humana. Ese legado emerge del bosque y de nuestra interdependencia tejida con los ritmos naturales.
 
-Nuestro proceso —de la reforestación en Pureo a los batidos precisos de miel ulmo-tepú— eleva lo artesanal a lo existencial. Rechaza el azúcar refinado, ligado al síndrome metabólico en el 36% de adultos chilenos. La textura cremosa, rica en triptófano, libera serotonina gradualmente, reduciendo fluctuaciones glucémicas en un 15-20% respecto al azúcar industrial, según estudios de respuesta glicémica.
+Nuestro proceso —de la reforestación en Pureo a los batidos de miel ulmo-tepú— es artesanal y lento. Preferimos la miel cruda del bosque al azúcar de mesa; esa preferencia es de sabor y de oficio, no un claim terapéutico.
 </p>
 
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Apicultura como Conexión Cósmica</h2>
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
 En Chiloé, trabajamos colaborativamente con nuestras colmenas, son sociedades complejas y sincronizadas al ritmo de las estaciones, al ritmo del sol. Cada verano es un nuevo comienzo en la recolección de miel.
 
-Luego, Innovamos con formatos minimalistas: sachets de 15 g como dosis exactas contra desbalances glucémicos, frascos de 150 g o 900 g para rituales profundos. Cada producto invita a un acto matutino: una cucharada que calma el ruido mental del azúcar simple, promoviendo claridad metabólica con efectos ansiolíticos mediados por precursores de serotonina.
+Luego, innovamos con formatos mínimos: sachets de 15 g, frascos de 150 g o 900 g. Cada uno invita a un acto cotidiano —una cucharada, un té, un desayuno— con el sabor del bosque, no con una promesa clínica.
 </p>
 
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Elixires del Vacío: Nuestros Productos</h2>
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
-En obrerayzangano.com, nuestra gama surge de procesos regenerativos: sachets, frascos de 150 g y 900 g, con avellanas, polen o cacao nibs que potencian nutrientes. Cada elixir es un antídoto al exceso calórico del azúcar, con un consumo promedio de 99 g diarios per cápita en Chile.
+En obrerayzangano.com, la gama nace de procesos regenerativos: sachets, frascos de 150 g y 900 g, a veces con avellana, polen o cacao nibs. Son alimentos de Chiloé, no antídotos.
 
-<strong>Sachets de Miel:</strong> 15 g de crema pura con avellanas molidas o polen vibrante; dosis portátiles, regeneración de bosques, diseñadas para ritmos de vida urbano. Su textura ámbar abraza el paladar como un amanecer lento, estabilizando glucosa con aromas de tepú que evocan calidez estelar.
+<strong>Sachets de Miel:</strong> 15 g de crema con avellana o polen; para llevar, con el aroma del tepú.
 
-<strong>Miel Virgen en Panal:</strong> Sellada al vacío, preserva enzimas y antioxidantes; una pureza que irradia el sol de Chiloé, rica en minerales frente al azúcar refinado.
+<strong>Miel Virgen en Panal:</strong> Sellada para conservar el panal tal como sale de la colmena.
 
-<strong>Frascos Medios y Mayores:</strong> 150 g o 900 g de crema ulmo-tepú; versátiles para lo cotidiano o lo monumental, con beneficios antiinflamatorios y bajo IG en un mercado en expansión.
+<strong>Frascos Medios y Mayores:</strong> 150 g o 900 g de crema ulmo-tepú para la mesa de todos los días.
 
 <strong>Cajas de Sachets:</strong> 25 unidades por 25.000 CLP; ideales para compartir, rompiendo barreras con practicidad cósmica.
 
@@ -340,12 +340,12 @@ Cada creación es un poema sensorial: ámbar viscoso que danza en la lengua, aro
 
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Compromiso con la Regeneración</h2>
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
-Desde el sur del planeta, promovemos agroecología en ferias locales, educando sobre polinizadores como arquitectos cósmicos. Nuestra miel restaura la conexión con la naturaleza, combatiendo la desconexión metabólica del azúcar, prevalente en poblaciones con alta resistencia insulínica.
+Desde el sur del planeta, promovemos agroecología en ferias locales y el cuidado de los polinizadores. La miel es el fruto de esa relación con el bosque, no un tratamiento.
 </p>
 
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Invitación al Equilibrio Chileno</h2>
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
-En La Obrera y el Zángano, cada frasco es un monumento al equilibrio cósmico: calidad que redefine el consumo como acto sagrado, rompiendo adicciones con miel que nutre la esencia. Nuestros sachets son ideales como amenities exclusivos en habitaciones de hoteles de lujo. Cada sachet cuenta la historia del bosque patagónico, diferenciando tu experiencia de hospedaje.
+En La Obrera y el Zángano, cada frasco cuenta el bosque de Chiloé. Los sachets también sirven como amenities en hoteles que quieren un origen, no un slogan clínico.
 
 Únete a esta rebelión solar, donde el néctar de Chiloé ilumina el legado del bosque.
 </p>
@@ -353,7 +353,7 @@ En La Obrera y el Zángano, cada frasco es un monumento al equilibrio cósmico: 
 {/* Fuentes Section */}
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Fuentes</h2>
 <p className="text-lg leading-relaxed text-muted-foreground">
-Las afirmaciones científicas se fundamentan en estudios que destacan las propiedades de la miel ulmo-tepú de Chiloé, contextualizadas a las ubicaciones de Pureo, Yerba Loza, y otras ubicaciones de nuestros respectivos apiarios:
+Las notas que siguen son contexto bibliográfico sobre miel y flora nativa. No son indicación terapéutica ni rotulado Minsal (Ley 20.606). El alimento se presenta por origen y oficio. Contextualizadas a Pureo, Yerba Loza y apiarios de Chiloé:
 </p>
 
 <div className="mt-12 flex justify-center">

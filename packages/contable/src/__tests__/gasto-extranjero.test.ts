@@ -13,8 +13,16 @@ describe("PROVEEDORES", () => {
       expect(p.rut).toBeTruthy();
       expect(p.giro).toBeTruthy();
       expect(p.moneda).toMatch(/^(CLP|USD|EUR)$/);
+      expect(typeof p.cambioSujeto).toBe("boolean");
       expect(p.keywords.length).toBeGreaterThan(0);
     }
+  });
+
+  it("Uber Chile incluye IVA; digitales extranjeros son cambio de sujeto 21.210", () => {
+    expect(getProveedorById("uber")?.conIva).toBe(true);
+    expect(getProveedorById("uber")?.cambioSujeto).toBe(false);
+    expect(getProveedorById("aws")?.cambioSujeto).toBe(true);
+    expect(getProveedorById("vercel")?.cambioSujeto).toBe(true);
   });
 });
 

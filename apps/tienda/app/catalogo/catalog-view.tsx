@@ -22,9 +22,8 @@ type SortKey = CatalogSortKey;
 
 function productBadges(p: ShopProduct): string[] {
   const badges: string[] = [];
-  if (p.sustituye_azucar_g && p.sustituye_azucar_g > 0) badges.push('Sustituye azúcar');
   if (p.co2_evitado_kg && p.co2_evitado_kg > 0) badges.push('Bosque nativo');
-  if (p.irr_referencia && p.irr_referencia > 1) badges.push('Alto impacto');
+  if (p.irr_referencia && p.irr_referencia > 1) badges.push('Trazable');
   if (p.format?.toLowerCase().includes('sachet')) badges.push('Bajo procesamiento');
   for (const tag of p.tags.slice(0, 2)) {
     if (!badges.includes(tag)) badges.push(tag);

@@ -47,6 +47,7 @@ describe('parseReceiptOrchestrated fixtures', () => {
         giro: 'SOFTWARE',
         moneda: 'USD',
         conIva: false,
+        cambioSujeto: false,
         keywords: ['custom saas'],
       },
     });

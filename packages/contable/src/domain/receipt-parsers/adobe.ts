@@ -21,7 +21,7 @@ export const adobeParser: ReceiptParser = {
 
     const montoCLP = convertirALCLP(montoOriginal, 'USD', tasaCambio);
     const invoiceMatch = text.match(/(?:Invoice|Receipt)\s*(?:#|number|no\.?|:)?\s*([\w-]+)/i);
-    const { montoNeto, montoExento, montoIva } = buildMontos(montoCLP, config.conIva);
+    const { montoNeto, montoExento, montoIva } = buildMontos(montoCLP, config.conIva, config.cambioSujeto);
 
     return {
       proveedorId: config.id,

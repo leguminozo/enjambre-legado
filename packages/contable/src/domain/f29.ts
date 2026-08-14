@@ -60,10 +60,11 @@ DEBITO_FACTURAS_EXENTAS: 502,
 DEBITO_BOLETAS: 110,
 DEBITO_BOLETAS_EXENTAS: 111,
 TOTAL_DEBITOS: 538,
-CREDITO_COMPRAS_NACIONALES: 503,
+CREDITO_COMPRAS_NACIONALES: 507,
 CANTIDAD_DOCS_DIGITAL: 519,
 MONTO_NETO_DIGITAL: 520,
 IVA_DIGITAL_CAMBIO_SUJETO: 511,
+IVA_DIGITAL_CREDITO: 512,
 REMANENTE_CF_ANTERIOR: 504,
 TOTAL_CREDITOS: 537,
 IVA_PAGAR: 89,
@@ -75,11 +76,17 @@ PPM_MONTO: 62,
 } as const;
 
 export function calcularF29(input: F29Input): F29Resultado {
-const totalDebitos = input.debitoFacturas + input.debitoBoletasAfectas + input.debitoNotasDebito;
+const ivaDigital = input.creditoFacturaCompraDigital;
+
+const totalDebitos =
+  input.debitoFacturas +
+  input.debitoBoletasAfectas +
+  input.debitoNotasDebito +
+  ivaDigital;
 
 const totalCreditos =
 input.creditoFacturasNacionales +
-input.creditoFacturaCompraDigital +
+ivaDigital +
 input.remanenteCFAnteriorReajustado;
 
 const ivaPagar = Math.max(0, totalDebitos - totalCreditos);
@@ -134,7 +141,12 @@ monto: montoNetoDigital,
 },
 {
 codigo: F29_CODIGO.IVA_DIGITAL_CAMBIO_SUJETO,
-descripcion: "IVA autoliquidado servicios digitales (cambio sujeto)",
+descripcion: "Debito IVA servicios digitales (cambio sujeto, cod 511)",
+monto: input.creditoFacturaCompraDigital,
+},
+{
+codigo: F29_CODIGO.IVA_DIGITAL_CREDITO,
+descripcion: "Credito IVA autoliquidado servicios digitales (cod 512)",
 monto: input.creditoFacturaCompraDigital,
 },
 {
@@ -194,7 +206,10 @@ export function buildF29Detalle(
   fc46Aceptadas: F29Detalle["fc46Aceptadas"] = [],
 ): F29Detalle {
   const totalDebito =
-    input.debitoFacturas + input.debitoBoletasAfectas + input.debitoNotasDebito;
+    input.debitoFacturas +
+    input.debitoBoletasAfectas +
+    input.debitoNotasDebito +
+    input.creditoFacturaCompraDigital;
   const totalCredito =
     input.creditoFacturasNacionales +
     input.creditoFacturaCompraDigital +

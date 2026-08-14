@@ -50,7 +50,7 @@ const faqSchema = faqJsonLd([
   {
     question: '¿Qué propiedades tiene la miel de ulmo?',
     answer:
-      'La miel de ulmo cruda conserva enzimas activas, antioxidantes naturales y un perfil polínico único que la hace trazable a su origen. Su índice glicémico estimado es menor al del azúcar refinada, y su producción en el bosque nativo genera un impacto regenerativo medible a través del índice IRR.',
+      'La miel de ulmo cruda conserva un perfil polínico propio de Eucryphia cordifolia, trazable a floraciones del bosque nativo. El impacto de su producción en Chiloé se estima con la metodología pública de IRR (no es un sello nutricional ni un consejo de salud).',
   },
 ]);
 

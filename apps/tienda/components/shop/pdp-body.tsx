@@ -103,20 +103,14 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
 
           {pdp.show_badges ? (
             <div className="mt-5 flex flex-wrap gap-2 sm:mt-6">
-              {product.sustituye_azucar_g ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 px-3 py-1 text-[9px] uppercase tracking-wider text-accent-text">
-                  Sustituye ~{product.sustituye_azucar_g}g azúcar
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 px-3 py-1 text-[9px] uppercase tracking-wider text-accent-text">
-                  Sustituye azúcar refinada
-                </span>
-              )}
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 px-3 py-1 text-[9px] uppercase tracking-wider text-accent-text">
+                Miel cruda
+              </span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 px-3 py-1 text-[9px] uppercase tracking-wider text-success-text/80">
                 Bosque nativo
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-muted-foreground/30 px-3 py-1 text-[9px] uppercase tracking-wider text-muted-foreground">
-                Miel viva
+                Origen Chiloé
               </span>
               {product.irr_referencia && product.irr_referencia > 1 ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 px-3 py-1 text-[9px] uppercase tracking-wider text-success-text/80">

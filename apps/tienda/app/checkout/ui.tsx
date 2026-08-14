@@ -607,6 +607,7 @@ export function CheckoutClient() {
                 <div className="flex items-center justify-between rounded-xl border border-accent/40 bg-surface-sunken px-6 py-5 mt-4">
                   <div className="flex flex-col">
                     <span className="font-display text-lg text-foreground">Total a pagar</span>
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Incluye IVA</span>
                     {quoteError && (
                       <span className="text-xs text-destructive">{quoteError}</span>
                     )}
@@ -1191,7 +1192,7 @@ export function CheckoutClient() {
         <div className="tienda-checkout-sticky-pay md:hidden">
           <div className="tienda-checkout-sticky-pay-inner">
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Total</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Total · incluye IVA</p>
               <p data-testid="checkout-total" className="font-display text-lg font-semibold text-accent-text tabular-nums">
                 {quoteLoading && !quote ? '…' : `$${totalCompra.toLocaleString('es-CL')}`}
               </p>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Lock, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -16,6 +16,24 @@ export function ResetPasswordForm() {
   const [success, setSuccess] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) return;
+
+    if (typeof window !== 'undefined') {
+      const search = new URLSearchParams(window.location.search);
+      const tokenHash = search.get('token_hash');
+      const type = search.get('type');
+      if (tokenHash && type === 'recovery') {
+        supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' }).then(({ error }) => {
+          if (error) {
+            toast(friendlySupabaseError(error), { type: 'error' });
+          }
+        });
+      }
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 6) {
@@ -29,6 +47,10 @@ export function ResetPasswordForm() {
     setLoading(true);
     try {
       const supabase = createClient();
+      if (!supabase) {
+        throw new Error('El sistema no está configurado');
+      }
+
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw new Error(friendlySupabaseError(error));
       setSuccess(true);

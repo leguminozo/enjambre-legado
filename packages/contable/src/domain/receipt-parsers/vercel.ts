@@ -22,7 +22,7 @@ export const vercelParser: ReceiptParser = {
 
     const montoCLP = convertirALCLP(montoOriginal, "USD", tasaCambio);
     const invoiceMatch = text.match(/(?:Invoice|Receipt)\s*(?:#|ID)\s*:?\s*([\w-]+)/i);
-    const montos = buildMontos(montoCLP, config.conIva);
+    const montos = buildMontos(montoCLP, config.conIva, config.cambioSujeto);
 
     return {
       proveedorId: config.id,

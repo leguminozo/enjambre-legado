@@ -35,7 +35,12 @@ export function extractDate(text: string): string {
 export function buildMontos(
   montoCLP: number,
   conIva: boolean,
+  cambioSujeto = false,
 ): { montoNeto: number; montoExento: number; montoIva: number } {
+  if (cambioSujeto) {
+    const montoIva = Math.round(montoCLP * 0.19);
+    return { montoNeto: montoCLP, montoExento: 0, montoIva };
+  }
   if (conIva) {
     const montoNeto = Math.round(montoCLP / 1.19);
     return { montoNeto, montoExento: 0, montoIva: montoCLP - montoNeto };

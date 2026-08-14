@@ -109,14 +109,15 @@ Si en Núcleo → Editor de tienda las secciones `legal_*` tienen body, **ese** 
 ## Checklist corto (dueño + agente)
 
 ```
+[x] Copy alimentos: badges y nosotros/ulmo acotados (2026-08-14)
+[x] Checkout: “Incluye IVA”
+[x] 21.719 ARCO: exportar + solicitar eliminación en /perfil/ajustes
+[x] 21.719 Groq: encargado en /privacidad (solo patio)
+[x] 21.719 brecha: runbook en PRODUCTION.md
+[x] Fiscal: Uber con IVA; digitales cambio sujeto; F29 507/511/512
 [ ] CMS: republicar legal_terminos, legal_privacidad, legal_cookies
-[ ] 21.719: procedimiento ARCO (export + delete) con plazo 30 días
-[ ] 21.719: runbook de brecha (quién, en cuánto, a quién)
-[ ] 21.719: decidir Groq STT como encargado o política interna de patio
-[ ] Alimentos: quitar o acotar “Sustituye azúcar” / claims de nosotros y ulmo
+[ ] Ops: aplicar migración 20260814210000 (deletion_requested_at)
 [ ] Ops: resolución sanitaria + rotulado de frasco (fuera de git)
-[ ] Fiscal: no usar F29 del código como declaración; parche 21.210 + códigos
-[ ] Checkout: una línea “precio incluye IVA”
 ```
 
 Cuando los tres `[ ]` de 21.719 y el de copy de alimentos estén cerrados, **el software de cara al público queda al día** con lo que la ley les pide a *esta* operación. El frasco físico y el F29 oficial siguen siendo ops/contador.

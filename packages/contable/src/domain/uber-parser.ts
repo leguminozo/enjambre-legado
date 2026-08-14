@@ -9,7 +9,7 @@ const DEFAULT_UBER_CL_CONFIG: UberReceiptConfig = {
   proveedorRut: "76059780-K",
   proveedorNombre: "UBER CHILE SPA",
   proveedorGiro: "SERVICIOS DE TRANSPORTE VEHICULAR",
-  conIva: false,
+  conIva: true,
 };
 
 function parseAmount(raw: string): number {

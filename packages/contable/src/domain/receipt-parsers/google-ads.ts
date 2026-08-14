@@ -1,5 +1,6 @@
 import type { ReceiptParser, ProveedorConfig, GastoExtranjeroResult } from "../gasto-extranjero";
 import { convertirALCLP } from "../gasto-extranjero";
+import { buildMontos } from "./parser-utils";
 
 function parseUsdAmount(raw: string): number {
   const cleaned = raw.replace(/[,$]/g, "");
@@ -57,9 +58,7 @@ export const googleAdsParser: ReceiptParser = {
 
     const accountIdMatch = text.match(/(?:Customer|Account)\s*ID\s*:?\s*(\d+-\d+-\d+)/i);
 
-    const montoNeto = config.conIva ? Math.round(montoCLP / 1.19) : 0;
-    const montoIva = config.conIva ? montoCLP - montoNeto : 0;
-    const montoExento = config.conIva ? 0 : montoCLP;
+    const { montoNeto, montoIva, montoExento } = buildMontos(montoCLP, config.conIva, config.cambioSujeto);
 
     return {
       proveedorId: config.id,

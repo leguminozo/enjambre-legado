@@ -62,7 +62,7 @@ export const genericParser: ReceiptParser = {
     const montoCLP = convertirALCLP(montoOriginal, moneda, tasaCambio);
     const fechaEmision = extractDate(text);
     const numeroDocumento = extractDocumentNumber(text);
-    const { montoNeto, montoExento, montoIva } = buildMontos(montoCLP, config.conIva);
+    const { montoNeto, montoExento, montoIva } = buildMontos(montoCLP, config.conIva, config.cambioSujeto);
 
     return {
       proveedorId: config.id,

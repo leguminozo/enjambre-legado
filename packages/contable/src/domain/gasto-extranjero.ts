@@ -9,6 +9,8 @@ export interface ProveedorConfig {
   giro: string;
   moneda: Moneda;
   conIva: boolean;
+  /** Ley 21.210: IVA chileno se autoliquida sobre el monto (no viene en la factura extranjera). */
+  cambioSujeto: boolean;
   keywords: string[];
 }
 
@@ -44,7 +46,8 @@ export const PROVEEDORES: ProveedorConfig[] = [
     rut: "76059780-K",
     giro: "SERVICIOS DE TRANSPORTE VEHICULAR",
     moneda: "CLP",
-    conIva: false,
+    conIva: true,
+    cambioSujeto: false,
     keywords: ["uber", "trip", "viaje", "uber business"],
   },
   {
@@ -54,6 +57,7 @@ export const PROVEEDORES: ProveedorConfig[] = [
     giro: "SERVICIOS DE PUBLICIDAD DIGITAL",
     moneda: "USD",
     conIva: false,
+    cambioSujeto: true,
     keywords: ["google ads", "google advertising", "adwords", "google cloud"],
   },
   {
@@ -63,6 +67,7 @@ export const PROVEEDORES: ProveedorConfig[] = [
     giro: "SERVICIOS DE PUBLICIDAD DIGITAL",
     moneda: "USD",
     conIva: false,
+    cambioSujeto: true,
     keywords: ["meta ads", "facebook ads", "instagram ads", "meta for business"],
   },
   {
@@ -72,6 +77,7 @@ export const PROVEEDORES: ProveedorConfig[] = [
     giro: "SERVICIOS DE HOSTING Y DOMINIOS",
     moneda: "USD",
     conIva: false,
+    cambioSujeto: true,
     keywords: ["hostinger", "hosting plan", "domain renewal", "hostinger international"],
   },
   {
@@ -81,6 +87,7 @@ export const PROVEEDORES: ProveedorConfig[] = [
     giro: "SERVICIOS DE COMPUTACION EN LA NUBE",
     moneda: "USD",
     conIva: false,
+    cambioSujeto: true,
     keywords: ["amazon web services", "aws", "aws billing", "amazon cloudfront"],
   },
   {
@@ -90,6 +97,7 @@ export const PROVEEDORES: ProveedorConfig[] = [
     giro: "SERVICIOS DE PLATAFORMA E-COMMERCE",
     moneda: "USD",
     conIva: false,
+    cambioSujeto: true,
     keywords: ["shopify", "shopify plus", "shopify billing"],
   },
   {
@@ -99,6 +107,7 @@ export const PROVEEDORES: ProveedorConfig[] = [
     giro: "SERVICIOS DE PROCESAMIENTO DE PAGOS",
     moneda: "USD",
     conIva: false,
+    cambioSujeto: true,
     keywords: ["stripe", "stripe payments", "stripe fee"],
   },
   {
@@ -108,6 +117,7 @@ export const PROVEEDORES: ProveedorConfig[] = [
     giro: "SERVICIOS DE INTELIGENCIA ARTIFICIAL",
     moneda: "USD",
     conIva: false,
+    cambioSujeto: true,
     keywords: ["openai", "chatgpt", "api usage"],
   },
   {
@@ -117,6 +127,7 @@ export const PROVEEDORES: ProveedorConfig[] = [
     giro: "SERVICIOS DE PRODUCTIVIDAD Y COMUNICACION",
     moneda: "USD",
     conIva: false,
+    cambioSujeto: true,
     keywords: ["google workspace", "g suite", "google llc"],
   },
   {
@@ -126,6 +137,7 @@ export const PROVEEDORES: ProveedorConfig[] = [
     giro: "SERVICIOS DE HOSTING Y DESPLIEGUE",
     moneda: "USD",
     conIva: false,
+    cambioSujeto: true,
     keywords: ["vercel", "vercel inc", "vercel billing"],
   },
   {
@@ -135,6 +147,7 @@ export const PROVEEDORES: ProveedorConfig[] = [
     giro: "SERVICIOS DE SOFTWARE DE PRODUCTIVIDAD",
     moneda: "USD",
     conIva: false,
+    cambioSujeto: true,
     keywords: ["notion", "notion labs", "notion subscription"],
   },
   {
@@ -144,6 +157,7 @@ export const PROVEEDORES: ProveedorConfig[] = [
     giro: "SERVICIOS DE DISENO DIGITAL",
     moneda: "USD",
     conIva: false,
+    cambioSujeto: true,
     keywords: ["canva", "canva pro", "canva pty"],
   },
   {
@@ -153,6 +167,7 @@ export const PROVEEDORES: ProveedorConfig[] = [
     giro: "SERVICIOS DE SOFTWARE Y NUBE",
     moneda: "USD",
     conIva: false,
+    cambioSujeto: true,
     keywords: ["microsoft", "azure", "office 365", "microsoft 365"],
   },
   {
@@ -162,6 +177,7 @@ export const PROVEEDORES: ProveedorConfig[] = [
     giro: "SERVICIOS DE SOFTWARE CREATIVO",
     moneda: "USD",
     conIva: false,
+    cambioSujeto: true,
     keywords: ["adobe", "creative cloud", "acrobat"],
   },
 ];

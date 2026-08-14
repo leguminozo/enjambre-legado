@@ -64,6 +64,19 @@ export function LoginForm() {
   }, [authLoading, isAuthenticated, user, router, returnTo, isRecoveryMode]);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      const search = window.location.search;
+      if (
+        hash.includes('type=recovery') ||
+        search.includes('type=recovery') ||
+        search.includes('token_hash')
+      ) {
+        router.replace('/reset-password' + search + hash);
+        return;
+      }
+    }
+
     const supabase = createClient();
     if (!supabase) return;
 
@@ -74,22 +87,14 @@ export function LoginForm() {
         event === 'PASSWORD_RECOVERY' ||
         (typeof window !== 'undefined' && window.location.hash.includes('type=recovery'))
       ) {
-        setIsRecoveryMode(true);
-        setIsForgotPassword(false);
-        setViewMode('sheet_recovery');
+        router.replace('/reset-password' + (typeof window !== 'undefined' ? window.location.search + window.location.hash : ''));
       }
     });
-
-    if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
-      setIsRecoveryMode(true);
-      setIsForgotPassword(false);
-      setViewMode('sheet_recovery');
-    }
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
