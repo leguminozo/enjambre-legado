@@ -36,6 +36,25 @@ const COMMERCIAL_ROLES = new Set<OyzCommercialRole>([
   "embajador",
 ]);
 
+// Valores de negocio configurables desde núcleo (tabla beneficios_enjambre).
+// Defaults = valores históricos hardcodeados; los apps pueden pasar los suyos
+// desde la config central para que el hub y el checkout nunca diverjan.
+export type PricingMultipliers = {
+  embajador: number;
+  revendedor: number;
+  suscriptor: number;
+  volumen: number;
+  volumenPedidos: number;
+};
+
+export const DEFAULT_MULTIPLIERS: PricingMultipliers = {
+  embajador: 0.70,
+  revendedor: 0.80,
+  suscriptor: 0.90,
+  volumen: 0.95,
+  volumenPedidos: 10,
+};
+
 export function normalizeCommercialRole(value: string | undefined | null): OyzCommercialRole {
   if (value && COMMERCIAL_ROLES.has(value as OyzCommercialRole)) {
     return value as OyzCommercialRole;
@@ -46,15 +65,19 @@ export function normalizeCommercialRole(value: string | undefined | null): OyzCo
 export function resolvePricingMultipliers(
   role: OyzCommercialRole,
   pastOrdersCount: number,
+  multipliers: PricingMultipliers = DEFAULT_MULTIPLIERS,
 ): { roleMultiplier: number; volumeMultiplier: number; finalMultiplier: number } {
   let roleMultiplier = 1.0;
-  if (role === "embajador") roleMultiplier = 0.70;
-  else if (role === "revendedor") roleMultiplier = 0.80;
-  else if (role === "suscriptor") roleMultiplier = 0.90;
+  if (role === "embajador") roleMultiplier = multipliers.embajador;
+  else if (role === "revendedor") roleMultiplier = multipliers.revendedor;
+  else if (role === "suscriptor") roleMultiplier = multipliers.suscriptor;
 
   let volumeMultiplier = 1.0;
-  if ((role === "revendedor" || role === "embajador") && pastOrdersCount >= 10) {
-    volumeMultiplier = 0.95;
+  if (
+    (role === "revendedor" || role === "embajador") &&
+    pastOrdersCount >= multipliers.volumenPedidos
+  ) {
+    volumeMultiplier = multipliers.volumen;
   }
 
   return {
@@ -64,8 +87,13 @@ export function resolvePricingMultipliers(
   };
 }
 
-export function computeUnitPrice(basePrice: number, role: OyzCommercialRole, pastOrdersCount: number): number {
-  const { finalMultiplier } = resolvePricingMultipliers(role, pastOrdersCount);
+export function computeUnitPrice(
+  basePrice: number,
+  role: OyzCommercialRole,
+  pastOrdersCount: number,
+  multipliers: PricingMultipliers = DEFAULT_MULTIPLIERS,
+): number {
+  const { finalMultiplier } = resolvePricingMultipliers(role, pastOrdersCount, multipliers);
   return Math.round(basePrice * finalMultiplier);
 }
 
@@ -74,12 +102,13 @@ export function computeCartPricing(
   products: PricingProductRow[],
   role: OyzCommercialRole,
   pastOrdersCount: number,
+  multipliers: PricingMultipliers = DEFAULT_MULTIPLIERS,
 ): CartPricing {
   if (!items.length) {
     return { subtotal: 0, discount_amount: 0, total: 0, line_items: [] };
   }
 
-  const { finalMultiplier } = resolvePricingMultipliers(role, pastOrdersCount);
+  const { finalMultiplier } = resolvePricingMultipliers(role, pastOrdersCount, multipliers);
   const productMap = new Map(products.map((p) => [p.id, p]));
 
   let subtotal = 0;

@@ -31,11 +31,15 @@ export function createEnjambrePreset(overrides?: Partial<Config['theme']>): Part
           accent: {
             DEFAULT: 'hsl(var(--accent))',
             foreground: 'hsl(var(--accent-foreground))',
+            // Texto legible sobre fondo oscuro (contraste ≥4.5:1); en modo
+            // claro se revierte a --accent vía override en el app.
+            text: 'hsl(var(--accent-text))',
           },
           destructive: {
             DEFAULT: 'hsl(var(--destructive))',
           },
           success: 'hsl(var(--success))',
+          successText: 'hsl(var(--success-text))',
           warning: 'hsl(var(--warning))',
           info: 'hsl(var(--info))',
           border: 'hsl(var(--border))',

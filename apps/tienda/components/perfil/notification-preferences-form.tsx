@@ -104,7 +104,7 @@ export function NotificationPreferencesForm({
 
   return (
     <section id="notificaciones" className="space-y-8 border-t border-border pt-12">
-      <div className="flex items-center gap-3 text-accent">
+      <div className="flex items-center gap-3 text-accent-text">
         <Bell size={18} />
         <h3 className="text-[0.65rem] uppercase tracking-[0.2em] font-bold">
           Comunicaciones del Bosque
@@ -159,7 +159,7 @@ export function NotificationPreferencesForm({
         type="button"
         onClick={handleSave}
         disabled={isPending}
-        className="px-10 py-4 bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all disabled:opacity-60"
+        className="px-10 py-4 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all disabled:opacity-60"
       >
         {isPending ? 'Guardando…' : 'Guardar Cambios'}
       </button>

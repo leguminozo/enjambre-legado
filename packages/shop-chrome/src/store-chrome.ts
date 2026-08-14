@@ -395,6 +395,13 @@ export function themeToCssVars(theme: ThemeSettings): Record<string, string> {
     '--tienda-radius': radiusMap[theme.border_radius],
     // Formato de canales: las reglas usan hsl(var(--accent))
     '--accent': `${theme.accent_h} ${theme.accent_s}% ${theme.accent_l}%`,
+    // Variante clara del accent para TEXTO sobre fondo oscuro: el accent del
+    // CMS (verde bosque, L≈35%) no alcanza 4.5:1 WCAG en texto pequeño.
+    // El chrome (bordes/fondos/badges) conserva --accent intacto; en modo
+    // claro el app revierte --accent-text a la variante OSCURA (L-8), que
+    // cumple incluso sobre fondos tintados (bg-accent/10-15).
+    '--accent-text': `${theme.accent_h} ${theme.accent_s}% ${Math.min(68, theme.accent_l + 20)}%`,
+    '--accent-text-light': `${theme.accent_h} ${theme.accent_s}% ${Math.max(15, theme.accent_l - 8)}%`,
   };
 }
 
@@ -491,6 +498,172 @@ export const DEFAULT_LANDING_LAYOUT: LandingLayoutSettings = {
   hero_formula: '',
 };
 
+export type ImageAspectRatio = '16/9' | '16/10' | '4/3' | '1/1' | '3/4' | 'auto';
+export type ImageFitMode = 'cover' | 'contain';
+
+export const ASPECT_RATIOS: readonly ImageAspectRatio[] = ['16/9', '16/10', '4/3', '1/1', '3/4', 'auto'];
+export const FIT_MODES: readonly ImageFitMode[] = ['cover', 'contain'];
+
+export type CollectionsSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  image_aspect_ratio: ImageAspectRatio;
+  image_fit: ImageFitMode;
+  grid_columns: number;
+};
+
+export const DEFAULT_COLLECTIONS_SETTINGS: CollectionsSettings = {
+  kicker: 'Colecciones',
+  kicker_en: 'Collections',
+  title: 'Explora nuestras categorías estacionales',
+  title_en: 'Explore our seasonal categories',
+  subtitle: '',
+  subtitle_en: '',
+  image_aspect_ratio: '4/3',
+  image_fit: 'cover',
+  grid_columns: 3,
+};
+
+export type GaleriaSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  image_aspect_ratio: ImageAspectRatio;
+  image_fit: ImageFitMode;
+  grid_columns: number;
+};
+
+export const DEFAULT_GALERIA_SETTINGS: GaleriaSettings = {
+  kicker: 'Galería',
+  kicker_en: 'Gallery',
+  title: 'Un recorrido visual de nuestras huellas',
+  title_en: 'A visual journey of our footsteps',
+  subtitle: 'Imágenes del bosque, las colmenas y el proceso regenerativo en Chiloé.',
+  subtitle_en: 'Images of the forest, hives and regenerative process in Chiloé.',
+  image_aspect_ratio: '4/3',
+  image_fit: 'cover',
+  grid_columns: 3,
+};
+
+export type CarouselHeightMode = '50vh/70vh' | '40vh/60vh' | '60vh/80vh' | '70vh/90vh';
+export const CAROUSEL_HEIGHT_MODES: readonly CarouselHeightMode[] = [
+  '50vh/70vh',
+  '40vh/60vh',
+  '60vh/80vh',
+  '70vh/90vh',
+];
+
+export type NosotrosSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  image_aspect_ratio: ImageAspectRatio;
+  image_fit: ImageFitMode;
+};
+
+export const DEFAULT_NOSOTROS_SETTINGS: NosotrosSettings = {
+  kicker: 'Nuestra Historia',
+  kicker_en: 'Our Story',
+  title: 'Renacer de las Cenizas en Chiloé',
+  title_en: 'Rebirth from the Ashes in Chiloé',
+  subtitle: '22 años de regeneración ecológica, apicultura regenerativa y miel cruda.',
+  subtitle_en: '22 years of ecological regeneration, regenerative apiculture and raw honey.',
+  image_aspect_ratio: '16/9',
+  image_fit: 'cover',
+};
+
+export const NOSOTROS_SETTINGS_TEMPLATE = { ...DEFAULT_NOSOTROS_SETTINGS };
+
+export type MediaSettings = {
+  carousel_height: CarouselHeightMode;
+  image_fit: ImageFitMode;
+  autoplay_ms: number;
+};
+
+export const DEFAULT_MEDIA_SETTINGS: MediaSettings = {
+  carousel_height: '50vh/70vh',
+  image_fit: 'cover',
+  autoplay_ms: 5000,
+};
+
+export const MEDIA_SETTINGS_TEMPLATE = { ...DEFAULT_MEDIA_SETTINGS };
+
+export type CienciaSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  image_aspect_ratio: ImageAspectRatio;
+  image_fit: ImageFitMode;
+};
+
+export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
+  kicker: 'Ciencia & Innovación',
+  kicker_en: 'Science & Innovation',
+  title: 'Respaldado por la naturaleza y la investigación',
+  title_en: 'Backed by nature and research',
+  subtitle: 'Estudios sobre los compuestos bioactivos de la miel de ulmo y flora chilota.',
+  subtitle_en: 'Studies on the bioactive compounds of ulmo honey and flora of Chiloé.',
+  image_aspect_ratio: '4/3',
+  image_fit: 'cover',
+};
+
+export type AuthBackgroundStyle = 'cosmic' | 'bosque_nativo' | 'abeja_cosmos' | 'dark_luxury';
+export type AuthParticleEffect = 'none' | 'pollen_gold' | 'mist_bosque' | 'cosmic_stars';
+
+export const AUTH_BACKGROUND_STYLES: readonly AuthBackgroundStyle[] = [
+  'cosmic',
+  'bosque_nativo',
+  'abeja_cosmos',
+  'dark_luxury',
+];
+export const AUTH_PARTICLE_EFFECTS: readonly AuthParticleEffect[] = [
+  'none',
+  'pollen_gold',
+  'mist_bosque',
+  'cosmic_stars',
+];
+
+export type AuthSettings = {
+  hero_title: string;
+  hero_title_en?: string;
+  hero_subtitle: string;
+  hero_subtitle_en?: string;
+  tagline_phrase: string;
+  tagline_phrase_en?: string;
+  background_style: AuthBackgroundStyle;
+  background_image_url?: string;
+  particle_effect: AuthParticleEffect;
+  blur_orb_color?: string;
+};
+
+export const DEFAULT_AUTH_SETTINGS: AuthSettings = {
+  hero_title: 'Enjambre Legado',
+  hero_title_en: 'Enjambre Legado',
+  hero_subtitle: 'La Obrera y el Zángano',
+  hero_subtitle_en: 'The Worker & The Drone',
+  tagline_phrase: 'Regeneración Biocultural · Lujo Purista & Consumo Consciente',
+  tagline_phrase_en: 'Biocultural Regeneration · Purist Luxury & Conscious Consumption',
+  background_style: 'cosmic',
+  background_image_url: '',
+  particle_effect: 'pollen_gold',
+  blur_orb_color: '#D4A017',
+};
+
+export const CIENCIA_SETTINGS_TEMPLATE = { ...DEFAULT_CIENCIA_SETTINGS };
+
 export type CatalogSortKey = 'default' | 'price-asc' | 'price-desc' | 'name';
 
 export type CatalogSettings = {
@@ -507,6 +680,8 @@ export type CatalogSettings = {
   show_badges: boolean;
   empty_message: string;
   empty_message_en?: string;
+  image_aspect_ratio: ImageAspectRatio;
+  image_fit: ImageFitMode;
 };
 
 export const DEFAULT_CATALOG_SETTINGS: CatalogSettings = {
@@ -524,6 +699,8 @@ export const DEFAULT_CATALOG_SETTINGS: CatalogSettings = {
   show_badges: true,
   empty_message: 'No hay productos con esos filtros.',
   empty_message_en: 'No products match those filters.',
+  image_aspect_ratio: '1/1',
+  image_fit: 'cover',
 };
 
 export type PdpSettings = {
@@ -641,6 +818,8 @@ export function parseCatalogSettings(
     empty_message: asString(raw.empty_message, d.empty_message),
     empty_message_en:
       typeof raw.empty_message_en === 'string' ? raw.empty_message_en : d.empty_message_en,
+    image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
+    image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
   };
 }
 
@@ -983,6 +1162,11 @@ export type HomeMediaItem = {
   type: 'image' | 'video';
   src: string;
   alt?: string;
+  kicker?: string;
+  title?: string;
+  subtitle?: string;
+  cta_label?: string;
+  cta_link?: string;
 };
 
 export type VideoSettings = {
@@ -1007,6 +1191,8 @@ export type ProductsSettings = {
   desc_en?: string;
   /** Productos destacados (se muestran primero en el bloque). Vacío = todos en orden. */
   featured_ids: string[];
+  image_aspect_ratio: ImageAspectRatio;
+  image_fit: ImageFitMode;
 };
 
 /** Defaults = copy actual de es.json/en.json (mensajes conservation + science). */
@@ -1092,8 +1278,12 @@ export const DEFAULT_PRODUCTS_SETTINGS: ProductsSettings = {
   desc: 'Creaciones cargadas de experiencias y legado.',
   desc_en: 'Creations loaded with experiences and legacy.',
   featured_ids: [],
+  image_aspect_ratio: '1/1',
+  image_fit: 'cover',
 };
 
+export const COLLECTIONS_SETTINGS_TEMPLATE = { ...DEFAULT_COLLECTIONS_SETTINGS };
+export const GALERIA_SETTINGS_TEMPLATE = { ...DEFAULT_GALERIA_SETTINGS };
 export const CONSERVATION_CONTENT_TEMPLATE = { ...DEFAULT_CONSERVATION_CONTENT };
 export const HOME_MEDIA_ITEM_TEMPLATE: Record<string, string> = {
   /** Imagen: SIEMPRE subida (nunca URL manual) — el editor muestra uploader.
@@ -1101,10 +1291,16 @@ export const HOME_MEDIA_ITEM_TEMPLATE: Record<string, string> = {
   type: 'image',
   src: '',
   alt: '',
+  kicker: '',
+  title: '',
+  subtitle: '',
+  cta_label: '',
+  cta_link: '',
 };
 export const VIDEO_SETTINGS_TEMPLATE = { ...DEFAULT_VIDEO_SETTINGS };
 export const MAP_SETTINGS_TEMPLATE = { ...DEFAULT_MAP_SETTINGS };
 export const PRODUCTS_SETTINGS_TEMPLATE = { ...DEFAULT_PRODUCTS_SETTINGS };
+export const AUTH_SETTINGS_TEMPLATE = { ...DEFAULT_AUTH_SETTINGS };
 
 const MEDIA_TYPES = ['image', 'video'] as const;
 
@@ -1172,7 +1368,12 @@ export function parseHomeMediaItem(raw: Record<string, unknown>): HomeMediaItem 
   return {
     type: pickEnum(raw.type, MEDIA_TYPES, 'image'),
     src,
-    alt: typeof raw.alt === 'string' ? raw.alt : undefined,
+    alt: typeof raw.alt === 'string' && raw.alt.trim() ? raw.alt.trim() : undefined,
+    kicker: typeof raw.kicker === 'string' && raw.kicker.trim() ? raw.kicker.trim() : undefined,
+    title: typeof raw.title === 'string' && raw.title.trim() ? raw.title.trim() : undefined,
+    subtitle: typeof raw.subtitle === 'string' && raw.subtitle.trim() ? raw.subtitle.trim() : undefined,
+    cta_label: typeof raw.cta_label === 'string' && raw.cta_label.trim() ? raw.cta_label.trim() : undefined,
+    cta_link: typeof raw.cta_link === 'string' && raw.cta_link.trim() ? raw.cta_link.trim() : undefined,
   };
 }
 
@@ -1211,6 +1412,109 @@ export function parseProductsSettings(
     featured_ids: Array.isArray(raw.featured_ids)
       ? raw.featured_ids.filter((x): x is string => typeof x === 'string')
       : [],
+    image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
+    image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
+  };
+}
+
+export function parseCollectionsSettings(
+  raw: Record<string, unknown> | null | undefined,
+): CollectionsSettings {
+  const d = DEFAULT_COLLECTIONS_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    kicker: asString(raw.kicker, d.kicker),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en : d.kicker_en,
+    title: asString(raw.title, d.title),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en : d.title_en,
+    subtitle: asString(raw.subtitle, d.subtitle),
+    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en : d.subtitle_en,
+    image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
+    image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
+    grid_columns: asNumber(raw.grid_columns, d.grid_columns, 2, 4),
+  };
+}
+
+export function parseGaleriaSettings(
+  raw: Record<string, unknown> | null | undefined,
+): GaleriaSettings {
+  const d = DEFAULT_GALERIA_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    kicker: asString(raw.kicker, d.kicker),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en : d.kicker_en,
+    title: asString(raw.title, d.title),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en : d.title_en,
+    subtitle: asString(raw.subtitle, d.subtitle),
+    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en : d.subtitle_en,
+    image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
+    image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
+    grid_columns: asNumber(raw.grid_columns, d.grid_columns, 2, 4),
+  };
+}
+
+export function parseNosotrosSettings(
+  raw: Record<string, unknown> | null | undefined,
+): NosotrosSettings {
+  const d = DEFAULT_NOSOTROS_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    kicker: asString(raw.kicker, d.kicker),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en : d.kicker_en,
+    title: asString(raw.title, d.title),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en : d.title_en,
+    subtitle: asString(raw.subtitle, d.subtitle),
+    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en : d.subtitle_en,
+    image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
+    image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
+  };
+}
+
+export function parseMediaSettings(
+  raw: Record<string, unknown> | null | undefined,
+): MediaSettings {
+  const d = DEFAULT_MEDIA_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    carousel_height: pickEnum(raw.carousel_height, CAROUSEL_HEIGHT_MODES, d.carousel_height),
+    image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
+    autoplay_ms: asNumber(raw.autoplay_ms, d.autoplay_ms, 2000, 20000),
+  };
+}
+
+export function parseCienciaSettings(
+  raw: Record<string, unknown> | null | undefined,
+): CienciaSettings {
+  const d = DEFAULT_CIENCIA_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    kicker: asString(raw.kicker, d.kicker),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en : d.kicker_en,
+    title: asString(raw.title, d.title),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en : d.title_en,
+    subtitle: asString(raw.subtitle, d.subtitle),
+    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en : d.subtitle_en,
+    image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
+    image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
+  };
+}
+
+export function parseAuthSettings(
+  raw: Record<string, unknown> | null | undefined,
+): AuthSettings {
+  const d = DEFAULT_AUTH_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    hero_title: asString(raw.hero_title, d.hero_title),
+    hero_title_en: typeof raw.hero_title_en === 'string' ? raw.hero_title_en : d.hero_title_en,
+    hero_subtitle: asString(raw.hero_subtitle, d.hero_subtitle),
+    hero_subtitle_en: typeof raw.hero_subtitle_en === 'string' ? raw.hero_subtitle_en : d.hero_subtitle_en,
+    tagline_phrase: asString(raw.tagline_phrase, d.tagline_phrase),
+    tagline_phrase_en: typeof raw.tagline_phrase_en === 'string' ? raw.tagline_phrase_en : d.tagline_phrase_en,
+    background_style: pickEnum(raw.background_style, AUTH_BACKGROUND_STYLES, d.background_style),
+    background_image_url: typeof raw.background_image_url === 'string' ? raw.background_image_url : d.background_image_url,
+    particle_effect: pickEnum(raw.particle_effect, AUTH_PARTICLE_EFFECTS, d.particle_effect),
+    blur_orb_color: typeof raw.blur_orb_color === 'string' ? raw.blur_orb_color : d.blur_orb_color,
   };
 }
 
@@ -1227,6 +1531,12 @@ export type StoreChromeConfig = StoreChromeConfigOla1 & {
   campaignBanners: CampaignBanner[];
   typography: TypographySettings;
   seasonal: SeasonalSettings;
+  collections: CollectionsSettings;
+  galeria: GaleriaSettings;
+  nosotros: NosotrosSettings;
+  mediaSettings: MediaSettings;
+  ciencia: CienciaSettings;
+  auth: AuthSettings;
 };
 
 export const DEFAULT_STORE_CHROME: StoreChromeConfig = {
@@ -1249,4 +1559,10 @@ export const DEFAULT_STORE_CHROME: StoreChromeConfig = {
     otono: { ...DEFAULT_SEASONAL_SETTINGS.otono },
     invierno: { ...DEFAULT_SEASONAL_SETTINGS.invierno },
   },
+  collections: { ...DEFAULT_COLLECTIONS_SETTINGS },
+  galeria: { ...DEFAULT_GALERIA_SETTINGS },
+  nosotros: { ...DEFAULT_NOSOTROS_SETTINGS },
+  mediaSettings: { ...DEFAULT_MEDIA_SETTINGS },
+  ciencia: { ...DEFAULT_CIENCIA_SETTINGS },
+  auth: { ...DEFAULT_AUTH_SETTINGS },
 };

@@ -228,6 +228,44 @@
         "catalogoMayorista": "Catálogo Mayorista",
         "trazabilidad": "Trazabilidad Blockchain"
       }
+    },
+    "enjambre": {
+      "title": "Únete al Enjambre",
+      "mission": "Tu puerta de entrada al ecosistema: puntos, cosechas exclusivas y beneficios para cada perfil.",
+      "heroJoinedTitle": "¡Bienvenido al Enjambre!",
+      "heroJoinedDesc": "Tu vínculo está activo. {points} puntos de bienvenida ya están en tu legado.",
+      "heroMemberTitle": "Ya eres parte del Enjambre",
+      "heroMemberDesc": "Estos son los beneficios que tienes disponibles con tu perfil.",
+      "baseTitle": "Tu enjambre",
+      "baseDesc": "Beneficios para toda instancia del ecosistema:",
+      "canjeTitle": "Puntos y Canje",
+      "canjeDesc": "1 punto por cada $1.000 en compras. Cánjealos en el checkout (100 pts = $1.000) o en el catálogo de recompensas.",
+      "canjeCta": "Canjear puntos",
+      "redTitle": "Red Biocultural",
+      "redDesc": "+50 pts por cada referido que se une al Enjambre con tu código.",
+      "redCta": "Ver mi código",
+      "sellosTitle": "Sellos Guardianes",
+      "sellosDesc": "Compra en ciclos y llévate productos gratis con sellos. Las reseñas guardianas suman ciclos y sellos extra.",
+      "sellosCta": "Ver mis sellos",
+      "logrosTitle": "Logros e Impacto",
+      "logrosDesc": "Tu progreso Polinizador → Apicultor → Guardián crece con cada compra real.",
+      "logrosCta": "Ver mis logros",
+      "ascensoTitle": "Sube de nivel",
+      "ascensoDesc": "Cada perfil del Enjambre tiene su multiplicador de precio aplicado en el checkout:",
+      "activo": "Activo",
+      "clubTitle": "Club Cosecha",
+      "clubDesc": "{descuento}% off en todo el catálogo + cosechas trimestrales del bosque.",
+      "clubCta": "Unirme al Club",
+      "aliadoTitle": "Aliado Mayorista",
+      "aliadoDesc": "{descuento}% off + {volumen}% extra desde {pedidos} pedidos. Portal B2B con condiciones propias.",
+      "aliadoCta": "Ver portal mayorista",
+      "embajadorTitle": "Embajador del Bosque",
+      "embajadorDesc": "{descuento}% off + comisiones por cada venta referida y descuento para tu comunidad.",
+      "embajadorCta": "Ver mi código y comisiones",
+      "pasaporteTitle": "Pasaporte Colmena",
+      "pasaporteDesc": "Tu colmena vinculada por el Club Cosecha.",
+      "pasaporteCta": "Ver pasaporte",
+      "note": "Sin compromisos: los beneficios se activan con tu perfil y se corrigen desde la configuración del Enjambre."
     }
   },
   "hero": {
@@ -602,7 +640,7 @@
     "preferences": "Preferencias",
     "savePreferences": "Guardar preferencias",
     "bannerTitle": "Valoramos tu privacidad",
-    "bannerText": "Usamos cookies esenciales para el funcionamiento de la tienda. Con tu consentimiento, también usamos cookies analíticas y de marketing (incluido Meta Pixel) para mejorar tu experiencia. Revisa nuestra {cookies} y nuestra {privacidad}.",
+    "bannerText": "Usamos cookies esenciales para el funcionamiento de la tienda. Con tu consentimiento, también usamos cookies analíticas y de marketing (incluido Meta Pixel) para mejorar tu experiencia. Revisa nuestra <cookies>política de cookies</cookies> y nuestra <privacidad>política de privacidad</privacidad>.",
     "essentialOnly": "Solo esenciales"
   },
   "language": {

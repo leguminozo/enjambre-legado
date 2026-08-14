@@ -96,7 +96,7 @@ export function ShopHeader() {
         {settings.brand_line1 || tHeader('brandLine1')}
       </span>
       <span
-        className="text-[0.6rem] uppercase text-accent -mt-1 font-light truncate max-w-full"
+        className="text-[0.6rem] uppercase text-accent-text -mt-1 font-light truncate max-w-full"
         style={{ letterSpacing: 'calc(var(--tienda-brand-tracking, 0.3em) + 0.1em)' }}
       >
         {settings.brand_line2 || tHeader('brandLine2')}
@@ -215,7 +215,7 @@ export function ShopHeader() {
             className="text-muted-foreground group-hover:text-accent transition-colors"
           />
           {itemCount > 0 && (
-            <span className="absolute top-1 right-0.5 min-w-[1rem] h-4 px-0.5 bg-accent text-accent-foreground text-[0.6rem] font-bold flex items-center justify-center rounded-full">
+            <span className="absolute top-1 right-0.5 min-w-[1rem] h-4 px-0.5 bg-primary text-primary-foreground text-[0.6rem] font-bold flex items-center justify-center rounded-full">
               {itemCount}
             </span>
           )}
@@ -333,7 +333,7 @@ export function ShopHeader() {
                       settings.mobile_font === 'display' ? 'font-display' : 'font-sans'
                     } ${
                       isActiveNavHref(normalizedPath, item.href)
-                        ? 'text-accent'
+                        ? 'text-accent-text'
                         : 'text-foreground hover:text-accent'
                     }`}
                     style={{
@@ -359,7 +359,7 @@ export function ShopHeader() {
                 {settings.show_account && (
                   <Link
                     href={isAuthenticated ? '/perfil' : '/login'}
-                    className="inline-flex min-h-11 items-center font-display text-2xl italic text-accent"
+                    className="inline-flex min-h-11 items-center font-display text-2xl italic text-accent-text"
                     onClick={closeMenu}
                   >
                     {isAuthenticated ? tNav('controlPanel') : tNav('login')}
@@ -398,7 +398,7 @@ function NavDesktopLink({
       href={item.href}
       className={`inline-flex items-center min-h-[44px] whitespace-nowrap transition-colors hover:text-accent py-1 ${
         settings.nav_font === 'display' ? 'font-display' : 'font-sans'
-      } ${isActiveNavHref(pathname, item.href) ? 'text-accent' : 'text-muted-foreground'}`}
+      } ${isActiveNavHref(pathname, item.href) ? 'text-accent-text' : 'text-muted-foreground'}`}
       style={{
         fontSize: 'var(--tienda-nav-size, 0.65rem)',
         letterSpacing: 'var(--tienda-nav-tracking, 0.18em)',

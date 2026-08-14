@@ -67,11 +67,11 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
       <div className="p-6 md:p-8 relative z-10 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 pb-6">
           <div className="flex items-center gap-3">
-            <div className="bg-accent/20 p-2.5 rounded-xl text-accent">
+            <div className="bg-accent/20 p-2.5 rounded-xl text-accent-text">
               <ShieldCheck size={28} />
             </div>
             <div>
-              <p className="text-sm font-semibold tracking-wider uppercase text-accent">Verificado</p>
+              <p className="text-sm font-semibold tracking-wider uppercase text-accent-text">Verificado</p>
               <h4 className="font-display text-xl text-foreground capitalize">
                 {entityTypeLabel}
               </h4>

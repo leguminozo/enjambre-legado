@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { TiendaModal } from '@/components/shop/tienda-modal';
+import type { GaleriaSettings } from '@/lib/shop/store-chrome';
 
 export type GaleriaImage = {
   id: string;
@@ -11,18 +12,42 @@ export type GaleriaImage = {
   url: string;
 };
 
-export function GaleriaGrid({ images }: { images: GaleriaImage[] }) {
+const aspectClassMap: Record<string, string> = {
+  '16/10': 'aspect-[16/10]',
+  '4/3': 'aspect-[4/3]',
+  '1/1': 'aspect-square',
+  '3/4': 'aspect-[3/4]',
+  'auto': 'aspect-auto',
+};
+
+const colsClassMap: Record<number, string> = {
+  2: 'grid-cols-1 sm:grid-cols-2',
+  3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+  4: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+};
+
+export function GaleriaGrid({
+  images,
+  settings,
+}: {
+  images: GaleriaImage[];
+  settings?: GaleriaSettings;
+}) {
   const [active, setActive] = useState<GaleriaImage | null>(null);
+
+  const aspectClass = aspectClassMap[settings?.image_aspect_ratio || ''] || 'aspect-[4/3]';
+  const fitClass = settings?.image_fit === 'contain' ? 'object-contain p-2' : 'object-cover';
+  const gridColsClass = colsClassMap[settings?.grid_columns || 3] || 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className={`grid ${gridColsClass} gap-6`}>
         {images.map((img, idx) => (
           <button
             key={img.id || idx}
             type="button"
             onClick={() => img.url && setActive(img)}
-            className="group relative aspect-square overflow-hidden rounded-2xl bg-card border border-border text-left"
+            className={`group relative ${aspectClass} overflow-hidden rounded-2xl bg-card border border-border text-left`}
             aria-label={img.titulo ? `Ver ${img.titulo}` : 'Ver imagen de galería'}
           >
             {img.url ? (
@@ -30,7 +55,7 @@ export function GaleriaGrid({ images }: { images: GaleriaImage[] }) {
                 src={img.url}
                 alt={img.titulo || 'Galería'}
                 fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                className={`${fitClass} transition-transform duration-700 group-hover:scale-105`}
                 sizes="(max-width: 768px) 100vw, 33vw"
               />
             ) : (
@@ -57,7 +82,7 @@ export function GaleriaGrid({ images }: { images: GaleriaImage[] }) {
         onClose={() => setActive(null)}
         title={active?.titulo}
         subtitle={active?.descripcion}
-        kicker="Galería"
+        kicker={settings?.kicker || 'Galería'}
         ariaLabel={active?.titulo ? `Imagen: ${active.titulo}` : 'Imagen de galería'}
         size="lg"
       >

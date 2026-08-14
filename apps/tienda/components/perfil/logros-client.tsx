@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
+import type gsap from 'gsap';
 import { Trophy, Leaf, Zap, Trees, Star } from 'lucide-react';
 import type { GamificationProfile, ImpactFootprint, LoyaltyTransaction } from '@/lib/shop/logros-schema';
 
@@ -18,63 +18,72 @@ export function LogrosClient({
   const countersRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Animate entry
-      gsap.from('.logro-card', {
-        opacity: 0,
-        y: 30,
-        duration: 1,
-        stagger: 0.15,
-        ease: 'power3.out',
-      });
-      
-      gsap.from('.transaction-item', {
-        opacity: 0,
-        x: -20,
-        duration: 0.8,
-        stagger: 0.05,
-        delay: 0.3,
-        ease: 'power2.out',
-      });
-
-      // Animate the progress bar width
-      if (profile?.progress_percentage !== undefined) {
-        gsap.fromTo('.progress-bar-fill', 
-          { width: '0%' },
-          { 
-            width: `${profile.progress_percentage}%`, 
-            duration: 1.5, 
-            delay: 0.5,
-            ease: 'power4.out' 
-          }
-        );
-      }
-
-      // Animate counters
-      const counters = document.querySelectorAll('.counter-value');
-      counters.forEach((counter) => {
-        const targetStr = counter.getAttribute('data-target') ?? '0';
-        const target = parseFloat(targetStr);
-        if (isNaN(target)) return;
+    let ctx: gsap.Context | undefined;
+    let cancelled = false;
+    (async () => {
+      const { gsap } = await import('gsap');
+      if (cancelled) return;
+      ctx = gsap.context(() => {
+        // Animate entry
+        gsap.from('.logro-card', {
+          opacity: 0,
+          y: 30,
+          duration: 1,
+          stagger: 0.15,
+          ease: 'power3.out',
+        });
         
-        gsap.fromTo(counter, 
-          { innerHTML: 0 },
-          { 
-            innerHTML: target, 
-            duration: 2, 
-            delay: 0.2,
-            snap: { innerHTML: 1 },
-            ease: 'power2.out',
-            onUpdate: function() {
-              const val = Number(this.targets()[0].innerHTML);
-              counter.innerHTML = val.toLocaleString('es-CL');
-            }
-          }
-        );
-      });
-    }, containerRef);
+        gsap.from('.transaction-item', {
+          opacity: 0,
+          x: -20,
+          duration: 0.8,
+          stagger: 0.05,
+          delay: 0.3,
+          ease: 'power2.out',
+        });
 
-    return () => ctx.revert();
+        // Animate the progress bar width
+        if (profile?.progress_percentage !== undefined) {
+          gsap.fromTo('.progress-bar-fill', 
+            { width: '0%' },
+            { 
+              width: `${profile.progress_percentage}%`, 
+              duration: 1.5, 
+              delay: 0.5,
+              ease: 'power4.out' 
+            }
+          );
+        }
+
+        // Animate counters
+        const counters = document.querySelectorAll('.counter-value');
+        counters.forEach((counter) => {
+          const targetStr = counter.getAttribute('data-target') ?? '0';
+          const target = parseFloat(targetStr);
+          if (isNaN(target)) return;
+          
+          gsap.fromTo(counter, 
+            { innerHTML: 0 },
+            { 
+              innerHTML: target, 
+              duration: 2, 
+              delay: 0.2,
+              snap: { innerHTML: 1 },
+              ease: 'power2.out',
+              onUpdate: function() {
+                const val = Number(this.targets()[0].innerHTML);
+                counter.innerHTML = val.toLocaleString('es-CL');
+              }
+            }
+          );
+        });
+      }, containerRef);
+    })();
+
+    return () => {
+      cancelled = true;
+      ctx?.revert();
+    };
   }, [profile]);
 
   if (!profile) {
@@ -99,7 +108,7 @@ export function LogrosClient({
         
         <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start gap-8">
           <div className="space-y-2">
-            <span className="text-[0.65rem] uppercase tracking-[0.3em] text-accent font-semibold">Nivel Actual</span>
+            <span className="text-[0.65rem] uppercase tracking-[0.3em] text-accent-text font-semibold">Nivel Actual</span>
             <h2 className="font-display text-4xl sm:text-5xl text-foreground font-medium text-balance">
               {profile.tier_name}
             </h2>
@@ -110,7 +119,7 @@ export function LogrosClient({
           
           <div className="bg-background/60 backdrop-blur-md rounded-2xl p-6 border border-border/50 text-center min-w[180px]">
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Puntos de Impacto</p>
-            <p className="font-display text-4xl text-accent counter-value" data-target={profile.puntos_acumulados}>
+            <p className="font-display text-4xl text-accent-text counter-value" data-target={profile.puntos_acumulados}>
               0
             </p>
           </div>
@@ -192,7 +201,7 @@ export function LogrosClient({
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-semibold text-accent">+{t.points} pts</span>
+                  <span className="text-sm font-semibold text-accent-text">+{t.points} pts</span>
                   <p className="text-xs text-muted-foreground mt-1">Total: {t.balance_after}</p>
                 </div>
               </div>

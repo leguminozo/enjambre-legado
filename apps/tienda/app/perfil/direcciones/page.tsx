@@ -6,7 +6,7 @@ import { MapPin } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 
 export const metadata = {
-  title: 'Libreta de Direcciones | Enjambre',
+  title: 'Libreta de Direcciones | La Obrera y el Zángano',
 };
 
 export default async function DireccionesPage() {

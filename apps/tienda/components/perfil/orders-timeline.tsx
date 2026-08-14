@@ -110,7 +110,7 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
               </div>
 
               <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-                <p className="font-display text-accent">{formatCLP(order.total)}</p>
+                <p className="font-display text-accent-text">{formatCLP(order.total)}</p>
                 {envio?.tracking_code ? (
                   <p className="text-xs font-mono text-muted-foreground">{envio.tracking_code}</p>
                 ) : null}
@@ -154,7 +154,7 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
 
                 {status.tone === 'success' ? (
                   order.resena ? (
-                    <span className="inline-flex min-h-11 items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-success/10 border border-success/20 text-success rounded-xl">
+                    <span className="inline-flex min-h-11 items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-success/10 border border-success/20 text-success-text rounded-xl">
                       <Star size={14} className="fill-success" />
                       <span>{order.resena.estado === 'aprobada' ? 'Reseña publicada' : 'Reseña en moderación'}</span>
                     </span>
@@ -184,7 +184,7 @@ export function OrdersTimelineEmpty() {
       <p className="text-sm text-muted-foreground mb-6">Sin pedidos.</p>
       <Link
         href="/catalogo"
-        className="inline-block px-8 py-4 bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold rounded-xl hover:shadow-glow transition-all"
+        className="inline-block px-8 py-4 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold rounded-xl hover:shadow-glow transition-all"
       >
         Catálogo
       </Link>

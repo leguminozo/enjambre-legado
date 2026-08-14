@@ -68,9 +68,9 @@
   --muted-foreground: var(--enj-crema-h) 15% 65%;
 
   --accent: var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l);
-  --accent-foreground: var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 8%;
+  --accent-foreground: var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 4%;
 
-  --destructive: var(--enj-rojo-h) var(--enj-rojo-s) var(--enj-rojo-l);
+  --destructive: var(--enj-rojo-h) var(--enj-rojo-s) 61%;
 
   --border: 0 0% 18%;
   --input: 0 0% 18%;
@@ -80,6 +80,7 @@
   --surface-sunken: 0 0% 4%;
 
   --success: var(--enj-verde-h) var(--enj-verde-s) var(--enj-verde-l);
+  --success-text: var(--success);
   --warning: var(--enj-amber-h) var(--enj-amber-s) var(--enj-amber-l);
   --info: var(--enj-azul-h) var(--enj-azul-s) var(--enj-azul-l);
 
@@ -188,11 +189,13 @@ html.light {
   --secondary-foreground: var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) 20%;
 
   --muted: var(--enj-crema-h) 15% 92%;
-  --muted-foreground: var(--enj-negro-tinta-h) 0% 35%;
+  --muted-foreground: var(--enj-negro-tinta-h) 0% 40%;
 
   --accent: var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l);
-  --accent-foreground: var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 8%;
+  --accent-foreground: var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 4%;
 
+  --success: var(--enj-verde-h) var(--enj-verde-s) var(--enj-verde-l);
+  --success-text: var(--enj-verde-h) var(--enj-verde-s) 32%;
   --destructive: var(--enj-rojo-h) var(--enj-rojo-s) var(--enj-rojo-l);
 
   --border: var(--enj-crema-h) 20% 86%;
@@ -218,7 +221,7 @@ html.light {
   --sidebar-ring: var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l);
 
   --muted: var(--enj-crema-h) 15% 92%;
-  --muted-foreground: var(--enj-negro-tinta-h) 0% 35%;
+  --muted-foreground: var(--enj-negro-tinta-h) 0% 40%;
 
   color-scheme: light;
 }
@@ -359,4 +362,27 @@ html.light {
 @keyframes enj-progress-grow {
   from { transform: scaleX(0); }
   to { transform: scaleX(0.92); }
+}
+
+/* ── 8. Tier legacy (iPhone 7 / hardware antiguo) ──
+   data-legacy lo setea LegacyDeviceDetect (packages/ui) en <html> antes del
+   primer paint: UA iOS ≤ 15, deviceMemory ≤ 2, hardwareConcurrency ≤ 2, o
+   override ?legacy=1. El tier aplana efectos de GPU caros para que la app
+   SIGA funcionando en 2GB de RAM; el gate de componentes pesados
+   (canvas/3D/mapas) va por useLegacyDevice(), no por CSS. */
+@supports (backdrop-filter: none) {
+  /* Chrome/Edge/Safari 18+ entienden el unprefixed; Chrome moderno descarta
+     -webkit-backdrop-filter al parsear. */
+  html[data-legacy='true'] * { backdrop-filter: none; }
+}
+@supports not (backdrop-filter: none) {
+  /* Safari 15.x (iPhone 7) solo entiende el prefijado. El minificador (Lightning
+     CSS) descarta backdrop-filter con !important; la especificidad
+     html[data-legacy] * (0,1,1) > .backdrop-* (0,1,0) gana igual sin él. */
+  html[data-legacy='true'] * { -webkit-backdrop-filter: none; }
+}
+html[data-legacy='true'] .enj-blur-orb {
+  /* Orbes decorativos blur-3xl (login/checkout): aplanar el filtro evita un
+     área de blur de ~140vw×60vh redibujándose en cada scroll (GPU vieja). */
+  filter: none !important;
 }

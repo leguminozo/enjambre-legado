@@ -33,7 +33,7 @@ export function ReservasClient({ preOrders, featuredProduct }: ReservasClientPro
     <div className="space-y-16 animate-in">
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+          <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text">
             <Calendar size={20} />
           </div>
           <h1 className="font-display text-4xl font-light text-foreground">Reserva de Cosecha</h1>
@@ -60,7 +60,7 @@ export function ReservasClient({ preOrders, featuredProduct }: ReservasClientPro
                 type="button"
                 disabled={isPending}
                 onClick={handleReserve}
-                className="px-12 py-5 bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl flex items-center gap-3 disabled:opacity-50"
+                className="px-12 py-5 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl flex items-center gap-3 disabled:opacity-50"
               >
                 {isPending ? 'Reservando…' : 'Garantizar Mi Cupo'} <ArrowRight size={16} />
               </button>
@@ -71,7 +71,7 @@ export function ReservasClient({ preOrders, featuredProduct }: ReservasClientPro
         </div>
 
         <div className="p-8 rounded-3xl bg-secondary/50 border border-border">
-          <div className="flex items-center gap-3 mb-6 text-accent">
+          <div className="flex items-center gap-3 mb-6 text-accent-text">
             <Leaf size={18} />
             <h4 className="text-[0.65rem] uppercase tracking-[0.2em] font-bold">Tus reservas</h4>
           </div>

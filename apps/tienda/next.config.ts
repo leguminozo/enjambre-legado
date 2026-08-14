@@ -93,9 +93,18 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@enjambre/auth", "@enjambre/ui"],
   outputFileTracingRoot: path.join(__dirname, '../..'),
   experimental: {
-    optimizePackageImports: ['lucide-react', 'gsap', 'leaflet'],
+    optimizePackageImports: [
+      '@enjambre/ui',
+      'lucide-react',
+      'gsap',
+      'leaflet',
+      'framer-motion',
+      'date-fns',
+    ],
   },
   images: {
+    loader: 'custom',
+    loaderFile: './image-loader.ts',
     remotePatterns: [
       {
         protocol: 'https',

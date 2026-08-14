@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
+import type gsap from 'gsap';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -76,16 +76,25 @@ export function ReplenishmentResultClient() {
 
   useEffect(() => {
     if (state === 'loading') return;
-    const ctx = gsap.context(() => {
-      gsap.from(contentRef.current, { opacity: 0, y: 30, duration: 0.8, ease: 'power3.out' });
-      gsap.from(iconRef.current, { scale: 0, duration: 0.6, ease: 'back.out(1.7)', delay: 0.2 });
-    });
-    return () => ctx.revert();
+    let ctx: gsap.Context | undefined;
+    let cancelled = false;
+    (async () => {
+      const { gsap } = await import('gsap');
+      if (cancelled) return;
+      ctx = gsap.context(() => {
+        gsap.from(contentRef.current, { opacity: 0, y: 30, duration: 0.8, ease: 'power3.out' });
+        gsap.from(iconRef.current, { scale: 0, duration: 0.6, ease: 'back.out(1.7)', delay: 0.2 });
+      });
+    })();
+    return () => {
+      cancelled = true;
+      ctx?.revert();
+    };
   }, [state]);
 
   const Icon = state === 'success' ? CheckCircle : state === 'failed' ? XCircle : Clock;
   const iconColor =
-    state === 'success' ? 'text-accent' : state === 'failed' ? 'text-destructive' : 'text-muted-foreground';
+    state === 'success' ? 'text-accent-text' : state === 'failed' ? 'text-destructive' : 'text-muted-foreground';
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-16">
@@ -111,7 +120,7 @@ export function ReplenishmentResultClient() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
             <Link
               href={REPOSICION_PATH}
-              className="inline-flex min-h-12 items-center justify-center px-8 py-3 bg-accent text-accent-foreground text-[0.65rem] uppercase tracking-[0.25em] font-bold rounded-xl hover:shadow-glow transition-all"
+              className="inline-flex min-h-12 items-center justify-center px-8 py-3 bg-primary text-primary-foreground text-[0.65rem] uppercase tracking-[0.25em] font-bold rounded-xl hover:shadow-glow transition-all"
             >
               {t('viewReplenishment')}
             </Link>

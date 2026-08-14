@@ -40,9 +40,9 @@ export function RecuperarForm() {
 
   return (
     <AuthShell
-      title={<>Recuperar <span className="italic text-accent">acceso</span></>}
+      title={<>Recuperar <span className="italic text-accent-text">acceso</span></>}
       subtitle="Te enviaremos un enlace seguro para restablecer tu contraseña"
-      footer="Acceso Restringido · Tienda Enjambre"
+      footer="Acceso Restringido · La Obrera y el Zángano"
     >
       {sent ? (
         <div className="space-y-6 text-center">
@@ -51,7 +51,7 @@ export function RecuperarForm() {
           </p>
           <Link
             href="/login"
-            className="inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-accent px-6 py-3 text-[0.7rem] uppercase tracking-[0.3em] text-accent hover:bg-accent hover:text-accent-foreground transition-all"
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-accent px-6 py-3 text-[0.7rem] uppercase tracking-[0.3em] text-accent-text hover:bg-accent hover:text-accent-foreground transition-all"
           >
             Volver a iniciar sesión
           </Link>
@@ -77,7 +77,7 @@ export function RecuperarForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full min-h-12 mt-6 py-4 rounded-lg border border-accent text-accent text-[0.7rem] uppercase tracking-[0.3em] hover:bg-accent hover:text-accent-foreground transition-all duration-300 disabled:opacity-50"
+            className="w-full min-h-12 mt-6 py-4 rounded-lg border border-accent text-accent-text text-[0.7rem] uppercase tracking-[0.3em] hover:bg-accent hover:text-accent-foreground transition-all duration-300 disabled:opacity-50"
           >
             {loading ? 'Enviando…' : 'Enviar enlace'}
           </button>

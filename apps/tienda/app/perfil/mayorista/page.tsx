@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/server';
 import { getParticipacionActiva } from '@/lib/shop/participacion';
 
 export const metadata = {
-  title: 'Aliado Mayorista | Enjambre Legado',
+  title: 'Aliado Mayorista | La Obrera y el Zángano',
   description: 'Portal mayorista B2B para aliados activos.',
 };
 
@@ -31,7 +31,7 @@ export default async function MayoristaPerfilPage() {
 
       <div className="rounded-2xl border border-border bg-card p-8 shadow-xl space-y-6">
         <div className="flex items-start gap-4">
-          <div className="rounded-xl bg-accent/10 p-3 text-accent">
+          <div className="rounded-xl bg-accent/10 p-3 text-accent-text">
             <Store size={22} />
           </div>
           <div className="space-y-1">

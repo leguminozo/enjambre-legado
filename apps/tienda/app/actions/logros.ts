@@ -13,16 +13,28 @@ export async function getUserGamificationProfile(): Promise<GamificationProfile 
 
   if (!user) return null;
 
-  // 1. Fetch user profile for points and tier key
+  // 1. Fetch user profile for tier key
   const { data: profile } = await supabase
     .from('profiles')
-    .select('puntos_acumulados, nivel_guardian')
+    .select('nivel_guardian')
     .eq('id', user.id)
     .single();
 
   if (!profile) return null;
 
-  const userPoints = profile.puntos_acumulados ?? 0;
+  // El progreso se alimenta del saldo VIVO (puntos_fidelizacion), no del saldo
+  // legacy profiles.puntos_acumulados (solo los referidos lo tocaban y las
+  // compras reales nunca avanzaban el nivel). Suma por si hay más de una
+  // empresa.
+  const { data: puntosRows } = await supabase
+    .from('puntos_fidelizacion')
+    .select('puntos_acumulados_total')
+    .eq('user_id', user.id);
+
+  const userPoints = (puntosRows ?? []).reduce(
+    (acc, row) => acc + (Number(row.puntos_acumulados_total) || 0),
+    0,
+  );
   
   // 2. Fetch all tiers to calculate progress
   const { data: tiers } = await supabase
@@ -36,9 +48,9 @@ export async function getUserGamificationProfile(): Promise<GamificationProfile 
   let progressPercentage = 100;
 
   if (tiers && tiers.length > 0) {
-    // Find current tier
-    const currentTier = tiers.find(t => t.key === profile.nivel_guardian) 
-      ?? [...tiers].reverse().find(t => userPoints >= t.min_points)
+    // El nivel se deriva del saldo vivo (nivel_guardian legacy quedó atado al
+    // saldo muerto profiles.puntos_acumulados y no refleja las compras).
+    const currentTier = [...tiers].reverse().find(t => userPoints >= t.min_points)
       ?? tiers[0];
       
     currentTierName = currentTier.name;

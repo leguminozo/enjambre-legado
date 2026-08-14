@@ -31,6 +31,19 @@ Valores de signup/BFF (ejemplos): `api_residente`, `api_trashumante`, `api_mixto
 - Filtra menú (shell) y, en oleada 2a, **escrituras BFF** (familia `minimo` bloqueada salvo inscripción de actor).
 - No sustituye a `profiles.role`.
 
+### Eje C — `user_roles` (comercial / pricing, apilable)
+
+| Rol | Multiplicador | Se obtiene por |
+|-----|---------------|----------------|
+| `comprador` | 1.0× | Default (hook) |
+| `suscriptor` | 0.9× | **Trigger** `trg_grant_suscriptor` en `subscriptions.status = 'active'` (Club de la Cosecha / reposición) |
+| `revendedor` | 0.8× | **Trigger** `trg_derive_commercial_role` desde `user_roles.rep_ventas` o `profiles.role = rep_ventas` (alta directa); claim B2B (`b2b.ts`) |
+| `embajador` | 0.7× | **Trigger** `trg_derive_commercial_role` desde `user_roles.creador` (portal) o `profiles.role = creador` |
+
+El hook `custom_access_token` (mig 43) resuelve la prioridad embajador > revendedor > suscriptor > comprador e inyecta `oyz_role` en `app_metadata`. Migración: `20260812000000_conectores_roles_comerciales.sql` + test `03-conectores-roles-comerciales.test.sql`.
+
+**Nota JWT:** el rol comercial derivado llega al pricing tras un refresh de sesión (login, `checkUser` o `redeemInvitationCode`).
+
 ---
 
 ## 2. Frontera: dos “apicultores”

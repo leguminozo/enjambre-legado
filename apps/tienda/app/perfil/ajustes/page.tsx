@@ -16,7 +16,7 @@ export default async function AjustesPage() {
     <div className="space-y-16 animate-in">
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+          <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text">
             <Settings size={20} />
           </div>
           <h1 className="font-display text-4xl font-light text-foreground">Ajustes Guardián</h1>
@@ -30,7 +30,7 @@ export default async function AjustesPage() {
 
       <div className="max-w-2xl space-y-12">
         <section className="space-y-8">
-          <div className="flex items-center gap-3 text-accent">
+          <div className="flex items-center gap-3 text-accent-text">
             <User size={18} />
             <h3 className="text-[0.65rem] uppercase tracking-[0.2em] font-bold">Identidad Pública</h3>
           </div>

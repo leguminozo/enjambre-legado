@@ -10,11 +10,11 @@ export default function CheckoutResultPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-background px-6 py-16">
+        <main className="min-h-[var(--vh-full)] bg-background px-6 py-16">
           <ViewLoading
             variant="page"
             label="Resultado del pago"
-            brand={<BrandWordmark tagline="Biocultural Regeneration" />}
+            brand={<BrandWordmark name="La Obrera y el Zángano" ecosystem="Enjambre Legado" />}
           />
         </main>
       }

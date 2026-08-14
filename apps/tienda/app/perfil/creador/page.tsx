@@ -10,7 +10,7 @@ const CreadorPortalClient = dynamic(
 );
 
 export const metadata = {
-  title: 'Embajador del Bosque | Enjambre Legado',
+  title: 'Embajador del Bosque | La Obrera y el Zángano',
   description: 'Portal de comisiones por referido para creadores de contenido.',
 };
 

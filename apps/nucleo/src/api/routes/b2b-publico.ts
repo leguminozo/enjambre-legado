@@ -180,12 +180,42 @@ b2bPublicoRoutes.post(
       .eq("punto_venta_id", punto.id)
       .maybeSingle();
     if (!mem) {
-      await supabase.from("fid_membresias").insert({
-        cliente_id: cliente.id,
-        punto_venta_id: punto.id,
-        saldo_sellos: 1,
-        sellos_iniciales: 1,
-      });
+      // Welcome: primeros puntos del revendedor desde fid_valores
+      // (clave 'revendedor_puntos_bienvenida', seed 200) — la intención del
+      // seed estaba documentada pero nadie la consumía (huérfano #5).
+      const { data: valorWelcome } = await supabase
+        .from("fid_valores")
+        .select("valor")
+        .eq("clave", "revendedor_puntos_bienvenida")
+        .eq("activo", true)
+        .maybeSingle();
+      const ptsBienvenida = valorWelcome?.valor != null ? Number(valorWelcome.valor) : 0;
+
+      const { data: memCreada } = await supabase
+        .from("fid_membresias")
+        .insert({
+          cliente_id: cliente.id,
+          punto_venta_id: punto.id,
+          saldo_sellos: 1,
+          sellos_iniciales: 1,
+          ...(ptsBienvenida > 0 ? { saldo_puntos: ptsBienvenida } : {}),
+        })
+        .select("*")
+        .single();
+
+      // Ledger inmutable: registrar el endowment como 'ajuste' (el CHECK de
+      // fid_eventos.tipo no tiene 'bienvenida').
+      if (ptsBienvenida > 0 && memCreada) {
+        await supabase.from("fid_eventos").insert({
+          cliente_id: cliente.id,
+          punto_venta_id: punto.id,
+          membresia_id: memCreada.id,
+          tipo: "ajuste",
+          cantidad: ptsBienvenida,
+          origen: "portal",
+          notas: "Bienvenida: primeros puntos del revendedor",
+        });
+      }
     }
 
     return c.json({

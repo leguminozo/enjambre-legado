@@ -32,12 +32,12 @@ export function ConsentBanner() {
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {t.rich('bannerText', {
                   cookies: (chunks) => (
-                    <Link href="/cookies" className="text-accent underline hover:text-accent/80">
+                    <Link href="/cookies" className="text-accent-text underline hover:text-accent/80">
                       {chunks}
                     </Link>
                   ),
                   privacidad: (chunks) => (
-                    <Link href="/privacidad" className="text-accent underline hover:text-accent/80">
+                    <Link href="/privacidad" className="text-accent-text underline hover:text-accent/80">
                       {chunks}
                     </Link>
                   ),

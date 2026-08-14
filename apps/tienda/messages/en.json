@@ -228,6 +228,44 @@
         "catalogoMayorista": "Wholesale Catalog",
         "trazabilidad": "Blockchain Traceability"
       }
+    },
+    "enjambre": {
+      "title": "Join the Swarm",
+      "mission": "Your doorway into the ecosystem: points, exclusive harvests and benefits for every profile.",
+      "heroJoinedTitle": "Welcome to the Swarm!",
+      "heroJoinedDesc": "Your link is active. {points} welcome points are now in your legacy.",
+      "heroMemberTitle": "You are already part of the Swarm",
+      "heroMemberDesc": "These are the benefits available to your profile.",
+      "baseTitle": "Your swarm",
+      "baseDesc": "Benefits for every instance of the ecosystem:",
+      "canjeTitle": "Points & Rewards",
+      "canjeDesc": "1 point per CLP 1,000 spent. Redeem at checkout (100 pts = CLP 1,000) or in the rewards catalog.",
+      "canjeCta": "Redeem points",
+      "redTitle": "Biocultural Network",
+      "redDesc": "+50 pts for every referral who joins the Swarm with your code.",
+      "redCta": "See my code",
+      "sellosTitle": "Guardian Stamps",
+      "sellosDesc": "Buy in cycles and earn free products with stamps. Guardian reviews add extra cycles and stamps.",
+      "sellosCta": "See my stamps",
+      "logrosTitle": "Achievements & Impact",
+      "logrosDesc": "Your Pollinator → Beekeeper → Guardian progress grows with every real purchase.",
+      "logrosCta": "See my achievements",
+      "ascensoTitle": "Level up",
+      "ascensoDesc": "Every Swarm profile has its price multiplier applied at checkout:",
+      "activo": "Active",
+      "clubTitle": "Harvest Club",
+      "clubDesc": "{descuento}% off the whole catalog + quarterly forest harvests.",
+      "clubCta": "Join the Club",
+      "aliadoTitle": "Wholesale Partner",
+      "aliadoDesc": "{descuento}% off + {volumen}% extra from {pedidos} orders. B2B portal with your own terms.",
+      "aliadoCta": "Go to wholesale portal",
+      "embajadorTitle": "Forest Ambassador",
+      "embajadorDesc": "{descuento}% off + commissions for every referred sale and a discount for your community.",
+      "embajadorCta": "See my code & commissions",
+      "pasaporteTitle": "Hive Passport",
+      "pasaporteDesc": "Your hive linked through the Harvest Club.",
+      "pasaporteCta": "See passport",
+      "note": "No commitments: benefits activate with your profile and are tuned from the Swarm configuration."
     }
   },
   "hero": {
@@ -602,7 +640,7 @@
     "preferences": "Preferences",
     "savePreferences": "Save preferences",
     "bannerTitle": "We value your privacy",
-    "bannerText": "We use essential cookies to run the store. With your consent, we also use analytics and marketing cookies (including Meta Pixel) to improve your experience. See our {cookies} and our {privacidad}.",
+    "bannerText": "We use essential cookies to run the store. With your consent, we also use analytics and marketing cookies (including Meta Pixel) to improve your experience. See our <cookies>cookie policy</cookies> and our <privacidad>privacy policy</privacidad>.",
     "essentialOnly": "Essential only"
   },
   "language": {

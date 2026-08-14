@@ -28,7 +28,7 @@ export function CarritoClient() {
         <p className="mt-2 text-sm text-muted-foreground">{cart.empty_desc}</p>
         <Link
           href="/catalogo"
-          className="mt-8 inline-flex min-h-[48px] items-center rounded-full bg-accent px-8 py-3 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90"
+          className="mt-8 inline-flex min-h-[48px] items-center rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
         >
           {cart.empty_cta}
         </Link>
@@ -103,7 +103,7 @@ export function CarritoClient() {
       <div className="mt-6 hidden rounded-xl border border-border bg-card/30 px-6 py-5 md:block">
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">{cart.subtotal_label}</span>
-          <span className="font-display text-xl font-semibold tabular-nums text-accent">
+          <span className="font-display text-xl font-semibold tabular-nums text-accent-text">
             {formatCLP(subtotal)}
           </span>
         </div>

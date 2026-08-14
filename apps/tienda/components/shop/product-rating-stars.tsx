@@ -28,7 +28,7 @@ export function ProductRatingStars({
               size={iconSize}
               className={
                 filled || half
-                  ? 'fill-accent text-accent'
+                  ? 'fill-accent text-accent-text'
                   : 'text-muted-foreground/30'
               }
             />

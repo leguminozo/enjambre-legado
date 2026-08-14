@@ -2,7 +2,6 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { gsap } from 'gsap';
 import { Package, Clock, Leaf, ChevronRight, TreePine, Droplets, Trees, Bug, ArrowRight, ArrowUpRight } from 'lucide-react';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
@@ -52,13 +51,23 @@ interface MiLegadoClientProps {
 export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, ecosystemMetrics }: MiLegadoClientProps) {
 
   useEffect(() => {
-    gsap.from('.vanguard-data', {
-      opacity: 0,
-      y: 20,
-      duration: 2,
-      stagger: 0.3,
-      ease: 'power2.out'
+    let cancelled = false;
+    (async () => {
+      const { gsap } = await import('gsap');
+      if (cancelled) return;
+      gsap.from('.vanguard-data', {
+        opacity: 0,
+        y: 20,
+        duration: 2,
+        stagger: 0.3,
+        ease: 'power2.out'
+      });
+    })().catch(() => {
+      // Chunk de gsap fallido: los datos quedan visibles sin animación.
     });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const totalOrders = orders?.length || 0;
@@ -76,12 +85,12 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
 
         <div className="relative z-10 max-w-4xl w-full mx-auto">
           <div className="text-center mb-4">
-            <p className="text-[0.6rem] tracking-[0.2em] text-success/60 italic">
+            <p className="text-[0.6rem] tracking-[0.2em] text-success-text/60 italic">
               Gracias por custodiar este bosque con nosotros. Este panel existe para recordar lo que ya hiciste bien.
             </p>
           </div>
           <div className="text-center mb-16">
-            <span className="vanguard-data block text-[0.7rem] tracking-[0.5em] uppercase text-accent mb-6">
+            <span className="vanguard-data block text-[0.7rem] tracking-[0.5em] uppercase text-accent-text mb-6">
               Mi Legado
             </span>
             <h1 className="vanguard-data font-display text-5xl md:text-7xl font-light text-foreground mb-4">
@@ -146,39 +155,39 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
           <div className="space-y-24">
             {/* ── MI IMPACTO ── */}
             <div className="vanguard-data border-t border-border pt-12">
-              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Mi Impacto</span>
+              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent-text mb-8">Mi Impacto</span>
               <p className="text-sm text-muted-foreground italic mb-12 max-w-lg">
                 Tu contribución directa a la regeneración. Cada número es rastreable y demostrable por triangulación de papers y datos locales de Chiloé.
               </p>
 
               <div className="grid md:grid-cols-4 gap-6 mb-12">
                 <div className="bg-card border border-border rounded-2xl p-8 text-center">
-                  <div className="text-accent mb-4 flex justify-center"><Trees className="w-7 h-7" /></div>
+                  <div className="text-accent-text mb-4 flex justify-center"><Trees className="w-7 h-7" /></div>
                   <p className="font-display text-3xl font-light text-foreground mb-2">{arbolesPersonal}</p>
                   <p className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">m² Regenerados</p>
                 </div>
                 <div className="bg-card border border-border rounded-2xl p-8 text-center">
-                  <div className="text-accent mb-4 flex justify-center"><Leaf className="w-7 h-7" /></div>
+                  <div className="text-accent-text mb-4 flex justify-center"><Leaf className="w-7 h-7" /></div>
                   <p className="font-display text-3xl font-light text-foreground mb-2">{co2PersonalEstimado > 0 ? `~${co2PersonalEstimado}` : '—'}</p>
                   <p className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">kg CO₂ capturado</p>
                 </div>
                 <div className="bg-card border border-border rounded-2xl p-8 text-center">
-                  <div className="text-accent mb-4 flex justify-center"><Bug className="w-7 h-7" /></div>
+                  <div className="text-accent-text mb-4 flex justify-center"><Bug className="w-7 h-7" /></div>
                   <p className="font-display text-3xl font-light text-foreground mb-2">{azucarSustituida > 0 ? `~${azucarSustituida}` : '—'}</p>
                   <p className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">g Azúcar sustituida</p>
                 </div>
                 <div className="bg-card border border-border rounded-2xl p-8 text-center">
-                  <div className="text-accent mb-4 flex justify-center"><TreePine className="w-7 h-7" /></div>
+                  <div className="text-accent-text mb-4 flex justify-center"><TreePine className="w-7 h-7" /></div>
                   <p className="font-display text-3xl font-light text-foreground mb-2">{irrEstimado}</p>
                   <p className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">IRR personal</p>
                   {irrEstimado !== '—' && Number(irrEstimado) > 1 && (
-                    <p className="text-[0.5rem] text-success/70 mt-1">Impacto &gt; Huella</p>
+                    <p className="text-[0.5rem] text-success-text/70 mt-1">Impacto &gt; Huella</p>
                   )}
                 </div>
               </div>
 
               <div className="bg-surface-raised/50 border border-border/30 rounded-xl p-10 mb-12">
-                <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/50 mb-6">Tu IRR personal</p>
+                <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text/50 mb-6">Tu IRR personal</p>
                 {irrEstimado !== '—' && Number(irrEstimado) > 1 ? (
                   <>
                     <p className="font-display text-2xl md:text-3xl font-light text-foreground tracking-wide mb-4">
@@ -201,7 +210,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
               </div>
 
               <div className="bg-surface-raised/50 border border-accent/20 rounded-xl p-10">
-                <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/50 mb-6">Ecosistema que custodias</p>
+                <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text/50 mb-6">Ecosistema que custodias</p>
                 <p className="text-sm text-muted-foreground leading-relaxed mb-6">
                   Tu legado se suma al ecosistema colectivo de {ecosystemMetrics.anos_legado} en Chiloé:
                 </p>
@@ -236,7 +245,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
 
             {/* ── COLMENA ── */}
             <div className="vanguard-data border-t border-border pt-12">
-              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Estado de tu Colmena</span>
+              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent-text mb-8">Estado de tu Colmena</span>
               {hiveData ? (
                 <div className="flex flex-col md:flex-row justify-between items-baseline gap-8">
                   <div>
@@ -254,7 +263,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
                   <p className="text-sm text-muted-foreground italic mb-6">
                     Aún no has vinculado tu legado a una colmena específica.
                   </p>
-                  <a href="/catalogo" className="inline-flex min-h-11 items-center gap-2 text-accent text-[0.65rem] uppercase tracking-[0.2em] hover:gap-4 transition-all">
+                  <a href="/catalogo" className="inline-flex min-h-11 items-center gap-2 text-accent-text text-[0.65rem] uppercase tracking-[0.2em] hover:gap-4 transition-all">
                     Explorar Suscripciones <ChevronRight size={16} />
                   </a>
                 </div>
@@ -263,7 +272,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
 
             {/* ── PUNTOS DE RECLAMO ── */}
             <div className="vanguard-data border-t border-border pt-12">
-              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent mb-8">Puntos de Reclamo</span>
+              <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent-text mb-8">Puntos de Reclamo</span>
               {claimPoints && claimPoints.length > 0 ? (
                 <div className="space-y-4">
                   {claimPoints.map((point) => (
@@ -286,7 +295,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
             {/* ── PEDIDOS ── */}
             <div className="vanguard-data border-t border-border pt-12">
               <div className="flex items-center justify-between mb-8 gap-4">
-                <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent">Pedidos Recientes</span>
+                <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-accent-text">Pedidos Recientes</span>
                 <Link
                   href="/perfil/pedidos"
                   className="inline-flex items-center gap-1 text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground hover:text-accent transition-colors"
@@ -310,7 +319,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
                       </div>
                       <div className="text-right">
                         <div className="font-display italic text-foreground">${order.total?.toLocaleString('es-CL') || '0'}</div>
-                        <div className="text-[0.6rem] uppercase tracking-[0.2em] text-accent">{order.estado}</div>
+                        <div className="text-[0.6rem] uppercase tracking-[0.2em] text-accent-text">{order.estado}</div>
                       </div>
                     </Link>
                   ))}

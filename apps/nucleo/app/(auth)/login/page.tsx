@@ -38,6 +38,10 @@ const labelClass =
 
 type ViewMode = 'collapsed' | 'sheet_email' | 'sheet_signup' | 'sheet_recovery';
 
+// OAuth desactivado: Supabase del proyecto tiene google/apple/twitter: false.
+// El botón de Google se oculta hasta habilitar el provider en el dashboard.
+const OAUTH_PROVIDERS_ENABLED = false;
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -156,8 +160,9 @@ export default function LoginPage() {
         if (!email.trim()) {
           throw new Error('Por favor ingresa tu correo electrónico.');
         }
+        const siteUrl = process.env.NEXT_PUBLIC_NUCLEO_URL ?? (typeof window !== 'undefined' ? window.location.origin : '');
         const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/login`,
+          redirectTo: `${siteUrl}/auth/callback?next=/reset-password`,
         });
         if (resetErr) throw new Error(friendlySupabaseError(resetErr));
 
@@ -254,7 +259,7 @@ export default function LoginPage() {
     <main className="relative min-h-[var(--vh-full)] w-full bg-background text-foreground flex flex-col justify-between overflow-x-hidden px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] select-none">
       {/* Starry / Cosmic Atmosphere Layer */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] h-[60vh] rounded-full bg-gradient-to-b from-primary/15 via-primary/5 to-transparent blur-3xl opacity-60" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 enj-blur-orb w-[140vw] h-[60vh] rounded-full bg-gradient-to-b from-primary/15 via-primary/5 to-transparent blur-3xl opacity-60" />
         <div
           className="absolute inset-0 opacity-40"
           style={{
@@ -309,15 +314,17 @@ export default function LoginPage() {
         
         {viewMode === 'collapsed' && (
           <div className="flex flex-col items-stretch gap-4 w-full animate-in fade-in duration-200">
-            <button
-              type="button"
-              onClick={() => void handleGoogleOAuth()}
-              disabled={loading}
-              className="w-full min-h-14 rounded-2xl border border-border/60 bg-surface-raised/90 backdrop-blur-2xl px-5 py-3.5 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border hover:bg-surface-raised transition-all shadow-lg disabled:opacity-50"
-            >
-              <GoogleIcon className="w-5 h-5" />
-              <span>Continuar con Google</span>
-            </button>
+            {OAUTH_PROVIDERS_ENABLED && (
+              <button
+                type="button"
+                onClick={() => void handleGoogleOAuth()}
+                disabled={loading}
+                className="w-full min-h-14 rounded-2xl border border-border/60 bg-surface-raised/90 backdrop-blur-2xl px-5 py-3.5 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border hover:bg-surface-raised transition-all shadow-lg disabled:opacity-50"
+              >
+                <GoogleIcon className="w-5 h-5" />
+                <span>Continuar con Google</span>
+              </button>
+            )}
 
             <div className="flex items-center gap-3 px-1">
               <span className="h-px flex-1 bg-border/50" />
@@ -645,20 +652,22 @@ export default function LoginPage() {
                       </div>
                     </div>
 
-                    <div className="rounded-2xl border border-border/50 bg-background/40 p-4 sm:p-5">
-                      <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                        También puedes crear la cuenta con Google y completar el perfil territorial después.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => void handleGoogleOAuth()}
-                        disabled={loading}
-                        className="w-full min-h-12 rounded-xl border border-border/60 bg-surface-raised px-4 flex items-center justify-center gap-2.5 text-sm font-medium text-foreground hover:bg-surface-sunken transition-colors disabled:opacity-50"
-                      >
-                        <GoogleIcon className="w-4 h-4" />
-                        Continuar con Google
-                      </button>
-                    </div>
+                    {OAUTH_PROVIDERS_ENABLED && (
+                      <div className="rounded-2xl border border-border/50 bg-background/40 p-4 sm:p-5">
+                        <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                          También puedes crear la cuenta con Google y completar el perfil territorial después.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => void handleGoogleOAuth()}
+                          disabled={loading}
+                          className="w-full min-h-12 rounded-xl border border-border/60 bg-surface-raised px-4 flex items-center justify-center gap-2.5 text-sm font-medium text-foreground hover:bg-surface-sunken transition-colors disabled:opacity-50"
+                        >
+                          <GoogleIcon className="w-4 h-4" />
+                          Continuar con Google
+                        </button>
+                      </div>
+                    )}
                   </section>
 
                   {/* Columna territorio */}

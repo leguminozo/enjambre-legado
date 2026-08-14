@@ -40,11 +40,25 @@ test.describe('login viewport móvil (iPhone 7 375x667)', () => {
   });
 
   test('sheet de email: max-height móvil + scroll (teclado no tapa Entrar)', async ({ page }) => {
+    // Consentimiento precargado: el banner (z-[70], fixed bottom) tapa la zona
+    // de botones en primera visita.
+    await page.addInitScript(() => {
+      const state = {
+        essential: true,
+        analytics: true,
+        marketing: true,
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      document.cookie = `preference-consent=${encodeURIComponent(JSON.stringify(state))}; Path=/; SameSite=Lax`;
+    });
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/login', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1200);
 
-    const accBtn = page.locator('button', { hasText: 'Continuar como' }).first();
+    // Estado default actual: sin cuentas demo guardadas → botón de correo
+    // (DEFAULT_SAVED_ACCOUNTS = [] por decisión del equipo).
+    const accBtn = page.locator('button', { hasText: 'Continuar con correo electrónico' }).first();
     await accBtn.click();
     await page.waitForTimeout(600);
 

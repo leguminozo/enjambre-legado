@@ -17,6 +17,8 @@ Antes de CUALQUIER accion, lee estos archivos en orden:
 
 Si no entiendes la Constitucion, no escribas codigo.
 
+**Presupuesto de plataforma (ago 2026):** Vercel Hobby + un Supabase Free. Tres apps, un Postgres, cero cuarto deploy. Lecturas publicas = ISR/Dexie/CDN. `next/image` = `cdn-image-loader` (no optimizer de Vercel). Crons solo diarios. Realtime no es default. `SECURITY DEFINER` no es atajo. Hobby es non-commercial: $0 es pista, no licencia. Ley: `docs/CONSTITUTION.md` § II.6 y `system_invariants.md` Ley VI.
+
 ---
 
 ## 1. Contexto del Repositorio

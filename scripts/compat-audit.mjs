@@ -31,9 +31,13 @@ const PARSE_LEVEL = [
 
 /**
  * APIs de runtime NO cubiertas por LegacyBrowserPolyfills → fallo.
- * (Array.prototype.at, Object.hasOwn, findLast/findLastIndex, replaceAll,
- *  Promise.withResolvers y structuredClone están cubiertas por la capa de
- *  compat y se ignoran a propósito.)
+ * Las cubiertas por la capa de compat (packages/ui/src/components/
+ * legacy-browser-polyfills.tsx) llevan covered:true y solo generan warning:
+ * - ES2022: Array.at, Object.hasOwn, findLast/findLastIndex, String.replaceAll
+ * - ES2023: toSorted, toReversed, toSpliced, with, isWellFormed, toWellFormed
+ * - ES2024: Promise.withResolvers, Object.groupBy, Map.groupBy
+ * - Global: structuredClone
+ * Si agregas un polyfill nuevo, muévelo aquí a covered:true (regla de oro).
  */
 const RUNTIME = [
   { id: 'AbortSignal.timeout', re: /AbortSignal\.timeout\(/, hint: 'Safari 16.0+. Reemplaza por AbortController + setTimeout.' },
@@ -45,11 +49,14 @@ const RUNTIME = [
     hint: 'Safari 17.4+. Si no es el idiom protegido de three.js, reemplaza por Promise.race + AbortController.',
   },
   { id: 'Array.fromAsync', re: /\bfromAsync\(/, hint: 'Safari 17.0+. Reemplaza por un helper propio.' },
-  { id: 'toSorted-call', re: /[)\]0-9A-Za-z_$]\.toSorted\(/, hint: 'Safari 16.0+. Usa [...arr].sort() o agrega polyfill a la capa de compat.' },
-  { id: 'toReversed-call', re: /[)\]0-9A-Za-z_$]\.toReversed\(/, hint: 'Safari 16.0+. Usa [...arr].reverse().' },
-  { id: 'toSpliced-call', re: /[)\]0-9A-Za-z_$]\.toSpliced\(/, hint: 'Safari 16.0+. Usa slice/splice.' },
-  { id: 'Object.groupBy', re: /Object\.groupBy\(/, hint: 'Safari 17.4+. Usa reduce().' },
-  { id: 'Map.groupBy', re: /Map\.groupBy\(/, hint: 'Safari 17.4+. Usa reduce().' },
+  { id: 'toSorted-call', re: /[)\]0-9A-Za-z_$]\.toSorted\(/, covered: true, hint: 'Safari 16.4+. Cubierta por LegacyBrowserPolyfills (arrays: copia + sort).' },
+  { id: 'toReversed-call', re: /[)\]0-9A-Za-z_$]\.toReversed\(/, covered: true, hint: 'Safari 16.4+. Cubierta por LegacyBrowserPolyfills.' },
+  { id: 'toSpliced-call', re: /[)\]0-9A-Za-z_$]\.toSpliced\(/, covered: true, hint: 'Safari 16.4+. Cubierta por LegacyBrowserPolyfills.' },
+  { id: 'array-with-call', re: /[)\]0-9A-Za-z_$]\.with\(/, covered: true, hint: 'Safari 16.4+. Cubierta por LegacyBrowserPolyfills.' },
+  { id: 'string-isWellFormed', re: /\.isWellFormed\(/, covered: true, hint: 'Safari 16.4+. Cubierta por LegacyBrowserPolyfills.' },
+  { id: 'string-toWellFormed', re: /\.toWellFormed\(/, covered: true, hint: 'Safari 16.4+. Cubierta por LegacyBrowserPolyfills.' },
+  { id: 'Object.groupBy', re: /Object\.groupBy\(/, covered: true, hint: 'Safari 17.4+. Cubierta por LegacyBrowserPolyfills (solo iterables indexados).' },
+  { id: 'Map.groupBy', re: /Map\.groupBy\(/, covered: true, hint: 'Safari 17.4+. Cubierta por LegacyBrowserPolyfills (solo iterables indexados).' },
   { id: 'URL.canParse', re: /URL\.canParse\(/, hint: 'Safari 16.0+. Usa try/catch con new URL().' },
   { id: 'Promise.try', re: /Promise\.try\(/, hint: 'Safari 18.0+. Usa Promise.resolve().then().' },
   { id: 'import.meta.resolve', re: /import\.meta\.resolve/, hint: 'No existe en navegadores estándar.' },
@@ -57,6 +64,11 @@ const RUNTIME = [
     id: 'navigator.userAgentData-acceso',
     re: /navigator\.userAgentData\./,
     hint: 'Chrome-only. El acceso NO opcional (sin ?.) lanza TypeError en Safari. Usa navigator.userAgent o matchMedia. Accesos guardados (!navigator.userAgentData, ?.) son OK.',
+  },
+  {
+    id: 'navigator.deviceMemory-acceso',
+    re: /navigator\.deviceMemory\s*\./,
+    hint: 'Chrome-only (no existe en iOS). El acceso NO opcional lanza TypeError en Safari. Usa typeof navigator.deviceMemory o un guard.',
   },
 ];
 
@@ -103,6 +115,8 @@ function scan(appDir) {
       const allowed = rule.allowWhen?.some((re) => re.test(data));
       if (allowed) {
         warnings.push({ rule: rule.id, file: rel, hint: `${rule.hint} [occurrencia cubierta por idiom protegido revisado]` });
+      } else if (rule.covered) {
+        warnings.push({ rule: rule.id, file: rel, hint: `${rule.hint} [cubierta por LegacyBrowserPolyfills]` });
       } else {
         violations.push({ rule: rule.id, file: rel, hint: rule.hint });
       }

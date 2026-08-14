@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
+import type gsap from 'gsap';
 import Link from 'next/link';
 import { useCartLines, useCartPricing } from '@/components/shop/cart-context';
 import { useState } from 'react';
@@ -306,16 +306,16 @@ export function CheckoutClient() {
         try {
           const { createClient } = await import('@/utils/supabase/client');
           const supabase = createClient();
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('courier_preferido')
-            .eq('id', user.id)
-            .maybeSingle();
+          // Preferencia de courier y direcciones son independientes: en paralelo (antes en cascada)
+          const [profileResult, direcciones] = await Promise.all([
+            supabase.from('profiles').select('courier_preferido').eq('id', user.id).maybeSingle(),
+            getDirecciones(),
+          ]);
+          const profile = profileResult.data;
           if (profile?.courier_preferido) {
             setCourierCode(profile.courier_preferido as CourierCode);
           }
 
-          const direcciones = await getDirecciones();
           setSavedAddresses(direcciones);
 
           const defaultAddr = direcciones.find(d => d.es_predeterminada) || direcciones[0];
@@ -341,33 +341,42 @@ export function CheckoutClient() {
   }, [isAuthenticated, user]);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from('.checkout-section', {
-        opacity: 0,
-        y: 40,
-        duration: 1.2,
-        stagger: 0.2,
-        ease: 'power3.out',
-      });
-      
-      gsap.from('.form-field', {
-        opacity: 0,
-        x: -20,
-        duration: 0.8,
-        stagger: 0.05,
-        ease: 'power2.out',
-      });
-      
-      gsap.from('.checkout-button', {
-        opacity: 0,
-        scale: 0.95,
-        duration: 0.6,
-        ease: 'back.out(1.7)',
-        delay: 0.8,
-      });
-    }, formRef);
+    let ctx: gsap.Context | undefined;
+    let cancelled = false;
+    (async () => {
+      const { gsap } = await import('gsap');
+      if (cancelled) return;
+      ctx = gsap.context(() => {
+        gsap.from('.checkout-section', {
+          opacity: 0,
+          y: 40,
+          duration: 1.2,
+          stagger: 0.2,
+          ease: 'power3.out',
+        });
+        
+        gsap.from('.form-field', {
+          opacity: 0,
+          x: -20,
+          duration: 0.8,
+          stagger: 0.05,
+          ease: 'power2.out',
+        });
+        
+        gsap.from('.checkout-button', {
+          opacity: 0,
+          scale: 0.95,
+          duration: 0.6,
+          ease: 'back.out(1.7)',
+          delay: 0.8,
+        });
+      }, formRef);
+    })();
 
-    return () => ctx.revert();
+    return () => {
+      cancelled = true;
+      ctx?.revert();
+    };
   }, []);
 
   const validationErrors = touched ? fieldError(shipping) : {};
@@ -467,6 +476,8 @@ export function CheckoutClient() {
       }
     }
 
+    // gsap dinámico: feedback táctil del botón sin arrastrar el chunk al shell
+    const { gsap } = await import('gsap');
     gsap.to(buttonRef.current, {
       scale: 0.98,
       duration: 0.2,
@@ -488,8 +499,8 @@ export function CheckoutClient() {
       <main className="min-h-[60vh] bg-background pb-32 md:pb-16 relative overflow-hidden">
         {/* Background decorative elements */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
+          <div className="enj-blur-orb absolute -top-40 -right-40 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />
+          <div className="enj-blur-orb absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="border-b border-border px-4 pt-[max(2rem,calc(var(--safe-top)+0.75rem))] pb-8 sm:px-6 sm:py-10 relative z-10">
@@ -512,7 +523,7 @@ export function CheckoutClient() {
           {pricingError && !pricingLoading ? (
             <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-8 text-center">
               <p className="text-destructive mb-4">{pricingError}</p>
-              <Link href="/catalogo" className="inline-flex min-h-11 items-center text-sm font-semibold text-accent underline hover:text-accent/80 transition-colors">
+              <Link href="/catalogo" className="inline-flex min-h-11 items-center text-sm font-semibold text-accent-text underline hover:text-accent/80 transition-colors">
                 Volver al catálogo
               </Link>
             </div>
@@ -525,7 +536,7 @@ export function CheckoutClient() {
             <div className="rounded-xl border border-border bg-card/50 p-8 text-center">
               <Trees className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-4">Tu carrito está vacío.</p>
-              <Link href="/catalogo" className="inline-flex min-h-11 items-center text-sm font-semibold text-accent underline hover:text-accent/80 transition-colors">
+              <Link href="/catalogo" className="inline-flex min-h-11 items-center text-sm font-semibold text-accent-text underline hover:text-accent/80 transition-colors">
                 Explorar creaciones
               </Link>
             </div>
@@ -556,19 +567,19 @@ export function CheckoutClient() {
                     <span className="tabular-nums">{formatCLP(subtotalCompra)}</span>
                   </div>
                   {pricing.discount_amount > 0 && (
-                    <div className="flex justify-between text-accent">
+                    <div className="flex justify-between text-accent-text">
                       <span>Descuento Guardianía</span>
                       <span className="tabular-nums">-{formatCLP(pricing.discount_amount)}</span>
                     </div>
                   )}
                   {promoDiscount > 0 && (
-                    <div className="flex justify-between text-accent">
+                    <div className="flex justify-between text-accent-text">
                       <span>Código promocional</span>
                       <span className="tabular-nums">-{formatCLP(promoDiscount)}</span>
                     </div>
                   )}
                   {creadorDiscountClp > 0 && (
-                    <div className="flex justify-between text-accent">
+                    <div className="flex justify-between text-accent-text">
                       <span>Código de creador</span>
                       <span className="tabular-nums">-{formatCLP(creadorDiscountClp)}</span>
                     </div>
@@ -584,7 +595,7 @@ export function CheckoutClient() {
                     </span>
                   </div>
                   {usarPuntos && (quote?.loyaltyDiscountClp ?? descuentoPorPuntos) > 0 && (
-                    <div className="flex justify-between text-accent">
+                    <div className="flex justify-between text-accent-text">
                       <span>Puntos canjeados</span>
                       <span className="tabular-nums">
                         -{formatCLP(quote?.loyaltyDiscountClp ?? descuentoPorPuntos)}
@@ -602,7 +613,7 @@ export function CheckoutClient() {
                   </div>
                   <span
                     data-testid="checkout-total"
-                    className="font-display text-2xl font-semibold tabular-nums text-accent"
+                    className="font-display text-2xl font-semibold tabular-nums text-accent-text"
                   >
                     {quoteLoading && !quote
                       ? '…'
@@ -627,13 +638,13 @@ export function CheckoutClient() {
                   <button
                     type="button"
                     onClick={applyPromoCode}
-                    className="min-h-11 inline-flex items-center justify-center rounded-full border border-accent/40 px-6 py-3 text-sm font-semibold text-accent hover:bg-accent/10 transition-colors"
+                    className="min-h-11 inline-flex items-center justify-center rounded-full border border-accent/40 px-6 py-3 text-sm font-semibold text-accent-text hover:bg-accent/10 transition-colors"
                   >
                     Aplicar
                   </button>
                 </div>
                 {codigoAplicado && (
-                  <p className="text-xs text-accent mt-2 flex flex-wrap items-center gap-2">
+                  <p className="text-xs text-accent-text mt-2 flex flex-wrap items-center gap-2">
                     <span>Código aplicado: {codigoAplicado}</span>
                     <button
                       type="button"
@@ -666,13 +677,13 @@ export function CheckoutClient() {
                   <button
                     type="button"
                     onClick={applyCreadorCode}
-                    className="min-h-11 inline-flex items-center justify-center rounded-full border border-accent/40 px-6 py-3 text-sm font-semibold text-accent hover:bg-accent/10 transition-colors"
+                    className="min-h-11 inline-flex items-center justify-center rounded-full border border-accent/40 px-6 py-3 text-sm font-semibold text-accent-text hover:bg-accent/10 transition-colors"
                   >
                     Aplicar
                   </button>
                 </div>
                 {creadorAplicado ? (
-                  <p className="text-xs text-accent mt-2 flex flex-wrap items-center gap-2">
+                  <p className="text-xs text-accent-text mt-2 flex flex-wrap items-center gap-2">
                     <span>Código de creador aplicado: {creadorAplicado}</span>
                     {creadorDiscountClp > 0 && (
                       <span className="tabular-nums">-{formatCLP(creadorDiscountClp)}</span>
@@ -705,7 +716,7 @@ export function CheckoutClient() {
                   <div className="rounded-xl border border-border bg-card/40 p-6 text-sm text-muted-foreground">
                     <Link
                       href="/login?returnTo=/checkout"
-                      className="inline-flex min-h-11 items-center text-accent underline underline-offset-2"
+                      className="inline-flex min-h-11 items-center text-accent-text underline underline-offset-2"
                     >
                       Inicia sesión
                     </Link>
@@ -738,7 +749,7 @@ export function CheckoutClient() {
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-muted-foreground">Nivel actual</p>
-                        <p className="text-sm font-medium text-accent capitalize">
+                        <p className="text-sm font-medium text-accent-text capitalize">
                           {loyaltyData.nivel_actual}
                         </p>
                       </div>
@@ -753,7 +764,7 @@ export function CheckoutClient() {
 
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Ganarás con esta compra</span>
-                      <span className="font-medium text-accent">
+                      <span className="font-medium text-accent-text">
                         +{loyaltyData.puntos_ganados_compra} puntos
                       </span>
                     </div>
@@ -771,7 +782,7 @@ export function CheckoutClient() {
                               setPuntosACanjear(0);
                             }
                           }}
-                          className="h-5 w-5 shrink-0 rounded border-border bg-surface text-accent focus:ring-accent"
+                          className="h-5 w-5 shrink-0 rounded border-border bg-surface text-accent-text focus:ring-accent"
                         />
                         <span className="text-sm text-foreground">
                           Usar puntos para descuento
@@ -797,7 +808,7 @@ export function CheckoutClient() {
                           />
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">Descuento aplicado</span>
-                            <span className="font-medium text-accent">
+                            <span className="font-medium text-accent-text">
                               -${descuentoPorPuntos.toLocaleString('es-CL')}
                             </span>
                           </div>
@@ -829,7 +840,7 @@ export function CheckoutClient() {
                       {checkout.buyer_legacy_desc}
                     </p>
                     {!isAuthenticated && buyerMode === 'legado' && (
-                      <p className="mt-3 text-xs text-accent">
+                      <p className="mt-3 text-xs text-accent-text">
                         <Link
                           href="/login?returnTo=/checkout"
                           className="inline-flex min-h-11 items-center underline underline-offset-2"
@@ -893,7 +904,7 @@ export function CheckoutClient() {
                       {checkout.shipping_note}
                     </p>
                     {courierCode === 'retiro_tienda' && (
-                      <p className="text-xs text-accent mt-2">
+                      <p className="text-xs text-accent-text mt-2">
                         Te avisaremos cuando tu pedido esté listo para retiro.
                       </p>
                     )}
@@ -932,12 +943,12 @@ export function CheckoutClient() {
                                 : 'border-border bg-card hover:border-accent/40'
                             }`}
                           >
-                            <MapPin className={`h-5 w-5 shrink-0 mt-0.5 ${selectedAddressId === addr.id ? 'text-accent' : 'text-muted-foreground'}`} />
+                            <MapPin className={`h-5 w-5 shrink-0 mt-0.5 ${selectedAddressId === addr.id ? 'text-accent-text' : 'text-muted-foreground'}`} />
                             <div>
                               <p className="font-display text-sm text-foreground flex items-center gap-2">
                                 {addr.etiqueta}
                                 {addr.es_predeterminada && (
-                                  <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-semibold">Predeterminada</span>
+                                  <span className="text-[10px] bg-accent/20 text-accent-text px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-semibold">Predeterminada</span>
                                 )}
                               </p>
                               <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
@@ -963,7 +974,7 @@ export function CheckoutClient() {
                             instrucciones: '',
                           });
                         }}
-                        className="inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-2 mt-1"
+                        className="inline-flex min-h-11 items-center text-sm text-accent-text underline underline-offset-2 mt-1"
                       >
                         + Usar una dirección nueva
                       </button>
@@ -1181,7 +1192,7 @@ export function CheckoutClient() {
           <div className="tienda-checkout-sticky-pay-inner">
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Total</p>
-              <p data-testid="checkout-total" className="font-display text-lg font-semibold text-accent tabular-nums">
+              <p data-testid="checkout-total" className="font-display text-lg font-semibold text-accent-text tabular-nums">
                 {quoteLoading && !quote ? '…' : `$${totalCompra.toLocaleString('es-CL')}`}
               </p>
             </div>

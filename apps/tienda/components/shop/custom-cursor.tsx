@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
 
 export function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -13,63 +12,78 @@ export function CustomCursor() {
     const cursor = cursorRef.current;
     if (!cursor) return;
 
-    // Usamos quickSetter para máximo rendimiento (evita reconciliación de React y optimiza el DOM)
-    const setX = gsap.quickSetter(cursor, 'x', 'px');
-    const setY = gsap.quickSetter(cursor, 'y', 'px');
+    let cancelled = false;
+    let cleanup = () => {};
 
-    let mouseX = 0;
-    let mouseY = 0;
-    let cursorX = 0;
-    let cursorY = 0;
-    let animationFrameId: number;
+    (async () => {
+      const { gsap } = await import('gsap');
+      if (cancelled) return;
 
-    const onMouseMove = (e: MouseEvent) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-    };
+      // Usamos quickSetter para máximo rendimiento (evita reconciliación de React y optimiza el DOM)
+      const setX = gsap.quickSetter(cursor, 'x', 'px');
+      const setY = gsap.quickSetter(cursor, 'y', 'px');
 
-    const animate = () => {
-      cursorX += (mouseX - cursorX) * 0.15;
-      cursorY += (mouseY - cursorY) * 0.15;
+      let mouseX = 0;
+      let mouseY = 0;
+      let cursorX = 0;
+      let cursorY = 0;
+      let animationFrameId: number;
 
-      setX(cursorX - 10);
-      setY(cursorY - 10);
+      const onMouseMove = (e: MouseEvent) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      };
 
-      animationFrameId = requestAnimationFrame(animate);
-    };
+      const animate = () => {
+        cursorX += (mouseX - cursorX) * 0.15;
+        cursorY += (mouseY - cursorY) * 0.15;
 
-    const onMouseOver = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('a, button, .hoverable, [role="button"]')) {
-        gsap.to(cursor, {
-          scale: 2,
-          backgroundColor: 'rgba(var(--accent), 0.1)',
-          duration: 0.3,
-          ease: 'power2.out',
-          overwrite: true
-        });
-      } else {
-        gsap.to(cursor, {
-          scale: 1,
-          backgroundColor: 'transparent',
-          duration: 0.3,
-          ease: 'power2.out',
-          overwrite: true
-        });
-      }
-    };
+        setX(cursorX - 10);
+        setY(cursorY - 10);
 
-    let initTimeout = setTimeout(() => {
-      window.addEventListener('mousemove', onMouseMove, { passive: true });
-      window.addEventListener('mouseover', onMouseOver, { passive: true });
-      animationFrameId = requestAnimationFrame(animate);
-    }, 1500);
+        animationFrameId = requestAnimationFrame(animate);
+      };
+
+      const onMouseOver = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('a, button, .hoverable, [role="button"]')) {
+          gsap.to(cursor, {
+            scale: 2,
+            backgroundColor: 'rgba(var(--accent), 0.1)',
+            duration: 0.3,
+            ease: 'power2.out',
+            overwrite: true
+          });
+        } else {
+          gsap.to(cursor, {
+            scale: 1,
+            backgroundColor: 'transparent',
+            duration: 0.3,
+            ease: 'power2.out',
+            overwrite: true
+          });
+        }
+      };
+
+      const initTimeout = setTimeout(() => {
+        window.addEventListener('mousemove', onMouseMove, { passive: true });
+        window.addEventListener('mouseover', onMouseOver, { passive: true });
+        animationFrameId = requestAnimationFrame(animate);
+      }, 1500);
+
+      cleanup = () => {
+        clearTimeout(initTimeout);
+        cancelAnimationFrame(animationFrameId);
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseover', onMouseOver);
+      };
+    })().catch(() => {
+      // Chunk de gsap fallido: cursor nativo, sin animación.
+    });
 
     return () => {
-      clearTimeout(initTimeout);
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseover', onMouseOver);
+      cancelled = true;
+      cleanup();
     };
   }, []); // Dependencia vacía: se suscribe una sola vez
 

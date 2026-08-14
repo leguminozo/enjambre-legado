@@ -58,7 +58,11 @@ import {
   Send,
   CreditCard,
   ShoppingCart,
+  BookOpen,
+  Film,
+  Sparkles,
   Languages,
+  Lock,
   type LucideProps,
 } from 'lucide-react';
 import { toast, ImmersiveModal, PanelFocusToggle, type PanelFocus } from '@enjambre/ui';
@@ -110,6 +114,12 @@ import {
   VIDEO_SETTINGS_TEMPLATE,
   MAP_SETTINGS_TEMPLATE,
   PRODUCTS_SETTINGS_TEMPLATE,
+  COLLECTIONS_SETTINGS_TEMPLATE,
+  GALERIA_SETTINGS_TEMPLATE,
+  NOSOTROS_SETTINGS_TEMPLATE,
+  MEDIA_SETTINGS_TEMPLATE,
+  CIENCIA_SETTINGS_TEMPLATE,
+  AUTH_SETTINGS_TEMPLATE,
 } from '@/lib/store-chrome';
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -173,6 +183,11 @@ const SECTION_CATEGORY: Record<string, EditorCategoryId> = {
   video_settings: 'bloques',
   map_settings: 'bloques',
   products_settings: 'bloques',
+  collections_settings: 'bloques',
+  galeria_settings: 'bloques',
+  nosotros_settings: 'bloques',
+  media_settings: 'bloques',
+  ciencia_settings: 'bloques',
   landing_layout: 'bloques',
   colecciones: 'bloques',
   servicios: 'bloques',
@@ -196,6 +211,7 @@ const SECTION_CATEGORY: Record<string, EditorCategoryId> = {
   pwa_nav_items: 'diseno',
   catalog_settings: 'diseno',
   pdp_settings: 'diseno',
+  auth_settings: 'diseno',
   // Otras formas — config, temporada y legales
   seo_defaults: 'otras',
   contact_settings: 'otras',
@@ -353,6 +369,48 @@ const SECTION_META: Record<
     group: 'home',
     hint: 'Título y descripción de la sección',
   },
+  collections_settings: {
+    label: 'Colecciones — Formato y Cabecera',
+    short: 'Colecciones',
+    icon: Layers,
+    group: 'home',
+    hint: 'Título, relación de aspecto y formato de tarjetas',
+  },
+  galeria_settings: {
+    label: 'Galería — Formato y Cabecera',
+    short: 'Galería',
+    icon: Images,
+    group: 'contenido',
+    hint: 'Título, relación de aspecto y formato de fotos',
+  },
+  nosotros_settings: {
+    label: 'Nosotros — Foto y Cabecera',
+    short: 'Nosotros',
+    icon: BookOpen,
+    group: 'contenido',
+    hint: 'Título, aspecto de foto hero y encuadre',
+  },
+  media_settings: {
+    label: 'Carrusel de Media — Formato y Altura',
+    short: 'Carrusel',
+    icon: Film,
+    group: 'home',
+    hint: 'Altura en pantalla, encuadre y velocidad',
+  },
+  ciencia_settings: {
+    label: 'Ciencia — Cabecera',
+    short: 'Ciencia',
+    icon: Sparkles,
+    group: 'contenido',
+    hint: 'Título, kicker y subtítulo de la página',
+  },
+  auth_settings: {
+    label: 'Inicio de Sesión & Registro — Apariencia',
+    short: 'Login / Registro',
+    icon: Lock,
+    group: 'apariencia',
+    hint: 'Título, subtítulo, frase de marca, fondo dinámico (bosque nativo, polen dorado) y orb',
+  },
   catalog_settings: {
     label: 'Catálogo',
     short: 'Catálogo',
@@ -500,6 +558,12 @@ const SECTION_ORDER = [
   'video_settings',
   'map_settings',
   'products_settings',
+  'collections_settings',
+  'galeria_settings',
+  'nosotros_settings',
+  'media_settings',
+  'ciencia_settings',
+  'auth_settings',
   'footer_settings',
   'footer_social',
   'pwa_nav_settings',
@@ -595,6 +659,12 @@ const SECTION_TEMPLATES: Record<string, Record<string, unknown>> = {
   video_settings: { ...VIDEO_SETTINGS_TEMPLATE },
   map_settings: { ...MAP_SETTINGS_TEMPLATE },
   products_settings: { ...PRODUCTS_SETTINGS_TEMPLATE },
+  collections_settings: { ...COLLECTIONS_SETTINGS_TEMPLATE },
+  galeria_settings: { ...GALERIA_SETTINGS_TEMPLATE },
+  nosotros_settings: { ...NOSOTROS_SETTINGS_TEMPLATE },
+  media_settings: { ...MEDIA_SETTINGS_TEMPLATE },
+  ciencia_settings: { ...CIENCIA_SETTINGS_TEMPLATE },
+  auth_settings: { ...AUTH_SETTINGS_TEMPLATE },
   legal_terminos: { ...LEGAL_DOC_TEMPLATE },
   legal_privacidad: { ...LEGAL_DOC_TEMPLATE },
   legal_cookies: { ...LEGAL_DOC_TEMPLATE },
@@ -619,9 +689,16 @@ const SECTION_PREVIEW_PATHS: Record<string, string> = {
   legal_cancelacion: '/cancelacion',
   legal_garantia: '/garantia',
   nosotros: '/nosotros',
+  nosotros_settings: '/nosotros',
   galeria: '/galeria',
+  galeria_settings: '/galeria',
+  ciencia: '/ciencia',
+  ciencia_settings: '/ciencia',
+  auth_settings: '/login',
   contacto: '/contacto',
   talleres: '/experiencias',
+  colecciones: '/',
+  collections_settings: '/',
 };
 
 /** Menú independiente del preview: páginas navegables sin tocar la selección
@@ -682,15 +759,16 @@ const FIELD_LABELS: Record<string, string> = {
   stat2_value: 'Stat 2 — Valor',
   stat3_value: 'Stat 3 — Valor',
   stat4_value: 'Stat 4 — Valor',
-  kicker: 'Kicker',
+  kicker: 'Kicker / Etiqueta superior (opcional)',
   kicker_en: 'Kicker (EN)',
+  subtitle: 'Subtítulo / Bajada (opcional)',
+  cta_link: 'Enlace del Botón CTA (ej: /catalogo)',
   image: 'Imagen',
   src: 'Imagen',
   alt: 'Texto alternativo',
   email: 'Email',
   tagline: 'Tagline',
   cta: 'CTA',
-  subtitle: 'Subtítulo',
   num: 'Número',
   date: 'Fecha',
   action: 'Acción',
@@ -1453,14 +1531,16 @@ interface MenuSettingsEditorProps {
     isActive: boolean,
   ) => Promise<unknown> | void;
   onImageUpload: (file: File, fieldName: string, itemId: string) => Promise<string>;
+  brandContent?: Record<string, unknown> | null;
 }
 
-function MenuSettingsEditor({ item, onUpdate, onImageUpload }: MenuSettingsEditorProps) {
+function MenuSettingsEditor({ item, onUpdate, onImageUpload, brandContent }: MenuSettingsEditorProps) {
   return (
     <MenuStyleEditor
       content={item.content}
       onSave={(content) => onUpdate(item.id, content, item.is_active)}
       onImageUpload={(file, fieldName) => onImageUpload(file, fieldName, item.id)}
+      brandContent={brandContent}
     />
   );
 }
@@ -1506,6 +1586,8 @@ interface ItemsPanelProps {
   onAddNew: () => void;
   onReorder?: (items: CMSContentItem[]) => void;
   isDeleting: boolean;
+  /** brand_assets del CMS para la preview del menú (fallback logo marca → texto) */
+  brandContent?: Record<string, unknown> | null;
 }
 
 function ItemsPanel({
@@ -1521,6 +1603,7 @@ function ItemsPanel({
   onAddNew,
   onReorder,
   isDeleting,
+  brandContent,
 }: ItemsPanelProps) {
   const handleMoveUp = (index: number) => {
     if (index === 0 || !onReorder) return;
@@ -1642,6 +1725,7 @@ function ItemsPanel({
                 item={items[0]}
                 onUpdate={onUpdate}
                 onImageUpload={onImageUpload}
+                brandContent={brandContent}
               />
             ) : (
               <ChromeSettingsEditor
@@ -2547,6 +2631,7 @@ function EditorTiendaViewInner() {
                     onAddNew={() => setShowNewForm(true)}
                     onReorder={handleReorder}
                     isDeleting={cms.deleteItem.isPending}
+                    brandContent={groupedData['brand_assets']?.[0]?.content ?? null}
                   />
                 </>
               )}

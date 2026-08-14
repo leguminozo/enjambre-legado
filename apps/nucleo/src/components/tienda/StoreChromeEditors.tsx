@@ -61,6 +61,11 @@ import {
   MapSettingsEditor,
   ProductsSettingsEditor,
   VideoSettingsEditor,
+  CollectionsSettingsEditor,
+  GaleriaSettingsEditor,
+  NosotrosSettingsEditor,
+  MediaSettingsEditor,
+  CienciaSettingsEditor,
 } from '@/components/tienda/HomeBlockEditors';
 import { useAutosaveEditor } from '@/components/tienda/save-status';
 
@@ -1196,6 +1201,34 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
         value={local.empty_message}
         onChange={(v) => patch('empty_message', v)}
       />
+
+      <div className="grid gap-3 sm:grid-cols-2 pt-2">
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Relación de Aspecto (Productos)</label>
+          <select
+            value={local.image_aspect_ratio}
+            onChange={(e) => patch('image_aspect_ratio', e.target.value as CatalogSettings['image_aspect_ratio'])}
+            className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+          >
+            <option value="1/1">1:1 Cuadrado (Predeterminado)</option>
+            <option value="4/3">4:3 Horizontal</option>
+            <option value="3/4">3:4 Vertical / Retrato</option>
+            <option value="16/10">16:10 Panorámico</option>
+            <option value="auto">Auto (Original)</option>
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Modo de Encuadre (Productos)</label>
+          <select
+            value={local.image_fit}
+            onChange={(e) => patch('image_fit', e.target.value as CatalogSettings['image_fit'])}
+            className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+          >
+            <option value="cover">Rellenar contenedor (Cover)</option>
+            <option value="contain">Ajustar foto completa sin cortar (Contain)</option>
+          </select>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1606,6 +1639,11 @@ export const SETTINGS_SECTION_KEYS = new Set([
   'video_settings',
   'map_settings',
   'products_settings',
+  'collections_settings',
+  'galeria_settings',
+  'nosotros_settings',
+  'media_settings',
+  'ciencia_settings',
 ]);
 
 /** Legales: un solo item por sección, editor de título + body HTML. */
@@ -1644,6 +1682,16 @@ export function ChromeSettingsEditor({
       return <MapSettingsEditor content={content} onSave={onSave} />;
     case 'products_settings':
       return <ProductsSettingsEditor content={content} onSave={onSave} />;
+    case 'collections_settings':
+      return <CollectionsSettingsEditor content={content} onSave={onSave} />;
+    case 'galeria_settings':
+      return <GaleriaSettingsEditor content={content} onSave={onSave} />;
+    case 'nosotros_settings':
+      return <NosotrosSettingsEditor content={content} onSave={onSave} />;
+    case 'media_settings':
+      return <MediaSettingsEditor content={content} onSave={onSave} />;
+    case 'ciencia_settings':
+      return <CienciaSettingsEditor content={content} onSave={onSave} />;
     case 'conservation_content':
       return <ConservationEditor content={content} onSave={onSave} />;
     case 'announcement_settings':

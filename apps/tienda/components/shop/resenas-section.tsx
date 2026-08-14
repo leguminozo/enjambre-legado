@@ -23,20 +23,20 @@ function ResenaCard({ resena }: { resena: ResenaPublic }) {
               <Star
                 key={i}
                 size={12}
-                className={i < resena.rating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}
+                className={i < resena.rating ? 'fill-accent text-accent-text' : 'text-muted-foreground/30'}
               />
             ))}
           </div>
         </div>
         <div className="flex flex-col items-end gap-1">
           {isGuardian && (
-            <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-accent">
+            <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-accent-text">
               <ShieldCheck size={12} />
               Guardian
             </span>
           )}
           {resena.venta_id && (
-            <span className="text-[10px] text-success/80">Compra verificada</span>
+            <span className="text-[10px] text-success-text/80">Compra verificada</span>
           )}
         </div>
       </div>
@@ -151,7 +151,7 @@ export function ResenasSection({
         <button
           type="button"
           onClick={() => setComposerOpen(true)}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-accent/40 px-4 py-2 text-sm text-accent hover:bg-accent/10"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-accent/40 px-4 py-2 text-sm text-accent-text hover:bg-accent/10"
         >
           <PenLine size={16} />
           Escribir reseña

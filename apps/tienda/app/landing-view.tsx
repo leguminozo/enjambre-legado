@@ -18,15 +18,18 @@ import {
   type HomeMediaItem,
   type MapSettings,
   type ProductsSettings,
+  type CollectionsSettings,
+  type MediaSettings,
   DEFAULT_CONSERVATION_CONTENT,
   DEFAULT_MAP_SETTINGS,
   DEFAULT_PRODUCTS_SETTINGS,
+  DEFAULT_COLLECTIONS_SETTINGS,
   resolveLocalized,
 } from '@/lib/shop/store-chrome';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { ProductRatingAggregate } from '@/lib/shop/catalog-ratings';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
-import { ViewLoading } from '@enjambre/ui';
+import { ViewLoading, useLegacyDevice } from '@enjambre/ui';
 
 const BeeCanvas = dynamic(
   () => import('@/components/shop/bee-canvas').then((m) => m.BeeCanvas),
@@ -70,6 +73,7 @@ interface TiendaLandingProps {
   /** Agregados de reseñas por producto (estrellas en cards del home). */
   ratings?: Record<string, ProductRatingAggregate>;
   mediaItems: HomeMediaItem[];
+  mediaSettings?: MediaSettings;
   /** ID de YouTube resuelto: video_settings → env → default. */
   videoId: string;
   videoTitle: string;
@@ -77,6 +81,7 @@ interface TiendaLandingProps {
   conservationContent: ConservationContent;
   mapSettings: MapSettings;
   productsSettings: ProductsSettings;
+  collectionsSettings?: CollectionsSettings;
   ecosystemMetrics: EcosystemMetrics;
   locale: string;
 }
@@ -107,11 +112,13 @@ export function TiendaLandingView({
   products,
   ratings,
   mediaItems,
+  mediaSettings,
   videoId,
   videoTitle,
   conservationContent,
   mapSettings,
   productsSettings,
+  collectionsSettings = DEFAULT_COLLECTIONS_SETTINGS,
   ecosystemMetrics,
   locale,
 }: TiendaLandingProps) {
@@ -154,6 +161,7 @@ export function TiendaLandingView({
   
   const gsapRef = useRef<GSAPInstance | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const { legacy, motionReduced } = useLegacyDevice();
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
@@ -164,7 +172,22 @@ export function TiendaLandingView({
   }, []);
 
   useEffect(() => {
-    if (isMobile) return;
+    if (isMobile || motionReduced) {
+      // Sin GSAP en móvil / reduced-motion: escribir el valor final para que los contadores de impacto
+      // no muestren "0" falso (la animación desktop depende de ScrollTrigger).
+      document
+        .querySelectorAll<HTMLElement>('.counter-value')
+        .forEach((el) => {
+          const target = parseInt(el.dataset.target || '0', 10);
+          const prefix = el.dataset.prefix || '';
+          const suffix = el.dataset.suffix || '';
+          el.textContent =
+            prefix +
+            target.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US') +
+            suffix;
+        });
+      return;
+    }
     let ctx: ReturnType<typeof import('gsap')['gsap']['context']> | undefined;
     let cancelled = false;
 
@@ -259,8 +282,8 @@ export function TiendaLandingView({
 
   return (
     <StoreShell>
-    {landing.show_grain ? <GrainOverlay /> : null}
-    {!isMobile && landing.show_custom_cursor ? <CustomCursor /> : null}
+    {landing.show_grain && !legacy ? <GrainOverlay /> : null}
+    {!isMobile && !legacy && !motionReduced && landing.show_custom_cursor ? <CustomCursor /> : null}
     <TextCarousel />
     <ShopHeader />
 
@@ -275,7 +298,7 @@ export function TiendaLandingView({
             className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] min-h-[var(--svh-full)] md:min-h-[var(--vh-full)]"
           >
             <div className="absolute inset-0 pointer-events-none" aria-hidden />
-        {!isMobile && landing.show_bee_canvas ? <BeeCanvas /> : null}
+        {!isMobile && !legacy && !motionReduced && landing.show_bee_canvas ? <BeeCanvas /> : null}
         <div
           className="absolute inset-0 pointer-events-none bg-background/40 md:bg-transparent"
           aria-hidden
@@ -317,7 +340,7 @@ export function TiendaLandingView({
                 tHero('description') ||
                 'Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje'}
             </p>
-            <p className="hero-formula mt-5 md:mt-7 font-mono text-[clamp(0.6rem,1.1vw,0.75rem)] tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.28em] uppercase text-accent/60 max-w-xl mx-auto leading-relaxed">
+            <p className="hero-formula mt-5 md:mt-7 font-mono text-[clamp(0.6rem,1.1vw,0.75rem)] tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.28em] uppercase text-accent-text max-w-xl mx-auto leading-relaxed">
               {resolveLocalized(landing.hero_formula, landing.hero_formula_en, currentLocale) ||
                 tHero('formula') ||
                 'Luz solar → Néctar → Miel virgen · Sin atajos industriales'}
@@ -326,7 +349,7 @@ export function TiendaLandingView({
               <div className="mt-9 md:mt-11">
                 <Link
                   href={landing.hero_cta_href || '/catalogo'}
-                  className="inline-flex min-h-[48px] min-w-[44px] items-center justify-center rounded-full border border-accent bg-accent/10 px-8 py-3.5 text-[0.65rem] uppercase tracking-[0.2em] text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className="inline-flex min-h-[48px] min-w-[44px] items-center justify-center rounded-full border border-accent bg-accent/10 px-8 py-3.5 text-[0.65rem] uppercase tracking-[0.2em] text-accent-text hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   {resolveLocalized(
                     landing.hero_cta_label,
@@ -381,7 +404,7 @@ export function TiendaLandingView({
                 { value: ecosystemMetrics.especies_nativas, label: resolveLocalized(conservation.stat4_label, conservation.stat4_label_en, currentLocale) || tConservation('nativeSpecies') || 'Especies nativas', suffix: '' },
               ].map((stat) => (
                 <div key={stat.label} className="py-2 sm:py-4 px-1 min-w-0">
-                  <p className="counter-value font-display text-[clamp(1.65rem,6vw,3.75rem)] sm:text-5xl md:text-6xl font-light text-accent tabular-nums tracking-tight" data-target={stat.value} data-prefix={stat.prefix || ''} data-suffix={stat.suffix}>
+                  <p className="counter-value font-display text-[clamp(1.65rem,6vw,3.75rem)] sm:text-5xl md:text-6xl font-light text-accent-text tabular-nums tracking-tight" data-target={stat.value} data-prefix={stat.prefix || ''} data-suffix={stat.suffix}>
                     0
                   </p>
                   <p className="text-editorial-xs uppercase tracking-widest text-muted-foreground mt-2 sm:mt-3 leading-snug text-balance">{stat.label}</p>
@@ -390,14 +413,14 @@ export function TiendaLandingView({
             </div>
 
             <div className="max-w-3xl mx-auto border-t border-border/20 pt-10 mb-12 md:mb-16">
-              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-6 text-center">
+              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent-text mb-6 text-center">
                 {resolveLocalized(conservation.tri_label, conservation.tri_label_en, currentLocale) ||
                   tScience('triangulation') ||
                   'Triangulación de fuentes'}
               </p>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="text-center">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">
+                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text mb-3">
                     {resolveLocalized(conservation.tri1_label, conservation.tri1_label_en, currentLocale) ||
                       tScience('peerReviewed') ||
                       'Papers revisados por pares'}
@@ -409,7 +432,7 @@ export function TiendaLandingView({
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">
+                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text mb-3">
                     {resolveLocalized(conservation.tri2_label, conservation.tri2_label_en, currentLocale) ||
                       tScience('localData') ||
                       'Datos locales de Chiloé'}
@@ -420,7 +443,7 @@ export function TiendaLandingView({
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/60 mb-3">
+                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text mb-3">
                     {resolveLocalized(conservation.tri3_label, conservation.tri3_label_en, currentLocale) ||
                       tScience('openCalculation') ||
                       'Cálculo abierto'}
@@ -434,7 +457,7 @@ export function TiendaLandingView({
             </div>
 
             <div className="max-w-2xl mx-auto text-center border-t border-border/20 pt-10">
-              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-4">
+              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent-text mb-4">
                 {resolveLocalized(conservation.irr_label, conservation.irr_label_en, currentLocale) ||
                   tScience('irrIndex') ||
                   'Índice de Regeneración Relativa'}
@@ -466,7 +489,7 @@ export function TiendaLandingView({
               <div className="flex items-center justify-center gap-6 mt-6">
                 <Link
                   href="/ciencia"
-                  className="inline-flex min-h-11 items-center rounded-md border border-accent/40 px-4 py-2 text-editorial-xs uppercase tracking-widest text-accent hover:bg-accent/10 hover:text-accent/90 transition-colors"
+                  className="inline-flex min-h-11 items-center rounded-md border border-accent/40 px-4 py-2 text-editorial-xs uppercase tracking-widest text-accent-text hover:bg-accent/10 hover:text-accent/90 transition-colors"
                 >
                   {resolveLocalized(conservation.cta_label, conservation.cta_label_en, currentLocale) ||
                     tScience('viewScience') ||
@@ -480,16 +503,54 @@ export function TiendaLandingView({
         }
 
         if (sec.id === 'collections') {
+          const colKicker =
+            resolveLocalized(collectionsSettings.kicker, collectionsSettings.kicker_en, currentLocale) ||
+            tCollections('kicker') ||
+            'Colecciones';
+          const colTitle =
+            resolveLocalized(collectionsSettings.title, collectionsSettings.title_en, currentLocale) ||
+            tCollections('subtitle') ||
+            'Explora nuestras categorías estacionales';
+          const colSubtitle = resolveLocalized(
+            collectionsSettings.subtitle,
+            collectionsSettings.subtitle_en,
+            currentLocale,
+          );
+          const aspectClassMap: Record<string, string> = {
+            '16/10': 'aspect-[16/10]',
+            '4/3': 'aspect-[4/3]',
+            '1/1': 'aspect-square',
+            '3/4': 'aspect-[3/4]',
+            'auto': 'aspect-auto',
+          };
+          const fitClassMap: Record<string, string> = {
+            cover: 'object-cover',
+            contain: 'object-contain p-2',
+          };
+          const gridClassMap: Record<number, string> = {
+            2: 'lg:grid-cols-2',
+            3: 'lg:grid-cols-3',
+            4: 'lg:grid-cols-4',
+          };
+          const aspectClass = aspectClassMap[collectionsSettings.image_aspect_ratio] || 'aspect-[4/3]';
+          const fitClass = fitClassMap[collectionsSettings.image_fit] || 'object-cover';
+          const gridClass = gridClassMap[collectionsSettings.grid_columns] || 'lg:grid-cols-3';
+
           return (
         <section key="collections" id="collections" className="editorial-section">
-          <div className="editorial-container text-center mb-12 md:mb-20 px-4 sm:px-0">
-            <span className="editorial-kicker mb-4 block">{tCollections('kicker') || 'Colecciones'}</span>
+          <div className="editorial-container text-center mb-12 md:mb-20 px-4 sm:px-0 max-w-3xl mx-auto">
+            <span className="editorial-kicker mb-4 block">{colKicker}</span>
             <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground mb-4 text-balance leading-tight">
-              {tCollections('subtitle') || 'Explora nuestras categorías estacionales'}
+              {colTitle}
             </h2>
+            {colSubtitle ? (
+              <p className="text-muted-foreground italic font-display text-base sm:text-lg max-w-xl mx-auto leading-relaxed text-pretty">
+                {colSubtitle}
+              </p>
+            ) : null}
           </div>
 
-          <div className="editorial-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10 sm:gap-x-8 sm:gap-y-16 px-4 sm:px-0">
+          <div className={`editorial-container grid grid-cols-1 sm:grid-cols-2 ${gridClass} gap-x-6 gap-y-10 sm:gap-x-8 sm:gap-y-16 px-4 sm:px-0`}>
             {initialColecciones.map((c, index) => {
               const imageSrc = resolveCollectionImage(c);
               return (
@@ -499,14 +560,14 @@ export function TiendaLandingView({
                   prefetch={false}
                   className="group flex min-h-11 flex-col rounded-[var(--tienda-radius,0.5rem)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
-                  <div className="relative aspect-[16/10] overflow-hidden bg-surface-raised mb-4 sm:mb-6 rounded-[var(--tienda-radius,0.5rem)]">
+                  <div className={`relative ${aspectClass} overflow-hidden bg-surface-raised mb-4 sm:mb-6 rounded-[var(--tienda-radius,0.5rem)]`}>
                     <Image
                       src={imageSrc}
                       alt={c.title}
                       fill
                       priority={index < 3}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-elegant"
+                      className={`${fitClass} grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-elegant`}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-base" />
                   </div>
@@ -530,7 +591,7 @@ export function TiendaLandingView({
         if (sec.id === 'media') {
           return (
       <section key="media" id="media-carousel">
-        <Suspense fallback={<div className="w-full h-[50vh] md:h-[70vh] bg-surface-raised" />}><MediaCarousel items={mediaItems} /></Suspense>
+        <Suspense fallback={<div className="w-full h-[50vh] md:h-[70vh] bg-surface-raised" />}><MediaCarousel items={mediaItems} settings={mediaSettings} /></Suspense>
       </section>
           );
         }
@@ -556,6 +617,35 @@ export function TiendaLandingView({
         }
 
         if (sec.id === 'map') {
+          if (isMobile || legacy) {
+            // Leaflet raster full-bleed es caro en móvil/legacy: tarjeta estática con datos del CMS.
+            const { lat, lng, popup_title, popup_body } = map;
+            return (
+              <section key="map" id="world-location" className="editorial-section">
+                <div className="editorial-container max-w-2xl mx-auto text-center">
+                  <span className="editorial-kicker mb-4 block">
+                    {tCommon('ourLocation') || 'Ubicación'}
+                  </span>
+                  <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground mb-4">
+                    {popup_title || tCommon('ourLocation') || 'Dónde estamos'}
+                  </h2>
+                  {popup_body ? (
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-6">{popup_body}</p>
+                  ) : null}
+                  {lat && lng ? (
+                    <a
+                      href={`https://www.google.com/maps?q=${lat},${lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-[48px] min-w-[44px] items-center justify-center rounded-full border border-accent bg-accent/10 px-8 py-3.5 text-[0.65rem] uppercase tracking-[0.2em] text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+                    >
+                      Ver en Google Maps
+                    </a>
+                  ) : null}
+                </div>
+              </section>
+            );
+          }
           return (
       <div key="map" id="world-location">
         <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingMap') || 'Mapa'} hideLabel /></div></div>}><WorldMapBlock mapSettings={map} /></Suspense>

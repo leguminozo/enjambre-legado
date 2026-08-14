@@ -4,7 +4,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@enjambre/database/database.types";
+import type { Database } from "@enjambre/database";
 
 export type UserRegistryScope = {
   user_id: string;

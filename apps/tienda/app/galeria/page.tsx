@@ -1,7 +1,8 @@
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { getSiteContent } from '@/lib/cms';
+import { getSiteContentBatch } from '@/lib/cms';
+import { parseGaleriaSettings } from '@/lib/shop/store-chrome';
 import { GaleriaGrid } from '@/components/shop/galeria-grid';
 import type { Metadata } from 'next';
 import { z } from 'zod';
@@ -43,8 +44,10 @@ export default async function GaleriaPage({
   searchParams: Promise<{ cms_preview?: string }>;
 }) {
   const draft = (await searchParams).cms_preview === '1';
-  const galeriaData = await getSiteContent('galeria', { draft });
-  
+  const cmsBatch = await getSiteContentBatch(['galeria', 'galeria_settings'], { draft });
+  const galeriaData = cmsBatch.galeria ?? [];
+  const galeriaSettings = parseGaleriaSettings((cmsBatch.galeria_settings?.[0]?.content as Record<string, unknown>) ?? null);
+
   const defaultImages = [
     { id: '1', content: { 
       titulo: 'Apiario Pureo', 
@@ -103,15 +106,17 @@ export default async function GaleriaPage({
       <ShopHeader />
       <main className="mx-auto max-w-7xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 md:py-16">
         <div className="text-center mb-12 md:mb-16">
-          <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent mb-6">
-            Galería
+          <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-6">
+            {galeriaSettings.kicker || 'Galería'}
           </span>
           <h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
-            Un recorrido visual de nuestras huellas
+            {galeriaSettings.title || 'Un recorrido visual de nuestras huellas'}
           </h1>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
-            Imágenes del bosque, las colmenas y el proceso regenerativo en Chiloé.
-          </p>
+          {galeriaSettings.subtitle ? (
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
+              {galeriaSettings.subtitle}
+            </p>
+          ) : null}
         </div>
 
         <GaleriaGrid
@@ -121,6 +126,7 @@ export default async function GaleriaPage({
             descripcion: img.content?.descripcion || '',
             url: img.content?.url || '',
           }))}
+          settings={galeriaSettings}
         />
       </main>
       <ShopFooter />

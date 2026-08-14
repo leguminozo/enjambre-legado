@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { routing } from './i18n-routing';
 import { resolveRouteAccessForMiddleware } from '@/lib/shop/middleware-route-access';
 import { mergeMiddlewareCookies } from '@/lib/shop/merge-middleware-cookies';
-import { normalizeStorePath } from '@/lib/shop/store-routes';
+import { normalizeStorePath, safeStoreReturnPath } from '@/lib/shop/store-routes';
 import { updateSession } from '@/utils/supabase/middleware';
 
 const LOCALE_COOKIE_OPTS = {
@@ -45,11 +45,35 @@ function withLocaleCookie(request: NextRequest, response: NextResponse): NextRes
   return response;
 }
 
+/**
+ * Sanea returnTo entrante en /login y /register (defensa server-side contra
+ * open redirect): si no es una ruta interna relativa, se limpia vía redirect
+ * (cambia la URL visible; sin el parámetro no hay loop).
+ */
+function sanitizeAuthReturnTo(request: NextRequest): NextResponse | null {
+  const { pathname } = request.nextUrl;
+  if (pathname !== '/login' && pathname !== '/register') return null;
+  const raw = request.nextUrl.searchParams.get('returnTo');
+  if (!raw?.trim()) return null;
+  const safe = safeStoreReturnPath(raw);
+  if (safe === raw) return null;
+  const target = request.nextUrl.clone();
+  if (safe) target.searchParams.set('returnTo', safe);
+  else target.searchParams.delete('returnTo');
+  return withLocaleCookie(request, NextResponse.redirect(target));
+}
+
 export default async function middleware(request: NextRequest) {
   const legacyRedirect = redirectLegacyLocalePath(request);
   if (legacyRedirect) {
     const { response: sessionResponse } = await updateSession(request);
     return mergeMiddlewareCookies(sessionResponse, legacyRedirect);
+  }
+
+  const sanitized = sanitizeAuthReturnTo(request);
+  if (sanitized) {
+    const { response: sessionResponse } = await updateSession(request);
+    return mergeMiddlewareCookies(sessionResponse, sanitized);
   }
 
   const { response: sessionResponse, user, supabase } = await updateSession(request);

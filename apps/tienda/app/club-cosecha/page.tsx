@@ -4,6 +4,7 @@ import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { ClubCosechaBadge } from '@/components/shop/club-cosecha-badge';
 import { listActiveSubscriptionPlans } from '@/lib/shop/subscription-plans';
 import {
   getClubCosechaContext,
@@ -101,7 +102,7 @@ export default async function ClubCosechaPage() {
           <ol className="mt-4 space-y-3">
             {ctx.copy.comoFunciona.map((step, i) => (
               <li key={i} className="flex gap-3 text-sm text-muted-foreground leading-relaxed">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-accent-text text-xs font-bold">
                   {i + 1}
                 </span>
                 <span className="pt-1">{step}</span>
@@ -140,16 +141,7 @@ export default async function ClubCosechaPage() {
                         </p>
                       )}
                     </div>
-                    <span
-                      className="text-[0.65rem] font-bold uppercase tracking-wider px-2 py-1 rounded-full shrink-0"
-                      style={{
-                        background: `${c.color}22`,
-                        color: c.color,
-                        border: `1px solid ${c.color}44`,
-                      }}
-                    >
-                      {c.statusLabel}
-                    </span>
+                    <ClubCosechaBadge color={c.color} label={c.statusLabel} />
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">{c.tagline}</p>
                   <div>
@@ -190,7 +182,7 @@ export default async function ClubCosechaPage() {
                                     href={href}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="text-primary hover:underline font-medium"
+                                    className="text-accent-text hover:underline font-medium"
                                   >
                                     {l.nombre_lote?.trim() || l.variedad_floral}
                                   </a>
@@ -220,7 +212,7 @@ export default async function ClubCosechaPage() {
                   <div className="mt-auto pt-2 flex flex-wrap gap-2">
                     <Link
                       href={`/perfil/reposicion?plan=${encodeURIComponent(c.planKey)}`}
-                      className="inline-flex min-h-10 items-center rounded-full bg-primary/10 px-4 text-xs font-bold uppercase tracking-wider text-primary hover:bg-primary/15"
+                      className="inline-flex min-h-10 items-center rounded-full bg-primary/10 px-4 text-xs font-bold uppercase tracking-wider text-accent-text hover:bg-primary/15"
                     >
                       {planResolved
                         ? `Suscribir · ${formatCLP(planResolved.price_clp)}`
@@ -284,7 +276,7 @@ export default async function ClubCosechaPage() {
                         href={href}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs font-bold uppercase tracking-wider text-primary shrink-0"
+                        className="text-xs font-bold uppercase tracking-wider text-accent-text shrink-0"
                       >
                         Ver pasaporte →
                       </a>
@@ -306,14 +298,14 @@ export default async function ClubCosechaPage() {
             de Chiloé e impacto con metodología abierta.
           </p>
           <div className="mt-4 flex flex-wrap gap-3 text-sm">
-            <Link href="/perfil/trazabilidad" className="text-primary hover:underline">
+            <Link href="/perfil/trazabilidad" className="text-accent-text hover:underline">
               Trazabilidad en tu perfil
             </Link>
             {nucleo && (
               <>
                 <a
                   href={`${nucleo.replace(/\/$/, '')}/mapa-chiloe`}
-                  className="text-primary hover:underline"
+                  className="text-accent-text hover:underline"
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -321,7 +313,7 @@ export default async function ClubCosechaPage() {
                 </a>
                 <a
                   href={`${nucleo.replace(/\/$/, '')}/impacto`}
-                  className="text-primary hover:underline"
+                  className="text-accent-text hover:underline"
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -329,7 +321,7 @@ export default async function ClubCosechaPage() {
                 </a>
               </>
             )}
-            <Link href="/ciencia" className="text-primary hover:underline">
+            <Link href="/ciencia" className="text-accent-text hover:underline">
               Ciencia del bosque
             </Link>
           </div>
@@ -337,7 +329,7 @@ export default async function ClubCosechaPage() {
 
         <Link
           href="/"
-          className="mt-10 inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-2"
+          className="mt-10 inline-flex min-h-11 items-center text-sm text-accent-text underline underline-offset-2"
         >
           ← Inicio
         </Link>

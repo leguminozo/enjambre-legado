@@ -128,7 +128,7 @@ v
 
 **Notificaciones signup (P1)**: Tienda `POST /api/notifications/welcome` (auth) → Nucleo `POST /api/notifications/internal/welcome` (x-internal-key) → `notification_queue` (auditoría/retry) + `notification_events` channel `in_app` (NotificationBell). Sin inserts directos desde cliente.
 
-**Worker de notificaciones (P1+)**: Vercel Cron `GET /api/cron/notifications` cada minuto (`CRON_SECRET`) → `processNotificationQueue()` (email/WhatsApp/push/system). Reintentos `metadata.in_app` crean `notification_events` in_app si el insert síncrono falló. Trigger manual: `POST /api/notifications/trigger-worker` (admin o `x-worker-secret`).
+**Worker de notificaciones (P1+)**: Vercel Cron `GET /api/cron/notifications` **diario 08:00 UTC** (`apps/nucleo/vercel.json`; Hobby no admite worker de 60 s). El camino caliente es el trigger post-mutación (`POST /api/notifications/trigger-worker`, admin o `x-worker-secret`) y el enqueue síncrono en checkout/despacho. El cron barre la cola (`processNotificationQueue`: email/WhatsApp/push/system). Reintentos `metadata.in_app` crean `notification_events` in_app si el insert síncrono falló. Fiscal 13:00 UTC, checkout 14:00 UTC.
 
 **Notificaciones transaccionales (P1++)**: `enqueue-transactional.ts` — post-pago en `fulfillCheckout` (email + in_app, dedupe `checkout_paid:{buyOrder}`); post-despacho en `PATCH /api/logistica/envios/:id` cuando status → enviado/en tránsito (dedupe `shipment_dispatched:{envioId}:{status}`).
 

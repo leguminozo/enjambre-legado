@@ -177,11 +177,11 @@ export default async function TrazabilidadPage({ params }: PageProps) {
 
   const badgeCls =
     badge.tone === 'success'
-      ? 'border-success/30 bg-success/5 text-success'
+      ? 'border-success/30 bg-success/5 text-success-text'
       : badge.tone === 'warning'
         ? 'border-warning/40 bg-warning/10 text-warning'
         : badge.tone === 'neutral'
-          ? 'border-accent/30 bg-accent/5 text-accent'
+          ? 'border-accent/30 bg-accent/5 text-accent-text'
           : 'border-border bg-secondary/60 text-muted-foreground';
 
   return (
@@ -233,12 +233,12 @@ export default async function TrazabilidadPage({ params }: PageProps) {
           <div className="space-y-8">
             {/* Tarjeta de Hash */}
             <div className="rounded-2xl border border-accent/30 bg-card p-6 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-5 text-accent">
+              <div className="absolute top-0 right-0 p-4 opacity-5 text-accent-text">
                 <Fingerprint className="h-28 w-28" />
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-accent/10 border border-accent/20 text-accent">
+                <div className="p-3 rounded-xl bg-accent/10 border border-accent/20 text-accent-text">
                   <Fingerprint className="h-6 w-6" />
                 </div>
                 <div>
@@ -254,7 +254,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
               </div>
 
               <div className="mt-6 bg-secondary/80 rounded-xl p-4 border border-border">
-                <code className="text-[0.82rem] font-mono break-all text-accent font-semibold tracking-wider">
+                <code className="text-[0.82rem] font-mono break-all text-accent-text font-semibold tracking-wider">
                   {displayHash}
                 </code>
               </div>
@@ -282,7 +282,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
                 <p
                   className={`mt-5 inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold ${
                     hashMatches
-                      ? 'border-success/30 bg-success/5 text-success'
+                      ? 'border-success/30 bg-success/5 text-success-text'
                       : 'border-destructive/40 bg-destructive/10 text-destructive'
                   }`}
                 >
@@ -340,7 +340,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
 
               {/* Lote */}
               <div className="flex items-start gap-3.5">
-                <div className="mt-0.5 text-accent">
+                <div className="mt-0.5 text-accent-text">
                   <ShieldCheck className="h-4 w-4" />
                 </div>
                 <div>
@@ -356,7 +356,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
 
               {/* Colmena */}
               <div className="flex items-start gap-3.5">
-                <div className="mt-0.5 text-accent">
+                <div className="mt-0.5 text-accent-text">
                   <Compass className="h-4 w-4" />
                 </div>
                 <div>
@@ -367,7 +367,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
 
               {/* Fechas */}
               <div className="flex items-start gap-3.5">
-                <div className="mt-0.5 text-accent">
+                <div className="mt-0.5 text-accent-text">
                   <Calendar className="h-4 w-4" />
                 </div>
                 <div>
@@ -385,7 +385,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
 
               {/* Apiario Ubicación */}
               <div className="flex items-start gap-3.5">
-                <div className="mt-0.5 text-accent">
+                <div className="mt-0.5 text-accent-text">
                   <MapPin className="h-4 w-4" />
                 </div>
                 <div>
@@ -397,14 +397,14 @@ export default async function TrazabilidadPage({ params }: PageProps) {
 
             {/* Tarjeta de Impacto */}
             <div className="rounded-2xl border border-success/20 bg-success/[0.02] p-6 space-y-4">
-              <h4 className="text-[0.68rem] uppercase tracking-[0.2em] text-success font-bold">Métricas Bioculturales</h4>
+              <h4 className="text-[0.68rem] uppercase tracking-[0.2em] text-success-text font-bold">Métricas Bioculturales</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-background/50 border border-success/10 rounded-xl text-center">
-                  <div className="text-2xl font-bold text-success tabular-nums">{product.co2_evitado_kg != null ? `${product.co2_evitado_kg}kg` : 'Sin datos'}</div>
+                  <div className="text-2xl font-bold text-success-text tabular-nums">{product.co2_evitado_kg != null ? `${product.co2_evitado_kg}kg` : 'Sin datos'}</div>
                   <div className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">CO2 Evitado</div>
                 </div>
                 <div className="p-4 bg-background/50 border border-success/10 rounded-xl text-center">
-                  <div className="text-2xl font-bold text-success tabular-nums">{product.irr_referencia != null ? `IRR ${product.irr_referencia}` : 'Sin datos'}</div>
+                  <div className="text-2xl font-bold text-success-text tabular-nums">{product.irr_referencia != null ? `IRR ${product.irr_referencia}` : 'Sin datos'}</div>
                   <div className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">Índice Regeneración</div>
                 </div>
               </div>
@@ -416,7 +416,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
         <div className="text-center mt-6">
           <Link
             href={`/producto/${product.slug}`}
-            className="inline-flex min-h-11 items-center text-sm font-medium text-accent hover:underline"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-accent-text hover:underline"
           >
             ← Volver al producto
           </Link>

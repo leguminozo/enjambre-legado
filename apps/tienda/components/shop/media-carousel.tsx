@@ -2,22 +2,35 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-
-interface MediaItem {
-  type: 'image' | 'video';
-  src: string;
-  alt?: string;
-}
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import type { HomeMediaItem, MediaSettings } from '@/lib/shop/store-chrome';
 
 interface MediaCarouselProps {
-  items: MediaItem[];
+  items: HomeMediaItem[];
   autoplayMs?: number;
+  settings?: MediaSettings;
 }
 
-export function MediaCarousel({ items, autoplayMs = 5000 }: MediaCarouselProps) {
+const heightClassMap: Record<string, string> = {
+  '50vh/70vh': 'h-[50vh] md:h-[70vh]',
+  '40vh/60vh': 'h-[40vh] md:h-[60vh]',
+  '60vh/80vh': 'h-[60vh] md:h-[80vh]',
+  '70vh/90vh': 'h-[70vh] md:h-[90vh]',
+};
+
+export function MediaCarousel({ items, autoplayMs = 5000, settings }: MediaCarouselProps) {
   const [current, setCurrent] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const touchStartXRef = useRef<number | null>(null);
+
+  const effectiveAutoplayMs = settings?.autoplay_ms ?? autoplayMs;
+  const heightClass = heightClassMap[settings?.carousel_height || ''] || 'h-[50vh] md:h-[70vh]';
+  const fitClass = settings?.image_fit === 'contain' ? 'object-contain p-4' : 'object-cover';
+  const isPaused = isHovered || isFocused;
 
   const goTo = useCallback(
     (idx: number) => {
@@ -28,12 +41,12 @@ export function MediaCarousel({ items, autoplayMs = 5000 }: MediaCarouselProps) 
   );
 
   useEffect(() => {
-    if (items.length <= 1) return;
-    intervalRef.current = setInterval(() => goTo(current + 1), autoplayMs);
+    if (items.length <= 1 || isPaused) return;
+    intervalRef.current = setInterval(() => goTo(current + 1), effectiveAutoplayMs);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [current, goTo, items.length, autoplayMs]);
+  }, [current, goTo, items.length, effectiveAutoplayMs, isPaused]);
 
   useEffect(() => {
     if (!trackRef.current) return;
@@ -46,40 +59,99 @@ export function MediaCarousel({ items, autoplayMs = 5000 }: MediaCarouselProps) 
     });
   }, [current]);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    if (Math.abs(deltaX) > 40) {
+      if (deltaX > 0) {
+        goTo(current - 1);
+      } else {
+        goTo(current + 1);
+      }
+    }
+    touchStartXRef.current = null;
+  };
+
   if (items.length === 0) {
     return (
-      <div className="relative w-full h-[50vh] md:h-[70vh] bg-surface-raised flex items-center justify-center">
+      <div className={`relative w-full ${heightClass} bg-surface-raised flex items-center justify-center`}>
         <p className="text-muted-foreground editorial-kicker">Contenido próximamente</p>
       </div>
     );
   }
 
   return (
-    <section className="relative w-full h-[50vh] md:h-[70vh] overflow-hidden bg-surface-sunken">
+    <section
+      className={`relative w-full ${heightClass} overflow-hidden bg-surface-sunken select-none`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div ref={trackRef} className="flex h-full" style={{ width: `${items.length * 100}%` }}>
-        {items.map((item, i) => (
-          <div key={i} className="relative h-full flex-shrink-0" style={{ width: `${100 / items.length}%` }}>
-                {item.type === 'video' ? (
-                  <video
-                    src={item.src}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <Image
-                    src={item.src}
-                    alt={item.alt || ''}
-                    fill
-                    sizes="100vw"
-                    className="object-cover"
-                  />
-                )}
-            <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent pointer-events-none" />
-          </div>
-        ))}
+        {items.map((item, i) => {
+          const hasCopy = item.kicker || item.title || item.subtitle || item.cta_label;
+          return (
+            <div key={i} className="relative h-full flex-shrink-0" style={{ width: `${100 / items.length}%` }}>
+              {item.type === 'video' ? (
+                <video
+                  src={item.src}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className={`h-full w-full ${fitClass}`}
+                />
+              ) : (
+                <Image
+                  src={item.src}
+                  alt={item.alt || item.title || ''}
+                  fill
+                  sizes="100vw"
+                  className={fitClass}
+                />
+              )}
+              {/* Degradado adaptativo de legibilidad */}
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent pointer-events-none" />
+
+              {/* Superposición Editorial Opcional */}
+              {hasCopy ? (
+                <div className="absolute inset-x-0 bottom-12 sm:bottom-16 px-6 sm:px-12 max-w-4xl mx-auto text-center z-10 pointer-events-auto">
+                  {item.kicker ? (
+                    <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-2 font-medium">
+                      {item.kicker}
+                    </span>
+                  ) : null}
+                  {item.title ? (
+                    <h2 className="font-display text-2xl sm:text-4xl md:text-5xl font-light text-foreground mb-2 text-balance leading-tight">
+                      {item.title}
+                    </h2>
+                  ) : null}
+                  {item.subtitle ? (
+                    <p className="text-sm sm:text-base text-muted-foreground mb-4 max-w-xl mx-auto text-pretty line-clamp-2">
+                      {item.subtitle}
+                    </p>
+                  ) : null}
+                  {item.cta_label ? (
+                    <Link
+                      href={item.cta_link || '/catalogo'}
+                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-xs uppercase tracking-widest font-medium hover:bg-accent hover:text-accent-foreground transition-all duration-base shadow-lg"
+                    >
+                      <span>{item.cta_label}</span>
+                      <ArrowRight size={14} />
+                    </Link>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
 
       {items.length > 1 && (
@@ -87,7 +159,7 @@ export function MediaCarousel({ items, autoplayMs = 5000 }: MediaCarouselProps) 
           <button
             type="button"
             onClick={() => goTo(current - 1)}
-            className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 min-h-11 min-w-11 h-11 w-11 rounded-full border border-border bg-card/60 backdrop-blur-sm flex items-center justify-center text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-base"
+            className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 min-h-11 min-w-11 h-11 w-11 rounded-full border border-border bg-card/70 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-base z-20"
             aria-label="Anterior"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
@@ -95,13 +167,13 @@ export function MediaCarousel({ items, autoplayMs = 5000 }: MediaCarouselProps) 
           <button
             type="button"
             onClick={() => goTo(current + 1)}
-            className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 min-h-11 min-w-11 h-11 w-11 rounded-full border border-border bg-card/60 backdrop-blur-sm flex items-center justify-center text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-base"
+            className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 min-h-11 min-w-11 h-11 w-11 rounded-full border border-border bg-card/70 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-base z-20"
             aria-label="Siguiente"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
           </button>
 
-          <div className="absolute bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 flex items-center gap-0.5">
+          <div className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 flex items-center gap-1 z-20">
             {items.map((_, i) => (
               <button
                 type="button"
@@ -112,10 +184,18 @@ export function MediaCarousel({ items, autoplayMs = 5000 }: MediaCarouselProps) 
                 aria-current={i === current ? 'true' : undefined}
               >
                 <span
-                  className={`block h-2 rounded-full transition-all duration-base ${
-                    i === current ? 'w-6 bg-accent' : 'w-2 bg-foreground/30'
+                  className={`block h-2 rounded-full overflow-hidden transition-all duration-base relative ${
+                    i === current ? 'w-8 bg-accent/40' : 'w-2 bg-foreground/30'
                   }`}
-                />
+                >
+                  {i === current ? (
+                    <span
+                      className={`block h-full bg-accent transition-all ${
+                        isPaused ? 'w-full opacity-80' : 'w-full animate-pulse'
+                      }`}
+                    />
+                  ) : null}
+                </span>
               </button>
             ))}
           </div>

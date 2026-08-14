@@ -30,13 +30,13 @@ export function MobileCartBar() {
           <span className="text-sm text-foreground truncate">
             {itemCount} {itemCount === 1 ? 'producto' : 'productos'}
           </span>
-          <span className="text-sm font-semibold tabular-nums text-accent shrink-0">
+          <span className="text-sm font-semibold tabular-nums text-accent-text shrink-0">
             {formatCLP(subtotal)}
           </span>
         </div>
         <Link
           href="/carrito"
-          className="shrink-0 inline-flex min-h-[44px] items-center justify-center rounded-full bg-accent px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-accent-foreground"
+          className="shrink-0 inline-flex min-h-[44px] items-center justify-center rounded-full bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-primary-foreground"
         >
           Ver carrito
         </Link>

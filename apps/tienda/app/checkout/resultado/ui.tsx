@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
+import type gsap from 'gsap';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
@@ -11,7 +11,7 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { CheckCircle, XCircle, Clock, Leaf, Trees, Package } from 'lucide-react';
-import { friendlyApiError } from '@enjambre/ui';
+import { friendlyApiError, useLegacyDevice } from '@enjambre/ui';
 import { ResenaInvite } from '@/components/shop/resena-invite';
 import { WalletButtons } from '@/components/shop/wallet-buttons';
 import {
@@ -37,6 +37,7 @@ export function CheckoutResultClient() {
     null,
   );
   const { clear } = useCartLines();
+  const { legacy, motionReduced } = useLegacyDevice();
   const track = useMetaTracking();
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -141,73 +142,87 @@ export function CheckoutResultClient() {
   }, [token]);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      if (state === 'loading') {
-        gsap.fromTo(
-          iconRef.current,
-          { opacity: 0, scale: 0.5, rotate: -180 },
-          { opacity: 1, scale: 1, rotate: 0, duration: 1.5, ease: 'elastic.out(1, 0.5)' },
-        );
+    let ctx: gsap.Context | undefined;
+    let cancelled = false;
+    (async () => {
+      const { gsap } = await import('gsap');
+      if (cancelled) return;
+      ctx = gsap.context(() => {
+        if (state === 'loading') {
+          gsap.fromTo(
+            iconRef.current,
+            { opacity: 0, scale: 0.5, rotate: -180 },
+            { opacity: 1, scale: 1, rotate: 0, duration: 1.5, ease: 'elastic.out(1, 0.5)' },
+          );
 
-        gsap.fromTo(
-          '.loading-text',
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.8, delay: 0.3, ease: 'power2.out' },
-        );
-      } else if (state === 'success') {
-        gsap.fromTo(
-          iconRef.current,
-          { opacity: 0, scale: 0, rotate: -180 },
-          { opacity: 1, scale: 1, rotate: 0, duration: 1.2, ease: 'back.out(1.7)', delay: 0.2 },
-        );
+          gsap.fromTo(
+            '.loading-text',
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.8, delay: 0.3, ease: 'power2.out' },
+          );
+        } else if (state === 'success') {
+          gsap.fromTo(
+            iconRef.current,
+            { opacity: 0, scale: 0, rotate: -180 },
+            { opacity: 1, scale: 1, rotate: 0, duration: 1.2, ease: 'back.out(1.7)', delay: 0.2 },
+          );
 
-        gsap.fromTo(
-          '.success-content',
-          { opacity: 0, y: 30 },
-          { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: 'power2.out' },
-        );
+          gsap.fromTo(
+            '.success-content',
+            { opacity: 0, y: 30 },
+            { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: 'power2.out' },
+          );
 
-        for (let i = 0; i < 20; i++) {
-          const particle = document.createElement('div');
-          particle.className = 'absolute w-2 h-2 rounded-full bg-accent/60';
-          particle.style.left = '50%';
-          particle.style.top = '50%';
-          contentRef.current?.appendChild(particle);
+          // Explosión de partículas: 20 nodos animados en GPU vieja (iPhone 7) es
+          // caro → se omite en tier legacy / reduced-motion (el resto de la
+          // transición queda igual).
+          if (!legacy && !motionReduced) {
+            for (let i = 0; i < 20; i++) {
+              const particle = document.createElement('div');
+              particle.className = 'absolute w-2 h-2 rounded-full bg-accent/60';
+              particle.style.left = '50%';
+              particle.style.top = '50%';
+              contentRef.current?.appendChild(particle);
 
-          gsap.to(particle, {
-            x: (Math.random() - 0.5) * 400,
-            y: (Math.random() - 0.5) * 400,
-            opacity: 0,
-            scale: 0,
-            duration: 1 + Math.random(),
-            ease: 'power2.out',
-            onComplete: () => particle.remove(),
-          });
+              gsap.to(particle, {
+                x: (Math.random() - 0.5) * 400,
+                y: (Math.random() - 0.5) * 400,
+                opacity: 0,
+                scale: 0,
+                duration: 1 + Math.random(),
+                ease: 'power2.out',
+                onComplete: () => particle.remove(),
+              });
+            }
+          }
+        } else if (state === 'failed') {
+          gsap.fromTo(
+            iconRef.current,
+            { opacity: 0, scale: 0 },
+            { opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.7)' },
+          );
+
+          gsap.fromTo(
+            '.failed-content',
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out' },
+          );
         }
-      } else if (state === 'failed') {
-        gsap.fromTo(
-          iconRef.current,
-          { opacity: 0, scale: 0 },
-          { opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.7)' },
-        );
+      }, contentRef);
+    })();
 
-        gsap.fromTo(
-          '.failed-content',
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out' },
-        );
-      }
-    }, contentRef);
-
-    return () => ctx.revert();
-  }, [state]);
+    return () => {
+      cancelled = true;
+      ctx?.revert();
+    };
+  }, [state, legacy, motionReduced]);
 
   return (
     <StoreShell>
       <ShopHeader />
       <main className="min-h-[60vh] bg-background px-4 pt-[max(3rem,calc(var(--safe-top)+1.5rem))] pb-12 sm:px-6 sm:py-12 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl" />
+          <div className="enj-blur-orb absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl" />
           {state === 'success' && (
             <>
               <div className="absolute -top-20 -right-20 w-40 h-40 bg-success/10 rounded-full blur-2xl" />
@@ -255,7 +270,7 @@ export function CheckoutResultClient() {
               <p
                 className={`text-base mb-8 ${
                   state === 'success'
-                    ? 'text-success'
+                    ? 'text-success-text'
                     : state === 'failed'
                       ? 'text-destructive'
                       : 'text-muted-foreground'
@@ -272,7 +287,7 @@ export function CheckoutResultClient() {
                     </p>
                   )}
                   {successMeta?.puntosGanados != null && successMeta.puntosGanados > 0 && (
-                    <p className="text-sm text-accent font-medium">
+                    <p className="text-sm text-accent-text font-medium">
                       +{successMeta.puntosGanados} puntos de fidelización
                     </p>
                   )}
@@ -287,7 +302,7 @@ export function CheckoutResultClient() {
 
                   <div className="pt-6 border-t border-border">
                     <p className="text-sm text-muted-foreground mb-2">{t('emailNote')}</p>
-                    <div className="flex items-center justify-center gap-2 text-xs text-accent">
+                    <div className="flex items-center justify-center gap-2 text-xs text-accent-text">
                       <Trees className="w-4 h-4" />
                       <span>{t('thanksLegado')}</span>
                     </div>

@@ -13,7 +13,7 @@ export default function ProductoNotFound() {
           <p className="mt-2 text-muted-foreground">Revisa el enlace o vuelve al catálogo.</p>
           <Link
             href="/catalogo"
-            className="mt-6 inline-flex min-h-11 items-center text-sm font-medium text-accent underline underline-offset-2"
+            className="mt-6 inline-flex min-h-11 items-center text-sm font-medium text-accent-text underline underline-offset-2"
           >
             Ir a creaciones
           </Link>

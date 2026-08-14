@@ -22,7 +22,7 @@ export function PerfilPageHeader({
     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
       <div className="flex items-start gap-4 min-w-0 flex-1">
         {icon && (
-          <div className="w-10 h-10 shrink-0 rounded-lg bg-accent/10 flex items-center justify-center text-accent mt-1">
+          <div className="w-10 h-10 shrink-0 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text mt-1">
             {icon}
           </div>
         )}

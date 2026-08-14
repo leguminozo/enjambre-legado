@@ -119,7 +119,7 @@ export function QrCameraScanner({ onScan, disabled }: QrCameraScannerProps) {
             type="button"
             onClick={() => void startCamera()}
             disabled={disabled || starting || !hasBarcodeApi}
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-50"
           >
             {starting ? <HexagonLoader size="sm" /> : <Camera size={16} />}
             Abrir cámara

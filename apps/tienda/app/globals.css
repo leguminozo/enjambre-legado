@@ -15,9 +15,18 @@
   }
 }
 
+/* En modo claro el accent del CMS cumple sobre fondo liso pero no sobre
+   fondos tintados (bg-accent/10-15): el texto usa la variante oscura
+   (L-8, inyectada por themeToCssVars) en vez de la aclarada de dark.
+   !important: StoreChromeProvider aplica las vars como inline style en <html>
+   (gana a cualquier stylesheet); esta excepción de modo claro es deliberada. */
+html:not(.dark) {
+  --accent-text: var(--accent-text-light) !important;
+}
+
 @layer components {
   .editorial-kicker {
-    @apply block text-editorial-xs tracking-widest uppercase text-accent;
+    @apply block text-editorial-xs tracking-widest uppercase text-accent-text;
   }
   .editorial-section {
     @apply py-16 md:py-24 px-4 sm:px-6;
@@ -616,7 +625,7 @@ html[data-tienda-pwa='standalone'] .tienda-shell[data-has-cart] .tienda-checkout
   font-family: var(--font-display, 'Cormorant Garamond', serif);
   font-size: 1.25rem;
   font-weight: 600;
-  color: hsl(var(--accent));
+  color: hsl(var(--accent-text));
   font-variant-numeric: tabular-nums;
 }
 
@@ -796,8 +805,7 @@ html[data-tienda-pwa='standalone'] .whatsapp-float-mobile {
 
 /* Auth — panel opaco en móvil (sin bleed del glow/grain) */
 .tienda-auth-page {
-  min-height: 100vh; /* fallback iOS <15.4 (dvh no existe) */
-  min-height: 100dvh;
+  min-height: var(--vh-full); /* token con @supports: 100vh <15.4, 100dvh modernos */
   background-color: hsl(var(--background));
   padding: calc(var(--safe-top) + 1.25rem) 1rem calc(var(--safe-bottom) + 1.25rem);
 }

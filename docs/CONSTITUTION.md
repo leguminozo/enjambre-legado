@@ -16,8 +16,8 @@ El frontend no es un "producto minimo viable". Es una pieza de diseno de lujo.
 
 - **Dark Mode por defecto**: El negro profundo (`#050505`) representa la sombra del bosque.
 - **Tipografia Display**: Uso mandatorio de *Cormorant Garamond* para una sensacion historica y editorial.
-- **Micro-interacciones**: GSAP para simular vida (como el vuelo de las abejas) es prioridad, no un "nice-to-have".
-- **Textura organica**: GrainOverlay y efectos de textura son obligatorios en paginas publicas.
+- **Micro-interacciones**: GSAP para simular vida en superficies publicas de marca. Nunca en el grafo server (Route Handlers, BFF, Server Components de datos). Nunca en Campo/POS ni en dispositivos `data-legacy`.
+- **Textura organica**: GrainOverlay en paginas publicas de tienda. No en dashboards operativos ni en el POS.
 - **Espaciado generoso**: El whitespace es lujo. Las paginas respiran.
 
 #### Paleta Canonica
@@ -44,15 +44,21 @@ database/ Fuente de verdad del esquema
 contable/ Logica tributaria reutilizable
 auth/ Sesion y roles compartidos
 ui/ Design tokens + componentes base
+pricing/ Motor de precios y lealtad
+fiscal/ DTE nativo
 sumup/ SumUp POS integration
 banco-chile/ Banco Chile Empresas API client
 ```
+
+Tres apps Next = tres proyectos Vercel. **Prohibido un cuarto deploy** mientras el horizonte sea Hobby/Free. Nucleo es el unico BFF de escrituras caras (caja, DTE, pagos, RLS pesado).
 
 ### 3. Seguridad Nativa (RLS)
 
 La base de datos (Supabase) es la fuente de verdad. La seguridad no es negociable.
 
 - **Row Level Security (RLS)**: Nunca se confia en el cliente. La seguridad vive en Postgres.
+- **RLS barato**: `is_admin()`, `is_gerente()`, `current_role()`, `has_empresa_access()`, `jwt_app_role()` son `STABLE` + `search_path = ''`. Predicado alineado a indice (`empresa_id`, `user_id`). Listados admin paginados.
+- **`SECURITY DEFINER` no es un acelerador.** Solo cuando el cuerpo necesita privilegio y verifica `auth.uid()` / `has_empresa_access()` adentro. Ver `docs/AUDITORIA_PROFUNDA_2026-08.md`.
 - **Roles Estrictos**: `admin`, `apicultor` (patio/operación), `cliente`, `creador`, `rep_ventas`, `territorial`. Los roles granulares anteriores (`vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) se elevan a `admin` vía `LEGACY_ROLE_MAP`. `apicultor` es RoleKey de primera clase (allowlist colmenas/bitácora; no elevación). `territorial` (migration 997) es red/censo Chiloé. Detalle: `docs/ROLES_Y_ACCESO.md`.
 - **Multi-tenant contable**: La capa contable usa `has_empresa_access()` para aislar datos por empresa.
 - **Validacion en BFF**: La API Hono valida JWT via Supabase Auth antes de cada operacion.
@@ -60,12 +66,12 @@ La base de datos (Supabase) es la fuente de verdad. La seguridad no es negociabl
 
 ### 4. Offline-First para Campo
 
-El apicultor trabaja en el bosque. No hay internet.
+El apicultor y el rep trabajan donde no hay internet.
 
-- **Offline-first es planificado pero no implementado.** Campo actualmente usa Supabase directamente.
-- Futuro: **Dexie (IndexedDB)** sera la primera parada de toda escritura en campo.
-- Las mutaciones se encolaran en `sync-queue` y se sincronizaran con Supabase al recuperar conexion.
-- **Prohibido** hacer `supabase.insert()` directo desde un componente UI de campo cuando offline esté implementado. Siempre a traves del hook de sincronizacion.
+- **Dexie (IndexedDB) es la primera parada de lectura/escritura en Campo.** Implementado: `apps/campo/src/lib/offline/db.ts`, cola en `cash-context.tsx`, motor en `use-sync-engine.ts`.
+- Las mutaciones van a `sync_queue` y suben a Nucleo/Supabase al recuperar conexion.
+- **Prohibido** `supabase.insert()` directo desde UI de Campo. Siempre el hook de sincronizacion.
+- Dexie no es romance offline: es la valvula de egress (5 GB/mes en Supabase Free).
 
 ### 5. Codigo para Agentes (AI-Ready)
 
@@ -75,6 +81,39 @@ Este repositorio esta disenado para ser co-escrito con IA.
 - **Tipado Fuerte**: TypeScript strict. `any` es un error. Usar `unknown` + type guards.
 - **Comentarios Semanticos**: Los comentarios explican el "por que", no el "que".
 - **Estructura Predecible**: Cada modulo sigue el mismo patron (hooks, componentes, tipos, utilidades).
+
+### 6. Presupuesto de Plataforma (Hobby / Free) — ley, no anexo
+
+OYZ opera hoy contra **Vercel Hobby + un proyecto Supabase Free**. Las cuotas son el producto. $0 es pista de despegue, no hogar legal eterno (Hobby es non-commercial; una tienda con ventas reales exige Pro). El codigo debe sobrevivir el mayor tiempo posible a $0 sin mentir sobre ese horizonte.
+
+Cifras oficiales a agosto 2026 (cuenta / org, no por app):
+
+| Recurso | Techo |
+|---|---|
+| Vercel Fast Data Transfer | 100 GB/mes |
+| Vercel Fast Origin Transfer | 10 GB/mes |
+| Vercel Active CPU | 4 h/mes (Fluid Compute; la instancia se reusa) |
+| Vercel Function invocations | 1.000.000 |
+| Vercel Image Transformations | 5.000 (cache reads 300k) |
+| Vercel Cron | grosero (diario). Tres jobs en Nucleo: 08/13/14 UTC |
+| Supabase DB | 500 MB → read-only al superar |
+| Supabase RAM / CPU | shared, 500 MB RAM |
+| Supabase egress + cached egress | 5 GB + 5 GB |
+| Supabase Storage | 1 GB; Image Transformations **no incluidas** |
+| Supabase Realtime | 200 conexiones; 2 M mensajes/mes |
+| Supabase proyectos Free | 2; pause a 1 semana inactiva |
+| Postgres directo | ~60; pooler ~200. El camino default es **Data API HTTP** |
+
+Invariantes:
+
+1. **Las lecturas publicas no tocan Postgres en cada hit.** Tienda: ISR (`revalidate` 120–3600) + `revalidatePath` desde CMS. Campo: Dexie. Nucleo: TanStack, no SSR de listados enteros.
+2. **Un solo plano de writes caros**: BFF de Nucleo. Sin cuarto proyecto Vercel.
+3. **Cron ≥ diario** en Hobby. Cola en Postgres + disparo en la mutacion (checkout, despacho). Prohibido cron sub-hora.
+4. **`<Image>` no usa el optimizer de Vercel.** Loader `cdn-image-loader` sirve el origen (Storage ya WebP + `Cache-Control: 31536000`). No usar Image Transformations de Supabase en Free.
+5. **Realtime no es default.** Solo superficies operativas (feria, caja, carrito multi-dispositivo, campana de notificaciones). Un dashboard nuevo hace poll-on-focus.
+6. **Servidor no importa UI.** `@enjambre/auth/server-index` (o `/middleware`, `/security-events`). `optimizePackageImports` incluye `@enjambre/ui`. GSAP/Leaflet/Cytoscape fuera del grafo server.
+7. **Postgres directo solo con Transaction pooler (`6543`).** El default es supabase-js HTTP. No abrir `postgres.js` / Drizzle en una funcion sin pooler.
+8. **RLS `STABLE` + indice.** `SECURITY DEFINER` no es default.
 
 ---
 
@@ -115,7 +154,14 @@ Cada etapa del flujo es trazable. Un cliente puede escanear un QR y ver exactame
 | Hex sueltos (`#fff`) | Tokens semanticos (`bg-background`) |
 | `bg-white` en superficies | `bg-card` / `surface-raised` |
 | `catch(e) {}` vacio | `toast.error()` con mensaje al usuario |
-| `supabase.insert()` directo en UI (campo) | Hook de sincronizacion (cuando offline implementado) |
+| `supabase.insert()` directo en UI (campo) | Cola Dexie + `use-sync-engine` |
+| `<Image>` con loader default de Vercel | `cdn-image-loader` (origen Storage / static) |
+| Cron cada minuto en Vercel | Cron diario + outbox + trigger en la mutacion |
+| Realtime en cada vista de Nucleo | Poll-on-focus; Realtime solo feria/caja/carrito |
+| Cuarto proyecto Vercel | Package o ruta en una de las 3 apps |
+| `SECURITY DEFINER` como atajo de CPU | `STABLE` + `search_path = ''`; DEFINER solo con check de caller |
+| `DATABASE_URL` :5432 en una Lambda | Transaction pooler `:6543` o Data API |
+| Barrel `@enjambre/auth` en Server Component | `@enjambre/auth/server-index` |
 | Componentes en la raiz del repo | `packages/ui` o `apps/*/components` |
 | `console.log` en produccion | Logger estructurado o remover |
 | Service Role Key en el cliente | Solo server-side |
@@ -146,4 +192,4 @@ Antes de crear un nuevo paquete o app, responder:
 ---
 
 *Este documento es la ley suprema del proyecto. Todo agente (humano o IA) debe leerlo antes de operar.*
-*Ultima actualizacion: Mayo 2026*
+*Ultima actualizacion: Agosto 2026 — presupuesto Hobby/Free como principio II.6; Campo Dexie vigente.*

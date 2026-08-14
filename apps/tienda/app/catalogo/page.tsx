@@ -86,7 +86,7 @@ export default async function CatalogoPage() {
             <p className="text-muted-foreground mb-6">Aún no hay productos publicados.</p>
             <Link
               href="/"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-accent/40 px-6 text-sm font-medium text-accent hover:bg-accent/10 transition-colors"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-accent/40 px-6 text-sm font-medium text-accent-text hover:bg-accent/10 transition-colors"
             >
               Volver al inicio
             </Link>

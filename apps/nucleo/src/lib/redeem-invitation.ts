@@ -20,6 +20,14 @@ export async function redeemInvitationCode(code: string): Promise<RedeemInvitati
     return { ok: false, message: 'Cliente auth no disponible' }
   }
 
+  // getUser() valida el JWT con el servidor + refresca si hace falta antes de
+  // leer el token (auditoría 2026-08-14 #8); el BFF valida igualmente el Bearer.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return { ok: false, message: 'No autenticado' }
+  }
   const {
     data: { session },
   } = await supabase.auth.getSession()

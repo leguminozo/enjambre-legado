@@ -24,7 +24,7 @@ export default function TiendaLoading() {
       variant="page"
       label={ROUTE_LABELS[pathname] ?? 'Cargando la tienda'}
       context="tienda"
-      brand={<BrandWordmark tagline="Biocultural Regeneration" />}
+      brand={<BrandWordmark name="La Obrera y el Zángano" ecosystem="Enjambre Legado" />}
     />
   );
 }

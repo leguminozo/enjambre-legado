@@ -687,6 +687,16 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ## MEDIO — Planificar para el roadmap
 
+### D71. `storeChrome.collections`/`storeChrome.galeria` duplican carga de secciones (ABIERTO)
+
+**Problema**: `load-store-chrome.ts` carga `collections_settings` y `galeria_settings` y los expone en `StoreChromeConfig`, pero ningún componente los consume: el landing y la galería hacen su propio `getSiteContentBatch` por página (`apps/tienda/app/page.tsx`, `apps/tienda/app/galeria/page.tsx`) y reciben los settings por props. Patrón sistémico (mismo en `galeria`), inofensivo en runtime — solo carga duplicada y un campo de contrato que no se usa.
+
+**Decisión (2026-08-14)**: NO refactorizar en la ola de cierre — el cambio tocaría `packages/shop-chrome` + layout + ambas páginas y no corrige ningún bug. Revisar cuando se mueva el landing/galería a consumir `StoreChromeConfig` como fuente única, o cuando el editor de tienda soporte preview de drafts en layout.
+
+**Nota typegen**: `apps/nucleo/src/api/routes/enjambre.ts` usa `(supabase as any)` porque `beneficios_enjambre` (migración `20260812081000_beneficios_enjambre.sql`) aún no está en `database.types.ts` — requiere push de la migración al proyecto enlazado + `pnpm db:typegen` (bloqueado por permisos 403 de la cuenta en esta sesión).
+
+---
+
 ### D70. Preview Vercel tienda 404 global (`x-matched-path: /_not-found`)
 
 **Problema**: URLs tipo `tienda-eta-lime.vercel.app` devuelven 404 en `/`, `/catalogo` y peticiones `?_rsc=` aunque el layout cargue. El service worker solo propaga el fallo de red.

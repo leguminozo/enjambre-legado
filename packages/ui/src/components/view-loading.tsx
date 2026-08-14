@@ -1,11 +1,7 @@
 'use client';
 
-import React, { useRef } from 'react';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
+import React, { useEffect, useRef } from 'react';
 import { HexagonLoader, type HexagonLoaderSize, type HexagonContext } from './hexagon-loader';
-
-gsap.registerPlugin(useGSAP);
 
 export type ViewLoadingVariant = 'inline' | 'view' | 'page' | 'fullscreen';
 
@@ -46,28 +42,51 @@ export function ViewLoading({
   const containerRef = useRef<HTMLDivElement>(null);
   const isFullscreen = variant === 'fullscreen';
 
-  useGSAP(() => {
+  useEffect(() => {
     // Animación de entrada cinemática (solo fullscreen/page, sin prefers-reduced-motion).
     // El blur se limita a ≥768px: filtrar el viewport completo es costoso en móviles legacy (iPhone 7).
-    if ((variant === 'fullscreen' || variant === 'page') && containerRef.current) {
-      const mm = gsap.matchMedia();
-      mm.add('(prefers-reduced-motion: no-preference)', () => {
-        const withBlur = window.matchMedia('(min-width: 768px)').matches;
-        gsap.fromTo(
-          containerRef.current,
-          { opacity: 0, scale: 0.95, ...(withBlur ? { filter: 'blur(10px)' } : {}) },
-          {
-            opacity: 1,
-            scale: 1,
-            ...(withBlur ? { filter: 'blur(0px)' } : {}),
-            duration: 1.2,
-            ease: 'power3.out',
-          }
-        );
-      });
-      return () => mm.revert();
-    }
-  }, { scope: containerRef, dependencies: [variant] });
+    if (!(variant === 'fullscreen' || variant === 'page') || !containerRef.current) return;
+    const el = containerRef.current;
+    const prefersMotion = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+    if (!prefersMotion) return; // sin animación; contenido visible por defecto
+
+    // Estado inicial aplicado de inmediato: evita flash mientras carga el chunk de gsap.
+    const withBlur = window.matchMedia('(min-width: 768px)').matches;
+    el.style.opacity = '0';
+    el.style.transform = 'scale(0.95)';
+    if (withBlur) el.style.filter = 'blur(10px)';
+
+    let cancelled = false;
+    (async () => {
+      const { gsap } = await import('gsap');
+      if (cancelled) return;
+      gsap.fromTo(
+        el,
+        { opacity: 0, scale: 0.95, ...(withBlur ? { filter: 'blur(10px)' } : {}) },
+        {
+          opacity: 1,
+          scale: 1,
+          ...(withBlur ? { filter: 'blur(0px)' } : {}),
+          duration: 1.2,
+          ease: 'power3.out',
+        }
+      );
+    })().catch(() => {
+      // Si el chunk falla, el loader debe quedar visible, no invisible.
+      if (!cancelled) {
+        el.style.opacity = '';
+        el.style.transform = '';
+        el.style.filter = '';
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      el.style.opacity = '';
+      el.style.transform = '';
+      el.style.filter = '';
+    };
+  }, [variant]);
 
   // Fondos solo con tokens semánticos (Ley III — sin hex / white crudo).
   // backdrop-blur solo en ≥768px: filtrar el fondo a pantalla completa es caro en móviles legacy.

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Lock } from 'lucide-react';
+import { Eye, EyeOff, Lock, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { friendlyError, friendlySupabaseError, toast } from '@enjambre/ui';
 import { createClient } from '@/utils/supabase/client';
@@ -11,12 +11,13 @@ import { AuthFormPanel, AuthShell, authFieldClass, authLabelClass } from '@/comp
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Alineado con login recovery / Supabase min (6); path /recuperar→callback→aquí
     if (password.length < 6) {
       toast('La contraseña debe tener al menos 6 caracteres', { type: 'error' });
       return;
@@ -30,8 +31,11 @@ export function ResetPasswordForm() {
       const supabase = createClient();
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw new Error(friendlySupabaseError(error));
-      toast('Contraseña actualizada. Ya puedes iniciar sesión.', { type: 'success' });
-      router.replace('/login');
+      setSuccess(true);
+      toast('Contraseña actualizada con éxito', { type: 'success' });
+      setTimeout(() => {
+        router.replace('/login');
+      }, 2000);
     } catch (err) {
       toast(
         friendlyError(err, err instanceof Error ? err.message : 'No se pudo actualizar la contraseña'),
@@ -44,61 +48,89 @@ export function ResetPasswordForm() {
 
   return (
     <AuthShell
-      title={<>Nueva <span className="italic text-accent">contraseña</span></>}
-      subtitle="Elige una clave segura para tu cuenta"
-      footer="Acceso Restringido · Tienda Enjambre"
+      title={<>Nueva <span className="italic text-accent-text">contraseña</span></>}
+      subtitle="Elige una clave segura de al menos 6 caracteres"
+      footer="Acceso Restringido · La Obrera y el Zángano"
     >
-      <AuthFormPanel onSubmit={handleSubmit}>
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <label htmlFor="password" className={authLabelClass}>Contraseña nueva</label>
-            <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                id="password"
-                type="password"
-                required
-                minLength={6}
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={authFieldClass}
-              />
-            </div>
+      {success ? (
+        <div className="space-y-6 text-center animate-in fade-in duration-300">
+          <div className="flex justify-center text-accent-text mb-2">
+            <CheckCircle2 size={48} className="animate-bounce" />
           </div>
-          <div className="space-y-2">
-            <label htmlFor="confirm" className={authLabelClass}>Confirmar contraseña</label>
-            <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                id="confirm"
-                type="password"
-                required
-                minLength={6}
-                autoComplete="new-password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                className={authFieldClass}
-              />
-            </div>
-          </div>
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full min-h-12 mt-6 py-4 rounded-lg border border-accent text-accent text-[0.7rem] uppercase tracking-[0.3em] hover:bg-accent hover:text-accent-foreground transition-all duration-300 disabled:opacity-50"
-        >
-          {loading ? 'Guardando…' : 'Guardar contraseña'}
-        </button>
-        <p className="pt-2 text-center text-[0.7rem] text-muted-foreground">
+          <h3 className="text-lg font-light text-foreground">¡Contraseña restablecida!</h3>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Tu clave ha sido actualizada correctamente. Redirigiéndote al inicio de sesión...
+          </p>
           <Link
             href="/login"
-            className="inline-flex min-h-11 items-center text-foreground underline underline-offset-4 decoration-border hover:text-accent"
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-accent px-6 py-3 text-[0.7rem] uppercase tracking-[0.3em] text-accent-text hover:bg-accent hover:text-accent-foreground transition-all"
           >
-            Volver al login
+            Ir al inicio de sesión
           </Link>
-        </p>
-      </AuthFormPanel>
+        </div>
+      ) : (
+        <AuthFormPanel onSubmit={handleSubmit}>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <label htmlFor="password" className={authLabelClass}>Nueva contraseña</label>
+              <div className="relative group">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={authFieldClass}
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                  aria-label="Ver contraseña"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="confirm" className={authLabelClass}>Confirmar contraseña</label>
+              <div className="relative group">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
+                <input
+                  id="confirm"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  className={authFieldClass}
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full min-h-12 mt-6 py-4 rounded-lg border border-accent text-accent-text text-[0.7rem] uppercase tracking-[0.3em] hover:bg-accent hover:text-accent-foreground transition-all duration-300 disabled:opacity-50 cursor-pointer"
+          >
+            {loading ? 'Guardando…' : 'Guardar contraseña'}
+          </button>
+          <p className="pt-2 text-center text-[0.7rem] text-muted-foreground">
+            <Link
+              href="/login"
+              className="inline-flex min-h-11 items-center text-foreground underline underline-offset-4 decoration-border hover:text-accent"
+            >
+              Volver al login
+            </Link>
+          </p>
+        </AuthFormPanel>
+      )}
     </AuthShell>
   );
 }

@@ -50,7 +50,7 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
             <Link
               href="/catalogo"
-              className="inline-flex min-h-11 items-center font-medium text-accent hover:text-accent/80 md:hidden"
+              className="inline-flex min-h-11 items-center font-medium text-accent-text hover:text-accent/80 md:hidden"
             >
               ← Catálogo
             </Link>
@@ -85,7 +85,7 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
           <h1 className="mt-3 font-display text-2xl font-semibold leading-tight text-foreground text-balance sm:text-3xl lg:text-4xl">
             {product.name}
           </h1>
-          <p className="mt-3 font-display text-xl tabular-nums text-accent sm:text-2xl md:mt-4">
+          <p className="mt-3 font-display text-xl tabular-nums text-accent-text sm:text-2xl md:mt-4">
             {formatCLP(product.price)}
           </p>
 
@@ -104,22 +104,22 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
           {pdp.show_badges ? (
             <div className="mt-5 flex flex-wrap gap-2 sm:mt-6">
               {product.sustituye_azucar_g ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 px-3 py-1 text-[9px] uppercase tracking-wider text-accent/80">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 px-3 py-1 text-[9px] uppercase tracking-wider text-accent-text">
                   Sustituye ~{product.sustituye_azucar_g}g azúcar
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 px-3 py-1 text-[9px] uppercase tracking-wider text-accent/80">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 px-3 py-1 text-[9px] uppercase tracking-wider text-accent-text">
                   Sustituye azúcar refinada
                 </span>
               )}
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 px-3 py-1 text-[9px] uppercase tracking-wider text-success/80">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 px-3 py-1 text-[9px] uppercase tracking-wider text-success-text/80">
                 Bosque nativo
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-muted-foreground/20 px-3 py-1 text-[9px] uppercase tracking-wider text-muted-foreground/60">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-muted-foreground/30 px-3 py-1 text-[9px] uppercase tracking-wider text-muted-foreground">
                 Miel viva
               </span>
               {product.irr_referencia && product.irr_referencia > 1 ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 px-3 py-1 text-[9px] uppercase tracking-wider text-success/80">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 px-3 py-1 text-[9px] uppercase tracking-wider text-success-text/80">
                   IRR {product.irr_referencia}
                 </span>
               ) : null}
@@ -161,7 +161,7 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
 
           <Link
             href="/catalogo"
-            className="mt-8 inline-flex min-h-11 items-center text-sm font-medium text-accent hover:underline md:mt-10"
+            className="mt-8 inline-flex min-h-11 items-center text-sm font-medium text-accent-text hover:underline md:mt-10"
           >
             ← {continueLabel}
           </Link>

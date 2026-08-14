@@ -27,7 +27,7 @@ export function GuardianStampProgress({ programs }: { programs: StampProgressVie
               <p className="text-xs text-muted-foreground mt-1">{formatStampMessage(p)}</p>
             </div>
             {p.eligibleForFree && (
-              <span className="inline-flex items-center gap-1 text-xs text-success uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 text-xs text-success-text uppercase tracking-wider">
                 <Gift size={14} /> Gratis
               </span>
             )}

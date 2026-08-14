@@ -37,7 +37,7 @@ export function CanjeImpactoClient({ balance, tier, tierDisplay, rewards }: Canj
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text">
               <Gem size={20} />
             </div>
             <h1 className="font-display text-4xl font-light text-foreground">Canje Impacto</h1>
@@ -49,7 +49,7 @@ export function CanjeImpactoClient({ balance, tier, tierDisplay, rewards }: Canj
 
         <div className="flex flex-wrap gap-2">
           <div className="px-6 py-2 bg-accent/10 border border-accent/20 rounded-full">
-            <span className="text-[0.6rem] uppercase tracking-[0.3em] text-accent font-bold">
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] text-accent-text font-bold">
               {balance.toLocaleString('es-CL')} Puntos · {tierDisplay.loyaltyLabel}
             </span>
           </div>
@@ -86,7 +86,7 @@ export function CanjeImpactoClient({ balance, tier, tierDisplay, rewards }: Canj
                       ) : (
                         <Star size={16} className="text-accent" />
                       )}
-                      <span className="text-[0.6rem] uppercase tracking-[0.2em] text-accent font-bold">
+                      <span className="text-[0.6rem] uppercase tracking-[0.2em] text-accent-text font-bold">
                         {reward.points_cost.toLocaleString('es-CL')} pts
                       </span>
                     </div>
@@ -100,7 +100,7 @@ export function CanjeImpactoClient({ balance, tier, tierDisplay, rewards }: Canj
         </div>
 
         <div className="p-8 rounded-3xl bg-secondary/50 border border-border">
-          <h4 className="text-[0.65rem] uppercase tracking-[0.2em] font-bold text-accent mb-6">
+          <h4 className="text-[0.65rem] uppercase tracking-[0.2em] font-bold text-accent-text mb-6">
             Cómo Acumular
           </h4>
           <ul className="space-y-4 text-xs text-muted-foreground">

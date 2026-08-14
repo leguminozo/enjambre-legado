@@ -17,6 +17,8 @@ interface LandingProductsProps {
   pageSize?: number;
   /** Cabecera desde CMS (products_settings); si falta usa el copy hardcodeado. */
   header?: { kicker: string; title: string; desc: string };
+  imageAspectRatio?: string;
+  imageFit?: string;
 }
 
 export function LandingProducts({
@@ -28,6 +30,8 @@ export function LandingProducts({
     title: 'La materia de nuestras búsquedas',
     desc: 'Creaciones cargadas de experiencias y legado.',
   },
+  imageAspectRatio,
+  imageFit,
 }: LandingProductsProps) {
   const [page, setPage] = useState(1);
   const { add } = useCartLines();
@@ -35,6 +39,20 @@ export function LandingProducts({
   const totalPages = Math.max(1, Math.ceil(products.length / pageSize));
   const start = (page - 1) * pageSize;
   const pageProducts = products.slice(start, start + pageSize);
+
+  const aspectClassMap: Record<string, string> = {
+    '16/10': 'aspect-[16/10]',
+    '4/3': 'aspect-[4/3]',
+    '1/1': 'aspect-square',
+    '3/4': 'aspect-[3/4]',
+    'auto': 'aspect-auto',
+  };
+  const fitClassMap: Record<string, string> = {
+    cover: 'object-cover',
+    contain: 'object-contain p-2',
+  };
+  const aspectClass = aspectClassMap[imageAspectRatio || ''] || 'aspect-square';
+  const fitClass = fitClassMap[imageFit || ''] || 'object-cover';
 
   if (products.length === 0) {
     return (
@@ -45,7 +63,7 @@ export function LandingProducts({
           </p>
           <Link
             href="/catalogo"
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-accent bg-accent/10 px-8 py-3 text-editorial-xs uppercase tracking-widest text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+            className="inline-flex min-h-12 items-center justify-center rounded-full border border-accent bg-accent/10 px-8 py-3 text-editorial-xs uppercase tracking-widest text-accent-text hover:bg-accent hover:text-accent-foreground transition-colors"
           >
             Ir al catálogo
           </Link>
@@ -78,14 +96,14 @@ export function LandingProducts({
                 href={`/producto/${encodeURIComponent(p.slug)}`}
                 className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                <div className="relative aspect-square bg-card overflow-hidden">
+                <div className={`relative ${aspectClass} bg-card overflow-hidden`}>
                   {img ? (
                     <Image
                       src={img}
                       alt={p.name}
                       fill
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
-                      className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                      className={`${fitClass} transition duration-500 group-hover:scale-[1.03]`}
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center text-xs text-muted-foreground/60">
@@ -127,7 +145,7 @@ export function LandingProducts({
                     e.preventDefault();
                     add(p);
                   }}
-                  className="mt-auto pt-3 w-full min-h-[44px] py-3 border border-accent text-accent text-xs uppercase tracking-widest hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-md flex items-center justify-center gap-2 font-medium"
+                  className="mt-auto pt-3 w-full min-h-[44px] py-3 border border-accent text-accent-text text-xs uppercase tracking-widest hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-md flex items-center justify-center gap-2 font-medium"
                 >
                   <ShoppingBag size={14} />
                   Agregar
@@ -157,7 +175,7 @@ export function LandingProducts({
                 onClick={() => setPage(i + 1)}
                 className={`min-h-11 min-w-11 h-11 w-11 rounded-full flex items-center justify-center text-xs tracking-wider transition-all duration-base ${
                   page === i + 1
-                    ? 'bg-accent text-accent-foreground font-semibold'
+                    ? 'bg-primary text-primary-foreground font-semibold'
                     : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'
                 }`}
                 aria-label={`Página ${i + 1}`}
@@ -182,7 +200,7 @@ export function LandingProducts({
       <div className="text-center mt-8 px-4">
         <Link
           href="/catalogo"
-          className="inline-flex min-h-11 items-center gap-3 text-editorial-xs uppercase tracking-widest text-accent hover:text-accent/80 transition-colors duration-base"
+          className="inline-flex min-h-11 items-center gap-3 text-editorial-xs uppercase tracking-widest text-accent-text hover:text-accent/80 transition-colors duration-base"
         >
           Ver todas las creaciones <ArrowRight size={14} />
         </Link>

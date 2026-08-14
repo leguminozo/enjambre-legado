@@ -18,7 +18,7 @@ export function PerfilMobileHeader({ onOpenMenu }: PerfilMobileHeaderProps) {
   return (
     <header className="perfil-mobile-header lg:hidden flex items-center justify-between gap-3 px-4 sm:px-6 py-3 border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur-md pt-[max(0.75rem,var(--safe-top))]">
       <Link href="/perfil" className="flex flex-col min-w-0 min-h-11 justify-center group">
-        <span className="font-display text-[0.6rem] tracking-[0.28em] uppercase text-accent leading-none">
+        <span className="font-display text-[0.6rem] tracking-[0.28em] uppercase text-accent-text leading-none">
           {tNav('legacy')}
         </span>
         <span className="font-display text-sm tracking-tight text-foreground truncate group-hover:text-accent transition-colors">
@@ -45,7 +45,7 @@ export function PerfilMobileHeader({ onOpenMenu }: PerfilMobileHeaderProps) {
         >
           <ShoppingBag size={22} strokeWidth={1.75} />
           {itemCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-accent text-accent-foreground text-[0.55rem] font-bold flex items-center justify-center rounded-full">
+            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-primary text-primary-foreground text-[0.55rem] font-bold flex items-center justify-center rounded-full">
               {itemCount}
             </span>
           )}

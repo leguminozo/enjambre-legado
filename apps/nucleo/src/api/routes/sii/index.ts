@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { fetchTasaDolar, fetchTasaEuro, fetchTasaUF } from "@enjambre/contable";
-import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import { authMiddleware, requireProfileRole, tenantMiddleware } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 
 import { empresaRoutes } from "./empresa";
@@ -23,6 +23,28 @@ import { intercambioRoutes } from "./intercambio";
 export const siiRoutes = new Hono<{ Variables: AppVariables }>();
 
 siiRoutes.use("*", authMiddleware, tenantMiddleware);
+
+// Auditoría 2026-08-14 (C-4): la emisión de DTE y la gestión fiscal son
+// operaciones de admin. Antes, cualquier miembro del tenant (reps/cajeros)
+// podía emitir DTEs timbrados al SII con montos/RUT arbitrarios y quemar
+// folios CAF. /boletas (descarga de clientes), /openapi (docs) y
+// /trazabilidad (sin consumidores) quedan fuera del gate.
+siiRoutes.use("/dte/*", requireProfileRole("admin"));
+siiRoutes.use("/certificacion/*", requireProfileRole("admin"));
+siiRoutes.use("/caf/*", requireProfileRole("admin"));
+siiRoutes.use("/jobs/*", requireProfileRole("admin"));
+siiRoutes.use("/facturas-compra/*", requireProfileRole("admin"));
+siiRoutes.use("/gastos-extranjero/*", requireProfileRole("admin"));
+siiRoutes.use("/honorarios/*", requireProfileRole("admin"));
+siiRoutes.use("/rcv/*", requireProfileRole("admin"));
+siiRoutes.use("/f29/*", requireProfileRole("admin"));
+siiRoutes.use("/f22/*", requireProfileRole("admin"));
+siiRoutes.use("/certificados/*", requireProfileRole("admin"));
+siiRoutes.use("/rpetc/*", requireProfileRole("admin"));
+siiRoutes.use("/intercambio/*", requireProfileRole("admin"));
+siiRoutes.use("/empresa/*", requireProfileRole("admin"));
+siiRoutes.use("/dashboard", requireProfileRole("admin"));
+siiRoutes.use("/tasa-cambio", requireProfileRole("admin"));
 
 siiRoutes.route("/empresa", empresaRoutes);
 siiRoutes.route("/facturas-compra", facturasRoutes);

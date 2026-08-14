@@ -13,6 +13,8 @@ import { SeguridadSection } from './SeguridadSection';
 import { EmpresasSection } from './EmpresasSection';
 import { TerritorioSection } from './TerritorioSection';
 import { GuardianSection } from './GuardianSection';
+import { EnjambreConfigPanel } from '@/components/enjambre/EnjambreConfigPanel';
+import { EnjambreColmenaPanel } from '@/components/enjambre/EnjambreColmenaPanel';
 import { SistemaSection } from './SistemaSection';
 import {
   ROLE_LABELS,
@@ -153,7 +155,13 @@ export function ConfiguracionHub() {
           <GuardianSection {...perfil} />
         )}
         {activeSection === 'preferencias' && <PreferenciasTab />}
-        {activeSection === 'sistema' && allowedKeys.includes('sistema') && <SistemaSection />}
+        {activeSection === 'sistema' && allowedKeys.includes('sistema') && (
+          <div className="space-y-5">
+            <SistemaSection />
+            <EnjambreConfigPanel />
+            <EnjambreColmenaPanel />
+          </div>
+        )}
       </div>
     </div>
   );

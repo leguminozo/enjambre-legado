@@ -78,7 +78,7 @@ export function ProfileIdentityForm({ initialFullName, email }: ProfileIdentityF
       <button
         type="submit"
         disabled={isPending || fullName.trim() === initialFullName.trim()}
-        className="self-start px-6 py-3 rounded-xl bg-accent text-accent-foreground text-xs uppercase tracking-[0.15em] font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+        className="self-start px-6 py-3 rounded-xl bg-primary text-primary-foreground text-xs uppercase tracking-[0.15em] font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
       >
         {isPending ? 'Guardando…' : 'Guardar identidad'}
       </button>

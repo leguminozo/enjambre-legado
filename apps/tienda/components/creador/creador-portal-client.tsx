@@ -285,7 +285,7 @@ export function CreadorPortalClient() {
         </Link>
         <Link
           href={`/catalogo?ref=${encodeURIComponent(profile.codigo_ref)}`}
-          className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-3 py-1.5 text-[0.65rem] uppercase tracking-wide text-accent hover:bg-accent/15 transition-colors min-h-11"
+          className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-3 py-1.5 text-[0.65rem] uppercase tracking-wide text-accent-text hover:bg-accent/15 transition-colors min-h-11"
         >
           Link con mi código <ExternalLink size={12} />
         </Link>
@@ -319,7 +319,7 @@ export function CreadorPortalClient() {
       <div className="p-6 rounded-2xl bg-primary text-primary-foreground relative overflow-hidden">
         <p className="text-[0.7rem] uppercase tracking-widest opacity-60 mb-1">Tu código de referencia</p>
         <div className="flex flex-wrap items-center gap-3 mb-4">
-          <span className="text-3xl font-mono font-bold tracking-wider text-accent">{profile.codigo_ref}</span>
+          <span className="text-3xl font-mono font-bold tracking-wider text-accent-text">{profile.codigo_ref}</span>
           <button
             type="button"
             onClick={copyCode}
@@ -342,11 +342,11 @@ export function CreadorPortalClient() {
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
             <p className="text-[0.65rem] uppercase opacity-50">Descuento seguidores</p>
-            <p className="text-xl font-bold text-accent">{profile.descuento_cliente}%</p>
+            <p className="text-xl font-bold text-accent-text">{profile.descuento_cliente}%</p>
           </div>
           <div>
             <p className="text-[0.65rem] uppercase opacity-50">Tu comisión</p>
-            <p className="text-xl font-bold text-accent">{profile.porcentaje_comision}%</p>
+            <p className="text-xl font-bold text-accent-text">{profile.porcentaje_comision}%</p>
           </div>
           <div>
             <p className="text-[0.65rem] uppercase opacity-50">Usos del código</p>
@@ -363,7 +363,7 @@ export function CreadorPortalClient() {
           { icon: Gift, val: `$${Number(balance?.total_retirado || 0).toLocaleString('es-CL')}`, label: 'Total liquidado' },
         ].map((s, i) => (
           <div key={i} className="p-4 rounded-xl bg-card border border-border">
-            <s.icon size={18} className="text-accent mb-2" />
+            <s.icon size={18} className="text-accent-text mb-2" />
             <p className="text-lg font-bold font-mono">{s.val}</p>
             <p className="text-xs text-muted-foreground uppercase tracking-wider">{s.label}</p>
           </div>
@@ -415,7 +415,7 @@ export function CreadorPortalClient() {
                     <td className="p-3">{m.mes}</td>
                     <td className="p-3 text-right">{m.usos_codigo}</td>
                     <td className="p-3 text-right">${Number(m.ventas_generadas).toLocaleString('es-CL')}</td>
-                    <td className="p-3 text-right text-accent font-medium">
+                    <td className="p-3 text-right text-accent-text font-medium">
                       ${Number(m.comisiones_generadas).toLocaleString('es-CL')}
                     </td>
                   </tr>
@@ -442,7 +442,7 @@ export function CreadorPortalClient() {
                     {new Date(u.created_at).toLocaleDateString('es-CL')}
                   </p>
                 </div>
-                <p className="text-sm text-accent font-medium">
+                <p className="text-sm text-accent-text font-medium">
                   +${Number(u.comision_generada).toLocaleString('es-CL')}
                 </p>
               </div>

@@ -37,7 +37,7 @@ export default async function PasaportePage() {
           <p className="text-muted-foreground font-display italic text-lg mb-8">
             Aún no has vinculado tu legado a una colmena específica.
           </p>
-          <button className="px-8 py-4 bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold rounded-xl hover:scale-105 transition-all">
+          <button className="px-8 py-4 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold rounded-xl hover:scale-105 transition-all">
             Explorar Suscripciones
           </button>
         </div>
@@ -50,7 +50,7 @@ export default async function PasaportePage() {
               </div>
 
               <div className="relative z-10">
-                <span className="text-[0.6rem] uppercase tracking-[0.4em] text-accent mb-8 block">Estado Vital</span>
+                <span className="text-[0.6rem] uppercase tracking-[0.4em] text-accent-text mb-8 block">Estado Vital</span>
       <h3 className="font-display text-5xl text-foreground mb-4">{hive.name ?? ''}</h3>
       <div className="flex items-center gap-4 text-muted-foreground mb-8">
         <div className="flex items-center gap-2">
@@ -78,7 +78,7 @@ export default async function PasaportePage() {
             </div>
 
             <div className="p-8 rounded-3xl border border-border bg-secondary/30">
-              <h4 className="text-[0.7rem] uppercase tracking-[0.3em] text-accent mb-6">Bitácora Biocultural</h4>
+              <h4 className="text-[0.7rem] uppercase tracking-[0.3em] text-accent-text mb-6">Bitácora Biocultural</h4>
               <p className="text-sm text-muted-foreground leading-relaxed italic font-display">
                 "Las abejas de {hive.name ?? ''} han mostrado una actividad excepcional durante la floración del Ulmo.
                 La humedad relativa en el Sector Pureo ha favorecido una néctar de alta densidad que será

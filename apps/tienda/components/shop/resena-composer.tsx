@@ -29,7 +29,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
         >
           <Star
             size={22}
-            className={n <= value ? 'fill-accent text-accent' : 'text-muted-foreground/40'}
+            className={n <= value ? 'fill-accent text-accent-text' : 'text-muted-foreground/40'}
           />
         </button>
       ))}
@@ -176,7 +176,7 @@ export function ResenaComposer({
         type="button"
         onClick={() => setModo('guardian')}
         className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 min-h-[44px] text-sm transition ${
-          modo === 'guardian' ? 'bg-accent/15 text-accent' : 'text-muted-foreground'
+          modo === 'guardian' ? 'bg-accent/15 text-accent-text' : 'text-muted-foreground'
         }`}
       >
         <Sparkles size={16} />
@@ -231,11 +231,11 @@ export function ResenaComposer({
           </>
         ) : (
           <>
-            <p className="text-xs text-accent/80">{RESENA_COPY.guardianSubtitle}</p>
+            <p className="text-xs text-accent-text/80">{RESENA_COPY.guardianSubtitle}</p>
             {eligibilityLoading ? (
               <p className="text-xs text-muted-foreground italic">Verificando compra…</p>
             ) : eligibility?.compraVerificada ? (
-              <p className="text-xs text-success/90">Compra verificada — tu huella quedará marcada como Guardian.</p>
+              <p className="text-xs text-success-text/90">Compra verificada — tu huella quedará marcada como Guardian.</p>
             ) : eligibility?.reason ? (
               <p className="text-xs text-muted-foreground">{eligibility.reason}</p>
             ) : !isAuthenticated ? (

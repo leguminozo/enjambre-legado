@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { listVisibleProducts } from '@/lib/shop/products';
+import { B2B_SEGMENTS } from '@/lib/b2b/segment-content';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl =
@@ -18,7 +19,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/privacidad`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.2 },
     { url: `${siteUrl}/envio`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
     { url: `${siteUrl}/garantia`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${siteUrl}/origen/ulmo`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
   ];
+
+  const b2bRoutes: MetadataRoute.Sitemap = B2B_SEGMENTS.map((segment) => ({
+    url: `${siteUrl}/para/${segment}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
 
   try {
     const products = await listVisibleProducts();
@@ -28,8 +37,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     }));
-    return [...staticRoutes, ...productRoutes];
+    // Trazabilidad: diferenciador de marca; indexable por producto
+    const trazabilidadRoutes: MetadataRoute.Sitemap = products.map((product) => ({
+      url: `${siteUrl}/producto/${product.slug}/trazabilidad`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+    }));
+    return [...staticRoutes, ...b2bRoutes, ...productRoutes, ...trazabilidadRoutes];
   } catch {
-    return staticRoutes;
+    return [...staticRoutes, ...b2bRoutes];
   }
 }

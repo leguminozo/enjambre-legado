@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
+import { useLegacyDevice } from '@enjambre/ui';
 import cytoscape, { type Core, type ElementDefinition, type StylesheetCSS } from 'cytoscape';
 import type { NodoRedCuaderno, AristaRedCuaderno } from '@/lib/bitacora-types';
 import { cn } from '@/lib/cn';
@@ -187,6 +188,7 @@ export function LienzoSemantico({
   onConectarNodo,
   className,
 }: LienzoSemanticoProps) {
+  const { legacy } = useLegacyDevice();
   const contenedorRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<Core | null>(null);
 
@@ -267,7 +269,10 @@ export function LienzoSemantico({
     if (layout === 'radial') {
       cy.layout({ name: 'preset' }).run();
     } else {
-      cy.layout({ name: layout === 'cose' ? 'cose' : 'grid', padding: 60, animate: false }).run();
+      // 'cose' simula fuerzas físicas (caro con muchos nodos): en tier legacy
+      // se degrada a 'grid' para no congelar la pestaña en 2GB de RAM.
+      const effective = legacy && layout === 'cose' ? 'grid' : layout;
+      cy.layout({ name: effective === 'cose' ? 'cose' : 'grid', padding: 60, animate: false }).run();
     }
     cy.fit(undefined, 60);
 
@@ -278,7 +283,7 @@ export function LienzoSemantico({
       cy.destroy();
       cyRef.current = null;
     };
-  }, [nodos, aristas, layout, resaltarKey, nodoSeleccionadoId, modoConectar]);
+  }, [nodos, aristas, layout, resaltarKey, nodoSeleccionadoId, modoConectar, legacy]);
 
   return <div ref={contenedorRef} className={cn('w-full h-full', className)} />;
 }

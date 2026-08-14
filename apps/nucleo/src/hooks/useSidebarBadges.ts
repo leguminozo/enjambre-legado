@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useLegacyDevice } from '@enjambre/ui'
 import type { BadgeDotColor, SidebarBadge } from '../config/sidebar-config'
 import { supabase } from '../lib/supabase'
 
@@ -243,6 +244,7 @@ const BADGE_TABLES = [
 ] as const
 
 export function useSidebarBadges() {
+  const { legacy } = useLegacyDevice()
   const [badges, setBadges] = useState<SidebarBadgeValues>(() => readCache() ?? DEFAULT_BADGES)
   const [isLoading, setIsLoading] = useState(() => readCache() === null)
 
@@ -305,7 +307,9 @@ export function useSidebarBadges() {
   }, [fetchBadges])
 
   useEffect(() => {
-    if (!supabase) return
+    // Tier legacy: sin websocket global persistente (2GB de RAM); los badges
+    // se actualizan con refetch manual / polling de la vista.
+    if (!supabase || legacy) return
 
     // Refs vivos a lo largo del ciclo del efecto: canal activo, timer de backoff,
     // contador de reintentos y flag de desmonte para no reconectar tras cleanup.
@@ -407,7 +411,7 @@ export function useSidebarBadges() {
       }
       authSub.unsubscribe()
     }
-  }, [fetchBadgesDebounced])
+  }, [fetchBadgesDebounced, legacy])
 
   return { badges, isLoading, refetch: fetchBadges }
 }

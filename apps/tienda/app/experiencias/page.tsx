@@ -60,7 +60,7 @@ export default async function ExperienciasPage({
             {talleres.map((t) => (
               <div key={t.title} className="rounded-2xl border border-border bg-card p-5">
                 {t.date ? (
-                  <p className="text-[0.65rem] uppercase tracking-[0.3em] text-accent">
+                  <p className="text-[0.65rem] uppercase tracking-[0.3em] text-accent-text">
                     {t.date}
                   </p>
                 ) : null}
@@ -75,7 +75,7 @@ export default async function ExperienciasPage({
                 {isSafeAction(t.action) ? (
                   <Link
                     href={t.action}
-                    className="mt-4 inline-flex min-h-11 items-center text-xs font-bold uppercase tracking-wider text-accent underline underline-offset-4"
+                    className="mt-4 inline-flex min-h-11 items-center text-xs font-bold uppercase tracking-wider text-accent-text underline underline-offset-4"
                   >
                     Ver más →
                   </Link>
@@ -101,7 +101,7 @@ export default async function ExperienciasPage({
         </div>
         <Link
           href="/"
-          className="mt-8 inline-flex min-h-11 items-center text-sm text-accent underline underline-offset-2"
+          className="mt-8 inline-flex min-h-11 items-center text-sm text-accent-text underline underline-offset-2"
         >
           ← Inicio
         </Link>

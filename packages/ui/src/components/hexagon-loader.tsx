@@ -1,10 +1,6 @@
 'use client';
 
-import React, { useId, useRef } from 'react';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
-
-gsap.registerPlugin(useGSAP);
+import React, { useEffect, useId, useRef } from 'react';
 
 /** Hexágono regular centrado en viewBox 48×56 */
 const HEX_PATH = 'M24 4 L41.32 14 L41.32 42 L24 52 L6.68 42 L6.68 14 Z';
@@ -36,77 +32,86 @@ export function HexagonLoader({
   const isCampo = context === 'campo';
   const isNucleo = context === 'nucleo';
 
-  useGSAP(() => {
+  useEffect(() => {
     // Animaciones omitidas con prefers-reduced-motion (accesibilidad + perf en legacy).
-    const mm = gsap.matchMedia();
-    mm.add('(prefers-reduced-motion: no-preference)', () => {
-      // 1. Trazado del contorno (Light Trail)
-      if (strokeRef.current) {
-        gsap.fromTo(
-          strokeRef.current,
-          { strokeDashoffset: 1 },
-          {
-            strokeDashoffset: -1,
-            duration: isTienda ? 3.5 : 2.5,
-            ease: 'power1.inOut',
+    let cancelled = false;
+    let revert: (() => void) | undefined;
+    (async () => {
+      const { gsap } = await import('gsap');
+      if (cancelled) return;
+      const mm = gsap.matchMedia();
+      revert = () => mm.revert();
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        // 1. Trazado del contorno (Light Trail)
+        if (strokeRef.current) {
+          gsap.fromTo(
+            strokeRef.current,
+            { strokeDashoffset: 1 },
+            {
+              strokeDashoffset: -1,
+              duration: isTienda ? 3.5 : 2.5,
+              ease: 'power1.inOut',
+              repeat: -1,
+            }
+          );
+        }
+
+        // 2. Rotación lenta y elegante del hexágono interno (Geometría Sagrada)
+        if (innerRef.current) {
+          gsap.to(innerRef.current, {
+            rotation: 360,
+            duration: isTienda ? 16 : 12,
+            ease: 'none',
             repeat: -1,
-          }
-        );
-      }
+          });
+        }
 
-      // 2. Rotación lenta y elegante del hexágono interno (Geometría Sagrada)
-      if (innerRef.current) {
-        gsap.to(innerRef.current, {
-          rotation: 360,
-          duration: isTienda ? 16 : 12,
-          ease: 'none',
-          repeat: -1,
-        });
-      }
-
-      // Segundo hexágono interno con rotación inversa para Núcleo (Estética Red/Constelación)
-      if (innerRef2.current && isNucleo) {
-        gsap.to(innerRef2.current, {
-          rotation: -360,
-          duration: 20,
-          ease: 'none',
-          repeat: -1,
-        });
-      }
-
-      // 3. Núcleo Existencial ("La Reina/El Origen") - Respiración orgánica
-      if (coreRef.current) {
-        gsap.fromTo(
-          coreRef.current,
-          { scale: 0.8, opacity: 0.2 },
-          {
-            scale: 1.25,
-            opacity: 0.85,
-            duration: 2.5,
-            ease: 'sine.inOut',
+        // Segundo hexágono interno con rotación inversa para Núcleo (Estética Red/Constelación)
+        if (innerRef2.current && isNucleo) {
+          gsap.to(innerRef2.current, {
+            rotation: -360,
+            duration: 20,
+            ease: 'none',
             repeat: -1,
-            yoyo: true,
-          }
-        );
-      }
+          });
+        }
 
-      // 4. Sutil flotación tridimensional general
-      if (svgRef.current) {
-        gsap.fromTo(
-          svgRef.current,
-          { y: -0.75 },
-          {
-            y: 0.75,
-            duration: 3,
-            ease: 'sine.inOut',
-            repeat: -1,
-            yoyo: true,
-          }
-        );
-      }
+        // 3. Núcleo Existencial ("La Reina/El Origen") - Respiración orgánica
+        if (coreRef.current) {
+          gsap.fromTo(
+            coreRef.current,
+            { scale: 0.8, opacity: 0.2 },
+            {
+              scale: 1.25,
+              opacity: 0.85,
+              duration: 2.5,
+              ease: 'sine.inOut',
+              repeat: -1,
+              yoyo: true,
+            }
+          );
+        }
+
+        // 4. Sutil flotación tridimensional general
+        if (svgRef.current) {
+          gsap.fromTo(
+            svgRef.current,
+            { y: -0.75 },
+            {
+              y: 0.75,
+              duration: 3,
+              ease: 'sine.inOut',
+              repeat: -1,
+              yoyo: true,
+            }
+          );
+        }
+      });
+    })().catch(() => {
+      // Chunk de gsap fallido: el hexágono queda estático (degradación aceptable).
     });
-    return () => mm.revert();
-  }, { scope: svgRef, dependencies: [context] });
+    return () => revert?.();
+  }, [context]);
 
   return (
     <svg

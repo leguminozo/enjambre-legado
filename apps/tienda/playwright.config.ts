@@ -28,6 +28,20 @@ export default defineConfig({
       name: 'mobile-safari',
       use: { ...devices['iPhone 14'] },
     },
+    {
+      // iPhone 7 (iOS 15.8): emulación con chromium para que corra en CI sin
+      // webkit (macOS 13 no soporta el build de Playwright WebKit). El UA
+      // iOS 15.8 activa el tier legacy (data-legacy="true") en el layout.
+      name: 'iphone-7',
+      use: {
+        viewport: { width: 375, height: 667 },
+        userAgent:
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 15_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.8 Mobile/15E148 Safari/604.1',
+        isMobile: true,
+        hasTouch: true,
+        deviceScaleFactor: 2,
+      },
+    },
   ],
   webServer: {
     command: 'pnpm dev',

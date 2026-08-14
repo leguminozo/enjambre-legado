@@ -8,11 +8,12 @@ import {
   type PricingCartItemInput,
   type PricingProductRow,
 } from '@enjambre/pricing'
-import { resolveOyzRole } from '@/lib/shop/role'
 import { createClient } from '@/utils/supabase/server'
-
-export type CartItemInput = PricingCartItemInput
-export type { CartPricing, ComputedLineItem }
+// Solo exportar la función acción: los type-only exports en archivos "use
+// server" se registran como server references por el Flight loader de Next y
+// explotan en runtime (ReferenceError: CartPricing is not defined) al no
+// existir binding. Los tipos se importan directo de @enjambre/pricing.
+type CartItemInput = PricingCartItemInput
 
 export async function calculateCartPricing(items: CartItemInput[]): Promise<CartPricing> {
   if (!items.length) {
@@ -21,7 +22,30 @@ export async function calculateCartPricing(items: CartItemInput[]): Promise<Cart
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const role = normalizeCommercialRole(await resolveOyzRole(user));
+  // El rol de PRICING sale SOLO del JWT (app_metadata.oyz_role, puesto por el
+  // hook custom_access_token): el fallback por header x-oyz-role de
+  // resolveOyzRole sirve para render, pero en server actions el cliente puede
+  // enviar headers custom y autodeclararse embajador (30% off). Un carrito
+  // anónimo (sin JWT) siempre es comprador.
+  const role = normalizeCommercialRole(
+    user?.app_metadata?.oyz_role as string | undefined,
+  );
+
+  // Multiplicadores desde la config central (beneficios_enjambre): el admin
+  // de núcleo los corrige sin deploy; la fila ausente cae al default histórico.
+  const { data: configRows } = await supabase
+    .from('beneficios_enjambre')
+    .select('clave, valor_numerico');
+  const config = new Map(
+    (configRows ?? []).map((r) => [String(r.clave), Number(r.valor_numerico)]),
+  );
+  const multipliers = {
+    embajador: config.get('mult_embajador') ?? 0.7,
+    revendedor: config.get('mult_revendedor') ?? 0.8,
+    suscriptor: config.get('mult_suscriptor') ?? 0.9,
+    volumen: config.get('mult_volumen') ?? 0.95,
+    volumenPedidos: config.get('volumen_pedidos') ?? 10,
+  };
 
   const productIds = items.map((i) => i.product_id);
 
@@ -62,5 +86,5 @@ export async function calculateCartPricing(items: CartItemInput[]): Promise<Cart
     };
   });
 
-  return computeCartPricing(items, rows, role, pastOrdersCount);
+  return computeCartPricing(items, rows, role, pastOrdersCount, multipliers);
 }

@@ -64,7 +64,10 @@ export function WorldMapBlock({ mapSettings = DEFAULT_MAP_SETTINGS }: { mapSetti
       iconAnchor: [9, 9],
     });
 
-    L.marker([lat, lng], { icon: markerIcon })
+    // keyboard:false — el marker es decorativo (el popup se abre al click y
+    // el mapa completo abre Google Maps); sin tabindex/role=button evita el
+    // foco fantasma en el tab order.
+    L.marker([lat, lng], { icon: markerIcon, keyboard: false })
       .addTo(mapInstance.current)
       .bindPopup(
         `<strong style="font-family:Inter,sans-serif">${escapeHtml(popup_title)}</strong><br/>${escapeHtml(popup_body)}`,
@@ -106,7 +109,7 @@ export function WorldMapBlock({ mapSettings = DEFAULT_MAP_SETTINGS }: { mapSetti
       </div>
 
       <div className="editorial-container text-center max-w-2xl mx-auto">
-        <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent/70 mb-6">
+        <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent-text mb-6">
           {mapSettings.popup_title} — {mapSettings.popup_body}
         </p>
         <p className="font-display italic text-xl md:text-2xl text-foreground leading-relaxed mb-10">
@@ -114,7 +117,7 @@ export function WorldMapBlock({ mapSettings = DEFAULT_MAP_SETTINGS }: { mapSetti
         </p>
         <Link
           href="/nosotros"
-          className="inline-flex min-h-12 items-center gap-3 border border-accent text-accent px-8 py-4 text-editorial-xs uppercase tracking-widest hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-md font-medium"
+          className="inline-flex min-h-12 items-center gap-3 border border-accent text-accent-text px-8 py-4 text-editorial-xs uppercase tracking-widest hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-md font-medium"
         >
           Nuestra Historia
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>

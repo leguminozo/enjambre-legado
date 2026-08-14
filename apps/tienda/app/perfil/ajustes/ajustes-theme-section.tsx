@@ -15,7 +15,7 @@ export function AjustesThemeSection() {
 
   return (
     <section className="space-y-8">
-      <div className="flex items-center gap-3 text-accent">
+      <div className="flex items-center gap-3 text-accent-text">
         {resolvedTheme === 'light' ? <Sun size={18} /> : <Moon size={18} />}
         <h3 className="text-[0.65rem] uppercase tracking-[0.2em] font-bold">Apariencia</h3>
       </div>
@@ -28,7 +28,7 @@ export function AjustesThemeSection() {
             onClick={() => setTheme(t.value)}
             className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
               theme === t.value
-                ? 'border-accent bg-accent/10 text-accent'
+                ? 'border-accent bg-accent/10 text-accent-text'
                 : 'border-border bg-secondary hover:border-accent/50'
             }`}
           >

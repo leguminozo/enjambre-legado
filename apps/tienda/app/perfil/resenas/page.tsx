@@ -80,12 +80,12 @@ export default function PerfilResenasPage() {
                         <Star
                           key={i}
                           size={12}
-                          className={i < r.rating ? 'fill-accent text-accent' : 'text-muted-foreground/30'}
+                          className={i < r.rating ? 'fill-accent text-accent-text' : 'text-muted-foreground/30'}
                         />
                       ))}
                     </div>
                     {r.modo === 'guardian' && (
-                      <span className="inline-flex items-center gap-1 text-[10px] text-accent uppercase">
+                      <span className="inline-flex items-center gap-1 text-[10px] text-accent-text uppercase">
                         <ShieldCheck size={12} /> Guardian
                       </span>
                     )}
@@ -101,7 +101,7 @@ export default function PerfilResenasPage() {
               <div className="flex flex-wrap gap-3 mt-3 text-xs text-muted-foreground">
                 {r.venta_id && <span>Compra verificada</span>}
                 {r.ciclos_otorgados > 0 && (
-                  <span className="text-success">+{r.ciclos_otorgados} ciclos</span>
+                  <span className="text-success-text">+{r.ciclos_otorgados} ciclos</span>
                 )}
                 <span>{new Date(r.created_at).toLocaleDateString('es-CL')}</span>
               </div>

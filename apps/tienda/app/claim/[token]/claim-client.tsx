@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { formatCLP } from '@/lib/shop/format';
 import { authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
-import { friendlySupabaseError, HexagonLoader } from '@enjambre/ui';
+import { friendlySupabaseError, HexagonLoader, BrandWordmark } from '@enjambre/ui';
 import { Sparkles, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
@@ -90,9 +90,9 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
           </div>
           <h1 className="font-display text-[clamp(2rem,8vw,3rem)] mb-4 text-balance">¡Legado Reclamado!</h1>
           <p className="text-muted-foreground text-base sm:text-xl font-light mb-8 text-pretty">
-            Has sumado <span className="text-accent font-bold">{points} puntos</span> a tu cuenta.
+            Has sumado <span className="text-accent-text font-bold">{points} ciclos de Legado</span> a tu cuenta.
           </p>
-          <div className="flex items-center justify-center gap-2 text-accent text-sm tracking-widest uppercase font-bold">
+          <div className="flex items-center justify-center gap-2 text-accent-text text-sm tracking-widest uppercase font-bold">
             Redirigiendo a tu bóveda <HexagonLoader size="sm" />
           </div>
         </div>
@@ -106,12 +106,12 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
 
       <div className="tienda-auth-inner max-w-md w-full space-y-10 sm:space-y-12">
         <div className="text-center">
-          <p className="text-[0.6rem] uppercase tracking-[0.4em] text-accent font-bold mb-6">Fidelización Cíclica</p>
+          <p className="text-[0.6rem] uppercase tracking-[0.4em] text-accent-text font-bold mb-6">Fidelización Cíclica</p>
           <h1 className="font-display text-[clamp(1.75rem,7vw,3rem)] md:text-5xl font-light tracking-tight mb-4 text-balance">
-            Reclama tu <span className="italic text-accent">impacto</span>
+            Reclama tu <span className="italic text-accent-text">impacto</span>
           </h1>
           <p className="text-muted-foreground font-light leading-relaxed">
-            Has adquirido productos del bosque nativo. Al reclamar este ticket, sumas puntos y apoyas la regeneración biocultural.
+            Has adquirido productos del bosque nativo. Al reclamar este ticket, sumas ciclos de Legado y apoyas la regeneración biocultural.
           </p>
         </div>
 
@@ -120,7 +120,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
             <div className="flex justify-between items-end">
               <div>
                 <p className="text-[0.6rem] uppercase tracking-widest text-muted-foreground mb-1">Recompensa</p>
-                <p className="text-2xl font-display text-accent">{points} Puntos Guardián</p>
+                <p className="text-2xl font-display text-accent-text">{points} Puntos Guardián</p>
               </div>
               <div className="text-right">
                 <p className="text-[0.6rem] uppercase tracking-widest text-muted-foreground mb-1">Total Compra</p>
@@ -157,7 +157,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full min-h-[48px] py-4 rounded-lg bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold hover:bg-foreground transition-all disabled:opacity-50"
+                className="w-full min-h-[48px] py-4 rounded-lg bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold hover:bg-foreground transition-all disabled:opacity-50"
               >
                 {loading ? 'Enviando enlace...' : 'Continuar con enlace mágico'}
               </button>
@@ -165,7 +165,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
           ) : (
             <div className="space-y-6">
               <div className="flex items-center gap-3 p-4 bg-secondary rounded-lg border border-border">
-                <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center text-accent">
+                <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center text-accent-text">
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div>
@@ -191,16 +191,14 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
 
           {message && (
             <div className={`mt-6 p-4 text-[0.7rem] border ${
-              message.type === 'error' ? 'border-destructive/30 bg-destructive/10 text-destructive' : 'border-success/30 bg-success/10 text-success'
+              message.type === 'error' ? 'border-destructive/30 bg-destructive/10 text-destructive' : 'border-success/30 bg-success/10 text-success-text'
             }`}>
               {message.text}
             </div>
           )}
         </div>
 
-        <p className="text-center text-[0.6rem] tracking-[0.2em] text-muted-foreground uppercase">
-          Enjambre Legado • Biocultural Regeneration
-        </p>
+        <BrandWordmark name="La Obrera y el Zángano" ecosystem="Enjambre Legado" />
       </div>
     </div>
   );

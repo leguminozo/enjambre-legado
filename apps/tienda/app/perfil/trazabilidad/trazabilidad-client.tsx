@@ -51,7 +51,7 @@ export function TrazabilidadClient({ initialLote, anchor, error }: TrazabilidadC
           <button
             type="submit"
             disabled={isSearching || !loteId.trim()}
-            className="bg-accent text-accent-foreground px-6 py-3 rounded-xl text-sm font-bold tracking-widest uppercase hover:shadow-glow transition-all disabled:opacity-50 disabled:hover:shadow-none flex items-center justify-center min-w-[120px]"
+            className="bg-primary text-primary-foreground px-6 py-3 rounded-xl text-sm font-bold tracking-widest uppercase hover:shadow-glow transition-all disabled:opacity-50 disabled:hover:shadow-none flex items-center justify-center min-w-[120px]"
           >
             {isSearching ? <Loader2 size={18} className="animate-spin" /> : 'Verificar'}
           </button>

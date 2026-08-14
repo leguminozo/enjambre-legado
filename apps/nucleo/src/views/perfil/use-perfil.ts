@@ -144,7 +144,7 @@ export function usePerfil() {
       const path = `avatars/${profile.id}/${Date.now()}.${ext}`;
       const { error: uploadErr } = await supabase.storage
         .from("avatars")
-        .upload(path, file, { upsert: true });
+        .upload(path, file, { upsert: true, cacheControl: '31536000' });
       if (uploadErr) throw uploadErr;
       const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
       const { error: updateErr } = await supabase

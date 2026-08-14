@@ -11,6 +11,13 @@ import {
   type FeriaSaleItem,
 } from "@/api/lib/feria-pos";
 import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
+import {
+  buildBatchStockPayload,
+  decrementoSerialFallback,
+  mapStockRows,
+  restaurarStock,
+  type StockMapping,
+} from "@/api/lib/rep-ventas-stock";
 import { registerDeliveredQrCodes } from "@/lib/sale-qr";
 import { registrarEventoFid, resolverPuntoVendedor } from "./b2b";
 import { getCafMinFolios, getFoliosRestantes } from "@/api/lib/fiscal/caf-guard";
@@ -284,41 +291,36 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     }
   }
 
-  // 1. Descontar stock de productos y obtener hash de trazabilidad
-  const enrichedItems = [];
-  const decremented: { productId: string; quantity: number }[] = [];
-  for (const item of items) {
-    const { data: stockData, error: stockErr } = await supabase.rpc("decrement_stock_force", {
-      p_id: item.producto_id,
-      p_qty: item.cantidad,
-    });
+  // 1. Descontar stock de productos y obtener hash de trazabilidad.
+  //    Un solo RPC batch (atómico: cualquier error revierte todo) en vez de N
+  //    llamadas seriales a decrement_stock_force. Si la función batch aún no
+  //    está en la DB (orden de despliegue), fallback serial legacy.
+  type CartLine = (typeof items)[number];
+  let mapping: StockMapping<CartLine>;
 
-    if (stockErr || !stockData || (stockData as unknown[]).length === 0) {
-      for (const d of decremented) {
-        const { data: product } = await supabase.from("productos").select("stock").eq("id", d.productId).maybeSingle();
-        if (product?.stock != null) {
-          await supabase.from("productos").update({ stock: product.stock + d.quantity }).eq("id", d.productId);
-        }
-      }
+  const { data: stockRows, error: stockErr } = await rpcLoose(supabase, "decrement_stock_force_batch", {
+    p_items: buildBatchStockPayload(items),
+  });
+
+  if (stockErr || !Array.isArray(stockRows)) {
+    const fb = await decrementoSerialFallback(supabase, items);
+    if (!fb.ok || !fb.mapping) {
       return c.json({ code: "stock_insufficient", message: "Stock insuficiente en almacén" }, 409);
     }
+    mapping = fb.mapping;
+  } else {
+    mapping = mapStockRows(items, stockRows as unknown as Array<{
+      id?: string;
+      stock?: number | null;
+      lote_id?: string | null;
+      traceability_hash?: string | null;
+    }>);
+  }
 
-    decremented.push({ productId: item.producto_id, quantity: item.cantidad });
+  const { enriched: enrichedItems, decremented, negativeStock } = mapping;
 
-    const dataAny = stockData as Array<{ traceability_hash?: string; lote_id?: string; stock?: number }>;
-    const hash = dataAny[0]?.traceability_hash ?? null;
-    const lote_id = dataAny[0]?.lote_id ?? null;
-    const currentStock = dataAny[0]?.stock ?? 0;
-
-    if (currentStock < 0) {
-      console.warn(`[SyncEngine] Sobregiro de inventario en POS offline: producto ${item.producto_id} quedó con stock ${currentStock}.`);
-    }
-
-    enrichedItems.push({
-      ...item,
-      traceability_hash: hash,
-      lote_id: lote_id,
-    });
+  for (const n of negativeStock) {
+    console.warn(`[SyncEngine] Sobregiro de inventario en POS offline: producto ${n.productId} quedó con stock ${n.stock}.`);
   }
 
   // Meta de descuento al final del array (auditable; consumidores filtran por producto_id)
@@ -367,12 +369,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     .single();
 
   if (ventaError) {
-    for (const d of decremented) {
-      const { data: product } = await supabase.from("productos").select("stock").eq("id", d.productId).maybeSingle();
-      if (product?.stock != null) {
-        await supabase.from("productos").update({ stock: product.stock + d.quantity }).eq("id", d.productId);
-      }
-    }
+    await restaurarStock(supabase, decremented);
     return c.json({ code: "venta_create_failed", message: ventaError.message }, 400);
   }
 
@@ -418,12 +415,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     )) as Record<string, unknown>;
   } catch (err) {
     await supabase.from("ventas").delete().eq("id", venta.id);
-    for (const d of decremented) {
-      const { data: product } = await supabase.from("productos").select("stock").eq("id", d.productId).maybeSingle();
-      if (product?.stock != null) {
-        await supabase.from("productos").update({ stock: product.stock + d.quantity }).eq("id", d.productId);
-      }
-    }
+    await restaurarStock(supabase, decremented);
     const message = err instanceof Error ? err.message : "Error aplicando consignación feria";
     return c.json({ code: "feria_apply_failed", message }, 409);
   }

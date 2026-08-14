@@ -38,6 +38,8 @@ export { ThemeProvider } from './components/ThemeProvider';
 export { ThemeInitScript, themeInitScript } from './components/theme-init-script';
 export { LegacyBrowserPolyfills, legacyBrowserPolyfillsScript } from './components/legacy-browser-polyfills';
 export { ErrorRevealHarness, errorRevealHarnessScript } from './components/error-reveal-harness';
+export { LegacyDeviceDetect, legacyDeviceScript } from './components/legacy-device-detect';
+export { useLegacyDevice, type LegacyDeviceState } from './hooks/use-legacy-device';
 export { ThemeToggle } from './components/theme-toggle';
 export { SidebarSection, SidebarNavItem, SidebarBadgeIndicator, type SidebarNavItemData, type SidebarBadgeValue, type BadgeDotColor } from './components/sidebar';
 export { ModuleHero } from './components/module-hero';

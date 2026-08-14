@@ -86,7 +86,13 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   experimental: {
-    optimizePackageImports: ["lucide-react", "framer-motion", "@tanstack/react-query"],
+    optimizePackageImports: [
+      "@enjambre/ui",
+      "lucide-react",
+      "framer-motion",
+      "@tanstack/react-query",
+      "date-fns",
+    ],
   },
   turbopack: {},
   transpilePackages: [
@@ -106,6 +112,8 @@ const nextConfig: NextConfig = {
   ],
   serverExternalPackages: ["gsap", "meyda", "sharp"],
   images: {
+    loader: "custom",
+    loaderFile: "./image-loader.ts",
     remotePatterns: [
       { protocol: "https", hostname: "**.supabase.co" },
       { protocol: "https", hostname: "**.googleusercontent.com" },

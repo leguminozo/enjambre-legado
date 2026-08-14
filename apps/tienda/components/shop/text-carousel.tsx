@@ -211,7 +211,7 @@ export function TextCarousel() {
               const href = slide.href;
               const isExternal = /^https?:\/\//i.test(href) || href.startsWith('//');
               const linkClass =
-                'inline-flex min-h-11 items-center ml-1 text-accent underline underline-offset-4 decoration-accent/40 hover:decoration-accent transition-colors duration-300 font-semibold not-italic';
+                'inline-flex min-h-11 items-center ml-1 text-accent-text underline underline-offset-4 decoration-accent/40 hover:decoration-accent transition-colors duration-300 font-semibold not-italic';
               if (isExternal) {
                 return (
                   <a

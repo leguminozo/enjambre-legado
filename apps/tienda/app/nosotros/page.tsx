@@ -3,7 +3,8 @@ import Image from 'next/image';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { getSiteContent } from '@/lib/cms';
+import { getSiteContent, getSiteContentBatch } from '@/lib/cms';
+import { parseNosotrosSettings } from '@/lib/shop/store-chrome';
 import { articleJsonLd, breadcrumbJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { X } from 'lucide-react';
@@ -116,11 +117,6 @@ fuente: 'EVIDENCIA CIENTÍFICA'
 titulo: 'Obesidad Nacional',
 texto: '78% de prevalencia en 2017.',
 fuente: 'EVIDENCIA CIENTÍFICA'
-},
-{
-titulo: 'Azúcar Latam',
-texto: 'Consumo excesivo (99.4 g/día promedio).',
-fuente: 'EVIDENCIA CIENTÍFICA'
 }
 ]
 }
@@ -128,10 +124,19 @@ fuente: 'EVIDENCIA CIENTÍFICA'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
 
+const aspectClassMap: Record<string, string> = {
+  '16/10': 'aspect-[16/10]',
+  '16/9': 'aspect-[16/9]',
+  '4/3': 'aspect-[4/3]',
+  '1/1': 'aspect-square',
+  '3/4': 'aspect-[3/4]',
+  'auto': 'aspect-auto',
+};
+
 export const metadata: Metadata = {
-  title: 'Nuestra Historia',
+  title: 'Nuestra Historia · La Obrera y el Zángano',
   description:
-    '22 años de regeneración en Chiloé. Apicultura regenerativa, reforestación nativa y miel cruda del bosque valdiviano — La Obrera y el Zángano.',
+    '22 años de regeneración en Chiloé. Apicultura regenerativa, reforestación nativa y miel cruda del bosque valdiviano.',
   alternates: { canonical: `${SITE_URL}/nosotros` },
   openGraph: {
     title: 'Nuestra Historia · La Obrera y el Zángano',
@@ -156,19 +161,20 @@ export default async function NosotrosPage({
   searchParams: Promise<{ cms_preview?: string }>;
 }) {
   const draft = (await searchParams).cms_preview === '1';
-  // Hero editable desde el Editor de Tienda (site_content 'nosotros').
-  // Vacío = copy hardcodeado actual; la evidencia científica ahora también es
-  // editable (site_content 'ciencia') con fallback al array hardcodeado.
-  const cmsRows = await getSiteContent('nosotros', { draft });
+  const batch = await getSiteContentBatch(['nosotros', 'nosotros_settings'], { draft });
+  const cmsRows = batch.nosotros ?? [];
+  const nosotrosSettings = parseNosotrosSettings((batch.nosotros_settings?.[0]?.content as Record<string, unknown>) ?? null);
+
   const cms = cmsRows[0]?.content as Record<string, unknown> | undefined;
+  const heroKicker = nosotrosSettings.kicker || 'Nuestra Historia';
   const heroTitle =
     typeof cms?.title === 'string' && cms.title.trim()
       ? cms.title
-      : 'Renacer de las Cenizas en Chiloé';
+      : (nosotrosSettings.title || 'Renacer de las Cenizas en Chiloé');
   const heroDesc =
     typeof cms?.desc === 'string' && cms.desc.trim()
       ? cms.desc
-      : 'Regeneración, Legado y Miel Artesanal del Bosque Patagónico de Chiloé';
+      : (nosotrosSettings.subtitle || 'Regeneración, Legado y Miel Artesanal del Bosque Patagónico de Chiloé');
   const heroImage =
     typeof cms?.image === 'string' && cms.image.startsWith('http') ? cms.image : null;
   const historia =
@@ -177,6 +183,9 @@ export default async function NosotrosPage({
     typeof cms?.mision === 'string' && cms.mision.trim() ? cms.mision : null;
   const vision =
     typeof cms?.vision === 'string' && cms.vision.trim() ? cms.vision : null;
+
+  const aspectClass = aspectClassMap[nosotrosSettings.image_aspect_ratio] || 'aspect-[16/9]';
+  const fitClass = nosotrosSettings.image_fit === 'contain' ? 'object-contain p-4' : 'object-cover';
 
   // Stats: etiqueta/valor desde CMS con fallback a los valores actuales
   const statDefs = [
@@ -218,15 +227,18 @@ export default async function NosotrosPage({
     if (!titulo && !texto) return acc;
     const categoria =
       typeof item.categoria === 'string' && item.categoria.trim()
-        ? item.categoria
-        : 'Evidencia';
+        ? (item.categoria as string)
+        : 'Evidencia Científica';
     const fuente =
       typeof item.fuente === 'string' && item.fuente.trim()
-        ? item.fuente
+        ? (item.fuente as string)
         : 'EVIDENCIA CIENTÍFICA';
-    const existing = acc.find((g) => g.categoria === categoria);
-    if (existing) existing.evidencias.push({ titulo, texto, fuente });
-    else acc.push({ categoria, evidencias: [{ titulo, texto, fuente }] });
+    let group = acc.find((g) => g.categoria === categoria);
+    if (!group) {
+      group = { categoria, evidencias: [] };
+      acc.push(group);
+    }
+    group.evidencias.push({ titulo, texto, fuente });
     return acc;
   }, []);
 
@@ -249,23 +261,23 @@ export default async function NosotrosPage({
       <ShopHeader />
       <JsonLd data={nosotrosJsonLd} />
       <main className="mx-auto max-w-5xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 lg:py-24">
-{/* Hero */}
-<div className="text-center mb-16 md:mb-20">
-<span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent mb-6">
-Nuestra Historia
-</span>
-<h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 md:mb-8 text-balance">
-{heroTitle}
-</h1>
-<p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
-{heroDesc}
-</p>
-{heroImage ? (
-  <div className="relative aspect-[16/9] max-w-4xl mx-auto mt-8 rounded-[var(--tienda-radius,0.5rem)] overflow-hidden border border-border/30">
-    <Image src={heroImage} alt={heroTitle} fill sizes="(max-width: 1024px) 100vw, 896px" className="object-cover" />
-  </div>
-) : null}
-</div>
+        {/* Hero */}
+        <div className="text-center mb-16 md:mb-20">
+          <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-6">
+            {heroKicker}
+          </span>
+          <h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 md:mb-8 text-balance">
+            {heroTitle}
+          </h1>
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
+            {heroDesc}
+          </p>
+          {heroImage ? (
+            <div className={`relative ${aspectClass} max-w-4xl mx-auto mt-8 rounded-[var(--tienda-radius,0.5rem)] overflow-hidden border border-border/30`}>
+              <Image src={heroImage} alt={heroTitle} fill sizes="(max-width: 1024px) 100vw, 896px" className={fitClass} />
+            </div>
+          ) : null}
+        </div>
 
 {/* Main Story - Texto completo (CMS 'historia' con fallback al texto hardcodeado) */}
 {historia ? (
@@ -280,7 +292,7 @@ Nuestra Historia
     <div className="mt-12 flex justify-center">
       <a
         href="#evidencia"
-        className="group relative inline-flex min-h-12 items-center justify-center px-8 py-4 border border-accent text-accent uppercase tracking-[0.2em] text-xs hover:bg-accent hover:text-accent-foreground transition-all duration-500"
+        className="group relative inline-flex min-h-12 items-center justify-center px-8 py-4 border border-accent text-accent-text uppercase tracking-[0.2em] text-xs hover:bg-accent hover:text-accent-foreground transition-all duration-500"
       >
         Ver Evidencia Científica
       </a>
@@ -288,7 +300,7 @@ Nuestra Historia
   </div>
 ) : null}
 <div className={`prose prose-lg prose-invert max-w-none mb-24 ${historia ? 'hidden' : ''}`}>
-<div className="text-sm text-accent uppercase tracking-[0.2em] mb-4">2 de julio de 2025</div>
+<div className="text-sm text-accent-text uppercase tracking-[0.2em] mb-4">2 de julio de 2025</div>
 <p className="text-lg md:text-xl leading-relaxed text-muted-foreground whitespace-pre-line">
 En términos generales, hacemos que la miel de Chiloé sea un puente entre la regeneración ecológica y la salud metabólica y nutricional. Al ser recolectada desde bosques nativos antiguos y regenerados, el néctar brota transformado directo desde el sol, logrando desafiar directamente ante el impacto del azúcar refinada. Con un índice glucémico de ~55 —frente al 65 del azúcar blanco—, reduce los picos glucémicos, promoviendo una energía estable que resuena con los ciclos vitales. Batida intermitentemente durante 48 horas, cada gota encapsula un vacío nutricional: una dulzura que no satura, sino que alimenta el cuerpo y la mente a partir del legado del bosque. Además, los polifenoles de la miel, abundantes en Chiloé, superan en capacidad antioxidante a variedades estándar, protegiendo contra el estrés oxidativo.
 
@@ -347,7 +359,7 @@ Las afirmaciones científicas se fundamentan en estudios que destacan las propie
 <div className="mt-12 flex justify-center">
 <a
 href="#evidencia"
-className="group relative inline-flex min-h-12 items-center justify-center px-8 py-4 border border-accent text-accent uppercase tracking-[0.2em] text-xs hover:bg-accent hover:text-accent-foreground transition-all duration-500"
+className="group relative inline-flex min-h-12 items-center justify-center px-8 py-4 border border-accent text-accent-text uppercase tracking-[0.2em] text-xs hover:bg-accent hover:text-accent-foreground transition-all duration-500"
 >
 Ver Evidencia Científica
 </a>
@@ -355,7 +367,7 @@ Ver Evidencia Científica
 </div>
 
 {/* Evidencia Científica — CMS 'ciencia' agrupada por categoría (fallback: array hardcodeado) */}
-<div id="evidencia" className="border-t border-border pt-16 mb-24">
+<div id="evidencia" className="scroll-mt-24 border-t border-border pt-16 mb-24">
   <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
     Evidencia Científica
   </h2>
@@ -372,7 +384,7 @@ Ver Evidencia Científica
           >
             <p className="text-sm font-semibold text-foreground">{e.titulo}</p>
             <p className="mt-2 text-sm text-muted-foreground">{e.texto}</p>
-            <span className="mt-3 inline-block text-[0.6rem] uppercase tracking-[0.2em] text-accent">
+            <span className="mt-3 inline-block text-[0.6rem] uppercase tracking-[0.2em] text-accent-text">
               {e.fuente}
             </span>
           </div>
@@ -406,7 +418,7 @@ Nuestra Visión
 <div className="grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-border pt-16">
   {stats.map((s) => (
     <div key={s.label} className="text-center">
-      <div className="font-display text-4xl md:text-5xl text-accent mb-2">{s.value}</div>
+      <div className="font-display text-4xl md:text-5xl text-accent-text mb-2">{s.value}</div>
       <div className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">{s.label}</div>
     </div>
   ))}

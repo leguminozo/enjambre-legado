@@ -62,7 +62,7 @@ export default async function PedidosPage() {
     <div className="space-y-12 animate-in">
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+          <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text">
             <ShoppingBag size={20} />
           </div>
           <h1 className="font-display text-4xl font-light text-foreground">Pedidos</h1>

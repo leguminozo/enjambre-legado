@@ -1,36 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { CloudOff, AlertTriangle } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/offline/db';
 import { SyncQueueModal } from './sync-queue-modal';
 
 export function SyncStatusBanner() {
-  const [pendingCount, setPendingCount] = useState(0);
-  const [errorCount, setErrorCount] = useState(0);
-  const [lastError, setLastError] = useState<string | null>(null);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
-
-    const refresh = async () => {
-      const pending = await db.sync_queue.where('status').equals('pending').count();
-      const errors = await db.sync_queue.where('status').equals('error').toArray();
-      if (!mounted) return;
-      setPendingCount(pending);
-      setErrorCount(errors.length);
-      setLastError(errors[0]?.error_message ?? null);
-    };
-
-    void refresh();
-    const interval = setInterval(() => void refresh(), 5000);
-    return () => {
-      mounted = false;
-      clearInterval(interval);
-    };
-  }, []);
+  // liveQuery re-emite ante cualquier escritura en sync_queue — sin polling de 5s
+  const pendingCount = useLiveQuery(
+    () => db.sync_queue.where('status').equals('pending').count(),
+    [],
+    0,
+  );
+  const errorRows = useLiveQuery(
+    () => db.sync_queue.where('status').equals('error').toArray(),
+    [],
+    [] as Array<{ error_message?: string }>,
+  );
+  const errorCount = errorRows.length;
+  const lastError = errorRows[0]?.error_message ?? null;
 
   if (pendingCount === 0 && errorCount === 0 && !isModalOpen) return null;
 

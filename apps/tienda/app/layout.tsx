@@ -15,7 +15,7 @@ import { VercelInsights } from '@/components/VercelInsights';
 import { ConsentProvider } from '@/components/shop/consent/consent-provider';
 import { ConsentBanner } from '@/components/shop/consent/consent-banner';
 import { MetaPixelLoader } from '@/components/shop/meta-pixel';
-import { LegacyBrowserPolyfills, ErrorRevealHarness, NavigationProgressBar } from '@enjambre/ui';
+import { LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevealHarness, NavigationProgressBar } from '@enjambre/ui';
 import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
 import { buildGoogleFontsHref, themeToCssVars, typographyToCssVars } from '@/lib/shop/store-chrome';
@@ -60,12 +60,11 @@ export async function generateMetadata(): Promise<Metadata> {
       site: seo.twitter_handle || undefined,
       images: ogImage ? [ogImage] : undefined,
     },
+    // Sin hreflang: no existe ruta /en real; ambas URLs apuntaban a la misma
+    // página, señal contradictoria que Google ignora. Si algún día hay versión
+    // EN real, volver a `alternates.languages` con rutas distintas.
     alternates: {
       canonical: SITE_URL,
-      languages: {
-        es: SITE_URL,
-        en: SITE_URL,
-      },
     },
   };
 }
@@ -109,8 +108,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {...(nonce ? { nonce } : {})}
           dangerouslySetInnerHTML={{ __html: themeScript }}
         />
-        {/* Compat Safari/iOS 15 + diagnóstico en pantalla (solo dev/preview, no en producción) */}
+        {/* Compat Safari/iOS 15 + tier legacy (data-legacy/data-motion) + diagnóstico en pantalla (solo dev/preview, no en producción) */}
         <LegacyBrowserPolyfills nonce={nonce || undefined} />
+        <LegacyDeviceDetect nonce={nonce || undefined} />
         {process.env.VERCEL_ENV !== 'production' && (
           <ErrorRevealHarness nonce={nonce || undefined} />
         )}

@@ -13,7 +13,7 @@ const e2ePublicRoutes = e2eAuthSkipAllowed
   : [];
 
 export const middleware = createAuthMiddleware({
-  publicRoutes: ["/", "/login", "/carta", "/impacto", "/mapa-chiloe", "/planes-territoriales", "/municipalidades", ...e2ePublicRoutes],
+  publicRoutes: ["/", "/login", "/reset-password", "/auth/callback", "/carta", "/impacto", "/mapa-chiloe", "/planes-territoriales", "/municipalidades", ...e2ePublicRoutes],
   // Trazabilidad escaneable sin sesión: destilaciones + pasaporte de frasco/lote +
   // landing del punto de venta (QR del pendón) + portal del dueño (auth dentro de la página).
   publicPathPrefixes: ["/alambique/", "/lote/", "/punto-de-venta/"],

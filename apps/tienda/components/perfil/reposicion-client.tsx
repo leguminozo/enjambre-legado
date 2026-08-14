@@ -149,7 +149,7 @@ export function ReposicionClient({
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text">
               <Repeat size={20} />
             </div>
             <h1 className="font-display text-4xl font-light text-foreground">{t('title')}</h1>
@@ -159,7 +159,7 @@ export function ReposicionClient({
 
         {subscription && nextDate && isActive ? (
           <div className="px-6 py-2 bg-accent/10 border border-accent/20 rounded-full">
-            <span className="text-[0.6rem] uppercase tracking-[0.3em] text-accent font-bold">
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] text-accent-text font-bold">
               {t('nextDelivery', { date: nextDate })}
             </span>
           </div>
@@ -210,7 +210,7 @@ export function ReposicionClient({
                   type="button"
                   disabled={loading}
                   onClick={() => void handleSubscribe()}
-                  className="px-12 py-5 bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all flex items-center gap-3 disabled:opacity-50"
+                  className="px-12 py-5 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all flex items-center gap-3 disabled:opacity-50"
                 >
                   {loading ? t('processing') : t('confirm')} <ArrowRight size={16} />
                 </button>

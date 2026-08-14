@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
+import type gsap from 'gsap';
 import { Leaf, Loader2 } from 'lucide-react';
+import { useLegacyDevice } from '@enjambre/ui';
 
 interface CheckoutCinematicOverlayProps {
   open: boolean;
@@ -18,54 +19,67 @@ interface CheckoutCinematicOverlayProps {
  */
 export function CheckoutCinematicOverlay({ open, stalled, onRetry }: CheckoutCinematicOverlayProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const { legacy, motionReduced } = useLegacyDevice();
 
   useEffect(() => {
     if (!open || !rootRef.current) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        '.cco-backdrop',
-        { opacity: 0 },
-        { opacity: 1, duration: 0.4, ease: 'power1.out' },
-      );
-      gsap.fromTo(
-        '.cco-core',
-        { opacity: 0, scale: 0.6 },
-        { opacity: 1, scale: 1, duration: 0.9, delay: 0.1, ease: 'back.out(1.6)' },
-      );
-      gsap.fromTo(
-        '.cco-title',
-        { opacity: 0, y: 24 },
-        { opacity: 1, y: 0, duration: 0.7, delay: 0.25, ease: 'power2.out' },
-      );
-      gsap.fromTo(
-        '.cco-sub',
-        { opacity: 0, y: 14 },
-        { opacity: 1, y: 0, duration: 0.7, delay: 0.4, ease: 'power2.out' },
-      );
-
-      // Polen dorado flotando alrededor del núcleo (GSAP, sin canvas)
-      for (let i = 0; i < 24; i++) {
-        const pollen = document.createElement('span');
-        pollen.className = 'absolute left-1/2 top-1/2 w-1.5 h-1.5 rounded-full bg-accent/70';
-        rootRef.current?.appendChild(pollen);
+    let ctx: gsap.Context | undefined;
+    let cancelled = false;
+    (async () => {
+      const { gsap } = await import('gsap');
+      if (cancelled) return;
+      ctx = gsap.context(() => {
         gsap.fromTo(
-          pollen,
-          { x: 0, y: 0, opacity: 0, scale: 0 },
-          {
-            x: (Math.random() - 0.5) * 420,
-            y: (Math.random() - 0.5) * 420,
-            opacity: 0.4 + Math.random() * 0.5,
-            scale: 0.5 + Math.random() * 0.9,
-            duration: 1.4 + Math.random() * 1.8,
-            ease: 'power2.out',
-            onComplete: () => pollen.remove(),
-          },
+          '.cco-backdrop',
+          { opacity: 0 },
+          { opacity: 1, duration: 0.4, ease: 'power1.out' },
         );
-      }
-    }, rootRef);
+        gsap.fromTo(
+          '.cco-core',
+          { opacity: 0, scale: 0.6 },
+          { opacity: 1, scale: 1, duration: 0.9, delay: 0.1, ease: 'back.out(1.6)' },
+        );
+        gsap.fromTo(
+          '.cco-title',
+          { opacity: 0, y: 24 },
+          { opacity: 1, y: 0, duration: 0.7, delay: 0.25, ease: 'power2.out' },
+        );
+        gsap.fromTo(
+          '.cco-sub',
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.7, delay: 0.4, ease: 'power2.out' },
+        );
 
-    return () => ctx.revert();
-  }, [open]);
+        // Polen dorado flotando alrededor del núcleo (GSAP, sin canvas).
+        // 24 nodos animados: se omite en tier legacy / reduced-motion.
+        if (!legacy && !motionReduced) {
+        for (let i = 0; i < 24; i++) {
+          const pollen = document.createElement('span');
+          pollen.className = 'absolute left-1/2 top-1/2 w-1.5 h-1.5 rounded-full bg-accent/70';
+          rootRef.current?.appendChild(pollen);
+          gsap.fromTo(
+            pollen,
+            { x: 0, y: 0, opacity: 0, scale: 0 },
+            {
+              x: (Math.random() - 0.5) * 420,
+              y: (Math.random() - 0.5) * 420,
+              opacity: 0.4 + Math.random() * 0.5,
+              scale: 0.5 + Math.random() * 0.9,
+              duration: 1.4 + Math.random() * 1.8,
+              ease: 'power2.out',
+              onComplete: () => pollen.remove(),
+            },
+          );
+        }
+        }
+      }, rootRef);
+    })();
+
+    return () => {
+      cancelled = true;
+      ctx?.revert();
+    };
+  }, [open, legacy, motionReduced]);
 
   if (!open) return null;
 
@@ -81,11 +95,11 @@ export function CheckoutCinematicOverlay({ open, stalled, onRetry }: CheckoutCin
 
       {/* Brumas del bosque */}
       <div
-        className="absolute -top-32 -left-32 w-96 h-96 bg-accent/10 rounded-full blur-3xl"
+        className="enj-blur-orb absolute -top-32 -left-32 w-96 h-96 bg-accent/10 rounded-full blur-3xl"
         aria-hidden
       />
       <div
-        className="absolute -bottom-32 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl"
+        className="enj-blur-orb absolute -bottom-32 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl"
         aria-hidden
       />
 
@@ -111,7 +125,7 @@ export function CheckoutCinematicOverlay({ open, stalled, onRetry }: CheckoutCin
               <button
                 type="button"
                 onClick={onRetry}
-                className="pointer-events-auto inline-flex min-h-11 items-center text-accent underline underline-offset-2 px-1"
+                className="pointer-events-auto inline-flex min-h-11 items-center text-accent-text underline underline-offset-2 px-1"
               >
                 reintenta
               </button>

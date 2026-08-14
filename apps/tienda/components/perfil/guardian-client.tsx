@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { gsap } from 'gsap';
 import { 
   Crown, TreePine, Leaf, Droplets, Sparkles, Users, Share2, Award, 
   ChevronRight, Lock, Unlock, Target, Globe, Zap, Package 
@@ -55,13 +54,23 @@ export function GuardianClient({
   ecosystemMetrics,
 }: GuardianClientProps) {
   useEffect(() => {
-    gsap.from('.vanguard-data', {
-      opacity: 0,
-      y: 20,
-      duration: 1.5,
-      stagger: 0.2,
-      ease: 'power2.out',
+    let cancelled = false;
+    (async () => {
+      const { gsap } = await import('gsap');
+      if (cancelled) return;
+      gsap.from('.vanguard-data', {
+        opacity: 0,
+        y: 20,
+        duration: 1.5,
+        stagger: 0.2,
+        ease: 'power2.out',
+      });
+    })().catch(() => {
+      // Chunk de gsap fallido: los datos quedan visibles sin animación.
     });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const currentTier = tierData?.current_tier || 'OBRERA';
@@ -141,14 +150,14 @@ export function GuardianClient({
   ];
 
   return (
-    <div className="w-full min-h-screen bg-background">
+    <div className="w-full min-h-[var(--vh-full)] bg-background">
       {/* Hero Section */}
       <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background/90 to-background z-0" />
         
         <div className="relative z-10 max-w-4xl w-full mx-auto px-4 lg:px-8 py-20 lg:py-32 text-center">
           <div className="vanguard-data mb-8">
-            <span className="block text-[0.6rem] tracking-[0.5em] uppercase text-accent mb-4">
+            <span className="block text-[0.6rem] tracking-[0.5em] uppercase text-accent-text mb-4">
               Perfil Guardián
             </span>
             <h1 className="vanguard-data font-display text-5xl lg:text-7xl font-light text-foreground mb-4">
@@ -189,7 +198,7 @@ export function GuardianClient({
             <div className="vanguard-data mt-8 max-w-md mx-auto">
               <div className="flex items-center justify-between text-sm mb-3">
                 <span className="text-muted-foreground">Progreso hacia {nextTier}</span>
-                <span className="font-mono text-accent">{Math.round(overallProgress)}%</span>
+                <span className="font-mono text-accent-text">{Math.round(overallProgress)}%</span>
               </div>
               <ProgressRing 
                 progress={overallProgress} 
@@ -330,7 +339,7 @@ export function GuardianClient({
                   </div>
                   <div className="text-right">
                     <div className="font-display italic text-foreground">${formatNumber(order.total)}</div>
-                    <div className="text-[0.6rem] uppercase tracking-[0.2em] text-accent">{order.estado}</div>
+                    <div className="text-[0.6rem] uppercase tracking-[0.2em] text-accent-text">{order.estado}</div>
                   </div>
                 </div>
               ))}

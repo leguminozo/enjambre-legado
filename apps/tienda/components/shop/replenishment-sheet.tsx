@@ -71,14 +71,14 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
       {selectedPlan ? (
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">{tSheet('total')}</span>
-          <span className="font-display text-lg text-accent">{formatCLP(selectedPlan.price_clp)}</span>
+          <span className="font-display text-lg text-accent-text">{formatCLP(selectedPlan.price_clp)}</span>
         </div>
       ) : null}
       <button
         type="button"
         disabled={loading || plans.length === 0}
         onClick={() => void handleConfirm()}
-        className="w-full min-h-12 rounded-xl bg-accent px-6 py-3.5 text-[0.65rem] font-bold uppercase tracking-[0.3em] text-accent-foreground transition hover:shadow-glow disabled:opacity-50"
+        className="w-full min-h-12 rounded-xl bg-primary px-6 py-3.5 text-[0.65rem] font-bold uppercase tracking-[0.3em] text-primary-foreground transition hover:shadow-glow disabled:opacity-50"
       >
         {loading ? t('processing') : t('confirm')}
       </button>
@@ -108,7 +108,7 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
               {product.format ? (
                 <p className="mt-1 text-xs text-muted-foreground">{product.format}</p>
               ) : null}
-              <p className="mt-2 text-sm text-accent">{formatCLP(product.price)}</p>
+              <p className="mt-2 text-sm text-accent-text">{formatCLP(product.price)}</p>
             </div>
           </section>
 
@@ -138,7 +138,7 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
               <p className="text-xs text-muted-foreground">{tSheet('paymentNote')}</p>
               <Link
                 href="/perfil/pasaporte"
-                className="inline-flex min-h-11 items-center gap-1.5 text-xs text-accent hover:underline"
+                className="inline-flex min-h-11 items-center gap-1.5 text-xs text-accent-text hover:underline"
                 onClick={onClose}
               >
                 <Repeat size={12} />
@@ -167,7 +167,7 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
                 </div>
                 <div className="flex justify-between gap-4 border-t border-border pt-2">
                   <dt className="text-muted-foreground font-medium">{tSheet('total')}</dt>
-                  <dd className="font-display text-accent">{formatCLP(selectedPlan.price_clp)}</dd>
+                  <dd className="font-display text-accent-text">{formatCLP(selectedPlan.price_clp)}</dd>
                 </div>
               </dl>
             </section>

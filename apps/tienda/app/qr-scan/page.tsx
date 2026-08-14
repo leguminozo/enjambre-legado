@@ -179,7 +179,7 @@ export default function QRScanPage() {
                   type="button"
                   onClick={() => handleScan(qrCode)}
                   disabled={loading || !qrCode.trim()}
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-6 py-3 text-sm font-medium text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? <HexagonLoader size="sm" /> : 'Escanear'}
                 </button>
@@ -199,7 +199,7 @@ export default function QRScanPage() {
                 <div className={`rounded-xl border p-6 ${qrData.integridad.es_valido ? 'border-success/40 bg-success/5' : 'border-destructive/50 bg-destructive/5'}`}>
                   <div className="flex items-center gap-3 mb-2">
                     {qrData.integridad.es_valido ? (
-                      <ShieldCheck className="h-6 w-6 text-success" />
+                      <ShieldCheck className="h-6 w-6 text-success-text" />
                     ) : (
                       <ShieldAlert className="h-6 w-6 text-destructive" />
                     )}
@@ -216,7 +216,7 @@ export default function QRScanPage() {
                       href={`${getNucleoApiUrl()}/lote/${qrData.lote_id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-3 inline-flex items-center gap-1.5 text-sm text-accent hover:underline"
+                      className="mt-3 inline-flex items-center gap-1.5 text-sm text-accent-text hover:underline"
                     >
                       Ver pasaporte completo del frasco
                       <ExternalLink size={14} />
@@ -279,7 +279,7 @@ export default function QRScanPage() {
                                 {event.ubicacion}
                               </p>
                             )}
-                            <p className={`text-xs mt-1 flex items-center gap-1 ${event.valido ? 'text-success' : 'text-destructive'}`}>
+                            <p className={`text-xs mt-1 flex items-center gap-1 ${event.valido ? 'text-success-text' : 'text-destructive'}`}>
                               {event.valido ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
                               {event.valido ? 'Integridad verificada' : 'Hash no coincide'}
                             </p>

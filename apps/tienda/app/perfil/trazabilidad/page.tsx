@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import { TrazabilidadClient } from './trazabilidad-client';
 
 export const metadata = {
-  title: 'Trazabilidad Blockchain | Enjambre Legado',
+  title: 'Trazabilidad Blockchain | La Obrera y el Zángano',
 };
 
 export default async function TrazabilidadPage({
@@ -38,7 +38,7 @@ export default async function TrazabilidadPage({
     <div className="space-y-12 animate-in">
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+          <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text">
             <LinkIcon size={20} />
           </div>
           <h1 className="font-display text-4xl font-light text-foreground">Trazabilidad</h1>

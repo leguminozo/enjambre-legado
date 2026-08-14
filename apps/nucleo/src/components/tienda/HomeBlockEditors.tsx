@@ -8,10 +8,23 @@ import {
   type MapSettings,
   type ProductsSettings,
   type VideoSettings,
+  type CollectionsSettings,
+  type GaleriaSettings,
+  type NosotrosSettings,
+  type MediaSettings,
+  type CienciaSettings,
+  type CarouselHeightMode,
+  type ImageAspectRatio,
+  type ImageFitMode,
   parseConservationContent,
   parseMapSettings,
   parseProductsSettings,
   parseVideoSettings,
+  parseCollectionsSettings,
+  parseGaleriaSettings,
+  parseNosotrosSettings,
+  parseMediaSettings,
+  parseCienciaSettings,
 } from '@/lib/store-chrome';
 import { useAutosaveEditor } from '@/components/tienda/save-status';
 
@@ -464,6 +477,13 @@ export function ProductsSettingsEditor({
         textarea
       />
 
+      <ImageFormatFields
+        aspectRatio={local.image_aspect_ratio}
+        fitMode={local.image_fit}
+        onAspectRatio={(v) => patch('image_aspect_ratio', v)}
+        onFitMode={(v) => patch('image_fit', v)}
+      />
+
       {/* Selector de productos destacados (orden real en el bloque) */}
       <div className="border border-border rounded-xl overflow-hidden">
         <div className="px-4 py-2.5 border-b border-border bg-surface-raised/50 flex items-center justify-between gap-2">
@@ -790,6 +810,418 @@ export function ConservationEditor({
           onEn={(v) => patch('cta_label_en', v)}
         />
       </CollapsibleGroup>
+    </div>
+  );
+}
+
+function ImageFormatFields({
+  aspectRatio,
+  fitMode,
+  onAspectRatio,
+  onFitMode,
+}: {
+  aspectRatio: ImageAspectRatio;
+  fitMode: ImageFitMode;
+  onAspectRatio: (v: ImageAspectRatio) => void;
+  onFitMode: (v: ImageFitMode) => void;
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div className="space-y-1.5">
+        <label className={labelClass}>Relación de Aspecto de Imagen</label>
+        <select
+          value={aspectRatio}
+          onChange={(e) => onAspectRatio(e.target.value as ImageAspectRatio)}
+          className={inputClass}
+        >
+          <option value="16/9">16:9 Widescreen (Hero / Historia)</option>
+          <option value="16/10">16:10 Panorámico (Compacto)</option>
+          <option value="4/3">4:3 Horizontal (Recomendado - Fotos completas)</option>
+          <option value="1/1">1:1 Cuadrado</option>
+          <option value="3/4">3:4 Vertical / Retrato</option>
+          <option value="auto">Auto (Original de la foto)</option>
+        </select>
+      </div>
+      <div className="space-y-1.5">
+        <label className={labelClass}>Modo de Encuadre (Fit)</label>
+        <select
+          value={fitMode}
+          onChange={(e) => onFitMode(e.target.value as ImageFitMode)}
+          className={inputClass}
+        >
+          <option value="cover">Rellenar contenedor (Cover)</option>
+          <option value="contain">Ajustar foto completa sin cortar (Contain)</option>
+        </select>
+      </div>
+    </div>
+  );
+}
+
+export function CollectionsSettingsEditor({
+  content,
+  onSave,
+}: {
+  content: Record<string, unknown>;
+  onSave: (content: Record<string, unknown>) => void;
+}) {
+  const [local, setLocal] = useState<CollectionsSettings>(() => parseCollectionsSettings(content));
+  const { isDirty } = useAutosaveEditor('collections_settings', local, (next) => onSave(next));
+
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(parseCollectionsSettings(content));
+  }, [content, isDirty]);
+
+  const patch = <K extends keyof CollectionsSettings>(key: K, value: CollectionsSettings[K]) =>
+    setLocal((prev) => ({ ...prev, [key]: value }));
+
+  return (
+    <div className="space-y-4 pb-8">
+      <div className="rounded-xl border border-border bg-background overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-border bg-surface-raised">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Vista previa de la cabecera
+          </p>
+        </div>
+        <div className="p-6 text-center">
+          <span className="block mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
+            {local.kicker || 'Colecciones'}
+          </span>
+          <h3 className="font-display text-2xl font-light text-foreground text-balance">
+            {local.title || 'Explora nuestras categorías estacionales'}
+          </h3>
+          {local.subtitle ? (
+            <p className="text-muted-foreground italic font-display text-sm mt-2 text-pretty max-w-md mx-auto">
+              {local.subtitle}
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <LocalePair
+        idPrefix="collections-kicker"
+        esLabel="Kicker (ES)"
+        es={local.kicker}
+        en={local.kicker_en ?? ''}
+        onEs={(v) => patch('kicker', v)}
+        onEn={(v) => patch('kicker_en', v)}
+      />
+      <LocalePair
+        idPrefix="collections-title"
+        esLabel="Título (ES)"
+        es={local.title}
+        en={local.title_en ?? ''}
+        onEs={(v) => patch('title', v)}
+        onEn={(v) => patch('title_en', v)}
+      />
+      <LocalePair
+        idPrefix="collections-subtitle"
+        esLabel="Subtítulo / Descripción (ES)"
+        es={local.subtitle}
+        en={local.subtitle_en ?? ''}
+        onEs={(v) => patch('subtitle', v)}
+        onEn={(v) => patch('subtitle_en', v)}
+        textarea
+      />
+
+      <ImageFormatFields
+        aspectRatio={local.image_aspect_ratio}
+        fitMode={local.image_fit}
+        onAspectRatio={(v) => patch('image_aspect_ratio', v)}
+        onFitMode={(v) => patch('image_fit', v)}
+      />
+
+      <div className="space-y-1.5">
+        <label className={labelClass}>Columnas del Grid (Escritorio)</label>
+        <select
+          value={local.grid_columns}
+          onChange={(e) => patch('grid_columns', Number(e.target.value))}
+          className={inputClass}
+        >
+          <option value={2}>2 Columnas</option>
+          <option value={3}>3 Columnas (Predeterminado)</option>
+          <option value={4}>4 Columnas</option>
+        </select>
+      </div>
+    </div>
+  );
+}
+
+export function GaleriaSettingsEditor({
+  content,
+  onSave,
+}: {
+  content: Record<string, unknown>;
+  onSave: (content: Record<string, unknown>) => void;
+}) {
+  const [local, setLocal] = useState<GaleriaSettings>(() => parseGaleriaSettings(content));
+  const { isDirty } = useAutosaveEditor('galeria_settings', local, (next) => onSave(next));
+
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(parseGaleriaSettings(content));
+  }, [content, isDirty]);
+
+  const patch = <K extends keyof GaleriaSettings>(key: K, value: GaleriaSettings[K]) =>
+    setLocal((prev) => ({ ...prev, [key]: value }));
+
+  return (
+    <div className="space-y-4 pb-8">
+      <div className="rounded-xl border border-border bg-background overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-border bg-surface-raised">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Vista previa de la cabecera
+          </p>
+        </div>
+        <div className="p-6 text-center">
+          <span className="block mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
+            {local.kicker || 'Galería'}
+          </span>
+          <h3 className="font-display text-2xl font-light text-foreground text-balance">
+            {local.title || 'Un recorrido visual de nuestras huellas'}
+          </h3>
+          {local.subtitle ? (
+            <p className="text-muted-foreground italic font-display text-sm mt-2 text-pretty max-w-md mx-auto">
+              {local.subtitle}
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <LocalePair
+        idPrefix="galeria-kicker"
+        esLabel="Kicker (ES)"
+        es={local.kicker}
+        en={local.kicker_en ?? ''}
+        onEs={(v) => patch('kicker', v)}
+        onEn={(v) => patch('kicker_en', v)}
+      />
+      <LocalePair
+        idPrefix="galeria-title"
+        esLabel="Título de la Página (ES)"
+        es={local.title}
+        en={local.title_en ?? ''}
+        onEs={(v) => patch('title', v)}
+        onEn={(v) => patch('title_en', v)}
+      />
+      <LocalePair
+        idPrefix="galeria-subtitle"
+        esLabel="Descripción / Subtítulo (ES)"
+        es={local.subtitle}
+        en={local.subtitle_en ?? ''}
+        onEs={(v) => patch('subtitle', v)}
+        onEn={(v) => patch('subtitle_en', v)}
+        textarea
+      />
+
+      <ImageFormatFields
+        aspectRatio={local.image_aspect_ratio}
+        fitMode={local.image_fit}
+        onAspectRatio={(v) => patch('image_aspect_ratio', v)}
+        onFitMode={(v) => patch('image_fit', v)}
+      />
+
+      <div className="space-y-1.5">
+        <label className={labelClass}>Columnas de la Grilla (Escritorio)</label>
+        <select
+          value={local.grid_columns}
+          onChange={(e) => patch('grid_columns', Number(e.target.value))}
+          className={inputClass}
+        >
+          <option value={2}>2 Columnas</option>
+          <option value={3}>3 Columnas (Predeterminado)</option>
+          <option value={4}>4 Columnas</option>
+        </select>
+      </div>
+    </div>
+  );
+}
+
+export function NosotrosSettingsEditor({
+  content,
+  onSave,
+}: {
+  content: Record<string, unknown>;
+  onSave: (content: Record<string, unknown>) => void;
+}) {
+  const [local, setLocal] = useState<NosotrosSettings>(() => parseNosotrosSettings(content));
+  const { isDirty } = useAutosaveEditor('nosotros_settings', local, (next) => onSave(next));
+
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(parseNosotrosSettings(content));
+  }, [content, isDirty]);
+
+  const patch = <K extends keyof NosotrosSettings>(key: K, value: NosotrosSettings[K]) =>
+    setLocal((prev) => ({ ...prev, [key]: value }));
+
+  return (
+    <div className="space-y-4 pb-8">
+      <div className="rounded-xl border border-border bg-background overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-border bg-surface-raised">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Vista previa de la historia
+          </p>
+        </div>
+        <div className="p-6 text-center">
+          <span className="block mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-accent">
+            {local.kicker || 'Nuestra Historia'}
+          </span>
+          <h3 className="font-display text-2xl font-light text-foreground text-balance">
+            {local.title || 'Renacer de las Cenizas en Chiloé'}
+          </h3>
+          {local.subtitle ? (
+            <p className="text-muted-foreground font-display text-sm mt-2 text-pretty max-w-md mx-auto">
+              {local.subtitle}
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <LocalePair
+        idPrefix="nosotros-kicker"
+        esLabel="Kicker (ES)"
+        es={local.kicker}
+        en={local.kicker_en ?? ''}
+        onEs={(v) => patch('kicker', v)}
+        onEn={(v) => patch('kicker_en', v)}
+      />
+      <LocalePair
+        idPrefix="nosotros-title"
+        esLabel="Título de la Página (ES)"
+        es={local.title}
+        en={local.title_en ?? ''}
+        onEs={(v) => patch('title', v)}
+        onEn={(v) => patch('title_en', v)}
+      />
+      <LocalePair
+        idPrefix="nosotros-subtitle"
+        esLabel="Descripción / Subtítulo (ES)"
+        es={local.subtitle}
+        en={local.subtitle_en ?? ''}
+        onEs={(v) => patch('subtitle', v)}
+        onEn={(v) => patch('subtitle_en', v)}
+        textarea
+      />
+
+      <ImageFormatFields
+        aspectRatio={local.image_aspect_ratio}
+        fitMode={local.image_fit}
+        onAspectRatio={(v) => patch('image_aspect_ratio', v)}
+        onFitMode={(v) => patch('image_fit', v)}
+      />
+    </div>
+  );
+}
+
+export function MediaSettingsEditor({
+  content,
+  onSave,
+}: {
+  content: Record<string, unknown>;
+  onSave: (content: Record<string, unknown>) => void;
+}) {
+  const [local, setLocal] = useState<MediaSettings>(() => parseMediaSettings(content));
+  const { isDirty } = useAutosaveEditor('media_settings', local, (next) => onSave(next));
+
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(parseMediaSettings(content));
+  }, [content, isDirty]);
+
+  const patch = <K extends keyof MediaSettings>(key: K, value: MediaSettings[K]) =>
+    setLocal((prev) => ({ ...prev, [key]: value }));
+
+  return (
+    <div className="space-y-4 pb-8">
+      <div className="space-y-1.5">
+        <label className={labelClass}>Altura del Carrusel (Móvil / Escritorio)</label>
+        <select
+          value={local.carousel_height}
+          onChange={(e) => patch('carousel_height', e.target.value as CarouselHeightMode)}
+          className={inputClass}
+        >
+          <option value="50vh/70vh">Media Estándar (50vh Móvil / 70vh Escritorio)</option>
+          <option value="40vh/60vh">Compacta (40vh Móvil / 60vh Escritorio)</option>
+          <option value="60vh/80vh">Grande (60vh Móvil / 80vh Escritorio)</option>
+          <option value="70vh/90vh">Imersión Total (70vh Móvil / 90vh Escritorio)</option>
+        </select>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className={labelClass}>Modo de Encuadre de Imagen</label>
+        <select
+          value={local.image_fit}
+          onChange={(e) => patch('image_fit', e.target.value as ImageFitMode)}
+          className={inputClass}
+        >
+          <option value="cover">Cover (Rellenar recortando bordes sobrantes)</option>
+          <option value="contain">Contain (Ajustar imagen completa sin recortar)</option>
+        </select>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className={labelClass}>Velocidad de Auto-reproducción (Milisegundos)</label>
+        <input
+          type="number"
+          min={2000}
+          max={20000}
+          step={500}
+          value={local.autoplay_ms}
+          onChange={(e) => patch('autoplay_ms', Number(e.target.value))}
+          className={inputClass}
+        />
+        <p className="text-[11px] text-muted-foreground">Ej: 5000 = 5 segundos por diapositiva.</p>
+      </div>
+    </div>
+  );
+}
+
+export function CienciaSettingsEditor({
+  content,
+  onSave,
+}: {
+  content: Record<string, unknown>;
+  onSave: (content: Record<string, unknown>) => void;
+}) {
+  const [local, setLocal] = useState<CienciaSettings>(() => parseCienciaSettings(content));
+  const { isDirty } = useAutosaveEditor('ciencia_settings', local, (next) => onSave(next));
+
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(parseCienciaSettings(content));
+  }, [content, isDirty]);
+
+  const patch = <K extends keyof CienciaSettings>(key: K, value: CienciaSettings[K]) =>
+    setLocal((prev) => ({ ...prev, [key]: value }));
+
+  return (
+    <div className="space-y-4 pb-8">
+      <LocalePair
+        idPrefix="ciencia-kicker"
+        esLabel="Kicker (ES)"
+        es={local.kicker}
+        en={local.kicker_en ?? ''}
+        onEs={(v) => patch('kicker', v)}
+        onEn={(v) => patch('kicker_en', v)}
+      />
+      <LocalePair
+        idPrefix="ciencia-title"
+        esLabel="Título de la Página (ES)"
+        es={local.title}
+        en={local.title_en ?? ''}
+        onEs={(v) => patch('title', v)}
+        onEn={(v) => patch('title_en', v)}
+      />
+      <LocalePair
+        idPrefix="ciencia-subtitle"
+        esLabel="Descripción / Subtítulo (ES)"
+        es={local.subtitle}
+        en={local.subtitle_en ?? ''}
+        onEs={(v) => patch('subtitle', v)}
+        onEn={(v) => patch('subtitle_en', v)}
+        textarea
+      />
     </div>
   );
 }

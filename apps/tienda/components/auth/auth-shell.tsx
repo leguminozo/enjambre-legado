@@ -77,7 +77,7 @@ export function AuthPageLoading({ label = 'Verificando sesión' }: { label?: str
       <ViewLoading
         variant="inline"
         label={label}
-        brand={<BrandWordmark tagline="Biocultural Regeneration" />}
+        brand={<BrandWordmark name="La Obrera y el Zángano" ecosystem="Enjambre Legado" />}
       />
     </div>
   );

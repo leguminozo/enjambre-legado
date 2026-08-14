@@ -8,12 +8,19 @@ import {
   MOBILE_MENU_OPTIONS,
   mergeHeaderSettings,
 } from '@/lib/header-menu';
+import {
+  resolveHeaderBrand,
+  parseBrandAssets,
+  type BrandAssets,
+} from '@/lib/store-chrome';
 import { useAutosaveEditor } from '@/components/tienda/save-status';
 
 interface MenuStyleEditorProps {
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
   onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
+  /** brand_assets del CMS: la preview replica el fallback logo menú → marca → texto */
+  brandContent?: Record<string, unknown> | null;
 }
 
 function SliderField({
@@ -41,7 +48,7 @@ function SliderField({
           {label}
         </label>
         <span className="text-xs font-mono text-accent tabular-nums">
-          {Number.isInteger(step) ? value : value.toFixed(2)}
+          {value % 1 === 0 ? value : value.toFixed(2)}
           {unit}
         </span>
       </div>
@@ -150,10 +157,11 @@ function OptionCards<T extends string>({
  * Editor visual del menú (inspirado en theme customizer Shopify).
  * Controla formato, burger, tipografía, gaps y altura — sin JSON crudo.
  */
-export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEditorProps) {
+export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }: MenuStyleEditorProps) {
   const [local, setLocal] = useState<HeaderMenuSettings>(() => mergeHeaderSettings(content));
   const { isDirty, flush } = useAutosaveEditor('menu_settings', local, (next) => onSave(next));
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const brand: BrandAssets = parseBrandAssets(brandContent ?? null);
 
   // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
@@ -168,74 +176,8 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
 
   return (
     <div className="space-y-6 pb-8">
-      {/* Live mini preview */}
-      <div className="rounded-xl border border-border bg-background overflow-hidden">
-        <div className="px-3 py-2 border-b border-border bg-surface-raised">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            Vista previa del menú
-          </p>
-        </div>
-        <div
-          className="flex items-center justify-between px-3 border-b border-border"
-          style={{
-            height: local.height_mobile_px,
-            letterSpacing: `${local.brand_letter_spacing_em}em`,
-          }}
-        >
-          <div className="w-6 h-6 rounded border border-border flex items-center justify-center text-[10px] text-muted-foreground">
-            ≡
-          </div>
-          {local.show_logo && local.logo_src ? (
-            <div className="flex-1 flex justify-center">
-              <img src={local.logo_src} alt="Logo" style={{ height: `${local.logo_height_px || 32}px` }} className="object-contain" />
-            </div>
-          ) : local.show_brand_text ? (
-            <div className="text-center flex-1 px-2">
-              <p
-                className="font-display text-[11px] uppercase text-foreground leading-tight truncate"
-                style={{ letterSpacing: `${local.brand_letter_spacing_em}em` }}
-              >
-                {local.brand_line1}
-              </p>
-              <p
-                className="text-[8px] uppercase text-accent leading-tight truncate"
-                style={{ letterSpacing: `${local.brand_letter_spacing_em + 0.1}em` }}
-              >
-                {local.brand_line2}
-              </p>
-            </div>
-          ) : (
-            <div className="flex-1" />
-          )}
-          <div className="flex items-center gap-2 text-muted-foreground text-xs">
-            {local.show_account ? <span>○</span> : null}
-            {local.show_cart ? <span>Bag</span> : null}
-          </div>
-        </div>
-        <div
-          className="hidden sm:flex items-center justify-center px-4 py-2 gap-1 flex-wrap"
-          style={{
-            gap: Math.min(local.nav_item_gap_px, 24),
-            fontSize: local.nav_font_size_px,
-            letterSpacing: `${local.nav_letter_spacing_em}em`,
-            textTransform: local.nav_text_transform,
-            fontFamily: local.nav_font === 'display' ? 'var(--font-display, serif)' : 'inherit',
-          }}
-        >
-          {['Inicio', 'Creaciones', 'Experiencias', 'Galería'].map((l) => (
-            <span key={l} className="text-muted-foreground whitespace-nowrap">
-              {l}
-            </span>
-          ))}
-        </div>
-        <div className="px-3 py-2 bg-surface-sunken border-t border-border">
-          <p className="text-[10px] text-muted-foreground">
-            Burger: <span className="text-foreground">{local.mobile_menu}</span>
-            {' · '}
-            Layout: <span className="text-foreground">{local.layout}</span>
-          </p>
-        </div>
-      </div>
+      {/* Live mini preview — replica shop-header: layouts, burger, logo fallback */}
+      <MenuMiniPreview settings={local} brand={brand} />
 
       <OptionCards
         label="Formato del menú (desktop)"
@@ -264,7 +206,7 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
           label="Altura móvil"
           value={local.height_mobile_px}
           min={48}
-          max={100}
+          max={120}
           step={1}
           unit="px"
           onChange={(v) => patch('height_mobile_px', v)}
@@ -272,8 +214,8 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
         <SliderField
           label="Altura desktop"
           value={local.height_desktop_px}
-          min={56}
-          max={120}
+          min={48}
+          max={140}
           step={1}
           unit="px"
           onChange={(v) => patch('height_desktop_px', v)}
@@ -287,8 +229,8 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
         <SliderField
           label="Separación entre botones"
           value={local.nav_item_gap_px}
-          min={8}
-          max={64}
+          min={4}
+          max={80}
           step={2}
           unit="px"
           onChange={(v) => patch('nav_item_gap_px', v)}
@@ -297,7 +239,7 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
           label="Separación entre letras"
           value={local.nav_letter_spacing_em}
           min={0}
-          max={0.6}
+          max={1}
           step={0.02}
           unit="em"
           onChange={(v) => patch('nav_letter_spacing_em', v)}
@@ -306,7 +248,7 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
           label="Tamaño de texto"
           value={local.nav_font_size_px}
           min={8}
-          max={16}
+          max={20}
           step={0.2}
           unit="px"
           onChange={(v) => patch('nav_font_size_px', v)}
@@ -353,8 +295,8 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
         <SliderField
           label="Separación entre botones"
           value={local.mobile_item_gap_px}
-          min={12}
-          max={48}
+          min={8}
+          max={64}
           step={2}
           unit="px"
           onChange={(v) => patch('mobile_item_gap_px', v)}
@@ -362,8 +304,8 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
         <SliderField
           label="Tamaño de texto"
           value={local.mobile_font_size_px}
-          min={18}
-          max={40}
+          min={14}
+          max={48}
           step={1}
           unit="px"
           onChange={(v) => patch('mobile_font_size_px', v)}
@@ -372,7 +314,7 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
           label="Separación entre letras"
           value={local.mobile_letter_spacing_em}
           min={0}
-          max={0.3}
+          max={0.5}
           step={0.01}
           unit="em"
           onChange={(v) => patch('mobile_letter_spacing_em', v)}
@@ -465,7 +407,7 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
           label="Altura del logo"
           value={local.logo_height_px}
           min={16}
-          max={96}
+          max={160}
           step={1}
           unit="px"
           onChange={(v) => patch('logo_height_px', v)}
@@ -502,7 +444,7 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
           label="Tracking marca"
           value={local.brand_letter_spacing_em}
           min={0}
-          max={0.6}
+          max={1}
           step={0.02}
           unit="em"
           onChange={(v) => patch('brand_letter_spacing_em', v)}
@@ -551,6 +493,201 @@ export function MenuStyleEditor({ content, onSave, onImageUpload }: MenuStyleEdi
           onChange={(v) => patch('backdrop_blur', v)}
         />
       </section>
+    </div>
+  );
+}
+
+const PREVIEW_NAV_LABELS = ['Inicio', 'Creaciones', 'Experiencias', 'Galería'];
+
+/**
+ * Mini preview fiel del header (misma semántica que shop-header de tienda):
+ * - resolveHeaderBrand para el fallback logo menú → logo marca → texto (con maxWidth real)
+ * - 3 layouts: classic/centered (logo centrado absoluto) vs split (logo en flujo)
+ * - 3 estilos de burger: fullscreen / drawer-left / drawer-right, con toggle interactivo
+ * - force_burger_desktop oculta la fila de nav desktop
+ */
+function MenuMiniPreview({
+  settings,
+  brand,
+}: {
+  settings: HeaderMenuSettings;
+  brand: BrandAssets;
+}) {
+  const resolved = resolveHeaderBrand(brand, settings);
+  const [showPanel, setShowPanel] = useState(false);
+  const displayFont =
+    'var(--font-display, "Cormorant Garamond", serif)';
+
+  const logoBlock = resolved.logoSrc ? (
+    <img
+      src={resolved.logoSrc}
+      alt="Logo"
+      style={{
+        height: `${resolved.heightPx}px`,
+        maxWidth: resolved.maxWidthPx > 0 ? `${resolved.maxWidthPx}px` : undefined,
+        width: 'auto',
+      }}
+      className="object-contain shrink-0"
+    />
+  ) : resolved.showText ? (
+    <div className="flex flex-col items-center leading-tight">
+      <span
+        className="font-display text-[10px] uppercase text-foreground whitespace-nowrap"
+        style={{ letterSpacing: `${settings.brand_letter_spacing_em}em` }}
+      >
+        {settings.brand_line1}
+      </span>
+      <span
+        className="text-[7px] uppercase text-accent whitespace-nowrap"
+        style={{ letterSpacing: `${settings.brand_letter_spacing_em + 0.1}em` }}
+      >
+        {settings.brand_line2}
+      </span>
+    </div>
+  ) : null;
+
+  // classic/centered → centrado absoluto en móvil (igual que shop-header);
+  // split → en flujo a la izquierda.
+  const logoWrapClass =
+    settings.layout === 'split'
+      ? 'relative'
+      : 'absolute left-1/2 -translate-x-1/2 max-w-[55%] overflow-hidden';
+
+  const actions = (
+    <div className="flex items-center gap-1.5 text-muted-foreground text-[9px]">
+      {settings.show_notifications ? <span title="Campana">●</span> : null}
+      {settings.show_account ? <span title="Cuenta">○</span> : null}
+      {settings.show_cart ? <span title="Carrito">Bag</span> : null}
+      {settings.show_lang_selector ? <span title="Idioma">ES</span> : null}
+    </div>
+  );
+
+  const desktopNav = settings.force_burger_desktop ? null : (
+    <div
+      className={`flex items-center text-muted-foreground whitespace-nowrap ${
+        settings.layout === 'centered'
+          ? 'justify-center w-full'
+          : 'justify-center flex-1'
+      }`}
+      style={{
+        gap: `${settings.nav_item_gap_px}px`,
+        fontSize: `${settings.nav_font_size_px}px`,
+        letterSpacing: `${settings.nav_letter_spacing_em}em`,
+        textTransform: settings.nav_text_transform,
+        fontFamily: settings.nav_font === 'display' ? displayFont : 'inherit',
+      }}
+    >
+      {PREVIEW_NAV_LABELS.map((l) => (
+        <span key={l}>{l}</span>
+      ))}
+    </div>
+  );
+
+  const panelClass =
+    settings.mobile_menu === 'drawer-left'
+      ? 'absolute left-0 top-0 h-full w-3/5 max-w-[240px] bg-background border-r border-border'
+      : settings.mobile_menu === 'drawer-right'
+        ? 'absolute right-0 top-0 h-full w-3/5 max-w-[240px] bg-background border-l border-border'
+        : 'absolute inset-0 bg-background';
+
+  const panel = showPanel ? (
+    <div className="absolute inset-0 z-10">
+      {settings.mobile_menu !== 'fullscreen' ? (
+        <button
+          type="button"
+          aria-label="Cerrar panel"
+          className="absolute inset-0 bg-black/30"
+          onClick={() => setShowPanel(false)}
+        />
+      ) : null}
+      <div
+        className={`${panelClass} flex flex-col overflow-y-auto p-4`}
+        style={{ gap: `${settings.mobile_item_gap_px}px` }}
+      >
+        <nav
+          className="flex flex-col"
+          style={{
+            gap: `${settings.mobile_item_gap_px}px`,
+            fontSize: `${settings.mobile_font_size_px}px`,
+            letterSpacing: `${settings.mobile_letter_spacing_em}em`,
+            fontFamily: settings.mobile_font === 'display' ? displayFont : 'inherit',
+          }}
+        >
+          {PREVIEW_NAV_LABELS.map((l) => (
+            <span key={l} className="font-light text-foreground">
+              {l}
+            </span>
+          ))}
+        </nav>
+        <div className="h-px bg-border" />
+        {settings.show_cart ? (
+          <span className="text-foreground text-sm">Tu bolsa</span>
+        ) : null}
+        {settings.show_account ? (
+          <span className="italic text-foreground text-sm">Cuenta</span>
+        ) : null}
+        {settings.show_lang_selector ? (
+          <span className="mt-1 self-start rounded-full border border-border px-3 py-1 text-[10px] text-muted-foreground">
+            Cambiar a English
+          </span>
+        ) : null}
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-border bg-background">
+      <div className="px-3 py-2 border-b border-border bg-surface-raised">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Vista previa del menú
+        </p>
+      </div>
+      <div className="border-b border-border">
+        {/* Barra (estado móvil) */}
+        <div
+          className="relative flex items-center justify-between gap-2 px-3"
+          style={{ height: `${settings.height_mobile_px}px` }}
+        >
+          <button
+            type="button"
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-border text-[11px] text-muted-foreground hover:border-accent/40"
+            onClick={() => setShowPanel((v) => !v)}
+            aria-label="Abrir panel móvil"
+          >
+            ≡
+          </button>
+          <div className={logoWrapClass}>{logoBlock}</div>
+          <div className="shrink-0">{actions}</div>
+        </div>
+        {/* Nav desktop (estado ≥lg) */}
+        {desktopNav ? (
+          <div className="hidden border-t border-border px-3 py-1.5 sm:flex">
+            {desktopNav}
+            {settings.layout === 'split' ? actions : null}
+          </div>
+        ) : (
+          <div className="hidden border-t border-border px-3 py-1.5 text-[9px] text-muted-foreground/60 sm:block">
+            Burger en desktop: nav horizontal oculta
+          </div>
+        )}
+      </div>
+      <div className="flex items-center justify-between px-3 py-2 bg-surface-sunken border-t border-border">
+        <p className="text-[10px] text-muted-foreground">
+          Burger: <span className="text-foreground">{settings.mobile_menu}</span>
+          {' · '}Layout: <span className="text-foreground">{settings.layout}</span>
+          {settings.force_burger_desktop ? (
+            <span className="text-foreground"> · burger desktop</span>
+          ) : null}
+        </p>
+        <button
+          type="button"
+          className="text-[9px] font-medium text-accent"
+          onClick={() => setShowPanel((v) => !v)}
+        >
+          {showPanel ? 'Cerrar panel' : 'Probar panel'}
+        </button>
+      </div>
+      {panel}
     </div>
   );
 }

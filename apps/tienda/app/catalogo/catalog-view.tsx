@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import type { ShopProduct } from '@/lib/shop/products';
@@ -31,6 +31,116 @@ function productBadges(p: ShopProduct): string[] {
   }
   return badges.slice(0, 3);
 }
+
+type ProductCardProps = {
+  product: ShopProduct;
+  rating?: ProductRatingAggregate;
+  showRatings: boolean;
+  showBadges: boolean;
+  twoColMobile: boolean;
+  imageAspectRatio?: string;
+  imageFit?: string;
+};
+
+/**
+ * Memoizado: el grid se re-renderiza en cada tecla del buscador y en cada
+ * cambio de filtro; los objetos producto son referencias estables (server),
+ * así que las cards saltan sin re-render.
+ */
+const ProductCard = memo(function ProductCard({
+  product: p,
+  rating,
+  showRatings,
+  showBadges,
+  twoColMobile,
+  imageAspectRatio,
+  imageFit,
+}: ProductCardProps) {
+  const img = p.photos[0];
+  const badges = showBadges ? productBadges(p) : [];
+
+  const aspectClassMap: Record<string, string> = {
+    '16/10': 'aspect-[16/10]',
+    '4/3': 'aspect-[4/3]',
+    '1/1': 'aspect-square',
+    '3/4': 'aspect-[3/4]',
+    'auto': 'aspect-auto',
+  };
+  const fitClassMap: Record<string, string> = {
+    cover: 'object-cover',
+    contain: 'object-contain p-2',
+  };
+  const aspectClass = aspectClassMap[imageAspectRatio || ''] || 'aspect-square';
+  const fitClass = fitClassMap[imageFit || ''] || 'object-cover';
+
+  return (
+    <li className="min-w-0">
+      <Link
+        href={`/producto/${encodeURIComponent(p.slug)}`}
+        className="product-card group flex h-full flex-col overflow-hidden rounded-[var(--tienda-radius,0.5rem)] border border-border bg-card/40 transition hover:border-accent/35"
+      >
+        <div className={`relative ${aspectClass} bg-card overflow-hidden`}>
+          {img ? (
+            <Image
+              src={img}
+              alt={p.name}
+              fill
+              sizes={
+                twoColMobile
+                  ? '(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw'
+                  : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'
+              }
+              className={`${fitClass} transition duration-500 group-hover:scale-[1.03]`}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-xs text-muted-foreground/60">
+              Sin imagen
+            </div>
+          )}
+        </div>
+        <div className="flex flex-1 flex-col p-3 sm:p-4">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {p.format ? (
+              <span className="inline-block rounded bg-primary px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
+                {p.format}
+              </span>
+            ) : null}
+            {showRatings && rating && rating.reviewCount > 0 && (
+              <ProductRatingStars
+                rating={rating.ratingValue}
+                reviewCount={rating.reviewCount}
+                showCount
+              />
+            )}
+          </div>
+          {badges.length > 0 && (
+            <div className="mt-1.5 sm:mt-2 flex flex-wrap gap-1 sm:gap-1.5">
+              {badges.map((badge) => (
+                <span
+                  key={badge}
+                  className="inline-block rounded-full border border-accent/30 px-1.5 sm:px-2.5 py-0.5 text-[8px] sm:text-[9px] uppercase tracking-wider text-accent-text"
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
+          )}
+          <h2 className="mt-1.5 sm:mt-2 font-display text-sm sm:text-base md:text-lg font-semibold leading-snug text-foreground group-hover:text-accent line-clamp-2 text-balance">
+            {p.name}
+          </h2>
+          <p className="mt-auto pt-1.5 text-sm tabular-nums text-muted-foreground sm:text-base">
+            {formatCLP(p.price)}
+          </p>
+          {(p.stock ?? 0) <= 0 && (
+            <p className="mt-1 text-[10px] uppercase tracking-wider text-destructive">
+              Agotado
+            </p>
+          )}
+        </div>
+      </Link>
+    </li>
+  );
+});
 
 export function CatalogoView({ products, ratings = {} }: Props) {
   const router = useRouter();
@@ -115,7 +225,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
   return (
     <>
       <div className="mx-auto max-w-6xl px-4 pt-[max(2rem,calc(var(--safe-top)+0.5rem))] pb-24 sm:px-6 sm:py-14 md:pb-14">
-        <h1 className="text-center font-display text-[clamp(1.75rem,6vw,3rem)] font-semibold text-foreground text-balance sm:text-4xl md:text-5xl leading-tight">
+        <h1 className="text-center font-display text-[clamp(1.75rem,6vw,3rem)] font-light text-foreground text-balance sm:text-4xl md:text-5xl leading-tight">
           {resolveLocalized(catalog.page_title, catalog.page_title_en, locale)}
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-muted-foreground text-pretty sm:mt-4 sm:text-base">
@@ -178,7 +288,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                   onClick={() => setParams({ formato: formato === f ? null : f })}
                   className={`${chipBase} ${
                     formato === f
-                      ? 'border-accent bg-accent/15 text-accent'
+                      ? 'border-accent bg-accent/15 text-accent-text'
                       : 'border-border text-muted-foreground hover:border-accent/40'
                   }`}
                 >
@@ -204,7 +314,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                 onClick={() => setParams({ stock: soloStock ? null : '1' })}
                 className={`${chipBase} ${
                   soloStock
-                    ? 'border-success bg-success/10 text-success'
+                    ? 'border-success bg-success/10 text-success-text'
                     : 'border-border text-muted-foreground hover:border-accent/40'
                 }`}
               >
@@ -215,7 +325,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                 onClick={() => setParams({ impacto: altoImpacto ? null : '1' })}
                 className={`${chipBase} ${
                   altoImpacto
-                    ? 'border-accent bg-accent/10 text-accent'
+                    ? 'border-accent bg-accent/10 text-accent-text'
                     : 'border-border text-muted-foreground hover:border-accent/40'
                 }`}
               >
@@ -260,79 +370,18 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                   : 'sm:grid-cols-2 lg:grid-cols-3',
             ].join(' ')}
           >
-            {filtered.map((p) => {
-              const img = p.photos[0];
-              const rating = ratings[p.id];
-              const badges = catalog.show_badges ? productBadges(p) : [];
-              const twoColMobile = catalog.columns_mobile !== 1;
-              return (
-                <li key={p.id} className="min-w-0">
-                  <Link
-                    href={`/producto/${encodeURIComponent(p.slug)}`}
-                    className="product-card group flex h-full flex-col overflow-hidden rounded-[var(--tienda-radius,0.5rem)] border border-border bg-card/40 transition hover:border-accent/35"
-                  >
-                    <div className="relative aspect-square bg-card overflow-hidden">
-                      {img ? (
-                        <Image
-                          src={img}
-                          alt={p.name}
-                          fill
-                          sizes={
-                            twoColMobile
-                              ? '(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw'
-                              : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'
-                          }
-                          className="object-cover transition duration-500 group-hover:scale-[1.03]"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center text-xs text-muted-foreground/60">
-                          Sin imagen
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-1 flex-col p-3 sm:p-4">
-                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                        {p.format ? (
-                          <span className="inline-block rounded bg-primary px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
-                            {p.format}
-                          </span>
-                        ) : null}
-                        {catalog.show_ratings && rating && rating.reviewCount > 0 && (
-                          <ProductRatingStars
-                            rating={rating.ratingValue}
-                            reviewCount={rating.reviewCount}
-                            showCount
-                          />
-                        )}
-                      </div>
-                      {badges.length > 0 && (
-                        <div className="mt-1.5 sm:mt-2 flex flex-wrap gap-1 sm:gap-1.5">
-                          {badges.map((badge) => (
-                            <span
-                              key={badge}
-                              className="inline-block rounded-full border border-accent/30 px-1.5 sm:px-2.5 py-0.5 text-[8px] sm:text-[9px] uppercase tracking-wider text-accent/80"
-                            >
-                              {badge}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      <h2 className="mt-1.5 sm:mt-2 font-display text-sm sm:text-base md:text-lg font-semibold leading-snug text-foreground group-hover:text-accent line-clamp-2 text-balance">
-                        {p.name}
-                      </h2>
-                      <p className="mt-auto pt-1.5 text-sm tabular-nums text-muted-foreground sm:text-base">
-                        {formatCLP(p.price)}
-                      </p>
-                      {(p.stock ?? 0) <= 0 && (
-                        <p className="mt-1 text-[10px] uppercase tracking-wider text-destructive/80">
-                          Agotado
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
+            {filtered.map((p) => (
+              <ProductCard
+                key={p.id}
+                product={p}
+                rating={ratings[p.id]}
+                showRatings={catalog.show_ratings}
+                showBadges={catalog.show_badges}
+                twoColMobile={catalog.columns_mobile !== 1}
+                imageAspectRatio={catalog.image_aspect_ratio}
+                imageFit={catalog.image_fit}
+              />
+            ))}
           </ul>
         )}
       </div>

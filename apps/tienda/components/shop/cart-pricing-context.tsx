@@ -1,6 +1,7 @@
 'use client';
 
-import { calculateCartPricing, type CartPricing } from '@/app/actions/cart';
+import { calculateCartPricing } from '@/app/actions/cart';
+import type { CartPricing } from '@enjambre/pricing';
 import React, {
   createContext,
   useCallback,

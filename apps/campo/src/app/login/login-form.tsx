@@ -29,22 +29,14 @@ export interface SavedAccount {
   lastUsed: number;
 }
 
-const DEFAULT_SAVED_ACCOUNTS: SavedAccount[] = [
-  {
-    email: 'gabriel.cuevas01@alumnos.uach.cl',
-    name: "Gaboo's",
-    handle: '@leguminozo',
-    role: 'admin',
-    lastUsed: Date.now() - 1000 * 60 * 60,
-  },
-  {
-    email: 'contacto@enjambre.cl',
-    name: 'La Obrera y el Zángano',
-    handle: '@obrerayzangano',
-    role: 'vendedor',
-    lastUsed: Date.now() - 1000 * 60 * 60 * 24,
-  },
-];
+// OAuth desactivado: Supabase del proyecto tiene google/apple/twitter: false.
+// Los botones se ocultan hasta habilitar algún provider en el dashboard.
+const OAUTH_PROVIDERS_ENABLED = false;
+
+// Sin cuentas demo: el POS es para equipo (rep_ventas/admin); mostrar el
+// email del dueño a visitantes filtra datos internos. Cada operador guarda
+// su propia cuenta en localStorage tras el primer login.
+const DEFAULT_SAVED_ACCOUNTS: SavedAccount[] = [];
 
 function getSavedAccounts(): SavedAccount[] {
   if (typeof window === 'undefined') return DEFAULT_SAVED_ACCOUNTS;
@@ -248,8 +240,9 @@ export function LoginForm() {
         setLoading(false);
         return;
       }
+      const siteUrl = process.env.NEXT_PUBLIC_CAMPO_URL ?? (typeof window !== 'undefined' ? window.location.origin : '');
       const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/login`,
+        redirectTo: `${siteUrl}/auth/callback?next=/reset-password`,
       });
       if (resetErr) {
         setError(friendlySupabaseError(resetErr));
@@ -408,35 +401,39 @@ export function LoginForm() {
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={() => void handleOAuth('google')}
-            disabled={loading}
-            className="w-full min-h-13 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all disabled:opacity-50"
-          >
-            <GoogleIcon className="w-4 h-4" />
-            <span>Continuar con Google</span>
-          </button>
+          {OAUTH_PROVIDERS_ENABLED && (
+            <>
+              <button
+                type="button"
+                onClick={() => void handleOAuth('google')}
+                disabled={loading}
+                className="w-full min-h-13 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all disabled:opacity-50"
+              >
+                <GoogleIcon className="w-4 h-4" />
+                <span>Continuar con Google</span>
+              </button>
 
-          <button
-            type="button"
-            onClick={() => void handleOAuth('apple')}
-            disabled={loading}
-            className="w-full min-h-13 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all disabled:opacity-50"
-          >
-            <AppleIcon className="w-4 h-4" />
-            <span>Iniciar sesión con Apple</span>
-          </button>
+              <button
+                type="button"
+                onClick={() => void handleOAuth('apple')}
+                disabled={loading}
+                className="w-full min-h-13 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all disabled:opacity-50"
+              >
+                <AppleIcon className="w-4 h-4" />
+                <span>Iniciar sesión con Apple</span>
+              </button>
 
-          <button
-            type="button"
-            onClick={() => void handleOAuth('twitter')}
-            disabled={loading}
-            className="w-full min-h-13 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all disabled:opacity-50"
-          >
-            <XLogoIcon className="w-4 h-4" />
-            <span>Continuar con X</span>
-          </button>
+              <button
+                type="button"
+                onClick={() => void handleOAuth('twitter')}
+                disabled={loading}
+                className="w-full min-h-13 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-2xl px-5 py-3 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-border transition-all disabled:opacity-50"
+              >
+                <XLogoIcon className="w-4 h-4" />
+                <span>Continuar con X</span>
+              </button>
+            </>
+          )}
 
           <button
             type="button"

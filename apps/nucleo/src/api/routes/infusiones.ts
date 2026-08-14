@@ -728,21 +728,27 @@ infusionesRoutes.delete("/lotes-produccion/:id", async (c) => {
     .from("infusion_produccion_materiales")
     .select("lote_deshidratado_id")
     .eq("lote_produccion_id", id);
+  // Lecturas independientes: en paralelo (antes N consultas secuenciales)
   const mpIds = new Set<string>();
-  for (const m of mats ?? []) {
-    const mpId = await materiaPrimaDeLoteSeco(supabase, m.lote_deshidratado_id);
+  const mpIdsResolved = await Promise.all(
+    (mats ?? []).map((m) => materiaPrimaDeLoteSeco(supabase, m.lote_deshidratado_id)),
+  );
+  for (const mpId of mpIdsResolved) {
     if (mpId) mpIds.add(mpId);
   }
 
   const { error } = await supabase.from("infusion_lotes_produccion").delete().eq("id", id);
   if (error) return c.json({ code: "delete_failed", message: error.message }, 400);
 
-  for (const mpId of mpIds) {
-    await sincronizarInventarioItem(
-      supabase, user, empresaId, mpId, id,
-      "Eliminación de lote de producción Infusiones",
-    );
-  }
+  // Cada materia prima ajusta su propio ítem de inventario: en paralelo
+  await Promise.all(
+    [...mpIds].map((mpId) =>
+      sincronizarInventarioItem(
+        supabase, user, empresaId, mpId, id,
+        "Eliminación de lote de producción Infusiones",
+      ),
+    ),
+  );
   return c.json({ data: { deleted: true } });
 });
 

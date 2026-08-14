@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { getSiteContentBatch, type SiteSectionItem } from '@/lib/cms';
 import { getEcosystemMetrics, type EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { listVisibleProducts, type ShopProduct } from '@/lib/shop/products';
@@ -8,16 +9,22 @@ import {
   type MapSettings,
   type ProductsSettings,
   type VideoSettings,
+  type CollectionsSettings,
+  type MediaSettings,
   DEFAULT_CONSERVATION_CONTENT,
   DEFAULT_MEDIA_ITEMS,
+  DEFAULT_MEDIA_SETTINGS,
   DEFAULT_MAP_SETTINGS,
   DEFAULT_PRODUCTS_SETTINGS,
   DEFAULT_VIDEO_SETTINGS,
+  DEFAULT_COLLECTIONS_SETTINGS,
   parseConservationContent,
   parseHomeMediaItem,
+  parseMediaSettings,
   parseMapSettings,
   parseProductsSettings,
   parseVideoSettings,
+  parseCollectionsSettings,
 } from '@/lib/shop/store-chrome';
 import { TiendaLandingView } from './landing-view';
 
@@ -29,6 +36,20 @@ function extractContent<T extends Record<string, unknown>>(items: SiteSectionIte
 
 export const revalidate = 300;
 
+// Metadata propia del landing: la home no debe depender solo de los defaults
+// del layout (que sirven a todo el sitio). El template del layout agrega la marca.
+export const metadata: Metadata = {
+  title: 'Miel del bosque nativo y apicultura regenerativa del sur de Chile',
+  description:
+    'Miel cruda, sachets, hidromiel e infusiones del bosque valdiviano. Trazabilidad apiario a mesa, apicultura regenerativa y comercio soberano desde Chiloé — La Obrera y el Zángano.',
+  openGraph: {
+    title: 'Miel del bosque nativo y apicultura regenerativa del sur de Chile',
+    description:
+      'Miel cruda, sachets, hidromiel e infusiones del bosque valdiviano. Trazabilidad apiario a mesa y comercio soberano desde Chiloé.',
+    type: 'website',
+  },
+};
+
 export default async function TiendaPage({
   searchParams,
 }: {
@@ -39,14 +60,16 @@ export default async function TiendaPage({
   // Footer legacy (footer_branding/nav/legal) retirado: el pie real es StoreChrome.
   // Hero no se carga aquí: landing usa i18n + landing_layout (CTA).
   // Contenido de bloques del home (ola 4): conservation_content, media_items,
-  // video_settings, map_settings y products_settings — vacío = defaults/i18n.
+  // video_settings, map_settings, products_settings y collections_settings — vacío = defaults/i18n.
   const products = await listVisibleProducts();
   const [cmsBatch, ecosystemMetrics, ratings] = await Promise.all([
     getSiteContentBatch(
       [
         'colecciones',
+        'collections_settings',
         'conservation_content',
         'media_items',
+        'media_settings',
         'video_settings',
         'map_settings',
         'products_settings',
@@ -76,9 +99,9 @@ export default async function TiendaPage({
             href: '/catalogo',
           },
           {
-            kicker: 'Frascos Mayores',
-            title: 'Reservas del Bosque',
-            desc: '¡Nuestra mayor reserva para el futuro! Sobrevive a la incertidumbre y acompaña esos momentos que merecen lo mejor.',
+            kicker: 'Frascos Grandes',
+            title: 'Generosidad de la Selva',
+            desc: 'Para quienes el consumo consciente de miel es un ritual cotidiano.',
             href: '/catalogo',
           },
           {
@@ -101,6 +124,10 @@ export default async function TiendaPage({
           },
         ];
 
+  const collectionsSettings: CollectionsSettings = cmsBatch.collections_settings?.[0]
+    ? parseCollectionsSettings(cmsBatch.collections_settings[0].content as Record<string, unknown>)
+    : DEFAULT_COLLECTIONS_SETTINGS;
+
   const conservationContent: ConservationContent = cmsBatch.conservation_content?.[0]
     ? parseConservationContent(
         cmsBatch.conservation_content[0].content as Record<string, unknown>,
@@ -111,6 +138,10 @@ export default async function TiendaPage({
     .map((row) => parseHomeMediaItem(row.content as Record<string, unknown>))
     .filter((m): m is HomeMediaItem => m !== null);
   const resolvedMediaItems = mediaItems.length > 0 ? mediaItems : DEFAULT_MEDIA_ITEMS;
+
+  const mediaSettings: MediaSettings = cmsBatch.media_settings?.[0]
+    ? parseMediaSettings(cmsBatch.media_settings[0].content as Record<string, unknown>)
+    : DEFAULT_MEDIA_SETTINGS;
 
   const videoSettings: VideoSettings = cmsBatch.video_settings?.[0]
     ? parseVideoSettings(cmsBatch.video_settings[0].content as Record<string, unknown>)
@@ -130,9 +161,11 @@ export default async function TiendaPage({
     <TiendaLandingView
       locale="es"
       initialColecciones={colecciones}
+      collectionsSettings={collectionsSettings}
       products={products}
       ratings={ratings}
       mediaItems={resolvedMediaItems}
+      mediaSettings={mediaSettings}
       videoId={videoId}
       videoTitle={videoSettings.title || 'La Obrera y el Zángano'}
       conservationContent={conservationContent}

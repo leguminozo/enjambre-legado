@@ -39,11 +39,12 @@ La tabla maestra que define quien es quien en el ecosistema.
 
 > Roles de plataforma: `admin`, `apicultor` (patio), `territorial`, `rep_ventas`, `cliente`, `creador`. Legacy (`vendedor`, `gerente`, `logistica`, `marketing`, `tienda_admin`) → `admin` vía `LEGACY_ROLE_MAP`. Ver `docs/ROLES_Y_ACCESO.md`.
 
-**Funciones helper**:
-- `current_role()` → retorna el `role` del `auth.uid()` actual
-- `is_admin()` → booleano si el usuario es admin
-- `is_gerente()` → booleano si el usuario es gerente (ahora mapea a `role = 'admin'` tras consolidacion)
-- `has_empresa_access(empresa_id)` → verifica acceso del usuario actual a una empresa
+**Funciones helper** (`STABLE`, `search_path = ''`, mig. `20260814200000`):
+- `jwt_app_role()` → `app_metadata.role` del JWT (plataforma). No leer `oyz_role` (comercial, hook 43).
+- `current_role()` → JWT `app_metadata.role`, fallback a `profiles.role`
+- `is_admin()` → JWT en el set legacy-elevado (`admin`, `gerente`, …) o `profiles.role = 'admin'`
+- `is_gerente()` → alias de `is_admin()`
+- `has_empresa_access(empresa_id)` → membresía en `usuarios_empresas`
 
 ---
 

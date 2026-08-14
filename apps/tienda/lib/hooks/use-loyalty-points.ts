@@ -70,7 +70,12 @@ export function useLoyaltyPoints(totalCompra: number) {
       }
     };
 
-    fetchLoyaltyData();
+    // Debounce: totalCompra cambia con cada quote/slider; evita refetch encadenado
+    const timer = window.setTimeout(() => {
+      void fetchLoyaltyData();
+    }, 400);
+
+    return () => window.clearTimeout(timer);
   }, [isAuthenticated, user, totalCompra]);
 
   const descuentoPorPuntos = puntosACanjear > 0 ? Math.floor(puntosACanjear / 100) * 1000 : 0;

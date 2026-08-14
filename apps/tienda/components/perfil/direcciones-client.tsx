@@ -69,7 +69,7 @@ export function DireccionesClient({ initialData }: { initialData: ClienteDirecci
   if (isCreating) {
     return (
       <div className="bg-surface-raised rounded-2xl border border-border p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <h2 className="text-xl font-display text-accent mb-6">Añadir Nueva Dirección</h2>
+        <h2 className="text-xl font-display text-accent-text mb-6">Añadir Nueva Dirección</h2>
         <DireccionForm onSubmit={handleCreate} onCancel={() => setIsCreating(false)} />
       </div>
     );
@@ -80,7 +80,7 @@ export function DireccionesClient({ initialData }: { initialData: ClienteDirecci
   if (isEditing && editData) {
     return (
       <div className="bg-surface-raised rounded-2xl border border-border p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <h2 className="text-xl font-display text-accent mb-6">Editar Dirección</h2>
+        <h2 className="text-xl font-display text-accent-text mb-6">Editar Dirección</h2>
         <DireccionForm
           initialData={editData}
           onSubmit={(data) => handleUpdate(editData.id, data)}
@@ -132,13 +132,13 @@ export function DireccionesClient({ initialData }: { initialData: ClienteDirecci
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-2">
-                  <div className={`p-2 rounded-lg ${dir.es_predeterminada ? 'bg-accent/10 text-accent' : 'bg-secondary text-muted-foreground'}`}>
+                  <div className={`p-2 rounded-lg ${dir.es_predeterminada ? 'bg-accent/10 text-accent-text' : 'bg-secondary text-muted-foreground'}`}>
                     <MapPin className="w-4 h-4" />
                   </div>
                   <div>
                     <h3 className="font-medium text-sm text-foreground">{dir.etiqueta}</h3>
                     {dir.es_predeterminada && (
-                      <span className="text-[0.6rem] uppercase tracking-wider text-accent font-semibold inline-flex items-center gap-1">
+                      <span className="text-[0.6rem] uppercase tracking-wider text-accent-text font-semibold inline-flex items-center gap-1">
                         <Star className="w-3 h-3 fill-accent" /> Predeterminada
                       </span>
                     )}

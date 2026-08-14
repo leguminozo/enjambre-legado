@@ -8,7 +8,7 @@ import { StickyBarSensor } from '@/components/shop/sticky-bar-sensor';
 
 export function StoreShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-background text-foreground antialiased tienda-shell">
+    <div className="min-h-[var(--vh-full)] bg-background text-foreground antialiased tienda-shell">
       <StickyBarSensor />
       <div className="tienda-shell-content">
         <CampaignBanners />

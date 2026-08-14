@@ -48,7 +48,7 @@ export function PlanIntervalPicker({
             }
           >
             <span
-              className={`block uppercase tracking-[0.2em] text-accent font-bold ${
+              className={`block uppercase tracking-[0.2em] text-accent-text font-bold ${
                 isProfile ? 'text-[0.6rem] mb-2' : 'text-[0.6rem]'
               }`}
             >

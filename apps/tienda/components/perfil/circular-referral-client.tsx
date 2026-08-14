@@ -24,7 +24,7 @@ export function CircularReferralClient({ stats }: { stats: ReferralStats }) {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text">
               <Users size={20} />
             </div>
             <h1 className="font-display text-4xl font-light text-foreground">Circular Colmena</h1>
@@ -48,11 +48,11 @@ export function CircularReferralClient({ stats }: { stats: ReferralStats }) {
           </p>
 
           <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50 border border-border mb-8">
-            <code className="text-xs text-accent font-mono flex-1 truncate">{stats.referralUrl}</code>
+            <code className="text-xs text-accent-text font-mono flex-1 truncate">{stats.referralUrl}</code>
             <button
               type="button"
               onClick={handleCopy}
-              className="px-4 py-2 bg-accent text-accent-foreground text-[0.6rem] uppercase tracking-[0.2em] font-bold rounded-lg"
+              className="px-4 py-2 bg-primary text-primary-foreground text-[0.6rem] uppercase tracking-[0.2em] font-bold rounded-lg"
             >
               {copied ? 'Copiado' : 'Copiar'}
             </button>
@@ -69,7 +69,7 @@ export function CircularReferralClient({ stats }: { stats: ReferralStats }) {
               <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-2">
                 Compras referidas
               </span>
-              <span className="text-xl font-display text-accent">{stats.referralPurchases}</span>
+              <span className="text-xl font-display text-accent-text">{stats.referralPurchases}</span>
             </div>
           </div>
 
@@ -77,7 +77,7 @@ export function CircularReferralClient({ stats }: { stats: ReferralStats }) {
             href={`https://wa.me/?text=${encodeURIComponent(`Únete al Legado: ${stats.referralUrl}`)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex px-12 py-5 bg-accent text-accent-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl items-center gap-3"
+            className="inline-flex px-12 py-5 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl items-center gap-3"
           >
             Compartir <ArrowRight size={16} />
           </a>

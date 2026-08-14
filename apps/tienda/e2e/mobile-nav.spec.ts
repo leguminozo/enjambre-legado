@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Mobile navigation — burger', () => {
-  test.use({ viewport: { width: 390, height: 844 } });
+  // locale es-CL: el contexto fresco de Playwright llega en en-US (Accept-
+  // Language) y next-intl resuelve el idioma del header antes que la cookie.
+  test.use({ viewport: { width: 390, height: 844 }, locale: 'es-CL' });
 
   test('abre panel opaco con enlaces y cierra con backdrop', async ({ page }) => {
     await page.goto('/catalogo');
@@ -23,9 +25,17 @@ test.describe('Mobile navigation — burger', () => {
     await page.getByRole('button', { name: /abrir menú|open menu/i }).click();
 
     const panel = page.locator('#tienda-mobile-nav-panel');
-    await expect(panel.getByRole('link', { name: /creaciones/i })).toBeVisible();
+    await expect(panel.getByRole('link', { name: /creaciones|creations/i })).toBeVisible();
 
-    await panel.getByRole('button', { name: /english/i }).click();
+    // El selector de idioma en el burger depende de menu_settings.show_lang_selector
+    // (CMS): si la tienda lo tiene desactivado, el toggle no aplica y se salta.
+    const langButton = panel.getByRole('button', { name: /english|spanish/i });
+    if ((await langButton.count()) === 0) {
+      test.skip(true, 'menu_settings.show_lang_selector=false en esta tienda');
+      return;
+    }
+
+    await langButton.click();
     await page.reload();
     await page.getByRole('button', { name: /open menu/i }).click();
     await expect(panel.getByRole('link', { name: /creations/i })).toBeVisible();

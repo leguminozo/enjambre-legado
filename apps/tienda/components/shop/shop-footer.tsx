@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Send } from 'lucide-react';
 import { useLocale } from 'next-intl';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveLocalized, type FooterSocialItem } from '@/lib/shop/store-chrome';
+import { createClient } from '@/utils/supabase/client';
+import { friendlySupabaseError } from '@enjambre/ui';
 
 function IconFacebook() {
   return (
@@ -91,6 +94,38 @@ export function ShopFooter() {
   const logoSrc = (brand.logo_footer_url || brand.logo_url || '').trim();
   const logoFooterHeight = brand.logo_footer_height_px || brand.logo_height_px || 48;
 
+  const [email, setEmail] = useState('');
+  const [joinState, setJoinState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [joinError, setJoinError] = useState<string | null>(null);
+
+  // "Únete al Enjambre": mismo patrón que el claim de QR — magic link sin
+  // contraseña; Supabase crea la cuenta si no existe y el perfil nace con rol
+  // cliente (handle_new_user). Al entrar, /perfil/enjambre acredita el bonus.
+  async function handleJoinEnjambre(e: React.FormEvent) {
+    e.preventDefault();
+    const value = email.trim();
+    if (!value || joinState === 'sending') return;
+
+    setJoinState('sending');
+    setJoinError(null);
+
+    const redirectUrl = new URL('/auth/callback', window.location.origin);
+    redirectUrl.searchParams.set('next', '/perfil/enjambre');
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOtp({
+      email: value,
+      options: { emailRedirectTo: redirectUrl.toString() },
+    });
+
+    if (error) {
+      setJoinError(friendlySupabaseError(error));
+      setJoinState('error');
+    } else {
+      setJoinState('sent');
+    }
+  }
+
   return (
     <footer className="tienda-shop-footer bg-background border-t border-border pt-16 sm:pt-20 md:pt-24 pb-[max(3rem,calc(var(--safe-bottom)+1rem))]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -117,7 +152,7 @@ export function ShopFooter() {
                   {footer.brand_line1}
                 </span>
                 <span
-                  className="text-[0.7rem] uppercase text-accent -mt-1 font-light"
+                  className="text-[0.7rem] uppercase text-accent-text -mt-1 font-light"
                   style={{ letterSpacing: `${footer.brand_tracking_em + 0.1}em` }}
                 >
                   {footer.brand_line2}
@@ -150,31 +185,61 @@ export function ShopFooter() {
 
         {footer.show_newsletter ? (
           <div className="max-w-md mx-auto mb-20">
-            <p className="text-sm font-display italic text-accent mb-4 text-center">
-              {resolveLocalized(footer.newsletter_title, footer.newsletter_title_en, locale)}
+            <p className="text-sm font-display italic text-accent-text mb-4 text-center">
+              {resolveLocalized(footer.newsletter_title, footer.newsletter_title_en, locale) ||
+                'Únete al Enjambre'}
             </p>
             <p className="text-sm text-muted-foreground mb-8 text-center leading-relaxed">
-              {resolveLocalized(footer.newsletter_desc, footer.newsletter_desc_en, locale)}
+              {resolveLocalized(footer.newsletter_desc, footer.newsletter_desc_en, locale) ||
+                'Deja tu correo y recibe tu vínculo al Enjambre: puntos de bienvenida, cosechas exclusivas y los beneficios de la Red Biocultural. Sin compromisos.'}
             </p>
-            <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
-              <input
-                id="newsletter-email"
-                name="email"
-                type="email"
-                placeholder={resolveLocalized(
-                  footer.newsletter_placeholder,
-                  footer.newsletter_placeholder_en,
-                  locale,
-                )}
-                className="w-full min-h-11 bg-transparent border border-border rounded-lg py-4 px-6 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent transition-colors text-sm"
-              />
-              <button
-                type="submit"
-                className="min-h-11 bg-primary hover:bg-primary/90 text-primary-foreground py-4 px-8 rounded-full text-[0.7rem] uppercase tracking-[0.3em] font-medium transition-all flex items-center justify-center gap-3 self-center"
-              >
-                Enviar información <Send size={14} />
-              </button>
-            </form>
+            {joinState === 'sent' ? (
+              <div className="flex flex-col items-center gap-3 text-center">
+                <p className="text-sm text-accent-text leading-relaxed">
+                  ¡Revisa tu correo! Te enviamos tu vínculo al Enjambre.
+                </p>
+                <Link
+                  href="/perfil/enjambre"
+                  className="inline-flex min-h-11 items-center text-[0.7rem] uppercase tracking-[0.3em] text-accent-text hover:text-foreground transition-colors"
+                >
+                  Ver beneficios del Enjambre
+                </Link>
+              </div>
+            ) : (
+              <form className="flex flex-col gap-4" onSubmit={handleJoinEnjambre}>
+                <input
+                  id="newsletter-email"
+                  name="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={
+                    resolveLocalized(
+                      footer.newsletter_placeholder,
+                      footer.newsletter_placeholder_en,
+                      locale,
+                    ) || 'tu@correo.com'
+                  }
+                  className="w-full min-h-11 bg-transparent border border-border rounded-lg py-4 px-6 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent transition-colors text-sm"
+                />
+                <button
+                  type="submit"
+                  disabled={joinState === 'sending'}
+                  className="min-h-11 bg-primary hover:bg-primary/90 text-primary-foreground py-4 px-8 rounded-full text-[0.7rem] uppercase tracking-[0.3em] font-medium transition-all flex items-center justify-center gap-3 self-center disabled:opacity-60"
+                >
+                  {joinState === 'sending' ? 'Enviando…' : 'Unirme al Enjambre'} <Send size={14} />
+                </button>
+                {joinState === 'error' && joinError ? (
+                  <p className="text-xs text-destructive text-center" role="alert">
+                    {joinError}
+                  </p>
+                ) : null}
+                <p className="text-[0.6rem] text-muted-foreground/70 text-center leading-relaxed">
+                  Sin compromisos: el vínculo activa tus beneficios cuando quieras entrar.
+                </p>
+              </form>
+            )}
           </div>
         ) : null}
 

@@ -65,7 +65,7 @@ export default function UlmoPage() {
         <h1 className="mt-4 font-display text-[clamp(2rem,7vw,3rem)] sm:text-5xl font-semibold leading-tight text-foreground text-balance">
           Ulmo
         </h1>
-        <p className="mt-2 font-display text-xl italic text-accent">
+        <p className="mt-2 font-display text-xl italic text-accent-text">
           Eucryphia cordifolia
         </p>
 
@@ -141,7 +141,7 @@ export default function UlmoPage() {
         <div className="mt-16 border-t border-border pt-8">
           <Link
             href="/catalogo"
-            className="inline-flex min-h-11 items-center text-sm font-medium text-accent hover:text-accent/80 transition-colors"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-accent-text hover:text-accent/80 transition-colors"
           >
             ← Explorar creaciones
           </Link>

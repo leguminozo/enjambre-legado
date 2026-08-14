@@ -73,7 +73,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
               <span className="font-display text-base lg:text-lg tracking-[0.28em] uppercase text-foreground group-hover:text-accent transition-colors leading-none">
                 {tHeader('brandLine1')}
               </span>
-              <span className="font-display text-[0.65rem] lg:text-xs italic text-accent tracking-[0.12em] -mt-0.5">
+              <span className="font-display text-[0.65rem] lg:text-xs italic text-accent-text tracking-[0.12em] -mt-0.5">
                 {tHeader('brandLine2')}
               </span>
             </Link>
@@ -140,7 +140,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                         />
                         <span
                           className={`font-display text-lg lg:text-xl font-light leading-snug tracking-tight ${
-                            active ? 'text-accent' : ''
+                            active ? 'text-accent-text' : ''
                           }`}
                         >
                           {tPerfil(`nav.links.${link.labelKey}`)}
@@ -162,7 +162,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                 <p className="font-display text-sm lg:text-base font-light text-foreground truncate">
                   {user?.full_name || 'Guardián'}
                 </p>
-                <p className="text-[0.65rem] uppercase tracking-[0.22em] text-accent font-medium mt-0.5">
+                <p className="text-[0.65rem] uppercase tracking-[0.22em] text-accent-text font-medium mt-0.5">
                   {participacion.esCreador ? tPerfil('roleEmbajador') : tPerfil('roleProtector')}
                 </p>
               </div>
@@ -195,7 +195,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                   onClick={() => setTheme(t.value)}
                   className={`flex flex-col items-center gap-1.5 p-3 min-h-[48px] rounded-xl border transition-all ${
                     theme === t.value
-                      ? 'border-accent bg-accent/10 text-accent'
+                      ? 'border-accent bg-accent/10 text-accent-text'
                       : 'border-border bg-background/60 hover:border-accent/40 text-muted-foreground'
                   }`}
                   aria-pressed={theme === t.value}

@@ -32,8 +32,21 @@ Monorepo managed by Turborepo + pnpm. 3 apps, all on Vercel + Supabase.
 ### Database
 - All schema changes via migrations in `packages/database/supabase/migrations/`.
 - RLS mandatory for every table with user data.
-- Use `current_role()`, `is_admin()`, `is_gerente()`, `has_empresa_access()` for policies.
+- Use `current_role()`, `is_admin()`, `is_gerente()`, `has_empresa_access()`, `jwt_app_role()` for policies.
+- Those helpers are `STABLE` + `SET search_path = ''`. `SECURITY DEFINER` is not a performance default — only when the body needs privilege **and** checks `auth.uid()` / `has_empresa_access()`.
 - Regenerate types after migration: `cd packages/database && pnpm db:typegen`.
+
+### Platform budget (Vercel Hobby + Supabase Free, Aug 2026)
+- **Three Next apps, one Postgres, no fourth Vercel project.** Núcleo BFF is the only expensive write plane.
+- Public reads: ISR / Dexie / Storage CDN. Do not SSR a catalog hit against Postgres on every visitor.
+- `next/image` uses `cdn-image-loader` (`@enjambre/ui/cdn-image-loader`) — never Vercel Image Optimization (5k transforms/account/month). Origin is already WebP + `Cache-Control: 31536000`.
+- Crons: daily only (`apps/nucleo/vercel.json` 08/13/14 UTC). Queue + fire-on-mutation for mail. No sub-hour crons on Hobby.
+- Default data path is supabase-js HTTP. Direct Postgres in a function requires Transaction pooler (`6543`).
+- Realtime is not the default. Allowed: feria monitor, caja, cart multi-device, notification bell. New dashboards: poll-on-focus.
+- Server graph: `@enjambre/auth/server-index` (or `/middleware`, `/security-events`). `optimizePackageImports` must include `@enjambre/ui`. No GSAP/Leaflet/Cytoscape in Route Handlers.
+- Hobby is non-commercial. $0 is runway, not a forever license for a store that sells honey. Code must still be cheap enough to live there as long as possible.
+
+Canonical numbers and the full law: `docs/CONSTITUTION.md` § II.6.
 
 ## App Commands
 
@@ -80,6 +93,9 @@ packages/banco-chile → Banco Chile Empresas API client (OAuth 2.0, 8 APIs)
 | Hardcoded Tailwind (`text-white`, `bg-black`, `text-stone-*`) | Semantic tokens (`text-foreground`, `bg-background`, `text-muted-foreground`) |
 | `catch(e) {}` | `toast.error()` + logging |
 | Offline-First Sync Queues | Allowed and actively used in `apps/campo` — follow the existing Dexie-based implementation. Key references: `apps/campo/src/lib/offline/db.ts` (Dexie schema: `productos`, `sync_queue`), enqueue examples in `apps/campo/src/components/pos/cash-context.tsx`, and the sync processor in `apps/campo/src/hooks/use-sync-engine.ts`. Do NOT create ad-hoc Supabase service-role clients in apps; continue to use the `apps/*/lib` re-exports and `@enjambre/auth` entry points. |
+| Default `next/image` optimizer | `loaderFile` → `@enjambre/ui/cdn-image-loader` |
+| Cron más frecuente que diario | Outbox + trigger en la mutación; crons de Núcleo ya son diarios |
+| `SECURITY DEFINER` para “ir más rápido” | Helper `STABLE` + `search_path = ''`; DEFINER solo con check de caller |
 | Components at repo root | `packages/ui` or `apps/*/components` |
 | Massive refactors | Surgical, minimal changes |
 | Skip build verification | Always build after changes |
@@ -100,14 +116,16 @@ packages/banco-chile → Banco Chile Empresas API client (OAuth 2.0, 8 APIs)
 | iOS < 15.4 | Sin garantía; degrada (cosmético), no bloquea |
 
 **Mecánica de la capa de compat** (`packages/ui`):
-- `LegacyBrowserPolyfills` → script inline ES5 (primer hijo de `<body>` en los 3 root layouts) que instala con feature-detection: `Array.prototype.at`, `Object.hasOwn`, `findLast/findLastIndex`, `String.replaceAll`, `Promise.withResolvers`, `structuredClone` (fallback JSON). Corre ANTES del runtime de Next (scripts async).
-- `ErrorRevealHarness` → panel en pantalla cuando hay errores JS (diagnóstico en dispositivos que no podemos reproducir: iPhone 7). NO es cosmético: es la única forma de ver el error real.
-- Regla de oro: **si el audit detecta una API nueva sin cubrir, se agrega a `LegacyBrowserPolyfills` con su unit test** (`packages/ui/src/components/legacy-browser-polyfills.test.ts`) — nunca silenciar el audit.
-- `node scripts/compat-audit.mjs apps/<app>` escanea `.next/static` post-build y falla el build ante sintaxis no parseable (lookbehind, import attributes) o APIs runtime no cubiertas (`AbortSignal.timeout`, `fromAsync`, `toSorted`…). Corre después de `next build`.
+- `LegacyBrowserPolyfills` → script inline ES5 en `<head>` de los 3 root layouts (corre ANTES del runtime de Next) que instala con feature-detection: `Array.prototype.at`, `Object.hasOwn`, `findLast/findLastIndex`, `String.replaceAll`, `Promise.withResolvers`, `structuredClone` (fallback JSON), y ES2023/24: `toSorted/toReversed/toSpliced/with`, `isWellFormed/toWellFormed`, `Object.groupBy`, `Map.groupBy`.
+- `LegacyDeviceDetect` → script inline ES5 en `<head>` que setea `data-legacy="true"` en `<html>` (UA iOS ≤ 15, `deviceMemory ≤ 2`, `hardwareConcurrency ≤ 2`, o override `?legacy=1` / `localStorage.enj_legacy_override`) y `data-motion="reduce"` (`prefers-reduced-motion`). Consumir en componentes con `useLegacyDevice()` (packages/ui). La capa CSS `html[data-legacy='true']` aplana `backdrop-filter` y la clase `.enj-blur-orb` (orbes decorativos).
+- `ErrorRevealHarness` → panel en pantalla cuando hay errores JS (solo dev/preview, verificado en los 3 layouts) + heartbeat de eviction: si la pestaña anterior murió sin unload limpio (probable OOM en 2GB), avisa en la siguiente carga. NO es cosmético: es la única forma de ver el error real.
+- Regla de oro: **si el audit detecta una API nueva sin cubrir, se agrega a `LegacyBrowserPolyfills` con su unit test** (`packages/ui/src/components/legacy-browser-polyfills.test.ts`) y se marca `covered: true` en `compat-audit.mjs` — nunca silenciar el audit.
+- `node scripts/compat-audit.mjs apps/<app>` escanea `.next/static` post-build y falla el build ante sintaxis no parseable (lookbehind, import attributes) o APIs runtime no cubiertas (`AbortSignal.timeout`, `fromAsync`, `URL.canParse`, `navigator.deviceMemory` sin guard…). Corre después de `next build` (encadenado en el script `build` de los 3 apps y en `vercel.json` de tienda/campo).
+- Gates de rendimiento (tier legacy): ver `docs/LEGACY_TIER.md`. Criterio: canvas/WebGL/partículas/realtime/mapas → fallback estático; el CSS degrada blur; `MotionConfig reducedMotion` en nucleo.
 
 **Service worker (@serwist en nucleo/campo)**: evaluado como NO factor de riesgo — assets con hash (sin stale-cache), HTML NetworkFirst, registro auto-guardado por feature-check. No agregar guardas UA que rompan PWA/offline sin evidencia nueva.
 
-**Riesgo conocido (documentado, no mitigado)**: si un dispositivo legacy mata la pestaña por memoria (no es un error JS capturable), el harness no lo mostrará. Plan B: reducir payload del login o entry estático legacy.
+**Riesgo conocido (mitigado en dev/preview, no en producción)**: si un dispositivo legacy mata la pestaña por memoria (no es un error JS capturable), el harness no lo mostrará en el momento; el heartbeat de eviction lo detecta en la siguiente carga. Plan B: reducir payload del login o entry estático legacy.
 
 ## Auth Package Convention
 

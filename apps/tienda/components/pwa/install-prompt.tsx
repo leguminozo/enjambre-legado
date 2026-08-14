@@ -58,7 +58,7 @@ export function InstallPrompt() {
         <button
           type="button"
           onClick={() => void install()}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground"
         >
           Instalar
         </button>

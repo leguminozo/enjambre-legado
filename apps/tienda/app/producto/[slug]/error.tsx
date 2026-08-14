@@ -34,7 +34,7 @@ export default function ProductoError({
             </button>
             <Link
               href="/catalogo"
-              className="inline-flex min-h-11 items-center text-sm font-medium text-accent underline underline-offset-2"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-accent-text underline underline-offset-2"
             >
               Volver a creaciones
             </Link>

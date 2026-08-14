@@ -202,6 +202,25 @@ async function calcularRetribucion(
     .order("priority");
   const filas: { tipo: string; cantidad: number; pct: number | null; notas: string }[] = [];
 
+  // El último pedido previo es el mismo para todas las reglas bonus_recompra_rapida:
+  // una sola consulta, no una por regla.
+  let previoPedido: { fecha: string } | null = null;
+  const hayRecompraRapida = (reglas ?? []).some(
+    (r) => String(((r.parameter ?? {}) as Record<string, unknown>).tipo_original ?? "puntos_por_clp") === "bonus_recompra_rapida",
+  );
+  if (hayRecompraRapida) {
+    const { data: previo } = await supabase
+      .from("b2b_pedidos")
+      .select("fecha")
+      .eq("revendedor_id", revendedorId)
+      .not("estado", "eq", "cancelado")
+      .lt("fecha", fechaPedido)
+      .order("fecha", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    previoPedido = previo;
+  }
+
   for (const r of reglas ?? []) {
     const p = (r.parameter ?? {}) as Record<string, unknown>;
     const tipo = String(p.tipo_original ?? "puntos_por_clp");
@@ -216,17 +235,8 @@ async function calcularRetribucion(
         filas.push({ tipo: "rebate", cantidad: Math.round((monto * valor) / 100), pct: valor, notas: `${r.name} (${valor}%)` });
       }
     } else if (tipo === "bonus_recompra_rapida" && p.dias_max != null) {
-      const { data: previo } = await supabase
-        .from("b2b_pedidos")
-        .select("fecha")
-        .eq("revendedor_id", revendedorId)
-        .not("estado", "eq", "cancelado")
-        .lt("fecha", fechaPedido)
-        .order("fecha", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (previo) {
-        const dias = (new Date(fechaPedido).getTime() - new Date(previo.fecha).getTime()) / 86400000;
+      if (previoPedido) {
+        const dias = (new Date(fechaPedido).getTime() - new Date(previoPedido.fecha).getTime()) / 86400000;
         if (dias <= Number(p.dias_max)) {
           filas.push({ tipo: "bonus", cantidad: Math.round(valor), pct: null, notas: `${r.name} (recompra en ${Math.round(dias)} días)` });
         }
@@ -238,16 +248,19 @@ async function calcularRetribucion(
     }
   }
 
-  for (const f of filas) {
-    await supabase.from("fid_retribuciones").insert({
-      revendedor_id: revendedorId,
-      pedido_id: pedidoId,
-      tipo: f.tipo,
-      cantidad: f.cantidad,
-      pct_aplicado: f.pct,
-      estado: "acreditada",
-      notas: f.notas,
-    });
+  // Un solo insert batch (antes N inserts secuenciales, uno por fila)
+  if (filas.length > 0) {
+    await supabase.from("fid_retribuciones").insert(
+      filas.map((f) => ({
+        revendedor_id: revendedorId,
+        pedido_id: pedidoId,
+        tipo: f.tipo,
+        cantidad: f.cantidad,
+        pct_aplicado: f.pct,
+        estado: "acreditada",
+        notas: f.notas,
+      })),
+    );
   }
   return filas.reduce((a, f) => a + f.cantidad, 0);
 }

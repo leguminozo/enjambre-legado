@@ -4,6 +4,18 @@ Living log of technical decisions. Format: Date | Decision | Rationale | Alterna
 
 ---
 
+## 2026-08-14 | Presupuesto Hobby/Free como ley — no como manifiesto de Lambdas
+
+**Decision**: La carta (`CONSTITUTION` § II.6, `system_invariants` Ley VI, `AGENTS.md`) trata las cuotas de **Vercel Hobby + Supabase Free (cifras oficiales ago-2026)** como invariantes. Se ejecuta: loader `cdn-image-loader` (cero Image Optimization de Vercel), helpers RLS `STABLE` + `search_path = ''` + rol desde `app_metadata.role` (no `oyz_role`), `optimizePackageImports` de `@enjambre/ui`, cache 1 año en avatares, crons diarios ya existentes (no se suben a cada minuto). No se constitucionaliza `SECURITY DEFINER` ni el pooler `6543` como camino default (el default es Data API HTTP).
+
+**Rationale**: El manifiesto “40 MB → 5 MB / pooler / SD / $0 indestructible” desconoce Fluid Compute, 5k image transforms (no 1k), egress 5 GB (no 2), Dexie ya vivo, ISR ya en catálogo, y la auditoría de funciones DEFINER. El techo real de OYZ es bandwidth compartido entre 3 apps, CPU de RLS, 500 MB de DB, 5k imágenes, ToS non-commercial de Hobby.
+
+**Alternatives considered**: `images.unoptimized = true` global — equivalent, peor si más adelante hay un CDN con query de ancho. Pooler obligatorio ya — **rejected** (cero `DATABASE_URL` en el repo). JWT-only `is_admin` sin fallback a `profiles` — **rejected** (JWT stale). Cron cada minuto para “SOTA queues” — **rejected** (Hobby).
+
+**Status**: Implementado en repo. Migración `20260814200000_rls_helpers_jwt_search_path.sql` requiere `pnpm go-live:db-push` (o equivalente) en el proyecto Supabase.
+
+---
+
 ## 2026-06-22 | Comercio soberano — no Shopify; apps top como inspiración
 
 **Decision**: La tienda D2C es una **app personalizada OYZ** (estética editorial, filosofía guardian, profundidad Chile). No se migra a Shopify. Las categorías de apps Shopify más usadas (ReCharge, Smile, Stamp Me, Klaviyo, Route, PassKit…) son **checklist de mecánica**, no dependencias. Especificación en [`COMERCIO_SOBERANO.md`](./COMERCIO_SOBERANO.md).

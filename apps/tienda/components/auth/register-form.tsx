@@ -18,7 +18,7 @@ export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { register } = useAuth();
+  const { register, login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = safeReturnPath(searchParams.get('returnTo'));
@@ -34,6 +34,14 @@ export function RegisterForm() {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // Misma política que Supabase (letras + números, ≥6): validar antes de
+    // enviar para no dejar que el 400 del server sea el primer aviso.
+    if (!/^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(password)) {
+      setError('La contraseña debe tener al menos 6 caracteres con letras y números.');
+      setLoading(false);
+      return;
+    }
 
     const storedRef = sessionStorage.getItem('oyz_ref')?.trim() || refParam;
     const referrerId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(storedRef)
@@ -57,11 +65,22 @@ export function RegisterForm() {
       }
       sessionStorage.removeItem('oyz_ref');
       const referralNote = referrerId ? ' Tu invitación quedó vinculada a la colmena.' : '';
-      toast(`¡Bienvenido al Legado! Revisa tu correo para confirmar tu cuenta.${referralNote}`, {
-        type: 'success',
-        duration: 8000,
-      });
-      router.push(returnTo ?? '/');
+      // mailer_autoconfirm está activo en Supabase: la cuenta nace activa y el
+      // signup devuelve sesión, así que se entra directo (sin esperar email).
+      const session = await login(email.trim(), password);
+      if (session.success) {
+        toast(`¡Bienvenido al Legado! Cuenta creada y sesión iniciada.${referralNote}`, {
+          type: 'success',
+          duration: 8000,
+        });
+        router.push(returnTo ?? '/perfil');
+      } else {
+        toast(`Cuenta creada. Inicia sesión para continuar.${referralNote}`, {
+          type: 'success',
+          duration: 8000,
+        });
+        router.push(returnTo ?? '/');
+      }
     } else {
       const msg = result.message || 'Error al crear la cuenta';
       setError(msg);
@@ -76,7 +95,7 @@ export function RegisterForm() {
     <AuthShell
       title={
         <>
-          Únete al <span className="italic text-accent">Legado</span>
+          Únete al <span className="italic text-accent-text">Legado</span>
         </>
       }
       subtitle="Sé parte de la comunidad guardián del bosque"
@@ -141,7 +160,7 @@ export function RegisterForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={authFieldClass}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo 6 caracteres con letras y números"
               />
               <button
                 type="button"
@@ -164,7 +183,7 @@ export function RegisterForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full min-h-[48px] py-4 rounded-lg border border-accent text-accent text-[0.7rem] uppercase tracking-[0.3em] hover:bg-accent hover:text-accent-foreground transition-all duration-300 disabled:opacity-50"
+          className="w-full min-h-[48px] py-4 rounded-lg border border-accent text-accent-text text-[0.7rem] uppercase tracking-[0.3em] hover:bg-accent hover:text-accent-foreground transition-all duration-300 disabled:opacity-50"
         >
           {loading ? 'Creando...' : 'Crear Cuenta'}
         </button>

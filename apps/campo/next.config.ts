@@ -69,6 +69,13 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@enjambre/auth", "@enjambre/ui"],
   outputFileTracingRoot: path.join(__dirname, '../..'),
   turbopack: {},
+  experimental: {
+    optimizePackageImports: ['@enjambre/ui', 'lucide-react', 'sonner', 'date-fns'],
+  },
+  images: {
+    loader: 'custom',
+    loaderFile: './image-loader.ts',
+  },
   async headers() {
     return [
       {

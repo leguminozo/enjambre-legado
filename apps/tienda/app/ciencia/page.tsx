@@ -4,11 +4,13 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getEcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
+import { getSiteContentBatch } from '@/lib/cms';
+import { parseCienciaSettings } from '@/lib/shop/store-chrome';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
 
 export const metadata: Metadata = {
-  title: 'La ciencia del bosque · Enjambre Legado',
+  title: 'La ciencia del bosque · La Obrera y el Zángano',
   description:
     'Miel cruda vs azúcar refinada: índice glicémico, enzimas activas y el Índice de Regeneración Relativa (IRR). La ciencia detrás de cada frasco.',
   alternates: { canonical: `${SITE_URL}/ciencia` },
@@ -29,8 +31,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function CienciaPage() {
-  const m = await getEcosystemMetrics();
+export default async function CienciaPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ cms_preview?: string }>;
+}) {
+  const draft = (await searchParams)?.cms_preview === '1';
+  const [m, batch] = await Promise.all([
+    getEcosystemMetrics(),
+    getSiteContentBatch(['ciencia_settings'], { draft }),
+  ]);
+  const cienciaSettings = parseCienciaSettings((batch.ciencia_settings?.[0]?.content as Record<string, unknown>) ?? null);
 
   const co2CapturadoAnual = m.irr_ecosistema ? m.co2_capturado_kg : m.arboles_total * 15;
   const co2EmitidoEstimado = m.co2_emitido_kg > 0 ? m.co2_emitido_kg : 5200;
@@ -39,16 +50,18 @@ export default async function CienciaPage() {
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="min-h-screen bg-background">
+      <main className="min-h-[var(--vh-full)] bg-background">
         {/* ── Hero ── */}
         <section className="relative px-4 text-center pt-[max(7rem,calc(env(safe-area-inset-top)+5.5rem))] pb-16 md:py-32">
           <div className="max-w-3xl mx-auto">
-            <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent mb-8">Ciencia</span>
+            <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent-text mb-8">
+              {cienciaSettings.kicker || 'Ciencia'}
+            </span>
             <h1 className="font-display text-[clamp(2.25rem,8vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
-              La ciencia<br />del bosque
+              {cienciaSettings.title || 'La ciencia del bosque'}
             </h1>
             <p className="font-display italic text-lg sm:text-xl text-muted-foreground max-w-lg mx-auto text-pretty">
-              Cada frasco condensa un proceso biofísico observable. Estas son las ecuaciones que lo demuestran.
+              {cienciaSettings.subtitle || 'Cada frasco condensa un proceso biofísico observable. Estas son las ecuaciones que lo demuestran.'}
             </p>
           </div>
         </section>
@@ -57,7 +70,7 @@ export default async function CienciaPage() {
         <section className="py-24 px-4 border-t border-border/20">
           <div className="max-w-4xl mx-auto grid md:grid-cols-[1fr_1fr] gap-16 items-center">
             <div>
-              <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent mb-6">Fórmula 01</span>
+              <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">Fórmula 01</span>
               <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
                 Energía solar → Miel
               </h2>
@@ -69,7 +82,7 @@ export default async function CienciaPage() {
               </p>
             </div>
             <div className="bg-surface-raised border border-border/30 rounded-xl p-10 text-center">
-              <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/50 mb-6">Vector de transferencia</p>
+              <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text mb-6">Vector de transferencia</p>
               <p className="font-mono text-lg md:text-xl text-foreground leading-loose tracking-wide">
                 E<sub>sol</sub> → C<sub>n</sub>H<sub>2n</sub>O<sub>n</sub> → fructosa + glucosa → miel virgen
               </p>
@@ -85,23 +98,23 @@ export default async function CienciaPage() {
                   <tbody className="text-foreground/70">
                     <tr className="border-t border-border/10">
                       <td className="py-3 text-muted-foreground">CO₂ en producción</td>
-                      <td className="py-3 text-accent">~0.5 kg/kg</td>
-                      <td className="py-3 text-destructive/70">~3.2 kg/kg</td>
+                      <td className="py-3 text-accent-text">~0.5 kg/kg</td>
+                      <td className="py-3 text-destructive">~3.2 kg/kg</td>
                     </tr>
                     <tr className="border-t border-border/10">
                       <td className="py-3 text-muted-foreground">Índice glicémico</td>
-                      <td className="py-3 text-accent">55–65</td>
-                      <td className="py-3 text-destructive/70">65–100</td>
+                      <td className="py-3 text-accent-text">55–65</td>
+                      <td className="py-3 text-destructive">65–100</td>
                     </tr>
                     <tr className="border-t border-border/10">
                       <td className="py-3 text-muted-foreground">Enzimas activas</td>
-                      <td className="py-3 text-accent">Diastasa, invertasa, GOx</td>
-                      <td className="py-3 text-destructive/70">0</td>
+                      <td className="py-3 text-accent-text">Diastasa, invertasa, GOx</td>
+                      <td className="py-3 text-destructive">0</td>
                     </tr>
                     <tr className="border-t border-border/10">
                       <td className="py-3 text-muted-foreground">Acción antimicrobiana</td>
-                      <td className="py-3 text-accent">H₂O₂, péptidos, bajo Aw</td>
-                      <td className="py-3 text-destructive/70">Ninguna</td>
+                      <td className="py-3 text-accent-text">H₂O₂, péptidos, bajo Aw</td>
+                      <td className="py-3 text-destructive">Ninguna</td>
                     </tr>
                   </tbody>
                 </table>
@@ -114,7 +127,7 @@ export default async function CienciaPage() {
         <section className="py-24 px-4 border-t border-border/20 bg-surface-raised/30">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent mb-6">Fórmula 02</span>
+              <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">Fórmula 02</span>
               <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
                 Índice de Regeneración Relativa
               </h2>
@@ -122,12 +135,12 @@ export default async function CienciaPage() {
             <div className="grid md:grid-cols-2 gap-16">
               <div>
                 <div className="bg-card border border-border/30 rounded-xl p-10 text-center mb-8">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/50 mb-6">IRR</p>
+                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text mb-6">IRR</p>
                   <p className="font-mono text-2xl md:text-3xl text-foreground tracking-wide">
                     CO₂ capturado / CO₂ emitido
                   </p>
                   {m.irr_ecosistema && m.irr_ecosistema > 1 && (
-                    <p className="mt-6 font-display text-4xl font-light text-success">
+                    <p className="mt-6 font-display text-4xl font-light text-success-text">
                       {m.irr_ecosistema}
                     </p>
                   )}
@@ -140,23 +153,23 @@ export default async function CienciaPage() {
                 </p>
               </div>
               <div className="bg-card border border-border/30 rounded-xl p-10">
-                <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent/50 mb-6">Cálculo del ecosistema</p>
+                <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text mb-6">Cálculo del ecosistema</p>
                 <div className="space-y-4 text-sm text-foreground/70">
                   <div className="flex justify-between border-b border-border/10 pb-3">
                     <span>Árboles en el ecosistema</span>
-                    <span className="text-accent font-mono">{m.arboles_total.toLocaleString('es-CL')}</span>
+                    <span className="text-accent-text font-mono">{m.arboles_total.toLocaleString('es-CL')}</span>
                   </div>
                   <div className="flex justify-between border-b border-border/10 pb-3">
                     <span>CO₂ capturado/año (prom. 15 kg/árbol)</span>
-                    <span className="text-accent font-mono">{co2CapturadoAnual.toLocaleString('es-CL')} kg</span>
+                    <span className="text-accent-text font-mono">{co2CapturadoAnual.toLocaleString('es-CL')} kg</span>
                   </div>
                   <div className="flex justify-between border-b border-border/10 pb-3">
                     <span>CO₂ emitido producción + logística</span>
-                    <span className="text-destructive/70 font-mono">{co2EmitidoEstimado.toLocaleString('es-CL')} kg</span>
+                    <span className="text-destructive font-mono">{co2EmitidoEstimado.toLocaleString('es-CL')} kg</span>
                   </div>
                   <div className="flex justify-between pt-3">
                     <span className="text-foreground font-medium">IRR</span>
-                    <span className={`font-mono text-lg font-bold ${irrCalculado > 1 ? 'text-success' : 'text-muted-foreground'}`}>
+                    <span className={`font-mono text-lg font-bold ${irrCalculado > 1 ? 'text-success-text' : 'text-muted-foreground'}`}>
                       {irrCalculado}
                     </span>
                   </div>
@@ -173,7 +186,7 @@ export default async function CienciaPage() {
         <section className="py-24 px-4 border-t border-border/20">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent mb-6">Fórmula 03</span>
+              <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">Fórmula 03</span>
               <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
                 Propiedades que no se fabrican
               </h2>
@@ -208,7 +221,7 @@ export default async function CienciaPage() {
         {/* ── Perfil irrepetible ── */}
         <section className="py-24 px-4 border-t border-border/20 bg-surface-raised/30">
           <div className="max-w-3xl mx-auto text-center">
-            <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent mb-6">Denominación de origen</span>
+            <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">Denominación de origen</span>
             <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
               Un perfil que no se repite
             </h2>
@@ -217,7 +230,7 @@ export default async function CienciaPage() {
             </p>
             <Link
               href="/catalogo"
-              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-accent px-6 py-3 text-[0.65rem] uppercase tracking-[0.3em] text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-accent px-6 py-3 text-[0.65rem] uppercase tracking-[0.3em] text-accent-text hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               Explorar creaciones →
             </Link>

@@ -231,7 +231,7 @@ export function DireccionForm({ initialData, onSubmit, onCancel }: DireccionForm
         <button
           type="submit"
           disabled={isPending}
-          className="px-6 py-2.5 rounded-xl bg-accent text-accent-foreground text-xs uppercase tracking-[0.15em] font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+          className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs uppercase tracking-[0.15em] font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           {isPending ? 'Guardando...' : 'Guardar'}
         </button>

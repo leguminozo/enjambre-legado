@@ -81,5 +81,21 @@ export async function previewCartPricing(
     };
   });
 
-  return computeCartPricing(items, rows, role, pastOrdersCount);
+  // Multiplicadores desde la config central (beneficios_enjambre): misma
+  // fuente que el hub y el preview de tienda — nunca divergen del cobro.
+  const { data: configRows } = await admin
+    .from("beneficios_enjambre")
+    .select("clave, valor_numerico");
+  const config = new Map(
+    (configRows ?? []).map((r) => [String(r.clave), Number(r.valor_numerico)]),
+  );
+  const multipliers = {
+    embajador: config.get("mult_embajador") ?? 0.7,
+    revendedor: config.get("mult_revendedor") ?? 0.8,
+    suscriptor: config.get("mult_suscriptor") ?? 0.9,
+    volumen: config.get("mult_volumen") ?? 0.95,
+    volumenPedidos: config.get("volumen_pedidos") ?? 10,
+  };
+
+  return computeCartPricing(items, rows, role, pastOrdersCount, multipliers);
 }

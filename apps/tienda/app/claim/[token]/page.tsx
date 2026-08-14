@@ -23,7 +23,7 @@ export default async function ClaimPage({ params }: ClaimPageProps) {
 
   if (venta.claim_status === 'claimed') {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center gap-6 px-6 py-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] text-center">
+      <div className="min-h-[var(--vh-full)] bg-background text-foreground flex flex-col items-center justify-center gap-6 px-6 py-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] text-center">
         <h1 className="font-display text-[clamp(1.75rem,6vw,2.5rem)] font-light text-balance">
           Ticket ya reclamado
         </h1>

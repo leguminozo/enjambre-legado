@@ -18,7 +18,7 @@ export default async function AlertasFloracionPage() {
         mission="Entérate primero cuando la naturaleza ofrece lo mejor — y actúa antes que nadie"
         action={
           <div className="px-6 py-2 bg-accent/10 border border-accent/20 rounded-full">
-            <span className="text-[0.6rem] uppercase tracking-[0.3em] text-accent font-bold">
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] text-accent-text font-bold">
               {activeCategories} {activeCategories === 1 ? 'Categoría Activa' : 'Categorías Activas'}
             </span>
           </div>
@@ -42,7 +42,7 @@ export default async function AlertasFloracionPage() {
               <div className="p-6 rounded-2xl bg-secondary/50 border border-accent/20">
                 <div className="flex items-center gap-3 mb-3">
                   <Flame size={16} className="text-accent" />
-                  <span className="text-[0.6rem] uppercase tracking-[0.2em] text-accent font-bold">
+                  <span className="text-[0.6rem] uppercase tracking-[0.2em] text-accent-text font-bold">
                     Floración Activa
                   </span>
                   <span className="ml-auto text-[0.5rem] text-muted-foreground">Hace 2h</span>
@@ -91,7 +91,7 @@ export default async function AlertasFloracionPage() {
 
         <div className="space-y-6">
           <div className="p-8 rounded-3xl bg-secondary/50 border border-border">
-            <h4 className="text-[0.65rem] uppercase tracking-[0.2em] font-bold text-accent mb-6">
+            <h4 className="text-[0.65rem] uppercase tracking-[0.2em] font-bold text-accent-text mb-6">
               Tipos de Alerta
             </h4>
             <ul className="space-y-5">

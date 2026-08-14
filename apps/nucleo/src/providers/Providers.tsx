@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
-import { ThemeProvider, ToastProvider, useTheme, type Theme } from '@enjambre/ui'
+import { ThemeProvider, ToastProvider, useTheme, useLegacyDevice, type Theme } from '@enjambre/ui'
+import { MotionConfig } from 'framer-motion'
 import { useAuthProvider, useAuthStore, createClient } from '@enjambre/auth'
 import type { Session, SupabaseClient } from '@supabase/supabase-js'
 import { createNucleoPersister, shouldPersistQuery } from '@/lib/query-persist'
@@ -114,6 +115,7 @@ interface ProvidersProps {
 }
 
 export function Providers({ children }: ProvidersProps) {
+  const { motionReduced } = useLegacyDevice()
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -136,7 +138,11 @@ export function Providers({ children }: ProvidersProps) {
       <ToastProvider>
         <AuthSync />
         <ThemeSync />
-        {children}
+        {/* Tier legacy / reduced-motion: framer-motion sin animaciones de
+            entrada (12+ vistas con AnimatePresence en nucleo). */}
+        <MotionConfig reducedMotion={motionReduced ? 'always' : 'never'}>
+          {children}
+        </MotionConfig>
       </ToastProvider>
     </ThemeProvider>
   )

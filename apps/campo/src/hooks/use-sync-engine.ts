@@ -2,17 +2,33 @@ import { useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { db } from '@/lib/offline/db';
 import { useAuthStore } from '@enjambre/auth';
+import { useLegacyDevice } from '@enjambre/ui';
 
 const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
 
+// TTL del downsync completo: navegar entre rutas re-monta SyncProvider y re-ejecutaba
+// clear+bulkAdd de todos los productos (y upsync re-dispara downsync al terminar).
+// Con 60s, una vez por minuto como máximo, manteniendo offline-first intacto.
+// En tier legacy (2GB RAM) el clear+bulkAdd completo es un spike de memoria:
+// se espacia a 5 min para no matar la pestaña en iPhone 7.
+const DOWNSYNC_TTL_MS = 60_000;
+const DOWNSYNC_TTL_MS_LEGACY = 300_000;
+const LAST_DOWNSYNC_KEY = 'lastFullDownsync';
+
 export function useSyncEngine() {
   const isSyncing = useRef(false);
+  const { legacy } = useLegacyDevice();
   const token = useAuthStore((s) => s.session?.access_token);
 
   const performDownsync = useCallback(async () => {
     if (!navigator.onLine) return;
 
     try {
+      // Skip si ya hubo un downsync exitoso hace < TTL (evita el doble clear+bulkAdd por navegación)
+      const lastSync = await db.meta.get(LAST_DOWNSYNC_KEY);
+      const ttl = legacy ? DOWNSYNC_TTL_MS_LEGACY : DOWNSYNC_TTL_MS;
+      if (lastSync && Date.now() - lastSync.value < ttl) return;
+
       const supabase = createClient();
       if (!supabase) return;
       const { data, error } = await supabase
@@ -30,6 +46,7 @@ export function useSyncEngine() {
           await db.productos.clear();
           await db.productos.bulkAdd(data);
         });
+        await db.meta.put({ key: LAST_DOWNSYNC_KEY, value: Date.now() });
         console.log('[SyncEngine] Downsync complete. Products updated in local DB.');
       }
 
@@ -57,7 +74,7 @@ export function useSyncEngine() {
     } catch (err) {
       console.error('[SyncEngine] Downsync failed:', err);
     }
-  }, [token]);
+  }, [token, legacy]);
 
   const performUpsync = useCallback(async () => {
     if (!navigator.onLine || isSyncing.current) return;
