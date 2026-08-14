@@ -25,7 +25,7 @@ export function ResetPasswordForm() {
       const tokenHash = search.get('token_hash');
       const type = search.get('type');
       if (tokenHash && type === 'recovery') {
-        supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' }).then(({ error }) => {
+        supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' }).then(({ error }: { error: unknown }) => {
           if (error) {
             toast(friendlySupabaseError(error), { type: 'error' });
           }

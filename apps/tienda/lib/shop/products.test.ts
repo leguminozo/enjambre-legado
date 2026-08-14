@@ -62,6 +62,7 @@ describe('mapProduct (catálogo → ShopProduct)', () => {
           nombre_lote: 'Lote Ulmo 2026',
           descripcion: 'Cosecha de enero en Pureo',
           fecha_envasado: '2026-03-10T00:00:00.000Z',
+          publico: true,
         },
       }),
     );

@@ -79,9 +79,9 @@ Sí hay **publicidad sanitaria** en tienda:
 Sigue igual que la auditoría:
 
 - `gasto-extranjero.ts`: 14 proveedores `conIva: false` → crédito 511 siempre 0.
-- `f29.ts`: `CREDITO_COMPRAS_NACIONALES: 503` **igual** que el débito de ventas (A-20).
+- Parche 2026-08-14: Uber `conIva`; digitales `cambioSujeto` (IVA 19% encima); F29 crédito nacional **507**, débito digital **511**, crédito digital **512**. El motor ya no mezcla 503.
 
-**Hacer:** `conIva` real por proveedor (Uber Chile no es “digital extranjero” igual que AWS) + códigos 507/508/511/512. Hasta entonces **no declarar F29 desde este motor** como si fuera la planilla oficial.
+Sigue siendo **apoyo** al F29, no la declaración oficial al SII.
 
 ### 4. Legales en CMS
 

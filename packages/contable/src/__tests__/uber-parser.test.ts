@@ -12,9 +12,9 @@ describe("parseUberReceipt", () => {
     const result = parseUberReceipt(text);
     expect(result).not.toBeNull();
     expect(result!.montoTotal).toBe(8500);
-    expect(result!.montoExento).toBe(8500);
-    expect(result!.montoNeto).toBe(0);
-    expect(result!.montoIva).toBe(0);
+    expect(result!.montoExento).toBe(0);
+    expect(result!.montoNeto).toBe(Math.round(8500 / 1.19));
+    expect(result!.montoIva).toBe(8500 - Math.round(8500 / 1.19));
     expect(result!.fechaEmision).toBe("2025-03-15");
     expect(result!.tripId).toBe("ABC123");
   });

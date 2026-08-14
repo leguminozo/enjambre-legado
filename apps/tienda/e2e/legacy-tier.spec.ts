@@ -35,7 +35,8 @@ test.describe('tier legacy — detección', () => {
       const el = document.createElement('div');
       el.className = 'backdrop-blur-2xl';
       document.body.appendChild(el);
-      const cs = getComputedStyle(el).backdropFilter || getComputedStyle(el).webkitBackdropFilter;
+      const style = getComputedStyle(el) as CSSStyleDeclaration & { webkitBackdropFilter?: string };
+      const cs = style.backdropFilter || style.webkitBackdropFilter;
       el.remove();
       return cs;
     });
