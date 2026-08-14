@@ -50,7 +50,13 @@ export function friendlyCheckoutApiMessage(
       : 'El pago no está disponible temporalmente. Contáctanos para completar tu pedido.';
   }
 
-  if (message && message.length <= 120 && !msg.includes('missing') && !msg.includes('stack')) {
+  if (
+    isDev() &&
+    message &&
+    message.length <= 120 &&
+    !msg.includes('missing') &&
+    !msg.includes('stack')
+  ) {
     return message;
   }
 

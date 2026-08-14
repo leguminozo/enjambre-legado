@@ -152,7 +152,7 @@ export const listVisibleProducts = cache(async function listVisibleProducts(): P
     .eq('visible', true)
     .order('created_at', { ascending: false });
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error('No se pudieron cargar los productos');
   const rawRows = data ?? [];
   // Parse fila a fila: un producto roto no debe vaciar todo el catálogo
   const rows: ProductRow[] = [];
@@ -194,7 +194,7 @@ export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
     .eq(isUuid ? 'id' : 'slug', decodedSlugOrId)
     .maybeSingle();
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error('No se pudieron cargar los productos');
   
   let row: ProductRow | null = null;
   if (data) {

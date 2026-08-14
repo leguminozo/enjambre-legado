@@ -36,7 +36,7 @@ Si estos Términos de servicio se consideran una oferta, la aceptación se limit
 
 Puede revisar la versión más actual de los Términos de servicio en cualquier momento en esta página. Nos reservamos el derecho de actualizar, cambiar o reemplazar cualquier parte de estos Términos de servicio mediante la publicación de actualizaciones o cambios en nuestro sitio web. Es su responsabilidad revisar esta página periódicamente para consultar si hay cambios. El uso continuado del sitio web o el acceso al mismo tras la publicación de cualquier cambio implica la aceptación de dichos cambios.
 
-Nuestra tienda está construida sobre Next.js y se aloja en Hostinger. Los pagos son procesados por Transbank Webpay Plus o Flow.cl, según el método disponible al momento de la compra. Los datos de usuario y autenticación son gestionados mediante Supabase.
+Los pagos son procesados por Transbank Webpay Plus o Flow.cl, según el método disponible al momento de la compra. El tratamiento de datos personales se describe en la <a href="/privacidad">Política de Privacidad</a>.
 
 <strong>SECCIÓN 1: TÉRMINOS DE LA TIENDA ONLINE</strong>
 

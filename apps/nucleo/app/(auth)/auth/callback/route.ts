@@ -9,14 +9,16 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      const forwardedHost = request.headers.get('x-forwarded-host');
-      const isLocalHost = origin.startsWith('http://localhost');
-      
-      const targetOrigin = forwardedHost && !isLocalHost ? `https://${forwardedHost}` : origin;
-      const redirectUrl = next.startsWith('/') ? `${targetOrigin}${next}` : `${targetOrigin}/reset-password`;
-      return NextResponse.redirect(redirectUrl);
+    if (supabase) {
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error) {
+        const forwardedHost = request.headers.get('x-forwarded-host');
+        const isLocalHost = origin.startsWith('http://localhost');
+        
+        const targetOrigin = forwardedHost && !isLocalHost ? `https://${forwardedHost}` : origin;
+        const redirectUrl = next.startsWith('/') ? `${targetOrigin}${next}` : `${targetOrigin}/reset-password`;
+        return NextResponse.redirect(redirectUrl);
+      }
     }
   }
 

@@ -119,7 +119,7 @@ export async function redeemLoyaltyReward(rewardId: string): Promise<void> {
   })
 
   if (error) {
-    throw new Error(error.message || 'No se pudo completar el canje')
+    throw new Error('No se pudo completar el canje')
   }
 
   revalidatePath('/perfil/canje')

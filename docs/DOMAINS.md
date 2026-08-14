@@ -51,7 +51,8 @@ Ninguna etapa “vive en las tres apps”. Si cruza, el **write caro** pasa por 
 | Censo Chiloé | Núcleo (+ público parcial) | `registro-territorial`, `censo-publico`, `mapa-publico` | `NUCLEO_CHILOE` | Datos hay; capa pública incompleta. |
 | Hidromiel / infusiones / alambique | Núcleo | rutas homónimas | — | Dominios operativos internos. |
 | IA | Solo Núcleo | `/api/ai/*` | `AI_NUCLEO` | Groq, scope por `user_id`, kill `AI_ENABLED`. |
-| Impacto / ciencia | Tienda + Núcleo | `impacto`, fenología, percepción | `MICROCANALES_…` | Coeficientes hardcodeados. |
+| Impacto / ciencia | Tienda + Núcleo | `impacto`, fenología, percepción | `MICROCANALES_…`, `CUMPLIMIENTO_CHILE` | Metodología v2026.08.1 en `/impacto`; claims de salud en tienda = hueco 20.606. |
+| Cumplimiento CL | Transversal | legales tienda + fiscal + territorial | `CUMPLIMIENTO_CHILE` | P0: 21.719 ops + copy alimentos. Hidromiel no es venta. |
 | Red intercambio / B2B | Núcleo + Tienda | `b2b`, `enjambre` | `RED_INTERCAMBIO_LEGAL` | Spec + código parcial. |
 | Seguridad eventos | 3 → BFF | `security-events` | `TRUST` | Vivo. |
 

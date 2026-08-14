@@ -3,7 +3,7 @@ import { createClient } from '@/utils/supabase/server';
 
 export async function POST(request: Request) {
   const supabase = await createClient();
-  if (!supabase) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+  if (!supabase) return NextResponse.json({ error: "Servicio no disponible" }, { status: 500 });
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

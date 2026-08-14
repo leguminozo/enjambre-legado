@@ -23,7 +23,7 @@ export default function ProductoError({
       <main className="min-h-[50vh] px-4 py-16 sm:px-6">
         <div className="mx-auto max-w-2xl">
           <h1 className="font-display text-2xl font-semibold text-foreground">No se pudo cargar</h1>
-          <p className="mt-2 text-muted-foreground">{error.message || 'Error inesperado cargando el producto'}</p>
+          <p className="mt-2 text-muted-foreground">No pudimos mostrar esta creación. Intenta de nuevo o vuelve al catálogo.</p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <button
               type="button"

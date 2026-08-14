@@ -68,6 +68,12 @@ Cuando exista un cron de purge, anótalo aquí. Hoy el riesgo es crecimiento sil
 
 Verificar en código, no en la memoria del snapshot.
 
+Leyes chilenas (hacer / ya está): [`CUMPLIMIENTO_CHILE.md`](./CUMPLIMIENTO_CHILE.md).
+
+## Copy público (no filtrar el stack)
+
+Lo que ve un visitante o un cliente **no** nombra frameworks, cookies internas ni códigos SQL. Páginas legales: encargados de Ley 21.719 (Vercel, Supabase, Transbank/Flow, Sentry) sin receta de implementación (nada de Next.js, HMR, `sb-<project>-auth-token`, AES-256, RBAC, Hostinger). Errores de UI: `friendlyError` / fallbacks genéricos. `/api/health/deps` no enumera secretos. Si el CMS (`legal_*`) tiene un body publicado, **ese** texto gana al fallback del repo: re-guardar Términos / Privacidad / Cookies en el editor de tienda tras este cambio.
+
 ## Cómo tocar seguridad
 
 Cambio de RLS o DEFINER = migración + nota en `DATABASE_SCHEMA` + test de policy si existe. Cambio de webhook = test de firma + replay. Cambio de secretos = rotar en **3** proyectos Vercel + GitHub Actions secrets (CI las usa).

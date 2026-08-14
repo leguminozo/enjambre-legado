@@ -17,6 +17,13 @@ describe('friendlySupabaseError', () => {
   });
 });
 
+describe('friendlyError no filtra jerga', () => {
+  it('un string SQL no llega al usuario', () => {
+    expect(friendlyError('relation public.productos does not exist')).toMatch(/inesperado|interno/i);
+    expect(friendlyError('relation public.productos does not exist')).not.toMatch(/relation|productos/i);
+  });
+});
+
 describe('friendlyApiError / friendlyError', () => {
   it('api codes', () => {
     expect(friendlyApiError('unauthorized')).toMatch(/sesión/i);

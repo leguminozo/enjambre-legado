@@ -31,7 +31,7 @@ export default function NucleoResetPasswordPage() {
     try {
       const supabase = createClient();
       if (!supabase) {
-        throw new Error('El cliente de Supabase no está configurado');
+        throw new Error('No se pudo actualizar la contraseña. Intenta de nuevo.');
       }
 
       const { error } = await supabase.auth.updateUser({ password });

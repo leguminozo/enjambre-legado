@@ -29,9 +29,8 @@ Son necesarias para el funcionamiento del sitio web. No requieren su consentimie
 
 | Cookie | Proveedor | Finalidad | Duración | Tipo |
 |--------|-----------|-----------|----------|------|
-| __next_hmr_refresh | Propia (Next.js) | Hot module replacement en desarrollo | Sesión | Primera parte |
-| sb-<project>-auth-token | Supabase | Sesión de autenticación del usuario | 1 año | Primera parte |
-| preference-consent | Propia | Almacena su elección de consentimiento de cookies | 1 año | Primera parte |
+| Sesión de cuenta | Propia | Mantenerte conectado de forma segura | Hasta 1 año | Primera parte |
+| preference-consent | Propia | Recuerda tu elección de cookies | 1 año | Primera parte |
 
 <strong>2.2. Cookies de funcionalidad y preferencias</strong>
 

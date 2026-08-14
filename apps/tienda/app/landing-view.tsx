@@ -308,7 +308,7 @@ export function TiendaLandingView({
           style={{
             background:
               'radial-gradient(ellipse at center, transparent 0%, hsl(var(--background)) 70%)',
-            opacity: isMobile ? 0.88 : 0.55,
+            opacity: isMobile ? 0.85 : 0.38,
           }}
         />
 

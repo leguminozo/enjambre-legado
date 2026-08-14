@@ -12,6 +12,7 @@
 | 15 min | [`DOMAINS.md`](./DOMAINS.md) + [`CROSS_APP.md`](./CROSS_APP.md) | Quién es dueño de qué; contratos entre apps. |
 | +dinero | [`MONEY_PATH.md`](./MONEY_PATH.md) | Checkout, POS, webhooks, DTE. |
 | +prod | [`PRODUCTION.md`](./PRODUCTION.md) + [`TRUST.md`](./TRUST.md) | Release, incidentes, RLS, PII. |
+| +leyes CL | [`CUMPLIMIENTO_CHILE.md`](./CUMPLIMIENTO_CHILE.md) | Qué falta para estar al día; hidromiel no se vende. |
 | +campo | [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md) | POS / Dexie / sync. |
 | +datos | [`DATABASE_SCHEMA.md`](./DATABASE_SCHEMA.md) + [`ROLES_Y_ACCESO.md`](./ROLES_Y_ACCESO.md) | Schema y roles. |
 | +Chiloé | [`NUCLEO_CHILOE.md`](./NUCLEO_CHILOE.md) | Censo territorial. |
@@ -56,6 +57,7 @@ Cada doc debería llevar su clase en la primera cita. Si no la tiene, asúmela p
 | [`AGENT_INSTRUCTIONS.md`](./AGENT_INSTRUCTIONS.md) | LEY | Cirugía, stack, workflow de verificación. |
 | [`ROLES_Y_ACCESO.md`](./ROLES_Y_ACCESO.md) | LEY | Roles de plataforma vs comerciales (`oyz_role`). |
 | [`TRUST.md`](./TRUST.md) | LEY | RLS, secretos, tenancy, PII, Groq/Sentry. |
+| [`CUMPLIMIENTO_CHILE.md`](./CUMPLIMIENTO_CHILE.md) | OPS | Destilado: hacer / ya está / no aplica (leyes CL). |
 | [`GLOSSARY.md`](./GLOSSARY.md) | VIVO | Patio ≠ Campo; `oyz_role` ≠ admin. |
 | [`OPS_ROLES_CHECKLIST.md`](./OPS_ROLES_CHECKLIST.md) | OPS | Checklist post-migración de roles. |
 

@@ -32,7 +32,7 @@ Al acceder o utilizar nuestro sitio web usted acepta las prácticas descritas en
 
 <strong>Automáticamente:</strong> datos de navegación (dirección IP, tipo de dispositivo, navegador, páginas visitadas) mediante cookies y tecnologías similares. Para más detalle, consulta nuestra <a href="/cookies">Política de Cookies</a>.
 
-<strong>De terceros:</strong> Supabase (infraestructura de base de datos y autenticación), Hostinger (hosting), Transbank y Flow.cl (pagos), Blue Express (envíos), y herramientas de analítica o publicidad (Google, Meta, etc.).
+<strong>De terceros:</strong> el proveedor de alojamiento del sitio, el proveedor de cuenta e inicio de sesión, Transbank y Flow.cl (pagos), Blue Express (envíos), y —solo si aceptas cookies no esenciales— herramientas de analítica o publicidad (Google, Meta). Un servicio de diagnóstico de errores puede recibir reportes técnicos del sitio, sin datos de tarjeta.
 
 <strong>2. Bases legales y finalidades</strong>
 
@@ -51,13 +51,14 @@ Utilizamos cookies esenciales para el correcto funcionamiento del sitio y cookie
 
 Compartimos datos con los siguientes encargados de tratamiento:
 
-- <strong>Supabase:</strong> infraestructura de base de datos, autenticación y almacenamiento (servidores en región americana). Cumple con SOC 2 Type II.
-- <strong>Hostinger:</strong> alojamiento del sitio web.
-- <strong>Transbank / Flow.cl:</strong> procesamiento de pagos. Los datos de tarjeta no pasan por nuestros servidores; se procesan directamente a través de su plataforma PCI DSS certificada.
+- <strong>Alojamiento del sitio:</strong> Vercel, Inc. (entrega del sitio web).
+- <strong>Cuenta e inicio de sesión:</strong> Supabase, Inc. (cuenta, sesión y almacenamiento asociado), servidores en región americana.
+- <strong>Transbank / Flow.cl:</strong> procesamiento de pagos. Los datos de tarjeta no pasan por nuestros servidores; se procesan en su plataforma certificada PCI DSS.
 - <strong>Blue Express:</strong> logística y envíos (nombre, dirección, teléfono del destinatario).
-- <strong>Herramientas de marketing/analítica:</strong> Google Analytics, Meta Pixel y similares, según tu consentimiento.
+- <strong>Diagnóstico de errores:</strong> Functional Software, Inc. (Sentry), solo fallos técnicos del sitio.
+- <strong>Analítica y publicidad:</strong> Google y Meta, únicamente si otorgas consentimiento de cookies no esenciales.
 
-Realizamos transferencias internacionales de datos (principalmente a servidores en Europa y América). Supabase, Hostinger, Transbank y Flow aplican medidas de seguridad y cláusulas contractuales estándar conforme a la Ley 21.719.
+Realizamos transferencias internacionales (Europa y América). Esos encargados aplican medidas de seguridad y cláusulas contractuales estándar conforme a la Ley 21.719.
 
 <strong>5. Conservación de los datos</strong>
 
@@ -82,7 +83,7 @@ Responderemos en un plazo máximo de 30 días, conforme a la Ley 21.719.
 
 <strong>7. Seguridad y brechas</strong>
 
-Aplicamos medidas razonables de seguridad técnicas y organizativas: cifrado TLS/HTTPS en tránsito, cifrado AES-256 en reposo (Supabase), control de acceso basado en roles (RBAC), y auditorías de acceso.
+Aplicamos medidas razonables de seguridad: conexión cifrada (HTTPS), cifrado de datos en reposo, acceso restringido por rol y registro de accesos sensibles.
 
 En caso de una brecha de seguridad que pueda afectarlo, le notificaremos a usted y a la Agencia de Protección de Datos Personales dentro de los plazos que establezca la ley (72 horas una vez operativa la APD), según lo exija la Ley 21.719.
 

@@ -68,13 +68,10 @@ describe("Health API Routes", () => {
     const res = await app.request("/api/health/deps");
     expect([200, 503]).toContain(res.status);
     const json = await res.json();
-    expect(json.service).toBe("enjambre-api");
-    expect(json.checks.supabase_url).toBe("ok");
-    expect(json.checks.supabase_anon).toBe("ok");
-    expect(json.checks.service_role).toBe("ok");
-    expect(json.checks.tienda_url).toBe("ok");
-    expect(json.checks.upstash).toBe("missing");
     expect(json.status).toBe("ok");
-    expect(JSON.stringify(json)).not.toMatch(/service-role-key|anon-key|internal-test/i);
+    expect(json).not.toHaveProperty("checks");
+    expect(JSON.stringify(json)).not.toMatch(
+      /service_role|supabase|upstash|internal_api|service-role-key|anon-key|internal-test/i,
+    );
   });
 });

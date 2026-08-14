@@ -45,7 +45,7 @@ export default async function CatalogoPage() {
     products = await listVisibleProducts();
     ratings = await fetchRatingAggregatesByProduct(products.map((p) => p.id));
   } catch (e) {
-    loadError = e instanceof Error ? e.message : 'Error cargando catálogo';
+    loadError = 'No pudimos cargar el catálogo. Intenta de nuevo en unos minutos.';
   }
 
   const listSchema = products.length > 0

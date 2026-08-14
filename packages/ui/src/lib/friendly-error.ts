@@ -103,7 +103,9 @@ export function friendlyApiError(code: string | undefined, fallback?: string): s
 
 export function friendlyError(err: unknown, fallback?: string): string {
   if (!err) return fallback ?? FRIENDLY_ERROR_MAP.unknown;
-  if (typeof err === 'string') return err;
+  if (typeof err === 'string') {
+    return friendlySupabaseError({ message: err });
+  }
 
   if (typeof err === 'object' && err !== null) {
     const code = 'code' in err && typeof err.code === 'string' ? err.code : undefined;

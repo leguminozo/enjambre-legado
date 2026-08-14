@@ -53,7 +53,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: error.message, code: error.code },
+        {
+          error: 'No pudimos enviar el correo. Intenta de nuevo en unos minutos.',
+          code: 'reset_failed',
+        },
         { 
           status: 400,
           headers: {

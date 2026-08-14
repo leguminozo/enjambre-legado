@@ -79,8 +79,6 @@ healthRoutes.get("/deps", (c) => {
   return c.json(
     {
       status: degraded ? "degraded" : "ok",
-      service: "enjambre-api",
-      checks,
       timestamp: new Date().toISOString(),
     },
     degraded ? 503 : 200,

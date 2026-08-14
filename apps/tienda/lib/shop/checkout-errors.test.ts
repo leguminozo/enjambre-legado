@@ -38,6 +38,17 @@ describe('friendlyCheckoutApiMessage', () => {
     ).toContain('Recarga');
   });
 
+  it('no filtra SQL/PostgREST al cliente en producción', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    expect(
+      friendlyCheckoutApiMessage(
+        'quote_failed',
+        'relation productos does not exist',
+        'quote',
+      ),
+    ).toBe('No pudimos calcular envío y descuentos. Revisa la región e intenta de nuevo.');
+  });
+
   it('maps promo code errors', () => {
     expect(
       friendlyCheckoutApiMessage('quote_failed', 'Código de descuento inválido', 'quote'),
