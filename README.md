@@ -2,6 +2,9 @@
 
 > **Enjambre Legado** — Sistema operativo para la regeneracion biocultural.
 > Monorepo multi-plataforma, multi-rol, multi-agente.
+>
+> **Docs:** [`docs/README.md`](docs/README.md) (índice ley / vivo / snapshot) · [`docs/REPO_MAP.md`](docs/REPO_MAP.md) (mapa del código).
+> No empieces por `MASTER_PLAN.md` (foto de junio 2026).
 
 ---
 
@@ -15,55 +18,29 @@ El sistema cubre todo el ciclo: desde la inspeccion de colmenas en terreno (sin 
 
 ## Mapa de la Documentacion
 
-Lee en orden segun tu rol y tiempo disponible:
+El índice vivo (clases de doc, jerarquía, catálogo entero) está en **[`docs/README.md`](docs/README.md)**. El censo de código en **[`docs/REPO_MAP.md`](docs/REPO_MAP.md)**.
 
-| Si tienes... | Lee | Para... |
-|---|---|---|
-| 5 min | Este archivo + `CONSTITUTION.md` | Entender la vision y las reglas inviolables |
-| 15 min | + `ARCHITECTURE.md` + `AGENT_INSTRUCTIONS.md` | Entender la estructura y como trabajar |
-| 30 min | + `DATABASE_SCHEMA.md` + `DEPLOY.md` | Entender los datos y el despliegue |
-| 60 min | + `PROMPT_LIBRARY.md` + `TECHNICAL_DEBT.md` + `FRONTEND_ROADMAP.md` | Maestria completa del ecosistema |
-
-### Indices por documento
-
-| Archivo | Proposito |
+| Si tienes... | Lee |
 |---|---|
-| `CONSTITUTION.md` | Principios inviolables. Vision, filosofia, mandamientos |
-| `PLAN_COLOSAL.md` | **Plan maestro** — 5 olas (reseñas, wallet, ritual, catálogo, vanguardia) |
-| `COMERCIO_SOBERANO.md` | App comercial propia (no Shopify). Inspiracion apps top + roadmap |
-| `WALLET_GUARDIAN.md` | Tarjetas Wallet iOS/Android con sellos por producto |
-| `ARCHITECTURE.md` | Topologia del monorepo, flujo de datos, integraciones |
-| `AGENT_INSTRUCTIONS.md` | Reglas para agentes de IA. Convenciones, stack, workflow |
-| `DATABASE_SCHEMA.md` | Esquema canonico de base de datos completo |
-| `PROMPT_LIBRARY.md` | Prompts pre-construidos para dirigir agentes con precision |
-| `FRONTEND_ROADMAP.md` | Roadmap visual y funcional por aplicacion |
-| `TECHNICAL_DEBT.md` | Deuda tecnica conocida, priorizada y con plan de accion |
-| `DEPLOY.md` | Guia de despliegue multi-plataforma |
-| `VERCEL.md` | Checklist especifico para Vercel |
+| 3 min | `docs/README.md` + `docs/REPO_MAP.md` + `docs/GLOSSARY.md` |
+| 10 min | + Constitución + `system_invariants` + `docs/DOMAINS.md` |
+| Cruza apps / plata | `docs/CROSS_APP.md` + `docs/MONEY_PATH.md` |
+| Producción | `docs/PRODUCTION.md` + `docs/TRUST.md` |
+| A tocar código | `docs/AGENT_INSTRUCTIONS.md` + spec del dueño (`DOMAINS`) |
+| Deploy | `DEPLOY.md` + `docs/VERCEL.md` + `docs/ENV-CHECKLIST.md` |
 
 ---
 
 ## Topologia Rapida
 
+Censo completo (15 packages, puertos, crons): [`docs/REPO_MAP.md`](docs/REPO_MAP.md).
+
 ```
-enjambre-legado/
-apps/
-  tienda/          Next.js 16 E-commerce publico + admin
-  nucleo/          Next.js 16 Dashboard gerencial + BFF Hono (App Router)
-  campo/           Next.js 16 PWA campo (rep_ventas/admin)
-packages/
-  database/        Supabase Migraciones + tipos
-  contable/        Zod Logica tributaria chilena
-  auth/            Supabase Sesion + roles + redirect
-  ui/              Design tokens compartidos
-  sumup/           SumUp POS integration
-  banco-chile/     Banco Chile Empresas API client
-  fiscal/          Soberania fiscal (emision DTE nativa)
-  logistica/       Gestión de envíos y transportistas
-  pricing/         Motor de precios (multiplicadores, fidelización)
-  resenas/         Sistema dual de reseñas
-  wallet/          Integración con Apple/Google Wallet
-docs/              Documentacion (estas leyendo esto)
+apps/tienda    :3001   D2C + perfil + CMS (pagos vía BFF Núcleo)
+apps/nucleo    :3000   Dashboard + único BFF Hono + fiscal
+apps/campo     :3002   POS feria, Dexie first  → docs/CAMPO_OFFLINE.md
+packages/*     15      database (213 migs), auth, ui, contable, fiscal, …
+docs/          índice  docs/README.md
 ```
 
 ---
@@ -77,7 +54,7 @@ docs/              Documentacion (estas leyendo esto)
 | Estilos | Tailwind CSS 3, GSAP | - |
 | Base de datos | Supabase (Postgres 17 + PostGIS + RLS) | - |
 | Estado | Zustand, TanStack Query | - |
-| Pagos | Transbank SDK (Webpay) | 6.1 |
+| Pagos | Flow y/o Transbank (`PAYMENT_PROVIDER`) | BFF Núcleo |
 | Validacion | Zod | 4.x |
 | BFF | Hono (dentro de nucleo) | 4.10 |
 | Contabilidad | @enjambre/contable (Zod) | - |

@@ -1,5 +1,7 @@
 # Soberanía Fiscal — Plataforma tributaria y comercio chileno propia
 
+> **Clase: SPEC.** Camino post-venta: [`MONEY_PATH.md`](./MONEY_PATH.md). Certificación: [`SII_CERTIFICACION.md`](./SII_CERTIFICACION.md).
+>
 > **Enjambre Legado no integra facturadores de terceros.** Construimos el motor fiscal, el pipeline documental y la operación e-commerce en nuestro monorepo, con nuestra filosofía biocultural y profundidad territorial.
 >
 > Referencia de mercado (solo competitiva): startups como Wasabil resuelven un subconjunto — Factura de Compra para servicios digitales, emisión gestionada, RCV. **Nuestro objetivo es cubrir ese subconjunto y el ecosistema completo** (venta D2C, POS feria, reps, logística, conciliación, F29, trazabilidad) en una sola fuente de verdad.

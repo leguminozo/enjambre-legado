@@ -1,62 +1,24 @@
 # Arquitectura del Sistema — Enjambre Legado
 
-> Documento de referencia para entender la topologia completa del ecosistema.
+> **Clase: VIVO** (flujos). La **topología** (apps, 15 packages, crons, puertos) vive en [`REPO_MAP.md`](./REPO_MAP.md). Índice: [`README.md`](./README.md).
+> Si este archivo y el mapa discrepan en un censo, gana el mapa.
 
 ---
 
 ## 1. Topologia del Monorepo
 
+Censo vivo (no duplicar listas aquí): [`REPO_MAP.md`](./REPO_MAP.md).
+
 ```
-enjambre-legado/ (pnpm workspace + Turborepo)
-|
-|-- apps/
-| |-- tienda/ Next.js 16 · React 19 · Tailwind 3
-| | |-- E-commerce publico + admin comercial
-| | |-- Transbank Webpay + integraciones SII
-| | |-- Puerto: 3000
-| |
-| |-- nucleo/ Next.js 16 · React 19 · TanStack Query · Hono BFF
-| | |-- Dashboard gerencial multi-rol (App Router)
-| | |-- Mapas Leaflet + PostGIS + Caja/Comisiones/Reps/Leaderboard
-| | |-- BFF: cash-sessions, rep-ventas, invitations, commission-rules
-| | |-- EIRL contable views (absorbido de apps/eirl)
-| | |-- Puerto: 3000
-| |
-| |-- campo/ Next.js 16 · React 19 · Tailwind 3 (src/ dir)
-| | |-- POS completo: CashProvider, QuickSale, TierBadge, Leaderboard, Threshold, ClientLookup
-| | |-- Puerto: 3002
-|
-|-- packages/
-| |-- database/ Supabase + Postgres 17 + PostGIS
-| | |-- Migraciones + tipos generados
-| | |-- 50+ migraciones, 20+ tablas, RLS completo
-| |
-| |-- contable/ Logica tributaria chilena
-| | |-- IVA 19%, RUT, facturas, DTE XML, receipt parsers (7), tasa-cambio, gasto-extranjero
-| |
-| |-- auth/ Autenticacion compartida (5 entry points)
-| | |-- Supabase client + Zustand store + role redirect + security events
-| |
-| |-- ui/ Design system compartido
-| | |-- 15 componentes + hooks + lib + Tailwind preset + tokens + icons
-| |
-| |-- sumup/ SumUp POS integration
-| |
-| |-- banco-chile/ Banco Chile Empresas API client
-| |
-| |-- fiscal/ Soberania fiscal (emision DTE nativa)
-| |
-| |-- logistica/ Gestión de envíos y transportistas
-| |
-| |-- pricing/ Motor de precios (multiplicadores, fidelización)
-| |
-| |-- resenas/ Sistema dual de reseñas (anon/guardian)
-| |
-| |-- wallet/ Integración con Apple/Google Wallet
-|
-|-- apps/tienda/components/shop/ Componentes de tienda (18 archivos activos)
-|-- docs/ Documentacion (estas aqui)
-|-- skills/ Supabase agent skills (gitignored)
+apps/tienda   Next 16 :3001   D2C + perfil + CMS (Flow/Transbank vía BFF Núcleo)
+apps/nucleo   Next 16 :3000   Dashboard + BFF Hono + fiscal + patio + editor tienda
+apps/campo    Next 16 :3002   POS feria, Dexie first — docs/CAMPO_OFFLINE.md
+
+packages/     15 (database 213 migs, auth, ui, contable 15 parsers, fiscal,
+              pricing, logistica, banco-chile, sumup, wallet, resenas,
+              calendar, rate-limit, sale-qr, shop-chrome)
+
+No existen: @enjambre/offline · apps/eirl · DATABASE_URL en funciones
 ```
 
 ---
@@ -94,15 +56,17 @@ campo/
 
 ### 2.2 Flujo de Datos (Campo)
 
-```console
-UI Component (campo)
-|
-v
-Custom Hook / Server Component
-|
-v
-Supabase (Postgres)
+Canónico: [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md).
+
 ```
+UI POS
+  → cash-context / hooks
+  → Dexie (productos, feria_context, sync_queue)
+  → use-sync-engine
+  → BFF Núcleo /api/rep-ventas/* → Postgres
+```
+
+Patio apícola (`apicultor`) no entra aquí: es Núcleo.
 
 ### 2.2.1 Flujo de Carrito (Tienda — localStorage + Server Action)
 
@@ -324,7 +288,7 @@ Prod verificada: `tienda-eta-lime.vercel.app`, `campo-olive.vercel.app`, `nucleo
 
 **Styling**: 100% semantic Tailwind tokens (`bg-background`, `text-foreground`, `text-primary`, `bg-card`, `border-border`, `text-muted-foreground`, `text-destructive`, `text-primary-foreground`, `bg-surface-raised`, `bg-surface-sunken`). Sin colores hardcoded. Tokens mapeados en `tailwind.config.js` desde `@enjambre/ui` CSS variables.
 
-**Offline**: Campo opera conectado a Supabase. Offline-first no implementado (no requerido por caso de uso).
+**Offline**: **implementado y obligatorio.** Dexie primero, BFF/Supabase después. Canónico: [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md). Patio apícola ≠ Campo.
 
 **Entorno**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (o PUBLISHABLE), `NEXT_PUBLIC_NUCLEO_API_URL` (BFF endpoint para cash sessions/comisiones)
 

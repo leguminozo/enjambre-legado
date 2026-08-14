@@ -654,11 +654,11 @@ export const DEFAULT_AUTH_SETTINGS: AuthSettings = {
   hero_title_en: 'Enjambre Legado',
   hero_subtitle: 'La Obrera y el Zángano',
   hero_subtitle_en: 'The Worker & The Drone',
-  tagline_phrase: 'Regeneración Biocultural · Lujo Purista & Consumo Consciente',
-  tagline_phrase_en: 'Biocultural Regeneration · Purist Luxury & Conscious Consumption',
+  tagline_phrase: 'Miel del Bosque Nativo · Chiloé',
+  tagline_phrase_en: 'Native Forest Honey · Chiloé',
   background_style: 'cosmic',
   background_image_url: '',
-  particle_effect: 'pollen_gold',
+  particle_effect: 'cosmic_stars',
   blur_orb_color: '#D4A017',
 };
 

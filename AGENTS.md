@@ -10,10 +10,12 @@ Monorepo managed by Turborepo + pnpm. 3 apps, all on Vercel + Supabase.
 
 ## Read First
 
-1. `README.md`
-2. `docs/CONSTITUTION.md`
-3. `docs/AGENT_INSTRUCTIONS.md`
-4. `docs/ARCHITECTURE.md`
+1. `docs/README.md` — índice: ley vs vivo vs snapshot. **Empieza aquí.**
+2. `docs/REPO_MAP.md` + `docs/GLOSSARY.md` + `docs/DOMAINS.md`
+3. `docs/CONSTITUTION.md` + `system_invariants.md` + `docs/TRUST.md`
+4. `docs/CROSS_APP.md` · `docs/MONEY_PATH.md` · `docs/PRODUCTION.md` si cruzas apps, plata o deploy
+5. `docs/AGENT_INSTRUCTIONS.md`
+6. Dominio: `docs/CAMPO_OFFLINE.md` · spec del dueño en `DOMAINS` · `docs/DATABASE_SCHEMA.md`
 
 ## Inviolable Rules
 
@@ -62,17 +64,13 @@ pnpm build # Build all
 
 ## Architecture Quick Map
 
+Censo completo (15 packages, 213 migraciones, puertos, crons, lo que **no** existe): [`docs/REPO_MAP.md`](docs/REPO_MAP.md). Offline Campo: [`docs/CAMPO_OFFLINE.md`](docs/CAMPO_OFFLINE.md).
+
 ```
-apps/tienda → E-commerce + admin (Next.js 16, Transbank, GSAP)
-apps/nucleo → Management dashboard + BFF + contable (Next.js 16 App Router, Hono BFF via /api/[[...routes]], Leaflet, TanStack Query)
-apps/campo → POS completo (Next.js 16, CashProvider, QuickSale, TierBadge, Leaderboard, ClientLookup)
-packages/database → Supabase migrations + types (Postgres 17 + PostGIS, 50+ migrations)
-packages/contable → Chilean tax logic (IVA 19%, RUT, DTE XML, receipt parsers x7, tasa-cambio, gasto-extranjero)
-packages/pricing → Cart pricing multipliers + computeCartPricing (tienda preview + nucleo checkout)
-packages/auth → Supabase clients (5 entry points: browser/browser/server/middleware/security-events/role-redirect) + Zustand store + role redirect + security events (13 types)
-packages/ui → Design system (15 components, 3 hooks, 4 lib utils, Tailwind preset, tokens, 24 icons)
-packages/sumup → SumUp POS integration (SumUpClient + types)
-packages/banco-chile → Banco Chile Empresas API client (OAuth 2.0, 8 APIs)
+apps/tienda → D2C + perfil + CMS (Next 16 :3001, Flow/Transbank vía BFF, next-intl)
+apps/nucleo → Dashboard + único BFF Hono + fiscal/contable (:3000)
+apps/campo → POS feria, Dexie first (Next 16 :3002) — no patio; no @enjambre/offline
+packages/* → 15 (database, auth, ui, contable, fiscal, pricing, logistica, banco-chile, sumup, wallet, resenas, calendar, rate-limit, sale-qr, shop-chrome)
 ```
 
 ## Surgery Protocol

@@ -9,13 +9,14 @@
 
 Antes de CUALQUIER accion, lee estos archivos en orden:
 
-1. `docs/CONSTITUTION.md` — Principios inviolables del proyecto
-2. Este archivo (`docs/AGENT_INSTRUCTIONS.md`) — Reglas de operacion
-3. `docs/ARCHITECTURE.md` — Estructura del monorepo
-4. `docs/DATABASE_SCHEMA.md` — Si vas a tocar datos
-5. `docs/NUCLEO_CHILOE.md` — Si vas a tocar cualquier archivo del módulo territorial apícola (Chiloé)
+1. `docs/README.md` — qué es ley, qué es foto vieja, qué doc usar
+2. `docs/REPO_MAP.md` + `docs/GLOSSARY.md` + `docs/DOMAINS.md`
+3. `docs/CONSTITUTION.md` + `system_invariants.md` + `docs/TRUST.md`
+4. Este archivo — reglas de operacion
+5. Corte: `CROSS_APP` / `MONEY_PATH` / `PRODUCTION` / `CAMPO_OFFLINE` / `DATABASE_SCHEMA` / spec del dueño
+6. `docs/NUCLEO_CHILOE.md` — si tocas el módulo territorial apícola
 
-Si no entiendes la Constitucion, no escribas codigo.
+Si no entiendes la Constitucion, no escribas codigo. `MASTER_PLAN.md` es un SNAPSHOT de junio 2026: no es el mapa.
 
 **Presupuesto de plataforma (ago 2026):** Vercel Hobby + un Supabase Free. Tres apps, un Postgres, cero cuarto deploy. Lecturas publicas = ISR/Dexie/CDN. `next/image` = `cdn-image-loader` (no optimizer de Vercel). Crons solo diarios. Realtime no es default. `SECURITY DEFINER` no es atajo. Hobby es non-commercial: $0 es pista, no licencia. Ley: `docs/CONSTITUTION.md` § II.6 y `system_invariants.md` Ley VI.
 
@@ -229,7 +230,7 @@ pnpm --filter @enjambre/campo dev
 pnpm --filter @enjambre/campo build
 ```
 
-- Usa `@enjambre/offline` para persistencia local
+- Offline: Dexie en `apps/campo/src/lib/offline/` — canónico `docs/CAMPO_OFFLINE.md`. **No existe** `@enjambre/offline`.
 - Middleware con Supabase session + graceful error handling
 - Optimizado para uso tactil en terreno
 

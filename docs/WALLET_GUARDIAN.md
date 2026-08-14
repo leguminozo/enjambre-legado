@@ -1,5 +1,7 @@
 # Wallet Guardian — Tarjetas Apple / Google Wallet
 
+> **Clase: SPEC.** Dueño: [`DOMAINS.md`](./DOMAINS.md). Índice: [`README.md`](./README.md).
+>
 > Llevar el **perfil guardian** en la wallet del teléfono: nombre, tier, impacto y — sobre todo — **cuánto falta de cada producto** para reclamar uno gratis (programa tipo sello / buy X get Y).
 >
 > **Estado:** Implementado fase B + stubs W1–W2 — Junio 2026 (pass signing Apple/Google requiere certs en prod)  

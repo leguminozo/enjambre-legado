@@ -4,7 +4,7 @@
 >
 > **No migramos a Shopify.** Inspiración mecánica sí; alma OYZ siempre.
 >
-> **Estado:** Plan v1 — Junio 2026  
+> **Clase: ROADMAP** (v1, junio 2026). Checkboxes de ops pueden estar viejos. Estado: [`ESTADO_DEL_ARTE.md`](./ESTADO_DEL_ARTE.md). Índice: [`README.md`](./README.md).
 > **Documentos satélite:** [`COMERCIO_SOBERANO.md`](./COMERCIO_SOBERANO.md) · [`WALLET_GUARDIAN.md`](./WALLET_GUARDIAN.md) · [`SOBERANIA_FISCAL.md`](./SOBERANIA_FISCAL.md) · [`CONSTITUTION.md`](./CONSTITUTION.md)
 
 ---

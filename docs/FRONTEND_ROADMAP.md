@@ -1,6 +1,7 @@
 # Frontend Roadmap — La Experiencia de Lujo
 
-> Vision de producto por aplicacion. Estado actual + lo que falta para alcanzar la excelencia.
+> **Clase: ROADMAP.** Los checkboxes mezclan hecho y deseo. Estado real por workflow: [`ESTADO_DEL_ARTE.md`](./ESTADO_DEL_ARTE.md). Mapa: [`REPO_MAP.md`](./REPO_MAP.md).
+> Ya no es cierto que “la tienda solo habla español” (`next-intl` + `messages/en.json`) ni que no hay `/perfil` ni `/producto/[slug]/trazabilidad`.
 
 ---
 

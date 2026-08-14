@@ -1,3 +1,3 @@
 # ProxyAI Instructions
 
-Describe goals, conventions, risky areas, and review rules here.
+Lee `docs/README.md` y `docs/REPO_MAP.md`. La carta es `docs/CONSTITUTION.md` + `system_invariants.md`. No dupliques el mapa aquí.

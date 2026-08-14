@@ -1,5 +1,7 @@
 # Banco Chile Integration - Enjambre Legado
 
+> **Clase: SPEC.** Contratos: [`CROSS_APP.md`](./CROSS_APP.md). Ledger: [`MONEY_PATH.md`](./MONEY_PATH.md).
+
 ## Overview
 
 Implementación completa de las APIs de **Banco Chile Empresas** para el ecosistema Enjambre Legado.

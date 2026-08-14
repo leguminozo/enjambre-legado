@@ -8,34 +8,31 @@
 
 ## Mandatory Reading
 
-1. `docs/CONSTITUTION.md` — Inviolable principles
-2. `docs/AGENT_INSTRUCTIONS.md` — Operating rules for AI agents
-3. `docs/ARCHITECTURE.md` — Monorepo structure and data flow
-4. `docs/DATABASE_SCHEMA.md` — Canonical database schema
+1. `docs/README.md` — law vs snapshot vs audit. Start here.
+2. `docs/REPO_MAP.md` — live topology (3 apps, 15 packages, crons).
+3. `docs/CONSTITUTION.md` + `system_invariants.md`
+4. `docs/CAMPO_OFFLINE.md` if you touch POS — Dexie is **implemented**, not planned.
+5. `docs/AGENT_INSTRUCTIONS.md` · `docs/ARCHITECTURE.md` · `docs/DATABASE_SCHEMA.md`
+
+Do not treat `MASTER_PLAN.md` as current state (June 2026 snapshot).
 
 ## Quick Reference
 
-### Monorepo Structure
+Censo completo: `docs/REPO_MAP.md`. No duplicar listas aquí.
+
 ```
-apps/tienda → Next.js 16 (e-commerce + admin)
-apps/nucleo → Next.js 16 App Router (management dashboard, Hono BFF, contable)
-apps/campo → Next.js 16 (field PWA, offline-first planned)
-packages/database → Supabase migrations + types
-packages/contable → Chilean tax logic (IVA, RUT)
-packages/auth → Auth helpers + Zustand store
-packages/ui → Design tokens
-packages/sumup → SumUp POS integration
-packages/banco-chile → Banco Chile Empresas API client
+apps/tienda  :3001  D2C + perfil (Flow/Transbank via Núcleo BFF)
+apps/nucleo  :3000  dashboard + only BFF + fiscal
+apps/campo   :3002  POS feria, Dexie first (not patio; no @enjambre/offline)
+packages/*   15     see REPO_MAP
 ```
 
 ### Stack
-- React 19, Next.js 16, Tailwind CSS 3/4
-- Supabase (Postgres 17 + PostGIS + RLS)
-- Zustand, TanStack Query
-- GSAP, Framer Motion
-- Transbank SDK (Webpay Chile)
-- Hono (BFF), Zod
-- Turborepo + pnpm
+- React 19, Next.js 16, Tailwind 3, tokens `@enjambre/ui`
+- Supabase (Postgres 17 + PostGIS + RLS), supabase-js HTTP
+- Zustand, TanStack Query, Hono BFF, Zod
+- Pagos: Flow **y** Transbank (`PAYMENT_PROVIDER`)
+- Turborepo + pnpm 10.32.1
 
 ### Commands
 ```bash

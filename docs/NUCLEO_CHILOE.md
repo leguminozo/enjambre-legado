@@ -1,5 +1,7 @@
 # NUCLEO_CHILOE.md — Arquitectura y Visión Territorial
-> Documento de largo horizonte para el módulo Chiloé dentro de Núcleo.  
+
+> **Clase: SPEC.** Patio ≠ Campo. Offline POS: [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md). Índice: [`README.md`](./README.md).
+> Documento de largo horizonte para el módulo Chiloé dentro de Núcleo.
 > Integra contexto estratégico, arquitectura técnica, modelo de datos, hoja de ruta y posicionamiento.  
 > **Lectura obligatoria antes de tocar cualquier archivo bajo `src/components/apicultor/`, `src/views/RegistroTerritorialView*`, `src/api/routes/registro-territorial.ts` o migraciones 100+.**
 

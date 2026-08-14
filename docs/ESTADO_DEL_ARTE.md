@@ -2,7 +2,8 @@
 
 > Radiografía estratégica del monorepo: madurez local por workflow vs. estado del arte planetario,
 > y la hoja de ruta de movimientos con valor real (inevitables → elegantes → salvajes).
-> Documento vivo: actualizar cuando un movimiento se complete.
+> **Clase: VIVO.** Actualizar cuando un movimiento se complete. Índice: [`README.md`](./README.md). Mapa: [`REPO_MAP.md`](./REPO_MAP.md).
+> Fecha de la matriz §2: 2026-08-02 (puede rezagarse respecto al código de hoy).
 
 ---
 

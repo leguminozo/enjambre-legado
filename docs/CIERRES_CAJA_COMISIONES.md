@@ -1,6 +1,6 @@
 # Módulo Cierres de Caja · Comisiones Vanguardistas · Códigos de Invitación
 
-> Documentación completa de la nueva capa de ventas en campo con comisiones conductuales y gestión de acceso al ecosistema.
+> **Clase: SPEC.** Offline POS: [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md) (no hay `@enjambre/offline`). Índice: [`README.md`](./README.md).
 
 ---
 
@@ -350,7 +350,7 @@ Cada INSERT en `ventas` con `cash_session_id` dispara:
 - [x] Sync queue que purga al recuperar conexión (`use-sync-engine.ts`)
 - [x] Cache feria offline (`feria_context`) + validación consignación pre-encolado
 - [x] Upsync marca error explícito en 409 `consignacion_insuficiente`
-- [ ] Paquete `@enjambre/offline` compartido (extracción desde Campo)
+- [ ] Extraer Dexie a package **solo** si nace un segundo consumidor — hoy el canónico es `docs/CAMPO_OFFLINE.md` (`apps/campo/src/lib/offline/`)
 - [ ] Conflict resolution avanzada para ventas offline duplicadas
 - [ ] Cierre de caja offline con reconciliación diferida
 

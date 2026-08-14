@@ -1,5 +1,7 @@
 # Checklist: proyecto Vercel `enjambre-legado.vercel.app`
 
+> **Clase: OPS.** Crons y topología: [`REPO_MAP.md`](./REPO_MAP.md). Cuotas Hobby: [`CONSTITUTION.md`](./CONSTITUTION.md) § II.6. `VITE_*` está muerto.
+
 Usa esta lista en **Vercel → Project → Settings → General / Build & Development** para alinear el despliegue con el monorepo.
 
 ## Proyecto principal (nucleo — Next.js 16)

@@ -1,6 +1,30 @@
 # Architectural Decisions — Enjambre Legado
 
+> **Clase: VIVO.** Lo nuevo va arriba. Índice: [`README.md`](./README.md).
+
 Living log of technical decisions. Format: Date | Decision | Rationale | Alternatives Considered
+
+---
+
+## 2026-08-14 | Capa de entrelazado y día 2
+
+**Decision**: Además del índice/mapa, el repo declara dueños (`DOMAINS`), contratos HTTP (`CROSS_APP`), camino del dinero (`MONEY_PATH`), runbook (`PRODUCTION`), confianza (`TRUST`) y glosario (`GLOSSARY`). Son el mínimo de un monorepo de comercio+POS+fiscal en producción real.
+
+**Rationale**: El censo de packages no enseña que Campo no debe pegarle a service_role, que un webhook TBK se recupera por `buy_order`, ni que Free no tiene backup. Eso es lo que un agente o un humano rompe a los tres meses.
+
+**Status**: Implementado.
+
+---
+
+## 2026-08-14 | Docs centralizados: ley / vivo / snapshot
+
+**Decision**: Un índice (`docs/README.md`) clasifica cada documento. El censo de código vive solo en `docs/REPO_MAP.md`. Offline POS solo en `docs/CAMPO_OFFLINE.md`. Stubs de IDE (`AGENTS.md`, `CLAUDE.md`, `gemini.md`) delegan; no duplican listas. `MASTER_PLAN.md` queda marcado SNAPSHOT junio 2026.
+
+**Rationale**: ARCHITECTURE, AGENT_INSTRUCTIONS, CLAUDE, MASTER_PLAN y COSTEO se contradecían (Campo sin Dexie / Dexie cancelado / package fantasma / cron cada minuto / 7 packages). Un agente que lee el archivo “oficial” equivocado reintroduce la mentira.
+
+**Alternatives considered**: Reescribir todos los snapshots — **rejected** (historia útil si está sellada). Un solo `ARCHITECTURE.md` gigante — **rejected** (vuelve a pudrirse).
+
+**Status**: Implementado.
 
 ---
 
@@ -240,7 +264,7 @@ Living log of technical decisions. Format: Date | Decision | Rationale | Alterna
 - CI pipeline: lint → typecheck → test → build
 **Rationale**: 3 API tests in Nucleo = effectively zero coverage. Need confidence for payments + auth.
 **Target**: >60% unit coverage on business logic; 5 critical E2E paths.
-**Status**: IN_PROGRESS — Vitest completed for @enjambre/contable (79 tests), Playwright E2E pending
+**Status**: SUPERSEDED como “E2E pending” — Vitest en packages + apps; Playwright `e2e/` en tienda, nucleo y campo (2026-08). El recuento “79 tests / solo contable” es de junio.
 
 ---
 

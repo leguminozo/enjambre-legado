@@ -1,7 +1,7 @@
 # Arquitectura del Sistema de Costeo — OYZ
 
-> Memoria y trazabilidad económica de cada frasco producido.
-> Convalidado contra el schema existente (migrations 00–35, junio 2026).
+> **Clase: SPEC** (junio 2026, migs 00–35 como ancla). Verificar `DATABASE_SCHEMA` / migraciones nuevas antes de implementar.
+> No describe el POS: offline de Campo es [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md). Índice: [`README.md`](./README.md).
 > Axioma de diseño: registrar un lote en 3 toques o no se registra.
 
 ---
@@ -28,7 +28,7 @@
 - **Cero trazabilidad** de producción por frasco (solo cosecha → lote de miel)
 - **Cero historial** de precios de ingredientes
 - **Cero receta/BOM** — `productos.ingredientes` es texto libre
-- **Paquete `@enjambre/offline`** no existe (planificado, no implementado — campo usa Supabase directamente)
+- **Paquete `@enjambre/offline`** no existe y **no se crea para costeo**. El POS de Campo ya es Dexie (`docs/CAMPO_OFFLINE.md`). Offline de recetas/lotes de costeo es otro backlog (Fase 6).
 - **Cero funciones SQL** de costeo, margen, o alertas de precio
 
 ### Brecha exacta
@@ -824,10 +824,11 @@ Cada paso es verificable de forma independiente.
 4. UI: `CosteoPanel` (dashboard con cards de margen, alertas, tendencias)
 5. Verificar: `pnpm --filter @enjambre/nucleo build`
 
-### Fase 6 (futura): Offline en Campo
-1. Crear `@enjambre/offline` con Dexie (tablas: ingredientes, recetas, lotes pendientes) — actualmente planificado, no implementado
-2. Sync queue que drena al nucleo BFF cuando hay conexion
-3. UI en campo: registro de lote con manos de miel (3 toques, sin teclado)
+### Fase 6 (futura): Offline de *costeo* (no confundir con el POS)
+El POS ya es offline (`docs/CAMPO_OFFLINE.md`). Esto es **otro** schema Dexie (ingredientes, recetas, lotes de producción) si el registro de lote sale a terreno. No inventar `@enjambre/offline` hasta que haya un segundo consumidor; extender Campo o extraer entonces.
+1. Tablas locales: ingredientes, recetas, lotes pendientes
+2. Cola que drena al BFF Núcleo
+3. UI: registro de lote en 3 toques
 
 ---
 

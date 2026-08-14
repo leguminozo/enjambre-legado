@@ -936,4 +936,5 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 | D12 | Sin CI/CD | BAJA | Medio | Medio |
 
 *Actualizar este documento cuando se resuelva un item o se descubra nueva deuda.*
-*Ultima actualizacion: Junio 2026 — D66 Ola 1–3 en código; P0 RLS+async+OCR; pendiente db:push remoto*
+*Clase: SNAPSHOT (junio 2026 + parches). Busca `RESUELTO` y contrastá con `docs/REPO_MAP.md` / `docs/ESTADO_DEL_ARTE.md` antes de “arreglar” algo. Índice: `docs/README.md`.*
+*Pie histórico: Junio 2026 — D66 Ola 1–3 en código; P0 RLS+async+OCR; pendiente db:push remoto.*

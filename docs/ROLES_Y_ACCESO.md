@@ -1,6 +1,9 @@
 # Roles y acceso — Enjambre Legado
 
-**Fuente de verdad de producto:** plan maestro v2 (roles, apps y bitácora).  
+> **Clase: LEY.** Índice: [`README.md`](./README.md). `oyz_role` (hook 43) es comercial; `app_metadata.role` es plataforma.
+
+**Fuente de verdad de producto:** este archivo + `packages/auth/src/role-redirect.ts`.  
+**No uses `MASTER_PLAN.md` como mapa de roles.**
 **Código canónico de plataforma:** `packages/auth/src/role-redirect.ts`  
 **Shell Núcleo:** `apps/nucleo/src/config/sidebar-config.ts`  
 **BFF:** `requireProfileRole(...)` en `apps/nucleo/src/api/lib/middleware.ts`

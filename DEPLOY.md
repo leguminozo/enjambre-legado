@@ -1,7 +1,7 @@
 # Guia de Despliegue — Enjambre Legado
 
-> Despliegue multi-plataforma para el ecosistema completo.
-> Cada app es un proyecto Vercel separado con su propio Root Directory.
+> **Clase: OPS.** Mapa: [`docs/REPO_MAP.md`](docs/REPO_MAP.md). Índice: [`docs/README.md`](docs/README.md).
+> Cada app es un proyecto Vercel separado con su propio Root Directory. Tres apps, cero cuarta.
 
 ---
 
@@ -73,7 +73,7 @@ Los buckets se crean en la migracion `02_storage_buckets.sql`:
 | `RESEND_API_KEY` | No | Email real; mock si falta |
 | `TWILIO_*` | No | WhatsApp real; mock si falta |
 
-**Cron**: `apps/nucleo/vercel.json` programa `GET /api/cron/notifications` cada minuto. Requiere plan Vercel con crons habilitados.
+**Cron**: `apps/nucleo/vercel.json` programa **tres jobs diarios** (UTC): `/api/cron/notifications` 08:00, `/api/cron/fiscal` 13:00, `/api/cron/checkout` 14:00. El mail caliente sale por enqueue + trigger post-mutación, no por un worker de 60 s. Hobby no admite cron sub-hora. Mapa: `docs/REPO_MAP.md`.
 
 ### 3.2 Tienda (Next.js)
 

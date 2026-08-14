@@ -1,5 +1,7 @@
 # Tier Legacy — iPhone 7 / hardware antiguo
 
+> **Clase: LEY.** Índice: [`README.md`](./README.md).
+
 Capa de degradación automática para dispositivos antiguos (objetivo: iPhone 7,
 iOS 15.8, 2GB RAM). El objetivo NO es bloquear: es que la app **siga
 funcionando** en hardware viejo, degradando lo que lo mata (blur de GPU,

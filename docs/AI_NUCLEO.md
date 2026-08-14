@@ -1,6 +1,8 @@
 # IA en Núcleo — Groq (neocloud)
 
-**Alcance v1:** solo `apps/nucleo` (BFF Hono).  
+> **Clase: SPEC.** Kill switch `AI_ENABLED`. Datos: [`TRUST.md`](./TRUST.md). No va a Tienda ni Campo en v1.
+
+**Alcance v1:** solo `apps/nucleo` (BFF Hono).
 **Proveedor:** [Groq](https://groq.com/) (neocloud de inferencia rápida; API OpenAI-compatible).  
 **Principio:** la IA **no ve datos de otros usuarios**. Todo prompt/contexto se arma desde el `user_id` autenticado (registro propio: colmenas, bitácora, actor territorial).
 

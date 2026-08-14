@@ -14,13 +14,13 @@ Este archivo define las reglas arquitectonicas, metodologicas y de codificacion 
 - **Estado**: Zustand (global) + TanStack Query (remoto)
 - **Backend**: Supabase (Postgres 17 + PostGIS + RLS) + Hono (BFF dentro de nucleo)
 - **Animaciones**: GSAP (premium) + Framer Motion (micro-transiciones)
-- **Pagos**: Transbank SDK (Webpay Chile)
+- **Pagos**: Flow y/o Transbank (`PAYMENT_PROVIDER`). Mapa: `docs/REPO_MAP.md`.
 - **Validacion**: Zod
 
 ## 3. ARQUITECTURA MONOREPO
 - Monorepo con Turborepo + pnpm. Apps en `apps/`, logica compartida en `packages/`.
 - **Apps**: tienda (Next.js), nucleo (Next.js + Hono BFF), campo (Next.js)
-- **Packages**: database, contable, auth, ui, sumup, banco-chile
+- **Packages**: 15 — censo en `docs/REPO_MAP.md`. No existe `@enjambre/offline`.
 - Lo que se usa en 2+ apps pertenece a un `package`.
 
 ## 4. FLUJO DE DATOS OFFLINE-FIRST (CAMPO)
@@ -36,7 +36,8 @@ Este archivo define las reglas arquitectonicas, metodologicas y de codificacion 
 - **Errores**: `toast.error()` para el usuario. Nunca `catch(e) {}` vacio.
 
 ## 6. DOMINIOS CLAVE
-- **Tienda**: E-commerce premium con Transbank + CMS dinamico
+- **Tienda**: E-commerce premium (Flow/Transbank vía BFF) + CMS dinamico
+- Docs: empieza en `docs/README.md`. `MASTER_PLAN.md` es snapshot junio 2026.
 - **Nucleo**: Dashboard multi-rol con mapas (Leaflet + PostGIS), Hono BFF + contable
 - **Campo**: PWA POS revendedores (`rep_ventas`), offline-first activo (Dexie). Patio apícola = Núcleo (`role=apicultor`)
 - **Contable**: IVA 19%, RUT chileno, facturas (Zod schemas)

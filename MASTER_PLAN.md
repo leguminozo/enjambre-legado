@@ -1,8 +1,13 @@
 # MASTER PLAN — Enjambre Legado
 
-> Arquitectura, seguridad, datos, calidad y roadmap a 3 sprints.
-> Basado en diagnóstico real del código (Junio 2026).
-> STOP al terminar. Espera aprobación antes de cualquier línea de código.
+> **SNAPSHOT junio 2026.** No es el estado de `main`. No lo uses como mapa.
+> Orientación actual: [`docs/README.md`](docs/README.md) · [`docs/REPO_MAP.md`](docs/REPO_MAP.md) · [`docs/ESTADO_DEL_ARTE.md`](docs/ESTADO_DEL_ARTE.md).
+>
+> Mentiras congeladas aquí (no las reintroduzcas): Campo offline “cancelado”; 7 packages / 50+ migs / 7 parsers; next-intl “no instalado”; perfil Guardian “no iniciado”; cron de notificaciones “faltante”; SII “stub”.
+
+---
+
+# MASTER PLAN — archivo histórico (junio 2026)
 
 ---
 

@@ -1,6 +1,7 @@
 # Estrategia de Pruebas y QA — Enjambre Legado
 
-> Documento centralizado sobre la estrategia de validación, pruebas unitarias y E2E (End-to-End) en el monorepo.
+> **Clase: LEY** (enfoque). Playwright E2E existe en `apps/*/e2e`. Índice: [`README.md`](./README.md).
+> Documento centralizado sobre la estrategia de validación, pruebas unitarias y E2E.
 
 ---
 

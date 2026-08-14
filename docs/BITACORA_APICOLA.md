@@ -1,5 +1,7 @@
 # BITACORA_APICOLA.md — Bitácora apícola por voz (módulo Chiloé)
 
+> **Clase: SPEC.** Patio = Núcleo, no Campo. El motor Dexie del POS está documentado en [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md); no crear `@enjambre/offline` “para la bitácora” sin un segundo consumidor real.
+>
 > Especificación del módulo de bitácora del ciclo de vida completo de la colmena:
 > captura por voz, sin correlatividad exigida, tolerante a desconexión, con componente sanitario legal.
 > Fuente: conversación de diseño en TENANTE (julio 2026) + protocolo territorial (v0.1).

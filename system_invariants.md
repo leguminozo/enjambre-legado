@@ -2,7 +2,8 @@
 
 > Artefacto de gobernanza arquitectónica.  
 > Estas 6 leyes son **inviolables**. Todo cambio de código — humano o agente — debe pasar por ellas antes de mergear o declarar éxito.  
-> Fuentes canónicas: `docs/CONSTITUTION.md`, `docs/ARCHITECTURE.md`, `docs/AGENT_INSTRUCTIONS.md`, `AGENTS.md`, `MASTER_PLAN.md`.
+> Fuentes canónicas: `docs/README.md` (índice), `docs/REPO_MAP.md` (censo), `docs/CONSTITUTION.md`, `docs/AGENT_INSTRUCTIONS.md`, `AGENTS.md`.
+> `MASTER_PLAN.md` es SNAPSHOT junio 2026 — no es fuente.
 
 ---
 
@@ -111,14 +112,15 @@ Números y ToS: `docs/CONSTITUTION.md` § II.6. Hobby es non-commercial — $0 e
 
 Cuando dos fuentes discrepen, prevalece en este orden:
 
-1. `system_invariants.md` (este artefacto, una vez confirmado por el operador)
+1. `system_invariants.md` (este artefacto)
 2. `docs/CONSTITUTION.md`
-3. `MASTER_PLAN.md` (diagnóstico Junio 2026)
-4. `docs/ARCHITECTURE.md` + `AGENTS.md`
-5. `docs/TECHNICAL_DEBT.md` / `docs/DECISIONS.md`
+3. `docs/README.md` + `docs/REPO_MAP.md` + `docs/DOMAINS.md` + `docs/CROSS_APP.md` + `docs/MONEY_PATH.md` + `docs/CAMPO_OFFLINE.md` + `docs/PRODUCTION.md` + `docs/TRUST.md` + `docs/GLOSSARY.md`
+4. `AGENTS.md` + `docs/AGENT_INSTRUCTIONS.md` + `docs/ARCHITECTURE.md`
+5. `docs/DECISIONS.md` / `docs/ESTADO_DEL_ARTE.md`
+6. Snapshots (`MASTER_PLAN.md`, `TECHNICAL_DEBT.md`, `FRONTEND_ROADMAP.md`) — nunca ganan a 1–5.
 
 ---
 
 *Generado: Junio 2026 — Escaneo de contexto Staff Engineer.*  
-*Actualizado: Agosto 2026 — Ley VI (Hobby/Free) + Campo Dexie vigente.*  
+*Actualizado: Agosto 2026 — Ley VI; Campo Dexie; índice `docs/README.md` + `REPO_MAP` por encima de MASTER_PLAN.*  
 *Estado: VIGENTE. Las 6 leyes mandan sobre AGENTS y ARCHITECTURE.*

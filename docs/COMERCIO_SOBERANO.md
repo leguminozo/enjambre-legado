@@ -2,8 +2,8 @@
 
 > **Enjambre Legado no migra a Shopify.** Construimos una aplicación comercial propia — estética editorial, filosofía biocultural, profundidad territorial chilena — usando las mejores apps de Shopify solo como **referente de mecánica**, nunca como destino.
 >
-> **Estado:** Especificación viva — Junio 2026  
-> **Relacionado:** [`PLAN_COLOSAL.md`](./PLAN_COLOSAL.md) (hoja de ruta ejecutiva), [`CONSTITUTION.md`](./CONSTITUTION.md), [`SOBERANIA_FISCAL.md`](./SOBERANIA_FISCAL.md), [`WALLET_GUARDIAN.md`](./WALLET_GUARDIAN.md), [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+> **Clase: SPEC.** Camino de cobro: [`MONEY_PATH.md`](./MONEY_PATH.md). Índice: [`README.md`](./README.md).
+> **Relacionado:** [`PLAN_COLOSAL.md`](./PLAN_COLOSAL.md), [`CONSTITUTION.md`](./CONSTITUTION.md), [`SOBERANIA_FISCAL.md`](./SOBERANIA_FISCAL.md), [`WALLET_GUARDIAN.md`](./WALLET_GUARDIAN.md).
 
 ---
 

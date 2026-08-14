@@ -38,19 +38,7 @@ El frontend no es un "producto minimo viable". Es una pieza de diseno de lujo.
 - La base de datos es una sola (Supabase).
 - Toda nueva funcionalidad que cruza apps debe evaluarse primero como `package`.
 
-```
-packages/
-database/ Fuente de verdad del esquema
-contable/ Logica tributaria reutilizable
-auth/ Sesion y roles compartidos
-ui/ Design tokens + componentes base
-pricing/ Motor de precios y lealtad
-fiscal/ DTE nativo
-sumup/ SumUp POS integration
-banco-chile/ Banco Chile Empresas API client
-```
-
-Tres apps Next = tres proyectos Vercel. **Prohibido un cuarto deploy** mientras el horizonte sea Hobby/Free. Nucleo es el unico BFF de escrituras caras (caja, DTE, pagos, RLS pesado).
+Censo de apps/packages: [`REPO_MAP.md`](./REPO_MAP.md). Lo que se usa en 2+ apps **debe** ser package. Tres apps Next = tres proyectos Vercel. **Prohibido un cuarto deploy** en horizonte Hobby/Free. Nucleo es el unico BFF de escrituras caras.
 
 ### 3. Seguridad Nativa (RLS)
 
@@ -192,4 +180,5 @@ Antes de crear un nuevo paquete o app, responder:
 ---
 
 *Este documento es la ley suprema del proyecto. Todo agente (humano o IA) debe leerlo antes de operar.*
-*Ultima actualizacion: Agosto 2026 — presupuesto Hobby/Free como principio II.6; Campo Dexie vigente.*
+*Índice: [`README.md`](./README.md). Mapa: [`REPO_MAP.md`](./REPO_MAP.md). Dominios: [`DOMAINS.md`](./DOMAINS.md). Contratos: [`CROSS_APP.md`](./CROSS_APP.md). Dinero: [`MONEY_PATH.md`](./MONEY_PATH.md). Día 2: [`PRODUCTION.md`](./PRODUCTION.md). Confianza: [`TRUST.md`](./TRUST.md). Offline: [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md). Palabras: [`GLOSSARY.md`](./GLOSSARY.md).*
+*Ultima actualizacion: Agosto 2026 — presupuesto Hobby/Free § II.6; Campo Dexie vigente; índice centralizado.*

@@ -1,6 +1,7 @@
 # Auditoría Profunda Extendida — Enjambre Legado (2026-08-14)
 
-> Extensión de la auditoría de producción. Método: 5 exploradores paralelos (auth/keys, pagos/fiscal, DB/API, offline/frontend, contable/integraciones) + **verificación manual línea a línea de cada hallazgo crítico**. Cada hallazgo incluye archivo:línea. Nada de opiniones: código leído.
+> **Clase: AUDITORÍA** (2026-08-14). Hallazgos en esa fecha — verificar en código antes de tratarlos como estado actual. Índice: [`README.md`](./README.md).
+> Método: 5 exploradores paralelos (auth/keys, pagos/fiscal, DB/API, offline/frontend, contable/integraciones) + verificación línea a línea. Cada hallazgo incluye archivo:línea.
 
 ## ✅ Implementado (2026-08-14)
 
