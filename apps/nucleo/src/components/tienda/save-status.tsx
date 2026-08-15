@@ -181,10 +181,10 @@ export function EditorSaveStatusChip() {
         {display === 'pending'
           ? 'Cambios pendientes…'
           : display === 'saving'
-            ? 'Publicando…'
+            ? 'Guardando…'
             : display === 'saved'
-              ? 'Publicado ✓'
-              : 'Error al publicar'}
+              ? 'Guardado ✓'
+              : 'Error al guardar'}
       </span>
       {display === 'error' ? (
         <button

@@ -107,16 +107,18 @@ cmsRoutes.get("/sections/:key", async (c) => {
 cmsRoutes.post("/items", zValidator("json", ContentItemSchema), async (c) => {
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
+  const autoPublish = AUTO_PUBLISH_SECTIONS.has(input.section_key);
 
   const { data, error } = await supabase
     .from("site_content")
     .insert({
       section_key: input.section_key,
       item_order: input.item_order,
-      content: input.content as Json,
+      content: (autoPublish ? input.content : {}) as Json,
+      draft_content: autoPublish ? null : (input.content as Json),
       is_active: input.is_active,
       locale: input.locale as never,
-    })
+    } as never)
     .select("*")
     .single();
 
@@ -124,9 +126,11 @@ cmsRoutes.post("/items", zValidator("json", ContentItemSchema), async (c) => {
     return c.json({ code: "item_create_failed", message: error.message }, 400);
   }
 
-// Await: el editor refresca el iframe al recibir 200; ISR debe estar invalidado
-  const revalidate = await revalidateTiendaCms();
+  if (!autoPublish) {
+    return c.json({ data, revalidated: false, revalidate_reason: "draft" }, 201);
+  }
 
+  const revalidate = await revalidateTiendaCms();
   return c.json({ data, revalidated: revalidate.ok, revalidate_reason: revalidate.reason ?? null }, 201);
 });
 
@@ -162,6 +166,7 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
   if (input.content !== undefined) {
     if (autoPublish) {
       payload.content = input.content as never;
+      payload.draft_content = null as never;
       // Limpieza segura: solo acá lo publicado cambió al instante, así que las
       // imágenes que salieron del content ya no las referencia nadie (vivo).
       // locale-safe: otra fila (p.ej. EN) puede seguir usándolas.

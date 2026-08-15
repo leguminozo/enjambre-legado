@@ -93,6 +93,7 @@ import {
   filterNavSectionKeys,
   isNestedSettingsKey,
   navVisibleSectionKey,
+  workingCmsContent,
 } from '@/lib/editor-tienda-sections';
 import { HEADER_NAV_TEMPLATE, HEADER_SETTINGS_TEMPLATE } from '@/lib/header-menu';
 import {
@@ -1022,7 +1023,9 @@ function EditableItemCard({
   template,
 }: EditableItemCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const [localContent, setLocalContent] = useState<Record<string, unknown>>(item.content);
+  const [localContent, setLocalContent] = useState<Record<string, unknown>>(() =>
+    workingCmsContent(item),
+  );
   const [localActive, setLocalActive] = useState(item.is_active);
   const [uploadingField, setUploadingField] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1059,14 +1062,13 @@ function EditableItemCard({
   // Solo re-sync cuando ESTE item cambia en servidor y no hay pendientes.
   // Dependencia en `item` entero reseteaba dirty de hermanas al invalidar la
   // query tras un save; el gate isDirty evita clobber de tecleo en el vuelo.
-  const serverContentKey = JSON.stringify(item.content);
+  const serverContentKey = JSON.stringify(workingCmsContent(item));
   useEffect(() => {
     if (isDirty) return;
-    setLocalContent(item.content);
+    setLocalContent(workingCmsContent(item));
     setLocalActive(item.is_active);
     setUploadingField(null);
-    // item.content / is_active leídos intencionalmente al cambiar las claves estables
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- serverContentKey serializa content
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- serverContentKey serializa el snapshot editable
   }, [item.id, item.updated_at, item.is_active, serverContentKey, isDirty]);
 
   const handleFieldChange = useCallback((key: string, val: unknown) => {
@@ -1572,7 +1574,7 @@ interface MenuSettingsEditorProps {
 function MenuSettingsEditor({ item, onUpdate, onImageUpload, brandContent }: MenuSettingsEditorProps) {
   return (
     <MenuStyleEditor
-      content={item.content}
+      content={workingCmsContent(item)}
       onSave={(content) => onUpdate(item.id, content, item.is_active)}
       onImageUpload={(file, fieldName) => onImageUpload(file, fieldName, item.id)}
       brandContent={brandContent}
@@ -1759,7 +1761,7 @@ function ItemsPanel({
               ) : (
                 <ChromeSettingsEditor
                   sectionKey={companionSettingsKey}
-                  content={companionSettingsItem.content}
+                  content={workingCmsContent(companionSettingsItem)}
                   onSave={(content) =>
                     onUpdate(companionSettingsItem.id, content, companionSettingsItem.is_active)
                   }
@@ -1811,14 +1813,15 @@ function ItemsPanel({
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
               {items.map((item, idx) => {
                 // Videos: no son thumbnail de imagen (evita img rota en la strip)
-                if (item.content.type === 'video') return null;
+                const slide = workingCmsContent(item);
+                if (slide.type === 'video') return null;
                 const src =
-                  (typeof item.content.image === 'string' ? item.content.image : '') ||
-                  (typeof item.content.src === 'string' ? item.content.src : '');
+                  (typeof slide.image === 'string' ? slide.image : '') ||
+                  (typeof slide.src === 'string' ? slide.src : '');
                 if (!src.startsWith('http')) return null;
                 const alt =
-                  typeof item.content.alt === 'string' && item.content.alt
-                    ? item.content.alt
+                  typeof slide.alt === 'string' && slide.alt
+                    ? slide.alt
                     : `Slide ${idx + 1}`;
                 return (
                   <div
@@ -1875,7 +1878,7 @@ function ItemsPanel({
             ) : (
               <ChromeSettingsEditor
                 sectionKey={activeSection}
-                content={items[0].content}
+                content={workingCmsContent(items[0])}
                 onSave={(content) => onUpdate(items[0].id, content, items[0].is_active)}
                 onImageUpload={(file, fieldName) => onImageUpload(file, fieldName, items[0].id)}
               />
@@ -2154,7 +2157,7 @@ function EditorTiendaViewInner() {
           cms.createItem.mutateAsync({
             section_key: activeSection as CMSSectionKey,
             item_order: i.item_order,
-            content: i.content,
+            content: workingCmsContent(i),
             is_active: i.is_active,
             locale: 'en',
           }),
@@ -2178,7 +2181,8 @@ function EditorTiendaViewInner() {
     }
   };
 
-  const notifyRevalidate = (revalidated?: boolean) => {
+  const notifyRevalidate = (revalidated?: boolean, reason?: string | null) => {
+    if (reason === 'draft') return;
     if (revalidated === false) {
       toast(
         'Guardado en base, pero la tienda no revalidó (URL/secret). Revisá NEXT_PUBLIC_URL_TIENDA y CMS_REVALIDATE_SECRET.',
@@ -2198,7 +2202,7 @@ function EditorTiendaViewInner() {
   ) => {
     try {
       const res = await cms.updateItem.mutateAsync({ id, content, is_active: isActive });
-      notifyRevalidate(res?.revalidated);
+      notifyRevalidate(res?.revalidated, res?.revalidate_reason);
       refreshIframe();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al guardar';
@@ -2314,7 +2318,7 @@ function EditorTiendaViewInner() {
           onSuccess: (res) => {
             // Las imágenes del modal ya tienen dueño: no limpiarlas
             setModalUploadedPaths({});
-            notifyRevalidate(res?.revalidated);
+            notifyRevalidate(res?.revalidated, res?.revalidate_reason);
             setShowNewForm(false);
             refreshIframe();
           },
@@ -2345,7 +2349,7 @@ function EditorTiendaViewInner() {
       },
       {
         onSuccess: (res) => {
-          notifyRevalidate(res?.revalidated);
+          notifyRevalidate(res?.revalidated, res?.revalidate_reason);
           toast('Formato inicializado', { type: 'success' });
           refreshIframe();
         },

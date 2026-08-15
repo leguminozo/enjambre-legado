@@ -132,6 +132,14 @@ export const AUTO_PUBLISH_SECTIONS = new Set<string>([
   'ciencia_settings',
 ]);
 
+/** Contenido que el operador edita: borrador si existe, si no lo publicado. */
+export function workingCmsContent(item: {
+  content: Record<string, unknown>;
+  draft_content?: Record<string, unknown> | null;
+}): Record<string, unknown> {
+  return item.draft_content != null ? item.draft_content : item.content;
+}
+
 export const LEGAL_SECTION_KEYS_LIST = [
   'legal_terminos',
   'legal_privacidad',

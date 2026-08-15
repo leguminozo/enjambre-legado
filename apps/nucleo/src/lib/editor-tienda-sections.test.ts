@@ -6,6 +6,7 @@ import {
   filterNavSectionKeys,
   isNestedSettingsKey,
   navVisibleSectionKey,
+  workingCmsContent,
 } from './editor-tienda-sections';
 
 describe('editor-tienda-sections', () => {
@@ -41,6 +42,18 @@ describe('AUTO_PUBLISH / keys', () => {
     expect(AUTO_PUBLISH_SECTIONS.has('media_items')).toBe(false);
     expect(AUTO_PUBLISH_SECTIONS.has('colecciones')).toBe(false);
     expect(AUTO_PUBLISH_SECTIONS.has('conservation_content')).toBe(false);
+  });
+
+  it('workingCmsContent prefiere el borrador', () => {
+    expect(
+      workingCmsContent({
+        content: { title: 'vivo' },
+        draft_content: { title: 'borrador' },
+      }),
+    ).toEqual({ title: 'borrador' });
+    expect(workingCmsContent({ content: { title: 'vivo' }, draft_content: null })).toEqual({
+      title: 'vivo',
+    });
   });
 
   it('todo par settings está en el catálogo CMS y en auto-publish', () => {

@@ -243,7 +243,16 @@ describe('CMS API Routes', () => {
     expect(res.status).toBe(201);
     const json = await res.json();
     expect(json.data.locale).toBe('es');
-    expect(insertSpy).toHaveBeenCalledWith(expect.objectContaining({ locale: 'es' }));
+    expect(json.revalidated).toBe(false);
+    expect(json.revalidate_reason).toBe('draft');
+    expect(mockRevalidate).not.toHaveBeenCalled();
+    expect(insertSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        locale: 'es',
+        content: {},
+        draft_content: { title: 'Taller' },
+      }),
+    );
   });
 
   it('POST /api/cms/items → 400 si insert falla', async () => {
