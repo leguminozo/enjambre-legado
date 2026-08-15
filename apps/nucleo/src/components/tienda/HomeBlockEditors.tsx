@@ -1171,7 +1171,7 @@ export function MediaSettingsEditor({
     setLocal((prev) => ({ ...prev, [key]: value }));
 
   return (
-    <div className="space-y-4 pb-8">
+    <div className="space-y-4">
       <div className="space-y-1.5">
         <label className={labelClass}>Altura del Carrusel (Móvil / Escritorio)</label>
         <select

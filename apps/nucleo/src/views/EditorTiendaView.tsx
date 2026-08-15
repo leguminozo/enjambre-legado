@@ -88,6 +88,12 @@ import {
   ChromeSettingsEditor,
   SETTINGS_SECTION_KEYS,
 } from '@/components/tienda/StoreChromeEditors';
+import {
+  SETTINGS_KEY_FOR_ITEMS,
+  filterNavSectionKeys,
+  isNestedSettingsKey,
+  navVisibleSectionKey,
+} from '@/lib/editor-tienda-sections';
 import { HEADER_NAV_TEMPLATE, HEADER_SETTINGS_TEMPLATE } from '@/lib/header-menu';
 import {
   ANNOUNCEMENT_SETTINGS_TEMPLATE,
@@ -191,7 +197,6 @@ const SECTION_CATEGORY: Record<string, EditorCategoryId> = {
   ciencia_settings: 'bloques',
   landing_layout: 'bloques',
   colecciones: 'bloques',
-  servicios: 'bloques',
   talleres: 'bloques',
   nosotros: 'bloques',
   galeria: 'bloques',
@@ -294,11 +299,11 @@ const SECTION_META: Record<
     hint: 'Header y logo menú',
   },
   menu_links: {
-    label: 'Menú — Enlaces',
-    short: 'Enlaces',
+    label: 'Menú',
+    short: 'Menú',
     icon: Link2,
     group: 'cabecera',
-    hint: 'Items de navegación',
+    hint: 'Estilo del header y enlaces',
   },
   announcement_settings: {
     label: 'Anuncios — Estilo',
@@ -308,11 +313,11 @@ const SECTION_META: Record<
     hint: 'Barra superior',
   },
   announcement_slides: {
-    label: 'Anuncios — Slides',
-    short: 'Slides',
+    label: 'Anuncios',
+    short: 'Anuncios',
     icon: GalleryHorizontalEnd,
     group: 'cabecera',
-    hint: 'Mensajes rotativos',
+    hint: 'Barra superior: estilo y mensajes',
   },
   landing_layout: {
     label: 'Bloques del home',
@@ -343,11 +348,11 @@ const SECTION_META: Record<
     hint: 'Copy y métricas conservación',
   },
   media_items: {
-    label: 'Carrusel media — Items',
-    short: 'Media',
+    label: 'Carrusel media',
+    short: 'Carrusel',
     icon: GalleryHorizontalEnd,
     group: 'home',
-    hint: 'Imágenes / videos del carrusel',
+    hint: 'Slides, altura y encuadre del home',
   },
   video_settings: {
     label: 'Video central',
@@ -392,11 +397,11 @@ const SECTION_META: Record<
     hint: 'Título, aspecto de foto hero y encuadre',
   },
   media_settings: {
-    label: 'Carrusel de Media — Formato y Altura',
-    short: 'Carrusel',
+    label: 'Carrusel media — Formato',
+    short: 'Formato',
     icon: Film,
     group: 'home',
-    hint: 'Altura en pantalla, encuadre y velocidad',
+    hint: 'Altura, encuadre y velocidad (vive dentro de Carrusel media)',
   },
   ciencia_settings: {
     label: 'Ciencia — Cabecera',
@@ -434,10 +439,11 @@ const SECTION_META: Record<
     hint: 'Pie de página',
   },
   footer_social: {
-    label: 'Footer — Redes',
-    short: 'Redes',
+    label: 'Footer',
+    short: 'Footer',
     icon: Share2,
     group: 'pie',
+    hint: 'Pie de página y redes',
   },
   pwa_nav_settings: {
     label: 'PWA — Estilo',
@@ -447,16 +453,18 @@ const SECTION_META: Record<
     hint: 'Barra inferior móvil',
   },
   pwa_nav_items: {
-    label: 'PWA — Pestañas',
-    short: 'Tabs',
+    label: 'PWA',
+    short: 'PWA',
     icon: AppWindow,
     group: 'pie',
+    hint: 'Barra inferior: estilo y pestañas',
   },
   colecciones: {
     label: 'Colecciones',
     short: 'Colecciones',
     icon: Layers,
     group: 'contenido',
+    hint: 'Tarjetas del home + formato',
   },
   talleres: {
     label: 'Talleres',
@@ -476,6 +484,7 @@ const SECTION_META: Record<
     short: 'Galería',
     icon: Images,
     group: 'contenido',
+    hint: 'Fotos de la página + formato',
   },
   contacto: {
     label: 'Contacto (página)',
@@ -1614,6 +1623,10 @@ interface ItemsPanelProps {
   isDeleting: boolean;
   /** brand_assets del CMS para la preview del menú (fallback logo marca → texto) */
   brandContent?: Record<string, unknown> | null;
+  /** Formato del mismo bloque (antes era otra entrada del nav). */
+  companionSettingsKey?: string | null;
+  companionSettingsItem?: CMSContentItem | null;
+  onInitCompanion?: () => void;
 }
 
 function ItemsPanel({
@@ -1630,6 +1643,9 @@ function ItemsPanel({
   onReorder,
   isDeleting,
   brandContent,
+  companionSettingsKey,
+  companionSettingsItem,
+  onInitCompanion,
 }: ItemsPanelProps) {
   const handleMoveUp = (index: number) => {
     if (index === 0 || !onReorder) return;
@@ -1704,6 +1720,54 @@ function ItemsPanel({
           </button>
         )}
       </div>
+
+      {companionSettingsKey ? (
+        <div className="rounded-xl border border-border bg-background overflow-hidden">
+          <div className="px-3 py-2 border-b border-border bg-surface-raised">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Formato de este bloque
+            </p>
+          </div>
+          <div className="p-3">
+            {companionSettingsItem ? (
+              companionSettingsKey === 'menu_settings' ? (
+                <MenuSettingsEditor
+                  item={companionSettingsItem}
+                  onUpdate={onUpdate}
+                  onImageUpload={onImageUpload}
+                  brandContent={brandContent}
+                />
+              ) : (
+                <ChromeSettingsEditor
+                  sectionKey={companionSettingsKey}
+                  content={companionSettingsItem.content}
+                  onSave={(content) =>
+                    onUpdate(companionSettingsItem.id, content, companionSettingsItem.is_active)
+                  }
+                  onImageUpload={(file, fieldName) =>
+                    onImageUpload(file, fieldName, companionSettingsItem.id)
+                  }
+                />
+              )
+            ) : (
+              <div className="text-center py-6 px-3">
+                <p className="text-xs text-muted-foreground mb-3">
+                  Este bloque aún no tiene formato inicializado.
+                </p>
+                {onInitCompanion ? (
+                  <button
+                    type="button"
+                    onClick={onInitCompanion}
+                    className="inline-flex min-h-11 items-center px-3 text-accent text-sm font-medium hover:underline"
+                  >
+                    Inicializar formato
+                  </button>
+                ) : null}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
 
       {(activeSection === 'nosotros' || activeSection === 'ciencia') && (
         <div className="flex gap-2 rounded-lg border border-accent/40 bg-accent/5 px-3 py-2.5 text-[11px] leading-relaxed text-foreground">
@@ -1873,7 +1937,7 @@ export function EditorTiendaView() {
 
 function EditorTiendaViewInner() {
   const cms = useCMSContent();
-  const [activeSection, setActiveSection] = useState<string>('menu_settings');
+  const [activeSection, setActiveSection] = useState<string>('menu_links');
   /** Idioma de edición (migración 1001): cada item vive en es o en. */
   const [editorLocale, setEditorLocale] = useState<'es' | 'en'>(() => {
     if (typeof window === 'undefined') return 'es';
@@ -2016,6 +2080,13 @@ function EditorTiendaViewInner() {
       .sort();
     return [...ordered, ...rest];
   })();
+  const navSectionKeys = filterNavSectionKeys(sectionKeys);
+
+  useEffect(() => {
+    if (isNestedSettingsKey(activeSection)) {
+      setActiveSection(navVisibleSectionKey(activeSection));
+    }
+  }, [activeSection]);
 
   const currentItems = (groupedData[activeSection] ?? []).filter(
     (i) => localeOf(i) === editorLocale,
@@ -2209,6 +2280,34 @@ function EditorTiendaViewInner() {
     } catch {
       toast('Error al crear elemento', { type: 'error' });
     }
+  };
+
+  const companionSettingsKey = SETTINGS_KEY_FOR_ITEMS[activeSection] ?? null;
+  const companionSettingsItem = companionSettingsKey
+    ? (groupedData[companionSettingsKey] ?? []).find((i) => localeOf(i) === editorLocale) ??
+      (groupedData[companionSettingsKey] ?? [])[0] ??
+      null
+    : null;
+
+  const handleInitCompanion = () => {
+    if (!companionSettingsKey) return;
+    const template = SECTION_TEMPLATES[companionSettingsKey] ?? {};
+    cms.createItem.mutate(
+      {
+        section_key: companionSettingsKey as CMSSectionKey,
+        content: template,
+        item_order: 1,
+        locale: editorLocale,
+      },
+      {
+        onSuccess: (res) => {
+          notifyRevalidate(res?.revalidated);
+          toast('Formato inicializado', { type: 'success' });
+          refreshIframe();
+        },
+        onError: (err) => toast(err.message, { type: 'error' }),
+      },
+    );
   };
 
   /** Recolecta paths del bucket cms en profundidad (chequeo locale-safe). */
@@ -2486,7 +2585,7 @@ function EditorTiendaViewInner() {
 
               {globalQuery.trim() ? (
                 <div className="space-y-1.5">
-                  {sectionKeys
+                  {navSectionKeys
                     .filter((k) => {
                       const meta = getSectionMeta(k);
                       const q = globalQuery.trim().toLowerCase();
@@ -2527,7 +2626,7 @@ function EditorTiendaViewInner() {
                         </button>
                       );
                     })}
-                  {sectionKeys.filter((k) => {
+                  {navSectionKeys.filter((k) => {
                     const meta = getSectionMeta(k);
                     const q = globalQuery.trim().toLowerCase();
                     return (
@@ -2544,7 +2643,7 @@ function EditorTiendaViewInner() {
               ) : (
                 EDITOR_CATEGORIES.map((cat) => {
                   const Icon = cat.icon;
-                  const catSections = sectionKeys.filter((k) => sectionCategory(k) === cat.id);
+                  const catSections = navSectionKeys.filter((k) => sectionCategory(k) === cat.id);
                   const catItems = catSections.reduce(
                     (acc, k) => acc + (groupedData[k] ?? []).length,
                     0,
@@ -2601,11 +2700,11 @@ function EditorTiendaViewInner() {
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto p-3 md:p-4 bg-surface">
                 <SectionNav
-                  sectionKeys={sectionKeys}
+                  sectionKeys={navSectionKeys}
                   activeSection={activeSection}
                   category={activeCategory}
                   onSelect={(k) => {
-                    setActiveSection(k);
+                    setActiveSection(navVisibleSectionKey(k));
                     setNavDrill('tool');
                   }}
                   itemCounts={Object.fromEntries(
@@ -2669,6 +2768,9 @@ function EditorTiendaViewInner() {
                     onReorder={handleReorder}
                     isDeleting={cms.deleteItem.isPending}
                     brandContent={groupedData['brand_assets']?.[0]?.content ?? null}
+                    companionSettingsKey={companionSettingsKey}
+                    companionSettingsItem={companionSettingsItem}
+                    onInitCompanion={handleInitCompanion}
                   />
                 </>
               )}
