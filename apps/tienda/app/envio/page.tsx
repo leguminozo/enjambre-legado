@@ -102,7 +102,7 @@ Cada bulto no puede exceder los 100 kg, 1 m³ de volumen, 1.2 m de ancho y 0.86 
 Consulta también nuestra <a href="/reembolso">Política de Reembolso</a> y <a href="/cancelacion">Política de Cancelación</a>.
 
 Para cualquier consulta sobre envíos, escríbenos a comunidad@obrerayzangano.com.
-`;
+`);
 
   return (
     <LegalContent

@@ -67,7 +67,7 @@ Para consultar detalles sobre los tiempos y costos de envío, revisa nuestra <a 
 - Ley 19.628 y Ley 21.719 (Protección de Datos): tratamiento de datos asociados a tu suscripción.
 
 Para cualquier reclamo, puedes acudir al SERNAC (www.sernac.cl) o a la Agencia de Protección de Datos Personales una vez que entre en operación.
-`;
+`);
 
   return (
     <LegalContent

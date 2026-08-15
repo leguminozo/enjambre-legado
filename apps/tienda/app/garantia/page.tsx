@@ -93,7 +93,7 @@ Si no queda satisfecho con la resolución de su garantía, puede presentar un re
 Consulta también: <a href="/reembolso">Política de Reembolso</a> | <a href="/cancelacion">Política de Cancelación</a> | <a href="/envio">Política de Envío</a> | <a href="/terminos">Términos del Servicio</a>
 
 Para consultas: comunidad@obrerayzangano.com | +56 9 408 31 358
-`;
+`);
 
   return (
     <LegalContent

@@ -202,7 +202,7 @@ Pureo rural km 8560, Quellón, Chiloé, Chile
 Para reclamos de consumo, puede acudir al SERNAC (www.sernac.cl).
 
 Políticas relacionadas: <a href="/privacidad">Privacidad</a> | <a href="/cookies">Cookies</a> | <a href="/cancelacion">Cancelación</a> | <a href="/envio">Envío</a> | <a href="/reembolso">Reembolso</a> | <a href="/garantia">Garantía</a>
-`;
+`);
 
   return (
     <LegalContent

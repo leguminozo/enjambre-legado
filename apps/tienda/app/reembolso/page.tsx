@@ -74,7 +74,7 @@ Recuerda que el banco o la entidad emisora de la tarjeta de crédito pueden tard
 Para cualquier reclamo, puedes acudir al SERNAC (www.sernac.cl).
 
 Consulta también: <a href="/cancelacion">Política de Cancelación</a> | <a href="/envio">Política de Envío</a> | <a href="/garantia">Política de Garantía</a>
-`;
+`);
 
   return (
     <LegalContent

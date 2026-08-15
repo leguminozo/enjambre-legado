@@ -109,7 +109,7 @@ Podemos actualizarla en cualquier momento. La versión vigente estará siempre d
 Una vez que la Agencia de Protección de Datos Personales (APD) esté operativa, también podrá presentar reclamos ante ella conforme a la Ley 21.719. Actualmente, puede acudir al SERNAC (www.sernac.cl) por materias de protección al consumidor.
 
 Consulta también: <a href="/cookies">Política de Cookies</a> | <a href="/terminos">Términos del Servicio</a> | <a href="/cancelacion">Política de Cancelación</a>
-`;
+`);
 
   return (
     <LegalContent

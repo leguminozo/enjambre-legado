@@ -99,7 +99,7 @@ Podemos actualizar esta Política de Cookies cuando incorporemos nuevas herramie
 Para consultas sobre nuestras cookies, escriba a: contacto@obrerayzangano.com
 
 Consulta también: <a href="/privacidad">Política de Privacidad</a> | <a href="/terminos">Términos del Servicio</a>
-`;
+`);
 
   return (
     <LegalContent
