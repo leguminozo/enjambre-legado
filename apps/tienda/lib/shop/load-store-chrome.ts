@@ -32,7 +32,9 @@ import {
   DEFAULT_PWA_NAV_ITEMS,
 } from '@/lib/shop/store-chrome';
 
-export const loadStoreChrome = cache(async function loadStoreChrome(): Promise<StoreChromeConfig> {
+export const loadStoreChrome = cache(async function loadStoreChrome(
+  opts?: { draft?: boolean },
+): Promise<StoreChromeConfig> {
   const batch = await getSiteContentBatch([
     'theme_settings',
     'typography_settings',
@@ -58,7 +60,7 @@ export const loadStoreChrome = cache(async function loadStoreChrome(): Promise<S
     'auth_settings',
     'campaign_banners',
     'seasonal_settings',
-  ]);
+  ], opts?.draft ? { draft: true } : undefined);
 
   const theme = parseThemeSettings(
     (batch.theme_settings?.[0]?.content as Record<string, unknown> | undefined) ?? null,

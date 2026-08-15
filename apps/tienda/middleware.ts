@@ -100,7 +100,14 @@ export default async function middleware(request: NextRequest) {
     return mergeMiddlewareCookies(sessionResponse, redirect);
   }
 
-  const passThrough = withLocaleCookie(request, NextResponse.next());
+  const requestHeaders = new Headers(request.headers);
+  if (request.nextUrl.searchParams.get('cms_preview') === '1') {
+    requestHeaders.set('x-cms-preview', '1');
+  }
+  const passThrough = withLocaleCookie(
+    request,
+    NextResponse.next({ request: { headers: requestHeaders } }),
+  );
   return mergeMiddlewareCookies(sessionResponse, passThrough);
 }
 

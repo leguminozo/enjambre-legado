@@ -10,8 +10,13 @@ import {
 } from '@/lib/shop/header-menu';
 
 /** Carga menú CMS (menu_settings + menu_links) con fallbacks. */
-export const loadHeaderMenu = cache(async function loadHeaderMenu(): Promise<HeaderMenuConfig> {
-  const batch = await getSiteContentBatch(['menu_settings', 'menu_links']);
+export const loadHeaderMenu = cache(async function loadHeaderMenu(
+  opts?: { draft?: boolean },
+): Promise<HeaderMenuConfig> {
+  const batch = await getSiteContentBatch(
+    ['menu_settings', 'menu_links'],
+    opts?.draft ? { draft: true } : undefined,
+  );
   const settingsRow = batch.menu_settings?.[0];
   const settings = parseHeaderSettings(
     (settingsRow?.content as Record<string, unknown> | undefined) ?? null,

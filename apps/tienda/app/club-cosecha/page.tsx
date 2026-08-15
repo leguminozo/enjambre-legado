@@ -12,6 +12,7 @@ import {
   resolveClubPlanId,
 } from '@/lib/shop/club-cosecha';
 import { parseSeasonalOverrides } from '@/lib/shop/store-chrome';
+import { isCmsPreviewRequest } from '@/lib/cms';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
 import { formatCLP } from '@/lib/shop/format';
 import { getNucleoAppUrl } from '@/lib/shop/nucleo-app-url';
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
 export default async function ClubCosechaPage() {
   // Contenido estacional del CMS (sección seasonal_settings) sobre el default por mes.
   const [chrome, plans, lotesPublicos] = await Promise.all([
-    loadStoreChrome(),
+    loadStoreChrome({ draft: await isCmsPreviewRequest() }),
     listActiveSubscriptionPlans(),
     fetchLotesPublicosForClub(24),
   ]);

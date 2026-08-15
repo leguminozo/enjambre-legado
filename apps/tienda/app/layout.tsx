@@ -18,6 +18,7 @@ import { MetaPixelLoader } from '@/components/shop/meta-pixel';
 import { LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevealHarness, NavigationProgressBar } from '@enjambre/ui';
 import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
+import { isCmsPreviewRequest } from '@/lib/cms';
 import { buildGoogleFontsHref, themeToCssVars, typographyToCssVars } from '@/lib/shop/store-chrome';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
@@ -74,7 +75,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages();
   const headersList = await headers();
   const nonce = headersList.get('x-csp-nonce') ?? '';
-  const [headerMenu, storeChrome] = await Promise.all([loadHeaderMenu(), loadStoreChrome()]);
+  const draft = await isCmsPreviewRequest();
+  const [headerMenu, storeChrome] = await Promise.all([
+    loadHeaderMenu({ draft }),
+    loadStoreChrome({ draft }),
+  ]);
   // Align with ThemeProvider storageKey + defaults (evita React #418 class mismatch)
   const forceDark = storeChrome.theme.force_dark_public;
   const themeScript = forceDark

@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { ViewLoading } from '@enjambre/ui';
 import { LoginForm } from '@/components/auth/login-form';
 import { AuthAtmosphereEffect } from '@/components/auth/auth-atmosphere-effect';
+import { isCmsPreviewRequest } from '@/lib/cms';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
 
 export const metadata = {
@@ -9,7 +10,7 @@ export const metadata = {
 };
 
 export default async function LoginPage() {
-  const chrome = await loadStoreChrome();
+  const chrome = await loadStoreChrome({ draft: await isCmsPreviewRequest() });
   const authSettings = chrome.auth;
 
   return (

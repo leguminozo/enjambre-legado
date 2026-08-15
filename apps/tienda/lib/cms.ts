@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { headers } from 'next/headers';
 import { getLocale } from 'next-intl/server';
 import { parseLegalDoc } from '@/lib/shop/store-chrome';
 import { createAnonServerClient } from '@/utils/supabase/anon-server';
@@ -77,6 +78,16 @@ function preferLocale(
     }
   }
   return [...byOrder.values()].map((v) => v.item);
+}
+
+/** El middleware marca x-cms-preview=1 cuando el iframe trae ?cms_preview=1. */
+export async function isCmsPreviewRequest(): Promise<boolean> {
+  try {
+    const h = await headers();
+    return h.get('x-cms-preview') === '1';
+  } catch {
+    return false;
+  }
 }
 
 export const getSiteContent = cache(async function getSiteContent(
