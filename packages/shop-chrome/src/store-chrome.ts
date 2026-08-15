@@ -848,12 +848,12 @@ export const PDP_SETTINGS_TEMPLATE = { ...DEFAULT_PDP_SETTINGS };
 
 export const LANDING_SECTION_LABELS: Record<LandingSectionId, string> = {
   hero: 'Hero',
-  conservation: 'Impacto / Conservación',
-  collections: 'Colecciones',
+  conservation: 'Impacto',
+  collections: 'Grid colecciones',
   media: 'Media',
-  products: 'Creaciones (productos)',
-  video: 'Video central',
-  map: 'Mapa / Lugar',
+  products: 'Creaciones',
+  video: 'Video',
+  map: 'Mapa',
 };
 
 /** Fila de “Orden del home” → herramienta que edita las fichas (no otra entrada gemela). */

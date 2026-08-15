@@ -21,6 +21,7 @@ export const EDITOR_SECTION_PAIRS: readonly EditorSectionPair[] = [
   { items: 'menu_links', settings: 'menu_settings' },
   { items: 'footer_social', settings: 'footer_settings' },
   { items: 'pwa_nav_items', settings: 'pwa_nav_settings' },
+  { items: 'contacto', settings: 'contact_settings' },
 ] as const;
 
 export const NESTED_SETTINGS_KEYS = new Set(EDITOR_SECTION_PAIRS.map((p) => p.settings));

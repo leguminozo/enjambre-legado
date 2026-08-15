@@ -24,6 +24,29 @@ describe('editor-tienda-sections', () => {
   it('el CMS lista media_settings pero el nav nunca lo muestra', () => {
     expect(filterNavSectionKeys([...CMS_SECTION_KEYS])).not.toContain('media_settings');
     expect(filterNavSectionKeys([...CMS_SECTION_KEYS])).toContain('media_items');
+    expect(filterNavSectionKeys([...CMS_SECTION_KEYS])).not.toContain('contact_settings');
+    expect(filterNavSectionKeys([...CMS_SECTION_KEYS])).toContain('contacto');
+  });
+
+  it('todos los *_settings con ficha hermana están emparejados', () => {
+    const pairedSettings = new Set(EDITOR_SECTION_PAIRS.map((p) => p.settings));
+    const settingsLike = CMS_SECTION_KEYS.filter((k) => k.endsWith('_settings'));
+    const shouldHaveTwin = [
+      'media_settings',
+      'collections_settings',
+      'galeria_settings',
+      'nosotros_settings',
+      'ciencia_settings',
+      'announcement_settings',
+      'menu_settings',
+      'footer_settings',
+      'pwa_nav_settings',
+      'contact_settings',
+    ];
+    for (const k of shouldHaveTwin) {
+      expect(pairedSettings.has(k)).toBe(true);
+      expect(settingsLike).toContain(k);
+    }
   });
 
   it('cada par es items ↔ settings sin solaparse', () => {

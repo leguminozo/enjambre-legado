@@ -56,6 +56,11 @@ describe('store-chrome smoke', () => {
     expect(m.LANDING_SECTION_LABELS.hero).toBeTruthy();
     expect(m.LANDING_SECTION_LABELS.media).toBe('Media');
     expect(m.LANDING_SECTION_EDITOR_KEY.media).toBe('media_items');
+    // Orden del home no debe repetir el nombre de la herramienta de fichas
+    expect(m.LANDING_SECTION_LABELS.video).not.toBe('Video central');
+    expect(m.LANDING_SECTION_LABELS.map).not.toBe('Mapa / Lugar');
+    expect(m.LANDING_SECTION_LABELS.products).not.toBe('Creaciones — Cabecera');
+    expect(m.LANDING_SECTION_LABELS.collections).not.toBe('Colecciones');
     expect(m.BRAND_ASSETS_TEMPLATE.logo_url).toBeDefined();
   });
 });

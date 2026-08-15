@@ -488,10 +488,11 @@ const SECTION_META: Record<
     hint: 'Fotos de la página + formato',
   },
   contacto: {
-    label: 'Contacto (página)',
-    short: 'Página',
+    label: 'Contacto',
+    short: 'Contacto',
     icon: Mail,
     group: 'contenido',
+    hint: 'Página /contacto y WhatsApp (formato arriba)',
   },
   ciencia: {
     label: 'Ciencia — Evidencia',
