@@ -367,12 +367,15 @@ function BeeCanvasInner() {
           isAnimating = false;
         }
       },
-      { threshold: 0.1 },
+      { threshold: 0.01 },
     );
 
-    let initTimeout = setTimeout(() => {
-      observer.observe(canvas);
-    }, 500);
+    // El hero está above-the-fold: no esperar 500ms ni al IO. Si el observer
+    // no dispara (canvas 0×0 un frame), el loop igual ya arrancó.
+    isVisible = true;
+    isAnimating = true;
+    observer.observe(canvas);
+    animate();
 
     function animate(timestamp = 0) {
       if (!ctx || !isVisible) {
@@ -411,7 +414,6 @@ function BeeCanvasInner() {
     }
 
     return () => {
-      if (initTimeout) clearTimeout(initTimeout);
       observer.disconnect();
       window.removeEventListener('resize', debouncedResize);
       if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current);

@@ -148,13 +148,14 @@ export function ShopHeader() {
   );
 
   const forceBurger = settings.force_burger_desktop;
-  // Desktop horizontal nav from lg only — mid widths use burger (avoids crushed links)
+  // Desktop horizontal nav from xl — con DevTools o 6 ítems a 1024px se pisan
+  // (INICIO/CREACIONES/GALERÍA se leían como "VIR"/"DEL" encima).
   const navDesktop = !forceBurger ? (
     <nav
-      className={`items-center ${
+      className={`items-center min-w-0 ${
         settings.layout === 'centered'
-          ? 'hidden lg:flex w-full justify-center order-last'
-          : 'hidden lg:flex'
+          ? 'hidden xl:flex w-full justify-center order-last'
+          : 'hidden xl:flex'
       }`}
       style={{
         gap: 'var(--tienda-nav-gap, 1.25rem)',
@@ -260,7 +261,7 @@ export function ShopHeader() {
         <button
           type="button"
           className={`tienda-shop-header-burger p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-accent transition-colors ${
-            forceBurger ? '' : 'lg:hidden'
+            forceBurger ? '' : 'xl:hidden'
           }`}
           onClick={toggleMenu}
           aria-controls="tienda-mobile-nav-panel"
@@ -274,15 +275,15 @@ export function ShopHeader() {
         {settings.layout === 'split' && !forceBurger ? (
           <>
             {logoLink}
-            <div className="hidden lg:flex items-center flex-1 justify-end gap-4 xl:gap-6 min-w-0">
+            <div className="hidden xl:flex items-center flex-1 justify-end gap-4 xl:gap-6 min-w-0">
               {navDesktop}
               {actions}
             </div>
-            <div className="lg:hidden shrink-0">{actions}</div>
+            <div className="xl:hidden shrink-0">{actions}</div>
           </>
         ) : settings.layout === 'centered' && !forceBurger ? (
           <>
-            <div className="w-11 lg:hidden shrink-0" aria-hidden />
+            <div className="w-11 xl:hidden shrink-0" aria-hidden />
             {logoLink}
             {actions}
             {navDesktop}
@@ -299,7 +300,7 @@ export function ShopHeader() {
       {open &&
         typeof document !== 'undefined' &&
         createPortal(
-          <div className={`tienda-mobile-nav-root ${forceBurger ? '' : 'lg:hidden'}`}>
+          <div className={`tienda-mobile-nav-root ${forceBurger ? '' : 'xl:hidden'}`}>
             <button
               type="button"
               className="tienda-mobile-nav-backdrop"

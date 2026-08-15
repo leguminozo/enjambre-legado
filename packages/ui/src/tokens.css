@@ -366,7 +366,7 @@ html.light {
 
 /* ── 8. Tier legacy (iPhone 7 / hardware antiguo) ──
    data-legacy lo setea LegacyDeviceDetect (packages/ui) en <html> antes del
-   primer paint: UA iOS ≤ 15, deviceMemory ≤ 2, hardwareConcurrency ≤ 2, o
+   primer paint: UA iOS ≤ 15, o (deviceMemory ≤ 1 y hardwareConcurrency ≤ 2), o
    override ?legacy=1. El tier aplana efectos de GPU caros para que la app
    SIGA funcionando en 2GB de RAM; el gate de componentes pesados
    (canvas/3D/mapas) va por useLegacyDevice(), no por CSS. */

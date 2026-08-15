@@ -7,9 +7,9 @@
  * Criterios (heurística documentada en docs/LEGACY_TIER.md):
  * - UA iOS ≤ 15 (iPhone 7 llega hasta iOS 15.8; Safari 15.x no tiene dvh
  *   dinámico, color-mix, toSorted, backdrop-filter sin prefijo, etc.)
- * - navigator.deviceMemory ≤ 2 (Chrome/Android low-end; no existe en iOS)
- * - navigator.hardwareConcurrency ≤ 2 (cubre iPadOS 15, que se reporta como
- *   Macintosh y escapa al parseo de UA)
+ * - navigator.deviceMemory ≤ 1 (Chrome/Android realmente low-end; no en iOS)
+ * - CPU≤2 Y RAM≤2 juntos. Un Mac de 2 núcleos con 8 GB no es “legacy”:
+ *   apagaba BeeCanvas/grain y el hero quedaba negro plano.
  * - Override manual: ?legacy=1|0 o localStorage.enj_legacy_override = "1"|"0"
  *
  * Efecto: <html data-legacy="true"> (CSS en tokens.css aplana blur/filtros) +
@@ -20,7 +20,7 @@
  */
 
 export function legacyDeviceScript(): string {
-  return `(function(){try{var r=document.documentElement;function setAttr(k,v){if(v){r.setAttribute(k,v)}else{r.removeAttribute(k)}}var ov=null;var q=(location.search||"").match(/[?&]legacy=(0|1)/);if(q){ov=q[1]==="1"}else{try{var ls=localStorage.getItem("enj_legacy_override");if(ls==="1"||ls==="0"){ov=ls==="1"}}catch(e){}}var legacy=false;if(ov!==null){legacy=ov}else{var ua=navigator.userAgent||"";var m=ua.match(/iPhone OS (\\d+)[_.]/)||ua.match(/CPU OS (\\d+)[_.]/);if(m){legacy=parseInt(m[1],10)<=15}else if(typeof navigator.deviceMemory==="number"&&navigator.deviceMemory<=2){legacy=true}else if(typeof navigator.hardwareConcurrency==="number"&&navigator.hardwareConcurrency<=2){legacy=true}}setAttr("data-legacy",legacy?"true":null);var reduce=false;try{reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}setAttr("data-motion",reduce?"reduce":null);window.__ENJAMBRE_LEGACY__=legacy}catch(e){}})();`;
+  return `(function(){try{var r=document.documentElement;function setAttr(k,v){if(v){r.setAttribute(k,v)}else{r.removeAttribute(k)}}var ov=null;var q=(location.search||"").match(/[?&]legacy=(0|1)/);if(q){ov=q[1]==="1"}else{try{var ls=localStorage.getItem("enj_legacy_override");if(ls==="1"||ls==="0"){ov=ls==="1"}}catch(e){}}var legacy=false;if(ov!==null){legacy=ov}else{var ua=navigator.userAgent||"";var m=ua.match(/iPhone OS (\\d+)[_.]/)||ua.match(/CPU OS (\\d+)[_.]/);if(m){legacy=parseInt(m[1],10)<=15}else{var lowMem=typeof navigator.deviceMemory==="number"&&navigator.deviceMemory<=1;var lowCpu=typeof navigator.hardwareConcurrency==="number"&&navigator.hardwareConcurrency<=2;if(lowMem&&lowCpu){legacy=true}}}setAttr("data-legacy",legacy?"true":null);var reduce=false;try{reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}setAttr("data-motion",reduce?"reduce":null);window.__ENJAMBRE_LEGACY__=legacy}catch(e){}})();`;
 }
 
 export function LegacyDeviceDetect({ nonce }: { nonce?: string }) {

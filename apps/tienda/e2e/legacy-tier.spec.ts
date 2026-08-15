@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 // Tier legacy (iPhone 7 / hardware antiguo): LegacyDeviceDetect setea
-// data-legacy="true" en <html> según UA iOS ≤ 15, deviceMemory ≤ 2,
-// hardwareConcurrency ≤ 2, o override ?legacy=1. Ver docs/LEGACY_TIER.md.
+// data-legacy="true" en <html> según UA iOS ≤ 15, o (deviceMemory ≤ 1 y
+// hardwareConcurrency ≤ 2), o override ?legacy=1. Ver docs/LEGACY_TIER.md.
 test.describe('tier legacy — detección', () => {
   test('iPhone 7 (iOS 15.8): data-legacy="true" + data-motion sincronizado', async ({ page }) => {
     test.skip(test.info().project.name !== 'iphone-7', 'solo el proyecto iphone-7 emula iOS 15.8');

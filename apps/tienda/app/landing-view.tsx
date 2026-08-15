@@ -215,31 +215,14 @@ export function TiendaLandingView({
         ctx = gsap.context(() => {
           const tl = gsap.timeline({ onComplete: revealHero });
 
-          // fromTo + clearProps: un remount/hidratacion no deja el H1 en y:100%
-          // detrás de overflow-hidden (hero "vacío" en prod).
+          // Solo las líneas del H1: kicker/subtítulo/fórmula quedan siempre
+          // visibles. Animar opacity en el kicker lo dejaba invisible si GSAP
+          // se cortaba (hero "sin mostrar" con título sí visible).
           tl.fromTo(
-            '.hero-eyebrow',
-            { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: 0.2, clearProps: 'transform,opacity' },
-          )
-            .fromTo(
-              '.hero-title .line-inner',
-              { y: '100%' },
-              { y: '0%', duration: 1.4, stagger: 0.15, ease: 'power4.out', clearProps: 'transform' },
-              '-=0.8',
-            )
-            .fromTo(
-              '.hero-subtitle',
-              { opacity: 0, y: 30 },
-              { opacity: 1, y: 0, duration: 1, ease: 'power3.out', clearProps: 'transform,opacity' },
-              '-=0.6',
-            )
-            .fromTo(
-              '.hero-formula',
-              { opacity: 0, y: 20 },
-              { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', clearProps: 'transform,opacity' },
-              '-=0.3',
-            );
+            '.hero-title .line-inner',
+            { y: '100%' },
+            { y: '0%', duration: 1.4, stagger: 0.15, ease: 'power4.out', delay: 0.15, clearProps: 'transform' },
+          );
 
           setTimeout(() => {
             const sections = ['#collections', '#media-carousel', '#creaciones', '#central-video', '#world-location'];
@@ -296,8 +279,10 @@ export function TiendaLandingView({
             key="hero"
             className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] min-h-[var(--svh-full)] md:min-h-[var(--vh-full)]"
           >
-            <div className="absolute inset-0 pointer-events-none" aria-hidden />
-        {!isMobile && !legacy && !motionReduced && landing.show_bee_canvas ? <BeeCanvas /> : null}
+            <div className="hero-atmosphere absolute inset-0 pointer-events-none z-0" aria-hidden />
+        {!isMobile && !legacy && !motionReduced && landing.show_bee_canvas !== false ? (
+          <BeeCanvas />
+        ) : null}
         <div
           className="absolute inset-0 pointer-events-none bg-background/40 md:bg-transparent"
           aria-hidden

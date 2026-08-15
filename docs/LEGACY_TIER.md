@@ -12,9 +12,9 @@ canvas 30fps, WebGL, mapas raster, websockets persistentes, sync masivo).
 `LegacyDeviceDetect` (packages/ui, script inline ES5 en `<head>` de los 3 root
 layouts) setea en `<html>` antes del primer paint:
 
-- `data-legacy="true"` si: UA iOS ≤ 15, `navigator.deviceMemory ≤ 2`
-  (Chrome/Android), o `navigator.hardwareConcurrency ≤ 2` (cubre iPadOS 15,
-  que se reporta como Macintosh).
+- `data-legacy="true"` si: UA iOS ≤ 15, o (`deviceMemory ≤ 1` **y**
+  `hardwareConcurrency ≤ 2`). Un Mac de 2 núcleos con RAM normal no es
+  legacy: solo CPU≤2 apagaba BeeCanvas y el hero quedaba negro.
 - `data-motion="reduce"` si `prefers-reduced-motion: reduce` (preferencia del
   usuario, independiente del tier de hardware).
 - Override manual: `?legacy=1|0` en la URL o `localStorage.enj_legacy_override

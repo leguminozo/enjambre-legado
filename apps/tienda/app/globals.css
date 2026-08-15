@@ -160,7 +160,17 @@ html:not(.dark) {
   }
 }
 
-/* Header tienda — opaco en móvil sobre hero/landing; notch via safe-top */
+/* Hero: atmósfera fija (panal + resplandor). El canvas suma abejas encima;
+   si el canvas no monta (legacy/IO) el bloque no queda negro plano. */
+.hero-atmosphere {
+  background-image:
+    radial-gradient(ellipse 75% 60% at 50% 42%, rgba(201, 162, 39, 0.16), transparent 68%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='73' viewBox='0 0 84 73'%3E%3Cpath fill='none' stroke='%23c9a227' stroke-opacity='0.11' stroke-width='1' d='M21 1.5 L42 13.5 L42 37.5 L21 49.5 L0 37.5 L0 13.5 Z M63 1.5 L84 13.5 L84 37.5 L63 49.5 L42 37.5 L42 13.5 Z M42 37.5 L63 49.5 L63 73.5 L42 85.5 L21 73.5 L21 49.5 Z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, repeat;
+  background-position: center, center;
+  background-size: 100% 100%, 84px 73px;
+}
+
 .tienda-shop-header {
   background-color: hsl(var(--background));
   box-shadow: 0 1px 0 hsl(var(--border));
