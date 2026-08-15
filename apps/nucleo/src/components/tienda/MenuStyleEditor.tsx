@@ -192,6 +192,10 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
         value={local.mobile_menu}
         onChange={(v) => patch('mobile_menu', v)}
       />
+      <p className="text-[11px] text-muted-foreground leading-snug">
+        En iPhone 8 (375×667) el panel hace scroll: tamaño 14–48px y separación 8–64px no recortan
+        enlaces. Fullscreen, drawer izquierdo y derecho caben en la misma altura útil.
+      </p>
 
       <ToggleField
         label="Burger también en desktop"
@@ -550,8 +554,8 @@ function MenuMiniPreview({
   // split → en flujo a la izquierda.
   const logoWrapClass =
     settings.layout === 'split'
-      ? 'relative'
-      : 'absolute left-1/2 -translate-x-1/2 max-w-[55%] overflow-hidden';
+      ? 'relative min-w-0'
+      : 'absolute left-1/2 max-w-[55%] -translate-x-1/2';
 
   const actions = (
     <div className="flex items-center gap-1.5 text-muted-foreground text-[9px]">
@@ -601,11 +605,11 @@ function MenuMiniPreview({
         />
       ) : null}
       <div
-        className={`${panelClass} flex flex-col overflow-y-auto p-4`}
+        className={`${panelClass} flex min-h-0 flex-col overflow-y-auto p-4`}
         style={{ gap: `${settings.mobile_item_gap_px}px` }}
       >
         <nav
-          className="flex flex-col"
+          className="flex min-h-0 flex-col"
           style={{
             gap: `${settings.mobile_item_gap_px}px`,
             fontSize: `${settings.mobile_font_size_px}px`,
@@ -614,7 +618,7 @@ function MenuMiniPreview({
           }}
         >
           {PREVIEW_NAV_LABELS.map((l) => (
-            <span key={l} className="font-light text-foreground">
+            <span key={l} className="break-words font-light leading-tight text-foreground">
               {l}
             </span>
           ))}
@@ -636,13 +640,13 @@ function MenuMiniPreview({
   ) : null;
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border bg-background">
+    <div className="rounded-xl border border-border bg-background">
       <div className="px-3 py-2 border-b border-border bg-surface-raised">
         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          Vista previa del menú
+          Vista previa del menú · iPhone 8
         </p>
       </div>
-      <div className="border-b border-border">
+      <div className="relative min-h-[22rem] overflow-hidden sm:min-h-[26rem]">
         {/* Barra (estado móvil) */}
         <div
           className="relative flex items-center justify-between gap-2 px-3"
@@ -670,6 +674,7 @@ function MenuMiniPreview({
             Burger en desktop: nav horizontal oculta
           </div>
         )}
+        {panel}
       </div>
       <div className="flex items-center justify-between px-3 py-2 bg-surface-sunken border-t border-border">
         <p className="text-[10px] text-muted-foreground">
@@ -687,7 +692,6 @@ function MenuMiniPreview({
           {showPanel ? 'Cerrar panel' : 'Probar panel'}
         </button>
       </div>
-      {panel}
     </div>
   );
 }

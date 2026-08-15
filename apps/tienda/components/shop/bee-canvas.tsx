@@ -49,6 +49,7 @@ function BeeCanvasInner() {
 
     let width = 0;
     let height = 0;
+    let compact = false;
     let bees: Bee[] = [];
     let honeyParticles: HoneyParticle[] = [];
     let honeycombCells: HoneycombCell[] = [];
@@ -162,9 +163,13 @@ function BeeCanvasInner() {
 
     function resize() {
       if (!canvas || !ctx) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = window.innerWidth;
-      height = window.innerHeight;
+      const parent = canvas.parentElement;
+      width = parent?.clientWidth || window.innerWidth;
+      height = parent?.clientHeight || window.innerHeight;
+      compact = width < 768;
+      // iPhone 8 / retina: 3× dpr + malla de panal tumba el rAF. Cap más bajo
+      // en compact; el hero ya trae .hero-atmosphere de respaldo.
+      const dpr = Math.min(window.devicePixelRatio || 1, compact ? 1.5 : 2);
       canvas.width = width * dpr;
       canvas.height = height * dpr;
       canvas.style.width = width + 'px';
@@ -173,7 +178,8 @@ function BeeCanvasInner() {
       // un resize intermedio sin reasignar no debe acumular escala.
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      initHoneycombGrid(width, height);
+      if (!compact) initHoneycombGrid(width, height);
+      else honeycombCells = [];
     }
 
     window.addEventListener('resize', debouncedResize);
@@ -337,8 +343,8 @@ function BeeCanvasInner() {
     }
 
     const currentWidth = width || (typeof window !== 'undefined' ? window.innerWidth : 1024);
-    const NUM_BEES = currentWidth < 768 ? 22 : 48;
-    const NUM_PARTICLES = currentWidth < 768 ? 25 : 55;
+    const NUM_BEES = currentWidth < 768 ? 10 : 48;
+    const NUM_PARTICLES = currentWidth < 768 ? 12 : 55;
 
     bees = [];
     honeyParticles = [];
@@ -353,7 +359,7 @@ function BeeCanvasInner() {
     let animationFrameId: number;
     let isVisible = false;
     let lastFrameTime = 0;
-    const targetFps = 30;
+    const targetFps = currentWidth < 768 ? 24 : 30;
     const frameInterval = 1000 / targetFps;
     let isAnimating = false;
 
@@ -392,8 +398,8 @@ function BeeCanvasInner() {
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Trama de Panal Hexagonal
-      drawHoneycombMesh();
+      // En móvil el SVG .hero-atmosphere ya pinta el panal; ahorramos el mesh.
+      if (!compact) drawHoneycombMesh();
 
       // 2. Resplandor Ámbar Central
       drawCentralNectarGlow();
@@ -424,6 +430,7 @@ function BeeCanvasInner() {
   return (
     <canvas
       ref={canvasRef}
+      data-testid="bee-canvas"
       className="absolute inset-0 z-0 pointer-events-none"
       style={{ width: '100%', height: '100%' }}
     />

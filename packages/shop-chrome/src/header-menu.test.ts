@@ -50,6 +50,8 @@ describe('headerSettingsToCssVars / mergeHeaderSettings', () => {
     const vars = headerSettingsToCssVars(DEFAULT_HEADER_SETTINGS);
     expect(vars['--tienda-header-h']).toBe(`${DEFAULT_HEADER_SETTINGS.height_mobile_px}px`);
     expect(vars['--tienda-nav-transform']).toBe('uppercase');
+    expect(vars['--tienda-mobile-nav-size']).toBe(`${DEFAULT_HEADER_SETTINGS.mobile_font_size_px}px`);
+    expect(vars['--tienda-mobile-nav-gap']).toBe(`${DEFAULT_HEADER_SETTINGS.mobile_item_gap_px}px`);
   });
 
   it('mergeHeaderSettings equivale a parse', () => {

@@ -63,13 +63,14 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
     font-family: var(--font-datos);
     line-height: 1.6;
-    min-height: 100vh; /* fallback iOS <15.4 (dvh no existe) */
-    min-height: 100dvh;
+    min-height: var(--vh-full);
     overflow-x: hidden;
   }
 
@@ -83,6 +84,14 @@
   --shadow-md: 0 4px 12px hsl(var(--enj-bosque-ulmo-h) 20% 20% / 0.08);
   --shadow-lg: 0 8px 30px hsl(var(--enj-bosque-ulmo-h) 20% 20% / 0.1);
 
+  }
+
+  @media (max-width: 767px) {
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden']),
+    select,
+    textarea {
+      font-size: 16px;
+    }
   }
 
   a {
@@ -163,8 +172,7 @@ select.input-field option,
 /* ── App Layout ── */
 .app-layout {
   display: flex;
-  height: 100vh;
-  height: 100dvh;
+  height: var(--vh-full);
   overflow: hidden;
 }
 
@@ -178,8 +186,7 @@ select.input-field option,
   position: fixed;
   top: 0;
   left: 0;
-  height: 100vh;
-  height: 100dvh;
+  height: var(--vh-full);
   z-index: 100;
   transition: transform var(--transition-base);
   /* Scroll solo en .sidebar-nav: el brand y el footer permanecen fijos */
@@ -393,8 +400,7 @@ select.input-field option,
   margin-left: var(--sidebar-width);
   /* El entorno responde al colapso del sidebar (data-sidebar-collapsed) con transición */
   transition: margin-left var(--transition-base);
-  height: 100vh;
-  height: 100dvh;
+  height: var(--vh-full);
   /* Columna: header fijo + page-content rellena el resto (crítico para Editor Tienda) */
   display: flex;
   flex-direction: column;
@@ -1131,7 +1137,11 @@ select.input-field option,
 }
 
 .app-layout--mobile .page-content {
-  padding: var(--density-page-pad);
+  padding: 0.75rem;
+}
+
+.app-layout--mobile .page-content:has([data-testid='editor-tienda-root']) {
+  padding: 0.35rem 0.35rem 0.5rem;
 }
 
 /* ── Densidad compacta (toggle en el header; las primitivas consumen las vars) ── */
@@ -1432,6 +1442,11 @@ select.input-field option,
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-inline: 1px;
 }
 
 .liquid-bottom-nav-dot {
@@ -1465,6 +1480,7 @@ select.input-field option,
   bottom: 0;
   z-index: 1110;
   max-height: min(88vh, 720px);
+  max-height: min(88svh, 720px);
   display: flex;
   flex-direction: column;
   background: hsl(var(--card));
@@ -1564,7 +1580,7 @@ select.input-field option,
   background: transparent;
   outline: none;
   min-height: 44px;
-  font-size: 0.88rem;
+  font-size: 16px;
   color: hsl(var(--foreground));
 }
 

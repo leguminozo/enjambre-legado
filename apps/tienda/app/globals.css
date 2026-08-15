@@ -4,8 +4,20 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
+  }
+  /* iOS hace zoom si el input es <16px. En ≤767px forzamos 16px (iPhone 8). */
+  @media (max-width: 767px) {
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden']),
+    select,
+    textarea {
+      font-size: 16px;
+    }
   }
   h1, h2, h3, h4 {
     @apply font-display font-light tracking-tight;
@@ -137,6 +149,14 @@ html:not(.dark) {
   --tienda-z-sticky-cta: 55;
   --tienda-z-bottom-nav: 55;
   --tienda-z-wa: 52;
+  /* iPhone 8 / ≤390px: tracking de marca no recorta el wordmark */
+  --tienda-brand-tracking-max: 1em;
+}
+
+@media (max-width: 390px) {
+  :root {
+    --tienda-brand-tracking-max: 0.14em;
+  }
 }
 
 @media (min-width: 768px) {
@@ -171,6 +191,22 @@ html:not(.dark) {
   background-size: 100% 100%, 84px 73px;
 }
 
+/* iPhone 8 / 667px: compactar el stack del hero para que kicker + H1 +
+   fórmula + CTA quepan sin que el cue de scroll los pise. */
+@media (max-width: 390px) and (max-height: 700px) {
+  .hero-eyebrow {
+    margin-bottom: 0.85rem;
+  }
+  .hero-title {
+    font-size: clamp(2.15rem, 11vw, 2.5rem);
+    margin-bottom: 1rem;
+  }
+  .hero-formula {
+    margin-top: 1rem;
+    letter-spacing: 0.08em;
+  }
+}
+
 .tienda-shop-header {
   background-color: hsl(var(--background));
   box-shadow: 0 1px 0 hsl(var(--border));
@@ -194,6 +230,9 @@ html:not(.dark) {
 
 .tienda-shop-header.is-menu-open {
   z-index: 92;
+  /* El anuncio se oculta con el overlay: el header baja a top 0 para
+     no restar --carousel-h al panel (crítico en iPhone 8, 667px). */
+  top: 0 !important;
   background-color: hsl(var(--background));
   box-shadow: 0 1px 0 hsl(var(--border));
   backdrop-filter: none;
@@ -216,10 +255,15 @@ body.pwa-standalone .tienda-shop-header-burger {
 }
 
 
-/* Panel menú burger móvil — portal en body (evita recorte por backdrop-filter del header) */
+/* Panel menú burger móvil — portal en body (evita recorte por backdrop-filter del header).
+   Todas las variantes del editor (fullscreen / drawer-L / drawer-R + tipografía 14–48px
+   y gap 8–64px) deben caber en iPhone 8 (375×667): el viewport es svh y el
+   scroller interno es el que recorta con overflow, nunca el panel. */
 .tienda-mobile-nav-root {
   position: fixed;
   inset: 0;
+  height: var(--svh-full);
+  max-height: var(--svh-full);
   z-index: 90;
   pointer-events: none;
 }
@@ -237,26 +281,62 @@ body.pwa-standalone .tienda-shop-header-burger {
 
 .tienda-mobile-nav-panel {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  left: 0;
   z-index: 1;
+  height: var(--svh-full);
+  max-height: var(--svh-full);
   pointer-events: none;
   background: transparent;
   display: flex;
   flex-direction: column;
-  padding: calc(var(--tienda-sticky-top) + 1.25rem) 2.5rem calc(1.25rem + var(--safe-bottom));
+  min-height: 0;
+  overflow: hidden;
+  /* Solo header + safe: el anuncio se oculta y el header pasa a top 0. */
+  padding: calc(var(--safe-top) + var(--tienda-header-h) + 0.75rem) 1.5rem calc(1.25rem + var(--safe-bottom));
   animation: tienda-slide-in 0.28s ease-out;
+}
+
+/* Wrapper scrollable: pointer-events auto (iOS no scrollea un hijo
+   auto dentro de un padre none si el hijo no llena el gesto).
+   flex 0 1 auto + max-height 100% = menú corto deja hueco clicable
+   al backdrop; menú largo (48px/64px del editor) hace scroll. */
+.tienda-mobile-nav-scroll {
+  pointer-events: auto;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: calc(var(--safe-bottom) + 1.25rem);
+}
+
+.tienda-mobile-nav-panel nav {
+  pointer-events: auto;
+}
+
+.tienda-mobile-nav-panel nav a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.15;
+  touch-action: manipulation;
 }
 
 /* Drawer variants (CMS menu_settings.mobile_menu) */
 .tienda-mobile-nav-panel--drawer-left,
 .tienda-mobile-nav-panel--drawer-right {
-  inset: auto 0 0 0;
+  inset: auto;
   top: 0;
-  width: min(20rem, 88vw);
-  height: 100%;
+  width: min(22rem, 92vw);
+  height: var(--svh-full);
+  max-height: var(--svh-full);
   background-color: hsl(var(--background));
   pointer-events: auto;
-  padding: calc(var(--tienda-sticky-top) + 1.25rem) 1.5rem calc(1.5rem + var(--safe-bottom));
+  padding: calc(var(--safe-top) + var(--tienda-header-h) + 0.75rem) 1.25rem calc(1.25rem + var(--safe-bottom));
   box-shadow: 0 0 40px hsl(var(--foreground) / 0.12);
 }
 
@@ -272,11 +352,6 @@ body.pwa-standalone .tienda-shop-header-burger {
   animation: tienda-drawer-right 0.28s ease-out;
 }
 
-.tienda-mobile-nav-panel--drawer-left nav,
-.tienda-mobile-nav-panel--drawer-right nav {
-  pointer-events: auto;
-}
-
 @keyframes tienda-drawer-left {
   from { transform: translateX(-100%); opacity: 0.6; }
   to { transform: translateX(0); opacity: 1; }
@@ -285,16 +360,6 @@ body.pwa-standalone .tienda-shop-header-burger {
 @keyframes tienda-drawer-right {
   from { transform: translateX(100%); opacity: 0.6; }
   to { transform: translateX(0); opacity: 1; }
-}
-
-.tienda-mobile-nav-panel nav {
-  pointer-events: auto;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  min-height: 0;
-  flex: 1;
-  padding-bottom: calc(var(--safe-bottom) + 1.5rem);
 }
 
 @keyframes tienda-fade-in {

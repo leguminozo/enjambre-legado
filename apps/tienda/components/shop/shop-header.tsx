@@ -88,16 +88,22 @@ export function ShopHeader() {
   };
 
   const brandBlock = headerBrand.showText ? (
-    <div className="flex flex-col items-center md:items-start min-w-0">
+    <div className="flex min-w-0 max-w-full flex-col items-center md:items-start">
       <span
-        className="font-display text-lg uppercase text-foreground group-hover:text-accent transition-colors truncate max-w-full"
-        style={{ letterSpacing: 'var(--tienda-brand-tracking, 0.3em)' }}
+        className="font-display max-w-full text-center text-[clamp(0.78rem,3.6vw,1.125rem)] uppercase leading-tight text-foreground transition-colors group-hover:text-accent md:text-left"
+        style={{
+          letterSpacing:
+            'min(var(--tienda-brand-tracking, 0.3em), var(--tienda-brand-tracking-max, 1em))',
+        }}
       >
         {settings.brand_line1 || tHeader('brandLine1')}
       </span>
       <span
-        className="text-[0.6rem] uppercase text-accent-text -mt-1 font-light truncate max-w-full"
-        style={{ letterSpacing: 'calc(var(--tienda-brand-tracking, 0.3em) + 0.1em)' }}
+        className="mt-0.5 max-w-full text-center text-[clamp(0.52rem,2.4vw,0.6rem)] font-light uppercase leading-tight text-accent-text md:text-left"
+        style={{
+          letterSpacing:
+            'min(calc(var(--tienda-brand-tracking, 0.3em) + 0.1em), calc(var(--tienda-brand-tracking-max, 1em) + 0.08em))',
+        }}
       >
         {settings.brand_line2 || tHeader('brandLine2')}
       </span>
@@ -113,7 +119,7 @@ export function ShopHeader() {
         maxWidth: headerBrand.maxWidthPx > 0 ? `${headerBrand.maxWidthPx}px` : undefined,
         width: 'auto',
       }}
-      className="object-contain shrink-0"
+      className="object-contain shrink-0 max-w-full"
     />
   ) : null;
 
@@ -132,14 +138,13 @@ export function ShopHeader() {
   const logoLink = (
     <Link
       href="/"
-      className={`group flex min-h-11 items-center gap-3 md:gap-4 ${
+      className={`group flex min-h-11 min-w-0 items-center gap-2 md:gap-4 ${
         settings.layout === 'centered'
-          ? // Marca centrada absoluta: acotarla para que texto largo o tracking
-            // alto no caiga sobre el burger y las acciones en pantallas ≤390px.
-            'absolute left-1/2 -translate-x-1/2 max-w-[calc(100%-8.5rem)] overflow-hidden'
+          ? // Sin overflow-hidden: en iPhone 8 el tracking recortaba "ZÁNGANO".
+            'absolute left-1/2 -translate-x-1/2 max-w-[calc(100%-7.25rem)]'
           : settings.layout === 'classic'
-            ? 'absolute left-1/2 -translate-x-1/2 max-w-[calc(100%-8.5rem)] overflow-hidden md:static md:translate-x-0 md:max-w-none md:overflow-visible'
-            : ''
+            ? 'absolute left-1/2 -translate-x-1/2 max-w-[calc(100%-7.25rem)] md:static md:translate-x-0 md:max-w-none'
+            : 'flex-1 md:flex-none'
       }`}
       aria-label={settings.brand_line1 || tHeader('brandLine1') || 'Inicio'}
     >
@@ -283,7 +288,6 @@ export function ShopHeader() {
           </>
         ) : settings.layout === 'centered' && !forceBurger ? (
           <>
-            <div className="w-11 xl:hidden shrink-0" aria-hidden />
             {logoLink}
             {actions}
             {navDesktop}
@@ -319,63 +323,65 @@ export function ShopHeader() {
               <h2 id="tienda-mobile-nav-title" className="sr-only">
                 {tHeader('navTitle')}
               </h2>
-              <nav
-                className="flex flex-col"
-                style={{
-                  gap: 'var(--tienda-mobile-nav-gap, 1.75rem)',
-                }}
-                aria-label={tNav('main')}
-              >
-                {mobileItems.map((item) => (
-                  <Link
-                    key={item.href + item.label}
-                    href={item.href}
-                    className={`inline-flex min-h-11 items-center font-light transition-colors ${
-                      settings.mobile_font === 'display' ? 'font-display' : 'font-sans'
-                    } ${
-                      isActiveNavHref(normalizedPath, item.href)
-                        ? 'text-accent-text'
-                        : 'text-foreground hover:text-accent'
-                    }`}
-                    style={{
-                      fontSize: 'var(--tienda-mobile-nav-size, 1.875rem)',
-                      letterSpacing: 'var(--tienda-mobile-nav-tracking, 0em)',
-                    }}
-                    onClick={closeMenu}
-                  >
-                    {resolveNavLabel(item, locale)}
-                  </Link>
-                ))}
-                <div className="h-px bg-border my-2" />
-                {settings.show_cart && (
-                  <Link
-                    href="/carrito"
-                    className="inline-flex min-h-11 items-center font-display text-2xl font-light text-foreground hover:text-accent transition-colors"
-                    onClick={closeMenu}
-                  >
-                    {tNav('yourCart')}
-                    {itemCount > 0 ? ` (${itemCount})` : ''}
-                  </Link>
-                )}
-                {settings.show_account && (
-                  <Link
-                    href={isAuthenticated ? '/perfil' : '/login'}
-                    className="inline-flex min-h-11 items-center font-display text-2xl italic text-accent-text"
-                    onClick={closeMenu}
-                  >
-                    {isAuthenticated ? tNav('controlPanel') : tNav('login')}
-                  </Link>
-                )}
-                {settings.show_lang_selector && (
-                  <button
-                    type="button"
-                    className="mt-4 self-start min-h-11 rounded-full border border-border bg-surface-sunken px-5 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-accent"
-                    onClick={switchLocale}
-                  >
-                    {locale === 'es' ? tNav('switchToEnglish') : tNav('switchToSpanish')}
-                  </button>
-                )}
-              </nav>
+              <div className="tienda-mobile-nav-scroll">
+                <nav
+                  className="flex flex-col"
+                  style={{
+                    gap: 'var(--tienda-mobile-nav-gap, 1.75rem)',
+                  }}
+                  aria-label={tNav('main')}
+                >
+                  {mobileItems.map((item) => (
+                    <Link
+                      key={item.href + item.label}
+                      href={item.href}
+                      className={`inline-flex min-h-11 items-center font-light transition-colors ${
+                        settings.mobile_font === 'display' ? 'font-display' : 'font-sans'
+                      } ${
+                        isActiveNavHref(normalizedPath, item.href)
+                          ? 'text-accent-text'
+                          : 'text-foreground hover:text-accent'
+                      }`}
+                      style={{
+                        fontSize: 'var(--tienda-mobile-nav-size, 1.875rem)',
+                        letterSpacing: 'var(--tienda-mobile-nav-tracking, 0em)',
+                      }}
+                      onClick={closeMenu}
+                    >
+                      {resolveNavLabel(item, locale)}
+                    </Link>
+                  ))}
+                  <div className="h-px bg-border my-2" />
+                  {settings.show_cart && (
+                    <Link
+                      href="/carrito"
+                      className="inline-flex min-h-11 items-center font-display text-2xl font-light text-foreground hover:text-accent transition-colors"
+                      onClick={closeMenu}
+                    >
+                      {tNav('yourCart')}
+                      {itemCount > 0 ? ` (${itemCount})` : ''}
+                    </Link>
+                  )}
+                  {settings.show_account && (
+                    <Link
+                      href={isAuthenticated ? '/perfil' : '/login'}
+                      className="inline-flex min-h-11 items-center font-display text-2xl italic text-accent-text"
+                      onClick={closeMenu}
+                    >
+                      {isAuthenticated ? tNav('controlPanel') : tNav('login')}
+                    </Link>
+                  )}
+                  {settings.show_lang_selector && (
+                    <button
+                      type="button"
+                      className="mt-4 self-start min-h-11 rounded-full border border-border bg-surface-sunken px-5 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-accent"
+                      onClick={switchLocale}
+                    >
+                      {locale === 'es' ? tNav('switchToEnglish') : tNav('switchToSpanish')}
+                    </button>
+                  )}
+                </nav>
+              </div>
             </div>
           </div>,
           document.body,

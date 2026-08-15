@@ -1399,7 +1399,7 @@ function SectionNav({ sectionKeys, activeSection, category, onSelect, itemCounts
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar bloque…"
-          className="w-full bg-background border border-border rounded-lg pl-8 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+          className="w-full min-h-11 rounded-lg border border-border bg-background py-2 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
         />
       </div>
 
@@ -1972,6 +1972,140 @@ function ItemsPanel({
   );
 }
 
+function EditorChromeActions({
+  editorLocale,
+  setEditorLocale,
+  onOpenImages,
+  onPublishAll,
+  publishPending,
+  pendingDraftsCount,
+  compact = false,
+}: {
+  editorLocale: 'es' | 'en';
+  setEditorLocale: (locale: 'es' | 'en') => void;
+  onOpenImages: () => void;
+  onPublishAll: () => void;
+  publishPending: boolean;
+  pendingDraftsCount: number;
+  compact?: boolean;
+}) {
+  return (
+    <>
+      <button
+        type="button"
+        onClick={onOpenImages}
+        className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border px-3 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
+        title="Gestionar imágenes del bucket cms (librería, huérfanas)"
+      >
+        <Images size={12} />
+        {compact ? 'Fotos' : 'Imágenes'}
+      </button>
+      <div
+        className="flex items-center rounded-full border border-border bg-secondary/50 p-0.5"
+        role="group"
+        aria-label="Idioma de edición"
+      >
+        <button
+          type="button"
+          onClick={() => setEditorLocale('es')}
+          className={`inline-flex min-h-8 items-center gap-1 rounded-full px-2.5 text-[11px] font-semibold transition-colors ${
+            editorLocale === 'es'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+          title="Editar contenido en español"
+        >
+          <Languages size={11} />
+          ES
+        </button>
+        <button
+          type="button"
+          onClick={() => setEditorLocale('en')}
+          className={`inline-flex min-h-8 items-center gap-1 rounded-full px-2.5 text-[11px] font-semibold transition-colors ${
+            editorLocale === 'en'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+          title="Editar contenido en inglés — la tienda cae a ES por item si falta la versión"
+        >
+          EN
+        </button>
+      </div>
+      <button
+        type="button"
+        onClick={onPublishAll}
+        disabled={publishPending || pendingDraftsCount === 0}
+        className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold transition-colors ${
+          pendingDraftsCount > 0
+            ? 'border-accent/40 bg-accent/15 text-accent hover:bg-accent/25'
+            : 'border-border text-muted-foreground/60 opacity-70'
+        } disabled:cursor-not-allowed disabled:opacity-50`}
+        title={
+          pendingDraftsCount > 0
+            ? `Publicar ${pendingDraftsCount} borrador${pendingDraftsCount !== 1 ? 'es' : ''} pendiente${pendingDraftsCount !== 1 ? 's' : ''}`
+            : 'Sin borradores pendientes'
+        }
+      >
+        {publishPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+        {compact ? 'Publicar' : 'Publicar todo'}
+        {pendingDraftsCount > 0 ? ` (${pendingDraftsCount})` : ''}
+      </button>
+    </>
+  );
+}
+
+/** Lienzo iPhone 8 (375×667): el iframe siempre mide 375 de ancho; se escala
+ *  para caber en el panel. Así el menú/hero del preview coinciden con el
+ *  dispositivo de referencia, no con un marco 812 (X) ni un iframe más estrecho. */
+const IPHONE8 = { w: 375, h: 667 } as const;
+
+function Iphone8Stage({ children }: { children: React.ReactNode }) {
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const update = () => {
+      const next = Math.min(1, el.clientWidth / IPHONE8.w, el.clientHeight / IPHONE8.h);
+      setScale(Number.isFinite(next) && next > 0 ? next : 1);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div className="flex h-full min-h-0 w-full flex-col items-center gap-2">
+      <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        iPhone 8 · 375×667
+      </p>
+      <div
+        ref={stageRef}
+        className="flex min-h-0 w-full flex-1 items-center justify-center"
+      >
+        <div
+          className="relative shrink-0"
+          style={{ width: IPHONE8.w * scale, height: IPHONE8.h * scale }}
+        >
+          <div
+            className="absolute left-0 top-0 overflow-hidden rounded-[1.75rem] border-[6px] border-surface-raised bg-background shadow-2xl ring-1 ring-border"
+            style={{
+              width: IPHONE8.w,
+              height: IPHONE8.h,
+              transform: `scale(${scale})`,
+              transformOrigin: 'top left',
+            }}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── EditorTiendaView (main) ────────────────────────────────────────────────
 
 export function EditorTiendaView() {
@@ -2438,149 +2572,106 @@ function EditorTiendaViewInner() {
     // No usar calc frágil: el preview de escritorio debe heredar el alto del panel.
     <div
       data-testid="editor-tienda-root"
-      className="flex flex-col flex-1 min-h-0 w-full mx-0 lg:-mx-4 bg-background/40 backdrop-blur-2xl border border-border/60 rounded-2xl overflow-hidden shadow-2xl relative z-10 animate-in fade-in zoom-in-95 duration-500 ease-out"
+      className="relative z-10 mx-0 flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-none border border-border/60 bg-background/40 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-500 ease-out sm:rounded-2xl lg:-mx-4"
     >
-      {/* ── Top bar ── */}
-      <div className="h-14 border-b border-border/50 bg-surface/50 backdrop-blur-lg flex items-center justify-between px-4 shrink-0 shadow-sm z-10 gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="font-display font-medium text-base text-foreground truncate">
-            Editor Tienda
-          </span>
-          {cms.isLoading && <Loader2 size={14} className="animate-spin text-accent shrink-0" />}
-          {cms.error ? (
-            <span className="text-[10px] font-medium text-destructive truncate max-w-[12rem]" title={cms.error.message}>
-              Error al cargar CMS
+      {/* ── Top bar ──
+          En iPhone 8 (375px) una sola fila de 56px recortaba Imágenes / ES-EN /
+          Publicar / pestañas. Título + pestañas arriba; acciones en segunda fila. */}
+      <div className="z-10 shrink-0 border-b border-border/50 bg-surface/50 shadow-sm backdrop-blur-lg">
+        <div className="flex min-h-14 flex-wrap items-center gap-2 px-3 py-2 sm:px-4">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <span className="font-display truncate text-base font-medium text-foreground">
+              <span className="sm:hidden">Editor</span>
+              <span className="hidden sm:inline">Editor Tienda</span>
             </span>
-          ) : null}
-          <EditorSaveStatusChip />
-          <button
-            type="button"
-            onClick={() => setImagesOpen(true)}
-            className="inline-flex min-h-9 items-center gap-1.5 px-3 rounded-full text-[11px] font-semibold transition-colors border border-border text-muted-foreground hover:text-foreground hover:border-accent/40"
-            title="Gestionar imágenes del bucket cms (librería, huérfanas)"
-          >
-            <Images size={12} />
-            Imágenes
-          </button>
-          {/* Idioma de edición: cada item vive en es o en (migración 1001) */}
-          <div
-            className="flex items-center rounded-full border border-border bg-secondary/50 p-0.5"
-            role="group"
-            aria-label="Idioma de edición"
-          >
+            {cms.isLoading && <Loader2 size={14} className="shrink-0 animate-spin text-accent" />}
+            {cms.error ? (
+              <span className="max-w-[8rem] truncate text-[10px] font-medium text-destructive sm:max-w-[12rem]" title={cms.error.message}>
+                Error al cargar CMS
+              </span>
+            ) : null}
+            <EditorSaveStatusChip />
+          </div>
+
+          <div className="hidden items-center gap-2 md:flex">
+            <EditorChromeActions
+              editorLocale={editorLocale}
+              setEditorLocale={setEditorLocale}
+              onOpenImages={() => setImagesOpen(true)}
+              onPublishAll={handlePublishAll}
+              publishPending={cms.publishItems.isPending}
+              pendingDraftsCount={pendingDraftsCount}
+            />
+            <div className="flex items-center gap-2 rounded-lg border border-border/50 bg-secondary/50 p-1">
+              <button
+                onClick={() => setViewMode('desktop')}
+                className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-md transition-colors ${
+                  viewMode === 'desktop' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Vista Escritorio"
+              >
+                <Monitor size={15} />
+              </button>
+              <button
+                onClick={() => setViewMode('mobile')}
+                className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-md transition-colors ${
+                  viewMode === 'mobile' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Vista Móvil (iPhone 8 · 375×667)"
+              >
+                <Smartphone size={15} />
+              </button>
+            </div>
+            <PanelFocusToggle
+              aKey="editor"
+              bKey="preview"
+              aLabel="Editor"
+              bLabel="Preview"
+              focus={desktopFocus}
+              onFocusChange={handleFocusChange}
+            />
+            {tiendaUrl && (
+              <a
+                href={tiendaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Ver en vivo <ExternalLink size={12} />
+              </a>
+            )}
+          </div>
+
+          <div className="flex rounded-lg border border-border/50 bg-secondary/50 p-1 md:hidden">
             <button
-              type="button"
-              onClick={() => setEditorLocale('es')}
-              className={`min-h-8 inline-flex items-center gap-1 px-2.5 rounded-full text-[11px] font-semibold transition-colors ${
-                editorLocale === 'es'
-                  ? 'bg-background shadow-sm text-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
+              onClick={() => setMobileTab('editor')}
+              className={`min-h-11 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                mobileTab === 'editor' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
               }`}
-              title="Editar contenido en español"
             >
-              <Languages size={11} />
-              ES
+              Editor
             </button>
             <button
-              type="button"
-              onClick={() => setEditorLocale('en')}
-              className={`min-h-8 inline-flex items-center gap-1 px-2.5 rounded-full text-[11px] font-semibold transition-colors ${
-                editorLocale === 'en'
-                  ? 'bg-background shadow-sm text-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
+              onClick={() => setMobileTab('preview')}
+              className={`min-h-11 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                mobileTab === 'preview' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
               }`}
-              title="Editar contenido en inglés — la tienda cae a ES por item si falta la versión"
             >
-              EN
+              Previa
             </button>
           </div>
-          <button
-            type="button"
-            onClick={handlePublishAll}
-            disabled={cms.publishItems.isPending || pendingDraftsCount === 0}
-            className={`inline-flex min-h-9 items-center gap-1.5 px-3 rounded-full text-[11px] font-semibold transition-colors border ${
-              pendingDraftsCount > 0
-                ? 'border-accent/40 bg-accent/15 text-accent hover:bg-accent/25'
-                : 'border-border text-muted-foreground/60 opacity-70'
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
-            title={
-              pendingDraftsCount > 0
-                ? `Publicar ${pendingDraftsCount} borrador${pendingDraftsCount !== 1 ? 'es' : ''} pendiente${pendingDraftsCount !== 1 ? 's' : ''}`
-                : 'Sin borradores pendientes'
-            }
-          >
-            {cms.publishItems.isPending ? (
-              <Loader2 size={12} className="animate-spin" />
-            ) : (
-              <Send size={12} />
-            )}
-            Publicar todo
-            {pendingDraftsCount > 0 ? ` (${pendingDraftsCount})` : ''}
-          </button>
         </div>
 
-        {/* Desktop: view mode toggle */}
-        <div className="hidden md:flex items-center gap-2 bg-secondary/50 p-1 rounded-lg border border-border/50">
-          <button
-            onClick={() => setViewMode('desktop')}
-            className={`min-h-11 min-w-11 inline-flex items-center justify-center rounded-md transition-colors ${
-              viewMode === 'desktop' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-            title="Vista Escritorio"
-          >
-            <Monitor size={15} />
-          </button>
-          <button
-            onClick={() => setViewMode('mobile')}
-            className={`min-h-11 min-w-11 inline-flex items-center justify-center rounded-md transition-colors ${
-              viewMode === 'mobile' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-            title="Vista Móvil"
-          >
-            <Smartphone size={15} />
-          </button>
-        </div>
-
-        {/* Mobile: tabs toggle */}
-        <div className="md:hidden flex bg-secondary/50 p-1 rounded-lg border border-border/50">
-          <button
-            onClick={() => setMobileTab('editor')}
-            className={`min-h-11 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-              mobileTab === 'editor' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Editor
-          </button>
-          <button
-            onClick={() => setMobileTab('preview')}
-            className={`min-h-11 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-              mobileTab === 'preview' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Vista Previa
-          </button>
-        </div>
-
-        {/* Desktop: foco de panel + live site link */}
-        <div className="hidden md:flex items-center gap-3">
-          <PanelFocusToggle
-            aKey="editor"
-            bKey="preview"
-            aLabel="Editor"
-            bLabel="Preview"
-            focus={desktopFocus}
-            onFocusChange={handleFocusChange}
+        <div className="flex flex-wrap items-center gap-2 border-t border-border/40 px-3 py-2 md:hidden">
+          <EditorChromeActions
+            editorLocale={editorLocale}
+            setEditorLocale={setEditorLocale}
+            onOpenImages={() => setImagesOpen(true)}
+            onPublishAll={handlePublishAll}
+            publishPending={cms.publishItems.isPending}
+            pendingDraftsCount={pendingDraftsCount}
+            compact
           />
-          {tiendaUrl && (
-            <a
-              href={tiendaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center text-xs font-medium text-muted-foreground hover:text-foreground gap-1.5 transition-colors"
-            >
-              Ver en vivo <ExternalLink size={12} />
-            </a>
-          )}
         </div>
       </div>
 
@@ -2627,7 +2718,7 @@ function EditorTiendaViewInner() {
                   value={globalQuery}
                   onChange={(e) => setGlobalQuery(e.target.value)}
                   placeholder="Buscar en toda la tienda…"
-                  className="w-full bg-background border border-border rounded-lg pl-8 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full min-h-11 rounded-lg border border-border bg-background py-2 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
 
@@ -2868,39 +2959,27 @@ function EditorTiendaViewInner() {
                 </p>
               </div>
             ) : viewMode === 'mobile' ? (
-              <div
-                className="relative flex flex-col bg-background shadow-2xl overflow-hidden rounded-[1.75rem] sm:rounded-[2.25rem] border-[6px] sm:border-8 border-surface-raised ring-1 ring-border"
-                style={{
-                  height: 'min(100%, 812px)',
-                  width: 'min(100%, calc(min(100%, 812px) * 375 / 812))',
-                  maxWidth: '375px',
-                }}
-              >
-                <div className="shrink-0 flex h-6 sm:h-7 items-center justify-center bg-surface-raised border-b border-border/40">
-                  <div className="w-10 h-1 rounded-full bg-border" aria-hidden />
-                </div>
-                <div className="relative flex-1 min-h-0 w-full overflow-hidden bg-background">
-                  <iframe
-                    ref={iframeRef}
-                    key={`${iframeKey}-${editorLocale}-m`}
-                    src={`${tiendaUrl}${editorLocale === 'en' ? '/en' : ''}${previewPath}?cms_preview=1`}
-                    title="Vista Previa de Tienda (móvil)"
-                    className="absolute inset-0 w-full h-full border-none bg-background"
-                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                    onLoad={() => setPreviewLoading(false)}
-                  />
-                  {previewLoading ? (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface-sunken/60 backdrop-blur-sm pointer-events-none">
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/90 border border-border shadow-lg">
-                        <Loader2 size={14} className="animate-spin text-accent" />
-                        <span className="text-xs font-medium text-muted-foreground">
-                          Actualizando vista previa…
-                        </span>
-                      </div>
+              <Iphone8Stage>
+                <iframe
+                  ref={iframeRef}
+                  key={`${iframeKey}-${editorLocale}-m`}
+                  src={`${tiendaUrl}${editorLocale === 'en' ? '/en' : ''}${previewPath}?cms_preview=1`}
+                  title="Vista Previa de Tienda (iPhone 8)"
+                  className="absolute inset-0 h-full w-full border-none bg-background"
+                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                  onLoad={() => setPreviewLoading(false)}
+                />
+                {previewLoading ? (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface-sunken/60 backdrop-blur-sm pointer-events-none">
+                    <div className="flex items-center gap-2 rounded-full border border-border bg-background/90 px-4 py-2 shadow-lg">
+                      <Loader2 size={14} className="animate-spin text-accent" />
+                      <span className="text-xs font-medium text-muted-foreground">
+                        Actualizando vista previa…
+                      </span>
                     </div>
-                  ) : null}
-                </div>
-              </div>
+                  </div>
+                ) : null}
+              </Iphone8Stage>
             ) : (
               /* Escritorio: 100% del panel derecho (ancho y alto) */
               <div className="relative flex-1 min-h-0 w-full h-full rounded-none sm:rounded-xl border-0 sm:border border-border bg-background shadow-none sm:shadow-xl overflow-hidden">
