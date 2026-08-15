@@ -321,11 +321,11 @@ const SECTION_META: Record<
     hint: 'Barra superior: estilo y mensajes',
   },
   landing_layout: {
-    label: 'Bloques del home',
-    short: 'Bloques',
+    label: 'Orden del home',
+    short: 'Orden',
     icon: LayoutTemplate,
     group: 'home',
-    hint: 'Orden y visibilidad',
+    hint: 'Qué bloques se ven y en qué orden — las fichas se editan en cada herramienta',
   },
   campaign_banners: {
     label: 'Banners campaña',
@@ -1356,9 +1356,14 @@ function SectionNav({ sectionKeys, activeSection, category, onSelect, itemCounts
     );
   };
 
+  const visibleKeys = useMemo(
+    () => filterNavSectionKeys(sectionKeys),
+    [sectionKeys],
+  );
+
   const keySet = useMemo(
-    () => new Set(sectionKeys.filter((k) => matches(k) && sectionCategory(k) === category)),
-    [sectionKeys, q, category], // eslint-disable-line react-hooks/exhaustive-deps
+    () => new Set(visibleKeys.filter((k) => matches(k) && sectionCategory(k) === category)),
+    [visibleKeys, q, category], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const grouped = useMemo(() => {
@@ -1371,18 +1376,18 @@ function SectionNav({ sectionKeys, activeSection, category, onSelect, itemCounts
   // Secciones desconocidas (no en meta/order) al final
   const orphanKeys = useMemo(
     () =>
-      sectionKeys.filter(
+      visibleKeys.filter(
         (k) =>
           !SECTION_ORDER.includes(k as (typeof SECTION_ORDER)[number]) &&
           matches(k) &&
           sectionCategory(k) === category,
       ),
-    [sectionKeys, q, category], // eslint-disable-line react-hooks/exhaustive-deps
+    [visibleKeys, q, category], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const filteredKeys = useMemo(
-    () => sectionKeys.filter((k) => matches(k) && sectionCategory(k) === category),
-    [sectionKeys, q, category], // eslint-disable-line react-hooks/exhaustive-deps
+    () => visibleKeys.filter((k) => matches(k) && sectionCategory(k) === category),
+    [visibleKeys, q, category], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   return (
@@ -1629,6 +1634,7 @@ interface ItemsPanelProps {
   companionSettingsKey?: string | null;
   companionSettingsItem?: CMSContentItem | null;
   onInitCompanion?: () => void;
+  onOpenSection?: (sectionKey: string) => void;
 }
 
 function ItemsPanel({
@@ -1648,6 +1654,7 @@ function ItemsPanel({
   companionSettingsKey,
   companionSettingsItem,
   onInitCompanion,
+  onOpenSection,
 }: ItemsPanelProps) {
   const handleMoveUp = (index: number) => {
     if (index === 0 || !onReorder) return;
@@ -1881,6 +1888,7 @@ function ItemsPanel({
                 content={workingCmsContent(items[0])}
                 onSave={(content) => onUpdate(items[0].id, content, items[0].is_active)}
                 onImageUpload={(file, fieldName) => onImageUpload(file, fieldName, items[0].id)}
+                onOpenSection={onOpenSection}
               />
             )
           ) : (
@@ -2910,6 +2918,10 @@ function EditorTiendaViewInner() {
                     companionSettingsKey={companionSettingsKey}
                     companionSettingsItem={companionSettingsItem}
                     onInitCompanion={handleInitCompanion}
+                    onOpenSection={(key) => {
+                      setActiveSection(navVisibleSectionKey(key));
+                      setNavDrill('tool');
+                    }}
                   />
                 </>
               )}

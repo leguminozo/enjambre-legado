@@ -43,6 +43,7 @@ import {
   parseCheckoutSettings,
   parseCartSettings,
   LANDING_SECTION_LABELS,
+  LANDING_SECTION_EDITOR_KEY,
   type SeoDefaults,
   type ContactSettings,
   type CheckoutSettings,
@@ -76,6 +77,8 @@ interface SettingsEditorProps {
   onSave: (content: Record<string, unknown>) => void;
   /** Sube a Storage CMS (WEBP optimizado) y devuelve URL pública. */
   onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
+  /** Desde Orden del home: abrir la herramienta de fichas (un solo carrusel, etc.). */
+  onOpenSection?: (sectionKey: string) => void;
 }
 
 function SliderField({
@@ -898,16 +901,20 @@ const LANDING_BLOCK_ICONS: Record<LandingSectionId, ComponentType<LucideProps>> 
 };
 
 const LANDING_BLOCK_HINTS: Record<LandingSectionId, string> = {
-  hero: 'Portada y CTA principal',
-  conservation: 'Impacto regenerativo',
-  collections: 'Grid de colecciones',
-  media: 'Carrusel de media',
-  products: 'Creaciones destacadas',
-  video: 'Video central',
-  map: 'Mapa / origen',
+  hero: 'Portada y CTA — el copy se edita abajo',
+  conservation: 'Posición en el home · copy en Impacto',
+  collections: 'Posición en el home · fichas en Colecciones',
+  media: 'Posición en el home · fichas en Carrusel media',
+  products: 'Posición en el home · cabecera en Creaciones',
+  video: 'Posición en el home · ID en Video central',
+  map: 'Posición en el home · datos en Mapa',
 };
 
-export function LandingLayoutEditor({ content, onSave }: SettingsEditorProps) {
+export function LandingLayoutEditor({
+  content,
+  onSave,
+  onOpenSection,
+}: SettingsEditorProps) {
   const [local, setLocal] = useState<LandingLayoutSettings>(() => parseLandingLayout(content));
   const { isDirty } = useAutosaveEditor('landing_layout', local, (next) => onSave(next));
 
@@ -1006,6 +1013,15 @@ export function LandingLayoutEditor({ content, onSave }: SettingsEditorProps) {
                   {LANDING_BLOCK_HINTS[sec.id] ?? sec.id}
                 </p>
               </div>
+              {onOpenSection && LANDING_SECTION_EDITOR_KEY[sec.id] ? (
+                <button
+                  type="button"
+                  onClick={() => onOpenSection(LANDING_SECTION_EDITOR_KEY[sec.id]!)}
+                  className="inline-flex min-h-11 items-center rounded-lg border border-border px-2.5 text-[11px] font-medium text-muted-foreground hover:border-accent/40 hover:text-foreground"
+                >
+                  Fichas
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={() => toggleSection(sec.id)}
@@ -1673,13 +1689,15 @@ export function ChromeSettingsEditor({
   content,
   onSave,
   onImageUpload,
+  onOpenSection,
 }: {
   sectionKey: string;
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
   onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
+  onOpenSection?: (sectionKey: string) => void;
 }) {
-  const props: SettingsEditorProps = { content, onSave, onImageUpload };
+  const props: SettingsEditorProps = { content, onSave, onImageUpload, onOpenSection };
   switch (sectionKey) {
     case 'theme_settings':
       return <ThemeSettingsEditor {...props} />;

@@ -850,10 +850,20 @@ export const LANDING_SECTION_LABELS: Record<LandingSectionId, string> = {
   hero: 'Hero',
   conservation: 'Impacto / Conservación',
   collections: 'Colecciones',
-  media: 'Carrusel media',
+  media: 'Media',
   products: 'Creaciones (productos)',
   video: 'Video central',
   map: 'Mapa / Lugar',
+};
+
+/** Fila de “Orden del home” → herramienta que edita las fichas (no otra entrada gemela). */
+export const LANDING_SECTION_EDITOR_KEY: Partial<Record<LandingSectionId, string>> = {
+  conservation: 'conservation_content',
+  collections: 'colecciones',
+  media: 'media_items',
+  products: 'products_settings',
+  video: 'video_settings',
+  map: 'map_settings',
 };
 
 

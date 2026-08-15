@@ -54,6 +54,8 @@ describe('store-chrome smoke', () => {
     expect(m.DEFAULT_THEME_SETTINGS.default_theme).toBeDefined();
     expect(m.DEFAULT_ANNOUNCEMENT_SETTINGS.enabled).toBe(true);
     expect(m.LANDING_SECTION_LABELS.hero).toBeTruthy();
+    expect(m.LANDING_SECTION_LABELS.media).toBe('Media');
+    expect(m.LANDING_SECTION_EDITOR_KEY.media).toBe('media_items');
     expect(m.BRAND_ASSETS_TEMPLATE.logo_url).toBeDefined();
   });
 });

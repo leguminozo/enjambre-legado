@@ -21,6 +21,11 @@ describe('editor-tienda-sections', () => {
     expect(filterNavSectionKeys(keys)).toEqual(['media_items', 'video_settings', 'colecciones']);
   });
 
+  it('el CMS lista media_settings pero el nav nunca lo muestra', () => {
+    expect(filterNavSectionKeys([...CMS_SECTION_KEYS])).not.toContain('media_settings');
+    expect(filterNavSectionKeys([...CMS_SECTION_KEYS])).toContain('media_items');
+  });
+
   it('cada par es items ↔ settings sin solaparse', () => {
     const items = EDITOR_SECTION_PAIRS.map((p) => p.items);
     const settings = EDITOR_SECTION_PAIRS.map((p) => p.settings);
