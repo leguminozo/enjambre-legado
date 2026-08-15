@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useApiFetch } from '@/hooks/use-api-fetch'
 import { prepareImageForUpload, resolveFileMime } from '@/lib/process-image'
+import { CMS_SECTION_KEYS, type CmsSectionKey } from '@/lib/editor-tienda-sections'
 import { supabase } from '@/lib/supabase'
 
 export interface CMSContentItem {
@@ -30,54 +31,9 @@ export interface CMSGroupedData {
 }
 
 /** Alineado a BFF cms SECTION_KEYS. Sin hero/footer legacy (no consumidos por tienda). */
-const CMS_SECTIONS = [
-  'talleres',
-  'colecciones',
-  'nosotros',
-  'galeria',
-  'contacto',
-  'ciencia',
-  'menu_settings',
-  'menu_links',
-  'theme_settings',
-  'typography_settings',
-  'announcement_settings',
-  'announcement_slides',
-  'footer_settings',
-  'footer_social',
-  'pwa_nav_settings',
-  'pwa_nav_items',
-  'brand_assets',
-  'landing_layout',
-  'catalog_settings',
-  'pdp_settings',
-  'seo_defaults',
-  'contact_settings',
-  'checkout_settings',
-  'cart_settings',
-  'campaign_banners',
-  'seasonal_settings',
-  'conservation_content',
-  'media_items',
-  'video_settings',
-  'map_settings',
-  'products_settings',
-  'collections_settings',
-  'galeria_settings',
-  'nosotros_settings',
-  'media_settings',
-  'ciencia_settings',
-  'auth_settings',
-  'legal_terminos',
-  'legal_privacidad',
-  'legal_cookies',
-  'legal_envio',
-  'legal_reembolso',
-  'legal_cancelacion',
-  'legal_garantia',
-] as const
+const CMS_SECTIONS = CMS_SECTION_KEYS
 
-export type CMSSectionKey = (typeof CMS_SECTIONS)[number]
+export type CMSSectionKey = CmsSectionKey
 
 export function useCMSContent() {
   const apiFetch = useApiFetch()

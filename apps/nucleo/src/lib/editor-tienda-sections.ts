@@ -45,3 +45,99 @@ export function isNestedSettingsKey(key: string): boolean {
 export function filterNavSectionKeys(keys: readonly string[]): string[] {
   return keys.filter((k) => !NESTED_SETTINGS_KEYS.has(k));
 }
+
+/** Fuente única de section_keys del CMS (BFF + hook). */
+export const CMS_SECTION_KEYS = [
+  'talleres',
+  'colecciones',
+  'nosotros',
+  'galeria',
+  'contacto',
+  'ciencia',
+  'menu_settings',
+  'menu_links',
+  'theme_settings',
+  'typography_settings',
+  'announcement_settings',
+  'announcement_slides',
+  'footer_settings',
+  'footer_social',
+  'pwa_nav_settings',
+  'pwa_nav_items',
+  'brand_assets',
+  'landing_layout',
+  'catalog_settings',
+  'pdp_settings',
+  'seo_defaults',
+  'contact_settings',
+  'checkout_settings',
+  'cart_settings',
+  'campaign_banners',
+  'seasonal_settings',
+  'conservation_content',
+  'media_items',
+  'video_settings',
+  'map_settings',
+  'products_settings',
+  'collections_settings',
+  'galeria_settings',
+  'nosotros_settings',
+  'media_settings',
+  'ciencia_settings',
+  'auth_settings',
+  'legal_terminos',
+  'legal_privacidad',
+  'legal_cookies',
+  'legal_envio',
+  'legal_reembolso',
+  'legal_cancelacion',
+  'legal_garantia',
+] as const;
+
+export type CmsSectionKey = (typeof CMS_SECTION_KEYS)[number];
+
+/**
+ * Chrome / formato: PATCH escribe `content` vivo.
+ * Copy largo (legales, evidencia, fichas) sigue en draft_content.
+ */
+export const AUTO_PUBLISH_SECTIONS = new Set<string>([
+  'theme_settings',
+  'typography_settings',
+  'announcement_settings',
+  'announcement_slides',
+  'footer_settings',
+  'footer_social',
+  'pwa_nav_settings',
+  'pwa_nav_items',
+  'brand_assets',
+  'catalog_settings',
+  'pdp_settings',
+  'seo_defaults',
+  'contact_settings',
+  'checkout_settings',
+  'cart_settings',
+  'campaign_banners',
+  'seasonal_settings',
+  'menu_settings',
+  'menu_links',
+  'landing_layout',
+  'auth_settings',
+  'media_settings',
+  'video_settings',
+  'map_settings',
+  'products_settings',
+  'collections_settings',
+  'galeria_settings',
+  'nosotros_settings',
+  'ciencia_settings',
+]);
+
+export const LEGAL_SECTION_KEYS_LIST = [
+  'legal_terminos',
+  'legal_privacidad',
+  'legal_cookies',
+  'legal_envio',
+  'legal_reembolso',
+  'legal_cancelacion',
+  'legal_garantia',
+] as const;

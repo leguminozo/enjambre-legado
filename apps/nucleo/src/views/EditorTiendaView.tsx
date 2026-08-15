@@ -1723,10 +1723,29 @@ function ItemsPanel({
 
       {companionSettingsKey ? (
         <div className="rounded-xl border border-border bg-background overflow-hidden">
-          <div className="px-3 py-2 border-b border-border bg-surface-raised">
+          <div className="px-3 py-2 border-b border-border bg-surface-raised flex items-center justify-between gap-2">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               Formato de este bloque
             </p>
+            {companionSettingsItem?.draft_content != null ? (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase text-warning">Borrador</span>
+                <button
+                  type="button"
+                  onClick={() => onPublish(companionSettingsItem.id)}
+                  className="text-[10px] font-semibold text-accent hover:underline"
+                >
+                  Publicar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDiscard(companionSettingsItem.id)}
+                  className="text-[10px] text-muted-foreground hover:underline"
+                >
+                  Descartar
+                </button>
+              </div>
+            ) : null}
           </div>
           <div className="p-3">
             {companionSettingsItem ? (
@@ -1819,6 +1838,31 @@ function ItemsPanel({
       ) : null}
 
       <div className="space-y-3 pb-8">
+        {isSettingsSection && items[0]?.draft_content != null ? (
+          <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-warning">Borrador</span>
+            <p className="text-[11px] text-muted-foreground flex-1">
+              Este documento no está en la tienda pública hasta que lo publiques.
+            </p>
+            <button
+              type="button"
+              onClick={() => onPublish(items[0].id)}
+              className="inline-flex min-h-9 items-center gap-1 px-2.5 rounded-md text-[11px] font-semibold border border-accent/40 bg-accent/15 text-accent"
+            >
+              <Send size={12} />
+              Publicar
+            </button>
+            <button
+              type="button"
+              onClick={() => onDiscard(items[0].id)}
+              className="inline-flex min-h-9 items-center gap-1 px-2.5 rounded-md text-[11px] font-medium border border-border text-muted-foreground"
+            >
+              <RotateCcw size={12} />
+              Descartar
+            </button>
+          </div>
+        ) : null}
+
         {isSettingsSection ? (
           items.length > 0 ? (
             activeSection === 'menu_settings' ? (

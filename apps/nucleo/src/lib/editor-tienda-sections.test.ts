@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  AUTO_PUBLISH_SECTIONS,
+  CMS_SECTION_KEYS,
   EDITOR_SECTION_PAIRS,
   filterNavSectionKeys,
   isNestedSettingsKey,
@@ -24,5 +26,28 @@ describe('editor-tienda-sections', () => {
     expect(new Set(items).size).toBe(items.length);
     expect(new Set(settings).size).toBe(settings.length);
     expect(items.some((k) => settings.includes(k))).toBe(false);
+  });
+});
+
+describe('AUTO_PUBLISH / keys', () => {
+  it('el orden del home y el formato del carrusel se publican solos', () => {
+    expect(AUTO_PUBLISH_SECTIONS.has('landing_layout')).toBe(true);
+    expect(AUTO_PUBLISH_SECTIONS.has('media_settings')).toBe(true);
+    expect(AUTO_PUBLISH_SECTIONS.has('auth_settings')).toBe(true);
+  });
+
+  it('legales y fichas de contenido no se publican solos', () => {
+    expect(AUTO_PUBLISH_SECTIONS.has('legal_terminos')).toBe(false);
+    expect(AUTO_PUBLISH_SECTIONS.has('media_items')).toBe(false);
+    expect(AUTO_PUBLISH_SECTIONS.has('colecciones')).toBe(false);
+    expect(AUTO_PUBLISH_SECTIONS.has('conservation_content')).toBe(false);
+  });
+
+  it('todo par settings está en el catálogo CMS y en auto-publish', () => {
+    for (const pair of EDITOR_SECTION_PAIRS) {
+      expect(CMS_SECTION_KEYS).toContain(pair.items);
+      expect(CMS_SECTION_KEYS).toContain(pair.settings);
+      expect(AUTO_PUBLISH_SECTIONS.has(pair.settings)).toBe(true);
+    }
   });
 });

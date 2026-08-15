@@ -11,54 +11,10 @@ import {
   KNOWN_STORAGE_BUCKETS,
   type ListedStorageFile,
 } from "@/lib/cms-storage";
+import { AUTO_PUBLISH_SECTIONS, CMS_SECTION_KEYS } from "@/lib/editor-tienda-sections";
 
 /** Secciones editables. Retiradas (no consumidas por tienda): hero, footer_branding/nav/legal. */
-const SECTION_KEYS = [
-  "talleres",
-  "colecciones",
-  "nosotros",
-  "galeria",
-  "contacto",
-  "ciencia",
-  "menu_settings",
-  "menu_links",
-  "theme_settings",
-  "typography_settings",
-  "announcement_settings",
-  "announcement_slides",
-  "footer_settings",
-  "footer_social",
-  "pwa_nav_settings",
-  "pwa_nav_items",
-  "brand_assets",
-  "landing_layout",
-  "catalog_settings",
-  "pdp_settings",
-  "seo_defaults",
-  "contact_settings",
-  "checkout_settings",
-  "cart_settings",
-  "campaign_banners",
-  "seasonal_settings",
-  "conservation_content",
-  "media_items",
-  "video_settings",
-  "map_settings",
-  "products_settings",
-  "collections_settings",
-  "galeria_settings",
-  "nosotros_settings",
-  "media_settings",
-  "ciencia_settings",
-  "auth_settings",
-  "legal_terminos",
-  "legal_privacidad",
-  "legal_cookies",
-  "legal_envio",
-  "legal_reembolso",
-  "legal_cancelacion",
-  "legal_garantia",
-] as const;
+const SECTION_KEYS = CMS_SECTION_KEYS;
 
 const ContentItemSchema = z.object({
   section_key: z.enum(SECTION_KEYS),
@@ -94,34 +50,6 @@ const DiscardSchema = z.object({
   id: z.string().uuid().optional(),
   section_key: z.string().optional(),
 });
-
-/**
- * Secciones de diseño/chrome que se publican SOLAS (PATCH escribe `content`
- * directo): la tienda las lee en el layout (loadStoreChrome) y su preview no
- * es por página. El resto del contenido pasa por borrador (draft_content) y
- * se publica con POST /api/cms/publish.
- */
-const AUTO_PUBLISH_SECTIONS = new Set<string>([
-  "theme_settings",
-  "typography_settings",
-  "announcement_settings",
-  "announcement_slides",
-  "footer_settings",
-  "footer_social",
-  "pwa_nav_settings",
-  "pwa_nav_items",
-  "brand_assets",
-  "catalog_settings",
-  "pdp_settings",
-  "seo_defaults",
-  "contact_settings",
-  "checkout_settings",
-  "cart_settings",
-  "campaign_banners",
-  "seasonal_settings",
-  "menu_settings",
-  "menu_links",
-]);
 
 export const cmsRoutes = new Hono<{
   Variables: AppVariables;
