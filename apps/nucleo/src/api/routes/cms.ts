@@ -5,6 +5,12 @@ import type { Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, requireProfileRole, createSupabaseUserClient } from "@/api/lib/middleware";
 import { revalidateTiendaCms } from "@/lib/revalidate-tienda";
+import {
+  extractCmsPaths,
+  walkStorageList,
+  KNOWN_STORAGE_BUCKETS,
+  type ListedStorageFile,
+} from "@/lib/cms-storage";
 
 /** Secciones editables. Retiradas (no consumidas por tienda): hero, footer_branding/nav/legal. */
 const SECTION_KEYS = [
@@ -353,27 +359,6 @@ cmsRoutes.post("/discard", zValidator("json", DiscardSchema), async (c) => {
 
 // ── Gestión de imágenes (bucket cms) ────────────────────────────────────────
 
-const CMS_PUBLIC_PREFIX = "/storage/v1/object/public/cms/";
-
-/** Recorre content/draft_content en profundidad y acumula paths del bucket cms. */
-function extractCmsPaths(value: unknown, acc: Set<string>): void {
-  if (typeof value === "string") {
-    const idx = value.indexOf(CMS_PUBLIC_PREFIX);
-    if (idx !== -1) {
-      const path = value.slice(idx + CMS_PUBLIC_PREFIX.length).split(/[?#]/)[0];
-      if (path) acc.add(path);
-    }
-    return;
-  }
-  if (Array.isArray(value)) {
-    for (const v of value) extractCmsPaths(v, acc);
-    return;
-  }
-  if (value && typeof value === "object") {
-    for (const v of Object.values(value)) extractCmsPaths(v, acc);
-  }
-}
-
 /** Paths del bucket cms referenciados por CUALQUIER content/draft_content. */
 async function collectReferencedPaths(
   supabase: ReturnType<typeof createSupabaseUserClient>,
@@ -400,43 +385,40 @@ async function collectReferencedPaths(
   return { referenced, sectionsByPath };
 }
 
-/** Lista recursiva del bucket cms (raíz → carpetas por sección → archivos). */
+async function listBucketFiles(
+  supabase: ReturnType<typeof createSupabaseUserClient>,
+  bucket: string,
+): Promise<ListedStorageFile[]> {
+  return walkStorageList(async (prefix) => {
+    const pageSize = 1000;
+    const out: Array<{
+      name: string;
+      id?: string | null;
+      metadata?: { size?: number } | null;
+      created_at?: string | null;
+    }> = [];
+    let offset = 0;
+    while (true) {
+      const { data, error } = await supabase.storage.from(bucket).list(prefix, {
+        limit: pageSize,
+        offset,
+        sortBy: { column: "name", order: "asc" },
+      });
+      if (error) throw error;
+      const batch = data ?? [];
+      out.push(...batch);
+      if (batch.length < pageSize) break;
+      offset += pageSize;
+    }
+    return out;
+  });
+}
+
+/** Lista recursiva del bucket cms (cms/{seccion}/archivo, no solo un nivel). */
 async function listCmsImages(
   supabase: ReturnType<typeof createSupabaseUserClient>,
-): Promise<{ path: string; name: string; size: number; created_at: string | null }[]> {
-  const images: { path: string; name: string; size: number; created_at: string | null }[] = [];
-  const { data: roots, error } = await supabase.storage.from("cms").list("", {
-    limit: 100,
-    offset: 0,
-    sortBy: { column: "name", order: "asc" },
-  });
-  if (error) throw error;
-  for (const entry of roots ?? []) {
-    if (entry.id) {
-      // Archivo suelto en la raíz (fuera de convención)
-      images.push({
-        path: entry.name,
-        name: entry.name,
-        size: Number(entry.metadata?.size ?? 0),
-        created_at: entry.created_at ?? null,
-      });
-      continue;
-    }
-    const { data: files, error: listErr } = await supabase.storage
-      .from("cms")
-      .list(entry.name, { limit: 1000 });
-    if (listErr) continue;
-    for (const f of files ?? []) {
-      if (!f.id) continue;
-      images.push({
-        path: `${entry.name}/${f.name}`,
-        name: f.name,
-        size: Number(f.metadata?.size ?? 0),
-        created_at: f.created_at ?? null,
-      });
-    }
-  }
-  return images;
+): Promise<ListedStorageFile[]> {
+  return listBucketFiles(supabase, "cms");
 }
 
 /**
@@ -483,11 +465,41 @@ async function removeRemovedImages(
 cmsRoutes.get("/images", async (c) => {
   const supabase = c.get("supabase");
   try {
-    const [images, { referenced, sectionsByPath }] = await Promise.all([
+    const [images, { referenced, sectionsByPath }, otherBuckets] = await Promise.all([
       listCmsImages(supabase),
       collectReferencedPaths(supabase),
+      Promise.all(
+        KNOWN_STORAGE_BUCKETS.filter((meta) => meta.id !== "cms").map(async (meta) => {
+          try {
+            const files = await listBucketFiles(supabase, meta.id);
+            return { ...meta, files: files.length, error: null as string | null };
+          } catch (err) {
+            return {
+              ...meta,
+              files: 0,
+              error: err instanceof Error ? err.message : "sin permiso o bucket ausente",
+            };
+          }
+        }),
+      ),
     ]);
-    const items = images.map((img) => ({
+    const cmsMeta = KNOWN_STORAGE_BUCKETS.find((b) => b.id === "cms")!;
+    const buckets = [
+      { ...cmsMeta, files: images.length, error: null as string | null },
+      ...otherBuckets,
+    ];
+    const listed = new Set(images.map((img) => img.path));
+    const merged = [...images];
+    for (const path of referenced) {
+      if (listed.has(path)) continue;
+      merged.push({
+        path,
+        name: path.split("/").pop() ?? path,
+        size: 0,
+        created_at: null,
+      });
+    }
+    const items = merged.map((img) => ({
       ...img,
       referenced: referenced.has(img.path),
       sections: sectionsByPath.get(img.path) ?? [],
@@ -495,6 +507,7 @@ cmsRoutes.get("/images", async (c) => {
     return c.json({
       data: items,
       orphans: items.filter((i) => !i.referenced).length,
+      buckets,
     });
   } catch (err) {
     return c.json(

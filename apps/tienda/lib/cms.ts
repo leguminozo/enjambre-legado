@@ -1,5 +1,6 @@
 import { cache } from 'react';
 import { getLocale } from 'next-intl/server';
+import { parseLegalDoc } from '@/lib/shop/store-chrome';
 import { createAnonServerClient } from '@/utils/supabase/anon-server';
 
 export type SiteSectionItem = {
@@ -19,12 +20,27 @@ export function resolveLegalLastUpdated(
   content: Record<string, unknown> | null | undefined,
   fallback: string,
 ): string {
-  if (!content) return fallback;
-  const last = content.last_updated;
-  if (typeof last === 'string' && last.trim()) return last.trim();
-  const legacy = content.updated_at;
-  if (typeof legacy === 'string' && legacy.trim()) return legacy.trim();
-  return fallback;
+  const parsed = parseLegalDoc(content);
+  return parsed.last_updated || fallback;
+}
+
+/** Título CMS; vacío / solo espacios = título del repo. */
+export function resolveLegalTitle(
+  content: Record<string, unknown> | null | undefined,
+  fallback: string,
+): string {
+  return parseLegalDoc(content).title || fallback;
+}
+
+/**
+ * Cuerpo CMS. Vacío / whitespace no pisa el fallback del repo
+ * (un body publicado sí — el Editor de Tienda lo avisa).
+ */
+export function resolveLegalBody(
+  content: Record<string, unknown> | null | undefined,
+  fallback: string,
+): string {
+  return parseLegalDoc(content).body || fallback;
 }
 
 /**

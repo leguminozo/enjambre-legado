@@ -1,4 +1,4 @@
-import { getSiteContent, resolveLegalLastUpdated } from '@/lib/cms';
+import { getSiteContent, resolveLegalBody, resolveLegalLastUpdated, resolveLegalTitle } from '@/lib/cms';
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
@@ -9,10 +9,10 @@ export const metadata: Metadata = {
 
 export default async function EnvioPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
   const draft = (await searchParams).cms_preview === "1";
-  const contentData = await getSiteContent('legal_envio');
+  const contentData = await getSiteContent('legal_envio', { draft });
   const item = contentData[0]?.content;
-  const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Política de Envío';
-  const content = (item && typeof item === 'object' && 'body' in item ? String(item.body) : null) || `
+  const title = resolveLegalTitle(item, 'Política de Envío');
+  const content = resolveLegalBody(item, `
 <strong>Última actualización: 19 de mayo de 2026</strong>
 
 Nuestras mieles y productos viajan desde Chiloé y otros territorios remotos para llegar a tu mesa. A continuación se detallan los términos, condiciones y especificaciones del servicio de envío.
@@ -108,7 +108,7 @@ Para cualquier consulta sobre envíos, escríbenos a comunidad@obrerayzangano.co
     <LegalContent
       title={title}
       content={content}
-      lastUpdated={resolveLegalLastUpdated(item && typeof item === 'object' ? (item as Record<string, unknown>) : null, '19 de mayo de 2026')}
+      lastUpdated={resolveLegalLastUpdated(item, '19 de mayo de 2026')}
     />
   );
 }

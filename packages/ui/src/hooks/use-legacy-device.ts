@@ -30,10 +30,15 @@ function readState(): LegacyDeviceState {
   };
 }
 
+const SSR_SAFE: LegacyDeviceState = { legacy: false, motionReduced: false };
+
 export function useLegacyDevice(): LegacyDeviceState {
-  const [state, setState] = useState<LegacyDeviceState>(readState);
+  // Siempre el mismo valor en SSR y en el primer paint del cliente.
+  // Leer data-legacy aquí hidrata mal (#418): el script inline ya corrió en el browser.
+  const [state, setState] = useState<LegacyDeviceState>(SSR_SAFE);
 
   useEffect(() => {
+    setState(readState());
     const el = document.documentElement;
     // El detector inline corre antes de hidratar; el observer cubre overrides
     // posteriores (?legacy=1 en SPA navigation, cambios de reduced-motion).

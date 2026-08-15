@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronDown, MapPin, PlayCircle, Search } from 'lucide-react';
+import { AlertTriangle, ChevronDown, MapPin, PlayCircle, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import {
   type ConservationContent,
@@ -16,6 +16,11 @@ import {
   type CarouselHeightMode,
   type ImageAspectRatio,
   type ImageFitMode,
+  type LegalDocContent,
+  type AuthSettings,
+  type AuthBackgroundStyle,
+  type AuthParticleEffect,
+  type PublicCopyRiskKind,
   parseConservationContent,
   parseMapSettings,
   parseProductsSettings,
@@ -25,6 +30,11 @@ import {
   parseNosotrosSettings,
   parseMediaSettings,
   parseCienciaSettings,
+  parseLegalDoc,
+  parseAuthSettings,
+  scanPublicCopyRisks,
+  AUTH_BACKGROUND_STYLES,
+  AUTH_PARTICLE_EFFECTS,
 } from '@/lib/store-chrome';
 import { useAutosaveEditor } from '@/components/tienda/save-status';
 
@@ -95,6 +105,29 @@ function AreaField({
         placeholder={placeholder}
         className={`${inputClass} resize-y`}
       />
+    </div>
+  );
+}
+
+function CopyRiskBanner({
+  text,
+  kinds,
+}: {
+  text: string;
+  kinds: readonly PublicCopyRiskKind[];
+}) {
+  const risks = scanPublicCopyRisks(text, kinds);
+  if (risks.length === 0) return null;
+  return (
+    <div
+      role="status"
+      className="flex gap-2 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2.5 text-[11px] text-foreground"
+    >
+      <AlertTriangle size={14} className="shrink-0 mt-0.5 text-destructive" />
+      <p>
+        Este texto publicaría {risks.map((r) => r.label).join(', ')}. En la tienda no va
+        stack de patio ni claims sanitarios (20.606).
+      </p>
     </div>
   );
 }
@@ -1110,6 +1143,11 @@ export function NosotrosSettingsEditor({
         onAspectRatio={(v) => patch('image_aspect_ratio', v)}
         onFitMode={(v) => patch('image_fit', v)}
       />
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Foto y cabecera. La historia larga vive en <strong className="text-foreground">Nosotros</strong>{' '}
+        (fichas). Cuerpo vacío ahí = texto del código. No pegar claims de salud ni stack
+        técnico.
+      </p>
     </div>
   );
 }
@@ -1222,6 +1260,214 @@ export function CienciaSettingsEditor({
         onEn={(v) => patch('subtitle_en', v)}
         textarea
       />
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Solo cabecera. Los bloques de evidencia se editan en{' '}
+        <strong className="text-foreground">Ciencia — Evidencia</strong>. Sin claims
+        médicos ni “sustituye azúcar”.
+      </p>
+    </div>
+  );
+}
+
+const AUTH_BG_LABELS: Record<AuthBackgroundStyle, string> = {
+  cosmic: 'Cósmico',
+  bosque_nativo: 'Bosque nativo',
+  abeja_cosmos: 'Abeja / cosmos',
+  dark_luxury: 'Dark luxury',
+};
+
+const AUTH_FX_LABELS: Record<AuthParticleEffect, string> = {
+  none: 'Sin partículas',
+  pollen_gold: 'Polen dorado',
+  mist_bosque: 'Niebla de bosque',
+  cosmic_stars: 'Estrellas',
+};
+
+export function AuthSettingsEditor({
+  content,
+  onSave,
+  onImageUpload,
+}: {
+  content: Record<string, unknown>;
+  onSave: (content: Record<string, unknown>) => void;
+  onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
+}) {
+  const [local, setLocal] = useState<AuthSettings>(() => parseAuthSettings(content));
+  const { isDirty } = useAutosaveEditor('auth_settings', local, (next) => onSave(next));
+
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(parseAuthSettings(content));
+  }, [content, isDirty]);
+
+  const patch = <K extends keyof AuthSettings>(key: K, value: AuthSettings[K]) =>
+    setLocal((prev) => ({ ...prev, [key]: value }));
+
+  return (
+    <div className="space-y-4 pb-8">
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Login y registro de la tienda. No pongas claims sanitarios ni stack técnico en
+        los textos.
+      </p>
+      <LocalePair
+        idPrefix="auth-hero-title"
+        esLabel="Título (ES)"
+        es={local.hero_title}
+        en={local.hero_title_en ?? ''}
+        onEs={(v) => patch('hero_title', v)}
+        onEn={(v) => patch('hero_title_en', v)}
+      />
+      <LocalePair
+        idPrefix="auth-hero-subtitle"
+        esLabel="Subtítulo (ES)"
+        es={local.hero_subtitle}
+        en={local.hero_subtitle_en ?? ''}
+        onEs={(v) => patch('hero_subtitle', v)}
+        onEn={(v) => patch('hero_subtitle_en', v)}
+      />
+      <LocalePair
+        idPrefix="auth-tagline"
+        esLabel="Frase de marca (ES)"
+        es={local.tagline_phrase}
+        en={local.tagline_phrase_en ?? ''}
+        onEs={(v) => patch('tagline_phrase', v)}
+        onEn={(v) => patch('tagline_phrase_en', v)}
+      />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <label htmlFor="auth-bg" className={labelClass}>
+            Fondo
+          </label>
+          <select
+            id="auth-bg"
+            value={local.background_style}
+            onChange={(e) => patch('background_style', e.target.value as AuthBackgroundStyle)}
+            className={inputClass}
+          >
+            {AUTH_BACKGROUND_STYLES.map((id) => (
+              <option key={id} value={id}>
+                {AUTH_BG_LABELS[id]}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="auth-fx" className={labelClass}>
+            Partículas
+          </label>
+          <select
+            id="auth-fx"
+            value={local.particle_effect}
+            onChange={(e) => patch('particle_effect', e.target.value as AuthParticleEffect)}
+            className={inputClass}
+          >
+            {AUTH_PARTICLE_EFFECTS.map((id) => (
+              <option key={id} value={id}>
+                {AUTH_FX_LABELS[id]}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <Field
+        label="Color del orb (hex)"
+        id="auth-orb"
+        value={local.blur_orb_color ?? ''}
+        onChange={(v) => patch('blur_orb_color', v)}
+        placeholder="#D4A017"
+      />
+      <div className="space-y-1.5">
+        <Field
+          label="Imagen de fondo (URL)"
+          id="auth-bg-url"
+          value={local.background_image_url ?? ''}
+          onChange={(v) => patch('background_image_url', v)}
+        />
+        {onImageUpload ? (
+          <input
+            type="file"
+            accept="image/*"
+            aria-label="Subir imagen de fondo"
+            className="block w-full text-[11px] text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-accent/15 file:px-3 file:py-1.5 file:text-[11px] file:font-medium file:text-accent"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              void Promise.resolve(onImageUpload(file, 'background_image_url')).then((url) => {
+                if (typeof url === 'string' && url) patch('background_image_url', url);
+              });
+            }}
+          />
+        ) : null}
+      </div>
+      <CopyRiskBanner
+        text={[local.hero_title, local.hero_subtitle, local.tagline_phrase].join('\n')}
+        kinds={['stack_leak', 'health_claim']}
+      />
+    </div>
+  );
+}
+
+export function LegalDocEditor({
+  sectionKey,
+  content,
+  onSave,
+}: {
+  sectionKey: string;
+  content: Record<string, unknown>;
+  onSave: (content: Record<string, unknown>) => void;
+}) {
+  const [local, setLocal] = useState<LegalDocContent>(() => parseLegalDoc(content));
+  const { isDirty } = useAutosaveEditor(sectionKey, local, (next) => onSave(next));
+
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(parseLegalDoc(content));
+  }, [content, isDirty]);
+
+  const patch = <K extends keyof LegalDocContent>(key: K, value: LegalDocContent[K]) =>
+    setLocal((prev) => ({ ...prev, [key]: value }));
+
+  const emptyBody = local.body.trim().length === 0;
+
+  return (
+    <div className="space-y-4 pb-8">
+      <div
+        className={`flex gap-2 rounded-lg border px-3 py-2.5 text-[11px] leading-relaxed ${
+          emptyBody
+            ? 'border-border bg-surface-raised text-muted-foreground'
+            : 'border-accent/40 bg-accent/5 text-foreground'
+        }`}
+      >
+        <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+        <p>
+          {emptyBody
+            ? 'Cuerpo vacío: la tienda muestra el texto del código (el destilado de cumplimiento). Dejalo vacío salvo que un abogado reescriba el documento entero.'
+            : 'Hay cuerpo publicado: este HTML pisa el fallback del repo. Un texto viejo (Hostinger, Next.js) queda en producción hasta que lo borres o lo reescribas.'}
+        </p>
+      </div>
+      <Field
+        label="Título"
+        id={`${sectionKey}-title`}
+        value={local.title}
+        onChange={(v) => patch('title', v)}
+        placeholder="Título público"
+      />
+      <Field
+        label="Última actualización"
+        id={`${sectionKey}-updated`}
+        value={local.last_updated}
+        onChange={(v) => patch('last_updated', v)}
+        placeholder="2026-08-14 o 14 de agosto de 2026"
+      />
+      <AreaField
+        label="Cuerpo (HTML)"
+        id={`${sectionKey}-body`}
+        value={local.body}
+        onChange={(v) => patch('body', v)}
+        rows={16}
+        placeholder="Vacío = texto del repositorio"
+      />
+      <CopyRiskBanner text={`${local.title}\n${local.body}`} kinds={['stack_leak']} />
     </div>
   );
 }

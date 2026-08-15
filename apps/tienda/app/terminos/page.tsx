@@ -1,4 +1,4 @@
-import { getSiteContent, resolveLegalLastUpdated } from '@/lib/cms';
+import { getSiteContent, resolveLegalBody, resolveLegalLastUpdated, resolveLegalTitle } from '@/lib/cms';
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
@@ -9,10 +9,10 @@ export const metadata: Metadata = {
 
 export default async function TerminosPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
   const draft = (await searchParams).cms_preview === "1";
-  const contentData = await getSiteContent('legal_terminos');
+  const contentData = await getSiteContent('legal_terminos', { draft });
   const item = contentData[0]?.content;
-  const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Términos del Servicio';
-  const content = (item && typeof item === 'object' && 'body' in item ? String(item.body) : null) || `
+  const title = resolveLegalTitle(item, 'Términos del Servicio');
+  const content = resolveLegalBody(item, `
 <strong>Última actualización: 19 de mayo de 2026</strong>
 
 <strong>INFORMACIÓN GENERAL</strong>
@@ -208,7 +208,7 @@ Políticas relacionadas: <a href="/privacidad">Privacidad</a> | <a href="/cookie
     <LegalContent
       title={title}
       content={content}
-      lastUpdated={resolveLegalLastUpdated(item && typeof item === 'object' ? (item as Record<string, unknown>) : null, '19 de mayo de 2026')}
+      lastUpdated={resolveLegalLastUpdated(item, '19 de mayo de 2026')}
     />
   );
 }

@@ -963,6 +963,69 @@ export const LEGAL_DOC_TEMPLATE: LegalDocContent = {
   last_updated: '',
 };
 
+export function parseLegalDoc(raw: Record<string, unknown> | null | undefined): LegalDocContent {
+  const last =
+    typeof raw?.last_updated === 'string' && raw.last_updated.trim()
+      ? raw.last_updated.trim()
+      : typeof raw?.updated_at === 'string' && raw.updated_at.trim()
+        ? raw.updated_at.trim()
+        : '';
+  return {
+    title: typeof raw?.title === 'string' ? raw.title.trim() : '',
+    body: typeof raw?.body === 'string' ? raw.body.trim() : '',
+    last_updated: last,
+  };
+}
+
+export type PublicCopyRiskKind = 'stack_leak' | 'health_claim';
+
+export type PublicCopyRisk = {
+  kind: PublicCopyRiskKind;
+  label: string;
+};
+
+/** Fugas de patio que no deben salir en copy público (legales, Nosotros, Ciencia). */
+const STACK_LEAK_PATTERNS: ReadonlyArray<{ re: RegExp; label: string }> = [
+  { re: /hostinger/i, label: 'Hostinger' },
+  { re: /next\.js/i, label: 'Next.js' },
+  { re: /turbopack/i, label: 'Turbopack' },
+  { re: /\bhmr\b/i, label: 'HMR' },
+  { re: /localhost:\d+/i, label: 'localhost' },
+  { re: /\bsb-[a-z0-9]{8,}/i, label: 'ref sb-' },
+];
+
+/** Claims sanitarios / 20.606 que el editor no debe publicar como ficha de producto. */
+const HEALTH_CLAIM_PATTERNS: ReadonlyArray<{ re: RegExp; label: string }> = [
+  { re: /sustituye\s+az[uú]car/i, label: '“Sustituye azúcar”' },
+  { re: /[ií]ndice\s+glic[eé]mico/i, label: 'índice glicémico' },
+  { re: /\bhba1c\b/i, label: 'HbA1c' },
+  { re: /ansi[oó]litic/i, label: 'claim ansiolítico' },
+  { re: /antidepresiv/i, label: 'claim antidepresivo' },
+  { re: /adicti/i, label: 'adicción' },
+  { re: /trata(r|miento)?\s+(la\s+)?diabetes/i, label: 'tratar diabetes' },
+  { re: /s[ií]ndrome\s+metab[oó]lico/i, label: 'síndrome metabólico' },
+];
+
+export function scanPublicCopyRisks(
+  text: string,
+  kinds: readonly PublicCopyRiskKind[] = ['stack_leak', 'health_claim'],
+): PublicCopyRisk[] {
+  if (!text.trim()) return [];
+  const want = new Set(kinds);
+  const found: PublicCopyRisk[] = [];
+  if (want.has('stack_leak')) {
+    for (const { re, label } of STACK_LEAK_PATTERNS) {
+      if (re.test(text)) found.push({ kind: 'stack_leak', label });
+    }
+  }
+  if (want.has('health_claim')) {
+    for (const { re, label } of HEALTH_CLAIM_PATTERNS) {
+      if (re.test(text)) found.push({ kind: 'health_claim', label });
+    }
+  }
+  return found;
+}
+
 export const CAMPAIGN_BANNER_TEMPLATE: CampaignBanner = {
   title: '',
   title_en: '',

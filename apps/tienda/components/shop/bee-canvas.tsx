@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { Component, useEffect, useRef, type ErrorInfo, type ReactNode } from 'react';
 
 interface HoneycombCell {
   x: number;
@@ -10,7 +10,28 @@ interface HoneycombCell {
   maxGlow: number;
 }
 
+class BeeCanvasBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.warn('BeeCanvas disabled:', error.message, info.componentStack);
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
 export function BeeCanvas() {
+  return (
+    <BeeCanvasBoundary>
+      <BeeCanvasInner />
+    </BeeCanvasBoundary>
+  );
+}
+
+function BeeCanvasInner() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const resizeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -140,15 +161,17 @@ export function BeeCanvas() {
     }
 
     function resize() {
-      if (!canvas) return;
+      if (!canvas || !ctx) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = window.innerWidth;
       height = window.innerHeight;
       canvas.width = width * dpr;
       canvas.height = height * dpr;
-      if (ctx) ctx.scale(dpr, dpr);
       canvas.style.width = width + 'px';
       canvas.style.height = height + 'px';
+      // setTransform (no scale): asignar canvas.width resetea el contexto, pero
+      // un resize intermedio sin reasignar no debe acumular escala.
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       initHoneycombGrid(width, height);
     }

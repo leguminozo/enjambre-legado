@@ -1,4 +1,4 @@
-import { getSiteContent, resolveLegalLastUpdated } from '@/lib/cms';
+import { getSiteContent, resolveLegalBody, resolveLegalLastUpdated, resolveLegalTitle } from '@/lib/cms';
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
@@ -9,10 +9,10 @@ export const metadata: Metadata = {
 
 export default async function PrivacidadPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
   const draft = (await searchParams).cms_preview === "1";
-  const contentData = await getSiteContent('legal_privacidad');
+  const contentData = await getSiteContent('legal_privacidad', { draft });
   const item = contentData[0]?.content;
-  const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Política de Privacidad';
-  const content = (item && typeof item === 'object' && 'body' in item ? String(item.body) : null) || `
+  const title = resolveLegalTitle(item, 'Política de Privacidad');
+  const content = resolveLegalBody(item, `
 <strong>Última actualización: 19 de mayo de 2026</strong>
 
 Esta Política de Privacidad explica cómo La Obrera y el Zángano (en adelante "nosotros", "el Responsable" o "la Tienda"), titular del sitio obrerayzangano.com, recopila, usa, almacena y protege su información personal, en cumplimiento de la Ley 19.628 sobre Protección de Datos de Carácter Personal y la Ley 21.719 que reforma dicha normativa.
@@ -115,7 +115,7 @@ Consulta también: <a href="/cookies">Política de Cookies</a> | <a href="/termi
     <LegalContent
       title={title}
       content={content}
-      lastUpdated={resolveLegalLastUpdated(item && typeof item === 'object' ? (item as Record<string, unknown>) : null, '19 de mayo de 2026')}
+      lastUpdated={resolveLegalLastUpdated(item, '19 de mayo de 2026')}
     />
   );
 }

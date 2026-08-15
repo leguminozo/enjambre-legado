@@ -66,6 +66,8 @@ import {
   NosotrosSettingsEditor,
   MediaSettingsEditor,
   CienciaSettingsEditor,
+  AuthSettingsEditor,
+  LegalDocEditor,
 } from '@/components/tienda/HomeBlockEditors';
 import { useAutosaveEditor } from '@/components/tienda/save-status';
 
@@ -1429,6 +1431,7 @@ export function CheckoutSettingsEditor({ content, onSave }: SettingsEditorProps)
     <div className="space-y-4 pb-8">
       <p className="text-[11px] text-muted-foreground leading-relaxed">
         Copy del checkout (se publica al instante — sección de diseño). Vacío = texto actual.
+        La línea “Incluye IVA” del total es fija en el código: no se edita aquí.
       </p>
       <TextField label="Título" value={local.title} onChange={(v) => patch('title', v)} />
       <TextField
@@ -1644,9 +1647,17 @@ export const SETTINGS_SECTION_KEYS = new Set([
   'nosotros_settings',
   'media_settings',
   'ciencia_settings',
+  'auth_settings',
+  'legal_terminos',
+  'legal_privacidad',
+  'legal_cookies',
+  'legal_envio',
+  'legal_reembolso',
+  'legal_cancelacion',
+  'legal_garantia',
 ]);
 
-/** Legales: un solo item por sección, editor de título + body HTML. */
+/** Legales: un solo documento por sección (no lista de fichas). */
 export const LEGAL_SECTION_KEYS = new Set([
   'legal_terminos',
   'legal_privacidad',
@@ -1692,6 +1703,18 @@ export function ChromeSettingsEditor({
       return <MediaSettingsEditor content={content} onSave={onSave} />;
     case 'ciencia_settings':
       return <CienciaSettingsEditor content={content} onSave={onSave} />;
+    case 'auth_settings':
+      return (
+        <AuthSettingsEditor content={content} onSave={onSave} onImageUpload={onImageUpload} />
+      );
+    case 'legal_terminos':
+    case 'legal_privacidad':
+    case 'legal_cookies':
+    case 'legal_envio':
+    case 'legal_reembolso':
+    case 'legal_cancelacion':
+    case 'legal_garantia':
+      return <LegalDocEditor sectionKey={sectionKey} content={content} onSave={onSave} />;
     case 'conservation_content':
       return <ConservationEditor content={content} onSave={onSave} />;
     case 'announcement_settings':

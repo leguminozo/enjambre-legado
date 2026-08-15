@@ -15,6 +15,14 @@ interface CmsImage {
   sections: string[];
 }
 
+interface BucketCensus {
+  id: string;
+  label: string;
+  public: boolean;
+  files: number;
+  error: string | null;
+}
+
 interface ImageLibraryModalProps {
   open: boolean;
   onClose: () => void;
@@ -29,6 +37,7 @@ interface ImageLibraryModalProps {
 export function ImageLibraryModal({ open, onClose, getSectionLabel }: ImageLibraryModalProps) {
   const apiFetch = useApiFetch();
   const [images, setImages] = useState<CmsImage[]>([]);
+  const [buckets, setBuckets] = useState<BucketCensus[]>([]);
   const [loading, setLoading] = useState(false);
   const [deletingPath, setDeletingPath] = useState<string | null>(null);
   const [confirmPath, setConfirmPath] = useState<string | null>(null);
@@ -39,8 +48,9 @@ export function ImageLibraryModal({ open, onClose, getSectionLabel }: ImageLibra
     try {
       const res = await apiFetch('/api/cms/images');
       if (!res.ok) throw new Error('Error cargando imágenes');
-      const json = (await res.json()) as { data: CmsImage[] };
+      const json = (await res.json()) as { data: CmsImage[]; buckets?: BucketCensus[] };
       setImages(json.data ?? []);
+      setBuckets(json.buckets ?? []);
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Error cargando imágenes', { type: 'error' });
     } finally {
@@ -147,7 +157,40 @@ export function ImageLibraryModal({ open, onClose, getSectionLabel }: ImageLibra
           {images.length} archivo{images.length !== 1 ? 's' : ''} en el bucket cms ·{' '}
           <span className="text-warning">{orphans} huérfana{orphans !== 1 ? 's' : ''}</span> (sin
           referencia en el contenido). Las imágenes en uso se borran solo si confirmás dos veces.
+          El editor sube a <span className="font-mono">cms/{'{sección}'}/archivo</span>.
         </p>
+
+        {buckets.length > 0 ? (
+          <div className="rounded-lg border border-border/60 overflow-hidden">
+            <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-surface-raised/70">
+              Buckets de Storage
+            </p>
+            <ul className="divide-y divide-border/50 max-h-40 overflow-y-auto">
+              {buckets.map((b) => (
+                <li
+                  key={b.id}
+                  className="flex items-center justify-between gap-3 px-3 py-1.5 text-[11px]"
+                >
+                  <span className="min-w-0">
+                    <span className="font-mono text-foreground">{b.id}</span>
+                    <span className="text-muted-foreground"> · {b.label}</span>
+                    {!b.public ? (
+                      <span className="ml-1 text-muted-foreground/70">(privado)</span>
+                    ) : null}
+                  </span>
+                  <span
+                    className={`shrink-0 tabular-nums ${
+                      b.error ? 'text-warning' : 'text-muted-foreground'
+                    }`}
+                    title={b.error ?? undefined}
+                  >
+                    {b.error ? '—' : `${b.files} archivo${b.files === 1 ? '' : 's'}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         {loading && images.length === 0 ? (
           <div className="flex items-center justify-center py-16">

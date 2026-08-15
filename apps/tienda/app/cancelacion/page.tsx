@@ -1,4 +1,4 @@
-import { getSiteContent, resolveLegalLastUpdated } from '@/lib/cms';
+import { getSiteContent, resolveLegalBody, resolveLegalLastUpdated, resolveLegalTitle } from '@/lib/cms';
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
@@ -9,10 +9,10 @@ export const metadata: Metadata = {
 
 export default async function CancelacionPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
   const draft = (await searchParams).cms_preview === "1";
-  const contentData = await getSiteContent('legal_cancelacion');
+  const contentData = await getSiteContent('legal_cancelacion', { draft });
   const item = contentData[0]?.content;
-  const title = (item && typeof item === 'object' && 'title' in item ? String(item.title) : null) || 'Política de Cancelación';
-  const content = (item && typeof item === 'object' && 'body' in item ? String(item.body) : null) || `
+  const title = resolveLegalTitle(item, 'Política de Cancelación');
+  const content = resolveLegalBody(item, `
 <strong>Última actualización: 19 de mayo de 2026</strong>
 
 Algunos artículos de nuestra tienda pueden ofrecerse como suscripción, pedido en preventa o probar antes de comprar. Esta política de cancelación establece cómo puedes cambiar o cancelar este tipo de compras.
@@ -73,7 +73,7 @@ Para cualquier reclamo, puedes acudir al SERNAC (www.sernac.cl) o a la Agencia d
     <LegalContent
       title={title}
       content={content}
-      lastUpdated={resolveLegalLastUpdated(item && typeof item === 'object' ? (item as Record<string, unknown>) : null, '19 de mayo de 2026')}
+      lastUpdated={resolveLegalLastUpdated(item, '19 de mayo de 2026')}
     />
   );
 }

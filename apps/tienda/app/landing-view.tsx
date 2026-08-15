@@ -172,24 +172,37 @@ export function TiendaLandingView({
   }, []);
 
   useEffect(() => {
-    if (isMobile || motionReduced) {
-      // Sin GSAP en móvil / reduced-motion: escribir el valor final para que los contadores de impacto
-      // no muestren "0" falso (la animación desktop depende de ScrollTrigger).
+    const localeTag = currentLocale === 'es' ? 'es-CL' : 'en-US';
+    const paintCounters = () => {
+      document.querySelectorAll<HTMLElement>('.counter-value').forEach((el) => {
+        const target = parseInt(el.dataset.target || '0', 10);
+        const prefix = el.dataset.prefix || '';
+        const suffix = el.dataset.suffix || '';
+        el.textContent = prefix + target.toLocaleString(localeTag) + suffix;
+      });
+    };
+    const revealHero = () => {
       document
-        .querySelectorAll<HTMLElement>('.counter-value')
+        .querySelectorAll<HTMLElement>(
+          '.hero-eyebrow, .hero-title .line-inner, .hero-subtitle, .hero-formula',
+        )
         .forEach((el) => {
-          const target = parseInt(el.dataset.target || '0', 10);
-          const prefix = el.dataset.prefix || '';
-          const suffix = el.dataset.suffix || '';
-          el.textContent =
-            prefix +
-            target.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US') +
-            suffix;
+          el.style.opacity = '';
+          el.style.transform = '';
         });
+    };
+
+    // Los números viven en el HTML. Si GSAP no corre (móvil, reduced-motion,
+    // hidratación #418, import fallido) no pueden quedarse en "0".
+    paintCounters();
+
+    if (isMobile || motionReduced) {
+      revealHero();
       return;
     }
     let ctx: ReturnType<typeof import('gsap')['gsap']['context']> | undefined;
     let cancelled = false;
+    const safety = window.setTimeout(revealHero, 2800);
 
     import('gsap').then((gsapMod) => {
       import('gsap/ScrollTrigger').then((scrollTriggerMod) => {
@@ -200,33 +213,33 @@ export function TiendaLandingView({
         gsapRef.current = { gsap, ScrollTrigger };
 
         ctx = gsap.context(() => {
-          const tl = gsap.timeline();
+          const tl = gsap.timeline({ onComplete: revealHero });
 
-          tl.from('.hero-eyebrow', {
-            opacity: 0,
-            y: 20,
-            duration: 1.2,
-            ease: 'power3.out',
-            delay: 0.2,
-          })
-          .from('.hero-title .line-inner', {
-            y: '100%',
-            duration: 1.4,
-            stagger: 0.15,
-            ease: 'power4.out',
-          }, '-=0.8')
-          .from('.hero-subtitle', {
-            opacity: 0,
-            y: 30,
-            duration: 1,
-            ease: 'power3.out',
-          }, '-=0.6')
-          .from('.hero-formula', {
-            opacity: 0,
-            y: 20,
-            duration: 0.8,
-            ease: 'power3.out',
-          }, '-=0.3');
+          // fromTo + clearProps: un remount/hidratacion no deja el H1 en y:100%
+          // detrás de overflow-hidden (hero "vacío" en prod).
+          tl.fromTo(
+            '.hero-eyebrow',
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: 0.2, clearProps: 'transform,opacity' },
+          )
+            .fromTo(
+              '.hero-title .line-inner',
+              { y: '100%' },
+              { y: '0%', duration: 1.4, stagger: 0.15, ease: 'power4.out', clearProps: 'transform' },
+              '-=0.8',
+            )
+            .fromTo(
+              '.hero-subtitle',
+              { opacity: 0, y: 30 },
+              { opacity: 1, y: 0, duration: 1, ease: 'power3.out', clearProps: 'transform,opacity' },
+              '-=0.6',
+            )
+            .fromTo(
+              '.hero-formula',
+              { opacity: 0, y: 20 },
+              { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', clearProps: 'transform,opacity' },
+              '-=0.3',
+            );
 
           setTimeout(() => {
             const sections = ['#collections', '#media-carousel', '#creaciones', '#central-video', '#world-location'];
@@ -241,29 +254,11 @@ export function TiendaLandingView({
                 opacity: 0,
                 duration: 1,
                 ease: 'power3.out',
+                immediateRender: false,
+                clearProps: 'transform,opacity',
               });
             });
 
-            gsap.utils.toArray<HTMLElement>('.counter-value').forEach((el) => {
-              const target = parseInt(el.dataset.target || '0', 10);
-              const prefix = el.dataset.prefix || '';
-              const suffix = el.dataset.suffix || '';
-              const obj = { val: 0 };
-              gsap.to(obj, {
-                val: target,
-                duration: 2,
-                ease: 'power2.out',
-                scrollTrigger: {
-                  trigger: el,
-                  start: 'top 80%',
-                  once: true,
-                },
-                onUpdate: () => {
-                  el.textContent = prefix + Math.round(obj.val).toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US') + suffix;
-                },
-              });
-            });
-            
             ScrollTrigger.refresh();
           }, 2000);
         });
@@ -272,13 +267,17 @@ export function TiendaLandingView({
           ScrollTrigger.refresh();
         }, 1500);
       });
+    }).catch(() => {
+      revealHero();
     });
 
     return () => {
       cancelled = true;
+      window.clearTimeout(safety);
       ctx?.revert();
+      revealHero();
     };
-  }, [currentLocale, isMobile]);
+  }, [currentLocale, isMobile, motionReduced]);
 
   return (
     <StoreShell>
@@ -405,7 +404,9 @@ export function TiendaLandingView({
               ].map((stat) => (
                 <div key={stat.label} className="py-2 sm:py-4 px-1 min-w-0">
                   <p className="counter-value font-display text-[clamp(1.65rem,6vw,3.75rem)] sm:text-5xl md:text-6xl font-light text-accent-text tabular-nums tracking-tight" data-target={stat.value} data-prefix={stat.prefix || ''} data-suffix={stat.suffix}>
-                    0
+                    {(stat.prefix || '') +
+                      stat.value.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US') +
+                      (stat.suffix || '')}
                   </p>
                   <p className="text-editorial-xs uppercase tracking-widest text-muted-foreground mt-2 sm:mt-3 leading-snug text-balance">{stat.label}</p>
                 </div>

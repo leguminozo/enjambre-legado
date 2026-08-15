@@ -48,7 +48,8 @@
     "country": "País",
     "scrollDown": "Descender",
     "loadingCreations": "Creaciones",
-    "loadingMap": "Mapa"
+    "loadingMap": "Mapa",
+    "ourLocation": "Dónde estamos"
   },
   "nav": {
     "home": "Inicio",

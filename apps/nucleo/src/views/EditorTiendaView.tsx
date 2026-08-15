@@ -120,6 +120,7 @@ import {
   MEDIA_SETTINGS_TEMPLATE,
   CIENCIA_SETTINGS_TEMPLATE,
   AUTH_SETTINGS_TEMPLATE,
+  scanPublicCopyRisks,
 } from '@/lib/store-chrome';
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -468,6 +469,7 @@ const SECTION_META: Record<
     short: 'Nosotros',
     icon: Users,
     group: 'contenido',
+    hint: 'Historia CMS pisa el texto del código',
   },
   galeria: {
     label: 'Galería',
@@ -486,49 +488,56 @@ const SECTION_META: Record<
     short: 'Ciencia',
     icon: Microscope,
     group: 'contenido',
-    hint: 'Bloques de evidencia científica',
+    hint: 'Sin claims médicos · origen y sabor',
   },
   legal_terminos: {
     label: 'Términos',
     short: 'Términos',
     icon: FileText,
     group: 'legal',
+    hint: 'Cuerpo vacío = texto del código',
   },
   legal_privacidad: {
     label: 'Privacidad',
     short: 'Privacidad',
     icon: Shield,
     group: 'legal',
+    hint: 'Cuerpo vacío = texto del código',
   },
   legal_cookies: {
     label: 'Cookies',
     short: 'Cookies',
     icon: Cookie,
     group: 'legal',
+    hint: 'Cuerpo vacío = texto del código',
   },
   legal_envio: {
     label: 'Envío',
     short: 'Envío',
     icon: Truck,
     group: 'legal',
+    hint: 'Cuerpo vacío = texto del código',
   },
   legal_reembolso: {
     label: 'Reembolso',
     short: 'Reembolso',
     icon: RotateCcw,
     group: 'legal',
+    hint: 'Cuerpo vacío = texto del código',
   },
   legal_cancelacion: {
     label: 'Cancelación',
     short: 'Cancelación',
     icon: Ban,
     group: 'legal',
+    hint: 'Cuerpo vacío = texto del código',
   },
   legal_garantia: {
     label: 'Garantía',
     short: 'Garantía',
     icon: BadgeCheck,
     group: 'legal',
+    hint: 'Cuerpo vacío = texto del código',
   },
 };
 
@@ -876,15 +885,32 @@ function ContentFieldEditor({
       fieldKey.includes('mision') ||
       fieldKey.includes('vision')
     ) {
+      const kinds =
+        fieldKey === 'body' || fieldKey === 'body_en'
+          ? (['stack_leak'] as const)
+          : fieldKey.includes('historia') ||
+              fieldKey.includes('mision') ||
+              fieldKey.includes('vision') ||
+              fieldKey === 'texto'
+            ? (['stack_leak', 'health_claim'] as const)
+            : null;
+      const risks = kinds ? scanPublicCopyRisks(value, kinds) : [];
       return (
-        <textarea
-          id={fieldId}
-          name={fieldId}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          rows={fieldKey === 'body' || fieldKey === 'body_en' ? 12 : 6}
-          className="w-full bg-surface-sunken border border-border rounded-lg p-3 text-sm text-foreground resize-y focus:outline-none focus:ring-2 focus:ring-accent font-mono"
-        />
+        <div className="space-y-2">
+          <textarea
+            id={fieldId}
+            name={fieldId}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            rows={fieldKey === 'body' || fieldKey === 'body_en' ? 12 : 6}
+            className="w-full bg-surface-sunken border border-border rounded-lg p-3 text-sm text-foreground resize-y focus:outline-none focus:ring-2 focus:ring-accent font-mono"
+          />
+          {risks.length > 0 ? (
+            <p className="text-[11px] text-destructive">
+              Riesgo en copy público: {risks.map((r) => r.label).join(', ')}.
+            </p>
+          ) : null}
+        </div>
       );
     }
     return (
@@ -1678,6 +1704,17 @@ function ItemsPanel({
           </button>
         )}
       </div>
+
+      {(activeSection === 'nosotros' || activeSection === 'ciencia') && (
+        <div className="flex gap-2 rounded-lg border border-accent/40 bg-accent/5 px-3 py-2.5 text-[11px] leading-relaxed text-foreground">
+          <AlertTriangle size={14} className="shrink-0 mt-0.5 text-accent" />
+          <p>
+            {activeSection === 'nosotros'
+              ? 'Un campo Historia no vacío pisa el texto del código. Dejalo vacío para conservar el destilado (origen, no claims de salud).'
+              : 'Cada ficha sale en /ciencia y /nosotros. Sin “sustituye azúcar”, IG, HbA1c ni efectos médicos.'}
+          </p>
+        </div>
+      )}
 
       {/* Preview del carrusel media: imágenes subidas en orden real (media_items) */}
       {activeSection === 'media_items' && items.length > 0 ? (
