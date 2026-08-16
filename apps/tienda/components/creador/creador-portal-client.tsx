@@ -12,7 +12,7 @@ import {
   ModuleHero,
 } from '@enjambre/ui';
 import {
-  Sparkles, Copy, Check, DollarSign, Users, Gift, AlertCircle,
+  Copy, Check, DollarSign, Users, Gift, AlertCircle,
   Wallet, FileText, ArrowUpRight, ExternalLink, Link2,
 } from 'lucide-react';
 import {
@@ -236,7 +236,7 @@ export function CreadorPortalClient() {
   if (!profile) {
     return (
       <EmptyState
-        icon={<Sparkles size={48} className="opacity-40" />}
+        variant="composed"
         title="Aún no eres embajador del bosque"
         description="Si te interesa unirte al programa de referidos, contáctanos. Las comisiones se liquidan como referidos comerciales, no como relación laboral."
         action={

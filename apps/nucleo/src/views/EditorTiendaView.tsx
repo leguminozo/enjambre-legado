@@ -61,7 +61,6 @@ import {
   ShoppingCart,
   BookOpen,
   Film,
-  Sparkles,
   Languages,
   Lock,
   Copy,
@@ -97,6 +96,7 @@ import {
   isNestedSettingsKey,
   navVisibleSectionKey,
   workingCmsContent,
+  LEGAL_SECTION_KEYS_LIST,
 } from '@/lib/editor-tienda-sections';
 import { getSectionSchema, SCHEMA_SECTION_TEMPLATES } from '@/lib/editor-tienda-schema';
 import { SchemaFormFields, SchemaSettingsPanel } from '@/components/tienda/SchemaFieldEditor';
@@ -384,7 +384,7 @@ const SECTION_META: Record<
   ciencia_settings: {
     label: 'Ciencia — Cabecera',
     short: 'Ciencia',
-    icon: Sparkles,
+    icon: Microscope,
     group: 'contenido',
     hint: 'Título, kicker y subtítulo de la página',
   },
@@ -637,6 +637,64 @@ const SECTION_PREVIEW_PATHS: Record<string, string> = {
   talleres: '/experiencias',
   colecciones: '/',
   collections_settings: '/',
+};
+
+type PageWorkspaceId = 'catalog' | 'menu' | 'legal';
+
+type PageWorkspaceNode = {
+  id: string;
+  label: string;
+  sectionKey: string;
+  previewPath: string;
+};
+
+const PAGE_WORKSPACES: Record<
+  PageWorkspaceId,
+  { label: string; hint: string; nodes: PageWorkspaceNode[] }
+> = {
+  catalog: {
+    label: 'Catálogo',
+    hint: 'Listado, ficha, carrito y pago',
+    nodes: [
+      { id: 'catalog', label: 'Listado', sectionKey: 'catalog_settings', previewPath: '/catalogo' },
+      { id: 'pdp', label: 'Ficha de producto', sectionKey: 'pdp_settings', previewPath: '/catalogo' },
+      { id: 'cart', label: 'Carrito', sectionKey: 'cart_settings', previewPath: '/carrito' },
+      { id: 'checkout', label: 'Checkout', sectionKey: 'checkout_settings', previewPath: '/checkout' },
+    ],
+  },
+  menu: {
+    label: 'Menú y pie',
+    hint: 'Navegación visible en toda la tienda',
+    nodes: [
+      { id: 'menu', label: 'Menú', sectionKey: 'menu_links', previewPath: '' },
+      { id: 'announce', label: 'Anuncio', sectionKey: 'announcement_slides', previewPath: '' },
+      { id: 'footer', label: 'Pie', sectionKey: 'footer_social', previewPath: '' },
+      { id: 'pwa', label: 'Barra de app', sectionKey: 'pwa_nav_items', previewPath: '' },
+    ],
+  },
+  legal: {
+    label: 'Legales',
+    hint: 'Términos, privacidad y políticas',
+    nodes: LEGAL_SECTION_KEYS_LIST.map((key) => ({
+      id: key,
+      label:
+        key === 'legal_terminos'
+          ? 'Términos'
+          : key === 'legal_privacidad'
+            ? 'Privacidad'
+            : key === 'legal_cookies'
+              ? 'Cookies'
+              : key === 'legal_envio'
+                ? 'Envío'
+                : key === 'legal_reembolso'
+                  ? 'Reembolso'
+                  : key === 'legal_cancelacion'
+                    ? 'Cancelación'
+                    : 'Garantía',
+      sectionKey: key,
+      previewPath: SECTION_PREVIEW_PATHS[key] ?? '/',
+    })),
+  },
 };
 
 /** Menú independiente del preview: páginas navegables sin tocar la selección
@@ -2141,8 +2199,12 @@ function EditorTiendaViewInner() {
     setModalUploadedPaths({});
   };
   /** Menú centralizado con segmentación: categorías → lista → herramienta. */
-  const [navDrill, setNavDrill] = useState<'categories' | 'list' | 'tool' | 'home'>('categories');
+  const [navDrill, setNavDrill] = useState<'categories' | 'list' | 'tool' | 'home' | 'page'>(
+    'categories',
+  );
   const [selectedHomeNode, setSelectedHomeNode] = useState<LandingSectionId | 'atmosphere'>('hero');
+  const [pageWorkspaceId, setPageWorkspaceId] = useState<PageWorkspaceId>('catalog');
+  const [selectedPageNodeId, setSelectedPageNodeId] = useState('catalog');
   const [activeCategory, setActiveCategory] = useState<EditorCategoryId>('bloques');
   const [globalQuery, setGlobalQuery] = useState('');
   const [previewPath, setPreviewPath] = useState('');
@@ -2243,6 +2305,22 @@ function EditorTiendaViewInner() {
     setActiveSection('landing_layout');
     setNavDrill('home');
     goPreview('');
+  };
+
+  const openPageWorkspace = (id: PageWorkspaceId) => {
+    const ws = PAGE_WORKSPACES[id];
+    const first = ws.nodes[0];
+    setPageWorkspaceId(id);
+    setSelectedPageNodeId(first.id);
+    setActiveSection(navVisibleSectionKey(first.sectionKey));
+    setNavDrill('page');
+    goPreview(first.previewPath);
+  };
+
+  const selectPageNode = (node: PageWorkspaceNode) => {
+    setSelectedPageNodeId(node.id);
+    setActiveSection(navVisibleSectionKey(node.sectionKey));
+    goPreview(node.previewPath);
   };
 
   const selectHomeNode = (id: LandingSectionId | 'atmosphere') => {
@@ -2866,6 +2944,34 @@ function EditorTiendaViewInner() {
                   </span>
                   <ChevronRight size={15} className="shrink-0 text-muted-foreground" />
                 </button>
+                {(
+                  [
+                    ['catalog', Package],
+                    ['menu', PanelTop],
+                    ['legal', FileText],
+                  ] as const
+                ).map(([id, Icon]) => {
+                  const ws = PAGE_WORKSPACES[id];
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => openPageWorkspace(id)}
+                      className="w-full flex items-center gap-3 p-4 rounded-xl border border-border bg-surface/60 hover:border-accent/40 hover:bg-surface-raised/40 transition-all text-left"
+                    >
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-background border border-border text-muted-foreground">
+                        <Icon size={20} strokeWidth={1.75} />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-bold text-foreground">{ws.label}</span>
+                        <span className="block text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                          {ws.hint}
+                        </span>
+                      </span>
+                      <ChevronRight size={15} className="shrink-0 text-muted-foreground" />
+                    </button>
+                  );
+                })}
                 {EDITOR_CATEGORIES.map((cat) => {
                   const Icon = cat.icon;
                   const catSections = navSectionKeys.filter((k) => sectionCategory(k) === cat.id);
@@ -2984,6 +3090,70 @@ function EditorTiendaViewInner() {
                     }}
                   />
                 ) : null}
+              </div>
+            </div>
+          ) : navDrill === 'page' ? (
+            <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+              <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border bg-surface shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setNavDrill('categories')}
+                  aria-label="Volver"
+                  className="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground text-xs font-medium min-h-11"
+                >
+                  <ChevronLeft size={14} />
+                  Editor
+                </button>
+                <p className="text-sm font-bold text-foreground truncate">
+                  {PAGE_WORKSPACES[pageWorkspaceId].label}
+                </p>
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
+                <div className="space-y-1">
+                  {PAGE_WORKSPACES[pageWorkspaceId].nodes.map((node) => {
+                    const dirty = (groupedData[node.sectionKey] ?? []).some(
+                      (i) => i.draft_content != null,
+                    );
+                    const selected = selectedPageNodeId === node.id;
+                    return (
+                      <button
+                        key={node.id}
+                        type="button"
+                        onClick={() => selectPageNode(node)}
+                        className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg border text-left text-sm ${
+                          selected
+                            ? 'border-accent bg-accent/10 text-foreground'
+                            : 'border-border bg-background text-muted-foreground'
+                        }`}
+                      >
+                        <span>{node.label}</span>
+                        {dirty ? <span className="text-[10px] text-accent">borrador</span> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+                <ItemsPanel
+                  items={currentItems}
+                  activeSection={activeSection}
+                  onBack={() => setNavDrill('categories')}
+                  backLabel="Editor"
+                  onUpdate={handleUpdateItem}
+                  onDelete={handleDeleteItem}
+                  onPublish={handlePublishItem}
+                  onDiscard={handleDiscardItem}
+                  onImageUpload={handleImageUpload}
+                  onAddNew={() => setShowNewForm(true)}
+                  onReorder={handleReorder}
+                  onDuplicate={handleDuplicateItem}
+                  isDeleting={cms.deleteItem.isPending}
+                  brandContent={groupedData['brand_assets']?.[0]?.content ?? null}
+                  companionSettingsKey={companionSettingsKey}
+                  companionSettingsItem={companionSettingsItem}
+                  onInitCompanion={handleInitCompanion}
+                  onOpenSection={(key) => {
+                    setActiveSection(navVisibleSectionKey(key));
+                  }}
+                />
               </div>
             </div>
           ) : navDrill === 'list' ? (

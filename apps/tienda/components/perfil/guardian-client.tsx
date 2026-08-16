@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { 
-  Crown, TreePine, Leaf, Droplets, Sparkles, Users, Share2, Award, 
+  Crown, TreePine, Leaf, Droplets, Users, Share2, Award, 
   ChevronRight, Lock, Unlock, Target, Globe, Zap, Package 
 } from 'lucide-react';
 import { 

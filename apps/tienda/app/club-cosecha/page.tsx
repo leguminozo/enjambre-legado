@@ -14,6 +14,7 @@ import {
 import { parseSeasonalOverrides } from '@/lib/shop/store-chrome';
 import { isCmsPreviewRequest } from '@/lib/cms';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
+import { EmptyState } from '@enjambre/ui';
 import { formatCLP } from '@/lib/shop/format';
 import { getNucleoAppUrl } from '@/lib/shop/nucleo-app-url';
 import {
@@ -96,6 +97,20 @@ export default async function ClubCosechaPage() {
             Ver catálogo
           </Link>
         </div>
+
+        {plans.length === 0 ? (
+          <EmptyState
+            variant="composed"
+            className="mt-10"
+            title="Todavía no hay planes de cosecha publicados"
+            description="Cuando haya una temporada abierta, el plan aparece acá. Mientras, el catálogo sigue disponible."
+            action={
+              <Link href="/contacto" className="underline underline-offset-4">
+                Preguntar por la próxima cosecha
+              </Link>
+            }
+          />
+        ) : null}
 
         {/* Cómo funciona */}
         <section className="mt-14">

@@ -8,7 +8,7 @@ import {
   type CreateResenaInput,
 } from '@enjambre/resenas';
 import { friendlyError, toast } from '@enjambre/ui';
-import { Star, Sparkles, MessageCircle } from 'lucide-react';
+import { Star, Shield, MessageCircle } from 'lucide-react';
 import { RESENA_CLAIM_TOKEN_KEY } from '@/lib/shop/commerce-storage';
 import { checkEligible, createResena, getAuthToken } from '@/lib/shop/resenas-api';
 import { useAuth } from '@/components/providers/auth-context';
@@ -179,7 +179,7 @@ export function ResenaComposer({
           modo === 'guardian' ? 'bg-accent/15 text-accent-text' : 'text-muted-foreground'
         }`}
       >
-        <Sparkles size={16} />
+        <Shield size={16} />
         {RESENA_COPY.guardianTitle}
       </button>
     </div>

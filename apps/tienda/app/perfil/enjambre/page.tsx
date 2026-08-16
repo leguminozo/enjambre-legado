@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { Sparkles } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { PerfilPageHeader } from '@/components/perfil/perfil-page-header';
 import { EnjambreWelcomeClient } from '@/components/perfil/enjambre-welcome-client';
 import { resolveOyzRole } from '@/lib/shop/role';
@@ -45,7 +45,7 @@ export default async function EnjambrePage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <PerfilPageHeader icon={<Sparkles size={20} />} title={t('title')} mission={t('mission')} />
+      <PerfilPageHeader icon={<Users size={20} />} title={t('title')} mission={t('mission')} />
       <EnjambreWelcomeClient
         status={status}
         puntos={puntos}

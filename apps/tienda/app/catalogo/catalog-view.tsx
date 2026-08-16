@@ -10,6 +10,7 @@ import type { ProductRatingAggregate } from '@/lib/shop/catalog-ratings';
 import { formatCLP } from '@/lib/shop/format';
 import { ProductRatingStars } from '@/components/shop/product-rating-stars';
 import { Search, X } from 'lucide-react';
+import { EmptyState } from '@enjambre/ui';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveLocalized, type CatalogSortKey } from '@/lib/shop/store-chrome';
 
@@ -345,18 +346,26 @@ export function CatalogoView({ products, ratings = {} }: Props) {
         </div>
 
         {filtered.length === 0 ? (
-          <p className="mt-14 text-center text-muted-foreground">
-            {resolveLocalized(catalog.empty_message, catalog.empty_message_en, locale)}{' '}
-            {hasFilters ? (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="inline-flex min-h-11 items-center text-accent underline hover:text-accent/80"
-            >
-              Limpiar filtros
-            </button>
-            ) : null}
-          </p>
+          <EmptyState
+            variant="composed"
+            className="mt-14"
+            title={resolveLocalized(catalog.empty_message, catalog.empty_message_en, locale) || 'No hay productos'}
+            action={
+              hasFilters ? (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="inline-flex min-h-11 items-center text-accent underline hover:text-accent/80"
+                >
+                  Limpiar filtros
+                </button>
+              ) : (
+                <Link href="/contacto" className="inline-flex min-h-11 items-center underline underline-offset-4">
+                  Escribinos
+                </Link>
+              )
+            }
+          />
         ) : (
           <ul
             className={[

@@ -49,4 +49,26 @@ globalIgnores([
       "react-refresh/only-export-components": "off",
     },
   },
+
+  {
+    files: [
+      "apps/tienda/app/**/*.{ts,tsx}",
+      "apps/nucleo/app/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "lucide-react",
+              importNames: ["Sparkles"],
+              message:
+                "Sparkles es slop de marketing (docs/ANTI_SLOP.md). Usá un icono de oficio o ninguno.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);

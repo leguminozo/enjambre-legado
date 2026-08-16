@@ -12,7 +12,6 @@ import {
   Crown,
   MapPin,
   ChevronRight,
-  Sparkles,
 } from 'lucide-react';
 import type { OyzRole } from '@/lib/shop/role';
 
@@ -53,7 +52,7 @@ export function EnjambreWelcomeClient({
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-accent/10 via-transparent to-transparent" aria-hidden />
         <div className="relative">
           <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 border border-accent/30 mb-6">
-            <Sparkles className="h-7 w-7 text-accent-text" />
+            <Users className="h-7 w-7 text-accent-text" />
           </span>
           <h2 className="font-display text-[clamp(1.75rem,4.5vw,2.75rem)] font-light text-foreground mb-3 text-balance">
             {isJoined ? t('heroJoinedTitle') : t('heroMemberTitle')}
