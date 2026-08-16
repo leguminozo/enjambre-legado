@@ -182,6 +182,14 @@ html:not(.dark) {
 
 /* Hero: atmósfera fija (panal + resplandor). El canvas suma abejas encima;
    si el canvas no monta (legacy/IO) el bloque no queda negro plano. */
+html.cms-preview [data-cms-section] {
+  cursor: pointer;
+}
+html.cms-preview [data-cms-section].cms-section-selected {
+  outline: 2px solid hsl(var(--accent));
+  outline-offset: 4px;
+}
+
 .hero-atmosphere {
   background-image:
     radial-gradient(ellipse 75% 60% at 50% 42%, rgba(201, 162, 39, 0.16), transparent 68%),

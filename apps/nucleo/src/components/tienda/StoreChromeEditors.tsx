@@ -5,7 +5,6 @@ import {
   Loader2,
   Upload,
   Image as ImageIcon,
-  Sparkles,
   Leaf,
   Layers,
   GalleryHorizontalEnd,
@@ -79,6 +78,11 @@ interface SettingsEditorProps {
   onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
   /** Desde Orden del home: abrir la herramienta de fichas (un solo carrusel, etc.). */
   onOpenSection?: (sectionKey: string) => void;
+  /** Workspace Inicio: árbol + panel del nodo (hero / atmósfera). */
+  workspace?: boolean;
+  selectedNode?: LandingSectionId | 'atmosphere';
+  onSelectNode?: (id: LandingSectionId | 'atmosphere') => void;
+  draftSectionIds?: Partial<Record<LandingSectionId, boolean>>;
 }
 
 function SliderField({
@@ -891,7 +895,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
 // ── Landing layout ─────────────────────────────────────────────────────────
 
 const LANDING_BLOCK_ICONS: Record<LandingSectionId, ComponentType<LucideProps>> = {
-  hero: Sparkles,
+  hero: LayoutTemplate,
   conservation: Leaf,
   collections: Layers,
   media: GalleryHorizontalEnd,
@@ -914,6 +918,10 @@ export function LandingLayoutEditor({
   content,
   onSave,
   onOpenSection,
+  workspace = false,
+  selectedNode,
+  onSelectNode,
+  draftSectionIds,
 }: SettingsEditorProps) {
   const [local, setLocal] = useState<LandingLayoutSettings>(() => parseLandingLayout(content));
   const { isDirty } = useAutosaveEditor('landing_layout', local, (next) => onSave(next));
@@ -951,11 +959,17 @@ export function LandingLayoutEditor({
   const ordered = [...local.sections].sort((a, b) => a.order - b.order);
   const enabledCount = ordered.filter((s) => s.enabled).length;
 
+  const showTree = true;
+  const showAtmosphere = !workspace || selectedNode === 'atmosphere';
+  const showHeroCopy = !workspace || selectedNode === 'hero';
+
   return (
     <div className="space-y-4 pb-8">
+      {showTree ? (
+      <>
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">
-          Bloques del home (estilo theme sections). Ordená y activá sin código.
+          {workspace ? 'Página de inicio — elegí un bloque.' : 'Bloques del home. Ordená y activá sin código.'}
         </p>
         <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">
           {enabledCount}/{ordered.length} activos
@@ -964,13 +978,16 @@ export function LandingLayoutEditor({
       <div className="space-y-1.5">
         {ordered.map((sec, index) => {
           const Icon = LANDING_BLOCK_ICONS[sec.id] ?? LayoutTemplate;
+          const selected = workspace && selectedNode === sec.id;
           return (
             <div
               key={sec.id}
-              className={`flex items-center gap-2 p-2 pl-1.5 rounded-xl border transition-all ${
-                sec.enabled
-                  ? 'border-border bg-background shadow-sm'
-                  : 'border-border/50 bg-surface-sunken/80 opacity-75'
+              className={`flex items-center gap-2 p-2 pl-1.5 rounded-lg border transition-all ${
+                selected
+                  ? 'border-accent bg-accent/10'
+                  : sec.enabled
+                    ? 'border-border bg-background'
+                    : 'border-border/50 bg-surface-sunken/80 opacity-75'
               }`}
             >
               <div className="flex flex-col text-muted-foreground/50 px-0.5">
@@ -1005,15 +1022,22 @@ export function LandingLayoutEditor({
               >
                 <Icon size={16} strokeWidth={2} />
               </span>
-              <div className="flex-1 min-w-0">
+              <button
+                type="button"
+                className="flex-1 min-w-0 text-left"
+                onClick={() => onSelectNode?.(sec.id)}
+              >
                 <p className="text-sm font-medium text-foreground leading-tight">
                   {LANDING_SECTION_LABELS[sec.id] ?? sec.id}
+                  {draftSectionIds?.[sec.id] ? (
+                    <span className="ml-2 text-[10px] font-medium text-accent">borrador</span>
+                  ) : null}
                 </p>
                 <p className="text-[10px] text-muted-foreground truncate mt-0.5">
                   {LANDING_BLOCK_HINTS[sec.id] ?? sec.id}
                 </p>
-              </div>
-              {onOpenSection && LANDING_SECTION_EDITOR_KEY[sec.id] ? (
+              </button>
+              {!workspace && onOpenSection && LANDING_SECTION_EDITOR_KEY[sec.id] ? (
                 <button
                   type="button"
                   onClick={() => onOpenSection(LANDING_SECTION_EDITOR_KEY[sec.id]!)}
@@ -1038,8 +1062,26 @@ export function LandingLayoutEditor({
             </div>
           );
         })}
+        {workspace ? (
+          <button
+            type="button"
+            onClick={() => onSelectNode?.('atmosphere')}
+            className={`w-full flex items-center gap-2 p-2.5 rounded-lg border text-left text-sm ${
+              selectedNode === 'atmosphere'
+                ? 'border-accent bg-accent/10 text-foreground'
+                : 'border-border bg-background text-muted-foreground'
+            }`}
+          >
+            Atmósfera
+            <span className="text-[10px]">grain / cursor / abejas</span>
+          </button>
+        ) : null}
       </div>
+      </>
+      ) : null}
 
+      {showAtmosphere ? (
+      <>
       <p className="text-xs text-muted-foreground leading-relaxed">
         Ornamento — apagado por defecto. El producto (frasco, lote, catálogo) va primero.
       </p>
@@ -1058,6 +1100,11 @@ export function LandingLayoutEditor({
         value={local.show_bee_canvas}
         onChange={(v) => patch('show_bee_canvas', v)}
       />
+      </>
+      ) : null}
+
+      {showHeroCopy ? (
+      <>
       <ToggleField
         label="CTA en hero"
         value={local.show_hero_cta}
@@ -1143,6 +1190,8 @@ export function LandingLayoutEditor({
           />
         </div>
       </div>
+      </>
+      ) : null}
     </div>
   );
 }

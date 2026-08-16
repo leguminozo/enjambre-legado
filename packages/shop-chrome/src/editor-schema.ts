@@ -59,13 +59,13 @@ export type RangeField = FieldBase & {
   unit?: string;
 };
 
-export type SelectOption = { value: string; label: string };
+export type SelectOption = { value: string | number; label: string };
 
 export type SelectField = FieldBase & {
   type: 'select';
   options: readonly SelectOption[];
   /** Sin default → primera opción (regla Shopify). */
-  default?: string;
+  default?: string | number;
   /** 'auto' aplica la regla 2-5 cortas → segmented; >5 o largas → dropdown. */
   control?: 'auto' | 'segmented' | 'dropdown';
   /** Castea el value elegido (grid_columns guarda number, no "3"). */

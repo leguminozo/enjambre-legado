@@ -287,6 +287,7 @@ export function TiendaLandingView({
           // tokens.css define --svh-full/--vh-full con fallback 100vh → svh/dvh vía @supports.
           <section
             key="hero"
+            data-cms-section="hero"
             className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] min-h-[var(--svh-full)] md:min-h-[var(--vh-full)]"
           >
             <div className="hero-atmosphere absolute inset-0 pointer-events-none z-0" aria-hidden />
@@ -353,7 +354,7 @@ export function TiendaLandingView({
 
         if (sec.id === 'conservation') {
           return (
-        <section key="conservation" className="editorial-section bg-surface-raised/50 border-y border-border/30">
+        <section key="conservation" data-cms-section="conservation" className="editorial-section bg-surface-raised/50 border-y border-border/30">
           <div className="editorial-container">
             <div className="text-center mb-10 md:mb-16">
               <span className="editorial-kicker mb-4 block">
@@ -516,7 +517,7 @@ export function TiendaLandingView({
           const gridClass = gridClassMap[collectionsSettings.grid_columns] || 'lg:grid-cols-3';
 
           return (
-        <section key="collections" id="collections" className="editorial-section">
+        <section key="collections" id="collections" data-cms-section="collections" className="editorial-section">
           <div className="editorial-container text-center mb-12 md:mb-20 px-4 sm:px-0 max-w-3xl mx-auto">
             <span className="editorial-kicker mb-4 block">{colKicker}</span>
             <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground mb-4 text-balance leading-tight">
@@ -569,7 +570,7 @@ export function TiendaLandingView({
 
         if (sec.id === 'media') {
           return (
-      <section key="media" id="media-carousel">
+      <section key="media" id="media-carousel" data-cms-section="media">
         <Suspense fallback={<div className="w-full h-[50vh] md:h-[70vh] bg-surface-raised" />}><MediaCarousel items={mediaItems} settings={mediaSettings} /></Suspense>
       </section>
           );
@@ -577,7 +578,7 @@ export function TiendaLandingView({
 
         if (sec.id === 'products') {
           return (
-      <div key="products" id="creaciones">
+      <div key="products" id="creaciones" data-cms-section="products">
         <Suspense
           fallback={
             <div className="editorial-section" aria-busy="true" aria-label={tCommon('loadingCreations') || 'Creaciones'}>
@@ -599,7 +600,7 @@ export function TiendaLandingView({
 
         if (sec.id === 'video') {
           return (
-        <section key="video" id="central-video" className="editorial-section">
+        <section key="video" id="central-video" data-cms-section="video" className="editorial-section">
           <div className="editorial-container">
             <div className="relative w-full aspect-video max-w-5xl mx-auto rounded-lg overflow-hidden border border-border/30 bg-surface-sunken">
               <YoutubeLite videoId={videoId} title={videoTitle} />
@@ -614,7 +615,7 @@ export function TiendaLandingView({
             // Leaflet raster full-bleed es caro en móvil/legacy: tarjeta estática con datos del CMS.
             const { lat, lng, popup_title, popup_body } = map;
             return (
-              <section key="map" id="world-location" className="editorial-section">
+              <section key="map" id="world-location" data-cms-section="map" className="editorial-section">
                 <div className="editorial-container max-w-2xl mx-auto text-center">
                   <span className="editorial-kicker mb-4 block">
                     {tCommon('ourLocation') || 'Ubicación'}
@@ -640,7 +641,7 @@ export function TiendaLandingView({
             );
           }
           return (
-      <div key="map" id="world-location">
+      <div key="map" id="world-location" data-cms-section="map">
         <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingMap') || 'Mapa'} hideLabel /></div></div>}><WorldMapBlock mapSettings={map} /></Suspense>
       </div>
           );

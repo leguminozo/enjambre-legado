@@ -3,15 +3,31 @@
 import { useEffect } from 'react';
 
 /**
- * Editor de Tienda (Núcleo) postMessage { type: 'CMS_UPDATE' }.
- * Hard reload (no solo router.refresh) para re-leer layout brand/menu
- * tras revalidatePath en el servidor.
- *
- * Debounce trailing ~2s: colapsa ráfagas del autosave del editor en un solo
- * reload. El scroll se preserva en sessionStorage por ruta entre reloads
- * (los cambios suelen ser en la sección visible).
+ * Preview del Editor de Tienda (iframe).
+ * - CMS_UPDATE: recarga para re-leer CMS (debounce).
+ * - CMS_SELECT: scroll + outline de [data-cms-section].
+ * - Clic en sección → CMS_SECTION_CLICK al parent.
  */
 const RELOAD_DEBOUNCE_MS = 2000;
+const SELECTED_CLASS = 'cms-section-selected';
+
+function inEditorPreview(): boolean {
+  try {
+    return window.parent !== window;
+  } catch {
+    return false;
+  }
+}
+
+function applySectionSelect(sectionId: string) {
+  document.querySelectorAll(`.${SELECTED_CLASS}`).forEach((el) => {
+    el.classList.remove(SELECTED_CLASS);
+  });
+  const node = document.querySelector(`[data-cms-section="${CSS.escape(sectionId)}"]`);
+  if (!(node instanceof HTMLElement)) return;
+  node.classList.add(SELECTED_CLASS);
+  node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
 
 export function CmsPreviewListener() {
   useEffect(() => {
@@ -23,14 +39,20 @@ export function CmsPreviewListener() {
         const saved = sessionStorage.getItem(scrollKey);
         if (saved) window.scrollTo(0, Number(saved));
       } catch {
-        /* sessionStorage bloqueado: sin preservar scroll */
+        /* sessionStorage bloqueado */
       }
     };
 
     const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type !== 'CMS_UPDATE') return;
-      // Solo mensajes del parent del iframe del editor
       if (event.source !== window.parent) return;
+      const type = event.data?.type;
+
+      if (type === 'CMS_SELECT' && typeof event.data.sectionId === 'string') {
+        applySectionSelect(event.data.sectionId);
+        return;
+      }
+
+      if (type !== 'CMS_UPDATE') return;
 
       if (reloadTimer) clearTimeout(reloadTimer);
       reloadTimer = setTimeout(() => {
@@ -49,10 +71,29 @@ export function CmsPreviewListener() {
       }, RELOAD_DEBOUNCE_MS);
     };
 
+    const handleClick = (event: MouseEvent) => {
+      if (!inEditorPreview()) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const node = target.closest('[data-cms-section]');
+      if (!(node instanceof HTMLElement)) return;
+      const sectionId = node.dataset.cmsSection;
+      if (!sectionId) return;
+      event.preventDefault();
+      event.stopPropagation();
+      applySectionSelect(sectionId);
+      window.parent.postMessage({ type: 'CMS_SECTION_CLICK', sectionId }, '*');
+    };
+
     restoreScroll();
     window.addEventListener('message', handleMessage);
+    if (inEditorPreview()) {
+      document.documentElement.classList.add('cms-preview');
+      document.addEventListener('click', handleClick, true);
+    }
     return () => {
       window.removeEventListener('message', handleMessage);
+      document.removeEventListener('click', handleClick, true);
       if (reloadTimer) clearTimeout(reloadTimer);
     };
   }, []);

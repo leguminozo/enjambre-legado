@@ -24,6 +24,7 @@ import {
   Palette,
   Image as ImageIcon,
   Search,
+  Home,
   MessageCircle,
   PanelTop,
   Link2,
@@ -87,6 +88,7 @@ import { getUrlTienda } from '@/lib/publicUrls';
 import { MenuStyleEditor } from '@/components/tienda/MenuStyleEditor';
 import {
   ChromeSettingsEditor,
+  LandingLayoutEditor,
   SETTINGS_SECTION_KEYS,
 } from '@/components/tienda/StoreChromeEditors';
 import {
@@ -100,6 +102,8 @@ import { getSectionSchema, SCHEMA_SECTION_TEMPLATES } from '@/lib/editor-tienda-
 import { SchemaFormFields, SchemaSettingsPanel } from '@/components/tienda/SchemaFieldEditor';
 import {
   type FieldSchema,
+  type LandingSectionId,
+  LANDING_SECTION_EDITOR_KEY,
   scanPublicCopyRisks,
 } from '@/lib/store-chrome';
 
@@ -2137,7 +2141,8 @@ function EditorTiendaViewInner() {
     setModalUploadedPaths({});
   };
   /** Menú centralizado con segmentación: categorías → lista → herramienta. */
-  const [navDrill, setNavDrill] = useState<'categories' | 'list' | 'tool'>('categories');
+  const [navDrill, setNavDrill] = useState<'categories' | 'list' | 'tool' | 'home'>('categories');
+  const [selectedHomeNode, setSelectedHomeNode] = useState<LandingSectionId | 'atmosphere'>('hero');
   const [activeCategory, setActiveCategory] = useState<EditorCategoryId>('bloques');
   const [globalQuery, setGlobalQuery] = useState('');
   const [previewPath, setPreviewPath] = useState('');
@@ -2220,6 +2225,35 @@ function EditorTiendaViewInner() {
     setPreviewPath(path);
     setPreviewProductSlug(null);
     setPreviewLoading(true);
+  };
+
+  const postSelectToPreview = (sectionId: string) => {
+    iframeRef.current?.contentWindow?.postMessage({ type: 'CMS_SELECT', sectionId }, '*');
+  };
+
+  const handlePreviewLoad = () => {
+    setPreviewLoading(false);
+    if (navDrill === 'home' && selectedHomeNode !== 'atmosphere') {
+      postSelectToPreview(selectedHomeNode);
+    }
+  };
+
+  const openHomeWorkspace = () => {
+    setSelectedHomeNode('hero');
+    setActiveSection('landing_layout');
+    setNavDrill('home');
+    goPreview('');
+  };
+
+  const selectHomeNode = (id: LandingSectionId | 'atmosphere') => {
+    setSelectedHomeNode(id);
+    if (id === 'atmosphere' || id === 'hero') {
+      setActiveSection('landing_layout');
+    } else {
+      const key = LANDING_SECTION_EDITOR_KEY[id];
+      if (key) setActiveSection(navVisibleSectionKey(key));
+    }
+    if (id !== 'atmosphere') postSelectToPreview(id);
   };
 
   const goProductPreview = (slug: string) => {
@@ -2407,6 +2441,22 @@ function EditorTiendaViewInner() {
     );
   }, [cms.data]);
 
+  useEffect(() => {
+    const onMsg = (event: MessageEvent) => {
+      if (event.data?.type !== 'CMS_SECTION_CLICK') return;
+      if (typeof event.data.sectionId !== 'string') return;
+      const id = event.data.sectionId as LandingSectionId;
+      setSelectedHomeNode(id);
+      setNavDrill('home');
+      const key = LANDING_SECTION_EDITOR_KEY[id];
+      setActiveSection(
+        id === 'hero' || !key ? 'landing_layout' : navVisibleSectionKey(key),
+      );
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
   /**
    * Opción A: solo sube a Storage y devuelve URL pública.
    * El editor dueño del content hace onSave/update con el snapshot completo
@@ -2591,7 +2641,7 @@ function EditorTiendaViewInner() {
     // No usar calc frágil: el preview de escritorio debe heredar el alto del panel.
     <div
       data-testid="editor-tienda-root"
-      className="relative z-10 mx-0 flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-none border border-border/60 bg-background/40 shadow-2xl backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-500 ease-out sm:rounded-2xl lg:-mx-4"
+      className="relative z-10 mx-0 flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-none border border-border bg-background sm:rounded-xl lg:-mx-4"
     >
       {/* ── Top bar ──
           En iPhone 8 (375px) una sola fila de 56px recortaba Imágenes / ES-EN /
@@ -2799,7 +2849,24 @@ function EditorTiendaViewInner() {
                   ) : null}
                 </div>
               ) : (
-                EDITOR_CATEGORIES.map((cat) => {
+                <>
+                <button
+                  type="button"
+                  onClick={openHomeWorkspace}
+                  className="w-full flex items-center gap-3 p-4 rounded-xl border border-accent/30 bg-accent/5 hover:border-accent/50 transition-all text-left"
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent border border-accent/20">
+                    <Home size={20} strokeWidth={1.75} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-bold text-foreground">Inicio</span>
+                    <span className="block text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                      Árbol de la portada y preview acoplada
+                    </span>
+                  </span>
+                  <ChevronRight size={15} className="shrink-0 text-muted-foreground" />
+                </button>
+                {EDITOR_CATEGORIES.map((cat) => {
                   const Icon = cat.icon;
                   const catSections = navSectionKeys.filter((k) => sectionCategory(k) === cat.id);
                   const catItems = catSections.reduce(
@@ -2831,8 +2898,93 @@ function EditorTiendaViewInner() {
                       <ChevronRight size={15} className="shrink-0 text-muted-foreground" />
                     </button>
                   );
-                })
+                })}
+                </>
               )}
+            </div>
+          ) : navDrill === 'home' ? (
+            <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+              <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border bg-surface shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setNavDrill('categories')}
+                  aria-label="Volver"
+                  className="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground text-xs font-medium min-h-11"
+                >
+                  <ChevronLeft size={14} />
+                  Editor
+                </button>
+                <p className="text-sm font-bold text-foreground truncate">Inicio</p>
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-4">
+                <LandingLayoutEditor
+                  workspace
+                  selectedNode={selectedHomeNode}
+                  onSelectNode={selectHomeNode}
+                  draftSectionIds={Object.fromEntries(
+                    (['hero', 'conservation', 'collections', 'media', 'products', 'video', 'map'] as LandingSectionId[]).map(
+                      (id) => {
+                        const key = id === 'hero' ? 'landing_layout' : LANDING_SECTION_EDITOR_KEY[id];
+                        const dirty = key
+                          ? (groupedData[key] ?? []).some((i) => i.draft_content != null)
+                          : false;
+                        return [id, dirty];
+                      },
+                    ),
+                  )}
+                  content={
+                    workingCmsContent(
+                      (groupedData['landing_layout'] ?? []).find((i) => localeOf(i) === editorLocale) ??
+                        (groupedData['landing_layout'] ?? [])[0] ?? {
+                          id: '',
+                          section_key: 'landing_layout',
+                          item_order: 1,
+                          content: {},
+                          is_active: true,
+                        },
+                    )
+                  }
+                  onSave={(content) => {
+                    const row =
+                      (groupedData['landing_layout'] ?? []).find((i) => localeOf(i) === editorLocale) ??
+                      (groupedData['landing_layout'] ?? [])[0];
+                    if (row) {
+                      void handleUpdateItem(row.id, content, row.is_active);
+                    } else {
+                      cms.createItem.mutate({
+                        section_key: 'landing_layout',
+                        content,
+                        item_order: 1,
+                        locale: editorLocale,
+                      });
+                    }
+                  }}
+                />
+                {selectedHomeNode !== 'hero' && selectedHomeNode !== 'atmosphere' ? (
+                  <ItemsPanel
+                    items={currentItems}
+                    activeSection={activeSection}
+                    onBack={() => selectHomeNode('hero')}
+                    backLabel="Árbol"
+                    onUpdate={handleUpdateItem}
+                    onDelete={handleDeleteItem}
+                    onPublish={handlePublishItem}
+                    onDiscard={handleDiscardItem}
+                    onImageUpload={handleImageUpload}
+                    onAddNew={() => setShowNewForm(true)}
+                    onReorder={handleReorder}
+                    onDuplicate={handleDuplicateItem}
+                    isDeleting={cms.deleteItem.isPending}
+                    brandContent={groupedData['brand_assets']?.[0]?.content ?? null}
+                    companionSettingsKey={companionSettingsKey}
+                    companionSettingsItem={companionSettingsItem}
+                    onInitCompanion={handleInitCompanion}
+                    onOpenSection={(key) => {
+                      setActiveSection(navVisibleSectionKey(key));
+                    }}
+                  />
+                ) : null}
+              </div>
             </div>
           ) : navDrill === 'list' ? (
             <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
@@ -2948,14 +3100,7 @@ function EditorTiendaViewInner() {
             desktopFocus === 'a' ? 'hidden' : 'flex flex-1'
           } ${mobileTab === 'preview' ? 'flex' : 'max-md:hidden'}`}
         >
-          <div
-            className="absolute inset-0 opacity-[0.04] pointer-events-none"
-            style={{
-              backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
-              backgroundSize: '20px 20px',
-            }}
-            aria-hidden
-          />
+
 
 
 
@@ -2991,7 +3136,7 @@ function EditorTiendaViewInner() {
                   title="Vista Previa de Tienda (iPhone 8)"
                   className="absolute inset-0 h-full w-full border-none bg-background"
                   sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                  onLoad={() => setPreviewLoading(false)}
+                  onLoad={handlePreviewLoad}
                 />
                 {previewLoading ? (
                   <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface-sunken/60 backdrop-blur-sm pointer-events-none">
@@ -3014,7 +3159,7 @@ function EditorTiendaViewInner() {
                   title="Vista Previa de Tienda"
                   className="absolute inset-0 w-full h-full border-none bg-background"
                   sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                  onLoad={() => setPreviewLoading(false)}
+                  onLoad={handlePreviewLoad}
                 />
                 {previewLoading ? (
                   <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface-sunken/60 backdrop-blur-sm pointer-events-none">
