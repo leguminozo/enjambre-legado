@@ -56,7 +56,7 @@ export function TerritorioHeader() {
         </Link>
         <Link
           href="/login?mode=signup"
-          className="inline-flex min-h-10 items-center justify-center rounded-full bg-primary px-4 sm:px-5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-95"
+          className="inline-flex min-h-10 items-center justify-center rounded-md bg-primary px-4 sm:px-5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-95"
         >
           Inscribirse
         </Link>

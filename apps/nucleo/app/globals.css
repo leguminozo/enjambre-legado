@@ -2504,4 +2504,27 @@ body::after {
   }
 }
 
+/* ── Landing: GSAP Initial State & Fallbacks ── */
+.gsap-hidden {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gsap-hidden {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+html[data-legacy='true'] .gsap-hidden {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* ── Landing: FAQ Details Smooth Transition ── */
+details.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
 

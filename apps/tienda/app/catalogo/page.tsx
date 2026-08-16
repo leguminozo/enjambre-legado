@@ -81,16 +81,6 @@ export default async function CatalogoPage() {
               Volver al inicio
             </Link>
           </div>
-        ) : products.length === 0 ? (
-          <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
-            <p className="text-muted-foreground mb-6">Aún no hay productos publicados.</p>
-            <Link
-              href="/"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-accent/40 px-6 text-sm font-medium text-accent-text hover:bg-accent/10 transition-colors"
-            >
-              Volver al inicio
-            </Link>
-          </div>
         ) : (
           <Suspense fallback={<p className="py-16 text-center text-muted-foreground">Cargando catálogo…</p>}>
             <CreatorRefCapture />

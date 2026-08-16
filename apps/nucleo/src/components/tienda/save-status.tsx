@@ -15,18 +15,40 @@ import { useAutosave, type AutosaveStatus } from '@/hooks/use-autosave';
 type StatusMap = Record<string, AutosaveStatus>;
 export type AggregateStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 
-interface EditorSaveStatusContextValue {
-  statuses: StatusMap;
+interface EditorSaveActions {
   setStatus: (key: string, status: AutosaveStatus) => void;
   registerFlush: (key: string, flush: () => Promise<void>) => void;
+  unregisterFlush: (key: string) => void;
   flushAll: () => Promise<void>;
 }
 
-const EditorSaveStatusContext = createContext<EditorSaveStatusContextValue | null>(null);
+const EditorSaveActionsContext = createContext<EditorSaveActions | null>(null);
+const EditorSaveStatusesContext = createContext<StatusMap>({});
+
+/** Invoca cada flush registrado. allSettled sobre las funciones (sin llamarlas)
+ *  era un no-op: Cmd+S y Reintentar no guardaban. */
+export async function flushRegistered(
+  flushes: Record<string, () => Promise<void>>,
+): Promise<void> {
+  await Promise.allSettled(Object.values(flushes).map((fn) => fn()));
+}
+
+export function deriveAggregateStatus(statuses: StatusMap): AggregateStatus {
+  const values = Object.values(statuses);
+  if (values.length === 0) return 'idle';
+  if (values.includes('error')) return 'error';
+  if (values.includes('saving')) return 'saving';
+  if (values.includes('pending')) return 'pending';
+  return 'saved';
+}
 
 /**
  * Agrega el estado de guardado de todos los editores activos del editor de
  * tienda → chip global de publicación en la top bar.
+ *
+ * Acciones y statuses van en contextos separados: si el value incluye
+ * `statuses`, cada tecleo recrea el ctx y remonta todos los autosaves
+ * (Maximum update depth).
  */
 export function EditorSaveStatusProvider({ children }: { children: React.ReactNode }) {
   const [statuses, setStatuses] = useState<StatusMap>({});
@@ -34,13 +56,14 @@ export function EditorSaveStatusProvider({ children }: { children: React.ReactNo
 
   const setStatus = useCallback((key: string, status: AutosaveStatus) => {
     setStatuses((prev) => {
-      const next = { ...prev };
       if (status === 'idle') {
+        if (!(key in prev)) return prev;
+        const next = { ...prev };
         delete next[key];
-      } else {
-        next[key] = status;
+        return next;
       }
-      return next;
+      if (prev[key] === status) return prev;
+      return { ...prev, [key]: status };
     });
   }, []);
 
@@ -48,67 +71,59 @@ export function EditorSaveStatusProvider({ children }: { children: React.ReactNo
     flushesRef.current[key] = flush;
   }, []);
 
-  const flushAll = useCallback(async () => {
-    await Promise.allSettled(Object.values(flushesRef.current));
+  const unregisterFlush = useCallback((key: string) => {
+    delete flushesRef.current[key];
   }, []);
 
-  const value = useMemo(
-    () => ({ statuses, setStatus, registerFlush, flushAll }),
-    [statuses, setStatus, registerFlush, flushAll],
+  const flushAll = useCallback(async () => {
+    await flushRegistered(flushesRef.current);
+  }, []);
+
+  const actions = useMemo(
+    () => ({ setStatus, registerFlush, unregisterFlush, flushAll }),
+    [setStatus, registerFlush, unregisterFlush, flushAll],
   );
 
   return (
-    <EditorSaveStatusContext.Provider value={value}>{children}</EditorSaveStatusContext.Provider>
+    <EditorSaveActionsContext.Provider value={actions}>
+      <EditorSaveStatusesContext.Provider value={statuses}>
+        {children}
+      </EditorSaveStatusesContext.Provider>
+    </EditorSaveActionsContext.Provider>
   );
 }
 
 /** Registra un editor por key: reporta su estado y su flush (para reintentar todo). */
 export function useEditorSaveStatus(key: string, flush: () => Promise<void>) {
-  const ctx = useContext(EditorSaveStatusContext);
+  const actions = useContext(EditorSaveActionsContext);
   const flushRef = useRef(flush);
   flushRef.current = flush;
 
   useEffect(() => {
-    if (!ctx) return;
-    ctx.registerFlush(key, () => flushRef.current());
+    if (!actions) return;
+    actions.registerFlush(key, () => flushRef.current());
     return () => {
-      ctx.setStatus(key, 'idle');
+      actions.unregisterFlush(key);
+      actions.setStatus(key, 'idle');
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- registrar una sola vez
-  }, [ctx, key]);
+  }, [actions, key]);
 
   return useCallback(
     (status: AutosaveStatus) => {
-      ctx?.setStatus(key, status);
+      actions?.setStatus(key, status);
     },
-    [ctx, key],
+    [actions, key],
   );
 }
 
 /** Estado derivado de todos los editores: error > saving > pending > saved > idle. */
 export function useEditorSaveAggregate(): { status: AggregateStatus; flushAll: () => Promise<void> } {
-  const ctx = useContext(EditorSaveStatusContext);
-  const [status, setStatus] = useState<AggregateStatus>('idle');
-
-  useEffect(() => {
-    if (!ctx) return;
-    const values = Object.values(ctx.statuses);
-    if (values.length === 0) {
-      setStatus('idle');
-      return;
-    }
-    const next: AggregateStatus = values.includes('error')
-      ? 'error'
-      : values.includes('saving')
-        ? 'saving'
-        : values.includes('pending')
-          ? 'pending'
-          : 'saved';
-    setStatus(next);
-  }, [ctx]);
-
-  if (!ctx) return { status: 'idle', flushAll: async () => undefined };
-  return { status, flushAll: ctx.flushAll };
+  const actions = useContext(EditorSaveActionsContext);
+  const statuses = useContext(EditorSaveStatusesContext);
+  return {
+    status: deriveAggregateStatus(statuses),
+    flushAll: actions?.flushAll ?? (async () => undefined),
+  };
 }
 
 /**

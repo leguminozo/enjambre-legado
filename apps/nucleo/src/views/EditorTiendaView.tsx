@@ -397,7 +397,7 @@ const SECTION_META: Record<
     short: 'Login / Registro',
     icon: Lock,
     group: 'apariencia',
-    hint: 'Título, subtítulo, frase de marca, fondo dinámico (bosque nativo, polen dorado) y orb',
+    hint: 'Título, subtítulo, frase de marca y fondo',
   },
   catalog_settings: {
     label: 'Catálogo',
@@ -671,6 +671,7 @@ const PREVIEW_DESTINATIONS: { path: string; label: string }[] = [
   { path: '/contacto', label: 'Contacto' },
   { path: '/carrito', label: 'Carrito' },
   { path: '/checkout', label: 'Checkout' },
+  { path: '/login', label: 'Login' },
   { path: '/perfil', label: 'Perfil' },
   { path: '/terminos', label: 'Términos' },
   { path: '/privacidad', label: 'Privacidad' },
@@ -2235,7 +2236,7 @@ function EditorTiendaViewInner() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [saveStatus]);
 
-  // Cmd/Ctrl+S = publicar ahora (flush inmediato de todos los editores)
+  // Cmd/Ctrl+S = guardar pendientes (autosave flush). Publicar borradores es otro botón.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
@@ -2253,7 +2254,7 @@ function EditorTiendaViewInner() {
   const goPreview = (path: string) => {
     if (path === previewPath) return;
     setPreviewPath(path);
-    setPreviewProductSlug(null);
+    if (!path.startsWith('/producto/')) setPreviewProductSlug(null);
     setPreviewLoading(true);
   };
 
@@ -2285,12 +2286,26 @@ function EditorTiendaViewInner() {
     setSelectedPageNodeId(node.id);
     setActiveSection(navVisibleSectionKey(node.sectionKey));
     setNavDrill('page');
+    if (node.sectionKey === 'pdp_settings') {
+      const slug = previewProductSlug ?? previewProducts[0]?.slug;
+      if (slug) {
+        goProductPreview(slug);
+        return;
+      }
+    }
     goPreview(node.previewPath);
   };
 
   const selectPageNode = (node: PageWorkspaceNode) => {
     setSelectedPageNodeId(node.id);
     setActiveSection(navVisibleSectionKey(node.sectionKey));
+    if (node.sectionKey === 'pdp_settings') {
+      const slug = previewProductSlug ?? previewProducts[0]?.slug;
+      if (slug) {
+        goProductPreview(slug);
+        return;
+      }
+    }
     goPreview(node.previewPath);
   };
 
@@ -2552,6 +2567,34 @@ function EditorTiendaViewInner() {
     }
   };
 
+  const handleInitActiveSection = () => {
+    const template = SECTION_TEMPLATES[activeSection] ?? {};
+    cms.createItem.mutate(
+      {
+        section_key: activeSection as CMSSectionKey,
+        content: template,
+        item_order: 1,
+        locale: editorLocale,
+      },
+      {
+        onSuccess: (res) => {
+          notifyRevalidate(res?.revalidated, res?.revalidate_reason);
+          toast('Sección inicializada', { type: 'success' });
+          refreshIframe();
+        },
+        onError: (err) => toast(err.message, { type: 'error' }),
+      },
+    );
+  };
+
+  const handleAddOrInit = () => {
+    if (SETTINGS_SECTION_KEYS.has(activeSection)) {
+      handleInitActiveSection();
+      return;
+    }
+    setShowNewForm(true);
+  };
+
   const handleCreateItem = () => {
     try {
       // Los items nuevos caen al FINAL de la sección (no item_order 0 = arriba)
@@ -2692,6 +2735,10 @@ function EditorTiendaViewInner() {
   };
 
   const tiendaUrl = getUrlTienda();
+  const previewOrigin = tiendaUrl.replace(/\/$/, '');
+  const previewLocalePrefix = editorLocale === 'en' ? '/en' : '';
+  const iframeSrc = `${previewOrigin}${previewLocalePrefix}${previewPath}?cms_preview=1`;
+  const liveHref = `${previewOrigin}${previewLocalePrefix}${previewPath || ''}`;
 
   // Guard: si la URL de tienda apunta al propio Núcleo, el iframe se auto-embebe
   // y queda en blanco (CSP frame-ancestors 'none'). Mostrar error explícito.
@@ -2774,7 +2821,7 @@ function EditorTiendaViewInner() {
             />
             {tiendaUrl && (
               <a
-                href={tiendaUrl}
+                href={liveHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex min-h-11 items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -3071,7 +3118,7 @@ function EditorTiendaViewInner() {
                     onPublish={handlePublishItem}
                     onDiscard={handleDiscardItem}
                     onImageUpload={handleImageUpload}
-                    onAddNew={() => setShowNewForm(true)}
+                    onAddNew={handleAddOrInit}
                     onReorder={handleReorder}
                     onDuplicate={handleDuplicateItem}
                     isDeleting={cms.deleteItem.isPending}
@@ -3134,7 +3181,7 @@ function EditorTiendaViewInner() {
                   onPublish={handlePublishItem}
                   onDiscard={handleDiscardItem}
                   onImageUpload={handleImageUpload}
-                  onAddNew={() => setShowNewForm(true)}
+                  onAddNew={handleAddOrInit}
                   onReorder={handleReorder}
                   onDuplicate={handleDuplicateItem}
                   isDeleting={cms.deleteItem.isPending}
@@ -3236,7 +3283,7 @@ function EditorTiendaViewInner() {
                     onPublish={handlePublishItem}
                     onDiscard={handleDiscardItem}
                     onImageUpload={handleImageUpload}
-                    onAddNew={() => setShowNewForm(true)}
+                    onAddNew={handleAddOrInit}
                     onReorder={handleReorder}
                     onDuplicate={handleDuplicateItem}
                     isDeleting={cms.deleteItem.isPending}
@@ -3262,9 +3309,53 @@ function EditorTiendaViewInner() {
             desktopFocus === 'a' ? 'hidden' : 'flex flex-1'
           } ${mobileTab === 'preview' ? 'flex' : 'max-md:hidden'}`}
         >
-
-
-
+          <div className="z-[2] flex shrink-0 flex-wrap items-center gap-2 border-b border-border/40 bg-surface/70 px-3 py-2">
+            <label className="sr-only" htmlFor="editor-preview-path">
+              Página de la previa
+            </label>
+            <select
+              id="editor-preview-path"
+              value={PREVIEW_DESTINATIONS.some((d) => d.path === previewPath) ? previewPath : ''}
+              onChange={(e) => goPreview(e.target.value)}
+              className="min-h-9 max-w-[12rem] rounded-lg border border-border bg-background px-2 text-[11px] text-foreground"
+            >
+              {!PREVIEW_DESTINATIONS.some((d) => d.path === previewPath) ? (
+                <option value={previewPath}>
+                  {previewPath.startsWith('/producto/') ? 'Ficha de producto' : previewPath || 'Inicio'}
+                </option>
+              ) : null}
+              {PREVIEW_DESTINATIONS.map((d) => (
+                <option key={d.path || '/'} value={d.path}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+            {previewProducts.length > 0 ? (
+              <>
+                <label className="sr-only" htmlFor="editor-preview-product">
+                  Producto de la previa
+                </label>
+                <select
+                  id="editor-preview-product"
+                  value={previewProductSlug ?? ''}
+                  onChange={(e) => {
+                    const slug = e.target.value;
+                    if (slug) goProductPreview(slug);
+                  }}
+                  className="min-h-9 max-w-[14rem] rounded-lg border border-border bg-background px-2 text-[11px] text-foreground"
+                >
+                  <option value="" disabled>
+                    Ver ficha…
+                  </option>
+                  {previewProducts.map((p) => (
+                    <option key={p.id} value={p.slug}>
+                      {p.nombre}
+                    </option>
+                  ))}
+                </select>
+              </>
+            ) : null}
+          </div>
 
           {/* Lienzo del iframe: en desktop llena el panel; en mobile centra el teléfono */}
           <div
@@ -3294,7 +3385,7 @@ function EditorTiendaViewInner() {
                 <iframe
                   ref={iframeRef}
                   key={`${iframeKey}-${editorLocale}-m`}
-                  src={`${tiendaUrl}${editorLocale === 'en' ? '/en' : ''}${previewPath}?cms_preview=1`}
+                  src={iframeSrc}
                   title="Vista Previa de Tienda (iPhone 8)"
                   className="absolute inset-0 h-full w-full border-none bg-background"
                   sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
@@ -3317,7 +3408,7 @@ function EditorTiendaViewInner() {
                 <iframe
                   ref={iframeRef}
                   key={`${iframeKey}-${editorLocale}-d`}
-                  src={`${tiendaUrl}${editorLocale === 'en' ? '/en' : ''}${previewPath}?cms_preview=1`}
+                  src={iframeSrc}
                   title="Vista Previa de Tienda"
                   className="absolute inset-0 w-full h-full border-none bg-background"
                   sandbox="allow-same-origin allow-scripts allow-popups allow-forms"

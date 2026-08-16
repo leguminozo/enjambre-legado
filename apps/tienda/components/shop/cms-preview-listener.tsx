@@ -8,7 +8,7 @@ import { useEffect } from 'react';
  * - CMS_SELECT: scroll + outline de [data-cms-section].
  * - Clic en sección → CMS_SECTION_CLICK al parent.
  */
-const RELOAD_DEBOUNCE_MS = 2000;
+const RELOAD_DEBOUNCE_MS = 400;
 const SELECTED_CLASS = 'cms-section-selected';
 
 function inEditorPreview(): boolean {

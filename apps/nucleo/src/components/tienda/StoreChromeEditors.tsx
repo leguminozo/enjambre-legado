@@ -1227,6 +1227,12 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
         onChange={(v) => patch('page_subtitle', v)}
         multiline
       />
+      <TextField
+        label="Subtítulo (EN)"
+        value={local.page_subtitle_en ?? ''}
+        onChange={(v) => patch('page_subtitle_en', v)}
+        multiline
+      />
       <SliderField
         label="Columnas desktop"
         value={local.columns_desktop}

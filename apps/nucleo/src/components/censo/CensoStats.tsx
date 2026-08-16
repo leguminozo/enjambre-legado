@@ -57,21 +57,24 @@ export function CensoStats({ initialStats, variant = 'prose' }: CensoStatsProps)
       );
     }
 
-    const items: { value: string; label: string }[] = [];
+    const items: { rawValue: number; value: string; label: string }[] = [];
     if (stats.actores_activos > 0) {
       items.push({
+        rawValue: stats.actores_activos,
         value: stats.actores_activos.toLocaleString('es-CL'),
         label: stats.actores_activos === 1 ? 'apicultor' : 'apicultores',
       });
     }
     if (stats.comunas > 0) {
       items.push({
+        rawValue: stats.comunas,
         value: stats.comunas.toLocaleString('es-CL'),
         label: stats.comunas === 1 ? 'comuna' : 'comunas',
       });
     }
     if (stats.colmenas_registradas > 0) {
       items.push({
+        rawValue: stats.colmenas_registradas,
         value: stats.colmenas_registradas.toLocaleString('es-CL'),
         label: 'colmenas',
       });
@@ -89,7 +92,10 @@ export function CensoStats({ initialStats, variant = 'prose' }: CensoStatsProps)
       <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
         {items.map((item) => (
           <div key={item.label}>
-            <p className="text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight text-foreground">
+            <p
+              className="counter-value text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight text-foreground"
+              data-target={item.rawValue}
+            >
               {item.value}
             </p>
             <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground mt-0.5">
