@@ -37,7 +37,8 @@ export function MediaCarousel({ items, autoplayMs = 5000, settings }: MediaCarou
 
   const effectiveAutoplayMs = settings?.autoplay_ms ?? autoplayMs;
   const heightClass = heightClassMap[settings?.carousel_height || ''] || 'h-[50vh] md:h-[70vh]';
-  const fitClass = settings?.image_fit === 'contain' ? 'object-contain' : 'object-cover object-center';
+  const isContain = settings?.image_fit === 'contain';
+  const fitClass = isContain ? 'object-contain' : 'object-cover object-center';
   const isPaused = isHovered || isFocused;
 
   const goTo = useCallback(
@@ -49,7 +50,7 @@ export function MediaCarousel({ items, autoplayMs = 5000, settings }: MediaCarou
   );
 
   useEffect(() => {
-    if (items.length <= 1 || isPaused) return;
+    if (items.length <= 1 || isPaused || effectiveAutoplayMs <= 0) return;
     intervalRef.current = setInterval(() => goTo(current + 1), effectiveAutoplayMs);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -128,14 +129,27 @@ export function MediaCarousel({ items, autoplayMs = 5000, settings }: MediaCarou
                   />
                 )
               ) : (
-                <Image
-                  src={item.src || '/assets/editorial/immersion.png'}
-                  alt={item.alt || item.title || ''}
-                  fill
-                  priority={i === 0}
-                  sizes="100vw"
-                  className={fitClass}
-                />
+                <>
+                  {isContain ? (
+                    <Image
+                      src={item.src || '/assets/editorial/immersion.png'}
+                      alt=""
+                      fill
+                      priority={false}
+                      sizes="100vw"
+                      aria-hidden="true"
+                      className="object-cover blur-2xl opacity-30 scale-110 pointer-events-none"
+                    />
+                  ) : null}
+                  <Image
+                    src={item.src || '/assets/editorial/immersion.png'}
+                    alt={item.alt || item.title || ''}
+                    fill
+                    priority={i === 0}
+                    sizes="100vw"
+                    className={fitClass}
+                  />
+                </>
               )}
               {/* Degradado adaptativo: más pronunciado si hay texto para legibilidad, sutil si es solo fotografía */}
               <div

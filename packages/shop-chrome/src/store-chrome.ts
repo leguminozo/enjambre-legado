@@ -1550,10 +1550,17 @@ export function parseMediaSettings(
 ): MediaSettings {
   const d = DEFAULT_MEDIA_SETTINGS;
   if (!raw) return { ...d };
+  let autoplayMs = d.autoplay_ms;
+  if (typeof raw.autoplay_seconds === 'number') {
+    autoplayMs = raw.autoplay_seconds * 1000;
+  } else if (typeof raw.autoplay_ms === 'number') {
+    // Si viene en segundos (<= 20, ej: 0, 2, 5, 7, 10, 12, 15), multiplicar por 1000
+    autoplayMs = raw.autoplay_ms <= 20 ? raw.autoplay_ms * 1000 : raw.autoplay_ms;
+  }
   return {
     carousel_height: pickEnum(raw.carousel_height, CAROUSEL_HEIGHT_MODES, d.carousel_height),
     image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
-    autoplay_ms: asNumber(raw.autoplay_ms, d.autoplay_ms, 2000, 20000),
+    autoplay_ms: Math.max(0, Math.min(30000, autoplayMs)),
   };
 }
 

@@ -1182,7 +1182,7 @@ export function MediaSettingsEditor({
           <option value="50vh/70vh">Media Estándar (50vh Móvil / 70vh Escritorio)</option>
           <option value="40vh/60vh">Compacta (40vh Móvil / 60vh Escritorio)</option>
           <option value="60vh/80vh">Grande (60vh Móvil / 80vh Escritorio)</option>
-          <option value="70vh/90vh">Imersión Total (70vh Móvil / 90vh Escritorio)</option>
+          <option value="70vh/90vh">Inmersión Total (70vh Móvil / 90vh Escritorio)</option>
         </select>
       </div>
 
@@ -1199,17 +1199,25 @@ export function MediaSettingsEditor({
       </div>
 
       <div className="space-y-1.5">
-        <label className={labelClass}>Velocidad de Auto-reproducción (Milisegundos)</label>
-        <input
-          type="number"
-          min={2000}
-          max={20000}
-          step={500}
+        <label className={labelClass}>Velocidad de Auto-reproducción (Segundos)</label>
+        <select
           value={local.autoplay_ms}
           onChange={(e) => patch('autoplay_ms', Number(e.target.value))}
           className={inputClass}
-        />
-        <p className="text-[11px] text-muted-foreground">Ej: 5000 = 5 segundos por diapositiva.</p>
+        >
+          <option value={0}>0s — Desactivado (Navegación manual)</option>
+          <option value={2000}>2 segundos</option>
+          <option value={5000}>5 segundos (Recomendado)</option>
+          <option value={7000}>7 segundos</option>
+          <option value={10000}>10 segundos</option>
+          <option value={12000}>12 segundos</option>
+          <option value={15000}>15 segundos</option>
+        </select>
+        <p className="text-[11px] text-muted-foreground">
+          {local.autoplay_ms === 0
+            ? 'Las diapositivas no avanzan automáticamente.'
+            : `Rotación automática cada ${local.autoplay_ms / 1000} segundos.`}
+        </p>
       </div>
     </div>
   );
