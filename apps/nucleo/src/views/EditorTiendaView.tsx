@@ -1801,7 +1801,7 @@ function ItemsPanel({
                 const src =
                   (typeof slide.image === 'string' ? slide.image : '') ||
                   (typeof slide.src === 'string' ? slide.src : '');
-                if (!src.startsWith('http')) return null;
+                if (!src.startsWith('http') && !src.startsWith('/')) return null;
                 const alt =
                   typeof slide.alt === 'string' && slide.alt
                     ? slide.alt

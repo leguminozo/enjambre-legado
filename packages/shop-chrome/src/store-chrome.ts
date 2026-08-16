@@ -1433,10 +1433,12 @@ export function parseConservationContent(
 }
 
 export function parseHomeMediaItem(raw: Record<string, unknown>): HomeMediaItem | null {
-  // `image` (nuevo, uploader) con fallback a `src` (items viejos de la ola 4).
+  // `image` (nuevo, uploader) con fallback a `src` (items viejos de la ola 4), `url` y `image_url`.
   const src =
     (typeof raw.image === 'string' ? raw.image.trim() : '') ||
-    (typeof raw.src === 'string' ? raw.src.trim() : '');
+    (typeof raw.src === 'string' ? raw.src.trim() : '') ||
+    (typeof raw.url === 'string' ? raw.url.trim() : '') ||
+    (typeof raw.image_url === 'string' ? raw.image_url.trim() : '');
   if (!src) return null;
   return {
     type: pickEnum(raw.type, MEDIA_TYPES, 'image'),

@@ -19,6 +19,14 @@ const heightClassMap: Record<string, string> = {
   '70vh/90vh': 'h-[70vh] md:h-[90vh]',
 };
 
+function getYouTubeId(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/,
+  );
+  return match ? match[1] : null;
+}
+
 export function MediaCarousel({ items, autoplayMs = 5000, settings }: MediaCarouselProps) {
   const [current, setCurrent] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -29,7 +37,7 @@ export function MediaCarousel({ items, autoplayMs = 5000, settings }: MediaCarou
 
   const effectiveAutoplayMs = settings?.autoplay_ms ?? autoplayMs;
   const heightClass = heightClassMap[settings?.carousel_height || ''] || 'h-[50vh] md:h-[70vh]';
-  const fitClass = settings?.image_fit === 'contain' ? 'object-contain p-4' : 'object-cover';
+  const fitClass = settings?.image_fit === 'contain' ? 'object-contain' : 'object-cover object-center';
   const isPaused = isHovered || isFocused;
 
   const goTo = useCallback(
@@ -49,15 +57,15 @@ export function MediaCarousel({ items, autoplayMs = 5000, settings }: MediaCarou
   }, [current, goTo, items.length, effectiveAutoplayMs, isPaused]);
 
   useEffect(() => {
-    if (!trackRef.current) return;
+    if (!trackRef.current || items.length === 0) return;
     import('gsap').then((mod) => {
       mod.gsap.to(trackRef.current, {
-        xPercent: -100 * current,
+        xPercent: -(100 / items.length) * current,
         duration: 1.2,
         ease: 'power3.inOut',
       });
     });
-  }, [current]);
+  }, [current, items.length]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartXRef.current = e.touches[0].clientX;
@@ -96,29 +104,47 @@ export function MediaCarousel({ items, autoplayMs = 5000, settings }: MediaCarou
     >
       <div ref={trackRef} className="flex h-full" style={{ width: `${items.length * 100}%` }}>
         {items.map((item, i) => {
-          const hasCopy = item.kicker || item.title || item.subtitle || item.cta_label;
+          const hasCopy = Boolean(item.kicker || item.title || item.subtitle || item.cta_label);
+          const ytId = item.type === 'video' ? getYouTubeId(item.src) : null;
           return (
-            <div key={i} className="relative h-full flex-shrink-0" style={{ width: `${100 / items.length}%` }}>
+            <div key={i} className="relative h-full flex-shrink-0 overflow-hidden" style={{ width: `${100 / items.length}%` }}>
               {item.type === 'video' ? (
-                <video
-                  src={item.src}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className={`h-full w-full ${fitClass}`}
-                />
+                ytId ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&modestbranding=1`}
+                    title={item.title || item.alt || 'Video'}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="absolute inset-0 w-full h-full border-0 pointer-events-none"
+                  />
+                ) : (
+                  <video
+                    src={item.src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className={`h-full w-full ${fitClass}`}
+                  />
+                )
               ) : (
                 <Image
-                  src={item.src}
+                  src={item.src || '/assets/editorial/immersion.png'}
                   alt={item.alt || item.title || ''}
                   fill
+                  priority={i === 0}
                   sizes="100vw"
                   className={fitClass}
                 />
               )}
-              {/* Degradado adaptativo de legibilidad */}
-              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent pointer-events-none" />
+              {/* Degradado adaptativo: más pronunciado si hay texto para legibilidad, sutil si es solo fotografía */}
+              <div
+                className={`absolute inset-0 pointer-events-none transition-opacity duration-base ${
+                  hasCopy
+                    ? 'bg-gradient-to-t from-background/90 via-background/40 to-transparent'
+                    : 'bg-gradient-to-t from-background/25 via-transparent to-transparent'
+                }`}
+              />
 
               {/* Superposición Editorial Opcional */}
               {hasCopy ? (
