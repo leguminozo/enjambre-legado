@@ -52,6 +52,36 @@ function frameSrcDirective(): string {
   return `frame-src ${Array.from(origins).join(" ")}`;
 }
 
+/** Quién puede embeber rutas de Núcleo (por ejemplo /mapa-chiloe en la landing de Núcleo o Tienda). */
+function frameAncestorsDirective(): string {
+  const origins = new Set<string>([
+    "'self'",
+    "https://*.vercel.app",
+    "https://obrerayzangano.online",
+    "https://www.obrerayzangano.online",
+    "https://obrerayzangano.cl",
+    "https://www.obrerayzangano.cl",
+    "https://nucleo-theta.vercel.app",
+    "https://tienda-eta-lime.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+  ]);
+
+  for (const key of ["NEXT_PUBLIC_URL_NUCLEO", "NEXT_PUBLIC_NUCLEO_URL", "NEXT_PUBLIC_URL_TIENDA", "NEXT_PUBLIC_TIENDA_URL"] as const) {
+    const raw = process.env[key]?.trim();
+    if (!raw) continue;
+    try {
+      origins.add(new URL(raw).origin);
+    } catch {
+      /* ignore invalid */
+    }
+  }
+
+  return `frame-ancestors ${Array.from(origins).join(" ")}`;
+}
+
 const securityHeaders = [
   { key: "X-DNS-Prefetch-Control", value: "on" },
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
@@ -74,7 +104,7 @@ const securityHeaders = [
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-      "frame-ancestors 'none'",
+      frameAncestorsDirective(),
       frameSrcDirective(),
       "upgrade-insecure-requests",
     ]
