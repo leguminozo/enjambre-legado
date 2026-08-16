@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSecretsPresenceForIntegrationKey } from '@/lib/integrations-env';
+import { resolveGoogleAdsMode } from '@/lib/integrations/google-ads';
 import { resolveMetaAdsMode } from '@/lib/integrations/meta-ads';
+import { getGoogleAdsId, getGoogleAdsPurchaseLabel } from '@/lib/tracking/google/gtag';
 import { getMetaCapiConfig } from '@/lib/tracking/meta/capi';
 
 /**
@@ -10,7 +12,7 @@ import { getMetaCapiConfig } from '@/lib/tracking/meta/capi';
  * Expone SOLO presencia booleana de secretos — nunca valores.
  */
 
-const INTEGRATION_KEYS = ['meta_ads', 'sii', 'bancos', 'notificaciones', 'boletas'] as const;
+const INTEGRATION_KEYS = ['meta_ads', 'google_ads', 'sii', 'bancos', 'notificaciones', 'boletas'] as const;
 
 function timingSafeEqualString(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -51,6 +53,11 @@ export async function GET(req: NextRequest) {
     metaAds: {
       hasPixelId: Boolean(metaCapi.pixelId),
       mode: resolveMetaAdsMode(),
+    },
+    googleAds: {
+      hasAdsId: Boolean(getGoogleAdsId()),
+      hasPurchaseLabel: Boolean(getGoogleAdsPurchaseLabel()),
+      mode: resolveGoogleAdsMode(),
     },
   });
 }

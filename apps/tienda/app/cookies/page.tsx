@@ -13,7 +13,7 @@ export default async function CookiesPage({ searchParams }: { searchParams: Prom
   const item = contentData[0]?.content;
   const title = resolveLegalTitle(item, 'Política de Cookies');
   const content = resolveLegalBody(item, `
-<strong>Última actualización: 19 de mayo de 2026</strong>
+<strong>Última actualización: 15 de agosto de 2026</strong>
 
 Esta Política de Cookies explica cómo La Obrera y el Zángano (en adelante "nosotros" o "la Tienda") utiliza cookies y tecnologías similares en el sitio obrerayzangano.com, en cumplimiento de la Ley 19.628 sobre Protección de Datos de Carácter Personal y la Ley 21.719 que reforma dicha normativa.
 
@@ -42,22 +42,17 @@ Permiten recordar sus preferencias (idioma, región, diseño). Requieren consent
 
 <strong>2.3. Cookies analíticas o estadísticas</strong>
 
-Nos ayudan a comprender cómo los visitantes interactúan con el sitio. Requieren consentimiento.
-
-| Cookie | Proveedor | Finalidad | Duración | Tipo |
-|--------|-----------|-----------|----------|------|
-| _ga | Google Analytics | Distinguir usuarios | 2 años | Tercera parte |
-| _ga_<id> | Google Analytics | Mantener estado de sesión | 2 años | Tercera parte |
-| _gid | Google Analytics | Distinguir usuarios | 24 horas | Tercera parte |
+Hoy no instalamos Google Analytics ni otra herramienta de medición de audiencia. Esta categoría existe en el banner por si más adelante incorporamos analítica; sin tu consentimiento no se cargará ninguna cookie de este tipo.
 
 <strong>2.4. Cookies publicitarias o de marketing</strong>
 
-Se utilizan para mostrar anuncios relevantes y medir la efectividad de campañas. Requieren consentimiento.
+Se utilizan para medir campañas y remarketing. Requieren consentimiento de marketing. El script (Meta Pixel o gtag de Google Ads) solo se inyecta si además hay ID configurado en el servidor.
 
 | Cookie | Proveedor | Finalidad | Duración | Tipo |
 |--------|-----------|-----------|----------|------|
-| _fbp | Meta (Facebook Pixel) | Remarketing, seguimiento de conversiones | 3 meses | Tercera parte |
-| _gcl_au | Google Ads | Seguimiento de conversiones | 3 meses | Tercera parte |
+| _fbp | Meta (Facebook Pixel) | Remarketing y conversiones | 3 meses | Tercera parte |
+| _fbc | Meta (Facebook Pixel) | Atribución de clic (si llegas desde un anuncio) | 3 meses | Tercera parte |
+| _gcl_au | Google Ads | Conversiones de campañas | 3 meses | Tercera parte |
 
 <strong>2.5. Cookies de terceros</strong>
 
@@ -88,7 +83,7 @@ Si desactiva las cookies esenciales, el sitio puede no funcionar correctamente (
 
 <strong>5. Transferencias internacionales</strong>
 
-Algunas cookies de terceros (Google Analytics, Meta Pixel) pueden implicar la transferencia de datos a servidores fuera de Chile. Estos proveedores cumplen con cláusulas contractuales estándar y marcos de privacidad reconocidos.
+Algunas cookies de terceros (Meta Pixel, Google Ads) pueden implicar la transferencia de datos a servidores fuera de Chile. Estos proveedores aplican cláusulas contractuales estándar y marcos de privacidad reconocidos.
 
 <strong>6. Actualizaciones</strong>
 
@@ -105,7 +100,7 @@ Consulta también: <a href="/privacidad">Política de Privacidad</a> | <a href="
     <LegalContent
       title={title}
       content={content}
-      lastUpdated={resolveLegalLastUpdated(item, '19 de mayo de 2026')}
+      lastUpdated={resolveLegalLastUpdated(item, '15 de agosto de 2026')}
     />
   );
 }

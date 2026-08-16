@@ -42,6 +42,10 @@ No uses proyectos viejos (`gaboxxc/*`) para prod.
 | `GROQ_STT_MODEL` | opcional | — | — | Default `whisper-large-v3-turbo` |
 | `AI_ENABLED` | opcional | — | — | `false` = kill-switch IA |
 | `NEXT_PUBLIC_BITACORA_AUTO_STT` | opcional | — | — | Default auto-STT tras sync de audio; `false` = solo botón curaduría |
+| `NEXT_PUBLIC_META_PIXEL_ID` | — | opcional | — | Pixel Meta; sin esto el pixel no carga |
+| `META_CAPI_TOKEN` | — | opcional server | — | Conversions API; nunca `NEXT_PUBLIC_*` |
+| `NEXT_PUBLIC_GOOGLE_ADS_ID` | — | opcional | — | Conversion ID `AW-…`; sin esto gtag no carga |
+| `NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL` | — | opcional | — | Label de la acción Purchase en Google Ads |
 
 ### Config-en-UI vs env plataforma
 

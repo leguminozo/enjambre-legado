@@ -59,6 +59,7 @@ function tiendaInternalSecret(): string {
 type TiendaIntegrationsStatus = {
   presence?: Record<string, boolean>;
   metaAds?: { hasPixelId: boolean; mode: "live" | "stub" };
+  googleAds?: { hasAdsId: boolean; hasPurchaseLabel: boolean; mode: "live" | "stub" };
 };
 
 async function fetchTiendaIntegrationsStatus(): Promise<TiendaIntegrationsStatus | null> {
@@ -97,6 +98,7 @@ adminSystemRoutes.get("/integrations", async (c) => {
   return c.json({
     integrations: (rows ?? []).map((row) => {
       const isMeta = row.key === "meta_ads";
+      const isGoogle = row.key === "google_ads";
       return {
         key: row.key,
         name: row.name,
@@ -106,6 +108,13 @@ adminSystemRoutes.get("/integrations", async (c) => {
           ? {
               hasPixelId: Boolean(tiendaStatus?.metaAds?.hasPixelId),
               mode: tiendaStatus?.metaAds?.mode ?? "stub",
+            }
+          : {}),
+        ...(isGoogle
+          ? {
+              hasAdsId: Boolean(tiendaStatus?.googleAds?.hasAdsId),
+              hasPurchaseLabel: Boolean(tiendaStatus?.googleAds?.hasPurchaseLabel),
+              mode: tiendaStatus?.googleAds?.mode ?? "stub",
             }
           : {}),
       };

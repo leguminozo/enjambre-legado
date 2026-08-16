@@ -28,6 +28,8 @@ interface IntegrationRow {
   enabled: boolean;
   configured: boolean;
   hasPixelId?: boolean;
+  hasAdsId?: boolean;
+  hasPurchaseLabel?: boolean;
   mode?: 'live' | 'stub';
 }
 
@@ -173,6 +175,8 @@ export function SistemaSection() {
             <div className="space-y-3">
               {integrationsQuery.data?.map((row) => {
                 const isMeta = row.key === 'meta_ads';
+                const isGoogle = row.key === 'google_ads';
+                const isAds = isMeta || isGoogle;
                 return (
                   <div
                     key={row.key}
@@ -197,6 +201,11 @@ export function SistemaSection() {
                               CAPI {row.mode === 'live' ? 'live' : 'stub'}
                             </Badge>
                           )}
+                          {isGoogle && (
+                            <Badge variant={row.mode === 'live' ? 'success' : 'default'}>
+                              gtag {row.mode === 'live' ? 'live' : 'stub'}
+                            </Badge>
+                          )}
                         </div>
                         {isMeta && !row.hasPixelId && (
                           <p className="text-xs text-muted-foreground mt-1">
@@ -208,9 +217,24 @@ export function SistemaSection() {
                             El token CAPI se configura en env de la tienda (META_CAPI_TOKEN).
                           </p>
                         )}
+                        {isGoogle && !row.hasAdsId && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Falta NEXT_PUBLIC_GOOGLE_ADS_ID (AW-…) en env de la tienda.
+                          </p>
+                        )}
+                        {isGoogle && row.hasAdsId && !row.hasPurchaseLabel && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            El tag carga eventos; falta NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL para la conversión Purchase.
+                          </p>
+                        )}
+                        {isGoogle && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            No hay token de servidor. El conversion ID es público (NEXT_PUBLIC_).
+                          </p>
+                        )}
                       </div>
                     </div>
-                    {isMeta && (
+                    {isAds && (
                       <button
                         type="button"
                         onClick={() => handleToggleIntegration(row)}

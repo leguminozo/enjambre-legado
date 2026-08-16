@@ -15,6 +15,7 @@ import { VercelInsights } from '@/components/VercelInsights';
 import { ConsentProvider } from '@/components/shop/consent/consent-provider';
 import { ConsentBanner } from '@/components/shop/consent/consent-banner';
 import { MetaPixelLoader } from '@/components/shop/meta-pixel';
+import { GoogleAdsLoader } from '@/components/shop/google-ads';
 import { LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevealHarness, NavigationProgressBar } from '@enjambre/ui';
 import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
@@ -136,6 +137,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </AppProviders>
             <ConsentBanner />
             <MetaPixelLoader />
+            <GoogleAdsLoader />
           </ConsentProvider>
         </NextIntlClientProvider>
         <VercelInsights />

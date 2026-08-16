@@ -59,6 +59,14 @@ const connectSrc = [
   // Meta Pixel: script fbevents + llamadas de tracking /tr desde el navegador
   'https://connect.facebook.net',
   'https://www.facebook.com',
+  // Google Ads (gtag): conversion pings. No se carga sin consentimiento.
+  'https://www.googletagmanager.com',
+  'https://www.google.com',
+  'https://www.google.cl',
+  'https://www.googleadservices.com',
+  'https://googleads.g.doubleclick.net',
+  'https://*.google-analytics.com',
+  'https://www.google-analytics.com',
   nucleoConnectOrigin(),
   ...CANONICAL_NUCLEO_ORIGINS,
 ].filter(Boolean);
@@ -75,10 +83,10 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://www.googletagmanager.com https://maps.googleapis.com https://va.vercel-scripts.com https://connect.facebook.net",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com https://maps.googleapis.com https://va.vercel-scripts.com https://connect.facebook.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://*.supabase.co https://img.youtube.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://www.facebook.com",
+      "img-src 'self' data: blob: https://*.supabase.co https://img.youtube.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://www.facebook.com https://www.google.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.googletagmanager.com",
       `connect-src ${connectSrc.join(' ')}`,
       "frame-src 'self' https://www.youtube.com https://*.youtube.com",
       "object-src 'none'",

@@ -1,8 +1,8 @@
 /**
  * Consentimiento de cookies (Ley 19.628 / 21.719).
  * Cookie única: `preference-consent` — JSON v1 { essential, analytics, marketing }.
- * Regla estricta: sin cookie (o sin marketing) NO se carga pixel ni se envían
- * eventos CAPI. Funciones puras, sin dependencias de DOM/Next → testeables.
+ * Regla estricta: sin cookie (o sin marketing) NO se carga pixel/gtag ni se
+ * envían eventos CAPI. Funciones puras, sin dependencias de DOM/Next → testeables.
  */
 
 export const CONSENT_COOKIE_NAME = 'preference-consent';

@@ -2,11 +2,12 @@
 
 import { useCallback } from 'react';
 import { useConsent } from '@/components/shop/consent/consent-provider';
+import { fireGoogleAdsEvent, getGoogleAdsId } from '@/lib/tracking/google/gtag';
 import { fireMetaPixelEvent, getMetaPixelId } from '@/lib/tracking/meta/pixel';
 import type { MetaTrackPayload } from '@/lib/tracking/types';
 
 /**
- * Facade de tracking: dispara pixel + CAPI con el MISMO eventId (dedupe Meta).
+ * Facade de ads: Meta (pixel + CAPI, mismo eventId) y Google Ads (gtag).
  * Gate estricto: sin consentimiento de marketing no firea nada.
  * Fire-and-forget — nunca bloquea la UX ni el checkout.
  */
@@ -72,6 +73,7 @@ function buildCapiBody(payload: TrackInput, eventId: string): Record<string, unk
 export function useMetaTracking() {
   const { marketingConsented } = useConsent();
   const pixelId = getMetaPixelId();
+  const adsId = getGoogleAdsId();
 
   return useCallback(
     (payload: TrackInput) => {
@@ -81,6 +83,17 @@ export function useMetaTracking() {
 
       if (pixelId) {
         fireMetaPixelEvent(payload.eventName, eventId, buildPixelData(payload));
+      }
+
+      if (adsId) {
+        fireGoogleAdsEvent({
+          eventName: payload.eventName,
+          value: payload.value,
+          currency: payload.currency,
+          contentIds: payload.contentIds,
+          contents: payload.contents,
+          orderId: payload.orderId,
+        });
       }
 
       void fetch('/api/tracking/events', {
@@ -95,6 +108,9 @@ export function useMetaTracking() {
         }
       });
     },
-    [marketingConsented, pixelId],
+    [marketingConsented, pixelId, adsId],
   );
 }
+
+/** Alias: el hook cubre Meta + Google Ads. */
+export const useAdsTracking = useMetaTracking;

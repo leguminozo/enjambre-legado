@@ -82,6 +82,9 @@ export function getSecretsPresenceForIntegrationKey(
     case 'meta_ads':
       // Token CAPI (server). El pixel id es público y se expone por separado.
       return Boolean(env.META_CAPI_TOKEN);
+    case 'google_ads':
+      // No hay secreto de servidor: el conversion ID es público.
+      return Boolean(process.env.NEXT_PUBLIC_GOOGLE_ADS_ID?.trim());
     default:
       return false;
   }

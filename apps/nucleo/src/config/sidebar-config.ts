@@ -490,6 +490,8 @@ export const VIEW_SHELL_PATHS = new Set([
   '/reglas-comision',
   '/fenologia',
   '/creadores',
+  '/microcanales',
+  '/hidromiel',
 ])
 
 /** Rutas que viven fuera del árbol de items pero pertenecen a un módulo del sidebar */
