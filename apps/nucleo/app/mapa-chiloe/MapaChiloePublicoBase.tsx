@@ -130,8 +130,8 @@ export function MapaChiloePublicoBase({
               center={[al.lat, al.lng]}
               radius={al.radio_km * 1000}
               pathOptions={{
-                color: '#c45c4a',
-                fillColor: '#c45c4a',
+                color: MAP_ALERTA,
+                fillColor: MAP_ALERTA,
                 fillOpacity: 0.15,
                 weight: 1,
               }}
