@@ -21,8 +21,15 @@ describe('pageDocFromStore', () => {
     ];
     const doc = pageDocFromStore(rows, layout, 'es');
 
-    // Orden del home: hero (sin editor key) se salta; media es la segunda.
-    expect(doc.order).toEqual(['conservation_content', 'colecciones', 'media_items', 'products_settings', 'video_settings', 'map_settings']);
+    // Orden del home: hero (sin editor key) se salta; mapea según DEFAULT_LANDING_SECTIONS
+    expect(doc.order).toEqual([
+      'products_settings',
+      'media_items',
+      'video_settings',
+      'colecciones',
+      'conservation_content',
+      'map_settings',
+    ]);
     const media = doc.sections['media_items'];
     expect(media.disabled).toBe(false);
     // Items ordenados por item_order

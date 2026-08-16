@@ -158,20 +158,15 @@ test.describe('Editor de Tienda — smoke Marca', () => {
     await page.goto('/editor-tienda');
 
     await expect(page.getByTestId('editor-tienda-root')).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText('Editor Tienda')).toBeVisible();
+    await expect(page.getByTestId('editor-tienda-root').getByText('Editor Tienda')).toBeVisible();
 
-    // Desktop: lista agrupada; mobile: chips
-    const marcaCandidates = [
-      page.getByRole('button', { name: /Marca y logos|Marca — Logos|Marca/i }).first(),
-      page.locator('button', { hasText: /Marca/i }).first(),
-    ];
+    const apariencia = page.getByRole('button', { name: /Apariencia/i }).first();
+    await expect(apariencia).toBeVisible();
+    await apariencia.click();
 
-    for (const btn of marcaCandidates) {
-      if (await btn.isVisible().catch(() => false)) {
-        await btn.click();
-        break;
-      }
-    }
+    const marca = page.getByRole('button', { name: /^Marca$/i }).first();
+    await expect(marca).toBeVisible();
+    await marca.click();
 
     await expect(
       page.getByText(/Logo header|Subir a la nube|Marca y logos|Tamaño en tienda|PNG\/SVG/i).first(),
@@ -181,7 +176,33 @@ test.describe('Editor de Tienda — smoke Marca', () => {
   test('muestra bloques de la tienda en sidebar', async ({ page }) => {
     await page.goto('/editor-tienda');
     await expect(page.getByTestId('editor-tienda-root')).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText(/Bloques de la tienda|Tema|Menú|Apariencia/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Inicio/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Catálogo/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Apariencia/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Menú y pie/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Páginas/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Legales/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Más bloques|Más diseño|Más ajustes|Otras formas/ })).toHaveCount(0);
+  });
+
+  test('Catálogo y Páginas abren las herramientas reales, no un atajo vacío', async ({ page }) => {
+    await page.goto('/editor-tienda');
+    await expect(page.getByTestId('editor-tienda-root')).toBeVisible({ timeout: 30_000 });
+
+    await page.getByRole('button', { name: /Catálogo/ }).click();
+    await expect(page.getByRole('button', { name: /Listado/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Ficha de producto/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Carrito/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Checkout/ })).toBeVisible();
+
+    await page.getByRole('button', { name: /Volver/ }).first().click();
+    await expect(page.getByRole('button', { name: /Páginas/ })).toBeVisible();
+    await page.getByRole('button', { name: /Páginas/ }).click();
+    await expect(page.getByRole('button', { name: /Talleres/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Nosotros/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Galería/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Contacto/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Ciencia/ })).toBeVisible();
   });
 
   test('guarda cambios de marca (PATCH mock)', async ({ page }) => {
@@ -198,8 +219,12 @@ test.describe('Editor de Tienda — smoke Marca', () => {
     await page.goto('/editor-tienda');
     await expect(page.getByTestId('editor-tienda-root')).toBeVisible({ timeout: 30_000 });
 
-    const marca = page.locator('button', { hasText: /Marca/i }).first();
-    if (await marca.isVisible().catch(() => false)) await marca.click();
+    const apariencia = page.getByRole('button', { name: /Apariencia/i }).first();
+    if (await apariencia.isVisible().catch(() => false)) {
+      await apariencia.click();
+      const marca = page.getByRole('button', { name: /^Marca$/i }).first();
+      if (await marca.isVisible().catch(() => false)) await marca.click();
+    }
 
     // Abrir URL manual y tocar un campo si existe
     const urlToggle = page.getByText(/URL manual/i).first();

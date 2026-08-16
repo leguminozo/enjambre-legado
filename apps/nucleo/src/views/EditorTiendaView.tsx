@@ -93,10 +93,14 @@ import {
 import {
   SETTINGS_KEY_FOR_ITEMS,
   filterNavSectionKeys,
+  filterCategorySectionKeys,
   isNestedSettingsKey,
   navVisibleSectionKey,
   workingCmsContent,
-  LEGAL_SECTION_KEYS_LIST,
+  PAGE_WORKSPACE_DEFS,
+  PAGE_WORKSPACE_ORDER,
+  resolveEditorNavTarget,
+  type PageWorkspaceId,
 } from '@/lib/editor-tienda-sections';
 import { getSectionSchema, SCHEMA_SECTION_TEMPLATES } from '@/lib/editor-tienda-schema';
 import { SchemaFormFields, SchemaSettingsPanel } from '@/components/tienda/SchemaFieldEditor';
@@ -142,20 +146,20 @@ const EDITOR_CATEGORIES: {
 }[] = [
   {
     id: 'bloques',
-    label: 'Bloques',
-    desc: 'Contenido visible en la tienda: home, colecciones, páginas',
+    label: 'Más bloques',
+    desc: 'Herramientas sueltas que no caben en una página',
     icon: Blocks,
   },
   {
     id: 'diseno',
-    label: 'Diseño',
-    desc: 'Tema, tipografía, marca, menú, banners y pie',
+    label: 'Más diseño',
+    desc: 'Ajustes de forma que no viven en Apariencia',
     icon: Palette,
   },
   {
     id: 'otras',
-    label: 'Otras formas',
-    desc: 'SEO, temporada, contacto y legales',
+    label: 'Más ajustes',
+    desc: 'Configuración que no vive en un workspace',
     icon: SlidersHorizontal,
   },
 ];
@@ -639,8 +643,6 @@ const SECTION_PREVIEW_PATHS: Record<string, string> = {
   collections_settings: '/',
 };
 
-type PageWorkspaceId = 'catalog' | 'menu' | 'legal';
-
 type PageWorkspaceNode = {
   id: string;
   label: string;
@@ -648,53 +650,14 @@ type PageWorkspaceNode = {
   previewPath: string;
 };
 
-const PAGE_WORKSPACES: Record<
-  PageWorkspaceId,
-  { label: string; hint: string; nodes: PageWorkspaceNode[] }
-> = {
-  catalog: {
-    label: 'Catálogo',
-    hint: 'Listado, ficha, carrito y pago',
-    nodes: [
-      { id: 'catalog', label: 'Listado', sectionKey: 'catalog_settings', previewPath: '/catalogo' },
-      { id: 'pdp', label: 'Ficha de producto', sectionKey: 'pdp_settings', previewPath: '/catalogo' },
-      { id: 'cart', label: 'Carrito', sectionKey: 'cart_settings', previewPath: '/carrito' },
-      { id: 'checkout', label: 'Checkout', sectionKey: 'checkout_settings', previewPath: '/checkout' },
-    ],
-  },
-  menu: {
-    label: 'Menú y pie',
-    hint: 'Navegación visible en toda la tienda',
-    nodes: [
-      { id: 'menu', label: 'Menú', sectionKey: 'menu_links', previewPath: '' },
-      { id: 'announce', label: 'Anuncio', sectionKey: 'announcement_slides', previewPath: '' },
-      { id: 'footer', label: 'Pie', sectionKey: 'footer_social', previewPath: '' },
-      { id: 'pwa', label: 'Barra de app', sectionKey: 'pwa_nav_items', previewPath: '' },
-    ],
-  },
-  legal: {
-    label: 'Legales',
-    hint: 'Términos, privacidad y políticas',
-    nodes: LEGAL_SECTION_KEYS_LIST.map((key) => ({
-      id: key,
-      label:
-        key === 'legal_terminos'
-          ? 'Términos'
-          : key === 'legal_privacidad'
-            ? 'Privacidad'
-            : key === 'legal_cookies'
-              ? 'Cookies'
-              : key === 'legal_envio'
-                ? 'Envío'
-                : key === 'legal_reembolso'
-                  ? 'Reembolso'
-                  : key === 'legal_cancelacion'
-                    ? 'Cancelación'
-                    : 'Garantía',
-      sectionKey: key,
-      previewPath: SECTION_PREVIEW_PATHS[key] ?? '/',
-    })),
-  },
+const PAGE_WORKSPACES = PAGE_WORKSPACE_DEFS;
+
+const WORKSPACE_ICONS: Record<PageWorkspaceId, SectionIcon> = {
+  catalog: Package,
+  pages: BookOpen,
+  menu: PanelTop,
+  legal: FileText,
+  appearance: Palette,
 };
 
 /** Menú independiente del preview: páginas navegables sin tocar la selección
@@ -1372,7 +1335,7 @@ function SectionNav({ sectionKeys, activeSection, category, onSelect, itemCounts
   };
 
   const visibleKeys = useMemo(
-    () => filterNavSectionKeys(sectionKeys),
+    () => filterCategorySectionKeys(sectionKeys),
     [sectionKeys],
   );
 
@@ -2215,6 +2178,11 @@ function EditorTiendaViewInner() {
     { id: string; nombre: string; slug: string }[]
   >([]);
   const [imagesOpen, setImagesOpen] = useState(false);
+  /** Evita spinner SSR vs cliente (el overlay de hidratación tapa el nav). */
+  const [chromeReady, setChromeReady] = useState(false);
+  useEffect(() => {
+    setChromeReady(true);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -2307,20 +2275,45 @@ function EditorTiendaViewInner() {
     goPreview('');
   };
 
-  const openPageWorkspace = (id: PageWorkspaceId) => {
+  const openPageWorkspace = (id: PageWorkspaceId, sectionKey?: string) => {
     const ws = PAGE_WORKSPACES[id];
-    const first = ws.nodes[0];
+    const node =
+      (sectionKey
+        ? ws.nodes.find((n) => n.sectionKey === navVisibleSectionKey(sectionKey))
+        : undefined) ?? ws.nodes[0];
     setPageWorkspaceId(id);
-    setSelectedPageNodeId(first.id);
-    setActiveSection(navVisibleSectionKey(first.sectionKey));
+    setSelectedPageNodeId(node.id);
+    setActiveSection(navVisibleSectionKey(node.sectionKey));
     setNavDrill('page');
-    goPreview(first.previewPath);
+    goPreview(node.previewPath);
   };
 
   const selectPageNode = (node: PageWorkspaceNode) => {
     setSelectedPageNodeId(node.id);
     setActiveSection(navVisibleSectionKey(node.sectionKey));
     goPreview(node.previewPath);
+  };
+
+  /** Una sola puerta: workspace dueño, o categoría solo si la key no tiene casa. */
+  const openSection = (key: string) => {
+    const visible = navVisibleSectionKey(key);
+    const target = resolveEditorNavTarget(visible);
+    setGlobalQuery('');
+    if (target.kind === 'home') {
+      setSelectedHomeNode(target.node);
+      setActiveSection(visible);
+      setNavDrill('home');
+      goPreview('');
+      if (target.node !== 'hero') postSelectToPreview(target.node);
+      return;
+    }
+    if (target.kind === 'page') {
+      openPageWorkspace(target.workspace, target.sectionKey);
+      return;
+    }
+    setActiveCategory(sectionCategory(visible));
+    setActiveSection(visible);
+    setNavDrill('tool');
   };
 
   const selectHomeNode = (id: LandingSectionId | 'atmosphere') => {
@@ -2709,10 +2702,10 @@ function EditorTiendaViewInner() {
       return '';
     }
   })();
-  const isSelfEmbed =
-    typeof window !== 'undefined' &&
-    tiendaOrigin !== '' &&
-    tiendaOrigin === window.location.origin;
+  const [isSelfEmbed, setIsSelfEmbed] = useState(false);
+  useEffect(() => {
+    setIsSelfEmbed(tiendaOrigin !== '' && tiendaOrigin === window.location.origin);
+  }, [tiendaOrigin]);
 
   return (
     // Altura: llena .page-content--shell (flex chain en globals.css).
@@ -2731,7 +2724,9 @@ function EditorTiendaViewInner() {
               <span className="sm:hidden">Editor</span>
               <span className="hidden sm:inline">Editor Tienda</span>
             </span>
-            {cms.isLoading && <Loader2 size={14} className="shrink-0 animate-spin text-accent" />}
+            {chromeReady && cms.isLoading ? (
+              <Loader2 size={14} className="shrink-0 animate-spin text-accent" />
+            ) : null}
             {cms.error ? (
               <span className="max-w-[8rem] truncate text-[10px] font-medium text-destructive sm:max-w-[12rem]" title={cms.error.message}>
                 Error al cargar CMS
@@ -2846,7 +2841,7 @@ function EditorTiendaViewInner() {
                   Editor de tienda
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Elegí una categoría — cada bloque se edita desde su herramienta.
+                  Cada herramienta vive en una sola página. No hay atajos gemelos.
                 </p>
               </div>
 
@@ -2884,17 +2879,18 @@ function EditorTiendaViewInner() {
                     .map((k) => {
                       const meta = getSectionMeta(k);
                       const Icon = meta.icon;
-                      const cat = EDITOR_CATEGORIES.find((c) => c.id === sectionCategory(k));
+                      const target = resolveEditorNavTarget(k);
+                      const place =
+                        target.kind === 'home'
+                          ? 'Inicio'
+                          : target.kind === 'page'
+                            ? PAGE_WORKSPACES[target.workspace].label
+                            : (EDITOR_CATEGORIES.find((c) => c.id === sectionCategory(k))?.label ?? '');
                       return (
                         <button
                           key={k}
                           type="button"
-                          onClick={() => {
-                            setActiveCategory(sectionCategory(k));
-                            setGlobalQuery('');
-                            setActiveSection(k);
-                            setNavDrill('tool');
-                          }}
+                          onClick={() => openSection(k)}
                           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all hover:bg-surface-raised/60"
                         >
                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground">
@@ -2905,7 +2901,7 @@ function EditorTiendaViewInner() {
                               {meta.label}
                             </span>
                             <span className="block text-[10px] text-muted-foreground truncate">
-                              {cat?.label ?? ''}
+                              {place}
                             </span>
                           </span>
                           <ChevronRight size={14} className="shrink-0 text-muted-foreground" />
@@ -2944,14 +2940,9 @@ function EditorTiendaViewInner() {
                   </span>
                   <ChevronRight size={15} className="shrink-0 text-muted-foreground" />
                 </button>
-                {(
-                  [
-                    ['catalog', Package],
-                    ['menu', PanelTop],
-                    ['legal', FileText],
-                  ] as const
-                ).map(([id, Icon]) => {
+                {PAGE_WORKSPACE_ORDER.map((id) => {
                   const ws = PAGE_WORKSPACES[id];
+                  const Icon = WORKSPACE_ICONS[id];
                   return (
                     <button
                       key={id}
@@ -2974,7 +2965,10 @@ function EditorTiendaViewInner() {
                 })}
                 {EDITOR_CATEGORIES.map((cat) => {
                   const Icon = cat.icon;
-                  const catSections = navSectionKeys.filter((k) => sectionCategory(k) === cat.id);
+                  const catSections = filterCategorySectionKeys(navSectionKeys).filter(
+                    (k) => sectionCategory(k) === cat.id,
+                  );
+                  if (catSections.length === 0) return null;
                   const catItems = catSections.reduce(
                     (acc, k) => acc + (groupedData[k] ?? []).length,
                     0,
@@ -3135,8 +3129,6 @@ function EditorTiendaViewInner() {
                 <ItemsPanel
                   items={currentItems}
                   activeSection={activeSection}
-                  onBack={() => setNavDrill('categories')}
-                  backLabel="Editor"
                   onUpdate={handleUpdateItem}
                   onDelete={handleDeleteItem}
                   onPublish={handlePublishItem}

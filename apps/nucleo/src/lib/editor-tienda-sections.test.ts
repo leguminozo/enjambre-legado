@@ -3,9 +3,15 @@ import {
   AUTO_PUBLISH_SECTIONS,
   CMS_SECTION_KEYS,
   EDITOR_SECTION_PAIRS,
+  HOME_SECTION_KEYS,
+  PAGE_WORKSPACE_DEFS,
+  PAGE_WORKSPACE_ORDER,
+  WORKSPACE_OWNED_SECTION_KEYS,
+  filterCategorySectionKeys,
   filterNavSectionKeys,
   isNestedSettingsKey,
   navVisibleSectionKey,
+  resolveEditorNavTarget,
   workingCmsContent,
 } from './editor-tienda-sections';
 
@@ -90,5 +96,64 @@ describe('AUTO_PUBLISH / keys', () => {
       expect(CMS_SECTION_KEYS).toContain(pair.settings);
       expect(AUTO_PUBLISH_SECTIONS.has(pair.settings)).toBe(true);
     }
+  });
+});
+
+describe('workspaces: una entrada por capacidad', () => {
+  it('las categorías no listan keys que ya viven en un workspace', () => {
+    expect(filterCategorySectionKeys([...CMS_SECTION_KEYS])).toEqual([]);
+  });
+
+  it('cada key visible del CMS tiene un dueño y no se solapa entre workspaces', () => {
+    const claimed: string[] = [];
+    for (const key of HOME_SECTION_KEYS) claimed.push(key);
+    for (const id of PAGE_WORKSPACE_ORDER) {
+      for (const node of PAGE_WORKSPACE_DEFS[id].nodes) claimed.push(node.sectionKey);
+    }
+    expect(new Set(claimed).size).toBe(claimed.length);
+    for (const key of claimed) {
+      expect(CMS_SECTION_KEYS, `${key} no está en el CMS`).toContain(key);
+      expect(WORKSPACE_OWNED_SECTION_KEYS.has(key)).toBe(true);
+    }
+    const visible = filterNavSectionKeys([...CMS_SECTION_KEYS]);
+    for (const key of visible) {
+      expect(resolveEditorNavTarget(key).kind, `${key} quedó huérfana`).not.toBe('category');
+    }
+  });
+
+  it('el settings anidado abre el mismo workspace que las fichas', () => {
+    expect(resolveEditorNavTarget('media_settings')).toEqual({ kind: 'home', node: 'media' });
+    expect(resolveEditorNavTarget('contact_settings')).toEqual({
+      kind: 'page',
+      workspace: 'pages',
+      sectionKey: 'contacto',
+    });
+    expect(resolveEditorNavTarget('menu_settings')).toEqual({
+      kind: 'page',
+      workspace: 'menu',
+      sectionKey: 'menu_links',
+    });
+    expect(resolveEditorNavTarget('catalog_settings')).toEqual({
+      kind: 'page',
+      workspace: 'catalog',
+      sectionKey: 'catalog_settings',
+    });
+    expect(resolveEditorNavTarget('theme_settings')).toEqual({
+      kind: 'page',
+      workspace: 'appearance',
+      sectionKey: 'theme_settings',
+    });
+    expect(resolveEditorNavTarget('legal_privacidad')).toEqual({
+      kind: 'page',
+      workspace: 'legal',
+      sectionKey: 'legal_privacidad',
+    });
+  });
+
+  it('una key desconocida cae a categoría (no se pierde)', () => {
+    expect(resolveEditorNavTarget('seccion_nueva_futura')).toEqual({ kind: 'category' });
+    expect(filterCategorySectionKeys(['seccion_nueva_futura', 'media_settings'])).toEqual([
+      'seccion_nueva_futura',
+    ]);
   });
 });
