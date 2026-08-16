@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
-  Package, Coffee, Star, BarChart3, Hotel, Users, Leaf, Sparkles,
+  Package, Coffee, Star, BarChart3, Hotel, Users, Leaf,
   ShoppingBag, Award, Truck, Shield, TrendingUp, Gift, Palette,
   ChevronDown,
 } from 'lucide-react';
@@ -23,7 +23,7 @@ import { B2BRegisterForm } from '@/components/b2b/b2b-register-form';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  Package, Coffee, Star, BarChart3, Hotel, Users, Leaf, Sparkles,
+  Package, Coffee, Star, BarChart3, Hotel, Users, Leaf,
   ShoppingBag, Award, Truck, Shield, TrendingUp, Gift, Palette,
 };
 

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { headers } from 'next/headers';
-import { ArrowRight, Map, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { CensoStats, type CensoStatsData } from '@/components/censo/CensoStats';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
@@ -52,109 +52,85 @@ export default async function RedApicolaLanding() {
     <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground flex flex-col">
       <TerritorioHeader />
 
-      {/* A. HERO */}
-      <section className="relative flex min-h-[min(88dvh,820px)] flex-col items-center justify-center px-6 sm:px-10 lg:px-20 pt-16 pb-20 sm:pt-20 sm:pb-28 text-center overflow-hidden">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at center, currentColor 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-          }}
-        />
-        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[70%] h-[50%] bg-primary/[0.07] rounded-full blur-[100px]" />
-
-        <div className="relative z-10 w-full max-w-3xl mx-auto flex flex-col items-center">
-          <p className="text-[0.7rem] sm:text-xs font-medium tracking-[0.2em] uppercase text-muted-foreground mb-8 sm:mb-10">
-            Censo apícola · Chiloé · 2026–2027
-          </p>
-
-          <h1 className="font-existencial font-semibold tracking-tight text-balance text-[clamp(2.35rem,6vw,4.5rem)] leading-[1.06] text-foreground mb-6 sm:mb-8">
-            Tu zona de pecoreo ya tiene defensa.
-            <span className="block mt-2 sm:mt-3 text-primary italic font-serif font-normal">
-              Falta que esté en el mapa.
-            </span>
-          </h1>
-
-          <p className="text-base sm:text-lg text-muted-foreground font-light leading-relaxed text-pretty max-w-xl mb-10 sm:mb-12">
-            Inscribe tus apiarios. El mapa muestra zonas aproximadas — nunca tu punto exacto.
-            El registro básico es gratis.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 w-full max-w-md">
-            <Link
-              href="/login?mode=signup"
-              className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/15 transition-opacity hover:opacity-95 active:scale-[0.99] group"
-            >
-              Inscribirme
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-            <Link
-              href="/mapa-chiloe"
-              className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-transparent px-7 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-raised"
-            >
-              <Map className="w-4 h-4 shrink-0 opacity-70" />
-              Ver el mapa
-            </Link>
-          </div>
-
-          <p className="mt-6 text-sm text-muted-foreground">
-            ¿Ya tienes cuenta?{' '}
-            <Link
-              href="/login"
-              className="text-foreground underline underline-offset-4 decoration-border hover:decoration-foreground transition-colors"
-            >
-              Entrar
-            </Link>
-          </p>
-        </div>
-      </section>
-
-      {/* B. MAPA */}
-      <section className="px-6 sm:px-10 lg:px-16 xl:px-24 py-24 sm:py-32 border-t border-border/60">
-        <div className="max-w-6xl mx-auto">
-          <div className="max-w-2xl mb-10 sm:mb-14">
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground text-balance mb-4">
-              El mapa de la isla
-            </h2>
-            <p className="text-muted-foreground text-base sm:text-lg font-light leading-relaxed">
-              Todos ven las zonas. Nadie ve tu nombre ni tu GPS exacto.
+      {/* A. HERO — el mapa es el producto */}
+      <section className="px-6 sm:px-10 lg:px-16 xl:px-24 pt-16 pb-16 sm:pt-20 sm:pb-20 border-b border-border/60">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+          <div className="lg:col-span-5">
+            <p className="text-sm text-muted-foreground mb-5">Censo apícola · Chiloé · 2026–2027</p>
+            <h1 className="font-existencial font-semibold tracking-tight text-balance text-[clamp(2.1rem,4.5vw,3.4rem)] leading-[1.08] text-foreground mb-5">
+              Tu zona de pecoreo ya tiene defensa.
+              <span className="block mt-2 text-primary italic font-serif font-normal">
+                Falta que esté en el mapa.
+              </span>
+            </h1>
+            <p className="text-base text-muted-foreground leading-relaxed text-pretty max-w-md mb-8">
+              Inscribe tus apiarios. El mapa muestra zonas aproximadas, nunca tu punto exacto.
+              El registro básico es gratis.
+            </p>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-md">
+              <Link
+                href="/login?mode=signup"
+                className="inline-flex min-h-12 flex-1 items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:opacity-95"
+              >
+                Inscribirme
+              </Link>
+              <Link
+                href="/mapa-chiloe"
+                className="inline-flex min-h-12 flex-1 items-center justify-center rounded-md border border-border px-6 py-3 text-sm font-medium text-foreground hover:bg-surface-raised"
+              >
+                Abrir mapa completo
+              </Link>
+            </div>
+            <p className="mt-5 text-sm text-muted-foreground">
+              ¿Ya tienes cuenta?{' '}
+              <Link href="/login" className="text-foreground underline underline-offset-4">
+                Entrar
+              </Link>
             </p>
           </div>
 
-          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-surface-sunken ring-1 ring-border/50 shadow-xl shadow-black/[0.04]">
-            <iframe
-              src="/mapa-chiloe?embed=1"
-              title="Mapa apícola público de Chiloé"
-              className="w-full h-[min(56vh,520px)] sm:h-[560px] bg-surface-sunken"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-            {mapaVacio && (
-              <div className="absolute bottom-0 inset-x-0 p-4 sm:p-5 pointer-events-none">
-                <p className="mx-auto max-w-md rounded-full bg-background/90 backdrop-blur-md px-4 py-2.5 text-center text-xs sm:text-sm text-muted-foreground shadow-sm ring-1 ring-border/40">
-                  El censo recién empieza. Las zonas van a aparecer a medida que la gente se inscriba.
+          <div className="lg:col-span-7">
+            <div className="relative overflow-hidden rounded-md bg-surface-sunken ring-1 ring-border/50">
+              <iframe
+                src="/mapa-chiloe?embed=1"
+                title="Mapa apícola público de Chiloé"
+                className="w-full h-[min(52vh,480px)] lg:h-[520px] bg-surface-sunken"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+              {mapaVacio && (
+                <div className="absolute bottom-0 inset-x-0 p-3 pointer-events-none">
+                  <p className="mx-auto max-w-md bg-background/95 px-3 py-2 text-center text-xs text-muted-foreground ring-1 ring-border/40">
+                    El censo recién empieza. Las zonas van a aparecer a medida que la gente se inscriba.
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <CensoStats initialStats={stats} variant="strip" />
+                <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                  <Lock className="w-3.5 h-3.5 text-primary shrink-0" />
+                  Zonas de ~1 km · sin nombres ni contactos
                 </p>
               </div>
-            )}
-          </div>
-
-          <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-            <div className="min-w-0">
-              <CensoStats initialStats={stats} variant="strip" />
-              <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                <Lock className="w-3.5 h-3.5 text-primary shrink-0" />
-                Zonas de ~1 km · sin nombres ni contactos
-              </p>
             </div>
-            <Link
-              href="/mapa-chiloe"
-              className="inline-flex min-h-11 shrink-0 items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
-            >
-              Abrir mapa completo
-              <ArrowRight className="w-4 h-4" />
-            </Link>
           </div>
+        </div>
+      </section>
+
+      {/* B. NOTA DE MAPA */}
+      <section className="px-6 sm:px-10 lg:px-16 xl:px-24 py-14 sm:py-16 border-b border-border/60">
+        <div className="max-w-3xl">
+          <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground mb-3">
+            Nadie ve tu GPS. Un kilómetro.
+          </h2>
+          <p className="text-muted-foreground leading-relaxed">
+            Todos ven las zonas. Nadie ve tu nombre ni tu punto exacto.{' '}
+            <Link href="/mapa-chiloe" className="text-foreground underline underline-offset-4">
+              Abrir el mapa completo
+            </Link>
+            .
+          </p>
         </div>
       </section>
 
@@ -216,7 +192,7 @@ export default async function RedApicolaLanding() {
             </p>
           </div>
 
-          <ol className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-10">
+          <ol className="divide-y divide-border/70 max-w-2xl">
             {[
               {
                 step: '1',
@@ -234,16 +210,12 @@ export default async function RedApicolaLanding() {
                 body: 'Alertas, apoyo para la declaración SAG de octubre, y el pasaporte cuando vendas.',
               },
             ].map((s) => (
-              <li key={s.step} className="relative">
-                <span className="font-existencial text-5xl sm:text-6xl font-light text-primary/20 leading-none select-none">
-                  {s.step}
-                </span>
-                <h3 className="mt-4 text-lg font-medium text-foreground tracking-tight">
-                  {s.title}
-                </h3>
-                <p className="mt-2 text-sm sm:text-[0.95rem] text-muted-foreground font-light leading-relaxed max-w-xs">
-                  {s.body}
-                </p>
+              <li key={s.step} className="grid grid-cols-[2rem_1fr] gap-4 py-6 first:pt-0">
+                <span className="font-mono text-sm text-muted-foreground pt-0.5">{s.step}</span>
+                <div>
+                  <h3 className="text-lg font-medium text-foreground tracking-tight">{s.title}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{s.body}</p>
+                </div>
               </li>
             ))}
           </ol>
@@ -254,7 +226,7 @@ export default async function RedApicolaLanding() {
       <section className="bg-surface-sunken px-6 sm:px-10 lg:px-16 xl:px-24 py-24 sm:py-32">
         <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           <div
-            className="lg:col-span-5 aspect-[4/5] sm:aspect-[5/4] lg:aspect-[4/5] rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary/20 via-surface-raised to-accent/10 ring-1 ring-border/40 flex items-end p-8 sm:p-10"
+            className="lg:col-span-5 aspect-[4/5] sm:aspect-[5/4] lg:aspect-[4/5] bg-surface-raised ring-1 ring-border/40 flex items-end p-8 sm:p-10"
             aria-hidden
           >
             <p className="font-existencial text-2xl sm:text-3xl italic text-foreground/90 leading-snug max-w-[14ch]">
@@ -271,7 +243,7 @@ export default async function RedApicolaLanding() {
               con bosque nativo. La misma herramienta con la que ordenamos nuestros apiarios es la
               que abrimos a toda la isla.
             </p>
-            <p className="text-foreground font-medium leading-relaxed border-l-2 border-primary pl-5">
+            <p className="text-foreground font-medium leading-relaxed">
               El registro básico es y va a seguir siendo gratis. Es un bien común para defender el
               territorio apícola.
             </p>
@@ -311,7 +283,7 @@ export default async function RedApicolaLanding() {
             ].map(({ q, a }) => (
               <details
                 key={q}
-                className="group rounded-2xl border border-transparent open:border-border/60 open:bg-surface-raised px-5 py-4 transition-colors"
+                className="group border-b border-border/60 py-4"
               >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[0.95rem] font-medium text-foreground">
                   {q}
@@ -344,14 +316,13 @@ export default async function RedApicolaLanding() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
             <Link
               href="/login?mode=signup"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/15 transition-opacity hover:opacity-95 group"
+              className="inline-flex min-h-12 items-center justify-center rounded-md bg-primary px-8 py-3.5 text-sm font-medium text-primary-foreground hover:opacity-95"
             >
               Inscribirme gratis
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
               href="/login"
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-border px-8 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-background"
+              className="inline-flex min-h-12 items-center justify-center rounded-md border border-border px-8 py-3.5 text-sm font-medium text-foreground hover:bg-background"
             >
               Ya tengo cuenta
             </Link>

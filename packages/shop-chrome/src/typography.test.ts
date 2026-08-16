@@ -23,9 +23,9 @@ describe('sanitizeFontFamily', () => {
   it('trunca a 50 chars y cae a fallback si vacío', () => {
     const long = 'A'.repeat(80);
     expect(sanitizeFontFamily(long, 'x')).toHaveLength(50);
-    expect(sanitizeFontFamily('!!!', 'Inter')).toBe('Inter');
-    expect(sanitizeFontFamily(null, 'Inter')).toBe('Inter');
-    expect(sanitizeFontFamily(42, 'Inter')).toBe('Inter');
+    expect(sanitizeFontFamily('!!!', 'Source Sans 3')).toBe('Source Sans 3');
+    expect(sanitizeFontFamily(null, 'Source Sans 3')).toBe('Source Sans 3');
+    expect(sanitizeFontFamily(42, 'Source Sans 3')).toBe('Source Sans 3');
   });
 });
 
@@ -47,22 +47,22 @@ describe('resolveGoogleFont', () => {
 });
 
 describe('buildGoogleFontsHref', () => {
-  it('default → Cormorant con italics + Inter sin italics', () => {
+  it('default → Cormorant con italics + Source Sans 3 sin italics', () => {
     const href = buildGoogleFontsHref(DEFAULT_TYPOGRAPHY_SETTINGS);
     expect(href).toContain('family=Cormorant+Garamond:ital,wght@0,300;1,300;0,400;1,400;0,600;1,600');
-    expect(href).toContain('family=Inter:wght@300;400;500;600');
+    expect(href).toContain('family=Source+Sans+3:wght@300;400;500;600');
     expect(href).toContain('display=swap');
   });
 
   it('no repite la familia si display === sans', () => {
-    const href = buildGoogleFontsHref({ font_display: 'Inter', font_sans: 'Inter' });
-    expect(href.match(/family=Inter/g)).toHaveLength(1);
+    const href = buildGoogleFontsHref({ font_display: 'Source Sans 3', font_sans: 'Source Sans 3' });
+    expect(href.match(/family=Source\+Sans\+3/g)).toHaveLength(1);
   });
 
   it('espacios → + en la URL', () => {
-    const href = buildGoogleFontsHref({ font_display: 'Playfair Display', font_sans: 'Work Sans' });
-    expect(href).toContain('family=Playfair+Display');
-    expect(href).toContain('family=Work+Sans');
+    const href = buildGoogleFontsHref({ font_display: 'Source Serif 4', font_sans: 'Public Sans' });
+    expect(href).toContain('family=Source+Serif+4');
+    expect(href).toContain('family=Public+Sans');
   });
 });
 
@@ -81,9 +81,9 @@ describe('parseTypographySettings', () => {
   });
 
   it('sanitiza valores y completa campos faltantes', () => {
-    expect(parseTypographySettings({ font_display: 'EB Garamond' })).toEqual({
-      font_display: 'EB Garamond',
-      font_sans: 'Inter',
+    expect(parseTypographySettings({ font_display: 'Fraunces' })).toEqual({
+      font_display: 'Fraunces',
+      font_sans: 'Source Sans 3',
     });
     expect(parseTypographySettings({ font_display: 'X";}', font_sans: 'x' })).toEqual({
       font_display: 'X',

@@ -18,6 +18,12 @@ export function TerritorioFooter() {
           <Link href="/carta" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Carta territorial
           </Link>
+          <Link href="/privacidad" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
+            Privacidad
+          </Link>
+          <Link href="/terminos" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
+            Términos
+          </Link>
           <Link href="/municipalidades" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Municipalidades
           </Link>

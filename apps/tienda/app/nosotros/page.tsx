@@ -321,21 +321,19 @@ En Chiloé, trabajamos colaborativamente con nuestras colmenas, son sociedades c
 Luego, innovamos con formatos mínimos: sachets de 15 g, frascos de 150 g o 900 g. Cada uno invita a un acto cotidiano —una cucharada, un té, un desayuno— con el sabor del bosque, no con una promesa clínica.
 </p>
 
-<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Elixires del Vacío: Nuestros Productos</h2>
+<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Formatos</h2>
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
-En obrerayzangano.com, la gama nace de procesos regenerativos: sachets, frascos de 150 g y 900 g, a veces con avellana, polen o cacao nibs. Son alimentos de Chiloé, no antídotos.
+Sachets, frascos de 150 g y 900 g, a veces con avellana, polen o cacao nibs. Alimento de Chiloé.
 
-<strong>Sachets de Miel:</strong> 15 g de crema con avellana o polen; para llevar, con el aroma del tepú.
+<strong>Sachets:</strong> 15 g de crema con avellana o polen, para llevar.
 
-<strong>Miel Virgen en Panal:</strong> Sellada para conservar el panal tal como sale de la colmena.
+<strong>Miel virgen en panal:</strong> sellada como sale de la colmena.
 
-<strong>Frascos Medios y Mayores:</strong> 150 g o 900 g de crema ulmo-tepú para la mesa de todos los días.
+<strong>Frascos:</strong> 150 g o 900 g de crema ulmo-tepú.
 
-<strong>Cajas de Sachets:</strong> 25 unidades por 25.000 CLP; ideales para compartir, rompiendo barreras con practicidad cósmica.
+<strong>Cajas de sachets:</strong> 25 unidades. Precio publicado en el catálogo.
 
-<strong>Suscripciones:</strong> Desde 15.000 CLP mensuales; entregas que integran ciclos regenerativos, fomentando hábitos anti-azúcar con descuentos.
-
-Cada creación es un poema sensorial: ámbar viscoso que danza en la lengua, aromas boscosos de tepú, un lujo tierno que nutre el ser con simplicidad espacial.
+<strong>Suscripciones:</strong> al ritmo de la floración; detalle en Club de la Cosecha.
 </p>
 
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Compromiso con la Regeneración</h2>
@@ -343,11 +341,11 @@ Cada creación es un poema sensorial: ámbar viscoso que danza en la lengua, aro
 Desde el sur del planeta, promovemos agroecología en ferias locales y el cuidado de los polinizadores. La miel es el fruto de esa relación con el bosque, no un tratamiento.
 </p>
 
-<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Invitación al Equilibrio Chileno</h2>
+<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Dónde va</h2>
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
-En La Obrera y el Zángano, cada frasco cuenta el bosque de Chiloé. Los sachets también sirven como amenities en hoteles que quieren un origen, no un slogan clínico.
+Cada frasco sale de apiarios entre Pureo, Quemchi y Queilén. Los sachets también se usan como amenities en hoteles que piden origen, no un slogan.
 
-Únete a esta rebelión solar, donde el néctar de Chiloé ilumina el legado del bosque.
+El catálogo y el Club de la Cosecha están abiertos. La ciencia y los límites del impacto, en /ciencia.
 </p>
 
 {/* Fuentes Section */}

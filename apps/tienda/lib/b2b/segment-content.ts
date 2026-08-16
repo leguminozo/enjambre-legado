@@ -63,7 +63,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
           "15 g de miel cruda por sachet — la dosis perfecta para acompañar cada taza sin desperdicio.",
       },
       {
-        icon: "Sparkles",
+        icon: "Leaf",
         title: "Diferenciación real",
         description:
           "Cada sachet cuenta la historia del bosque nativo de Chiloé. Tu cafetería ofrece algo que ninguna otra tiene.",

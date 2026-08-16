@@ -473,19 +473,19 @@ export type LandingLayoutSettings = {
 
 export const DEFAULT_LANDING_SECTIONS: LandingSectionConfig[] = [
   { id: 'hero', enabled: true, order: 0 },
-  { id: 'conservation', enabled: true, order: 1 },
-  { id: 'collections', enabled: true, order: 2 },
-  { id: 'media', enabled: true, order: 3 },
-  { id: 'products', enabled: true, order: 4 },
-  { id: 'video', enabled: true, order: 5 },
+  { id: 'products', enabled: true, order: 1 },
+  { id: 'media', enabled: true, order: 2 },
+  { id: 'video', enabled: true, order: 3 },
+  { id: 'collections', enabled: true, order: 4 },
+  { id: 'conservation', enabled: true, order: 5 },
   { id: 'map', enabled: true, order: 6 },
 ];
 
 export const DEFAULT_LANDING_LAYOUT: LandingLayoutSettings = {
   sections: DEFAULT_LANDING_SECTIONS,
-  show_grain: true,
-  show_custom_cursor: true,
-  show_bee_canvas: true,
+  show_grain: false,
+  show_custom_cursor: false,
+  show_bee_canvas: false,
   hero_cta_label: 'Explorar creaciones',
   hero_cta_label_en: 'Explore creations',
   hero_cta_href: '/catalogo',

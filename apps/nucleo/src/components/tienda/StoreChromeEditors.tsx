@@ -1040,18 +1040,21 @@ export function LandingLayoutEditor({
         })}
       </div>
 
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        Ornamento — apagado por defecto. El producto (frasco, lote, catálogo) va primero.
+      </p>
       <ToggleField
-        label="Grain overlay"
+        label="Grain overlay (ornamento)"
         value={local.show_grain}
         onChange={(v) => patch('show_grain', v)}
       />
       <ToggleField
-        label="Cursor custom (desktop)"
+        label="Cursor custom desktop (ornamento)"
         value={local.show_custom_cursor}
         onChange={(v) => patch('show_custom_cursor', v)}
       />
       <ToggleField
-        label="Bee canvas (desktop)"
+        label="Bee canvas desktop (ornamento)"
         value={local.show_bee_canvas}
         onChange={(v) => patch('show_bee_canvas', v)}
       />

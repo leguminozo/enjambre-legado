@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/client';
 import { formatCLP } from '@/lib/shop/format';
 import { authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
 import { friendlySupabaseError, HexagonLoader, BrandWordmark } from '@enjambre/ui';
-import { Sparkles, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 
@@ -85,8 +85,8 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
       <div className="tienda-auth-page text-foreground flex flex-col items-center justify-center text-center">
         <div className="tienda-auth-glow pointer-events-none" aria-hidden />
         <div className="tienda-auth-inner animate-in fade-in zoom-in duration-1000">
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-accent/10 rounded-full mb-8">
-            <Sparkles className="w-12 h-12 text-accent" />
+          <div className="inline-flex items-center justify-center w-16 h-16 border border-border mb-8">
+            <CheckCircle2 className="w-8 h-8 text-accent" />
           </div>
           <h1 className="font-display text-[clamp(2rem,8vw,3rem)] mb-4 text-balance">¡Legado Reclamado!</h1>
           <p className="text-muted-foreground text-base sm:text-xl font-light mb-8 text-pretty">

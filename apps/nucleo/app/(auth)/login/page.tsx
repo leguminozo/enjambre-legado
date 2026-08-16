@@ -368,7 +368,11 @@ export default function LoginPage() {
               <Link href="/carta" className="underline underline-offset-2 hover:text-foreground">
                 Carta constitutiva
               </Link>
-              {' '}y el uso de datos según la política de privacidad.
+              {' '}y el uso de datos según la{' '}
+              <Link href="/privacidad" className="underline underline-offset-2 hover:text-foreground">
+                política de privacidad
+              </Link>
+              .
             </p>
           </div>
         )}

@@ -50,7 +50,19 @@ const MediaCarousel = dynamic(
 );
 const LandingProducts = dynamic(
   () => import('@/components/shop/landing-products').then((m) => m.LandingProducts),
-  { loading: () => <div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label="Creaciones" hideLabel /></div></div> },
+  {
+    loading: () => (
+      <div className="editorial-section" aria-busy="true" aria-label="Creaciones">
+        <div className="editorial-container">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="aspect-[3/4] bg-muted animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </div>
+    ),
+  },
 );
 
 interface GSAPInstance {
@@ -88,8 +100,6 @@ interface TiendaLandingProps {
 
 const COLLECTION_IMAGES: Record<string, string> = {
   sachets: '/assets/editorial/sachets.png',
-  cofres: '/assets/editorial/sachets.png',
-  cajas: '/assets/editorial/sachets.png',
   default: '/assets/editorial/honey-jar.png',
 };
 
@@ -287,14 +297,7 @@ export function TiendaLandingView({
           className="absolute inset-0 pointer-events-none bg-background/20 md:bg-transparent"
           aria-hidden
         />
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(ellipse at center, transparent 0%, hsl(var(--background)) 70%)',
-            opacity: isMobile ? 0.45 : 0.38,
-          }}
-        />
+        <div className="absolute inset-0 pointer-events-none bg-background/10 md:bg-transparent" />
 
           {/* z-20 above scroll cue; pb reserved so absolute cue never crosses copy */}
           <div className="relative z-20 mx-auto w-full max-w-4xl px-1">
@@ -343,16 +346,6 @@ export function TiendaLandingView({
                 </Link>
               </div>
             ) : null}
-          </div>
-          {/* Scroll cue: rail centrado en el borde inferior del hero, nunca solapado con copy */}
-          <div
-            className="pointer-events-none absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 md:gap-3 bottom-[max(1.5rem,env(safe-area-inset-bottom))] md:bottom-10"
-            aria-hidden
-          >
-            <span className="hidden lg:block text-editorial-xs uppercase tracking-widest text-muted-foreground/80 [writing-mode:vertical-rl]">
-              {tCommon('scrollDown') || 'Descender'}
-            </span>
-            <div className="w-px h-10 md:h-14 bg-gradient-to-b from-accent/80 to-transparent" />
           </div>
         </section>
           );
@@ -585,7 +578,21 @@ export function TiendaLandingView({
         if (sec.id === 'products') {
           return (
       <div key="products" id="creaciones">
-        <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingCreations') || 'Creaciones'} hideLabel /></div></div>}><LandingProducts products={orderedProducts} pageSize={8} ratings={ratings} header={productsHeader} /></Suspense>
+        <Suspense
+          fallback={
+            <div className="editorial-section" aria-busy="true" aria-label={tCommon('loadingCreations') || 'Creaciones'}>
+              <div className="editorial-container">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[0, 1, 2, 3].map((i) => (
+                    <div key={i} className="aspect-[3/4] bg-muted animate-pulse" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          }
+        >
+          <LandingProducts products={orderedProducts} pageSize={8} ratings={ratings} header={productsHeader} />
+        </Suspense>
       </div>
           );
         }

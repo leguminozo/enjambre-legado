@@ -23,49 +23,20 @@ export type TypographySettings = {
 
 export const DEFAULT_TYPOGRAPHY_SETTINGS: TypographySettings = {
   font_display: 'Cormorant Garamond',
-  font_sans: 'Inter',
+  font_sans: 'Source Sans 3',
 };
 
-/** Catálogo curado (~34 fuentes). Display editorial + sans modernos + few display/handwriting. */
+/**
+ * Catálogo corto a propósito. Inter / Geist / Space Grotesk / Outfit / Sora
+ * no están: son el default estadístico de landings vibe-coded (docs/ANTI_SLOP.md).
+ */
 export const GOOGLE_FONTS_CATALOG: GoogleFontDef[] = [
-  // Serif editorial
   { family: 'Cormorant Garamond', category: 'serif', weights: [300, 400, 600], italic: true },
   { family: 'Cormorant', category: 'serif', weights: [300, 400, 600], italic: true },
-  { family: 'EB Garamond', category: 'serif', weights: [400, 500, 600], italic: true },
-  { family: 'Lora', category: 'serif', weights: [400, 500, 600], italic: true },
-  { family: 'Libre Caslon Text', category: 'serif', weights: [400, 700], italic: true },
-  { family: 'Crimson Pro', category: 'serif', weights: [300, 400, 600], italic: true },
-  { family: 'Vollkorn', category: 'serif', weights: [400, 600], italic: true },
-  { family: 'Spectral', category: 'serif', weights: [300, 400, 600], italic: true },
-  { family: 'Source Serif 4', category: 'serif', weights: [300, 400, 600], italic: true },
-  { family: 'Marcellus', category: 'serif', weights: [400], italic: false },
-  { family: 'Italiana', category: 'serif', weights: [400], italic: false },
-  { family: 'Cinzel', category: 'serif', weights: [400, 500, 700], italic: false },
-  // Display
-  { family: 'Playfair Display', category: 'display', weights: [400, 600, 700], italic: true },
   { family: 'Fraunces', category: 'display', weights: [300, 400, 600], italic: true },
-  { family: 'DM Serif Display', category: 'display', weights: [400], italic: false },
-  { family: 'Unna', category: 'display', weights: [400, 700], italic: true },
-  { family: 'Libre Baskerville', category: 'display', weights: [400, 700], italic: true },
-  // Sans
-  { family: 'Inter', category: 'sans', weights: [300, 400, 500, 600], italic: false },
-  { family: 'Work Sans', category: 'sans', weights: [300, 400, 500, 600], italic: false },
-  { family: 'Manrope', category: 'sans', weights: [300, 400, 500, 600], italic: false },
-  { family: 'Outfit', category: 'sans', weights: [300, 400, 500, 600], italic: false },
-  { family: 'DM Sans', category: 'sans', weights: [300, 400, 500, 600], italic: false },
-  { family: 'Space Grotesk', category: 'sans', weights: [300, 400, 500, 600], italic: false },
-  { family: 'Jost', category: 'sans', weights: [300, 400, 500, 600], italic: false },
-  { family: 'Public Sans', category: 'sans', weights: [300, 400, 500, 600], italic: false },
+  { family: 'Source Serif 4', category: 'serif', weights: [300, 400, 600], italic: true },
   { family: 'Source Sans 3', category: 'sans', weights: [300, 400, 500, 600], italic: false },
-  { family: 'Nunito Sans', category: 'sans', weights: [300, 400, 500, 600], italic: false },
-  { family: 'Figtree', category: 'sans', weights: [300, 400, 500, 600], italic: false },
-  { family: 'Plus Jakarta Sans', category: 'sans', weights: [300, 400, 500, 600], italic: false },
-  { family: 'Sora', category: 'sans', weights: [300, 400, 500, 600], italic: false },
-  { family: 'Archivo', category: 'sans', weights: [300, 400, 500, 600], italic: false },
-  // Handwriting
-  { family: 'Caveat', category: 'handwriting', weights: [400, 600], italic: false },
-  { family: 'Dancing Script', category: 'handwriting', weights: [400, 600], italic: false },
-  { family: 'Pacifico', category: 'handwriting', weights: [400], italic: false },
+  { family: 'Public Sans', category: 'sans', weights: [300, 400, 500, 600], italic: false },
 ];
 
 /**

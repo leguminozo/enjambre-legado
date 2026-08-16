@@ -286,7 +286,7 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
             onChange={(e) => patch('nav_font', e.target.value as HeaderMenuSettings['nav_font'])}
             className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
           >
-            <option value="sans">Sans (Inter)</option>
+            <option value="sans">Sans (cuerpo)</option>
             <option value="display">Display (Cormorant)</option>
           </select>
         </div>
@@ -335,7 +335,7 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
             className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
           >
             <option value="display">Display (Cormorant)</option>
-            <option value="sans">Sans (Inter)</option>
+            <option value="sans">Sans (cuerpo)</option>
           </select>
         </div>
       </section>

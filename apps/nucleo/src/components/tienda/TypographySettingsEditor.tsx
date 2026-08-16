@@ -209,7 +209,7 @@ export function TypographySettingsEditor({ content, onSave }: TypographySettings
           className="inline-flex min-h-11 items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-accent transition-colors disabled:opacity-50"
         >
           <RotateCcw size={12} />
-          Restablecer (Cormorant / Inter)
+          Restablecer (Cormorant / Source Sans 3)
         </button>
       </div>
 

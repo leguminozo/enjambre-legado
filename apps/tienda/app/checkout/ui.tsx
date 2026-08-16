@@ -10,7 +10,7 @@ import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { CheckoutCinematicOverlay } from '@/components/shop/checkout-cinematic-overlay';
-import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin, Sparkles } from 'lucide-react';
+import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin } from 'lucide-react';
 import {
   DEFAULT_COURIER,
   getCheckoutCourierOptions,
@@ -664,7 +664,6 @@ export function CheckoutClient() {
               {/* Código de creador — cada uso registra comisión para quien te invitó */}
               <section className="checkout-section">
                 <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="h-5 w-5 text-accent" />
                   <h2 className="font-display text-lg text-foreground">Código de creador</h2>
                 </div>
                 <div className="rounded-xl border border-border bg-card/40 p-4 sm:p-6 flex flex-col sm:flex-row gap-3">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Leaf, BookOpen, AlertTriangle, TreePine, Scale } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 type Metodologia = {
   version: string;
@@ -57,25 +57,18 @@ export default function ImpactoPublicoPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="bg-primary text-primary-foreground px-6 py-14 text-center relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: 'radial-gradient(circle at center, white 1px, transparent 1px)',
-            backgroundSize: '20px 20px',
-          }}
-        />
-        <div className="relative z-10 max-w-lg mx-auto">
-          <p className="text-xs uppercase tracking-[0.2em] opacity-80 mb-3">Open-book · Regeneración</p>
-          <h1 className="text-3xl font-serif font-bold leading-tight">Impacto verificable</h1>
-          <p className="mt-3 text-sm opacity-85 leading-relaxed">
+      <header className="px-6 pt-16 pb-8 border-b border-border">
+        <div className="max-w-lg mx-auto">
+          <p className="text-sm text-muted-foreground mb-2">Open-book · Regeneración</p>
+          <h1 className="text-3xl font-serif font-semibold leading-tight">Impacto verificable</h1>
+          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
             Coeficientes públicos, fórmulas abiertas y agregados sin datos personales.
-            No es sello de terceros: es nuestra contabilidad de impacto, con límites explícitos.
+            Contabilidad de impacto con límites explícitos, no sello de terceros.
           </p>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 -mt-6 pb-16 flex flex-col gap-4 relative z-10">
+      <main className="max-w-lg mx-auto px-4 py-10 pb-16 flex flex-col gap-8">
         {error && (
           <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
             {error}
@@ -83,11 +76,8 @@ export default function ImpactoPublicoPage() {
         )}
 
         {/* Open book live */}
-        <section className="rounded-2xl border border-border bg-card shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <TreePine className="w-5 h-5 text-primary" />
-            <h2 className="text-sm font-bold uppercase tracking-wider">Libro abierto (vivo)</h2>
-          </div>
+        <section className="border border-border bg-card p-6">
+          <h2 className="text-sm font-semibold mb-4">Libro abierto (vivo)</h2>
           {book ? (
             <>
               <div className="grid grid-cols-2 gap-3">
@@ -114,16 +104,17 @@ export default function ImpactoPublicoPage() {
               </p>
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">Cargando agregados…</p>
+            <div className="grid grid-cols-2 gap-3" aria-busy="true" aria-label="Cargando agregados">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="bg-muted/50 h-16 animate-pulse" />
+              ))}
+            </div>
           )}
         </section>
 
         {/* Methodology */}
-        <section className="rounded-2xl border border-border bg-card shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <BookOpen className="w-5 h-5 text-accent" />
-            <h2 className="text-sm font-bold uppercase tracking-wider">Metodología</h2>
-          </div>
+        <section className="border border-border bg-card p-6">
+          <h2 className="text-sm font-semibold mb-4">Metodología</h2>
           {metodo ? (
             <div className="space-y-5 text-sm">
               <div>
@@ -135,9 +126,7 @@ export default function ImpactoPublicoPage() {
               </div>
 
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
-                  <Scale className="w-3.5 h-3.5" /> Coeficientes
-                </p>
+                <p className="text-xs text-muted-foreground mb-2">Coeficientes</p>
                 <ul className="space-y-1.5 text-xs font-mono bg-surface-sunken rounded-xl p-3">
                   <li>co2_ton_por_arbol = {metodo.coeficientes.co2_ton_por_arbol}</li>
                   <li>
@@ -193,7 +182,7 @@ export default function ImpactoPublicoPage() {
               </div>
 
               <div className="rounded-xl border border-warning/30 bg-warning/10 p-4">
-                <div className="flex items-center gap-2 text-warning text-xs font-bold uppercase tracking-wider mb-2">
+                <div className="flex items-center gap-2 text-warning text-xs font-semibold mb-2">
                   <AlertTriangle className="w-3.5 h-3.5" />
                   Límites (léelos)
                 </div>
@@ -209,8 +198,7 @@ export default function ImpactoPublicoPage() {
           )}
         </section>
 
-        <p className="text-center text-xs text-muted-foreground px-2 leading-relaxed">
-          <Leaf className="inline w-3.5 h-3.5 mr-1 opacity-70" />
+        <p className="text-xs text-muted-foreground px-2 leading-relaxed">
           Obrera y Zángano · Red Apícola Territorial · Chiloé
         </p>
       </main>
@@ -220,7 +208,7 @@ export default function ImpactoPublicoPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-surface-sunken rounded-xl p-3 text-center">
+    <div className="bg-surface-sunken p-3">
       <p className="text-lg font-bold text-foreground tabular-nums">{value}</p>
       <p className="text-[0.65rem] text-muted-foreground uppercase tracking-wider mt-0.5">
         {label}
