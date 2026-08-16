@@ -375,6 +375,34 @@ html.light {
      -webkit-backdrop-filter al parsear. */
   html[data-legacy='true'] * { backdrop-filter: none; }
 }
+
+/* ── Glass canónico (una receta para tienda / núcleo / campo) ──
+   Sin blur en <lg: filtrar el viewport en móvil es caro. */
+.glass-panel,
+.glass {
+  background: hsl(var(--card) / 0.88);
+  border: 1px solid hsl(var(--border) / 0.55);
+}
+.glass-strong {
+  background: hsl(var(--card) / 0.92);
+  border: 1px solid hsl(var(--border) / 0.65);
+}
+@media (min-width: 1024px) {
+  .glass-panel,
+  .glass {
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .glass-strong {
+    background: hsl(var(--card) / 0.75);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+}
+.shadow-glass {
+  box-shadow: 0 8px 32px 0 hsl(var(--background) / 0.08);
+}
 @supports not (backdrop-filter: none) {
   /* Safari 15.x (iPhone 7) solo entiende el prefijado. El minificador (Lightning
      CSS) descarta backdrop-filter con !important; la especificidad

@@ -22,10 +22,15 @@ const icon = (color: string, emoji: string) =>
     popupAnchor: [0, -14],
   });
 
-const ICON_EXT = icon('#2d6a4f', '🐝');
-const ICON_PREDIO = icon('#c4a35a', '🏞️');
-const ICON_ALERTA = icon('#c45c4a', '⚠️');
-const ICON_FLOR = icon('#6b8f71', '🌸');
+const MAP_BOSQUE = 'hsl(145 63% 42%)';
+const MAP_MIEL = 'hsl(44 85% 46%)';
+const MAP_ALERTA = 'hsl(0 72% 51%)';
+const MAP_FLOR = 'hsl(145 30% 48%)';
+
+const ICON_EXT = icon(MAP_BOSQUE, '🐝');
+const ICON_PREDIO = icon(MAP_MIEL, '🏞️');
+const ICON_ALERTA = icon(MAP_ALERTA, '⚠️');
+const ICON_FLOR = icon(MAP_FLOR, '🌸');
 
 function FitBounds({ data }: { data: MapaChiloePublico }) {
   const map = useMap();
@@ -74,8 +79,8 @@ export function MapaChiloePublicoBase({
               center={[a.lat, a.lng]}
               radius={1000}
               pathOptions={{
-                color: a.tipo === 'externo' ? '#2d6a4f' : '#c4a35a',
-                fillColor: a.tipo === 'externo' ? '#2d6a4f' : '#c4a35a',
+                color: a.tipo === 'externo' ? MAP_BOSQUE : MAP_MIEL,
+                fillColor: a.tipo === 'externo' ? MAP_BOSQUE : MAP_MIEL,
                 fillOpacity: 0.12,
                 weight: 1,
               }}

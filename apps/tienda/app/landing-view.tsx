@@ -98,22 +98,30 @@ interface TiendaLandingProps {
   locale: string;
 }
 
-const COLLECTION_IMAGES: Record<string, string> = {
-  sachets: '/assets/editorial/sachets.png',
-  default: '/assets/editorial/honey-jar.png',
-};
+const COLLECTION_IMAGES = {
+  sachet: '/assets/editorial/sachets.png',
+  inmersion: '/assets/editorial/immersion.png',
+  frasco: '/assets/editorial/honey-jar.png',
+} as const;
 
 function getCollectionImage(kicker: string): string {
   const lower = kicker.toLowerCase();
-  if (lower.includes('sachet') || lower.includes('cofre') || lower.includes('caja')) {
-    return COLLECTION_IMAGES.sachets;
+  if (lower.includes('sachet')) return COLLECTION_IMAGES.sachet;
+  if (
+    lower.includes('inmers') ||
+    lower.includes('taller') ||
+    lower.includes('experiencia') ||
+    lower.includes('cofre') ||
+    lower.includes('caja')
+  ) {
+    return COLLECTION_IMAGES.inmersion;
   }
-  return COLLECTION_IMAGES.default;
+  return COLLECTION_IMAGES.frasco;
 }
 
-/** Prioriza la imagen del CMS; cae al hardcodeado si no hay ninguna. */
+/** CMS (http o /assets) primero; si no, foto por tipo de colección — no reciclar sachets. */
 function resolveCollectionImage(c: ColeccionItem): string {
-  if (c.image && c.image.startsWith('http')) return c.image;
+  if (c.image && (c.image.startsWith('http') || c.image.startsWith('/'))) return c.image;
   return getCollectionImage(c.kicker);
 }
 

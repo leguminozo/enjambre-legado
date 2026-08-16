@@ -49,15 +49,7 @@ html:not(.dark) {
   .editorial-rule {
     @apply border-y border-border py-12;
   }
-  .glass-panel {
-    @apply bg-card border border-border rounded-lg shadow-xl;
-  }
-
-  @media (min-width: 1024px) {
-    .glass-panel {
-      @apply bg-card/60 backdrop-blur-2xl;
-    }
-  }
+  /* .glass-panel vive en @enjambre/ui/tokens.css */
 
   /* Legal CMS HTML: anchors need touch ≥44 */
   .prose a {

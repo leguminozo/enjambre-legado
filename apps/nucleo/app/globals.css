@@ -145,13 +145,7 @@ select.input-field option,
   color: hsl(var(--foreground));
 }
 
-@media (min-width: 1024px) {
-  .glass-panel {
-    background: hsl(var(--card) / 0.3);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-  }
-}
+/* .glass-panel / .glass / .glass-strong: @enjambre/ui/tokens.css */
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar {
@@ -1797,24 +1791,7 @@ body::after {
 }
 
 /* Glassmorphism surfaces */
-.glass {
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  background: hsl(var(--card) / 0.6);
-  border: 1px solid hsl(var(--border) / 0.5);
-}
-
-.glass-strong {
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
-  background: hsl(var(--card) / 0.85);
-  border: 1px solid hsl(var(--border) / 0.7);
-}
-
 /* Shadows and glows */
-.shadow-glass {
-  box-shadow: 0 8px 32px 0 hsl(var(--background) / 0.08);
-}
 
 .card-glow {
   position: relative;

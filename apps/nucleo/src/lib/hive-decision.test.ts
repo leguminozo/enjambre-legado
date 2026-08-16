@@ -15,7 +15,7 @@ function hive(over: Partial<HiveState> = {}): HiveState {
     risk: 'watch',
     riskScore: 30,
     riskLabel: 'Vigilancia',
-    color: '#c4a35a',
+    color: 'hsl(44 85% 46%)',
     weightKg: 40,
     weightDate: '2026-07-01',
     weightTrend: 'flat',

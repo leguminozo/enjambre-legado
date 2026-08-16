@@ -15,7 +15,7 @@ import { ViewShell } from '@/components/layout/ViewShell';
  */
 const ProductoCard = memo(function ProductoCard({ p }: { p: ProductoLocal }) {
   return (
-    <div className="group bg-card/40 backdrop-blur-sm border border-border p-6 rounded-[32px] transition-all hover:border-primary/30 hover:bg-card/60 flex flex-col">
+    <div className="group glass-panel p-6 rounded-lg transition-colors hover:border-primary/30 flex flex-col">
       <div className="flex-1">
         <div className="flex justify-between items-start mb-4">
           <h2 className="font-display text-xl group-hover:text-primary transition-colors">{p.nombre ?? 'Sin nombre'}</h2>

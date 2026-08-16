@@ -49,7 +49,7 @@ function CampoLanding() {
               <Link
                 key={route.href}
                 href={route.href}
-                className="group bg-card/40 backdrop-blur-xl p-6 rounded-2xl border border-border/50 shadow-lg hover:border-primary/30 transition-all min-h-11"
+                className="group glass-panel p-6 rounded-lg hover:border-primary/30 transition-colors min-h-11"
               >
                 <Icon
                   className="w-8 h-8 text-primary mb-4 group-hover:scale-110 transition-transform"

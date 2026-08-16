@@ -99,14 +99,13 @@ export interface ApiaryState {
   hives: HiveState[];
 }
 
-// ─── Colors (valores fijos para Three.js; no dependen de CSS vars en runtime) ─
-
+// Three.js acepta hsl(); los canales son los primitivos de tokens.css.
 export const RISK_COLORS: Record<RiskLevel, string> = {
-  ok: '#3d8b6e',
-  watch: '#c4a35a',
-  alert: '#d97706',
-  critical: '#c45c4a',
-  unknown: '#6b7280',
+  ok: 'hsl(145 63% 42%)',
+  watch: 'hsl(44 85% 46%)',
+  alert: 'hsl(38 92% 50%)',
+  critical: 'hsl(0 72% 51%)',
+  unknown: 'hsl(35 15% 45%)',
 };
 
 export const RISK_LABELS: Record<RiskLevel, string> = {

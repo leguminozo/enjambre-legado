@@ -17,15 +17,15 @@ export function GlassPanel({
   ...props
 }: GlassPanelProps) {
   const variantClass = {
-    default: "bg-card/60 backdrop-blur-xl border border-foreground/20",
-    strong: "bg-card/70 backdrop-blur-2xl border border-foreground/25",
-    raised: "bg-surface-raised/70 backdrop-blur-xl border border-border/50 shadow-lg",
+    default: "glass-panel",
+    strong: "glass-strong",
+    raised: "glass-panel shadow-glass",
   }[variant];
 
   return (
     <div
       className={cn(
-        "rounded-2xl transition-all duration-300",
+        "rounded-lg transition-colors",
         variantClass,
         glow && "shadow-glow",
         className,

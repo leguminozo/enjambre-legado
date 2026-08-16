@@ -21,7 +21,7 @@ const GemeloApiarioBase = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="card animate-pulse w-full h-[500px] bg-[#0c1410] border border-accent/15 flex items-center justify-center">
+      <div className="card animate-pulse w-full h-[500px] bg-surface-sunken border border-accent/15 flex items-center justify-center">
         <div className="text-muted-foreground text-sm font-datos flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
           Cargando entorno 3D...
@@ -39,7 +39,7 @@ function GemeloApiario2D({
   onSelectColmena,
 }: GemeloApiarioProps) {
   return (
-    <div className="card w-full h-[500px] bg-[#0c1410] border border-accent/15 overflow-y-auto">
+    <div className="card w-full h-[500px] bg-surface-sunken border border-accent/15 overflow-y-auto">
       <div className="p-5">
         <h3 className="text-sm font-semibold text-accent mb-1">
           Apiario: {apiarioName ?? 'Sin nombre'}
@@ -105,7 +105,7 @@ export function GemeloApiario(props: GemeloApiarioProps) {
   }
   if (webglOk === null) {
     return (
-      <div className="card animate-pulse w-full h-[500px] bg-[#0c1410] border border-accent/15 flex items-center justify-center">
+      <div className="card animate-pulse w-full h-[500px] bg-surface-sunken border border-accent/15 flex items-center justify-center">
         <div className="text-muted-foreground text-sm font-datos flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
           Cargando entorno 3D...
