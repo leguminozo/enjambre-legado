@@ -444,10 +444,17 @@ export function TiendaLandingView({
           <div className={`editorial-container grid grid-cols-1 sm:grid-cols-2 ${gridClass} gap-x-6 gap-y-10 sm:gap-x-8 sm:gap-y-16 px-4 sm:px-0`}>
             {initialColecciones.map((c, index) => {
               const imageSrc = resolveCollectionImage(c);
+              const rawHref = c.href?.trim();
+              const href =
+                rawHref && rawHref !== '/catalogo' && rawHref !== ''
+                  ? rawHref
+                  : c.kicker || c.title
+                    ? `/catalogo?q=${encodeURIComponent((c.kicker || c.title).split(/\s+/)[0] ?? '')}`
+                    : '/catalogo';
               return (
                 <Link
                   key={c.title}
-                  href={c.href}
+                  href={href}
                   prefetch={false}
                   className="group flex min-h-11 flex-col rounded-[var(--tienda-radius,0.5rem)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >

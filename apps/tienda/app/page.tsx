@@ -90,37 +90,37 @@ export default async function TiendaPage({
             kicker: 'Sachets',
             title: 'Gotas de Néctar',
             desc: '¡Lleva contigo la dulzura del bosque! Perfecto tamaño para tus experiencias diarias.',
-            href: '/catalogo',
+            href: '/catalogo?q=Sachet',
           },
           {
             kicker: 'Frascos Medios',
             title: 'Tesoros del Colmenar',
             desc: '¡La dulzura boscosa en tu mesa! En tus preparaciones y en cada cucharada.',
-            href: '/catalogo',
+            href: '/catalogo?q=Frasco',
           },
           {
             kicker: 'Frascos Grandes',
             title: 'Generosidad de la Selva',
             desc: 'Para quienes el consumo consciente de miel es un ritual cotidiano.',
-            href: '/catalogo',
+            href: '/catalogo?q=Frasco',
           },
           {
             kicker: 'Miel Virgen',
             title: 'Panal de Bosque',
             desc: 'El placer de miel, libre de intervenciones. La pureza del néctar. Huella directa del cosmos.',
-            href: '/catalogo',
+            href: '/catalogo?q=Miel',
           },
           {
             kicker: 'Cajas de Sachets',
             title: 'Cofres del Enjambre',
             desc: '20 Sachets para disfrutar, compartir, recordar. El bosque a tu ritmo de vida.',
-            href: '/catalogo',
+            href: '/catalogo?q=Sachet',
           },
           {
             kicker: 'Suscripciones',
             title: 'Legado del Bosque',
             desc: 'La búsqueda de legado y regeneración desde el sur del planeta. Disfruta de nuestras creaciones en su máximo esplendor.',
-            href: '/catalogo',
+            href: '/catalogo?q=Suscripcion',
           },
         ];
 

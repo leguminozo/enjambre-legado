@@ -200,8 +200,24 @@ export function CatalogoView({ products, ratings = {} }: Props) {
           p.tags.some((t) => t.toLowerCase().includes(s)),
       );
     }
-    if (formato) list = list.filter((p) => p.format === formato);
-    if (categoria) list = list.filter((p) => p.category === categoria);
+    if (formato) {
+      const fLower = formato.trim().toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.format?.toLowerCase() === fLower ||
+          p.format?.toLowerCase().includes(fLower) ||
+          fLower.includes(p.format?.toLowerCase() ?? ''),
+      );
+    }
+    if (categoria) {
+      const cLower = categoria.trim().toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.category?.toLowerCase() === cLower ||
+          p.category?.toLowerCase().includes(cLower) ||
+          cLower.includes(p.category?.toLowerCase() ?? ''),
+      );
+    }
     if (soloStock) list = list.filter((p) => (p.stock ?? 0) > 0);
     if (altoImpacto) list = list.filter((p) => (p.irr_referencia ?? 0) > 1);
 
@@ -221,6 +237,22 @@ export function CatalogoView({ products, ratings = {} }: Props) {
 
   const chipBase =
     'shrink-0 rounded-full border px-3.5 py-2 text-xs uppercase tracking-wider transition min-h-[44px] inline-flex items-center';
+
+  const isFormatoActive = (f: string) =>
+    Boolean(
+      formato &&
+        (formato.trim().toLowerCase() === f.trim().toLowerCase() ||
+          formato.trim().toLowerCase().includes(f.trim().toLowerCase()) ||
+          f.trim().toLowerCase().includes(formato.trim().toLowerCase())),
+    );
+
+  const isCategoriaActive = (c: string) =>
+    Boolean(
+      categoria &&
+        (categoria.trim().toLowerCase() === c.trim().toLowerCase() ||
+          categoria.trim().toLowerCase().includes(c.trim().toLowerCase()) ||
+          c.trim().toLowerCase().includes(categoria.trim().toLowerCase())),
+    );
 
   return (
     <>
@@ -285,9 +317,9 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                 <button
                   key={f}
                   type="button"
-                  onClick={() => setParams({ formato: formato === f ? null : f })}
+                  onClick={() => setParams({ formato: isFormatoActive(f) ? null : f })}
                   className={`${chipBase} ${
-                    formato === f
+                    isFormatoActive(f)
                       ? 'border-accent bg-accent/15 text-accent-text'
                       : 'border-border text-muted-foreground hover:border-accent/40'
                   }`}
@@ -299,9 +331,9 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                 <button
                   key={c}
                   type="button"
-                  onClick={() => setParams({ categoria: categoria === c ? null : c })}
+                  onClick={() => setParams({ categoria: isCategoriaActive(c) ? null : c })}
                   className={`${chipBase} normal-case tracking-normal ${
-                    categoria === c
+                    isCategoriaActive(c)
                       ? 'border-primary bg-primary/10 text-foreground'
                       : 'border-border text-muted-foreground hover:border-accent/40'
                   }`}
