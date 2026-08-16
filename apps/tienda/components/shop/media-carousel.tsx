@@ -162,26 +162,26 @@ export function MediaCarousel({ items, autoplayMs = 5000, settings }: MediaCarou
 
               {/* Superposición Editorial Opcional */}
               {hasCopy ? (
-                <div className="absolute inset-x-0 bottom-12 sm:bottom-16 px-6 sm:px-12 max-w-4xl mx-auto text-center z-10 pointer-events-auto">
+                <div className="absolute inset-x-0 bottom-10 sm:bottom-16 px-4 sm:px-12 max-w-4xl mx-auto text-center z-10 pointer-events-auto">
                   {item.kicker ? (
-                    <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-2 font-medium">
+                    <span className="block text-[0.6rem] sm:text-[0.65rem] uppercase tracking-[0.35em] sm:tracking-[0.4em] text-accent-text mb-1.5 sm:mb-2 font-medium">
                       {item.kicker}
                     </span>
                   ) : null}
                   {item.title ? (
-                    <h2 className="font-display text-2xl sm:text-4xl md:text-5xl font-light text-foreground mb-2 text-balance leading-tight">
+                    <h2 className="font-display text-xl sm:text-3xl md:text-5xl font-light text-foreground mb-1.5 sm:mb-2 text-balance leading-tight">
                       {item.title}
                     </h2>
                   ) : null}
                   {item.subtitle ? (
-                    <p className="text-sm sm:text-base text-muted-foreground mb-4 max-w-xl mx-auto text-pretty line-clamp-2">
+                    <p className="text-xs sm:text-sm md:text-base text-muted-foreground mb-3 sm:mb-4 max-w-xl mx-auto text-pretty line-clamp-2">
                       {item.subtitle}
                     </p>
                   ) : null}
                   {item.cta_label ? (
                     <Link
                       href={item.cta_link || '/catalogo'}
-                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-xs uppercase tracking-widest font-medium hover:bg-accent hover:text-accent-foreground transition-all duration-base shadow-lg"
+                      className="inline-flex items-center gap-2 px-5 py-2 sm:px-6 sm:py-2.5 rounded-full bg-primary text-primary-foreground text-[0.7rem] sm:text-xs uppercase tracking-widest font-medium hover:bg-accent hover:text-accent-foreground transition-all duration-base shadow-lg"
                     >
                       <span>{item.cta_label}</span>
                       <ArrowRight size={14} />
@@ -199,7 +199,7 @@ export function MediaCarousel({ items, autoplayMs = 5000, settings }: MediaCarou
           <button
             type="button"
             onClick={() => goTo(current - 1)}
-            className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 min-h-11 min-w-11 h-11 w-11 rounded-full border border-border bg-card/70 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-base z-20"
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 min-h-11 min-w-11 h-9 w-9 sm:h-11 sm:w-11 rounded-full border border-border bg-card/70 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-base z-20"
             aria-label="Anterior"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
@@ -207,7 +207,7 @@ export function MediaCarousel({ items, autoplayMs = 5000, settings }: MediaCarou
           <button
             type="button"
             onClick={() => goTo(current + 1)}
-            className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 min-h-11 min-w-11 h-11 w-11 rounded-full border border-border bg-card/70 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-base z-20"
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 min-h-11 min-w-11 h-9 w-9 sm:h-11 sm:w-11 rounded-full border border-border bg-card/70 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-base z-20"
             aria-label="Siguiente"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
