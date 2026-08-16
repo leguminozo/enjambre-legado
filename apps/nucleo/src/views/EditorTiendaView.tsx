@@ -63,6 +63,7 @@ import {
   Sparkles,
   Languages,
   Lock,
+  Copy,
   type LucideProps,
 } from 'lucide-react';
 import { toast, ImmersiveModal, PanelFocusToggle, type PanelFocus } from '@enjambre/ui';
@@ -95,38 +96,10 @@ import {
   navVisibleSectionKey,
   workingCmsContent,
 } from '@/lib/editor-tienda-sections';
-import { HEADER_NAV_TEMPLATE, HEADER_SETTINGS_TEMPLATE } from '@/lib/header-menu';
+import { getSectionSchema, SCHEMA_SECTION_TEMPLATES } from '@/lib/editor-tienda-schema';
+import { SchemaFormFields, SchemaSettingsPanel } from '@/components/tienda/SchemaFieldEditor';
 import {
-  ANNOUNCEMENT_SETTINGS_TEMPLATE,
-  ANNOUNCEMENT_SLIDE_TEMPLATE,
-  BRAND_ASSETS_TEMPLATE,
-  FOOTER_SETTINGS_TEMPLATE,
-  FOOTER_SOCIAL_TEMPLATE,
-  PWA_NAV_ITEM_TEMPLATE,
-  PWA_NAV_SETTINGS_TEMPLATE,
-  THEME_SETTINGS_TEMPLATE,
-  LANDING_LAYOUT_TEMPLATE,
-  CATALOG_SETTINGS_TEMPLATE,
-  PDP_SETTINGS_TEMPLATE,
-  SEO_DEFAULTS_TEMPLATE,
-  CONTACT_SETTINGS_TEMPLATE,
-  CAMPAIGN_BANNER_TEMPLATE,
-  LEGAL_DOC_TEMPLATE,
-  TYPOGRAPHY_SETTINGS_TEMPLATE,
-  SEASONAL_SETTINGS_TEMPLATE,
-  CONSERVATION_CONTENT_TEMPLATE,
-  HOME_MEDIA_ITEM_TEMPLATE,
-  CHECKOUT_SETTINGS_TEMPLATE,
-  CART_SETTINGS_TEMPLATE,
-  VIDEO_SETTINGS_TEMPLATE,
-  MAP_SETTINGS_TEMPLATE,
-  PRODUCTS_SETTINGS_TEMPLATE,
-  COLLECTIONS_SETTINGS_TEMPLATE,
-  GALERIA_SETTINGS_TEMPLATE,
-  NOSOTROS_SETTINGS_TEMPLATE,
-  MEDIA_SETTINGS_TEMPLATE,
-  CIENCIA_SETTINGS_TEMPLATE,
-  AUTH_SETTINGS_TEMPLATE,
+  type FieldSchema,
   scanPublicCopyRisks,
 } from '@/lib/store-chrome';
 
@@ -629,70 +602,11 @@ function getSectionMeta(key: string) {
 }
 
 /**
- * Plantillas JSON iniciales por sección.
- * 'colecciones' incluye 'image' para que EditableItemCard muestre el uploader.
+ * Plantillas JSON iniciales por sección — fuente única: el registro de schemas
+ * (editor-tienda-schema.ts). 'colecciones' incluye 'image' para que
+ * EditableItemCard muestre el uploader.
  */
-const SECTION_TEMPLATES: Record<string, Record<string, unknown>> = {
-  colecciones: { kicker: '', title: '', desc: '', href: '/catalogo', image: '' },
-  talleres: { date: '', title: '', desc: '', action: '' },
-  nosotros: {
-    title: '',
-    desc: '',
-    image: '',
-    historia: '',
-    mision: '',
-    vision: '',
-    stat1_label: '',
-    stat1_value: '',
-    stat2_label: '',
-    stat2_value: '',
-    stat3_label: '',
-    stat3_value: '',
-    stat4_label: '',
-    stat4_value: '',
-  },
-  galeria: { titulo: '', descripcion: '', url: '' },
-  contacto: { title: '', desc: '' },
-  ciencia: { categoria: '', titulo: '', texto: '', fuente: '' },
-  menu_settings: { ...HEADER_SETTINGS_TEMPLATE },
-  menu_links: { ...HEADER_NAV_TEMPLATE },
-  theme_settings: { ...THEME_SETTINGS_TEMPLATE },
-  typography_settings: { ...TYPOGRAPHY_SETTINGS_TEMPLATE },
-  announcement_settings: { ...ANNOUNCEMENT_SETTINGS_TEMPLATE },
-  announcement_slides: { ...ANNOUNCEMENT_SLIDE_TEMPLATE },
-  footer_settings: { ...FOOTER_SETTINGS_TEMPLATE },
-  footer_social: { ...FOOTER_SOCIAL_TEMPLATE },
-  pwa_nav_settings: { ...PWA_NAV_SETTINGS_TEMPLATE },
-  pwa_nav_items: { ...PWA_NAV_ITEM_TEMPLATE },
-  brand_assets: { ...BRAND_ASSETS_TEMPLATE },
-  landing_layout: { ...LANDING_LAYOUT_TEMPLATE },
-  catalog_settings: { ...CATALOG_SETTINGS_TEMPLATE },
-  pdp_settings: { ...PDP_SETTINGS_TEMPLATE },
-  seo_defaults: { ...SEO_DEFAULTS_TEMPLATE },
-  contact_settings: { ...CONTACT_SETTINGS_TEMPLATE },
-  checkout_settings: { ...CHECKOUT_SETTINGS_TEMPLATE },
-  cart_settings: { ...CART_SETTINGS_TEMPLATE },
-  campaign_banners: { ...CAMPAIGN_BANNER_TEMPLATE },
-  seasonal_settings: { ...SEASONAL_SETTINGS_TEMPLATE },
-  conservation_content: { ...CONSERVATION_CONTENT_TEMPLATE },
-  media_items: { ...HOME_MEDIA_ITEM_TEMPLATE },
-  video_settings: { ...VIDEO_SETTINGS_TEMPLATE },
-  map_settings: { ...MAP_SETTINGS_TEMPLATE },
-  products_settings: { ...PRODUCTS_SETTINGS_TEMPLATE },
-  collections_settings: { ...COLLECTIONS_SETTINGS_TEMPLATE },
-  galeria_settings: { ...GALERIA_SETTINGS_TEMPLATE },
-  nosotros_settings: { ...NOSOTROS_SETTINGS_TEMPLATE },
-  media_settings: { ...MEDIA_SETTINGS_TEMPLATE },
-  ciencia_settings: { ...CIENCIA_SETTINGS_TEMPLATE },
-  auth_settings: { ...AUTH_SETTINGS_TEMPLATE },
-  legal_terminos: { ...LEGAL_DOC_TEMPLATE },
-  legal_privacidad: { ...LEGAL_DOC_TEMPLATE },
-  legal_cookies: { ...LEGAL_DOC_TEMPLATE },
-  legal_envio: { ...LEGAL_DOC_TEMPLATE },
-  legal_reembolso: { ...LEGAL_DOC_TEMPLATE },
-  legal_cancelacion: { ...LEGAL_DOC_TEMPLATE },
-  legal_garantia: { ...LEGAL_DOC_TEMPLATE },
-};
+const SECTION_TEMPLATES = SCHEMA_SECTION_TEMPLATES;
 
 /**
  * Ruta de la tienda que previsualiza cada sección del editor.
@@ -1005,6 +919,13 @@ interface EditableItemCardProps {
    * content; se completan aquí para que el uploader aparezca igualmente.
    */
   template?: Record<string, unknown>;
+  /**
+   * Fields del schema de la sección (piloto schema-driven). Si vienen, el
+   * panel se genera desde el schema (visible_if + bilingual); si no, heurística.
+   */
+  fields?: readonly FieldSchema[];
+  /** Duplicar como boceto (patrón Shopify): clona content al final de la lista. */
+  onDuplicate?: () => void;
 }
 
 function EditableItemCard({
@@ -1022,6 +943,8 @@ function EditableItemCard({
   isLast,
   dragHandleProps,
   template,
+  fields,
+  onDuplicate,
 }: EditableItemCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [localContent, setLocalContent] = useState<Record<string, unknown>>(() =>
@@ -1075,6 +998,15 @@ function EditableItemCard({
   const handleFieldChange = useCallback((key: string, val: unknown) => {
     setLocalContent((prev) => ({ ...prev, [key]: val }));
   }, []);
+
+  /** Upload a Storage: el SchemaFormFields persiste la URL vía handleFieldChange. */
+  const handleSchemaImage = (file: File, fieldId: string): Promise<string> =>
+    onImageUpload(file, fieldId, item.id);
+
+  /** Upload = URL; flush inmediato sin debounce (paridad con handleFileChange). */
+  const handleSchemaImageUploaded = (fieldId: string, url: string) => {
+    void flush({ content: { ...localContent, [fieldId]: url }, active: localActive });
+  };
 
   const handleToggleActive = () => {
     setLocalActive(!localActive);
@@ -1196,6 +1128,16 @@ function EditableItemCard({
           >
             {localActive ? <Eye size={14} /> : <EyeOff size={14} />}
           </button>
+          {onDuplicate ? (
+            <button
+              onClick={onDuplicate}
+              className="p-2 rounded-lg text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors min-w-11 min-h-11 flex items-center justify-center"
+              title="Duplicar como boceto"
+              aria-label="Duplicar como boceto"
+            >
+              <Copy size={14} />
+            </button>
+          ) : null}
           {/* Borrador pendiente: publicar/descartar explícito (draft_content) */}
           {item.draft_content != null && (
             <>
@@ -1266,7 +1208,17 @@ function EditableItemCard({
             onChange={handleFileChange}
           />
 
-          {displayEntries.map(([key, val]) => {
+          {fields ? (
+            <SchemaFormFields
+              fields={fields}
+              values={localContent}
+              onChange={handleFieldChange}
+              onImageUpload={handleSchemaImage}
+              onImageUploaded={handleSchemaImageUploaded}
+              idPrefix={`item-${item.id}`}
+            />
+          ) : (
+            displayEntries.map(([key, val]) => {
             // Carrusel media: en modo video, `src` es una URL de video (no uploader de imagen)
             const isVideoSrc =
               activeSection === 'media_items' &&
@@ -1322,8 +1274,8 @@ function EditableItemCard({
                 <ContentFieldEditor fieldKey={key} fieldId={`${item.id}-${key}`} value={val} onChange={(v) => handleFieldChange(key, v)} />
               )}
             </div>
-            );
-          })}
+              );
+            }))}
           </div>
           </motion.div>
         )}
@@ -1628,6 +1580,8 @@ interface ItemsPanelProps {
   onImageUpload: (file: File, fieldName: string, itemId: string) => Promise<string>;
   onAddNew: () => void;
   onReorder?: (items: CMSContentItem[]) => void;
+  /** Duplicar como boceto: clona el item al final de la sección. */
+  onDuplicate?: (item: CMSContentItem) => void;
   isDeleting: boolean;
   /** brand_assets del CMS para la preview del menú (fallback logo marca → texto) */
   brandContent?: Record<string, unknown> | null;
@@ -1650,6 +1604,7 @@ function ItemsPanel({
   onImageUpload,
   onAddNew,
   onReorder,
+  onDuplicate,
   isDeleting,
   brandContent,
   companionSettingsKey,
@@ -1692,6 +1647,15 @@ function ItemsPanel({
   const SectionIcon = sectionMeta.icon;
   // Plantilla de la sección: completa campos ausentes en items viejos (p.ej. image)
   const sectionTemplate = SECTION_TEMPLATES[activeSection];
+  // Schema piloto: si la sección declara fields, el panel se genera desde el
+  // schema (fallback heurística para el resto). Los settings con customEditor
+  // siguen con su editor a mano.
+  const itemSchema = getSectionSchema(activeSection);
+  const itemFields =
+    itemSchema && itemSchema.kind.kind !== 'settings' ? itemSchema.fields : undefined;
+  const companionSchema = companionSettingsKey
+    ? getSectionSchema(companionSettingsKey)
+    : undefined;
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 space-y-6">
@@ -1765,6 +1729,17 @@ function ItemsPanel({
                   onUpdate={onUpdate}
                   onImageUpload={onImageUpload}
                   brandContent={brandContent}
+                />
+              ) : companionSchema && !companionSchema.customEditor ? (
+                <SchemaSettingsPanel
+                  schema={companionSchema}
+                  content={workingCmsContent(companionSettingsItem)}
+                  onSave={(content) =>
+                    onUpdate(companionSettingsItem.id, content, companionSettingsItem.is_active)
+                  }
+                  onImageUpload={(file, fieldName) =>
+                    onImageUpload(file, fieldName, companionSettingsItem.id)
+                  }
                 />
               ) : (
                 <ChromeSettingsEditor
@@ -1883,6 +1858,13 @@ function ItemsPanel({
                 onImageUpload={onImageUpload}
                 brandContent={brandContent}
               />
+            ) : itemSchema && !itemSchema.customEditor ? (
+              <SchemaSettingsPanel
+                schema={itemSchema}
+                content={workingCmsContent(items[0])}
+                onSave={(content) => onUpdate(items[0].id, content, items[0].is_active)}
+                onImageUpload={(file, fieldName) => onImageUpload(file, fieldName, items[0].id)}
+              />
             ) : (
               <ChromeSettingsEditor
                 sectionKey={activeSection}
@@ -1936,6 +1918,8 @@ function ItemsPanel({
                             isLast={index === items.length - 1}
                             dragHandleProps={draggableProvided.dragHandleProps}
                             template={sectionTemplate}
+                            fields={itemFields}
+                            onDuplicate={onDuplicate ? () => onDuplicate(item) : undefined}
                           />
                         </div>
                       )}
@@ -1960,6 +1944,8 @@ function ItemsPanel({
                 onImageUpload={onImageUpload}
                 isDeleting={isDeleting}
                 template={sectionTemplate}
+                fields={itemFields}
+                onDuplicate={onDuplicate ? () => onDuplicate(item) : undefined}
               />
             ))}
           </div>
@@ -2480,6 +2466,30 @@ function EditorTiendaViewInner() {
       null
     : null;
 
+  /** Duplicar como boceto (patrón Shopify): clona el content editable al final.
+   *  La copia arranca como row nueva sin borrador (el operador itera sin tocar
+   *  el original ni arrastrar drafts sin publicar de la fuente). */
+  const handleDuplicateItem = (item: CMSContentItem) => {
+    const nextOrder = currentItems.reduce((max, i) => Math.max(max, i.item_order ?? 0), 0) + 1;
+    cms.createItem.mutate(
+      {
+        section_key: item.section_key as CMSSectionKey,
+        content: { ...workingCmsContent(item) },
+        item_order: nextOrder,
+        // locale viene tipado string por la migración 1001; el contrato es es|en.
+        locale: (item.locale === 'en' ? 'en' : 'es') as 'es' | 'en',
+      },
+      {
+        onSuccess: (res) => {
+          toast('Bloque duplicado — editá el boceto', { type: 'success' });
+          notifyRevalidate(res?.revalidated, res?.revalidate_reason);
+          refreshIframe();
+        },
+        onError: (err) => toast(err.message, { type: 'error' }),
+      },
+    );
+  };
+
   const handleInitCompanion = () => {
     if (!companionSettingsKey) return;
     const template = SECTION_TEMPLATES[companionSettingsKey] ?? {};
@@ -2914,6 +2924,7 @@ function EditorTiendaViewInner() {
                     onImageUpload={handleImageUpload}
                     onAddNew={() => setShowNewForm(true)}
                     onReorder={handleReorder}
+                    onDuplicate={handleDuplicateItem}
                     isDeleting={cms.deleteItem.isPending}
                     brandContent={groupedData['brand_assets']?.[0]?.content ?? null}
                     companionSettingsKey={companionSettingsKey}

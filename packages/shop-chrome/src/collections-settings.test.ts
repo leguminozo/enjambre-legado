@@ -98,8 +98,9 @@ describe('parseMediaSettings', () => {
 describe('parseCienciaSettings', () => {
   it('null/undefined → defaults de ciencia', () => {
     const out = parseCienciaSettings(null);
-    expect(out.kicker).toBe('Ciencia');
-    expect(out.title).toBe('La ciencia del bosque');
+    // Defaults actuales de DEFAULT_CIENCIA_SETTINGS.
+    expect(out.kicker).toBe('Ciencia & Innovación');
+    expect(out.title).toBe('Respaldado por la naturaleza y la investigación');
   });
 });
 

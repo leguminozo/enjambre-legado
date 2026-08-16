@@ -25,11 +25,15 @@ export default function NucleoResetPasswordPage() {
       const tokenHash = search.get('token_hash');
       const type = search.get('type');
       if (tokenHash && type === 'recovery') {
-        supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' }).then(({ error }) => {
-          if (error) {
-            toast(friendlySupabaseError(error), { type: 'error' });
-          }
-        });
+        // Anotación de tipado (TS7031 pre-existente): verifyOtp resuelve any en
+        // este setup; el shape es el de Supabase AuthError.
+        supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' }).then(
+          ({ error }: { error: { code?: string; message?: string } | null }) => {
+            if (error) {
+              toast(friendlySupabaseError(error), { type: 'error' });
+            }
+          },
+        );
       }
     }
   }, []);

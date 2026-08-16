@@ -1,4 +1,5 @@
 export * from './store-chrome';
+export * from './editor-schema';
 export * from './typography';
 export * from './seasonal';
 export * from './header-menu';
