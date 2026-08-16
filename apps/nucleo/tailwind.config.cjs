@@ -26,7 +26,7 @@ const config = {
       },
       fontFamily: {
         existencial: ['var(--font-cormorant)', 'Cormorant Garamond', 'Georgia', 'serif'],
-        datos: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        datos: ['var(--font-datos)', 'system-ui', 'sans-serif'],
       },
     },
   },

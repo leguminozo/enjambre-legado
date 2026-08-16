@@ -67,6 +67,26 @@ describe('parseLandingLayout copy del hero', () => {
     expect(layout.hero_formula_en).toBeUndefined();
   });
 
+  it('CMS viejo con grain/bee true → apaga ornamento hasta atmosphere_rev >= 2', () => {
+    const stale = parseLandingLayout({
+      show_grain: true,
+      show_custom_cursor: true,
+      show_bee_canvas: true,
+    });
+    expect(stale.show_grain).toBe(false);
+    expect(stale.show_custom_cursor).toBe(false);
+    expect(stale.show_bee_canvas).toBe(false);
+    expect(stale.atmosphere_rev).toBe(2);
+
+    const opted = parseLandingLayout({
+      atmosphere_rev: 2,
+      show_grain: true,
+      show_bee_canvas: false,
+    });
+    expect(opted.show_grain).toBe(true);
+    expect(opted.show_bee_canvas).toBe(false);
+  });
+
   it('parsea ES + EN y recorta espacios', () => {
     const layout = parseLandingLayout({
       hero_eyebrow: '  Miel Virgen del Sur del Mundo ',

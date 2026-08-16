@@ -353,130 +353,33 @@ export function TiendaLandingView({
         }
 
         if (sec.id === 'conservation') {
+          const trees = ecosystemMetrics.arboles_total;
+          const irr = ecosystemMetrics.irr_ecosistema;
           return (
-        <section key="conservation" data-cms-section="conservation" className="editorial-section bg-surface-raised/50 border-y border-border/30">
-          <div className="editorial-container">
-            <div className="text-center mb-10 md:mb-16">
-              <span className="editorial-kicker mb-4 block">
-                {resolveLocalized(conservation.kicker, conservation.kicker_en, currentLocale) ||
-                  tConservation('kicker') ||
-                  'Conservación demostrable'}
-              </span>
-              <h2 className="font-display text-[clamp(1.75rem,6vw,3rem)] sm:text-4xl md:text-5xl font-light text-foreground mb-4 md:mb-6 text-balance leading-tight">
-                {resolveLocalized(conservation.title, conservation.title_en, currentLocale) ||
-                  tConservation('title') ||
-                  'Impacto sin atajos'}
-              </h2>
-              <p className="text-sm text-muted-foreground italic max-w-2xl mx-auto leading-relaxed">
-                {resolveLocalized(conservation.desc, conservation.desc_en, currentLocale) ||
-                  tConservation('description') ||
-                  'No certificamos con sellos de tercera mano. Nuestro impacto se demuestra por triangulación: papers revisados por pares, datos locales de Chiloé, y cálculos abiertos que cualquier persona puede verificar.'}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-8 sm:gap-8 text-center mb-12 md:mb-16">
-              {[
-                { value: ecosystemMetrics.arboles_total, label: resolveLocalized(conservation.stat1_label, conservation.stat1_label_en, currentLocale) || tConservation('treesPlanted') || 'Árboles plantados', suffix: '+' },
-                { value: ecosystemMetrics.co2_evitado_total_kg, label: resolveLocalized(conservation.stat2_label, conservation.stat2_label_en, currentLocale) || tConservation('co2Avoided') || 'CO₂ evitado (kg)', suffix: '', prefix: '~' },
-                { value: ecosystemMetrics.colmenas_total, label: resolveLocalized(conservation.stat3_label, conservation.stat3_label_en, currentLocale) || tConservation('hivesCustodied') || 'Colmenas custodiadas', suffix: '' },
-                { value: ecosystemMetrics.especies_nativas, label: resolveLocalized(conservation.stat4_label, conservation.stat4_label_en, currentLocale) || tConservation('nativeSpecies') || 'Especies nativas', suffix: '' },
-              ].map((stat) => (
-                <div key={stat.label} className="py-2 sm:py-4 px-1 min-w-0">
-                  <p className="counter-value font-display text-[clamp(1.65rem,6vw,3.75rem)] sm:text-5xl md:text-6xl font-light text-accent-text tabular-nums tracking-tight" data-target={stat.value} data-prefix={stat.prefix || ''} data-suffix={stat.suffix}>
-                    {(stat.prefix || '') +
-                      stat.value.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US') +
-                      (stat.suffix || '')}
-                  </p>
-                  <p className="text-editorial-xs uppercase tracking-widest text-muted-foreground mt-2 sm:mt-3 leading-snug text-balance">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="max-w-3xl mx-auto border-t border-border/20 pt-10 mb-12 md:mb-16">
-              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent-text mb-6 text-center">
-                {resolveLocalized(conservation.tri_label, conservation.tri_label_en, currentLocale) ||
-                  tScience('triangulation') ||
-                  'Triangulación de fuentes'}
-              </p>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="text-center">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text mb-3">
-                    {resolveLocalized(conservation.tri1_label, conservation.tri1_label_en, currentLocale) ||
-                      tScience('peerReviewed') ||
-                      'Papers revisados por pares'}
-                  </p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {resolveLocalized(conservation.tri1_desc, conservation.tri1_desc_en, currentLocale) ||
-                      tScience('peerReviewedDesc') ||
-                      'Secuestro de carbono en bosque templado lluvioso: 10–25 kg CO₂/árbol/año (Schneider et al., 2020; Gutiérrez & Lara, 2022). Actividad antimicrobiana en mieles chilenas comparable a Manuka (Montes et al., 2019).'}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text mb-3">
-                    {resolveLocalized(conservation.tri2_label, conservation.tri2_label_en, currentLocale) ||
-                      tScience('localData') ||
-                      'Datos locales de Chiloé'}
-                  </p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {resolveLocalized(conservation.tri2_desc, conservation.tri2_desc_en, currentLocale) ||
-                      `${ecosystemMetrics.arboles_total.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US')} ${tScience('treesRegistered') || 'árboles registrados'} ${tScience('withCoordinates') || 'con coordenadas y especie'} ${tScience('inSectors') || 'en'} ${ecosystemMetrics.sectores} ${tScience('sectorsOf') || 'sectores de'} Pureo. ${ecosystemMetrics.colmenas_total} ${tScience('hivesMonitored') || 'colmenas monitoreadas'} ${tScience('inApiaries') || 'en apiarios'} ${tScience('between') || 'entre'} Quemchi, Molulco y Pureo-Quelen.`}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text mb-3">
-                    {resolveLocalized(conservation.tri3_label, conservation.tri3_label_en, currentLocale) ||
-                      tScience('openCalculation') ||
-                      'Cálculo abierto'}
-                  </p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {resolveLocalized(conservation.tri3_desc, conservation.tri3_desc_en, currentLocale) ||
-                      `${tScience('openCalculationDesc') || 'IRR = CO₂ capturado / CO₂ emitido. Nuestro ecosistema registra'} ${ecosystemMetrics.irr_ecosistema ? `${ecosystemMetrics.irr_ecosistema}×` : tScience('calculationInProgress') || 'cálculo en proceso'}. ${ecosystemMetrics.anos_legado} ${tScience('yearsOfReforestation') || 'años de reforestación nativa'}. ${tScience('formulaVerifiable') || 'Fórmula y datos verificables en nuestra página de ciencia.'}`}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="max-w-2xl mx-auto text-center border-t border-border/20 pt-10">
-              <p className="font-mono text-[0.7rem] tracking-[0.25em] uppercase text-accent-text mb-4">
-                {resolveLocalized(conservation.irr_label, conservation.irr_label_en, currentLocale) ||
-                  tScience('irrIndex') ||
-                  'Índice de Regeneración Relativa'}
-              </p>
-              {ecosystemMetrics.irr_ecosistema && ecosystemMetrics.irr_ecosistema > 1 ? (
-                <>
-                  <p className="font-display text-2xl md:text-3xl font-light text-foreground tracking-wide">
-                    {resolveLocalized(conservation.irr_pos_title, conservation.irr_pos_title_en, currentLocale) ||
-                      `${tScience('irrPositive') || 'IRR'} ${ecosystemMetrics.irr_ecosistema} · ${tScience('impactGreaterThanFootprint') || 'Impacto > Huella'}`}
-                  </p>
-                  <p className="text-sm text-muted-foreground italic mt-4 max-w-lg mx-auto">
-                    {resolveLocalized(conservation.irr_pos_desc, conservation.irr_pos_desc_en, currentLocale) ||
-                      `${tScience('irrPositiveDesc') || 'El bosque captura'} ${ecosystemMetrics.irr_ecosistema}× ${tScience('moreCO2ThanEmitted') || 'más CO₂ del que la cadena productiva emite.'} ${tScience('verifiableBy') || 'Demostrable por registro forestal + balances de emisión.'}`}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="font-display text-2xl md:text-3xl font-light text-foreground tracking-wide">
-                    {resolveLocalized(conservation.irr_neg_title, conservation.irr_neg_title_en, currentLocale) ||
-                      tScience('irrNegative') ||
-                      'Miel de bosque + Reforestación > Huella de producción'}
-                  </p>
-                  <p className="text-sm text-muted-foreground italic mt-4 max-w-lg mx-auto">
-                    {resolveLocalized(conservation.irr_neg_desc, conservation.irr_neg_desc_en, currentLocale) ||
-                      `${ecosystemMetrics.anos_legado} ${tScience('yearsOfReforestation') || 'años de reforestación nativa.'} ${tScience('eachOrderFunds') || 'Cada pedido financia árboles y sostiene apiarios en bosque nativo entre'} Quemchi, Molulco y Pureo-Quelen.`}
-                  </p>
-                </>
-              )}
-              <div className="flex items-center justify-center gap-6 mt-6">
-                <Link
-                  href="/ciencia"
-                  className="inline-flex min-h-11 items-center rounded-md border border-accent/40 px-4 py-2 text-editorial-xs uppercase tracking-widest text-accent-text hover:bg-accent/10 hover:text-accent/90 transition-colors"
-                >
-                  {resolveLocalized(conservation.cta_label, conservation.cta_label_en, currentLocale) ||
-                    tScience('viewScience') ||
-                    'Ver la ciencia detrás'} →
-                </Link>
-              </div>
-            </div>
+        <section key="conservation" data-cms-section="conservation" className="editorial-section border-y border-border/30">
+          <div className="editorial-container max-w-xl">
+            <h2 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] font-light text-foreground mb-4 text-balance">
+              {resolveLocalized(conservation.title, conservation.title_en, currentLocale) ||
+                tConservation('title') ||
+                'Impacto sin atajos'}
+            </h2>
+            <p className="font-display text-[clamp(2rem,6vw,3.25rem)] font-light text-accent-text tabular-nums leading-none">
+              {trees.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US')}+
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {resolveLocalized(conservation.stat1_label, conservation.stat1_label_en, currentLocale) ||
+                tConservation('treesPlanted') ||
+                'Árboles plantados'}
+              {irr && irr > 1 ? ` · IRR ${irr}×` : ''}
+            </p>
+            <Link
+              href="/ciencia"
+              className="inline-flex min-h-11 items-center mt-6 text-sm text-foreground underline underline-offset-4"
+            >
+              {resolveLocalized(conservation.cta_label, conservation.cta_label_en, currentLocale) ||
+                tScience('viewScience') ||
+                'Ver la ciencia'}
+            </Link>
           </div>
         </section>
           );

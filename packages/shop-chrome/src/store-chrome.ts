@@ -454,6 +454,8 @@ export type LandingLayoutSettings = {
   show_grain: boolean;
   show_custom_cursor: boolean;
   show_bee_canvas: boolean;
+  /** >=2: respeta toggles. <2: fuerza ornamento off (CMS viejo tenía true por default). */
+  atmosphere_rev: number;
   hero_cta_label: string;
   hero_cta_label_en?: string;
   hero_cta_href: string;
@@ -486,6 +488,7 @@ export const DEFAULT_LANDING_LAYOUT: LandingLayoutSettings = {
   show_grain: false,
   show_custom_cursor: false,
   show_bee_canvas: false,
+  atmosphere_rev: 2,
   hero_cta_label: 'Explorar creaciones',
   hero_cta_label_en: 'Explore creations',
   hero_cta_href: '/catalogo',
@@ -761,11 +764,15 @@ export function parseLandingLayout(
     sections = parsed.sort((a, b) => a.order - b.order);
   }
 
+  const atmosphereRev = asNumber(raw.atmosphere_rev, 0, 0, 99);
+  const atmosphereOptIn = atmosphereRev >= 2;
+
   return {
     sections,
-    show_grain: asBool(raw.show_grain, d.show_grain),
-    show_custom_cursor: asBool(raw.show_custom_cursor, d.show_custom_cursor),
-    show_bee_canvas: asBool(raw.show_bee_canvas, d.show_bee_canvas),
+    show_grain: atmosphereOptIn ? asBool(raw.show_grain, false) : false,
+    show_custom_cursor: atmosphereOptIn ? asBool(raw.show_custom_cursor, false) : false,
+    show_bee_canvas: atmosphereOptIn ? asBool(raw.show_bee_canvas, false) : false,
+    atmosphere_rev: atmosphereOptIn ? atmosphereRev : 2,
     hero_cta_label: asString(raw.hero_cta_label, d.hero_cta_label),
     hero_cta_label_en:
       typeof raw.hero_cta_label_en === 'string' ? raw.hero_cta_label_en : d.hero_cta_label_en,

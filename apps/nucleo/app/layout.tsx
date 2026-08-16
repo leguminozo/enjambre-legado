@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Cormorant_Garamond } from "next/font/google";
+import { Source_Sans_3, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers/Providers";
 import { VercelInsights } from "@/components/VercelInsights";
 import { ThemeInitScript, LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevealHarness, NavigationProgressBar } from "@enjambre/ui";
 
-const inter = Inter({
+const sans = Source_Sans_3({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-sans-body",
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -50,7 +51,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${inter.variable} ${cormorant.variable}`} suppressHydrationWarning>
+    <html lang="es" className={`${sans.variable} ${cormorant.variable}`} suppressHydrationWarning>
       <head>
         {/* Antes de los chunks de Next (async): polyfills Safari/iOS 15 + tier legacy (data-legacy) + harness de diagnóstico.
             El harness solo en dev/preview: en producción molesta al operador (basura visual). */}
@@ -59,7 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {process.env.VERCEL_ENV !== 'production' && <ErrorRevealHarness />}
       </head>
       <body
-        className={`${inter.className} bg-background text-foreground antialiased`}
+        className={`${sans.className} bg-background text-foreground antialiased`}
         suppressHydrationWarning
       >
         {/* Antes de React: alinea class light/dark y evita #418 */}

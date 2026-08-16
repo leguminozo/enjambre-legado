@@ -11,7 +11,9 @@
 
     --font-existencial: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
     --font-display: var(--font-cormorant), 'Cormorant Garamond', Georgia, serif;
-    --font-datos: var(--font-inter), 'Inter', system-ui, sans-serif;
+    --font-sans: var(--font-sans-body), 'Source Sans 3', system-ui, sans-serif;
+    --font-datos: var(--font-sans);
+    --font-inter: var(--font-sans);
 
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
