@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { TerritorioLogo } from './TerritorioLogo';
 
 /**
  * Footer público del territorio.
@@ -8,6 +9,13 @@ export function TerritorioFooter() {
   return (
     <footer className="print:hidden border-t border-border/60 bg-background">
       <div className="max-w-5xl mx-auto px-6 sm:px-10 py-14 sm:py-16 flex flex-col items-center gap-8 text-center">
+        <div className="flex items-center gap-2">
+          <TerritorioLogo className="w-9 h-9 text-primary" />
+          <span className="font-existencial text-base font-semibold tracking-tight text-foreground">
+            Registro Apícola Chiloé
+          </span>
+        </div>
+
         <nav
           className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm text-muted-foreground"
           aria-label="Enlaces del pie"

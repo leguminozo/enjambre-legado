@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { TerritorioLogo } from './TerritorioLogo';
 
 /**
- * Header público del territorio — mínimo: marca + mapa + entrar + inscribirse.
+ * Header público del territorio — marca + entrar + inscribirse.
  */
 export function TerritorioHeader() {
   const [scrolled, setScrolled] = useState(false);
@@ -26,37 +27,26 @@ export function TerritorioHeader() {
     >
       <Link
         href="/"
-        className="min-h-11 flex items-center gap-2.5 min-w-0"
+        className="min-h-11 flex items-center gap-2.5 min-w-0 group"
         aria-label="Registro Apícola de Chiloé — inicio"
       >
-        <span
-          aria-hidden
-          className="w-8 h-8 shrink-0 rounded-full bg-primary/15 ring-1 ring-primary/25 flex items-center justify-center text-sm"
-        >
-          🐝
-        </span>
+        <TerritorioLogo className="w-8 h-8 shrink-0 transition-transform duration-300 group-hover:scale-105" />
         <span className="text-sm font-medium tracking-tight text-foreground truncate">
           <span className="hidden sm:inline">Registro Apícola Chiloé</span>
           <span className="sm:hidden">Registro Chiloé</span>
         </span>
       </Link>
 
-      <nav className="flex items-center gap-1 sm:gap-2 shrink-0" aria-label="Navegación pública">
-        <Link
-          href="/mapa-chiloe"
-          className="hidden sm:inline-flex min-h-10 items-center px-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Mapa
-        </Link>
+      <nav className="flex items-center gap-1.5 sm:gap-2 shrink-0" aria-label="Navegación pública">
         <Link
           href="/login"
-          className="inline-flex min-h-10 items-center px-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex min-h-10 items-center px-3.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
           Entrar
         </Link>
         <Link
           href="/login?mode=signup"
-          className="inline-flex min-h-10 items-center justify-center rounded-md bg-primary px-4 sm:px-5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-95"
+          className="inline-flex min-h-10 items-center justify-center rounded-md bg-primary px-4 sm:px-5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-95 shadow-sm"
         >
           Inscribirse
         </Link>

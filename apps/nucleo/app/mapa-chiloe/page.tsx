@@ -255,14 +255,14 @@ function Toggle({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 min-h-9 px-3 py-1.5 rounded-full border transition-colors ${
+      className={`inline-flex items-center gap-1.5 min-h-8 sm:min-h-9 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full border backdrop-blur-md text-[11px] sm:text-xs font-medium transition-all shadow-sm active:scale-[0.98] ${
         active
-          ? 'bg-primary/12 border-primary/35 text-primary shadow-sm'
-          : 'bg-background/90 border-border text-muted-foreground hover:text-foreground'
+          ? 'bg-primary/20 border-primary/45 text-foreground ring-1 ring-primary/25'
+          : 'bg-background/85 border-border/80 text-muted-foreground hover:text-foreground hover:bg-background'
       }`}
     >
       {icon}
-      {label}
+      <span>{label}</span>
     </button>
   );
 }

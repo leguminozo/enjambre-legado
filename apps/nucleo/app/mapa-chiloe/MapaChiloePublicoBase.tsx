@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, Circle, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Circle, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import { Fragment, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
@@ -41,7 +41,7 @@ function FitBounds({ data }: { data: MapaChiloePublico }) {
       ...data.floraciones.map((f) => [f.lat, f.lng] as [number, number]),
     ];
     if (pts.length >= 2) {
-      map.fitBounds(L.latLngBounds(pts), { padding: [40, 40], maxZoom: 11 });
+      map.fitBounds(L.latLngBounds(pts), { padding: [50, 50], maxZoom: 11 });
     }
   }, [data, map]);
   return null;
@@ -63,9 +63,11 @@ export function MapaChiloePublicoBase({
       center={[data.centro.lat, data.centro.lng]}
       zoom={data.centro.zoom}
       scrollWheelZoom
+      zoomControl={false}
       className="h-full w-full z-0"
       style={{ minHeight: 420 }}
     >
+      <ZoomControl position="bottomleft" />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -89,7 +91,7 @@ export function MapaChiloePublicoBase({
               position={[a.lat, a.lng]}
               icon={a.tipo === 'externo' ? ICON_EXT : ICON_PREDIO}
             >
-              <Popup>
+              <Popup autoPan={true} autoPanPadding={[60, 60]} offset={[0, -10]}>
                 <div className="text-sm space-y-1">
                   <p className="font-bold">
                     {a.tipo === 'externo' ? 'Apiario declarado' : 'Predio facilitador'}
@@ -137,7 +139,7 @@ export function MapaChiloePublicoBase({
               }}
             />
             <Marker position={[al.lat, al.lng]} icon={ICON_ALERTA}>
-              <Popup>
+              <Popup autoPan={true} autoPanPadding={[60, 60]} offset={[0, -10]}>
                 <div className="text-sm space-y-1">
                   <p className="font-bold text-destructive">Alerta fitosanitaria</p>
                   <p>
@@ -164,7 +166,7 @@ export function MapaChiloePublicoBase({
       {showFloraciones &&
         data.floraciones.map((f) => (
           <Marker key={f.id} position={[f.lat, f.lng]} icon={ICON_FLOR}>
-            <Popup>
+            <Popup autoPan={true} autoPanPadding={[60, 60]} offset={[0, -10]}>
               <div className="text-sm space-y-1">
                 <p className="font-bold">Floración / estación</p>
                 {f.especie && <p>{f.especie}</p>}
