@@ -8,6 +8,7 @@ import {
   isFieldVisible,
   parseSectionContent,
   resolveSelectControl,
+  selectDisplayValue,
   scanPublicCopyRisks,
   type FieldSchema,
   type PublicCopyRiskKind,
@@ -208,7 +209,7 @@ export function SchemaFieldEditor({
     }
 
     case 'select': {
-      const current = typeof value === 'string' ? value : '';
+      const current = selectDisplayValue(value);
       if (resolveSelectControl(field) === 'segmented') {
         return (
           <div className="flex flex-wrap gap-1.5">
@@ -220,7 +221,7 @@ export function SchemaFieldEditor({
                   onChange(field.valueType === 'number' ? Number(o.value) : o.value)
                 }
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  current === o.value
+                  current === String(o.value)
                     ? 'bg-accent text-accent-foreground shadow-sm'
                     : 'bg-surface-sunken border border-border text-muted-foreground hover:text-foreground hover:border-accent/40'
                 }`}
@@ -242,7 +243,7 @@ export function SchemaFieldEditor({
           className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
         >
           {field.options.map((o) => (
-            <option key={o.value} value={o.value}>
+            <option key={String(o.value)} value={String(o.value)}>
               {o.label}
             </option>
           ))}

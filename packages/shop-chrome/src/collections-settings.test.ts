@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   DEFAULT_COLLECTIONS_SETTINGS,
+  DEFAULT_HOME_COLECCIONES,
   parseCollectionsSettings,
   parseCatalogSettings,
   parseProductsSettings,
@@ -10,6 +11,13 @@ import {
   parseCienciaSettings,
   parseHomeMediaItem,
 } from './store-chrome';
+
+describe('DEFAULT_HOME_COLECCIONES', () => {
+  it('son las 6 tarjetas fijas del home (hasta que haya CMS)', () => {
+    expect(DEFAULT_HOME_COLECCIONES).toHaveLength(6);
+    expect(DEFAULT_HOME_COLECCIONES.every((c) => c.title && c.href)).toBe(true);
+  });
+});
 
 describe('parseCollectionsSettings', () => {
   it('null/undefined → defaults con aspect-ratio 4/3 y fit cover', () => {

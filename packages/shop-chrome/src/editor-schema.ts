@@ -211,6 +211,12 @@ export function isFieldVisible(field: FieldSchema, values: Record<string, unknow
   return 'equals' in rule ? actual === rule.equals : actual !== rule.not_equals;
 }
 
+/** El <select> compara strings. valueType number guarda 3; sin esto el control queda en blanco. */
+export function selectDisplayValue(value: unknown): string {
+  if (value == null || value === '') return '';
+  return String(value);
+}
+
 /** Valor neutral por tipo (los organizativos no producen valor). */
 export function defaultFieldValue(field: FieldSchema): unknown {
   switch (field.type) {

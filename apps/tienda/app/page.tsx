@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getSiteContentBatch, type SiteSectionItem } from '@/lib/cms';
+import { getSiteContentBatch } from '@/lib/cms';
 import { getEcosystemMetrics, type EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { listVisibleProducts, type ShopProduct } from '@/lib/shop/products';
 import { fetchRatingAggregatesByProduct } from '@/lib/shop/catalog-ratings';
@@ -18,6 +18,7 @@ import {
   DEFAULT_PRODUCTS_SETTINGS,
   DEFAULT_VIDEO_SETTINGS,
   DEFAULT_COLLECTIONS_SETTINGS,
+  DEFAULT_HOME_COLECCIONES,
   parseConservationContent,
   parseHomeMediaItem,
   parseMediaSettings,
@@ -30,8 +31,20 @@ import { TiendaLandingView } from './landing-view';
 
 type ColeccionItem = { kicker: string; title: string; desc: string; href: string; image?: string };
 
-function extractContent<T extends Record<string, unknown>>(items: SiteSectionItem[]): T[] {
-  return items.map((item) => item.content as T);
+function normalizeColeccion(raw: Record<string, unknown>): ColeccionItem {
+  const image =
+    typeof raw.image === 'string' && raw.image
+      ? raw.image
+      : typeof raw.url === 'string'
+        ? raw.url
+        : undefined;
+  return {
+    kicker: String(raw.kicker ?? ''),
+    title: String(raw.title ?? raw.titulo ?? ''),
+    desc: String(raw.desc ?? raw.descripcion ?? ''),
+    href: String(raw.href ?? ''),
+    image,
+  };
 }
 
 export const revalidate = 300;
@@ -81,48 +94,14 @@ export default async function TiendaPage({
   ]);
 
   const coleccionesData = cmsBatch.colecciones ?? [];
-
-  const colecciones =
-    coleccionesData.length > 0
-      ? extractContent<ColeccionItem>(coleccionesData)
-      : [
-          {
-            kicker: 'Sachets',
-            title: 'Gotas de Néctar',
-            desc: '¡Lleva contigo la dulzura del bosque! Perfecto tamaño para tus experiencias diarias.',
-            href: '/catalogo?q=Sachet',
-          },
-          {
-            kicker: 'Frascos Medios',
-            title: 'Tesoros del Colmenar',
-            desc: '¡La dulzura boscosa en tu mesa! En tus preparaciones y en cada cucharada.',
-            href: '/catalogo?q=Frasco',
-          },
-          {
-            kicker: 'Frascos Grandes',
-            title: 'Generosidad de la Selva',
-            desc: 'Para quienes el consumo consciente de miel es un ritual cotidiano.',
-            href: '/catalogo?q=Frasco',
-          },
-          {
-            kicker: 'Miel Virgen',
-            title: 'Panal de Bosque',
-            desc: 'El placer de miel, libre de intervenciones. La pureza del néctar. Huella directa del cosmos.',
-            href: '/catalogo?q=Miel',
-          },
-          {
-            kicker: 'Cajas de Sachets',
-            title: 'Cofres del Enjambre',
-            desc: '20 Sachets para disfrutar, compartir, recordar. El bosque a tu ritmo de vida.',
-            href: '/catalogo?q=Sachet',
-          },
-          {
-            kicker: 'Suscripciones',
-            title: 'Legado del Bosque',
-            desc: 'La búsqueda de legado y regeneración desde el sur del planeta. Disfruta de nuestras creaciones en su máximo esplendor.',
-            href: '/catalogo?q=Suscripcion',
-          },
-        ];
+  const coleccionesCms = coleccionesData.map((row) =>
+    normalizeColeccion(row.content as Record<string, unknown>),
+  );
+  const coleccionesHabitadas = coleccionesCms.filter(
+    (c) => c.title.trim() || c.kicker.trim() || Boolean(c.image),
+  );
+  // Borradores vacíos no deben tumbar las 6 tarjetas fijas de la tienda pública.
+  const colecciones = coleccionesHabitadas.length > 0 ? coleccionesCms : [...DEFAULT_HOME_COLECCIONES];
 
   const collectionsSettings: CollectionsSettings = cmsBatch.collections_settings?.[0]
     ? parseCollectionsSettings(cmsBatch.collections_settings[0].content as Record<string, unknown>)

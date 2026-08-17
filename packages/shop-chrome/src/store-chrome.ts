@@ -531,6 +531,54 @@ export const DEFAULT_COLLECTIONS_SETTINGS: CollectionsSettings = {
   grid_columns: 3,
 };
 
+/** Tarjetas del home si no hay filas CMS. La primera ficha en el editor pisa esta lista. */
+export type HomeColeccionCard = {
+  kicker: string;
+  title: string;
+  desc: string;
+  href: string;
+  image?: string;
+};
+
+export const DEFAULT_HOME_COLECCIONES: readonly HomeColeccionCard[] = [
+  {
+    kicker: 'Sachets',
+    title: 'Gotas de Néctar',
+    desc: '¡Lleva contigo la dulzura del bosque! Perfecto tamaño para tus experiencias diarias.',
+    href: '/catalogo?q=Sachet',
+  },
+  {
+    kicker: 'Frascos Medios',
+    title: 'Tesoros del Colmenar',
+    desc: '¡La dulzura boscosa en tu mesa! En tus preparaciones y en cada cucharada.',
+    href: '/catalogo?q=Frasco',
+  },
+  {
+    kicker: 'Frascos Grandes',
+    title: 'Generosidad de la Selva',
+    desc: 'Para quienes el consumo consciente de miel es un ritual cotidiano.',
+    href: '/catalogo?q=Frasco',
+  },
+  {
+    kicker: 'Miel Virgen',
+    title: 'Panal de Bosque',
+    desc: 'El placer de miel, libre de intervenciones. La pureza del néctar. Huella directa del cosmos.',
+    href: '/catalogo?q=Miel',
+  },
+  {
+    kicker: 'Cajas de Sachets',
+    title: 'Cofres del Enjambre',
+    desc: '20 Sachets para disfrutar, compartir, recordar. El bosque a tu ritmo de vida.',
+    href: '/catalogo?q=Sachet',
+  },
+  {
+    kicker: 'Suscripciones',
+    title: 'Legado del Bosque',
+    desc: 'La búsqueda de legado y regeneración desde el sur del planeta. Disfruta de nuestras creaciones en su máximo esplendor.',
+    href: '/catalogo?q=Suscripcion',
+  },
+];
+
 export type GaleriaSettings = {
   kicker: string;
   kicker_en?: string;

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   clampRangeValue,
   defaultFieldValue,
+  selectDisplayValue,
   isFieldVisible,
   parseSectionContent,
   resolveSelectControl,
@@ -86,6 +87,14 @@ describe('isFieldVisible', () => {
 
   it('not_equals', () => {
     expect(isFieldVisible({ type: 'text', id: 'x', label: 'X', visible_if: { field: 'type', not_equals: 'video' } }, { type: 'image' })).toBe(true);
+  });
+});
+
+describe('selectDisplayValue', () => {
+  it('un select numérico (columnas del grid) se muestra como string', () => {
+    expect(selectDisplayValue(3)).toBe('3');
+    expect(selectDisplayValue('3')).toBe('3');
+    expect(selectDisplayValue(undefined)).toBe('');
   });
 });
 

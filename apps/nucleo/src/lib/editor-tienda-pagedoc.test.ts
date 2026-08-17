@@ -64,6 +64,7 @@ describe('storeOpsFromPageDoc', () => {
       row('m1', 'media_items', 1, { type: 'image', src: 'a.jpg' }),
       row('ms', 'media_settings', 1, { carousel_height: '50vh/70vh' }),
       row('co', 'conservation_content', 1, { kicker: 'X' }),
+      row('cs', 'collections_settings', 1, {}), // colecciones es pair → formato propio
       row('ps', 'products_settings', 1, {}),
       row('vs', 'video_settings', 1, {}),
       row('mp', 'map_settings', 1, {}),
@@ -82,6 +83,7 @@ describe('storeOpsFromPageDoc', () => {
       row('m2', 'media_items', 2, { type: 'image', src: 'b.jpg' }),
       row('ms', 'media_settings', 1, { carousel_height: '50vh/70vh' }),
       row('co', 'conservation_content', 1, {}),
+      row('cs', 'collections_settings', 1, {}), // colecciones es pair → formato propio
       row('ps', 'products_settings', 1, {}),
       row('vs', 'video_settings', 1, {}),
       row('mp', 'map_settings', 1, {}),

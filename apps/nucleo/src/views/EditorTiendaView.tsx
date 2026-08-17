@@ -108,6 +108,8 @@ import {
   type FieldSchema,
   type LandingSectionId,
   LANDING_SECTION_EDITOR_KEY,
+  LANDING_SECTION_LABELS,
+  DEFAULT_HOME_COLECCIONES,
   scanPublicCopyRisks,
 } from '@/lib/store-chrome';
 
@@ -358,11 +360,11 @@ const SECTION_META: Record<
     hint: 'Título y descripción de la sección',
   },
   collections_settings: {
-    label: 'Colecciones — Formato y Cabecera',
+    label: 'Colecciones — Cabecera y grilla',
     short: 'Colecciones',
     icon: Layers,
     group: 'home',
-    hint: 'Título, relación de aspecto y formato de tarjetas',
+    hint: 'Título del bloque, columnas y encuadre de las fotos',
   },
   galeria_settings: {
     label: 'Galería — Formato y Cabecera',
@@ -446,7 +448,7 @@ const SECTION_META: Record<
     short: 'Colecciones',
     icon: Layers,
     group: 'contenido',
-    hint: 'Tarjetas del home + formato',
+    hint: 'Tarjetas del grid del home',
   },
   talleres: {
     label: 'Talleres',
@@ -1237,7 +1239,16 @@ function EditableItemCard({
           {fields ? (
             <SchemaFormFields
               fields={fields}
-              values={localContent}
+              values={
+                activeSection === 'colecciones'
+                  ? {
+                      ...localContent,
+                      title: localContent.title || localContent.titulo,
+                      desc: localContent.desc || localContent.descripcion,
+                      image: localContent.image || localContent.url,
+                    }
+                  : localContent
+              }
               onChange={handleFieldChange}
               onImageUpload={handleSchemaImage}
               onImageUploaded={handleSchemaImageUploaded}
@@ -1616,6 +1627,8 @@ interface ItemsPanelProps {
   companionSettingsItem?: CMSContentItem | null;
   onInitCompanion?: () => void;
   onOpenSection?: (sectionKey: string) => void;
+  onSeedColecciones?: () => void;
+  seedingColecciones?: boolean;
 }
 
 function ItemsPanel({
@@ -1637,6 +1650,8 @@ function ItemsPanel({
   companionSettingsItem,
   onInitCompanion,
   onOpenSection,
+  onSeedColecciones,
+  seedingColecciones,
 }: ItemsPanelProps) {
   const handleMoveUp = (index: number) => {
     if (index === 0 || !onReorder) return;
@@ -1725,7 +1740,9 @@ function ItemsPanel({
         <div className="rounded-xl border border-border bg-background overflow-hidden">
           <div className="px-3 py-2 border-b border-border bg-surface-raised flex items-center justify-between gap-2">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Formato de este bloque
+              {activeSection === 'colecciones'
+                ? 'Cabecera y grilla — se publica sola'
+                : 'Formato de este bloque'}
             </p>
             {companionSettingsItem?.draft_content != null ? (
               <div className="flex items-center gap-1.5">
@@ -1974,6 +1991,35 @@ function ItemsPanel({
                 onDuplicate={onDuplicate ? () => onDuplicate(item) : undefined}
               />
             ))}
+          </div>
+        ) : activeSection === 'colecciones' ? (
+          <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center space-y-3">
+            <p className="text-sm text-foreground">
+              La tienda muestra 6 tarjetas fijas hasta que exista una ficha acá.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              La primera tarjeta CMS reemplaza esas 6. Traé las de la tienda y editálas, o creá una vacía.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
+              {onSeedColecciones ? (
+                <button
+                  type="button"
+                  onClick={onSeedColecciones}
+                  disabled={seedingColecciones}
+                  className="inline-flex min-h-11 items-center px-3 rounded-lg border border-accent/40 bg-accent/10 text-accent text-sm font-medium disabled:opacity-50"
+                >
+                  {seedingColecciones ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
+                  Traer las 6 de la tienda
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={onAddNew}
+                className="inline-flex min-h-11 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                Añadir una vacía
+              </button>
+            </div>
           </div>
         ) : (
           <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl">
@@ -2654,6 +2700,27 @@ function EditorTiendaViewInner() {
     );
   };
 
+  const handleSeedColecciones = () => {
+    void (async () => {
+      try {
+        await Promise.all(
+          DEFAULT_HOME_COLECCIONES.map((card, index) =>
+            cms.createItem.mutateAsync({
+              section_key: 'colecciones',
+              content: { ...card },
+              item_order: index + 1,
+              locale: editorLocale,
+            }),
+          ),
+        );
+        toast('6 tarjetas listas — publicá para que la tienda deje el texto fijo', { type: 'success' });
+        refreshIframe();
+      } catch (err) {
+        toast(err instanceof Error ? err.message : 'No se pudieron crear las tarjetas', { type: 'error' });
+      }
+    })();
+  };
+
   const handleInitCompanion = () => {
     if (!companionSettingsKey) return;
     const template = SECTION_TEMPLATES[companionSettingsKey] ?? {};
@@ -3064,6 +3131,7 @@ function EditorTiendaViewInner() {
                 <p className="text-sm font-bold text-foreground truncate">Inicio</p>
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-4">
+                {selectedHomeNode === 'hero' || selectedHomeNode === 'atmosphere' ? (
                 <LandingLayoutEditor
                   workspace
                   selectedNode={selectedHomeNode}
@@ -3107,12 +3175,34 @@ function EditorTiendaViewInner() {
                     }
                   }}
                 />
-                {selectedHomeNode !== 'hero' && selectedHomeNode !== 'atmosphere' ? (
-                  <ItemsPanel
+                ) : (
+                  <>
+                <div className="flex flex-wrap gap-1">
+                  {(Object.keys(LANDING_SECTION_LABELS) as LandingSectionId[]).map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => selectHomeNode(id)}
+                      className={`min-h-9 rounded-full border px-2.5 text-[11px] font-medium ${
+                        selectedHomeNode === id
+                          ? 'border-accent bg-accent/10 text-foreground'
+                          : 'border-border bg-background text-muted-foreground'
+                      }`}
+                    >
+                      {LANDING_SECTION_LABELS[id]}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => selectHomeNode('hero')}
+                    className="min-h-9 rounded-full border border-border px-2.5 text-[11px] font-medium text-muted-foreground"
+                  >
+                    Orden
+                  </button>
+                </div>
+                <ItemsPanel
                     items={currentItems}
                     activeSection={activeSection}
-                    onBack={() => selectHomeNode('hero')}
-                    backLabel="Árbol"
                     onUpdate={handleUpdateItem}
                     onDelete={handleDeleteItem}
                     onPublish={handlePublishItem}
@@ -3126,11 +3216,14 @@ function EditorTiendaViewInner() {
                     companionSettingsKey={companionSettingsKey}
                     companionSettingsItem={companionSettingsItem}
                     onInitCompanion={handleInitCompanion}
+                    onSeedColecciones={handleSeedColecciones}
+                    seedingColecciones={cms.createItem.isPending}
                     onOpenSection={(key) => {
                       setActiveSection(navVisibleSectionKey(key));
                     }}
                   />
-                ) : null}
+                  </>
+                )}
               </div>
             </div>
           ) : navDrill === 'page' ? (
