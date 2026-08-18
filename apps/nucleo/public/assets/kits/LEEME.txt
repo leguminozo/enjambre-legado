@@ -1,0 +1,31 @@
+Registro municipal vacío — Kit de Chiloé
+========================================
+
+Planilla para partir en papel o en Excel. Las columnas son las que ya usa
+el Registro Territorial (no es un formato SAG oficial).
+
+tipo
+  actor | apiario | trashumante | alerta
+
+rol (si tipo = actor)
+  api_residente | api_trashumante | api_mixto | institucion_publica
+  predio_facilitador | agricultor | comercializador
+
+comuna
+  Una de: Ancud, Castro, Chonchi, Curaco de Vélez, Dalcahue,
+  Puqueldón, Queilén, Quellón, Quemchi, Quinchao.
+
+zona
+  Localidad o sector. No reemplaza coordenadas.
+
+n_colmenas
+  Entero. En el mapa público se muestra como banda, no como número exacto.
+
+categoria (apiario)
+  fijo | trashumante | mixto  (según el formulario vigente)
+
+No pongas GPS exacto en esta planilla si la vas a compartir por correo.
+El sistema guarda coordenadas aproximadas solo con consentimiento.
+
+Fuente: Registro Territorial Apícola de Chiloé.
+Proveedor tecnológico: La Obrera y el Zángano.

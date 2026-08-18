@@ -51,8 +51,8 @@ export function CensoStats({ initialStats, variant = 'prose' }: CensoStatsProps)
   if (variant === 'strip') {
     if (!stats || (stats.actores_activos === 0 && stats.apiarios_activos === 0)) {
       return (
-        <p className="text-sm text-muted-foreground">
-          Aún casi no hay registros. Tiene sentido ser de los que empiezan.
+        <p className="text-sm text-muted-foreground" role="status">
+          Censo fundacional abierto. Aún casi no hay registros.
         </p>
       );
     }
@@ -82,14 +82,14 @@ export function CensoStats({ initialStats, variant = 'prose' }: CensoStatsProps)
 
     if (items.length === 0) {
       return (
-        <p className="text-sm text-muted-foreground">
-          Aún casi no hay registros. Tiene sentido ser de los que empiezan.
+        <p className="text-sm text-muted-foreground" role="status">
+          Censo fundacional abierto. Aún casi no hay registros.
         </p>
       );
     }
 
     return (
-      <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
+      <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3" role="status" aria-live="polite">
         {items.map((item) => (
           <div key={item.label}>
             <p
@@ -109,10 +109,8 @@ export function CensoStats({ initialStats, variant = 'prose' }: CensoStatsProps)
 
   if (!stats) {
     return (
-      <p className="text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">
-          Aún casi no hay registros. Tiene sentido ser de los que empiezan.
-        </span>
+      <p className="text-sm text-muted-foreground" role="status">
+        <span className="font-medium text-foreground">Censo fundacional abierto.</span>
       </p>
     );
   }
@@ -148,10 +146,9 @@ export function CensoStats({ initialStats, variant = 'prose' }: CensoStatsProps)
   }
 
   return (
-    <p className="text-sm text-muted-foreground">
-      <span className="font-medium text-foreground">
-        Aún casi no hay registros. Tiene sentido ser de los que empiezan.
-      </span>
+    <p className="text-sm text-muted-foreground" role="status">
+      <span className="font-medium text-foreground">Censo fundacional abierto.</span>
+      {' '}Aún casi no hay registros.
     </p>
   );
 }

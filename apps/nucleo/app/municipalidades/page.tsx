@@ -3,6 +3,7 @@ import { ArrowRight, ExternalLink, Building2, ShieldCheck } from 'lucide-react';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 import { PrintButton } from '@/components/territorio/PrintButton';
+import { ContactoInstitucionalForm } from '@/components/territorio/ContactoInstitucionalForm';
 
 export const metadata = {
   title: 'Municipalidades — Registro Municipal de Actividad Apícola | Registro Territorial de Chiloé',
@@ -14,9 +15,6 @@ export const metadata = {
  * Propuesta B2G de una página (Documento 2) en versión web. Doble uso:
  * página pública de marketing institucional + PDF imprimible (Cmd/Ctrl+P)
  * para llevar a la reunión con SECPLAC / Fomento Productivo.
- *
- * TODO pendiente del dueño: completar los datos de contacto reales
- * (nombre, WhatsApp, correo) donde aparecen los placeholders.
  */
 const FUENTES_FINANCIAMIENTO = [
   {
@@ -81,10 +79,16 @@ export default function MunicipalidadesPage() {
           <div className="flex flex-wrap items-center gap-3 mb-10">
             <PrintButton />
             <Link
-              href="/impacto"
+              href="/municipalidades/kit"
               className="inline-flex min-h-11 items-center gap-2 px-5 border border-border bg-surface-raised hover:bg-surface-sunken text-foreground rounded-xl text-sm font-medium transition-colors"
             >
-              Ver datos de impacto verificable
+              Kit municipal
+            </Link>
+            <Link
+              href="/comuna"
+              className="inline-flex min-h-11 items-center gap-2 px-5 border border-border bg-surface-raised hover:bg-surface-sunken text-foreground rounded-xl text-sm font-medium transition-colors"
+            >
+              Informe por comuna
             </Link>
           </div>
 
@@ -260,7 +264,16 @@ export default function MunicipalidadesPage() {
               </thead>
               <tbody className="divide-y divide-border text-muted-foreground">
                 <tr>
-                  <td className="px-4 py-3 align-top text-foreground">Ley N° 21.489</td>
+                  <td className="px-4 py-3 align-top text-foreground">
+                    <a
+                      href="https://www.bcn.cl/leychile/navegar?idNorma=1182623"
+                      className="underline underline-offset-4"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Ley N° 21.489
+                    </a>
+                  </td>
                   <td className="px-4 py-3 align-top">Actividad + registro SAG. No pide hectáreas.</td>
                   <td className="px-4 py-3 align-top">Censo territorial voluntario de quien declara apiarios.</td>
                 </tr>
@@ -321,8 +334,13 @@ export default function MunicipalidadesPage() {
             Una reunión de 30 minutos con SECPLAC / Fomento Productivo: mostramos el dashboard
             funcionando con datos reales de la isla y dejamos la ficha técnica lista para postular.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <PrintButton />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 print:hidden">
+            <Link
+              href="#contacto"
+              className="inline-flex min-h-12 items-center justify-center px-8 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-95"
+            >
+              Solicitar presentación
+            </Link>
             <Link
               href="/mapa-chiloe"
               className="inline-flex min-h-12 items-center justify-center gap-2 px-8 border border-border text-foreground rounded-xl font-medium hover:bg-surface-sunken"
@@ -330,12 +348,21 @@ export default function MunicipalidadesPage() {
               Ver mapa público
               <ArrowRight className="w-4 h-4" />
             </Link>
+            <PrintButton />
           </div>
           <p className="mt-6 text-xs text-muted-foreground">
             La Obrera y el Zángano · Chiloé · proveedor tecnológico de la red. Imprime esta página
-            para la mesa (SECPLAC / Fomento). Contacto directo: el que ya tienen con nosotros, no
-            un formulario fantasma.
+            para la mesa (SECPLAC / Fomento).
           </p>
+        </div>
+      </section>
+
+      <section
+        id="contacto"
+        className="bg-background py-16 px-6 sm:px-12 lg:px-24 border-t border-border print:hidden"
+      >
+        <div className="max-w-4xl mx-auto">
+          <ContactoInstitucionalForm />
         </div>
       </section>
 

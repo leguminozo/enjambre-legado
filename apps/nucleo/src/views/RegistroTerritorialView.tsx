@@ -22,6 +22,7 @@ const MapaTerritorial = dynamic(
 
 import { PredioForm } from '@/components/apicultor/PredioForm';
 import { Map, Truck } from 'lucide-react';
+import { resolveComunaChiloe, slugifyComuna } from '@/lib/chiloe-comunas';
 
 type Tab = 'resumen' | 'mapa' | 'actores' | 'alertas' | 'predios' | 'trashumantes' | 'comunas';
 
@@ -544,12 +545,23 @@ export function RegistroTerritorialView() {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">
-                Agregados por comuna del Registro Territorial.
+                Agregados por comuna del Registro Territorial. El CSV autenticado incluye el total
+                de colmenas; el informe público lo oculta si hay menos de tres apiarios.
               </p>
-              <Button size="sm" variant="outline" onClick={() => void exportCsv()}>
-                <Download className="w-4 h-4 mr-2" />
-                Exportar CSV
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <a
+                  href="/comuna"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-9 items-center px-3 border border-border rounded-md text-sm hover:bg-surface-sunken"
+                >
+                  Informe público
+                </a>
+                <Button size="sm" variant="outline" onClick={() => void exportCsv()}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar CSV
+                </Button>
+              </div>
             </div>
             {loadingComunas ? (
               <div className="flex justify-center py-12"><Spinner /></div>
@@ -575,7 +587,18 @@ export function RegistroTerritorialView() {
                   <tbody>
                     {comunas.map((c) => (
                       <tr key={c.comuna} className="border-b border-border/50 last:border-0">
-                        <td className="p-3 font-medium text-foreground">{c.comuna}</td>
+                        <td className="p-3 font-medium text-foreground">
+                          {resolveComunaChiloe(c.comuna) ? (
+                            <a
+                              href={`/comuna/${resolveComunaChiloe(c.comuna)?.slug ?? slugifyComuna(c.comuna)}`}
+                              className="underline underline-offset-4"
+                            >
+                              {c.comuna}
+                            </a>
+                          ) : (
+                            c.comuna
+                          )}
+                        </td>
                         <td className="p-3">{c.actores_activos}</td>
                         <td className="p-3">{c.apiarios}</td>
                         <td className="p-3">{c.colmenas.toLocaleString('es-CL')}</td>

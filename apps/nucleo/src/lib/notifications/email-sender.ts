@@ -4,6 +4,7 @@ export async function sendNotificationEmail(
   recipient: string,
   subject: string,
   body: string,
+  options?: { replyTo?: string },
 ): Promise<{ success: boolean; response: Record<string, unknown> }> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -19,6 +20,7 @@ export async function sendNotificationEmail(
     to: recipient,
     subject,
     html: body,
+    ...(options?.replyTo ? { replyTo: options.replyTo } : {}),
   });
 
   if (error) {

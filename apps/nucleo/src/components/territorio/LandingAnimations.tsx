@@ -107,27 +107,22 @@ export function LandingAnimations({ children }: LandingAnimationsProps) {
                   const target = parseFloat(targetStr);
                   if (isNaN(target) || target <= 0) return;
 
-                  gsap.fromTo(
-                    counter,
-                    { innerHTML: 0 },
-                    {
-                      innerHTML: target,
-                      duration: 1.8,
-                      ease: 'power2.out',
-                      snap: { innerHTML: 1 },
-                      onUpdate: function () {
-                        const val = Math.round(Number(this.targets()[0].innerHTML));
-                        counter.innerHTML = val.toLocaleString('es-CL');
-                      },
-                    }
-                  );
+                  const proxy = { n: 0 };
+                  gsap.to(proxy, {
+                    n: target,
+                    duration: 1.8,
+                    ease: 'power2.out',
+                    onUpdate: () => {
+                      counter.textContent = Math.round(proxy.n).toLocaleString('es-CL');
+                    },
+                  });
                 });
               },
             });
           }
 
           // 3. ScrollTrigger para secciones generales
-          const sectionIds = ['#privacy', '#why', '#how', '#origin', '#faq', '#close'];
+          const sectionIds = ['#privacy', '#why', '#how', '#origin', '#institucional', '#faq', '#close'];
           sectionIds.forEach((secId) => {
             const sectionEl = container.querySelector(secId);
             if (!sectionEl) return;

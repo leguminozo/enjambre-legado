@@ -53,6 +53,12 @@ export default async function RedApicolaLanding() {
 
   return (
     <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground flex flex-col">
+      <a
+        href="#hero"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[80] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:text-primary-foreground"
+      >
+        Saltar al contenido
+      </a>
       <TerritorioHeader />
 
       <LandingAnimations>
@@ -71,7 +77,7 @@ export default async function RedApicolaLanding() {
                   Falta que esté en el mapa.
                 </span>
               </h1>
-              <p className="hero-body text-base text-muted-foreground leading-relaxed text-pretty max-w-md mb-8 font-light">
+              <p className="hero-body text-base text-muted-foreground leading-relaxed text-pretty max-w-md mb-8">
                 Inscribe tus apiarios. El mapa muestra zonas aproximadas, nunca tu punto exacto.
                 El registro básico es gratis. La Red ordena el territorio; no reemplaza al SAG ni a
                 la municipalidad.
@@ -103,7 +109,7 @@ export default async function RedApicolaLanding() {
               <div className="relative overflow-hidden rounded-lg bg-surface-sunken ring-1 ring-border/50 shadow-md">
                 <iframe
                   src="/mapa-chiloe?embed=1"
-                  title="Mapa apícola público de Chiloé"
+                  title="Mapa apícola público de Chiloé: zonas aproximadas, sin nombres"
                   loading="lazy"
                   className="w-full h-[min(50vh,460px)] lg:h-[500px] bg-surface-sunken border-0"
                   referrerPolicy="no-referrer-when-downgrade"
@@ -139,7 +145,7 @@ export default async function RedApicolaLanding() {
               <h2 className="section-reveal text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-3 font-existencial">
                 Tu ubicación exacta no se publica.
               </h2>
-              <p className="section-reveal text-muted-foreground font-light leading-relaxed text-base sm:text-lg">
+              <p className="section-reveal text-muted-foreground leading-relaxed text-base sm:text-lg">
                 El mapa público muestra zonas aproximadas de pecoreo, sin RUT, nombres ni contactos.
                 Tus coordenadas exactas y tus registros de manejo permanecen privados.{' '}
                 <Link href="/mapa-chiloe" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
@@ -196,7 +202,7 @@ export default async function RedApicolaLanding() {
                     <h3 className="text-lg sm:text-xl font-medium text-foreground mb-2 tracking-tight font-existencial">
                       {item.title}
                     </h3>
-                    <p className="text-muted-foreground font-light leading-relaxed text-[0.95rem] sm:text-base">
+                    <p className="text-muted-foreground leading-relaxed text-[0.95rem] sm:text-base">
                       {item.body}
                     </p>
                   </div>
@@ -216,7 +222,7 @@ export default async function RedApicolaLanding() {
               <h2 className="section-reveal text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-foreground mb-3 font-existencial">
                 Cómo se hace
               </h2>
-              <p className="section-reveal text-muted-foreground font-light text-base sm:text-lg leading-relaxed">
+              <p className="section-reveal text-muted-foreground text-base sm:text-lg leading-relaxed">
                 Tres pasos simples. Si no te llevas bien con el computador, te ayudamos en persona.
               </p>
             </div>
@@ -247,7 +253,7 @@ export default async function RedApicolaLanding() {
                     <h3 className="text-lg font-medium text-foreground tracking-tight mb-1 font-existencial">
                       {s.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground font-light leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       {s.body}
                     </p>
                   </div>
@@ -263,14 +269,14 @@ export default async function RedApicolaLanding() {
             <div className="section-reveal lg:col-span-5 relative aspect-[4/5] sm:aspect-[5/4] lg:aspect-[4/5] rounded-lg overflow-hidden ring-1 ring-border/50 shadow-md">
               <Image
                 src="/assets/auth-bg.png"
-                alt="Bosque nativo de Chiloé en zona de pecoreo"
+                alt="Bosque nativo con musgo y helechos, ilustración de zona de pecoreo"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 40vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent flex items-end p-6 sm:p-8">
-                <p className="font-existencial text-2xl sm:text-3xl italic text-foreground leading-snug max-w-[14ch] drop-shadow-sm">
-                  Bosque nativo entre Pureo, Quemchi y Queilén.
+                <p className="font-existencial text-2xl sm:text-3xl italic text-foreground leading-snug max-w-[16ch] drop-shadow-sm">
+                  Bosque nativo de Chiloé.
                 </p>
               </div>
             </div>
@@ -282,7 +288,7 @@ export default async function RedApicolaLanding() {
               <h2 className="section-reveal font-existencial text-3xl sm:text-4xl font-semibold tracking-tight text-foreground mb-5">
                 Hecho en Chiloé
               </h2>
-              <p className="section-reveal text-muted-foreground font-light leading-relaxed text-base sm:text-lg mb-5">
+              <p className="section-reveal text-muted-foreground leading-relaxed text-base sm:text-lg mb-5">
                 Nació en una apicultura real de la isla: La Obrera y el Zángano, más de veinte años
                 con bosque nativo. La misma herramienta con la que ordenamos nuestros apiarios es la
                 que abrimos a toda la isla.
@@ -305,12 +311,20 @@ export default async function RedApicolaLanding() {
               ¿Trabajas en una municipalidad, INDAP, SAG o institución pública? El modelo
               territorial es otra página. Esta home es para quien tiene colmenas.
             </p>
-            <Link
-              href="/municipalidades"
-              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md border border-border px-4 text-sm font-medium text-foreground hover:bg-background transition-colors"
-            >
-              Ver propuesta para instituciones
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+              <Link
+                href="/municipalidades"
+                className="inline-flex min-h-11 items-center justify-center rounded-md border border-border px-4 text-sm font-medium text-foreground hover:bg-background transition-colors"
+              >
+                Ver propuesta para instituciones
+              </Link>
+              <Link
+                href="/municipalidades/kit"
+                className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Kit para la mesa
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -357,7 +371,7 @@ export default async function RedApicolaLanding() {
                   key={q}
                   className="section-reveal faq-item group rounded-md border border-border/60 bg-surface-sunken/40 px-5 py-4 transition-colors hover:border-border"
                 >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[0.95rem] font-medium text-foreground">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-[0.95rem] font-medium text-foreground rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                     <span>{q}</span>
                     <span
                       className="text-muted-foreground text-xl leading-none transition-transform duration-200 group-open:rotate-45 shrink-0"
@@ -366,7 +380,7 @@ export default async function RedApicolaLanding() {
                       +
                     </span>
                   </summary>
-                  <p className="mt-3 pr-6 text-sm text-muted-foreground font-light leading-relaxed">
+                  <p className="mt-3 pr-6 text-sm text-muted-foreground leading-relaxed">
                     {a}
                   </p>
                 </details>
@@ -393,7 +407,7 @@ export default async function RedApicolaLanding() {
             <h2 className="section-reveal font-existencial text-3xl sm:text-4xl font-semibold tracking-tight text-foreground text-balance mb-4">
               El censo cierra el {cierre}
             </h2>
-            <p className="section-reveal text-muted-foreground font-light leading-relaxed mb-8 text-base sm:text-lg">
+            <p className="section-reveal text-muted-foreground leading-relaxed mb-8 text-base sm:text-lg">
               Tu zona de pecoreo empieza a existir en el mapa cuando la inscribes. Si quieres, te
               ayudamos a hacerlo en persona.
             </p>

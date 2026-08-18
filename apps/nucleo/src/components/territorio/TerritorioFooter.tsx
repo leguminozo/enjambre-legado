@@ -35,6 +35,12 @@ export function TerritorioFooter() {
           <Link href="/municipalidades" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Municipalidades
           </Link>
+          <Link href="/comuna" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
+            Informes comunales
+          </Link>
+          <Link href="/municipalidades/kit" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
+            Kit
+          </Link>
           <Link href="/#faq" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Preguntas
           </Link>
